@@ -72,16 +72,22 @@ fn open_sink() -> Result<MixerDeviceSink, String> {
     let devices = rodio::cpal::traits::HostTrait::output_devices(&host)
         .map_err(|error| format!("The application cannot read the sound cards: {}", error))?;
 
+    let mut known: Vec<String> = Vec::new();
+
     for device in devices {
-        // `name()` is deprecated. `description()` gives the name of the
-        // device and more data about it.
-        let name = match rodio::DeviceTrait::description(&device) {
-            Ok(description) => description.name().to_string(),
+        // `id()` gives a stable identifier, and it has the form
+        // `alsa:null`. `name()` is deprecated. Therefore the comparison uses
+        // the identifier, and it also accepts the part after the colon.
+        let id = match rodio::DeviceTrait::id(&device) {
+            Ok(id) => id.to_string(),
             Err(_) => continue,
         };
 
-        if name == wanted {
-            info!("[worker] the application uses the sound device {}", name);
+        let short = id.rsplit(':').next().unwrap_or(&id).to_string();
+        known.push(id.clone());
+
+        if id == wanted || short == wanted {
+            info!("[worker] the application uses the sound device {}", id);
 
             return DeviceSinkBuilder::from_device(device)
                 .and_then(|builder| builder.open_stream())
@@ -93,8 +99,10 @@ fn open_sink() -> Result<MixerDeviceSink, String> {
 
     Err(format!(
         "The application cannot find the sound device {}. Remove the variable \
-         {} to use the default device.",
-        wanted, DEVICE_VARIABLE
+         {} to use the default device. These devices are available: {}.",
+        wanted,
+        DEVICE_VARIABLE,
+        known.join(", ")
     ))
 }
 
