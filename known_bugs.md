@@ -1,8 +1,23 @@
 **MAJOR**
 
-No major bug for the moment 🙏
+`bug_id: 7f2c10`
+**Offline mode does not play a book:** The server sends a ZIP archive from
+`GET /api/items/:id/download`. It sends a ZIP archive for every book, also for
+a book that has one audio file. The application writes the archive to the disk
+and records the path of the archive in the `downloads` table. Then it gives
+that path to VLC. VLC cannot play a ZIP archive. Therefore no downloaded book
+plays.
+The application must open the archive, take the audio files, and record the
+path of the audio file.
+Measured on Audiobookshelf 2.36.0 on 2026-08-09. The archive of the test book
+contains `Cover.jpg` and one `.mp3` file.
 
 **MINOR**
+
+`bug_id: 3a91e7`
+**Descriptions show HTML:** The description panel shows the HTML tags of the
+description. An example is `<p>`, `<i>`, and `&amp;`. The application must
+remove the tags and change the HTML entities to characters.
 
 `bug_id: 255b86`
 **Losing config after an update**: Ex: You change colors in config file and after an update, this configuration is lost and replaced by the config from main version.
@@ -33,6 +48,10 @@ No major bug for the moment 🙏
 **Launch a new media**: Have to close manually VLC to close and sync a session.  
 `bug_id: 3f729c` 
 **Loading time**: for now, not optimized for a library with a lot of items (long start loading and refresh time)  
+NOTE 2026-08-09: this bug did not occur in a test with a library of 2056 items
+on Audiobookshelf 2.36.0. The first screen appeared after 0.4 seconds. The API
+gave all 2056 items in 0.48 seconds. Examine this bug again before you do work
+on it.  
 `bug_id: dd9a649`
 **Listening Session:** Sometimes, the session (that you can see in `yourserveraddress/audiobookshelf/config/sessions`) does not close correctly, especially if you open VLC, quit it quickly, and start another book.  
 `bug_id: e0b61c`
