@@ -7,6 +7,7 @@
 pub mod http_file;
 pub mod pos_probe;
 pub mod source;
+pub mod speed;
 pub mod track;
 pub mod worker;
 

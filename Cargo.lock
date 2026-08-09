@@ -2149,6 +2149,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "rodio-wsola"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f7a9846f28f3dec5c369fa0bf68bfa35bff5017d71bcd52fd7f864df948ded73"
+dependencies = [
+ "rodio",
+]
+
+[[package]]
 name = "ron"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2957,6 +2966,7 @@ dependencies = [
  "ratatui",
  "reqwest",
  "rodio",
+ "rodio-wsola",
  "rusqlite",
  "serde",
  "serde_derive",

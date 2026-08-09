@@ -14,6 +14,7 @@ use rodio::buffer::SamplesBuffer;
 use rodio::source::Source;
 use rodio::Player;
 use std::num::NonZero;
+use toutui::player::engine::speed::{SharedSpeed, SpeedSource};
 use toutui::player::engine::track::{Chapter, TrackList};
 
 /// The value of each sample of the test sound.
@@ -114,10 +115,14 @@ fn a_chapter_movement_gives_a_position_in_the_book() {
     assert_eq!(list.chapter_at(30.0).unwrap().title, "Two");
 }
 
-/// The speed must change during the playback. This is the correction of T-8.
-/// The user must not start the playback again.
+/// This test records the behaviour of `rodio::Player::set_speed`, and it
+/// shows why the engine does not use that function.
+///
+/// The function increases the sample rate that the source reports. Therefore
+/// the pitch increases with the speed, and a voice sounds too high. The engine
+/// uses WSOLA in `SpeedSource` in place of this function. See T-19.
 #[test]
-fn the_speed_changes_during_the_playback() {
+fn the_speed_of_rodio_changes_the_sample_rate_and_the_pitch() {
     let (player, mut output) = Player::new();
     player.append(sound(2));
     player.play();
@@ -163,4 +168,103 @@ fn the_pause_command_and_the_resume_command_operate() {
 
     player.play();
     assert!(!player.is_paused());
+}
+
+/// Makes a sine wave of a frequency, for a number of seconds.
+fn tone(freq: f32, seconds: f32) -> SamplesBuffer {
+    let count = (RATE as f32 * seconds) as usize;
+    let data: Vec<f32> = (0..count)
+        .map(|i| {
+            let t = i as f32 / RATE as f32;
+            (2.0 * std::f32::consts::PI * freq * t).sin() * 0.8
+        })
+        .collect();
+
+    SamplesBuffer::new(NonZero::new(1).unwrap(), NonZero::new(RATE).unwrap(), data)
+}
+
+/// Counts the times that the samples go from a value below zero to a value
+/// above zero. That number gives the frequency of a sine wave.
+fn frequency_of(samples: &[f32], rate: u32) -> f32 {
+    if samples.len() < 2 {
+        return 0.0;
+    }
+
+    let crossings = samples
+        .windows(2)
+        .filter(|pair| pair[0] < 0.0 && pair[1] >= 0.0)
+        .count();
+
+    crossings as f32 * rate as f32 / samples.len() as f32
+}
+
+/// The test proves that the harness measures a frequency correctly.
+#[test]
+fn the_test_measures_the_frequency_of_a_tone() {
+    let samples: Vec<f32> = tone(440.0, 1.0).collect();
+    let freq = frequency_of(&samples, RATE);
+
+    assert!(
+        (freq - 440.0).abs() < 5.0,
+        "the tone must be 440 Hz, but the test measured {}",
+        freq
+    );
+}
+
+/// This is the correction of T-19. A change of the speed must not change the
+/// pitch. The old code used `Player::set_speed`, and that function increases
+/// the sample rate. A voice then sounds too high.
+#[test]
+fn a_double_speed_keeps_the_pitch() {
+    let shared = SharedSpeed::new(2.0);
+    let source = SpeedSource::new(tone(440.0, 2.0), shared);
+
+    let rate = source.sample_rate().get();
+    let samples: Vec<f32> = source.take(200_000).collect();
+
+    let freq = frequency_of(&samples, rate);
+
+    assert!(
+        (freq - 440.0).abs() < 25.0,
+        "the speed 2.0 must keep the tone near 440 Hz, but the test measured \
+         {} Hz",
+        freq
+    );
+}
+
+/// The speed must still change the length. A speed of 2.0 gives half the
+/// number of samples.
+#[test]
+fn a_double_speed_gives_half_the_length() {
+    let normal: Vec<f32> = SpeedSource::new(tone(440.0, 2.0), SharedSpeed::new(1.0))
+        .take(200_000)
+        .collect();
+    let fast: Vec<f32> = SpeedSource::new(tone(440.0, 2.0), SharedSpeed::new(2.0))
+        .take(200_000)
+        .collect();
+
+    let ratio = fast.len() as f32 / normal.len() as f32;
+
+    assert!(
+        (ratio - 0.5).abs() < 0.1,
+        "the speed 2.0 must give about half the samples, but the ratio is {}",
+        ratio
+    );
+}
+
+/// A slow speed keeps the pitch too.
+#[test]
+fn a_slow_speed_keeps_the_pitch() {
+    let source = SpeedSource::new(tone(440.0, 1.0), SharedSpeed::new(0.5));
+    let rate = source.sample_rate().get();
+    let samples: Vec<f32> = source.take(200_000).collect();
+
+    let freq = frequency_of(&samples, rate);
+
+    assert!(
+        (freq - 440.0).abs() < 25.0,
+        "the speed 0.5 must keep the tone near 440 Hz, but the test measured \
+         {} Hz",
+        freq
+    );
 }

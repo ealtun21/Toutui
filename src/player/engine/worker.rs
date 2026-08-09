@@ -7,6 +7,7 @@
 //! audio files, and 209 open connections are not acceptable.
 
 use crate::player::engine::source::open_decoder;
+use crate::player::engine::speed::{SharedSpeed, SpeedSource};
 use crate::player::engine::{
     media_position, seek_target, PlaybackRequest, PlaybackState, PlaybackStatus, PlayerCommand,
 };
@@ -104,6 +105,9 @@ struct Current {
     playing: usize,
     /// The number of tracks in the queue.
     queued: usize,
+    /// The speed that every track of this book reads. WSOLA stretches the
+    /// time, thus the pitch does not change.
+    speed: SharedSpeed,
 }
 
 fn run(
@@ -166,7 +170,13 @@ fn handle(
                 seek_to(player, current, token, target);
             }
         }
-        PlayerCommand::SetSpeed(value) => player.set_speed(value.clamp(0.1, 5.0)),
+        PlayerCommand::SetSpeed(value) => {
+            if let Some(item) = current.as_ref() {
+                // WSOLA reads this value on the next sample. The playback
+                // does not start again. See T-8 and T-19.
+                item.speed.set(value);
+            }
+        }
         PlayerCommand::SetVolume(value) => player.set_volume(value.clamp(0.0, 2.0)),
         PlayerCommand::Stop => {
             player.stop();
@@ -187,9 +197,10 @@ fn start(
 ) {
     player.stop();
 
-    // A new player gives an empty queue and a speed that is known.
+    // A new player gives an empty queue. The speed of the player stays 1.0,
+    // because `Player::set_speed` changes the pitch. WSOLA in `SpeedSource`
+    // changes the speed and keeps the pitch. See T-19.
     *player = Player::connect_new(sink.mixer());
-    player.set_speed(request.speed.clamp(0.1, 5.0));
 
     let start_position = request.start_position;
 
@@ -203,10 +214,13 @@ fn start(
         }
     };
 
+    let speed = SharedSpeed::new(request.speed);
+
     let mut item = Current {
         request,
         playing: track_index,
         queued: 0,
+        speed,
     };
 
     if let Err(error) = fill_queue(player, &mut item, token) {
@@ -217,7 +231,7 @@ fn start(
     }
 
     if offset > 0.0 {
-        if let Err(error) = player.try_seek(seek_target(offset, player.speed())) {
+        if let Err(error) = player.try_seek(seek_target(offset, item.speed.get())) {
             warn!("[worker] the engine cannot move to the position: {}", error);
         }
     }
@@ -235,7 +249,7 @@ fn position_now(player: &Player, current: &Option<Current>) -> f64 {
         None => return 0.0,
     };
 
-    let inside = media_position(player.get_pos(), player.speed());
+    let inside = media_position(player.get_pos(), item.speed.get());
 
     item.request.tracks.position_of(item.playing, inside)
 }
@@ -253,7 +267,7 @@ fn seek_to(player: &mut Player, current: &mut Option<Current>, token: &str, posi
     };
 
     if track_index == item.playing {
-        if let Err(error) = player.try_seek(seek_target(offset, player.speed())) {
+        if let Err(error) = player.try_seek(seek_target(offset, item.speed.get())) {
             warn!("[worker] the engine cannot move inside the track: {}", error);
         }
         return;
@@ -270,7 +284,7 @@ fn seek_to(player: &mut Player, current: &mut Option<Current>, token: &str, posi
     }
 
     if offset > 0.0 {
-        if let Err(error) = player.try_seek(seek_target(offset, player.speed())) {
+        if let Err(error) = player.try_seek(seek_target(offset, item.speed.get())) {
             warn!("[worker] the engine cannot move inside the track: {}", error);
         }
     }
@@ -294,7 +308,7 @@ fn fill_queue(player: &mut Player, item: &mut Current, token: &str) -> Result<()
         };
 
         let decoder = open_decoder(&source, token, &track)?;
-        player.append(decoder);
+        player.append(SpeedSource::new(decoder, item.speed.clone()));
         item.queued += 1;
     }
 
@@ -361,7 +375,7 @@ fn publish(
         .tracks
         .chapter_at(position)
         .map(|chapter| chapter.title.clone());
-    value.speed = player.speed();
+    value.speed = item.speed.get();
     value.volume = player.volume();
 
     let was_stalled = value.status == PlaybackStatus::Stalled;

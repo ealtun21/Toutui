@@ -27,6 +27,7 @@ clap = "4.5.37"
 # MKV, WebM, MP1, and MP2. All of them are pure Rust. Opus and WMA stay
 # outside, because symphonia has no decoder for them.
 rodio = { version = "0.22", default-features = false, features = ["playback", "symphonia-all"] }
+rodio-wsola = "0.2"
 
 [dev-dependencies]
 wiremock = "0.6"
