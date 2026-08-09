@@ -1,3 +1,4 @@
+pub mod client;
 pub mod libraries;
 pub mod me;
 pub mod utils;

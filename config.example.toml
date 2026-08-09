@@ -1,3 +1,23 @@
+#### SERVERS ####
+# One Audiobookshelf server can have more than one address. An example is a
+# fast local address at home and a public address away from home.
+#
+# The application always uses the address that has the most importance and
+# that answers. A low `priority` value gives more importance.
+#
+# The application examines an address that does not answer every 60 seconds.
+# Therefore it returns to the local address automatically.
+#
+# This block is optional. If you do not add it, the application uses the
+# address that you gave at the login screen.
+#
+# [[servers]]
+# name = "home"
+# endpoints = [
+#   { url = "http://192.168.1.10:13378", priority = 0 },
+#   { url = "https://abs.example.com",   priority = 1 },
+# ]
+
 #### PLAYER OPTIONS ####
 [player]
 # By default, Toutui integrated player is launched (works with cvlc, launched in background, the command line
