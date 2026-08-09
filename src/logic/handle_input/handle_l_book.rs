@@ -12,6 +12,26 @@ use crate::db::crud::*;
 use crate::utils::vlc_tcp_stream::*;
 use crate::player::vlc::quit_vlc::*;
 
+/// Give the total duration of the book, as a string of whole seconds.
+///
+/// `whole_book_duration` comes from the `media.duration` field of the library
+/// item. That field holds the duration of the whole book. `session_duration`
+/// comes from the playback session, and it holds the duration of the first
+/// audio file only. A book with many audio files thus gets a total that is far
+/// too small. See upstream issue #33.
+///
+/// The function prefers the whole book duration. It falls back to the session
+/// duration when the whole book duration is absent, zero, negative, or not a
+/// number.
+pub fn resolve_total_duration(whole_book_duration: Option<f64>, session_duration: &str) -> String {
+    match whole_book_duration {
+        Some(duration) if duration.is_finite() && duration > 0.0 => {
+            (duration.round() as u32).to_string()
+        }
+        _ => session_duration.to_string(),
+    }
+}
+
 // The ApiClient refactor removes the token and the address parameters.
 // See docs/superpowers/plans/2026-08-09-api-client-endpoints.md, task 10.
 #[allow(clippy::too_many_arguments)]
@@ -25,6 +45,7 @@ pub async fn handle_l_book(
     program: String,
     is_cvlc_term: String,
     username: String,
+    whole_book_duration: Option<f64>,
 ) {
 
     // need to pkill VLC for macos users
@@ -38,6 +59,10 @@ pub async fn handle_l_book(
                     // converting current time
                     let mut current_time: u32 = info_item[0].parse::<f64>().unwrap().round() as u32;
 
+                    // The playback session gives the duration of the first audio file only.
+                    // Take the duration of the whole book instead. See upstream issue #33.
+                    let total_duration = resolve_total_duration(whole_book_duration, &info_item[2]);
+
                     info!("[handle_l_book][post_start_playback_session_book] OK");
                     info!("[handle_l_book][post_start_playback_session_book] Item {} started at {}s", id, current_time);
 
@@ -47,7 +72,7 @@ pub async fn handle_l_book(
                         info_item[3].clone(), // id_session
                         id.to_string(), // id_item
                         current_time,  // current time
-                        info_item[2].clone(), // total item duration
+                        total_duration.clone(), // total item duration
                         "".to_string(), // empty here, because it's for podcasts
                         0, // elapsed time start at 0 seconds
                         info_item[4].clone(), // title
@@ -199,7 +224,7 @@ pub async fn handle_l_book(
                                         
                                         let _ = close_session_without_send_prg_data(Some(token), &info_item[3],  server_address.clone()).await;
                                         info!("[handle_l_book][Finished] Session successfully closed");
-                                        let _ = update_media_progress2_book(id, Some(token), Some(data_fetched_from_vlc), &info_item[2], is_finised, server_address).await;
+                                        let _ = update_media_progress2_book(id, Some(token), Some(data_fetched_from_vlc), &total_duration, is_finised, server_address).await;
                                         info!("[handle_l_book][Finished] VLC stopped");
                                         info!("[handle_l_book][Finished] Item {} closed at {}s", id, data_fetched_from_vlc);
                                         let _ = update_is_loop_break("1", username.as_str());
@@ -219,7 +244,7 @@ pub async fn handle_l_book(
                                         info!("[handle_l_book][Quit] Session successfully closed");
                                         // send one last time media progress (bug to retrieve media
                                         // progress otherwise)
-                                        let _ = update_media_progress_book(id, Some(token), Some(data_fetched_from_vlc), &info_item[2], server_address).await;
+                                        let _ = update_media_progress_book(id, Some(token), Some(data_fetched_from_vlc), &total_duration, server_address).await;
                                         info!("[handle_l_book][Quit] VLC closed");
                                         info!("[handle_l_book][Quit] Item {} closed at {}s", id, data_fetched_from_vlc);
                                         //eprintln!("Error fetching play status: {}", e);
@@ -237,7 +262,7 @@ pub async fn handle_l_book(
                                 info!("[handle_l_book][None]");
                                 let _ = close_session_without_send_prg_data(Some(token), &info_item[3],  server_address.clone()).await;
                                 info!("[handle_l_book][None] Session successfully closed");
-                                let _ = update_media_progress_book(id, Some(token), Some(current_time), &info_item[2], server_address.clone()).await;
+                                let _ = update_media_progress_book(id, Some(token), Some(current_time), &total_duration, server_address.clone()).await;
                                 info!("[handle_l_book][None] VLC closed");
                                 info!("[handle_l_book][None] Item {} closed at {}s", id, current_time);
 
@@ -259,3 +284,43 @@ pub async fn handle_l_book(
     }
 }
 
+
+#[cfg(test)]
+mod tests {
+    use super::resolve_total_duration;
+
+    // Real values from upstream issue #33. The playback session reports 841
+    // seconds, which is the first audio file. The book lasts 53764 seconds.
+    const SESSION_DURATION: &str = "841";
+    const WHOLE_BOOK_DURATION: f64 = 53764.0;
+
+    #[test]
+    fn whole_book_duration_replaces_the_first_file_duration() {
+        assert_eq!(
+            resolve_total_duration(Some(WHOLE_BOOK_DURATION), SESSION_DURATION),
+            "53764"
+        );
+    }
+
+    #[test]
+    fn fractional_whole_book_duration_rounds_to_seconds() {
+        assert_eq!(resolve_total_duration(Some(35975.86), SESSION_DURATION), "35976");
+    }
+
+    #[test]
+    fn absent_whole_book_duration_falls_back_to_the_session() {
+        assert_eq!(resolve_total_duration(None, SESSION_DURATION), "841");
+    }
+
+    #[test]
+    fn zero_or_negative_whole_book_duration_falls_back_to_the_session() {
+        assert_eq!(resolve_total_duration(Some(0.0), SESSION_DURATION), "841");
+        assert_eq!(resolve_total_duration(Some(-1.0), SESSION_DURATION), "841");
+    }
+
+    #[test]
+    fn not_a_number_whole_book_duration_falls_back_to_the_session() {
+        assert_eq!(resolve_total_duration(Some(f64::NAN), SESSION_DURATION), "841");
+        assert_eq!(resolve_total_duration(Some(f64::INFINITY), SESSION_DURATION), "841");
+    }
+}

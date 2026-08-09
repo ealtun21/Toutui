@@ -853,6 +853,16 @@ pub fn handle_key(&mut self, key: KeyEvent) {
             let ids_search_book = self.ids_search_book.clone();
             let selected_search_book = self.list_state_search_results.selected();
 
+            // Duration of the whole book, from the `media.duration` field. The playback
+            // session gives the duration of the first audio file only, thus a book with
+            // many audio files needs this value. See upstream issue #33.
+            let whole_book_duration_cnt_list = selected_cnt_list
+                .and_then(|i| self.duration_cnt_list.get(i).copied());
+            let whole_book_duration_library = selected_library
+                .and_then(|i| self.duration_library.get(i).copied());
+            let whole_book_duration_search_book = selected_search_book
+                .and_then(|i| self.duration_library_search_book.get(i).copied());
+
             // Init for `PodcastEpisode`
             if self.is_podcast {
                 if let Some(index) = selected_library {
@@ -993,6 +1003,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                     start_vlc_program,
                                     is_cvlc_term,
                                     username,
+                                    whole_book_duration_cnt_list,
                                 ).await;
                             }
                         });
@@ -1097,6 +1108,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                         start_vlc_program,
                                         is_cvlc_term,
                                         username,
+                                        whole_book_duration_library,
                                     ).await;
                                 }
                             });
@@ -1179,6 +1191,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                         start_vlc_program,
                                         is_cvlc_term,
                                         username,
+                                        whole_book_duration_search_book,
                                     ).await;
                                 }
                             });
