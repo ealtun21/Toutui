@@ -148,25 +148,52 @@ impl AppLogin {
         // send result
         if let Some(_active_textarea) = textareas.get(current_index) {
             let collected_data_clone = collected_data.clone();
-            tokio::spawn(async move {
-                //              println!("Wait...");
-                match auth_process(
-                    collected_data_clone[1].as_str(), // username
-                    collected_data_clone[2].as_str(), // password
-                    collected_data_clone[0].as_str(), // server_address
-                ).await {
-                    Ok(_response) => {
-                        info!("[auth_process] Login successful");
-                        println!("Login successful");
-                        let _ = update_login_err("");
-                    }
-                    Err(e) => {
-                        error!("[auth_process] Login failed: {}", e);
-                        eprintln!("ERROR: {}", e);
-                        let err = format!("ERROR: {}", e);
-                        let _ = update_login_err(err.as_str());
-                    }
-                }});
+
+            // The login must finish before the application continues.
+            //
+            // The old code started the login with `tokio::spawn` and did not
+            // wait for it. The application then read the database before the
+            // login wrote the user. Therefore the first attempt failed, and
+            // the second attempt found the user and worked. See T-15.
+            //
+            // This function is not asynchronous, because it runs inside
+            // `Widget::render`. Therefore the login runs on its own thread
+            // with its own runtime, and this thread waits for it.
+            let outcome = std::thread::spawn(move || {
+                let runtime = match tokio::runtime::Builder::new_current_thread()
+                    .enable_all()
+                    .build()
+                {
+                    Ok(runtime) => runtime,
+                    Err(error) => return Err(format!("No runtime for the login: {}", error)),
+                };
+
+                runtime.block_on(async move {
+                    auth_process(
+                        collected_data_clone[1].as_str(), // username
+                        collected_data_clone[2].as_str(), // password
+                        collected_data_clone[0].as_str(), // server_address
+                    )
+                    .await
+                    .map_err(|error| error.to_string())
+                })
+            })
+            .join();
+
+            match outcome {
+                Ok(Ok(())) => {
+                    info!("[auth_process] Login successful");
+                    let _ = update_login_err("");
+                }
+                Ok(Err(error)) => {
+                    error!("[auth_process] Login failed: {}", error);
+                    let _ = update_login_err(format!("ERROR: {}", error).as_str());
+                }
+                Err(_) => {
+                    error!("[auth_process] The login thread stopped");
+                    let _ = update_login_err("ERROR: The login stopped.");
+                }
+            }
 
             // to quit the current thread and back to login or home (if connection is successful)
             // should_exit allow to quit the terminal in login_app.rs
