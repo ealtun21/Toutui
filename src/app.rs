@@ -10,9 +10,6 @@ use crate::api::libraries::get_library_perso_view_pod::*;
 use crate::api::libraries::get_all_books::*;
 use crate::api::libraries::get_all_libraries::*;
 use crate::api::library_items::get_pod_ep::*;
-use crate::logic::handle_input::handle_l_book::*;
-use crate::logic::handle_input::handle_l_pod::*;
-use crate::logic::handle_input::handle_l_pod_home::*;
 use crate::config::*;
 use crate::db::crud::*;
 use crate::db::database_struct::Database;
@@ -25,12 +22,11 @@ use crate::utils::pop_up_message::*;
 use crate::utils::changelog::*;
 use crate::utils::encrypt_token::*;
 use std::io::stdout;
-use crate::player::vlc::quit_vlc::*;
 use crate::logic::sync_session::sync_session_from_database::*;
-use crate::logic::sync_session::wait_prev_session_finished::*;
 use crate::player::integrated::handle_key_player::*;
+use crate::player::engine::PlayerHandle;
+use crate::logic::playback::{play, PlaybackTarget};
 use crate::utils::check_update::*;
-use crate::logic::handle_input::handle_l_book_offline::*;
 use crate::logic::download::download_item_with_progress;
 
 pub enum AppView {
@@ -149,9 +145,8 @@ pub struct App {
 //    pub book_progress_library_cur_time: Vec<Vec<f64>>,
     pub book_progress_search_book: Vec<Vec<String>>,
     pub book_progress_search_book_cur_time: Vec<Vec<f64>>,
-    pub is_cvlc: String,
-    pub is_cvlc_term: String,
-    pub start_vlc_program: String,
+    /// The audio engine. The application starts it one time.
+    pub player: PlayerHandle,
     pub config: ConfigFile,
     pub changelog: String,
     pub update_msg: String,
@@ -448,16 +443,16 @@ impl App {
         view_state = AppView::Library; // If `Home` is empty (no book or podcast to continue)
     }
 
-    // init start_vlc variables
-    let is_cvlc = config.player.cvlc.clone();
-    let is_cvlc_term = config.player.cvlc_term.clone();
-    let mut start_vlc_program = match is_cvlc.as_str() {
-        "1" => "cvlc".to_string(),
-        _ => "vlc".to_string(),
+    // Start the audio engine. The application decodes the audio itself,
+    // thus the token stays in the memory of the process and `ps aux` does
+    // not show it. See T-5.
+    let player = match PlayerHandle::start(token.clone()) {
+        Ok(player) => player,
+        Err(error) => {
+            eprintln!("{}", error);
+            return Err(color_eyre::eyre::eyre!(error));
+        }
     };
-    if cfg!(target_os = "macos") {
-        start_vlc_program = "/Applications/VLC.app/Contents/MacOS/VLC".to_string();
-    }
 
     // Init for check_update
     let update_msg = match check_update().await {
@@ -604,9 +599,7 @@ impl App {
  //       book_progress_library_cur_time,
         book_progress_search_book,
         book_progress_search_book_cur_time,
-        is_cvlc,
-        is_cvlc_term,
-        start_vlc_program,
+        player,
         config,
         changelog,
         update_msg,
@@ -616,9 +609,6 @@ impl App {
 
 // handle key
 pub fn handle_key(&mut self, key: KeyEvent) {
-    // init variable for player
-    let mut is_playback = true;
-
     if key.kind != KeyEventKind::Press {
         return;
     }
@@ -628,52 +618,42 @@ pub fn handle_key(&mut self, key: KeyEvent) {
         // PLAYER //
         // toggle playback/pause
         KeyCode::Char(' ') => {
-            let _ = handle_key_player(" ", self.config.player.address.as_str(), self.config.player.port.as_str(), &mut is_playback, self.username.as_str());
-        }
+            handle_key_player(" ", &self.player, self.username.as_str());}
         // jump forward
         KeyCode::Char('p') => {
-            let _ = handle_key_player("p", self.config.player.address.as_str(), self.config.player.port.as_str(), &mut is_playback, self.username.as_str());
-        }
+            handle_key_player("p", &self.player, self.username.as_str());}
 
         // jump backward
         KeyCode::Char('u') => {
-            let _ = handle_key_player("u", self.config.player.address.as_str(), self.config.player.port.as_str(), &mut is_playback, self.username.as_str());
-        }
+            handle_key_player("u", &self.player, self.username.as_str());}
 
         // next chapter
         KeyCode::Char('P') => {
-            let _  = handle_key_player("P", self.config.player.address.as_str(), self.config.player.port.as_str(), &mut is_playback, self.username.as_str());
-        }
+            handle_key_player("P", &self.player, self.username.as_str());}
 
         // previous chapter
         KeyCode::Char('U') => {
-            let _ = handle_key_player("U", self.config.player.address.as_str(), self.config.player.port.as_str(), &mut is_playback, self.username.as_str());
-        }
+            handle_key_player("U", &self.player, self.username.as_str());}
 
         // speed rate up
         KeyCode::Char('O') => {
-            let _ = handle_key_player("O", self.config.player.address.as_str(), self.config.player.port.as_str(), &mut is_playback, self.username.as_str()); 
-        }
+            handle_key_player("O", &self.player, self.username.as_str());}
 
         // speed rate down
         KeyCode::Char('I') => {
-            let _ = handle_key_player("I", self.config.player.address.as_str(), self.config.player.port.as_str(), &mut is_playback, self.username.as_str()); 
-        }
+            handle_key_player("I", &self.player, self.username.as_str());}
 
         // volume up
         KeyCode::Char('o') => {
-            let _ = handle_key_player("o", self.config.player.address.as_str(), self.config.player.port.as_str(), &mut is_playback, self.username.as_str()); 
-        }
+            handle_key_player("o", &self.player, self.username.as_str());}
 
         // volume down
         KeyCode::Char('i') => {
-            let _ = handle_key_player("i", self.config.player.address.as_str(), self.config.player.port.as_str(), &mut is_playback, self.username.as_str()); 
-        }
+            handle_key_player("i", &self.player, self.username.as_str());}
 
-        // shutdown VLC
+        // stop the playback
         KeyCode::Char('Y') => {
-            let _ = handle_key_player("Y", self.config.player.address.as_str(), self.config.player.port.as_str(), &mut is_playback, self.username.as_str()); 
-        }
+            handle_key_player("Y", &self.player, self.username.as_str());}
 
         // show key bindings
         KeyCode::Char('B') => {
@@ -788,13 +768,12 @@ pub fn handle_key(&mut self, key: KeyEvent) {
             // close and sync session before close the app
             let api = std::sync::Arc::clone(&self.api);
             let username = self.username.clone();
-            let player_address = self.config.player.address.clone();
-            let port = self.config.player.port.clone();
-            let _ = update_is_vlc_running("0", username.as_str());
 
+            // Stop the engine before the application syncs and stops.
+            self.player.send(crate::player::engine::PlayerCommand::Stop);
 
             tokio::spawn(async move {
-                sync_session_from_database(&api, username, true, "Q", player_address, port).await;
+                sync_session_from_database(&api, username, true, "Q").await;
             });
 
         }        
@@ -847,12 +826,10 @@ pub fn handle_key(&mut self, key: KeyEvent) {
         }        
         KeyCode::Char('l') | KeyCode::Right | KeyCode::Enter => {
             // Clone needed because variables will be used in a spawn
-            let token = self.token.clone();
             let api = std::sync::Arc::clone(&self.api);
-            let port = self.config.player.port.clone();
-            let address_player = self.config.player.address.clone();
             let server_address = self.server_address.clone();
             let username = self.username.clone();
+            let player = self.player.clone();
 
             // Init for `Continue Listening` (AppView::Home)
             let ids_cnt_list = self._ids_cnt_list.clone();
@@ -897,13 +874,6 @@ pub fn handle_key(&mut self, key: KeyEvent) {
             // Init for `SettingsLibrary`
             let selected_settings_library = self.list_state_settings_library.selected();
 
-            // init for start_vlc
-            let start_vlc_program = self.start_vlc_program.clone();
-            let is_cvlc_term = self.is_cvlc_term.clone();
-
-            // Init message 
-            let message = "Loading the media...";
-
             // Now, spawn the async task based on the current view state
             match self.view_state {
                 AppView::Home => {
@@ -913,110 +883,36 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                         let ids_ep_cnt_list = self.ids_ep_cnt_list.clone();
 
                         tokio::spawn(async move {
-                            // close vlc 
-                            let _ = quit_vlc(address_player.as_str(), port.as_str());
-
-                            // pkill vlc
-                            pkill_vlc();
-
-                            // before open a new session, wait to close and sync previous
-                            // session
-                            wait_prev_session_finished(username.clone()); 
-
-                            // pop message
-                            let mut stdout = stdout();
-                            let _ = pop_message(&mut stdout, 3, message);
-
-                            // in case where the app has been disgrafully closed (crash, kill)
-                            // the last listening session is closed when app is restarted
-                            sync_session_from_database(
-                                &api,
-                                username.clone(),
-                                false,
-                                "l",
-                                address_player.clone(),
-                                port.clone()).await;
-
-                            // start the track
-                            handle_l_pod_home(
-                                &api,
-                                token.as_ref(),
-                                &ids_cnt_list,
-                                selected_cnt_list,
-                                port,
-                                address_player,
-                                ids_ep_cnt_list,
-                                server_address,
-                                start_vlc_program,
-                                is_cvlc_term,
-                                username,
-                            ).await;
+                            if let Some(episode_id) = selected_cnt_list.and_then(|i| ids_ep_cnt_list.get(i)).cloned() {
+                                play(
+                                    &api,
+                                    &player,
+                                    PlaybackTarget::Episode {
+                                        item_id: ids_cnt_list[selected_cnt_list.unwrap_or(0)].clone(),
+                                        episode_id,
+                                    },
+                                    username,
+                                    server_address,
+                                )
+                                .await;
+                            }
                         });
                     } else {
 
-                        let download = selected_cnt_list
-                            .and_then(|i| ids_cnt_list.get(i))
-                            .and_then(|id| get_download(id, &username));
 
                         tokio::spawn(async move {
-
-                            // close vlc
-                            let _ = quit_vlc(address_player.as_str(), port.as_str());
-
-                            // pkill vlc
-                            pkill_vlc();
-
-                            // before open a new session, wait to close and sync previous
-                            // session
-                            wait_prev_session_finished(username.clone());
-
-                            // pop message
-                            let mut stdout = stdout();
-                            let _ = pop_message(&mut stdout, 3, message);
-
-                            // in case where the app has been disgrafully closed (crash, kill)
-                            // the last listening session is closed when app is restarted
-                            sync_session_from_database(
-                                &api,
-                                username.clone(),
-                                false,
-                                "l",
-                                address_player.clone(),
-                                port.clone()).await;
-
-                            if let (Some(id), Some((file_path, current_time, duration, title, author))) =
-                                (selected_cnt_list.and_then(|i| ids_cnt_list.get(i)).cloned(), download)
-                            {
-                                // play the locally downloaded file, no server needed
-                                handle_l_book_offline(
+                            if let Some(item_id) = selected_cnt_list.and_then(|i| ids_cnt_list.get(i)).cloned() {
+                                play(
                                     &api,
-                                    port,
-                                    address_player,
-                                    start_vlc_program,
-                                    is_cvlc_term,
+                                    &player,
+                                    PlaybackTarget::Book {
+                                        item_id,
+                                        whole_book_duration: whole_book_duration_cnt_list,
+                                    },
                                     username,
-                                    id,
-                                    file_path,
-                                    current_time,
-                                    title,
-                                    author,
-                                    duration,
-                                ).await;
-                            } else {
-                                // start the track
-                                handle_l_book(
-                                    &api,
-                                    token.as_ref(),
-                                    ids_cnt_list,
-                                    selected_cnt_list,
-                                    port,
-                                    address_player,
                                     server_address,
-                                    start_vlc_program,
-                                    is_cvlc_term,
-                                    username,
-                                    whole_book_duration_cnt_list,
-                                ).await;
+                                )
+                                .await;
                             }
                         });
 
@@ -1059,68 +955,20 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                             self.view_state = AppView::PodcastEpisode;
                         }} else {
 
-                            let download = selected_library
-                                .and_then(|i| ids_library.get(i))
-                                .and_then(|id| get_download(id, &username));
 
                             tokio::spawn(async move {
-                                // close vlc
-                                let _ = quit_vlc(address_player.as_str(), port.as_str());
-
-                                // pkill vlc
-                                pkill_vlc();
-
-                                // before open a new session, wait to close and sync previous
-                                // session
-                                wait_prev_session_finished(username.clone());
-
-                                // pop message
-                                let mut stdout = stdout();
-                                let _ = pop_message(&mut stdout, 3, message);
-
-                                // in case where the app has been disgrafully closed (crash, kill)
-                                // the last listening session is closed when app is restarted
-                                sync_session_from_database(
-                                    &api,
-                                    username.clone(),
-                                    false,
-                                    "l",
-                                    address_player.clone(),
-                                    port.clone()).await;
-
-                                if let (Some(id), Some((file_path, current_time, duration, title, author))) =
-                                    (selected_library.and_then(|i| ids_library.get(i)).cloned(), download)
-                                {
-                                    // play the locally downloaded file, no server needed
-                                    handle_l_book_offline(
+                                if let Some(item_id) = selected_library.and_then(|i| ids_library.get(i)).cloned() {
+                                    play(
                                         &api,
-                                        port,
-                                        address_player,
-                                        start_vlc_program,
-                                        is_cvlc_term,
+                                        &player,
+                                        PlaybackTarget::Book {
+                                            item_id,
+                                            whole_book_duration: whole_book_duration_library,
+                                        },
                                         username,
-                                        id,
-                                        file_path,
-                                        current_time,
-                                        title,
-                                        author,
-                                        duration,
-                                    ).await;
-                                } else {
-                                    // start the track
-                                    handle_l_book(
-                                        &api,
-                                        token.as_ref(),
-                                        ids_library,
-                                        selected_library,
-                                        port,
-                                        address_player,
                                         server_address,
-                                        start_vlc_program,
-                                        is_cvlc_term,
-                                        username,
-                                        whole_book_duration_library,
-                                    ).await;
+                                    )
+                                    .await;
                                 }
                             });
                         }
@@ -1141,68 +989,20 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                             self.view_state = AppView::PodcastEpisode;
                         }} else {
 
-                            let download = selected_search_book
-                                .and_then(|i| ids_search_book.get(i))
-                                .and_then(|id| get_download(id, &username));
 
                             tokio::spawn(async move {
-                                // close vlc
-                                let _ = quit_vlc(address_player.as_str(), port.as_str());
-
-                                // pkill vlc
-                                pkill_vlc();
-
-                                // before open a new session, wait to close and sync previous
-                                // session
-                                wait_prev_session_finished(username.clone());
-
-                                // pop message
-                                let mut stdout = stdout();
-                                let _ = pop_message(&mut stdout, 3, message);
-
-                                // in case where the app has been disgrafully closed (crash, kill)
-                                // the last listening session is closed when app is restarted
-                                sync_session_from_database(
-                                    &api,
-                                    username.clone(),
-                                    false,
-                                    "l",
-                                    address_player.clone(),
-                                    port.clone()).await;
-
-                                if let (Some(id), Some((file_path, current_time, duration, title, author))) =
-                                    (selected_search_book.and_then(|i| ids_search_book.get(i)).cloned(), download)
-                                {
-                                    // play the locally downloaded file, no server needed
-                                    handle_l_book_offline(
+                                if let Some(item_id) = selected_search_book.and_then(|i| ids_search_book.get(i)).cloned() {
+                                    play(
                                         &api,
-                                        port,
-                                        address_player,
-                                        start_vlc_program,
-                                        is_cvlc_term,
+                                        &player,
+                                        PlaybackTarget::Book {
+                                            item_id,
+                                            whole_book_duration: whole_book_duration_search_book,
+                                        },
                                         username,
-                                        id,
-                                        file_path,
-                                        current_time,
-                                        title,
-                                        author,
-                                        duration,
-                                    ).await;
-                                } else {
-                                    // start the track
-                                    handle_l_book(
-                                        &api,
-                                        token.as_ref(),
-                                        ids_search_book,
-                                        selected_search_book,
-                                        port,
-                                        address_player,
                                         server_address,
-                                        start_vlc_program,
-                                        is_cvlc_term,
-                                        username,
-                                        whole_book_duration_search_book,
-                                    ).await;
+                                    )
+                                    .await;
                                 }
                             });
 
@@ -1223,44 +1023,19 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                 let selected_pod_ep = self.list_state_pod_ep.selected();
 
                                 tokio::spawn(async move {
-                                    // close vlc 
-                                    let _ = quit_vlc(address_player.as_str(), port.as_str());
-
-                                    // pkill vlc
-                                    pkill_vlc();
-
-                                    // before open a new session, wait to close and sync previous
-                                    // session
-                                    wait_prev_session_finished(username.clone()); 
-
-                                    // pop message
-                                    let mut stdout = stdout();
-                                    let _ = pop_message(&mut stdout, 3, message);
-
-                                    // in case where the app has been disgrafully closed (crash, kill)
-                                    // the last listening session is closed when app is restarted
-                                    sync_session_from_database(
-                                        &api,
-                                        username.clone(),
-                                        false,
-                                        "l",
-                                        address_player.clone(),
-                                        port.clone()).await;
-
-                                    // start the track
-                                    handle_l_pod(
-                                        &api,
-                                        token.as_ref(),
-                                        &all_ids_pod_ep_search_clone[index],
-                                        selected_pod_ep, 
-                                        port, 
-                                        address_player,
-                                        id_pod_clone.as_str(), 
-                                        server_address, 
-                                        start_vlc_program,
-                                        is_cvlc_term, 
-                                        username,
-                                    ).await;
+                                    if let Some(episode_id) = all_ids_pod_ep_search_clone[index].get(selected_pod_ep.unwrap_or(0)).cloned() {
+                                        play(
+                                            &api,
+                                            &player,
+                                            PlaybackTarget::Episode {
+                                                item_id: id_pod_clone,
+                                                episode_id,
+                                            },
+                                            username,
+                                            server_address,
+                                        )
+                                        .await;
+                                    }
                                 });
                             }
                         }
@@ -1276,44 +1051,19 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                 let id_pod_clone = id_pod.clone();
                                 let selected_pod_ep = self.list_state_pod_ep.selected();
                                 tokio::spawn(async move {
-                                    // close vlc 
-                                    let _ = quit_vlc(address_player.as_str(), port.as_str());
-
-                                    // pkill vlc
-                                    pkill_vlc();
-
-                                    // before open a new session, wait to close and sync previous
-                                    // session
-                                    wait_prev_session_finished(username.clone()); 
-
-                                    // pop message
-                                    let mut stdout = stdout();
-                                    let _ = pop_message(&mut stdout, 3, message);
-
-                                    // in case where the app has been disgrafully closed (crash, kill)
-                                    // the last listening session is closed when app is restarted
-                                    sync_session_from_database(
-                                        &api,
-                                        username.clone(),
-                                        false,
-                                        "l",
-                                        address_player.clone(),
-                                        port.clone()).await;
-
-                                    // start the track
-                                    handle_l_pod(
-                                        &api,
-                                        token.as_ref(),
-                                        &all_ids_pod_ep_clone[index],
-                                        selected_pod_ep, 
-                                        port, 
-                                        address_player,
-                                        id_pod_clone.as_str(), 
-                                        server_address, 
-                                        start_vlc_program,
-                                        is_cvlc_term, 
-                                        username,
-                                    ).await;
+                                    if let Some(episode_id) = all_ids_pod_ep_clone[index].get(selected_pod_ep.unwrap_or(0)).cloned() {
+                                        play(
+                                            &api,
+                                            &player,
+                                            PlaybackTarget::Episode {
+                                                item_id: id_pod_clone,
+                                                episode_id,
+                                            },
+                                            username,
+                                            server_address,
+                                        )
+                                        .await;
+                                    }
                                 });
                             }
                         }

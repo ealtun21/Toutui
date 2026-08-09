@@ -20,9 +20,15 @@ the original issue, if there is one.
 | T-2 | A book that has many audio files: the length is correct now | `e84821d` |
 | T-3 | The application sends `/progress` and `/sync` at the same time | `5088b55` |
 | T-13 | The description shows the HTML tags | `14567c1` |
+| T-2 | A book that has many audio files plays completely | sub-project 2 |
+| T-5 | The token is not in the list of processes | sub-project 2 |
+| T-6 | The token is not in the address of the file | sub-project 2 |
+| T-8 | A change of the speed operates during the playback | sub-project 2 |
 
-T-2 is not complete. The length and the percent are correct now. VLC still
-plays only the first file. Sub-project 2 corrects this.
+Sub-project 2 removed VLC. The application decodes the audio in the process
+now. Therefore a book with many audio files plays completely, the token stays
+in the memory of the process, and a change of the speed operates during the
+playback.
 
 ## Priority 1: the application gives incorrect results
 

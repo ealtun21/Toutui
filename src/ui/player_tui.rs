@@ -6,7 +6,17 @@ use ratatui::{
 use crate::db::crud::*;
 
 
-pub fn render_player(area: Rect, buf: &mut ratatui::buffer::Buffer, player_info: Vec<String>, bg_color: Vec<u8>, username: &str) {
+/// Draws the panel of the player.
+///
+/// `notice` holds a short message of the engine. An example is "Reconnected".
+pub fn render_player(
+    area: Rect,
+    buf: &mut ratatui::buffer::Buffer,
+    player_info: Vec<String>,
+    bg_color: Vec<u8>,
+    username: &str,
+    notice: Option<String>,
+) {
     let block_width = area.width;
     let new_y = area.y + area.height.saturating_sub(9); // the line number where player start
     let block_height = 4; // number of line of the player (in lines)
@@ -23,6 +33,12 @@ pub fn render_player(area: Rect, buf: &mut ratatui::buffer::Buffer, player_info:
     let text_area = Rect::new(text_area_x, new_y, text_area_width, block_height);
 
 
+    // The engine waits for data, or the data came again. Tell the user.
+    let notice = match notice {
+        Some(message) => format!(" | {}", message),
+        None => String::new(),
+    };
+
     let mut key_bindings = "".to_string();
     let is_show_key_bindings = get_is_show_key_bindings(username);
     if is_show_key_bindings == "1" {
@@ -31,10 +47,11 @@ pub fn render_player(area: Rect, buf: &mut ratatui::buffer::Buffer, player_info:
 
     // Create the paragraph
     let paragraph = Paragraph::new(format!(
-            "\n{} by {} | {} \n {} {} / {} | Elapsed: {} | Left: {} ({}%) | Speed: {}x\n{}", 
+            "\n{} by {} | {}{} \n {} {} / {} | Elapsed: {} | Left: {} ({}%) | Speed: {}x\n{}", 
             player_info[0], // Title
             player_info[1], // Author
             player_info[2], // Chapter
+            notice,         // The message of the engine
             match player_info[3].as_str() {
                 "false" => "⏸".to_string(),
                 "true" => "▶".to_string(),

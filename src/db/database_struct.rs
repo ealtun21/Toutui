@@ -18,9 +18,9 @@ pub struct User {
     pub  name_selected_lib: String,
     pub  id_selected_lib: String,
     pub  is_loop_break: String,
-    pub  is_vlc_launched_first_time: String,
+    /// Tells if the user played a media before.
+    pub  has_played_before: String,
     pub  speed_rate: f32,
-    pub  is_vlc_running: String,
     pub  is_show_key_bindings: String,
 }
 

@@ -9,7 +9,7 @@ use std::env;
 use std::path::PathBuf;
 
 /// The schema version that this build of the program expects.
-pub const LATEST_VERSION: i64 = 3;
+pub const LATEST_VERSION: i64 = 4;
 
 /// Gives the full path of the database file.
 ///
@@ -67,7 +67,13 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
 
     if version < 3 {
         migrate_to_v3(conn)?;
+        version = 3;
         conn.execute_batch("PRAGMA user_version = 3")?;
+    }
+
+    if version < 4 {
+        migrate_to_v4(conn)?;
+        conn.execute_batch("PRAGMA user_version = 4")?;
     }
 
     Ok(())
@@ -159,6 +165,57 @@ fn migrate_to_v3(conn: &Connection) -> Result<()> {
     )
 }
 
+/// Version 4 removes VLC from the schema.
+///
+/// The application decodes the audio in the process now. The column
+/// `is_vlc_running` has no use. The column `is_vlc_launched_first_time` keeps
+/// its use, but its name mentions VLC. Therefore the migration changes the
+/// name to `has_played_before`.
+///
+/// SQLite gives `DROP COLUMN` from version 3.35.0 and `RENAME COLUMN` from
+/// version 3.25.0. The crate `rusqlite` has the feature `bundled`, thus the
+/// version is newer than both. If a statement fails, the migration writes a
+/// message and continues. A column that stays does no damage.
+fn migrate_to_v4(conn: &Connection) -> Result<()> {
+    if has_column(conn, "is_vlc_launched_first_time")? && !has_column(conn, "has_played_before")? {
+        if let Err(error) = conn.execute(
+            "ALTER TABLE users RENAME COLUMN is_vlc_launched_first_time TO has_played_before",
+            [],
+        ) {
+            log::warn!("[migrate] the database keeps the old name: {}", error);
+        }
+    }
+
+    // A database that has neither name needs the column.
+    if !has_column(conn, "has_played_before")? {
+        if let Err(error) = conn.execute(
+            "ALTER TABLE users ADD COLUMN has_played_before TEXT NOT NULL DEFAULT '0'",
+            [],
+        ) {
+            log::warn!("[migrate] the database has no has_played_before: {}", error);
+        }
+    }
+
+    if has_column(conn, "is_vlc_running")? {
+        if let Err(error) = conn.execute("ALTER TABLE users DROP COLUMN is_vlc_running", []) {
+            log::warn!("[migrate] the database keeps is_vlc_running: {}", error);
+        }
+    }
+
+    Ok(())
+}
+
+/// Tells if the table `users` has a column.
+fn has_column(conn: &Connection, name: &str) -> Result<bool> {
+    let count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM pragma_table_info('users') WHERE name = ?1",
+        [name],
+        |row| row.get(0),
+    )?;
+
+    Ok(count == 1)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -244,5 +301,56 @@ mod tests {
 
         assert_eq!(schema_version(&conn).unwrap(), LATEST_VERSION);
         assert_eq!(column_count(&conn, "users", "server_name"), 1);
+    }
+    /// Migration v4 removes VLC from the schema of a new database.
+    #[test]
+    fn migration_v4_removes_vlc_from_a_new_database() {
+        let conn = Connection::open_in_memory().unwrap();
+        run_migrations(&conn).unwrap();
+
+        assert!(!has_column(&conn, "is_vlc_running").unwrap());
+        assert!(!has_column(&conn, "is_vlc_launched_first_time").unwrap());
+        assert!(has_column(&conn, "has_played_before").unwrap());
+    }
+
+    /// A database that an older version made has the two columns of VLC. The
+    /// runner must change the name of one column and remove the other. It
+    /// must also keep the value of the column that it renames.
+    #[test]
+    fn migration_v4_upgrades_a_database_that_has_the_vlc_columns() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch("PRAGMA user_version = 3").unwrap();
+        conn.execute(
+            "CREATE TABLE users (
+                username TEXT PRIMARY KEY,
+                server_address TEXT NOT NULL,
+                token TEXT NOT NULL,
+                is_vlc_running TEXT NOT NULL DEFAULT '0',
+                is_vlc_launched_first_time TEXT NOT NULL DEFAULT '0'
+            )",
+            [],
+        )
+        .unwrap();
+        conn.execute(
+            "INSERT INTO users VALUES ('bob', 'http://a', 'tok', '1', '1')",
+            [],
+        )
+        .unwrap();
+
+        run_migrations(&conn).unwrap();
+
+        assert!(!has_column(&conn, "is_vlc_running").unwrap());
+        assert!(!has_column(&conn, "is_vlc_launched_first_time").unwrap());
+        assert!(has_column(&conn, "has_played_before").unwrap());
+
+        // The value of the user must survive the change of the name.
+        let value: String = conn
+            .query_row(
+                "SELECT has_played_before FROM users WHERE username = 'bob'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(value, "1");
     }
 }

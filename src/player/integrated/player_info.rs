@@ -1,48 +1,47 @@
-use log::info;
-use crate::db::crud::*;
+use crate::db::crud::get_speed_rate;
+use crate::player::engine::{PlaybackState, PlaybackStatus};
 
-pub fn player_info(username: &str) -> Vec<String> {
-    let mut player_info = Vec::new();
+/// Gives the values that the player panel shows.
+///
+/// The engine gives the position and the length. Both values belong to the
+/// whole book, and not to one audio file. See T-2.
+///
+/// The list always holds ten values. Therefore the panel can read each
+/// position with no examination.
+pub fn player_info(username: &str, state: &PlaybackState) -> Vec<String> {
+    let position = state.position.max(0.0) as u32;
+    let duration = state.duration.max(0.0) as u32;
 
-    match get_listening_session() {
-        Ok(Some(session)) => {
-            player_info.push(session.title);
-            player_info.push(session.author);
+    let chapter = state
+        .chapter_title
+        .clone()
+        .unwrap_or_else(|| "No chapter".to_string());
 
-            if let Ok(num) = session.chapter.trim().parse::<u32>() {
-                let new_chapter = format!("Chapter {}", num + 1);
-                player_info.push(new_chapter);
-            } else {
-                player_info.push(session.chapter.clone()); 
-            }
+    // A stall is not a pause. The user did not stop the playback, thus the
+    // panel shows the sign of the playback.
+    let is_playing = matches!(
+        state.status,
+        PlaybackStatus::Playing | PlaybackStatus::Stalled
+    );
 
-            player_info.push(session.is_playback.to_string());
-            player_info.push(format_time(session.current_time));
+    let speed = if state.speed > 0.0 {
+        state.speed
+    } else {
+        get_speed_rate(username).parse::<f32>().unwrap_or(1.0)
+    };
 
-            let speed_rate_str = get_speed_rate(username);
-            let speed_rate: f32 = speed_rate_str.parse().unwrap_or(1.0);
-            let original_duration = session.duration.parse::<u32>().unwrap_or(0);
-            let adjusted_duration = (original_duration as f32 / speed_rate) as u32;
-            player_info.push(format_time(adjusted_duration)); 
-
-            let remaining_time = adjusted_duration.saturating_sub(session.current_time);
-            player_info.push(format_time(session.elapsed_time));
-            player_info.push(format_time(remaining_time)); 
-
-            player_info.push(format!("{}", progress_percent(session.current_time, adjusted_duration)));
-        }
-        Ok(None) => {
-            player_info.push("N/A".to_string());
-        }
-        Err(e) => {
-            player_info.push("Error".to_string());
-            info!("[player_info] Error retrieving data: {}", e);
-        }
-    }
-
-    player_info.push(get_speed_rate(username));
-
-    player_info
+    vec![
+        state.title.clone(),
+        state.author.clone(),
+        chapter,
+        is_playing.to_string(),
+        format_time(position),
+        format_time(duration),
+        format_time(position),
+        format_time(duration.saturating_sub(position)),
+        format!("{}", progress_percent(position, duration)),
+        format!("{:.2}", speed),
+    ]
 }
 
 /// Calculate the progress of the playback in percent.

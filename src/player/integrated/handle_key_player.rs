@@ -1,110 +1,72 @@
-use std::io::{self, Write};
-use std::net::TcpStream;
+//! The keys of the player.
+//!
+//! The application sends a command to the engine. There is no separate
+//! program, thus there is no remote control interface and no TCP connection.
+
 use crate::db::crud::*;
-use std::thread;
-use std::time::Duration;
+use crate::player::engine::{PlaybackStatus, PlayerCommand, PlayerHandle};
 
-pub fn handle_key_player(key: &str, address: &str, port: &str, is_playback: &mut bool, username: &str) -> io::Result<()> {
-    let mut stream = TcpStream::connect(format!("{}:{}", address, port))?;
+/// The number of seconds of a jump.
+const JUMP: f64 = 10.0;
 
-    let jump = "10";
+/// The change of the volume for one key.
+const VOLUME_STEP: f32 = 0.1;
+
+/// Sends the command of a key to the engine.
+pub fn handle_key_player(key: &str, player: &PlayerHandle, username: &str) {
+    let state = player.state();
 
     match key {
-        // toggle playback/pause
+        // Change between the playback and the pause.
         " " => {
-            match get_listening_session() {
-                Ok(Some(session)) => {
-                    if session.is_playback {
-                    let _ = update_is_playback("0", session.id_session.as_str());
-                    } else {
-                    let _ = update_is_playback("1", session.id_session.as_str());
-                    }
-                }
-                Ok(None) => {
-
-                }
-                Err(_e) => {
-
-                }
+            if let Ok(Some(session)) = get_listening_session() {
+                let value = if session.is_playback { "0" } else { "1" };
+                let _ = update_is_playback(value, session.id_session.as_str());
             }
-            if *is_playback {
-                writeln!(stream, "pause")?;
+
+            if state.status == PlaybackStatus::Paused {
+                player.send(PlayerCommand::Resume);
             } else {
-                writeln!(stream, "play")?;
+                player.send(PlayerCommand::Pause);
             }
-            *is_playback = !*is_playback;
         }
 
-        // For some cmd, below, need pause => cmd => play
-        // Allow vlc buffer issue. 
-        // Futhermore, need a thread for macos otherwise vlc buffer issue
-        // Otherwise buffer issue and the player freeze
-        // But maybe it's not necessary because I test toutui on macos with a VM
-        // and maybe the VM add a little delay.. but for now I try like this
+        // Jump forward.
+        "p" => player.send(PlayerCommand::SeekBy(JUMP)),
 
-        // jump forward
-        "p" => {
-            writeln!(stream, "pause")?; 
-            writeln!(stream, "seek +{}", jump)?;
-            if cfg!(target_os = "macos") {
-            thread::sleep(Duration::from_millis(500));
-            }
-            writeln!(stream, "play")?;
-        }
-        // jump backward
-        "u" => {
-            writeln!(stream, "pause")?;
-            writeln!(stream, "seek -{}", jump)?;
-            if cfg!(target_os = "macos") {
-            thread::sleep(Duration::from_millis(500));
-            }
-            writeln!(stream, "play")?;
-        }
-        // next chapter
-        "P" => {
-            writeln!(stream, "pause")?;
-            writeln!(stream, "chapter_n")?;
-            if cfg!(target_os = "macos") {
-            thread::sleep(Duration::from_millis(500));
-            }
-            writeln!(stream, "play")?;
-        }
-        // previous chapter
-        "U" => {
-            writeln!(stream, "pause")?;
-            writeln!(stream, "chapter_p")?;
-            if cfg!(target_os = "macos") {
-            thread::sleep(Duration::from_millis(500));
-            }
-            writeln!(stream, "play")?;
-        }
-        // volume up
-        "o" => {
-            writeln!(stream, "volup")?;
-        }
-        // volume down
-        "i" => {
-            writeln!(stream, "voldown")?;
-        }
-        // speed rate up
+        // Jump backward.
+        "u" => player.send(PlayerCommand::SeekBy(-JUMP)),
+
+        // The next chapter.
+        "P" => player.send(PlayerCommand::NextChapter),
+
+        // The chapter before this chapter.
+        "U" => player.send(PlayerCommand::PreviousChapter),
+
+        // More volume.
+        "o" => player.send(PlayerCommand::SetVolume(state.volume + VOLUME_STEP)),
+
+        // Less volume.
+        "i" => player.send(PlayerCommand::SetVolume(state.volume - VOLUME_STEP)),
+
+        // More speed. The engine changes the speed during the playback, thus
+        // the user does not start the playback again. See T-8.
         "O" => {
             let _ = update_speed_rate(username, true);
-            let speed_rate = get_speed_rate(username);
-            writeln!(stream, "rate {}", speed_rate)?;
+            let speed = get_speed_rate(username).parse::<f32>().unwrap_or(1.0);
+            player.send(PlayerCommand::SetSpeed(speed));
         }
-        // speed rate down
+
+        // Less speed.
         "I" => {
             let _ = update_speed_rate(username, false);
-            let speed_rate = get_speed_rate(username);
-            writeln!(stream, "rate {}", speed_rate)?;
+            let speed = get_speed_rate(username).parse::<f32>().unwrap_or(1.0);
+            player.send(PlayerCommand::SetSpeed(speed));
         }
-        // shutdown
-        "Y" => {
-            writeln!(stream, "shutdown")?;
-        }
+
+        // Stop the playback.
+        "Y" => player.send(PlayerCommand::Stop),
+
         _ => {}
     }
-
-    Ok(())
 }
-

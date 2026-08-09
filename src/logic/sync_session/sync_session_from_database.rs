@@ -3,7 +3,6 @@ use crate::db::crud::*;
 use crate::api::sessions::close_open_session::*;
 use log::{info, warn};
 use crate::api::me::update_media_progress::*;
-use crate::player::vlc::quit_vlc::*;
 use crate::utils::exit_app::*;
 
 /// Closes the listening session that the database holds, and sends the last
@@ -11,11 +10,15 @@ use crate::utils::exit_app::*;
 ///
 /// The function runs before the application starts a new session, and before
 /// the application stops.
-pub async fn sync_session_from_database(api: &ApiClient, username: String, app_quit: bool, handle_key: &str, player_address: String, port: String) {
-
-    // quit vlc before close and sync session (or close the app)
-    let _ = quit_vlc(player_address.as_str(), port.as_str());
-
+///
+/// The application decodes the audio itself. Therefore this function does not
+/// stop a separate program. The caller stops the engine.
+pub async fn sync_session_from_database(
+    api: &ApiClient,
+    username: String,
+    app_quit: bool,
+    handle_key: &str,
+) {
     match get_listening_session() {
         Ok(Some(session)) => {
 
@@ -108,25 +111,20 @@ pub async fn sync_session_from_database(api: &ApiClient, username: String, app_q
             }
 
             if app_quit {
-                // update is_vlc_launched_first_time
-                let _ = update_is_vlc_launched_first_time("1", username.as_str());
-                let value = get_is_vlc_launched_first_time(username.as_str());
-                info!("[exit][is_vlc_launched_first_time] {}", value);
-
-                // exit app
+                let _ = update_has_played_before("1", username.as_str());
                 info!("App successfully quit");
                 clean_exit();
-
             }
         }
 
         Ok(None) => {
-            let value = get_is_vlc_launched_first_time(username.as_str());
-            if value == "1" {
-            info!("[handle_key] Quit with no listening session");
-            clean_exit();
+            // The database holds no session. If the user played a media
+            // before, the application can stop now.
+            if get_has_played_before(username.as_str()) == "1" {
+                info!("[handle_key] Quit with no listening session");
+                clean_exit();
             } else {
-                info!("[handle_key] First session launched");
+                info!("[handle_key] The first session starts");
             }
         }
         Err(e) => {

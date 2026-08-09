@@ -6,7 +6,6 @@
 
 use crate::api::client::error::ApiError;
 use crate::api::client::ApiClient;
-use crate::player::vlc::fetch_vlc_data::get_vlc_version;
 use serde_json::json;
 use serde_json::Value;
 
@@ -16,22 +15,16 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 ///
 /// The body tells the server which player the user has. The server shows this
 /// data in the panel of user activity.
-async fn session_body() -> Value {
-    let mut vlc_version = String::new();
-    match get_vlc_version().await {
-        Ok(version) => {
-            vlc_version = version;
-        }
-        Err(e) => {
-            log::error!("[get_vlc_version] {}", e);
-        }
-    }
-
+///
+/// The application decodes the audio itself. Therefore the name of the player
+/// is the name of the application. The old code started `vlc --version` here,
+/// and that started a process for each session.
+fn session_body() -> Value {
     json!({
-        // avoid latency load, allow view chapter, cover etc.(the .m3u8 stream
-        // the original format, ex: .m4b) when playing with vlc
+        // The server must give the original file, and not a stream that it
+        // makes again. The engine reads the original file.
         "forceDirectPlay": true,
-        "mediaPlayer": format!("VLC v{}", vlc_version),
+        "mediaPlayer": format!("Toutui v{}", VERSION),
         "deviceInfo": {
             "clientName": "Toutui",
             "clientVersion": format!("v{}", VERSION),
@@ -74,7 +67,7 @@ pub async fn post_start_playback_session_book(
     client: &ApiClient,
     id_library_item: &str,
 ) -> Result<Vec<String>, ApiError> {
-    let body = session_body().await;
+    let body = session_body();
 
     let v: Value = client
         .post_json(&format!("/api/items/{}/play", id_library_item), &body)
@@ -92,7 +85,7 @@ pub async fn post_start_playback_session_pod(
     id_library_item: &str,
     pod_ep_id: &str,
 ) -> Result<Vec<String>, ApiError> {
-    let body = session_body().await;
+    let body = session_body();
 
     let v: Value = client
         .post_json(

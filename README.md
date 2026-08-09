@@ -34,7 +34,7 @@ Books can be downloaded locally so you can keep listening when your Audiobookshe
 - `D` — download the currently selected book (Home, Library, or Search views) to `~/.local/share/toutui/downloads/<username>/` (or `$XDG_DATA_HOME/toutui/downloads/<username>/` if set). Requires the "download" permission on your Audiobookshelf user account.
 - `X` — remove the local offline copy of the currently selected book.
 - Downloaded books are marked `[Downloaded]` in the book info panel.
-- Playing a downloaded book (`l`/`Enter`) plays the local file directly through VLC — no server round-trip needed to start or control playback. Playback position is always saved locally so it resumes where you left off, even fully offline.
+- Playing a downloaded book (`l`/`Enter`) reads the local file directly — no server round-trip is needed to start or control playback. A copy on the disk always has more importance than the server. Playback position is always saved locally so it resumes where you left off, even fully offline.
 - If the server is reachable while you're listening to a downloaded book, progress is also best-effort pushed to it (same as streaming playback), so other Audiobookshelf clients stay in sync. If it isn't reachable, that push just fails silently and the local resume point is unaffected.
 - Currently books only; podcast episode downloads are not yet supported.
 
@@ -178,8 +178,22 @@ In `/usr/share/toutui` (yay):
 
 #### **Requirements**
 - `Rust`
-- `Netcat`
-- `VLC`
+- On Linux, the ALSA development package. On Debian and Ubuntu the name is
+  `libasound2-dev`. On Fedora the name is `alsa-lib-devel`.
+
+The application plays the audio itself. It does not need VLC, and it does not
+need Netcat.
+
+The application plays these formats: mp3, m4b, m4a, mp4, aac, flac, wav, aiff,
+ogg, oga, mka, webm, caf, mpeg, and mpg. It does not play opus, wma, or awb.
+
+The application uses the default sound device. If your computer has more than
+one sound card, give the name of the device in the variable
+`TOUTUI_AUDIO_DEVICE`:
+
+```bash
+TOUTUI_AUDIO_DEVICE="pipewire" toutui
+```
 
 [![GitHub release](https://img.shields.io/github/v/release/AlbanDAVID/Toutui?label=Latest%20Release&color=green&cacheSeconds=3600)](https://github.com/AlbanDAVID/Toutui/releases/latest)
 

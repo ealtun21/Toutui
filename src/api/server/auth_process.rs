@@ -95,8 +95,9 @@ pub async fn auth_process(username: &str, password: &str, server_address: &str) 
 
         // Init for handle_l
         let is_loop_break = "0".to_string();
-        let is_vlc_running = "0".to_string();
-        let is_vlc_launched_first_time = "1".to_string();
+        // The user played no media yet. Therefore the application does not
+        // wait for a loop of a playback before it.
+        let has_played_before = "1".to_string();
 
 
         // Writting in database : 
@@ -111,9 +112,8 @@ pub async fn auth_process(username: &str, password: &str, server_address: &str) 
                 name_selected_lib: library_names[0].clone(), // by default we take the first library
                 id_selected_lib: library_ids[0].clone(),
                 is_loop_break,
-                is_vlc_launched_first_time,
+                has_played_before,
                 speed_rate: 1.0,
-                is_vlc_running,
                 is_show_key_bindings: "1".to_string()
             }
         ];

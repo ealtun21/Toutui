@@ -3,38 +3,34 @@ use log::info;
 use crate::utils::pop_up_message::*;
 use std::io::stdout;
 
+/// Waits until the playback before this playback is complete.
+///
+/// The loop that follows a playback sets `is_loop_break` to 1 when it stops.
+/// A new playback must not start before that moment, because two loops then
+/// write the progress at the same time.
+///
+/// The first playback of a user has no loop before it. Therefore the function
+/// does not wait in that condition.
 pub fn wait_prev_session_finished(username: String) {
-
-    // pop message
     let message = "Syncing your last listening session. Please wait...";
     let mut stdout = stdout();
 
-        // check if previous play is finished
-        let is_vlc_first_launch = get_is_vlc_launched_first_time(&username);
-        info!("[AppView::Home][is_vlc_first_launch]{}", is_vlc_first_launch);
+    let has_played_before = get_has_played_before(&username);
+    info!("[wait_prev_session_finished][has_played_before] {}", has_played_before);
 
-        if is_vlc_first_launch != "1" {
-            let mut is_loop_break = get_is_loop_break(&username);
-            info!("[AppView::Home][is_loop_break]{}", is_loop_break);
+    if has_played_before != "1" {
+        let mut is_loop_break = get_is_loop_break(&username);
+        info!("[wait_prev_session_finished][is_loop_break] {}", is_loop_break);
 
-            while is_loop_break != "1" {
-                std::thread::sleep(std::time::Duration::from_secs(1));
-                info!("[AppView::Home][loop][is_loop_break]");
-                is_loop_break = get_is_loop_break(&username);
-                let _ = pop_message(&mut stdout, 3, message);
-            }
-
+        while is_loop_break != "1" {
+            std::thread::sleep(std::time::Duration::from_secs(1));
+            is_loop_break = get_is_loop_break(&username);
+            let _ = pop_message(&mut stdout, 3, message);
         }
+    }
 
-        // update database
-        let _ = update_is_loop_break("0", &username);
-        let value = get_is_loop_break(username.as_str());
-        info!("[AppView::Home][update_is_loop_break]{}", value);
-        let _ = update_is_vlc_launched_first_time("0", &username);
-        let value = get_is_vlc_launched_first_time(username.as_str());
-        info!("[AppView::Home][update_is_vlc_first_launch]{}", value);
+    let _ = update_is_loop_break("0", &username);
+    let _ = update_has_played_before("0", &username);
 
-        // clear pop up message 
-        let _ = clear_message(&mut stdout, 3);
-
+    let _ = clear_message(&mut stdout, 3);
 }

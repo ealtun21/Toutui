@@ -8,7 +8,6 @@ use std::path::PathBuf;
 #[derive(Debug, Deserialize)]
 pub struct ConfigFile {
     pub colors: Colors,
-    pub player: Player,
     /// The servers that the configuration file gives.
     pub servers: Vec<ServerConfig>,
 }
@@ -26,14 +25,6 @@ pub struct Colors {
     pub search_bar_foreground_color: Vec<u8>,
     pub login_foreground_color: Vec<u8>,
     pub player_background_color: Vec<u8>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Player {
-    pub cvlc: String,
-    pub cvlc_term: String,
-    pub address: String,
-    pub port: String,
 }
 
 /// One address of a server, from the configuration file.
@@ -81,14 +72,11 @@ pub fn load_config() -> Result<ConfigFile> {
 
     let colors: Colors = config.get("colors")
         .map_err(|e| Report::new(e))?;
-    let player: Player = config.get("player")
-        .map_err(|e| Report::new(e))?;
-
     // A configuration file that an older version made has no `servers`
     // block. An empty list is correct in that condition.
     let servers: Vec<ServerConfig> = config.get("servers").unwrap_or_default();
 
-    Ok(ConfigFile { colors, player, servers })
+    Ok(ConfigFile { colors, servers })
 }
 
 /// Removes a slash at the end of an address, for a comparison.
@@ -197,5 +185,47 @@ mod tests {
         let pool = pool_for_address(&servers(), "https://abs.example.com/");
         assert_eq!(pool.len(), 2);
     }
-}
+    /// A configuration file that an older version made still has a `[player]`
+    /// block. That block controlled VLC. The application must read the file
+    /// and must not fail. See T-14.
+    #[test]
+    fn an_old_player_block_does_not_stop_the_application() {
+        let text = r#"
+[player]
+cvlc = "1"
+cvlc_term = "0"
+address = "localhost"
+port = "1234"
 
+[colors]
+background_color = [40, 40, 40]
+log_background_color = [40, 40, 40]
+header_background_color = [60, 60, 60]
+line_header_color = [80, 80, 80]
+list_background_color = [40, 40, 40]
+list_background_color_alt_row = [45, 45, 45]
+list_selected_background_color = [70, 70, 70]
+list_selected_foreground_color = [255, 255, 255]
+search_bar_foreground_color = [255, 255, 255]
+login_foreground_color = [255, 255, 255]
+player_background_color = [80, 80, 80]
+
+[[servers]]
+name = "home"
+endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
+"#;
+
+        let parsed = ConfigLib::builder()
+            .add_source(config::File::from_str(text, config::FileFormat::Toml))
+            .build()
+            .expect("the file must parse");
+
+        // The application reads only the keys that it knows. The unknown
+        // block does no damage.
+        let colors: Colors = parsed.get("colors").expect("the colours must load");
+        assert_eq!(colors.background_color, vec![40, 40, 40]);
+
+        let servers: Vec<ServerConfig> = parsed.get("servers").unwrap_or_default();
+        assert_eq!(servers.len(), 1);
+    }
+}

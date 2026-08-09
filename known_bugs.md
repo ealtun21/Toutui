@@ -25,17 +25,17 @@ remove the tags and change the HTML entities to characters.
 `bug_id: 4b3045`
 **Authentification Bug:** Even if you fill in valid credentials, the database sync can be buggy, and authentication may fail. Normally, it works on the second try.
 
-`bug_id: 2eb9e3`
-**Display:** At the launch, the app is not displayed and no error message appears (especially if you change user, quit and restart the app). Solution: quit the terminal and try it again.
-
 `bug_id: 2d358c53`
 **Mark as finished:** When a title reach the end, mark as finished not always work.
 
-`bug_id: a49eza`
-**cvlc error sync with ctrl vlc from a terminal:** If you use other command that `shutdown` to quit `cvlc` it may result of a sync issue.
-
 
 **FIXED**  
+`bug_id: 2eb9e3` — CORRECTED on 2026-08-10
+**Display:** At the launch, the app was not displayed and no error message appeared. The application does not start a separate program now, thus this fault cannot occur.  
+`bug_id: a49eza` — CORRECTED on 2026-08-10
+**cvlc error sync with ctrl vlc from a terminal:** The application has no remote control interface now.  
+`bug_id: fe4116` — CORRECTED on 2026-08-10
+**cvlc macOS:** The application does not use `cvlc` on macOS now. It plays the audio itself.  
 `bug_id: 9bacac` 
 **Sync**: If you open VLC to listen X, close VLC and quickly open VLC again to listen Y: X will still be sync — according to Y (normally, only Y has to be sync in this case).   
 `bug_id: 86384e` 
@@ -55,10 +55,8 @@ on it.
 `bug_id: dd9a649`
 **Listening Session:** Sometimes, the session (that you can see in `yourserveraddress/audiobookshelf/config/sessions`) does not close correctly, especially if you open VLC, quit it quickly, and start another book.  
 `bug_id: e0b61c`
-**VLC:** `VLC` continue to run after the app is quit.  
+**VLC:** `VLC` continue to run after the app is quit. The application does not start VLC now.  
 `bug_id: fc695f`
 **Listening session:** The session (that you can see in `yourserveraddress/audiobookshelf/config/sessions`) does not close when the app is quit.  
 `bug_id: 40f48d`
-**Cursor:** When you quit the app, terminal cursor disappear.  
-`bug_id: fe4116`
-**cvlc macOS:** `cvlc` option is not available for now in macOS.  
+**Cursor:** When you quit the app, terminal cursor disappear.

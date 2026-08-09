@@ -38,6 +38,25 @@ pub fn media_position(reported: Duration, speed: f32) -> f64 {
     seconds * speed as f64
 }
 
+/// Changes a position in the media to the value that `try_seek` needs.
+///
+/// This function is the opposite of `media_position`. `rodio` multiplies the
+/// value of `try_seek` by the speed, and it divides the value of `get_pos` by
+/// the speed. Therefore the engine must divide before it moves.
+///
+/// A test against a real book found this fault. The engine moved to the
+/// position 7640 seconds at the speed 1.1, and the reader went to the byte of
+/// the second 8404. The book then came to the end, and the playback stopped.
+pub fn seek_target(media_seconds: f64, speed: f32) -> Duration {
+    let seconds = media_seconds.max(0.0);
+
+    if speed <= 0.0 || !speed.is_finite() {
+        return Duration::from_secs_f64(seconds);
+    }
+
+    Duration::from_secs_f64(seconds / speed as f64)
+}
+
 /// What the engine does now.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PlaybackStatus {
@@ -171,7 +190,7 @@ impl PlayerHandle {
 
 #[cfg(test)]
 mod tests {
-    use super::media_position;
+    use super::{media_position, seek_target};
     use std::time::Duration;
 
     #[test]
@@ -204,5 +223,53 @@ mod tests {
         assert!((media_position(Duration::from_secs(30), 0.0) - 30.0).abs() < 0.001);
         assert!((media_position(Duration::from_secs(30), -1.0) - 30.0).abs() < 0.001);
         assert!((media_position(Duration::from_secs(30), f32::NAN) - 30.0).abs() < 0.001);
+    }
+    /// `try_seek` and `get_pos` are opposites. `rodio` multiplies the value of
+    /// `try_seek` by the speed, and it divides the value of `get_pos`.
+    #[test]
+    fn the_seek_target_is_the_opposite_of_the_position() {
+        let media = 7640.0;
+        let speed = 1.1;
+
+        let target = seek_target(media, speed);
+        let back = media_position(target, speed);
+
+        assert!(
+            (back - media).abs() < 0.001,
+            "the two functions must give the same media position, but the \
+             result is {}",
+            back
+        );
+    }
+
+    /// This is the fault that a test against a real book found. The engine
+    /// moved to 7640 seconds at the speed 1.1, and `rodio` went to 8404
+    /// seconds. The book then came to the end.
+    #[test]
+    fn the_seek_target_does_not_go_past_the_end() {
+        let target = seek_target(7640.0, 1.1).as_secs_f64();
+
+        assert!(
+            (target - 6945.45).abs() < 0.1,
+            "the target must be smaller than the media position, but it is {}",
+            target
+        );
+    }
+
+    #[test]
+    fn a_normal_speed_does_not_change_the_seek_target() {
+        assert!((seek_target(30.0, 1.0).as_secs_f64() - 30.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn a_seek_target_with_a_speed_that_is_not_valid_uses_the_media_position() {
+        assert!((seek_target(30.0, 0.0).as_secs_f64() - 30.0).abs() < 0.001);
+        assert!((seek_target(30.0, f32::NAN).as_secs_f64() - 30.0).abs() < 0.001);
+    }
+
+    /// A position before the start must not make a negative duration.
+    #[test]
+    fn a_negative_position_gives_zero() {
+        assert_eq!(seek_target(-5.0, 1.0).as_secs_f64(), 0.0);
     }
 }

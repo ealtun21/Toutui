@@ -87,10 +87,9 @@ async fn main() -> Result<()> {
         if let Some(var_username) = _database.default_usr.first() {
             username = var_username.clone();
         }
-        // init is_vlc_launched_first_time
-        let _ = update_is_vlc_launched_first_time("1", username.as_str());
-        let value = get_is_vlc_launched_first_time(username.as_str());
-        info!("[main][is_vlc_launched_first_time] {}", value);
+        // At the start no playback loop runs. Therefore a new playback must
+        // not wait for a loop before it.
+        let _ = update_has_played_before("1", username.as_str());
 
         // Make the HTTP client. The client holds all the addresses of the
         // server. If the address that has the most importance does not answer,
@@ -136,8 +135,12 @@ async fn main() -> Result<()> {
         // Running the app in a loop
         loop {
 
-            let is_playing = get_is_vlc_running(app.username.as_str());
-            let player_info = player_info(app.username.as_str());
+            // The engine gives the state. The panel is visible only when the
+            // engine holds a media.
+            let playback = app.player.state();
+            let is_playing = playback.status != toutui::player::engine::PlaybackStatus::Stopped;
+            let player_notice = playback.notice.clone();
+            let player_info = player_info(app.username.as_str(), &playback);
 
             terminal.draw(|frame| {
                 let bg_color = app.config.colors.background_color.clone();
@@ -149,10 +152,10 @@ async fn main() -> Result<()> {
 
                 frame.render_widget(background, frame.area());
 
-                if is_playing == "1" {
+                if is_playing {
                     let area = frame.area();
                     // render for the player (automatically refreshed) 
-                    render_player(area, frame.buffer_mut(), player_info, bg_color_player, app.username.as_str()); 
+                    render_player(area, frame.buffer_mut(), player_info, bg_color_player, app.username.as_str(), player_notice); 
                 }
 
                 // render widget for general app : 

@@ -8,7 +8,7 @@
 
 use crate::player::engine::source::open_decoder;
 use crate::player::engine::{
-    media_position, PlaybackRequest, PlaybackState, PlaybackStatus, PlayerCommand,
+    media_position, seek_target, PlaybackRequest, PlaybackState, PlaybackStatus, PlayerCommand,
 };
 use log::{error, info, warn};
 use rodio::{DeviceSinkBuilder, MixerDeviceSink, Player};
@@ -34,8 +34,7 @@ pub fn spawn(
     state: Arc<RwLock<PlaybackState>>,
     token: String,
 ) -> Result<(), String> {
-    let sink = DeviceSinkBuilder::open_default_sink()
-        .map_err(|error| format!("The application cannot open the sound card: {}", error))?;
+    let sink = open_sink()?;
 
     std::thread::Builder::new()
         .name("toutui-audio".to_string())
@@ -43,6 +42,59 @@ pub fn spawn(
         .map_err(|error| format!("The application cannot start the audio thread: {}", error))?;
 
     Ok(())
+}
+
+/// The name of the variable that selects the sound device.
+pub const DEVICE_VARIABLE: &str = "TOUTUI_AUDIO_DEVICE";
+
+/// Opens the sound device.
+///
+/// The application uses the default device of the operating system. If the
+/// variable `TOUTUI_AUDIO_DEVICE` holds a name, the application uses the
+/// device that has that name. A computer with more than one sound card needs
+/// this variable.
+///
+/// The value `null` on Linux gives a device that discards the sound. A test
+/// uses that value, thus the test makes no sound.
+fn open_sink() -> Result<MixerDeviceSink, String> {
+    let wanted = match std::env::var(DEVICE_VARIABLE) {
+        Ok(name) if !name.trim().is_empty() => name.trim().to_string(),
+        _ => {
+            return DeviceSinkBuilder::open_default_sink().map_err(|error| {
+                format!("The application cannot open the sound card: {}", error)
+            })
+        }
+    };
+
+    let host = rodio::cpal::default_host();
+
+    let devices = rodio::cpal::traits::HostTrait::output_devices(&host)
+        .map_err(|error| format!("The application cannot read the sound cards: {}", error))?;
+
+    for device in devices {
+        // `name()` is deprecated. `description()` gives the name of the
+        // device and more data about it.
+        let name = match rodio::DeviceTrait::description(&device) {
+            Ok(description) => description.name().to_string(),
+            Err(_) => continue,
+        };
+
+        if name == wanted {
+            info!("[worker] the application uses the sound device {}", name);
+
+            return DeviceSinkBuilder::from_device(device)
+                .and_then(|builder| builder.open_stream())
+                .map_err(|error| {
+                    format!("The application cannot open the device {}: {}", wanted, error)
+                });
+        }
+    }
+
+    Err(format!(
+        "The application cannot find the sound device {}. Remove the variable \
+         {} to use the default device.",
+        wanted, DEVICE_VARIABLE
+    ))
 }
 
 /// What the thread plays now.
@@ -165,7 +217,7 @@ fn start(
     }
 
     if offset > 0.0 {
-        if let Err(error) = player.try_seek(Duration::from_secs_f64(offset)) {
+        if let Err(error) = player.try_seek(seek_target(offset, player.speed())) {
             warn!("[worker] the engine cannot move to the position: {}", error);
         }
     }
@@ -201,7 +253,7 @@ fn seek_to(player: &mut Player, current: &mut Option<Current>, token: &str, posi
     };
 
     if track_index == item.playing {
-        if let Err(error) = player.try_seek(Duration::from_secs_f64(offset)) {
+        if let Err(error) = player.try_seek(seek_target(offset, player.speed())) {
             warn!("[worker] the engine cannot move inside the track: {}", error);
         }
         return;
@@ -218,7 +270,7 @@ fn seek_to(player: &mut Player, current: &mut Option<Current>, token: &str, posi
     }
 
     if offset > 0.0 {
-        if let Err(error) = player.try_seek(Duration::from_secs_f64(offset)) {
+        if let Err(error) = player.try_seek(seek_target(offset, player.speed())) {
             warn!("[worker] the engine cannot move inside the track: {}", error);
         }
     }

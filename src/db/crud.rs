@@ -46,45 +46,6 @@ pub fn get_is_show_key_bindings(username: &str) -> String {
     }
 }
 
-// Update is_vlc_running
-pub fn update_is_vlc_running(value: &str, username: &str) -> Result<()> {
-
-    let err_message = "Error connecting to the database.";
-
-    if let Ok(conn) = crate::db::migrate::open_conn() {
-
-        conn.execute(
-            "UPDATE users SET is_vlc_running = ?1 WHERE username = ?2",
-            params![value, username],
-        )?;
-    } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
-        error!("[update_is_vlc_running] {}", err_message);
-    }
-
-    Ok(())
-}
-
-
-// get is_vlc_running
-pub fn get_is_vlc_running(username: &str) -> String {
-    let conn = match crate::db::migrate::open_conn() {
-        Ok(c) => c,
-        Err(_) => return String::from("Error: unable open database"),
-    };
-
-    let mut stmt = match conn.prepare("SELECT is_vlc_running FROM users WHERE username = ?1") {
-        Ok(s) => s,
-        Err(_) => return String::from("Error to prepare reqwest"),
-    };
-
-    match stmt.query_row(params![username], |row| row.get::<_, String>(0)) {
-        Ok(id) => id.to_string(),
-        Err(_) => String::from("No db found"),
-    }
-}
-
 // Update speed_rate
 pub fn update_speed_rate(username: &str, is_speed_rate_up: bool) -> Result<()> {
 
@@ -372,32 +333,33 @@ pub fn get_is_loop_break(username: &str) -> String {
 }
 
 // Update is_vlv_launched_first_time
-pub fn update_is_vlc_launched_first_time(value: &str, username: &str) -> Result<()> {
+pub fn update_has_played_before(value: &str, username: &str) -> Result<()> {
 
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
 
         conn.execute(
-            "UPDATE users SET is_vlc_launched_first_time = ?1 WHERE username = ?2",
+            "UPDATE users SET has_played_before = ?1 WHERE username = ?2",
             params![value, username],
         )?;
     } else {
         let mut stdout = stdout();
         let _ = pop_message(&mut stdout, 3, err_message);
-        error!("[is_vlc_launched_first_time] {}", err_message);
+        error!("[update_has_played_before] {}", err_message);
     }
 
     Ok(())
 }
-// get is_vlc_launched_first_time
-pub fn get_is_vlc_launched_first_time(username: &str) -> String {
+/// Tells if the user played a media before. The application uses this value
+/// to know that it can stop with no session.
+pub fn get_has_played_before(username: &str) -> String {
     let conn = match crate::db::migrate::open_conn() {
         Ok(c) => c,
         Err(_) => return String::from("Error: unable open database"),
     };
 
-    let mut stmt = match conn.prepare("SELECT is_vlc_launched_first_time FROM users WHERE username = ?1") {
+    let mut stmt = match conn.prepare("SELECT has_played_before FROM users WHERE username = ?1") {
         Ok(s) => s,
         Err(_) => return String::from("Error to prepare reqwest"),
     };
@@ -453,8 +415,8 @@ pub fn db_insert_usr(users : &Vec<User>)  -> Result<()> {
     let conn = crate::db::migrate::open_conn()?;
     for user in users {
         conn.execute(
-            "INSERT OR REPLACE INTO users (username, server_address, token, is_default_usr, name_selected_lib, id_selected_lib, is_loop_break, is_vlc_launched_first_time, speed_rate, is_vlc_running, is_show_key_bindings) 
-            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+            "INSERT OR REPLACE INTO users (username, server_address, token, is_default_usr, name_selected_lib, id_selected_lib, is_loop_break, has_played_before, speed_rate, is_show_key_bindings) 
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
             params![
             user.username,
             user.server_address,
@@ -463,9 +425,8 @@ pub fn db_insert_usr(users : &Vec<User>)  -> Result<()> {
             user.name_selected_lib,
             user.id_selected_lib,
             user.is_loop_break,
-            user.is_vlc_launched_first_time,
+            user.has_played_before,
             user.speed_rate,
-            user.is_vlc_running,
             user.is_show_key_bindings,
             ],
         )?;
@@ -529,7 +490,7 @@ pub fn select_default_usr() -> Result<Vec<String>> {
     let conn = crate::db::migrate::open_conn()?;
 
     let mut stmt = conn.prepare(
-        "SELECT username, server_address, token, is_default_usr, name_selected_lib, id_selected_lib, is_loop_break, is_vlc_launched_first_time, speed_rate, is_vlc_running, is_show_key_bindings
+        "SELECT username, server_address, token, is_default_usr, name_selected_lib, id_selected_lib, is_loop_break, has_played_before, speed_rate, is_show_key_bindings
          FROM users WHERE is_default_usr = 1 LIMIT 1"
     )?;
 
@@ -543,10 +504,9 @@ pub fn select_default_usr() -> Result<Vec<String>> {
             name_selected_lib: row.get(4)?,
             id_selected_lib: row.get(5)?,
             is_loop_break: row.get(6)?,
-            is_vlc_launched_first_time: row.get(7)?,
+            has_played_before: row.get(7)?,
             speed_rate: row.get(8)?,
-            is_vlc_running: row.get(9)?,
-            is_show_key_bindings: row.get(10)?,
+            is_show_key_bindings: row.get(9)?,
         })
     })?;
 
@@ -562,9 +522,8 @@ pub fn select_default_usr() -> Result<Vec<String>> {
                 result.push(user.name_selected_lib);
                 result.push(user.id_selected_lib);
                 result.push(user.is_loop_break);
-                result.push(user.is_vlc_launched_first_time);
+                result.push(user.has_played_before);
                 result.push(user.speed_rate.to_string());
-                result.push(user.is_vlc_running);
                 result.push(user.is_show_key_bindings);
             }
             Err(e) => {
