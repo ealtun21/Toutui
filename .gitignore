@@ -6,3 +6,4 @@ config.toml
 /src/macos-sonoma
 /src/macos-sonoma.conf
 
+claude-session-logs/
