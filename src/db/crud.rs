@@ -5,33 +5,14 @@ use crate::db::database_struct::Others;
 use crate::utils::pop_up_message::*;
 use std::io::stdout;
 use log::{info, error};
-use std::env;
-use std::path::PathBuf;
 
 
 // Update is_show_key_bindings
 pub fn update_is_show_key_bindings(value: &str, username: &str) -> Result<()> {
 
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
-
     let err_message = "Error connecting to the database.";
 
-    if let Ok(conn) = Connection::open(db_path) {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
 
         conn.execute(
             "UPDATE users SET is_show_key_bindings = ?1 WHERE username = ?2",
@@ -49,23 +30,7 @@ pub fn update_is_show_key_bindings(value: &str, username: &str) -> Result<()> {
 
 // get is_show_key_bindings
 pub fn get_is_show_key_bindings(username: &str) -> String {
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
-    let conn = match Connection::open(db_path) {
+    let conn = match crate::db::migrate::open_conn() {
         Ok(c) => c,
         Err(_) => return String::from("Error: unable open database"),
     };
@@ -84,25 +49,9 @@ pub fn get_is_show_key_bindings(username: &str) -> String {
 // Update is_vlc_running
 pub fn update_is_vlc_running(value: &str, username: &str) -> Result<()> {
 
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
     let err_message = "Error connecting to the database.";
 
-    if let Ok(conn) = Connection::open(db_path) {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
 
         conn.execute(
             "UPDATE users SET is_vlc_running = ?1 WHERE username = ?2",
@@ -120,23 +69,7 @@ pub fn update_is_vlc_running(value: &str, username: &str) -> Result<()> {
 
 // get is_vlc_running
 pub fn get_is_vlc_running(username: &str) -> String {
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
-    let conn = match Connection::open(db_path) {
+    let conn = match crate::db::migrate::open_conn() {
         Ok(c) => c,
         Err(_) => return String::from("Error: unable open database"),
     };
@@ -155,25 +88,9 @@ pub fn get_is_vlc_running(username: &str) -> String {
 // Update speed_rate
 pub fn update_speed_rate(username: &str, is_speed_rate_up: bool) -> Result<()> {
 
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
     let err_message = "Error connecting to the database.";
 
-    if let Ok(conn) = Connection::open(db_path) {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
 
         if is_speed_rate_up {
         conn.execute(
@@ -198,23 +115,7 @@ pub fn update_speed_rate(username: &str, is_speed_rate_up: bool) -> Result<()> {
 
 // get speed_rate
 pub fn get_speed_rate(username: &str) -> String {
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
-    let conn = match Connection::open(db_path) {
+    let conn = match crate::db::migrate::open_conn() {
         Ok(c) => c,
         Err(_) => return String::from("Error: unable open database"),
     };
@@ -233,25 +134,9 @@ pub fn get_speed_rate(username: &str) -> String {
 // get listening_session
 pub fn get_listening_session() -> Result<Option<ListeningSession>> {
 
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
     let err_message = "Error connecting to the database.";
 
-    if let Ok(conn) = Connection::open(db_path) {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
         let mut stmt = conn.prepare(
             "SELECT id_session, id_item, current_time_playback, duration, is_finished, id_pod, elapsed_time, title, author, is_playback, chapter
              FROM listening_session
@@ -303,25 +188,9 @@ pub fn insert_listening_session(
 
 ) -> Result<()> {
 
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
     let err_message = "Error connecting to the database.";
 
-    if let Ok(conn) = Connection::open(db_path) {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
         conn.execute("DELETE FROM listening_session", params![])?;
         conn.execute(
             "INSERT INTO listening_session (id_session, id_item, current_time_playback, duration, is_finished, id_pod, elapsed_time, title, author, is_playback, chapter) 
@@ -340,25 +209,9 @@ pub fn insert_listening_session(
 // Update chapter (for `listening_session` table)
 pub fn update_chapter(value: &str, id_session: &str) -> Result<()> {
 
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
     let err_message = "Error connecting to the database.";
 
-    if let Ok(conn) = Connection::open(db_path) {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
 
         conn.execute(
             "UPDATE listening_session SET chapter = ?1 WHERE id_session = ?2",
@@ -375,25 +228,9 @@ pub fn update_chapter(value: &str, id_session: &str) -> Result<()> {
 // Update is_playback (for `listening_session` table)
 pub fn update_is_playback(value: &str, id_session: &str) -> Result<()> {
 
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
     let err_message = "Error connecting to the database.";
 
-    if let Ok(conn) = Connection::open(db_path) {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
 
         conn.execute(
             "UPDATE listening_session SET is_playback = ?1 WHERE id_session = ?2",
@@ -410,25 +247,9 @@ pub fn update_is_playback(value: &str, id_session: &str) -> Result<()> {
 // Update current_time (for `listening_session` table)
 pub fn update_current_time(value: u32, id_session: &str) -> Result<()> {
 
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
     let err_message = "Error connecting to the database.";
 
-    if let Ok(conn) = Connection::open(db_path) {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
 
         conn.execute(
             "UPDATE listening_session SET current_time_playback = ?1 WHERE id_session = ?2",
@@ -446,25 +267,9 @@ pub fn update_current_time(value: u32, id_session: &str) -> Result<()> {
 // Update elapsed_time (for `listening_session` table)
 pub fn update_elapsed_time(value: u32, id_session: &str) -> Result<()> {
 
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
     let err_message = "Error connecting to the database.";
 
-    if let Ok(conn) = Connection::open(db_path) {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
 
         conn.execute(
             "UPDATE listening_session SET elapsed_time = elapsed_time + ?1 WHERE id_session = ?2",
@@ -482,25 +287,9 @@ pub fn update_elapsed_time(value: u32, id_session: &str) -> Result<()> {
 // Update is_finished (for `listening_session` table)
 pub fn update_is_finished(value: &str, id_session: &str) -> Result<()> {
     
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
     let err_message = "Error connecting to the database.";
 
-    if let Ok(conn) = Connection::open(db_path) {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
 
         conn.execute(
             "UPDATE listening_session SET is_finished = ?1 WHERE id_session = ?2",
@@ -518,25 +307,9 @@ pub fn update_is_finished(value: &str, id_session: &str) -> Result<()> {
 // Delete an user
 pub fn delete_user(username: &str) -> Result<()> {
     
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
     let message = format!("User '{}' deleted. Please restart the app to apply the changes.", &username);
     let err_message = "Error connecting to the database.";
-    if let Ok(conn) = Connection::open(db_path) {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
 
         let rows_deleted = conn.execute(
             "DELETE FROM users WHERE username = ?1",
@@ -562,25 +335,9 @@ pub fn delete_user(username: &str) -> Result<()> {
 // Update is_loop_break
 pub fn update_is_loop_break(value: &str, username: &str) -> Result<()> {
 
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
     let err_message = "Error connecting to the database.";
 
-    if let Ok(conn) = Connection::open(db_path) {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
 
         conn.execute(
             "UPDATE users SET is_loop_break = ?1 WHERE username = ?2",
@@ -598,23 +355,7 @@ pub fn update_is_loop_break(value: &str, username: &str) -> Result<()> {
 
 // get is_loop_break
 pub fn get_is_loop_break(username: &str) -> String {
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
-    let conn = match Connection::open(db_path) {
+    let conn = match crate::db::migrate::open_conn() {
         Ok(c) => c,
         Err(_) => return String::from("Error: unable open database"),
     };
@@ -633,25 +374,9 @@ pub fn get_is_loop_break(username: &str) -> String {
 // Update is_vlv_launched_first_time
 pub fn update_is_vlc_launched_first_time(value: &str, username: &str) -> Result<()> {
 
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
     let err_message = "Error connecting to the database.";
 
-    if let Ok(conn) = Connection::open(db_path) {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
 
         conn.execute(
             "UPDATE users SET is_vlc_launched_first_time = ?1 WHERE username = ?2",
@@ -667,23 +392,7 @@ pub fn update_is_vlc_launched_first_time(value: &str, username: &str) -> Result<
 }
 // get is_vlc_launched_first_time
 pub fn get_is_vlc_launched_first_time(username: &str) -> String {
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
-    let conn = match Connection::open(db_path) {
+    let conn = match crate::db::migrate::open_conn() {
         Ok(c) => c,
         Err(_) => return String::from("Error: unable open database"),
     };
@@ -701,25 +410,9 @@ pub fn get_is_vlc_launched_first_time(username: &str) -> String {
 // Update id_selected_lib
 pub fn update_id_selected_lib(id_selected_lib: &str, username: &str) -> Result<()> {
 
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
     let message = "The library has been updated. Please refresh the app to apply the changes.";
     let err_message = "Error connecting to the database.";
-    if let Ok(conn) = Connection::open(db_path) {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
 
         conn.execute(
             "UPDATE users SET id_selected_lib = ?1 WHERE username = ?2",
@@ -757,23 +450,7 @@ pub fn update_id_selected_lib(id_selected_lib: &str, username: &str) -> Result<(
 
 // Insert user in database
 pub fn db_insert_usr(users : &Vec<User>)  -> Result<()> {   
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
-    let conn = Connection::open(db_path)?;
+    let conn = crate::db::migrate::open_conn()?;
     for user in users {
         conn.execute(
             "INSERT OR REPLACE INTO users (username, server_address, token, is_default_usr, name_selected_lib, id_selected_lib, is_loop_break, is_vlc_launched_first_time, speed_rate, is_vlc_running, is_show_key_bindings) 
@@ -799,25 +476,9 @@ pub fn db_insert_usr(users : &Vec<User>)  -> Result<()> {
 // get others
 pub fn get_others() -> Result<Option<Others>> {
 
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
     let err_message = "Error connecting to the database.";
 
-    if let Ok(conn) = Connection::open(db_path) {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
         let mut stmt = conn.prepare(
             "SELECT login_err
              FROM others
@@ -843,25 +504,9 @@ pub fn get_others() -> Result<Option<Others>> {
 // Update login_err (for `others` table)
 pub fn update_login_err(value: &str) -> Result<()> {
 
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
     let err_message = "Error connecting to the database.";
 
-    if let Ok(conn) = Connection::open(db_path) {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
         conn.execute(
             "INSERT INTO others (login_err) SELECT '' WHERE NOT EXISTS (SELECT 1 FROM others LIMIT 1)",
             [],
@@ -881,23 +526,7 @@ pub fn update_login_err(value: &str) -> Result<()> {
 
 // Select default user
 pub fn select_default_usr() -> Result<Vec<String>> {
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
-    let conn = Connection::open(db_path)?;
+    let conn = crate::db::migrate::open_conn()?;
 
     let mut stmt = conn.prepare(
         "SELECT username, server_address, token, is_default_usr, name_selected_lib, id_selected_lib, is_loop_break, is_vlc_launched_first_time, speed_rate, is_vlc_running, is_show_key_bindings
@@ -952,112 +581,19 @@ pub fn select_default_usr() -> Result<Vec<String>> {
     Ok(result)  
 }
 
-// Init db and table if not exist
+/// Opens the database and applies the migrations.
 pub fn init_db() -> Result<()> {
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
-    // Open or create db
-    let conn = Connection::open(db_path)?;
-
-    //Create table `users` if there is none 
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS users (
-                username TEXT PRIMARY KEY,
-                server_address TEXT NOT NULL,
-                token TEXT NOT NULL,
-                is_default_usr INTEGER NOT NULL DEFAULT 0,
-                name_selected_lib TEXT NOT NULL,
-                id_selected_lib TEXT NOT NULL,
-                is_loop_break TEXT NOT NULL,
-                is_vlc_launched_first_time TEXT NOT NULL,
-                speed_rate FLOAT NOT NULL,
-                is_vlc_running TEXT NOT NULL,
-                is_show_key_bindings TEXT NOT NULL
-            )",
-        [],
-    )?;
-
-    //Create table `listening_session` if there is none 
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS listening_session (
-            id_session TEXT PRIMARY KEY,
-            id_item TEXT NOT NULL,
-            current_time_playback INTEGER NOT NULL,
-            duration TEXT NOT NULL,
-            is_finished INTEGER NOT NULL DEFAULT 0,
-            id_pod TEXT NOT NULL,
-            elapsed_time INTEGER NOT NULL,
-            title TEXT NOT NULL,
-            author TEXT NOT NULL,
-            is_playback INTEGER NOT NULL DEFAULT 1,
-            chapter TEXT NOT NULL
-            )",
-        [],
-    )?;
-
-    //Create table `others` if there is none
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS others (
-            login_err TEXT NOT NULL DEFAULT ''
-        )",
-        [],
-    )?;
-
-    //Create table `downloads` if there is none
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS downloads (
-            id_item TEXT NOT NULL,
-            username TEXT NOT NULL,
-            title TEXT NOT NULL,
-            author TEXT NOT NULL,
-            file_path TEXT NOT NULL,
-            duration REAL NOT NULL DEFAULT 0,
-            current_time_offline INTEGER NOT NULL DEFAULT 0,
-            downloaded_at TEXT NOT NULL,
-            PRIMARY KEY (id_item, username)
-            )",
-        [],
-    )?;
-
+    let conn = Connection::open(crate::db::migrate::db_path())?;
+    crate::db::migrate::run_migrations(&conn)?;
     Ok(())
 }
 
 // Insert (or replace) a downloaded item (for `downloads` table)
 pub fn insert_download(id_item: &str, username: &str, title: &str, author: &str, file_path: &str, duration: f64) -> Result<()> {
 
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
     let err_message = "Error connecting to the database.";
 
-    if let Ok(conn) = Connection::open(db_path) {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
 
         conn.execute(
             "INSERT OR REPLACE INTO downloads (id_item, username, title, author, file_path, duration, current_time_offline, downloaded_at)
@@ -1076,23 +612,7 @@ pub fn insert_download(id_item: &str, username: &str, title: &str, author: &str,
 // Get a downloaded item: (file_path, current_time_offline, duration, title, author) (for `downloads` table)
 pub fn get_download(id_item: &str, username: &str) -> Option<(String, u32, f64, String, String)> {
 
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
-    let conn = Connection::open(db_path).ok()?;
+    let conn = crate::db::migrate::open_conn().ok()?;
 
     let mut stmt = conn.prepare(
         "SELECT file_path, current_time_offline, duration, title, author FROM downloads WHERE id_item = ?1 AND username = ?2"
@@ -1112,25 +632,9 @@ pub fn get_download(id_item: &str, username: &str) -> Option<(String, u32, f64, 
 // Update current_time_offline (for `downloads` table)
 pub fn update_download_current_time(id_item: &str, username: &str, value: u32) -> Result<()> {
 
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
     let err_message = "Error connecting to the database.";
 
-    if let Ok(conn) = Connection::open(db_path) {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
 
         conn.execute(
             "UPDATE downloads SET current_time_offline = ?1 WHERE id_item = ?2 AND username = ?3",
@@ -1148,25 +652,9 @@ pub fn update_download_current_time(id_item: &str, username: &str, value: u32) -
 // Delete a downloaded item (for `downloads` table)
 pub fn delete_download(id_item: &str, username: &str) -> Result<()> {
 
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let db_path = config_home_path.join("toutui/db.sqlite3");
-
     let err_message = "Error connecting to the database.";
 
-    if let Ok(conn) = Connection::open(db_path) {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
 
         conn.execute(
             "DELETE FROM downloads WHERE id_item = ?1 AND username = ?2",
