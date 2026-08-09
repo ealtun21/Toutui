@@ -28,6 +28,7 @@ the original issue, if there is one.
 | T-7 | The application asks for one page at a time | sub-project 3 |
 | T-4 | The application gets the position from the server | sub-project 3 |
 | T-16 | The application marks a media as finished at the end | sub-project 3 |
+| T-12 | The repository has a Nix flake | sub-project 0 |
 
 Sub-project 2 removed VLC. The application decodes the audio in the process
 now. Therefore a book with many audio files plays completely, the token stays

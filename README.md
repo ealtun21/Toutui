@@ -176,6 +176,21 @@ In `/usr/share/toutui` (yay):
 >[!WARNING]
 > This is a beta app, please read [this](https://github.com/AlbanDAVID/Toutui?tab=readme-ov-file#%EF%B8%8F-caution-beta-version).  
 
+#### **Nix**
+
+The repository holds a flake. Nix then gives every dependency, and it also
+gives the ALSA library that the audio engine needs.
+
+```bash
+nix build github:ealtun21/Toutui
+nix run github:ealtun21/Toutui
+nix develop            # a shell for development
+```
+
+A build on 2026-08-10 completed, and the tests ran inside the sandbox of Nix.
+That sandbox has no sound card and no network, thus the tests do not need
+either one.
+
 #### **Requirements**
 - `Rust`
 - On Linux, the ALSA development package. On Debian and Ubuntu the name is
