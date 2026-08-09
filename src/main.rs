@@ -57,7 +57,7 @@ async fn main() -> Result<()> {
         });
     // Construct the dotenv 
     let env_path = config_path.join("toutui").join(".env");
-    dotenv::from_filename(&env_path.clone()).ok();
+    dotenv::from_filename(env_path.clone()).ok();
 
     // Init database
     let mut _database = Database::new().await?;
@@ -91,7 +91,7 @@ async fn main() -> Result<()> {
 
         // init current username
         let mut username: String = String::new();
-        if let Some(var_username) = _database.default_usr.get(0) {
+        if let Some(var_username) = _database.default_usr.first() {
             username = var_username.clone();
         }
         // init is_vlc_launched_first_time 
@@ -136,9 +136,8 @@ async fn main() -> Result<()> {
             if crossterm::event::poll(Duration::from_millis(200))? {
                 if let event::Event::Key(key) = crossterm::event::read()? {
                     app.handle_key(key);
-                    match key.code {
-                        // If the 'R' key is pressed, refresh the app
-                        KeyCode::Char('R') => {
+                    // If the 'R' key is pressed, refresh the app
+                    if let KeyCode::Char('R') = key.code {
                             // pop up message
                             let mut stdout = stdout();
                             let _ = clear_message(&mut stdout, 3); // clear a message, if any, before print the message bellow
@@ -147,8 +146,6 @@ async fn main() -> Result<()> {
                             app = App::new().await?; 
                             // clear message above
                             let _ = clear_message(&mut stdout, 3);
-                        }
-                        _ => {}
                     }
                 }
             }

@@ -81,7 +81,7 @@ pub async fn collect_duration_cnt_list(continue_listening: &[Root]) -> Vec<f64> 
             for entity in entities {
                 if let Some(media) = &entity.media {  
                     if let Some(duration) = &media.duration { 
-                        duration_cnt_list.push(duration.clone()); 
+                        duration_cnt_list.push(*duration); 
                     } else {
                             duration_cnt_list.push(0.0);
                         }

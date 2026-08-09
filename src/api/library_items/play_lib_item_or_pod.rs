@@ -11,7 +11,6 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// Play a Library Item or Podcast Episode
 /// This endpoint starts a playback session for a library item or podcast episode.
 /// https://api.audiobookshelf.org/#play-a-library-item-or-podcast-episode
-
 // play book 
 pub async fn post_start_playback_session_book(token: Option<&String>, id_library_item: &str, server_address: String) -> Result<Vec<String>, reqwest::Error> {
     let mut vlc_version = String::new();

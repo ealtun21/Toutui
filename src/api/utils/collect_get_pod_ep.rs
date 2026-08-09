@@ -174,7 +174,7 @@ pub async fn collect_durations_pod_ep(item: &Root) -> Vec<String> {
         }
     }
 
-    let durations_pod_ep = convert_seconds(durations);
-    durations_pod_ep
+    
+    convert_seconds(durations)
 }
 

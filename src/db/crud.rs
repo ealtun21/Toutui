@@ -286,6 +286,9 @@ pub fn get_listening_session() -> Result<Option<ListeningSession>> {
 }
 
 // insert data into `listening_session` table
+// The ApiClient refactor removes the token and the address parameters.
+// See docs/superpowers/plans/2026-08-09-api-client-endpoints.md, task 10.
+#[allow(clippy::too_many_arguments)]
 pub fn insert_listening_session(
     id_session: String,
     id_item: String,

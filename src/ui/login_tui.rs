@@ -18,7 +18,6 @@ impl Widget for &mut AppLogin {
 
 
 /// Rendering logic
-
 impl AppLogin {
 
     fn render_auth(&mut self, _area: Rect, _buf: &mut Buffer) {

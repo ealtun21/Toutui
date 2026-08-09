@@ -133,7 +133,7 @@ pub async fn collect_duration_library(library: &Root) -> Vec<f64> {
         for item in results {
             if let Some(media) = &item.media {
                 if let Some(dur) = &media.duration {
-                    duration.push(dur.clone());
+                    duration.push(*dur);
                 } else {
                     duration.push(0.0);
                 }

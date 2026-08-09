@@ -185,8 +185,8 @@ pub async fn collect_durations_pod_cnt_list(roots: &[Root]) -> Vec<String> {
         }
     }
 
-    let durations_pod_cnt_list = convert_seconds(durations);
-    durations_pod_cnt_list
+    
+    convert_seconds(durations)
 }
 
 /// collect ids ep 

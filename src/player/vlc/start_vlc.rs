@@ -2,6 +2,9 @@ use std::process::Command;
 use std::process::Output;
 use crate::db::crud::*;
 
+// Sub-project 2 replaces VLC with an audio engine in the process, and that
+// work removes these parameters.
+#[allow(clippy::too_many_arguments)]
 pub async fn start_vlc(
     current_time: &String, 
     port: &str, 
@@ -18,7 +21,7 @@ pub async fn start_vlc(
 
     let speed_rate = get_speed_rate(username.as_str());
 
-    let output: Output = Command::new(format!("{}", program))
+    let output: Output = Command::new(&program)
         .arg("-I") // for macos
         .arg("dummy") // for macos
         .arg(format!("--start-time={}", current_time))
@@ -43,6 +46,9 @@ pub async fn start_vlc(
 
 /// Start VLC on a locally downloaded file (offline playback), instead of streaming
 /// from the Audiobookshelf server.
+// Sub-project 2 replaces VLC with an audio engine in the process, and that
+// work removes these parameters.
+#[allow(clippy::too_many_arguments)]
 pub async fn start_vlc_offline(
     current_time: &String,
     port: &str,
@@ -57,7 +63,7 @@ pub async fn start_vlc_offline(
 
     let speed_rate = get_speed_rate(username.as_str());
 
-    let output: Output = Command::new(format!("{}", program))
+    let output: Output = Command::new(&program)
         .arg("-I") // for macos
         .arg("dummy") // for macos
         .arg(format!("--start-time={}", current_time))

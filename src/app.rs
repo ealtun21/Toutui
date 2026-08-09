@@ -199,7 +199,7 @@ impl App {
 
         // init current username
         let mut username: String = String::new();
-        if let Some(var_username) = database.default_usr.get(0) {
+        if let Some(var_username) = database.default_usr.first() {
             username = var_username.clone();
         }
 
@@ -235,11 +235,7 @@ impl App {
     let lib_name_type = format!("📖 {} ({})", library_name, media_type);
 
     // init is_podcast
-    let is_podcast = if media_type == "podcast" {
-        true
-    } else {
-        false
-    };
+    let is_podcast = media_type == "podcast";
 
     // init for `Home` (continue listening)
     let mut _titles_cnt_list: Vec<String> = Vec::new();
@@ -297,8 +293,8 @@ impl App {
                 // avoid an out of bound panick
                 let mut values: Vec<String> = Vec::new();
                 let mut values_f64: Vec<f64> = Vec::new();
-                values.push(format!(" N/A"));
-                values.push(format!(" N/A"));
+                values.push(" N/A".to_string());
+                values.push(" N/A".to_string());
                 values_f64.push(0.0);
                 book_progress_cnt_list.push(values);
                 book_progress_cnt_list_cur_time.push(values_f64);
@@ -401,8 +397,8 @@ impl App {
     let durations_pod_ep: Vec<String> = Vec::new();
 
     if is_podcast {
-    for i in 0..ids_library.len() 
-    {let podcast_episode = get_pod_ep(&token, server_address.clone(), ids_library[i].as_str()).await?;
+    for id_library in ids_library.iter()
+    {let podcast_episode = get_pod_ep(&token, server_address.clone(), id_library.as_str()).await?;
         let title = collect_titles_pod_ep(&podcast_episode).await;
         all_titles_pod_ep.push(title);
         let id = collect_ids_pod_ep(&podcast_episode).await;
@@ -429,7 +425,7 @@ impl App {
     // init for `SettingsAccount`
     let mut all_usernames: Vec<String> = Vec::new();
     let mut all_server_addresses: Vec<String> = Vec::new();
-    if let Some(var_username) = database.default_usr.get(0) {
+    if let Some(var_username) = database.default_usr.first() {
         all_usernames.push(var_username.clone());
     }
     if let Some(var_server_address) = database.default_usr.get(1) {
@@ -902,7 +898,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 
                             // before open a new session, wait to close and sync previous
                             // session
-                            let _ = wait_prev_session_finished(username.clone()); 
+                            wait_prev_session_finished(username.clone()); 
 
                             // pop message
                             let mut stdout = stdout();
@@ -949,7 +945,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 
                             // before open a new session, wait to close and sync previous
                             // session
-                            let _ = wait_prev_session_finished(username.clone());
+                            wait_prev_session_finished(username.clone());
 
                             // pop message
                             let mut stdout = stdout();
@@ -1018,7 +1014,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                 AppView::SettingsLibrary => {
                     if let Some(index) = selected_settings_library {
                         let new_selected_lib = &self.libraries_ids[index];
-                        let _ = update_id_selected_lib(&new_selected_lib, &self.username);
+                        let _ = update_id_selected_lib(new_selected_lib, &self.username);
                     }
                 }
                 AppView::SettingsAbout => {
@@ -1053,7 +1049,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 
                                 // before open a new session, wait to close and sync previous
                                 // session
-                                let _ = wait_prev_session_finished(username.clone());
+                                wait_prev_session_finished(username.clone());
 
                                 // pop message
                                 let mut stdout = stdout();
@@ -1135,7 +1131,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 
                                 // before open a new session, wait to close and sync previous
                                 // session
-                                let _ = wait_prev_session_finished(username.clone());
+                                wait_prev_session_finished(username.clone());
 
                                 // pop message
                                 let mut stdout = stdout();
@@ -1212,7 +1208,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 
                                     // before open a new session, wait to close and sync previous
                                     // session
-                                    let _ = wait_prev_session_finished(username.clone()); 
+                                    wait_prev_session_finished(username.clone()); 
 
                                     // pop message
                                     let mut stdout = stdout();
@@ -1265,7 +1261,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 
                                     // before open a new session, wait to close and sync previous
                                     // session
-                                    let _ = wait_prev_session_finished(username.clone()); 
+                                    wait_prev_session_finished(username.clone()); 
 
                                     // pop message
                                     let mut stdout = stdout();

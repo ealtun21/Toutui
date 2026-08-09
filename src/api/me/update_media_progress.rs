@@ -5,9 +5,8 @@ use std::error::Error;
 /// Create/Update Media Progress
 /// This endpoint creates/updates your media progress for a library item or podcast episode.
 /// https://api.audiobookshelf.org/#create-update-media-progress
-
 // for a book 
-pub async fn update_media_progress_book(id_library_item: &str, token: Option<&String>, current_time: Option<u32>, duration: &String, server_adress: String) -> Result<(), Box<dyn Error>> {
+pub async fn update_media_progress_book(id_library_item: &str, token: Option<&String>, current_time: Option<u32>, duration: &str, server_adress: String) -> Result<(), Box<dyn Error>> {
 
     // Build client reqwest
     let client = reqwest::Client::new();
@@ -49,7 +48,7 @@ pub async fn update_media_progress_book(id_library_item: &str, token: Option<&St
 }
 
 // for a book (to mark as finished)
-pub async fn update_media_progress2_book(id_library_item: &str, token: Option<&String>, current_time: Option<u32>, duration: &String, is_finished: bool, server_adress: String) -> Result<(), Box<dyn Error>> {
+pub async fn update_media_progress2_book(id_library_item: &str, token: Option<&String>, current_time: Option<u32>, duration: &str, is_finished: bool, server_adress: String) -> Result<(), Box<dyn Error>> {
 
     // Build client reqwest
     let client = reqwest::Client::new();
@@ -91,7 +90,7 @@ pub async fn update_media_progress2_book(id_library_item: &str, token: Option<&S
 }
 
 // for a podcast : 
-pub async fn update_media_progress_pod(id_library_item: &str , token: Option<&String>, current_time: Option<u32>, duration: &String, ep_id : &str, server_adress: String) -> Result<(), Box<dyn Error>> {
+pub async fn update_media_progress_pod(id_library_item: &str , token: Option<&String>, current_time: Option<u32>, duration: &str, ep_id : &str, server_adress: String) -> Result<(), Box<dyn Error>> {
 
     // Build client reqwest
     let client = reqwest::Client::new();
@@ -133,7 +132,7 @@ pub async fn update_media_progress_pod(id_library_item: &str , token: Option<&St
 }
 
 // for a podcast (to mark as finished) : 
-pub async fn update_media_progress2_pod(id_library_item: &str, token: Option<&String>, current_time: Option<u32>, duration: &String, is_finished: bool, ep_id: &str, server_adress: String) -> Result<(), Box<dyn Error>> {
+pub async fn update_media_progress2_pod(id_library_item: &str, token: Option<&String>, current_time: Option<u32>, duration: &str, is_finished: bool, ep_id: &str, server_adress: String) -> Result<(), Box<dyn Error>> {
 
     // Build client reqwest
     let client = reqwest::Client::new();

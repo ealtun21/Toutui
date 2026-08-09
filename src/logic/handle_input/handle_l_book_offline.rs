@@ -14,6 +14,9 @@ use crate::db::crud::*;
 /// If the server is reachable, progress is also best-effort pushed to it (same
 /// endpoint the streaming path uses) so other Audiobookshelf clients stay in
 /// sync; if it isn't reachable the push just fails silently.
+// The ApiClient refactor removes the token and the address parameters.
+// See docs/superpowers/plans/2026-08-09-api-client-endpoints.md, task 10.
+#[allow(clippy::too_many_arguments)]
 pub async fn handle_l_book_offline(
     port: String,
     address_player: String,
