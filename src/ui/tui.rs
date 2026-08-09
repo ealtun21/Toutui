@@ -6,10 +6,11 @@ use ratatui::{
     style::{Color, Modifier, Style, Stylize},
     text::Line,
     widgets::{
-        Block, Borders, HighlightSpacing, List, ListItem , ListState,  Paragraph, StatefulWidget,
-        Widget, Wrap
+        Block, Borders, Gauge, HighlightSpacing, List, ListItem , ListState,  Paragraph,
+        StatefulWidget, Widget, Wrap
     },
 };
+use crate::logic::download::progress::DownloadState;
 use crate::utils::convert_seconds::*;
 use crate::config::*;
 
@@ -31,7 +32,101 @@ impl Widget for &mut App {
             AppView::SettingsAbout => {},
             AppView::SettingsUpdateUninstall => {},
         }
+
+        // The bar goes above the other widgets. Therefore the user sees a
+        // download in every view.
+        App::render_downloads(area, buf);
     }
+}
+
+/// The number of lines of one download bar.
+const DOWNLOAD_BAR_HEIGHT: u16 = 1;
+
+/// The largest number of bars on the screen at the same time.
+const DOWNLOAD_BAR_MAX: usize = 3;
+
+impl App {
+    /// Draws a bar for each download that runs.
+    ///
+    /// The function draws nothing when no download runs. It reads the global
+    /// map of the progress. The download task writes that map.
+    fn render_downloads(area: Rect, buf: &mut Buffer) {
+        let map = crate::logic::download::downloads();
+
+        // A lock that fails must not stop the screen. The function draws
+        // nothing in that condition.
+        let Ok(map) = map.read() else {
+            return;
+        };
+
+        let mut running: Vec<_> = map
+            .values()
+            .filter(|item| item.state == DownloadState::Running)
+            .collect();
+
+        if running.is_empty() {
+            return;
+        }
+
+        // The sequence must be the same for each frame. Therefore the
+        // function sorts by the identity of the item.
+        running.sort_by(|a, b| a.item_id.cmp(&b.item_id));
+        running.truncate(DOWNLOAD_BAR_MAX);
+
+        let height = DOWNLOAD_BAR_HEIGHT * running.len() as u16;
+
+        if area.height <= height {
+            return;
+        }
+
+        for (row, item) in running.iter().enumerate() {
+            let line = Rect {
+                x: area.x,
+                y: area.y + area.height - height + row as u16,
+                width: area.width,
+                height: DOWNLOAD_BAR_HEIGHT,
+            };
+
+            let label = if item.file_count > 1 {
+                format!(
+                    " ⬇ {}  file {}/{}  {} / {} ",
+                    shorten(&item.title, 28),
+                    item.file_index,
+                    item.file_count,
+                    megabytes(item.bytes_done),
+                    megabytes(item.bytes_total),
+                )
+            } else {
+                format!(
+                    " ⬇ {}  {} / {} ",
+                    shorten(&item.title, 34),
+                    megabytes(item.bytes_done),
+                    megabytes(item.bytes_total),
+                )
+            };
+
+            Gauge::default()
+                .gauge_style(Style::default().fg(Color::Green).bg(Color::DarkGray))
+                .percent(item.percent())
+                .label(label)
+                .render(line, buf);
+        }
+    }
+}
+
+/// Changes a number of bytes to a text in megabytes.
+fn megabytes(bytes: u64) -> String {
+    format!("{:.1} MB", bytes as f64 / 1_048_576.0)
+}
+
+/// Makes a text shorter. The function adds a full stop character.
+fn shorten(text: &str, width: usize) -> String {
+    if text.chars().count() <= width {
+        return text.to_string();
+    }
+
+    let kept: String = text.chars().take(width.saturating_sub(1)).collect();
+    format!("{}…", kept)
 }
 
 

@@ -12,7 +12,7 @@ use std::collections::HashMap;
 use std::env;
 use std::io::stdout;
 use std::path::PathBuf;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, OnceLock, RwLock};
 
 /// Base directory where downloaded audiobooks are stored for offline listening
 pub fn downloads_base_dir(username: &str) -> PathBuf {
@@ -32,33 +32,14 @@ pub fn new_progress_map() -> ProgressMap {
     Arc::new(RwLock::new(HashMap::new()))
 }
 
-/// Downloads a library item for offline listening and writes it to the local
-/// database.
+/// Gives the map of the progress of all the downloads.
 ///
-/// The function makes its own map of the progress. The user interface cannot
-/// read that map. Use `download_item_with_progress` to give a map that the
-/// user interface reads.
-#[allow(clippy::too_many_arguments)]
-pub async fn download_item(
-    token: Option<String>,
-    id_library_item: String,
-    server_address: String,
-    username: String,
-    title: String,
-    author: String,
-    duration: f64,
-) {
-    download_item_with_progress(
-        token,
-        id_library_item,
-        server_address,
-        username,
-        title,
-        author,
-        duration,
-        new_progress_map(),
-    )
-    .await;
+/// The map is global. The program makes a new `App` when the user refreshes
+/// with the key `R`. A map in `App` loses the progress of a download that
+/// runs. This map does not.
+pub fn downloads() -> ProgressMap {
+    static DOWNLOADS: OnceLock<ProgressMap> = OnceLock::new();
+    Arc::clone(DOWNLOADS.get_or_init(new_progress_map))
 }
 
 /// Downloads a library item and writes its progress to the given map.

@@ -31,7 +31,7 @@ use crate::logic::sync_session::wait_prev_session_finished::*;
 use crate::player::integrated::handle_key_player::*;
 use crate::utils::check_update::*;
 use crate::logic::handle_input::handle_l_book_offline::*;
-use crate::logic::download::download_item;
+use crate::logic::download::download_item_with_progress;
 
 pub enum AppView {
     Home,
@@ -725,8 +725,14 @@ pub fn handle_key(&mut self, key: KeyEvent) {
             };
 
             if let Some((id, title, author, duration)) = item {
+                // The map is global. Therefore the bar stays correct when the
+                // user refreshes the screen with the key `R`.
+                let progress = crate::logic::download::downloads();
                 tokio::spawn(async move {
-                    download_item(token, id, server_address, username, title, author, duration).await;
+                    download_item_with_progress(
+                        token, id, server_address, username, title, author, duration, progress,
+                    )
+                    .await;
                 });
             }
         }
