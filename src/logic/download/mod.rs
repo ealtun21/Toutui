@@ -1,3 +1,5 @@
+pub mod plan;
+
 use crate::api::library_items::download_item::download_library_item_file;
 use crate::db::crud::insert_download;
 use crate::utils::pop_up_message::*;

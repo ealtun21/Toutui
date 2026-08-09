@@ -27,3 +27,4 @@ clap = "4.5.37"
 
 [dev-dependencies]
 wiremock = "0.6"
+tempfile = "3"
