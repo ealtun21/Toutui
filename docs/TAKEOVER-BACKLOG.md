@@ -129,6 +129,7 @@ the address. Issue #35 gives this advice. Sub-project 2 does this work.
 | T-8 | #36 | A change of the speed needs a new start of the playback | 2 |
 | T-17 | — | Play an Opus file | later |
 | T-18 | — | Play a WMA file and an AWB file (the last two of 19) | later |
+| T-20 | — | Remove the two dependencies that compile C | later |
 
 ### T-7: the application gets all items in one request
 
@@ -146,6 +147,20 @@ change. The user must press `L` to start the playback again.
 
 VLC is the cause. The audio engine in sub-project 2 can change the speed
 during playback.
+
+### T-20: remove the two dependencies that compile C
+
+The rule of the project says that no dependency needs a C toolchain. A
+measurement on 2026-08-10 shows that two dependencies do not obey the rule:
+
+- `libsqlite3-sys`, from `rusqlite` with the feature `bundled`.
+- `ring`, from `rustls` 0.21 through `reqwest` 0.11.
+
+`backtrace` names `cc` as a build dependency, but it compiles no C on this
+target. The audio crates of sub-project 2 compile no C.
+
+Both answers need a crate that is not ready today. `turso` is a pre-release,
+and `rustls-rustcrypto` is an alpha version. Issue 20 holds the details.
 
 ## Priority 4: new functions
 

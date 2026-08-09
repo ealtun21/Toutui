@@ -184,6 +184,10 @@ In `/usr/share/toutui` (yay):
 The application plays the audio itself. It does not need VLC, and it does not
 need Netcat.
 
+The build compiles two dependencies from C source: SQLite (through
+`rusqlite`) and `ring` (through `rustls`). The goal of the project is a build
+with no C. Issue 20 holds that work. The audio engine compiles no C.
+
 The application plays these formats: mp3, m4b, m4a, mp4, aac, flac, wav, aiff,
 ogg, oga, mka, webm, caf, mpeg, and mpg. It does not play opus, wma, or awb.
 
