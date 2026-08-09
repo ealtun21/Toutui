@@ -27,7 +27,7 @@ use crate::player::integrated::handle_key_player::*;
 use crate::player::engine::PlayerHandle;
 use crate::logic::playback::{play, PlaybackTarget};
 use crate::utils::check_update::*;
-use crate::logic::download::{DownloadTarget, download_with_progress};
+use crate::logic::download::{DownloadTarget, download_with_progress, remove_download};
 
 pub enum AppView {
     Home,
@@ -693,11 +693,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
             let username = self.username.clone();
 
             if let Some((target, _title, _author)) = self.selected_download() {
-                let key = target.key().to_string();
-
-                if let Some((file_path, _current_time, _duration, title, _author)) = get_download(&key, &username) {
-                    let _ = std::fs::remove_file(&file_path);
-                    let _ = delete_download(&key, &username);
+                if let Some(title) = remove_download(target.key(), &username) {
                     let mut stdout = stdout();
                     let _ = pop_message(&mut stdout, 3, &format!("Removed offline copy of \"{}\".", title));
                 }

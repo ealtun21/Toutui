@@ -2,7 +2,9 @@ pub mod fetch;
 pub mod plan;
 pub mod progress;
 
-use crate::db::crud::{insert_download, insert_download_file};
+use crate::db::crud::{
+    delete_download, get_download, get_download_files, insert_download, insert_download_file,
+};
 use crate::utils::pop_up_message::*;
 use fetch::fetch_item;
 use log::{error, info};
@@ -198,6 +200,71 @@ pub async fn download_with_progress(
     }
 }
 
+/// Gives the files that the application must remove, with no file two times.
+///
+/// The table `downloads` holds the path of the first file, and the table
+/// `download_files` holds the path of each file. The two tables therefore give
+/// the first file two times.
+fn paths_to_remove(first: &str, files: &[String]) -> Vec<String> {
+    let mut paths: Vec<String> = Vec::with_capacity(files.len() + 1);
+
+    for path in files.iter().chain(std::iter::once(&first.to_string())) {
+        if !path.is_empty() && !paths.contains(path) {
+            paths.push(path.clone());
+        }
+    }
+
+    paths
+}
+
+/// Removes the local copy of a book or of an episode.
+///
+/// The function removes every audio file, and it removes the directory of the
+/// download when that directory is empty. Then it removes the two rows of the
+/// database.
+///
+/// The function gives the title of the download. It gives `None` when the
+/// database holds no download with this key.
+pub fn remove_download(key: &str, username: &str) -> Option<String> {
+    let (first, _current_time, _duration, title, _author) = get_download(key, username)?;
+
+    let files: Vec<String> = get_download_files(key, username)
+        .into_iter()
+        .map(|(_index, path, _duration)| path)
+        .collect();
+
+    let paths = paths_to_remove(&first, &files);
+
+    // The directory of the download holds the files only. Therefore the
+    // application removes it after the last file.
+    let directory = paths
+        .first()
+        .and_then(|path| std::path::Path::new(path).parent().map(PathBuf::from));
+
+    for path in &paths {
+        if let Err(error) = std::fs::remove_file(path) {
+            if error.kind() != std::io::ErrorKind::NotFound {
+                error!("[remove_download] the file {} stays: {}", path, error);
+            }
+        }
+    }
+
+    if let Some(directory) = directory {
+        // A directory that is not empty stays. The error is not important.
+        let _ = std::fs::remove_dir(&directory);
+    }
+
+    let _ = delete_download(key, username);
+
+    info!(
+        "[remove_download] the application removed {} file(s) of \"{}\"",
+        paths.len(),
+        title
+    );
+
+    Some(title)
+}
+
 /// Gets one library item from the server.
 ///
 /// The answer gives `media.audioFiles`. The planner reads that list.
@@ -222,4 +289,56 @@ async fn get_item(
         .json::<serde_json::Value>()
         .await
         .map_err(|error| format!("the answer is not correct: {error}"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A book with many files gives every file, and the first file one time
+    /// only.
+    #[test]
+    fn the_list_holds_every_file_one_time() {
+        let files = vec![
+            "/d/001 - a.mp3".to_string(),
+            "/d/002 - b.mp3".to_string(),
+            "/d/003 - c.mp3".to_string(),
+        ];
+
+        let paths = paths_to_remove("/d/001 - a.mp3", &files);
+
+        assert_eq!(paths, files);
+    }
+
+    /// The table `download_files` is empty in a database from an older
+    /// version. The path of the first file is then the only path.
+    #[test]
+    fn the_list_holds_the_first_file_with_no_other_file() {
+        assert_eq!(
+            paths_to_remove("/d/001 - a.mp3", &[]),
+            vec!["/d/001 - a.mp3".to_string()]
+        );
+    }
+
+    #[test]
+    fn the_list_holds_no_empty_path() {
+        assert!(paths_to_remove("", &[String::new()]).is_empty());
+    }
+
+    /// A key of a book and a key of an episode are two different downloads.
+    #[test]
+    fn the_target_gives_the_key() {
+        let book = DownloadTarget::Book {
+            item_id: "item-1".to_string(),
+        };
+        let episode = DownloadTarget::Episode {
+            item_id: "pod-1".to_string(),
+            episode_id: "ep-1".to_string(),
+        };
+
+        assert_eq!(book.key(), "item-1");
+        assert_eq!(book.item_id(), "item-1");
+        assert_eq!(episode.key(), "ep-1");
+        assert_eq!(episode.item_id(), "pod-1");
+    }
 }
