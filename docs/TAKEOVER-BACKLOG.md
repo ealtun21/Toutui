@@ -55,8 +55,12 @@ The correction needs the same calculation as T-1: add the lengths of the files,
 and calculate the start time of each file. `src/logic/download/plan.rs` has
 this calculation now. The player must use it.
 
-In a test library of 2056 books, 297 books have more than one audio file. One
-book has 79 files.
+In a test library of 2056 books, 297 books have more than one audio file. The
+largest book has 209 audio files.
+
+A measurement of all 2056 books on 2026-08-10 gives the codecs. The library has
+`mp3` in 6660 files and `aac` in 3408 files. It has no other codec. 1938 books
+have chapters, thus 118 books have no chapter.
 
 ### T-3: the application sends `/progress` and `/sync` at the same time
 
