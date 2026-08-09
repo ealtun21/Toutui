@@ -1,6 +1,6 @@
 **MAJOR**
 
-`bug_id: 7f2c10`
+`bug_id: 7f2c10` — CORRECTED on 2026-08-09, commit 6961659
 **Offline mode does not play a book:** The server sends a ZIP archive from
 `GET /api/items/:id/download`. It sends a ZIP archive for every book, also for
 a book that has one audio file. The application writes the archive to the disk
@@ -14,7 +14,7 @@ contains `Cover.jpg` and one `.mp3` file.
 
 **MINOR**
 
-`bug_id: 3a91e7`
+`bug_id: 3a91e7` — CORRECTED on 2026-08-09, commit 14567c1
 **Descriptions show HTML:** The description panel shows the HTML tags of the
 description. An example is `<p>`, `<i>`, and `&amp;`. The application must
 remove the tags and change the HTML entities to characters.

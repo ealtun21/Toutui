@@ -12,6 +12,18 @@ fork must do. It has three sources:
 Each item has a number for this fork. The column "Upstream" gives the number of
 the original issue, if there is one.
 
+## The work that is complete
+
+| Id | Title | Commit |
+|---|---|---|
+| T-1 | The offline mode does not play a book | `6961659` |
+| T-2 | A book that has many audio files: the length is correct now | `e84821d` |
+| T-3 | The application sends `/progress` and `/sync` at the same time | `5088b55` |
+| T-13 | The description shows the HTML tags | `14567c1` |
+
+T-2 is not complete. The length and the percent are correct now. VLC still
+plays only the first file. Sub-project 2 corrects this.
+
 ## Priority 1: the application gives incorrect results
 
 | Id | Upstream | Title | Sub-project |
