@@ -649,7 +649,57 @@ pub fn update_download_current_time(id_item: &str, username: &str, value: u32) -
     Ok(())
 }
 
-// Delete a downloaded item (for `downloads` table)
+// Insert (or replace) one audio file of a downloaded item (for `download_files` table)
+pub fn insert_download_file(id_item: &str, username: &str, idx: u32, ino: &str, file_path: &str, size: u64, duration: f64) -> Result<()> {
+
+    let err_message = "Error connecting to the database.";
+
+    if let Ok(conn) = crate::db::migrate::open_conn() {
+
+        conn.execute(
+            "INSERT OR REPLACE INTO download_files (id_item, username, idx, ino, file_path, size, duration)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            params![id_item, username, idx, ino, file_path, size as i64, duration],
+        )?;
+    } else {
+        let mut stdout = stdout();
+        let _ = pop_message(&mut stdout, 3, err_message);
+        error!("[insert_download_file] {}", err_message);
+    }
+
+    Ok(())
+}
+
+// Get the audio files of a downloaded item: (idx, file_path, duration) (for `download_files` table)
+// The offline player reads this list. No caller exists yet.
+#[allow(dead_code)]
+pub fn get_download_files(id_item: &str, username: &str) -> Vec<(u32, String, f64)> {
+
+    let Ok(conn) = crate::db::migrate::open_conn() else {
+        return Vec::new();
+    };
+
+    let Ok(mut stmt) = conn.prepare(
+        "SELECT idx, file_path, duration FROM download_files WHERE id_item = ?1 AND username = ?2 ORDER BY idx"
+    ) else {
+        return Vec::new();
+    };
+
+    let rows = stmt.query_map(params![id_item, username], |row| {
+        Ok((
+            row.get::<_, u32>(0)?,
+            row.get::<_, String>(1)?,
+            row.get::<_, f64>(2)?,
+        ))
+    });
+
+    match rows {
+        Ok(rows) => rows.filter_map(|row| row.ok()).collect(),
+        Err(_) => Vec::new(),
+    }
+}
+
+// Delete a downloaded item (for `downloads` and `download_files` tables)
 pub fn delete_download(id_item: &str, username: &str) -> Result<()> {
 
     let err_message = "Error connecting to the database.";
@@ -658,6 +708,11 @@ pub fn delete_download(id_item: &str, username: &str) -> Result<()> {
 
         conn.execute(
             "DELETE FROM downloads WHERE id_item = ?1 AND username = ?2",
+            params![id_item, username],
+        )?;
+
+        conn.execute(
+            "DELETE FROM download_files WHERE id_item = ?1 AND username = ?2",
             params![id_item, username],
         )?;
     } else {
