@@ -3,11 +3,6 @@
 //! The download task writes to this state. The user interface reads it and
 //! draws. The task does not draw.
 
-// The fetcher writes this state. The user interface reads `item_id`, `title`
-// and `percent` when it draws the bar. Remove this line when the user
-// interface is complete.
-#![allow(dead_code)]
-
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 

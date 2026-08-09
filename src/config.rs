@@ -9,10 +9,7 @@ use std::path::PathBuf;
 pub struct ConfigFile {
     pub colors: Colors,
     pub player: Player,
-    /// The servers that the configuration file gives. No caller reads this
-    /// field now. Task 10 connects the application to the client. Remove the
-    /// attribute in Task 10.
-    #[allow(dead_code)]
+    /// The servers that the configuration file gives.
     pub servers: Vec<ServerConfig>,
 }
 
@@ -105,10 +102,6 @@ fn normalise(url: &str) -> &str {
 /// finds the address, the pool gets all addresses of that server. If it does
 /// not find the address, the pool gets the stored address only. Therefore an
 /// installation that has no `[[servers]]` block continues to work.
-///
-/// No caller uses this function now. Task 10 connects the application to the
-/// client. Remove the attribute in Task 10.
-#[allow(dead_code)]
 pub fn pool_for_address(servers: &[ServerConfig], stored_address: &str) -> EndpointPool {
     let target = normalise(stored_address);
 
@@ -135,10 +128,6 @@ pub fn pool_for_address(servers: &[ServerConfig], stored_address: &str) -> Endpo
 /// Gives the name of the server that has the stored address.
 ///
 /// Gives `None` if no configured server has the address.
-///
-/// No caller uses this function now. Task 10 connects the application to the
-/// client. Remove the attribute in Task 10.
-#[allow(dead_code)]
 pub fn server_name_for_address(servers: &[ServerConfig], stored_address: &str) -> Option<String> {
     let target = normalise(stored_address);
 

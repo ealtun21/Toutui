@@ -4,10 +4,6 @@
 //! offline mode. `Unauthorized` asks the user to log in again. `Forbidden`
 //! tells the user that the account has no permission.
 
-// No caller uses these items now. Task 10 connects the application to the
-// client. Remove this attribute in Task 10.
-#![allow(dead_code)]
-
 use std::fmt;
 
 /// The cause of a failed API request.

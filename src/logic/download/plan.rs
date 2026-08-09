@@ -3,11 +3,6 @@
 //! This module has no network code and no disk code, except the size of a
 //! file. Therefore the tests do not need a server.
 
-// The fetcher uses most of the items here. The user interface uses
-// `start_offset` and `author` after the work on the offline player. Remove
-// this line when every item has a caller.
-#![allow(dead_code)]
-
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 

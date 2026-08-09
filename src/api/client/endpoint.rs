@@ -6,10 +6,6 @@
 //!
 //! A low `priority` value gives more importance.
 
-// No caller uses these items now. Task 10 connects the application to the
-// client. Remove this attribute in Task 10.
-#![allow(dead_code)]
-
 use std::sync::RwLock;
 
 /// One address of a server.

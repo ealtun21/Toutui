@@ -1,12 +1,4 @@
-mod login_app;
-mod app;
-mod config;
-mod api;
-mod ui;
-mod player;
-mod logic;
-mod db;
-mod utils;
+use toutui::{app, db, login_app, player, ui, utils};
 
 use login_app::AppLogin;
 use app::App;
