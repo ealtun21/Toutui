@@ -1,5 +1,6 @@
 use crate::api::library_items::get_pod_ep::Root;
 use crate::utils::convert_seconds::*;
+use crate::utils::html_text::to_plain_text;
 
 /// collect title podact episode
 pub async fn collect_titles_pod_ep(item: &Root) -> Vec<String> {
@@ -49,7 +50,7 @@ pub async fn collect_subtitles_pod_ep(item: &Root) -> Vec<String> {
         if let Some(episodes) = &media.episodes {
             for episode in episodes {
                 if let Some(sub) = &episode.subtitle {
-                    subtitles_pod_ep.push(sub.clone());
+                    subtitles_pod_ep.push(to_plain_text(sub));
                 } else {
                     subtitles_pod_ep.push("N/A".to_string());
                 }
@@ -126,7 +127,7 @@ pub async fn collect_descs_pod_ep(item: &Root) -> Vec<String> {
     if let Some(media) = &item.media {
         if let Some(metadata) = &media.metadata {
             if let Some(desc) = &metadata.description {
-                descs_pod_ep.push(desc.clone());
+                descs_pod_ep.push(to_plain_text(desc));
             } else {
                 descs_pod_ep.push("N/A".to_string());
             }
