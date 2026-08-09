@@ -64,13 +64,26 @@ pub fn seek_target(media_seconds: f64, speed: f32) -> Duration {
 /// the engine accepts a small distance from the end.
 pub const END_TOLERANCE: f64 = 30.0;
 
+/// Tells if the playback is complete.
+///
+/// An empty queue is not enough. The queue becomes empty for a short time
+/// between two tracks, and it also becomes empty if the engine cannot append
+/// the next track quickly. The playback is complete only when no track stays.
+///
+/// A test with a book of three files found this fault. The engine reported
+/// the end after the first file, because the queue was empty for a moment.
+/// See T-2.
+pub fn is_complete(queue_empty: bool, playing: usize, track_count: usize) -> bool {
+    queue_empty && playing >= track_count
+}
+
 /// Tells if the media came to its end.
 ///
 /// The engine marks a book as finished only when the queue is empty and the
 /// position is at the end. The queue is also empty before the first track
 /// starts, thus the position is necessary. See T-16.
-pub fn reached_the_end(position: f64, duration: f64, queue_empty: bool) -> bool {
-    if !queue_empty || duration <= 0.0 {
+pub fn reached_the_end(position: f64, duration: f64, complete: bool) -> bool {
+    if !complete || duration <= 0.0 {
         return false;
     }
 
@@ -214,7 +227,7 @@ impl PlayerHandle {
 
 #[cfg(test)]
 mod tests {
-    use super::{media_position, reached_the_end, seek_target};
+    use super::{is_complete, media_position, reached_the_end, seek_target};
     use std::time::Duration;
 
     #[test]
@@ -326,5 +339,33 @@ mod tests {
     #[test]
     fn a_position_after_the_end_is_finished() {
         assert!(reached_the_end(3700.0, 3600.0, true));
+    }
+    /// An empty queue with tracks that stay is not the end. The queue becomes
+    /// empty for a short time between two tracks.
+    #[test]
+    fn an_empty_queue_with_tracks_that_stay_is_not_complete() {
+        assert!(!is_complete(true, 1, 3));
+        assert!(!is_complete(true, 0, 3));
+    }
+
+    /// The playback is complete when the queue is empty and no track stays.
+    #[test]
+    fn an_empty_queue_with_no_track_is_complete() {
+        assert!(is_complete(true, 3, 3));
+        assert!(is_complete(true, 4, 3));
+    }
+
+    /// A queue that holds a track is never complete.
+    #[test]
+    fn a_queue_that_holds_a_track_is_not_complete() {
+        assert!(!is_complete(false, 3, 3));
+        assert!(!is_complete(false, 0, 3));
+    }
+
+    /// A book of one file is complete after that file.
+    #[test]
+    fn a_book_of_one_file_is_complete_after_that_file() {
+        assert!(!is_complete(true, 0, 1));
+        assert!(is_complete(true, 1, 1));
     }
 }

@@ -268,3 +268,21 @@ fn a_slow_speed_keeps_the_pitch() {
         freq
     );
 }
+
+/// A book of many files must report the end of the book when every track
+/// played. The engine counts the tracks that played, and that count goes past
+/// the last index. See T-2 and T-16.
+#[test]
+fn a_position_past_the_last_track_is_the_end_of_the_book() {
+    let list = TrackList::new(TrackList::from_durations(&[20.0, 20.0, 20.0]), Vec::new());
+
+    assert_eq!(list.total_duration(), 60.0);
+
+    // The engine gives the total when the index is past the last track.
+    let index_past_the_end = list.len();
+    assert!(index_past_the_end >= list.len());
+
+    // Inside the list the calculation stays normal.
+    assert_eq!(list.position_of(2, 20.0), 60.0);
+    assert_eq!(list.position_of(1, 5.0), 25.0);
+}

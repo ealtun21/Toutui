@@ -9,8 +9,8 @@
 use crate::player::engine::source::open_decoder;
 use crate::player::engine::speed::{SharedSpeed, SpeedSource};
 use crate::player::engine::{
-    media_position, reached_the_end, seek_target, PlaybackRequest, PlaybackState, PlaybackStatus,
-    PlayerCommand,
+    is_complete, media_position, reached_the_end, seek_target, PlaybackRequest, PlaybackState,
+    PlaybackStatus, PlayerCommand,
 };
 use log::{error, info, warn};
 use rodio::{DeviceSinkBuilder, MixerDeviceSink, Player};
@@ -263,6 +263,15 @@ fn position_now(player: &Player, current: &Option<Current>) -> f64 {
         None => return 0.0,
     };
 
+    // Every track played. The position is then the end of the book. Without
+    // this rule, `position_of` gets an index that does not exist and gives
+    // the offset in the last track only. A book of many files then never
+    // reaches its end, and the application does not mark it as finished.
+    // See T-2 and T-16.
+    if item.playing >= item.request.tracks.len() {
+        return item.request.tracks.total_duration();
+    }
+
     let inside = media_position(player.get_pos(), item.speed.get());
 
     item.request.tracks.position_of(item.playing, inside)
@@ -394,19 +403,22 @@ fn publish(
 
     let was_stalled = value.status == PlaybackStatus::Stalled;
 
-    let queue_empty = player.empty();
+    // The queue becomes empty for a short time between two tracks. Therefore
+    // an empty queue alone does not mean that the playback is complete. See
+    // T-2.
+    let complete = is_complete(player.empty(), item.playing, item.request.tracks.len());
 
     value.status = if player.is_paused() {
         PlaybackStatus::Paused
-    } else if queue_empty {
+    } else if complete {
         PlaybackStatus::Stopped
     } else {
         PlaybackStatus::Playing
     };
 
-    // The media came to its end only if the queue is empty and the position
-    // is at the end. See T-16.
-    value.finished = reached_the_end(position, value.duration, queue_empty);
+    // The media came to its end only if no track stays and the position is at
+    // the end. See T-16.
+    value.finished = reached_the_end(position, value.duration, complete);
 
     if was_stalled && value.status == PlaybackStatus::Playing {
         value.notice = Some("Reconnected".to_string());
