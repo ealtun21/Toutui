@@ -62,11 +62,57 @@ measurement reads `GET /api/items/:id` for all 2056 books.
 
 Two results are important:
 
-1. The default features of `rodio` decode every file in the library. The
-   feature `mp3` decodes the MP3 files. The feature `mp4` decodes the M4B, M4A,
-   and MP4 files, because those files hold AAC audio in an MP4 container.
+1. The test library has `mp3` and `aac` only. A different user has other
+   formats. Therefore the engine uses the feature `symphonia-all`, and not the
+   smaller feature set. Section 3.1 gives the measurement.
 2. The backlog says that the largest book has 79 audio files. That value is not
    correct. The largest book has 209 audio files.
+
+### 3.1 The formats that the engine plays
+
+A measurement on 2026-08-10 decodes one real file of each format. The feature
+`symphonia-all` gives every codec and every container of `symphonia`. All of
+them are pure Rust, thus the rule for the C toolchain stays correct.
+
+| Format | Result | Note |
+|---|---|---|
+| MP3 | Plays | |
+| M4B, M4A, MP4 (AAC) | Plays | The usual format of an audiobook |
+| AAC (ADTS) | Plays | |
+| FLAC | Plays | |
+| WAV (PCM) | Plays | |
+| OGG, OGA (Vorbis) | Plays | |
+| ALAC in MP4 | Plays | `symphonia-all` gives this |
+| AIFF | Plays | `symphonia-all` gives this |
+| CAF (PCM) | Plays | `symphonia-all` gives this |
+| MKA, WebM (Matroska) | Plays | `symphonia-all` gives this |
+| WAV (ADPCM) | Plays | `symphonia-all` gives this |
+| MP1, MP2 | Plays | `symphonia-all` gives this |
+| **Opus** | **Does not play** | `symphonia` has no decoder |
+| **WMA** | **Does not play** | `symphonia` has no reader for ASF |
+| ALAC in CAF | Does not play | ALAC in MP4 plays |
+
+The smaller feature set gave two faults that this measurement found:
+
+1. A Matroska file gave no error and no audio. The container was correct, and
+   the codec was absent. A test now counts the samples, thus a silent fault of
+   this type fails the test.
+2. ALAC, AIFF, ADPCM, and CAF did not play.
+
+Opus is the only true gap. The tests show that the WebM container, the
+Matroska container, and the CAF container all play with a different codec.
+Therefore the fault is the Opus codec, and it is not the container.
+
+`symphonia` has no Opus decoder. A decoder that needs a C library is not
+permitted. A pure Rust decoder exists on `crates.io`, but `rodio` uses the
+fixed registry `symphonia::default::get_codecs()`. Therefore Opus needs a
+`Source` of this project that uses its own registry. That work is not in this
+sub-project.
+
+`tests/formats.rs` decodes one small file of each format. The files are in
+`tests/fixtures/audio`, and they use 14 kilobytes together. A measurement is
+true only on the day of the measurement. These tests fail if a later version
+of a dependency stops a format.
 
 118 books have no chapters. Therefore the chapter functions must operate
 correctly when the chapter list is empty.
@@ -425,7 +471,7 @@ The pty harness of the earlier work drives these tests:
 |---|---|
 | ALSA is a dynamic dependency of the program on Linux | A fully static Linux binary is not possible with sound. The user accepts this. |
 | `libasound2-dev` is necessary to build on Linux | The CI workflow installs this package. The rule "no C toolchain" stays correct, because `alsa-sys` only calls `pkg-config`. |
-| `rodio` 0.22 uses `symphonia` 0.5.5 | The features cover every file in the test library. A library with FLAC or Vorbis also works, because those features are in the default set. ALAC does not work. The test library has no ALAC file. |
+| `rodio` 0.22 uses `symphonia` 0.5.5 | The feature `symphonia-all` gives every format of `symphonia`. Section 3.1 gives the measurement of each format. A user with an Opus file or a WMA file cannot play that file. |
 | The behaviour of `get_pos()` with a speed that is not 1.0 | Closed on 2026-08-10. The measurement shows that `get_pos()` gives the time of the listener. `media_position()` multiplies by the speed. A test keeps this behaviour correct. |
 | macOS and Windows | `cpal` supports both. This design does not test them. The removal of VLC corrects fault `fe4116` on macOS, because `cvlc` is not necessary. |
 

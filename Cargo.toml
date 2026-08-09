@@ -24,7 +24,11 @@ magic-crypt = "4.0.1"
 dotenv = "0.15.0"
 dirs = "6.0.0"
 clap = "4.5.37"
-rodio = { version = "0.22", default-features = false, features = ["playback", "mp3", "mp4", "flac", "vorbis", "wav"] }
+# `symphonia-all` gives every codec and every container that symphonia has.
+# A measurement on 2026-08-10 shows that this adds ALAC, AIFF, ADPCM, CAF,
+# MKV, WebM, MP1, and MP2. All of them are pure Rust. Opus and WMA stay
+# outside, because symphonia has no decoder for them.
+rodio = { version = "0.22", default-features = false, features = ["playback", "symphonia-all"] }
 
 [dev-dependencies]
 wiremock = "0.6"

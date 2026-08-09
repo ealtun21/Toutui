@@ -241,7 +241,7 @@ fn fill_queue(player: &mut Player, item: &mut Current, token: &str) -> Result<()
             None => break,
         };
 
-        let decoder = open_decoder(&source, token, &track.filename)?;
+        let decoder = open_decoder(&source, token, &track)?;
         player.append(decoder);
         item.queued += 1;
     }

@@ -13,6 +13,16 @@ pub struct Track {
     pub ino: String,
     /// The name of the file. The decoder uses the extension as a hint.
     pub filename: String,
+    /// The type of the content, from the field `mimeType` of the API.
+    ///
+    /// The decoder uses this value as a second hint. A file with no extension
+    /// then still gets a hint.
+    pub mime_type: Option<String>,
+    /// The number of bytes of the file, from `metadata.size`.
+    ///
+    /// The decoder gives this value to symphonia. Symphonia then knows the
+    /// length of the stream, and the seek operation is more accurate.
+    pub size: Option<u64>,
     /// The length of the file in seconds.
     pub duration: f64,
     /// The start of this file in the book, in seconds.
@@ -73,6 +83,8 @@ impl TrackList {
                 index: position as u32 + 1,
                 ino: format!("ino-{}", position),
                 filename: format!("{:03}.mp3", position + 1),
+                mime_type: None,
+                size: None,
                 duration: *duration,
                 start_offset: 0.0,
             })
