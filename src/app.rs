@@ -966,7 +966,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                 address_player.clone(),
                                 port.clone()).await;
 
-                            if let (Some(id), Some((file_path, current_time, _duration, title, author))) =
+                            if let (Some(id), Some((file_path, current_time, duration, title, author))) =
                                 (selected_cnt_list.and_then(|i| ids_cnt_list.get(i)).cloned(), download)
                             {
                                 // play the locally downloaded file, no server needed
@@ -981,6 +981,9 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                     current_time,
                                     title,
                                     author,
+                                    token.clone(),
+                                    server_address.clone(),
+                                    duration,
                                 ).await;
                             } else {
                                 // start the track
@@ -1067,7 +1070,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                     address_player.clone(),
                                     port.clone()).await;
 
-                                if let (Some(id), Some((file_path, current_time, _duration, title, author))) =
+                                if let (Some(id), Some((file_path, current_time, duration, title, author))) =
                                     (selected_library.and_then(|i| ids_library.get(i)).cloned(), download)
                                 {
                                     // play the locally downloaded file, no server needed
@@ -1082,6 +1085,9 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                         current_time,
                                         title,
                                         author,
+                                        token.clone(),
+                                        server_address.clone(),
+                                        duration,
                                     ).await;
                                 } else {
                                     // start the track
@@ -1146,7 +1152,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                     address_player.clone(),
                                     port.clone()).await;
 
-                                if let (Some(id), Some((file_path, current_time, _duration, title, author))) =
+                                if let (Some(id), Some((file_path, current_time, duration, title, author))) =
                                     (selected_search_book.and_then(|i| ids_search_book.get(i)).cloned(), download)
                                 {
                                     // play the locally downloaded file, no server needed
@@ -1161,6 +1167,9 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                         current_time,
                                         title,
                                         author,
+                                        token.clone(),
+                                        server_address.clone(),
+                                        duration,
                                     ).await;
                                 } else {
                                     // start the track

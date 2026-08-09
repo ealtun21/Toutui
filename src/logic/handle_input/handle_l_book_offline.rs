@@ -3,13 +3,17 @@ use crate::player::vlc::fetch_vlc_data::*;
 use crate::player::vlc::exec_nc::*;
 use crate::player::vlc::quit_vlc::*;
 use crate::utils::pop_up_message::*;
+use crate::api::me::update_media_progress::*;
 use std::io::stdout;
 use log::{info, error};
 use crate::db::crud::*;
 
-/// Play a library item straight from a locally downloaded file, without contacting
-/// the Audiobookshelf server. Progress is persisted locally (in the `downloads`
-/// table) instead of being synced through a server play session.
+/// Play a library item straight from a locally downloaded file, without requiring
+/// the Audiobookshelf server to start the session. Progress is always persisted
+/// locally (in the `downloads` table) so offline listening resumes correctly.
+/// If the server is reachable, progress is also best-effort pushed to it (same
+/// endpoint the streaming path uses) so other Audiobookshelf clients stay in
+/// sync; if it isn't reachable the push just fails silently.
 pub async fn handle_l_book_offline(
     port: String,
     address_player: String,
@@ -21,6 +25,9 @@ pub async fn handle_l_book_offline(
     current_time_start: u32,
     title: String,
     author: String,
+    token: Option<String>,
+    server_address: String,
+    duration: f64,
 ) {
 
     // need to pkill VLC for macos users
@@ -28,6 +35,7 @@ pub async fn handle_l_book_offline(
 
     info!("[handle_l_book_offline] Playing offline item {} from {}", id_item, file_path);
 
+    let duration_str = duration.to_string();
     let current_time_str = current_time_start.to_string();
 
     let port_clone = port.clone();
@@ -71,6 +79,9 @@ pub async fn handle_l_book_offline(
 
     let _ = update_is_vlc_running("1", username.as_str());
 
+    // sync progress to the server (if reachable) every ~10s, like the streaming path
+    let mut trigger = 1;
+
     loop {
         match fetch_vlc_data(port.clone(), address_player.clone()).await {
             Ok(Some(data_fetched_from_vlc)) => {
@@ -82,11 +93,19 @@ pub async fn handle_l_book_offline(
                 tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
 
                 match fetch_vlc_is_playing(port.clone(), address_player.clone()).await {
-                    Ok(true) => {}
+                    Ok(true) => {
+                        // best-effort push to the server every ~10 seconds, mirrors the streaming path
+                        if trigger >= 10 {
+                            let _ = update_media_progress_book(id_item.as_str(), token.as_ref(), Some(data_fetched_from_vlc), &duration_str, server_address.clone()).await;
+                            trigger = 0;
+                        }
+                        trigger += 1;
+                    }
                     // `Ok(false)` means the track reached the end (VLC still open)
                     Ok(false) => {
                         info!("[handle_l_book_offline][Finished] Track finished");
                         let _ = update_download_current_time(id_item.as_str(), username.as_str(), 0);
+                        let _ = update_media_progress2_book(id_item.as_str(), token.as_ref(), Some(data_fetched_from_vlc), &duration_str, true, server_address.clone()).await;
                         let _ = update_is_loop_break("1", username.as_str());
                         let _ = update_is_vlc_running("0", username.as_str());
                         break;
@@ -94,6 +113,7 @@ pub async fn handle_l_book_offline(
                     // `Err` means VLC was closed by the user
                     Err(_) => {
                         info!("[handle_l_book_offline][Quit]");
+                        let _ = update_media_progress_book(id_item.as_str(), token.as_ref(), Some(data_fetched_from_vlc), &duration_str, server_address.clone()).await;
                         let _ = update_is_loop_break("1", username.as_str());
                         let _ = update_is_vlc_running("0", username.as_str());
                         break;
@@ -102,6 +122,7 @@ pub async fn handle_l_book_offline(
             }
             Ok(None) => {
                 info!("[handle_l_book_offline][None]");
+                let _ = update_media_progress_book(id_item.as_str(), token.as_ref(), Some(current_time_start), &duration_str, server_address.clone()).await;
                 let _ = update_is_loop_break("1", username.as_str());
                 let _ = update_is_vlc_running("0", username.as_str());
                 break;

@@ -34,7 +34,8 @@ Books can be downloaded locally so you can keep listening when your Audiobookshe
 - `D` — download the currently selected book (Home, Library, or Search views) to `~/.local/share/toutui/downloads/<username>/` (or `$XDG_DATA_HOME/toutui/downloads/<username>/` if set). Requires the "download" permission on your Audiobookshelf user account.
 - `X` — remove the local offline copy of the currently selected book.
 - Downloaded books are marked `[Downloaded]` in the book info panel.
-- Playing a downloaded book (`l`/`Enter`) plays the local file directly through VLC — no server round-trip needed. Playback position is saved locally so it resumes where you left off, even fully offline.
+- Playing a downloaded book (`l`/`Enter`) plays the local file directly through VLC — no server round-trip needed to start or control playback. Playback position is always saved locally so it resumes where you left off, even fully offline.
+- If the server is reachable while you're listening to a downloaded book, progress is also best-effort pushed to it (same as streaming playback), so other Audiobookshelf clients stay in sync. If it isn't reachable, that push just fails silently and the local resume point is unaffected.
 - Currently books only; podcast episode downloads are not yet supported.
 
 ## 📰 Media
