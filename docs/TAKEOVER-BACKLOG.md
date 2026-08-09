@@ -41,6 +41,7 @@ playback.
 | T-1 | — | The offline mode does not play a book | 1b |
 | T-2 | #33 | A book that has many audio files does not play | 1b |
 | T-3 | #35 | The application sends `/progress` and `/sync` at the same time | 1c |
+| T-21 | — | `--update` installed the archived original project | 3 |
 | T-4 | #37 | The application does not get the position from the server | 1c |
 
 ### T-1: the offline mode does not play a book
@@ -110,6 +111,18 @@ position one time.
 A test on 2026-08-10 confirms the correction. The application played to 24303
 seconds and stopped correctly. A different client then wrote 1234 seconds. The
 application started again at 1234 seconds.
+
+### T-21: `--update` installed the archived original project
+
+`src/utils/clap.rs` ran the install script of the original repository, and
+every address in that script names `AlbanDAVID/Toutui`. Therefore the command
+built and installed the original program, and the user lost every correction
+of the fork. The most important loss was T-5, because the original program
+gives the token to VLC in a command line argument.
+
+The two commands do nothing now. They write the reason and stop. Issue 21
+holds the work that gives the fork its own way to install and to update. T-14
+belongs to that work.
 
 ## Priority 2: security
 
