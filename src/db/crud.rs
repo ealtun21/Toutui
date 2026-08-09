@@ -167,6 +167,26 @@ pub fn insert_listening_session(
     Ok(())
 }
 
+/// Removes the listening session from the database.
+///
+/// The application calls this function after it closes a session and sends
+/// the last position to the server. A row that stays makes the application
+/// send that position again at the next start. Then a position that a
+/// different client wrote is lost. See T-4.
+pub fn delete_listening_session() -> Result<()> {
+    let err_message = "Error connecting to the database.";
+
+    if let Ok(conn) = crate::db::migrate::open_conn() {
+        conn.execute("DELETE FROM listening_session", params![])?;
+    } else {
+        let mut stdout = stdout();
+        let _ = pop_message(&mut stdout, 3, err_message);
+        error!("[delete_listening_session] {}", err_message);
+    }
+
+    Ok(())
+}
+
 // Update chapter (for `listening_session` table)
 pub fn update_chapter(value: &str, id_session: &str) -> Result<()> {
 

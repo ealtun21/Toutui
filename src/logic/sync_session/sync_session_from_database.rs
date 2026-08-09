@@ -110,6 +110,12 @@ pub async fn sync_session_from_database(
                 }
             }
 
+            // The session is closed and the server has the position. Remove
+            // the row, so that the application does not send this position
+            // again at the next start. A different client can write a newer
+            // position, and that position must stay. See T-4.
+            let _ = delete_listening_session();
+
             if app_quit {
                 let _ = update_has_played_before("1", username.as_str());
                 info!("App successfully quit");

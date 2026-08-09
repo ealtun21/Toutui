@@ -26,6 +26,7 @@ the original issue, if there is one.
 | T-8 | A change of the speed operates during the playback | sub-project 2 |
 | T-19 | The pitch does not change with the speed | sub-project 2 |
 | T-7 | The application asks for one page at a time | sub-project 3 |
+| T-4 | The application gets the position from the server | sub-project 3 |
 
 Sub-project 2 removed VLC. The application decodes the audio in the process
 now. Therefore a book with many audio files plays completely, the token stays
@@ -95,7 +96,19 @@ This fault can be the cause of T-4 and of `known_bugs.md` `dd9a649`.
 The user listens on a telephone. Then the user starts this application. The
 application does not show the new position.
 
-Examine this fault again after the correction of T-3.
+**The cause.** The table `listening_session` kept its row after the
+application closed the session and sent the position. At the next start, the
+application sent that old position again, before it opened the new session.
+Therefore the position of the telephone was lost.
+
+**The correction.** The application removes the row after it sends the
+position. A row that stays means that the application stopped without a
+correct exit, and in that condition the application must still send the
+position one time.
+
+A test on 2026-08-10 confirms the correction. The application played to 24303
+seconds and stopped correctly. A different client then wrote 1234 seconds. The
+application started again at 1234 seconds.
 
 ## Priority 2: security
 
