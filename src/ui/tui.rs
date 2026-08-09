@@ -53,7 +53,7 @@ impl App {
         let items_number = self._titles_cnt_list.len();
         let render_list_title = format!("Continue Listening [{} items]", items_number);
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, D: download offline, X: remove offline, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
 
         App::render_header(header_area, buf, self.lib_name_type.clone(), &self.username, &self.server_address_pretty, VERSION, &self.update_msg);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -83,7 +83,7 @@ impl App {
         if self.is_podcast {
         _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"       
         } else {
-        _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
+        _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, D: download offline, X: remove offline, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
         }
 
         App::render_header(header_area, buf, self.lib_name_type.clone(), &self.username, &self.server_address_pretty, VERSION, &self.update_msg);
@@ -190,8 +190,8 @@ impl App {
         if self.is_podcast {
         _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
         } else {
-        _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
-        } 
+        _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        }
 
 
         if self.search_mode {
@@ -476,10 +476,12 @@ impl App {
                     .left_aligned()
                     .render(area, buf);
                 } else {
-                    Paragraph::new(format!("Author: {} - Year: {} - Duration: {}\nProgress: {}%, {} {}", 
-                            self.auth_names_cnt_list[selected], 
-                            self.pub_year_cnt_list[selected], 
+                    let is_offline = crate::db::crud::get_download(&self._ids_cnt_list[selected], &self.username).is_some();
+                    Paragraph::new(format!("Author: {} - Year: {} - Duration: {}{}\nProgress: {}%, {} {}",
+                            self.auth_names_cnt_list[selected],
+                            self.pub_year_cnt_list[selected],
                             duration_cnt_list_conv[selected].to_string(),
+                            if is_offline { " - [Downloaded]" } else { "" },
                             self.book_progress_cnt_list[selected][0], // percentage progression
                             format!("{}",convert_seconds_for_prg(self.duration_cnt_list[selected], self.book_progress_cnt_list_cur_time[selected][0])), // time left
                             self.book_progress_cnt_list[selected][1], // is finished
@@ -521,15 +523,17 @@ impl App {
                     .render(area, buf);
             } 
             else {
-                Paragraph::new(format!("Author: {} - Year: {}", //- Duration: {}\nProgress:{} {}{}", 
-                        self.auth_names_library[selected], 
-                        self.published_year_library[selected], 
+                let is_offline = crate::db::crud::get_download(&self.ids_library[selected], &self.username).is_some();
+                Paragraph::new(format!("Author: {} - Year: {}{}", //- Duration: {}\nProgress:{} {}{}",
+                        self.auth_names_library[selected],
+                        self.published_year_library[selected],
+                        if is_offline { " - [Downloaded]" } else { "" },
 
                         //duration_library_conv[selected],
                         //self.book_progress_library[selected][0], // percentage progression
                         //format!("{}",convert_seconds_for_prg(self.duration_library[selected], self.book_progress_library_cur_time[selected][0])), // time left
                         //self.book_progress_library[selected][1] // is_finished
-                        )) 
+                        ))
                     .left_aligned()
                     .render(area, buf);
             }
@@ -669,14 +673,18 @@ impl App {
                     .render(area, buf);
             } 
             else {
-                Paragraph::new(format!("Author: {} - Year: {}", //- Duration: {}\nProgress:{} {}{}", 
-                        self.auth_names_search_book[selected], 
-                        self.published_year_library_search_book[selected], 
+                let is_offline = self.ids_search_book.get(selected)
+                    .map(|id| crate::db::crud::get_download(id, &self.username).is_some())
+                    .unwrap_or(false);
+                Paragraph::new(format!("Author: {} - Year: {}{}", //- Duration: {}\nProgress:{} {}{}",
+                        self.auth_names_search_book[selected],
+                        self.published_year_library_search_book[selected],
+                        if is_offline { " - [Downloaded]" } else { "" },
                       //  duration_library_search_book_conv[selected],
                       //  self.book_progress_search_book[selected][0], // percentage progression
                       //  format!("{}",convert_seconds_for_prg(self.duration_library_search_book[selected], self.book_progress_search_book_cur_time[selected][0])), // time left
                       //  self.book_progress_search_book[selected][1] // is finished
-                        )) 
+                        ))
                     .left_aligned()
                     .render(area, buf);
             }

@@ -24,7 +24,18 @@
  **Supports Books & Podcasts:** Enjoy both audiobooks and podcasts  
  **Sync Progress & Stats:** Keep your listening progress in sync  
  **Streaming Support:** Play directly without downloading  
+ **Offline Mode:** Download audiobooks to listen to them without a network connection (see below)  
  **Customizable Color Theme:** A config file will allow you to customize the color theme. Explore and try various themes [here](https://github.com/AlbanDAVID/Toutui-theme).
+
+## 📥 Offline Mode
+
+Books can be downloaded locally so you can keep listening when your Audiobookshelf server isn't reachable.
+
+- `D` — download the currently selected book (Home, Library, or Search views) to `~/.local/share/toutui/downloads/<username>/` (or `$XDG_DATA_HOME/toutui/downloads/<username>/` if set). Requires the "download" permission on your Audiobookshelf user account.
+- `X` — remove the local offline copy of the currently selected book.
+- Downloaded books are marked `[Downloaded]` in the book info panel.
+- Playing a downloaded book (`l`/`Enter`) plays the local file directly through VLC — no server round-trip needed. Playback position is saved locally so it resumes where you left off, even fully offline.
+- Currently books only; podcast episode downloads are not yet supported.
 
 ## 📰 Media
 <img src=".github/korben.png" align="top" width="50" alt="Korben"/> Featured on [Korben](https://korben.info/toutui-client-terminal-audiobookshelf.html), a well-known French tech blog covering open source and technology.
@@ -46,7 +57,7 @@ Here are some features that could be added in future releases:
 - Playlist/Collections view
 - Ability to add new podcasts from the app
 - Add stats
-- Offline mode
+- Offline mode for podcast episodes
   
 ## ⚠️ Caution: Beta Version  
 This beta app is still in **heavy development and contains bugs**.  

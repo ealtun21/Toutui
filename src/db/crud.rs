@@ -1006,13 +1006,174 @@ pub fn init_db() -> Result<()> {
         [],
     )?;
 
-    //Create table `others` if there is none 
+    //Create table `others` if there is none
     conn.execute(
         "CREATE TABLE IF NOT EXISTS others (
             login_err TEXT NOT NULL DEFAULT ''
         )",
         [],
     )?;
+
+    //Create table `downloads` if there is none
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS downloads (
+            id_item TEXT NOT NULL,
+            username TEXT NOT NULL,
+            title TEXT NOT NULL,
+            author TEXT NOT NULL,
+            file_path TEXT NOT NULL,
+            duration REAL NOT NULL DEFAULT 0,
+            current_time_offline INTEGER NOT NULL DEFAULT 0,
+            downloaded_at TEXT NOT NULL,
+            PRIMARY KEY (id_item, username)
+            )",
+        [],
+    )?;
+
+    Ok(())
+}
+
+// Insert (or replace) a downloaded item (for `downloads` table)
+pub fn insert_download(id_item: &str, username: &str, title: &str, author: &str, file_path: &str, duration: f64) -> Result<()> {
+
+    let config_home_path = env::var("XDG_CONFIG_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| {
+            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
+
+            if cfg!(target_os = "macos") {
+                path.push("Library/Preferences");
+            } else {
+                path.push(".config");
+            }
+
+            path
+        });
+
+    let db_path = config_home_path.join("toutui/db.sqlite3");
+
+    let err_message = "Error connecting to the database.";
+
+    if let Ok(conn) = Connection::open(db_path) {
+
+        conn.execute(
+            "INSERT OR REPLACE INTO downloads (id_item, username, title, author, file_path, duration, current_time_offline, downloaded_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0, datetime('now'))",
+            params![id_item, username, title, author, file_path, duration],
+        )?;
+    } else {
+        let mut stdout = stdout();
+        let _ = pop_message(&mut stdout, 3, err_message);
+        error!("[insert_download] {}", err_message);
+    }
+
+    Ok(())
+}
+
+// Get a downloaded item: (file_path, current_time_offline, duration, title, author) (for `downloads` table)
+pub fn get_download(id_item: &str, username: &str) -> Option<(String, u32, f64, String, String)> {
+
+    let config_home_path = env::var("XDG_CONFIG_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| {
+            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
+
+            if cfg!(target_os = "macos") {
+                path.push("Library/Preferences");
+            } else {
+                path.push(".config");
+            }
+
+            path
+        });
+
+    let db_path = config_home_path.join("toutui/db.sqlite3");
+
+    let conn = Connection::open(db_path).ok()?;
+
+    let mut stmt = conn.prepare(
+        "SELECT file_path, current_time_offline, duration, title, author FROM downloads WHERE id_item = ?1 AND username = ?2"
+    ).ok()?;
+
+    stmt.query_row(params![id_item, username], |row| {
+        Ok((
+            row.get::<_, String>(0)?,
+            row.get::<_, u32>(1)?,
+            row.get::<_, f64>(2)?,
+            row.get::<_, String>(3)?,
+            row.get::<_, String>(4)?,
+        ))
+    }).ok()
+}
+
+// Update current_time_offline (for `downloads` table)
+pub fn update_download_current_time(id_item: &str, username: &str, value: u32) -> Result<()> {
+
+    let config_home_path = env::var("XDG_CONFIG_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| {
+            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
+
+            if cfg!(target_os = "macos") {
+                path.push("Library/Preferences");
+            } else {
+                path.push(".config");
+            }
+
+            path
+        });
+
+    let db_path = config_home_path.join("toutui/db.sqlite3");
+
+    let err_message = "Error connecting to the database.";
+
+    if let Ok(conn) = Connection::open(db_path) {
+
+        conn.execute(
+            "UPDATE downloads SET current_time_offline = ?1 WHERE id_item = ?2 AND username = ?3",
+            params![value, id_item, username],
+        )?;
+    } else {
+        let mut stdout = stdout();
+        let _ = pop_message(&mut stdout, 3, err_message);
+        error!("[update_download_current_time] {}", err_message);
+    }
+
+    Ok(())
+}
+
+// Delete a downloaded item (for `downloads` table)
+pub fn delete_download(id_item: &str, username: &str) -> Result<()> {
+
+    let config_home_path = env::var("XDG_CONFIG_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| {
+            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
+
+            if cfg!(target_os = "macos") {
+                path.push("Library/Preferences");
+            } else {
+                path.push(".config");
+            }
+
+            path
+        });
+
+    let db_path = config_home_path.join("toutui/db.sqlite3");
+
+    let err_message = "Error connecting to the database.";
+
+    if let Ok(conn) = Connection::open(db_path) {
+
+        conn.execute(
+            "DELETE FROM downloads WHERE id_item = ?1 AND username = ?2",
+            params![id_item, username],
+        )?;
+    } else {
+        let mut stdout = stdout();
+        let _ = pop_message(&mut stdout, 3, err_message);
+        error!("[delete_download] {}", err_message);
+    }
 
     Ok(())
 }

@@ -30,6 +30,8 @@ use crate::logic::sync_session::sync_session_from_database::*;
 use crate::logic::sync_session::wait_prev_session_finished::*;
 use crate::player::integrated::handle_key_player::*;
 use crate::utils::check_update::*;
+use crate::logic::handle_input::handle_l_book_offline::*;
+use crate::logic::download::download_item;
 
 pub enum AppView {
     Home,
@@ -684,6 +686,76 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 
         // END PLAYER //
 
+        // download the currently selected book for offline listening
+        KeyCode::Char('D') => {
+            let token = self.token.clone();
+            let server_address = self.server_address.clone();
+            let username = self.username.clone();
+
+            let item: Option<(String, String, String, f64)> = match self.view_state {
+                AppView::Home if !self.is_podcast => {
+                    self.list_state_cnt_list.selected().and_then(|i| {
+                        Some((
+                            self._ids_cnt_list.get(i)?.clone(),
+                            self._titles_cnt_list.get(i)?.clone(),
+                            self.auth_names_cnt_list.get(i)?.clone(),
+                            *self.duration_cnt_list.get(i)?,
+                        ))
+                    })
+                }
+                AppView::Library if !self.is_podcast => {
+                    self.list_state_library.selected().and_then(|i| {
+                        Some((
+                            self.ids_library.get(i)?.clone(),
+                            self.titles_library.get(i)?.clone(),
+                            self.auth_names_library.get(i)?.clone(),
+                            *self.duration_library.get(i)?,
+                        ))
+                    })
+                }
+                AppView::SearchBook if !self.is_podcast => {
+                    self.list_state_search_results.selected().and_then(|i| {
+                        let id = self.ids_search_book.get(i)?.clone();
+                        let idx_in_library = self.ids_library.iter().position(|x| x == &id)?;
+                        Some((
+                            id,
+                            self.titles_library.get(idx_in_library)?.clone(),
+                            self.auth_names_search_book.get(i)?.clone(),
+                            *self.duration_library_search_book.get(i)?,
+                        ))
+                    })
+                }
+                _ => None,
+            };
+
+            if let Some((id, title, author, duration)) = item {
+                tokio::spawn(async move {
+                    download_item(token, id, server_address, username, title, author, duration).await;
+                });
+            }
+        }
+
+        // remove the local offline copy of the currently selected book
+        KeyCode::Char('X') => {
+            let username = self.username.clone();
+
+            let item_id: Option<String> = match self.view_state {
+                AppView::Home if !self.is_podcast => self.list_state_cnt_list.selected().and_then(|i| self._ids_cnt_list.get(i)).cloned(),
+                AppView::Library if !self.is_podcast => self.list_state_library.selected().and_then(|i| self.ids_library.get(i)).cloned(),
+                AppView::SearchBook if !self.is_podcast => self.list_state_search_results.selected().and_then(|i| self.ids_search_book.get(i)).cloned(),
+                _ => None,
+            };
+
+            if let Some(id) = item_id {
+                if let Some((file_path, _current_time, _duration, title, _author)) = get_download(&id, &username) {
+                    let _ = std::fs::remove_file(&file_path);
+                    let _ = delete_download(&id, &username);
+                    let mut stdout = stdout();
+                    let _ = pop_message(&mut stdout, 3, &format!("Removed offline copy of \"{}\".", title));
+                }
+            }
+        }
+
         KeyCode::Char('/') => {
             let _ = self.search_active();
         }
@@ -863,9 +935,13 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                         });
                     } else {
 
+                        let download = selected_cnt_list
+                            .and_then(|i| ids_cnt_list.get(i))
+                            .and_then(|id| get_download(id, &username));
+
                         tokio::spawn(async move {
 
-                            // close vlc 
+                            // close vlc
                             let _ = quit_vlc(address_player.as_str(), port.as_str());
 
                             // pkill vlc
@@ -873,7 +949,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 
                             // before open a new session, wait to close and sync previous
                             // session
-                            let _ = wait_prev_session_finished(username.clone()); 
+                            let _ = wait_prev_session_finished(username.clone());
 
                             // pop message
                             let mut stdout = stdout();
@@ -882,26 +958,44 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                             // in case where the app has been disgrafully closed (crash, kill)
                             // the last listening session is closed when app is restarted
                             let _ = sync_session_from_database(
-                                token.clone(), 
-                                server_address.clone(), 
-                                username.clone(), 
-                                false, 
-                                "l", 
-                                address_player.clone(), 
+                                token.clone(),
+                                server_address.clone(),
+                                username.clone(),
+                                false,
+                                "l",
+                                address_player.clone(),
                                 port.clone()).await;
 
-                            // start the track
-                            handle_l_book(
-                                token.as_ref(), 
-                                ids_cnt_list, 
-                                selected_cnt_list, 
-                                port, 
-                                address_player,
-                                server_address, 
-                                start_vlc_program,
-                                is_cvlc_term, 
-                                username,
-                            ).await;
+                            if let (Some(id), Some((file_path, current_time, _duration, title, author))) =
+                                (selected_cnt_list.and_then(|i| ids_cnt_list.get(i)).cloned(), download)
+                            {
+                                // play the locally downloaded file, no server needed
+                                handle_l_book_offline(
+                                    port,
+                                    address_player,
+                                    start_vlc_program,
+                                    is_cvlc_term,
+                                    username,
+                                    id,
+                                    file_path,
+                                    current_time,
+                                    title,
+                                    author,
+                                ).await;
+                            } else {
+                                // start the track
+                                handle_l_book(
+                                    token.as_ref(),
+                                    ids_cnt_list,
+                                    selected_cnt_list,
+                                    port,
+                                    address_player,
+                                    server_address,
+                                    start_vlc_program,
+                                    is_cvlc_term,
+                                    username,
+                                ).await;
+                            }
                         });
 
                     }}
@@ -943,8 +1037,12 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                             self.view_state = AppView::PodcastEpisode;
                         }} else {
 
+                            let download = selected_library
+                                .and_then(|i| ids_library.get(i))
+                                .and_then(|id| get_download(id, &username));
+
                             tokio::spawn(async move {
-                                // close vlc 
+                                // close vlc
                                 let _ = quit_vlc(address_player.as_str(), port.as_str());
 
                                 // pkill vlc
@@ -952,7 +1050,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 
                                 // before open a new session, wait to close and sync previous
                                 // session
-                                let _ = wait_prev_session_finished(username.clone()); 
+                                let _ = wait_prev_session_finished(username.clone());
 
                                 // pop message
                                 let mut stdout = stdout();
@@ -961,26 +1059,44 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                 // in case where the app has been disgrafully closed (crash, kill)
                                 // the last listening session is closed when app is restarted
                                 let _ = sync_session_from_database(
-                                    token.clone(), 
-                                    server_address.clone(), 
-                                    username.clone(), 
-                                    false, 
-                                    "l", 
-                                    address_player.clone(), 
+                                    token.clone(),
+                                    server_address.clone(),
+                                    username.clone(),
+                                    false,
+                                    "l",
+                                    address_player.clone(),
                                     port.clone()).await;
 
-                                // start the track
-                                handle_l_book(
-                                    token.as_ref(), 
-                                    ids_library, 
-                                    selected_library, 
-                                    port, 
-                                    address_player,
-                                    server_address, 
-                                    start_vlc_program,
-                                    is_cvlc_term, 
-                                    username,
-                                ).await;
+                                if let (Some(id), Some((file_path, current_time, _duration, title, author))) =
+                                    (selected_library.and_then(|i| ids_library.get(i)).cloned(), download)
+                                {
+                                    // play the locally downloaded file, no server needed
+                                    handle_l_book_offline(
+                                        port,
+                                        address_player,
+                                        start_vlc_program,
+                                        is_cvlc_term,
+                                        username,
+                                        id,
+                                        file_path,
+                                        current_time,
+                                        title,
+                                        author,
+                                    ).await;
+                                } else {
+                                    // start the track
+                                    handle_l_book(
+                                        token.as_ref(),
+                                        ids_library,
+                                        selected_library,
+                                        port,
+                                        address_player,
+                                        server_address,
+                                        start_vlc_program,
+                                        is_cvlc_term,
+                                        username,
+                                    ).await;
+                                }
                             });
                         }
                 }
@@ -998,10 +1114,14 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                             self.durations_pod_ep_search = self.all_durations_pod_ep_search[index].clone();
                             self.list_state_pod_ep.select(Some(0));
                             self.view_state = AppView::PodcastEpisode;
-                        }} else {   
+                        }} else {
+
+                            let download = selected_search_book
+                                .and_then(|i| ids_search_book.get(i))
+                                .and_then(|id| get_download(id, &username));
 
                             tokio::spawn(async move {
-                                // close vlc 
+                                // close vlc
                                 let _ = quit_vlc(address_player.as_str(), port.as_str());
 
                                 // pkill vlc
@@ -1009,7 +1129,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 
                                 // before open a new session, wait to close and sync previous
                                 // session
-                                let _ = wait_prev_session_finished(username.clone()); 
+                                let _ = wait_prev_session_finished(username.clone());
 
                                 // pop message
                                 let mut stdout = stdout();
@@ -1018,26 +1138,44 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                 // in case where the app has been disgrafully closed (crash, kill)
                                 // the last listening session is closed when app is restarted
                                 let _ = sync_session_from_database(
-                                    token.clone(), 
-                                    server_address.clone(), 
-                                    username.clone(), 
-                                    false, 
-                                    "l", 
-                                    address_player.clone(), 
+                                    token.clone(),
+                                    server_address.clone(),
+                                    username.clone(),
+                                    false,
+                                    "l",
+                                    address_player.clone(),
                                     port.clone()).await;
 
-                                // start the track
-                                handle_l_book(
-                                    token.as_ref(), 
-                                    ids_search_book, 
-                                    selected_search_book, 
-                                    port, 
-                                    address_player,
-                                    server_address, 
-                                    start_vlc_program,
-                                    is_cvlc_term, 
-                                    username,
-                                ).await;
+                                if let (Some(id), Some((file_path, current_time, _duration, title, author))) =
+                                    (selected_search_book.and_then(|i| ids_search_book.get(i)).cloned(), download)
+                                {
+                                    // play the locally downloaded file, no server needed
+                                    handle_l_book_offline(
+                                        port,
+                                        address_player,
+                                        start_vlc_program,
+                                        is_cvlc_term,
+                                        username,
+                                        id,
+                                        file_path,
+                                        current_time,
+                                        title,
+                                        author,
+                                    ).await;
+                                } else {
+                                    // start the track
+                                    handle_l_book(
+                                        token.as_ref(),
+                                        ids_search_book,
+                                        selected_search_book,
+                                        port,
+                                        address_player,
+                                        server_address,
+                                        start_vlc_program,
+                                        is_cvlc_term,
+                                        username,
+                                    ).await;
+                                }
                             });
 
                         }
