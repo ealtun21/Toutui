@@ -15,7 +15,7 @@ use crate::api::sessions::sync_open_session::*;
 use crate::db::crud::*;
 use crate::logic::sync_session::sync_session_from_database::*;
 use crate::logic::sync_session::wait_prev_session_finished::*;
-use crate::player::engine::source::select_sources;
+use crate::player::engine::source::{TrackSource, select_sources};
 use crate::player::engine::track::{Chapter, Track, TrackList};
 use crate::player::engine::{PlaybackRequest, PlaybackStatus, PlayerCommand, PlayerHandle};
 use crate::utils::pop_up_message::*;
@@ -225,7 +225,29 @@ pub async fn play(
         .filter_map(|index| tracks.get(index).cloned())
         .collect();
 
-    let sources = select_sources(&item_id, &username, &server_address, &track_list);
+    // The download of an episode has the identity of the episode. The download
+    // of a book has the identity of the item.
+    let download_key = target.episode_id().unwrap_or(&item_id);
+
+    let sources = select_sources(
+        download_key,
+        &item_id,
+        &username,
+        &server_address,
+        &track_list,
+    );
+
+    let local = sources
+        .iter()
+        .filter(|source| matches!(source, TrackSource::Local(_)))
+        .count();
+
+    info!(
+        "[play] the download {} gives {} of {} track(s) from the disk",
+        download_key,
+        local,
+        sources.len()
+    );
     let speed = get_speed_rate(&username).parse::<f32>().unwrap_or(1.0);
 
     let request = PlaybackRequest {

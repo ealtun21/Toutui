@@ -49,13 +49,19 @@ pub fn hint_for(filename: &str) -> Option<String> {
 /// A copy on the disk always has more importance than the server. The engine
 /// uses the copy on the disk only if the disk has every file of the book. The
 /// engine does not mix the two sources in one book.
+///
+/// The parameter `download_key` is the identity of the download. It is the
+/// identity of the item for a book, and the identity of the episode for one
+/// episode of a podcast. The parameter `item_id` stays the identity of the
+/// item, because the address of a file on the server holds that value.
 pub fn select_sources(
+    download_key: &str,
     item_id: &str,
     username: &str,
     base_url: &str,
     tracks: &[Track],
 ) -> Vec<TrackSource> {
-    let on_disk: Vec<(u32, String)> = get_download_files(item_id, username)
+    let on_disk: Vec<(u32, String)> = get_download_files(download_key, username)
         .into_iter()
         .map(|(index, path, _duration)| (index, path))
         .collect();

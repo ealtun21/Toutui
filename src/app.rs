@@ -27,7 +27,7 @@ use crate::player::integrated::handle_key_player::*;
 use crate::player::engine::PlayerHandle;
 use crate::logic::playback::{play, PlaybackTarget};
 use crate::utils::check_update::*;
-use crate::logic::download::download_item_with_progress;
+use crate::logic::download::{DownloadTarget, download_with_progress};
 
 pub enum AppView {
     Home,
@@ -669,76 +669,35 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 
         // END PLAYER //
 
-        // download the currently selected book for offline listening
+        // download the selected book or episode for offline listening
         KeyCode::Char('D') => {
             let token = self.token.clone();
             let server_address = self.server_address.clone();
             let username = self.username.clone();
 
-            let item: Option<(String, String, String, f64)> = match self.view_state {
-                AppView::Home if !self.is_podcast => {
-                    self.list_state_cnt_list.selected().and_then(|i| {
-                        Some((
-                            self._ids_cnt_list.get(i)?.clone(),
-                            self._titles_cnt_list.get(i)?.clone(),
-                            self.auth_names_cnt_list.get(i)?.clone(),
-                            *self.duration_cnt_list.get(i)?,
-                        ))
-                    })
-                }
-                AppView::Library if !self.is_podcast => {
-                    self.list_state_library.selected().and_then(|i| {
-                        Some((
-                            self.ids_library.get(i)?.clone(),
-                            self.titles_library.get(i)?.clone(),
-                            self.auth_names_library.get(i)?.clone(),
-                            *self.duration_library.get(i)?,
-                        ))
-                    })
-                }
-                AppView::SearchBook if !self.is_podcast => {
-                    self.list_state_search_results.selected().and_then(|i| {
-                        let id = self.ids_search_book.get(i)?.clone();
-                        let idx_in_library = self.ids_library.iter().position(|x| x == &id)?;
-                        Some((
-                            id,
-                            self.titles_library.get(idx_in_library)?.clone(),
-                            self.auth_names_search_book.get(i)?.clone(),
-                            *self.duration_library_search_book.get(i)?,
-                        ))
-                    })
-                }
-                _ => None,
-            };
-
-            if let Some((id, title, author, duration)) = item {
+            if let Some((target, title, author)) = self.selected_download() {
                 // The map is global. Therefore the bar stays correct when the
                 // user refreshes the screen with the key `R`.
                 let progress = crate::logic::download::downloads();
                 tokio::spawn(async move {
-                    download_item_with_progress(
-                        token, id, server_address, username, title, author, duration, progress,
+                    download_with_progress(
+                        token, target, server_address, username, title, author, progress,
                     )
                     .await;
                 });
             }
         }
 
-        // remove the local offline copy of the currently selected book
+        // remove the local copy of the selected book or episode
         KeyCode::Char('X') => {
             let username = self.username.clone();
 
-            let item_id: Option<String> = match self.view_state {
-                AppView::Home if !self.is_podcast => self.list_state_cnt_list.selected().and_then(|i| self._ids_cnt_list.get(i)).cloned(),
-                AppView::Library if !self.is_podcast => self.list_state_library.selected().and_then(|i| self.ids_library.get(i)).cloned(),
-                AppView::SearchBook if !self.is_podcast => self.list_state_search_results.selected().and_then(|i| self.ids_search_book.get(i)).cloned(),
-                _ => None,
-            };
+            if let Some((target, _title, _author)) = self.selected_download() {
+                let key = target.key().to_string();
 
-            if let Some(id) = item_id {
-                if let Some((file_path, _current_time, _duration, title, _author)) = get_download(&id, &username) {
+                if let Some((file_path, _current_time, _duration, title, _author)) = get_download(&key, &username) {
                     let _ = std::fs::remove_file(&file_path);
-                    let _ = delete_download(&id, &username);
+                    let _ = delete_download(&key, &username);
                     let mut stdout = stdout();
                     let _ = pop_message(&mut stdout, 3, &format!("Removed offline copy of \"{}\".", title));
                 }
@@ -1076,6 +1035,102 @@ pub fn handle_key(&mut self, key: KeyEvent) {
     }
 }
 
+
+/// Gives the item that the keys `D` and `X` operate on.
+///
+/// The function gives the target of the download, the title, and the author.
+/// The title of an episode is the title of the episode, and its author is the
+/// title of the podcast.
+///
+/// The function gives `None` when the view has no item that the application
+/// can download. A podcast in the view `Library` is an example: the user must
+/// open the podcast and select one episode.
+pub fn selected_download(&self) -> Option<(DownloadTarget, String, String)> {
+    match self.view_state {
+        AppView::Home if self.is_podcast => {
+            let index = self.list_state_cnt_list.selected()?;
+
+            Some((
+                DownloadTarget::Episode {
+                    item_id: self._ids_cnt_list.get(index)?.clone(),
+                    episode_id: self.ids_ep_cnt_list.get(index)?.clone(),
+                },
+                self._titles_cnt_list.get(index)?.clone(),
+                self.titles_pod_cnt_list.get(index)?.clone(),
+            ))
+        }
+        AppView::Home => {
+            let index = self.list_state_cnt_list.selected()?;
+
+            Some((
+                DownloadTarget::Book {
+                    item_id: self._ids_cnt_list.get(index)?.clone(),
+                },
+                self._titles_cnt_list.get(index)?.clone(),
+                self.auth_names_cnt_list.get(index)?.clone(),
+            ))
+        }
+        AppView::Library if self.is_podcast => None,
+        AppView::Library => {
+            let index = self.list_state_library.selected()?;
+
+            Some((
+                DownloadTarget::Book {
+                    item_id: self.ids_library.get(index)?.clone(),
+                },
+                self.titles_library.get(index)?.clone(),
+                self.auth_names_library.get(index)?.clone(),
+            ))
+        }
+        AppView::SearchBook if self.is_podcast => None,
+        AppView::SearchBook => {
+            let index = self.list_state_search_results.selected()?;
+            let id = self.ids_search_book.get(index)?.clone();
+            let in_library = self.ids_library.iter().position(|x| x == &id)?;
+
+            Some((
+                DownloadTarget::Book { item_id: id },
+                self.titles_library.get(in_library)?.clone(),
+                self.auth_names_search_book.get(index)?.clone(),
+            ))
+        }
+        AppView::PodcastEpisode => {
+            let episode = self.list_state_pod_ep.selected()?;
+
+            // The two ways into this view hold the episodes in two different
+            // lists.
+            let (item_id, episode_id, title, podcast) = if self.is_from_search_pod {
+                let podcast = self.list_state_search_results.selected()?;
+
+                (
+                    self.ids_library_pod_search.get(podcast)?.clone(),
+                    self.ids_pod_ep_search.get(episode)?.clone(),
+                    self.titles_pod_ep_search.get(episode)?.clone(),
+                    self.titles_pod_search.first().cloned(),
+                )
+            } else {
+                let podcast = self.list_state_library.selected()?;
+
+                (
+                    self.ids_library.get(podcast)?.clone(),
+                    self.ids_pod_ep.get(episode)?.clone(),
+                    self.titles_pod_ep.get(episode)?.clone(),
+                    self.titles_pod.first().cloned(),
+                )
+            };
+
+            Some((
+                DownloadTarget::Episode {
+                    item_id,
+                    episode_id,
+                },
+                title.trim().to_string(),
+                podcast.unwrap_or_default().trim().to_string(),
+            ))
+        }
+        _ => None,
+    }
+}
 
 /// Toggle between Home and Library views
 fn toggle_view(&mut self) {

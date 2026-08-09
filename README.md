@@ -24,19 +24,20 @@
  **Supports Books & Podcasts:** Enjoy both audiobooks and podcasts  
  **Sync Progress & Stats:** Keep your listening progress in sync  
  **Streaming Support:** Play directly without downloading  
- **Offline Mode:** Download audiobooks to listen to them without a network connection (see below)  
+ **Local Copies:** Download a book or a podcast episode and read the audio from the disk (see below)  
  **Customizable Color Theme:** A config file will allow you to customize the color theme. Explore and try various themes [here](https://github.com/AlbanDAVID/Toutui-theme).
 
 ## 📥 Offline Mode
 
-Books can be downloaded locally so you can keep listening when your Audiobookshelf server isn't reachable.
+Books and podcast episodes can be downloaded locally, so the application reads the audio from the disk and not from the server.
 
-- `D` — download the currently selected book (Home, Library, or Search views) to `~/.local/share/toutui/downloads/<username>/` (or `$XDG_DATA_HOME/toutui/downloads/<username>/` if set). Requires the "download" permission on your Audiobookshelf user account.
-- `X` — remove the local offline copy of the currently selected book.
-- Downloaded books are marked `[Downloaded]` in the book info panel.
-- Playing a downloaded book (`l`/`Enter`) reads the local file directly — no server round-trip is needed to start or control playback. A copy on the disk always has more importance than the server. Playback position is always saved locally so it resumes where you left off, even fully offline.
-- If the server is reachable while you're listening to a downloaded book, progress is also best-effort pushed to it (same as streaming playback), so other Audiobookshelf clients stay in sync. If it isn't reachable, that push just fails silently and the local resume point is unaffected.
-- Currently books only; podcast episode downloads are not yet supported.
+- `D` — download the selected book (Home, Library, or Search views) or the selected podcast episode (Home, or the episode list of a podcast) to `~/.local/share/toutui/downloads/<username>/` (or `$XDG_DATA_HOME/toutui/downloads/<username>/` if set). Requires the "download" permission on your Audiobookshelf user account.
+- `X` — remove the local copy of the selected book or episode.
+- Each episode is a separate download. Therefore you can download one episode of a podcast and leave the other episodes on the server.
+- A downloaded book or episode is marked `[Downloaded]` in the info panel.
+- Playing a downloaded book or episode (`l`/`Enter`) reads the local file directly. A copy on the disk always has more importance than the server. The application uses the copy on the disk only if the disk holds every audio file of the book; it does not mix the two sources in one book.
+- The application pushes the progress to the server during the playback, thus other Audiobookshelf clients stay in sync.
+- The application still needs the server to start: it asks the server for a playback session. Therefore a download makes the playback quick and saves the network, but it does not give a full offline mode yet. Issue [#25](https://github.com/ealtun21/Toutui/issues/25) holds that work.
 
 ## 📰 Media
 <img src=".github/korben.png" align="top" width="50" alt="Korben"/> Featured on [Korben](https://korben.info/toutui-client-terminal-audiobookshelf.html), a well-known French tech blog covering open source and technology.

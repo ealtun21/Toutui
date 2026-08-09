@@ -34,7 +34,16 @@ impl AudioFilePlan {
 /// All the work of one download.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DownloadPlan {
+    /// The identity of the library item. The address of each file holds this
+    /// value.
     pub item_id: String,
+    /// The identity of the download in the database and in the map of the
+    /// progress.
+    ///
+    /// A book is one download, thus the key is the identity of the item. A
+    /// podcast holds many episodes, and each episode is a separate download.
+    /// Therefore the key of an episode is the identity of the episode.
+    pub key: String,
     pub title: String,
     pub author: String,
     /// The files, in the correct sequence.
@@ -165,11 +174,85 @@ pub fn plan_from_item(item: &serde_json::Value) -> Option<DownloadPlan> {
 
     files.sort_by_key(|file| file.index);
 
+    let item_id = item.get("id")?.as_str()?.to_string();
+
     Some(DownloadPlan {
-        item_id: item.get("id")?.as_str()?.to_string(),
+        key: item_id.clone(),
+        item_id,
         title,
         author,
         files,
+    })
+}
+
+/// Makes a plan for one episode of a podcast.
+///
+/// The function reads `media.episodes`. An episode holds one audio file in the
+/// field `audioFile`. Therefore the plan holds one file.
+///
+/// The title of the plan is the title of the episode, and the author is the
+/// title of the podcast. The user then reads the name of the episode in the
+/// bar of the progress and in the list of the downloads.
+pub fn plan_from_episode(item: &serde_json::Value, episode_id: &str) -> Option<DownloadPlan> {
+    let media = item.get("media")?;
+
+    let episode = media
+        .get("episodes")?
+        .as_array()?
+        .iter()
+        .find(|episode| episode.get("id").and_then(|id| id.as_str()) == Some(episode_id))?;
+
+    let file = episode.get("audioFile")?;
+
+    if file.is_null() {
+        return None;
+    }
+
+    let file_metadata = file.get("metadata");
+
+    // The episode gives the length when the audio file does not give it.
+    let duration = match file.get("duration").and_then(|d| d.as_f64()) {
+        Some(duration) if duration > 0.0 => duration,
+        _ => episode.get("duration").and_then(|d| d.as_f64()).unwrap_or(0.0),
+    };
+
+    let plan_file = AudioFilePlan {
+        // The episode is one file, thus the file is always the first file.
+        index: 1,
+        ino: file.get("ino")?.as_str().map(|s| s.to_string()).or_else(|| {
+            file.get("ino").and_then(|i| i.as_u64()).map(|i| i.to_string())
+        })?,
+        filename: file_metadata
+            .and_then(|m| m.get("filename"))
+            .and_then(|f| f.as_str())
+            .unwrap_or("audio")
+            .to_string(),
+        size: file_metadata
+            .and_then(|m| m.get("size"))
+            .and_then(|s| s.as_u64())
+            .unwrap_or(0),
+        duration,
+    };
+
+    let title = episode
+        .get("title")
+        .and_then(|t| t.as_str())
+        .unwrap_or("Unknown episode")
+        .to_string();
+
+    let author = media
+        .get("metadata")
+        .and_then(|m| m.get("title"))
+        .and_then(|t| t.as_str())
+        .unwrap_or("Unknown podcast")
+        .to_string();
+
+    Some(DownloadPlan {
+        item_id: item.get("id")?.as_str()?.to_string(),
+        key: episode_id.to_string(),
+        title,
+        author,
+        files: vec![plan_file],
     })
 }
 
@@ -320,6 +403,111 @@ mod tests {
 
         // The start of the second file is the length of the first file.
         assert_eq!(plan.start_offset(2), plan.files[0].duration);
+    }
+
+    /// The key of a book is the identity of the item.
+    #[test]
+    fn the_key_of_a_book_is_the_item() {
+        let plan = plan_from_item(&item()).unwrap();
+        assert_eq!(plan.key, "item-1");
+        assert_eq!(plan.item_id, "item-1");
+    }
+
+    fn podcast() -> serde_json::Value {
+        json!({
+            "id": "pod-1",
+            "media": {
+                "metadata": { "title": "A Podcast" },
+                "episodes": [
+                    { "id": "ep1", "title": "The first letter",
+                      "audioFile": { "ino": "700", "duration": 60.5,
+                        "metadata": { "filename": "one.mp3", "size": 1000u64 } } },
+                    { "id": "ep2", "title": "The second letter", "duration": 30.0,
+                      "audioFile": { "ino": "701",
+                        "metadata": { "filename": "two.mp3", "size": 2000u64 } } }
+                ]
+            }
+        })
+    }
+
+    /// An episode is one file, and its key is the identity of the episode. The
+    /// address of the file still holds the identity of the podcast.
+    #[test]
+    fn the_planner_reads_one_episode() {
+        let plan = plan_from_episode(&podcast(), "ep1").unwrap();
+
+        assert_eq!(plan.item_id, "pod-1");
+        assert_eq!(plan.key, "ep1");
+        assert_eq!(plan.files.len(), 1);
+        assert_eq!(plan.files[0].index, 1);
+        assert_eq!(plan.files[0].ino, "700");
+        assert_eq!(plan.total_bytes(), 1000);
+        assert_eq!(plan.total_duration(), 60.5);
+    }
+
+    /// The title is the title of the episode. The user reads that title in the
+    /// bar of the progress.
+    #[test]
+    fn an_episode_gives_its_own_title() {
+        let plan = plan_from_episode(&podcast(), "ep1").unwrap();
+        assert_eq!(plan.title, "The first letter");
+        assert_eq!(plan.author, "A Podcast");
+    }
+
+    /// Two episodes of the same podcast are two separate downloads.
+    #[test]
+    fn two_episodes_give_two_different_keys() {
+        let first = plan_from_episode(&podcast(), "ep1").unwrap();
+        let second = plan_from_episode(&podcast(), "ep2").unwrap();
+
+        assert_ne!(first.key, second.key);
+        assert_eq!(first.item_id, second.item_id);
+        assert_eq!(second.files[0].disk_name(), "001 - two.mp3");
+    }
+
+    /// The audio file does not always give the length. The episode gives it.
+    #[test]
+    fn an_episode_takes_the_length_from_the_episode() {
+        let plan = plan_from_episode(&podcast(), "ep2").unwrap();
+        assert_eq!(plan.total_duration(), 30.0);
+    }
+
+    #[test]
+    fn an_episode_that_is_absent_has_no_plan() {
+        assert!(plan_from_episode(&podcast(), "ep9").is_none());
+    }
+
+    /// The server gives no audio file before the download of the episode.
+    #[test]
+    fn an_episode_without_an_audio_file_has_no_plan() {
+        let value = json!({
+            "id": "pod-1",
+            "media": { "episodes": [ { "id": "ep1", "title": "New", "audioFile": null } ] }
+        });
+        assert!(plan_from_episode(&value, "ep1").is_none());
+    }
+
+    /// A book has no episode, and a podcast has no `audioFiles`.
+    #[test]
+    fn a_podcast_has_no_plan_for_a_book() {
+        assert!(plan_from_item(&podcast()).is_none());
+    }
+
+    /// This answer comes from a real Audiobookshelf 2.36.0 server.
+    #[test]
+    fn the_planner_reads_a_real_episode() {
+        let raw = include_str!("../../../tests/fixtures/item_podcast.json");
+        let value: serde_json::Value = serde_json::from_str(raw).unwrap();
+
+        let episode_id = value["media"]["episodes"][0]["id"].as_str().unwrap();
+        let plan = plan_from_episode(&value, episode_id).unwrap();
+
+        assert_eq!(plan.files.len(), 1);
+        assert_eq!(plan.files[0].ino, "30861080");
+        assert_eq!(plan.total_bytes(), 14_115_980);
+        assert!(plan.total_duration() > 1700.0);
+        assert_eq!(plan.files[0].disk_name(), "001 - Letter 1.mp3");
+        assert_eq!(plan.title, "Letter 1");
     }
 
     #[test]

@@ -29,6 +29,7 @@ the original issue, if there is one.
 | T-4 | The application gets the position from the server | sub-project 3 |
 | T-16 | The application marks a media as finished at the end | sub-project 3 |
 | T-12 | The repository has a Nix flake | sub-project 0 |
+| T-11 | The application downloads a podcast episode | sub-project 5 |
 
 Sub-project 2 removed VLC. The application decodes the audio in the process
 now. Therefore a book with many audio files plays completely, the token stays
@@ -204,6 +205,29 @@ and `rustls-rustcrypto` is an alpha version. Issue 20 holds the details.
 | T-23 | — | Show the cover art with the Kitty protocol or Sixel | 5 |
 | T-24 | — | Cover every function of Audiobookshelf | 5 |
 
+### T-11: download a podcast episode
+
+The application downloads a book with `src/logic/download/`. A podcast holds
+many episodes, and each episode is a separate download. Therefore the download
+has a key: the key of a book is the identity of the item, and the key of an
+episode is the identity of the episode.
+
+The key is the identity in the table `downloads`, in the table
+`download_files`, in the map of the progress, and in the name of the
+directory. The address of the file on the server still holds the identity of
+the podcast.
+
+A test on 2026-08-10 with the sandbox server downloaded one episode of three.
+The file on the disk agrees with the file on the server, byte for byte. A
+playback of that episode used the file on the disk, and a playback of a
+different episode of the same podcast used the server.
+
+### T-25: the application does not start without the server
+
+The same test stopped the server. The application then showed an empty screen,
+and the copy on the disk gave no help. Issue 25 holds that work. See the
+README.
+
 ### T-9: show the playlists and the collections
 
 One user asks for this function. The original author agreed that collections
@@ -243,6 +267,7 @@ the application does not have yet.
 
 | Id | Upstream | Title |
 |---|---|---|
+| T-25 | — | The application does not start without the server |
 | T-13 | — | The description shows the HTML tags |
 | T-14 | — | The application loses the configuration after an update (`255b86`) |
 | T-15 | — | The authentication fails at the first attempt (`4b3045`) |

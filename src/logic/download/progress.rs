@@ -20,9 +20,10 @@ pub enum DownloadState {
 /// The progress of one download.
 #[derive(Debug, Clone)]
 pub struct DownloadProgress {
-    /// The identity of the library item.
-    pub item_id: String,
-    /// The title of the book.
+    /// The identity of the download: the item of a book, or the episode of a
+    /// podcast.
+    pub key: String,
+    /// The title of the book, or the title of the episode.
     pub title: String,
     /// The file that the task gets now. The first file has the number 1.
     pub file_index: usize,
@@ -51,7 +52,8 @@ impl DownloadProgress {
     }
 }
 
-/// The progress of every download. The key is the identity of the item.
+/// The progress of every download. The key is the field `key` of the
+/// progress.
 pub type ProgressMap = Arc<RwLock<HashMap<String, DownloadProgress>>>;
 
 #[cfg(test)]
@@ -60,7 +62,7 @@ mod tests {
 
     fn progress(done: u64, total: u64) -> DownloadProgress {
         DownloadProgress {
-            item_id: "item-1".to_string(),
+            key: "item-1".to_string(),
             title: "A Book".to_string(),
             file_index: 1,
             file_count: 1,

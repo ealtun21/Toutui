@@ -246,9 +246,9 @@ where
     };
 
     let state = map
-        .entry(plan.item_id.clone())
+        .entry(plan.key.clone())
         .or_insert_with(|| DownloadProgress {
-            item_id: plan.item_id.clone(),
+            key: plan.key.clone(),
             title: plan.title.clone(),
             file_index: 1,
             file_count: plan.files.len(),
@@ -272,6 +272,7 @@ mod tests {
     fn plan_of(files: &[(u32, &str, &str, u64)]) -> DownloadPlan {
         DownloadPlan {
             item_id: "item-1".to_string(),
+            key: "item-1".to_string(),
             title: "A Book".to_string(),
             author: "An Author".to_string(),
             files: files
@@ -548,6 +549,43 @@ mod tests {
         let mut expected = vec![b'e'; 30];
         expected.extend(vec![b'f'; 70]);
         assert_eq!(std::fs::read(&paths[0]).unwrap(), expected);
+    }
+
+    /// An episode uses the identity of the podcast in the address, and the
+    /// identity of the episode in the map of the progress. Two episodes of one
+    /// podcast then have two separate bars.
+    #[tokio::test]
+    async fn an_episode_keeps_the_progress_under_the_episode() {
+        let server = MockServer::start().await;
+        let dir = tempfile::tempdir().unwrap();
+
+        Mock::given(method("GET"))
+            .and(path("/api/items/pod-1/file/700/download"))
+            .respond_with(ResponseTemplate::new(200).set_body_bytes(vec![b'a'; 20]))
+            .mount(&server)
+            .await;
+
+        let mut plan = plan_of(&[(1, "700", "one.mp3", 20)]);
+        plan.item_id = "pod-1".to_string();
+        plan.key = "ep-1".to_string();
+
+        let progress = map();
+
+        fetch_item(
+            &reqwest::Client::new(),
+            &server.uri(),
+            "secret",
+            &plan,
+            dir.path(),
+            progress.clone(),
+        )
+        .await
+        .unwrap();
+
+        let map = progress.read().unwrap();
+        assert!(map.get("ep-1").is_some(), "the key must be the episode");
+        assert!(map.get("pod-1").is_none(), "the key must not be the podcast");
+        assert_eq!(map.get("ep-1").unwrap().state, DownloadState::Finished);
     }
 
     /// An answer that is not a success gives an error.

@@ -69,8 +69,8 @@ impl App {
         }
 
         // The sequence must be the same for each frame. Therefore the
-        // function sorts by the identity of the item.
-        running.sort_by(|a, b| a.item_id.cmp(&b.item_id));
+        // function sorts by the identity of the download.
+        running.sort_by(|a, b| a.key.cmp(&b.key));
         running.truncate(DOWNLOAD_BAR_MAX);
 
         let height = DOWNLOAD_BAR_HEIGHT * running.len() as u16;
@@ -452,7 +452,7 @@ impl App {
         let [list_area, item_area1, item_area2] = Layout::vertical([Constraint::Fill(1), Constraint::Length(3), Constraint::Fill(1)]).areas(main_area);
 
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
 
         App::render_header(header_area, buf, self.lib_name_type.clone(), &self.username, &self.server_address_pretty, VERSION, &self.update_msg);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -561,11 +561,16 @@ impl App {
         if let Some(selected) = list_state.selected() {
 
             if self.is_podcast {
-                Paragraph::new(format!("[{}] - Author: {} - Episode: {} - Duration: {}", 
-                        self.titles_pod_cnt_list[selected], 
-                        self.authors_pod_cnt_list[selected], 
+                let is_offline = self.ids_ep_cnt_list.get(selected)
+                    .map(|id| crate::db::crud::get_download(id, &self.username).is_some())
+                    .unwrap_or(false);
+
+                Paragraph::new(format!("[{}] - Author: {} - Episode: {} - Duration: {}{}",
+                        self.titles_pod_cnt_list[selected],
+                        self.authors_pod_cnt_list[selected],
                         self.nums_ep_pod_cnt_list[selected],
                         self.durations_pod_cnt_list[selected],
+                        if is_offline { " - [Downloaded]" } else { "" },
                 ))
                     .left_aligned()
                     .render(area, buf);
@@ -680,11 +685,16 @@ impl App {
             if selected < self.episodes_pod_ep.len() && selected < self.durations_pod_ep.len() {
                  // Also check duplicated vectors, though their length depends on n (durations_pod_ep.len())
                  if selected < duplicated_titles.len() && selected < duplicated_authors.len() {
-                    Paragraph::new(format!("[{}] - Author: {} - Episode: {} - Duration: {} ",
+                    let is_offline = self.ids_pod_ep.get(selected)
+                        .map(|id| crate::db::crud::get_download(id, &self.username).is_some())
+                        .unwrap_or(false);
+
+                    Paragraph::new(format!("[{}] - Author: {} - Episode: {} - Duration: {} {}",
                             duplicated_titles[selected].trim(),
                             duplicated_authors[selected].trim(),
                             self.episodes_pod_ep[selected].trim(),
                             self.durations_pod_ep[selected].trim(),
+                            if is_offline { "- [Downloaded]" } else { "" },
                     ))
                         .left_aligned()
                         .render(area, buf);
@@ -710,11 +720,16 @@ impl App {
         let duplicated_authors_search = vec![self.authors_pod_ep_search[0].clone(); n];
         if let Some(selected) = list_state.selected() {
 
-            Paragraph::new(format!("[{}] - Author: {} - Episode: {} - Duration: {} ", 
-                    duplicated_titles_search[selected].trim(), 
-                    duplicated_authors_search[selected].trim(), 
+            let is_offline = self.ids_pod_ep_search.get(selected)
+                .map(|id| crate::db::crud::get_download(id, &self.username).is_some())
+                .unwrap_or(false);
+
+            Paragraph::new(format!("[{}] - Author: {} - Episode: {} - Duration: {} {}",
+                    duplicated_titles_search[selected].trim(),
+                    duplicated_authors_search[selected].trim(),
                     self.episodes_pod_ep_search[selected].trim(),
                     self.durations_pod_ep_search[selected].trim(),
+                    if is_offline { "- [Downloaded]" } else { "" },
             ))
                 .left_aligned()
                 .render(area, buf);
