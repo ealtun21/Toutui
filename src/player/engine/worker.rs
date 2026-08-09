@@ -9,7 +9,8 @@
 use crate::player::engine::source::open_decoder;
 use crate::player::engine::speed::{SharedSpeed, SpeedSource};
 use crate::player::engine::{
-    media_position, seek_target, PlaybackRequest, PlaybackState, PlaybackStatus, PlayerCommand,
+    media_position, reached_the_end, seek_target, PlaybackRequest, PlaybackState, PlaybackStatus,
+    PlayerCommand,
 };
 use log::{error, info, warn};
 use rodio::{DeviceSinkBuilder, MixerDeviceSink, Player};
@@ -189,7 +190,12 @@ fn handle(
         PlayerCommand::Stop => {
             player.stop();
             *current = None;
-            set_status(state, PlaybackStatus::Stopped);
+
+            // The user stopped the media. It is not finished.
+            if let Ok(mut value) = state.write() {
+                value.status = PlaybackStatus::Stopped;
+                value.finished = false;
+            }
         }
     }
 }
@@ -388,13 +394,19 @@ fn publish(
 
     let was_stalled = value.status == PlaybackStatus::Stalled;
 
+    let queue_empty = player.empty();
+
     value.status = if player.is_paused() {
         PlaybackStatus::Paused
-    } else if player.empty() {
+    } else if queue_empty {
         PlaybackStatus::Stopped
     } else {
         PlaybackStatus::Playing
     };
+
+    // The media came to its end only if the queue is empty and the position
+    // is at the end. See T-16.
+    value.finished = reached_the_end(position, value.duration, queue_empty);
 
     if was_stalled && value.status == PlaybackStatus::Playing {
         value.notice = Some("Reconnected".to_string());

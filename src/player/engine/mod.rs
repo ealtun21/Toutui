@@ -58,6 +58,25 @@ pub fn seek_target(media_seconds: f64, speed: f32) -> Duration {
     Duration::from_secs_f64(seconds / speed as f64)
 }
 
+/// The number of seconds before the end that still counts as the end.
+///
+/// A decoder does not always give the last fraction of a second. Therefore
+/// the engine accepts a small distance from the end.
+pub const END_TOLERANCE: f64 = 30.0;
+
+/// Tells if the media came to its end.
+///
+/// The engine marks a book as finished only when the queue is empty and the
+/// position is at the end. The queue is also empty before the first track
+/// starts, thus the position is necessary. See T-16.
+pub fn reached_the_end(position: f64, duration: f64, queue_empty: bool) -> bool {
+    if !queue_empty || duration <= 0.0 {
+        return false;
+    }
+
+    position >= duration - END_TOLERANCE
+}
+
 /// What the engine does now.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PlaybackStatus {
@@ -88,6 +107,9 @@ pub struct PlaybackState {
     pub speed: f32,
     pub volume: f32,
     pub status: PlaybackStatus,
+    /// The media came to its end. The application then marks the item as
+    /// finished on the server. See T-16.
+    pub finished: bool,
     /// A message for the user. An example is "Reconnected".
     pub notice: Option<String>,
 }
@@ -104,6 +126,7 @@ impl Default for PlaybackState {
             speed: 1.0,
             volume: 1.0,
             status: PlaybackStatus::Stopped,
+            finished: false,
             notice: None,
         }
     }
@@ -191,7 +214,7 @@ impl PlayerHandle {
 
 #[cfg(test)]
 mod tests {
-    use super::{media_position, seek_target};
+    use super::{media_position, reached_the_end, seek_target};
     use std::time::Duration;
 
     #[test]
@@ -272,5 +295,36 @@ mod tests {
     #[test]
     fn a_negative_position_gives_zero() {
         assert_eq!(seek_target(-5.0, 1.0).as_secs_f64(), 0.0);
+    }
+    #[test]
+    fn a_media_at_its_end_with_an_empty_queue_is_finished() {
+        assert!(reached_the_end(3600.0, 3600.0, true));
+        assert!(reached_the_end(3580.0, 3600.0, true));
+    }
+
+    /// The queue is empty before the first track starts. The position then
+    /// says that the media is not at its end.
+    #[test]
+    fn the_start_of_a_media_is_not_finished() {
+        assert!(!reached_the_end(0.0, 3600.0, true));
+        assert!(!reached_the_end(120.0, 3600.0, true));
+    }
+
+    /// The user stopped the playback in the middle. The queue holds a track,
+    /// thus the media is not finished.
+    #[test]
+    fn a_media_that_still_plays_is_not_finished() {
+        assert!(!reached_the_end(3600.0, 3600.0, false));
+    }
+
+    /// A length of zero means that the engine does not know the length.
+    #[test]
+    fn a_length_of_zero_is_not_finished() {
+        assert!(!reached_the_end(100.0, 0.0, true));
+    }
+
+    #[test]
+    fn a_position_after_the_end_is_finished() {
+        assert!(reached_the_end(3700.0, 3600.0, true));
     }
 }

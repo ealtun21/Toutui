@@ -25,11 +25,12 @@ remove the tags and change the HTML entities to characters.
 `bug_id: 4b3045`
 **Authentification Bug:** Even if you fill in valid credentials, the database sync can be buggy, and authentication may fail. Normally, it works on the second try.
 
-`bug_id: 2d358c53`
-**Mark as finished:** When a title reach the end, mark as finished not always work.
+
 
 
 **FIXED**  
+`bug_id: 2d358c53` — CORRECTED on 2026-08-10
+**Mark as finished:** The engine now reports that the media came to its end, and the application sends `isFinished`. A test with a real server shows `isFinished=true` and `progress=1` after the book comes to its end.  
 `bug_id: 2eb9e3` — CORRECTED on 2026-08-10
 **Display:** At the launch, the app was not displayed and no error message appeared. The application does not start a separate program now, thus this fault cannot occur.  
 `bug_id: a49eza` — CORRECTED on 2026-08-10

@@ -377,12 +377,14 @@ pub async fn follow_playback(
             }
 
             PlaybackStatus::Stopped => {
+                let finished = state.finished;
+
                 info!(
-                    "[follow_playback] the playback stopped at {} seconds",
-                    position
+                    "[follow_playback] the playback stopped at {} seconds, finished={}",
+                    position, finished
                 );
 
-                let _ = update_is_finished("1", session_id.as_str());
+                let _ = update_is_finished(if finished { "1" } else { "0" }, session_id.as_str());
 
                 if let Err(error) = close_session_without_send_prg_data(api, &session_id).await {
                     warn!(
@@ -395,8 +397,22 @@ pub async fn follow_playback(
                 // command of the user, and it is not a report during the
                 // playback. Therefore `/progress` is correct here. See
                 // upstream issue 35.
-                let result = match episode_id.as_deref() {
-                    Some(episode_id) => {
+                //
+                // If the media came to its end, the request must also mark
+                // the item as finished. See T-16.
+                let result = match (episode_id.as_deref(), finished) {
+                    (Some(episode_id), true) => {
+                        update_media_progress2_pod(
+                            api,
+                            &item_id,
+                            Some(position),
+                            &total_duration,
+                            true,
+                            episode_id,
+                        )
+                        .await
+                    }
+                    (Some(episode_id), false) => {
                         update_media_progress_pod(
                             api,
                             &item_id,
@@ -406,7 +422,17 @@ pub async fn follow_playback(
                         )
                         .await
                     }
-                    None => {
+                    (None, true) => {
+                        update_media_progress2_book(
+                            api,
+                            &item_id,
+                            Some(position),
+                            &total_duration,
+                            true,
+                        )
+                        .await
+                    }
+                    (None, false) => {
                         update_media_progress_book(api, &item_id, Some(position), &total_duration)
                             .await
                     }

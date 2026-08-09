@@ -27,6 +27,7 @@ the original issue, if there is one.
 | T-19 | The pitch does not change with the speed | sub-project 2 |
 | T-7 | The application asks for one page at a time | sub-project 3 |
 | T-4 | The application gets the position from the server | sub-project 3 |
+| T-16 | The application marks a media as finished at the end | sub-project 3 |
 
 Sub-project 2 removed VLC. The application decodes the audio in the process
 now. Therefore a book with many audio files plays completely, the token stays
