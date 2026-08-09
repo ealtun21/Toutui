@@ -99,15 +99,62 @@ The smaller feature set gave two faults that this measurement found:
    this type fails the test.
 2. ALAC, AIFF, ADPCM, and CAF did not play.
 
-Opus is the only true gap. The tests show that the WebM container, the
-Matroska container, and the CAF container all play with a different codec.
-Therefore the fault is the Opus codec, and it is not the container.
+### 3.2 The formats of Audiobookshelf
 
-`symphonia` has no Opus decoder. A decoder that needs a C library is not
-permitted. A pure Rust decoder exists on `crates.io`, but `rodio` uses the
-fixed registry `symphonia::default::get_codecs()`. Therefore Opus needs a
-`Source` of this project that uses its own registry. That work is not in this
-sub-project.
+`server/utils/constants.js` of Audiobookshelf gives the audio formats that the
+server accepts. The engine plays 16 of the 19 formats:
+
+| Format of Audiobookshelf | The engine plays it |
+|---|---|
+| MP3, M4B, M4A, MP4, OGG, OGA, AAC, FLAC | Yes |
+| AIFF, AIF, WEBM, WEBMA, MKA, CAF | Yes |
+| MPEG, MPG | Yes. These files hold MP2 audio. |
+| **OPUS** | **No.** See section 3.3. |
+| **WMA** | **No.** `symphonia` has no reader for the ASF container. |
+| **AWB** | **No.** This is AMR-WB. `symphonia` has no decoder. |
+
+### 3.3 The gap: Opus
+
+Opus is the only gap that has an answer. Audiobookshelf accepts Opus files,
+therefore users have them.
+
+The tests show that the WebM container, the Matroska container, and the CAF
+container all play with a different codec. Therefore the fault is the codec,
+and it is not the container. `symphonia` reads the Opus stream correctly:
+`symphonia-format-ogg` has a mapper for Opus.
+
+A measurement on 2026-08-10 shows that a pure Rust decoder gives the correct
+audio:
+
+| Measurement | ffmpeg with libopus | The crate `opus-decoder` 0.1.1 |
+|---|---|---|
+| Samples | 96000 | 96960 |
+| Highest value | 4193 | 4193 |
+| Mean square value | 2894.7 | 2880.3 |
+| Errors | — | 0 in 101 packets |
+
+The highest value is the same. The difference of 960 samples is the value
+`pre-skip` of the `OpusHead` header. ffmpeg removes those samples, and the
+measurement program did not. This is a known correction, and it is not a
+fault.
+
+Therefore Opus is possible with no C library. Two things are necessary:
+
+1. `rodio::Decoder` uses the fixed registry
+   `symphonia::default::get_codecs()`. A codec cannot go into that registry.
+   Therefore the project needs its own `rodio::Source`. That source reads the
+   packets with `symphonia`, and it decodes them with the Opus crate.
+2. The source must remove the `pre-skip` samples, and it must obey `try_seek`.
+
+The new source is only for Opus. The engine uses `rodio::Decoder` for the
+other 16 formats. Therefore this work cannot make a fault in a format that
+operates now.
+
+The crate is young. Version 0.1.1 has one author. The measurement above is
+good evidence, but a wider test is necessary before the fork gives this
+function to users.
+
+This work is not in this sub-project. Issue 17 holds it.
 
 `tests/formats.rs` decodes one small file of each format. The files are in
 `tests/fixtures/audio`, and they use 14 kilobytes together. A measurement is

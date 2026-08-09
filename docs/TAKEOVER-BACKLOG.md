@@ -121,6 +121,7 @@ the address. Issue #35 gives this advice. Sub-project 2 does this work.
 |---|---|---|---|
 | T-7 | #35 | The application gets all items in one request | 3 |
 | T-8 | #36 | A change of the speed needs a new start of the playback | 2 |
+| T-17 | — | Play an Opus file | later |
 
 ### T-7: the application gets all items in one request
 
@@ -157,6 +158,21 @@ are also useful.
 
 Pull request #38 of the original repository adds a flake for Nix users. The
 original author closed it without a merge. Examine this work again.
+
+### T-17: play an Opus file
+
+Audiobookshelf accepts 19 audio formats. The audio engine plays 16 of them.
+Opus is the gap that has an answer.
+
+A measurement on 2026-08-10 shows that a pure Rust decoder gives audio that
+agrees with libopus. The highest value is the same. Therefore no C library is
+necessary.
+
+The work needs a `rodio::Source` of this project, because `rodio::Decoder`
+uses a fixed codec registry. WMA and AWB stay outside, because no pure Rust
+reader or decoder is available.
+
+Issue 17 holds the details.
 
 ## Priority 5: small faults
 

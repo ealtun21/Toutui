@@ -107,12 +107,16 @@ fn sources_from(
 pub const SUPPORTED_FORMATS: &str =
     "mp3, m4b, m4a, mp4, aac, flac, wav, aiff, ogg, oga, mka, webm, and caf";
 
-/// The formats that the application does not play, and the reason.
+/// The formats that the application does not play.
 ///
-/// `symphonia` has no decoder for Opus and no reader for the ASF container of
-/// WMA. A decoder for Opus that needs a C library is not permitted, because
-/// the project must build with no C toolchain.
-pub const UNSUPPORTED_FORMATS: &str = "opus and wma";
+/// Audiobookshelf accepts 19 audio formats. The engine plays 16 of them.
+/// `symphonia` has no decoder for Opus, no decoder for AMR-WB, and no reader
+/// for the ASF container of WMA. A decoder that needs a C library is not
+/// permitted, because the project must build with no C toolchain.
+///
+/// A measurement on 2026-08-10 shows that a pure Rust Opus decoder gives the
+/// correct audio. Issue 17 holds that work.
+pub const UNSUPPORTED_FORMATS: &str = "opus, wma, and awb";
 
 /// Opens a decoder for one track.
 ///
