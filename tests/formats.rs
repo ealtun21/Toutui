@@ -147,6 +147,13 @@ fn adpcm_plays() {
     assert_plays("tone_adpcm.wav");
 }
 
+/// Tells if a test file holds Opus audio.
+///
+/// The application cannot play Opus today. See T-17 and the test below.
+fn is_opus(name: &str) -> bool {
+    name.contains("opus")
+}
+
 /// Every file in the directory must have a test. This test finds a file that
 /// a person adds and forgets.
 #[test]
@@ -158,12 +165,54 @@ fn every_test_file_decodes() {
 
         if path.is_file() {
             let name = path.file_name().unwrap().to_string_lossy().to_string();
+
+            if is_opus(&name) {
+                continue;
+            }
+
             assert_plays(&name);
             count += 1;
         }
     }
 
     assert!(count >= 13, "the directory must hold the test files");
+}
+
+/// Audiobookshelf accepts Opus, and the application cannot play it. The
+/// application must give a clear message, and it must not stop.
+///
+/// A measurement on 2026-08-10 examined two pure Rust decoders. The crate
+/// `opus-decoder` 0.1.1 stops the program with an arithmetic fault on a file
+/// of 24 kilobits each second. The crate `moosicbox_opus_native` 0.4.0 gives
+/// no sample for a file of one channel. Therefore no decoder is ready.
+///
+/// This test becomes a test of a working format when a decoder is ready. See
+/// T-17.
+#[test]
+fn an_opus_file_gives_a_clear_message() {
+    for name in ["tone.opus", "tone_stereo.opus", "tone_opus.ogg"] {
+        let path = fixture_dir().join(name);
+        assert!(path.exists(), "the test file {} is absent", name);
+
+        match decode(name) {
+            Ok(samples) => panic!(
+                "the application played the Opus file {} and gave {} samples.                  If a decoder is ready now, move this file to the tests of                  the formats that play.",
+                name, samples
+            ),
+            Err(error) => {
+                assert!(
+                    error.contains(name),
+                    "the message must name the file, but it is: {}",
+                    error
+                );
+                assert!(
+                    error.contains(SUPPORTED_FORMATS),
+                    "the message must show the formats, but it is: {}",
+                    error
+                );
+            }
+        }
+    }
 }
 
 /// A file that is not audio must give a clear message. The message must name

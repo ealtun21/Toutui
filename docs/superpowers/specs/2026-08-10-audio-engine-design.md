@@ -153,9 +153,21 @@ The new source is only for Opus. The engine uses `rodio::Decoder` for the
 other 16 formats. Therefore this work cannot make a fault in a format that
 operates now.
 
-The crate is young. Version 0.1.1 has one author. The measurement above is
-good evidence, but a wider test is necessary before the fork gives this
-function to users.
+**An attempt on 2026-08-10 failed.** A wider test with more files shows that
+the pure Rust decoders are not ready:
+
+| File | `opus-decoder` 0.1.1 | `moosicbox_opus_native` 0.4.0 |
+|---|---|---|
+| One channel, 24 kilobits each second | Stops the program | 0 samples |
+| Two channels, 32 kilobits each second | 24960 samples | 7680 samples |
+| One channel, 2 seconds | 96960 samples | 0 samples |
+
+`opus-decoder` stops the program with an arithmetic fault. The other crate
+gives silence with no message.
+
+The first measurement used one file, and that file worked. One file is not
+enough evidence for a codec. The application gives a clear message for an Opus
+file now, and three Opus files in `tests/formats.rs` prove that message.
 
 This work is not in this sub-project. Issue 17 holds it.
 
