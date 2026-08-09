@@ -230,7 +230,30 @@ mod tests {
 }
 ```
 
-- [ ] **Step 5: Run the measurement and record the result**
+- [x] **Step 5: Run the measurement and record the result**
+
+**The measurement is complete.** On 2026-08-10 the probe gives these values for
+a sound of 1.0 second at the speed 2.0:
+
+| Value | Result |
+|---|---|
+| `get_pos()` | 0.5 seconds |
+| The number of samples | 8000, and not 4000 |
+
+Therefore `get_pos()` gives the time of the listener. `media_position()`
+multiplies by the speed. `rodio` does not remove samples for a higher speed. It
+increases the sample rate that the source reports.
+
+Two other results are important for the tasks that come after this task:
+
+1. `SamplesBuffer::new` needs `NonZero` values for the channel count and for
+   the sample rate. A plain integer does not compile.
+2. `Player::new()` makes a queue that stays alive when it is empty. Therefore
+   the output gives silence for ever. A test must never read to the end of the
+   output. Use `take()`, and use a sound that is not silent, so that the test
+   can find the end.
+
+The original two branches of this step follow, for the record.
 
 Run:
 

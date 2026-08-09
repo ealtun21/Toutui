@@ -24,6 +24,7 @@ magic-crypt = "4.0.1"
 dotenv = "0.15.0"
 dirs = "6.0.0"
 clap = "4.5.37"
+rodio = { version = "0.22", default-features = false, features = ["playback", "mp3", "mp4", "flac", "vorbis", "wav"] }
 
 [dev-dependencies]
 wiremock = "0.6"

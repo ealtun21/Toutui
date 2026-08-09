@@ -105,9 +105,15 @@ app.rs, handle_input  --command-->  PlayerHandle  -->  worker thread
                                                                HTTP range requests)
 ```
 
-`MediaRead` is `Read + Seek + Send`. The two byte sources obey this trait.
-Therefore the engine has one decode path only. This is the reason that
-`handle_l_book_offline.rs` goes away.
+`MediaRead` is `Read + Seek + Send + Sync + 'static`. The type
+`rodio::Decoder<R>` needs all five of these bounds. The two byte sources obey
+this trait. Therefore the engine has one decode path only. This is the reason
+that `handle_l_book_offline.rs` goes away.
+
+The engine builds the decoder with `Decoder::builder()`. It gives the file name
+extension with `with_hint()`, and it sets `with_gapless(true)`. The hint stops
+the format examination. That examination costs range requests on a file that
+comes from the server.
 
 ### 4.1 The most important constraint
 
@@ -234,12 +240,24 @@ connections.
 ### 7.2 The position
 
 `Player::get_pos()` gives the position in the current track. It starts again at
-zero for each track in the queue. The engine calculates the position in the
-book:
+zero for each track in the queue.
+
+A measurement on 2026-08-10 shows that `get_pos()` gives the time of the
+listener, and not the position in the media. A sound of 1.0 second at the speed
+2.0 gives 0.5 seconds. The server counts the seconds of the recording.
+Therefore the engine multiplies by the speed:
 
 ```
-position_in_book = track.start_offset + player.get_pos()
+position_in_book = track.start_offset + get_pos() * speed
 ```
+
+The function `media_position()` does this calculation. The test module
+`src/player/engine/pos_probe.rs` holds the measurement. If a later version of
+`rodio` changes this behaviour, that test fails.
+
+The same measurement shows that a speed of 2.0 keeps the number of samples.
+`rodio` does not remove samples. It increases the sample rate that the source
+reports.
 
 `DownloadPlan::start_offset(index)` in `src/logic/download/plan.rs` gives the
 value `start_offset`. That function exists, and this design does not change it.
@@ -408,7 +426,7 @@ The pty harness of the earlier work drives these tests:
 | ALSA is a dynamic dependency of the program on Linux | A fully static Linux binary is not possible with sound. The user accepts this. |
 | `libasound2-dev` is necessary to build on Linux | The CI workflow installs this package. The rule "no C toolchain" stays correct, because `alsa-sys` only calls `pkg-config`. |
 | `rodio` 0.22 uses `symphonia` 0.5.5 | The features cover every file in the test library. A library with FLAC or Vorbis also works, because those features are in the default set. ALAC does not work. The test library has no ALAC file. |
-| The behaviour of `get_pos()` with a speed that is not 1.0 | The documentation of `rodio` is not clear. Task 1 of the plan measures this behaviour and writes a test. The sync calculation uses the result. |
+| The behaviour of `get_pos()` with a speed that is not 1.0 | Closed on 2026-08-10. The measurement shows that `get_pos()` gives the time of the listener. `media_position()` multiplies by the speed. A test keeps this behaviour correct. |
 | macOS and Windows | `cpal` supports both. This design does not test them. The removal of VLC corrects fault `fe4116` on macOS, because `cvlc` is not necessary. |
 
 ## 14. Decisions
