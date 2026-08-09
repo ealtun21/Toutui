@@ -1,3 +1,4 @@
+use crate::api::client::ApiClient;
 use crate::player::vlc::start_vlc::*;
 use crate::player::vlc::fetch_vlc_data::*;
 use crate::player::vlc::exec_nc::*;
@@ -5,7 +6,7 @@ use crate::player::vlc::quit_vlc::*;
 use crate::utils::pop_up_message::*;
 use crate::api::me::update_media_progress::*;
 use std::io::stdout;
-use log::{info, error};
+use log::{info, error, warn};
 use crate::db::crud::*;
 
 /// Play a library item straight from a locally downloaded file, without requiring
@@ -14,10 +15,9 @@ use crate::db::crud::*;
 /// If the server is reachable, progress is also best-effort pushed to it (same
 /// endpoint the streaming path uses) so other Audiobookshelf clients stay in
 /// sync; if it isn't reachable the push just fails silently.
-// The ApiClient refactor removes the token and the address parameters.
-// See docs/superpowers/plans/2026-08-09-api-client-endpoints.md, task 10.
 #[allow(clippy::too_many_arguments)]
 pub async fn handle_l_book_offline(
+    api: &ApiClient,
     port: String,
     address_player: String,
     program: String,
@@ -28,8 +28,6 @@ pub async fn handle_l_book_offline(
     current_time_start: u32,
     title: String,
     author: String,
-    token: Option<String>,
-    server_address: String,
     duration: f64,
 ) {
 
@@ -102,7 +100,9 @@ pub async fn handle_l_book_offline(
                         // here. This is different from the streaming path of upstream issue #35.
                         // best-effort push to the server every ~10 seconds
                         if trigger >= 10 {
-                            let _ = update_media_progress_book(id_item.as_str(), token.as_ref(), Some(data_fetched_from_vlc), &duration_str, server_address.clone()).await;
+                            if let Err(error) = update_media_progress_book(api, id_item.as_str(), Some(data_fetched_from_vlc), &duration_str).await {
+                                warn!("[handle_l_book_offline] the server did not accept the position: {}", error);
+                            }
                             trigger = 0;
                         }
                         trigger += 1;
@@ -111,7 +111,9 @@ pub async fn handle_l_book_offline(
                     Ok(false) => {
                         info!("[handle_l_book_offline][Finished] Track finished");
                         let _ = update_download_current_time(id_item.as_str(), username.as_str(), 0);
-                        let _ = update_media_progress2_book(id_item.as_str(), token.as_ref(), Some(data_fetched_from_vlc), &duration_str, true, server_address.clone()).await;
+                        if let Err(error) = update_media_progress2_book(api, id_item.as_str(), Some(data_fetched_from_vlc), &duration_str, true).await {
+                            warn!("[handle_l_book_offline] the server did not accept the position: {}", error);
+                        }
                         let _ = update_is_loop_break("1", username.as_str());
                         let _ = update_is_vlc_running("0", username.as_str());
                         break;
@@ -119,7 +121,9 @@ pub async fn handle_l_book_offline(
                     // `Err` means VLC was closed by the user
                     Err(_) => {
                         info!("[handle_l_book_offline][Quit]");
-                        let _ = update_media_progress_book(id_item.as_str(), token.as_ref(), Some(data_fetched_from_vlc), &duration_str, server_address.clone()).await;
+                        if let Err(error) = update_media_progress_book(api, id_item.as_str(), Some(data_fetched_from_vlc), &duration_str).await {
+                            warn!("[handle_l_book_offline] the server did not accept the position: {}", error);
+                        }
                         let _ = update_is_loop_break("1", username.as_str());
                         let _ = update_is_vlc_running("0", username.as_str());
                         break;
@@ -128,7 +132,9 @@ pub async fn handle_l_book_offline(
             }
             Ok(None) => {
                 info!("[handle_l_book_offline][None]");
-                let _ = update_media_progress_book(id_item.as_str(), token.as_ref(), Some(current_time_start), &duration_str, server_address.clone()).await;
+                if let Err(error) = update_media_progress_book(api, id_item.as_str(), Some(current_time_start), &duration_str).await {
+                    warn!("[handle_l_book_offline] the server did not accept the position: {}", error);
+                }
                 let _ = update_is_loop_break("1", username.as_str());
                 let _ = update_is_vlc_running("0", username.as_str());
                 break;

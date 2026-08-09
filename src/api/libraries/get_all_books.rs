@@ -1,7 +1,6 @@
-use reqwest::Client;
+use crate::api::client::error::ApiError;
+use crate::api::client::ApiClient;
 use serde_json::Value;
-use reqwest::header::AUTHORIZATION;
-use color_eyre::eyre::{Result, Report};
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -92,29 +91,15 @@ pub struct CollapsedSeries {
     pub num_books: Option<i64>,
 }
 
-// get all books or podcasts
-pub async fn get_all_books(token: &str, id_selected_lib: &String, server_address: String) -> Result<Root> {
-    let client = Client::new();
-    let url = format!("{}/api/libraries/{}/items?limit=0", server_address, id_selected_lib);
-
-
-    // Send GET request
-    let response = client
-        .get(url)
-        .header(AUTHORIZATION, format!("Bearer {}", token))
-        .send()
-        .await?;
-
-    // Check response status
-    if !response.status().is_success() {
-        return Err(Report::new(std::io::Error::other(
-                    "Failed to fetch data from the API",
-        )));
-    }
-
-    // Deserialize JSON response into Vec<Root>
-    let library: Root = response.json().await?;
-
-    Ok(library)
+/// Gets all books or all podcasts of one library.
+///
+/// The query string `limit=0` tells the server to send all items.
+pub async fn get_all_books(client: &ApiClient, id_selected_lib: &str) -> Result<Root, ApiError> {
+    client
+        .get_json(&format!(
+            "/api/libraries/{}/items?limit=0",
+            id_selected_lib
+        ))
+        .await
 }
 

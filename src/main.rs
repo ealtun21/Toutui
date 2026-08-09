@@ -1,4 +1,4 @@
-use toutui::{app, db, login_app, player, ui, utils};
+use toutui::{api, app, config, db, login_app, player, ui, utils};
 
 use login_app::AppLogin;
 use app::App;
@@ -20,6 +20,7 @@ use crate::ui::player_tui::*;
 use std::env;
 use std::path::PathBuf;
 use crate::utils::clap::*;
+use crate::utils::encrypt_token::decrypt_token;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -86,12 +87,50 @@ async fn main() -> Result<()> {
         if let Some(var_username) = _database.default_usr.first() {
             username = var_username.clone();
         }
-        // init is_vlc_launched_first_time 
+        // init is_vlc_launched_first_time
         let _ = update_is_vlc_launched_first_time("1", username.as_str());
         let value = get_is_vlc_launched_first_time(username.as_str());
         info!("[main][is_vlc_launched_first_time] {}", value);
 
-        let mut app = App::new().await?;
+        // Make the HTTP client. The client holds all the addresses of the
+        // server. If the address that has the most importance does not answer,
+        // the client changes to the next address automatically.
+        let server_address = _database
+            .default_usr
+            .get(1)
+            .cloned()
+            .unwrap_or_default();
+
+        // The database holds the token in an encrypted form. The client needs
+        // the plain token one time only.
+        let encrypted_token = _database
+            .default_usr
+            .get(2)
+            .cloned()
+            .unwrap_or_default();
+        let token = match decrypt_token(encrypted_token.as_str()) {
+            Ok(token) => token,
+            Err(e) => {
+                println!("Error: {}", e);
+                String::new()
+            }
+        };
+
+        let config_file = config::load_config()?;
+        let pool = config::pool_for_address(&config_file.servers, &server_address);
+        info!("[main][api] The pool has {} address(es).", pool.len());
+
+        let api = std::sync::Arc::new(api::client::ApiClient::new(
+            std::sync::Arc::new(pool),
+            token,
+        )?);
+
+        // The probe task gives an address the state `Up` again when the
+        // address answers. Therefore the application returns to the local
+        // address without a restart.
+        api::client::probe::spawn_probe_task(std::sync::Arc::clone(&api));
+
+        let mut app = App::new(std::sync::Arc::clone(&api)).await?;
         let mut terminal = ratatui::init();
 
         // Running the app in a loop
@@ -135,7 +174,7 @@ async fn main() -> Result<()> {
                             let _ = clear_message(&mut stdout, 3); // clear a message, if any, before print the message bellow
                             let _ = pop_message(&mut stdout, 3, "Refreshing app...");
                             // Reinitialize app to refresh
-                            app = App::new().await?; 
+                            app = App::new(std::sync::Arc::clone(&api)).await?;
                             // clear message above
                             let _ = clear_message(&mut stdout, 3);
                     }

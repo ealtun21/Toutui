@@ -1,3 +1,4 @@
+use crate::api::client::ApiClient;
 use crate::player::vlc::start_vlc::*;
 use crate::player::vlc::fetch_vlc_data::*;
 use crate::api::me::update_media_progress::*;
@@ -7,7 +8,7 @@ use crate::api::sessions::close_open_session::*;
 use crate::player::vlc::exec_nc::*;
 use crate::utils::pop_up_message::*;
 use std::io::stdout;
-use log::{info, error};
+use log::{info, error, warn};
 use crate::db::crud::*;
 use crate::utils::vlc_tcp_stream::*;
 use crate::player::vlc::quit_vlc::*;
@@ -15,10 +16,13 @@ use crate::player::vlc::quit_vlc::*;
 
 // handle l for App::View PodcastEpisode //
 
-// The ApiClient refactor removes the token and the address parameters.
-// See docs/superpowers/plans/2026-08-09-api-client-endpoints.md, task 10.
+/// Starts a podcast episode on the server and follows the player.
+///
+/// The `token` value and the `server_address` value stay, because VLC needs
+/// them for the stream address. The API requests use the client.
 #[allow(clippy::too_many_arguments)]
 pub async fn handle_l_pod(
+    api: &ApiClient,
     token: Option<&String>,
     ids_library_items: &[String],
     selected: Option<usize>,
@@ -39,7 +43,7 @@ pub async fn handle_l_pod(
         if let Some(id) = ids_library_items.get(index) {
             // id is id of the podcast episode and id_pod is the id of the podcast
             if let Some(token) = token {
-                if let Ok(info_item) = post_start_playback_session_pod(Some(token),id_pod, id, server_address.clone()).await {
+                if let Ok(info_item) = post_start_playback_session_pod(api, id_pod, id).await {
 
                     // converting current time
                     let mut current_time: u32 = info_item[0].parse::<f64>().unwrap().round() as u32;
@@ -175,7 +179,9 @@ pub async fn handle_l_pod(
                                             // stays in "continue listening". Also, /progress does not
                                             // start a websocket message, thus other clients do not get
                                             // the new progress. See upstream issue #35.
-                                            let _ = sync_session(Some(token), &info_item[3],Some(data_fetched_from_vlc), progress_sync, server_address.clone()).await;
+                                            if let Err(error) = sync_session(api, &info_item[3], Some(data_fetched_from_vlc), progress_sync).await {
+                                                warn!("[handle_l_pod] the server did not accept the sync: {}", error);
+                                            }
 
                                             // update elapsed_time in database (`listening_session` table)
                                             let _ = update_elapsed_time(progress_sync, info_item[3].as_str());
@@ -202,10 +208,14 @@ pub async fn handle_l_pod(
                                         // update is_finished in database (`listening_session` table)
                                         let _ = update_is_finished("1", info_item[3].as_str());
 
-                                        let _ = close_session_without_send_prg_data(Some(token), &info_item[3],  server_address.clone()).await;
+                                        if let Err(error) = close_session_without_send_prg_data(api, &info_item[3]).await {
+                                            warn!("[handle_l_pod] the server did not close the session: {}", error);
+                                        }
                                         info!("[handle_l_pod][Finished] Session successfully closed");
 
-                                        let _ = update_media_progress2_pod(id_pod, Some(token), Some(data_fetched_from_vlc), &info_item[2], is_finised, id, server_address).await;
+                                        if let Err(error) = update_media_progress2_pod(api, id_pod, Some(data_fetched_from_vlc), &info_item[2], is_finised, id).await {
+                                            warn!("[handle_l_pod] the server did not accept the position: {}", error);
+                                        }
                                         info!("[handle_l_pod][Finished] VLC stopped");
                                         info!("[handle_l_pod][Finished] Item {} closed at {}s", id_pod, data_fetched_from_vlc);
                                         let _ = update_is_loop_break("1", username.as_str());
@@ -221,11 +231,15 @@ pub async fn handle_l_pod(
                                         let _ = update_is_vlc_running("0", username.as_str());
                                         info!("[handle_l_pod][Quit]");
                                         // close session when VLC is quitted
-                                        let _ = close_session_without_send_prg_data(Some(token), &info_item[3],  server_address.clone()).await;
+                                        if let Err(error) = close_session_without_send_prg_data(api, &info_item[3]).await {
+                                            warn!("[handle_l_pod] the server did not close the session: {}", error);
+                                        }
                                         info!("[handle_l_pod][Quit] Session successfully closed");
                                         // send one last time media progress (bug to retrieve media
                                         // progress otherwise)
-                                        let _ = update_media_progress_pod(id_pod, Some(token), Some(data_fetched_from_vlc), &info_item[2], id, server_address).await;
+                                        if let Err(error) = update_media_progress_pod(api, id_pod, Some(data_fetched_from_vlc), &info_item[2], id).await {
+                                            warn!("[handle_l_pod] the server did not accept the position: {}", error);
+                                        }
                                         info!("[handle_l_pod][Quit] VLC closed");
                                         info!("[handle_l_pod][Quit] Item {} closed at {}s", id_pod, data_fetched_from_vlc);
                                         //eprintln!("Error fetching play status: {}", e);
@@ -241,9 +255,13 @@ pub async fn handle_l_pod(
                             Ok(None) => {
                                 let _ = update_is_vlc_running("0", username.as_str());
                                 info!("[handle_l_pod][None]");
-                                let _ = close_session_without_send_prg_data(Some(token), &info_item[3],  server_address.clone()).await;
+                                if let Err(error) = close_session_without_send_prg_data(api, &info_item[3]).await {
+                                    warn!("[handle_l_pod] the server did not close the session: {}", error);
+                                }
                                 info!("[handle_l_pod][None] Session successfully closed");
-                                let _ = update_media_progress_pod(id_pod, Some(token), Some(current_time), &info_item[2], id, server_address).await;
+                                if let Err(error) = update_media_progress_pod(api, id_pod, Some(current_time), &info_item[2], id).await {
+                                    warn!("[handle_l_pod] the server did not accept the position: {}", error);
+                                }
                                 info!("[handle_l_pod][None] VLC closed");
                                 info!("[handle_l_pod][None] Item {} closed at {}s", id_pod, current_time);
 

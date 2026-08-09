@@ -47,6 +47,8 @@ pub enum AppView {
 
 pub struct App {
     pub view_state: AppView,
+    /// The HTTP client. It holds the addresses of the server and the token.
+    pub api: std::sync::Arc<crate::api::client::ApiClient>,
     pub database: Database,
     pub id_selected_lib: String,
     pub token: Option<String>,
@@ -157,7 +159,11 @@ pub struct App {
 
 /// Init app
 impl App {
-    pub async fn new() -> Result<Self> {
+    /// Makes the application state.
+    ///
+    /// The caller gives the HTTP client. The client holds the addresses of the
+    /// server and the decrypted token.
+    pub async fn new(api: std::sync::Arc<crate::api::client::ApiClient>) -> Result<Self> {
 
         // init config
         let config = load_config()?;
@@ -218,7 +224,7 @@ impl App {
         }
 
         // init for `Libraries` (get all Libraries (shelf), can be a podcast or book type)
-        let all_libraries = get_all_libraries(&token, server_address.clone()).await?;
+        let all_libraries = get_all_libraries(&api).await?;
         let libraries_names = collect_library_names(&all_libraries).await; // all the libraries names of the user ex : {name1, name2}
     let media_types = collect_media_types(&all_libraries).await; // all media type of libraries ex : {book, podcast}
     let libraries_ids = collect_library_ids(&all_libraries).await; // all all libraries ids
@@ -257,7 +263,7 @@ impl App {
 
     if is_podcast {
         // init for  `Home` (continue listening) for podcasts
-        let continue_listening_pod = get_continue_listening_pod(&token, server_address.clone(), &id_selected_lib.clone()).await?;
+        let continue_listening_pod = get_continue_listening_pod(&api, &id_selected_lib).await?;
         _ids_cnt_list = collect_ids_pod_cnt_list(&continue_listening_pod).await; // id of a podcast
         _titles_cnt_list = collect_titles_cnt_list_pod(&continue_listening_pod).await; // title of podcast ep
         ids_ep_cnt_list = collect_ids_ep_pod_cnt_list(&continue_listening_pod).await; // id of a podcast episode
@@ -271,7 +277,7 @@ impl App {
     }
     else {
         // init for  `Home` (continue listening) for books
-        let continue_listening = get_continue_listening(&token, server_address.clone(), &id_selected_lib.clone()).await?;
+        let continue_listening = get_continue_listening(&api, &id_selected_lib).await?;
         _titles_cnt_list = collect_titles_cnt_list(&continue_listening).await;
         auth_names_cnt_list = collect_auth_names_cnt_list(&continue_listening).await;
         pub_year_cnt_list = collect_pub_year_cnt_list(&continue_listening).await;
@@ -279,7 +285,7 @@ impl App {
         desc_cnt_list = collect_desc_cnt_list(&continue_listening).await;
         _ids_cnt_list = collect_ids_cnt_list(&continue_listening).await;
         for id in _ids_cnt_list.clone() {
-            if let Ok(val) = get_book_progress(&token, &id, server_address.clone()).await {
+            if let Ok(val) = get_book_progress(&api, &id).await {
                 let mut values: Vec<String> = Vec::new();
                 let mut values_f64: Vec<f64> = Vec::new();
                 values.push(collect_progress_percentage_book(&val).await);
@@ -301,7 +307,7 @@ impl App {
             }}}
 
     //init for `Library ` (all books  or podcasts of a Library (shelf))
-    let all_books = get_all_books(&token, &id_selected_lib, server_address.clone()).await?;
+    let all_books = get_all_books(&api, &id_selected_lib).await?;
     let titles_library = collect_titles_library(&all_books).await;
     let ids_library = collect_ids_library(&all_books).await;
     let auth_names_library = collect_auth_names_library(&all_books).await; // for a book
@@ -398,7 +404,7 @@ impl App {
 
     if is_podcast {
     for id_library in ids_library.iter()
-    {let podcast_episode = get_pod_ep(&token, server_address.clone(), id_library.as_str()).await?;
+    {let podcast_episode = get_pod_ep(&api, id_library.as_str()).await?;
         let title = collect_titles_pod_ep(&podcast_episode).await;
         all_titles_pod_ep.push(title);
         let id = collect_ids_pod_ep(&podcast_episode).await;
@@ -496,6 +502,7 @@ impl App {
     list_state_settings_update_uninstall.select(Some(0));
 
     Ok(Self {
+        api,
         database,
         id_selected_lib,
         token: Some(token),
@@ -779,8 +786,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
             let _ = pop_message(&mut stdout, 3, message_quit);
 
             // close and sync session before close the app
-            let token = self.token.clone();  
-            let server_address = self.server_address.clone();
+            let api = std::sync::Arc::clone(&self.api);
             let username = self.username.clone();
             let player_address = self.config.player.address.clone();
             let port = self.config.player.port.clone();
@@ -788,7 +794,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 
 
             tokio::spawn(async move {
-                let _ = sync_session_from_database(token, server_address, username, true, "Q", player_address, port).await;
+                sync_session_from_database(&api, username, true, "Q", player_address, port).await;
             });
 
         }        
@@ -842,6 +848,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
         KeyCode::Char('l') | KeyCode::Right | KeyCode::Enter => {
             // Clone needed because variables will be used in a spawn
             let token = self.token.clone();
+            let api = std::sync::Arc::clone(&self.api);
             let port = self.config.player.port.clone();
             let address_player = self.config.player.address.clone();
             let server_address = self.server_address.clone();
@@ -922,23 +929,23 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 
                             // in case where the app has been disgrafully closed (crash, kill)
                             // the last listening session is closed when app is restarted
-                            let _ = sync_session_from_database(
-                                token.clone(), 
-                                server_address.clone(), 
-                                username.clone(), 
-                                false, 
-                                "l", 
-                                address_player.clone(), 
+                            sync_session_from_database(
+                                &api,
+                                username.clone(),
+                                false,
+                                "l",
+                                address_player.clone(),
                                 port.clone()).await;
 
                             // start the track
                             handle_l_pod_home(
-                                token.as_ref(), 
-                                &ids_cnt_list, 
-                                selected_cnt_list, 
-                                port, 
+                                &api,
+                                token.as_ref(),
+                                &ids_cnt_list,
+                                selected_cnt_list,
+                                port,
                                 address_player,
-                                ids_ep_cnt_list, 
+                                ids_ep_cnt_list,
                                 server_address,
                                 start_vlc_program,
                                 is_cvlc_term,
@@ -969,9 +976,8 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 
                             // in case where the app has been disgrafully closed (crash, kill)
                             // the last listening session is closed when app is restarted
-                            let _ = sync_session_from_database(
-                                token.clone(),
-                                server_address.clone(),
+                            sync_session_from_database(
+                                &api,
                                 username.clone(),
                                 false,
                                 "l",
@@ -983,6 +989,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                             {
                                 // play the locally downloaded file, no server needed
                                 handle_l_book_offline(
+                                    &api,
                                     port,
                                     address_player,
                                     start_vlc_program,
@@ -993,13 +1000,12 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                     current_time,
                                     title,
                                     author,
-                                    token.clone(),
-                                    server_address.clone(),
                                     duration,
                                 ).await;
                             } else {
                                 // start the track
                                 handle_l_book(
+                                    &api,
                                     token.as_ref(),
                                     ids_cnt_list,
                                     selected_cnt_list,
@@ -1074,9 +1080,8 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 
                                 // in case where the app has been disgrafully closed (crash, kill)
                                 // the last listening session is closed when app is restarted
-                                let _ = sync_session_from_database(
-                                    token.clone(),
-                                    server_address.clone(),
+                                sync_session_from_database(
+                                    &api,
                                     username.clone(),
                                     false,
                                     "l",
@@ -1088,6 +1093,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                 {
                                     // play the locally downloaded file, no server needed
                                     handle_l_book_offline(
+                                        &api,
                                         port,
                                         address_player,
                                         start_vlc_program,
@@ -1098,13 +1104,12 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                         current_time,
                                         title,
                                         author,
-                                        token.clone(),
-                                        server_address.clone(),
                                         duration,
                                     ).await;
                                 } else {
                                     // start the track
                                     handle_l_book(
+                                        &api,
                                         token.as_ref(),
                                         ids_library,
                                         selected_library,
@@ -1157,9 +1162,8 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 
                                 // in case where the app has been disgrafully closed (crash, kill)
                                 // the last listening session is closed when app is restarted
-                                let _ = sync_session_from_database(
-                                    token.clone(),
-                                    server_address.clone(),
+                                sync_session_from_database(
+                                    &api,
                                     username.clone(),
                                     false,
                                     "l",
@@ -1171,6 +1175,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                 {
                                     // play the locally downloaded file, no server needed
                                     handle_l_book_offline(
+                                        &api,
                                         port,
                                         address_player,
                                         start_vlc_program,
@@ -1181,13 +1186,12 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                         current_time,
                                         title,
                                         author,
-                                        token.clone(),
-                                        server_address.clone(),
                                         duration,
                                     ).await;
                                 } else {
                                     // start the track
                                     handle_l_book(
+                                        &api,
                                         token.as_ref(),
                                         ids_search_book,
                                         selected_search_book,
@@ -1235,19 +1239,19 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 
                                     // in case where the app has been disgrafully closed (crash, kill)
                                     // the last listening session is closed when app is restarted
-                                    let _ = sync_session_from_database(
-                                        token.clone(), 
-                                        server_address.clone(), 
-                                        username.clone(), 
-                                        false, 
-                                        "l", 
-                                        address_player.clone(), 
+                                    sync_session_from_database(
+                                        &api,
+                                        username.clone(),
+                                        false,
+                                        "l",
+                                        address_player.clone(),
                                         port.clone()).await;
 
                                     // start the track
                                     handle_l_pod(
-                                        token.as_ref(), 
-                                        &all_ids_pod_ep_search_clone[index], 
+                                        &api,
+                                        token.as_ref(),
+                                        &all_ids_pod_ep_search_clone[index],
                                         selected_pod_ep, 
                                         port, 
                                         address_player,
@@ -1288,19 +1292,19 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 
                                     // in case where the app has been disgrafully closed (crash, kill)
                                     // the last listening session is closed when app is restarted
-                                    let _ = sync_session_from_database(
-                                        token.clone(), 
-                                        server_address.clone(), 
-                                        username.clone(), 
-                                        false, 
-                                        "l", 
-                                        address_player.clone(), 
+                                    sync_session_from_database(
+                                        &api,
+                                        username.clone(),
+                                        false,
+                                        "l",
+                                        address_player.clone(),
                                         port.clone()).await;
 
                                     // start the track
                                     handle_l_pod(
-                                        token.as_ref(), 
-                                        &all_ids_pod_ep_clone[index], 
+                                        &api,
+                                        token.as_ref(),
+                                        &all_ids_pod_ep_clone[index],
                                         selected_pod_ep, 
                                         port, 
                                         address_player,

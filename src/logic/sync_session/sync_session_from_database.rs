@@ -1,12 +1,17 @@
+use crate::api::client::ApiClient;
 use crate::db::crud::*;
 use crate::api::sessions::close_open_session::*;
-use log::info;
+use log::{info, warn};
 use crate::api::me::update_media_progress::*;
 use crate::player::vlc::quit_vlc::*;
 use crate::utils::exit_app::*;
 
-// close and sync listening session before quit the app                
-pub async fn sync_session_from_database(token: Option<String>, server_address: String, username: String, app_quit: bool, handle_key: &str, player_address: String, port: String) {
+/// Closes the listening session that the database holds, and sends the last
+/// position to the server.
+///
+/// The function runs before the application starts a new session, and before
+/// the application stops.
+pub async fn sync_session_from_database(api: &ApiClient, username: String, app_quit: bool, handle_key: &str, player_address: String, port: String) {
 
     // quit vlc before close and sync session (or close the app)
     let _ = quit_vlc(player_address.as_str(), port.as_str());
@@ -14,10 +19,11 @@ pub async fn sync_session_from_database(token: Option<String>, server_address: S
     match get_listening_session() {
         Ok(Some(session)) => {
 
-            let _ = close_session_without_send_prg_data(
-                token.as_ref(), 
-                session.id_session.as_str(), 
-                server_address.clone()).await;
+            if let Err(error) =
+                close_session_without_send_prg_data(api, session.id_session.as_str()).await
+            {
+                warn!("[sync_session_from_database] the server did not close the session: {}", error);
+            }
 
             match handle_key {
                 "Q" => info!("[handle_key (Q)][Quit] Session successfully closed"),
@@ -27,29 +33,33 @@ pub async fn sync_session_from_database(token: Option<String>, server_address: S
 
             if session.id_pod.is_empty() {
                 if !session.is_finished {
-                    let _ = update_media_progress_book(
-                        session.id_item.as_str(), 
-                        token.as_ref(), 
-                        Some(session.current_time), 
-                        &session.duration, 
-                        server_address.clone()).await;
+                    if let Err(error) = update_media_progress_book(
+                        api,
+                        session.id_item.as_str(),
+                        Some(session.current_time),
+                        &session.duration).await
+                    {
+                        warn!("[sync_session_from_database] the server did not accept the position: {}", error);
+                    }
 
                     match handle_key {
                         "Q" => info!("[handle_key (Q)][book][Quit] Item {} closed at {:?}s (not finished)", session.id_item, session.current_time),
                         "l" => info!("[handle_key (l)] Item {} closed at {:?}s (not finished)", session.id_item, session.current_time),
                         _ => {}
                     }
-                } 
+                }
 
                 else {
                     let is_finished = true;
-                    let _ = update_media_progress2_book(
-                        session.id_item.as_str(), 
-                        token.as_ref(), 
-                        Some(session.current_time), 
-                        &session.duration, 
-                        is_finished, 
-                        server_address).await;
+                    if let Err(error) = update_media_progress2_book(
+                        api,
+                        session.id_item.as_str(),
+                        Some(session.current_time),
+                        &session.duration,
+                        is_finished).await
+                    {
+                        warn!("[sync_session_from_database] the server did not accept the position: {}", error);
+                    }
 
                     match handle_key {
                         "Q" => info!("[handle_key (Q)][book][Quit] Item {} closed at {:?}s (finished)", session.id_item, session.current_time),
@@ -60,13 +70,15 @@ pub async fn sync_session_from_database(token: Option<String>, server_address: S
 
             } else {
                 if !session.is_finished {
-                    let _ = update_media_progress_pod(
-                        session.id_item.as_str(), 
-                        token.as_ref(), 
-                        Some(session.current_time), 
-                        &session.duration, 
-                        session.id_pod.as_str(), 
-                        server_address.clone()).await;
+                    if let Err(error) = update_media_progress_pod(
+                        api,
+                        session.id_item.as_str(),
+                        Some(session.current_time),
+                        &session.duration,
+                        session.id_pod.as_str()).await
+                    {
+                        warn!("[sync_session_from_database] the server did not accept the position: {}", error);
+                    }
 
 
                     match handle_key {
@@ -76,14 +88,16 @@ pub async fn sync_session_from_database(token: Option<String>, server_address: S
                     }
                 } else {
                     let is_finished = true;
-                    let _ = update_media_progress2_pod(
-                        session.id_item.as_str(), 
-                        token.as_ref(), 
-                        Some(session.current_time), 
-                        &session.duration, 
+                    if let Err(error) = update_media_progress2_pod(
+                        api,
+                        session.id_item.as_str(),
+                        Some(session.current_time),
+                        &session.duration,
                         is_finished,
-                        session.id_pod.as_str(), 
-                        server_address.clone()).await;
+                        session.id_pod.as_str()).await
+                    {
+                        warn!("[sync_session_from_database] the server did not accept the position: {}", error);
+                    }
 
                     match handle_key {
                         "Q" => info!("[handle_key (Q)][podcast][Quit] Item {} closed at {:?}s (finished)", session.id_pod, session.current_time),
@@ -114,10 +128,10 @@ pub async fn sync_session_from_database(token: Option<String>, server_address: S
             } else {
                 info!("[handle_key] First session launched");
             }
-        }        
+        }
         Err(e) => {
             info!("[handle_key] Error during fetching session: {:?}", e);
-        }    
+        }
     }
 }
 
