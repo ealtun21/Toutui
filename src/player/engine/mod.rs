@@ -5,6 +5,7 @@
 //! process.
 
 pub mod pos_probe;
+pub mod track;
 
 use std::time::Duration;
 
