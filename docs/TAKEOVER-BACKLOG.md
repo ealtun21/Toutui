@@ -122,6 +122,7 @@ the address. Issue #35 gives this advice. Sub-project 2 does this work.
 | T-7 | #35 | The application gets all items in one request | 3 |
 | T-8 | #36 | A change of the speed needs a new start of the playback | 2 |
 | T-17 | — | Play an Opus file | later |
+| T-18 | — | Play a WMA file and an AWB file (the last two of 19) | later |
 
 ### T-7: the application gets all items in one request
 

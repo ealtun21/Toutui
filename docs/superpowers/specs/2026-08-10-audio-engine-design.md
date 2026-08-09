@@ -109,9 +109,12 @@ server accepts. The engine plays 16 of the 19 formats:
 | MP3, M4B, M4A, MP4, OGG, OGA, AAC, FLAC | Yes |
 | AIFF, AIF, WEBM, WEBMA, MKA, CAF | Yes |
 | MPEG, MPG | Yes. These files hold MP2 audio. |
-| **OPUS** | **No.** See section 3.3. |
-| **WMA** | **No.** `symphonia` has no reader for the ASF container. |
-| **AWB** | **No.** This is AMR-WB. `symphonia` has no decoder. |
+| **OPUS** | **No.** Issue 17. Section 3.3 shows that this gap has an answer. |
+| **WMA** | **No.** Issue 18. `wmvkit` gives the ASF container, but no pure Rust WMA decoder is available. |
+| **AWB** | **No.** Issue 18. This is AMR-WB, and no pure Rust decoder is available. |
+
+The goal is 19 of 19. Issue 17 and issue 18 hold the three formats that stay.
+Opus is the only one of the three that a person can do now.
 
 ### 3.3 The gap: Opus
 
