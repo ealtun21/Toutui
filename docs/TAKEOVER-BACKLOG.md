@@ -200,6 +200,9 @@ and `rustls-rustcrypto` is an alpha version. Issue 20 holds the details.
 | T-10 | — | Read an EPUB book in the application | 5 |
 | T-11 | — | Download a podcast episode | 5 |
 | T-12 | — | Add a Nix flake | 0 |
+| T-22 | — | Show the series of a library | 5 |
+| T-23 | — | Show the cover art with the Kitty protocol or Sixel | 5 |
+| T-24 | — | Cover every function of Audiobookshelf | 5 |
 
 ### T-9: show the playlists and the collections
 
@@ -225,6 +228,16 @@ uses a fixed codec registry. WMA and AWB stay outside, because no pure Rust
 reader or decoder is available.
 
 Issue 17 holds the details.
+
+### T-22, T-23, T-24: the user interface and full coverage
+
+T-22 adds the series. T-23 adds the cover art. A measurement on 2026-08-10
+shows that `ratatui-image` 11.0.6 needs no C library, if the project does not
+use its default features. That crate finds the protocol of the terminal
+itself: the Kitty protocol, Sixel for `foot`, iTerm2, or blocks of Unicode.
+
+T-24 holds the comparison with Audiobookshelf, and it names the functions that
+the application does not have yet.
 
 ## Priority 5: small faults
 
