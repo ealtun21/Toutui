@@ -97,7 +97,10 @@ pub async fn handle_l_book_offline(
 
                 match fetch_vlc_is_playing(port.clone(), address_player.clone()).await {
                     Ok(true) => {
-                        // best-effort push to the server every ~10 seconds, mirrors the streaming path
+                        // This function plays a local file. There is no server session, thus there is
+                        // no session id and no /sync request. Only /progress can write the progress
+                        // here. This is different from the streaming path of upstream issue #35.
+                        // best-effort push to the server every ~10 seconds
                         if trigger >= 10 {
                             let _ = update_media_progress_book(id_item.as_str(), token.as_ref(), Some(data_fetched_from_vlc), &duration_str, server_address.clone()).await;
                             trigger = 0;
