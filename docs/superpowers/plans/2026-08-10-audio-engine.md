@@ -10,6 +10,35 @@
 
 **Spec:** `docs/superpowers/specs/2026-08-10-audio-engine-design.md`
 
+## Status on 2026-08-10
+
+| Task | State | Commit |
+|---|---|---|
+| 1, the dependency and the measurement | Complete | `9282bc2` |
+| 2, the track list and the position | Complete | `33c8e53` |
+| 3, the range reader | Complete | `1c19e26` |
+| 4, the engine and the commands | Complete | `1a53e21` |
+| 5, one playback loop and the application | Open | — |
+| 6, the removal of VLC | Open | — |
+
+The engine is complete and it has tests. The application does not use the
+engine yet. Task 5 connects the two, and Task 6 removes VLC. The application
+still plays with VLC until Task 5 is complete.
+
+Three facts that the work measured, and that the tasks after this point need:
+
+1. `get_pos()` gives the time of the listener. `media_position()` multiplies
+   by the speed.
+2. `SamplesBuffer::new` needs `NonZero` values.
+3. `Player::new()` makes a queue that stays alive when it is empty. A test
+   must never read the output to the end. The queue also reads the values of
+   the source again only when it gives the next sample.
+
+Task 5 changes six blocks in `src/app.rs`, and not four. Three blocks play a
+book, and three blocks play a podcast episode. Find them with
+`grep -n "quit_vlc" src/app.rs`. There are also ten calls of
+`handle_key_player`.
+
 ## Global Constraints
 
 - Write all documentation, doc comments, and user-facing strings in ASD-STE100 Simplified Technical English. Use short sentences. Use the active voice. Use the present tense. One sentence gives one instruction. Always use the articles.
