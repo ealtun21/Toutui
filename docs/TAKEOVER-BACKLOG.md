@@ -24,6 +24,8 @@ the original issue, if there is one.
 | T-5 | The token is not in the list of processes | sub-project 2 |
 | T-6 | The token is not in the address of the file | sub-project 2 |
 | T-8 | A change of the speed operates during the playback | sub-project 2 |
+| T-19 | The pitch does not change with the speed | sub-project 2 |
+| T-7 | The application asks for one page at a time | sub-project 3 |
 
 Sub-project 2 removed VLC. The application decodes the audio in the process
 now. Therefore a book with many audio files plays completely, the token stays
