@@ -4,6 +4,7 @@
 //! a different program. Therefore the token stays in the memory of the
 //! process.
 
+pub mod http_file;
 pub mod pos_probe;
 pub mod track;
 
