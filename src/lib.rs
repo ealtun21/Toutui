@@ -1,4 +1,4 @@
-//! The library target of Toutui. It exists so that the integration tests in
+//! The library target of AbsTui. It exists so that the integration tests in
 //! `tests/` can use the modules of the application.
 
 pub mod api;

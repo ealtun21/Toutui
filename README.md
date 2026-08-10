@@ -1,22 +1,21 @@
-## 🍴 This is a maintained fork
+## 🍴 AbsTui is a fork of Toutui
 
-The original author archived [AlbanDAVID/Toutui](https://github.com/AlbanDAVID/Toutui)
-and cannot maintain it. This repository continues the work.
+AlbanDAVID wrote [Toutui](https://github.com/AlbanDAVID/Toutui) and archived
+it. AbsTui continues that work under a new name. The new name keeps the two
+projects separate, because the two projects have different maintainers.
 
-The fork corrects the faults that the original project has, and it adds
-functions. `docs/TAKEOVER-BACKLOG.md` holds the full list. Report a fault in
-the [issues of this repository](https://github.com/ealtun21/Toutui/issues),
-and not in the archived repository.
+AbsTui corrects the faults of the original project, and it adds functions.
+`docs/TAKEOVER-BACKLOG.md` holds the full list. Report a fault in the
+[issues of this repository](https://github.com/ealtun21/abstui/issues), and
+not in the archived repository.
 
-> [!WARNING]
-> The fork has no release yet. Build it from the source, and read
-> [T-21](https://github.com/ealtun21/Toutui/issues/21). The commands
-> `--update` and `--uninstall` of the original project installed the
-> **archived** program, thus this build refuses them.
+The first time that AbsTui starts, it copies `~/.config/toutui/` to
+`~/.config/abstui/`. The old directory does not change, therefore Toutui
+continues to operate.
 
-[![CI](https://github.com/ealtun21/Toutui/actions/workflows/ci.yml/badge.svg)](https://github.com/ealtun21/Toutui/actions/workflows/ci.yml)
+[![CI](https://github.com/ealtun21/abstui/actions/workflows/ci.yml/badge.svg)](https://github.com/ealtun21/abstui/actions/workflows/ci.yml)
 
-# 🦜 Toutui: A TUI Audiobookshelf client for Linux and macOS
+# 🦜 AbsTui: A TUI Audiobookshelf client for Linux and macOS
 
 <p align="center">
     <em>In French, being "tout ouïe" (toutui) means being all ears.</em>
@@ -115,18 +114,18 @@ Here are some features that could be added in future releases:
   
 ## ⚠️ Caution: Beta Version  
 This beta app is still in **heavy development and contains bugs**.  
-❗Please check [here](https://github.com/ealtun21/Toutui/blob/main/known_bugs.md) for known bugs especially **MAJOR BUGS** before using the app, so you can use it with full awareness of any known issues.  
-If you encounter any issues that are **not yet listed** in the Issues section or into [known bugs](https://github.com/ealtun21/Toutui/blob/main/known_bugs.md), please **open a new issue** to report them.  
+❗Please check [here](https://github.com/ealtun21/abstui/blob/main/known_bugs.md) for known bugs especially **MAJOR BUGS** before using the app, so you can use it with full awareness of any known issues.  
+If you encounter any issues that are **not yet listed** in the Issues section or into [known bugs](https://github.com/ealtun21/abstui/blob/main/known_bugs.md), please **open a new issue** to report them.  
 
 🔐 Although it's a beta version, you can use this app with **minimal risk** to your Audiobookshelf library.  
 At worst, you may experience **sync issues**, but there is **no risk** of data loss, deletion, or irreversible changes (API is just used to retrieve books and sync them).
 
 ## 📝 Notes
 ### 🐛 **Issues**    
-For any issues, check first the [issues of this fork](https://github.com/ealtun21/Toutui/issues) and the [wiki of the original project](https://github.com/AlbanDAVID/Toutui/wiki/). Otherwise, open a new one **in this repository**. The original repository is archived and takes no report.
+For any issues, check first the [issues of this fork](https://github.com/ealtun21/abstui/issues) and the [wiki of the original project](https://github.com/AlbanDAVID/Toutui/wiki/). Otherwise, open a new one **in this repository**. The original repository is archived and takes no report.
 
 ### 🤝 **Contributing**  
-Do not hesitate to contribute to this project by submitting your code, ideas, or feedback. Please make sure to read the [contributing guidelines](https://github.com/ealtun21/Toutui/blob/main/CONTRIBUTING.md) first.
+Do not hesitate to contribute to this project by submitting your code, ideas, or feedback. Please make sure to read the [contributing guidelines](https://github.com/ealtun21/abstui/blob/main/CONTRIBUTING.md) first.
 
 ### 🔁 Branching workflow 
 This project follow this [branching workflow](https://gist.github.com/digitaljhelms/4287848). 
@@ -142,7 +141,7 @@ To ensure the best experience, it's recommended to use **Kitty** or **Alacritty*
 
 >[!WARNING]
 > - **This is a beta app, please read [this](https://github.com/AlbanDAVID/Toutui?tab=readme-ov-file#%EF%B8%8F-caution-beta-version).**
->  - For any issues, check first the [issues of this fork](https://github.com/ealtun21/Toutui/issues) and the [wiki of the original project](https://github.com/AlbanDAVID/Toutui/wiki/). Otherwise, open a new one **in this repository**. The original repository is archived and takes no report.
+>  - For any issues, check first the [issues of this fork](https://github.com/ealtun21/abstui/issues) and the [wiki of the original project](https://github.com/AlbanDAVID/Toutui/wiki/). Otherwise, open a new one **in this repository**. The original repository is archived and takes no report.
 
 ### <img src=".github/archlinux-icon.svg" align="top" width="24" alt="(Arch Linux)"/> Arch Linux
 [![GitHub release](https://img.shields.io/github/v/release/AlbanDAVID/Toutui?label=Latest%20Release&color=green&cacheSeconds=3600)](https://github.com/AlbanDAVID/Toutui/releases/latest)
@@ -235,8 +234,8 @@ The repository holds a flake. Nix then gives every dependency, and it also
 gives the ALSA library that the audio engine needs.
 
 ```bash
-nix build github:ealtun21/Toutui
-nix run github:ealtun21/Toutui
+nix build github:ealtun21/abstui
+nix run github:ealtun21/abstui
 nix develop            # a shell for development
 ```
 

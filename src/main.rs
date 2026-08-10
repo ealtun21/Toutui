@@ -1,4 +1,4 @@
-use toutui::{api, app, config, db, login_app, player, ui, utils};
+use abstui::{api, app, config, db, login_app, player, ui, utils};
 
 use login_app::AppLogin;
 use app::App;
@@ -29,7 +29,7 @@ async fn main() -> Result<()> {
     // The program before the fork used a different directory. The program
     // copies that directory one time. The old directory does not change,
     // therefore the user can use the old program again. See T-14 and T-21.
-    match toutui::paths::migrate_old_config_here() {
+    match abstui::paths::migrate_old_config_here() {
         Ok(true) => println!("The configuration of the old directory is now in the new directory."),
         Ok(false) => {}
         Err(e) => eprintln!(
@@ -42,7 +42,7 @@ async fn main() -> Result<()> {
     setup_logs().expect("Failed to execute logger");
 
     // The program reads the secret key from `.env`. See `encrypt_token.rs`.
-    let env_path = toutui::paths::env_file();
+    let env_path = abstui::paths::env_file();
     dotenv::from_filename(env_path.clone()).ok();
 
     // Init database
@@ -130,7 +130,7 @@ async fn main() -> Result<()> {
         // the positions of this server only.
         let server_key = config::server_key(&config_file.servers, &server_address);
 
-        toutui::logic::offline::spawn_flush_task(
+        abstui::logic::offline::spawn_flush_task(
             std::sync::Arc::clone(&api),
             username.clone(),
             server_key,
@@ -145,7 +145,7 @@ async fn main() -> Result<()> {
             // The engine gives the state. The panel is visible only when the
             // engine holds a media.
             let playback = app.player.state();
-            let is_playing = playback.status != toutui::player::engine::PlaybackStatus::Stopped;
+            let is_playing = playback.status != abstui::player::engine::PlaybackStatus::Stopped;
             let player_notice = playback.notice.clone();
             let player_info = player_info(app.username.as_str(), &playback);
 

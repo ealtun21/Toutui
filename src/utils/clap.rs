@@ -1,7 +1,7 @@
 use clap::{Arg, Command};
 
 /// The address of the fork. The user reads it in the message below.
-const FORK_URL: &str = "https://github.com/ealtun21/Toutui";
+const FORK_URL: &str = "https://github.com/ealtun21/abstui";
 
 /// The message that `--update` and `--uninstall` give.
 ///
@@ -27,7 +27,7 @@ fn explain(action: &str) {
 }
 
 pub fn clap() {
-    let matches = Command::new("toutui")
+    let matches = Command::new("abstui")
         .version(env!("CARGO_PKG_VERSION"))
         .arg(
             Arg::new("update")

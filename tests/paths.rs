@@ -5,7 +5,7 @@
 //! and therefore a test that writes a variable is not safe.
 
 use std::path::{Path, PathBuf};
-use toutui::paths;
+use abstui::paths;
 
 /// The directory of configuration is the parent directory and the name of the
 /// program.

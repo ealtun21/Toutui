@@ -724,7 +724,7 @@ impl App {
             self.update_msg.clone()
         };
 
-        Paragraph::new(format!("🦜 Toutui v{}\n {}", VERSION, notice))
+        Paragraph::new(format!("🦜 AbsTui v{}\n {}", VERSION, notice))
             .right_aligned()
             .render(area, buf);
     }
@@ -1042,7 +1042,7 @@ impl App {
             Some(1) => {}
             Some(2) => {
 
-                Paragraph::new(format!("Toutui v{} - Licence: GPL-3.0 - Contact: albdav.dev@gmail.com\nSource code: {}\nWhat's new:", 
+                Paragraph::new(format!("AbsTui v{} - Licence: GPL-3.0 - Contact: albdav.dev@gmail.com\nSource code: {}\nWhat's new:",
                         VERSION,
                         "https://github.com/AlbanDAVID/Toutui",
                 ))
@@ -1061,13 +1061,13 @@ impl App {
         let instructions = "\
 Update:
 - Quit the app
-- If you installed Toutui via yay: yay -S toutui
-- If you installed Toutui using the script: toutui --update
+- If you installed AbsTui via yay: yay -S abstui
+- If you installed AbsTui using the script: abstui --update
 
 Uninstall:
 - Quit the app
-- If you installed Toutui via yay: yay -R toutui-bin
-- If you installed Toutui using the script: toutui --uninstall
+- If you installed AbsTui via yay: yay -R abstui-bin
+- If you installed AbsTui using the script: abstui --uninstall
 ";
 
         match list_state.selected() {

@@ -6,7 +6,7 @@
 //! The tests write variables of the environment, and variables are common to
 //! the process. Therefore this file holds one test only.
 
-use toutui::utils::encrypt_token::secret_key;
+use abstui::utils::encrypt_token::secret_key;
 
 #[test]
 fn the_program_accepts_the_two_names() {

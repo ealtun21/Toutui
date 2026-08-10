@@ -24,9 +24,9 @@ fn session_body() -> Value {
         // The server must give the original file, and not a stream that it
         // makes again. The engine reads the original file.
         "forceDirectPlay": true,
-        "mediaPlayer": format!("Toutui v{}", VERSION),
+        "mediaPlayer": format!("AbsTui v{}", VERSION),
         "deviceInfo": {
-            "clientName": "Toutui",
+            "clientName": "AbsTui",
             "clientVersion": format!("v{}", VERSION),
             // to have OS displayed in user activity pannel (audiobookshelf/config/users/)
             "manufacturer": format!("{}", std::env::consts::OS),

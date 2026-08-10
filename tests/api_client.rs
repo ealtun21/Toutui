@@ -2,10 +2,10 @@
 //! behaviour depends on real HTTP answers.
 
 use std::sync::Arc;
-use toutui::api::client::endpoint::{Endpoint, EndpointPool};
-use toutui::api::client::error::ApiError;
-use toutui::api::client::probe::probe_once;
-use toutui::api::client::ApiClient;
+use abstui::api::client::endpoint::{Endpoint, EndpointPool};
+use abstui::api::client::error::ApiError;
+use abstui::api::client::probe::probe_once;
+use abstui::api::client::ApiClient;
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 

@@ -2,8 +2,8 @@
 //! behaviour depends on real HTTP answers.
 
 use std::io::{Read, Seek, SeekFrom};
-use toutui::api::client::error::ApiError;
-use toutui::player::engine::http_file::HttpFile;
+use abstui::api::client::error::ApiError;
+use abstui::player::engine::http_file::HttpFile;
 use wiremock::matchers::{header, method, path};
 use wiremock::{Mock, MockServer, Request, ResponseTemplate};
 
