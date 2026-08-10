@@ -3,6 +3,8 @@
 //! The tests give the answers of the API from a mock server. No test uses the
 //! network.
 
+use std::io::Write;
+use toutui::update::install::{binary_from_archive, expected_sum, replace_binary, sum_of};
 use toutui::update::release::{parse_release, target, Release};
 
 /// Gives an answer of the API with the assets of a release.
@@ -59,4 +61,143 @@ fn the_program_knows_its_target() {
     if cfg!(any(target_os = "linux", target_os = "macos")) {
         assert!(target().is_some());
     }
+}
+
+/// Makes a `tar.gz` that holds one file with the name `toutui`.
+fn archive_of(contents: &[u8]) -> Vec<u8> {
+    let mut tar = tar::Builder::new(Vec::new());
+    let mut header = tar::Header::new_gnu();
+    header.set_size(contents.len() as u64);
+    header.set_mode(0o755);
+    header.set_cksum();
+    tar.append_data(&mut header, "toutui", contents).unwrap();
+    let tar = tar.into_inner().unwrap();
+
+    let mut gz = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+    gz.write_all(&tar).unwrap();
+    gz.finish().unwrap()
+}
+
+/// The sum of an empty input is the known sum of SHA-256.
+#[test]
+fn the_program_calculates_the_sum() {
+    assert_eq!(
+        sum_of(b""),
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    );
+}
+
+/// The program finds the sum of one name in the file of the sums.
+#[test]
+fn the_program_finds_the_sum_of_a_name() {
+    let sums = "aaa  toutui-x86_64-unknown-linux-gnu.tar.gz\n\
+                bbb  toutui-universal-apple-darwin.tar.gz\n";
+
+    assert_eq!(
+        expected_sum(sums, "toutui-universal-apple-darwin.tar.gz"),
+        Some("bbb".to_string())
+    );
+    assert_eq!(expected_sum(sums, "toutui-aarch64-unknown-linux-gnu.tar.gz"), None);
+}
+
+/// The program takes the binary out of the archive.
+#[test]
+fn the_program_opens_the_archive() {
+    let archive = archive_of(b"the new binary");
+
+    assert_eq!(binary_from_archive(&archive).unwrap(), b"the new binary");
+}
+
+/// An archive that holds no file with the name of the program gives an error.
+#[test]
+fn an_archive_without_the_binary_gives_an_error() {
+    let mut tar = tar::Builder::new(Vec::new());
+    let mut header = tar::Header::new_gnu();
+    header.set_size(3);
+    header.set_mode(0o644);
+    header.set_cksum();
+    tar.append_data(&mut header, "README", &b"abc"[..]).unwrap();
+    let tar = tar.into_inner().unwrap();
+    let mut gz = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+    gz.write_all(&tar).unwrap();
+
+    assert!(binary_from_archive(&gz.finish().unwrap()).is_err());
+}
+
+/// The program moves the new binary on to the old binary, and the new binary
+/// can run.
+#[test]
+fn the_program_replaces_the_binary() {
+    let dir = tempfile::tempdir().unwrap();
+    let binary = dir.path().join("toutui");
+    std::fs::write(&binary, b"the old binary").unwrap();
+
+    replace_binary(&binary, b"the new binary").unwrap();
+
+    assert_eq!(std::fs::read(&binary).unwrap(), b"the new binary");
+
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mode = std::fs::metadata(&binary).unwrap().permissions().mode();
+        assert_eq!(mode & 0o777, 0o755);
+    }
+}
+
+/// A directory that the user cannot write gives `false`.
+#[cfg(unix)]
+#[test]
+fn a_directory_that_is_read_only_gives_false() {
+    use std::os::unix::fs::PermissionsExt;
+    use toutui::update::install::can_replace;
+
+    let dir = tempfile::tempdir().unwrap();
+    let binary = dir.path().join("toutui");
+    std::fs::write(&binary, b"the old binary").unwrap();
+    std::fs::set_permissions(dir.path(), std::fs::Permissions::from_mode(0o555)).unwrap();
+
+    let result = can_replace(&binary);
+
+    // The permissions come back, so that the temporary directory goes away.
+    std::fs::set_permissions(dir.path(), std::fs::Permissions::from_mode(0o755)).unwrap();
+
+    assert!(!result);
+}
+
+use wiremock::matchers::{method, path};
+use wiremock::{Mock, MockServer, ResponseTemplate};
+
+/// The program stops and does not touch the binary when the sum disagrees.
+#[tokio::test]
+async fn a_sum_that_disagrees_stops_the_update() {
+    let server = MockServer::start().await;
+    let target = toutui::update::release::target().unwrap();
+    let name = format!("toutui-{}.tar.gz", target);
+
+    let body = serde_json::json!({
+        "tag_name": "v99.0.0",
+        "assets": [
+            {"name": "SHA256SUMS",
+             "browser_download_url": format!("{}/SHA256SUMS", server.uri())},
+            {"name": name,
+             "browser_download_url": format!("{}/archive", server.uri())}
+        ]
+    });
+
+    Mock::given(method("GET")).and(path("/latest"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(body))
+        .mount(&server).await;
+    Mock::given(method("GET")).and(path("/archive"))
+        .respond_with(ResponseTemplate::new(200).set_body_bytes(archive_of(b"new")))
+        .mount(&server).await;
+    Mock::given(method("GET")).and(path("/SHA256SUMS"))
+        .respond_with(ResponseTemplate::new(200)
+            .set_body_string(format!("{}  {}\n", "0".repeat(64), name)))
+        .mount(&server).await;
+
+    let error = toutui::update::install::run_update(&format!("{}/latest", server.uri()))
+        .await
+        .unwrap_err();
+
+    assert!(error.contains("not correct"));
 }

@@ -36,7 +36,12 @@ clap = "4.5.37"
 # outside, because symphonia has no decoder for them.
 rodio = { version = "0.22", default-features = false, features = ["playback", "symphonia-all"] }
 rodio-wsola = "0.2"
+# The update compares the sum of the archive and opens the archive. The three
+# crates below are pure Rust, therefore the build needs no C toolchain.
+sha2 = "0.10"
+flate2 = { version = "1", default-features = false, features = ["rust_backend"] }
+tar = "0.4"
+tempfile = "3"
 
 [dev-dependencies]
 wiremock = "0.6"
-tempfile = "3"
