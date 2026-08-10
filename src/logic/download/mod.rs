@@ -11,22 +11,17 @@ use log::{error, info};
 use plan::{plan_from_episode, plan_from_item};
 use progress::ProgressMap;
 use std::collections::HashMap;
-use std::env;
 use std::io::stdout;
 use std::path::PathBuf;
 use std::sync::{Arc, OnceLock, RwLock};
 
-/// Base directory where downloaded audiobooks are stored for offline listening
+/// Gives the directory that holds the downloads of one user, for offline
+/// listening.
+///
+/// The path comes from `paths::data_dir`, so that this rule and the rule of
+/// `--uninstall` agree. See T-21.
 pub fn downloads_base_dir(username: &str) -> PathBuf {
-    let base = env::var("XDG_DATA_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-            path.push(".local/share");
-            path
-        });
-
-    base.join("toutui/downloads").join(username)
+    crate::paths::data_dir().join("downloads").join(username)
 }
 
 /// Makes an empty map of the progress of the downloads.

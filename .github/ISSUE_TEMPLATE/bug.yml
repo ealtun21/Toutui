@@ -8,7 +8,7 @@ body:
       value: '🦜 Thanks for taking the time to fill out this bug report!'
   - type: markdown
     attributes:
-      value: 'Please first check if the bug is listed into [known bugs](https://github.com/AlbanDAVID/Toutui/blob/main/known_bugs.md) or issues.'
+      value: 'Please first check if the bug is listed into [known bugs](https://github.com/ealtun21/Toutui/blob/main/known_bugs.md) or issues.'
   - type: textarea
     id: what-happened
     attributes:
@@ -66,8 +66,9 @@ body:
     attributes:
       label: How did you install Toutui?
       options:
-        - Easy installation (option 1, download the binary)
-        - Easy installation (option 2, compilation)
+        - The install script
+        - cargo install --git
+        - The archive of a release
         - From source, local clone
         - Other (list in "Additional Notes" box)
     validations:

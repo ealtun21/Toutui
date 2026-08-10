@@ -49,9 +49,9 @@ body:
     attributes:
       label: Which install, update method?
       options:
-        - Easy installation (option 1, download the binary)
-        - Easy installation (option 2, compilation)
-        - yay
+        - The install script
+        - cargo install --git
+        - The archive of a release
         - From source, local clone
         - Other (list in "Additional Notes" box)
     validations:

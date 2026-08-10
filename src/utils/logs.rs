@@ -2,26 +2,27 @@ use log::LevelFilter;
 use fern::Dispatch;
 use chrono::Local;
 use std::fs::OpenOptions;
-use std::env;
-use std::path::PathBuf;
+use std::path::Path;
+
+/// Makes the directory that holds a file.
+///
+/// The program makes its directory of configuration here, at the start,
+/// before the file of the log opens. A new user has no such directory yet,
+/// and the program would stop with a panic on the file of the log if this
+/// function did not make it first.
+pub fn make_parent_dir(path: &Path) -> std::io::Result<()> {
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    Ok(())
+}
 
 pub fn setup_logs() -> Result<(), fern::InitError> {
 
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from) 
-        .unwrap_or_else(|_| { 
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
+    let log_path = crate::paths::log_file();
 
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let log_path = config_home_path.join("toutui/toutui.log");
+    // The directory must be present before the file opens.
+    make_parent_dir(&log_path)?;
 
     // Create or append into the file
     let log_file = OpenOptions::new()

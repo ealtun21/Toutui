@@ -1,7 +1,15 @@
 [package]
 name = "toutui"
-version = "0.4.2-beta"
+version = "0.5.0-rc.1"
 edition = "2021"
+description = "A TUI client of Audiobookshelf for Linux and macOS."
+license = "GPL-3.0-or-later"
+repository = "https://github.com/ealtun21/Toutui"
+readme = "README.md"
+authors = [
+    "AlbanDAVID <https://github.com/AlbanDAVID>",
+    "ealtun21 <https://github.com/ealtun21>",
+]
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
@@ -28,7 +36,15 @@ clap = "4.5.37"
 # outside, because symphonia has no decoder for them.
 rodio = { version = "0.22", default-features = false, features = ["playback", "symphonia-all"] }
 rodio-wsola = "0.2"
+# The update compares the sum of the archive and opens the archive. The three
+# crates below are pure Rust, therefore the build needs no C toolchain.
+sha2 = "0.10"
+flate2 = { version = "1", default-features = false, features = ["rust_backend"] }
+tar = "0.4"
+tempfile = "3"
+# Compares versions, so that the program does not install a release that is
+# older than the build it runs. Pure Rust; needs no C toolchain.
+semver = "1"
 
 [dev-dependencies]
 wiremock = "0.6"
-tempfile = "3"

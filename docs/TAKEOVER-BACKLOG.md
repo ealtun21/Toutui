@@ -33,6 +33,7 @@ the original issue, if there is one.
 | T-22 | The application shows the series of a library | sub-project 5 |
 | T-9 | The application shows the playlists and the collections | sub-project 5 |
 | T-26 | The key `G` in an empty list stopped the application | `597ca2d` |
+| T-25 | The application does not start without the server | `bc9ceb0` |
 
 Sub-project 2 removed VLC. The application decodes the audio in the process
 now. Therefore a book with many audio files plays completely, the token stays
@@ -122,12 +123,15 @@ application started again at 1234 seconds.
 `src/utils/clap.rs` ran the install script of the original repository, and
 every address in that script names `AlbanDAVID/Toutui`. Therefore the command
 built and installed the original program, and the user lost every correction
-of the fork. The most important loss was T-5, because the original program
-gives the token to VLC in a command line argument.
+of the fork.
 
-The two commands do nothing now. They write the reason and stop. Issue 21
-holds the work that gives the fork its own way to install and to update. T-14
-belongs to that work.
+**The correction.** The fork makes its own releases from a tag on `main`.
+`--update` receives the archive of its target, it compares the sum with
+`SHA256SUMS`, and it moves the new binary. The program runs no file that it
+receives. `--uninstall` writes the paths and deletes nothing.
+
+The fork publishes no package to a registry. The three ways to install are
+the script, `cargo install --git`, and the archives of the releases.
 
 ## Priority 2: security
 
@@ -325,9 +329,8 @@ the application does not have yet.
 
 | Id | Upstream | Title |
 |---|---|---|
-| T-25 | — | The application does not start without the server |
 | T-13 | — | The description shows the HTML tags |
-| T-14 | — | The application loses the configuration after an update (`255b86`) |
+| T-14 | — | The application loses the configuration after an update (`255b86`). The fork examined T-14 with T-21 and did not correct it. |
 | T-15 | — | The authentication fails at the first attempt (`4b3045`) |
 | T-16 | — | "Mark as finished" does not always work (`2d358c53`) |
 
@@ -348,3 +351,81 @@ the application does not have yet.
 | 2 | The audio engine, and the removal of VLC | T-5, T-6, T-8 |
 | 3 | Robustness, pagination, tests | T-7 |
 | 5 | New functions | T-9, T-10, T-11 |
+
+## The work that T-21 left
+
+T-21 gave the fork its own way to install, to update, and to remove. The
+examination of that work found these items. No item stops a release, and each
+one is small.
+
+| Id | Title | Where |
+|---|---|---|
+| T-27 | Continuous integration does not build the flake of Nix | `.github/workflows/ci.yml` |
+| T-28 | A tag with a capital letter gives "update available" for ever | `src/utils/check_update.rs` |
+| T-29 | Nothing looks at the proof of the origin of an archive | `install.sh`, `src/update/install.rs` |
+| T-30 | An answer with no length has no limit of size | `src/update/install.rs`, `install.sh` |
+| T-31 | macOS has no way to remove the program | `macos/`, `src/utils/clap.rs` |
+
+### T-27: continuous integration does not build the flake of Nix
+
+`flake.nix` and `flake.lock` are in the repository, and the README tells the
+user to run `nix build`. No job builds them. Therefore the flake can stop to
+operate and every test stays green.
+
+A build on the machine of the development is not possible now: the command
+`nix` is present, the directory `/nix/store` is absent, and the service
+`nix-daemon` does not run.
+
+**The work.** Add a job that runs `nix flake check` to `ci.yml`.
+
+### T-28: a tag with a capital letter gives "update available" for ever
+
+`src/utils/check_update.rs` removes the letter `v` from the front of the tag
+with `trim_start_matches('v')`, and that function looks at the case of the
+letter. A tag `V0.5.0-beta` therefore keeps its first letter, the comparison
+with the version of the build never agrees, and the message stays on the
+screen after the user updates.
+
+**The work.** Remove the letter without the case, and add a test.
+
+### T-29: nothing looks at the proof of the origin of an archive
+
+The workflow of release runs `actions/attest-build-provenance`, and thus each
+archive has a proof. Neither `install.sh` nor `--update` looks at that proof.
+The two compare the sum SHA-256 only, and that sum comes from the same
+release. Therefore the comparison finds a download that stops, and it does not
+find a release that a different person made.
+
+**The work.** Use `gh attestation verify` when the command `gh` is present.
+
+### T-30: an answer with no length has no limit of size
+
+`receive` in `src/update/install.rs` refuses an answer whose header
+`Content-Length` is more than 200 MB. An answer with no such header goes into
+the memory with no limit, and only the limit of 120 seconds stops it.
+`install.sh` has the same fault.
+
+**The work.** Count the bytes as they arrive, and stop at the limit.
+
+### T-31: macOS has no way to remove the program
+
+`macos/Info.plist` and `macos/launch.command` describe a bundle of an
+application. `install.sh` does not install that bundle, therefore
+`--uninstall` cannot name it. A user of macOS who made the bundle by hand gets
+an incomplete list.
+
+**The work.** Decide if the fork gives a bundle for macOS. If it gives one,
+`install.sh` must install it and `--uninstall` must name it. If it does not,
+remove the two files.
+
+`macos/launch.command` opens `$HOME/.cargo/bin/toutui`, but `install.sh`
+installs the binary to `/usr/local/bin`. Therefore the decision about
+`macos/` must cover that file too, and not the two files above alone.
+
+### T-14 stays open
+
+T-14 says that the program loses the configuration after an update. The first
+plan of T-21 changed the name of the program, and it made the program copy the
+old directory of configuration. That copy closed T-14 as a result, and not as
+an examination. The maintainer then kept the name, therefore no copy exists
+and T-14 needs its own examination.

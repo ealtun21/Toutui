@@ -1042,9 +1042,10 @@ impl App {
             Some(1) => {}
             Some(2) => {
 
-                Paragraph::new(format!("Toutui v{} - Licence: GPL-3.0 - Contact: albdav.dev@gmail.com\nSource code: {}\nWhat's new:", 
+                Paragraph::new(format!("Toutui v{} - Licence: GPL-3.0 - Contact: {}\nSource code: {}\nWhat's new:",
                         VERSION,
-                        "https://github.com/AlbanDAVID/Toutui",
+                        "https://github.com/ealtun21/Toutui/issues",
+                        "https://github.com/ealtun21/Toutui",
                 ))
                     .left_aligned()
                     .render(area, buf);

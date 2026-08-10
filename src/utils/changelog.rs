@@ -3,6 +3,20 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub fn changelog() -> String {
     let mut changelog = String::new();
 
+    // The screen of settings shows this text. The credit is at the top,
+    // because AlbanDAVID wrote the original program.
+    changelog.push_str(
+        "AlbanDAVID wrote Toutui and archived it. This repository continues\n\
+         that work. https://github.com/AlbanDAVID/Toutui\n\
+         \n\
+         The entries below this line describe the original project. Some\n\
+         name a script or a package that does not exist now. The README of\n\
+         this repository gives the ways to install, to update, and to\n\
+         remove the fork.\n\
+         \n\
+         ####\n",
+    );
+
 let changelog_01 = "Changelog Toutui v0.1.0-beta (02/21/2025) \n\
          Fixed:\n\
          \n\
@@ -204,6 +218,34 @@ let changelog_12 = "Changelog Toutui v0.4.0-beta (10/05/2025) \n\
          \n\
          Enjoy and be toutui!\n
          ####\n".to_string();
+let changelog_15 = format!(
+    "Changelog Toutui v{} (10/08/2026) \n\
+     \n\
+     Added:\n\
+     - The program plays a local copy when the server does not answer, and\n\
+       it sends the positions when the server answers again.\n\
+     - The program updates itself with `toutui --update`. The program\n\
+       compares the sum of the archive before it moves the new binary.\n\
+     - The releases come from this repository, and the archives have a sum\n\
+       SHA-256 that the machine writes.\n\
+     \n\
+     Fixed:\n\
+     - `--update` installed the archived original project.\n\
+     - `Mark as finished` did not always operate.\n\
+     \n\
+     Changed:\n\
+     - The script of installation has 100 lines and not 1080. It installs\n\
+       no VLC and no netcat, because the player in the program needs\n\
+       neither.\n\
+     \n\
+     Contributors:\n\
+     \n\
+     - AlbanDAVID (the original project), ealtun21\n\
+     \n\
+     Enjoy and be toutui!\n\
+     ####\n",
+     VERSION
+);
 let changelog_13 = "Changelog Toutui v0.4.1-beta (14/05/2025) \n\
          \n\
          Warning:\n\
@@ -223,8 +265,8 @@ let changelog_13 = "Changelog Toutui v0.4.1-beta (14/05/2025) \n\
          \n\
          Enjoy and be toutui!\n
          ####\n".to_string();
-let changelog_14 = format!(
-    "Changelog Toutui v{} (15/05/2025) \n\
+let changelog_14 =
+    "Changelog Toutui v0.4.2-beta (15/05/2025) \n\
          \n\
          Warning:\n\
          - If you're already using the app v0.3.5 or bellow, please follow the upgrade instructions here: => 
@@ -242,12 +284,11 @@ let changelog_14 = format!(
          - AlbanDAVID
          \n\
          Enjoy and be toutui!\n
-         ####\n",
-         VERSION
-);
+         ####\n".to_string();
 
 
-    changelog.push_str(&changelog_14); 
+    changelog.push_str(&changelog_15);
+    changelog.push_str(&changelog_14);
     changelog.push_str(&changelog_13); 
     changelog.push_str(&changelog_12); 
     changelog.push_str(&changelog_11); 

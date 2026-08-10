@@ -7,6 +7,8 @@ pub mod config;
 pub mod db;
 pub mod login_app;
 pub mod logic;
+pub mod paths;
 pub mod player;
 pub mod ui;
+pub mod update;
 pub mod utils;
