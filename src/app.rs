@@ -661,10 +661,13 @@ impl App {
             }
         }
         // init for `Settings`
+        // The names say what the entry does. The user of the report of
+        // 2026-08-10 did not find the way to leave a server, because the
+        // entry said "Account" only. See T-36.
         let settings = vec![
-            "Account".to_string(),
-            "Library".to_string(),
-            "About".to_string(),
+            "Accounts and log out".to_string(),
+            "Library: choose the library".to_string(),
+            "About and changelog".to_string(),
             "Update and uninstall".to_string(),
         ];
 
@@ -1576,21 +1579,83 @@ impl App {
         self.series.get(self.selected_library_row()?.series()?)
     }
 
+    /// Gives the identity of the media that plays now, if one plays.
+    pub fn playing_item(&self) -> Option<String> {
+        let state = self.player.state();
+
+        if state.status == crate::player::engine::PlaybackStatus::Stopped
+            || state.item_id.is_empty()
+        {
+            None
+        } else {
+            Some(state.item_id)
+        }
+    }
+
+    /// Gives the text of each line of the view `Home`.
+    ///
+    /// Every line starts with a mark: the media that plays, a media that the
+    /// user finished, or the part that the user heard. See T-44.
+    pub fn home_lines(&self) -> Vec<String> {
+        let playing = self.playing_item();
+
+        self._titles_cnt_list
+            .iter()
+            .enumerate()
+            .map(|(index, title)| {
+                let row = self.book_progress_cnt_list.get(index);
+                let percent = row.and_then(|row| row.first()).map(|s| s.as_str());
+                let finished = row.and_then(|row| row.get(1)).map(|s| s.as_str());
+
+                let plays_now = self
+                    ._ids_cnt_list
+                    .get(index)
+                    .zip(playing.as_ref())
+                    .is_some_and(|(id, playing)| id == playing);
+
+                let mark = crate::ui::marks::of_progress(
+                    percent.unwrap_or(""),
+                    finished.unwrap_or(""),
+                    plays_now,
+                );
+
+                crate::ui::marks::line(&mark, title)
+            })
+            .collect()
+    }
+
     /// Gives the text of each line of the view `Library`.
     pub fn library_lines(&self) -> Vec<String> {
+        let playing = self.playing_item();
+
         self.library_rows
             .iter()
             .map(|row| match row.series() {
-                Some(index) => self
-                    .series
-                    .get(index)
-                    .map(|series| series.line())
-                    .unwrap_or_default(),
-                None => self
-                    .titles_library
-                    .get(row.item())
-                    .cloned()
-                    .unwrap_or_default(),
+                // A line of a series holds more than one book, therefore it
+                // gets no mark of a position. See T-44.
+                Some(index) => crate::ui::marks::line(
+                    &crate::ui::marks::of_library(false),
+                    &self
+                        .series
+                        .get(index)
+                        .map(|series| series.line())
+                        .unwrap_or_default(),
+                ),
+                None => {
+                    let plays_now = self
+                        .ids_library
+                        .get(row.item())
+                        .zip(playing.as_ref())
+                        .is_some_and(|(id, playing)| id == playing);
+
+                    crate::ui::marks::line(
+                        &crate::ui::marks::of_library(plays_now),
+                        self.titles_library
+                            .get(row.item())
+                            .map(|title| title.as_str())
+                            .unwrap_or_default(),
+                    )
+                }
             })
             .collect()
     }

@@ -323,8 +323,10 @@ impl App {
         ])
         .areas(main_area);
 
-        let items_number = self._titles_cnt_list.len();
-        let render_list_title = format!("Continue Listening [{} items]", items_number);
+        // Every line starts with a mark: the media that plays, a media that
+        // the user finished, or the part that the user heard. See T-44.
+        let lines = self.home_lines();
+        let render_list_title = format!("Continue Listening [{} items]", lines.len());
 
         let text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, s: series, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
 
@@ -334,7 +336,7 @@ impl App {
             list_area,
             buf,
             &render_list_title,
-            &self._titles_cnt_list.clone(),
+            &lines,
             &mut self.list_state_cnt_list.clone(),
         );
         if !&self._titles_cnt_list.is_empty() {
@@ -745,9 +747,9 @@ impl App {
         let [list_area, _item_area] =
             Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(main_area);
 
-        let render_list_title = "Settings account";
+        let render_list_title = "Accounts — l: log out of the account";
         let text_render_footer =
-            "h: back, l/→: remove saved user,\n Tab: home, R: refresh, Q/Esc: quit.";
+            "h: back, l/→: log out of this account (the program forgets its token),\n Tab: home, R: refresh, Q/Esc: quit.";
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -1541,8 +1543,20 @@ Uninstall:
 ";
 
         match list_state.selected() {
-            Some(0) => {}
-            Some(1) => {}
+            Some(0) => {
+                Paragraph::new(
+                    "The accounts that this program holds.\n\n                     The key l on an account logs out of it: the program                      forgets the token of that server, and it asks for the                      password again at the next start.\n\n                     A program that holds more than one account starts with                      the account that is the default one.",
+                )
+                .wrap(Wrap { trim: true })
+                .render(area, buf);
+            }
+            Some(1) => {
+                Paragraph::new(
+                    "The libraries of this server.\n\n                     The key l on a library makes it the library that the                      program shows.",
+                )
+                .wrap(Wrap { trim: true })
+                .render(area, buf);
+            }
             Some(2) => {
                 Paragraph::new(self.changelog.clone())
                     .scroll((self.scroll_offset, 0))
