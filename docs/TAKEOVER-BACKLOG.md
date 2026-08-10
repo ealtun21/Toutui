@@ -399,10 +399,54 @@ view. That part of the issue stays open.
 
 ### T-23, T-24: the user interface and full coverage
 
-T-23 adds the cover art. A measurement on 2026-08-10
-shows that `ratatui-image` 11.0.6 needs no C library, if the project does not
-use its default features. That crate finds the protocol of the terminal
+T-23 adds the cover art. `ratatui-image` finds the protocol of the terminal
 itself: the Kitty protocol, Sixel for `foot`, iTerm2, or blocks of Unicode.
+
+**The version, 2026-08-10.** `ratatui-image` 11.0.6 asks for `ratatui ^0.30.1`,
+and this project holds ratatui 0.29 because of T-33. **`ratatui-image` 9.0.0 asks
+for `ratatui ^0.29`, and it holds every protocol.** Therefore T-23 needs no
+upgrade of ratatui, and T-23 does not wait for T-33.
+
+**The features, 2026-08-10.** The features `chafa-dyn` and `chafa-static` need
+the C library chafa. The project must not use the default features. This gives a
+build with no new C:
+
+```toml
+ratatui-image = { version = "9.0.0", default-features = false, features = ["crossterm"] }
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
+```
+
+A measurement on 2026-08-10 added those two lines and read the tree: `cargo tree
+-i cc` still finds `libsqlite3-sys` and `ring` only, and `cargo tree -i
+openssl-sys` finds nothing. The crate `image` needs its own line, because
+`ratatui-image` asks for `image` with the feature `png` only. A cover of
+Audiobookshelf is a JPEG file or a WebP file. The feature `image-defaults` also
+gives those two, and it adds decoders that a cover never needs.
+
+**The design that the user chose on 2026-08-10.**
+
+1. The cover stands beside the description, and it is always visible. It does not
+   wait for a key.
+2. The cover is generous, and it is not small.
+3. A series shows more than one cover, so that the view of the series looks
+   better than a view of one book.
+4. The cover of the media that plays is larger than the cover of the selection.
+
+**The work that this design needs.**
+
+- `GET /api/items/:id/cover` gives the bytes. The request needs the token.
+- The render of the application is not async. Therefore a task must read the
+  cover, and the render must take the answer from a channel. The application must
+  hold a cover that it read before, so that a move of the selection reads no
+  cover a second time. It must also hold the items with no cover, so that it asks
+  for such an item one time only.
+- `Picker::from_query_stdio` asks the terminal for the protocol and for the size
+  of the font. That call needs a real terminal, and `Picker::halfblocks` is the
+  answer for a terminal that does not answer.
+- `StatefulImage` keeps the form of the image inside the area that it gets.
+  Therefore the layout gives a generous area, and the widget does the rest.
+- A narrow terminal has no width for a cover and a text. The cover must go away
+  below a width that the code names.
 
 T-24 holds the comparison with Audiobookshelf, and it names the functions that
 the application does not have yet.
@@ -622,6 +666,19 @@ repository are complete: #36 is T-8, #35 is T-3, T-6 and T-7, #33 is T-2, and
 #32 is T-9.
 
 ### T-33: ratatui 0.30 waits for tui-textarea
+
+**2026-08-10.** `tui-textarea` 0.7.0 of 2024-10-22 is still the newest version of
+that crate, and it still asks for `ratatui ^0.29`. Therefore the blocker did not
+go away by itself.
+
+Two answers exist. The first answer is a different crate for the text input, or
+an input widget of this project. The login has three fields and the search has
+one field, therefore a widget of this project is small. The second answer is to
+wait for `tui-textarea`.
+
+T-23 does not wait for this work: `ratatui-image` 9.0.0 asks for `ratatui ^0.29`.
+
+The text below is the examination of 2026-08-10 before this note.
 
 `ratatui` 0.30.2 and `crossterm` 0.29 are available, and the fork stays on
 `ratatui` 0.29 and `crossterm` 0.28.
