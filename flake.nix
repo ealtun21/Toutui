@@ -18,9 +18,15 @@
           pkgs.alsa-lib
         ];
 
-        # macOS gives the audio interface in a framework.
-        darwinAudioInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin
-          (with pkgs.darwin.apple_sdk.frameworks; [ AudioUnit CoreAudio ]);
+        # macOS needs no input for the audio. `stdenv` gives the SDK of Apple,
+        # and that SDK holds AudioUnit and CoreAudio.
+        #
+        # The flake named `pkgs.darwin.apple_sdk.frameworks` before. nixpkgs
+        # removed that attribute, and it throws now: "darwin.apple_sdk has
+        # been removed as it was a legacy compatibility stub". No test found
+        # this fault, because `optionals` reads the list only when the
+        # condition is true, and every test ran on Linux. `nix flake check
+        # --all-systems` reads the outputs of macOS as well. See T-27.
 
         toutui = pkgs.rustPlatform.buildRustPackage {
           pname = "toutui";
@@ -33,7 +39,7 @@
           };
 
           nativeBuildInputs = [ pkgs.pkg-config ];
-          buildInputs = linuxAudioInputs ++ darwinAudioInputs;
+          buildInputs = linuxAudioInputs;
 
           # The tests of the audio engine need no sound card. The tests that
           # need a server use a mock server. Therefore the tests run here.
@@ -54,7 +60,13 @@
           toutui = toutui;
         };
 
-        apps.default = flake-utils.lib.mkApp { drv = toutui; };
+        # `mkApp` gives no `meta`, and `nix flake check` gives a warning for
+        # an app that has none. The app takes the `meta` of the package.
+        apps.default = {
+          type = "app";
+          program = pkgs.lib.getExe toutui;
+          meta = toutui.meta;
+        };
 
         devShells.default = pkgs.mkShell {
           nativeBuildInputs = [ pkgs.pkg-config ];
@@ -65,7 +77,7 @@
             pkgs.clippy
             pkgs.rustfmt
             pkgs.rust-analyzer
-          ] ++ linuxAudioInputs ++ darwinAudioInputs;
+          ] ++ linuxAudioInputs;
 
           shellHook = ''
             echo "Toutui development shell."

@@ -67,8 +67,14 @@ jobs:
 
       # `nix flake check` reads every output of the flake. It finds a flake
       # that does not evaluate.
+      #
+      # `--all-systems` reads the outputs of macOS as well, and not the
+      # outputs of this runner alone. The first job found a fault of macOS
+      # that no test on Linux can find: the flake named
+      # `pkgs.darwin.apple_sdk.frameworks`, nixpkgs removed that attribute,
+      # and `optionals` reads its list only on macOS.
       - name: Check the flake
-        run: nix flake check --print-build-logs
+        run: nix flake check --all-systems --print-build-logs
 
       # Only a build finds a dependency that does not compile with the
       # dependencies that the flake gives. The flake has `doCheck = true`,

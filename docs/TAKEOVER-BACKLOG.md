@@ -384,6 +384,28 @@ A build on the machine of the development is not possible now: the command
 
 **The work.** Add a job that runs `nix flake check` to `ci.yml`.
 
+**The result of 2026-08-10.** The job runs `nix flake check --all-systems` and
+`nix build`. Run 31395406233 gives the evidence of the first form of the job:
+`nix build` compiled the program and ran 224 tests of the library and every
+test of integration inside the sandbox of Nix.
+
+The job then found two faults of the flake.
+
+1. `apps.default` came from `flake-utils.lib.mkApp`, and that function gives no
+   `meta`. `nix flake check` gives a warning for an app that has none. The app
+   takes the `meta` of the package now.
+2. The flake gave `pkgs.darwin.apple_sdk.frameworks` to `buildInputs` on macOS.
+   nixpkgs removed that attribute, and the pinned revision throws: "darwin.
+   apple_sdk has been removed as it was a legacy compatibility stub". Therefore
+   `nix build` on macOS did not operate at all. No test on Linux can find this
+   fault, because `optionals` reads its list only when the condition is true.
+   `--all-systems` reads the outputs of macOS as well, and that is the answer.
+   macOS needs no input for the audio now: `stdenv` gives the SDK of Apple, and
+   that SDK holds AudioUnit and CoreAudio.
+
+The second fault is the exact condition that T-27 names: the flake stopped to
+operate, and every test stayed green.
+
 ### T-28: a tag with a capital letter gives "update available" for ever
 
 `src/utils/check_update.rs` removes the letter `v` from the front of the tag
