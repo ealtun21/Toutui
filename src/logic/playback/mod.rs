@@ -162,7 +162,44 @@ pub fn tracks_from_episode(item: &serde_json::Value, episode_id: &str) -> Option
 /// 4. It reads the audio files and the chapters.
 /// 5. It gives the work to the engine.
 /// 6. It follows the playback, and it writes the progress.
+///
+/// The function always releases the wait of the next playback.
+/// `wait_prev_session_finished` waits while `is_loop_break` is not `1`, and it
+/// gives that value `0` before the playback begins.
+///
+/// `play_media` comes back in five places without a playback: a server that
+/// gives an error, an item that the server does not give, an item with no audio
+/// file, and two conditions of the offline mode. The old code gave the value
+/// `1` in the two loops only. Therefore the next playback waited for ever, and
+/// the screen held the message "Syncing your last listening session. Please
+/// wait...". A measurement on 2026-08-10 ran `play` against a server that gave
+/// the answer 500, and the value stayed `0`.
+///
+/// One place owns this value now. `tests/playback_wait_flag.rs` holds the rule.
 pub async fn play(
+    api: &ApiClient,
+    player: &PlayerHandle,
+    target: PlaybackTarget,
+    username: String,
+    server_address: String,
+    server_key: String,
+) {
+    play_media(
+        api,
+        player,
+        target,
+        username.clone(),
+        server_address,
+        server_key,
+    )
+    .await;
+
+    let _ = update_is_loop_break("1", username.as_str());
+}
+
+/// Starts a media, and follows the playback to the end. `play` calls this
+/// function.
+async fn play_media(
     api: &ApiClient,
     player: &PlayerHandle,
     target: PlaybackTarget,
@@ -506,7 +543,6 @@ async fn follow_playback_offline(
                 false,
             );
 
-            let _ = update_is_loop_break("1", username.as_str());
             return;
         }
 
@@ -535,7 +571,6 @@ async fn follow_playback_offline(
                 finished,
             );
 
-            let _ = update_is_loop_break("1", username.as_str());
             return;
         }
     }
@@ -681,7 +716,6 @@ pub async fn follow_playback(
             )
             .await;
 
-            let _ = update_is_loop_break("1", username.as_str());
             return;
         }
 
@@ -759,7 +793,6 @@ pub async fn follow_playback(
                 )
                 .await;
 
-                let _ = update_is_loop_break("1", username.as_str());
                 return;
             }
         }
