@@ -6,10 +6,10 @@ use std::path::Path;
 
 /// Makes the directory that holds a file.
 ///
-/// The program makes the directory of configuration here. A function that
-/// copied the directory made it before, and that function is gone. Therefore
-/// a new user gets no directory if this function is absent, and the program
-/// then stops with a panic on the file of the log.
+/// The program makes its directory of configuration here, at the start,
+/// before the file of the log opens. A new user has no such directory yet,
+/// and the program would stop with a panic on the file of the log if this
+/// function did not make it first.
 pub fn make_parent_dir(path: &Path) -> std::io::Result<()> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
@@ -21,8 +21,7 @@ pub fn setup_logs() -> Result<(), fern::InitError> {
 
     let log_path = crate::paths::log_file();
 
-    // The directory must be present before the file opens. The program made
-    // this directory in another place before, and that place is gone.
+    // The directory must be present before the file opens.
     make_parent_dir(&log_path)?;
 
     // Create or append into the file

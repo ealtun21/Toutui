@@ -9,6 +9,11 @@ pub fn changelog() -> String {
         "AlbanDAVID wrote Toutui and archived it. This repository continues\n\
          that work. https://github.com/AlbanDAVID/Toutui\n\
          \n\
+         The entries below this line describe the original project. Some\n\
+         name a script or a package that does not exist now. The README of\n\
+         this repository gives the ways to install, to update, and to\n\
+         remove the fork.\n\
+         \n\
          ####\n",
     );
 

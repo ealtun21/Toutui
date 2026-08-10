@@ -418,6 +418,10 @@ an incomplete list.
 `install.sh` must install it and `--uninstall` must name it. If it does not,
 remove the two files.
 
+`macos/launch.command` opens `$HOME/.cargo/bin/toutui`, but `install.sh`
+installs the binary to `/usr/local/bin`. Therefore the decision about
+`macos/` must cover that file too, and not the two files above alone.
+
 ### T-14 stays open
 
 T-14 says that the program loses the configuration after an update. The first

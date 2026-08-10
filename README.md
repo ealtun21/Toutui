@@ -93,7 +93,6 @@ The application starts and plays when the server does not answer:
 **Short-term Goals**  
 - Since this is a beta version, the main focus is on tracking and fixing bugs.
 - Improve the design of the integrated player.
-- **Currently working on the next release: v1.0.0-stable.**
 
 
 **Mid-term Goals**   
@@ -188,6 +187,10 @@ In `~/.config/toutui` for Linux or `~/Library/Preferences/toutui` for macOS:
 
 In `~/.local/share/applications` (the script) for Linux:
 - `toutui.desktop` - Config file to launch Toutui from a launcher app.
+
+In `~/.local/share/toutui` (or `$XDG_DATA_HOME/toutui` if set):
+- `downloads/` - The local copies of books and podcast episodes, for
+  listening with no server. See [Offline Mode](#-offline-mode).
 
 ### More on the build
 
