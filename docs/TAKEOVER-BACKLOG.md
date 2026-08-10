@@ -46,6 +46,7 @@ the original issue, if there is one.
 | T-17 | The application plays an Opus file | `c342f50` |
 | T-34 | A colour of the configuration file does not stop the program | `21aac71` |
 | T-35 | Every playback releases the wait of the next playback | `e4b51c9` |
+| T-33 | The application uses ratatui 0.30, crossterm 0.29, and `tui-input` | `8f5c938` |
 
 Sub-project 2 removed VLC. The application decodes the audio in the process
 now. Therefore a book with many audio files plays completely, the token stays
@@ -665,9 +666,62 @@ backlog did not hold this request before. The other four open issues of that
 repository are complete: #36 is T-8, #35 is T-3, T-6 and T-7, #33 is T-2, and
 #32 is T-9.
 
-### T-33: ratatui 0.30 waits for tui-textarea
+### T-33: ratatui 0.30 — complete, `8f5c938`
 
-**2026-08-10.** `tui-textarea` 0.7.0 of 2024-10-22 is still the newest version of
+**The work that landed, 2026-08-10.** The project holds `ratatui` 0.30.2,
+`crossterm` 0.29.0, and `tui-input` 0.15.4. `tui-textarea` is gone. The change
+touched two files of the application and added one:
+
+- `src/logic/auth/auth_input.rs` — the three fields of the login screen.
+- `src/logic/search/search_active.rs` — the bar of the search.
+- `src/ui/text_field.rs` — new. It makes the three values that a `Paragraph`
+  needs: the text to show, the number of hidden columns at the left, and the
+  column of the cursor.
+
+**The feature of `tui-input`.** The crate has two ways to read a key. The
+default feature `ratatui-crossterm` reads the events through the copy of
+crossterm that ratatui holds. This project names crossterm itself, therefore it
+takes `default-features = false` and the feature `crossterm`. `cargo tree -i
+crossterm` then shows one crossterm 0.29.0 for the application, for ratatui, and
+for `tui-input`.
+
+**No new C.** `cargo tree -i cc` finds `libsqlite3-sys` and `ring` only, and
+`cargo tree -i openssl-sys` finds nothing.
+
+**The proof.** A test of the screen cannot reach the login screen or the search
+bar. Therefore the work has two proofs.
+
+1. **The pure part.** `src/ui/text_field.rs` holds 12 tests. They examine the
+   column of the cursor, the horizontal scroll of a text that is longer than the
+   field, a character that takes two columns, and the mask of the password. One
+   test walks 200 positions of the cursor and 39 widths, and it shows that the
+   cursor always stays inside the field.
+2. **The real program.** A debug build ran in a pseudo terminal against the
+   sandbox, with `XDG_CONFIG_HOME` at a new directory. The login screen showed
+   the text "http:// or https:// required" while the first field was empty. The
+   arrow keys moved the cursor. The password field showed 13 mask characters for
+   a password of 13 characters, and two Backspace keys left 11. That wrong
+   password gave "ERROR: Login failed", and the screen of the login came again.
+   The correct password wrote the user in the database with a token of 280
+   characters, and the library came. In the search bar, the text "the" with the
+   cursor two columns to the left took an "X" in the middle and gave "tXhe", and
+   Backspace gave "the" again. Enter then found the three books of "The Test
+   Chronicles". `tests/login_against_the_sandbox.rs` passes with `--ignored`.
+
+**A trap of the test, measured 2026-08-10.** `ALSA_CONFIG_PATH=/dev/null` is
+correct for `cargo test`, because no test opens a sound device. The real program
+stops for ever with that value: it reaches "The pool has 1 address(es)" and it
+draws nothing. Give the program a real file instead:
+
+```
+</usr/share/alsa/alsa.conf>
+pcm.!default { type null }
+ctl.!default { type null }
+```
+
+The text below is the examination of 2026-08-10 before this work.
+
+**`tui-textarea` 0.7.0** of 2024-10-22 is still the newest version of
 that crate, and it still asks for `ratatui ^0.29`. Therefore the blocker did not
 go away by itself.
 
