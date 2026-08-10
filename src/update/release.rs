@@ -69,8 +69,17 @@ pub fn parse_release(body: &str, target: &str) -> Result<Release, String> {
 }
 
 /// Asks the API for the last release.
+///
+/// The request has a limit on time, so that a host that accepts the
+/// connection and never answers cannot stop the update forever with no
+/// message.
 pub async fn latest_release(api: &str, target: &str) -> Result<Release, String> {
-    let body = reqwest::Client::new()
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(120))
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let body = client
         .get(api)
         .header(reqwest::header::USER_AGENT, "Toutui-Updater")
         .send()

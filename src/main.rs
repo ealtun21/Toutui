@@ -24,7 +24,7 @@ use crate::utils::encrypt_token::decrypt_token;
 async fn main() -> Result<()> {
 
     // clap
-    clap();
+    clap().await;
 
     // this function allow to write all the logs in a file
     setup_logs().expect("Failed to execute logger");
