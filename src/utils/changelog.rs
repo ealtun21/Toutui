@@ -345,8 +345,7 @@ To make it work properly, perform a fresh reinstall.
      ####\n"
         .to_string();
 
-    let changelog_19 = format!(
-        "Changelog Toutui v{} (11/08/2026) \n\
+    let changelog_19 = "Changelog Toutui v0.6.3 (11/08/2026) \n\
      \n\
      Added:\n\
      - **Read an EPUB book in the terminal.** The key e on an item that\n\
@@ -357,6 +356,23 @@ To make it work properly, perform a fresh reinstall.
        works with no server.\n\
      - The place of the reader goes to the field of the ebook of the\n\
        server. It changes no position of the audio.\n\
+     \n\
+     Contributors:\n\
+     \n\
+     - AlbanDAVID (the original project), ealtun21\n\
+     \n\
+     Enjoy and be toutui!\n\
+     ####\n"
+        .to_string();
+
+    let changelog_20 = format!(
+        "Changelog Toutui v{} (11/08/2026) \n\
+     \n\
+     Added:\n\
+     - The reader opens a book where you stopped. The place comes from\n\
+       the server, therefore a different machine gives the same place.\n\
+     - The reader sends the place by itself: when the place changed and\n\
+       30 seconds went by, and when you leave the book with h.\n\
      \n\
      Contributors:\n\
      \n\
@@ -406,6 +422,7 @@ To make it work properly, perform a fresh reinstall.
          Enjoy and be toutui!\n
          ####\n".to_string();
 
+    changelog.push_str(&changelog_20);
     changelog.push_str(&changelog_19);
     changelog.push_str(&changelog_18);
     changelog.push_str(&changelog_17);

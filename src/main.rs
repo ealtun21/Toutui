@@ -302,6 +302,11 @@ async fn main() -> Result<()> {
                 }
             }
 
+            // The reader sends the place of the user to the server while
+            // they read. The rule of the time lives in the reader: it sends
+            // when the place changed and 30 seconds went by. See T-10.
+            app.send_the_place_of_the_reader_if_it_is_time();
+
             // Short pause between event checks. A turn that took keys draws at
             // once, therefore the screen follows the user.
             if taken == 0 {

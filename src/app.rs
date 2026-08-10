@@ -1710,10 +1710,46 @@ impl App {
                     Err(message) => Err(message),
                 };
 
+            let outcome = match outcome {
+                Ok(mut reader) => {
+                    // The size of each chapter gives the part of the book, and
+                    // the place of the server needs it. The work reads the
+                    // file, therefore it runs here and not on the thread that
+                    // draws.
+                    reader.measure_the_chapters();
+
+                    // The user reads the same book on a different machine. The
+                    // program opens the book where they stopped. See T-10,
+                    // section 6.
+                    if let Some((location, part)) =
+                        crate::logic::reader::session::place_of_the_server(&api, &item_id).await
+                    {
+                        reader.go_to_the_place_of_the_server(&location, part);
+                    }
+
+                    Ok(reader)
+                }
+                Err(message) => Err(message),
+            };
+
             if let Ok(mut place) = answer.lock() {
                 *place = Some(outcome);
             }
         });
+    }
+
+    /// Sends the place of the reader when the rule of the time says so.
+    ///
+    /// The loop of the application calls this for each turn. See T-10.
+    pub fn send_the_place_of_the_reader_if_it_is_time(&mut self) {
+        let wants = self
+            .reader
+            .as_ref()
+            .is_some_and(|reader| reader.wants_to_send());
+
+        if wants {
+            self.send_the_place_of_the_reader();
+        }
     }
 
     /// Takes the book that the task opened, if it is ready.
@@ -1723,10 +1759,7 @@ impl App {
         };
 
         match outcome {
-            Ok(mut reader) => {
-                // The size of each chapter gives the part of the book. The
-                // work reads the file, therefore it runs one time.
-                reader.measure_the_chapters();
+            Ok(reader) => {
                 self.reader_message = None;
                 self.reader = Some(reader);
             }
@@ -1747,6 +1780,16 @@ impl App {
             .unwrap_or(20);
 
         if matches!(code, KeyCode::Char('h')) {
+            // The place goes to the server before the user leaves the book.
+            let wants = self
+                .reader
+                .as_ref()
+                .is_some_and(|reader| reader.wants_to_send_at_the_end());
+
+            if wants {
+                self.send_the_place_of_the_reader();
+            }
+
             self.view_state = AppView::Library;
             return;
         }
@@ -1810,6 +1853,12 @@ impl App {
         let location = crate::logic::reader::to_ebook_location(reader.position());
         let part = reader.fraction();
         let api = std::sync::Arc::clone(&self.api);
+
+        // The reader remembers the place that it sent. It then sends nothing
+        // while the user reads the same line.
+        if let Some(reader) = self.reader.as_mut() {
+            reader.the_place_went_to_the_server();
+        }
 
         let mut stdout = stdout();
         let _ = clear_message(&mut stdout, 3);

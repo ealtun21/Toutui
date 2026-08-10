@@ -64,9 +64,18 @@ pub struct Reader {
     pub contents_line: usize,
     /// The size of each chapter. The part of the book comes from it.
     sizes: Vec<u64>,
+    /// The place that the server holds. The reader sends nothing when the
+    /// place did not change.
+    sent: Option<Position>,
+    /// The time of the last send. The reader sends every 30 seconds at the
+    /// most, and not for each line that the user reads.
+    sent_at: std::time::Instant,
     sender: Sender<Rendered>,
     receiver: Receiver<Rendered>,
 }
+
+/// The time between two sends of the place, while the user reads.
+pub const TIME_BETWEEN_SENDS: std::time::Duration = std::time::Duration::from_secs(30);
 
 impl std::fmt::Debug for Reader {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -101,6 +110,8 @@ impl Reader {
             message: None,
             contents_open: false,
             contents_line: 0,
+            sent: None,
+            sent_at: std::time::Instant::now(),
             sender,
             receiver,
         })
@@ -265,6 +276,50 @@ impl Reader {
     }
 }
 
+impl Reader {
+    /// Tells if the reader must send the place now.
+    ///
+    /// The reader sends when the place changed and 30 seconds went by. A user
+    /// who reads a page each ten seconds therefore makes one request each 30
+    /// seconds, and not one for each page.
+    pub fn wants_to_send(&self) -> bool {
+        wants_to_send(self.sent, self.position(), self.sent_at.elapsed())
+    }
+
+    /// Tells if the reader must send the place before it goes away.
+    ///
+    /// The user leaves the book, or stops the program. The place must go to
+    /// the server then, whatever the time of the last send.
+    pub fn wants_to_send_at_the_end(&self) -> bool {
+        self.sent != Some(self.position())
+    }
+
+    /// Says that the place went to the server.
+    pub fn the_place_went_to_the_server(&mut self) {
+        self.sent = Some(self.position());
+        self.sent_at = std::time::Instant::now();
+    }
+}
+
+/// The rule of the send. See `Reader::wants_to_send`.
+pub fn wants_to_send(
+    sent: Option<Position>,
+    now: Position,
+    since_the_last_send: std::time::Duration,
+) -> bool {
+    if sent == Some(now) {
+        return false;
+    }
+
+    // The first place of a book goes at once. The user then sees that the
+    // program holds their place.
+    if sent.is_none() {
+        return since_the_last_send >= TIME_BETWEEN_SENDS;
+    }
+
+    since_the_last_send >= TIME_BETWEEN_SENDS
+}
+
 /// Gives the first line of the screen after a move.
 ///
 /// The function never goes past the end of the chapter, and never before its
@@ -282,6 +337,50 @@ pub fn new_top_line(top: usize, by: i64, lines: usize, height: u16) -> usize {
 /// the chapter and no empty space.
 pub fn last_top_line(lines: usize, height: u16) -> usize {
     lines.saturating_sub(usize::from(height).max(1))
+}
+
+/// Asks the server where the user stopped reading.
+///
+/// The answer gives the text of the place and the part of the book. A book
+/// that the user never opened gives nothing.
+///
+/// Audiobookshelf gives `ebookProgress` as a number and `ebookLocation` as a
+/// text. A different client writes an EPUBCFI in that text, and this program
+/// then uses the part of the book. See T-10, section 6.1.
+pub async fn place_of_the_server(api: &Arc<ApiClient>, item_id: &str) -> Option<(String, f64)> {
+    let answer: serde_json::Value = api
+        .get_json(&format!("/api/me/progress/{}", item_id))
+        .await
+        .ok()?;
+
+    let location = answer
+        .get("ebookLocation")
+        .and_then(|value| value.as_str())
+        .unwrap_or_default()
+        .to_string();
+
+    let part = answer
+        .get("ebookProgress")
+        .and_then(number_of)
+        .unwrap_or(0.0);
+
+    if location.is_empty() && part <= 0.0 {
+        return None;
+    }
+
+    Some((location, part))
+}
+
+/// Reads a number that the server gives as a number or as a text.
+///
+/// Audiobookshelf gives `currentTime` as a text. A reader that takes a number
+/// only finds nothing there.
+fn number_of(value: &serde_json::Value) -> Option<f64> {
+    match value {
+        serde_json::Value::Number(number) => number.as_f64(),
+        serde_json::Value::String(text) => text.parse::<f64>().ok(),
+        _ => None,
+    }
 }
 
 /// Gives the path of the ebook of one item on the disk.
@@ -331,6 +430,49 @@ pub async fn get_the_ebook(
 mod tests {
     use super::*;
 
+    fn a_place(spine: usize, line: usize) -> Position {
+        Position { spine, line }
+    }
+
+    #[test]
+    fn the_reader_sends_nothing_when_the_place_did_not_change() {
+        let now = a_place(2, 40);
+        assert!(!wants_to_send(
+            Some(now),
+            now,
+            std::time::Duration::from_secs(600)
+        ));
+    }
+
+    #[test]
+    fn the_reader_waits_for_the_time_between_two_sends() {
+        assert!(!wants_to_send(
+            Some(a_place(2, 10)),
+            a_place(2, 40),
+            std::time::Duration::from_secs(5)
+        ));
+        assert!(wants_to_send(
+            Some(a_place(2, 10)),
+            a_place(2, 40),
+            TIME_BETWEEN_SENDS
+        ));
+    }
+
+    #[test]
+    fn a_book_that_sent_nothing_yet_also_waits() {
+        // A book that the user opens and leaves at once must make no request.
+        assert!(!wants_to_send(
+            None,
+            a_place(0, 0),
+            std::time::Duration::from_secs(1)
+        ));
+        assert!(wants_to_send(
+            None,
+            a_place(0, 0),
+            std::time::Duration::from_secs(31)
+        ));
+    }
+
     #[test]
     fn the_screen_never_goes_past_the_end() {
         // 100 lines in a screen of 20 lines: the last screen starts at 80.
@@ -361,6 +503,14 @@ mod tests {
     fn a_chapter_with_no_line_stays_at_the_first_line() {
         assert_eq!(last_top_line(0, 20), 0);
         assert_eq!(new_top_line(0, 10, 0, 20), 0);
+    }
+
+    #[test]
+    fn a_number_of_the_server_comes_as_a_number_or_as_a_text() {
+        assert_eq!(number_of(&serde_json::json!(0.42)), Some(0.42));
+        assert_eq!(number_of(&serde_json::json!("0.42")), Some(0.42));
+        assert_eq!(number_of(&serde_json::json!("not a number")), None);
+        assert_eq!(number_of(&serde_json::json!(null)), None);
     }
 
     #[test]

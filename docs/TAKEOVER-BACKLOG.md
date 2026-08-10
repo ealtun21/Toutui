@@ -272,9 +272,22 @@ entries of the contents. The key `s` wrote `ebookLocation` `toutui:1:0` and
 The text stands in the middle and it never becomes wider than 100 columns,
 because a line of 200 columns is hard to read.
 
-**What is not there yet.** The reader does not send the place by itself after
-30 seconds; the key `s` does it. The reader reads no EPUBCFI of the web reader,
-and it uses `ebookProgress` in that condition, as section 6.1 says.
+**The place of the user, 2026-08-11.** The reader opens a book where the user
+stopped, and it sends the place by itself.
+
+- The key `e` asks `GET /api/me/progress/:id` and it goes to that place.
+- The reader sends the place when it changed and 30 seconds went by, and when
+  the user leaves the book with `h`. It sends nothing while the user reads the
+  same line.
+
+A run against the sandbox: the place of the server was empty. The user read to
+chapter 5 and line 5 and pressed `s`, and the server then held
+`ebookLocation` `toutui:4:5` and `ebookProgress` 0.1579. The key `e` a second
+time gave chapter 5 and the same first line of the screen.
+
+**What is not there yet.** The reader reads no EPUBCFI of the web reader, and
+it uses `ebookProgress` in that condition, as section 6.1 says. The user then
+finds the correct chapter and not the correct line.
 
 **The design, 2026-08-10.**
 `docs/superpowers/specs/2026-08-10-epub-reader-design.md`. No code yet.
