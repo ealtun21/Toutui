@@ -130,9 +130,60 @@ async fn main() -> Result<()> {
             server_key,
         );
 
-        let mut app = App::new(std::sync::Arc::clone(&api)).await?;
-
+        // The terminal comes first, and a screen comes before the requests.
+        //
+        // `App::new` asks the server many times: the libraries, the list
+        // Continue Listening, the position of each book of that list, the
+        // series, every item, and the lists. The old code drew nothing until
+        // all of that finished. A measurement on 2026-08-10 gave a server that
+        // accepts a connection and answers nothing: the screen stayed black
+        // for 15 seconds, the whole timeout of one request. A slow server with
+        // many books gives a black screen for much longer, and the user cannot
+        // tell a slow server from a program that stopped. See T-40.
         let mut terminal = ratatui::init();
+
+        let started = std::time::Instant::now();
+        let server_name = _database
+            .default_usr
+            .get(1)
+            .cloned()
+            .unwrap_or_else(|| String::from("the server"));
+
+        let mut app = {
+            let making = App::new(std::sync::Arc::clone(&api));
+            tokio::pin!(making);
+            let mut tick: usize = 0;
+
+            loop {
+                tokio::select! {
+                    biased;
+                    result = &mut making => break result?,
+                    _ = tokio::time::sleep(Duration::from_millis(120)) => {
+                        tick += 1;
+                        terminal.draw(|frame| {
+                            toutui::ui::loading::render(
+                                frame,
+                                &server_name,
+                                tick,
+                                started.elapsed().as_secs(),
+                            )
+                        })?;
+
+                        // The user can stop the program while it waits.
+                        if crossterm::event::poll(Duration::from_millis(0))? {
+                            if let event::Event::Key(key) = crossterm::event::read()? {
+                                if key.kind == event::KeyEventKind::Press
+                                    && matches!(key.code, KeyCode::Char('Q') | KeyCode::Esc)
+                                {
+                                    ratatui::restore();
+                                    return Ok(());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
 
         // The picker asks the terminal for the protocol of the pictures and
         // for the size of the font. A terminal that does not answer gives

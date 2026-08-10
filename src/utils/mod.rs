@@ -7,3 +7,4 @@ pub mod exit_app;
 pub mod html_text;
 pub mod logs;
 pub mod pop_up_message;
+pub mod startup;

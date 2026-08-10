@@ -208,6 +208,7 @@ impl App {
         let config = load_config()?;
 
         // init database from Database struct
+        crate::utils::startup::set("the database");
         let database = Database::new().await?;
 
         // init changelog
@@ -270,6 +271,7 @@ impl App {
         // This is the first request. A server that does not answer starts the
         // offline mode: the application then makes its lists from the media on
         // the disk, and it sends no other request. See T-25.
+        crate::utils::startup::set("the libraries of the server");
         let (all_libraries, is_offline) = match get_all_libraries(&api).await {
             Ok(value) => (value, false),
             Err(error) if error.is_offline() => {
@@ -339,6 +341,7 @@ impl App {
             // application starts in the Library view.
         } else if is_podcast {
             // init for  `Home` (continue listening) for podcasts
+            crate::utils::startup::set("the list Continue Listening");
             let continue_listening_pod = get_continue_listening_pod(&api, &id_selected_lib).await?;
             _ids_cnt_list = collect_ids_pod_cnt_list(&continue_listening_pod).await; // id of a podcast
             _titles_cnt_list = collect_titles_cnt_list_pod(&continue_listening_pod).await; // title of podcast ep
@@ -352,6 +355,7 @@ impl App {
             durations_pod_cnt_list = collect_durations_pod_cnt_list(&continue_listening_pod).await;
         } else {
             // init for  `Home` (continue listening) for books
+            crate::utils::startup::set("the list Continue Listening");
             let continue_listening = get_continue_listening(&api, &id_selected_lib).await?;
             _titles_cnt_list = collect_titles_cnt_list(&continue_listening).await;
             auth_names_cnt_list = collect_auth_names_cnt_list(&continue_listening).await;
@@ -359,26 +363,75 @@ impl App {
             duration_cnt_list = collect_duration_cnt_list(&continue_listening).await;
             desc_cnt_list = collect_desc_cnt_list(&continue_listening).await;
             _ids_cnt_list = collect_ids_cnt_list(&continue_listening).await;
-            for id in _ids_cnt_list.clone() {
-                if let Ok(val) = get_book_progress(&api, &id).await {
-                    let mut values: Vec<String> = Vec::new();
-                    let mut values_f64: Vec<f64> = Vec::new();
-                    values.push(collect_progress_percentage_book(&val).await);
-                    values.push(collect_is_finished_book(&val).await);
-                    values_f64.push(collect_current_time_prg(&val).await);
-                    book_progress_cnt_list.push(values);
-                    book_progress_cnt_list_cur_time.push(values_f64);
-                } else {
-                    // if the book is not starded, `get book progress` is not fetched
-                    // so the empty values are handled here :
-                    // avoid an out of bound panick
-                    let mut values: Vec<String> = Vec::new();
-                    let mut values_f64: Vec<f64> = Vec::new();
-                    values.push(" N/A".to_string());
-                    values.push(" N/A".to_string());
-                    values_f64.push(0.0);
-                    book_progress_cnt_list.push(values);
-                    book_progress_cnt_list_cur_time.push(values_f64);
+            // The position of each book needs its own request. The old code
+            // sent them one after the other, therefore the start of the
+            // program took the time of one request for each book of the list.
+            // A server with a delay of 300 milliseconds and a list of ten
+            // books then needed three seconds. The requests go together now,
+            // eight at a time, and the answers keep the sequence of the list.
+            // See T-40.
+            const AT_THE_SAME_TIME: usize = 8;
+
+            let count_of_the_list = _ids_cnt_list.len();
+            let mut answers: Vec<Option<(Vec<String>, Vec<f64>)>> = vec![None; count_of_the_list];
+            let mut done = 0;
+
+            for group in _ids_cnt_list.clone().chunks(AT_THE_SAME_TIME).enumerate() {
+                let (group_number, ids) = group;
+                let mut tasks = tokio::task::JoinSet::new();
+
+                for (inside, id) in ids.iter().enumerate() {
+                    let place = group_number * AT_THE_SAME_TIME + inside;
+                    let api = std::sync::Arc::clone(&api);
+                    let id = id.clone();
+
+                    tasks.spawn(async move {
+                        let answer = match get_book_progress(&api, &id).await {
+                            Ok(value) => Some((
+                                vec![
+                                    collect_progress_percentage_book(&value).await,
+                                    collect_is_finished_book(&value).await,
+                                ],
+                                vec![collect_current_time_prg(&value).await],
+                            )),
+                            // A book that never played has no progress. The
+                            // server gives an error, and that is not a fault.
+                            Err(_) => None,
+                        };
+
+                        (place, answer)
+                    });
+                }
+
+                while let Some(finished) = tasks.join_next().await {
+                    done += 1;
+                    crate::utils::startup::set_part(
+                        "the position of each book of that list",
+                        done,
+                        count_of_the_list,
+                    );
+
+                    if let Ok((place, answer)) = finished {
+                        if let Some(slot) = answers.get_mut(place) {
+                            *slot = answer;
+                        }
+                    }
+                }
+            }
+
+            for answer in answers {
+                match answer {
+                    Some((values, values_f64)) => {
+                        book_progress_cnt_list.push(values);
+                        book_progress_cnt_list_cur_time.push(values_f64);
+                    }
+                    // A book that never played gives no progress. The lists
+                    // must still hold one row for each book, because the
+                    // screen reads them by the number of the row.
+                    None => {
+                        book_progress_cnt_list.push(vec![" N/A".to_string(), " N/A".to_string()]);
+                        book_progress_cnt_list_cur_time.push(vec![0.0]);
+                    }
                 }
             }
         }
@@ -388,6 +441,7 @@ impl App {
         let series = if is_podcast || is_offline {
             Vec::new()
         } else {
+            crate::utils::startup::set("the series of the library");
             match get_all_series(&api, &id_selected_lib).await {
                 Ok(root) => collect_series(&root),
                 Err(error) => {
@@ -404,6 +458,7 @@ impl App {
         let collections = if is_podcast || is_offline {
             CollectionRoot::default()
         } else {
+            crate::utils::startup::set("the collections and the playlists");
             get_all_collections(&api, &id_selected_lib)
                 .await
                 .unwrap_or_else(|error| {
@@ -433,6 +488,7 @@ impl App {
         let all_books = if is_offline {
             crate::api::libraries::get_all_books::Root::default()
         } else {
+            crate::utils::startup::set("every item of the library");
             get_all_books(&api, &id_selected_lib).await?
         };
 
@@ -576,6 +632,7 @@ impl App {
 
         if is_podcast {
             for id_library in ids_library.iter() {
+                crate::utils::startup::set("the episodes of the podcasts");
                 let podcast_episode = get_pod_ep(&api, id_library.as_str()).await?;
                 let title = collect_titles_pod_ep(&podcast_episode).await;
                 all_titles_pod_ep.push(title);
