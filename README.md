@@ -274,7 +274,13 @@ The build compiles two dependencies from C source: SQLite (through
 with no C. Issue 20 holds that work. The audio engine compiles no C.
 
 The application plays these formats: mp3, m4b, m4a, mp4, aac, flac, wav, aiff,
-ogg, oga, mka, webm, caf, mpeg, and mpg. It does not play opus, wma, or awb.
+ogg, oga, opus, mka, webm, caf, mpeg, and mpg. It does not play wma or awb.
+
+Opus needs its own decoder, because the decoder of `rodio` has no Opus in its
+registry of codecs. The application reads the packets with `symphonia` and
+decodes them with `opuscule`. Both crates are pure Rust. A measurement on
+2026-08-10 compared the samples with libopus over 50 files, and the largest
+difference of one sample is 0.00002 of a full scale of 1.0.
 
 The application uses the default sound device. If your computer has more than
 one sound card, give the name of the device in the variable

@@ -27,6 +27,49 @@ pub fn restore_terminal() {
     restore_terminal_on(&mut stdout);
 }
 
+// A panic that the caller expects, and that the caller catches.
+//
+// The hook must not give the terminal back for such a panic, because the
+// application continues. The hook must also write no message on the screen,
+// because the screen holds the application.
+//
+// One place uses this: the Opus decoder. A crate that decodes audio can stop
+// with an arithmetic fault on data that it does not expect. The engine catches
+// that panic, it stops the one track, and the application continues. See T-17.
+thread_local! {
+    static EXPECTED: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+
+/// Tells the hook that this thread expects a panic.
+///
+/// The old value comes back when the guard goes away. Therefore a function
+/// inside another function does no damage.
+pub struct ExpectedPanic(bool);
+
+impl ExpectedPanic {
+    /// Makes the guard.
+    pub fn new() -> ExpectedPanic {
+        ExpectedPanic(EXPECTED.replace(true))
+    }
+}
+
+impl Default for ExpectedPanic {
+    fn default() -> Self {
+        ExpectedPanic::new()
+    }
+}
+
+impl Drop for ExpectedPanic {
+    fn drop(&mut self) {
+        EXPECTED.set(self.0);
+    }
+}
+
+/// Tells if the thread expects a panic.
+pub fn panic_is_expected() -> bool {
+    EXPECTED.with(|value| value.get())
+}
+
 /// Gives the terminal back to the shell when the program panics.
 ///
 /// A panic inside the application left the terminal in the raw mode and on
@@ -41,9 +84,20 @@ pub fn restore_terminal() {
 ///
 /// `restore` is an argument, so that a test can give a function of its own and
 /// confirm that the hook calls it.
+///
+/// A panic that the caller expects is different. The hook then writes a line in
+/// the log only: it keeps the terminal, and it keeps the screen, because the
+/// application continues. See `ExpectedPanic`.
 pub fn install_panic_hook_with(restore: fn()) {
     let previous = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |info| {
+        // The caller catches this panic, and the application continues. The
+        // terminal must stay as it is, and the screen must stay as it is.
+        if panic_is_expected() {
+            log::error!("[panic] the caller expects this panic: {}", info);
+            return;
+        }
+
         restore();
         previous(info);
     }));
@@ -95,16 +149,35 @@ mod tests {
         RESTORED.fetch_add(1, Ordering::SeqCst);
     }
 
-    /// A panic calls the function that gives the terminal back.
+    /// The hook gives the terminal back for a panic that no caller expects, and
+    /// it keeps the terminal for a panic that a caller expects.
+    ///
+    /// The two rules are in one test, because `set_hook` changes a value of the
+    /// whole program. Two tests that install a hook run at the same time, and
+    /// each hook then calls the hook before it.
     ///
     /// The test gives the hook a function of its own, therefore it does not
-    /// touch the terminal of the test. The hook writes the message of the panic
-    /// as before, and that message belongs to this test.
+    /// touch the terminal of the test.
     #[test]
-    fn a_panic_gives_the_terminal_back() {
+    fn the_hook_gives_the_terminal_back_for_a_panic_that_no_caller_expects() {
         install_panic_hook_with(count_one_restore);
 
         let before = RESTORED.load(Ordering::SeqCst);
+
+        // A panic that a caller expects keeps the terminal.
+        let result = {
+            let _guard = ExpectedPanic::new();
+            std::panic::catch_unwind(|| panic!("a panic that the caller expects"))
+        };
+
+        assert!(result.is_err(), "the panic must arrive");
+        assert_eq!(
+            RESTORED.load(Ordering::SeqCst),
+            before,
+            "the hook gave the terminal back for a panic that the caller expects"
+        );
+
+        // The guard is gone. A panic gives the terminal back again.
         let result = std::panic::catch_unwind(|| panic!("a panic of the test"));
 
         assert!(result.is_err(), "the panic must arrive");

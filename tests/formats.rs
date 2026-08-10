@@ -147,11 +147,50 @@ fn adpcm_plays() {
     assert_plays("tone_adpcm.wav");
 }
 
-/// Tells if a test file holds Opus audio.
+/// Opus in an OGG container. Audiobookshelf accepts the extension `opus`.
 ///
-/// The application cannot play Opus today. See T-17 and the test below.
-fn is_opus(name: &str) -> bool {
-    name.contains("opus")
+/// `rodio::Decoder` cannot play Opus. The project reads the packets with
+/// symphonia and decodes them with `opus-decoder`. See T-17.
+#[test]
+fn opus_plays() {
+    assert_plays("tone.opus");
+}
+
+#[test]
+fn opus_with_two_channels_plays() {
+    assert_plays("tone_stereo.opus");
+}
+
+/// A file with the extension `ogg` also holds Opus. The application examines
+/// the container, and it does not trust the extension.
+#[test]
+fn opus_with_the_extension_ogg_plays() {
+    assert_plays("tone_opus.ogg");
+}
+
+/// Opus in a Matroska container, in a WebM container, and in an MP4 container.
+///
+/// These three files take a different path: the extension is not an extension
+/// of OGG, therefore the application asks `rodio::Decoder` first. That decoder
+/// gives an error, and the Opus source then plays the file.
+///
+/// A measurement on 2026-08-10 found a fault of this path. The old code took
+/// the length of a packet from the container. The time base of a Matroska
+/// container counts milliseconds, therefore a file of one second gave 7
+/// samples.
+#[test]
+fn opus_in_matroska_plays() {
+    assert_plays("tone_opus.mka");
+}
+
+#[test]
+fn opus_in_webm_plays() {
+    assert_plays("tone_opus.webm");
+}
+
+#[test]
+fn opus_in_mp4_plays() {
+    assert_plays("tone_opus.mp4");
 }
 
 /// Every file in the directory must have a test. This test finds a file that
@@ -166,53 +205,12 @@ fn every_test_file_decodes() {
         if path.is_file() {
             let name = path.file_name().unwrap().to_string_lossy().to_string();
 
-            if is_opus(&name) {
-                continue;
-            }
-
             assert_plays(&name);
             count += 1;
         }
     }
 
-    assert!(count >= 13, "the directory must hold the test files");
-}
-
-/// Audiobookshelf accepts Opus, and the application cannot play it. The
-/// application must give a clear message, and it must not stop.
-///
-/// A measurement on 2026-08-10 examined two pure Rust decoders. The crate
-/// `opus-decoder` 0.1.1 stops the program with an arithmetic fault on a file
-/// of 24 kilobits each second. The crate `moosicbox_opus_native` 0.4.0 gives
-/// no sample for a file of one channel. Therefore no decoder is ready.
-///
-/// This test becomes a test of a working format when a decoder is ready. See
-/// T-17.
-#[test]
-fn an_opus_file_gives_a_clear_message() {
-    for name in ["tone.opus", "tone_stereo.opus", "tone_opus.ogg"] {
-        let path = fixture_dir().join(name);
-        assert!(path.exists(), "the test file {} is absent", name);
-
-        match decode(name) {
-            Ok(samples) => panic!(
-                "the application played the Opus file {} and gave {} samples.                  If a decoder is ready now, move this file to the tests of                  the formats that play.",
-                name, samples
-            ),
-            Err(error) => {
-                assert!(
-                    error.contains(name),
-                    "the message must name the file, but it is: {}",
-                    error
-                );
-                assert!(
-                    error.contains(SUPPORTED_FORMATS),
-                    "the message must show the formats, but it is: {}",
-                    error
-                );
-            }
-        }
-    }
+    assert!(count >= 19, "the directory must hold the test files");
 }
 
 /// A file that is not audio must give a clear message. The message must name

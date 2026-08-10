@@ -34,6 +34,27 @@ clap = "4.5.37"
 # outside, because symphonia has no decoder for them.
 rodio = { version = "0.22", default-features = false, features = ["playback", "symphonia-all"] }
 rodio-wsola = "0.2"
+# Opus. `rodio::Decoder` uses the fixed codec registry of symphonia, and that
+# registry has no Opus decoder. Therefore the project reads the packets with
+# symphonia and decodes them with `opuscule`. See T-17.
+#
+# `all-formats` gives the readers only. The codecs come from rodio.
+#
+# A measurement on 2026-08-10 examined four pure Rust decoders with 47 files in
+# a debug build, where Rust examines every arithmetic operation. `opus-decoder`
+# 0.1.1 stopped the program on 13 files, and `mousiki` 0.2.1 stopped it on 15.
+# `moosicbox_opus_native` 0.4.0 has `todo!()` in `decode_float`. `opuscule`
+# 0.2.0 played all 47 files, and its samples agree with libopus.
+#
+# `opuscule` forbids `unsafe` code, therefore a fault of the crate gives a
+# panic or a wrong sample, and never damage of the memory. The engine catches
+# such a panic and stops the one track. See T-17 and
+# `src/player/engine/opus.rs`.
+#
+# Both crates are pure Rust: the build needs no C toolchain, and the binary
+# needs no library of the system.
+symphonia = { version = "0.5.5", default-features = false, features = ["all-formats"] }
+opuscule = "0.2.0"
 # The update compares the sum of the archive and opens the archive. The three
 # crates below are pure Rust, therefore the build needs no C toolchain.
 sha2 = "0.11"

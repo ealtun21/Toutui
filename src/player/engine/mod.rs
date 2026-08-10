@@ -5,6 +5,7 @@
 //! process.
 
 pub mod http_file;
+pub mod opus;
 pub mod pos_probe;
 pub mod source;
 pub mod speed;
