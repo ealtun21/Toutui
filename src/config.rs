@@ -2,8 +2,6 @@ use crate::api::client::endpoint::{Endpoint, EndpointPool};
 use config::{Config as ConfigLib, File};
 use serde::Deserialize;
 use color_eyre::eyre::{Result, Report};
-use std::env;
-use std::path::PathBuf;
 
 #[derive(Debug, Deserialize)]
 pub struct ConfigFile {
@@ -48,21 +46,7 @@ pub struct ServerConfig {
 
 /// load config from `config.toml` file
 pub fn load_config() -> Result<ConfigFile> {
-    let config_home_path = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from) 
-        .unwrap_or_else(|_| { 
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-
-            path
-        });
-
-    let config_path = config_home_path.join("toutui/config.toml");
+    let config_path = crate::paths::config_file();
     let config_path_str = config_path.to_str().unwrap().to_string();
 
     let config = ConfigLib::builder()

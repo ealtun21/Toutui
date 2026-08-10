@@ -5,31 +5,14 @@
 //! that an older version of the program made.
 
 use rusqlite::{Connection, Result};
-use std::env;
 use std::path::PathBuf;
 
 /// The schema version that this build of the program expects.
 pub const LATEST_VERSION: i64 = 5;
 
 /// Gives the full path of the database file.
-///
-/// The path follows `XDG_CONFIG_HOME` if that variable is set. If it is not
-/// set, the path is `~/.config` on Linux and `~/Library/Preferences` on
-/// macOS.
 pub fn db_path() -> PathBuf {
-    let config_home = env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let mut path = dirs::home_dir().expect("Unable to find the user's home directory");
-            if cfg!(target_os = "macos") {
-                path.push("Library/Preferences");
-            } else {
-                path.push(".config");
-            }
-            path
-        });
-
-    config_home.join("toutui/db.sqlite3")
+    crate::paths::db_file()
 }
 
 /// Opens the database file and applies the migrations.
