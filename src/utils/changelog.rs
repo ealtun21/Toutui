@@ -253,8 +253,7 @@ To make it work properly, perform a fresh reinstall.
      ####\n"
         .to_string();
 
-    let changelog_16 = format!(
-        "Changelog Toutui v{} (10/08/2026) \n\
+    let changelog_16 = "Changelog Toutui v0.6.0 (10/08/2026) \n\
      \n\
      Added:\n\
      - The cover art. The cover stands beside the description and it is\n\
@@ -272,6 +271,44 @@ To make it work properly, perform a fresh reinstall.
        of the search work as before.\n\
      - The build still needs no C toolchain for a library of the system,\n\
        and it needs no OpenSSL.\n\
+     \n\
+     Contributors:\n\
+     \n\
+     - AlbanDAVID (the original project), ealtun21\n\
+     \n\
+     Enjoy and be toutui!\n\
+     ####\n"
+        .to_string();
+
+    let changelog_17 = format!(
+        "Changelog Toutui v{} (10/08/2026) \n\
+     \n\
+     This release answers a report of a user on v0.5.0 and v0.6.0.\n\
+     \n\
+     Fixed:\n\
+     - The program drew nothing while it started. A slow server gave a\n\
+       black screen, and the user could not tell a slow server from a\n\
+       program that stopped. The program now draws at once, it names the\n\
+       step that it waits for, and the key Q stops it.\n\
+     - The start is faster: the position of each book of the list\n\
+       Continue Listening goes in one group of requests, and not one\n\
+       after the other.\n\
+     - A machine with no sound device could not open the program at all.\n\
+       Every function that needs no sound works now.\n\
+     - No index of a vector can stop the screen. The render read a\n\
+       vector with the number of the selected line in 39 places, and a\n\
+       list of the screen can be shorter than that number.\n\
+     - The login examines the address of the server before it asks for\n\
+       the password, and it says what is wrong.\n\
+     \n\
+     Added:\n\
+     - Every line of the Home view and of the Library view has a mark:\n\
+       the media that plays, a media that is finished, or the part that\n\
+       the user heard.\n\
+     - The settings say \"Accounts and log out\", and each entry tells\n\
+       what it does.\n\
+     - TOUTUI_NO_COVERS turns the cover art off. Inside tmux the program\n\
+       asks the terminal nothing.\n\
      \n\
      Contributors:\n\
      \n\
@@ -321,6 +358,7 @@ To make it work properly, perform a fresh reinstall.
          Enjoy and be toutui!\n
          ####\n".to_string();
 
+    changelog.push_str(&changelog_17);
     changelog.push_str(&changelog_16);
     changelog.push_str(&changelog_15);
     changelog.push_str(&changelog_14);
