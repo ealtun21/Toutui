@@ -28,6 +28,7 @@ not in the archived repository.
  **Cross-platform:** <img src=".github/tux.png" align="top" width="24" alt="Tux (Linux)"/>  Linux and <img src=".github/apple.png" align="top" width="24" alt="Apple (macOS)"/> macOS    
  **Lightweight & Fast:** A minimalist terminal user interface (TUI) written in Rust 🦀  
  **Supports Books & Podcasts:** Enjoy both audiobooks and podcasts  
+ **Bookmarks:** Mark a place in a long book and come back to it (`b`, `V`)  
  **The sequence and the filter:** Sort a library and show one author, one genre, or one tag (`f`)  
  **Series:** See the series of a library and the books of a series, in sequence (`s`)  
  **The shelves of Home:** Continue Listening, Recently Added, Recent Series, Discover, and Listen Again  
@@ -117,6 +118,21 @@ The server sorts and filters the items. `f` chooses how.
 - The choice belongs to your account, and it stays after the program stops.
   The title of the Library view says the sequence, and it says that a filter
   is on.
+
+## 🔖 Bookmarks
+
+Audiobookshelf holds a place for each user, and every client of that user
+reads it. A user of a long book needs a place to come back to.
+
+- `b` — write a bookmark at the place of the playback. The program asks for a
+  name, and an empty name gives the name of the place, for example "The place
+  at 25:14". Esc writes nothing.
+- `V` — show the bookmarks. The list holds the media that plays, or the media
+  of the line that you selected. The first place comes first.
+- `l`/`Enter` — go to the place. The media must play.
+- `X` — remove the bookmark.
+- A bookmark of a different client stands in the list, and a bookmark of this
+  program stands in the web page.
 
 ## ⏱ The chapters, and Continue Listening
 

@@ -1,3 +1,4 @@
+pub mod bookmarks;
 pub mod get_media_progress;
 pub mod listening_stats;
 pub mod permissions;

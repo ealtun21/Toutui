@@ -59,6 +59,8 @@ pub enum AppView {
     SortFilter,
     /// The chapters of the media that plays. See T-24.
     Chapters,
+    /// The bookmarks of one media. See T-24.
+    Bookmarks,
     Settings,
     SettingsAccount,
     SettingsLibrary,
@@ -122,6 +124,10 @@ pub struct App {
     pub list_state_sort_filter: ListState,
     /// The list of the chapters of the media that plays. See T-24.
     pub list_state_chapters: ListState,
+    /// The list of the bookmarks of one media. See T-24.
+    pub list_state_bookmarks: ListState,
+    /// The media whose bookmarks the view shows. See T-24.
+    pub bookmarks_of: String,
     /// The user changed the sequence or the filter. The loop of the program
     /// then makes the application again, in the same way as the key `R`. A
     /// new sequence needs a new request, and every list of the library comes
@@ -990,6 +996,8 @@ impl App {
             library_filter,
             list_state_sort_filter,
             list_state_chapters: ListState::default(),
+            list_state_bookmarks: ListState::default(),
+            bookmarks_of: String::new(),
             must_refresh: false,
             series_from: AppView::Series,
             lists,
@@ -1126,6 +1134,13 @@ impl App {
             // See T-24.
             KeyCode::Char('C') => self.show_the_chapters(),
 
+            // The key that writes a bookmark at the place of the playback.
+            // See T-24.
+            KeyCode::Char('b') => self.write_a_bookmark(),
+
+            // The key that shows the bookmarks of a media. See T-24.
+            KeyCode::Char('V') => self.show_the_bookmarks(),
+
             // The key that shows the time that the user listened. See T-24.
             KeyCode::Char('T') => self.show_the_statistics(),
 
@@ -1229,6 +1244,12 @@ impl App {
                         .await;
                     });
                 }
+            }
+
+            // The key `X` removes a bookmark inside the view of the
+            // bookmarks. Every other view removes the local copy. See T-24.
+            KeyCode::Char('X') if matches!(self.view_state, AppView::Bookmarks) => {
+                self.remove_the_bookmark()
             }
 
             // remove the local copy of the selected book or episode
@@ -1390,6 +1411,7 @@ impl App {
                     AppView::SortFilter => self.view_state = AppView::Library,
                     // The view of the chapters goes back to the Home view.
                     AppView::Chapters => self.view_state = AppView::Home,
+                    AppView::Bookmarks => self.view_state = AppView::Home,
                     AppView::PodcastEpisode => {
                         if self.is_from_search_pod {
                             self.view_state = AppView::SearchBook
@@ -1602,6 +1624,7 @@ impl App {
                     AppView::Stats => {}
                     AppView::SortFilter => self.apply_the_sequence_or_the_filter(),
                     AppView::Chapters => self.go_to_the_chapter(),
+                    AppView::Bookmarks => self.go_to_the_bookmark(),
                     AppView::Library => {
                         // A line of a series opens the books of that series.
                         // See T-22.
@@ -1955,6 +1978,222 @@ impl App {
             3,
             &format!("The playback goes to \"{}\".", chapter.title),
         );
+    }
+
+    /// Writes a bookmark at the place of the playback. See T-24.
+    ///
+    /// The key operates while a media plays: a bookmark holds a place, and a
+    /// media that does not play has no place. The program asks the user for a
+    /// name, and an empty name gives the name of the place.
+    pub fn write_a_bookmark(&mut self) {
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+
+        let state = self.player.state();
+
+        if state.status == crate::player::engine::PlaybackStatus::Stopped {
+            let _ = pop_message(&mut stdout, 3, "No media plays now.");
+            return;
+        }
+
+        if self.is_offline {
+            let _ = pop_message(&mut stdout, 3, "The server does not answer.");
+            return;
+        }
+
+        let place = state.position;
+        let item_id = state.item_id.clone();
+
+        // The user presses Esc. The program then writes nothing.
+        let Ok(Some(name)) = self.ask_for_a_text("The name of the bookmark (Enter, or Esc)") else {
+            return;
+        };
+
+        let name = if name.trim().is_empty() {
+            crate::api::me::bookmarks::default_title(place)
+        } else {
+            name.trim().to_string()
+        };
+
+        let api = std::sync::Arc::clone(&self.api);
+        let _ = clear_message(&mut stdout, 3);
+        let _ = pop_message(&mut stdout, 3, "The bookmark goes to the server…");
+
+        tokio::spawn(async move {
+            let text =
+                match crate::api::me::bookmarks::add_bookmark(&api, &item_id, place, &name).await {
+                    Ok(()) => format!("The bookmark \"{}\" is on the server.", name),
+                    Err(error) => format!("The server did not take the bookmark: {}", error),
+                };
+
+            // A bookmark that came now must stand in the view.
+            crate::logic::bookmarks::forget();
+
+            let mut stdout = std::io::stdout();
+            let _ = clear_message(&mut stdout, 3);
+            let _ = pop_message(&mut stdout, 3, text.as_str());
+        });
+    }
+
+    /// Shows the bookmarks of a media, and asks the server for them.
+    ///
+    /// The media that plays comes first, because a user who listens looks for
+    /// a place of that media. A media that plays no media gives the media of
+    /// the line that the user selected.
+    pub fn show_the_bookmarks(&mut self) {
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+
+        let state = self.player.state();
+
+        let item_id = if state.status != crate::player::engine::PlaybackStatus::Stopped {
+            state.item_id.clone()
+        } else {
+            match self.selected_item_id() {
+                Some(id) => id,
+                None => {
+                    let _ =
+                        pop_message(&mut stdout, 3, "No media plays, and no media is selected.");
+                    return;
+                }
+            }
+        };
+
+        self.bookmarks_of = item_id.clone();
+        self.list_state_bookmarks.select(Some(0));
+        self.scroll_offset = 0;
+        self.view_state = AppView::Bookmarks;
+
+        if self.is_offline {
+            crate::logic::bookmarks::keep(crate::logic::bookmarks::State::Fault(
+                "the server does not answer".to_string(),
+            ));
+            return;
+        }
+
+        self.ask_the_server_for_the_bookmarks(item_id);
+    }
+
+    /// Asks the server for the bookmarks of one media.
+    fn ask_the_server_for_the_bookmarks(&self, item_id: String) {
+        crate::logic::bookmarks::keep(crate::logic::bookmarks::State::Waiting);
+
+        let api = std::sync::Arc::clone(&self.api);
+
+        tokio::spawn(async move {
+            let state = match crate::api::me::bookmarks::get_bookmarks(&api).await {
+                Ok(all) => crate::logic::bookmarks::State::Ready(
+                    crate::api::me::bookmarks::of_item(&all, &item_id),
+                ),
+                Err(error) => {
+                    log::warn!("[bookmarks] the server gave no bookmark: {}", error);
+                    crate::logic::bookmarks::State::Fault(error.to_string())
+                }
+            };
+
+            crate::logic::bookmarks::keep(state);
+        });
+    }
+
+    /// Goes to the place of the bookmark that the user selected.
+    pub fn go_to_the_bookmark(&mut self) {
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+
+        let all = crate::logic::bookmarks::bookmarks();
+
+        let Some(bookmark) = self
+            .list_state_bookmarks
+            .selected()
+            .and_then(|index| all.get(index))
+        else {
+            return;
+        };
+
+        let state = self.player.state();
+
+        // The bookmark belongs to a media that does not play. The engine
+        // cannot go to a place of a media that it does not hold.
+        if state.status == crate::player::engine::PlaybackStatus::Stopped
+            || state.item_id != bookmark.library_item_id
+        {
+            let _ = pop_message(
+                &mut stdout,
+                3,
+                "Play this media first, and the bookmark then gives its place.",
+            );
+            return;
+        }
+
+        self.player
+            .send(crate::player::engine::PlayerCommand::SeekTo(bookmark.time));
+
+        let _ = pop_message(
+            &mut stdout,
+            3,
+            &format!("The playback goes to \"{}\".", bookmark.title),
+        );
+    }
+
+    /// Removes the bookmark that the user selected. See T-24.
+    pub fn remove_the_bookmark(&mut self) {
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+
+        let all = crate::logic::bookmarks::bookmarks();
+
+        let Some(bookmark) = self
+            .list_state_bookmarks
+            .selected()
+            .and_then(|index| all.get(index))
+            .cloned()
+        else {
+            return;
+        };
+
+        if self.is_offline {
+            let _ = pop_message(&mut stdout, 3, "The server does not answer.");
+            return;
+        }
+
+        let api = std::sync::Arc::clone(&self.api);
+        let item_id = bookmark.library_item_id.clone();
+        let name = bookmark.title.clone();
+        let time = bookmark.time;
+
+        let _ = pop_message(&mut stdout, 3, "The program removes the bookmark…");
+
+        tokio::spawn(async move {
+            let text = match crate::api::me::bookmarks::remove_bookmark(&api, &item_id, time).await
+            {
+                Ok(()) => format!("The bookmark \"{}\" is not on the server now.", name),
+                Err(error) => format!("The server did not remove the bookmark: {}", error),
+            };
+
+            crate::logic::bookmarks::forget();
+
+            let mut stdout = std::io::stdout();
+            let _ = clear_message(&mut stdout, 3);
+            let _ = pop_message(&mut stdout, 3, text.as_str());
+        });
+    }
+
+    /// Asks the server for the bookmarks again, if the view lost them.
+    ///
+    /// A write and a remove forget the answer. The render then calls this,
+    /// and the new list comes at the frame after it.
+    pub fn take_the_bookmarks_again(&mut self) {
+        if !matches!(self.view_state, AppView::Bookmarks) || self.is_offline {
+            return;
+        }
+
+        if matches!(
+            crate::logic::bookmarks::state(),
+            crate::logic::bookmarks::State::Nothing
+        ) && !self.bookmarks_of.is_empty()
+        {
+            self.ask_the_server_for_the_bookmarks(self.bookmarks_of.clone());
+        }
     }
 
     /// Shows the time that the user listened, and asks the server for it.
@@ -2713,6 +2952,7 @@ impl App {
             AppView::Stats => AppView::Home,
             AppView::SortFilter => AppView::Library,
             AppView::Chapters => AppView::Home,
+            AppView::Bookmarks => AppView::Home,
             AppView::Settings => AppView::Home,
             AppView::SettingsAccount => AppView::Home,
             AppView::SettingsLibrary => AppView::Home,
@@ -2828,6 +3068,16 @@ impl App {
                     self.list_state_chapters.select(Some(0));
                 }
             }
+            AppView::Bookmarks => {
+                let count = crate::logic::bookmarks::bookmarks().len();
+                let from = self.list_state_bookmarks.selected().unwrap_or(0);
+
+                if from + 1 < count {
+                    self.list_state_bookmarks.select(Some(from + 1));
+                } else {
+                    self.list_state_bookmarks.select(Some(0));
+                }
+            }
             AppView::Settings => {
                 if let Some(selected) = self.list_state_settings.selected() {
                     if selected + 1 < self.settings.len() {
@@ -2891,6 +3141,7 @@ impl App {
                     .select(crate::logic::list_moves::previous(&lines, from));
             }
             AppView::Chapters => self.list_state_chapters.select_previous(),
+            AppView::Bookmarks => self.list_state_bookmarks.select_previous(),
             AppView::Settings => self.list_state_settings.select_previous(),
             AppView::SettingsAccount => self.list_state_settings_account.select_previous(),
             AppView::SettingsLibrary => self.list_state_settings_library.select_previous(),
@@ -2921,6 +3172,7 @@ impl App {
                     .select(crate::logic::list_moves::first(&lines));
             }
             AppView::Chapters => self.list_state_chapters.select_first(),
+            AppView::Bookmarks => self.list_state_bookmarks.select_first(),
             AppView::Settings => self.list_state_settings.select_first(),
             AppView::SettingsAccount => self.list_state_settings_account.select_first(),
             AppView::SettingsLibrary => self.list_state_settings_library.select_first(),
@@ -2985,6 +3237,10 @@ impl App {
             AppView::Chapters => {
                 let last = self.player.state().chapters.len().saturating_sub(1);
                 self.list_state_chapters.select(Some(last));
+            }
+            AppView::Bookmarks => {
+                let last = crate::logic::bookmarks::bookmarks().len().saturating_sub(1);
+                self.list_state_bookmarks.select(Some(last));
             }
             AppView::Settings => {
                 let last_index = self.settings.len().saturating_sub(1);

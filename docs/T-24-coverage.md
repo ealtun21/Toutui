@@ -60,10 +60,12 @@ This list comes from `src/api/` and from `src/logic/`. It is complete.
 | `POST /api/items/:id/play`, `POST /api/items/:id/play/:episodeId` | `src/api/library_items/play_lib_item_or_pod.rs` |
 | `GET /api/me/progress/:id` | `src/api/me/get_media_progress.rs` |
 | `GET /api/me/listening-stats` | `src/api/me/listening_stats.rs` |
+| `POST /api/me/item/:id/bookmark`, `DELETE /api/me/item/:id/bookmark/:time` | `src/api/me/bookmarks.rs` |
+| `GET /api/me` | `src/api/me/permissions.rs`, `src/api/me/bookmarks.rs` |
 | `PATCH /api/me/progress/:id`, `PATCH /api/me/progress/:id/:episodeId` | `src/api/me/update_media_progress.rs` |
 | `POST /api/session/:id/sync`, `POST /api/session/:id/close` | `src/api/sessions/` |
 
-Toutui calls 17 paths. The server has more than 100.
+Toutui calls 19 paths. The server has more than 100.
 
 ## 3. The keys of Toutui
 
@@ -87,6 +89,8 @@ Toutui calls 17 paths. The server has more than 100.
 | `T` | Show the time that you listened (T-24) |
 | `N` | Take a media away from Continue Listening, or put it back (T-24) |
 | `C` | Show the chapters of the media that plays (T-24) |
+| `b` | Write a bookmark at the place of the playback (T-24) |
+| `V` | Show the bookmarks of a media (T-24) |
 | `f` | Choose the sequence and the filter of the library (T-24) |
 | `S` | Settings |
 | `B` | Show the keys, or hide them |
@@ -136,7 +140,7 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 | **Close a session** | `POST /api/session/:id/close` gives `200` | Yes | Nothing |
 | **The sessions of the user** | `GET /api/me/listening-sessions` gives `total`, `numPages`, `page`, `itemsPerPage`, `sessions`. It takes `itemsPerPage` and `page` | No | Everything. The user cannot see what they played, and when |
 | **The sessions of the server** | `GET /api/sessions` gives the same shape for every user | No | Everything. This is for an administrator |
-| **Bookmarks** | `POST /api/me/item/:id/bookmark` with `{"time":12,"title":"..."}` gives `200` and `{libraryItemId,time,title,createdAt}`. `DELETE /api/me/item/:id/bookmark/:time` gives `200`. `GET /api/me` gives the field `bookmarks` | No | Everything. The user cannot mark a place in a book, and the client shows no bookmark of a different client |
+| **Bookmarks** | `POST /api/me/item/:id/bookmark` with `{"time":12,"title":"..."}` gives `200` and `{libraryItemId,time,title,createdAt}`. `DELETE /api/me/item/:id/bookmark/:time` gives `200`, and `404` for a place that does not exist. `GET /api/me` gives the field `bookmarks` | Yes | Nothing. The key `b` writes a place, the key `V` shows the list, `l` goes to a place, and `X` removes one. The client reads the bookmarks of a different client, because they come from `GET /api/me` |
 | **Play, pause, and stop** | The client does this work | Yes | Nothing. ` ` and `Y` |
 | **Go forward and back** | The client does this work | Yes | Nothing. `p` and `u` |
 | **Chapters** | `POST /api/items/:id/play` gives `chapters` with `start`, `end`, and `title` | Yes | Nothing. `P` and `U`, and the player shows the name of the chapter. `src/logic/playback/mod.rs:73` reads them |
@@ -212,11 +216,8 @@ The sequence inside each group gives the value for the work.
 
 ### Medium: one or two days each
 
-6. **Bookmarks.** `POST /api/me/item/:id/bookmark`,
-   `DELETE /api/me/item/:id/bookmark/:time`, and the field `bookmarks` of
-   `GET /api/me`. A new file `src/api/me/bookmarks.rs`, a key in `src/app.rs`
-   during the playback, and a list in `src/ui/player_tui.rs`. A user of a long
-   book needs a place to come back to.
+6. ~~**Bookmarks.**~~ **Done on 2026-08-11.** The keys `b` and `V`, and
+   `src/api/me/bookmarks.rs`.
 7. ~~**The other shelves of Home.**~~ **Done on 2026-08-11.**
    `get_the_shelves` gives every shelf, and `src/logic/home_view.rs` makes the
    lines. The request did not change.

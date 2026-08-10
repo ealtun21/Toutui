@@ -1084,6 +1084,41 @@ the harness must press the key inside that time. The answer is one write of
 two keys: `l` starts the playback and the space pauses it at once. The
 position then stops, and the view stays.
 
+### Bookmarks — complete, 2026-08-11 (v0.7.2)
+
+A user of a long book needs a place to come back to. Audiobookshelf holds that
+place for each user, therefore a bookmark of the telephone stands in the
+terminal.
+
+Measurements against the sandbox on 2026-08-11:
+
+| Request | Answer |
+|---|---|
+| `POST /api/me/item/:id/bookmark` with `{"time":42,"title":"..."}` | `200`, and `{libraryItemId,time,title,createdAt}` |
+| The same request, with the same time | `200`. The name changes, and `createdAt` does not. **No second line comes.** |
+| `DELETE /api/me/item/:id/bookmark/:time` | `200` |
+| The same delete again | `404` |
+| `GET /api/me` | the field `bookmarks`, of every media together |
+
+**The time is the key of a bookmark.** The address of the delete names the
+second, therefore the program writes a whole number and it keeps that number.
+`whole_seconds` does that work, and a test holds it.
+
+The keys: `b` writes a place while a media plays, and it asks for a name; `V`
+shows the list; `l` goes to a place; `X` removes one. Inside that view `X`
+does not remove a local copy, and that is the one place where a key changes
+its work with the view.
+
+**`convert_seconds` was not correct for a place.** That function rounds to the
+minute. Two bookmarks at 12 minutes 30 seconds and at 12 minutes 45 seconds
+would then show one text, and the user could not tell them apart. `clock` of
+`src/utils/convert_seconds.rs` writes `MM:SS` and `H:MM:SS`, and the view of
+the chapters uses it also.
+
+**A question that takes a text.** `src/logic/prompt.rs` holds it. The search of
+the key `/` keeps its own file, because it does more than take a text: it
+changes the view and it asks the server.
+
 ## The report of the user of 2026-08-10, on v0.5.0
 
 The user tested v0.5.0 and named ten items. This section holds each one, the

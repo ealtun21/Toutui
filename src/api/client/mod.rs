@@ -199,6 +199,18 @@ impl ApiClient {
             .map_err(|error| ApiError::Decode(error.to_string()))
     }
 
+    /// Sends a `DELETE` request that has no answer body.
+    ///
+    /// A `DELETE` is idempotent: the same request a second time gives the
+    /// same state of the server. Therefore the client may try a second
+    /// address when the first one does not answer.
+    pub async fn delete_no_content(&self, path: &str) -> Result<(), ApiError> {
+        self.send(Method::DELETE, path, None, Idempotent::Yes)
+            .await?;
+
+        Ok(())
+    }
+
     /// Sends a `POST` request that has no answer body.
     pub async fn post_no_content<B: Serialize>(
         &self,

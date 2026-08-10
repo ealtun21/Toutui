@@ -9,7 +9,7 @@
 //! screen.
 
 use crate::player::engine::track::Chapter;
-use crate::utils::convert_seconds::convert_seconds;
+use crate::utils::convert_seconds::clock;
 
 /// Gives the number of the chapter that holds a position.
 ///
@@ -40,10 +40,6 @@ pub fn chapter_at(chapters: &[Chapter], position: f64) -> Option<usize> {
 pub fn lines(chapters: &[Chapter], position: f64) -> Vec<String> {
     let now = chapter_at(chapters, position);
 
-    // `convert_seconds` writes a time for a person. It takes a list, thus one
-    // call gives the time of every chapter.
-    let times = convert_seconds(chapters.iter().map(|chapter| chapter.start).collect());
-
     chapters
         .iter()
         .enumerate()
@@ -55,7 +51,7 @@ pub fn lines(chapters: &[Chapter], position: f64) -> Vec<String> {
                 mark,
                 index + 1,
                 chapter.title,
-                times.get(index).cloned().unwrap_or_default()
+                clock(chapter.start)
             )
         })
         .collect()

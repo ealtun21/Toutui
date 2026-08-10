@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod bookmarks;
 pub mod chapters;
 pub mod download;
 pub mod handle_input;
@@ -7,6 +8,7 @@ pub mod library_view;
 pub mod list_moves;
 pub mod offline;
 pub mod playback;
+pub mod prompt;
 pub mod reader;
 pub mod search;
 pub mod sort_filter;

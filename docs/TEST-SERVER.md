@@ -156,6 +156,31 @@ ffmpeg -loglevel error -y -f lavfi \
   -b:a 32k "$dir/long.mp3"
 ```
 
+## 6h. Give the long book three chapters
+
+The view of the chapters (the key `C`) needs a media with chapters. "A Long
+Test Book" has none, and `POST /api/items/:id/chapters` gives it three. The
+answer is `{"success":true,"updated":true}`.
+
+```bash
+TOKEN=<the token of the login>
+ITEM=<the identity of "A Long Test Book">
+
+curl -s -X POST "http://127.0.0.1:13399/api/items/$ITEM/chapters" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"chapters":[
+        {"id":0,"start":0,"end":600,"title":"The first part"},
+        {"id":1,"start":600,"end":1200,"title":"The second part"},
+        {"id":2,"start":1200,"end":1800,"title":"The third part"}]}'
+```
+
+`POST /api/items/:id/play` then gives those three chapters.
+
+**The device `null` plays that book in two seconds.** A test of the view of
+the chapters must therefore press the keys inside that time. One write of two
+keys does the work: `l` starts the playback and the space pauses it at once.
+The position then stops, and the view stays open.
+
 ## 6f. Give each book its own cover
 
 The test of the cover art (T-23) needs a cover that a test can name. One colour
