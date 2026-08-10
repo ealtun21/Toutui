@@ -5,3 +5,4 @@ pub mod collect_get_pod_ep;
 pub mod collect_get_all_libraries;
 pub mod collect_get_media_progress;
 pub mod collect_series;
+pub mod collect_lists;

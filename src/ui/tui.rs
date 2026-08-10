@@ -28,6 +28,8 @@ impl Widget for &mut App {
             AppView::PodcastEpisode => self.render_pod_ep(area, buf),
             AppView::Series => self.render_series(area, buf),
             AppView::SeriesBook => self.render_series_book(area, buf),
+            AppView::Lists => self.render_lists(area, buf),
+            AppView::ListEntries => self.render_list_entries(area, buf),
             AppView::Settings => self.render_settings(area, buf),
             AppView::SettingsAccount => self.render_settings_account(area, buf),
             AppView::SettingsLibrary => self.render_settings_library(area, buf),
@@ -149,7 +151,7 @@ impl App {
         let items_number = self._titles_cnt_list.len();
         let render_list_title = format!("Continue Listening [{} items]", items_number);
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, D: download offline, X: remove offline, s: series, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, D: download offline, X: remove offline, s: series, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
 
         App::render_header(header_area, buf, self.lib_name_type.clone(), &self.username, &self.server_address_pretty, VERSION, &self.update_msg);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -177,9 +179,9 @@ impl App {
 
         let mut _text_render_footer = "";
         if self.is_podcast {
-        _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"       
+        _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"       
         } else {
-        _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, D: download offline, X: remove offline, s: series, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
+        _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, D: download offline, X: remove offline, s: series, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
         }
 
         App::render_header(header_area, buf, self.lib_name_type.clone(), &self.username, &self.server_address_pretty, VERSION, &self.update_msg);
@@ -287,6 +289,104 @@ impl App {
         }
     }
 
+    /// AppView::Lists rendering: the collections and the playlists.
+    fn render_lists(&mut self, area: Rect, buf: &mut Buffer) {
+        let [header_area, main_area, _player_area, _refresh_area, footer_area] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Fill(1),
+            Constraint::Length(6),
+            Constraint::Length(1),
+            Constraint::Length(2),
+        ]).areas(area);
+
+        let [list_area, item_area1, item_area2] = Layout::vertical([Constraint::Fill(1), Constraint::Length(3), Constraint::Fill(1)]).areas(main_area);
+
+        let text_render_footer = "j/↓, k/↑: move, l/→: contents, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+
+        App::render_header(header_area, buf, self.lib_name_type.clone(), &self.username, &self.server_address_pretty, VERSION, &self.update_msg);
+        App::render_footer(footer_area, buf, text_render_footer);
+
+        if self.lists.is_empty() {
+            Paragraph::new("This library has no collection and no playlist.\nPress 'h' to go back.")
+                .centered()
+                .block(Block::new().borders(Borders::TOP).border_style(Style::new().fg(Color::DarkGray)))
+                .render(main_area, buf);
+            return;
+        }
+
+        let lines: Vec<String> = self.lists.iter().map(|list| list.line()).collect();
+        let render_list_title = format!("Collections and playlists [{} items]", self.lists.len());
+
+        self.render_list(list_area, buf, &render_list_title, &lines, &mut self.list_state_lists.clone());
+
+        if let Some(list) = self.selected_list() {
+            let seconds: f64 = list.entries.iter().map(|entry| entry.duration).sum();
+
+            Paragraph::new(format!(
+                "{} - {} item(s) - Duration: {}",
+                list.kind.name(),
+                list.entries.len(),
+                convert_seconds(vec![seconds]).first().cloned().unwrap_or_default(),
+            ))
+                .left_aligned()
+                .render(item_area1, buf);
+
+            Paragraph::new(list.description.clone())
+                .scroll((self.scroll_offset, 0))
+                .wrap(Wrap { trim: true })
+                .render(item_area2, buf);
+        }
+    }
+
+    /// AppView::ListEntries rendering: the media of one collection or of one
+    /// playlist.
+    fn render_list_entries(&mut self, area: Rect, buf: &mut Buffer) {
+        let [header_area, main_area, _player_area, _refresh_area, footer_area] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Fill(1),
+            Constraint::Length(6),
+            Constraint::Length(1),
+            Constraint::Length(2),
+        ]).areas(area);
+
+        let [list_area, item_area1, item_area2] = Layout::vertical([Constraint::Fill(1), Constraint::Length(3), Constraint::Fill(1)]).areas(main_area);
+
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+
+        App::render_header(header_area, buf, self.lib_name_type.clone(), &self.username, &self.server_address_pretty, VERSION, &self.update_msg);
+        App::render_footer(footer_area, buf, text_render_footer);
+
+        let Some(list) = self.selected_list() else {
+            return;
+        };
+
+        let lines: Vec<String> = list.entries.iter().map(|entry| entry.line()).collect();
+        let render_list_title = format!("{} [{} items]", list.name.clone(), lines.len());
+
+        self.render_list(list_area, buf, &render_list_title, &lines, &mut self.list_state_list_entries.clone());
+
+        if let Some(entry) = self.selected_list_entry() {
+            // The download of an episode has the identity of the episode.
+            let key = entry.episode_id.clone().unwrap_or_else(|| entry.id.clone());
+            let is_offline = crate::db::crud::get_download(&key, &self.username).is_some();
+
+            Paragraph::new(format!(
+                "{} - Author: {} - Duration: {}{}",
+                if entry.is_episode() { "Episode" } else { "Book" },
+                entry.author,
+                convert_seconds(vec![entry.duration]).first().cloned().unwrap_or_default(),
+                if is_offline { " - [Downloaded]" } else { "" },
+            ))
+                .left_aligned()
+                .render(item_area1, buf);
+
+            Paragraph::new(entry.description.clone())
+                .scroll((self.scroll_offset, 0))
+                .wrap(Wrap { trim: true })
+                .render(item_area2, buf);
+        }
+    }
+
     /// AppView::Settings rendering
     fn render_settings(&mut self, area: Rect, buf: &mut Buffer) {
         let [header_area, main_area, _player_area, _refresh_area, footer_area] = Layout::vertical([
@@ -380,9 +480,9 @@ impl App {
         let render_list_title = "Search result";
         let mut _text_render_footer = "";
         if self.is_podcast {
-        _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n c: lists, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
         } else {
-        _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, s: series, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, s: series, c: lists, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
         }
 
 

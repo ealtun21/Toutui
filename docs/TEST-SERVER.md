@@ -140,6 +140,35 @@ curl -X POST "http://localhost:13399/api/libraries/$BOOK_LIB_ID/scan" \
 This gives a book of three files and 60 seconds. A test with this book is
 quick, and it still proves that the engine plays every file.
 
+## 6d. Make a collection and two playlists
+
+The test of T-9 needs a collection and a playlist. A playlist can also hold
+episodes of a podcast.
+
+```bash
+# A collection of books.
+curl -X POST http://localhost:13399/api/collections \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"libraryId":"'$BOOK_LIB_ID'","name":"A Test Collection",
+       "description":"Three books for a test.","books":["'$ID1'","'$ID2'"]}'
+
+# A playlist of books.
+curl -X POST http://localhost:13399/api/playlists \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"libraryId":"'$BOOK_LIB_ID'","name":"A Test Playlist",
+       "items":[{"libraryItemId":"'$ID1'"}]}'
+
+# A playlist of episodes. The entry names the podcast and the episode.
+curl -X POST http://localhost:13399/api/playlists \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"libraryId":"'$POD_LIB_ID'","name":"A Podcast Playlist",
+       "items":[{"libraryItemId":"'$POD_ID'","episodeId":"'$EP_ID'"}]}'
+```
+
+An entry of a playlist gives `libraryItem` and, for an episode, `episode`. The
+episode gives its own title and its own length. A podcast gives the author in
+the field `author`, and a book gives it in the field `authorName`.
+
 ## 6c. Make a library with no item
 
 An empty library tests the condition that has no data: an empty list, and no

@@ -31,6 +31,8 @@ the original issue, if there is one.
 | T-12 | The repository has a Nix flake | sub-project 0 |
 | T-11 | The application downloads a podcast episode | sub-project 5 |
 | T-22 | The application shows the series of a library | sub-project 5 |
+| T-9 | The application shows the playlists and the collections | sub-project 5 |
+| T-26 | The key `G` in an empty list stopped the application | `597ca2d` |
 
 Sub-project 2 removed VLC. The application decodes the audio in the process
 now. Therefore a book with many audio files plays completely, the token stays
@@ -231,8 +233,20 @@ README.
 
 ### T-9: show the playlists and the collections
 
-One user asks for this function. The original author agreed that collections
-are also useful.
+The key `c` shows the collections and the playlists together. The collections
+come first, because every user of the server sees them. A playlist belongs to
+one user.
+
+A playlist can hold a book and an episode of a podcast in the same list.
+Therefore one entry holds the identity of the item and, for an episode, the
+identity of the episode. The keys `l`, `D`, and `X` then use the correct kind.
+
+A podcast library has no collection. It can have a playlist, thus the key `c`
+operates in a podcast library also.
+
+An episode gives its own title and its own length. The library item gives the
+author, and a podcast holds that name in the field `author`, and not in the
+field `authorName`.
 
 ### T-12: add a Nix flake
 

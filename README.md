@@ -23,6 +23,7 @@
  **Lightweight & Fast:** A minimalist terminal user interface (TUI) written in Rust 🦀  
  **Supports Books & Podcasts:** Enjoy both audiobooks and podcasts  
  **Series:** See the series of a library and the books of a series, in sequence (`s`)  
+ **Collections & Playlists:** See them and play their contents (`c`)  
  **Sync Progress & Stats:** Keep your listening progress in sync  
  **Streaming Support:** Play directly without downloading  
  **Local Copies:** Download a book or a podcast episode and read the audio from the disk (see below)  
@@ -42,6 +43,18 @@ series.
 - `l`/`Enter` on a book plays it. `D` and `X` operate on it in the same way as
   in the Library view.
 - `h` goes back one step.
+
+## 🗂 Collections and playlists
+
+A collection holds books, and every user of the server sees it. A playlist
+belongs to one user, and it can hold books or episodes of a podcast.
+
+- `c` — show the collections and the playlists of the library. The key
+  operates in the views Home, Library, and Search. The collections come first.
+- `l`/`Enter` on a list — show its media. `l`/`Enter` on a medium plays it.
+- `D` and `X` operate on a book or on an episode of the list, in the same way
+  as in the Library view.
+- A podcast library has no collection, and it can have a playlist.
 
 ## 📥 Offline Mode
 
@@ -72,10 +85,10 @@ Books and podcast episodes can be downloaded locally, so the application reads t
 
 ## 🔮 Future features
 Here are some features that could be added in future releases:
-- Playlist/Collections view
 - Ability to add new podcasts from the app
 - Add stats
-- Offline mode for podcast episodes
+- Read an EPUB book in the application
+- A full offline mode: the application needs the server to start today
   
 ## ⚠️ Caution: Beta Version  
 This beta app is still in **heavy development and contains bugs**.  
