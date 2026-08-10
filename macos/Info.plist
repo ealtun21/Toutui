@@ -4,9 +4,9 @@
 
 <dict>
   <key>CFBundleName</key>
-  <string>Toutui</string>
+  <string>AbsTui</string>
   <key>CFBundleIdentifier</key>
-  <string>com.example.toutui</string>
+  <string>com.github.ealtun21.abstui</string>
   <key>CFBundleVersion</key>
   <string>1.0</string>
   <key>CFBundleExecutable</key>

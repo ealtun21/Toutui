@@ -1,5 +1,5 @@
 {
-  description = "Toutui: a terminal client for Audiobookshelf";
+  description = "AbsTui: a terminal client for Audiobookshelf";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -22,8 +22,8 @@
         darwinAudioInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin
           (with pkgs.darwin.apple_sdk.frameworks; [ AudioUnit CoreAudio ]);
 
-        toutui = pkgs.rustPlatform.buildRustPackage {
-          pname = "toutui";
+        abstui = pkgs.rustPlatform.buildRustPackage {
+          pname = "abstui";
           version = (pkgs.lib.importTOML ./Cargo.toml).package.version;
 
           src = self;
@@ -41,20 +41,20 @@
 
           meta = with pkgs.lib; {
             description = "A terminal client for Audiobookshelf";
-            homepage = "https://github.com/ealtun21/Toutui";
+            homepage = "https://github.com/ealtun21/abstui";
             license = licenses.gpl3Only;
-            mainProgram = "toutui";
+            mainProgram = "abstui";
             platforms = platforms.unix;
           };
         };
       in
       {
         packages = {
-          default = toutui;
-          toutui = toutui;
+          default = abstui;
+          abstui = abstui;
         };
 
-        apps.default = flake-utils.lib.mkApp { drv = toutui; };
+        apps.default = flake-utils.lib.mkApp { drv = abstui; };
 
         devShells.default = pkgs.mkShell {
           nativeBuildInputs = [ pkgs.pkg-config ];
@@ -68,7 +68,7 @@
           ] ++ linuxAudioInputs ++ darwinAudioInputs;
 
           shellHook = ''
-            echo "Toutui development shell."
+            echo "AbsTui development shell."
             echo "The gate of the project is:"
             echo "  cargo clippy --all-targets -- -D warnings && cargo test"
           '';

@@ -1,5 +1,3 @@
-const VERSION: &str = env!("CARGO_PKG_VERSION");
-
 pub fn changelog() -> String {
     let mut changelog = String::new();
 
@@ -232,8 +230,8 @@ let changelog_13 = "Changelog Toutui v0.4.1-beta (14/05/2025) \n\
          \n\
          Enjoy and be toutui!\n
          ####\n".to_string();
-let changelog_14 = format!(
-    "Changelog Toutui v{} (15/05/2025) \n\
+let changelog_14 =
+    "Changelog Toutui v0.4.2-beta (15/05/2025) \n\
          \n\
          Warning:\n\
          - If you're already using the app v0.3.5 or bellow, please follow the upgrade instructions here: => 
@@ -251,9 +249,7 @@ let changelog_14 = format!(
          - AlbanDAVID
          \n\
          Enjoy and be toutui!\n
-         ####\n",
-         VERSION
-);
+         ####\n".to_string();
 
 
     changelog.push_str(&changelog_14); 
