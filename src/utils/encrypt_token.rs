@@ -1,6 +1,21 @@
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
-use std::env;
 use log::error;
+use std::env;
+use std::path::Path;
+
+/// Reads the file `.env` and puts every value of it in the environment.
+///
+/// A file that is absent is not a fault, because the user can give the key in
+/// the environment itself. Therefore the function gives `false` and writes
+/// nothing.
+///
+/// The fork moved from `dotenv` to `dotenvy`, because `dotenv` has no
+/// maintainer since 2019. This function holds that call in one place, and a
+/// test confirms that a key in the file arrives in the environment. A silent
+/// fault here makes every token unreadable, and no user could enter.
+pub fn load_env_file(path: &Path) -> bool {
+    dotenvy::from_filename(path).is_ok()
+}
 
 /// The message that tells the user how to make the secret key.
 const NO_KEY: &str = "No secret key is present. Do this:\n\
@@ -66,6 +81,31 @@ mod tests {
             decrypt_token(from_version_4).unwrap(),
             "the-auth-token"
         );
+    }
+
+    /// A key in the file `.env` arrives in the environment.
+    ///
+    /// The test uses its own name for the variable, so that it does not change
+    /// the key that the other tests of this module read.
+    #[test]
+    fn a_key_in_the_file_arrives_in_the_environment() {
+        let dir = tempfile::tempdir().unwrap();
+        let file = dir.path().join(".env");
+        std::fs::write(&file, "TOUTUI_TEST_ENV_KEY=from-the-file\n").unwrap();
+
+        assert!(super::load_env_file(&file));
+        assert_eq!(
+            std::env::var("TOUTUI_TEST_ENV_KEY").unwrap(),
+            "from-the-file"
+        );
+    }
+
+    /// A file that is absent gives `false`, and it is not a fault.
+    #[test]
+    fn a_file_that_is_absent_gives_false() {
+        let dir = tempfile::tempdir().unwrap();
+
+        assert!(!super::load_env_file(&dir.path().join("no-such-file")));
     }
 
     /// A cipher that a different key wrote gives an error, and not a panic.

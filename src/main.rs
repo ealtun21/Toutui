@@ -31,7 +31,7 @@ async fn main() -> Result<()> {
 
     // The program reads the secret key from `.env`. See `encrypt_token.rs`.
     let env_path = toutui::paths::env_file();
-    dotenv::from_filename(env_path.clone()).ok();
+    toutui::utils::encrypt_token::load_env_file(&env_path);
 
     // Init database
     let mut _database = Database::new().await?;
