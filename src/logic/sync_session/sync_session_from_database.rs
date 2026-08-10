@@ -137,26 +137,32 @@ pub async fn sync_session_from_database(
             // next start. A different client can write a newer position, and
             // that position must stay. See T-4.
             let _ = delete_listening_session();
-
-            if app_quit {
-                let _ = update_has_played_before("1", username.as_str());
-                info!("App successfully quit");
-                clean_exit();
-            }
         }
 
         Ok(None) => {
-            // The database holds no session. If the user played a media
-            // before, the application can stop now.
-            if get_has_played_before(username.as_str()) == "1" {
-                info!("[handle_key] Quit with no listening session");
-                clean_exit();
-            } else {
-                info!("[handle_key] The first session starts");
-            }
+            info!("[handle_key] The database holds no session to close");
         }
         Err(e) => {
             info!("[handle_key] Error during fetching session: {:?}", e);
         }
+    }
+
+    // The key `Q` must always stop the application.
+    //
+    // The old code stopped it in one branch only. The branch of `Ok(None)`
+    // asked `has_played_before`, and no line of the program gave that value
+    // `1` again after a playback began. The branch of `Err` stopped nothing at
+    // all. Therefore the key `Q` did nothing in two conditions: after a
+    // playback whose row was already gone, and when the database gave an
+    // error. The user then had to stop the program by force, and a program
+    // that stops by force closes no session. See `6ac5d8` and `fc695f` in
+    // `known_bugs.md`.
+    //
+    // The sync above is the best that the program can do. It must not decide
+    // whether the program stops.
+    if app_quit {
+        let _ = update_has_played_before("1", username.as_str());
+        info!("App successfully quit");
+        clean_exit();
     }
 }

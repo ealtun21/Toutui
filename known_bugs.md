@@ -61,16 +61,16 @@ application plays the audio itself now and starts no other program.
 **Sync**: If you open VLC to listen X, close VLC and quickly open VLC again to listen Y: X will still be sync — according to Y (normally, only Y has to be sync in this case).
 `bug_id: 86384e` 
 **Sync**: Rarely and especially if you open VLC to listen X, close VLC and quickly open VLC again to listen Y: the progress of X is set to 0 seconds.
-`bug_id: 6ac5d8` 
-**Data loss if app crash or disgracefully quit**: If app crash, the last session is not closed.
-`bug_id: bf10cd` 
-**Launch a new media**: Have to close manually VLC to close and sync a session.
 `bug_id: dd9a649`
 **Listening Session:** Sometimes, the session (that you can see in `yourserveraddress/audiobookshelf/config/sessions`) does not close correctly, especially if you open VLC, quit it quickly, and start another book.
-`bug_id: fc695f`
-**Listening session:** The session (that you can see in `yourserveraddress/audiobookshelf/config/sessions`) does not close when the app is quit.
 
 **FIXED**  
+`bug_id: fc695f` — CORRECTED on 2026-08-10
+**Listening session:** The key `Q` did not always stop the program, therefore the user stopped it by force and the session stayed open. `sync_session_from_database` stopped the program in one branch only. The branch with no session asked `has_played_before`, and no line of the program gave that value `1` again after a playback began. The branch of the error stopped nothing. The program stops in every branch now, because the sync is the best that the program can do and it must not decide whether the program stops. A measurement on 2026-08-10 ran a real process in the condition of the fault: with the old test the function came back and the program stayed, and with the correction the program stopped.  
+`bug_id: 6ac5d8` — CORRECTED on 2026-08-10
+**Data loss if app crash or disgracefully quit:** Two parts answer this report. `Q` now always stops the program, therefore the user has no reason to stop it by force; see `fc695f`. A program that still stops without a correct exit leaves its row in `listening_session`, and the next start sends that position one time; see T-4 in `docs/TAKEOVER-BACKLOG.md`.  
+`bug_id: bf10cd` — CORRECTED on 2026-08-10
+**Launch a new media:** The application plays the audio itself and starts no other program. Therefore no user closes VLC by hand to close a session. The key `l` closes the session before it opens the new one.  
 `bug_id: 06e548` — CORRECTED on 2026-08-10
 **Terminal broken:** A panic gave the terminal back to the shell in the raw mode and on the alternate screen. The program installed no hook of the panic at all. `install_panic_hook` in `src/utils/exit_app.rs` gives the terminal back first and then writes the message, therefore the user can read that message and give it to a report. A measurement on 2026-08-10 ran a real process that took the terminal and then panicked: with no hook the bytes held no `ESC [ ? 1049 l`, and with the hook they hold it.  
 `bug_id: 40f48d` — CORRECTED on 2026-08-10
