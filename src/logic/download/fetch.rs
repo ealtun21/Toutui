@@ -11,7 +11,7 @@ use std::path::{Path, PathBuf};
 
 use tokio::io::AsyncWriteExt;
 
-use super::plan::{AudioFilePlan, DownloadPlan, Resume, resume_from};
+use super::plan::{resume_from, AudioFilePlan, DownloadPlan, Resume};
 use super::progress::{DownloadProgress, DownloadState, ProgressMap};
 
 /// Gets all the audio files of one book.
@@ -35,32 +35,46 @@ pub async fn fetch_item(
 ) -> Result<Vec<PathBuf>, String> {
     let total_bytes = plan.total_bytes();
 
-    write_progress(&progress, |state| {
-        state.file_index = 1;
-        state.file_count = plan.files.len();
-        state.bytes_done = 0;
-        state.bytes_total = total_bytes;
-        state.state = DownloadState::Running;
-    }, plan);
+    write_progress(
+        &progress,
+        |state| {
+            state.file_index = 1;
+            state.file_count = plan.files.len();
+            state.bytes_done = 0;
+            state.bytes_total = total_bytes;
+            state.state = DownloadState::Running;
+        },
+        plan,
+    );
 
     if let Err(error) = tokio::fs::create_dir_all(dest_dir).await {
-        return Err(fail(&progress, plan, format!("cannot make the directory: {error}")));
+        return Err(fail(
+            &progress,
+            plan,
+            format!("cannot make the directory: {error}"),
+        ));
     }
 
     let mut paths = Vec::with_capacity(plan.files.len());
     let mut done_bytes: u64 = 0;
 
     for (number, file) in plan.files.iter().enumerate() {
-        write_progress(&progress, |state| {
-            state.file_index = number + 1;
-            state.bytes_done = done_bytes;
-        }, plan);
+        write_progress(
+            &progress,
+            |state| {
+                state.file_index = number + 1;
+                state.bytes_done = done_bytes;
+            },
+            plan,
+        );
 
         let target = dest_dir.join(file.disk_name());
         let part = part_path(&target);
 
-        match fetch_one(client, base_url, token, file, &target, &part, done_bytes, &progress, plan)
-            .await
+        match fetch_one(
+            client, base_url, token, file, &target, &part, done_bytes, &progress, plan,
+        )
+        .await
         {
             Ok(path) => paths.push(path),
             Err(error) => return Err(fail(&progress, plan, error)),
@@ -71,10 +85,14 @@ pub async fn fetch_item(
         write_progress(&progress, |state| state.bytes_done = done_bytes, plan);
     }
 
-    write_progress(&progress, |state| {
-        state.bytes_done = total_bytes;
-        state.state = DownloadState::Finished;
-    }, plan);
+    write_progress(
+        &progress,
+        |state| {
+            state.bytes_done = total_bytes;
+            state.state = DownloadState::Finished;
+        },
+        plan,
+    );
 
     Ok(paths)
 }
@@ -96,7 +114,8 @@ async fn fetch_one(
     plan: &DownloadPlan,
 ) -> Result<PathBuf, String> {
     // The file on the disk tells the function where to start.
-    let resume = resume_from(part, file.size).map_err(|error| format!("cannot read {}: {error}", part.display()))?;
+    let resume = resume_from(part, file.size)
+        .map_err(|error| format!("cannot read {}: {error}", part.display()))?;
 
     if let Resume::Complete = resume {
         rename(part, target).await?;
@@ -169,7 +188,11 @@ async fn fetch_one(
 
     let mut written = have;
 
-    write_progress(progress, |state| state.bytes_done = done_bytes + written, plan);
+    write_progress(
+        progress,
+        |state| state.bytes_done = done_bytes + written,
+        plan,
+    );
 
     // The function reads one block at a time. Therefore a book of 700 MB does
     // not fill the memory.
@@ -194,7 +217,11 @@ async fn fetch_one(
 
         // The function changes the progress one time for each block, and not
         // one time for each byte. It holds the lock for a short time.
-        write_progress(progress, |state| state.bytes_done = done_bytes + written, plan);
+        write_progress(
+            progress,
+            |state| state.bytes_done = done_bytes + written,
+            plan,
+        );
     }
 
     handle
@@ -231,7 +258,11 @@ async fn rename(part: &Path, target: &Path) -> Result<(), String> {
 
 /// Writes the cause of the error to the progress and gives the text back.
 fn fail(progress: &ProgressMap, plan: &DownloadPlan, message: String) -> String {
-    write_progress(progress, |state| state.state = DownloadState::Failed(message.clone()), plan);
+    write_progress(
+        progress,
+        |state| state.state = DownloadState::Failed(message.clone()),
+        plan,
+    );
     message
 }
 
@@ -542,9 +573,16 @@ mod tests {
         let first = fetch_item(&client, &stops.uri(), "secret", &plan, dir.path(), map()).await;
         assert!(first.is_err());
 
-        let paths = fetch_item(&client, &completes.uri(), "secret", &plan, dir.path(), map())
-            .await
-            .unwrap();
+        let paths = fetch_item(
+            &client,
+            &completes.uri(),
+            "secret",
+            &plan,
+            dir.path(),
+            map(),
+        )
+        .await
+        .unwrap();
 
         let mut expected = vec![b'e'; 30];
         expected.extend(vec![b'f'; 70]);
@@ -584,7 +622,10 @@ mod tests {
 
         let map = progress.read().unwrap();
         assert!(map.get("ep-1").is_some(), "the key must be the episode");
-        assert!(map.get("pod-1").is_none(), "the key must not be the podcast");
+        assert!(
+            map.get("pod-1").is_none(),
+            "the key must not be the podcast"
+        );
         assert_eq!(map.get("ep-1").unwrap().state, DownloadState::Finished);
     }
 

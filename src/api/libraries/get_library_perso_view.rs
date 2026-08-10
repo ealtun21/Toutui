@@ -1,8 +1,8 @@
 use crate::api::client::error::ApiError;
 use crate::api::client::ApiClient;
-use serde_json::Value;
 use serde::Deserialize;
 use serde::Serialize;
+use serde_json::Value;
 
 /// Get a PersonalizedView's Personalized View for book (allow to have continue linstening)
 /// https://api.audiobookshelf.org/#get-a-library-39-s-personalized-view
@@ -112,4 +112,3 @@ pub async fn get_continue_listening(
 
     Ok(continue_listening)
 }
-

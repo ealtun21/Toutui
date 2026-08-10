@@ -17,7 +17,7 @@ jobs:
       - name: Install the Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          components: clippy
+          components: clippy, rustfmt
 
       - name: Cache the Cargo directories
         uses: Swatinem/rust-cache@v2
@@ -30,6 +30,12 @@ jobs:
 
       - name: Build
         run: cargo build --verbose
+
+      # The gate of the project names this command. The repository had 409
+      # differences of the form before 2026-08-10, therefore no job could run
+      # it. One commit of the form made the gate true.
+      - name: Confirm the form of the code
+        run: cargo fmt --check
 
       - name: Examine the code with clippy
         run: cargo clippy --all-targets -- -D warnings

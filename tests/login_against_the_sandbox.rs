@@ -43,7 +43,10 @@ async fn the_first_login_writes_the_user_with_no_wait() {
     drop(conn);
 
     let before = toutui::db::crud::select_default_usr().unwrap_or_default();
-    assert!(before.is_empty(), "the database must hold no user at the start");
+    assert!(
+        before.is_empty(),
+        "the database must hold no user at the start"
+    );
 
     auth_process(USER, PASSWORD, SERVER)
         .await

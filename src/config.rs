@@ -1,7 +1,7 @@
 use crate::api::client::endpoint::{Endpoint, EndpointPool};
+use color_eyre::eyre::{Report, Result};
 use config::{Config as ConfigLib, File};
 use serde::Deserialize;
-use color_eyre::eyre::{Result, Report};
 
 #[derive(Debug, Deserialize)]
 pub struct ConfigFile {
@@ -54,8 +54,7 @@ pub fn load_config() -> Result<ConfigFile> {
         .build()
         .map_err(|e| Report::new(e))?;
 
-    let colors: Colors = config.get("colors")
-        .map_err(|e| Report::new(e))?;
+    let colors: Colors = config.get("colors").map_err(|e| Report::new(e))?;
     // A configuration file that an older version made has no `servers`
     // block. An empty list is correct in that condition.
     let servers: Vec<ServerConfig> = config.get("servers").unwrap_or_default();

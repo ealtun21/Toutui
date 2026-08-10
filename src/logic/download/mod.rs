@@ -99,7 +99,10 @@ pub async fn download_with_progress(
     );
 
     let Some(token) = token else {
-        error!("[download_item] No token. The download of \"{}\" stopped.", title);
+        error!(
+            "[download_item] No token. The download of \"{}\" stopped.",
+            title
+        );
         let _ = pop_message(&mut stdout, 3, "Download failed: no authentication token.");
         return;
     };
@@ -193,7 +196,10 @@ pub async fn download_with_progress(
             );
         }
         Err(message) => {
-            error!("[download_item] Failed to download \"{}\": {}", title, message);
+            error!(
+                "[download_item] Failed to download \"{}\": {}",
+                title, message
+            );
             let _ = pop_message(
                 &mut stdout,
                 3,

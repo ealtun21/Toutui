@@ -1,19 +1,16 @@
-use rusqlite::{params, Connection, Result};
-use crate::db::database_struct::User;
 use crate::db::database_struct::ListeningSession;
 use crate::db::database_struct::Others;
+use crate::db::database_struct::User;
 use crate::utils::pop_up_message::*;
+use log::{error, info};
+use rusqlite::{params, Connection, Result};
 use std::io::stdout;
-use log::{info, error};
-
 
 // Update is_show_key_bindings
 pub fn update_is_show_key_bindings(value: &str, username: &str) -> Result<()> {
-
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
-
         conn.execute(
             "UPDATE users SET is_show_key_bindings = ?1 WHERE username = ?2",
             params![value, username],
@@ -27,7 +24,6 @@ pub fn update_is_show_key_bindings(value: &str, username: &str) -> Result<()> {
     Ok(())
 }
 
-
 // get is_show_key_bindings
 pub fn get_is_show_key_bindings(username: &str) -> String {
     let conn = match crate::db::migrate::open_conn() {
@@ -35,7 +31,8 @@ pub fn get_is_show_key_bindings(username: &str) -> String {
         Err(_) => return String::from("Error: unable open database"),
     };
 
-    let mut stmt = match conn.prepare("SELECT is_show_key_bindings FROM users WHERE username = ?1") {
+    let mut stmt = match conn.prepare("SELECT is_show_key_bindings FROM users WHERE username = ?1")
+    {
         Ok(s) => s,
         Err(_) => return String::from("Error to prepare reqwest"),
     };
@@ -48,21 +45,19 @@ pub fn get_is_show_key_bindings(username: &str) -> String {
 
 // Update speed_rate
 pub fn update_speed_rate(username: &str, is_speed_rate_up: bool) -> Result<()> {
-
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
-
         if is_speed_rate_up {
-        conn.execute(
-            "UPDATE users SET speed_rate = speed_rate + 0.10 WHERE username = ?1",
-            params![username],
-        )?;
+            conn.execute(
+                "UPDATE users SET speed_rate = speed_rate + 0.10 WHERE username = ?1",
+                params![username],
+            )?;
         } else {
-        conn.execute(
-            "UPDATE users SET speed_rate = speed_rate - 0.10 WHERE username = ?1",
-            params![username],
-        )?;
+            conn.execute(
+                "UPDATE users SET speed_rate = speed_rate - 0.10 WHERE username = ?1",
+                params![username],
+            )?;
         }
     } else {
         let mut stdout = stdout();
@@ -72,7 +67,6 @@ pub fn update_speed_rate(username: &str, is_speed_rate_up: bool) -> Result<()> {
 
     Ok(())
 }
-
 
 // get speed_rate
 pub fn get_speed_rate(username: &str) -> String {
@@ -94,7 +88,6 @@ pub fn get_speed_rate(username: &str) -> String {
 
 // get listening_session
 pub fn get_listening_session() -> Result<Option<ListeningSession>> {
-
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
@@ -146,9 +139,7 @@ pub fn insert_listening_session(
     author: String,
     is_playback: bool,
     chapter: String,
-
 ) -> Result<()> {
-
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
@@ -189,11 +180,9 @@ pub fn delete_listening_session() -> Result<()> {
 
 // Update chapter (for `listening_session` table)
 pub fn update_chapter(value: &str, id_session: &str) -> Result<()> {
-
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
-
         conn.execute(
             "UPDATE listening_session SET chapter = ?1 WHERE id_session = ?2",
             params![value, id_session],
@@ -208,11 +197,9 @@ pub fn update_chapter(value: &str, id_session: &str) -> Result<()> {
 }
 // Update is_playback (for `listening_session` table)
 pub fn update_is_playback(value: &str, id_session: &str) -> Result<()> {
-
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
-
         conn.execute(
             "UPDATE listening_session SET is_playback = ?1 WHERE id_session = ?2",
             params![value, id_session],
@@ -227,11 +214,9 @@ pub fn update_is_playback(value: &str, id_session: &str) -> Result<()> {
 }
 // Update current_time (for `listening_session` table)
 pub fn update_current_time(value: u32, id_session: &str) -> Result<()> {
-
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
-
         conn.execute(
             "UPDATE listening_session SET current_time_playback = ?1 WHERE id_session = ?2",
             params![value, id_session],
@@ -247,11 +232,9 @@ pub fn update_current_time(value: u32, id_session: &str) -> Result<()> {
 
 // Update elapsed_time (for `listening_session` table)
 pub fn update_elapsed_time(value: u32, id_session: &str) -> Result<()> {
-
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
-
         conn.execute(
             "UPDATE listening_session SET elapsed_time = elapsed_time + ?1 WHERE id_session = ?2",
             params![value, id_session],
@@ -267,11 +250,9 @@ pub fn update_elapsed_time(value: u32, id_session: &str) -> Result<()> {
 
 // Update is_finished (for `listening_session` table)
 pub fn update_is_finished(value: &str, id_session: &str) -> Result<()> {
-    
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
-
         conn.execute(
             "UPDATE listening_session SET is_finished = ?1 WHERE id_session = ?2",
             params![value, id_session],
@@ -287,15 +268,14 @@ pub fn update_is_finished(value: &str, id_session: &str) -> Result<()> {
 
 // Delete an user
 pub fn delete_user(username: &str) -> Result<()> {
-    
-    let message = format!("User '{}' deleted. Please restart the app to apply the changes.", username);
+    let message = format!(
+        "User '{}' deleted. Please restart the app to apply the changes.",
+        username
+    );
     let err_message = "Error connecting to the database.";
     if let Ok(conn) = crate::db::migrate::open_conn() {
-
-        let rows_deleted = conn.execute(
-            "DELETE FROM users WHERE username = ?1",
-            params![username],
-        )?;
+        let rows_deleted =
+            conn.execute("DELETE FROM users WHERE username = ?1", params![username])?;
 
         if rows_deleted > 0 {
             let mut stdout = stdout();
@@ -315,11 +295,9 @@ pub fn delete_user(username: &str) -> Result<()> {
 
 // Update is_loop_break
 pub fn update_is_loop_break(value: &str, username: &str) -> Result<()> {
-
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
-
         conn.execute(
             "UPDATE users SET is_loop_break = ?1 WHERE username = ?2",
             params![value, username],
@@ -332,7 +310,6 @@ pub fn update_is_loop_break(value: &str, username: &str) -> Result<()> {
 
     Ok(())
 }
-
 
 // get is_loop_break
 pub fn get_is_loop_break(username: &str) -> String {
@@ -354,11 +331,9 @@ pub fn get_is_loop_break(username: &str) -> String {
 
 // Update is_vlv_launched_first_time
 pub fn update_has_played_before(value: &str, username: &str) -> Result<()> {
-
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
-
         conn.execute(
             "UPDATE users SET has_played_before = ?1 WHERE username = ?2",
             params![value, username],
@@ -391,11 +366,9 @@ pub fn get_has_played_before(username: &str) -> String {
 }
 // Update id_selected_lib
 pub fn update_id_selected_lib(id_selected_lib: &str, username: &str) -> Result<()> {
-
     let message = "The library has been updated. Please refresh the app to apply the changes.";
     let err_message = "Error connecting to the database.";
     if let Ok(conn) = crate::db::migrate::open_conn() {
-
         conn.execute(
             "UPDATE users SET id_selected_lib = ?1 WHERE username = ?2",
             params![id_selected_lib, username],
@@ -403,7 +376,6 @@ pub fn update_id_selected_lib(id_selected_lib: &str, username: &str) -> Result<(
         let mut stdout = stdout();
         let _ = pop_message(&mut stdout, 3, message);
         info!("[update_id_selected_lib] The library has been updated");
-
     } else {
         let mut stdout = stdout();
         let _ = pop_message(&mut stdout, 3, err_message);
@@ -413,7 +385,7 @@ pub fn update_id_selected_lib(id_selected_lib: &str, username: &str) -> Result<(
     Ok(())
 }
 
-// update default user 
+// update default user
 //pub fn update_default_user(conn: &Connection, username: &str) -> Result<()> {
 //    // Mark all user as 0 by default
 //    conn.execute(
@@ -431,7 +403,7 @@ pub fn update_id_selected_lib(id_selected_lib: &str, username: &str) -> Result<(
 //}
 
 // Insert user in database
-pub fn db_insert_usr(users : &Vec<User>)  -> Result<()> {   
+pub fn db_insert_usr(users: &Vec<User>) -> Result<()> {
     let conn = crate::db::migrate::open_conn()?;
     for user in users {
         conn.execute(
@@ -456,7 +428,6 @@ pub fn db_insert_usr(users : &Vec<User>)  -> Result<()> {
 
 // get others
 pub fn get_others() -> Result<Option<Others>> {
-
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
@@ -484,7 +455,6 @@ pub fn get_others() -> Result<Option<Others>> {
 }
 // Update login_err (for `others` table)
 pub fn update_login_err(value: &str) -> Result<()> {
-
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
@@ -514,13 +484,12 @@ pub fn select_default_usr() -> Result<Vec<String>> {
          FROM users WHERE is_default_usr = 1 LIMIT 1"
     )?;
 
-
     let user_iter = stmt.query_map([], |row| {
         Ok(User {
             username: row.get(0)?,
             server_address: row.get(1)?,
             token: row.get(2)?,
-            is_default_usr: row.get::<_, i32>(3)? != 0,  // convert 0/1 in bool
+            is_default_usr: row.get::<_, i32>(3)? != 0, // convert 0/1 in bool
             name_selected_lib: row.get(4)?,
             id_selected_lib: row.get(5)?,
             is_loop_break: row.get(6)?,
@@ -557,7 +526,7 @@ pub fn select_default_usr() -> Result<Vec<String>> {
         //println!("No default user found.");
     }
 
-    Ok(result)  
+    Ok(result)
 }
 
 /// Opens the database and applies the migrations.
@@ -572,12 +541,19 @@ pub fn init_db() -> Result<()> {
 /// the episode of a podcast. The parameter `item_id` is always the identity of
 /// the library item, because the server needs that value for the progress.
 #[allow(clippy::too_many_arguments)]
-pub fn insert_download(id_item: &str, username: &str, title: &str, author: &str, file_path: &str, duration: f64, item_id: &str, server: &str) -> Result<()> {
-
+pub fn insert_download(
+    id_item: &str,
+    username: &str,
+    title: &str,
+    author: &str,
+    file_path: &str,
+    duration: f64,
+    item_id: &str,
+    server: &str,
+) -> Result<()> {
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
-
         conn.execute(
             "INSERT OR REPLACE INTO downloads (id_item, username, title, author, file_path, duration, current_time_offline, downloaded_at, item_id, server)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0, datetime('now'), ?7, ?8)",
@@ -594,7 +570,6 @@ pub fn insert_download(id_item: &str, username: &str, title: &str, author: &str,
 
 // Get a downloaded item: (file_path, current_time_offline, duration, title, author) (for `downloads` table)
 pub fn get_download(id_item: &str, username: &str) -> Option<(String, u32, f64, String, String)> {
-
     let conn = crate::db::migrate::open_conn().ok()?;
 
     let mut stmt = conn.prepare(
@@ -609,16 +584,15 @@ pub fn get_download(id_item: &str, username: &str) -> Option<(String, u32, f64, 
             row.get::<_, String>(3)?,
             row.get::<_, String>(4)?,
         ))
-    }).ok()
+    })
+    .ok()
 }
 
 // Update current_time_offline (for `downloads` table)
 pub fn update_download_current_time(id_item: &str, username: &str, value: u32) -> Result<()> {
-
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
-
         conn.execute(
             "UPDATE downloads SET current_time_offline = ?1 WHERE id_item = ?2 AND username = ?3",
             params![value, id_item, username],
@@ -633,12 +607,18 @@ pub fn update_download_current_time(id_item: &str, username: &str, value: u32) -
 }
 
 // Insert (or replace) one audio file of a downloaded item (for `download_files` table)
-pub fn insert_download_file(id_item: &str, username: &str, idx: u32, ino: &str, file_path: &str, size: u64, duration: f64) -> Result<()> {
-
+pub fn insert_download_file(
+    id_item: &str,
+    username: &str,
+    idx: u32,
+    ino: &str,
+    file_path: &str,
+    size: u64,
+    duration: f64,
+) -> Result<()> {
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
-
         conn.execute(
             "INSERT OR REPLACE INTO download_files (id_item, username, idx, ino, file_path, size, duration)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
@@ -657,7 +637,6 @@ pub fn insert_download_file(id_item: &str, username: &str, idx: u32, ino: &str, 
 // The offline player reads this list. No caller exists yet.
 #[allow(dead_code)]
 pub fn get_download_files(id_item: &str, username: &str) -> Vec<(u32, String, f64)> {
-
     let Ok(conn) = crate::db::migrate::open_conn() else {
         return Vec::new();
     };
@@ -684,11 +663,9 @@ pub fn get_download_files(id_item: &str, username: &str) -> Vec<(u32, String, f6
 
 // Delete a downloaded item (for `downloads` and `download_files` tables)
 pub fn delete_download(id_item: &str, username: &str) -> Result<()> {
-
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
-
         conn.execute(
             "DELETE FROM downloads WHERE id_item = ?1 AND username = ?2",
             params![id_item, username],
@@ -706,8 +683,6 @@ pub fn delete_download(id_item: &str, username: &str) -> Result<()> {
 
     Ok(())
 }
-
-
 
 /// One media that the user downloaded.
 ///
@@ -926,7 +901,16 @@ mod tests {
 
         conn.execute(
             INSERT_PENDING,
-            params!["item-1", "bob", "home", "", 61.5_f64, 120.0_f64, 1_i64, 1_700_000_000_000_i64],
+            params![
+                "item-1",
+                "bob",
+                "home",
+                "",
+                61.5_f64,
+                120.0_f64,
+                1_i64,
+                1_700_000_000_000_i64
+            ],
         )
         .unwrap();
 
@@ -970,10 +954,14 @@ mod tests {
         }
 
         let count: i64 = conn
-            .query_row("SELECT COUNT(*) FROM pending_progress", [], |row| row.get(0))
+            .query_row("SELECT COUNT(*) FROM pending_progress", [], |row| {
+                row.get(0)
+            })
             .unwrap();
         let value: f64 = conn
-            .query_row("SELECT position_s FROM pending_progress", [], |row| row.get(0))
+            .query_row("SELECT position_s FROM pending_progress", [], |row| {
+                row.get(0)
+            })
             .unwrap();
 
         assert_eq!(count, 1);
@@ -997,7 +985,9 @@ mod tests {
         }
 
         let count: i64 = conn
-            .query_row("SELECT COUNT(*) FROM pending_progress", [], |row| row.get(0))
+            .query_row("SELECT COUNT(*) FROM pending_progress", [], |row| {
+                row.get(0)
+            })
             .unwrap();
         assert_eq!(count, 2);
 
@@ -1051,7 +1041,9 @@ mod tests {
         .unwrap();
 
         let count: i64 = conn
-            .query_row("SELECT COUNT(*) FROM pending_progress", [], |row| row.get(0))
+            .query_row("SELECT COUNT(*) FROM pending_progress", [], |row| {
+                row.get(0)
+            })
             .unwrap();
 
         assert_eq!(count, 2);

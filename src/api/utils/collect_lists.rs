@@ -54,7 +54,11 @@ impl ListView {
     /// Gives the line of this list in the list of the lists.
     pub fn line(&self) -> String {
         let count = self.entries.len();
-        let items = if count == 1 { "1 item" } else { &format!("{} items", count) };
+        let items = if count == 1 {
+            "1 item"
+        } else {
+            &format!("{} items", count)
+        };
 
         format!("[{}] {} [{}]", self.kind.name(), self.name, items)
     }
@@ -74,7 +78,10 @@ impl ListEntry {
 
 /// Reads the title, the author, and the length of a library item.
 fn from_item(item: &LibraryItem) -> ListEntry {
-    let metadata = item.media.as_ref().and_then(|media| media.metadata.as_ref());
+    let metadata = item
+        .media
+        .as_ref()
+        .and_then(|media| media.metadata.as_ref());
 
     ListEntry {
         id: item.id.clone().unwrap_or_default(),
@@ -106,10 +113,7 @@ pub fn collect_collections(root: &CollectionRoot) -> Vec<ListView> {
         .map(|collection| ListView {
             id: collection.id.clone().unwrap_or_default(),
             kind: ListKind::Collection,
-            name: collection
-                .name
-                .clone()
-                .unwrap_or_else(|| "N/A".to_string()),
+            name: collection.name.clone().unwrap_or_else(|| "N/A".to_string()),
             description: collection
                 .description
                 .as_deref()
@@ -246,7 +250,10 @@ mod tests {
 
     #[test]
     fn the_description_of_a_collection_holds_no_html() {
-        assert_eq!(collect_collections(&collections())[0].description, "Two books");
+        assert_eq!(
+            collect_collections(&collections())[0].description,
+            "Two books"
+        );
     }
 
     /// A playlist can hold a book and an episode together.

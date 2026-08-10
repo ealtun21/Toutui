@@ -118,9 +118,11 @@ async fn a_library_of_exactly_one_page_needs_one_request() {
     Mock::given(method("GET"))
         .and(path("/api/libraries/lib1/items"))
         .and(query_param("page", "0"))
-        .respond_with(
-            ResponseTemplate::new(200).set_body_json(page(0, PAGE_SIZE as usize, PAGE_SIZE)),
-        )
+        .respond_with(ResponseTemplate::new(200).set_body_json(page(
+            0,
+            PAGE_SIZE as usize,
+            PAGE_SIZE,
+        )))
         .expect(1)
         .mount(&server)
         .await;
@@ -183,7 +185,9 @@ async fn the_request_for_the_series_asks_for_one_page() {
         .mount(&server)
         .await;
 
-    let root = get_all_series(&client(&server.uri()), "lib1").await.unwrap();
+    let root = get_all_series(&client(&server.uri()), "lib1")
+        .await
+        .unwrap();
 
     assert_eq!(root.results.unwrap().len(), 2);
     drop(server);
@@ -210,7 +214,9 @@ async fn a_library_with_many_series_gives_every_series() {
             .await;
     }
 
-    let root = get_all_series(&client(&server.uri()), "lib1").await.unwrap();
+    let root = get_all_series(&client(&server.uri()), "lib1")
+        .await
+        .unwrap();
 
     assert_eq!(root.results.unwrap().len(), total as usize);
     drop(server);
@@ -227,7 +233,9 @@ async fn a_library_with_no_series_gives_an_empty_list() {
         .mount(&server)
         .await;
 
-    let root = get_all_series(&client(&server.uri()), "lib1").await.unwrap();
+    let root = get_all_series(&client(&server.uri()), "lib1")
+        .await
+        .unwrap();
 
     assert_eq!(root.results.unwrap().len(), 0);
 }
@@ -243,7 +251,9 @@ async fn the_books_of_a_series_come_in_sequence() {
         .mount(&server)
         .await;
 
-    let root = get_all_series(&client(&server.uri()), "lib1").await.unwrap();
+    let root = get_all_series(&client(&server.uri()), "lib1")
+        .await
+        .unwrap();
     let series = collect_series(&root);
 
     assert_eq!(series.len(), 1);

@@ -1,13 +1,11 @@
 use crate::api::client::error::ApiError;
 use crate::api::client::ApiClient;
-use serde_json::Value;
 use serde::Deserialize;
 use serde::Serialize;
-
+use serde_json::Value;
 
 /// Get All Libraries (can be a podcast or book library (shelf))
 /// https://api.audiobookshelf.org/#get-all-libraries
-
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

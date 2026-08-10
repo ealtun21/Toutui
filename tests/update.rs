@@ -113,7 +113,10 @@ fn the_program_finds_the_sum_of_a_name() {
         expected_sum(sums, "toutui-universal-apple-darwin.tar.gz"),
         Some("bbb".to_string())
     );
-    assert_eq!(expected_sum(sums, "toutui-aarch64-unknown-linux-gnu.tar.gz"), None);
+    assert_eq!(
+        expected_sum(sums, "toutui-aarch64-unknown-linux-gnu.tar.gz"),
+        None
+    );
 }
 
 /// The program takes the binary out of the archive.
@@ -254,24 +257,34 @@ async fn a_sum_that_disagrees_stops_the_update() {
         ]
     });
 
-    Mock::given(method("GET")).and(path("/latest"))
+    Mock::given(method("GET"))
+        .and(path("/latest"))
         .respond_with(ResponseTemplate::new(200).set_body_json(body))
-        .mount(&server).await;
-    Mock::given(method("GET")).and(path("/archive"))
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/archive"))
         .respond_with(ResponseTemplate::new(200).set_body_bytes(archive_of(b"new")))
-        .mount(&server).await;
-    Mock::given(method("GET")).and(path("/SHA256SUMS"))
-        .respond_with(ResponseTemplate::new(200)
-            .set_body_string(format!("{}  {}\n", "0".repeat(64), name)))
-        .mount(&server).await;
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/SHA256SUMS"))
+        .respond_with(ResponseTemplate::new(200).set_body_string(format!(
+            "{}  {}\n",
+            "0".repeat(64),
+            name
+        )))
+        .mount(&server)
+        .await;
 
     let dir = tempfile::tempdir().unwrap();
     let binary = dir.path().join("toutui");
     std::fs::write(&binary, b"the old binary").unwrap();
 
-    let error = toutui::update::install::run_update_at(&format!("{}/latest", server.uri()), &binary)
-        .await
-        .unwrap_err();
+    let error =
+        toutui::update::install::run_update_at(&format!("{}/latest", server.uri()), &binary)
+            .await
+            .unwrap_err();
 
     assert!(error.contains("not correct"));
     assert_eq!(std::fs::read(&binary).unwrap(), b"the old binary");
@@ -294,17 +307,20 @@ async fn an_older_release_does_not_replace_the_binary() {
         ]
     });
 
-    Mock::given(method("GET")).and(path("/latest"))
+    Mock::given(method("GET"))
+        .and(path("/latest"))
         .respond_with(ResponseTemplate::new(200).set_body_json(body))
-        .mount(&server).await;
+        .mount(&server)
+        .await;
 
     let dir = tempfile::tempdir().unwrap();
     let binary = dir.path().join("toutui");
     std::fs::write(&binary, b"the old binary").unwrap();
 
-    let message = toutui::update::install::run_update_at(&format!("{}/latest", server.uri()), &binary)
-        .await
-        .unwrap();
+    let message =
+        toutui::update::install::run_update_at(&format!("{}/latest", server.uri()), &binary)
+            .await
+            .unwrap();
 
     assert!(message.contains("not newer"));
     assert_eq!(std::fs::read(&binary).unwrap(), b"the old binary");
@@ -328,16 +344,25 @@ async fn a_newer_release_passes_the_version_test() {
         ]
     });
 
-    Mock::given(method("GET")).and(path("/latest"))
+    Mock::given(method("GET"))
+        .and(path("/latest"))
         .respond_with(ResponseTemplate::new(200).set_body_json(body))
-        .mount(&server).await;
-    Mock::given(method("GET")).and(path("/archive"))
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/archive"))
         .respond_with(ResponseTemplate::new(200).set_body_bytes(archive_of(b"new")))
-        .mount(&server).await;
-    Mock::given(method("GET")).and(path("/SHA256SUMS"))
-        .respond_with(ResponseTemplate::new(200)
-            .set_body_string(format!("{}  {}\n", "0".repeat(64), name)))
-        .mount(&server).await;
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/SHA256SUMS"))
+        .respond_with(ResponseTemplate::new(200).set_body_string(format!(
+            "{}  {}\n",
+            "0".repeat(64),
+            name
+        )))
+        .mount(&server)
+        .await;
 
     let dir = tempfile::tempdir().unwrap();
     let binary = dir.path().join("toutui");
@@ -345,9 +370,10 @@ async fn a_newer_release_passes_the_version_test() {
 
     // The version test does not stop the update; the sum test does. The
     // error therefore comes from the sum, and not from the version.
-    let error = toutui::update::install::run_update_at(&format!("{}/latest", server.uri()), &binary)
-        .await
-        .unwrap_err();
+    let error =
+        toutui::update::install::run_update_at(&format!("{}/latest", server.uri()), &binary)
+            .await
+            .unwrap_err();
 
     assert!(error.contains("not correct"));
 }
@@ -505,10 +531,11 @@ async fn a_release_that_has_a_correct_sum() -> (MockServer, String) {
         .await;
     Mock::given(method("GET"))
         .and(path("/SHA256SUMS"))
-        .respond_with(
-            ResponseTemplate::new(200)
-                .set_body_string(format!("{}  {}\n", sum_of(&archive), name)),
-        )
+        .respond_with(ResponseTemplate::new(200).set_body_string(format!(
+            "{}  {}\n",
+            sum_of(&archive),
+            name
+        )))
         .mount(&server)
         .await;
 
@@ -530,7 +557,11 @@ async fn a_proof_that_is_correct_lets_the_update_finish() {
         .await
         .unwrap();
 
-    assert!(message.contains("The proof of the origin is correct"), "{}", message);
+    assert!(
+        message.contains("The proof of the origin is correct"),
+        "{}",
+        message
+    );
     assert_eq!(std::fs::read(&binary).unwrap(), b"the new binary");
 
     let args = std::fs::read_to_string(dir.path().join("args.txt")).unwrap();
@@ -592,7 +623,11 @@ async fn a_gh_with_no_account_does_not_stop_the_update() {
     let dir = tempfile::tempdir().unwrap();
     let binary = dir.path().join("toutui");
     std::fs::write(&binary, b"the old binary").unwrap();
-    let gh = fake_gh(dir.path(), 4, "gh: you are not logged in. Run gh auth login");
+    let gh = fake_gh(
+        dir.path(),
+        4,
+        "gh: you are not logged in. Run gh auth login",
+    );
 
     let message = toutui::update::install::run_update_at_with(&api, &binary, gh.to_str().unwrap())
         .await

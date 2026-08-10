@@ -1,8 +1,8 @@
-use serde::{Serialize, Deserialize};
 use crate::db::crud::*;
 use color_eyre::Result;
+use serde::{Deserialize, Serialize};
 
-pub struct Database  {
+pub struct Database {
     pub users: Vec<User>,
     pub default_usr: Vec<String>,
     pub listening_session: ListeningSession,
@@ -11,17 +11,17 @@ pub struct Database  {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
-    pub  server_address: String,
-    pub  username: String,
-    pub  token: String,
-    pub  is_default_usr: bool,
-    pub  name_selected_lib: String,
-    pub  id_selected_lib: String,
-    pub  is_loop_break: String,
+    pub server_address: String,
+    pub username: String,
+    pub token: String,
+    pub is_default_usr: bool,
+    pub name_selected_lib: String,
+    pub id_selected_lib: String,
+    pub is_loop_break: String,
     /// Tells if the user played a media before.
-    pub  has_played_before: String,
-    pub  speed_rate: f32,
-    pub  is_show_key_bindings: String,
+    pub has_played_before: String,
+    pub speed_rate: f32,
+    pub is_show_key_bindings: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -45,7 +45,6 @@ pub struct Others {
     pub login_err: String,
 }
 
-
 impl Database {
     pub async fn new() -> Result<Self> {
         // open db and create table if there is none
@@ -60,7 +59,6 @@ impl Database {
         if let Ok(result) = select_default_usr() {
             default_usr = result;
         }
-
 
         // init listening_session
         let listening_session = ListeningSession {
@@ -85,8 +83,7 @@ impl Database {
             users,
             default_usr,
             listening_session,
-            others
+            others,
         })
     }
 }
-

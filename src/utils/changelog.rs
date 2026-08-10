@@ -17,7 +17,7 @@ pub fn changelog() -> String {
          ####\n",
     );
 
-let changelog_01 = "Changelog Toutui v0.1.0-beta (02/21/2025) \n\
+    let changelog_01 = "Changelog Toutui v0.1.0-beta (02/21/2025) \n\
          Fixed:\n\
          \n\
          First release.
@@ -27,8 +27,9 @@ let changelog_01 = "Changelog Toutui v0.1.0-beta (02/21/2025) \n\
          First release.
          \n\
          Enjoy!\n
-         ####\n".to_string();
-let changelog_02 = "Changelog Toutui v0.1.1-beta (02/24/2025) \n\
+         ####\n"
+        .to_string();
+    let changelog_02 = "Changelog Toutui v0.1.1-beta (02/24/2025) \n\
          Fixed:\n\
          \n\
          - App crash (out of bounds) when API send empty values.
@@ -39,8 +40,9 @@ let changelog_02 = "Changelog Toutui v0.1.1-beta (02/24/2025) \n\
          No change.
          \n\
          Enjoy and be toutui!\n
-         ####\n".to_string();
-let changelog_03 = "Changelog Toutui v0.1.2-beta (02/24/2025) \n\
+         ####\n"
+        .to_string();
+    let changelog_03 = "Changelog Toutui v0.1.2-beta (02/24/2025) \n\
          Fixed:\n\
          \n\
          - Partially fixed, becsause not optimal: bug_id: 9bacac Sync: If you open VLC to listen X, close VLC and quickly open VLC again to listen Y: X will still be sync — according to Y (normally, only Y has to be sync in this case).
@@ -52,7 +54,7 @@ let changelog_03 = "Changelog Toutui v0.1.2-beta (02/24/2025) \n\
          \n\
          Enjoy and be toutui!\n
          ####\n".to_string();
-let changelog_04 = "Changelog Toutui v0.1.3-beta (02/03/2025) \n\
+    let changelog_04 = "Changelog Toutui v0.1.3-beta (02/03/2025) \n\
          Fixed:\n\
          \n\
          - Fix bug_id: 3f729c Loading time not optimized for library with a lot of items (long start loading and refresh time)
@@ -67,7 +69,7 @@ let changelog_04 = "Changelog Toutui v0.1.3-beta (02/03/2025) \n\
          \n\
          Enjoy and be toutui!\n
          ####\n".to_string();
-let changelog_05 = "Changelog Toutui v0.2.0-beta (07/03/2025) \n\
+    let changelog_05 = "Changelog Toutui v0.2.0-beta (07/03/2025) \n\
 CAUTION: This version is not compatible with the previous one.  
 You need to remove the database in ~/.config/toutui before proceeding. 
          Fixed:\n\
@@ -93,8 +95,9 @@ You need to remove the database in ~/.config/toutui before proceeding.
          - AlbanDAVID
          \n\
          Enjoy and be toutui!\n
-         ####\n".to_string();
-let changelog_06 = "Changelog Toutui v0.3.0-beta (24/03/2025) \n\
+         ####\n"
+        .to_string();
+    let changelog_06 = "Changelog Toutui v0.3.0-beta (24/03/2025) \n\
 CAUTION: This version is not compatible with the previous one.  
 To make it work properly, perform a fresh reinstall.
 \n\
@@ -118,8 +121,9 @@ To make it work properly, perform a fresh reinstall.
          - AlbanDAVID, dougy147
          \n\
          Enjoy and be toutui!\n
-         ####\n".to_string();
-let changelog_07 = "Changelog Toutui v0.3.1-beta (25/03/2025) \n\
+         ####\n"
+        .to_string();
+    let changelog_07 = "Changelog Toutui v0.3.1-beta (25/03/2025) \n\
 CAUTION: This version is not compatible with v0.2.0-beta and bellow.  
 To make it work properly, perform a fresh reinstall.
 \n\
@@ -132,8 +136,9 @@ To make it work properly, perform a fresh reinstall.
          - AlbanDAVID
          \n\
          Enjoy and be toutui!\n
-         ####\n".to_string();
-let changelog_08 = "Changelog Toutui v0.3.2-beta (26/03/2025) \n\
+         ####\n"
+        .to_string();
+    let changelog_08 = "Changelog Toutui v0.3.2-beta (26/03/2025) \n\
          Added:\n\
          \n\
          - macOS compatibility.
@@ -152,8 +157,9 @@ let changelog_08 = "Changelog Toutui v0.3.2-beta (26/03/2025) \n\
          - AlbanDAVID, dougy147
          \n\
          Enjoy and be toutui!\n
-         ####\n".to_string();
-let changelog_09 = "Changelog Toutui v0.3.3-beta (02/04/2025) \n\
+         ####\n"
+        .to_string();
+    let changelog_09 = "Changelog Toutui v0.3.3-beta (02/04/2025) \n\
          \n\
          Changed:\n\
          \n\
@@ -166,7 +172,7 @@ let changelog_09 = "Changelog Toutui v0.3.3-beta (02/04/2025) \n\
          \n\
          Enjoy and be toutui!\n
          ####\n".to_string();
-let changelog_10 = "Changelog Toutui v0.3.4-beta (23/04/2025) \n\
+    let changelog_10 = "Changelog Toutui v0.3.4-beta (23/04/2025) \n\
          \n\
          Fix:\n\
          \n\
@@ -177,7 +183,7 @@ let changelog_10 = "Changelog Toutui v0.3.4-beta (23/04/2025) \n\
          \n\
          Enjoy and be toutui!\n
          ####\n".to_string();
-let changelog_11 = "Changelog Toutui v0.3.5-beta (27/04/2025) \n\
+    let changelog_11 = "Changelog Toutui v0.3.5-beta (27/04/2025) \n\
          \n\
          Added:\n\
          - Display number of total items for continue listening, library and library settings (for books and podcasts)
@@ -194,7 +200,7 @@ let changelog_11 = "Changelog Toutui v0.3.5-beta (27/04/2025) \n\
          \n\
          Enjoy and be toutui!\n
          ####\n".to_string();
-let changelog_12 = "Changelog Toutui v0.4.0-beta (10/05/2025) \n\
+    let changelog_12 = "Changelog Toutui v0.4.0-beta (10/05/2025) \n\
          \n\
          Warning:\n\
          - If you're already using the app, please follow the upgrade instructions here: => 
@@ -218,8 +224,8 @@ let changelog_12 = "Changelog Toutui v0.4.0-beta (10/05/2025) \n\
          \n\
          Enjoy and be toutui!\n
          ####\n".to_string();
-let changelog_15 = format!(
-    "Changelog Toutui v{} (10/08/2026) \n\
+    let changelog_15 = format!(
+        "Changelog Toutui v{} (10/08/2026) \n\
      \n\
      Added:\n\
      - The program plays a local copy when the server does not answer, and\n\
@@ -244,9 +250,9 @@ let changelog_15 = format!(
      \n\
      Enjoy and be toutui!\n\
      ####\n",
-     VERSION
-);
-let changelog_13 = "Changelog Toutui v0.4.1-beta (14/05/2025) \n\
+        VERSION
+    );
+    let changelog_13 = "Changelog Toutui v0.4.1-beta (14/05/2025) \n\
          \n\
          Warning:\n\
          - If you're already using the app v0.3.5 or bellow, please follow the upgrade instructions here: => 
@@ -265,7 +271,7 @@ let changelog_13 = "Changelog Toutui v0.4.1-beta (14/05/2025) \n\
          \n\
          Enjoy and be toutui!\n
          ####\n".to_string();
-let changelog_14 =
+    let changelog_14 =
     "Changelog Toutui v0.4.2-beta (15/05/2025) \n\
          \n\
          Warning:\n\
@@ -286,23 +292,21 @@ let changelog_14 =
          Enjoy and be toutui!\n
          ####\n".to_string();
 
-
     changelog.push_str(&changelog_15);
     changelog.push_str(&changelog_14);
-    changelog.push_str(&changelog_13); 
-    changelog.push_str(&changelog_12); 
-    changelog.push_str(&changelog_11); 
-    changelog.push_str(&changelog_10); 
-    changelog.push_str(&changelog_09); 
-    changelog.push_str(&changelog_08); 
-    changelog.push_str(&changelog_07); 
-    changelog.push_str(&changelog_06); 
-    changelog.push_str(&changelog_05); 
-    changelog.push_str(&changelog_04); 
-    changelog.push_str(&changelog_03); 
-    changelog.push_str(&changelog_02); 
-    changelog.push_str(&changelog_01); 
+    changelog.push_str(&changelog_13);
+    changelog.push_str(&changelog_12);
+    changelog.push_str(&changelog_11);
+    changelog.push_str(&changelog_10);
+    changelog.push_str(&changelog_09);
+    changelog.push_str(&changelog_08);
+    changelog.push_str(&changelog_07);
+    changelog.push_str(&changelog_06);
+    changelog.push_str(&changelog_05);
+    changelog.push_str(&changelog_04);
+    changelog.push_str(&changelog_03);
+    changelog.push_str(&changelog_02);
+    changelog.push_str(&changelog_01);
 
-
-changelog
+    changelog
 }

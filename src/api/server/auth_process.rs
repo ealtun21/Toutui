@@ -1,18 +1,17 @@
-use reqwest::Client;
-use serde::{Deserialize, Serialize};
-use color_eyre::eyre::{Result, Report};
 use crate::api::client::endpoint::{Endpoint, EndpointPool};
 use crate::api::client::ApiClient;
-use crate::config::{load_config, pool_for_address};
-use crate::db::crud::*;
-use std::sync::Arc;
-use std::time::Duration;
-use crate::db::database_struct::User;
 use crate::api::libraries::get_all_libraries::*;
 use crate::api::utils::collect_get_all_libraries::*;
+use crate::config::{load_config, pool_for_address};
+use crate::db::crud::*;
+use crate::db::database_struct::User;
 use crate::utils::encrypt_token::*;
+use color_eyre::eyre::{Report, Result};
 use log::info;
-
+use reqwest::Client;
+use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+use std::time::Duration;
 
 #[derive(Serialize)]
 struct LoginRequest {
@@ -99,30 +98,27 @@ pub async fn auth_process(username: &str, password: &str, server_address: &str) 
         // wait for a loop of a playback before it.
         let has_played_before = "1".to_string();
 
-
-        // Writting in database : 
+        // Writting in database :
 
         // init a new user
-        let users = vec![
-            User {
-                server_address: server_address.to_string(),
-                username: username.to_string(),
-                token: token_encrypted,
-                is_default_usr: true,
-                name_selected_lib: library_names[0].clone(), // by default we take the first library
-                id_selected_lib: library_ids[0].clone(),
-                is_loop_break,
-                has_played_before,
-                speed_rate: 1.0,
-                is_show_key_bindings: "1".to_string()
-            }
-        ];
+        let users = vec![User {
+            server_address: server_address.to_string(),
+            username: username.to_string(),
+            token: token_encrypted,
+            is_default_usr: true,
+            name_selected_lib: library_names[0].clone(), // by default we take the first library
+            id_selected_lib: library_ids[0].clone(),
+            is_loop_break,
+            has_played_before,
+            speed_rate: 1.0,
+            is_show_key_bindings: "1".to_string(),
+        }];
 
         // insert the new user in database
         let _ = db_insert_usr(&users);
 
-        Ok(()) 
+        Ok(())
     } else {
-        Err(Report::new(std::io::Error::other("Login failed"))) 
+        Err(Report::new(std::io::Error::other("Login failed")))
     }
 }

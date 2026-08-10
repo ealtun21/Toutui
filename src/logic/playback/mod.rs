@@ -16,7 +16,7 @@ use crate::db::crud::*;
 use crate::logic::offline::{remember_progress, tracks_from_downloads};
 use crate::logic::sync_session::sync_session_from_database::*;
 use crate::logic::sync_session::wait_prev_session_finished::*;
-use crate::player::engine::source::{TrackSource, select_sources};
+use crate::player::engine::source::{select_sources, TrackSource};
 use crate::player::engine::track::{Chapter, Track, TrackList};
 use crate::player::engine::{PlaybackRequest, PlaybackStatus, PlayerCommand, PlayerHandle};
 use crate::utils::pop_up_message::*;
@@ -36,10 +36,7 @@ pub enum PlaybackTarget {
         whole_book_duration: Option<f64>,
     },
     /// One episode of a podcast.
-    Episode {
-        item_id: String,
-        episode_id: String,
-    },
+    Episode { item_id: String, episode_id: String },
 }
 
 impl PlaybackTarget {
@@ -188,7 +185,10 @@ pub async fn play(
         // The server does not answer. A copy on the disk still plays. See
         // T-25.
         Err(error) if error.is_offline() => {
-            warn!("[play] the server does not answer: {}. The offline mode starts.", error);
+            warn!(
+                "[play] the server does not answer: {}. The offline mode starts.",
+                error
+            );
             play_offline(player, &target, username, server_key, &mut stdout).await;
             return;
         }
@@ -359,7 +359,11 @@ async fn play_offline(
 
     if sources.len() != track_list.len() {
         error!("[play] the disk does not hold every file of {}", key);
-        let _ = pop_message(stdout, 3, "The disk does not hold every file of this media.");
+        let _ = pop_message(
+            stdout,
+            3,
+            "The disk does not hold every file of this media.",
+        );
         return;
     }
 
@@ -372,7 +376,11 @@ async fn play_offline(
         row.item_id.clone()
     };
 
-    let episode_id = if item_id == key { None } else { Some(key.clone()) };
+    let episode_id = if item_id == key {
+        None
+    } else {
+        Some(key.clone())
+    };
 
     // The length of the download has more importance, because the tracks of a
     // book with one file give the same value.
@@ -411,8 +419,16 @@ async fn play_offline(
         &format!("Offline: \"{}\" plays from the disk.", row.title),
     );
 
-    follow_playback_offline(player, key, item_id, episode_id, username, server, total_duration)
-        .await;
+    follow_playback_offline(
+        player,
+        key,
+        item_id,
+        episode_id,
+        username,
+        server,
+        total_duration,
+    )
+    .await;
 }
 
 /// Follows a playback that has no server.
@@ -467,7 +483,11 @@ async fn follow_playback_offline(
 /// A book uses the length of the whole book. The playback session gives the
 /// length of the first audio file only, and a book with many audio files then
 /// gets a value that is far too small. See upstream issue 33.
-fn total_duration_of(target: &PlaybackTarget, tracks: &TrackList, session_duration: &str) -> String {
+fn total_duration_of(
+    target: &PlaybackTarget,
+    tracks: &TrackList,
+    session_duration: &str,
+) -> String {
     if let PlaybackTarget::Book {
         whole_book_duration: Some(duration),
         ..
@@ -535,7 +555,8 @@ pub async fn follow_playback(
                 since_sync += 1;
 
                 if since_sync >= SYNC_PERIOD {
-                    if let Err(error) = sync_session(api, &session_id, Some(position), moved).await {
+                    if let Err(error) = sync_session(api, &session_id, Some(position), moved).await
+                    {
                         warn!(
                             "[follow_playback] the server did not accept the sync: {}",
                             error

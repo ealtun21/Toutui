@@ -151,9 +151,15 @@ pub fn plan_from_item(item: &serde_json::Value) -> Option<DownloadPlan> {
 
             Some(AudioFilePlan {
                 index: file.get("index").and_then(|i| i.as_u64()).unwrap_or(1) as u32,
-                ino: file.get("ino")?.as_str().map(|s| s.to_string()).or_else(|| {
-                    file.get("ino").and_then(|i| i.as_u64()).map(|i| i.to_string())
-                })?,
+                ino: file
+                    .get("ino")?
+                    .as_str()
+                    .map(|s| s.to_string())
+                    .or_else(|| {
+                        file.get("ino")
+                            .and_then(|i| i.as_u64())
+                            .map(|i| i.to_string())
+                    })?,
                 filename: file_metadata
                     .and_then(|m| m.get("filename"))
                     .and_then(|f| f.as_str())
@@ -213,15 +219,24 @@ pub fn plan_from_episode(item: &serde_json::Value, episode_id: &str) -> Option<D
     // The episode gives the length when the audio file does not give it.
     let duration = match file.get("duration").and_then(|d| d.as_f64()) {
         Some(duration) if duration > 0.0 => duration,
-        _ => episode.get("duration").and_then(|d| d.as_f64()).unwrap_or(0.0),
+        _ => episode
+            .get("duration")
+            .and_then(|d| d.as_f64())
+            .unwrap_or(0.0),
     };
 
     let plan_file = AudioFilePlan {
         // The episode is one file, thus the file is always the first file.
         index: 1,
-        ino: file.get("ino")?.as_str().map(|s| s.to_string()).or_else(|| {
-            file.get("ino").and_then(|i| i.as_u64()).map(|i| i.to_string())
-        })?,
+        ino: file
+            .get("ino")?
+            .as_str()
+            .map(|s| s.to_string())
+            .or_else(|| {
+                file.get("ino")
+                    .and_then(|i| i.as_u64())
+                    .map(|i| i.to_string())
+            })?,
         filename: file_metadata
             .and_then(|m| m.get("filename"))
             .and_then(|f| f.as_str())

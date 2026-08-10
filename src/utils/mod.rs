@@ -1,9 +1,9 @@
-pub mod convert_seconds;
-pub mod pop_up_message;
-pub mod logs;
 pub mod changelog;
+pub mod check_update;
+pub mod clap;
+pub mod convert_seconds;
 pub mod encrypt_token;
 pub mod exit_app;
-pub mod clap;
-pub mod check_update;
 pub mod html_text;
+pub mod logs;
+pub mod pop_up_message;

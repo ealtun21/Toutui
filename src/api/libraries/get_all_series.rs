@@ -8,9 +8,9 @@
 //! `limit=0` gives an empty list, and not every series. Therefore this module
 //! always asks for a page of a known size.
 
-use crate::api::client::ApiClient;
 use crate::api::client::error::ApiError;
-use crate::api::libraries::get_all_books::{LibraryItem, PAGE_SIZE, wants_more_pages};
+use crate::api::client::ApiClient;
+use crate::api::libraries::get_all_books::{wants_more_pages, LibraryItem, PAGE_SIZE};
 use serde::{Deserialize, Serialize};
 
 /// The answer of `GET /api/libraries/:id/series`.

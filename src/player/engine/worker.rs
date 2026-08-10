@@ -62,9 +62,8 @@ fn open_sink() -> Result<MixerDeviceSink, String> {
     let wanted = match std::env::var(DEVICE_VARIABLE) {
         Ok(name) if !name.trim().is_empty() => name.trim().to_string(),
         _ => {
-            return DeviceSinkBuilder::open_default_sink().map_err(|error| {
-                format!("The application cannot open the sound card: {}", error)
-            })
+            return DeviceSinkBuilder::open_default_sink()
+                .map_err(|error| format!("The application cannot open the sound card: {}", error))
         }
     };
 
@@ -93,7 +92,10 @@ fn open_sink() -> Result<MixerDeviceSink, String> {
             return DeviceSinkBuilder::from_device(device)
                 .and_then(|builder| builder.open_stream())
                 .map_err(|error| {
-                    format!("The application cannot open the device {}: {}", wanted, error)
+                    format!(
+                        "The application cannot open the device {}: {}",
+                        wanted, error
+                    )
                 });
         }
     }
@@ -291,7 +293,10 @@ fn seek_to(player: &mut Player, current: &mut Option<Current>, token: &str, posi
 
     if track_index == item.playing {
         if let Err(error) = player.try_seek(seek_target(offset, item.speed.get())) {
-            warn!("[worker] the engine cannot move inside the track: {}", error);
+            warn!(
+                "[worker] the engine cannot move inside the track: {}",
+                error
+            );
         }
         return;
     }
@@ -308,7 +313,10 @@ fn seek_to(player: &mut Player, current: &mut Option<Current>, token: &str, posi
 
     if offset > 0.0 {
         if let Err(error) = player.try_seek(seek_target(offset, item.speed.get())) {
-            warn!("[worker] the engine cannot move inside the track: {}", error);
+            warn!(
+                "[worker] the engine cannot move inside the track: {}",
+                error
+            );
         }
     }
 
@@ -362,7 +370,10 @@ fn advance(player: &mut Player, current: &mut Option<Current>, token: &str) {
     }
 
     if let Err(error) = fill_queue(player, item, token) {
-        warn!("[worker] the engine cannot append the next track: {}", error);
+        warn!(
+            "[worker] the engine cannot append the next track: {}",
+            error
+        );
     }
 }
 

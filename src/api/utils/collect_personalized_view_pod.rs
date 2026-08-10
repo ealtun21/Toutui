@@ -36,7 +36,6 @@ pub async fn collect_subtitles_pod_cnt_list(roots: &[Root]) -> Vec<String> {
                     } else {
                         subtitles_pod_cnt_list.push("N/A".to_string());
                     }
-
                 }
             }
         }
@@ -45,7 +44,7 @@ pub async fn collect_subtitles_pod_cnt_list(roots: &[Root]) -> Vec<String> {
     subtitles_pod_cnt_list
 }
 
-/// Collect num episode 
+/// Collect num episode
 pub async fn collect_nums_ep_pod_cnt_list(roots: &[Root]) -> Vec<String> {
     let mut nums_ep_pod_cnt_list = Vec::new();
 
@@ -79,7 +78,6 @@ pub async fn collect_seasons_pod_cnt_list(roots: &[Root]) -> Vec<String> {
                     } else {
                         seasons_pod_cnt_list.push("N/A".to_string());
                     }
-
                 }
             }
         }
@@ -103,7 +101,6 @@ pub async fn collect_authors_pod_cnt_list(roots: &[Root]) -> Vec<String> {
                             } else {
                                 authors_pod_cnt_list.push("N/A".to_string());
                             }
-
                         }
                     }
                 }
@@ -129,7 +126,6 @@ pub async fn collect_descs_pod_cnt_list(roots: &[Root]) -> Vec<String> {
                             } else {
                                 descs_pod_cnt_list.push("N/A".to_string());
                             }
-
                         }
                     }
                 }
@@ -155,7 +151,6 @@ pub async fn collect_titles_pod_cnt_list(roots: &[Root]) -> Vec<String> {
                             } else {
                                 titles_pod_cnt_list.push("N/A".to_string());
                             }
-
                         }
                     }
                 }
@@ -179,18 +174,16 @@ pub async fn collect_durations_pod_cnt_list(roots: &[Root]) -> Vec<String> {
                         } else {
                             durations.push(0.0);
                         }
-
                     }
                 }
             }
         }
     }
 
-    
     convert_seconds(durations)
 }
 
-/// collect ids ep 
+/// collect ids ep
 pub async fn collect_ids_ep_pod_cnt_list(roots: &[Root]) -> Vec<String> {
     let mut ids_ep_pod_cnt_list = Vec::new();
 
@@ -203,7 +196,6 @@ pub async fn collect_ids_ep_pod_cnt_list(roots: &[Root]) -> Vec<String> {
                     } else {
                         ids_ep_pod_cnt_list.push("N/A".to_string());
                     }
-
                 }
             }
         }
@@ -216,7 +208,6 @@ pub async fn collect_ids_ep_pod_cnt_list(roots: &[Root]) -> Vec<String> {
 pub async fn collect_titles_cnt_list_pod(roots: &[Root]) -> Vec<String> {
     let mut titles_cnt_list = Vec::new();
 
-
     for root in roots {
         if let Some(entities) = &root.entities {
             for entity in entities {
@@ -226,7 +217,6 @@ pub async fn collect_titles_cnt_list_pod(roots: &[Root]) -> Vec<String> {
                     } else {
                         titles_cnt_list.push("N/A".to_string());
                     }
-
                 }
             }
         }

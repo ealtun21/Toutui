@@ -1,9 +1,8 @@
 use crate::api::client::error::ApiError;
 use crate::api::client::ApiClient;
-use serde_json::Value;
 use serde::Deserialize;
 use serde::Serialize;
-
+use serde_json::Value;
 
 /// Get a Library Item, used for collect podact info (allow in particular to retrieve all podcast episode id)
 /// This endpoint retrieves a library item, allow in particular to retrieve all podcast episode id.
@@ -114,13 +113,9 @@ pub struct LibraryFile {
     pub file_path: Option<String>,
 }
 
-
-
 /// Gets one library item with its podcast episodes.
 ///
 /// See <https://api.audiobookshelf.org/#get-a-library-item>.
 pub async fn get_pod_ep(client: &ApiClient, id: &str) -> Result<Root, ApiError> {
     client.get_json(&format!("/api/items/{}", id)).await
 }
-
-

@@ -74,7 +74,11 @@ async fn the_end_of_a_book_gives_the_mark_in_its_own_request() {
 
     let bodies = bodies(&server).await;
 
-    assert_eq!(bodies.len(), 2, "the position and the mark are two requests");
+    assert_eq!(
+        bodies.len(),
+        2,
+        "the position and the mark are two requests"
+    );
 
     // The first request holds the position and no mark.
     assert_eq!(bodies[0]["currentTime"], 60);
@@ -115,9 +119,16 @@ async fn the_end_of_an_episode_gives_the_mark_in_its_own_request() {
         .mount(&server)
         .await;
 
-    update_media_progress2_pod(&client(&server.uri()), "pod-1", Some(60), "60", true, "ep-1")
-        .await
-        .unwrap();
+    update_media_progress2_pod(
+        &client(&server.uri()),
+        "pod-1",
+        Some(60),
+        "60",
+        true,
+        "ep-1",
+    )
+    .await
+    .unwrap();
 
     let bodies = bodies(&server).await;
 

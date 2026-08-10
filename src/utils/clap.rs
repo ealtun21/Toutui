@@ -130,7 +130,9 @@ mod tests {
         let list = uninstall_paths(
             Path::new("/home/a/.config/toutui"),
             Some(Path::new("/usr/local/bin/toutui")),
-            Some(Path::new("/home/a/.local/share/applications/toutui.desktop")),
+            Some(Path::new(
+                "/home/a/.local/share/applications/toutui.desktop",
+            )),
             Path::new("/home/a/.local/share/toutui"),
         );
 

@@ -99,7 +99,10 @@ pub fn collect_series(root: &SeriesRoot) -> Vec<SeriesView> {
                 .iter()
                 .flatten()
                 .map(|book| {
-                    let metadata = book.media.as_ref().and_then(|media| media.metadata.as_ref());
+                    let metadata = book
+                        .media
+                        .as_ref()
+                        .and_then(|media| media.metadata.as_ref());
 
                     SeriesBookView {
                         id: book.id.clone().unwrap_or_default(),
@@ -131,10 +134,7 @@ pub fn collect_series(root: &SeriesRoot) -> Vec<SeriesView> {
 
             SeriesView {
                 id: series.id.clone().unwrap_or_default(),
-                name: series
-                    .name
-                    .clone()
-                    .unwrap_or_else(|| "N/A".to_string()),
+                name: series.name.clone().unwrap_or_else(|| "N/A".to_string()),
                 description: series
                     .description
                     .as_deref()
@@ -201,12 +201,20 @@ mod tests {
     fn the_number_ten_comes_after_the_number_two() {
         let mut books = vec![
             SeriesBookView {
-                id: "a".into(), title: "Ten".into(), author: String::new(),
-                sequence: "10".into(), duration: 0.0, description: String::new(),
+                id: "a".into(),
+                title: "Ten".into(),
+                author: String::new(),
+                sequence: "10".into(),
+                duration: 0.0,
+                description: String::new(),
             },
             SeriesBookView {
-                id: "b".into(), title: "Two".into(), author: String::new(),
-                sequence: "2".into(), duration: 0.0, description: String::new(),
+                id: "b".into(),
+                title: "Two".into(),
+                author: String::new(),
+                sequence: "2".into(),
+                duration: 0.0,
+                description: String::new(),
             },
         ];
 
@@ -221,12 +229,20 @@ mod tests {
     fn a_book_with_no_number_keeps_the_sequence_of_the_server() {
         let mut books = vec![
             SeriesBookView {
-                id: "a".into(), title: "Second".into(), author: String::new(),
-                sequence: "2".into(), duration: 0.0, description: String::new(),
+                id: "a".into(),
+                title: "Second".into(),
+                author: String::new(),
+                sequence: "2".into(),
+                duration: 0.0,
+                description: String::new(),
             },
             SeriesBookView {
-                id: "b".into(), title: "No number".into(), author: String::new(),
-                sequence: String::new(), duration: 0.0, description: String::new(),
+                id: "b".into(),
+                title: "No number".into(),
+                author: String::new(),
+                sequence: String::new(),
+                duration: 0.0,
+                description: String::new(),
             },
         ];
 
@@ -256,10 +272,16 @@ mod tests {
     #[test]
     fn the_line_of_one_book_uses_the_singular() {
         let view = SeriesView {
-            id: "s".into(), name: "One".into(), description: String::new(),
+            id: "s".into(),
+            name: "One".into(),
+            description: String::new(),
             books: vec![SeriesBookView {
-                id: "a".into(), title: "Only".into(), author: String::new(),
-                sequence: "1".into(), duration: 0.0, description: String::new(),
+                id: "a".into(),
+                title: "Only".into(),
+                author: String::new(),
+                sequence: "1".into(),
+                duration: 0.0,
+                description: String::new(),
             }],
         };
 
@@ -276,8 +298,12 @@ mod tests {
     #[test]
     fn a_book_with_no_number_gives_the_title_only() {
         let view = SeriesBookView {
-            id: "a".into(), title: "Alone".into(), author: String::new(),
-            sequence: String::new(), duration: 0.0, description: String::new(),
+            id: "a".into(),
+            title: "Alone".into(),
+            author: String::new(),
+            sequence: String::new(),
+            duration: 0.0,
+            description: String::new(),
         };
 
         assert_eq!(view.line(), "Alone");
@@ -309,7 +335,11 @@ mod tests {
         assert_eq!(series[0].name, "Second Series");
         assert_eq!(series[0].books.len(), 3);
 
-        let order: Vec<&str> = series[0].books.iter().map(|b| b.sequence.as_str()).collect();
+        let order: Vec<&str> = series[0]
+            .books
+            .iter()
+            .map(|b| b.sequence.as_str())
+            .collect();
         assert_eq!(order, vec!["1", "2", "3"]);
         assert_eq!(series[0].books[0].title, "Second Series Volume 1");
         assert_eq!(series[0].books[0].author, "Series Author");

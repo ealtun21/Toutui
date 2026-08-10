@@ -33,14 +33,12 @@ pub async fn collect_ids_pod_ep(item: &Root) -> Vec<String> {
                 } else {
                     ids_pod_ep.push("N/A".to_string());
                 }
-
             }
         }
     }
 
     ids_pod_ep
 }
-
 
 /// collect subtiles
 pub async fn collect_subtitles_pod_ep(item: &Root) -> Vec<String> {
@@ -54,7 +52,6 @@ pub async fn collect_subtitles_pod_ep(item: &Root) -> Vec<String> {
                 } else {
                     subtitles_pod_ep.push("N/A".to_string());
                 }
-
             }
         }
     }
@@ -74,7 +71,6 @@ pub async fn collect_seasons_pod_ep(item: &Root) -> Vec<String> {
                 } else {
                     seasons_pod_ep.push("N/A".to_string());
                 }
-
             }
         }
     }
@@ -91,8 +87,7 @@ pub async fn collect_episodes_pod_ep(item: &Root) -> Vec<String> {
             for episode in episodes {
                 if let Some(episode) = &episode.episode {
                     episodes_pod_ep.push(episode.clone());
-                }
-                else {
+                } else {
                     episodes_pod_ep.push("N/A".to_string());
                 }
             }
@@ -113,7 +108,6 @@ pub async fn collect_authors_pod_ep(item: &Root) -> Vec<String> {
             } else {
                 authors_pod_ep.push("N/A".to_string());
             }
-
         }
     }
 
@@ -131,7 +125,6 @@ pub async fn collect_descs_pod_ep(item: &Root) -> Vec<String> {
             } else {
                 descs_pod_ep.push("N/A".to_string());
             }
-
         }
     }
 
@@ -149,14 +142,13 @@ pub async fn collect_titles_pod(item: &Root) -> Vec<String> {
             } else {
                 titles_pod.push("N/A".to_string());
             }
-
         }
     }
 
     titles_pod
 }
 
-// collect duration 
+// collect duration
 pub async fn collect_durations_pod_ep(item: &Root) -> Vec<String> {
     let mut durations = Vec::new();
 
@@ -169,13 +161,10 @@ pub async fn collect_durations_pod_ep(item: &Root) -> Vec<String> {
                     } else {
                         durations.push(0.0);
                     }
-
                 }
             }
         }
     }
 
-    
     convert_seconds(durations)
 }
-

@@ -1,28 +1,27 @@
 use toutui::{api, app, config, db, login_app, player, ui, utils};
 
-use login_app::AppLogin;
-use app::App;
-use crate::db::database_struct::Database;
-use color_eyre::Result;
-use std::time::Duration;
-use crossterm::event::{self, KeyCode};
-use std::io::stdout;
-use crate::utils::pop_up_message::*;
-use crate::utils::logs::*;
-use log::info;
 use crate::db::crud::*;
-use ratatui::{
-    style::{Color, Style},
-    widgets::Block
-};
+use crate::db::database_struct::Database;
 use crate::player::integrated::player_info::*;
 use crate::ui::player_tui::*;
 use crate::utils::clap::*;
 use crate::utils::encrypt_token::decrypt_token;
+use crate::utils::logs::*;
+use crate::utils::pop_up_message::*;
+use app::App;
+use color_eyre::Result;
+use crossterm::event::{self, KeyCode};
+use log::info;
+use login_app::AppLogin;
+use ratatui::{
+    style::{Color, Style},
+    widgets::Block,
+};
+use std::io::stdout;
+use std::time::Duration;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-
     // clap
     clap().await;
 
@@ -68,7 +67,6 @@ async fn main() -> Result<()> {
 
     // Once the database is ready, initialize the app
     if _database_ready {
-
         // init current username
         let mut username: String = String::new();
         if let Some(var_username) = _database.default_usr.first() {
@@ -81,19 +79,11 @@ async fn main() -> Result<()> {
         // Make the HTTP client. The client holds all the addresses of the
         // server. If the address that has the most importance does not answer,
         // the client changes to the next address automatically.
-        let server_address = _database
-            .default_usr
-            .get(1)
-            .cloned()
-            .unwrap_or_default();
+        let server_address = _database.default_usr.get(1).cloned().unwrap_or_default();
 
         // The database holds the token in an encrypted form. The client needs
         // the plain token one time only.
-        let encrypted_token = _database
-            .default_usr
-            .get(2)
-            .cloned()
-            .unwrap_or_default();
+        let encrypted_token = _database.default_usr.get(2).cloned().unwrap_or_default();
         let token = match decrypt_token(encrypted_token.as_str()) {
             Ok(token) => token,
             Err(e) => {
@@ -135,7 +125,6 @@ async fn main() -> Result<()> {
 
         // Running the app in a loop
         loop {
-
             // The engine gives the state. The panel is visible only when the
             // engine holds a media.
             let playback = app.player.state();
@@ -147,25 +136,33 @@ async fn main() -> Result<()> {
                 let bg_color = app.config.colors.background_color.clone();
                 let bg_color_player = app.config.colors.player_background_color.clone();
                 // global background
-                let background = Block::default()
-                    .style(Style::default()
-                        .bg(Color::Rgb(bg_color[0], bg_color[1], bg_color[2])));
+                let background = Block::default().style(Style::default().bg(Color::Rgb(
+                    bg_color[0],
+                    bg_color[1],
+                    bg_color[2],
+                )));
 
                 frame.render_widget(background, frame.area());
 
                 if is_playing {
                     let area = frame.area();
-                    // render for the player (automatically refreshed) 
-                    render_player(area, frame.buffer_mut(), player_info, bg_color_player, app.username.as_str(), player_notice); 
+                    // render for the player (automatically refreshed)
+                    render_player(
+                        area,
+                        frame.buffer_mut(),
+                        player_info,
+                        bg_color_player,
+                        app.username.as_str(),
+                        player_notice,
+                    );
                 }
 
-                // render widget for general app : 
+                // render widget for general app :
                 // Will be manually refresh by pressing `R`
                 // If `app` variable is reinitialized below (`app = App::new().await?`), it will be taken into account and data will be refreshed
                 // Otherwise, the current `app` variable will still be used.
                 frame.render_widget(&mut app, frame.area());
             })?;
-
 
             // Checking if any key is pressed (waiting for events with a 200ms delay here)
             if crossterm::event::poll(Duration::from_millis(200))? {
@@ -173,14 +170,14 @@ async fn main() -> Result<()> {
                     app.handle_key(key);
                     // If the 'R' key is pressed, refresh the app
                     if let KeyCode::Char('R') = key.code {
-                            // pop up message
-                            let mut stdout = stdout();
-                            let _ = clear_message(&mut stdout, 3); // clear a message, if any, before print the message bellow
-                            let _ = pop_message(&mut stdout, 3, "Refreshing app...");
-                            // Reinitialize app to refresh
-                            app = App::new(std::sync::Arc::clone(&api)).await?;
-                            // clear message above
-                            let _ = clear_message(&mut stdout, 3);
+                        // pop up message
+                        let mut stdout = stdout();
+                        let _ = clear_message(&mut stdout, 3); // clear a message, if any, before print the message bellow
+                        let _ = pop_message(&mut stdout, 3, "Refreshing app...");
+                        // Reinitialize app to refresh
+                        app = App::new(std::sync::Arc::clone(&api)).await?;
+                        // clear message above
+                        let _ = clear_message(&mut stdout, 3);
                     }
                 }
             }

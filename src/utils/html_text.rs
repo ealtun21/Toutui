@@ -201,7 +201,10 @@ mod tests {
 
     #[test]
     fn removes_inline_tags() {
-        assert_eq!(to_plain_text("<i>Life in the North</i>"), "Life in the North");
+        assert_eq!(
+            to_plain_text("<i>Life in the North</i>"),
+            "Life in the North"
+        );
         assert_eq!(
             to_plain_text("a <b class=\"x\">bold</b> word"),
             "a bold word"

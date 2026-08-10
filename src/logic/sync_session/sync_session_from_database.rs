@@ -30,7 +30,10 @@ pub async fn sync_session_from_database(
             if let Err(error) =
                 close_session_without_send_prg_data(api, session.id_session.as_str()).await
             {
-                warn!("[sync_session_from_database] the server did not close the session: {}", error);
+                warn!(
+                    "[sync_session_from_database] the server did not close the session: {}",
+                    error
+                );
             }
 
             match handle_key {
@@ -89,7 +92,10 @@ pub async fn sync_session_from_database(
             };
 
             if let Err(error) = result {
-                warn!("[sync_session_from_database] the server did not accept the position: {}", error);
+                warn!(
+                    "[sync_session_from_database] the server did not accept the position: {}",
+                    error
+                );
 
                 // The server does not answer. The position waits in the
                 // database, and the application sends it later.

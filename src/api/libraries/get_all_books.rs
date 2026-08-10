@@ -1,8 +1,8 @@
 use crate::api::client::error::ApiError;
 use crate::api::client::ApiClient;
-use serde_json::Value;
 use serde::Deserialize;
 use serde::Serialize;
+use serde_json::Value;
 
 /// Get all books or podcasts from a library
 /// https://api.audiobookshelf.org/#get-a-library-39-s-items
@@ -203,4 +203,3 @@ mod tests {
         assert!(wants_more_pages(500, Some(-1), 500));
     }
 }
-

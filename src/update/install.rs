@@ -68,7 +68,9 @@ pub fn binary_from_archive(bytes: &[u8]) -> Result<Vec<u8>, String> {
         // and the size 0. Only a plain file holds the bytes of the binary.
         if entry.header().entry_type().is_file() && is_named_toutui {
             let mut contents = Vec::new();
-            entry.read_to_end(&mut contents).map_err(|e| e.to_string())?;
+            entry
+                .read_to_end(&mut contents)
+                .map_err(|e| e.to_string())?;
             if contents.is_empty() {
                 return Err("The file toutui in the archive holds no bytes.".to_string());
             }
@@ -215,11 +217,7 @@ pub async fn run_update_at(api: &str, binary: &Path) -> Result<String, String> {
 ///
 /// `gh` is the name of that command. A test gives the path of a command that
 /// it made itself, therefore no test asks GitHub.
-pub async fn run_update_at_with(
-    api: &str,
-    binary: &Path,
-    gh: &str,
-) -> Result<String, String> {
+pub async fn run_update_at_with(api: &str, binary: &Path, gh: &str) -> Result<String, String> {
     let target = target().ok_or_else(|| {
         "This system has no archive. Use `cargo install --git https://github.com/ealtun21/Toutui`."
             .to_string()

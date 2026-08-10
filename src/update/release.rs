@@ -34,7 +34,10 @@ pub fn version_of_tag(tag: &str) -> &str {
 /// gives `true` only when the two strings disagree, which is the behaviour
 /// that the program had before semver.
 pub fn is_newer(remote: &str, local: &str) -> bool {
-    match (semver::Version::parse(remote), semver::Version::parse(local)) {
+    match (
+        semver::Version::parse(remote),
+        semver::Version::parse(local),
+    ) {
         (Ok(remote), Ok(local)) => remote > local,
         _ => remote != local,
     }

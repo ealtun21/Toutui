@@ -3,13 +3,12 @@ use crate::app::AppView;
 use ratatui::backend::CrosstermBackend;
 use ratatui::widgets::{Block, Borders};
 use ratatui::Terminal;
-use std::io;
-use tui_textarea::{Input, Key, TextArea};
 use ratatui::{
     layout::Rect,
     style::{Color, Style},
 };
-
+use std::io;
+use tui_textarea::{Input, Key, TextArea};
 
 impl App {
     pub fn search_active(&mut self) -> io::Result<String> {
@@ -25,13 +24,14 @@ impl App {
         let mut textarea = TextArea::default();
         textarea.set_block(
             Block::default()
-            .borders(Borders::ALL)
-            .title("Search")
-            .border_style(Style::default()
-                .fg(Color::Rgb(fg_color[0], fg_color[1], fg_color[2])))
-            .style(Style::default()
-                .bg(Color::Rgb(bg_color[0], bg_color[1], bg_color[2])))
-
+                .borders(Borders::ALL)
+                .title("Search")
+                .border_style(Style::default().fg(Color::Rgb(
+                    fg_color[0],
+                    fg_color[1],
+                    fg_color[2],
+                )))
+                .style(Style::default().bg(Color::Rgb(bg_color[0], bg_color[1], bg_color[2]))),
         );
 
         let size = term.size()?;
@@ -43,12 +43,13 @@ impl App {
         };
 
         loop {
-
             term.draw(|f| {
                 f.render_widget(&textarea, search_area);
             })?;
             match crossterm::event::read()?.into() {
-                Input { key: Key::Enter, .. } => {
+                Input {
+                    key: Key::Enter, ..
+                } => {
                     self.search_mode = false;
                     self.search_query = textarea.lines().join("\n");
                     self.view_state = AppView::SearchBook;
@@ -65,11 +66,14 @@ impl App {
             }
         }
         term.draw(|f| {
-            let empty_block = Block::default().style(Style::default().bg(Color::Rgb(bg_color[0], bg_color[1], bg_color[2])));
-            f.render_widget(empty_block, search_area); 
+            let empty_block = Block::default().style(Style::default().bg(Color::Rgb(
+                bg_color[0],
+                bg_color[1],
+                bg_color[2],
+            )));
+            f.render_widget(empty_block, search_area);
         })?;
 
         Ok(textarea.lines().join("\n"))
-
     }
 }

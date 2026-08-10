@@ -18,7 +18,11 @@ fn client(urls: Vec<&str>) -> ApiClient {
         .map(|(index, url)| Endpoint::new(url, index as u8))
         .collect();
 
-    ApiClient::new(Arc::new(EndpointPool::new(endpoints)), "test-token".to_string()).unwrap()
+    ApiClient::new(
+        Arc::new(EndpointPool::new(endpoints)),
+        "test-token".to_string(),
+    )
+    .unwrap()
 }
 
 #[tokio::test]
@@ -250,7 +254,10 @@ async fn the_download_uses_the_name_of_the_content_disposition_header() {
         .respond_with(
             ResponseTemplate::new(200)
                 .set_body_bytes(b"audio-data".to_vec())
-                .append_header("content-disposition", "attachment; filename=\"true-name.m4b\""),
+                .append_header(
+                    "content-disposition",
+                    "attachment; filename=\"true-name.m4b\"",
+                ),
         )
         .mount(&server)
         .await;

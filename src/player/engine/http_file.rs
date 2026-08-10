@@ -174,7 +174,10 @@ impl HttpFile {
         self.handle = match handle {
             Ok(handle) => Some(handle),
             Err(error) => {
-                warn!("[HttpFile] the application cannot start the thread: {}", error);
+                warn!(
+                    "[HttpFile] the application cannot start the thread: {}",
+                    error
+                );
                 None
             }
         };
@@ -327,7 +330,10 @@ fn fill_buffer(shared: Arc<Shared>, url: String, token: String, from: u64) {
                 response
             }
             Ok(response) => {
-                warn!("[HttpFile] the server gave the status {}", response.status());
+                warn!(
+                    "[HttpFile] the server gave the status {}",
+                    response.status()
+                );
                 shared.stalled.store(true, Ordering::Relaxed);
                 std::thread::sleep(backoff);
                 backoff = (backoff * 2).min(MAX_BACKOFF);

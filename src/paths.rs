@@ -88,4 +88,3 @@ pub fn db_file() -> PathBuf {
 pub fn log_file() -> PathBuf {
     config_dir().join("toutui.log")
 }
-

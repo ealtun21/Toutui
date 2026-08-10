@@ -1,7 +1,6 @@
+use crate::config::*;
 use color_eyre::Result;
 use ratatui::DefaultTerminal;
-use crate::config::*;
-
 
 pub enum AppViewLogin {
     Auth,
@@ -27,7 +26,6 @@ impl AppLogin {
             config,
         })
     }
-
 
     /// handle events
     pub fn run(mut self, mut terminal: DefaultTerminal) -> Result<()> {

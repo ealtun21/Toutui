@@ -1,5 +1,5 @@
-use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use log::error;
+use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use std::env;
 use std::path::Path;
 
@@ -77,10 +77,7 @@ mod tests {
 
         let from_version_4 = "6rP+/cWyTHmupXVAA1oH9Q==";
 
-        assert_eq!(
-            decrypt_token(from_version_4).unwrap(),
-            "the-auth-token"
-        );
+        assert_eq!(decrypt_token(from_version_4).unwrap(), "the-auth-token");
     }
 
     /// A key in the file `.env` arrives in the environment.

@@ -200,7 +200,11 @@ impl ApiClient {
     }
 
     /// Sends a `POST` request that has no answer body.
-    pub async fn post_no_content<B: Serialize>(&self, path: &str, body: &B) -> Result<(), ApiError> {
+    pub async fn post_no_content<B: Serialize>(
+        &self,
+        path: &str,
+        body: &B,
+    ) -> Result<(), ApiError> {
         let value =
             serde_json::to_value(body).map_err(|error| ApiError::Decode(error.to_string()))?;
 

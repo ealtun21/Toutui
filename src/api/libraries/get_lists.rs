@@ -7,9 +7,9 @@
 //! `GET /api/libraries/:id/playlists`. Both accept a limit and a page, in the
 //! same way as the endpoint of the series.
 
-use crate::api::client::ApiClient;
 use crate::api::client::error::ApiError;
-use crate::api::libraries::get_all_books::{LibraryItem, PAGE_SIZE, wants_more_pages};
+use crate::api::client::ApiClient;
+use crate::api::libraries::get_all_books::{wants_more_pages, LibraryItem, PAGE_SIZE};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 

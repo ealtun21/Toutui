@@ -100,7 +100,10 @@ pub fn remember_progress(
     };
 
     if let Err(error) = insert_pending_progress(username, server, &progress) {
-        warn!("[offline] the application did not keep the position: {}", error);
+        warn!(
+            "[offline] the application did not keep the position: {}",
+            error
+        );
     } else {
         info!(
             "[offline] the position {}s of {} waits for the server",
@@ -122,7 +125,10 @@ pub async fn flush_pending_progress(api: &ApiClient, username: &str, server: &st
         return 0;
     }
 
-    info!("[offline] {} position(s) wait for the server", waiting.len());
+    info!(
+        "[offline] {} position(s) wait for the server",
+        waiting.len()
+    );
 
     let mut sent = 0;
 
@@ -158,11 +164,19 @@ pub async fn flush_pending_progress(api: &ApiClient, username: &str, server: &st
 
         let result = match (episode, progress.is_finished) {
             (Some(episode), true) => {
-                update_media_progress2_pod(api, &progress.id_item, position, &duration, true, episode)
-                    .await
+                update_media_progress2_pod(
+                    api,
+                    &progress.id_item,
+                    position,
+                    &duration,
+                    true,
+                    episode,
+                )
+                .await
             }
             (Some(episode), false) => {
-                update_media_progress_pod(api, &progress.id_item, position, &duration, episode).await
+                update_media_progress_pod(api, &progress.id_item, position, &duration, episode)
+                    .await
             }
             (None, true) => {
                 update_media_progress2_book(api, &progress.id_item, position, &duration, true).await
@@ -235,7 +249,10 @@ pub fn spawn_flush_task(api: std::sync::Arc<ApiClient>, username: String, server
             let sent = flush_pending_progress(&api, &username, &server).await;
 
             if sent > 0 {
-                info!("[offline] the server answers again. {} position(s) went to it.", sent);
+                info!(
+                    "[offline] the server answers again. {} position(s) went to it.",
+                    sent
+                );
             }
         }
     });

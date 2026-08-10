@@ -98,7 +98,10 @@ fn migrate_to_v5(conn: &Connection) -> Result<()> {
         )?;
 
         // A row of an older version is a book. A book has one identity.
-        conn.execute("UPDATE downloads SET item_id = id_item WHERE item_id = ''", [])?;
+        conn.execute(
+            "UPDATE downloads SET item_id = id_item WHERE item_id = ''",
+            [],
+        )?;
     }
 
     // A user can have an account on more than one server. The row must
@@ -385,9 +388,11 @@ mod tests {
         run_migrations(&conn).unwrap();
 
         let value: String = conn
-            .query_row("SELECT item_id FROM downloads WHERE id_item = 'book-1'", [], |row| {
-                row.get(0)
-            })
+            .query_row(
+                "SELECT item_id FROM downloads WHERE id_item = 'book-1'",
+                [],
+                |row| row.get(0),
+            )
             .unwrap();
 
         assert_eq!(value, "book-1");

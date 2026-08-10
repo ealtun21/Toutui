@@ -1,9 +1,8 @@
 use crate::api::client::error::ApiError;
 use crate::api::client::ApiClient;
-use serde_json::Value;
 use serde::Deserialize;
 use serde::Serialize;
-
+use serde_json::Value;
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -37,4 +36,3 @@ pub async fn get_book_progress(client: &ApiClient, book_id: &str) -> Result<Root
         .get_json(&format!("/api/me/progress/{}", book_id))
         .await
 }
-
