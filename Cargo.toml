@@ -35,6 +35,20 @@ ratatui = "0.30"
 # itself, therefore it takes the feature `crossterm`. Both give crossterm
 # 0.29, and the tree holds one copy only.
 tui-input = { version = "0.15", default-features = false, features = ["crossterm"] }
+# The cover art. See T-23.
+#
+# The default features `chafa-dyn` and `chafa-static` need the C library chafa.
+# Therefore the project takes no default feature.
+#
+# `image` needs its own line: `ratatui-image` asks for `image` with the feature
+# `png` only, and a cover of Audiobookshelf is a JPEG file or a WebP file. The
+# feature `image-defaults` adds decoders that a cover never needs.
+#
+# A measurement on 2026-08-10 read the tree after these two lines: `cargo tree
+# -i cc` finds `libsqlite3-sys` and `ring` only, and `cargo tree -i
+# openssl-sys` finds nothing.
+ratatui-image = { version = "11.0.6", default-features = false, features = ["crossterm"] }
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
 rusqlite = { version = "0.40", features = ["bundled"] }
 log = "0.4.25"
 fern = "0.7.1"

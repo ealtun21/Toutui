@@ -183,6 +183,11 @@ pub struct App {
     pub config: ConfigFile,
     pub changelog: String,
     pub update_msg: String,
+    /// The pictures of the covers that the render holds. A refresh with the
+    /// key `R` makes a new `App` and thus an empty map. The bytes stay in the
+    /// store of the process, therefore no request goes to the server a second
+    /// time. See T-23.
+    pub covers: crate::ui::cover::CoverArt,
 }
 
 /// Init app
@@ -801,6 +806,7 @@ impl App {
             config,
             changelog,
             update_msg,
+            covers: crate::ui::cover::CoverArt::new(),
         })
     }
 

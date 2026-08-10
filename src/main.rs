@@ -131,7 +131,31 @@ async fn main() -> Result<()> {
         );
 
         let mut app = App::new(std::sync::Arc::clone(&api)).await?;
+
         let mut terminal = ratatui::init();
+
+        // The picker asks the terminal for the protocol of the pictures and
+        // for the size of the font. A terminal that does not answer gives
+        // blocks of Unicode. See T-23.
+        //
+        // The question must come AFTER `ratatui::init`, and this sequence is
+        // not free. `Picker::from_query_stdio` reads the answer on its own
+        // thread. That thread makes the terminal raw, and it gives the old
+        // condition back when it stops. A terminal that never answers stops
+        // that thread two seconds later. With the question before the
+        // application, the thread then gave the terminal the condition of the
+        // shell back, and the application read no key at all. A measurement on
+        // 2026-08-10 in a pseudo terminal showed the fault: `ICANON` and `ECHO`
+        // stayed on for ever, and every key went to a line buffer. With the
+        // question after `ratatui::init`, the thread reads a terminal that is
+        // already raw, therefore it gives a raw terminal back.
+        let picker = toutui::ui::cover::picker();
+        info!(
+            "[main][cover] the terminal uses {:?} with a font of {} by {} pixels",
+            picker.protocol_type(),
+            picker.font_size().width,
+            picker.font_size().height,
+        );
 
         // Running the app in a loop
         loop {

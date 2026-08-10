@@ -1,0 +1,792 @@
+//! The cover art. See T-23.
+//!
+//! The module has three parts.
+//!
+//! 1. **The bytes.** A task asks the server for `GET /api/items/:id/cover` and
+//!    writes the answer in a store of the process. The store keeps an item
+//!    with no cover, therefore the application asks for such an item one time
+//!    only. The store lives outside the state of the application, therefore
+//!    the key `R` does not start the requests again.
+//! 2. **The picture.** The render makes a protocol of `ratatui-image` from the
+//!    bytes one time, and it keeps that protocol. The protocol holds the form
+//!    of the terminal: the Kitty protocol, Sixel, iTerm2, or blocks of Unicode.
+//! 3. **The plan.** `plan_covers` gives the rectangle of each cover. That
+//!    function is pure, therefore a test can examine the form of the image and
+//!    the narrow terminal with no terminal at all.
+
+use image::DynamicImage;
+use ratatui::layout::Rect;
+use ratatui_image::picker::Picker;
+use ratatui_image::protocol::StatefulProtocol;
+use ratatui_image::FontSize;
+use std::collections::HashMap;
+use std::sync::{Arc, OnceLock, RwLock};
+
+use crate::api::client::ApiClient;
+
+/// The smallest width of the whole screen that shows a cover.
+///
+/// A narrow terminal has no width for a cover and for a text at the same time.
+/// The text is more important, therefore the cover goes away.
+pub const MIN_WIDTH_FOR_COVER: u16 = 84;
+
+/// The smallest height of the panel that shows a cover.
+pub const MIN_HEIGHT_FOR_COVER: u16 = 8;
+
+/// The share of the width that the panel of the covers takes, in percent.
+const PANEL_PERCENT: u16 = 30;
+
+/// The smallest width of the panel of the covers, in columns.
+const PANEL_MIN_WIDTH: u16 = 22;
+
+/// The largest width of the panel of the covers, in columns.
+///
+/// A very wide terminal must not give the covers the half of the screen.
+const PANEL_MAX_WIDTH: u16 = 46;
+
+/// The share of the height that the cover of the media that plays takes, in
+/// percent. The rest goes to the covers of the selection.
+const PLAYING_PERCENT: u16 = 62;
+
+/// The largest number of covers of a shelf.
+pub const SHELF_MAX: usize = 4;
+
+/// The largest size of the answer of the server for one cover.
+///
+/// A cover of an audiobook is some hundred kilobytes. The limit stops an
+/// address that sends bytes with no end. See T-30.
+const MAX_COVER_BYTES: u64 = 8 * 1024 * 1024;
+
+/// The largest side of the picture that the application keeps, in pixels.
+///
+/// The render makes the picture smaller for the area of the screen. That work
+/// is faster with a small picture, and a cover of 4000 pixels gives no better
+/// result on a terminal.
+const MAX_PIXELS: u32 = 640;
+
+/// The largest memory that one picture may take while the program reads it.
+const MAX_DECODE_BYTES: u64 = 128 * 1024 * 1024;
+
+/// The largest side of a picture that the program reads, in pixels.
+///
+/// A small file can name a picture of 60000 by 60000 pixels. The limit stops
+/// such a file before the program asks for the memory.
+const MAX_DECODE_PIXELS: u32 = 10_000;
+
+/// The condition of one cover in the store of the process.
+#[derive(Debug, Clone)]
+enum CoverBytes {
+    /// A task asks the server now.
+    Asked,
+    /// The item has no cover, or the request failed. The application does not
+    /// ask again.
+    Missing,
+    /// The bytes of the picture.
+    Ready(Arc<Vec<u8>>),
+}
+
+/// The store of the process. It lives outside `App`, therefore a refresh with
+/// the key `R` keeps every cover that the application read before.
+fn store() -> &'static RwLock<HashMap<String, CoverBytes>> {
+    static STORE: OnceLock<RwLock<HashMap<String, CoverBytes>>> = OnceLock::new();
+    STORE.get_or_init(|| RwLock::new(HashMap::new()))
+}
+
+/// The picker of the process.
+///
+/// `Picker::from_query_stdio` asks the terminal for the protocol and for the
+/// size of the font. That question needs a real terminal. A terminal that does
+/// not answer gives `Picker::halfblocks`.
+///
+/// The application asks one time. A second question during the render would
+/// write bytes on the screen of the user.
+pub fn picker() -> &'static Picker {
+    static PICKER: OnceLock<Picker> = OnceLock::new();
+    PICKER.get_or_init(|| Picker::from_query_stdio().unwrap_or_else(|_| Picker::halfblocks()))
+}
+
+/// Asks the server for one cover, if nothing asked for it before.
+///
+/// The function gives the answer at once and does the work in a task,
+/// because the render is not asynchronous.
+pub fn request(api: &Arc<ApiClient>, id: &str) {
+    if id.is_empty() {
+        return;
+    }
+
+    {
+        let Ok(map) = store().read() else {
+            return;
+        };
+        if map.contains_key(id) {
+            return;
+        }
+    }
+
+    {
+        let Ok(mut map) = store().write() else {
+            return;
+        };
+        // A second reader can come between the two locks. The entry decides.
+        if map.contains_key(id) {
+            return;
+        }
+        map.insert(id.to_string(), CoverBytes::Asked);
+    }
+
+    let api = Arc::clone(api);
+    let id = id.to_string();
+
+    tokio::spawn(async move {
+        let result = fetch(&api, &id).await;
+
+        let value = match result {
+            Some(bytes) => {
+                log::info!("[cover] the item {} gives {} bytes", id, bytes.len());
+                CoverBytes::Ready(Arc::new(bytes))
+            }
+            None => {
+                log::info!("[cover] the item {} has no cover", id);
+                CoverBytes::Missing
+            }
+        };
+
+        if let Ok(mut map) = store().write() {
+            map.insert(id, value);
+        }
+    });
+}
+
+/// Reads the bytes of one cover, with a limit on the size.
+async fn fetch(api: &Arc<ApiClient>, id: &str) -> Option<Vec<u8>> {
+    let path = format!("/api/items/{}/cover", id);
+
+    let response = api
+        .send(
+            reqwest::Method::GET,
+            &path,
+            None,
+            crate::api::client::Idempotent::Yes,
+        )
+        .await
+        .ok()?;
+
+    if let Some(length) = response.content_length() {
+        if length > MAX_COVER_BYTES {
+            log::info!(
+                "[cover] the item {} gives {} bytes. The limit is {} bytes.",
+                id,
+                length,
+                MAX_COVER_BYTES
+            );
+            return None;
+        }
+    }
+
+    let mut body: Vec<u8> = Vec::new();
+    let mut response = response;
+
+    while let Ok(Some(chunk)) = response.chunk().await {
+        if body.len() as u64 + chunk.len() as u64 > MAX_COVER_BYTES {
+            log::info!("[cover] the item {} sends more than the limit.", id);
+            return None;
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    if body.is_empty() {
+        return None;
+    }
+
+    Some(body)
+}
+
+/// The pictures that the render holds.
+///
+/// The value belongs to `App`. A refresh with the key `R` makes a new `App`,
+/// therefore this map goes away and the render makes the pictures again from
+/// the bytes of the store. No request goes to the server a second time.
+#[derive(Default)]
+pub struct CoverArt {
+    pictures: HashMap<String, Option<StatefulProtocol>>,
+}
+
+impl std::fmt::Debug for CoverArt {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "CoverArt({} pictures)", self.pictures.len())
+    }
+}
+
+impl CoverArt {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Gives the picture of one item, or nothing.
+    ///
+    /// The function asks the server when no task asked before. It gives
+    /// nothing until the answer comes.
+    pub fn picture(&mut self, api: &Arc<ApiClient>, id: &str) -> Option<&mut StatefulProtocol> {
+        if id.is_empty() {
+            return None;
+        }
+
+        if !self.pictures.contains_key(id) {
+            // The lock must go away before the match. A guard that stands in
+            // the expression of a match lives to the end of that match, and
+            // `request` then asks for the write lock on the same thread. That
+            // stops the application for ever.
+            let found = {
+                let Ok(map) = store().read() else {
+                    return None;
+                };
+                map.get(id).cloned()
+            };
+
+            let bytes = match found {
+                Some(CoverBytes::Ready(bytes)) => bytes,
+                Some(CoverBytes::Missing) => {
+                    self.pictures.insert(id.to_string(), None);
+                    return None;
+                }
+                // The task did not finish. The next frame asks again.
+                Some(CoverBytes::Asked) => return None,
+                None => {
+                    request(api, id);
+                    return None;
+                }
+            };
+
+            let picture = decode(&bytes).map(|image| picker().new_resize_protocol(image));
+            self.pictures.insert(id.to_string(), picture);
+        }
+
+        self.pictures.get_mut(id).and_then(|slot| slot.as_mut())
+    }
+}
+
+/// Makes a picture from the bytes of the server.
+///
+/// The function gives nothing when the bytes are not a picture. A server that
+/// sends a broken file must not stop the application.
+///
+/// The reader has a limit on the memory and a limit on the size in pixels. A
+/// small file can name a very large picture, and a reader with no limit then
+/// asks for all the memory of the machine.
+fn decode(bytes: &[u8]) -> Option<DynamicImage> {
+    let mut limits = image::Limits::default();
+    limits.max_alloc = Some(MAX_DECODE_BYTES);
+    limits.max_image_width = Some(MAX_DECODE_PIXELS);
+    limits.max_image_height = Some(MAX_DECODE_PIXELS);
+
+    let mut reader = image::ImageReader::new(std::io::Cursor::new(bytes))
+        .with_guessed_format()
+        .ok()?;
+    reader.limits(limits);
+    let image = reader.decode().ok()?;
+
+    if image.width() > MAX_PIXELS || image.height() > MAX_PIXELS {
+        return Some(image.thumbnail(MAX_PIXELS, MAX_PIXELS));
+    }
+
+    Some(image)
+}
+
+/// The rectangle of each cover of the panel.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct CoverPlan {
+    /// The cover of the media that plays. It is larger than the covers of the
+    /// selection.
+    pub playing: Option<Rect>,
+    /// The covers of the selection. A series gives more than one, and the
+    /// panel then looks like a shelf.
+    pub shelf: Vec<Rect>,
+}
+
+/// Cuts the main area into the area of the text and the area of the covers.
+///
+/// The function gives no area for the covers when the screen is too narrow.
+/// The text then takes the whole area.
+pub fn split_for_covers(area: Rect, screen_width: u16) -> (Rect, Option<Rect>) {
+    if screen_width < MIN_WIDTH_FOR_COVER || area.height < MIN_HEIGHT_FOR_COVER {
+        return (area, None);
+    }
+
+    let panel_width = (area.width * PANEL_PERCENT / 100).clamp(PANEL_MIN_WIDTH, PANEL_MAX_WIDTH);
+
+    // One column stays empty between the text and the covers.
+    if area.width < panel_width + PANEL_MIN_WIDTH + 1 {
+        return (area, None);
+    }
+
+    let text = Rect {
+        width: area.width - panel_width - 1,
+        ..area
+    };
+
+    let panel = Rect {
+        x: area.x + area.width - panel_width,
+        y: area.y,
+        width: panel_width,
+        height: area.height,
+    };
+
+    (text, Some(panel))
+}
+
+/// Gives the largest area inside `slot` that shows a square picture with no
+/// change of its form. The area stands in the middle of the slot.
+///
+/// A cell of a terminal is higher than it is wide. Therefore a square picture
+/// needs about two times more columns than rows.
+pub fn square_box(slot: Rect, font: FontSize) -> Rect {
+    if slot.width == 0 || slot.height == 0 || font.width == 0 || font.height == 0 {
+        return Rect {
+            width: 0,
+            height: 0,
+            ..slot
+        };
+    }
+
+    // The side of the square, in pixels.
+    let side = (u32::from(slot.width) * u32::from(font.width))
+        .min(u32::from(slot.height) * u32::from(font.height));
+
+    let width = (side / u32::from(font.width)).min(u32::from(slot.width)) as u16;
+    let height = (side / u32::from(font.height)).min(u32::from(slot.height)) as u16;
+
+    Rect {
+        x: slot.x + (slot.width - width) / 2,
+        y: slot.y + (slot.height - height) / 2,
+        width,
+        height,
+    }
+}
+
+/// Gives the rectangle of every cover of the panel.
+///
+/// `wanted` is the number of covers of the selection. A book gives 1 and a
+/// series gives one for each book. The function shows `SHELF_MAX` covers at
+/// the most, and fewer when the panel is small.
+pub fn plan_covers(panel: Rect, font: FontSize, has_playing: bool, wanted: usize) -> CoverPlan {
+    let mut plan = CoverPlan::default();
+
+    if panel.width == 0 || panel.height < MIN_HEIGHT_FOR_COVER {
+        return plan;
+    }
+
+    // The panel holds two covers of a different size only when it is high
+    // enough for both. A low panel shows the media that plays and nothing
+    // else. The selection also gives no second cover when it is the media
+    // that plays, because one cover of one book is enough.
+    if has_playing && (wanted == 0 || panel.height < 2 * MIN_HEIGHT_FOR_COVER) {
+        plan.playing = Some(square_box(panel, font));
+        return plan;
+    }
+
+    let shelf_area = if has_playing {
+        let playing_height = (panel.height * PLAYING_PERCENT / 100).max(MIN_HEIGHT_FOR_COVER);
+
+        plan.playing = Some(square_box(
+            Rect {
+                height: playing_height,
+                ..panel
+            },
+            font,
+        ));
+
+        Rect {
+            y: panel.y + playing_height,
+            height: panel.height - playing_height,
+            ..panel
+        }
+    } else {
+        panel
+    };
+
+    plan.shelf = shelf(shelf_area, font, wanted);
+    plan
+}
+
+/// Puts the covers of the selection in a grid inside `area`.
+fn shelf(area: Rect, font: FontSize, wanted: usize) -> Vec<Rect> {
+    let wanted = wanted.min(SHELF_MAX);
+
+    if wanted == 0 || area.width == 0 || area.height == 0 {
+        return Vec::new();
+    }
+
+    // One cover takes the whole area. More than one goes in two columns,
+    // because the panel is higher than it is wide.
+    let columns: u16 = if wanted == 1 { 1 } else { 2 };
+    let rows = (wanted as u16).div_ceil(columns);
+
+    let cell_width = area.width / columns;
+    let cell_height = area.height / rows;
+
+    // A cover of one row or of one column is too small to read. The panel then
+    // shows fewer covers.
+    if cell_width < 6 || cell_height < 3 {
+        if wanted > 1 {
+            return shelf(area, font, 1);
+        }
+        return Vec::new();
+    }
+
+    let mut boxes = Vec::with_capacity(wanted);
+
+    for index in 0..wanted as u16 {
+        let column = index % columns;
+        let row = index / columns;
+
+        let slot = Rect {
+            x: area.x + column * cell_width,
+            y: area.y + row * cell_height,
+            width: cell_width,
+            height: cell_height,
+        };
+
+        boxes.push(square_box(slot, font));
+    }
+
+    boxes
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const FONT: FontSize = FontSize {
+        width: 10,
+        height: 20,
+    };
+
+    fn area(width: u16, height: u16) -> Rect {
+        Rect {
+            x: 0,
+            y: 0,
+            width,
+            height,
+        }
+    }
+
+    /// A fault of this kind stops the whole application, and no test of a
+    /// pure function finds it.
+    ///
+    /// The first form of `picture` held the read lock of the store during the
+    /// whole `match`, because a guard in the expression of a `match` lives to
+    /// the end of that `match`. The arm for an unknown item then called
+    /// `request`, and `request` asked for the write lock on the same thread.
+    /// The application drew one frame and then stopped for ever.
+    ///
+    /// The test runs the call on its own thread and waits two seconds. A
+    /// thread that holds a lock never answers, therefore the test fails.
+    #[test]
+    fn the_first_ask_for_an_unknown_cover_does_not_stop_the_thread() {
+        use std::sync::mpsc;
+        use std::time::Duration;
+
+        let (sender, receiver) = mpsc::channel();
+
+        std::thread::spawn(move || {
+            // The address answers nothing. The test examines the locks, and
+            // not the server.
+            let pool = crate::api::client::endpoint::EndpointPool::new(vec![
+                crate::api::client::endpoint::Endpoint::new("http://127.0.0.1:1", 0),
+            ]);
+            let api =
+                Arc::new(ApiClient::new(Arc::new(pool), "token".to_string()).expect("a client"));
+
+            // `request` starts a task, therefore the thread needs a runtime.
+            let runtime = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .expect("a runtime");
+            let _guard = runtime.enter();
+
+            let mut art = CoverArt::new();
+            let first = art.picture(&api, "an-item-with-no-answer").is_none();
+            let second = art.picture(&api, "an-item-with-no-answer").is_none();
+
+            let _ = sender.send(first && second);
+        });
+
+        let answer = receiver.recv_timeout(Duration::from_secs(2));
+        assert_eq!(
+            answer,
+            Ok(true),
+            "the ask for a cover stopped the thread, or it gave a picture"
+        );
+    }
+
+    /// Makes a PNG file that names a picture of a given size, and that holds
+    /// no picture at all. A reader with no limit asks for the memory of the
+    /// whole picture.
+    fn png_header(width: u32, height: u32) -> Vec<u8> {
+        fn crc32(data: &[u8]) -> u32 {
+            let mut crc: u32 = 0xffff_ffff;
+            for byte in data {
+                crc ^= u32::from(*byte);
+                for _ in 0..8 {
+                    let mask = (crc & 1).wrapping_neg();
+                    crc = (crc >> 1) ^ (0xedb8_8320 & mask);
+                }
+            }
+            !crc
+        }
+
+        let mut chunk = b"IHDR".to_vec();
+        chunk.extend_from_slice(&width.to_be_bytes());
+        chunk.extend_from_slice(&height.to_be_bytes());
+        // Eight bits for each colour, the type "true colour", and no filter.
+        chunk.extend_from_slice(&[8, 2, 0, 0, 0]);
+
+        let mut file = vec![0x89, b'P', b'N', b'G', 0x0d, 0x0a, 0x1a, 0x0a];
+        file.extend_from_slice(&13u32.to_be_bytes());
+        file.extend_from_slice(&chunk);
+        file.extend_from_slice(&crc32(&chunk).to_be_bytes());
+        file
+    }
+
+    #[test]
+    fn a_file_that_is_not_a_picture_gives_no_picture() {
+        assert!(decode(b"this is not a picture").is_none());
+        assert!(decode(&[]).is_none());
+    }
+
+    #[test]
+    fn a_picture_that_is_too_large_gives_no_picture() {
+        // 60000 by 60000 pixels of three bytes is 10.8 gigabytes. The limit
+        // must stop the reader before it asks for that memory.
+        assert!(decode(&png_header(60_000, 60_000)).is_none());
+    }
+
+    #[test]
+    fn a_large_picture_becomes_small() {
+        use image::ImageFormat;
+
+        let large = DynamicImage::new_rgb8(1500, 1000);
+        let mut bytes: Vec<u8> = Vec::new();
+        large
+            .write_to(&mut std::io::Cursor::new(&mut bytes), ImageFormat::Png)
+            .expect("a PNG file");
+
+        let picture = decode(&bytes).expect("a picture");
+        assert!(picture.width() <= MAX_PIXELS);
+        assert!(picture.height() <= MAX_PIXELS);
+        // The form of the picture stays the same. A whole number of pixels
+        // gives a small difference, therefore the test allows one part in a
+        // hundred.
+        let before = 1500.0 / 1000.0;
+        let after = f64::from(picture.width()) / f64::from(picture.height());
+        assert!(
+            (before - after).abs() < 0.01,
+            "the form changed from {} to {}",
+            before,
+            after
+        );
+    }
+
+    #[test]
+    fn a_narrow_screen_gives_the_whole_area_to_the_text() {
+        let main = area(80, 20);
+        let (text, panel) = split_for_covers(main, 80);
+        assert_eq!(text, main);
+        assert_eq!(panel, None);
+    }
+
+    #[test]
+    fn a_screen_of_the_smallest_width_shows_a_cover() {
+        let main = area(MIN_WIDTH_FOR_COVER, 20);
+        let (_text, panel) = split_for_covers(main, MIN_WIDTH_FOR_COVER);
+        assert!(panel.is_some(), "the smallest width must show a cover");
+    }
+
+    #[test]
+    fn a_low_panel_gives_the_whole_area_to_the_text() {
+        let main = area(150, MIN_HEIGHT_FOR_COVER - 1);
+        let (text, panel) = split_for_covers(main, 150);
+        assert_eq!(text, main);
+        assert_eq!(panel, None);
+    }
+
+    #[test]
+    fn the_panel_stands_at_the_right_and_leaves_a_column() {
+        let main = area(150, 25);
+        let (text, panel) = split_for_covers(main, 150);
+        let panel = panel.expect("a wide screen shows a cover");
+
+        assert_eq!(panel.x + panel.width, main.x + main.width);
+        assert_eq!(text.x, main.x);
+        assert_eq!(text.width + 1 + panel.width, main.width);
+    }
+
+    #[test]
+    fn the_panel_is_never_wider_than_the_limit() {
+        let (_text, panel) = split_for_covers(area(400, 40), 400);
+        assert_eq!(panel.expect("a cover").width, PANEL_MAX_WIDTH);
+    }
+
+    #[test]
+    fn the_panel_is_generous() {
+        // A screen of 150 columns must give the cover more than 30 columns.
+        let (_text, panel) = split_for_covers(area(150, 29), 150);
+        assert!(panel.expect("a cover").width >= 30);
+    }
+
+    #[test]
+    fn a_square_box_keeps_the_form_of_the_picture() {
+        // The cell is 10 by 20 pixels. Therefore a square needs two times more
+        // columns than rows.
+        let result = square_box(area(40, 10), FONT);
+        assert_eq!(result.width, 20);
+        assert_eq!(result.height, 10);
+    }
+
+    #[test]
+    fn a_square_box_that_is_wide_takes_the_height() {
+        let result = square_box(area(100, 5), FONT);
+        assert_eq!(result.height, 5);
+        assert_eq!(result.width, 10);
+    }
+
+    #[test]
+    fn a_square_box_stands_in_the_middle() {
+        let result = square_box(area(40, 5), FONT);
+        assert_eq!(result.width, 10);
+        assert_eq!(result.height, 5);
+        assert_eq!(result.x, 15);
+    }
+
+    #[test]
+    fn a_square_box_of_no_size_gives_no_size() {
+        assert_eq!(square_box(area(0, 10), FONT).width, 0);
+        assert_eq!(square_box(area(10, 0), FONT).height, 0);
+    }
+
+    #[test]
+    fn one_book_gives_one_cover() {
+        let plan = plan_covers(area(40, 24), FONT, false, 1);
+        assert_eq!(plan.playing, None);
+        assert_eq!(plan.shelf.len(), 1);
+    }
+
+    #[test]
+    fn a_series_gives_a_shelf() {
+        let plan = plan_covers(area(40, 24), FONT, false, 3);
+        assert_eq!(plan.shelf.len(), 3);
+    }
+
+    #[test]
+    fn a_shelf_never_shows_more_than_the_limit() {
+        let plan = plan_covers(area(40, 24), FONT, false, 20);
+        assert_eq!(plan.shelf.len(), SHELF_MAX);
+    }
+
+    #[test]
+    fn no_cover_of_a_shelf_covers_another_cover() {
+        let plan = plan_covers(area(40, 24), FONT, true, 4);
+
+        let mut boxes = plan.shelf.clone();
+        if let Some(playing) = plan.playing {
+            boxes.push(playing);
+        }
+
+        for (index, first) in boxes.iter().enumerate() {
+            for second in boxes.iter().skip(index + 1) {
+                assert!(
+                    !first.intersects(*second),
+                    "the cover {:?} covers {:?}",
+                    first,
+                    second
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn every_cover_stays_inside_the_panel() {
+        let panel = Rect {
+            x: 100,
+            y: 5,
+            width: 40,
+            height: 24,
+        };
+
+        for wanted in 1..=SHELF_MAX {
+            for has_playing in [false, true] {
+                let plan = plan_covers(panel, FONT, has_playing, wanted);
+                let mut boxes = plan.shelf.clone();
+                if let Some(playing) = plan.playing {
+                    boxes.push(playing);
+                }
+
+                for one in boxes {
+                    assert!(
+                        panel.union(one) == panel,
+                        "the cover {:?} left the panel {:?}",
+                        one,
+                        panel
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn the_cover_of_the_media_that_plays_is_larger() {
+        let area_of = |rect: &Rect| u32::from(rect.width) * u32::from(rect.height);
+
+        for height in (2 * MIN_HEIGHT_FOR_COVER)..40 {
+            for wanted in 1..=SHELF_MAX {
+                let plan = plan_covers(area(40, height), FONT, true, wanted);
+                let playing = plan.playing.expect("the media that plays has a cover");
+
+                for selected in &plan.shelf {
+                    assert!(
+                        area_of(&playing) > area_of(selected),
+                        "at {} rows the cover that plays {:?} is not larger than {:?}",
+                        height,
+                        playing,
+                        selected
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn a_low_panel_shows_the_media_that_plays_only() {
+        let plan = plan_covers(area(40, MIN_HEIGHT_FOR_COVER), FONT, true, 3);
+        assert!(plan.playing.is_some());
+        assert!(plan.shelf.is_empty());
+    }
+
+    #[test]
+    fn the_selection_that_plays_gives_one_large_cover() {
+        // The caller asks for no cover of the selection when the selection is
+        // the media that plays. The panel then holds one cover only, and that
+        // cover takes the whole panel.
+        let panel = area(40, 24);
+        let plan = plan_covers(panel, FONT, true, 0);
+        let playing = plan.playing.expect("the media that plays has a cover");
+
+        assert!(plan.shelf.is_empty());
+        assert_eq!(playing, square_box(panel, FONT));
+    }
+
+    #[test]
+    fn a_small_panel_shows_one_cover_and_not_four() {
+        // The panel is high enough for one cover, and each cover of a grid of
+        // four would be three columns wide. The panel then shows one.
+        let plan = plan_covers(area(10, 10), FONT, false, 4);
+        assert_eq!(plan.shelf.len(), 1);
+    }
+
+    #[test]
+    fn a_panel_that_is_too_low_shows_no_cover() {
+        let plan = plan_covers(area(40, MIN_HEIGHT_FOR_COVER - 1), FONT, false, 3);
+        assert!(plan.playing.is_none());
+        assert!(plan.shelf.is_empty());
+    }
+}

@@ -2,6 +2,8 @@ use crate::app::App;
 use crate::app::AppView;
 use crate::config::*;
 use crate::logic::download::progress::DownloadState;
+use crate::player::engine::PlaybackStatus;
+use crate::ui::cover;
 use crate::utils::convert_seconds::*;
 use ratatui::{
     buffer::Buffer,
@@ -13,6 +15,7 @@ use ratatui::{
         StatefulWidget, Widget, Wrap,
     },
 };
+use ratatui_image::StatefulImage;
 
 // const version
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -132,6 +135,122 @@ fn shorten(text: &str, width: usize) -> String {
     format!("{}…", kept)
 }
 
+/// The cover art. See T-23.
+impl App {
+    /// Gives the identities of the media that the panel of the covers shows.
+    ///
+    /// A view of one medium gives one identity. A view of a series, of a
+    /// collection, or of a playlist gives the identity of each of its media,
+    /// therefore the panel looks like a shelf.
+    fn cover_ids(&self) -> Vec<String> {
+        let one = |value: Option<&String>| value.cloned().into_iter().collect::<Vec<String>>();
+
+        match self.view_state {
+            AppView::Home => one(self
+                .list_state_cnt_list
+                .selected()
+                .and_then(|index| self._ids_cnt_list.get(index))),
+
+            // An episode has no cover of its own. The cover of the podcast
+            // stands for every episode of that podcast.
+            AppView::Library | AppView::PodcastEpisode => one(self
+                .list_state_library
+                .selected()
+                .and_then(|index| self.ids_library.get(index))),
+
+            AppView::SearchBook => {
+                let index = self.list_state_search_results.selected();
+                let ids = if self.is_podcast {
+                    &self.ids_library_pod_search
+                } else {
+                    &self.ids_search_book
+                };
+                one(index.and_then(|index| ids.get(index)))
+            }
+
+            AppView::Series => self
+                .selected_series()
+                .map(|series| {
+                    series
+                        .books
+                        .iter()
+                        .take(cover::SHELF_MAX)
+                        .map(|book| book.id.clone())
+                        .collect()
+                })
+                .unwrap_or_default(),
+
+            AppView::SeriesBook => one(self.selected_series_book().map(|book| &book.id)),
+
+            AppView::Lists => self
+                .selected_list()
+                .map(|list| {
+                    list.entries
+                        .iter()
+                        .take(cover::SHELF_MAX)
+                        .map(|entry| entry.id.clone())
+                        .collect()
+                })
+                .unwrap_or_default(),
+
+            AppView::ListEntries => one(self.selected_list_entry().map(|entry| &entry.id)),
+
+            AppView::Settings
+            | AppView::SettingsAccount
+            | AppView::SettingsLibrary
+            | AppView::SettingsAbout
+            | AppView::SettingsUpdateUninstall => Vec::new(),
+        }
+    }
+
+    /// Draws the panel of the covers.
+    ///
+    /// The function draws nothing when the screen is too narrow, because
+    /// `split_for_covers` then gives no panel.
+    fn render_covers(&mut self, panel: Option<Rect>, buf: &mut Buffer) {
+        let Some(panel) = panel else {
+            return;
+        };
+
+        let playback = self.player.state();
+        let playing = if playback.status == PlaybackStatus::Stopped || playback.item_id.is_empty() {
+            None
+        } else {
+            Some(playback.item_id.clone())
+        };
+
+        // The selection needs no second cover when it is the media that
+        // plays. The panel then shows one cover, and that cover is large.
+        let selected: Vec<String> = self
+            .cover_ids()
+            .into_iter()
+            .filter(|id| !id.is_empty() && Some(id.as_str()) != playing.as_deref())
+            .take(cover::SHELF_MAX)
+            .collect();
+
+        let plan = cover::plan_covers(
+            panel,
+            cover::picker().font_size(),
+            playing.is_some(),
+            selected.len(),
+        );
+
+        let api = std::sync::Arc::clone(&self.api);
+
+        if let (Some(area), Some(id)) = (plan.playing, playing.as_deref()) {
+            if let Some(picture) = self.covers.picture(&api, id) {
+                StatefulImage::default().render(area, buf, picture);
+            }
+        }
+
+        for (area, id) in plan.shelf.iter().zip(selected.iter()) {
+            if let Some(picture) = self.covers.picture(&api, id) {
+                StatefulImage::default().render(*area, buf, picture);
+            }
+        }
+    }
+}
+
 /// Rendering logic
 impl App {
     /// AppView::Home rendering
@@ -145,6 +264,11 @@ impl App {
                 Constraint::Length(2),
             ])
             .areas(area);
+
+        // The panel of the covers stands at the right of the list and of the
+        // description. It is always visible. See T-23.
+        let (main_area, cover_panel) = cover::split_for_covers(main_area, area.width);
+        self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] = Layout::vertical([
             Constraint::Fill(1),
@@ -184,6 +308,11 @@ impl App {
                 Constraint::Length(2),
             ])
             .areas(area);
+
+        // The panel of the covers stands at the right of the list and of the
+        // description. It is always visible. See T-23.
+        let (main_area, cover_panel) = cover::split_for_covers(main_area, area.width);
+        self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] = Layout::vertical([
             Constraint::Fill(1),
@@ -228,6 +357,11 @@ impl App {
                 Constraint::Length(2),
             ])
             .areas(area);
+
+        // The panel of the covers stands at the right of the list and of the
+        // description. It is always visible. See T-23.
+        let (main_area, cover_panel) = cover::split_for_covers(main_area, area.width);
+        self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] = Layout::vertical([
             Constraint::Fill(1),
@@ -299,6 +433,11 @@ impl App {
             ])
             .areas(area);
 
+        // The panel of the covers stands at the right of the list and of the
+        // description. It is always visible. See T-23.
+        let (main_area, cover_panel) = cover::split_for_covers(main_area, area.width);
+        self.render_covers(cover_panel, buf);
+
         let [list_area, item_area1, item_area2] = Layout::vertical([
             Constraint::Fill(1),
             Constraint::Length(3),
@@ -360,6 +499,11 @@ impl App {
                 Constraint::Length(2),
             ])
             .areas(area);
+
+        // The panel of the covers stands at the right of the list and of the
+        // description. It is always visible. See T-23.
+        let (main_area, cover_panel) = cover::split_for_covers(main_area, area.width);
+        self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] = Layout::vertical([
             Constraint::Fill(1),
@@ -432,6 +576,11 @@ impl App {
                 Constraint::Length(2),
             ])
             .areas(area);
+
+        // The panel of the covers stands at the right of the list and of the
+        // description. It is always visible. See T-23.
+        let (main_area, cover_panel) = cover::split_for_covers(main_area, area.width);
+        self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] = Layout::vertical([
             Constraint::Fill(1),
@@ -613,6 +762,11 @@ impl App {
                 Constraint::Length(2),
             ])
             .areas(area);
+
+        // The panel of the covers stands at the right of the list and of the
+        // description. It is always visible. See T-23.
+        let (main_area, cover_panel) = cover::split_for_covers(main_area, area.width);
+        self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] = Layout::vertical([
             Constraint::Fill(1),
@@ -814,6 +968,11 @@ impl App {
                 Constraint::Length(2),
             ])
             .areas(area);
+
+        // The panel of the covers stands at the right of the list and of the
+        // description. It is always visible. See T-23.
+        let (main_area, cover_panel) = cover::split_for_covers(main_area, area.width);
+        self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] = Layout::vertical([
             Constraint::Fill(1),
