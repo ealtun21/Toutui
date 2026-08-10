@@ -224,8 +224,9 @@ To make it work properly, perform a fresh reinstall.
          \n\
          Enjoy and be toutui!\n
          ####\n".to_string();
-    let changelog_15 = format!(
-        "Changelog Toutui v{} (10/08/2026) \n\
+    // The entry of a release that came before this build names its own
+    // version. Only the newest entry takes the version of the build.
+    let changelog_15 = "Changelog Toutui v0.5.0 (10/08/2026) \n\
      \n\
      Added:\n\
      - The program plays a local copy when the server does not answer, and\n\
@@ -243,6 +244,34 @@ To make it work properly, perform a fresh reinstall.
      - The script of installation has 100 lines and not 1080. It installs\n\
        no VLC and no netcat, because the player in the program needs\n\
        neither.\n\
+     \n\
+     Contributors:\n\
+     \n\
+     - AlbanDAVID (the original project), ealtun21\n\
+     \n\
+     Enjoy and be toutui!\n\
+     ####\n"
+        .to_string();
+
+    let changelog_16 = format!(
+        "Changelog Toutui v{} (10/08/2026) \n\
+     \n\
+     Added:\n\
+     - The cover art. The cover stands beside the description and it is\n\
+       always visible. A series shows the cover of each of its books. The\n\
+       cover of the media that plays is the largest one. A narrow terminal\n\
+       gives the whole width to the text.\n\
+     - A series takes one line of the Library view. The key `l` opens its\n\
+       books, in the sequence of the series.\n\
+     - The key `F` sends the position to the server at once. It does not\n\
+       close the listening session.\n\
+     \n\
+     Changed:\n\
+     - The program uses ratatui 0.30 and crossterm 0.29. `tui-textarea` is\n\
+       gone, and `tui-input` takes its place. The login screen and the bar\n\
+       of the search work as before.\n\
+     - The build still needs no C toolchain for a library of the system,\n\
+       and it needs no OpenSSL.\n\
      \n\
      Contributors:\n\
      \n\
@@ -292,6 +321,7 @@ To make it work properly, perform a fresh reinstall.
          Enjoy and be toutui!\n
          ####\n".to_string();
 
+    changelog.push_str(&changelog_16);
     changelog.push_str(&changelog_15);
     changelog.push_str(&changelog_14);
     changelog.push_str(&changelog_13);
