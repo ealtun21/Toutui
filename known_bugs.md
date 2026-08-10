@@ -97,6 +97,13 @@ examined `9bacac`. A measurement on 2026-08-10 ran `play` against a server that
 answered 500, and the value stayed `0`. `play` always gives the value `1` now.
 `tests/playback_wait_flag.rs` holds the rule.
 
+`bug_id: 5c8d72` — CORRECTED on 2026-08-10, commit c342f50
+**The application does not play an Opus file:** Audiobookshelf accepts Opus, and
+`rodio::Decoder` has no Opus in its registry of codecs. The engine now reads the
+packets with symphonia and decodes them with `opuscule`. A measurement on
+2026-08-10 compared the samples with libopus over 50 files, and the largest
+difference of one sample is 0.00002 of a full scale of 1.0. See T-17.
+
 **MINOR**
 
 `bug_id: 3a91e7` — CORRECTED on 2026-08-09, commit 14567c1

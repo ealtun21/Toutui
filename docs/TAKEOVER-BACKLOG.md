@@ -43,6 +43,7 @@ the original issue, if there is one.
 | T-31 | The fork gives no bundle for macOS | this document |
 | T-15 | The authentication does not fail at the first attempt (examined) | `6796d91` |
 | `9bacac`, `86384e`, `dd9a649` | A playback loop reports its own playback only | `c82c9d8` |
+| T-17 | The application plays an Opus file | `c342f50` |
 | T-34 | A colour of the configuration file does not stop the program | `21aac71` |
 | T-35 | Every playback releases the wait of the next playback | `e4b51c9` |
 
@@ -176,7 +177,7 @@ the address. Issue #35 gives this advice. Sub-project 2 does this work.
 |---|---|---|---|
 | T-7 | #35 | The application gets all items in one request | 3 |
 | T-8 | #36 | A change of the speed needs a new start of the playback | 2 |
-| T-17 | — | Play an Opus file | later |
+| T-17 | — | Play an Opus file | complete, `c342f50` |
 | T-18 | — | Play a WMA file and an AWB file (the last two of 19) | later |
 | T-20 | — | Remove the two dependencies that compile C | later |
 
@@ -317,20 +318,71 @@ field `authorName`.
 Pull request #38 of the original repository adds a flake for Nix users. The
 original author closed it without a merge. Examine this work again.
 
-### T-17: play an Opus file
+### T-17: play an Opus file — complete, `c342f50`
 
-Audiobookshelf accepts 19 audio formats. The audio engine plays 16 of them.
-Opus is the gap that has an answer.
+The engine plays 17 of the 19 formats now. Symphonia reads the container, and
+`opuscule` decodes each packet. The engine plays Opus in an OGG container, in a
+Matroska container, in a WebM container, and in an MP4 container. WMA and AWB
+stay outside; see T-18.
 
-A measurement on 2026-08-10 shows that a pure Rust decoder gives audio that
-agrees with libopus. The highest value is the same. Therefore no C library is
-necessary.
+**A correction of the first measurement.** Issue 17 named `opus-decoder` 0.1.1,
+and it said that the crate agrees with libopus. That measurement ran a release
+build. Rust examines an arithmetic operation in a debug build only, therefore
+the release build hid a fault.
 
-The work needs a `rodio::Source` of this project, because `rodio::Decoder`
-uses a fixed codec registry. WMA and AWB stay outside, because no pure Rust
-reader or decoder is available.
+A measurement on 2026-08-10 ran a debug build with 47 files:
 
-Issue 17 holds the details.
+| Crate | Result |
+|---|---|
+| `opus-decoder` 0.1.1 | stops the program on 13 of 47 files |
+| `mousiki` 0.2.1 | stops the program on 15 of 47 files |
+| `moosicbox_opus_native` 0.4.0 | `decode_float` holds `todo!()` |
+| `opuscule` 0.2.0 | plays all 47 files |
+
+The fault of `opus-decoder` is in `src/celt/vq.rs`, line 118: "attempt to shift
+left with overflow". One file of `tests/fixtures/audio` gives that fault.
+
+**The risk of `opuscule`, and the answer to that risk.** The crate is young: it
+came on 2026-07-20, and it had 84 downloads on the day of this work. Its own
+document says that an agent of artificial intelligence made most of the code
+from the reference in C, and that the correctness rests on the test vectors of
+RFC 8251.
+
+Two properties make the risk acceptable. The crate holds `forbid(unsafe)`,
+therefore a fault gives a wrong sample or a panic, and never damage of the
+memory. And the source catches a panic of the decoder: the one track stops, and
+the application continues. `ExpectedPanic` in `src/utils/exit_app.rs` tells the
+hook of the panic to keep the terminal and the screen for such a panic.
+
+The licence of `opuscule` is MPL-2.0. That licence agrees with GPL-3.0-or-later,
+and symphonia already gives MPL-2.0 to the tree.
+
+**The agreement with libopus.** The measurement compared the samples of the
+whole path with libopus over 50 files: one channel and two channels, 6 to 128
+kilobits each second, frames of 2.5, 10, 20, and 60 milliseconds, and four
+containers. Every file agrees. The largest difference of one sample is 0.00002
+of a full scale of 1.0, and no file has an offset of its start.
+
+**Two faults of this work that the measurement found.**
+
+1. The head of an Opus stream gives the number of samples that the stream skips
+   at its start. The box `dOps` of MP4 writes the two bytes of that number with
+   the byte of the largest value first, and an OGG container writes them with
+   the byte of the smallest value first. The first code always read the byte of
+   the smallest value first. The value 312 then became 14337, and the source
+   removed 0.3 seconds of the audio of an MP4 file.
+2. `codec_params.delay` of symphonia 0.5.5 is not that number. It gave 648 for a
+   file whose head says 312, and 648 is the padding at the end of that file. The
+   head has the highest importance now, and `delay` is the answer only for a
+   stream that gives no head.
+
+**One difference that stays.** Symphonia 0.5.5 does not remove the padding at
+the end of an Opus stream. Therefore the source gives up to one frame of padding
+after the audio: 20 milliseconds for the usual file, and 60 milliseconds for the
+largest frame. The padding is the tail of the encoder, and it is not a click.
+
+`tests/opus.rs` and `tests/formats.rs` hold the rules. The tests need no sound
+card and no server.
 
 ### T-22: show the series of a library
 
