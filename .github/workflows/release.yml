@@ -31,6 +31,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # A tag that does not agree with Cargo.toml gives every user an update
+      # that never completes. The workflow stops here instead.
+      - name: Confirm that the tag and Cargo.toml agree
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          crate=$(grep -m1 '^version' Cargo.toml | sed -E 's/.*"(.*)".*/\1/')
+          if [ "$tag" != "$crate" ]; then
+            echo "The tag $GITHUB_REF_NAME and the version $crate do not agree."
+            exit 1
+          fi
+          echo "The tag and the version agree: $crate"
+
       - uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
@@ -41,22 +53,24 @@ jobs:
         if: matrix.build == 'zig'
         run: sudo apt-get update && sudo apt-get install -y libasound2-dev
 
+      # Ubuntu 24.04 ships a Python that pip 23 and later refuse to install
+      # into. pipx does not have that limit.
       - name: Install cargo-zigbuild
         if: matrix.build == 'zig'
         run: |
-          pip install ziglang
+          pipx install ziglang
           cargo install cargo-zigbuild --locked
 
       - name: Build for Linux
         if: matrix.build == 'zig'
-        run: cargo zigbuild --release --target ${{ matrix.target }}.2.17
+        run: cargo zigbuild --release --locked --target ${{ matrix.target }}.2.17
 
       - name: Build for macOS
         if: matrix.build == 'mac'
         run: |
           rustup target add aarch64-apple-darwin x86_64-apple-darwin
-          cargo build --release --target aarch64-apple-darwin
-          cargo build --release --target x86_64-apple-darwin
+          cargo build --release --locked --target aarch64-apple-darwin
+          cargo build --release --locked --target x86_64-apple-darwin
           mkdir -p target/${{ matrix.target }}/release
           lipo -create -output target/${{ matrix.target }}/release/toutui \
             target/aarch64-apple-darwin/release/toutui \
