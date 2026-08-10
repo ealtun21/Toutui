@@ -159,6 +159,10 @@ The script receives the archive of the last release, it compares the sum with
 `SHA256SUMS`, and it installs the binary in `/usr/local/bin`. It asks for a
 password with `sudo`, because that directory needs one on most systems.
 
+If the command `gh` is on your system, the script also tests the proof of the
+origin of the archive, and it stops if that proof is not correct. See
+[The proof of the origin](#the-proof-of-the-origin).
+
 ### From the source
 
 ```bash
@@ -171,7 +175,9 @@ needs the headers of ALSA: `libasound2-dev` on Debian, `alsa-lib` on Arch.
 ### The archives
 
 The [releases](https://github.com/ealtun21/Toutui/releases) hold one archive
-for each system, and `SHA256SUMS`. Compare the sum before you use an archive.
+for each system, and `SHA256SUMS`. Compare the sum before you use an archive,
+and test the proof of the origin as well: see
+[The proof of the origin](#the-proof-of-the-origin).
 
 The Linux archives need glibc 2.31 or later: Debian 11 and later, Ubuntu
 20.04 and later, or RHEL 9. A system with an older glibc must use
@@ -183,8 +189,30 @@ The Linux archives need glibc 2.31 or later: Debian 11 and later, Ubuntu
 toutui --update
 ```
 
-The program receives the archive of its target, it compares the sum, and it
-moves the new binary. The program runs no file that it receives.
+The program receives the archive of its target, it compares the sum, it tests
+the proof of the origin, and it moves the new binary. The program runs no file
+that it receives.
+
+### The proof of the origin
+
+The workflow of the release makes a proof of each archive. That proof names the
+repository and the workflow that made the archive.
+
+`install.sh` and `--update` test that proof with `gh attestation verify`. The
+sum in `SHA256SUMS` is not enough alone, because that sum comes from the same
+release: the sum finds a download that stops, and it does not find a release
+that a different person made.
+
+The two stop if `gh` reads the proof and refuses the archive. If `gh` is not on
+your system, or it has no account, the two write which test they made and they
+go on, because most users have no `gh`. Install `gh` from
+<https://cli.github.com> to get this test. You can also make the test yourself:
+
+```bash
+gh attestation verify toutui-x86_64-unknown-linux-gnu.tar.gz \
+    --repo ealtun21/Toutui \
+    --signer-workflow ealtun21/Toutui/.github/workflows/release.yml
+```
 
 ### The removal
 
