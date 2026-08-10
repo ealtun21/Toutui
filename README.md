@@ -30,7 +30,8 @@ not in the archived repository.
  **Supports Books & Podcasts:** Enjoy both audiobooks and podcasts  
  **Series:** See the series of a library and the books of a series, in sequence (`s`)  
  **Collections & Playlists:** See them and play their contents (`c`)  
- **Sync Progress & Stats:** Keep your listening progress in sync  
+ **Sync Progress:** Keep your listening progress in sync  
+ **Your listening time:** See the time of each day, of each day of the week, and of each media (`T`)  
  **Streaming Support:** Play directly without downloading  
  **Local Copies:** Download a book or a podcast episode and read the audio from the disk (see below)  
  **Cover art:** The cover of the media stands beside the description, and a series shows a shelf of its books  
@@ -77,6 +78,20 @@ belongs to one user, and it can hold books or episodes of a podcast.
   as in the Library view.
 - A podcast library has no collection, and it can have a playlist.
 
+## 📊 Your listening time
+
+The server counts the time of every session. `T` shows that count.
+
+- `T` — show your listening time. The key operates in every view of media.
+  The program asks the server at each press, therefore the numbers are new.
+- The screen shows the time of this day and the time in total, the last 14
+  days that you played, the seven days of the week, the five media that you
+  played most, and the five last sessions.
+- `j`/`↓` and `k`/`↑` move the screen. `g` goes to the first line, and `G`
+  goes to the last line.
+- `h` or `Tab` goes back to the Home view.
+- The program asks `GET /api/me/listening-stats`, and it sends one request.
+
 ## 📥 Offline Mode
 
 Books and podcast episodes can be downloaded locally, so the application reads the audio from the disk and not from the server.
@@ -116,7 +131,6 @@ The application starts and plays when the server does not answer:
 ## 🔮 Future features
 Here are some features that could be added in future releases:
 - Ability to add new podcasts from the app
-- Add stats
 - Read an EPUB book in the application
   
 ## ⚠️ Caution: Beta Version  

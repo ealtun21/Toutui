@@ -906,6 +906,55 @@ permissions does not stop a user.
 order of the views kept it from reaching the screen. The value is an empty text
 now.
 
+### The statistics of the user — complete, 2026-08-11
+
+The README named "Add stats" as a future function, and `docs/T-24-coverage.md`
+gave it the largest value of the small items.
+
+`GET /api/me/listening-stats` gives every number in one answer, therefore the
+program sends one request and it adds no dependency. A measurement against the
+sandbox on 2026-08-11 gives the shape:
+
+| Field | What |
+|---|---|
+| `totalTime` | 281 |
+| `today` | 281 |
+| `days` | `{"2026-08-10": 281}` |
+| `dayOfWeek` | `{"Monday": 281}` |
+| `items` | **a map**, and not a list. The key is the identity of the media |
+| `recentSessions` | 5 rows with `displayTitle`, `date`, and `timeListening` |
+
+The key `T` opens the view. The program asks the server at each press, because
+the numbers change while the user listens.
+
+**Three points of the design.**
+
+1. **`items` is a map, and a map has no sequence.** `top_items` sorts by the
+   time and then by the title. Two media of the same time therefore keep one
+   place, and the list does not move from one frame to the next one.
+2. **The bar needs no dependency.** `bar` makes the mark with the blocks of
+   Unicode, and it uses a part of a block for the remainder. A value above
+   zero always gives one mark: a bar of nothing would say that the user played
+   nothing on that day.
+3. **`days` is a `BTreeMap`.** A date of the form `2026-08-10` goes in the
+   sequence of the time when it goes in the sequence of the letters, therefore
+   the program needs no calendar and no new crate.
+
+**A fault that only the real answer showed.** The first build gave the name of
+a line ten columns. A date takes ten columns, therefore the date and the bar
+stood together with no space:
+
+```
+2026-08-10██████████████████████████████  4 min 41 s
+```
+
+The name now takes eleven columns. The measurement against the sandbox found
+this, and no test of the tests before it could: every name of that test was a
+day of the week, and the longest one, `Wednesday`, takes nine columns.
+
+`tests/the_statistics_against_the_sandbox.rs` holds the measurement. It carries
+`#[ignore]`, because it needs a server.
+
 ## The report of the user of 2026-08-10, on v0.5.0
 
 The user tested v0.5.0 and named ten items. This section holds each one, the

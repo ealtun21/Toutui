@@ -52,6 +52,8 @@ pub enum AppView {
     ListEntries,
     /// The reader of an ebook. See T-10.
     Reader,
+    /// The statistics of the user. See T-24.
+    Stats,
     Settings,
     SettingsAccount,
     SettingsLibrary,
@@ -214,6 +216,13 @@ pub struct App {
     /// A message of the reader for the user, for example the reason why a
     /// book did not open.
     pub reader_message: Option<String>,
+    /// The first line of the view of the statistics. The keys `j` and `k`
+    /// change it. See T-24.
+    pub stats_scroll: u16,
+    /// The largest first line of the view of the statistics. The render
+    /// writes it, because the render knows the height of the screen. The move
+    /// then stops when the last line is visible.
+    pub stats_scroll_max: u16,
 }
 
 /// Init app
@@ -1002,6 +1011,8 @@ impl App {
             confirm_logout: None,
             reader: None,
             reader_message: None,
+            stats_scroll: 0,
+            stats_scroll_max: 0,
             audio_fault,
         })
     }
@@ -1035,6 +1046,9 @@ impl App {
             // The key that marks a media as finished, or not finished.
             // See T-24.
             KeyCode::Char('M') => self.toggle_the_mark_of_finished(),
+
+            // The key that shows the time that the user listened. See T-24.
+            KeyCode::Char('T') => self.show_the_statistics(),
 
             // PLAYER //
             // toggle playback/pause
@@ -1288,6 +1302,9 @@ impl App {
                     AppView::SettingsAbout => self.view_state = AppView::Settings,
                     AppView::SettingsUpdateUninstall => self.view_state = AppView::Settings,
                     AppView::Settings => self.view_state = AppView::Home,
+                    // The view of the statistics goes back to Home, as the
+                    // settings do. See T-24.
+                    AppView::Stats => self.view_state = AppView::Home,
                     AppView::PodcastEpisode => {
                         if self.is_from_search_pod {
                             self.view_state = AppView::SearchBook
@@ -1485,6 +1502,8 @@ impl App {
                     AppView::SettingsUpdateUninstall => {}
                     // The reader has its own keys. See T-10.
                     AppView::Reader => {}
+                    // The view of the statistics holds no line to open.
+                    AppView::Stats => {}
                     AppView::Library => {
                         // A line of a series opens the books of that series.
                         // See T-22.
@@ -1752,6 +1771,38 @@ impl App {
             let mut stdout = std::io::stdout();
             let _ = clear_message(&mut stdout, 3);
             let _ = pop_message(&mut stdout, 3, text.as_str());
+        });
+    }
+
+    /// Shows the time that the user listened, and asks the server for it.
+    ///
+    /// The request goes at every press of the key. The numbers change while
+    /// the user listens, therefore an old answer would be wrong. See T-24.
+    pub fn show_the_statistics(&mut self) {
+        self.stats_scroll = 0;
+        self.view_state = AppView::Stats;
+
+        if self.is_offline {
+            crate::logic::stats::keep(crate::logic::stats::State::Fault(
+                "The server does not answer. The program works with the disk only.".to_string(),
+            ));
+            return;
+        }
+
+        crate::logic::stats::keep(crate::logic::stats::State::Waiting);
+
+        let api = std::sync::Arc::clone(&self.api);
+
+        tokio::spawn(async move {
+            let state = match crate::api::me::listening_stats::get_listening_stats(&api).await {
+                Ok(stats) => crate::logic::stats::State::Ready(Box::new(stats)),
+                Err(error) => {
+                    log::warn!("[stats] the server gave no statistics: {}", error);
+                    crate::logic::stats::State::Fault(error.to_string())
+                }
+            };
+
+            crate::logic::stats::keep(state);
         });
     }
 
@@ -2291,6 +2342,7 @@ impl App {
             AppView::Lists => AppView::Home,
             AppView::ListEntries => AppView::Home,
             AppView::Reader => AppView::Home,
+            AppView::Stats => AppView::Home,
             AppView::Settings => AppView::Home,
             AppView::SettingsAccount => AppView::Home,
             AppView::SettingsLibrary => AppView::Home,
@@ -2385,6 +2437,13 @@ impl App {
             }
             // The reader has its own keys. See T-10.
             AppView::Reader => {}
+            // The keys `j` and `k` move the view of the statistics, because
+            // that view holds no list. The move stops at the last line.
+            AppView::Stats => {
+                if self.stats_scroll < self.stats_scroll_max {
+                    self.stats_scroll += 1;
+                }
+            }
             AppView::Settings => {
                 if let Some(selected) = self.list_state_settings.selected() {
                     if selected + 1 < self.settings.len() {
@@ -2433,6 +2492,7 @@ impl App {
             AppView::Lists => self.list_state_lists.select_previous(),
             AppView::ListEntries => self.list_state_list_entries.select_previous(),
             AppView::Reader => {}
+            AppView::Stats => self.stats_scroll = self.stats_scroll.saturating_sub(1),
             AppView::Settings => self.list_state_settings.select_previous(),
             AppView::SettingsAccount => self.list_state_settings_account.select_previous(),
             AppView::SettingsLibrary => self.list_state_settings_library.select_previous(),
@@ -2454,6 +2514,7 @@ impl App {
             AppView::Lists => self.list_state_lists.select_first(),
             AppView::ListEntries => self.list_state_list_entries.select_first(),
             AppView::Reader => {}
+            AppView::Stats => self.stats_scroll = 0,
             AppView::Settings => self.list_state_settings.select_first(),
             AppView::SettingsAccount => self.list_state_settings_account.select_first(),
             AppView::SettingsLibrary => self.list_state_settings_library.select_first(),
@@ -2510,6 +2571,7 @@ impl App {
                 self.list_state_list_entries.select(Some(last_index));
             }
             AppView::Reader => {}
+            AppView::Stats => self.stats_scroll = self.stats_scroll_max,
             AppView::Settings => {
                 let last_index = self.settings.len().saturating_sub(1);
                 self.list_state_settings.select(Some(last_index));

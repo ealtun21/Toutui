@@ -33,6 +33,7 @@ impl Widget for &mut App {
             AppView::Lists => self.render_lists(area, buf),
             AppView::ListEntries => self.render_list_entries(area, buf),
             AppView::Reader => self.render_reader(area, buf),
+            AppView::Stats => self.render_stats(area, buf),
             AppView::Settings => self.render_settings(area, buf),
             AppView::SettingsAccount => self.render_settings_account(area, buf),
             AppView::SettingsLibrary => self.render_settings_library(area, buf),
@@ -243,6 +244,7 @@ impl App {
             AppView::ListEntries => one(self.selected_list_entry().map(|entry| &entry.id)),
 
             AppView::Reader
+            | AppView::Stats
             | AppView::Settings
             | AppView::SettingsAccount
             | AppView::SettingsLibrary
@@ -334,6 +336,39 @@ impl App {
     }
 }
 
+/// The statistics of the user. See T-24.
+impl App {
+    /// AppView::Stats rendering
+    fn render_stats(&mut self, area: Rect, buf: &mut Buffer) {
+        let [header_area, main_area, footer_area] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Fill(1),
+            Constraint::Length(2),
+        ])
+        .areas(area);
+
+        self.render_header(header_area, buf);
+        App::render_footer(
+            footer_area,
+            buf,
+            "j/↓, k/↑: move, g/G: first/last, T: ask the server again, h/Tab: back, Q/Esc: quit",
+        );
+
+        // The task of the request writes the answer, and the screen takes it
+        // here. The screen never waits for the server.
+        let state = crate::logic::stats::state();
+
+        self.stats_scroll_max =
+            crate::ui::stats_tui::render(&state, self.stats_scroll, main_area, buf);
+
+        // A screen that becomes higher shows more lines. The first line then
+        // stands after the last one, and the user sees nothing.
+        if self.stats_scroll > self.stats_scroll_max {
+            self.stats_scroll = self.stats_scroll_max;
+        }
+    }
+}
+
 /// Rendering logic
 impl App {
     /// AppView::Home rendering
@@ -365,7 +400,7 @@ impl App {
         let lines = self.home_lines();
         let render_list_title = format!("Continue Listening [{} items]", lines.len());
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, s: series, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, s: series, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -414,7 +449,7 @@ impl App {
         if self.is_podcast {
             _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
         } else {
-            _text_render_footer = "j/↓, k/↑: move, l/→: play or open a series, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, s: series, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
+            _text_render_footer = "j/↓, k/↑: move, l/→: play or open a series, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, s: series, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
         }
 
         self.render_header(header_area, buf);
@@ -531,7 +566,7 @@ impl App {
         ])
         .areas(main_area);
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -675,7 +710,7 @@ impl App {
         ])
         .areas(main_area);
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -882,7 +917,7 @@ impl App {
         if self.is_podcast {
             _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n c: lists, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
         } else {
-            _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, s: series, c: lists, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+            _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, s: series, c: lists, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
         }
 
         if self.search_mode {
@@ -1101,7 +1136,7 @@ impl App {
         ])
         .areas(main_area);
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);

@@ -4,5 +4,6 @@ pub mod login_tui;
 pub mod marks;
 pub mod player_tui;
 pub mod reader_tui;
+pub mod stats_tui;
 pub mod text_field;
 pub mod tui;

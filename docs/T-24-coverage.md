@@ -58,10 +58,11 @@ This list comes from `src/api/` and from `src/logic/`. It is complete.
 | `GET /api/items/:id/file/:ino/download` | `src/logic/download/fetch.rs`, `src/player/engine/http_file.rs` |
 | `POST /api/items/:id/play`, `POST /api/items/:id/play/:episodeId` | `src/api/library_items/play_lib_item_or_pod.rs` |
 | `GET /api/me/progress/:id` | `src/api/me/get_media_progress.rs` |
+| `GET /api/me/listening-stats` | `src/api/me/listening_stats.rs` |
 | `PATCH /api/me/progress/:id`, `PATCH /api/me/progress/:id/:episodeId` | `src/api/me/update_media_progress.rs` |
 | `POST /api/session/:id/sync`, `POST /api/session/:id/close` | `src/api/sessions/` |
 
-Toutui calls 15 paths. The server has more than 100.
+Toutui calls 16 paths. The server has more than 100.
 
 ## 3. The keys of Toutui
 
@@ -82,6 +83,7 @@ Toutui calls 15 paths. The server has more than 100.
 | `D`, `X` | Get a local copy, and remove a local copy |
 | `R` | Ask the server again |
 | `F` | Send the position now (T-32) |
+| `T` | Show the time that you listened (T-24) |
 | `S` | Settings |
 | `B` | Show the keys, or hide them |
 | `Q`/`Esc` | Close the application |
@@ -165,7 +167,7 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 | **The narrators of a library** | `GET /api/libraries/:id/narrators` gives the key `narrators` | No | Everything |
 | **The tags** | `GET /api/tags` gives the key `tags` | No | Everything |
 | **The statistics of the library** | `GET /api/libraries/:id/stats` gives `totalItems`, `totalSize`, `totalDuration`, `numAudioTracks`, `largestItems`, `longestItems`, `totalAuthors`, `totalGenres` | No | Everything |
-| **The statistics of the user** | `GET /api/me/listening-stats` gives `totalTime` 276, `today` 276, `days` `{"2026-08-10":276}`, `dayOfWeek` `{"Monday":276}`, `items` (1), and `recentSessions` (4) | No | Everything. The README names "Add stats" as a future function |
+| **The statistics of the user** | `GET /api/me/listening-stats` gives `totalTime` 281, `today` 281, `days` `{"2026-08-10":281}`, `dayOfWeek` `{"Monday":281}`, `items` (a map of 2), and `recentSessions` (5) | Yes | Nothing. The key `T` shows the time of this day and the time in total, the last 14 days, the seven days of the week, the five media of the largest time, and the five last sessions |
 | **The statistics of a year** | `GET /api/stats/year/2026` gives `numListeningSessions`, `totalListeningTime`, `topAuthors`, `topNarrators`, `topGenres`, and 8 more fields | No | Everything |
 | **The account of the user** | `GET /api/me` gives `id`, `username`, `type` (`root`), `permissions`, `mediaProgress` (9 rows), `bookmarks`, `lastSeen` | Half | The client signs in and holds the token. It shows no permission and no type. The README says that `D` needs the permission `download`, and the client does not read that permission before it tries |
 | **The permissions** | `GET /api/me` gives 9 permissions: `download`, `update`, `delete`, `upload`, `createEreader`, `accessAllLibraries`, `accessAllTags`, `accessExplicitContent`, `selectedTagsNotAccessible` | No | The client never reads them. A key that the account does not permit gives an error of the server and not a clear message |
@@ -195,11 +197,10 @@ The sequence inside each group gives the value for the work.
    `src/api/me/update_media_progress.rs:88` sends this body already. Add a key
    in `src/app.rs`. The user gives up on a book, and the book then leaves
    "Continue Listening".
-3. **The statistics of the user.** `GET /api/me/listening-stats`. Add
-   `src/api/me/listening_stats.rs` and a view in `src/ui/tui.rs`. The answer
-   holds the numbers already: `totalTime`, `today`, `days`, and `dayOfWeek`. A
-   bar of characters for the seven days needs no new dependency. The README
-   names this function.
+3. ~~**The statistics of the user.**~~ **Done on 2026-08-11.** The key `T`,
+   `src/api/me/listening_stats.rs`, `src/logic/stats.rs`, and
+   `src/ui/stats_tui.rs`. The bar uses the blocks of Unicode, therefore the
+   program needs no new dependency.
 4. **A choice of the sequence.** `?sort=` and `?desc=` on
    `GET /api/libraries/:id/items`. Change `src/api/libraries/get_all_books.rs`,
    which holds the field `sort_by` in the answer and never sends it. "The newest

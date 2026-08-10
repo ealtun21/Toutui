@@ -6,4 +6,5 @@ pub mod offline;
 pub mod playback;
 pub mod reader;
 pub mod search;
+pub mod stats;
 pub mod sync_session;
