@@ -671,12 +671,36 @@ repository are complete: #36 is T-8, #35 is T-3, T-6 and T-7, #33 is T-2, and
 that crate, and it still asks for `ratatui ^0.29`. Therefore the blocker did not
 go away by itself.
 
-Two answers exist. The first answer is a different crate for the text input, or
-an input widget of this project. The login has three fields and the search has
-one field, therefore a widget of this project is small. The second answer is to
-wait for `tui-textarea`.
+**The answer: `tui-input` 0.15.4.** That crate came on 2026-08-10, it has
+1.78 million downloads, and it asks for `ratatui ^0.30.2` and `crossterm ^0.29`.
+It needs `unicode-segmentation` and `unicode-width` only, and both are pure Rust.
+`ratatui` and `crossterm` are features of that crate, therefore the project names
+the two features that it uses.
 
-T-23 does not wait for this work: `ratatui-image` 9.0.0 asks for `ratatui ^0.29`.
+`tui-input` holds one line of text. Every place of this project holds one line:
+the address of the server, the name of the user, the password, and the words of
+the search. Therefore the crate is enough.
+
+**The size of the work, measured on 2026-08-10.** A test removed
+`tui-textarea`, and it added `ratatui 0.30`, `crossterm 0.29`, and `tui-input
+0.15`. The compiler then gave **two errors, and both errors are the line
+`use tui_textarea` of the two files that hold a text input**:
+
+- `src/logic/auth/auth_input.rs`, 208 lines, three fields.
+- `src/logic/search/search_active.rs`, 73 lines, one field.
+
+Every other file of the project already agrees with ratatui 0.30: `tui.rs` with
+its 1344 lines, `player_tui.rs`, `app.rs`, and `login_tui.rs` all compile with no
+change at all. The note of "nine errors of the compiler" came from a build that
+held two versions of ratatui at the same time. One version gives two errors.
+
+Therefore T-33 is a small work: write the two places again with `tui-input`.
+`tui-input` gives the state only, and the caller draws the text. The functions
+`value`, `visual_cursor`, and `visual_scroll` give what a `Paragraph` needs.
+
+**What T-33 opens.** `ratatui-image` 11.0.6 asks for `ratatui ^0.30.1`, therefore
+T-23 can use the newest version of that crate after this work. T-23 does not wait
+for it: `ratatui-image` 9.0.0 asks for `ratatui ^0.29`.
 
 The text below is the examination of 2026-08-10 before this note.
 
