@@ -3,7 +3,7 @@
 //! The program compares the sum before it moves the binary. Therefore a
 //! download that stops leaves the binary that operates.
 
-use crate::update::release::{latest_release, target, Release};
+use crate::update::release::{is_newer, latest_release, target, Release};
 use sha2::{Digest, Sha256};
 use std::io::{Read, Write};
 use std::path::Path;
@@ -193,25 +193,15 @@ pub async fn run_update_at(api: &str, binary: &Path) -> Result<String, String> {
 
     let release: Release = latest_release(api, target).await?;
 
-    match (
-        semver::Version::parse(LOCAL_VERSION),
-        semver::Version::parse(&release.version),
-    ) {
-        (Ok(local), Ok(remote)) => {
-            if remote <= local {
-                return Ok(format!(
-                    "Version {} is installed. The release gives {}, and that version is not newer. The program did not change.",
-                    local, remote
-                ));
-            }
-        }
-        // A version that this program cannot read as semver keeps the old
-        // rule: install only when the text of the versions is not the same.
-        _ => {
-            if release.version == LOCAL_VERSION {
-                return Ok(format!("Version {} is the last version.", LOCAL_VERSION));
-            }
-        }
+    // The same rule as `check_update`, in one place: `is_newer` in
+    // `update::release`. A build newer than the last release, for example
+    // one from `cargo install --git`, must read the same answer here that it
+    // read before it ran this command.
+    if !is_newer(&release.version, LOCAL_VERSION) {
+        return Ok(format!(
+            "Version {} is installed. The release gives {}, and that version is not newer. The program did not change.",
+            LOCAL_VERSION, release.version
+        ));
     }
 
     if !can_replace(binary) {

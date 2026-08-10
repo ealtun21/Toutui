@@ -15,6 +15,18 @@ pub struct Release {
     pub sums_url: String,
 }
 
+/// Gives `true` when the release is newer than the version of this build.
+///
+/// The comparison uses semver. If either version does not parse, the function
+/// gives `true` only when the two strings disagree, which is the behaviour
+/// that the program had before semver.
+pub fn is_newer(remote: &str, local: &str) -> bool {
+    match (semver::Version::parse(remote), semver::Version::parse(local)) {
+        (Ok(remote), Ok(local)) => remote > local,
+        _ => remote != local,
+    }
+}
+
 /// Gives the target of this build.
 ///
 /// The value must agree with the names of the assets that the workflow
@@ -79,15 +91,54 @@ pub async fn latest_release(api: &str, target: &str) -> Result<Release, String> 
         .build()
         .map_err(|e| e.to_string())?;
 
-    let body = client
+    let response = client
         .get(api)
         .header(reqwest::header::USER_AGENT, "Toutui-Updater")
         .send()
         .await
-        .map_err(|e| e.to_string())?
-        .text()
-        .await
         .map_err(|e| e.to_string())?;
 
+    let status = response.status();
+    if status == reqwest::StatusCode::FORBIDDEN || status == reqwest::StatusCode::TOO_MANY_REQUESTS
+    {
+        return Err(
+            "GitHub reached the limit of requests with no account. Wait, and try again."
+                .to_string(),
+        );
+    }
+    if !status.is_success() {
+        return Err(format!("The API gives {}.", status));
+    }
+
+    let body = response.text().await.map_err(|e| e.to_string())?;
+
     parse_release(&body, target)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_newer;
+
+    #[test]
+    fn newer_release_gives_true() {
+        assert!(is_newer("0.6.0", "0.5.0"));
+    }
+
+    #[test]
+    fn equal_release_gives_false() {
+        assert!(!is_newer("0.5.0", "0.5.0"));
+    }
+
+    #[test]
+    fn older_release_gives_false() {
+        assert!(!is_newer("0.4.0", "0.5.0"));
+    }
+
+    #[test]
+    fn a_version_that_does_not_parse_falls_back_to_text() {
+        // Neither string is semver here, so the function keeps the old
+        // rule: not equal means newer.
+        assert!(is_newer("not-a-version", "0.5.0"));
+        assert!(!is_newer("0.5.0", "0.5.0"));
+    }
 }
