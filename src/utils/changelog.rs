@@ -317,8 +317,7 @@ To make it work properly, perform a fresh reinstall.
      ####\n"
         .to_string();
 
-    let changelog_18 = format!(
-        "Changelog Toutui v{} (10/08/2026) \n\
+    let changelog_18 = "Changelog Toutui v0.6.2 (10/08/2026) \n\
      \n\
      Fixed:\n\
      - The start cannot wait for ever now. The sound device gets five\n\
@@ -337,6 +336,27 @@ To make it work properly, perform a fresh reinstall.
      - macOS has a way to remove the program with no binary:\n\
        macos/uninstall.sh. It deletes nothing, and it writes the paths\n\
        and the commands.\n\
+     \n\
+     Contributors:\n\
+     \n\
+     - AlbanDAVID (the original project), ealtun21\n\
+     \n\
+     Enjoy and be toutui!\n\
+     ####\n"
+        .to_string();
+
+    let changelog_19 = format!(
+        "Changelog Toutui v{} (11/08/2026) \n\
+     \n\
+     Added:\n\
+     - **Read an EPUB book in the terminal.** The key e on an item that\n\
+       holds an ebook opens the reader. The keys: j/k a line, Space/b a\n\
+       page, n/p a chapter, t the table of contents, g/G the start and\n\
+       the end, s sends the place to the server, and h leaves the book.\n\
+     - The program keeps the file of the book, therefore the reader also\n\
+       works with no server.\n\
+     - The place of the reader goes to the field of the ebook of the\n\
+       server. It changes no position of the audio.\n\
      \n\
      Contributors:\n\
      \n\
@@ -386,6 +406,7 @@ To make it work properly, perform a fresh reinstall.
          Enjoy and be toutui!\n
          ####\n".to_string();
 
+    changelog.push_str(&changelog_19);
     changelog.push_str(&changelog_18);
     changelog.push_str(&changelog_17);
     changelog.push_str(&changelog_16);

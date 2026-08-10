@@ -50,6 +50,8 @@ pub enum AppView {
     Lists,
     /// The media of one collection or of one playlist.
     ListEntries,
+    /// The reader of an ebook. See T-10.
+    Reader,
     Settings,
     SettingsAccount,
     SettingsLibrary,
@@ -201,6 +203,11 @@ pub struct App {
     /// store of the process, therefore no request goes to the server a second
     /// time. See T-23.
     pub covers: crate::ui::cover::CoverArt,
+    /// The book that the user reads now. See T-10.
+    pub reader: Option<crate::logic::reader::Reader>,
+    /// A message of the reader for the user, for example the reason why a
+    /// book did not open.
+    pub reader_message: Option<String>,
 }
 
 /// Init app
@@ -969,6 +976,8 @@ impl App {
             changelog,
             update_msg,
             covers: crate::ui::cover::CoverArt::new(),
+            reader: None,
+            reader_message: None,
             audio_fault,
         })
     }
@@ -980,6 +989,16 @@ impl App {
         }
 
         match key.code {
+            // The keys of the reader of an ebook come first. The reader uses
+            // the same letters as the lists and as the player, and it uses
+            // them for a different work. See T-10.
+            code if matches!(self.view_state, AppView::Reader) => {
+                self.handle_key_of_the_reader(code);
+            }
+
+            // The key that opens the ebook of the item that the user selected.
+            KeyCode::Char('e') => self.open_the_ebook(),
+
             // PLAYER //
             // toggle playback/pause
             KeyCode::Char(' ') => {
@@ -1393,6 +1412,8 @@ impl App {
                     }
                     AppView::SettingsAbout => {}
                     AppView::SettingsUpdateUninstall => {}
+                    // The reader has its own keys. See T-10.
+                    AppView::Reader => {}
                     AppView::Library => {
                         // A line of a series opens the books of that series.
                         // See T-22.
@@ -1626,6 +1647,192 @@ impl App {
             }
             _ => {}
         }
+    }
+
+    /// Gives the identity of the item that the user selected, in any view of
+    /// media.
+    pub fn selected_item_id(&self) -> Option<String> {
+        match self.view_state {
+            AppView::Home => self
+                .list_state_cnt_list
+                .selected()
+                .and_then(|index| self._ids_cnt_list.get(index))
+                .cloned(),
+            AppView::Library => self
+                .selected_library_item()
+                .and_then(|index| self.ids_library.get(index))
+                .cloned(),
+            AppView::SearchBook => self
+                .list_state_search_results
+                .selected()
+                .and_then(|index| self.ids_search_book.get(index))
+                .cloned(),
+            AppView::SeriesBook => self.selected_series_book().map(|book| book.id.clone()),
+            AppView::ListEntries => self.selected_list_entry().map(|entry| entry.id.clone()),
+            _ => None,
+        }
+    }
+
+    /// Opens the ebook of the item that the user selected. See T-10.
+    ///
+    /// The program keeps the file in the directory of the downloads. Therefore
+    /// a second visit needs no request, and the reader also works with no
+    /// server.
+    pub fn open_the_ebook(&mut self) {
+        let Some(item_id) = self.selected_item_id() else {
+            return;
+        };
+
+        // A book that the reader holds already needs no work.
+        if self
+            .reader
+            .as_ref()
+            .is_some_and(|reader| reader.item_id == item_id)
+        {
+            self.view_state = AppView::Reader;
+            return;
+        }
+
+        self.reader = None;
+        self.reader_message = Some("The program gets the book…".to_string());
+        self.view_state = AppView::Reader;
+
+        let api = std::sync::Arc::clone(&self.api);
+        let username = self.username.clone();
+        let answer = crate::logic::reader::opened_book();
+
+        tokio::spawn(async move {
+            let outcome =
+                match crate::logic::reader::session::get_the_ebook(&api, &username, &item_id).await
+                {
+                    Ok(path) => crate::logic::reader::Reader::open(&path, &item_id)
+                        .map_err(|error| error.to_string()),
+                    Err(message) => Err(message),
+                };
+
+            if let Ok(mut place) = answer.lock() {
+                *place = Some(outcome);
+            }
+        });
+    }
+
+    /// Takes the book that the task opened, if it is ready.
+    pub fn take_the_book(&mut self) {
+        let Some(outcome) = crate::logic::reader::take_the_opened_book() else {
+            return;
+        };
+
+        match outcome {
+            Ok(mut reader) => {
+                // The size of each chapter gives the part of the book. The
+                // work reads the file, therefore it runs one time.
+                reader.measure_the_chapters();
+                self.reader_message = None;
+                self.reader = Some(reader);
+            }
+            Err(message) => {
+                self.reader_message = Some(message);
+                self.reader = None;
+            }
+        }
+    }
+
+    /// The keys of the reader of an ebook. See T-10.
+    fn handle_key_of_the_reader(&mut self, code: KeyCode) {
+        // The height of the text is the height of the screen, less the line of
+        // the header, the two lines of the keys, and the two lines of the
+        // header of the application.
+        let height = crossterm::terminal::size()
+            .map(|(_, rows)| rows.saturating_sub(5))
+            .unwrap_or(20);
+
+        if matches!(code, KeyCode::Char('h')) {
+            self.view_state = AppView::Library;
+            return;
+        }
+
+        let Some(reader) = self.reader.as_mut() else {
+            return;
+        };
+
+        if reader.contents_open {
+            match code {
+                KeyCode::Char('j') | KeyCode::Down => {
+                    if reader.contents_line + 1 < reader.contents.len() {
+                        reader.contents_line += 1;
+                    }
+                }
+                KeyCode::Char('k') | KeyCode::Up => {
+                    reader.contents_line = reader.contents_line.saturating_sub(1);
+                }
+                KeyCode::Char('l') | KeyCode::Right | KeyCode::Enter => {
+                    if let Some(chapter) = reader
+                        .contents
+                        .get(reader.contents_line)
+                        .and_then(|entry| entry.spine_index)
+                    {
+                        reader.go_to_chapter(chapter);
+                    }
+                    reader.contents_open = false;
+                }
+                KeyCode::Char('t') | KeyCode::Esc => reader.contents_open = false,
+                _ => {}
+            }
+
+            return;
+        }
+
+        match code {
+            KeyCode::Char('j') | KeyCode::Down => reader.scroll(1, height),
+            KeyCode::Char('k') | KeyCode::Up => reader.scroll(-1, height),
+            KeyCode::Char(' ') | KeyCode::PageDown => reader.scroll(i64::from(height), height),
+            KeyCode::Char('b') | KeyCode::PageUp => reader.scroll(-i64::from(height), height),
+            KeyCode::Char('n') => reader.next_chapter(),
+            KeyCode::Char('p') => reader.previous_chapter(),
+            KeyCode::Char('g') => reader.to_the_start(),
+            KeyCode::Char('G') => reader.to_the_end(height),
+            KeyCode::Char('t') => {
+                reader.contents_open = true;
+                reader.contents_line = 0;
+            }
+            KeyCode::Char('s') => self.send_the_place_of_the_reader(),
+            _ => {}
+        }
+    }
+
+    /// Sends the place of the reader to the server. See T-10, section 6.
+    pub fn send_the_place_of_the_reader(&mut self) {
+        let Some(reader) = self.reader.as_ref() else {
+            return;
+        };
+
+        let item_id = reader.item_id.clone();
+        let location = crate::logic::reader::to_ebook_location(reader.position());
+        let part = reader.fraction();
+        let api = std::sync::Arc::clone(&self.api);
+
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+        let _ = pop_message(&mut stdout, 3, "The place of the book goes to the server…");
+
+        tokio::spawn(async move {
+            let body = serde_json::json!({
+                "ebookLocation": location,
+                "ebookProgress": part,
+            });
+
+            let text = match api
+                .patch_json(&format!("/api/me/progress/{}", item_id), &body)
+                .await
+            {
+                Ok(()) => "The server has the place of the book.".to_string(),
+                Err(error) => format!("The server did not take the place: {}", error),
+            };
+
+            let mut stdout = std::io::stdout();
+            let _ = clear_message(&mut stdout, 3);
+            let _ = pop_message(&mut stdout, 3, text.as_str());
+        });
     }
 
     /// Gives the line that the user selected in the view `Library`.
@@ -1891,6 +2098,7 @@ impl App {
             AppView::SeriesBook => AppView::Home,
             AppView::Lists => AppView::Home,
             AppView::ListEntries => AppView::Home,
+            AppView::Reader => AppView::Home,
             AppView::Settings => AppView::Home,
             AppView::SettingsAccount => AppView::Home,
             AppView::SettingsLibrary => AppView::Home,
@@ -1983,6 +2191,8 @@ impl App {
                     }
                 }
             }
+            // The reader has its own keys. See T-10.
+            AppView::Reader => {}
             AppView::Settings => {
                 if let Some(selected) = self.list_state_settings.selected() {
                     if selected + 1 < self.settings.len() {
@@ -2019,6 +2229,7 @@ impl App {
             AppView::SeriesBook => self.list_state_series_book.select_previous(),
             AppView::Lists => self.list_state_lists.select_previous(),
             AppView::ListEntries => self.list_state_list_entries.select_previous(),
+            AppView::Reader => {}
             AppView::Settings => self.list_state_settings.select_previous(),
             AppView::SettingsAccount => self.list_state_settings_account.select_previous(),
             AppView::SettingsLibrary => self.list_state_settings_library.select_previous(),
@@ -2039,6 +2250,7 @@ impl App {
             AppView::SeriesBook => self.list_state_series_book.select_first(),
             AppView::Lists => self.list_state_lists.select_first(),
             AppView::ListEntries => self.list_state_list_entries.select_first(),
+            AppView::Reader => {}
             AppView::Settings => self.list_state_settings.select_first(),
             AppView::SettingsAccount => self.list_state_settings_account.select_first(),
             AppView::SettingsLibrary => self.list_state_settings_library.select_first(),
@@ -2094,6 +2306,7 @@ impl App {
                     .saturating_sub(1);
                 self.list_state_list_entries.select(Some(last_index));
             }
+            AppView::Reader => {}
             AppView::Settings => {
                 let last_index = self.settings.len().saturating_sub(1);
                 self.list_state_settings.select(Some(last_index));

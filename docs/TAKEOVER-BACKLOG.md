@@ -50,6 +50,9 @@ the original issue, if there is one.
 | T-23 | The application shows the cover art | `35a7703` |
 | T-22 | A series gives one line of the Library view | `ee36692` |
 | T-32 | The key `F` sends the position at once | `a4904e0` |
+| T-10 | The application reads an EPUB book | this release |
+| T-31 | macOS has a way to remove the program | this release |
+| T-36 to T-46 | The report of the user of 2026-08-10 | this release |
 
 Sub-project 2 removed VLC. The application decodes the audio in the process
 now. Therefore a book with many audio files plays completely, the token stays
@@ -247,7 +250,31 @@ and `rustls-rustcrypto` is an alpha version. Issue 20 holds the details.
 | T-23 | — | Show the cover art with the Kitty protocol or Sixel | 5 |
 | T-24 | — | Cover every function of Audiobookshelf | 5 |
 
-### T-10: read an EPUB book in the application
+### T-10: read an EPUB book in the application — complete
+
+**The work, 2026-08-10.** The key `e` on an item that holds an ebook opens the
+reader. `src/logic/reader/` holds the four parts: `book.rs` opens the file,
+`render.rs` makes the lines, `position.rs` holds the place, and `session.rs`
+holds the book while the user reads it. `src/ui/reader_tui.rs` draws it.
+
+The keys: `j`/`k` a line, `Space`/`b` a page, `n`/`p` a chapter, `t` the table
+of contents, `g`/`G` the start and the end, `s` sends the place, and `h` leaves
+the book.
+
+**A run against the sandbox, 2026-08-10.** The key `e` on "Alice in Wonderland"
+gave the text of the book in the terminal, with the headings and the table of
+the contents of the book. The reader went past the wrapper of the cover by
+itself and started at chapter 2, as the design says. `Space` gave the next
+page, `n` gave "CHAPTER I. Down the Rabbit-Hole", and `t` gave the fourteen
+entries of the contents. The key `s` wrote `ebookLocation` `toutui:1:0` and
+`ebookProgress` 0.0022 on the server, and it changed no position of the audio.
+
+The text stands in the middle and it never becomes wider than 100 columns,
+because a line of 200 columns is hard to read.
+
+**What is not there yet.** The reader does not send the place by itself after
+30 seconds; the key `s` does it. The reader reads no EPUBCFI of the web reader,
+and it uses `ebookProgress` in that condition, as section 6.1 says.
 
 **The design, 2026-08-10.**
 `docs/superpowers/specs/2026-08-10-epub-reader-design.md`. No code yet.
