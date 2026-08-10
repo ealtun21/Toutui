@@ -7,6 +7,12 @@ pub fn setup_logs() -> Result<(), fern::InitError> {
 
     let log_path = crate::paths::log_file();
 
+    // The directory must be present before the file opens. The program made
+    // this directory in another place before, and that place is gone.
+    if let Some(parent) = log_path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+
     // Create or append into the file
     let log_file = OpenOptions::new()
         .create(true)

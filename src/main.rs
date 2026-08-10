@@ -26,18 +26,6 @@ async fn main() -> Result<()> {
     // clap
     clap();
 
-    // The program before the fork used a different directory. The program
-    // copies that directory one time. The old directory does not change,
-    // therefore the user can use the old program again. See T-14 and T-21.
-    match toutui::paths::migrate_old_config_here() {
-        Ok(true) => println!("The configuration of the old directory is now in the new directory."),
-        Ok(false) => {}
-        Err(e) => eprintln!(
-            "The program cannot copy the old directory: {}. The old directory did not change.",
-            e
-        ),
-    }
-
     // this function allow to write all the logs in a file
     setup_logs().expect("Failed to execute logger");
 

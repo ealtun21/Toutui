@@ -8,17 +8,11 @@ const NO_KEY: &str = "No secret key is present. Do this:\n\
     echo 'TOUTUI_SECRET_KEY=secret' >> ~/.config/toutui/.env";
 
 /// Gives the secret key that encrypts the token.
-///
-/// The name `TOUTUI_SECRET_KEY` has the higher importance. The program also
-/// accepts `TOUTUI_SECRET_KEY`, because a user who wrote `.env` by hand
-/// before the fork has that name.
 pub fn secret_key() -> Result<String, String> {
-    env::var("TOUTUI_SECRET_KEY")
-        .or_else(|_| env::var("TOUTUI_SECRET_KEY"))
-        .map_err(|_| {
-            error!("{}", NO_KEY);
-            NO_KEY.to_string()
-        })
+    env::var("TOUTUI_SECRET_KEY").map_err(|_| {
+        error!("{}", NO_KEY);
+        NO_KEY.to_string()
+    })
 }
 
 pub fn encrypt_token(token_to_encrypt: &str) -> Result<String, String> {
