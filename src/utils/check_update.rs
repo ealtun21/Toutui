@@ -1,7 +1,7 @@
 use serde_json::Value;
 use reqwest::header::USER_AGENT;
 use reqwest::Client;
-use crate::update::release::is_newer;
+use crate::update::release::{is_newer, version_of_tag};
 
 /// The address that gives the last release of the fork.
 ///
@@ -48,7 +48,7 @@ pub async fn get_latest_release_gh() -> Result<String, Box<dyn std::error::Error
     let v: Value = serde_json::from_str(&text)?;
 
     if let Some(tag_name) = v["tag_name"].as_str() {
-    Ok(tag_name.trim_start_matches('v').to_string())
+        Ok(version_of_tag(tag_name).to_string())
     } else {
         Err("[get_latest_release_gh] couldn't find last release".into())
     }

@@ -43,6 +43,18 @@ fn the_program_finds_the_archive_of_the_target() {
     );
 }
 
+/// A tag with a capital letter gives the version with no letter. See T-28.
+///
+/// The program removed the letter with a comparison that looks at the case.
+/// Therefore a tag `V0.6.0` kept its letter, and every comparison with the
+/// version of the build disagreed.
+#[test]
+fn a_tag_with_a_capital_letter_gives_the_version() {
+    let release = parse_release(&answer("V0.6.0"), "x86_64-unknown-linux-gnu").unwrap();
+
+    assert_eq!(release.version, "0.6.0");
+}
+
 /// A release that has no archive for the target gives a clear error.
 #[test]
 fn a_target_without_an_archive_gives_an_error() {

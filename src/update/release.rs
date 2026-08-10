@@ -15,6 +15,19 @@ pub struct Release {
     pub sums_url: String,
 }
 
+/// Removes the letter `v` from the front of a tag, without regard to the case.
+///
+/// A person can write the tag as `v0.5.1` or as `V0.5.1`. The program used
+/// `trim_start_matches('v')`, and that function looks at the case. Therefore a
+/// tag `V0.5.1` kept its letter, the comparison with the version of the build
+/// never agreed, and the message "a version is available" stayed on the screen
+/// after the user updated. See T-28.
+pub fn version_of_tag(tag: &str) -> &str {
+    tag.strip_prefix('v')
+        .or_else(|| tag.strip_prefix('V'))
+        .unwrap_or(tag)
+}
+
 /// Gives `true` when the release is newer than the version of this build.
 ///
 /// The comparison uses semver. If either version does not parse, the function
@@ -73,7 +86,7 @@ pub fn parse_release(body: &str, target: &str) -> Result<Release, String> {
         .ok_or_else(|| format!("The release {} has no SHA256SUMS.", tag))?;
 
     Ok(Release {
-        version: tag.trim_start_matches('v').to_string(),
+        version: version_of_tag(tag).to_string(),
         archive_name,
         archive_url,
         sums_url,
@@ -117,7 +130,34 @@ pub async fn latest_release(api: &str, target: &str) -> Result<Release, String> 
 
 #[cfg(test)]
 mod tests {
-    use super::is_newer;
+    use super::{is_newer, version_of_tag};
+
+    #[test]
+    fn a_tag_with_a_small_letter_loses_it() {
+        assert_eq!(version_of_tag("v0.5.1"), "0.5.1");
+    }
+
+    #[test]
+    fn a_tag_with_a_capital_letter_loses_it() {
+        assert_eq!(version_of_tag("V0.5.1"), "0.5.1");
+    }
+
+    #[test]
+    fn a_tag_with_no_letter_does_not_change() {
+        assert_eq!(version_of_tag("0.5.1"), "0.5.1");
+    }
+
+    #[test]
+    fn the_function_removes_one_letter_only() {
+        assert_eq!(version_of_tag("vv0.5.1"), "v0.5.1");
+    }
+
+    #[test]
+    fn a_tag_with_a_capital_letter_agrees_with_the_build() {
+        // This is T-28. The program compared `V0.5.1` with `0.5.1`, no
+        // comparison agreed, and the message stayed on the screen for ever.
+        assert!(!is_newer(version_of_tag("V0.5.1"), "0.5.1"));
+    }
 
     #[test]
     fn newer_release_gives_true() {
