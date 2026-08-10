@@ -351,3 +351,77 @@ the application does not have yet.
 | 2 | The audio engine, and the removal of VLC | T-5, T-6, T-8 |
 | 3 | Robustness, pagination, tests | T-7 |
 | 5 | New functions | T-9, T-10, T-11 |
+
+## The work that T-21 left
+
+T-21 gave the fork its own way to install, to update, and to remove. The
+examination of that work found these items. No item stops a release, and each
+one is small.
+
+| Id | Title | Where |
+|---|---|---|
+| T-27 | Continuous integration does not build the flake of Nix | `.github/workflows/ci.yml` |
+| T-28 | A tag with a capital letter gives "update available" for ever | `src/utils/check_update.rs` |
+| T-29 | Nothing looks at the proof of the origin of an archive | `install.sh`, `src/update/install.rs` |
+| T-30 | An answer with no length has no limit of size | `src/update/install.rs`, `install.sh` |
+| T-31 | macOS has no way to remove the program | `macos/`, `src/utils/clap.rs` |
+
+### T-27: continuous integration does not build the flake of Nix
+
+`flake.nix` and `flake.lock` are in the repository, and the README tells the
+user to run `nix build`. No job builds them. Therefore the flake can stop to
+operate and every test stays green.
+
+A build on the machine of the development is not possible now: the command
+`nix` is present, the directory `/nix/store` is absent, and the service
+`nix-daemon` does not run.
+
+**The work.** Add a job that runs `nix flake check` to `ci.yml`.
+
+### T-28: a tag with a capital letter gives "update available" for ever
+
+`src/utils/check_update.rs` removes the letter `v` from the front of the tag
+with `trim_start_matches('v')`, and that function looks at the case of the
+letter. A tag `V0.5.0-beta` therefore keeps its first letter, the comparison
+with the version of the build never agrees, and the message stays on the
+screen after the user updates.
+
+**The work.** Remove the letter without the case, and add a test.
+
+### T-29: nothing looks at the proof of the origin of an archive
+
+The workflow of release runs `actions/attest-build-provenance`, and thus each
+archive has a proof. Neither `install.sh` nor `--update` looks at that proof.
+The two compare the sum SHA-256 only, and that sum comes from the same
+release. Therefore the comparison finds a download that stops, and it does not
+find a release that a different person made.
+
+**The work.** Use `gh attestation verify` when the command `gh` is present.
+
+### T-30: an answer with no length has no limit of size
+
+`receive` in `src/update/install.rs` refuses an answer whose header
+`Content-Length` is more than 200 MB. An answer with no such header goes into
+the memory with no limit, and only the limit of 120 seconds stops it.
+`install.sh` has the same fault.
+
+**The work.** Count the bytes as they arrive, and stop at the limit.
+
+### T-31: macOS has no way to remove the program
+
+`macos/Info.plist` and `macos/launch.command` describe a bundle of an
+application. `install.sh` does not install that bundle, therefore
+`--uninstall` cannot name it. A user of macOS who made the bundle by hand gets
+an incomplete list.
+
+**The work.** Decide if the fork gives a bundle for macOS. If it gives one,
+`install.sh` must install it and `--uninstall` must name it. If it does not,
+remove the two files.
+
+### T-14 stays open
+
+T-14 says that the program loses the configuration after an update. The first
+plan of T-21 changed the name of the program, and it made the program copy the
+old directory of configuration. That copy closed T-14 as a result, and not as
+an examination. The maintainer then kept the name, therefore no copy exists
+and T-14 needs its own examination.
