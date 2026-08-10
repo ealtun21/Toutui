@@ -140,6 +140,40 @@ curl -X POST "http://localhost:13399/api/libraries/$BOOK_LIB_ID/scan" \
 This gives a book of three files and 60 seconds. A test with this book is
 quick, and it still proves that the engine plays every file.
 
+## 6e. Make a book of thirty minutes
+
+The device `null` accepts samples with no clock. A book of 60 seconds therefore
+plays in one second, and the state of the engine is `Stopped` again before a
+test can read the screen. A test of the player needs a book that is long enough
+to stay in the engine. This one takes about thirty seconds of real time.
+
+```bash
+dir="$ABS/audiobooks/Long Author/A Long Test Book"
+mkdir -p "$dir"
+ffmpeg -loglevel error -y -f lavfi \
+  -i "sine=frequency=220:duration=1800:sample_rate=22050" \
+  -metadata title="A Long Test Book" -metadata artist="Long Author" \
+  -b:a 32k "$dir/long.mp3"
+```
+
+## 6f. Give each book its own cover
+
+The test of the cover art (T-23) needs a cover that a test can name. One colour
+for each book is enough: a model of the terminal reads the colour of a cell,
+and the test then knows which cover the screen shows. Audiobookshelf makes a
+WebP file of 400 by 400 from every file that it receives.
+
+```bash
+for i in 1 2 3 4 5 6 7; do
+  colour=$(echo "red green blue yellow magenta cyan orange" | cut -d' ' -f$i)
+  ffmpeg -loglevel error -y -f lavfi -i "color=c=$colour:s=600x600" \
+    -frames:v 1 "/tmp/cover-$i.jpg"
+done
+
+curl -X POST "http://localhost:13399/api/items/$ITEM_ID/cover" \
+  -H "Authorization: Bearer $TOKEN" -F "cover=@/tmp/cover-1.jpg"
+```
+
 ## 6d. Make a collection and two playlists
 
 The test of T-9 needs a collection and a playlist. A playlist can also hold
@@ -200,6 +234,18 @@ XDG_CONFIG_HOME=$TESTCFG TOUTUI_AUDIO_DEVICE=null ./target/release/toutui
 
 `TOUTUI_AUDIO_DEVICE=null` sends the sound to nothing. The computer of the
 user then stays silent.
+
+`ALSA_CONFIG_PATH` gives ALSA a different configuration, and it makes the
+silence sure. **The value must be a real file.** `ALSA_CONFIG_PATH=/dev/null`
+is correct for `cargo test`, because no test opens a sound device. The real
+program stops for ever with that value: it writes "The pool has 1 address(es)"
+in the log and it draws nothing. Write this file, and give its path:
+
+```
+</usr/share/alsa/alsa.conf>
+pcm.!default { type null }
+ctl.!default { type null }
+```
 
 ## 8. A warning about the device `null`
 

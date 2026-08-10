@@ -47,6 +47,7 @@ the original issue, if there is one.
 | T-34 | A colour of the configuration file does not stop the program | `21aac71` |
 | T-35 | Every playback releases the wait of the next playback | `e4b51c9` |
 | T-33 | The application uses ratatui 0.30, crossterm 0.29, and `tui-input` | `8f5c938` |
+| T-23 | The application shows the cover art | `35a7703` |
 
 Sub-project 2 removed VLC. The application decodes the audio in the process
 now. Therefore a book with many audio files plays completely, the token stays
@@ -398,9 +399,67 @@ series. Therefore the application always asks for a page of 500.
 The work does not group the books of a series into one line in the Library
 view. That part of the issue stays open.
 
-### T-23, T-24: the user interface and full coverage
+### T-23: the cover art — complete, `35a7703`
 
-T-23 adds the cover art. `ratatui-image` finds the protocol of the terminal
+**The work that landed, 2026-08-10.** The panel of the covers stands at the
+right of the list and of the description in every view of media. `T-33` landed
+first, therefore the project takes `ratatui-image` 11.0.6 and not 9.0.0.
+
+```toml
+ratatui-image = { version = "11.0.6", default-features = false, features = ["crossterm"] }
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
+```
+
+`cargo tree -i cc` finds `libsqlite3-sys` and `ring` only, and `cargo tree -i
+openssl-sys` finds nothing.
+
+**The parts.** `src/ui/cover.rs`:
+
+1. A task reads `GET /api/items/:id/cover`, with a limit of 8 megabytes, and it
+   writes the bytes in a store of the process. The store keeps an item with no
+   cover as `Missing`, therefore the application asks one time only. The store
+   is not part of `App`, therefore the key `R` starts no request again.
+2. The render makes a protocol of `ratatui-image` from the bytes one time.
+3. `plan_covers` gives the rectangle of each cover. That function is pure.
+
+**The measured result in a real terminal, 2026-08-10.** A debug build ran in a
+pseudo terminal of 150 by 40 against the sandbox. A model of the terminal read
+the colour of every cell, therefore the proof is a colour and not a picture of
+a screen. The covers of the sandbox are one colour each, and
+`docs/TEST-SERVER.md` tells how to make them.
+
+| What | What the screen showed |
+|---|---|
+| One book, nothing plays | One cover of 40 by 21 cells, `rgb(255, 255, 255)`, the colour of the cover of that book |
+| A series of three books | Three covers in a grid, cyan, magenta, and yellow, in the sequence of the series, 22 by 11 cells each |
+| A book plays, the selection is a different book | Two covers: the cover of the book that plays, red, 42 by 19 cells, above the cover of the selection, green, 24 by 12 cells |
+| A terminal of 80 columns | No colour of a cover at all. The text takes the whole width |
+
+**Two faults that only a real process showed.** Both passed every test of a
+pure function, and both stopped the whole application.
+
+1. **A deadlock of the store.** The first form of `picture` held the read lock
+   during a `match`, because a guard in the expression of a `match` lives to
+   the end of that `match`. The arm for an unknown item called `request`, and
+   `request` asked for the write lock on the same thread. The application drew
+   one frame and then stopped for ever. The test
+   `the_first_ask_for_an_unknown_cover_does_not_stop_the_thread` runs the call
+   on its own thread and fails after two seconds.
+2. **The picker gave the terminal away.** `Picker::from_query_stdio` reads the
+   answer of the terminal on its own thread. That thread makes the terminal
+   raw, and it gives the old condition back when it stops. A terminal that
+   never answers stops that thread two seconds later. With the question before
+   `ratatui::init`, the thread gave the condition of the shell back after the
+   application made the terminal raw. `ICANON` and `ECHO` then stayed on for
+   ever, and the application read no key at all. The question now comes after
+   `ratatui::init`. `src/main.rs` holds the reason.
+
+**T-24** holds the comparison with Audiobookshelf, and it names the functions
+that the application does not have yet.
+
+The text below is the examination and the design of 2026-08-10.
+
+`ratatui-image` finds the protocol of the terminal
 itself: the Kitty protocol, Sixel for `foot`, iTerm2, or blocks of Unicode.
 
 **The version, 2026-08-10.** `ratatui-image` 11.0.6 asks for `ratatui ^0.30.1`,
