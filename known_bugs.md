@@ -33,6 +33,70 @@ podcast with no episode all give this condition. A debug build stopped with
 the first file. A book with many audio files therefore kept every other file
 on the disk, and the user had no way to remove them from the application.
 
+`bug_id: 9bacac` — CORRECTED on 2026-08-10, commit c82c9d8
+**Sync:** The user plays the book X, and then the user plays the book Y
+quickly. The progress of X then holds the position of Y.
+One mechanism explains this report and the two reports below. The state of the
+engine is one value for the whole application, and the key that starts a media
+gives its work to a new task. Therefore two playbacks can run at the same time.
+The loop that follows the playback of X read that state always, thus it read
+the position of Y and it reported that position for the session of X.
+Every playback has its own identity now. The engine writes the identity of the
+playback that it plays, and a loop reads the state only while that identity is
+its own. A loop that loses the engine closes its own session and reports the
+last position that it measured itself.
+A measurement on 2026-08-10 ran `follow_playback` in a real process against a
+real server. The engine reported the book X at 100 seconds, and then the book Y
+at 4 seconds. The loop of X sent `{"currentTime":"4","timeListened":"0"}` to
+the session of X, and the loop did not stop.
+`tests/playback_ownership.rs` holds the rule.
+
+`bug_id: 86384e` — CORRECTED on 2026-08-10, commit c82c9d8
+**Sync:** The same condition sets the progress of X to 0 seconds. The mechanism
+of `9bacac` gives this result: a book Y that starts holds a position that is
+almost 0, and the loop of X reported the position of Y. The report says
+"rarely", because the value depends on the moment of the read operation.
+The correction is the same. The loop of X now reports the last position that
+the engine gave for X.
+
+`bug_id: dd9a649` — CORRECTED on 2026-08-10, commit c82c9d8
+**Listening session:** The session of X does not always close.
+The mechanism of `9bacac` also explains this report. The loop of X reads the
+status of the engine to see whether the playback stopped. The engine played Y,
+therefore the status was `Playing` and the loop of X never closed its session.
+A second condition gave the same result: the loop closed no session when the
+engine did not start the playback at all.
+A measurement against Audiobookshelf 2.36.0 on 2026-08-10 shows both states of
+the program. With the old behaviour the loop of X did not stop, and
+`GET /api/sessions/open` held the session `ca2079ec` of X. With the correction
+the server holds no open session of X, and the progress of X holds the position
+of X. A loop whose playback the engine does not start in 30 seconds also closes
+its session now.
+`tests/sync_against_the_sandbox.rs` holds that test. Continuous integration
+does not run it, because it needs a server.
+
+`bug_id: f4a8c2` — CORRECTED on 2026-08-10, commit 21aac71
+**A colour of the configuration file stops the program:** Every place that read
+a colour took the three components with an index. A list that is too short then
+stops the program. `load_config` also gives an error for a file that a person
+cannot parse, and the old code then read an empty list. The fork found this
+fault on 2026-08-10, and a measurement stopped a thread with "index out of
+bounds: the len is 0 but the index is 0". `rgb_parts` in `src/config.rs` gives
+the three components now, and all eleven places use it.
+
+`bug_id: 3b6e91` — CORRECTED on 2026-08-10, commit e4b51c9
+**A playback that does not start stops every later playback:**
+`wait_prev_session_finished` waits while `is_loop_break` is not `1`, and it
+gives that value `0` before a playback begins. The old code gave the value `1`
+in the two loops that follow a playback only. Five places came back without a
+loop: a server that gives an error, an item that the server does not give, an
+item with no audio file, and two conditions of the offline mode. The next
+playback then waited for ever, and the screen held the message "Syncing your
+last listening session. Please wait...". The fork found this fault while it
+examined `9bacac`. A measurement on 2026-08-10 ran `play` against a server that
+answered 500, and the value stayed `0`. `play` always gives the value `1` now.
+`tests/playback_wait_flag.rs` holds the rule.
+
 **MINOR**
 
 `bug_id: 3a91e7` — CORRECTED on 2026-08-09, commit 14567c1
@@ -53,16 +117,8 @@ server answers again.
 
 **NOT YET EXAMINED**
 
-These reports come from the original project, and no test of the fork has
-examined them yet. Every report that names VLC needs a new test, because the
-application plays the audio itself now and starts no other program.
-
-`bug_id: 9bacac` 
-**Sync**: If you open VLC to listen X, close VLC and quickly open VLC again to listen Y: X will still be sync — according to Y (normally, only Y has to be sync in this case).
-`bug_id: 86384e` 
-**Sync**: Rarely and especially if you open VLC to listen X, close VLC and quickly open VLC again to listen Y: the progress of X is set to 0 seconds.
-`bug_id: dd9a649`
-**Listening Session:** Sometimes, the session (that you can see in `yourserveraddress/audiobookshelf/config/sessions`) does not close correctly, especially if you open VLC, quit it quickly, and start another book.
+No report stays in this section. Every report of the original project has an
+examination now.
 
 **FIXED**  
 `bug_id: fc695f` — CORRECTED on 2026-08-10

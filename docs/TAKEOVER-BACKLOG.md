@@ -42,6 +42,9 @@ the original issue, if there is one.
 | T-14 | The program does not lose the configuration (examined) | this document |
 | T-31 | The fork gives no bundle for macOS | this document |
 | T-15 | The authentication does not fail at the first attempt (examined) | `6796d91` |
+| `9bacac`, `86384e`, `dd9a649` | A playback loop reports its own playback only | `c82c9d8` |
+| T-34 | A colour of the configuration file does not stop the program | `21aac71` |
+| T-35 | Every playback releases the wait of the next playback | `e4b51c9` |
 
 Sub-project 2 removed VLC. The application decodes the audio in the process
 now. Therefore a book with many audio files plays completely, the token stays
@@ -620,3 +623,83 @@ The comment of `main.rs` said that the program "will work at the second
 attempt". That comment is wrong now, and the file gives the true reason for
 the wait of one second: it stops a fast loop if the screen of the login comes
 back at once.
+
+## The three sync reports, 2026-08-10
+
+`known_bugs.md` held `9bacac`, `86384e`, and `dd9a649` under NOT YET EXAMINED.
+All three describe one condition: the user plays the book X, the user plays the
+book Y quickly, and then the progress of X is wrong or the session of X stays
+open. The wording of the reports names VLC, and the application starts no other
+program now. Therefore the reports needed a new test, and not a reading.
+
+**The mechanism that explains the reports.** The state of the engine is one
+value for the whole application. `PlayerHandle::state` gives the position, the
+status, and the identity of the media that the engine plays. The key that starts
+a media gives its work to a new task with `tokio::spawn`, therefore two
+playbacks can run at the same time.
+
+The loop that follows a playback read that state always. Two results follow:
+
+1. The loop of X reads the position of Y, and it reports that position for the
+   session of X. That is `9bacac`. A book Y that starts holds a position that
+   is almost 0, therefore the same mechanism gives `86384e`.
+2. The loop of X reads the status `Playing`, because the engine plays Y. The
+   loop therefore never closes the session of X. That is `dd9a649`.
+
+`wait_prev_session_finished` was the only guard. It waits while `is_loop_break`
+is not `1`. That value is one value for the whole user, therefore it cannot
+serialize two playbacks: the waiter that wakes first gives the value `0` again,
+and the second waiter then has no signal at all.
+
+**The measurement of 2026-08-10.** A test ran `follow_playback` in a real
+process against a real server. The engine reported the book X at 100 seconds,
+and then the book Y at 4 seconds. The loop of X sent
+`{"currentTime":"4","timeListened":"0"}` to the session of X, and the loop did
+not stop. A second measurement against Audiobookshelf 2.36.0 opened a real
+session of X: with the old behaviour `GET /api/sessions/open` held the session
+`ca2079ec` of X after the engine changed to Y.
+
+**The correction.** Every playback has an identity now. `next_playback_id`
+gives it, the engine writes it into the state, and a loop reads the state only
+while that identity is its own. A loop that loses the engine closes its own
+session and reports the last position that it measured itself. A loop whose
+playback the engine does not start in 30 seconds also closes its session,
+because a session that stays open is `dd9a649`.
+
+`tests/playback_ownership.rs` holds the rule with no server and no sound card.
+`tests/sync_against_the_sandbox.rs` holds the test against a real server, and
+it carries `#[ignore]`.
+
+### T-34: a colour of the configuration file stops the program
+
+The examination of the three reports found this fault. Every place that read a
+colour of `config.toml` took the three components with an index. A list that is
+too short then stops the program, and `load_config` gives an error for a file
+that a person cannot parse. The old code then read an empty list.
+
+A measurement on 2026-08-10 ran `pop_message` in a process whose configuration
+file was absent. A thread stopped with "index out of bounds: the len is 0 but
+the index is 0".
+
+`rgb_parts` in `src/config.rs` gives the three components now. It repeats the
+last value for a component that the list does not give, and it gives a middle
+grey for a list with no value. All eleven places use it.
+
+### T-35: a playback that does not start stops every later playback
+
+The examination of the three reports also found this fault.
+`wait_prev_session_finished` waits while `is_loop_break` is not `1`, and it
+gives that value `0` before a playback begins. The old code gave the value `1`
+in the two loops that follow a playback only.
+
+Five places come back without a loop: a server that gives an error, an item
+that the server does not give, an item with no audio file, and two conditions
+of the offline mode. The next playback then waited for ever, and the screen
+held the message "Syncing your last listening session. Please wait...".
+
+A measurement on 2026-08-10 ran `play` in a real process against a server that
+answered 500 for `POST /api/items/:id/play`. The value stayed `0`.
+
+`play` is a thin function now. It calls `play_media`, and it always gives the
+value `1` after that call. One place owns the value.
+`tests/playback_wait_flag.rs` holds the rule.
