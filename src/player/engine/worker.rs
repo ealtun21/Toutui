@@ -399,6 +399,7 @@ fn publish(
 
     let position = position_now(player, current);
 
+    value.playback_id = item.request.playback_id;
     value.item_id = item.request.item_id.clone();
     value.title = item.request.title.clone();
     value.author = item.request.author.clone();

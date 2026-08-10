@@ -18,13 +18,24 @@ use crate::logic::sync_session::sync_session_from_database::*;
 use crate::logic::sync_session::wait_prev_session_finished::*;
 use crate::player::engine::source::{select_sources, TrackSource};
 use crate::player::engine::track::{Chapter, Track, TrackList};
-use crate::player::engine::{PlaybackRequest, PlaybackStatus, PlayerCommand, PlayerHandle};
+use crate::player::engine::{
+    next_playback_id, PlaybackRequest, PlaybackStatus, PlayerCommand, PlayerHandle,
+};
 use crate::utils::pop_up_message::*;
 use log::{error, info, warn};
 use std::io::stdout;
 
 /// The number of seconds between two sync requests to the server.
 const SYNC_PERIOD: u64 = 10;
+
+/// The number of seconds that a loop waits for the engine.
+///
+/// The engine opens the first audio file before it plays, and that file can
+/// come from the server. Therefore the engine does not always start
+/// immediately. If the engine does not start the playback in this time, the
+/// loop closes the session that it opened. A session that stays open is the
+/// report `dd9a649`.
+const START_TIME_LIMIT: u64 = 30;
 
 /// What the user selected.
 #[derive(Debug, Clone)]
@@ -259,7 +270,12 @@ pub async fn play(
     );
     let speed = get_speed_rate(&username).parse::<f32>().unwrap_or(1.0);
 
+    // Every playback has its own identity. The loop below reads the state of
+    // the engine only while the engine plays this playback. See `9bacac`.
+    let playback_id = next_playback_id();
+
     let request = PlaybackRequest {
+        playback_id,
         item_id: item_id.clone(),
         title: info_item[4].clone(),
         author: info_item[6].clone(),
@@ -302,6 +318,8 @@ pub async fn play(
         target.episode_id().map(|value| value.to_string()),
         username,
         total_duration,
+        playback_id,
+        start_position,
     )
     .await;
 }
@@ -392,7 +410,10 @@ async fn play_offline(
 
     let speed = get_speed_rate(&username).parse::<f32>().unwrap_or(1.0);
 
+    let playback_id = next_playback_id();
+
     let request = PlaybackRequest {
+        playback_id,
         item_id: item_id.clone(),
         title: row.title.clone(),
         author: row.author.clone(),
@@ -427,6 +448,8 @@ async fn play_offline(
         username,
         server,
         total_duration,
+        playback_id,
+        row.current_time as f64,
     )
     .await;
 }
@@ -436,6 +459,9 @@ async fn play_offline(
 /// The loop writes the position in the database for each second. When the
 /// playback stops, the loop keeps the position for the server. The application
 /// sends it when the server answers again.
+///
+/// The loop reads the state of the engine only while the engine plays this
+/// playback. See the head of `follow_playback`.
 #[allow(clippy::too_many_arguments)]
 async fn follow_playback_offline(
     player: &PlayerHandle,
@@ -445,12 +471,49 @@ async fn follow_playback_offline(
     username: String,
     server: String,
     total_duration: f64,
+    playback_id: u64,
+    start_position: f64,
 ) {
+    let mut own_position = start_position.max(0.0) as u32;
+    let mut engine_started = false;
+    let mut waited: u64 = 0;
+
     loop {
         tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
 
         let state = player.state();
+
+        if state.playback_id != playback_id {
+            waited += 1;
+
+            if !gave_up(&state, playback_id, engine_started, waited) {
+                continue;
+            }
+
+            info!(
+                "[follow_playback_offline] the engine does not play the item {} \
+                 now. The loop keeps the position {} seconds.",
+                item_id, own_position
+            );
+
+            remember_progress(
+                &username,
+                &server,
+                &item_id,
+                episode_id.as_deref(),
+                own_position as f64,
+                total_duration,
+                false,
+            );
+
+            let _ = update_is_loop_break("1", username.as_str());
+            return;
+        }
+
+        engine_started = true;
+
         let position = state.position.max(0.0) as u32;
+        own_position = position;
 
         let _ = update_download_current_time(key.as_str(), username.as_str(), position);
 
@@ -476,6 +539,28 @@ async fn follow_playback_offline(
             return;
         }
     }
+}
+
+/// Tells if a loop must stop, because the engine does not play its playback.
+///
+/// The engine writes the identity of the playback that it plays. A loop whose
+/// identity is not that value is in one of two conditions:
+///
+/// - A different playback took the engine. The state then holds the position
+///   of that other media, and the loop must stop immediately.
+/// - The engine did not start this playback yet. The loop waits, because the
+///   engine opens the first audio file before it plays.
+///
+/// A larger identity in the state means that a later playback took the engine.
+/// A loop that saw its own playback one time and does not see it now is also
+/// in the first condition.
+fn gave_up(
+    state: &crate::player::engine::PlaybackState,
+    playback_id: u64,
+    engine_started: bool,
+    waited: u64,
+) -> bool {
+    engine_started || state.playback_id > playback_id || waited >= START_TIME_LIMIT
 }
 
 /// Gives the length that the application reports to the server.
@@ -516,6 +601,23 @@ fn total_duration_of(
 /// The loop sends `/sync` only during the playback. It does not send
 /// `/progress`. Two requests at the same time can make a race condition, and
 /// then the item stays in "continue listening". See upstream issue 35.
+///
+/// # The identity of the playback
+///
+/// The state of the engine is one value for the whole application. The loop
+/// therefore reads that state only while `state.playback_id` is the identity
+/// of its own playback.
+///
+/// The old code read the state always. Two playbacks can run at the same time,
+/// because the key that starts a media gives its work to a new task. The loop
+/// of the book X then read the position of the book Y, and it reported that
+/// position for X. The loop also never saw the status `Stopped`, because the
+/// engine played Y. Therefore the session of X stayed open.
+///
+/// A measurement on 2026-08-10 showed this fault. The loop of X sent
+/// `{"currentTime":"4","timeListened":"0"}` to the session of X while the
+/// engine played Y at 4 seconds, and X was at 100 seconds. The loop did not
+/// stop. See `9bacac`, `86384e`, and `dd9a649` in `known_bugs.md`.
 #[allow(clippy::too_many_arguments)]
 pub async fn follow_playback(
     api: &ApiClient,
@@ -525,16 +627,68 @@ pub async fn follow_playback(
     episode_id: Option<String>,
     username: String,
     total_duration: String,
+    playback_id: u64,
+    start_position: f64,
 ) {
     let mut since_sync: u64 = 0;
     let mut last_position: u32 = 0;
     let mut was_stalled = false;
 
+    // The last position that the engine reported for this playback. The loop
+    // reports this value, and it never reports the position of a different
+    // media.
+    let mut own_position = start_position.max(0.0) as u32;
+    let mut engine_started = false;
+    let mut waited: u64 = 0;
+
     loop {
         tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
 
         let state = player.state();
+
+        // The engine does not play this playback. The state holds the position
+        // of a different media, therefore the loop must not read it.
+        if state.playback_id != playback_id {
+            waited += 1;
+
+            if !gave_up(&state, playback_id, engine_started, waited) {
+                continue;
+            }
+
+            if engine_started || state.playback_id > playback_id {
+                info!(
+                    "[follow_playback] a different playback took the engine. The \
+                     loop of the item {} stops at {} seconds.",
+                    item_id, own_position
+                );
+            } else {
+                warn!(
+                    "[follow_playback] the engine did not start the item {} in {} \
+                     seconds. The loop closes the session.",
+                    item_id, START_TIME_LIMIT
+                );
+            }
+
+            // The media is not finished: this playback never came to an end.
+            close_and_report(
+                api,
+                &session_id,
+                &item_id,
+                episode_id.as_deref(),
+                own_position,
+                &total_duration,
+                false,
+            )
+            .await;
+
+            let _ = update_is_loop_break("1", username.as_str());
+            return;
+        }
+
+        engine_started = true;
+
         let position = state.position.max(0.0) as u32;
+        own_position = position;
 
         // Write the position for each second. A crash must not lose it.
         let _ = update_current_time(position, session_id.as_str());
@@ -594,69 +748,78 @@ pub async fn follow_playback(
 
                 let _ = update_is_finished(if finished { "1" } else { "0" }, session_id.as_str());
 
-                if let Err(error) = close_session_without_send_prg_data(api, &session_id).await {
-                    warn!(
-                        "[follow_playback] the server did not close the session: {}",
-                        error
-                    );
-                }
-
-                // The media came to the end, or the user stopped it. This is a
-                // command of the user, and it is not a report during the
-                // playback. Therefore `/progress` is correct here. See
-                // upstream issue 35.
-                //
-                // If the media came to its end, the request must also mark
-                // the item as finished. See T-16.
-                let result = match (episode_id.as_deref(), finished) {
-                    (Some(episode_id), true) => {
-                        update_media_progress2_pod(
-                            api,
-                            &item_id,
-                            Some(position),
-                            &total_duration,
-                            true,
-                            episode_id,
-                        )
-                        .await
-                    }
-                    (Some(episode_id), false) => {
-                        update_media_progress_pod(
-                            api,
-                            &item_id,
-                            Some(position),
-                            &total_duration,
-                            episode_id,
-                        )
-                        .await
-                    }
-                    (None, true) => {
-                        update_media_progress2_book(
-                            api,
-                            &item_id,
-                            Some(position),
-                            &total_duration,
-                            true,
-                        )
-                        .await
-                    }
-                    (None, false) => {
-                        update_media_progress_book(api, &item_id, Some(position), &total_duration)
-                            .await
-                    }
-                };
-
-                if let Err(error) = result {
-                    warn!(
-                        "[follow_playback] the server did not accept the position: {}",
-                        error
-                    );
-                }
+                close_and_report(
+                    api,
+                    &session_id,
+                    &item_id,
+                    episode_id.as_deref(),
+                    position,
+                    &total_duration,
+                    finished,
+                )
+                .await;
 
                 let _ = update_is_loop_break("1", username.as_str());
                 return;
             }
         }
+    }
+}
+
+/// Closes the session on the server, and sends the position of the media.
+///
+/// The function sends `/progress` and not `/sync`. The media came to its end,
+/// or the user stopped it. This is a command of the user, and it is not a
+/// report during the playback. See upstream issue 35.
+///
+/// If the media came to its end, the request also marks the item as finished.
+/// See T-16.
+#[allow(clippy::too_many_arguments)]
+async fn close_and_report(
+    api: &ApiClient,
+    session_id: &str,
+    item_id: &str,
+    episode_id: Option<&str>,
+    position: u32,
+    total_duration: &str,
+    finished: bool,
+) {
+    if let Err(error) = close_session_without_send_prg_data(api, session_id).await {
+        warn!(
+            "[follow_playback] the server did not close the session: {}",
+            error
+        );
+    }
+
+    let result = match (episode_id, finished) {
+        (Some(episode_id), true) => {
+            update_media_progress2_pod(
+                api,
+                item_id,
+                Some(position),
+                total_duration,
+                true,
+                episode_id,
+            )
+            .await
+        }
+        (Some(episode_id), false) => {
+            update_media_progress_pod(api, item_id, Some(position), total_duration, episode_id)
+                .await
+        }
+        (None, true) => {
+            update_media_progress2_book(api, item_id, Some(position), total_duration, true).await
+        }
+        (None, false) => {
+            update_media_progress_book(api, item_id, Some(position), total_duration).await
+        }
+    };
+
+    if let Err(error) = result {
+        warn!(
+            "[follow_playback] the server did not accept the position: {}",
+            error
+        );
     }
 }
 
@@ -807,6 +970,43 @@ mod tests {
         let tracks = tracks_from_item(&book()).unwrap();
 
         assert_eq!(total_duration_of(&target, &tracks, "841"), "60");
+    }
+
+    /// Makes a state that reports a playback.
+    fn state_of(playback_id: u64) -> crate::player::engine::PlaybackState {
+        crate::player::engine::PlaybackState {
+            playback_id,
+            ..Default::default()
+        }
+    }
+
+    /// A later playback took the engine. The loop must stop immediately, and it
+    /// must not wait. This is the report `9bacac`.
+    #[test]
+    fn a_later_playback_stops_the_loop_immediately() {
+        assert!(gave_up(&state_of(8), 7, false, 1));
+    }
+
+    /// The loop saw its own playback one time, and it does not see it now.
+    /// Therefore a different playback took the engine.
+    #[test]
+    fn a_loop_that_lost_the_engine_stops_immediately() {
+        assert!(gave_up(&state_of(0), 7, true, 1));
+    }
+
+    /// The engine opens the first audio file before it plays. The loop waits
+    /// for that operation, and it must not close the session.
+    #[test]
+    fn a_loop_waits_for_the_start_of_the_engine() {
+        assert!(!gave_up(&state_of(0), 7, false, 1));
+        assert!(!gave_up(&state_of(6), 7, false, START_TIME_LIMIT - 1));
+    }
+
+    /// The engine did not start this playback at all. The loop closes its
+    /// session, because a session that stays open is the report `dd9a649`.
+    #[test]
+    fn a_loop_stops_when_the_engine_does_not_start() {
+        assert!(gave_up(&state_of(0), 7, false, START_TIME_LIMIT));
     }
 
     #[test]

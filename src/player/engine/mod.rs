@@ -13,9 +13,27 @@ pub mod worker;
 
 use crate::player::engine::source::TrackSource;
 use crate::player::engine::track::TrackList;
-use std::sync::mpsc::{channel, Sender};
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
+
+/// The identity of the last playback that the application made.
+static LAST_PLAYBACK_ID: AtomicU64 = AtomicU64::new(0);
+
+/// Gives the identity of a new playback.
+///
+/// Every playback has its own identity, and a later playback has a larger
+/// identity. The engine writes the identity of the playback that it plays into
+/// the state. Therefore the loop that follows a playback can see whether the
+/// engine still plays that playback.
+///
+/// Without this identity, the loop of the book X reads the position of the
+/// book Y, and it reports that position for X. See `9bacac`, `86384e`, and
+/// `dd9a649` in `known_bugs.md`.
+pub fn next_playback_id() -> u64 {
+    LAST_PLAYBACK_ID.fetch_add(1, Ordering::SeqCst) + 1
+}
 
 /// Changes the position that `rodio` reports to the position in the media.
 ///
@@ -107,6 +125,13 @@ pub enum PlaybackStatus {
 /// What the user interface shows.
 #[derive(Debug, Clone)]
 pub struct PlaybackState {
+    /// The identity of the playback that the engine plays. The value 0 means
+    /// that the engine played nothing since the start of the application.
+    ///
+    /// The loop that follows a playback compares this value with its own
+    /// identity. A value that is not its own means that the engine plays a
+    /// different media.
+    pub playback_id: u64,
     /// The identity of the book.
     pub item_id: String,
     pub title: String,
@@ -130,6 +155,7 @@ pub struct PlaybackState {
 impl Default for PlaybackState {
     fn default() -> Self {
         PlaybackState {
+            playback_id: 0,
             item_id: String::new(),
             title: String::new(),
             author: String::new(),
@@ -148,6 +174,8 @@ impl Default for PlaybackState {
 /// All the data that the engine needs to play a book.
 #[derive(Debug, Clone)]
 pub struct PlaybackRequest {
+    /// The identity of this playback. `next_playback_id` gives it.
+    pub playback_id: u64,
     pub item_id: String,
     pub title: String,
     pub author: String,
@@ -209,6 +237,21 @@ impl PlayerHandle {
         if self.sender.send(command).is_err() {
             log::error!("[PlayerHandle] the engine stopped");
         }
+    }
+
+    /// Makes a handle that has no engine.
+    ///
+    /// The function opens no sound card. A test uses it to write the state
+    /// that the test needs. The machine of the continuous integration has no
+    /// sound card, therefore a test must not call `start`.
+    ///
+    /// The caller must keep the receiver. A receiver that goes away makes
+    /// `send` give an error.
+    pub fn without_engine() -> (PlayerHandle, Receiver<PlayerCommand>) {
+        let (sender, receiver) = channel();
+        let state = Arc::new(RwLock::new(PlaybackState::default()));
+
+        (PlayerHandle { sender, state }, receiver)
     }
 
     /// Gives a copy of the state.
