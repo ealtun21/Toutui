@@ -34,6 +34,7 @@ impl Widget for &mut App {
             AppView::ListEntries => self.render_list_entries(area, buf),
             AppView::Reader => self.render_reader(area, buf),
             AppView::Stats => self.render_stats(area, buf),
+            AppView::SortFilter => self.render_sort_filter(area, buf),
             AppView::Settings => self.render_settings(area, buf),
             AppView::SettingsAccount => self.render_settings_account(area, buf),
             AppView::SettingsLibrary => self.render_settings_library(area, buf),
@@ -258,6 +259,7 @@ impl App {
 
             AppView::Reader
             | AppView::Stats
+            | AppView::SortFilter
             | AppView::Settings
             | AppView::SettingsAccount
             | AppView::SettingsLibrary
@@ -382,6 +384,67 @@ impl App {
     }
 }
 
+/// The sequence and the filter of the library. See T-24.
+impl App {
+    /// AppView::SortFilter rendering
+    fn render_sort_filter(&mut self, area: Rect, buf: &mut Buffer) {
+        let [header_area, main_area, footer_area] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Fill(1),
+            Constraint::Length(2),
+        ])
+        .areas(area);
+
+        let rows = self.sort_filter_rows();
+
+        let lines: Vec<String> = rows
+            .iter()
+            .map(|row| {
+                crate::logic::sort_filter::line_of(
+                    row,
+                    &self.library_sort,
+                    self.library_desc,
+                    &self.library_filter,
+                )
+            })
+            .collect();
+
+        // The answer of the server adds lines. A selection that stands after
+        // the last line must come back to a line of the user.
+        let flags: Vec<bool> = rows.iter().map(|row| row.is_a_line_of_the_user()).collect();
+        let selected = self.list_state_sort_filter.selected().unwrap_or(0);
+
+        if flags.get(selected) != Some(&true) {
+            self.list_state_sort_filter
+                .select(crate::logic::list_moves::first(&flags));
+        }
+
+        let title = format!(
+            "The sequence and the filter — {}{}",
+            crate::logic::sort_filter::label_of(&self.library_sort, self.is_podcast),
+            if self.library_desc {
+                ", the largest first"
+            } else {
+                ""
+            }
+        );
+
+        self.render_header(header_area, buf);
+        App::render_footer(
+            footer_area,
+            buf,
+            "j/↓, k/↑: move, l/→: take the choice, g/G: first/last, h/Tab: back, Q/Esc: quit\n The program asks the server again and it makes the library again.",
+        );
+        self.render_list(
+            main_area,
+            buf,
+            &title,
+            &lines,
+            &mut self.list_state_sort_filter.clone(),
+        );
+    }
+}
+
 /// Rendering logic
 impl App {
     /// AppView::Home rendering
@@ -421,9 +484,9 @@ impl App {
         // A library of podcasts has no series and no ebook. The footer of
         // that library must not name a key that does nothing.
         let text_render_footer = if self.is_podcast {
-            "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, M: mark finished, T: listening time, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
+            "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, M: mark finished, T: listening time, f: sequence, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
         } else {
-            "j/↓, k/↑: move, l/→: play or open a series, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, s: series, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
+            "j/↓, k/↑: move, l/→: play or open a series, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, s: series, c: lists, f: sequence, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
         };
 
         self.render_header(header_area, buf);
@@ -467,13 +530,36 @@ impl App {
 
         // Every book of a series gives one line. See T-22.
         let lines = self.library_lines();
-        let render_list_title = format!("Library [{} items]", lines.len());
+        // The title says the sequence and the filter, because a user who
+        // does not see every item must know why. See T-24.
+        let render_list_title = format!(
+            "Library [{} items]{}{}",
+            lines.len(),
+            if self.library_sort.is_empty() {
+                String::new()
+            } else {
+                format!(
+                    " — {}{}",
+                    crate::logic::sort_filter::label_of(&self.library_sort, self.is_podcast),
+                    if self.library_desc {
+                        ", the largest first"
+                    } else {
+                        ""
+                    }
+                )
+            },
+            if self.library_filter.is_empty() {
+                ""
+            } else {
+                " — a filter is on (f)"
+            }
+        );
 
         let mut _text_render_footer = "";
         if self.is_podcast {
             _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
         } else {
-            _text_render_footer = "j/↓, k/↑: move, l/→: play or open a series, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, s: series, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
+            _text_render_footer = "j/↓, k/↑: move, l/→: play or open a series, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, s: series, c: lists, f: sequence, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
         }
 
         self.render_header(header_area, buf);
@@ -941,7 +1027,7 @@ impl App {
         if self.is_podcast {
             _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n c: lists, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
         } else {
-            _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, s: series, c: lists, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+            _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, s: series, c: lists, f: sequence, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
         }
 
         if self.search_mode {

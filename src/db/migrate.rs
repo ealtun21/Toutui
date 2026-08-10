@@ -8,7 +8,7 @@ use rusqlite::{Connection, Result};
 use std::path::PathBuf;
 
 /// The schema version that this build of the program expects.
-pub const LATEST_VERSION: i64 = 5;
+pub const LATEST_VERSION: i64 = 6;
 
 /// Gives the full path of the database file.
 pub fn db_path() -> PathBuf {
@@ -63,6 +63,42 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
     if version < 5 {
         migrate_to_v5(conn)?;
         conn.execute_batch("PRAGMA user_version = 5")?;
+    }
+
+    if version < 6 {
+        migrate_to_v6(conn)?;
+        conn.execute_batch("PRAGMA user_version = 6")?;
+    }
+
+    Ok(())
+}
+
+/// Version 6 adds the sequence and the filter of the library. See T-24.
+///
+/// `GET /api/libraries/:id/items` takes `sort`, `desc`, and `filter`. The
+/// choice of the user must stay after the program stops, therefore it belongs
+/// to the account and not to the process.
+///
+/// An empty value means "the sequence of the server, and no filter". Every
+/// account of an older database gets that value, thus the program behaves as
+/// it did before this version.
+fn migrate_to_v6(conn: &Connection) -> Result<()> {
+    if !has_table(conn, "users")? {
+        return Ok(());
+    }
+
+    for column in ["library_sort", "library_desc", "library_filter"] {
+        if has_column_in(conn, "users", column)? {
+            continue;
+        }
+
+        conn.execute(
+            &format!(
+                "ALTER TABLE users ADD COLUMN {} TEXT NOT NULL DEFAULT ''",
+                column
+            ),
+            [],
+        )?;
     }
 
     Ok(())
@@ -356,6 +392,53 @@ mod tests {
 
         assert_eq!(schema_version(&conn).unwrap(), LATEST_VERSION);
         assert_eq!(table_count(&conn, "pending_progress"), 1);
+    }
+
+    /// The columns of the sequence and of the filter come to a database of
+    /// an older version, and every account keeps its other values.
+    #[test]
+    fn migration_v6_adds_the_sequence_and_the_filter() {
+        let conn = Connection::open_in_memory().unwrap();
+        run_migrations(&conn).unwrap();
+
+        conn.execute(
+            "INSERT INTO users (username, server_address, token, is_default_usr,
+                 name_selected_lib, id_selected_lib, is_loop_break, speed_rate,
+                 is_show_key_bindings, has_played_before)
+             VALUES ('a', 'http://x', 't', 1, 'Books', 'lib-1', '0', 1.0, '1', '0')",
+            [],
+        )
+        .unwrap();
+
+        for column in ["library_sort", "library_desc", "library_filter"] {
+            assert!(
+                has_column_in(&conn, "users", column).unwrap(),
+                "the column {} must exist",
+                column
+            );
+        }
+
+        // An empty value means "the sequence of the server, and no filter".
+        let sort: String = conn
+            .query_row(
+                "SELECT library_sort FROM users WHERE username = 'a'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(sort, "");
+    }
+
+    /// The runner must not add a column two times.
+    #[test]
+    fn migration_v6_runs_two_times_with_no_fault() {
+        let conn = Connection::open_in_memory().unwrap();
+        run_migrations(&conn).unwrap();
+
+        conn.execute_batch("PRAGMA user_version = 5").unwrap();
+        run_migrations(&conn).unwrap();
+
+        assert_eq!(schema_version(&conn).unwrap(), LATEST_VERSION);
     }
 
     /// A row of an older version is a book. The migration gives it the

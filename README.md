@@ -28,6 +28,7 @@ not in the archived repository.
  **Cross-platform:** <img src=".github/tux.png" align="top" width="24" alt="Tux (Linux)"/>  Linux and <img src=".github/apple.png" align="top" width="24" alt="Apple (macOS)"/> macOS    
  **Lightweight & Fast:** A minimalist terminal user interface (TUI) written in Rust 🦀  
  **Supports Books & Podcasts:** Enjoy both audiobooks and podcasts  
+ **The sequence and the filter:** Sort a library and show one author, one genre, or one tag (`f`)  
  **Series:** See the series of a library and the books of a series, in sequence (`s`)  
  **The shelves of Home:** Continue Listening, Recently Added, Recent Series, Discover, and Listen Again  
  **Collections & Playlists:** See them and play their contents (`c`)  
@@ -93,6 +94,29 @@ shows them.
   series, and `h` goes back to the Home view.
 - The program sends one request for every shelf, and that request did not
   change.
+
+## 🔤 The sequence and the filter of a library
+
+The server sorts and filters the items. `f` chooses how.
+
+- `f` — show the sequence and the filter. The key operates in the views Home,
+  Library, and Search.
+- The sequence: the title, the title with no "A" and no "The", the author, the
+  time when the book came, the year, the length, and the size. A library of
+  podcasts gives the title, the time when the podcast came, and the number of
+  the episodes.
+- `l`/`Enter` on the sequence that the program uses now changes the direction.
+  "The time when the book came" and one more press gives "the newest first".
+- The filter: your position (finished, started, not started), the authors, the
+  series, the genres, the tags, the narrators, the languages, and the
+  publishers. The server gives those values.
+- `l`/`Enter` on the filter that the program uses now removes it. "No filter"
+  removes it also.
+- A choice asks the server again, therefore the program makes the library
+  again. That takes about one second for a library of 2000 items.
+- The choice belongs to your account, and it stays after the program stops.
+  The title of the Library view says the sequence, and it says that a filter
+  is on.
 
 ## 📊 Your listening time
 

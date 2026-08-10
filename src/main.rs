@@ -1,5 +1,5 @@
 use toutui::config::rgb_parts;
-use toutui::{api, app, config, db, login_app, player, ui, utils};
+use toutui::{api, app, config, db, logic, login_app, player, ui, utils};
 
 use crate::db::crud::*;
 use crate::db::database_struct::Database;
@@ -276,14 +276,32 @@ async fn main() -> Result<()> {
 
                         app.handle_key(key);
 
-                        // If the 'R' key is pressed, refresh the app
-                        if let KeyCode::Char('R') = key.code {
+                        // The key `R` refreshes the application. A new
+                        // sequence or a new filter of the library needs the
+                        // same work, because every list of the library comes
+                        // from one request. See T-24.
+                        //
+                        // A change of the sequence keeps the user in the
+                        // Library view. A new application starts at the Home
+                        // view, therefore this line puts it back.
+                        let from_the_sequence = app.must_refresh;
+
+                        if matches!(key.code, KeyCode::Char('R')) || from_the_sequence {
+                            // The values of the filter come from the library.
+                            // A new request must ask for them again.
+                            logic::sort_filter::from_the_server::forget();
+
                             // pop up message
                             let mut stdout = stdout();
                             let _ = clear_message(&mut stdout, 3); // clear a message, if any, before print the message bellow
                             let _ = pop_message(&mut stdout, 3, "Refreshing app...");
                             // Reinitialize app to refresh
                             app = App::new(std::sync::Arc::clone(&api)).await?;
+
+                            if from_the_sequence {
+                                app.view_state = app::AppView::Library;
+                            }
+
                             // clear message above
                             let _ = clear_message(&mut stdout, 3);
 

@@ -9,7 +9,7 @@ not done.
 | What | Value |
 |---|---|
 | The server | Audiobookshelf 2.36.0 |
-| The client | Toutui 0.6.5 (`Cargo.toml`) |
+| The client | Toutui 0.7.0 (`Cargo.toml`) |
 | The address of the server | `http://127.0.0.1:13399`, the sandbox of `docs/TEST-SERVER.md` |
 | The user | `toutuitest`, of the type `root` |
 
@@ -47,7 +47,8 @@ This list comes from `src/api/` and from `src/logic/`. It is complete.
 |---|---|
 | `POST /login`, `GET /ping` | `src/api/server/auth_process.rs`, `src/api/client/probe.rs` |
 | `GET /api/libraries` | `src/api/libraries/get_all_libraries.rs` |
-| `GET /api/libraries/:id/items?limit=500&page=N` | `src/api/libraries/get_all_books.rs` |
+| `GET /api/libraries/:id/items?limit=500&page=N&sort=&desc=&filter=` | `src/api/libraries/get_all_books.rs` |
+| `GET /api/libraries/:id/filterdata` | `src/api/libraries/get_filter_data.rs` |
 | `GET /api/libraries/:id/personalized` | `src/api/libraries/get_library_perso_view.rs` |
 | `GET /api/libraries/:id/series?limit=500&page=N&sort=name` | `src/api/libraries/get_all_series.rs` |
 | `GET /api/libraries/:id/collections?limit=&page=` | `src/api/libraries/get_lists.rs` |
@@ -62,7 +63,7 @@ This list comes from `src/api/` and from `src/logic/`. It is complete.
 | `PATCH /api/me/progress/:id`, `PATCH /api/me/progress/:id/:episodeId` | `src/api/me/update_media_progress.rs` |
 | `POST /api/session/:id/sync`, `POST /api/session/:id/close` | `src/api/sessions/` |
 
-Toutui calls 16 paths. The server has more than 100.
+Toutui calls 17 paths. The server has more than 100.
 
 ## 3. The keys of Toutui
 
@@ -84,6 +85,7 @@ Toutui calls 16 paths. The server has more than 100.
 | `R` | Ask the server again |
 | `F` | Send the position now (T-32) |
 | `T` | Show the time that you listened (T-24) |
+| `f` | Choose the sequence and the filter of the library (T-24) |
 | `S` | Settings |
 | `B` | Show the keys, or hide them |
 | `Q`/`Esc` | Close the application |
@@ -115,8 +117,8 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 | **List the libraries** | `GET /api/libraries` gives 3 libraries with `id`, `name`, and `mediaType` | Yes | Nothing |
 | **Choose the library** | The client holds the choice | Yes | Nothing. `S` then the line "Library" |
 | **The items of a library** | `GET /api/libraries/:id/items?limit=&page=` gives `results`, `total`, `limit`, `page` | Yes | Nothing. The client asks for pages of 500 (T-7) |
-| **Sort the items** | `?sort=media.metadata.title&desc=1` changes the sequence. Measured: `desc=1` gives `Volume 3, Volume 2, Volume 1`, and no `desc` gives `A Long Test Book, Alice in Wonderland, Multi File Test Book` | No | The client sends no `sort`. `Root` in `get_all_books.rs` reads `sortBy` from the answer, and the request never holds it. The user cannot choose "newest first" |
-| **Filter the items** | `?filter=<type>.<base64>` gives `filterBy` in the answer. `GET /api/libraries/:id/filterdata` gives the values: 4 authors, 2 series, 0 genres, 0 tags, 0 narrators, 0 languages | No | Both. The user cannot show one author, one genre, or one tag |
+| **Sort the items** | `?sort=media.metadata.title&desc=1` changes the sequence. Measured: `desc=1` gives `Volume 3, Volume 2, Volume 1`, and no `desc` gives `A Long Test Book, Alice in Wonderland, Multi File Test Book` | Yes | Nothing. The key `f` gives seven fields for a library of books and three for a library of podcasts, and a line that changes the direction. The choice belongs to the account, therefore it stays after the program stops |
+| **Filter the items** | `?filter=<type>.<base64>` gives `filterBy` in the answer. `GET /api/libraries/:id/filterdata` gives the values: 4 authors, 2 series, 0 genres, 0 tags, 0 narrators, 0 languages | Yes | Nothing. The key `f` gives the authors, the series, the genres, the tags, the narrators, the languages, the publishers, and the three values of the position |
 | **Group a series in the list** | `?collapseseries=1` gives `collapseseries` in the answer | Half | The client makes the group itself, in `group_library` of `src/logic/library_view.rs`. The result is correct, and the server can do the same work |
 | **The shelves of Home** | `GET /api/libraries/:id/personalized` gives 6 shelves for a book library: `continue-listening` (4), `recently-added` (9), `recent-series` (2), `discover` (2), `listen-again` (2), `newest-authors` (4). A podcast library gives `newest-episodes` (3), `recently-added` (1), `listen-again` (2) | Yes | The shelf `newest-authors` only. An author holds no media and no book, therefore a terminal can show nothing for that shelf. Every other shelf gives its name and its lines. A line of `recent-series` opens the books of the series |
 | **Search** | `GET /api/libraries/:id/search?q=` gives six groups: `book`, `authors`, `series`, `narrators`, `tags`, `genres`. Measured: `q=Volume` gives 5 books, `q=Carroll` gives the author "Lewis Carroll" and no book | Half | The whole endpoint. `src/ui/tui.rs:884` filters the titles that the client holds already, with `to_lowercase().contains()`. The client finds no author, no narrator, no series, and no tag. It finds no word inside a description |
@@ -201,10 +203,8 @@ The sequence inside each group gives the value for the work.
    `src/api/me/listening_stats.rs`, `src/logic/stats.rs`, and
    `src/ui/stats_tui.rs`. The bar uses the blocks of Unicode, therefore the
    program needs no new dependency.
-4. **A choice of the sequence.** `?sort=` and `?desc=` on
-   `GET /api/libraries/:id/items`. Change `src/api/libraries/get_all_books.rs`,
-   which holds the field `sort_by` in the answer and never sends it. "The newest
-   first" is the sequence that a user asks for most.
+4. ~~**A choice of the sequence.**~~ **Done on 2026-08-11.** The key `f`, and
+   `src/logic/sort_filter.rs`.
 5. **Hide a media from Continue Listening.** The field
    `hideFromContinueListening` of `PATCH /api/me/progress/:id`. The same file as
    item 2, and the same key handler.
@@ -223,9 +223,8 @@ The sequence inside each group gives the value for the work.
    `POST /api/podcasts/feed`, then `POST /api/podcasts`. A new directory
    `src/api/podcasts/`, and a view for the results. The README names this
    function. The measurement gives 48 results for `term=balzac`.
-9. **Filter the library.** `GET /api/libraries/:id/filterdata` gives the
-   values, and `?filter=<type>.<base64>` uses one. The same file as item 4,
-   and a view that shows the authors, the genres, and the tags.
+9. ~~**Filter the library.**~~ **Done on 2026-08-11.** The same view as
+   item 4, and `src/api/libraries/get_filter_data.rs`.
 10. **The server gets an episode.**
     `POST /api/podcasts/:id/download-episodes`, and
     `GET /api/podcasts/:id/episode-downloads` for the state.

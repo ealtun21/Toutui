@@ -44,7 +44,7 @@ async fn a_small_library_needs_one_request() {
         .mount(&server)
         .await;
 
-    let root = get_all_books(&std::sync::Arc::new(client(&server.uri())), "lib1")
+    let root = get_all_books(&std::sync::Arc::new(client(&server.uri())), "lib1", "")
         .await
         .unwrap();
 
@@ -66,7 +66,7 @@ async fn the_request_asks_for_one_page() {
         .mount(&server)
         .await;
 
-    let root = get_all_books(&std::sync::Arc::new(client(&server.uri())), "lib1")
+    let root = get_all_books(&std::sync::Arc::new(client(&server.uri())), "lib1", "")
         .await
         .unwrap();
 
@@ -94,7 +94,7 @@ async fn a_large_library_gives_every_item() {
             .await;
     }
 
-    let root = get_all_books(&std::sync::Arc::new(client(&server.uri())), "lib1")
+    let root = get_all_books(&std::sync::Arc::new(client(&server.uri())), "lib1", "")
         .await
         .unwrap();
     let items = root.results.unwrap();
@@ -133,7 +133,7 @@ async fn a_library_of_exactly_one_page_needs_one_request() {
         .mount(&server)
         .await;
 
-    let root = get_all_books(&std::sync::Arc::new(client(&server.uri())), "lib1")
+    let root = get_all_books(&std::sync::Arc::new(client(&server.uri())), "lib1", "")
         .await
         .unwrap();
 
@@ -152,7 +152,7 @@ async fn an_empty_library_gives_an_empty_list() {
         .mount(&server)
         .await;
 
-    let root = get_all_books(&std::sync::Arc::new(client(&server.uri())), "lib1")
+    let root = get_all_books(&std::sync::Arc::new(client(&server.uri())), "lib1", "")
         .await
         .unwrap();
 

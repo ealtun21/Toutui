@@ -43,6 +43,53 @@ pub fn get_is_show_key_bindings(username: &str) -> String {
     }
 }
 
+/// Reads the sequence and the filter of the library of an account. See T-24.
+///
+/// The three values are the name of the field, `1` for the other direction,
+/// and the filter of the server. An account of an older database gives three
+/// empty texts, and the program then asks the server as it did before.
+pub fn get_library_sort(username: &str) -> (String, bool, String) {
+    let nothing = (String::new(), false, String::new());
+
+    let Ok(conn) = crate::db::migrate::open_conn() else {
+        return nothing;
+    };
+
+    let Ok(mut stmt) = conn.prepare(
+        "SELECT library_sort, library_desc, library_filter FROM users WHERE username = ?1",
+    ) else {
+        return nothing;
+    };
+
+    stmt.query_row(params![username], |row| {
+        Ok((
+            row.get::<_, String>(0)?,
+            row.get::<_, String>(1)? == "1",
+            row.get::<_, String>(2)?,
+        ))
+    })
+    .unwrap_or(nothing)
+}
+
+/// Writes the sequence and the filter of the library of an account.
+pub fn update_library_sort(username: &str, field: &str, desc: bool, filter: &str) -> Result<()> {
+    let conn = match crate::db::migrate::open_conn() {
+        Ok(conn) => conn,
+        Err(error) => {
+            error!("[update_library_sort] {}", error);
+            return Ok(());
+        }
+    };
+
+    conn.execute(
+        "UPDATE users SET library_sort = ?1, library_desc = ?2, library_filter = ?3
+         WHERE username = ?4",
+        params![field, if desc { "1" } else { "0" }, filter, username],
+    )?;
+
+    Ok(())
+}
+
 // Update speed_rate
 pub fn update_speed_rate(username: &str, is_speed_rate_up: bool) -> Result<()> {
     let err_message = "Error connecting to the database.";

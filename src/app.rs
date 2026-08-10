@@ -55,6 +55,8 @@ pub enum AppView {
     Reader,
     /// The statistics of the user. See T-24.
     Stats,
+    /// The sequence and the filter of the library. See T-24.
+    SortFilter,
     Settings,
     SettingsAccount,
     SettingsLibrary,
@@ -106,6 +108,21 @@ pub struct App {
     /// The lines of the Home view. A shelf gives a line for its name, and a
     /// line for each of its media. See T-24.
     pub home_rows: Vec<HomeRow>,
+    /// The field of the sequence of the library, for the server. An empty
+    /// text asks the server for its own sequence. See T-24.
+    pub library_sort: String,
+    /// The direction of the sequence. `true` puts the largest first.
+    pub library_desc: bool,
+    /// The filter of the library, of the form `<type>.<base64>`. An empty
+    /// text asks for every item.
+    pub library_filter: String,
+    /// The list of the view of the sequence and of the filter.
+    pub list_state_sort_filter: ListState,
+    /// The user changed the sequence or the filter. The loop of the program
+    /// then makes the application again, in the same way as the key `R`. A
+    /// new sequence needs a new request, and every list of the library comes
+    /// from that request. See T-24.
+    pub must_refresh: bool,
     /// The view that opened the books of a series. The key `h` then goes
     /// back to that view, and not to the list of the series. The Home view
     /// can open a series too, therefore this is a view and not a yes or a no.
@@ -295,6 +312,14 @@ impl App {
             }
         }
 
+        // The sequence and the filter of the library. The choice belongs to
+        // the account, therefore it stays after the program stops. A field
+        // that this build does not know goes away: the server takes a name of
+        // a field that does not exist, and it then gives an unspecified
+        // sequence. See T-24.
+        let (mut library_sort, library_desc, library_filter) =
+            crate::db::crud::get_library_sort(&username);
+
         // A user can have an account on more than one server. The identity of the
         // server keeps the positions of one server separate from the positions of
         // a different server.
@@ -350,6 +375,15 @@ impl App {
 
         // init is_podcast
         let is_podcast = media_type == "podcast";
+
+        // A field of a library of books has no meaning in a library of
+        // podcasts. The program then asks the server with no sequence.
+        if !crate::logic::sort_filter::is_a_field_of_the_program(&library_sort, is_podcast) {
+            library_sort = String::new();
+        }
+
+        let library_query =
+            crate::logic::sort_filter::query(&library_sort, library_desc, &library_filter);
 
         // init for `Home` (continue listening)
         let mut _titles_cnt_list: Vec<String> = Vec::new();
@@ -554,7 +588,7 @@ impl App {
                 return crate::api::libraries::get_all_books::Root::default();
             }
 
-            get_all_books(&api, &id_selected_lib)
+            get_all_books(&api, &id_selected_lib, &library_query)
                 .await
                 .unwrap_or_else(|error| {
                     log::warn!("[app] the server did not give the items: {}", error);
@@ -862,6 +896,12 @@ impl App {
         let mut list_state_cnt_list = ListState::default();
         list_state_cnt_list.select(crate::logic::home_view::first_line(&home_rows));
 
+        // Init ListState for the view of the sequence and of the filter. The
+        // first line is the name of a group, therefore the selection starts
+        // at the line after it. See T-24.
+        let mut list_state_sort_filter = ListState::default();
+        list_state_sort_filter.select(Some(1));
+
         // Init ListeState for `Library` list
         let mut list_state_library = ListState::default();
         list_state_library.select(Some(0));
@@ -941,6 +981,11 @@ impl App {
             series,
             library_rows,
             home_rows,
+            library_sort,
+            library_desc,
+            library_filter,
+            list_state_sort_filter,
+            must_refresh: false,
             series_from: AppView::Series,
             lists,
             is_offline,
@@ -1070,6 +1115,9 @@ impl App {
 
             // The key that shows the time that the user listened. See T-24.
             KeyCode::Char('T') => self.show_the_statistics(),
+
+            // The key that chooses the sequence and the filter. See T-24.
+            KeyCode::Char('f') => self.show_the_sequence_and_the_filter(),
 
             // PLAYER //
             // toggle playback/pause
@@ -1326,6 +1374,7 @@ impl App {
                     // The view of the statistics goes back to Home, as the
                     // settings do. See T-24.
                     AppView::Stats => self.view_state = AppView::Home,
+                    AppView::SortFilter => self.view_state = AppView::Library,
                     AppView::PodcastEpisode => {
                         if self.is_from_search_pod {
                             self.view_state = AppView::SearchBook
@@ -1536,6 +1585,7 @@ impl App {
                     AppView::Reader => {}
                     // The view of the statistics holds no line to open.
                     AppView::Stats => {}
+                    AppView::SortFilter => self.apply_the_sequence_or_the_filter(),
                     AppView::Library => {
                         // A line of a series opens the books of that series.
                         // See T-22.
@@ -1836,6 +1886,151 @@ impl App {
 
             crate::logic::stats::keep(state);
         });
+    }
+
+    /// Gives the lines of the view of the sequence and of the filter.
+    ///
+    /// The function is cheap: it makes about twenty lines from a list that
+    /// the program holds. The key handler and the render both call it, thus
+    /// the program keeps no list that could disagree with the screen.
+    pub fn sort_filter_rows(&self) -> Vec<crate::logic::sort_filter::Row> {
+        use crate::logic::sort_filter::from_the_server::State;
+
+        let (filters, note) = match crate::logic::sort_filter::from_the_server::state() {
+            State::Ready(filters) => (filters, None),
+            State::Waiting => (
+                Vec::new(),
+                Some("The program asks the server for the authors and the series…".to_string()),
+            ),
+            State::Fault(text) => (
+                Vec::new(),
+                Some(format!("The server gave no author and no series: {}", text)),
+            ),
+            State::Nothing => (Vec::new(), None),
+        };
+
+        crate::logic::sort_filter::rows(self.is_podcast, &filters, note)
+    }
+
+    /// Gives one value for each line of that view: `true` for a line that the
+    /// user can select.
+    fn lines_of_the_sort_filter_view(&self) -> Vec<bool> {
+        self.sort_filter_rows()
+            .iter()
+            .map(|row| row.is_a_line_of_the_user())
+            .collect()
+    }
+
+    /// Shows the sequence and the filter of the library, and asks the server
+    /// for the authors and the series. See T-24.
+    pub fn show_the_sequence_and_the_filter(&mut self) {
+        if !matches!(
+            self.view_state,
+            AppView::Home | AppView::Library | AppView::SearchBook | AppView::SortFilter
+        ) {
+            return;
+        }
+
+        self.view_state = AppView::SortFilter;
+        self.scroll_offset = 0;
+
+        let lines = self.lines_of_the_sort_filter_view();
+        self.list_state_sort_filter
+            .select(crate::logic::list_moves::first(&lines));
+
+        // The offline mode holds the media of the disk, and no request goes
+        // to the server. The sequence of the server then changes nothing.
+        if self.is_offline {
+            crate::logic::sort_filter::from_the_server::keep(
+                crate::logic::sort_filter::from_the_server::State::Fault(
+                    "the server does not answer".to_string(),
+                ),
+            );
+            return;
+        }
+
+        // The answer of a request before this one is still correct, because
+        // the library did not change. The program then asks one time.
+        if !matches!(
+            crate::logic::sort_filter::from_the_server::state(),
+            crate::logic::sort_filter::from_the_server::State::Nothing
+        ) {
+            return;
+        }
+
+        crate::logic::sort_filter::from_the_server::keep(
+            crate::logic::sort_filter::from_the_server::State::Waiting,
+        );
+
+        let api = std::sync::Arc::clone(&self.api);
+        let library = self.id_selected_lib.clone();
+
+        tokio::spawn(async move {
+            let state =
+                match crate::api::libraries::get_filter_data::get_filter_data(&api, &library).await
+                {
+                    Ok(data) => crate::logic::sort_filter::from_the_server::State::Ready(
+                        crate::api::libraries::get_filter_data::choices(&data),
+                    ),
+                    Err(error) => {
+                        log::warn!("[sort] the server gave no filter data: {}", error);
+                        crate::logic::sort_filter::from_the_server::State::Fault(error.to_string())
+                    }
+                };
+
+            crate::logic::sort_filter::from_the_server::keep(state);
+        });
+    }
+
+    /// Takes the choice of the user of the view of the sequence.
+    ///
+    /// The sequence and the filter belong to the request of the items, and
+    /// every list of the library comes from that request. Therefore the
+    /// program makes the application again, in the same way as the key `R`.
+    pub fn apply_the_sequence_or_the_filter(&mut self) {
+        use crate::logic::sort_filter::Row;
+
+        let Some(index) = self.list_state_sort_filter.selected() else {
+            return;
+        };
+
+        let rows = self.sort_filter_rows();
+
+        let Some(row) = rows.get(index) else {
+            return;
+        };
+
+        match row {
+            Row::Title(_) | Row::Note(_) => return,
+            Row::Sort { field, .. } => {
+                // The same field a second time changes the direction. The
+                // user then needs one key for "the newest first".
+                if self.library_sort == *field {
+                    self.library_desc = !self.library_desc;
+                } else {
+                    self.library_sort = field.clone();
+                }
+            }
+            Row::Direction => self.library_desc = !self.library_desc,
+            Row::NoFilter => self.library_filter = String::new(),
+            Row::Filter { value, .. } => {
+                // The same filter a second time removes it.
+                if self.library_filter == *value {
+                    self.library_filter = String::new();
+                } else {
+                    self.library_filter = value.clone();
+                }
+            }
+        }
+
+        let _ = crate::db::crud::update_library_sort(
+            &self.username,
+            &self.library_sort,
+            self.library_desc,
+            &self.library_filter,
+        );
+
+        self.must_refresh = true;
     }
 
     /// Asks the server for the media that agree with the words of the user.
@@ -2415,6 +2610,7 @@ impl App {
             AppView::ListEntries => AppView::Home,
             AppView::Reader => AppView::Home,
             AppView::Stats => AppView::Home,
+            AppView::SortFilter => AppView::Library,
             AppView::Settings => AppView::Home,
             AppView::SettingsAccount => AppView::Home,
             AppView::SettingsLibrary => AppView::Home,
@@ -2514,6 +2710,12 @@ impl App {
                     self.stats_scroll += 1;
                 }
             }
+            AppView::SortFilter => {
+                let lines = self.lines_of_the_sort_filter_view();
+                let from = self.list_state_sort_filter.selected().unwrap_or(0);
+                self.list_state_sort_filter
+                    .select(crate::logic::list_moves::next(&lines, from));
+            }
             AppView::Settings => {
                 if let Some(selected) = self.list_state_settings.selected() {
                     if selected + 1 < self.settings.len() {
@@ -2570,6 +2772,12 @@ impl App {
             AppView::ListEntries => self.list_state_list_entries.select_previous(),
             AppView::Reader => {}
             AppView::Stats => self.stats_scroll = self.stats_scroll.saturating_sub(1),
+            AppView::SortFilter => {
+                let lines = self.lines_of_the_sort_filter_view();
+                let from = self.list_state_sort_filter.selected().unwrap_or(0);
+                self.list_state_sort_filter
+                    .select(crate::logic::list_moves::previous(&lines, from));
+            }
             AppView::Settings => self.list_state_settings.select_previous(),
             AppView::SettingsAccount => self.list_state_settings_account.select_previous(),
             AppView::SettingsLibrary => self.list_state_settings_library.select_previous(),
@@ -2594,6 +2802,11 @@ impl App {
             AppView::ListEntries => self.list_state_list_entries.select_first(),
             AppView::Reader => {}
             AppView::Stats => self.stats_scroll = 0,
+            AppView::SortFilter => {
+                let lines = self.lines_of_the_sort_filter_view();
+                self.list_state_sort_filter
+                    .select(crate::logic::list_moves::first(&lines));
+            }
             AppView::Settings => self.list_state_settings.select_first(),
             AppView::SettingsAccount => self.list_state_settings_account.select_first(),
             AppView::SettingsLibrary => self.list_state_settings_library.select_first(),
@@ -2650,6 +2863,11 @@ impl App {
             }
             AppView::Reader => {}
             AppView::Stats => self.stats_scroll = self.stats_scroll_max,
+            AppView::SortFilter => {
+                let lines = self.lines_of_the_sort_filter_view();
+                self.list_state_sort_filter
+                    .select(crate::logic::list_moves::last(&lines));
+            }
             AppView::Settings => {
                 let last_index = self.settings.len().saturating_sub(1);
                 self.list_state_settings.select(Some(last_index));

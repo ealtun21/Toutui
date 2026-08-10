@@ -1007,6 +1007,55 @@ walks one iterator, and a test holds each one to the same length.
 too, therefore that field is now `App::series_from`, a view. The key `h` goes
 back to the view that opened the series.
 
+### The sequence and the filter of a library — complete, 2026-08-11
+
+`GET /api/libraries/:id/items` takes `sort`, `desc`, and `filter`, and the
+program sent none of them. A library of 2056 items came in one sequence only,
+and the user could not show the books of one author.
+
+The key `f` opens the view. A choice writes the account in the database and
+the program then makes the application again, in the same way as the key `R`:
+every list of the library comes from one request, therefore a new sequence
+needs a new request. The user comes back to the Library view, and not to the
+Home view.
+
+**Measurements against the sandbox on 2026-08-11.**
+
+| Request | Answer |
+|---|---|
+| `?sort=media.metadata.title` | `A Long Test Book, Alice in Wonderland, Multi File Test Book` |
+| `?sort=media.metadata.title&desc=1` | The other direction |
+| `?sort=addedAt` | `Multi File Test Book` first, therefore the oldest first |
+| `?filter=authors.<base64 of the identity>` | 1 book of 9 |
+| `?filter=progress.ZmluaXNoZWQ=` | 2 books |
+| `GET /api/libraries/:id/filterdata` | 4 authors, 2 series, and no genre, tag, narrator, language, or publisher |
+
+**A trap of the server: `?sort=bogus.field` gives `200`.** The answer holds
+`sortBy: "bogus.field"`, and the sequence is then not specified. Therefore the
+program offers the seven fields that it measured, and no other field. A value
+of the database that this build does not know goes away before the request.
+`src/logic/sort_filter.rs` holds that list and the test of it.
+
+**base64 with no crate.** The filter is `<type>.<base64 of the value>`. The
+rule of base64 is short, and T-20 asks for pure Rust. `encode_base64` is
+twenty lines, and a test holds it to the value that the server gave.
+
+**A trap of the harness of the pseudo terminal, and not of the program.** The
+key `R` looked as if it stopped the program: the screen never changed again.
+The measurement showed that `terminal.clear()` of ratatui asks the terminal
+`ESC [ 6 n`, the report of the place of the cursor. The harness answered
+`ESC [ 5 n` only, and the program then stopped with "The cursor position could
+not be read within a normal duration". A harness of a pseudo terminal must
+answer **both** questions:
+
+| Question | Answer |
+|---|---|
+| `ESC [ 5 n` | `ESC [ 0 n` |
+| `ESC [ 6 n` | `ESC [ 1 ; 1 R` |
+
+This is the same family as the trap of `ratatui-image` of the handover of
+2026-08-11. A real terminal answers both, therefore no user saw this.
+
 ## The report of the user of 2026-08-10, on v0.5.0
 
 The user tested v0.5.0 and named ten items. This section holds each one, the

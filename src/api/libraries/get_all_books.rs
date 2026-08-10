@@ -152,14 +152,19 @@ const PAGES_AT_THE_SAME_TIME: usize = 6;
 /// measurement on 2026-08-10 against a library of 2056 items gave 1.0 second
 /// for one page. The old code asked for the five pages one after the other and
 /// needed five seconds. See T-40.
+///
+/// `query` holds the sequence and the filter of the user, for example
+/// `&sort=addedAt&desc=1`. `crate::logic::sort_filter::query` writes it, and
+/// an empty text gives the request that the program sent before T-24.
 pub async fn get_all_books(
     client: &std::sync::Arc<ApiClient>,
     id_selected_lib: &str,
+    query: &str,
 ) -> Result<Root, ApiError> {
     let address = |page: usize| {
         format!(
-            "/api/libraries/{}/items?limit={}&page={}",
-            id_selected_lib, PAGE_SIZE, page
+            "/api/libraries/{}/items?limit={}&page={}{}",
+            id_selected_lib, PAGE_SIZE, page, query
         )
     };
 

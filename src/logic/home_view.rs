@@ -141,34 +141,30 @@ fn position_of_the_series(id: Option<&str>, series: &[SeriesView]) -> Option<usi
     series.iter().position(|one| one.id == id)
 }
 
+/// Gives one value for each line: `true` for a line that the user can
+/// select, and `false` for the name of a shelf.
+fn lines_of_the_user(rows: &[HomeRow]) -> Vec<bool> {
+    rows.iter().map(HomeRow::is_a_line_of_the_user).collect()
+}
+
 /// Gives the first line that the user can select.
 pub fn first_line(rows: &[HomeRow]) -> Option<usize> {
-    rows.iter().position(HomeRow::is_a_line_of_the_user)
+    crate::logic::list_moves::first(&lines_of_the_user(rows))
 }
 
 /// Gives the last line that the user can select.
 pub fn last_line(rows: &[HomeRow]) -> Option<usize> {
-    rows.iter().rposition(HomeRow::is_a_line_of_the_user)
+    crate::logic::list_moves::last(&lines_of_the_user(rows))
 }
 
 /// Gives the line after this one. The move goes to the first line at the end.
 pub fn next_line(rows: &[HomeRow], from: usize) -> Option<usize> {
-    rows.iter()
-        .enumerate()
-        .skip(from + 1)
-        .find(|(_, row)| row.is_a_line_of_the_user())
-        .map(|(index, _)| index)
-        .or_else(|| first_line(rows))
+    crate::logic::list_moves::next(&lines_of_the_user(rows), from)
 }
 
 /// Gives the line before this one. The move stops at the first line.
 pub fn previous_line(rows: &[HomeRow], from: usize) -> Option<usize> {
-    rows.iter()
-        .enumerate()
-        .take(from)
-        .rfind(|(_, row)| row.is_a_line_of_the_user())
-        .map(|(index, _)| index)
-        .or_else(|| first_line(rows))
+    crate::logic::list_moves::previous(&lines_of_the_user(rows), from)
 }
 
 #[cfg(test)]
