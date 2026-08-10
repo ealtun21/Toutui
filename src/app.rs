@@ -18,6 +18,7 @@ use crate::config::*;
 use crate::db::crud::*;
 use crate::db::database_struct::Database;
 use crate::logic::download::{download_with_progress, remove_download, DownloadTarget};
+use crate::logic::library_view::{group_library, LibraryRow};
 use crate::logic::playback::{play, PlaybackTarget};
 use crate::logic::sync_session::sync_session_from_database::*;
 use crate::player::engine::PlayerHandle;
@@ -91,6 +92,12 @@ pub struct App {
     /// The series of the library, with their books. A podcast library has no
     /// series, thus this list is then empty. See T-22.
     pub series: Vec<SeriesView>,
+    /// The lines of the Library view. Every book of a series gives one line.
+    /// See T-22.
+    pub library_rows: Vec<LibraryRow>,
+    /// The user opened the books of a series from the Library view. The key
+    /// `h` then goes back to the Library, and not to the list of the series.
+    pub series_from_library: bool,
     /// The collections and the playlists of the library. See T-9.
     pub lists: Vec<ListView>,
     /// The server did not answer at the start. The application then shows the
@@ -447,6 +454,9 @@ impl App {
             collect_ids_library(&all_books).await
         };
 
+        // Every book of a series gives one line of the Library view. See T-22.
+        let library_rows = group_library(&ids_library, &series);
+
         let auth_names_library = if is_offline {
             downloads.iter().map(|row| row.author.clone()).collect()
         } else {
@@ -721,6 +731,8 @@ impl App {
             auth_names_library,
             ids_search_book,
             series,
+            library_rows,
+            series_from_library: false,
             lists,
             is_offline,
             waiting_progress,
@@ -1026,7 +1038,14 @@ impl App {
                     }
                     AppView::SeriesBook => {
                         self.scroll_offset = 0;
-                        self.view_state = AppView::Series
+                        // The key `h` goes back to the view that opened the
+                        // series. See T-22.
+                        self.view_state = if self.series_from_library {
+                            self.series_from_library = false;
+                            AppView::Library
+                        } else {
+                            AppView::Series
+                        }
                     }
                     AppView::Lists => {
                         self.scroll_offset = 0;
@@ -1161,7 +1180,19 @@ impl App {
                     AppView::SettingsAbout => {}
                     AppView::SettingsUpdateUninstall => {}
                     AppView::Library => {
-                        if self.is_podcast {
+                        // A line of a series opens the books of that series.
+                        // See T-22.
+                        if let Some(index) =
+                            self.selected_library_row().and_then(|row| row.series())
+                        {
+                            if self.series.get(index).is_some_and(|s| !s.books.is_empty()) {
+                                self.list_state_series.select(Some(index));
+                                self.list_state_series_book.select(Some(0));
+                                self.scroll_offset = 0;
+                                self.series_from_library = true;
+                                self.view_state = AppView::SeriesBook;
+                            }
+                        } else if self.is_podcast {
                             if let Some(index) = selected_library {
                                 self.titles_pod_ep = self.all_titles_pod_ep[index].clone();
                                 self.subtitles_pod_ep = self.all_subtitles_pod_ep[index].clone();
@@ -1245,6 +1276,7 @@ impl App {
                             if self.series.get(index).is_some_and(|s| !s.books.is_empty()) {
                                 self.list_state_series_book.select(Some(0));
                                 self.scroll_offset = 0;
+                                self.series_from_library = false;
                                 self.view_state = AppView::SeriesBook;
                             }
                         }
@@ -1382,6 +1414,45 @@ impl App {
         }
     }
 
+    /// Gives the line that the user selected in the view `Library`.
+    pub fn selected_library_row(&self) -> Option<&LibraryRow> {
+        self.library_rows.get(self.list_state_library.selected()?)
+    }
+
+    /// Gives the position of the selection in the lists of the library.
+    ///
+    /// A line of a series gives the position of its first book, because the
+    /// lists of the library hold one row for each book and no row for a
+    /// series.
+    pub fn selected_library_item(&self) -> Option<usize> {
+        Some(self.selected_library_row()?.item())
+    }
+
+    /// Gives the series of the selected line of the view `Library`, if that
+    /// line is a series.
+    pub fn selected_library_series(&self) -> Option<&SeriesView> {
+        self.series.get(self.selected_library_row()?.series()?)
+    }
+
+    /// Gives the text of each line of the view `Library`.
+    pub fn library_lines(&self) -> Vec<String> {
+        self.library_rows
+            .iter()
+            .map(|row| match row.series() {
+                Some(index) => self
+                    .series
+                    .get(index)
+                    .map(|series| series.line())
+                    .unwrap_or_default(),
+                None => self
+                    .titles_library
+                    .get(row.item())
+                    .cloned()
+                    .unwrap_or_default(),
+            })
+            .collect()
+    }
+
     /// Gives the series that the user selected in the view `Series`.
     pub fn selected_series(&self) -> Option<&SeriesView> {
         self.series.get(self.list_state_series.selected()?)
@@ -1442,7 +1513,12 @@ impl App {
             }
             AppView::Library if self.is_podcast => None,
             AppView::Library => {
-                let index = self.list_state_library.selected()?;
+                // A line of a series holds more than one book. The user opens
+                // the series with the key `l` and downloads one book there.
+                // See T-22.
+                let LibraryRow::Book { item: index } = *self.selected_library_row()? else {
+                    return None;
+                };
 
                 Some((
                     DownloadTarget::Book {
@@ -1562,7 +1638,7 @@ impl App {
             }
             AppView::Library => {
                 if let Some(selected) = self.list_state_library.selected() {
-                    if selected + 1 < self.ids_library.len() {
+                    if selected + 1 < self.library_rows.len() {
                         self.list_state_library.select_next();
                     } else {
                         self.list_state_library.select_first();
@@ -1704,7 +1780,7 @@ impl App {
                 self.list_state_cnt_list.select(Some(last_index));
             }
             AppView::Library => {
-                let last_index = self.ids_library.len().saturating_sub(1);
+                let last_index = self.library_rows.len().saturating_sub(1);
                 self.list_state_library.select(Some(last_index));
             }
             AppView::SearchBook => {

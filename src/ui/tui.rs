@@ -151,11 +151,24 @@ impl App {
                 .selected()
                 .and_then(|index| self._ids_cnt_list.get(index))),
 
+            // A line of a series shows the cover of each of its books. See
+            // T-22.
+            AppView::Library if self.selected_library_series().is_some() => self
+                .selected_library_series()
+                .map(|series| {
+                    series
+                        .books
+                        .iter()
+                        .take(cover::SHELF_MAX)
+                        .map(|book| book.id.clone())
+                        .collect()
+                })
+                .unwrap_or_default(),
+
             // An episode has no cover of its own. The cover of the podcast
             // stands for every episode of that podcast.
             AppView::Library | AppView::PodcastEpisode => one(self
-                .list_state_library
-                .selected()
+                .selected_library_item()
                 .and_then(|index| self.ids_library.get(index))),
 
             AppView::SearchBook => {
@@ -321,14 +334,15 @@ impl App {
         ])
         .areas(main_area);
 
-        let items_number = self.titles_library.len();
-        let render_list_title = format!("Library [{} items]", items_number);
+        // Every book of a series gives one line. See T-22.
+        let lines = self.library_lines();
+        let render_list_title = format!("Library [{} items]", lines.len());
 
         let mut _text_render_footer = "";
         if self.is_podcast {
             _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
         } else {
-            _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, D: download offline, X: remove offline, s: series, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
+            _text_render_footer = "j/↓, k/↑: move, l/→: play or open a series, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, D: download offline, X: remove offline, s: series, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
         }
 
         self.render_header(header_area, buf);
@@ -337,12 +351,12 @@ impl App {
             list_area,
             buf,
             &render_list_title,
-            &self.titles_library.clone(),
+            &lines,
             &mut self.list_state_library.clone(),
         );
-        if !&self.titles_library.is_empty() {
-            self.render_info_library(item_area1, buf, &self.list_state_library.clone());
-            self.render_desc_library(item_area2, buf, &self.list_state_library.clone());
+        if !lines.is_empty() {
+            self.render_info_library(item_area1, buf);
+            self.render_desc_library(item_area2, buf);
         }
     }
 
@@ -1213,10 +1227,29 @@ impl App {
     }
 
     // info about the book or podacst for `Library`
-    fn render_info_library(&self, area: Rect, buf: &mut Buffer, list_state: &ListState) {
+    fn render_info_library(&self, area: Rect, buf: &mut Buffer) {
         let _duration_library_conv = convert_seconds(self.duration_library.clone());
 
-        if let Some(selected) = list_state.selected() {
+        // A line of a series tells the number of the books and the whole
+        // length. See T-22.
+        if let Some(series) = self.selected_library_series() {
+            let seconds: f64 = series.books.iter().map(|book| book.duration).sum();
+
+            Paragraph::new(format!(
+                "{} - {} book(s) - Duration: {}",
+                series.name,
+                series.books.len(),
+                convert_seconds(vec![seconds])
+                    .first()
+                    .cloned()
+                    .unwrap_or_default(),
+            ))
+            .left_aligned()
+            .render(area, buf);
+            return;
+        }
+
+        if let Some(selected) = self.selected_library_item() {
             if self.is_podcast {
                 Paragraph::new(format!("Author: {}", self.auth_names_library_pod[selected],))
                     .left_aligned()
@@ -1242,9 +1275,16 @@ impl App {
     }
 
     // description of the book or podcast `Library`
-    fn render_desc_library(&self, area: Rect, buf: &mut Buffer, list_state: &ListState) {
-        if let Some(selected) = list_state.selected() {
-            Paragraph::new(self.desc_library[selected].clone())
+    fn render_desc_library(&self, area: Rect, buf: &mut Buffer) {
+        let text = match self.selected_library_series() {
+            Some(series) => Some(series.description.clone()),
+            None => self
+                .selected_library_item()
+                .and_then(|index| self.desc_library.get(index).cloned()),
+        };
+
+        if let Some(text) = text {
+            Paragraph::new(text)
                 .scroll((self.scroll_offset, 0))
                 .wrap(Wrap { trim: true })
                 .render(area, buf);
