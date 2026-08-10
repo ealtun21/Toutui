@@ -255,6 +255,12 @@ nix run github:ealtun21/Toutui
 nix develop            # a shell for development
 ```
 
+The flake gives Linux on `x86_64` and `aarch64`, and macOS on Apple silicon.
+It does not give macOS on a processor of Intel, because nixpkgs 26.11 dropped
+support for that system. Such a Mac can use [The script](#the-script) or
+[From the source](#from-the-source), because the archive of macOS holds a
+universal binary.
+
 #### **Requirements**
 - `Rust`
 - On Linux, the ALSA development package. On Debian and Ubuntu the name is

@@ -403,8 +403,18 @@ The job then found two faults of the flake.
    macOS needs no input for the audio now: `stdenv` gives the SDK of Apple, and
    that SDK holds AudioUnit and CoreAudio.
 
-The second fault is the exact condition that T-27 names: the flake stopped to
-operate, and every test stayed green.
+3. `flake-utils.lib.eachDefaultSystem` names `x86_64-darwin`, and nixpkgs 26.11
+   dropped support for that system: it throws "Nixpkgs 26.11 has dropped
+   support for x86_64-darwin". Therefore the flake could not evaluate for a Mac
+   with a processor of Intel. The flake names its three systems now:
+   `x86_64-linux`, `aarch64-linux`, and `aarch64-darwin`. A user of such a Mac
+   can still use `install.sh` or `cargo install --git`, because the archive of
+   macOS holds a universal binary. `release.yml` does not use Nix, therefore
+   the releases do not change.
+
+The faults 2 and 3 are the exact condition that T-27 names: the flake stopped
+to operate for a system, and every test stayed green. Both faults concern
+macOS, and no test on Linux could find either one.
 
 ### T-28: a tag with a capital letter gives "update available" for ever
 

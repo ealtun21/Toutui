@@ -7,7 +7,20 @@
   };
 
   outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
+    # The flake names its systems, and it does not use `eachDefaultSystem`.
+    # That function names `x86_64-darwin` as well, and nixpkgs 26.11 dropped
+    # support for that system: it throws "Nixpkgs 26.11 has dropped support
+    # for x86_64-darwin". Therefore the flake could not evaluate for a Mac
+    # with a processor of Intel.
+    #
+    # A user of such a Mac can still use `install.sh` or
+    # `cargo install --git`, because the archive of macOS holds a universal
+    # binary. See T-27.
+    flake-utils.lib.eachSystem [
+      "x86_64-linux"
+      "aarch64-linux"
+      "aarch64-darwin"
+    ] (system:
       let
         pkgs = import nixpkgs { inherit system; };
 
