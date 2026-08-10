@@ -1,4 +1,4 @@
-use crate::App;
+use crate::app::App;
 use crate::app::AppView;
 use ratatui::backend::CrosstermBackend;
 use ratatui::widgets::{Block, Borders};

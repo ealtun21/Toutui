@@ -1,0 +1,722 @@
+{
+  "id": "8bc895d0-88e4-460e-a82b-4ba8eb81dbb5",
+  "media": {
+    "metadata": {
+      "title": "He Who Fights with Monsters, Book 03",
+      "authorName": null
+    },
+    "audioFiles": [
+      {
+        "index": 1,
+        "ino": "402",
+        "duration": 18.343764,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 01 - Opening Credits.m4b",
+          "size": 247996
+        }
+      },
+      {
+        "index": 2,
+        "ino": "821",
+        "duration": 1508.089615,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 02 - A Question You Don't Yet Know to Ask.m4b",
+          "size": 14615921
+        }
+      },
+      {
+        "index": 3,
+        "ino": "1367",
+        "duration": 1126.725079,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 03 - Looking Forward.m4b",
+          "size": 10669868
+        }
+      },
+      {
+        "index": 4,
+        "ino": "185",
+        "duration": 919.138685,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 04 - Adventurers Are People Too.m4b",
+          "size": 8789914
+        }
+      },
+      {
+        "index": 5,
+        "ino": "403",
+        "duration": 1054.371701,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 05 - Valkyrie.m4b",
+          "size": 10477490
+        }
+      },
+      {
+        "index": 6,
+        "ino": "1031",
+        "duration": 1154.449705,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 06 - Departures.m4b",
+          "size": 11036964
+        }
+      },
+      {
+        "index": 7,
+        "ino": "404",
+        "duration": 807.729342,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 07 - No Pot of Gold.m4b",
+          "size": 7751859
+        }
+      },
+      {
+        "index": 8,
+        "ino": "405",
+        "duration": 1356.55619,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 08 - The Glory of Success or the Price of Failure.m4b",
+          "size": 12979965
+        }
+      },
+      {
+        "index": 9,
+        "ino": "1609",
+        "duration": 1060.548209,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 09 - Adequate.m4b",
+          "size": 10186238
+        }
+      },
+      {
+        "index": 10,
+        "ino": "304",
+        "duration": 926.383311,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 10 - Trash Bonanza.m4b",
+          "size": 8994767
+        }
+      },
+      {
+        "index": 11,
+        "ino": "2066",
+        "duration": 705.793741,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 11 - Strangeness.m4b",
+          "size": 6771853
+        }
+      },
+      {
+        "index": 12,
+        "ino": "1368",
+        "duration": 1561.959909,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 12 - Full Circle.m4b",
+          "size": 15023062
+        }
+      },
+      {
+        "index": 13,
+        "ino": "925",
+        "duration": 1144.697324,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 13 - Regretting It Later.m4b",
+          "size": 10769563
+        }
+      },
+      {
+        "index": 14,
+        "ino": "822",
+        "duration": 952.900499,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 14 - Swat.m4b",
+          "size": 9330061
+        }
+      },
+      {
+        "index": 15,
+        "ino": "2067",
+        "duration": 1069.464671,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 15 - The Purpose of the Adventure Society.m4b",
+          "size": 10146603
+        }
+      },
+      {
+        "index": 16,
+        "ino": "1032",
+        "duration": 856.351927,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 16 - Elven Storage Solutions.m4b",
+          "size": 8013496
+        }
+      },
+      {
+        "index": 17,
+        "ino": "1808",
+        "duration": 1089.387392,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 17 - Disbanded.m4b",
+          "size": 10225957
+        }
+      },
+      {
+        "index": 18,
+        "ino": "305",
+        "duration": 1024.928798,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 18 - The Man Behind the Mouth.m4b",
+          "size": 9682268
+        }
+      },
+      {
+        "index": 19,
+        "ino": "306",
+        "duration": 1247.097324,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 19 - Search.m4b",
+          "size": 11712347
+        }
+      },
+      {
+        "index": 20,
+        "ino": "926",
+        "duration": 1879.469569,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 20 - Defiance.m4b",
+          "size": 17360406
+        }
+      },
+      {
+        "index": 21,
+        "ino": "1369",
+        "duration": 1010.393107,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 21 - Hanging Around.m4b",
+          "size": 9794824
+        }
+      },
+      {
+        "index": 22,
+        "ino": "927",
+        "duration": 1387.67093,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 22 - What Doesn't Kill You.m4b",
+          "size": 12997928
+        }
+      },
+      {
+        "index": 23,
+        "ino": "1421",
+        "duration": 854.726531,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 23 - Lingering Doubts.m4b",
+          "size": 8073607
+        }
+      },
+      {
+        "index": 24,
+        "ino": "1033",
+        "duration": 847.249705,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 24 - Scars.m4b",
+          "size": 8147459
+        }
+      },
+      {
+        "index": 25,
+        "ino": "928",
+        "duration": 1006.399274,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 25 - I Won't Let Them Turn Me into That.m4b",
+          "size": 9508893
+        }
+      },
+      {
+        "index": 26,
+        "ino": "1809",
+        "duration": 842.930794,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 26 - Putting the Band Back Together.m4b",
+          "size": 7961324
+        }
+      },
+      {
+        "index": 27,
+        "ino": "823",
+        "duration": 1028.96907,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 27 - Nothing Speaks Louder Than Power.m4b",
+          "size": 9599155
+        }
+      },
+      {
+        "index": 28,
+        "ino": "1810",
+        "duration": 1174.140227,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 28 - My Name Is Jason Asano.m4b",
+          "size": 11171170
+        }
+      },
+      {
+        "index": 29,
+        "ino": "680",
+        "duration": 1199.542857,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 29 - While They Watch Me Kill You.m4b",
+          "size": 11207307
+        }
+      },
+      {
+        "index": 30,
+        "ino": "1685",
+        "duration": 1273.846712,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 30 - Inherently Corrupting.m4b",
+          "size": 12022977
+        }
+      },
+      {
+        "index": 31,
+        "ino": "1610",
+        "duration": 1021.863764,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 31 - Beholden to No One.m4b",
+          "size": 9605748
+        }
+      },
+      {
+        "index": 32,
+        "ino": "681",
+        "duration": 1270.967438,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 32 - Evil Detector.m4b",
+          "size": 11949335
+        }
+      },
+      {
+        "index": 33,
+        "ino": "2180",
+        "duration": 1243.057052,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 33 - The World Needs People Like You.m4b",
+          "size": 11871799
+        }
+      },
+      {
+        "index": 34,
+        "ino": "1686",
+        "duration": 1207.437642,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 34 - I'm Very Big on Cowardice.m4b",
+          "size": 11360474
+        }
+      },
+      {
+        "index": 35,
+        "ino": "3083",
+        "duration": 951.785941,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 35 - More Powerful Than We Anticipated.m4b",
+          "size": 9127782
+        }
+      },
+      {
+        "index": 36,
+        "ino": "824",
+        "duration": 828.116463,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 36 - Fate Can't Wait to Kill Us All.m4b",
+          "size": 7930262
+        }
+      },
+      {
+        "index": 37,
+        "ino": "1370",
+        "duration": 966.135873,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 37 - Running Towards Something.m4b",
+          "size": 9157482
+        }
+      },
+      {
+        "index": 38,
+        "ino": "551",
+        "duration": 1103.458685,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 38 - Greenhouse Flowers.m4b",
+          "size": 10619475
+        }
+      },
+      {
+        "index": 39,
+        "ino": "1371",
+        "duration": 1161.555011,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 39 - A Man Transformed.m4b",
+          "size": 11078422
+        }
+      },
+      {
+        "index": 40,
+        "ino": "307",
+        "duration": 1100.99737,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 40 - The Worst Possible Option.m4b",
+          "size": 10489102
+        }
+      },
+      {
+        "index": 41,
+        "ino": "1034",
+        "duration": 1379.125986,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 41 - Brave Little Tailor.m4b",
+          "size": 13340753
+        }
+      },
+      {
+        "index": 42,
+        "ino": "1372",
+        "duration": 1075.594739,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 42 - Terms of the Pact.m4b",
+          "size": 10139966
+        }
+      },
+      {
+        "index": 43,
+        "ino": "1373",
+        "duration": 1118.969615,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 43 - Trading Safety Today for Death Tomorrow.m4b",
+          "size": 10620061
+        }
+      },
+      {
+        "index": 44,
+        "ino": "406",
+        "duration": 1441.541224,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 44 - Stalwart.m4b",
+          "size": 13932484
+        }
+      },
+      {
+        "index": 45,
+        "ino": "1374",
+        "duration": 1122.638367,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 45 - I'm Sick of Fighting Magic Rocks.m4b",
+          "size": 10789693
+        }
+      },
+      {
+        "index": 46,
+        "ino": "929",
+        "duration": 1070.20771,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 46 - Crossing the Threshold.m4b",
+          "size": 9968730
+        }
+      },
+      {
+        "index": 47,
+        "ino": "930",
+        "duration": 912.869297,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 47 - Anyone Can Be Useful.m4b",
+          "size": 8697876
+        }
+      },
+      {
+        "index": 48,
+        "ino": "1178",
+        "duration": 1052.560544,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 48 - A Series of Familiar Powers.m4b",
+          "size": 10195985
+        }
+      },
+      {
+        "index": 49,
+        "ino": "552",
+        "duration": 892.714376,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 49 - It's Not About Killing Monsters.m4b",
+          "size": 8570596
+        }
+      },
+      {
+        "index": 50,
+        "ino": "1375",
+        "duration": 960.748844,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 50 - Sin Eater.m4b",
+          "size": 9386363
+        }
+      },
+      {
+        "index": 51,
+        "ino": "1611",
+        "duration": 1073.551383,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 51 - The Most Dangerous Thing in the Dark.m4b",
+          "size": 10316303
+        }
+      },
+      {
+        "index": 52,
+        "ino": "1687",
+        "duration": 1291.958277,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 52 - The Boss Comes to Town.m4b",
+          "size": 12354444
+        }
+      },
+      {
+        "index": 53,
+        "ino": "1811",
+        "duration": 1002.126803,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 53 - It's Very Complicated and You All Need to Go Away.m4b",
+          "size": 9499223
+        }
+      },
+      {
+        "index": 54,
+        "ino": "553",
+        "duration": 1157.28254,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 54 - Strong Foundations.m4b",
+          "size": 11257650
+        }
+      },
+      {
+        "index": 55,
+        "ino": "3969",
+        "duration": 919.556644,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 55 - A Valiant Death.m4b",
+          "size": 8705115
+        }
+      },
+      {
+        "index": 56,
+        "ino": "825",
+        "duration": 912.033379,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 56 - Ambitions.m4b",
+          "size": 8525825
+        }
+      },
+      {
+        "index": 57,
+        "ino": "2068",
+        "duration": 1049.35619,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 57 - Faith and Glory.m4b",
+          "size": 9960628
+        }
+      },
+      {
+        "index": 58,
+        "ino": "554",
+        "duration": 1372.25288,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 58 - Thadwick.m4b",
+          "size": 12643528
+        }
+      },
+      {
+        "index": 59,
+        "ino": "3084",
+        "duration": 1282.809615,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 59 - The True Danger.m4b",
+          "size": 12422103
+        }
+      },
+      {
+        "index": 60,
+        "ino": "3085",
+        "duration": 1576.77424,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 60 - Forsaken Place.m4b",
+          "size": 15106067
+        }
+      },
+      {
+        "index": 61,
+        "ino": "186",
+        "duration": 1044.34068,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 61 - Being What He Needs to Be.m4b",
+          "size": 9963133
+        }
+      },
+      {
+        "index": 62,
+        "ino": "682",
+        "duration": 1004.866757,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 62 - A Significantly More Dangerous Entity.m4b",
+          "size": 9656491
+        }
+      },
+      {
+        "index": 63,
+        "ino": "2969",
+        "duration": 1099.557732,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 63 - Losing the Battle to Win the War.m4b",
+          "size": 10611260
+        }
+      },
+      {
+        "index": 64,
+        "ino": "1612",
+        "duration": 1124.449524,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 64 - War of Adaptation.m4b",
+          "size": 10751222
+        }
+      },
+      {
+        "index": 65,
+        "ino": "308",
+        "duration": 1226.106485,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 65 - The Hero of this Story.m4b",
+          "size": 11395724
+        }
+      },
+      {
+        "index": 66,
+        "ino": "187",
+        "duration": 1198.985578,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 66 - Good News, Bad News.m4b",
+          "size": 11549011
+        }
+      },
+      {
+        "index": 67,
+        "ino": "1035",
+        "duration": 1173.954467,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 67 - Here We Are.m4b",
+          "size": 11319567
+        }
+      },
+      {
+        "index": 68,
+        "ino": "555",
+        "duration": 1510.968889,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 68 - Outmatched.m4b",
+          "size": 14478498
+        }
+      },
+      {
+        "index": 69,
+        "ino": "931",
+        "duration": 1493.600363,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 69 - The Power of Friendship.m4b",
+          "size": 14255871
+        }
+      },
+      {
+        "index": 70,
+        "ino": "407",
+        "duration": 1425.008617,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 70 - A War of Stolen Moments.m4b",
+          "size": 13606459
+        }
+      },
+      {
+        "index": 71,
+        "ino": "556",
+        "duration": 1009.650068,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 71 - Clive Takes Charge.m4b",
+          "size": 9487627
+        }
+      },
+      {
+        "index": 72,
+        "ino": "1422",
+        "duration": 1645.644626,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 72 - Lessons.m4b",
+          "size": 15252902
+        }
+      },
+      {
+        "index": 73,
+        "ino": "408",
+        "duration": 1611.929252,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 73 - Recruitment.m4b",
+          "size": 15321803
+        }
+      },
+      {
+        "index": 74,
+        "ino": "2181",
+        "duration": 1079.356372,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 74 - Ducking Responsibility.m4b",
+          "size": 10129238
+        }
+      },
+      {
+        "index": 75,
+        "ino": "826",
+        "duration": 1195.734785,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 75 - Show and Tell.m4b",
+          "size": 11053394
+        }
+      },
+      {
+        "index": 76,
+        "ino": "2599",
+        "duration": 1433.78576,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 76 - Beyond Our Ability to Control.m4b",
+          "size": 13668942
+        }
+      },
+      {
+        "index": 77,
+        "ino": "2069",
+        "duration": 1032.870023,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 77 - A Time for Parting.m4b",
+          "size": 9586376
+        }
+      },
+      {
+        "index": 78,
+        "ino": "3330",
+        "duration": 1795.552653,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 78 - Old Secrets.m4b",
+          "size": 17207732
+        }
+      },
+      {
+        "index": 79,
+        "ino": "1036",
+        "duration": 55.727891,
+        "metadata": {
+          "filename": "He Who Fights with Monsters, Book 03 - 79 - End Credits.m4b",
+          "size": 604536
+        }
+      }
+    ]
+  }
+}

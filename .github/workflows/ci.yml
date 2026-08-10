@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, offline-mode ]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install the Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Cache the Cargo directories
+        uses: Swatinem/rust-cache@v2
+
+      # Sub-project 2 adds the audio engine, and that engine needs these
+      # headers. The step is here now so that the workflow does not change
+      # later.
+      - name: Install the audio system headers
+        run: sudo apt-get update && sudo apt-get install -y libasound2-dev
+
+      - name: Build
+        run: cargo build --verbose
+
+      - name: Examine the code with clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Run the tests
+        run: cargo test --verbose
+
+      # The project must not need a C toolchain. This step fails if a
+      # dependency brings OpenSSL back.
+      - name: Confirm that OpenSSL is not a dependency
+        run: |
+          if cargo tree -i openssl-sys > /dev/null 2>&1; then
+            echo "A dependency needs OpenSSL. Give that dependency default-features = false."
+            cargo tree -i openssl-sys
+            exit 1
+          fi
+          echo "OpenSSL is not in the dependency tree."

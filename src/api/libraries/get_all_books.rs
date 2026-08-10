@@ -1,7 +1,6 @@
-use reqwest::Client;
+use crate::api::client::error::ApiError;
+use crate::api::client::ApiClient;
 use serde_json::Value;
-use reqwest::header::AUTHORIZATION;
-use color_eyre::eyre::{Result, Report};
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -92,30 +91,116 @@ pub struct CollapsedSeries {
     pub num_books: Option<i64>,
 }
 
-// get all books or podcasts
-pub async fn get_all_books(token: &str, id_selected_lib: &String, server_address: String) -> Result<Root> {
-    let client = Client::new();
-    let url = format!("{}/api/libraries/{}/items?limit=0", server_address, id_selected_lib);
+/// The number of items in one request.
+///
+/// The old code used `limit=0`, and that value tells the server to send every
+/// item in one answer. A library with 10000 books then makes a very large
+/// answer. An Audiobookshelf contributor gives this advice in upstream issue
+/// 35.
+pub const PAGE_SIZE: i64 = 500;
 
+/// The largest number of requests for one library.
+///
+/// The value stops an endless loop if a server always gives a full page. With
+/// 500 items in a page, this value permits 250000 items.
+const MAX_PAGES: i64 = 500;
 
-    // Send GET request
-    let response = client
-        .get(url)
-        .header(AUTHORIZATION, format!("Bearer {}", token))
-        .send()
-        .await?;
-
-    // Check response status
-    if !response.status().is_success() {
-        return Err(Report::new(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    "Failed to fetch data from the API",
-        )));
+/// Tells if the application must ask for one more page.
+///
+/// The function stops when the last page was not full, because a page that is
+/// not full is the last page. It also stops when the application has all the
+/// items that the server reports.
+pub fn wants_more_pages(collected: usize, total: Option<i64>, last_page: usize) -> bool {
+    if last_page < PAGE_SIZE as usize {
+        return false;
     }
 
-    // Deserialize JSON response into Vec<Root>
-    let library: Root = response.json().await?;
+    match total {
+        Some(total) if total >= 0 => collected < total as usize,
+        _ => true,
+    }
+}
 
-    Ok(library)
+/// Gets all books or all podcasts of one library.
+///
+/// The function asks for one page at a time. Therefore no answer of the server
+/// is very large. The function gives all the items together, thus the code
+/// that calls it does not change.
+pub async fn get_all_books(client: &ApiClient, id_selected_lib: &str) -> Result<Root, ApiError> {
+    let mut all: Vec<LibraryItem> = Vec::new();
+    let mut root = Root::default();
+
+    for page in 0..MAX_PAGES {
+        let answer: Root = client
+            .get_json(&format!(
+                "/api/libraries/{}/items?limit={}&page={}",
+                id_selected_lib, PAGE_SIZE, page
+            ))
+            .await?;
+
+        let items = answer.results.clone().unwrap_or_default();
+        let count = items.len();
+
+        all.extend(items);
+        root = answer;
+
+        if !wants_more_pages(all.len(), root.total, count) {
+            break;
+        }
+    }
+
+    root.results = Some(all);
+    root.limit = Some(PAGE_SIZE);
+    root.page = None;
+
+    Ok(root)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A page that is full, and the server has more items.
+    #[test]
+    fn a_full_page_with_more_items_wants_another_page() {
+        assert!(wants_more_pages(500, Some(2056), 500));
+    }
+
+    /// A page that is not full is the last page.
+    #[test]
+    fn a_page_that_is_not_full_is_the_last_page() {
+        assert!(!wants_more_pages(556, Some(2056), 56));
+    }
+
+    /// The application has every item that the server reports.
+    #[test]
+    fn the_last_item_stops_the_loop() {
+        assert!(!wants_more_pages(2056, Some(2056), 500));
+    }
+
+    /// A library that has fewer items than one page needs one request.
+    #[test]
+    fn a_small_library_needs_one_request() {
+        assert!(!wants_more_pages(12, Some(12), 12));
+    }
+
+    /// A library with no item needs one request.
+    #[test]
+    fn an_empty_library_needs_one_request() {
+        assert!(!wants_more_pages(0, Some(0), 0));
+    }
+
+    /// The server gave no total. The loop continues while the pages are full.
+    #[test]
+    fn no_total_continues_while_the_pages_are_full() {
+        assert!(wants_more_pages(500, None, 500));
+        assert!(!wants_more_pages(700, None, 200));
+    }
+
+    /// A total that is not valid must not stop the loop early.
+    #[test]
+    fn a_total_that_is_not_valid_continues() {
+        assert!(wants_more_pages(500, Some(-1), 500));
+    }
 }
 

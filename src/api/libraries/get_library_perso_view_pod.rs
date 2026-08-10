@@ -1,7 +1,6 @@
-use reqwest::Client;
+use crate::api::client::error::ApiError;
+use crate::api::client::ApiClient;
 use serde_json::Value;
-use reqwest::header::AUTHORIZATION;
-use color_eyre::eyre::{Result, Report};
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -149,28 +148,16 @@ pub struct AudioFile {
     pub mime_type: Option<String>,
 }
 
-// filter only podcast continue to listening from personalized view
-pub async fn get_continue_listening_pod(token: &str, server_address: String, id_selected_lib: &String) -> Result<Vec<Root>> {
-    let client = Client::new();
-    let url = format!("{}/api/libraries/{}/personalized", server_address, id_selected_lib);
-
-    // Send GET request
-    let response = client
-        .get(url)
-        .header(AUTHORIZATION, format!("Bearer {}", token))
-        .send()
+/// Gets the podcast episodes that the user continues to listen to.
+///
+/// The function keeps the shelf that has the label `Continue Listening` only.
+pub async fn get_continue_listening_pod(
+    client: &ApiClient,
+    id_selected_lib: &str,
+) -> Result<Vec<Root>, ApiError> {
+    let libraries: Vec<Root> = client
+        .get_json(&format!("/api/libraries/{}/personalized", id_selected_lib))
         .await?;
-
-    // Check response status
-    if !response.status().is_success() {
-        return Err(Report::new(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    "Failed to fetch data from the API",
-        )));
-    }
-
-    // Deserialize JSON response into Vec<Root>
-    let libraries: Vec<Root> = response.json().await?;
 
     // Filter libraries to keep only those with label "Continue Listening"
     let continue_listening: Vec<Root> = libraries

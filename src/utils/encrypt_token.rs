@@ -8,7 +8,7 @@ pub fn encrypt_token(token_to_encrypt: &str) -> Result<String, String> {
     // Load .env variables (`env::var` will read ~.config/toutui/.env)
     // check `main.rs` to see the init process for dotenv
     // Retrieve secret key from .env
-    let _secret_key = match env::var("TOUTUI_SECRET_KEY") {
+    match env::var("TOUTUI_SECRET_KEY") {
         Ok(key) => {
 
             // Create magic crypt object
@@ -17,17 +17,17 @@ pub fn encrypt_token(token_to_encrypt: &str) -> Result<String, String> {
             // Token encryption
             let encrypted_token = mc.encrypt_str_to_base64(token_to_encrypt);
 
-            return Ok(encrypted_token)
+            Ok(encrypted_token)
         }
         Err(_) => {
             error!("No secret found in .env. Do this:\n
                 mkdir -p ~/.config/toutui\n
                 echo 'TOUTUI_SECRET_KEY=secret' >> ~/.config/toutui/.env");
-            return Err("No secret found in .env. Do this:\n
+            Err("No secret found in .env. Do this:\n
                 mkdir -p ~/.config/toutui\n
-                echo 'TOUTUI_SECRET_KEY=secret' >> ~/.config/toutui/.env".to_string()); 
+                echo 'TOUTUI_SECRET_KEY=secret' >> ~/.config/toutui/.env".to_string())
         },
-    };
+    }
 }
 
 

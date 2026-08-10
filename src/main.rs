@@ -1,12 +1,4 @@
-mod login_app;
-mod app;
-mod config;
-mod api;
-mod ui;
-mod player;
-mod logic;
-mod db;
-mod utils;
+use toutui::{api, app, config, db, login_app, player, ui, utils};
 
 use login_app::AppLogin;
 use app::App;
@@ -28,6 +20,7 @@ use crate::ui::player_tui::*;
 use std::env;
 use std::path::PathBuf;
 use crate::utils::clap::*;
+use crate::utils::encrypt_token::decrypt_token;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -57,7 +50,7 @@ async fn main() -> Result<()> {
         });
     // Construct the dotenv 
     let env_path = config_path.join("toutui").join(".env");
-    dotenv::from_filename(&env_path.clone()).ok();
+    dotenv::from_filename(env_path.clone()).ok();
 
     // Init database
     let mut _database = Database::new().await?;
@@ -91,22 +84,77 @@ async fn main() -> Result<()> {
 
         // init current username
         let mut username: String = String::new();
-        if let Some(var_username) = _database.default_usr.get(0) {
+        if let Some(var_username) = _database.default_usr.first() {
             username = var_username.clone();
         }
-        // init is_vlc_launched_first_time 
-        let _ = update_is_vlc_launched_first_time("1", username.as_str());
-        let value = get_is_vlc_launched_first_time(username.as_str());
-        info!("[main][is_vlc_launched_first_time] {}", value);
+        // At the start no playback loop runs. Therefore a new playback must
+        // not wait for a loop before it.
+        let _ = update_has_played_before("1", username.as_str());
 
-        let mut app = App::new().await?;
+        // Make the HTTP client. The client holds all the addresses of the
+        // server. If the address that has the most importance does not answer,
+        // the client changes to the next address automatically.
+        let server_address = _database
+            .default_usr
+            .get(1)
+            .cloned()
+            .unwrap_or_default();
+
+        // The database holds the token in an encrypted form. The client needs
+        // the plain token one time only.
+        let encrypted_token = _database
+            .default_usr
+            .get(2)
+            .cloned()
+            .unwrap_or_default();
+        let token = match decrypt_token(encrypted_token.as_str()) {
+            Ok(token) => token,
+            Err(e) => {
+                println!("Error: {}", e);
+                String::new()
+            }
+        };
+
+        let config_file = config::load_config()?;
+        let pool = config::pool_for_address(&config_file.servers, &server_address);
+        info!("[main][api] The pool has {} address(es).", pool.len());
+
+        let api = std::sync::Arc::new(api::client::ApiClient::new(
+            std::sync::Arc::new(pool),
+            token,
+        )?);
+
+        // The probe task gives an address the state `Up` again when the
+        // address answers. Therefore the application returns to the local
+        // address without a restart.
+        api::client::probe::spawn_probe_task(std::sync::Arc::clone(&api));
+
+        // The application plays a local copy when the server does not answer.
+        // This task sends the positions when the server answers again, thus
+        // the user does not start the application again. See T-25.
+        //
+        // A user can have an account on more than one server. The task sends
+        // the positions of this server only.
+        let server_key = config::server_key(&config_file.servers, &server_address);
+
+        toutui::logic::offline::spawn_flush_task(
+            std::sync::Arc::clone(&api),
+            username.clone(),
+            server_key,
+        );
+
+        let mut app = App::new(std::sync::Arc::clone(&api)).await?;
         let mut terminal = ratatui::init();
 
         // Running the app in a loop
         loop {
 
-            let is_playing = get_is_vlc_running(app.username.as_str());
-            let player_info = player_info(app.username.as_str());
+            // The engine gives the state. The panel is visible only when the
+            // engine holds a media.
+            let playback = app.player.state();
+            let is_playing = playback.status != toutui::player::engine::PlaybackStatus::Stopped;
+            let player_notice = playback.notice.clone();
+            let player_info = player_info(app.username.as_str(), &playback);
 
             terminal.draw(|frame| {
                 let bg_color = app.config.colors.background_color.clone();
@@ -118,10 +166,10 @@ async fn main() -> Result<()> {
 
                 frame.render_widget(background, frame.area());
 
-                if is_playing == "1" {
+                if is_playing {
                     let area = frame.area();
                     // render for the player (automatically refreshed) 
-                    render_player(area, frame.buffer_mut(), player_info, bg_color_player, app.username.as_str()); 
+                    render_player(area, frame.buffer_mut(), player_info, bg_color_player, app.username.as_str(), player_notice); 
                 }
 
                 // render widget for general app : 
@@ -136,19 +184,16 @@ async fn main() -> Result<()> {
             if crossterm::event::poll(Duration::from_millis(200))? {
                 if let event::Event::Key(key) = crossterm::event::read()? {
                     app.handle_key(key);
-                    match key.code {
-                        // If the 'R' key is pressed, refresh the app
-                        KeyCode::Char('R') => {
+                    // If the 'R' key is pressed, refresh the app
+                    if let KeyCode::Char('R') = key.code {
                             // pop up message
                             let mut stdout = stdout();
                             let _ = clear_message(&mut stdout, 3); // clear a message, if any, before print the message bellow
                             let _ = pop_message(&mut stdout, 3, "Refreshing app...");
                             // Reinitialize app to refresh
-                            app = App::new().await?; 
+                            app = App::new(std::sync::Arc::clone(&api)).await?;
                             // clear message above
                             let _ = clear_message(&mut stdout, 3);
-                        }
-                        _ => {}
                     }
                 }
             }

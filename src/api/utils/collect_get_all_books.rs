@@ -1,4 +1,5 @@
 use crate::api::libraries::get_all_books::Root;
+use crate::utils::html_text::to_plain_text;
 
 /// collect titles
 pub async fn collect_titles_library(library: &Root) -> Vec<String> {
@@ -113,7 +114,7 @@ pub async fn collect_desc_library(library: &Root) -> Vec<String> {
             if let Some(media) = &item.media {
                 if let Some(metadata) = &media.metadata {
                     if let Some(desc) = &metadata.description {
-                        desc_library.push(desc.clone());
+                        desc_library.push(to_plain_text(desc));
                     } else {
                         desc_library.push("No description available".to_string());
                     }
@@ -133,7 +134,7 @@ pub async fn collect_duration_library(library: &Root) -> Vec<f64> {
         for item in results {
             if let Some(media) = &item.media {
                 if let Some(dur) = &media.duration {
-                    duration.push(dur.clone());
+                    duration.push(*dur);
                 } else {
                     duration.push(0.0);
                 }

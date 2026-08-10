@@ -1,5 +1,6 @@
 use crate::api::libraries::get_library_perso_view_pod::Root;
 use crate::utils::convert_seconds::*;
+use crate::utils::html_text::to_plain_text;
 
 /// collect id pod for continue listening
 pub async fn collect_ids_pod_cnt_list(roots: &[Root]) -> Vec<String> {
@@ -31,7 +32,7 @@ pub async fn collect_subtitles_pod_cnt_list(roots: &[Root]) -> Vec<String> {
             for entity in entities {
                 if let Some(recent_episode) = &entity.recent_episode {
                     if let Some(subtitle) = &recent_episode.subtitle {
-                        subtitles_pod_cnt_list.push(subtitle.clone());
+                        subtitles_pod_cnt_list.push(to_plain_text(subtitle));
                     } else {
                         subtitles_pod_cnt_list.push("N/A".to_string());
                     }
@@ -124,7 +125,7 @@ pub async fn collect_descs_pod_cnt_list(roots: &[Root]) -> Vec<String> {
                     if let Some(media) = &entity.media {
                         if let Some(metadata) = &media.metadata {
                             if let Some(desc) = &metadata.description {
-                                descs_pod_cnt_list.push(desc.clone());
+                                descs_pod_cnt_list.push(to_plain_text(desc));
                             } else {
                                 descs_pod_cnt_list.push("N/A".to_string());
                             }
@@ -185,8 +186,8 @@ pub async fn collect_durations_pod_cnt_list(roots: &[Root]) -> Vec<String> {
         }
     }
 
-    let durations_pod_cnt_list = convert_seconds(durations);
-    durations_pod_cnt_list
+    
+    convert_seconds(durations)
 }
 
 /// collect ids ep 

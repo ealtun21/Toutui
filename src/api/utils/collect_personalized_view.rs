@@ -1,4 +1,5 @@
 use crate::api::libraries::get_library_perso_view::Root;
+use crate::utils::html_text::to_plain_text;
 
 /// collect titles
 pub async fn collect_titles_cnt_list(continue_listening: &[Root]) -> Vec<String> {
@@ -81,7 +82,7 @@ pub async fn collect_duration_cnt_list(continue_listening: &[Root]) -> Vec<f64> 
             for entity in entities {
                 if let Some(media) = &entity.media {  
                     if let Some(duration) = &media.duration { 
-                        duration_cnt_list.push(duration.clone()); 
+                        duration_cnt_list.push(*duration); 
                     } else {
                             duration_cnt_list.push(0.0);
                         }
@@ -105,7 +106,7 @@ pub async fn collect_desc_cnt_list(continue_listening: &[Root]) -> Vec<String> {
                 if let Some(media) = &entity.media {  
                     if let Some(metadata) = &media.metadata { 
                         if let Some(description) = &metadata.description { 
-                            desc_cnt_list.push(description.clone()); 
+                            desc_cnt_list.push(to_plain_text(description)); 
                         } else {
                             desc_cnt_list.push("N/A".to_string());
                         }

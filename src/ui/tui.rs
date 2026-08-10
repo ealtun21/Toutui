@@ -1,4 +1,4 @@
-use crate::App;
+use crate::app::App;
 use crate::app::AppView;
 use ratatui::{
     buffer::Buffer,
@@ -6,10 +6,11 @@ use ratatui::{
     style::{Color, Modifier, Style, Stylize},
     text::Line,
     widgets::{
-        Block, Borders, HighlightSpacing, List, ListItem , ListState,  Paragraph, StatefulWidget,
-        Widget, Wrap
+        Block, Borders, Gauge, HighlightSpacing, List, ListItem , ListState,  Paragraph,
+        StatefulWidget, Widget, Wrap
     },
 };
+use crate::logic::download::progress::DownloadState;
 use crate::utils::convert_seconds::*;
 use crate::config::*;
 
@@ -25,18 +26,115 @@ impl Widget for &mut App {
             AppView::Library => self.render_library(area, buf),
             AppView::SearchBook => self.render_search_book(area, buf),
             AppView::PodcastEpisode => self.render_pod_ep(area, buf),
+            AppView::Series => self.render_series(area, buf),
+            AppView::SeriesBook => self.render_series_book(area, buf),
+            AppView::Lists => self.render_lists(area, buf),
+            AppView::ListEntries => self.render_list_entries(area, buf),
             AppView::Settings => self.render_settings(area, buf),
             AppView::SettingsAccount => self.render_settings_account(area, buf),
             AppView::SettingsLibrary => self.render_settings_library(area, buf),
             AppView::SettingsAbout => {},
             AppView::SettingsUpdateUninstall => {},
         }
+
+        // The bar goes above the other widgets. Therefore the user sees a
+        // download in every view.
+        App::render_downloads(area, buf);
     }
+}
+
+/// The number of lines of one download bar.
+const DOWNLOAD_BAR_HEIGHT: u16 = 1;
+
+/// The largest number of bars on the screen at the same time.
+const DOWNLOAD_BAR_MAX: usize = 3;
+
+impl App {
+    /// Draws a bar for each download that runs.
+    ///
+    /// The function draws nothing when no download runs. It reads the global
+    /// map of the progress. The download task writes that map.
+    fn render_downloads(area: Rect, buf: &mut Buffer) {
+        let map = crate::logic::download::downloads();
+
+        // A lock that fails must not stop the screen. The function draws
+        // nothing in that condition.
+        let Ok(map) = map.read() else {
+            return;
+        };
+
+        let mut running: Vec<_> = map
+            .values()
+            .filter(|item| item.state == DownloadState::Running)
+            .collect();
+
+        if running.is_empty() {
+            return;
+        }
+
+        // The sequence must be the same for each frame. Therefore the
+        // function sorts by the identity of the download.
+        running.sort_by(|a, b| a.key.cmp(&b.key));
+        running.truncate(DOWNLOAD_BAR_MAX);
+
+        let height = DOWNLOAD_BAR_HEIGHT * running.len() as u16;
+
+        if area.height <= height {
+            return;
+        }
+
+        for (row, item) in running.iter().enumerate() {
+            let line = Rect {
+                x: area.x,
+                y: area.y + area.height - height + row as u16,
+                width: area.width,
+                height: DOWNLOAD_BAR_HEIGHT,
+            };
+
+            let label = if item.file_count > 1 {
+                format!(
+                    " ⬇ {}  file {}/{}  {} / {} ",
+                    shorten(&item.title, 28),
+                    item.file_index,
+                    item.file_count,
+                    megabytes(item.bytes_done),
+                    megabytes(item.bytes_total),
+                )
+            } else {
+                format!(
+                    " ⬇ {}  {} / {} ",
+                    shorten(&item.title, 34),
+                    megabytes(item.bytes_done),
+                    megabytes(item.bytes_total),
+                )
+            };
+
+            Gauge::default()
+                .gauge_style(Style::default().fg(Color::Green).bg(Color::DarkGray))
+                .percent(item.percent())
+                .label(label)
+                .render(line, buf);
+        }
+    }
+}
+
+/// Changes a number of bytes to a text in megabytes.
+fn megabytes(bytes: u64) -> String {
+    format!("{:.1} MB", bytes as f64 / 1_048_576.0)
+}
+
+/// Makes a text shorter. The function adds a full stop character.
+fn shorten(text: &str, width: usize) -> String {
+    if text.chars().count() <= width {
+        return text.to_string();
+    }
+
+    let kept: String = text.chars().take(width.saturating_sub(1)).collect();
+    format!("{}…", kept)
 }
 
 
 /// Rendering logic
-
 impl App {
     /// AppView::Home rendering
     fn render_home(&mut self, area: Rect, buf: &mut Buffer) {
@@ -53,14 +151,14 @@ impl App {
         let items_number = self._titles_cnt_list.len();
         let render_list_title = format!("Continue Listening [{} items]", items_number);
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, D: download offline, X: remove offline, s: series, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
 
-        App::render_header(header_area, buf, self.lib_name_type.clone(), &self.username, &self.server_address_pretty, VERSION, &self.update_msg);
+        self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
         self.render_list(list_area, buf, &render_list_title, &self._titles_cnt_list.clone(), &mut self.list_state_cnt_list.clone());
         if !&self._titles_cnt_list.is_empty() {
-            self.render_info_home(item_area1, buf, &mut self.list_state_cnt_list.clone());
-            self.render_desc_home(item_area2, buf, &mut self.list_state_cnt_list.clone());
+            self.render_info_home(item_area1, buf, &self.list_state_cnt_list.clone());
+            self.render_desc_home(item_area2, buf, &self.list_state_cnt_list.clone());
         }
     }
 
@@ -81,17 +179,211 @@ impl App {
 
         let mut _text_render_footer = "";
         if self.is_podcast {
-        _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"       
+        _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"       
         } else {
-        _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
+        _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, D: download offline, X: remove offline, s: series, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
         }
 
-        App::render_header(header_area, buf, self.lib_name_type.clone(), &self.username, &self.server_address_pretty, VERSION, &self.update_msg);
+        self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, _text_render_footer);
         self.render_list(list_area, buf, &render_list_title, &self.titles_library.clone(), &mut self.list_state_library.clone());
         if !&self.titles_library.is_empty() {
-            self.render_info_library(item_area1, buf, &mut self.list_state_library.clone());
-            self.render_desc_library(item_area2, buf, &mut self.list_state_library.clone());
+            self.render_info_library(item_area1, buf, &self.list_state_library.clone());
+            self.render_desc_library(item_area2, buf, &self.list_state_library.clone());
+        }
+    }
+
+    /// AppView::Series rendering: the list of the series of the library.
+    fn render_series(&mut self, area: Rect, buf: &mut Buffer) {
+        let [header_area, main_area, _player_area, _refresh_area, footer_area] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Fill(1),
+            Constraint::Length(6),
+            Constraint::Length(1),
+            Constraint::Length(2),
+        ]).areas(area);
+
+        let [list_area, item_area1, item_area2] = Layout::vertical([Constraint::Fill(1), Constraint::Length(3), Constraint::Fill(1)]).areas(main_area);
+
+        let text_render_footer = "j/↓, k/↑: move, l/→: books of the series, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+
+        self.render_header(header_area, buf);
+        App::render_footer(footer_area, buf, text_render_footer);
+
+        if self.series.is_empty() {
+            Paragraph::new("This library has no series.\nPress 'h' to go back.")
+                .centered()
+                .block(Block::new().borders(Borders::TOP).border_style(Style::new().fg(Color::DarkGray)))
+                .render(main_area, buf);
+            return;
+        }
+
+        let lines: Vec<String> = self.series.iter().map(|series| series.line()).collect();
+        let render_list_title = format!("Series [{} items]", self.series.len());
+
+        self.render_list(list_area, buf, &render_list_title, &lines, &mut self.list_state_series.clone());
+
+        if let Some(series) = self.selected_series() {
+            let books = series.books.len();
+            let seconds: f64 = series.books.iter().map(|book| book.duration).sum();
+
+            Paragraph::new(format!(
+                "{} - {} book(s) - Duration: {}",
+                series.name,
+                books,
+                convert_seconds(vec![seconds]).first().cloned().unwrap_or_default(),
+            ))
+                .left_aligned()
+                .render(item_area1, buf);
+
+            Paragraph::new(series.description.clone())
+                .scroll((self.scroll_offset, 0))
+                .wrap(Wrap { trim: true })
+                .render(item_area2, buf);
+        }
+    }
+
+    /// AppView::SeriesBook rendering: the books of one series.
+    fn render_series_book(&mut self, area: Rect, buf: &mut Buffer) {
+        let [header_area, main_area, _player_area, _refresh_area, footer_area] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Fill(1),
+            Constraint::Length(6),
+            Constraint::Length(1),
+            Constraint::Length(2),
+        ]).areas(area);
+
+        let [list_area, item_area1, item_area2] = Layout::vertical([Constraint::Fill(1), Constraint::Length(3), Constraint::Fill(1)]).areas(main_area);
+
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+
+        self.render_header(header_area, buf);
+        App::render_footer(footer_area, buf, text_render_footer);
+
+        let Some(series) = self.selected_series() else {
+            return;
+        };
+
+        let name = series.name.clone();
+        let lines: Vec<String> = series.books.iter().map(|book| book.line()).collect();
+        let render_list_title = format!("{} [{} items]", name, lines.len());
+
+        self.render_list(list_area, buf, &render_list_title, &lines, &mut self.list_state_series_book.clone());
+
+        if let Some(book) = self.selected_series_book() {
+            let is_offline = crate::db::crud::get_download(&book.id, &self.username).is_some();
+
+            Paragraph::new(format!(
+                "Author: {} - Duration: {}{}",
+                book.author,
+                convert_seconds(vec![book.duration]).first().cloned().unwrap_or_default(),
+                if is_offline { " - [Downloaded]" } else { "" },
+            ))
+                .left_aligned()
+                .render(item_area1, buf);
+
+            Paragraph::new(book.description.clone())
+                .scroll((self.scroll_offset, 0))
+                .wrap(Wrap { trim: true })
+                .render(item_area2, buf);
+        }
+    }
+
+    /// AppView::Lists rendering: the collections and the playlists.
+    fn render_lists(&mut self, area: Rect, buf: &mut Buffer) {
+        let [header_area, main_area, _player_area, _refresh_area, footer_area] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Fill(1),
+            Constraint::Length(6),
+            Constraint::Length(1),
+            Constraint::Length(2),
+        ]).areas(area);
+
+        let [list_area, item_area1, item_area2] = Layout::vertical([Constraint::Fill(1), Constraint::Length(3), Constraint::Fill(1)]).areas(main_area);
+
+        let text_render_footer = "j/↓, k/↑: move, l/→: contents, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+
+        self.render_header(header_area, buf);
+        App::render_footer(footer_area, buf, text_render_footer);
+
+        if self.lists.is_empty() {
+            Paragraph::new("This library has no collection and no playlist.\nPress 'h' to go back.")
+                .centered()
+                .block(Block::new().borders(Borders::TOP).border_style(Style::new().fg(Color::DarkGray)))
+                .render(main_area, buf);
+            return;
+        }
+
+        let lines: Vec<String> = self.lists.iter().map(|list| list.line()).collect();
+        let render_list_title = format!("Collections and playlists [{} items]", self.lists.len());
+
+        self.render_list(list_area, buf, &render_list_title, &lines, &mut self.list_state_lists.clone());
+
+        if let Some(list) = self.selected_list() {
+            let seconds: f64 = list.entries.iter().map(|entry| entry.duration).sum();
+
+            Paragraph::new(format!(
+                "{} - {} item(s) - Duration: {}",
+                list.kind.name(),
+                list.entries.len(),
+                convert_seconds(vec![seconds]).first().cloned().unwrap_or_default(),
+            ))
+                .left_aligned()
+                .render(item_area1, buf);
+
+            Paragraph::new(list.description.clone())
+                .scroll((self.scroll_offset, 0))
+                .wrap(Wrap { trim: true })
+                .render(item_area2, buf);
+        }
+    }
+
+    /// AppView::ListEntries rendering: the media of one collection or of one
+    /// playlist.
+    fn render_list_entries(&mut self, area: Rect, buf: &mut Buffer) {
+        let [header_area, main_area, _player_area, _refresh_area, footer_area] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Fill(1),
+            Constraint::Length(6),
+            Constraint::Length(1),
+            Constraint::Length(2),
+        ]).areas(area);
+
+        let [list_area, item_area1, item_area2] = Layout::vertical([Constraint::Fill(1), Constraint::Length(3), Constraint::Fill(1)]).areas(main_area);
+
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+
+        self.render_header(header_area, buf);
+        App::render_footer(footer_area, buf, text_render_footer);
+
+        let Some(list) = self.selected_list() else {
+            return;
+        };
+
+        let lines: Vec<String> = list.entries.iter().map(|entry| entry.line()).collect();
+        let render_list_title = format!("{} [{} items]", list.name.clone(), lines.len());
+
+        self.render_list(list_area, buf, &render_list_title, &lines, &mut self.list_state_list_entries.clone());
+
+        if let Some(entry) = self.selected_list_entry() {
+            // The download of an episode has the identity of the episode.
+            let key = entry.episode_id.clone().unwrap_or_else(|| entry.id.clone());
+            let is_offline = crate::db::crud::get_download(&key, &self.username).is_some();
+
+            Paragraph::new(format!(
+                "{} - Author: {} - Duration: {}{}",
+                if entry.is_episode() { "Episode" } else { "Book" },
+                entry.author,
+                convert_seconds(vec![entry.duration]).first().cloned().unwrap_or_default(),
+                if is_offline { " - [Downloaded]" } else { "" },
+            ))
+                .left_aligned()
+                .render(item_area1, buf);
+
+            Paragraph::new(entry.description.clone())
+                .scroll((self.scroll_offset, 0))
+                .wrap(Wrap { trim: true })
+                .render(item_area2, buf);
         }
     }
 
@@ -121,11 +413,11 @@ impl App {
             _text_render_footer = "j/↓, k/↑: move, l/→: see options,\n Tab: home, R: refresh, Q/Esc: quit.";
         }
 
-        App::render_header(header_area, buf, self.lib_name_type.clone(), &self.username, &self.server_address_pretty, VERSION, &self.update_msg);
+        self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, _text_render_footer);
         self.render_list(list_area, buf, render_list_title, &self.settings.clone(), &mut self.list_state_settings.clone());
-        self.render_info_settings(item_area1, buf, &mut self.list_state_settings.clone());
-        self.render_desc_settings(item_area2, buf, &mut self.list_state_settings.clone());
+        self.render_info_settings(item_area1, buf, &self.list_state_settings.clone());
+        self.render_desc_settings(item_area2, buf, &self.list_state_settings.clone());
     }
 
     /// AppView::SettingsAccount rendering
@@ -143,9 +435,9 @@ impl App {
         let render_list_title = "Settings account";
         let text_render_footer = "h: back, l/→: remove saved user,\n Tab: home, R: refresh, Q/Esc: quit.";
 
-        App::render_header(header_area, buf, self.lib_name_type.clone(), &self.username, &self.server_address_pretty, VERSION, &self.update_msg);
+        self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
-        self.render_list(list_area, buf, render_list_title, &self.all_usernames.clone(), &mut &mut self.list_state_settings_account.clone());
+        self.render_list(list_area, buf, render_list_title, &self.all_usernames.clone(), &mut self.list_state_settings_account.clone() );
         //self.render_selected_item(item_area, buf, &self.titles_library.clone(), self.auth_names_library.clone());
     }
 
@@ -166,10 +458,10 @@ impl App {
 
         let text_render_footer = "h: back, l/→: change library,\n Tab: home, R: refresh, Q/Esc: quit.";
 
-        App::render_header(header_area, buf, self.lib_name_type.clone(), &self.username, &self.server_address_pretty, VERSION, &self.update_msg);
+        self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
         self.render_list(list_area, buf, &render_list_title, &self.libraries_names.clone(), &mut self.list_state_settings_library.clone());
-        self.render_info_settings_library(item_area, buf, &mut self.list_state_settings_library.clone());
+        self.render_info_settings_library(item_area, buf, &self.list_state_settings_library.clone());
     }
 
 
@@ -188,10 +480,10 @@ impl App {
         let render_list_title = "Search result";
         let mut _text_render_footer = "";
         if self.is_podcast {
-        _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n c: lists, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
         } else {
-        _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
-        } 
+        _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, s: series, c: lists, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        }
 
 
         if self.search_mode {
@@ -222,38 +514,38 @@ impl App {
         self.ids_search_book = self.ids_library
             .iter()
             .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(&index))
+            .filter(|(index, _)| index_to_keep.contains(index))
             .map(|(_, value)| value.clone())
             .collect();
         self.auth_names_pod_search_book = self.auth_names_library_pod
             .iter()
             .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(&index))
+            .filter(|(index, _)| index_to_keep.contains(index))
             .map(|(_, value)| value.clone())
             .collect();
         self.auth_names_search_book = self.auth_names_library
             .iter()
             .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(&index))
+            .filter(|(index, _)| index_to_keep.contains(index))
             .map(|(_, value)| value.clone())
             .collect();
         self.published_year_library_search_book = self.published_year_library
             .iter()
             .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(&index))
+            .filter(|(index, _)| index_to_keep.contains(index))
             .map(|(_, value)| value.clone())
             .collect();
         self.desc_library_search_book = self.desc_library
             .iter()
             .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(&index))
+            .filter(|(index, _)| index_to_keep.contains(index))
             .map(|(_, value)| value.clone())
             .collect();
         self.duration_library_search_book = self.duration_library
             .iter()
             .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(&index))
-            .map(|(_, value)| value.clone())
+            .filter(|(index, _)| index_to_keep.contains(index))
+            .map(|(_, value)| *value)
             .collect();
 //        self.book_progress_search_book = self.book_progress_library
 //            .iter()
@@ -278,70 +570,70 @@ impl App {
         self.all_titles_pod_ep_search = self.all_titles_pod_ep
             .iter()
             .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(&index))
+            .filter(|(index, _)| index_to_keep.contains(index))
             .map(|(_, value)| value.clone())
             .collect();
         self.all_ids_pod_ep_search = self.all_ids_pod_ep
             .iter()
             .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(&index))
+            .filter(|(index, _)| index_to_keep.contains(index))
             .map(|(_, value)| value.clone())
             .collect();
         self.all_subtitles_pod_ep_search = self.all_subtitles_pod_ep
             .iter()
             .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(&index))
+            .filter(|(index, _)| index_to_keep.contains(index))
             .map(|(_, value)| value.clone())
             .collect();
         self.all_seasons_pod_ep_search = self.all_seasons_pod_ep
             .iter()
             .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(&index))
+            .filter(|(index, _)| index_to_keep.contains(index))
             .map(|(_, value)| value.clone())
             .collect();
         self.all_episodes_pod_ep_search = self.all_episodes_pod_ep
             .iter()
             .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(&index))
+            .filter(|(index, _)| index_to_keep.contains(index))
             .map(|(_, value)| value.clone())
             .collect();
         self.all_authors_pod_ep_search = self.all_authors_pod_ep
             .iter()
             .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(&index))
+            .filter(|(index, _)| index_to_keep.contains(index))
             .map(|(_, value)| value.clone())
             .collect();
         self.all_descs_pod_ep_search = self.all_descs_pod_ep
             .iter()
             .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(&index))
+            .filter(|(index, _)| index_to_keep.contains(index))
             .map(|(_, value)| value.clone())
             .collect();
         self.all_titles_pod_search = self.all_titles_pod
             .iter()
             .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(&index))
+            .filter(|(index, _)| index_to_keep.contains(index))
             .map(|(_, value)| value.clone())
             .collect();
         self.all_durations_pod_ep_search = self.all_durations_pod_ep
             .iter()
             .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(&index))
+            .filter(|(index, _)| index_to_keep.contains(index))
             .map(|(_, value)| value.clone())
             .collect();
         self.ids_library_pod_search = self.ids_library
             .iter()
             .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(&index))
+            .filter(|(index, _)| index_to_keep.contains(index))
             .map(|(_, value)| value.clone())
             .collect();
 
-        App::render_header(header_area, buf, self.lib_name_type.clone(), &self.username, &self.server_address_pretty, VERSION, &self.update_msg);
+        self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, _text_render_footer);
         self.render_list(list_area, buf, render_list_title, titles_search_book_or_pod, &mut self.list_state_search_results.clone());
         if !titles_search_book_or_pod.is_empty() {
-            self.render_info_search_book(item_area1, buf, &mut &self.list_state_search_results.clone());
-            self.render_desc_search_book(item_area2, buf, &mut &self.list_state_search_results.clone());
+            self.render_info_search_book(item_area1, buf, &self.list_state_search_results.clone() );
+            self.render_desc_search_book(item_area2, buf, &self.list_state_search_results.clone() );
         }
     }
 
@@ -358,9 +650,9 @@ impl App {
         let [list_area, item_area1, item_area2] = Layout::vertical([Constraint::Fill(1), Constraint::Length(3), Constraint::Fill(1)]).areas(main_area);
 
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
 
-        App::render_header(header_area, buf, self.lib_name_type.clone(), &self.username, &self.server_address_pretty, VERSION, &self.update_msg);
+        self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
         let no_episodes_message = "No episodes found for this podcast.\nPress 'h' to go back.";
 
@@ -376,8 +668,8 @@ impl App {
                 let render_list_title = format!("Episodes [{} items]", items_number);
                 // Only render list/info/desc if episodes exist
                 self.render_list(list_area, buf, &render_list_title, &self.titles_pod_ep_search.clone(), &mut self.list_state_pod_ep.clone());
-                self.render_info_pod_ep_search(item_area1, buf, &mut &self.list_state_pod_ep.clone());
-                self.render_desc_pod_ep_search(item_area2, buf, &mut &self.list_state_pod_ep.clone());
+                self.render_info_pod_ep_search(item_area1, buf, &self.list_state_pod_ep.clone() );
+                self.render_desc_pod_ep_search(item_area2, buf, &self.list_state_pod_ep.clone() );
             }
         } else {
             if self.titles_pod_ep.is_empty() {
@@ -391,24 +683,48 @@ impl App {
                 let render_list_title = format!("Episodes [{} items]", items_number);
                 // Only render list/info/desc if episodes exist
                 self.render_list(list_area, buf, &render_list_title, &self.titles_pod_ep.clone(), &mut self.list_state_pod_ep.clone());
-                self.render_info_pod_ep(item_area1, buf, &mut &self.list_state_pod_ep.clone());
-                self.render_desc_pod_ep(item_area2, buf, &mut &self.list_state_pod_ep.clone());
+                self.render_info_pod_ep(item_area1, buf, &self.list_state_pod_ep.clone() );
+                self.render_desc_pod_ep(item_area2, buf, &self.list_state_pod_ep.clone() );
             }
         }
     }
 
     // General functions for rendering 
 
-    fn render_header(area: Rect, buf: &mut Buffer, library_name: String, username: &str, server_address_pretty: &str, version: &str, update_msg: &str) {
-        Paragraph::new(library_name)
+    /// Draws the two lines at the top of the screen.
+    ///
+    /// The offline mode says that the server does not answer, and it gives the
+    /// number of positions that wait for the server. See T-25.
+    fn render_header(&self, area: Rect, buf: &mut Buffer) {
+        Paragraph::new(self.lib_name_type.clone())
             .bold()
             .centered()
             .render(area, buf);
-        Paragraph::new(format!("👋 Connected as {}\n🔗 {}", &username, &server_address_pretty))
+
+        let connection = if self.is_offline {
+            format!("📴 Offline as {}\n🔗 {} does not answer", self.username, self.server_address_pretty)
+        } else {
+            format!("👋 Connected as {}\n🔗 {}", self.username, self.server_address_pretty)
+        };
+
+        Paragraph::new(connection)
             .not_bold()
             .left_aligned()
             .render(area, buf);
-        Paragraph::new(format!("🦜 Toutui v{}\n {}", version, update_msg))
+
+        let notice = if self.is_offline {
+            let waiting = match self.waiting_progress {
+                0 => String::new(),
+                1 => " - 1 position waits".to_string(),
+                count => format!(" - {} positions wait", count),
+            };
+
+            format!("R: try the server again{}", waiting)
+        } else {
+            self.update_msg.clone()
+        };
+
+        Paragraph::new(format!("🦜 Toutui v{}\n {}", VERSION, notice))
             .right_aligned()
             .render(area, buf);
     }
@@ -435,7 +751,7 @@ impl App {
             .bg(Color::Rgb(bg_color_header[0], bg_color_header[1], bg_color_header[2])); 
 
         let block = Block::new()
-            .title(Line::raw(format!("{}", render_list_title)).centered())
+            .title(Line::raw(render_list_title.to_string()).centered())
             .borders(Borders::TOP)
             .border_style(header_style)
             .bg(Color::Rgb(bg_color_block[0], bg_color_block[1], bg_color_block[2]));
@@ -467,21 +783,28 @@ impl App {
         if let Some(selected) = list_state.selected() {
 
             if self.is_podcast {
-                Paragraph::new(format!("[{}] - Author: {} - Episode: {} - Duration: {}", 
-                        self.titles_pod_cnt_list[selected], 
-                        self.authors_pod_cnt_list[selected], 
+                let is_offline = self.ids_ep_cnt_list.get(selected)
+                    .map(|id| crate::db::crud::get_download(id, &self.username).is_some())
+                    .unwrap_or(false);
+
+                Paragraph::new(format!("[{}] - Author: {} - Episode: {} - Duration: {}{}",
+                        self.titles_pod_cnt_list[selected],
+                        self.authors_pod_cnt_list[selected],
                         self.nums_ep_pod_cnt_list[selected],
                         self.durations_pod_cnt_list[selected],
+                        if is_offline { " - [Downloaded]" } else { "" },
                 ))
                     .left_aligned()
                     .render(area, buf);
                 } else {
-                    Paragraph::new(format!("Author: {} - Year: {} - Duration: {}\nProgress: {}%, {} {}", 
-                            self.auth_names_cnt_list[selected], 
-                            self.pub_year_cnt_list[selected], 
-                            duration_cnt_list_conv[selected].to_string(),
+                    let is_offline = crate::db::crud::get_download(&self._ids_cnt_list[selected], &self.username).is_some();
+                    Paragraph::new(format!("Author: {} - Year: {} - Duration: {}{}\nProgress: {}%, {} {}",
+                            self.auth_names_cnt_list[selected],
+                            self.pub_year_cnt_list[selected],
+                            duration_cnt_list_conv[selected],
+                            if is_offline { " - [Downloaded]" } else { "" },
                             self.book_progress_cnt_list[selected][0], // percentage progression
-                            format!("{}",convert_seconds_for_prg(self.duration_cnt_list[selected], self.book_progress_cnt_list_cur_time[selected][0])), // time left
+                            convert_seconds_for_prg(self.duration_cnt_list[selected], self.book_progress_cnt_list_cur_time[selected][0]), // time left
                             self.book_progress_cnt_list[selected][1], // is finished
                     ))
                         .left_aligned()
@@ -502,7 +825,7 @@ impl App {
             }
 
             Paragraph::new(_content.clone())
-                .scroll((self.scroll_offset as u16, 0))
+                .scroll((self.scroll_offset, 0))
                 .wrap(Wrap { trim: true })
                 .render(area, buf);
             }
@@ -521,15 +844,17 @@ impl App {
                     .render(area, buf);
             } 
             else {
-                Paragraph::new(format!("Author: {} - Year: {}", //- Duration: {}\nProgress:{} {}{}", 
-                        self.auth_names_library[selected], 
-                        self.published_year_library[selected], 
+                let is_offline = crate::db::crud::get_download(&self.ids_library[selected], &self.username).is_some();
+                Paragraph::new(format!("Author: {} - Year: {}{}", //- Duration: {}\nProgress:{} {}{}",
+                        self.auth_names_library[selected],
+                        self.published_year_library[selected],
+                        if is_offline { " - [Downloaded]" } else { "" },
 
                         //duration_library_conv[selected],
                         //self.book_progress_library[selected][0], // percentage progression
                         //format!("{}",convert_seconds_for_prg(self.duration_library[selected], self.book_progress_library_cur_time[selected][0])), // time left
                         //self.book_progress_library[selected][1] // is_finished
-                        )) 
+                        ))
                     .left_aligned()
                     .render(area, buf);
             }
@@ -542,7 +867,7 @@ impl App {
         if let Some(selected) = list_state.selected() {
 
             Paragraph::new(self.desc_library[selected].clone())
-                .scroll((self.scroll_offset as u16, 0))
+                .scroll((self.scroll_offset, 0))
                 .wrap(Wrap { trim: true })
                 .render(area, buf);
         }
@@ -582,11 +907,16 @@ impl App {
             if selected < self.episodes_pod_ep.len() && selected < self.durations_pod_ep.len() {
                  // Also check duplicated vectors, though their length depends on n (durations_pod_ep.len())
                  if selected < duplicated_titles.len() && selected < duplicated_authors.len() {
-                    Paragraph::new(format!("[{}] - Author: {} - Episode: {} - Duration: {} ",
+                    let is_offline = self.ids_pod_ep.get(selected)
+                        .map(|id| crate::db::crud::get_download(id, &self.username).is_some())
+                        .unwrap_or(false);
+
+                    Paragraph::new(format!("[{}] - Author: {} - Episode: {} - Duration: {} {}",
                             duplicated_titles[selected].trim(),
                             duplicated_authors[selected].trim(),
                             self.episodes_pod_ep[selected].trim(),
                             self.durations_pod_ep[selected].trim(),
+                            if is_offline { "- [Downloaded]" } else { "" },
                     ))
                         .left_aligned()
                         .render(area, buf);
@@ -612,11 +942,16 @@ impl App {
         let duplicated_authors_search = vec![self.authors_pod_ep_search[0].clone(); n];
         if let Some(selected) = list_state.selected() {
 
-            Paragraph::new(format!("[{}] - Author: {} - Episode: {} - Duration: {} ", 
-                    duplicated_titles_search[selected].trim(), 
-                    duplicated_authors_search[selected].trim(), 
+            let is_offline = self.ids_pod_ep_search.get(selected)
+                .map(|id| crate::db::crud::get_download(id, &self.username).is_some())
+                .unwrap_or(false);
+
+            Paragraph::new(format!("[{}] - Author: {} - Episode: {} - Duration: {} {}",
+                    duplicated_titles_search[selected].trim(),
+                    duplicated_authors_search[selected].trim(),
                     self.episodes_pod_ep_search[selected].trim(),
                     self.durations_pod_ep_search[selected].trim(),
+                    if is_offline { "- [Downloaded]" } else { "" },
             ))
                 .left_aligned()
                 .render(area, buf);
@@ -632,7 +967,7 @@ impl App {
             // Check if index is valid for subtitles vector
             if selected < self.subtitles_pod_ep.len() {
                 Paragraph::new(self.subtitles_pod_ep[selected].clone())
-                    .scroll((self.scroll_offset as u16, 0))
+                    .scroll((self.scroll_offset, 0))
                     .wrap(Wrap { trim: true })
                     .render(area, buf);
             } else {
@@ -650,7 +985,7 @@ impl App {
         if let Some(selected) = list_state.selected() {
 
             Paragraph::new(self.subtitles_pod_ep_search[selected].clone())
-                .scroll((self.scroll_offset as u16, 0))
+                .scroll((self.scroll_offset, 0))
                 .wrap(Wrap { trim: true })
                 .render(area, buf);
         }
@@ -669,14 +1004,18 @@ impl App {
                     .render(area, buf);
             } 
             else {
-                Paragraph::new(format!("Author: {} - Year: {}", //- Duration: {}\nProgress:{} {}{}", 
-                        self.auth_names_search_book[selected], 
-                        self.published_year_library_search_book[selected], 
+                let is_offline = self.ids_search_book.get(selected)
+                    .map(|id| crate::db::crud::get_download(id, &self.username).is_some())
+                    .unwrap_or(false);
+                Paragraph::new(format!("Author: {} - Year: {}{}", //- Duration: {}\nProgress:{} {}{}",
+                        self.auth_names_search_book[selected],
+                        self.published_year_library_search_book[selected],
+                        if is_offline { " - [Downloaded]" } else { "" },
                       //  duration_library_search_book_conv[selected],
                       //  self.book_progress_search_book[selected][0], // percentage progression
                       //  format!("{}",convert_seconds_for_prg(self.duration_library_search_book[selected], self.book_progress_search_book_cur_time[selected][0])), // time left
                       //  self.book_progress_search_book[selected][1] // is finished
-                        )) 
+                        ))
                     .left_aligned()
                     .render(area, buf);
             }
@@ -689,7 +1028,7 @@ impl App {
         if let Some(selected) = list_state.selected() {
 
             Paragraph::new(self.desc_library_search_book[selected].clone())
-                .scroll((self.scroll_offset as u16, 0))
+                .scroll((self.scroll_offset, 0))
                 .wrap(Wrap { trim: true })
                 .render(area, buf);
         }
@@ -737,13 +1076,13 @@ Uninstall:
             Some(1) => {}
             Some(2) => {
                 Paragraph::new(self.changelog.clone())
-                    .scroll((self.scroll_offset as u16, 0))
+                    .scroll((self.scroll_offset, 0))
                     .wrap(Wrap { trim: true })
                     .render(area, buf);
                 }
             Some(3) => {
                 Paragraph::new(instructions)
-                    .scroll((self.scroll_offset as u16, 0))
+                    .scroll((self.scroll_offset, 0))
                     .wrap(Wrap { trim: true })
                     .render(area, buf);
                 }
@@ -771,7 +1110,7 @@ Uninstall:
             color_bg_list = cfg.colors.list_background_color;
             color_alt_bg_list = cfg.colors.list_background_color_alt_row;
         }
-        if i % 2 == 0 {
+        if i.is_multiple_of(2) {
             Color::Rgb(color_bg_list[0], color_bg_list[1], color_bg_list[2])
         } else {
             Color::Rgb(color_alt_bg_list[0], color_alt_bg_list[1], color_alt_bg_list[2])

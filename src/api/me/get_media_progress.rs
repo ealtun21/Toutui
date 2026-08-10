@@ -1,7 +1,6 @@
-use reqwest::Client;
+use crate::api::client::error::ApiError;
+use crate::api::client::ApiClient;
 use serde_json::Value;
-use reqwest::header::AUTHORIZATION;
-use color_eyre::eyre::{Result, Report};
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -27,31 +26,15 @@ pub struct Root {
     pub finished_at: Value,
 }
 
-/// This endpoint retrieves your media progress that is associated with the given library item ID or podcast episode ID.
-/// https://api.audiobookshelf.org/#get-a-media-progress
-
-// get progress for a book
-pub async fn get_book_progress(token: &str, book_id: &String, server_address: String) -> Result<Root> {
-    let client = Client::new();
-    let url = format!("{}/api/me/progress/{}", server_address, book_id);
-
-    // Send GET request
-    let response = client
-        .get(url)
-        .header(AUTHORIZATION, format!("Bearer {}", token))
-        .send()
-        .await?;
-
-    // Check response status
-    if !response.status().is_success() {
-        return Err(Report::new(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    "Failed to fetch data from the API",
-        )));
-    }
-
-    // Deserialize JSON response into Vec<Root>
-    let book_progress: Root = response.json().await?;
-    Ok(book_progress)
+/// Gets the listening progress of one book.
+///
+/// The server gives `404` if the user did not start the book. The caller then
+/// shows an empty progress.
+///
+/// See <https://api.audiobookshelf.org/#get-a-media-progress>.
+pub async fn get_book_progress(client: &ApiClient, book_id: &str) -> Result<Root, ApiError> {
+    client
+        .get_json(&format!("/api/me/progress/{}", book_id))
+        .await
 }
 

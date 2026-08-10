@@ -1,3 +1,2 @@
-pub mod handle_l_book;
-pub mod handle_l_pod;
-pub mod handle_l_pod_home;
+//! The module is empty now. The playback logic is in
+//! `crate::logic::playback`.

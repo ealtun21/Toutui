@@ -1,177 +1,166 @@
-use reqwest::header::{AUTHORIZATION, CONTENT_TYPE};
+//! The requests that write the listening position on the server.
+//!
+//! The endpoint `PATCH /api/me/progress/:id` sets an absolute position.
+//! Therefore the client can send the request a second time without a risk.
+//!
+//! **A property of the server.** A body that holds `isFinished` together with
+//! `progress` and `currentTime` does not always mark the media as finished. A
+//! measurement with Audiobookshelf 2.36.0 on 2026-08-10 shows that the
+//! sequence of the keys changes the result:
+//!
+//! ```text
+//! {"progress":1.0,"isFinished":true,"currentTime":60}  ->  isFinished true
+//! {"currentTime":60,"isFinished":true,"progress":1.0}  ->  isFinished false
+//! ```
+//!
+//! `serde_json` writes the keys in the sequence of the alphabet, thus the
+//! application always made the second body. Therefore the application sends
+//! the position first, and it sends `{"isFinished": true}` in a second
+//! request. That body has one key, and the sequence then has no meaning.
+
+use crate::api::client::error::ApiError;
+use crate::api::client::ApiClient;
 use serde_json::json;
-use std::error::Error;
 
-/// Create/Update Media Progress
-/// This endpoint creates/updates your media progress for a library item or podcast episode.
-/// https://api.audiobookshelf.org/#create-update-media-progress
+/// Calculates the part of the item that the user listened to.
+///
+/// The function gives `0.0` if the duration is not a number, or if the
+/// duration is not more than zero. A division by zero gives a value that JSON
+/// does not accept.
+fn progress_ratio(current_time: u32, duration: &str) -> f32 {
+    let duration_f32 = duration.parse::<f32>().unwrap_or(0.0);
 
-// for a book 
-pub async fn update_media_progress_book(id_library_item: &str, token: Option<&String>, current_time: Option<u32>, duration: &String, server_adress: String) -> Result<(), Box<dyn Error>> {
+    if duration_f32 > 0.0 {
+        current_time as f32 / duration_f32
+    } else {
+        0.0
+    }
+}
 
-    // Build client reqwest
-    let client = reqwest::Client::new();
-
-    // convert data before init progress (float)
-    let duration_f32 = duration.parse::<f32>().unwrap();
-    let current_time_f32: f32 = current_time.unwrap() as f32;
-
-    // init  progress
-    let progress = current_time_f32 / duration_f32 ;
-
-    // json bosy
+/// Sends the listening position of a book to the server.
+///
+/// See <https://api.audiobookshelf.org/#create-update-media-progress>.
+pub async fn update_media_progress_book(
+    client: &ApiClient,
+    id_library_item: &str,
+    current_time: Option<u32>,
+    duration: &str,
+) -> Result<(), ApiError> {
     let body = json!({
-        "progress" : progress,
+        "progress": progress_ratio(current_time.unwrap_or(0), duration),
         "currentTime": current_time,
     });
 
-    // Patch request
-    let _response = client
-        .patch(format!(
-                "{}/api/me/progress/{}", 
-                server_adress,
-                id_library_item
-        ))
-        .header(AUTHORIZATION, format!("Bearer {}", token.unwrap()))
-        .header(CONTENT_TYPE, "application/json")
-        .json(&body)
-        .send()
-        .await?;
-
-    // 
-    //let status = response.status();
-    //let response_text = response.text().await?;
-
-    // println!("Statut: {}", status);
-    // println!("Réponse: {}", response_text);
-
-    Ok(())
+    client
+        .patch_json(&format!("/api/me/progress/{}", id_library_item), &body)
+        .await
 }
 
-// for a book (to mark as finished)
-pub async fn update_media_progress2_book(id_library_item: &str, token: Option<&String>, current_time: Option<u32>, duration: &String, is_finished: bool, server_adress: String) -> Result<(), Box<dyn Error>> {
+/// Sends the listening position of a book, and marks the book as finished.
+///
+/// The function sends two requests. See the note at the start of this module.
+pub async fn update_media_progress2_book(
+    client: &ApiClient,
+    id_library_item: &str,
+    current_time: Option<u32>,
+    duration: &str,
+    is_finished: bool,
+) -> Result<(), ApiError> {
+    update_media_progress_book(client, id_library_item, current_time, duration).await?;
 
-    // Build client reqwest
-    let client = reqwest::Client::new();
+    if !is_finished {
+        return Ok(());
+    }
 
-    // convert data before init progress (float)
-    let duration_f32 = duration.parse::<f32>().unwrap();
-    let current_time_f32: f32 = current_time.unwrap() as f32;
+    client
+        .patch_json(
+            &format!("/api/me/progress/{}", id_library_item),
+            &finished_body(),
+        )
+        .await
+}
 
-    // init  progress
-    let progress = current_time_f32 / duration_f32 ;
+/// Gives the body that marks a media as finished.
+///
+/// The body holds one key. Therefore the sequence of the keys has no meaning,
+/// and the server always marks the media.
+fn finished_body() -> serde_json::Value {
+    json!({ "isFinished": true })
+}
 
-    // json bosy
+/// Sends the listening position of a podcast episode to the server.
+pub async fn update_media_progress_pod(
+    client: &ApiClient,
+    id_library_item: &str,
+    current_time: Option<u32>,
+    duration: &str,
+    ep_id: &str,
+) -> Result<(), ApiError> {
     let body = json!({
-        "progress" : progress,
-        "isFinished" : is_finished,
+        "progress": progress_ratio(current_time.unwrap_or(0), duration),
         "currentTime": current_time,
     });
 
-    // Patch request
-    let _response = client
-        .patch(format!(
-                "{}/api/me/progress/{}",
-                server_adress,
-                id_library_item
-        ))
-        .header(AUTHORIZATION, format!("Bearer {}", token.unwrap()))
-        .json(&body)
-        .send()
-        .await?;
-
-    //
-    //let status = response.status();
-    //let response_text = response.text().await?;
-
-    // println!("Statut: {}", status);
-    // println!("Réponse: {}", response_text);
-
-    Ok(())
+    client
+        .patch_json(
+            &format!("/api/me/progress/{}/{}", id_library_item, ep_id),
+            &body,
+        )
+        .await
 }
 
-// for a podcast : 
-pub async fn update_media_progress_pod(id_library_item: &str , token: Option<&String>, current_time: Option<u32>, duration: &String, ep_id : &str, server_adress: String) -> Result<(), Box<dyn Error>> {
+/// Sends the listening position of a podcast episode, and marks the episode
+/// as finished.
+///
+/// The function sends two requests. See the note at the start of this module.
+pub async fn update_media_progress2_pod(
+    client: &ApiClient,
+    id_library_item: &str,
+    current_time: Option<u32>,
+    duration: &str,
+    is_finished: bool,
+    ep_id: &str,
+) -> Result<(), ApiError> {
+    update_media_progress_pod(client, id_library_item, current_time, duration, ep_id).await?;
 
-    // Build client reqwest
-    let client = reqwest::Client::new();
+    if !is_finished {
+        return Ok(());
+    }
 
-    // convert data before init progress (float)
-    let duration_f32 = duration.parse::<f32>().unwrap();
-    let current_time_f32: f32 = current_time.unwrap() as f32;
-
-    // init  progress
-    let progress = current_time_f32 / duration_f32 ;
-
-    // json bosy
-    let body = json!({
-        "progress" : progress,
-        "currentTime": current_time,
-    });
-
-    // Patch request
-    let _response = client
-        .patch(format!(
-                "{}/api/me/progress/{}/{}", 
-                server_adress,
-                id_library_item, ep_id
-        ))
-        .header(AUTHORIZATION, format!("Bearer {}", token.unwrap()))
-        .header(CONTENT_TYPE, "application/json")
-        .json(&body)
-        .send()
-        .await?;
-
-    // 
-    //let status = response.status();
-    //let response_text = response.text().await?;
-
-    // println!("Statut: {}", status);
-    // println!("Réponse: {}", response_text);
-
-    Ok(())
+    client
+        .patch_json(
+            &format!("/api/me/progress/{}/{}", id_library_item, ep_id),
+            &finished_body(),
+        )
+        .await
 }
 
-// for a podcast (to mark as finished) : 
-pub async fn update_media_progress2_pod(id_library_item: &str, token: Option<&String>, current_time: Option<u32>, duration: &String, is_finished: bool, ep_id: &str, server_adress: String) -> Result<(), Box<dyn Error>> {
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    // Build client reqwest
-    let client = reqwest::Client::new();
+    #[test]
+    fn the_ratio_is_the_position_divided_by_the_duration() {
+        assert_eq!(progress_ratio(50, "100"), 0.5);
+    }
 
-    // convert data before init progress (float)
-    let duration_f32 = duration.parse::<f32>().unwrap();
-    let current_time_f32: f32 = current_time.unwrap() as f32;
+    /// A duration of zero, or a duration that is not a number, must not make
+    /// an infinite value. JSON does not accept an infinite value.
+    #[test]
+    fn a_bad_duration_gives_zero() {
+        assert_eq!(progress_ratio(50, "0"), 0.0);
+        assert_eq!(progress_ratio(50, "N/A"), 0.0);
+    }
 
-    // init  progress
-    let progress = current_time_f32 / duration_f32 ;
+    /// The body that marks a media must hold one key only. A body with more
+    /// keys does not always mark the media, because the sequence of the keys
+    /// changes the result on the server.
+    #[test]
+    fn the_body_of_the_mark_holds_one_key() {
+        let body = finished_body();
+        let object = body.as_object().expect("the body must be an object");
 
-    // json bosy
-    let body = json!({
-        "progress" : progress,
-        "isFinished" : is_finished,
-        "currentTime": current_time,
-    });
-
-    // Patch request
-    let _response = client
-        .patch(format!(
-                "{}/api/me/progress/{}/{}",
-                server_adress,
-                id_library_item, 
-                ep_id
-        ))
-        .header(AUTHORIZATION, format!("Bearer {}", token.unwrap()))
-        .json(&body)
-        .send()
-        .await?;
-
-    //
-    //let status = response.status();
-    //let response_text = response.text().await?;
-
-    // println!("Statut: {}", status);
-    // println!("Réponse: {}", response_text);
-
-    Ok(())
+        assert_eq!(object.len(), 1);
+        assert_eq!(object.get("isFinished"), Some(&serde_json::json!(true)));
+    }
 }
-

@@ -1,42 +1,55 @@
 use clap::{Arg, Command};
 
+/// The address of the fork. The user reads it in the message below.
+const FORK_URL: &str = "https://github.com/ealtun21/Toutui";
+
+/// The message that `--update` and `--uninstall` give.
+///
+/// The script of the original project installs the original project. Every
+/// address in that script names `AlbanDAVID/Toutui`, and that repository is
+/// archived. Therefore the command took away this fork and put the original
+/// program in its place. The user then lost the corrections of the fork, and
+/// the token came back into the list of processes.
+///
+/// The commands do nothing now. A command that takes away a correction of
+/// security is worse than a command that does nothing. See T-21.
+fn explain(action: &str) {
+    eprintln!("The command --{} does nothing now.", action);
+    eprintln!();
+    eprintln!("That command ran a script of the original project. The original");
+    eprintln!("project is archived, and every address in that script names it.");
+    eprintln!("Therefore the command took away this fork and put the original");
+    eprintln!("program in its place. The token then came back into the list of");
+    eprintln!("processes.");
+    eprintln!();
+    eprintln!("To get a new version, use the repository of the fork:");
+    eprintln!("    {}", FORK_URL);
+}
+
 pub fn clap() {
     let matches = Command::new("toutui")
         .version(env!("CARGO_PKG_VERSION"))
         .arg(
             Arg::new("update")
                 .long("update")
-                .help("Run update script via curl")
+                .help("Not available. It installed the archived original project.")
                 .action(clap::ArgAction::SetTrue),
         )
         .arg(
             Arg::new("uninstall")
                 .long("uninstall")
-                .help("Run uninstall script via curl")
+                .help("Not available. It ran a script of the archived original project.")
                 .action(clap::ArgAction::SetTrue),
         )
         .get_matches();
 
     if matches.get_flag("uninstall") {
-        std::process::Command::new("sh")
-            .arg("-c")
-            .arg(
-                r#"bash -c 'expected_sha256="b5c41bcd3c480fd2ca6ec0031ccecf2cf7cf4ae01f591cad64a320fa7d72331d" export expected_sha256 tmpfile=$(mktemp) && curl -LsSf https://github.com/AlbanDAVID/Toutui/raw/stable/hello_toutui.sh -o "$tmpfile" && bash "$tmpfile" uninstall && rm -f "$tmpfile"'"#,
-            )
-            .status()
-            .expect("failed to run uninstall script");
-        std::process::exit(0);
+        explain("uninstall");
+        std::process::exit(1);
     }
+
     if matches.get_flag("update") {
-        std::process::Command::new("sh")
-            .arg("-c")
-            .arg(
-                r#"bash -c 'expected_sha256="b5c41bcd3c480fd2ca6ec0031ccecf2cf7cf4ae01f591cad64a320fa7d72331d" export expected_sha256 tmpfile=$(mktemp) && curl -LsSf https://github.com/AlbanDAVID/Toutui/raw/stable/hello_toutui.sh -o "$tmpfile" && bash "$tmpfile" update && rm -f "$tmpfile"'"#,
-            )
-            .status()
-            .expect("failed to run update script");
-        std::process::exit(0);
+        explain("update");
+        std::process::exit(1);
     }
-
 }
-

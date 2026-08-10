@@ -1,22 +1,28 @@
-use reqwest::Client; 
-use color_eyre::eyre::Result; 
-use reqwest::header::AUTHORIZATION;
+//! The request that closes an open listening session.
 
-// This endpoint closes an open listening session. Optionally provide sync data to update the session before closing it.
-// https://api.audiobookshelf.org/#close-an-open-session
+use crate::api::client::error::ApiError;
+use crate::api::client::{ApiClient, Idempotent};
+use reqwest::Method;
 
-pub async fn close_session_without_send_prg_data(token: Option<&String>, session_id: &str, server_address: String) -> Result<(), reqwest::Error> {
-    let client = Client::new();
-
-    let _response = client
-        .post(format!(
-                "{}/api/session/{}/close", 
-                server_address,
-                session_id
-        ))
-        .header("Content-Type", "application/json")
-        .header(AUTHORIZATION, format!("Bearer {}", token.unwrap()))
-        .send()
+/// Closes an open listening session.
+///
+/// The request has no body. Therefore the server keeps the position that the
+/// last sync request gave.
+///
+/// The client never sends this request a second time.
+///
+/// See <https://api.audiobookshelf.org/#close-an-open-session>.
+pub async fn close_session_without_send_prg_data(
+    client: &ApiClient,
+    session_id: &str,
+) -> Result<(), ApiError> {
+    client
+        .send(
+            Method::POST,
+            &format!("/api/session/{}/close", session_id),
+            None,
+            Idempotent::No,
+        )
         .await?;
 
     Ok(())

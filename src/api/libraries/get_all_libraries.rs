@@ -1,7 +1,6 @@
-use reqwest::Client;
+use crate::api::client::error::ApiError;
+use crate::api::client::ApiClient;
 use serde_json::Value;
-use reqwest::header::AUTHORIZATION;
-use color_eyre::eyre::{Result, Report};
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -62,28 +61,9 @@ pub struct Settings {
     pub podcast_search_region: Option<String>,
 }
 
-// get all libraries (shelf). A library can be a Podcast or a Book type
-pub async fn get_all_libraries(token: &str, server_address: String) -> Result<Root> {
-    let client = Client::new();
-    let url = format!("{}/api/libraries", server_address);
-
-    // Send GET request
-    let response = client
-        .get(url)
-        .header(AUTHORIZATION, format!("Bearer {}", token))
-        .send()
-        .await?;
-
-    // Check response status
-    if !response.status().is_success() {
-        return Err(Report::new(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    "Failed to fetch data from the API",
-        )));
-    }
-
-    // Deserialize JSON response into Vec<Root>
-    let libraries: Root = response.json().await?;
-
-    Ok(libraries)
+/// Gets all libraries of the server. A library holds books or podcasts.
+///
+/// See <https://api.audiobookshelf.org/#get-all-libraries>.
+pub async fn get_all_libraries(client: &ApiClient) -> Result<Root, ApiError> {
+    client.get_json("/api/libraries").await
 }

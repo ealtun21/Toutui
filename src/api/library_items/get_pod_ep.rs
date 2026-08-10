@@ -1,7 +1,6 @@
-use reqwest::Client;
+use crate::api::client::error::ApiError;
+use crate::api::client::ApiClient;
 use serde_json::Value;
-use reqwest::header::AUTHORIZATION;
-use color_eyre::eyre::{Result, Report};
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -117,30 +116,11 @@ pub struct LibraryFile {
 
 
 
-pub async fn get_pod_ep(token: &str, server_address: String, id: &str) -> Result<Root> {
-    let client = Client::new();
-    let url = format!("{}/api/items/{}", server_address, id);
-
-
-    // Send GET request
-    let response = client
-        .get(url)
-        .header(AUTHORIZATION, format!("Bearer {}", token))
-        .send()
-        .await?;
-
-    // Check response status
-    if !response.status().is_success() {
-        return Err(Report::new(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    "Failed to fetch data from the API",
-        )));
-    }
-
-    // Deserialize JSON response into Vec<Root>
-    let item: Root = response.json().await?;
-
-    Ok(item)
+/// Gets one library item with its podcast episodes.
+///
+/// See <https://api.audiobookshelf.org/#get-a-library-item>.
+pub async fn get_pod_ep(client: &ApiClient, id: &str) -> Result<Root, ApiError> {
+    client.get_json(&format!("/api/items/{}", id)).await
 }
 
 
