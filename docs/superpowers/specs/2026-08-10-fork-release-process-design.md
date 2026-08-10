@@ -359,3 +359,16 @@ Sections 5, 6, and 7 continue to apply, with the name `toutui` in place of
 - The program updates itself. It compares the sum before it moves the binary,
   and it runs no file that it receives.
 - `hello_toutui.sh` becomes a short `install.sh`.
+
+## R5. The version of the first release
+
+The first release is `0.5.0`, and not `0.5.0-beta`. The candidates before it
+are `0.5.0-rc.1`, `0.5.0-rc.2`, and so on.
+
+**The reason.** Semver gives a higher rank to a set of fields of prerelease
+that is larger, if the fields before it agree. Therefore `0.5.0-beta-rc1` and
+`0.5.0-beta.rc1` both rank ABOVE `0.5.0-beta`. A user on a candidate would
+never receive the release. A measurement with the crate `semver` 1 on
+2026-08-10 confirms this order.
+
+`0.5.0-rc.1 < 0.5.0-rc.2 < 0.5.0` gives the correct order at every step.
