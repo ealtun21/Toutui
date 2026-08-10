@@ -36,6 +36,15 @@ impl ApiError {
             ApiError::Unreachable | ApiError::Timeout | ApiError::Server(_)
         )
     }
+
+    /// Tells if the application must use the offline mode.
+    ///
+    /// The server does not answer, thus the application reads the local copy.
+    /// A token that is not valid is a different condition: the server answers,
+    /// and the user must log in again. The offline mode does not help there.
+    pub fn is_offline(&self) -> bool {
+        matches!(self, ApiError::Unreachable | ApiError::Timeout)
+    }
 }
 
 impl fmt::Display for ApiError {
@@ -131,5 +140,20 @@ mod tests {
         assert!(!ApiError::Unauthorized.is_endpoint_fault());
         assert!(!ApiError::Forbidden.is_endpoint_fault());
         assert!(!ApiError::Decode("bad".to_string()).is_endpoint_fault());
+    }
+
+    /// The offline mode starts when no address answers. A server that answers
+    /// with a fault of the request does not start it: the local copy gives no
+    /// help for a token that is not valid.
+    #[test]
+    fn only_an_address_that_does_not_answer_starts_the_offline_mode() {
+        assert!(ApiError::Unreachable.is_offline());
+        assert!(ApiError::Timeout.is_offline());
+
+        assert!(!ApiError::Unauthorized.is_offline());
+        assert!(!ApiError::Forbidden.is_offline());
+        assert!(!ApiError::NotFound.is_offline());
+        assert!(!ApiError::Server(500).is_offline());
+        assert!(!ApiError::Decode("bad".to_string()).is_offline());
     }
 }

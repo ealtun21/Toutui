@@ -85,6 +85,7 @@ impl DownloadTarget {
 /// The function gets the audio files one at a time. A file that is not
 /// complete stays on the disk with the name `.part`. The next call continues
 /// that file.
+#[allow(clippy::too_many_arguments)]
 pub async fn download_with_progress(
     token: Option<String>,
     target: DownloadTarget,
@@ -92,6 +93,7 @@ pub async fn download_with_progress(
     username: String,
     title: String,
     author: String,
+    server_key: String,
     progress: ProgressMap,
 ) {
     let mut stdout = stdout();
@@ -163,6 +165,12 @@ pub async fn download_with_progress(
                 &author,
                 &first,
                 plan.total_duration(),
+                // The offline mode needs the identity of the item, because the
+                // key of an episode is the identity of the episode. See T-25.
+                &plan.item_id,
+                // A user can have an account on more than one server. The
+                // offline list shows the media of one server only.
+                &server_key,
             );
 
             for (file, path) in plan.files.iter().zip(paths.iter()) {

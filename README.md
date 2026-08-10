@@ -66,7 +66,18 @@ Books and podcast episodes can be downloaded locally, so the application reads t
 - A downloaded book or episode is marked `[Downloaded]` in the info panel.
 - Playing a downloaded book or episode (`l`/`Enter`) reads the local file directly. A copy on the disk always has more importance than the server. The application uses the copy on the disk only if the disk holds every audio file of the book; it does not mix the two sources in one book.
 - The application pushes the progress to the server during the playback, thus other Audiobookshelf clients stay in sync.
-- The application still needs the server to start: it asks the server for a playback session. Therefore a download makes the playback quick and saves the network, but it does not give a full offline mode yet. Issue [#25](https://github.com/ealtun21/Toutui/issues/25) holds that work.
+
+### The application with no server
+
+The application starts and plays when the server does not answer:
+
+- The header shows `📴 Offline`, and the Library view holds the media of the disk only. A media that the disk does not hold cannot play, thus the list does not show it.
+- The playback needs no session on the server. The position comes from the local database, and it goes back to the local database for each second.
+- When the playback stops, the position waits in the database. The header counts the positions that wait.
+- The application sends each position as soon as the server answers again, and the user does nothing. The application also does not need a restart: a background task tries every 30 seconds, and it examines the addresses of the server itself.
+- If a different client wrote a newer position while you listened offline, that newer position stays. The application compares its own time with `lastUpdate` of the server.
+- A user with an account on more than one server keeps the media and the positions of each server separate. One server can have many addresses (`[[servers]]` in the configuration file), and every address of that server gives the same result.
+- Press `R` to try the server again at any moment.
 
 ## 📰 Media
 <img src=".github/korben.png" align="top" width="50" alt="Korben"/> Featured on [Korben](https://korben.info/toutui-client-terminal-audiobookshelf.html), a well-known French tech blog covering open source and technology.

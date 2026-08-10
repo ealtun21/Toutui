@@ -9,7 +9,7 @@ use std::env;
 use std::path::PathBuf;
 
 /// The schema version that this build of the program expects.
-pub const LATEST_VERSION: i64 = 4;
+pub const LATEST_VERSION: i64 = 5;
 
 /// Gives the full path of the database file.
 ///
@@ -73,10 +73,74 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
 
     if version < 4 {
         migrate_to_v4(conn)?;
+        version = 4;
         conn.execute_batch("PRAGMA user_version = 4")?;
     }
 
+    if version < 5 {
+        migrate_to_v5(conn)?;
+        conn.execute_batch("PRAGMA user_version = 5")?;
+    }
+
     Ok(())
+}
+
+/// Version 5 adds the table of the progress that waits for the server.
+///
+/// The application plays a local copy when the server does not answer. The
+/// position then goes in this table. The application sends each row when the
+/// server answers again, and it removes the row. See T-25.
+///
+/// The column `server` holds the identity of the server. A user can have an
+/// account on more than one server, and a position must go to the server that
+/// holds the media. One server can have many addresses, thus the identity is
+/// the name of the server, and not one address.
+///
+/// The column `id_pod` holds the identity of the episode. A book has an empty
+/// value. The column `position_s` holds the position in seconds; the name
+/// `current_time` is a keyword of SQLite, and a query then gives the time of
+/// the day. The column `updated_at` holds the time of the local computer in
+/// milliseconds. The application compares that value with `lastUpdate` of the
+/// server, thus a newer position of a different client stays.
+fn migrate_to_v5(conn: &Connection) -> Result<()> {
+    // The table `downloads` holds one row for each download. The key of an
+    // episode is the identity of the episode, and the server needs the
+    // identity of the podcast also. Therefore the row holds both.
+    // A database that has no `downloads` table needs no change. The version 1
+    // makes that table for every new database.
+    if has_table(conn, "downloads")? && !has_column_in(conn, "downloads", "item_id")? {
+        conn.execute(
+            "ALTER TABLE downloads ADD COLUMN item_id TEXT NOT NULL DEFAULT ''",
+            [],
+        )?;
+
+        // A row of an older version is a book. A book has one identity.
+        conn.execute("UPDATE downloads SET item_id = id_item WHERE item_id = ''", [])?;
+    }
+
+    // A user can have an account on more than one server. The row must
+    // therefore name its server. A row of an older version has an empty value,
+    // and the application accepts that row for every server.
+    if has_table(conn, "downloads")? && !has_column_in(conn, "downloads", "server")? {
+        conn.execute(
+            "ALTER TABLE downloads ADD COLUMN server TEXT NOT NULL DEFAULT ''",
+            [],
+        )?;
+    }
+
+    conn.execute_batch(
+        "CREATE TABLE IF NOT EXISTS pending_progress (
+            id_item      TEXT    NOT NULL,
+            username     TEXT    NOT NULL,
+            server       TEXT    NOT NULL DEFAULT '',
+            id_pod       TEXT    NOT NULL DEFAULT '',
+            position_s   REAL    NOT NULL,
+            duration     REAL    NOT NULL,
+            is_finished  INTEGER NOT NULL DEFAULT 0,
+            updated_at   INTEGER NOT NULL,
+            PRIMARY KEY (id_item, username, server, id_pod)
+        );",
+    )
 }
 
 /// Version 1 records the schema that the program had before the migration
@@ -206,6 +270,28 @@ fn migrate_to_v4(conn: &Connection) -> Result<()> {
 }
 
 /// Tells if the table `users` has a column.
+/// Tells if the database has the given table.
+fn has_table(conn: &Connection, table: &str) -> Result<bool> {
+    let count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?1",
+        [table],
+        |row| row.get(0),
+    )?;
+
+    Ok(count > 0)
+}
+
+/// Tells if the given table has the given column.
+fn has_column_in(conn: &Connection, table: &str, name: &str) -> Result<bool> {
+    let count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM pragma_table_info(?1) WHERE name = ?2",
+        [table, name],
+        |row| row.get(0),
+    )?;
+
+    Ok(count == 1)
+}
+
 fn has_column(conn: &Connection, name: &str) -> Result<bool> {
     let count: i64 = conn.query_row(
         "SELECT COUNT(*) FROM pragma_table_info('users') WHERE name = ?1",
@@ -263,6 +349,65 @@ mod tests {
         let conn = Connection::open_in_memory().unwrap();
         run_migrations(&conn).unwrap();
         assert_eq!(table_count(&conn, "download_files"), 1);
+    }
+
+    /// A new database gets the `pending_progress` table.
+    #[test]
+    fn migrations_add_the_pending_progress_table() {
+        let conn = Connection::open_in_memory().unwrap();
+        run_migrations(&conn).unwrap();
+        assert_eq!(table_count(&conn, "pending_progress"), 1);
+    }
+
+    /// The version 5 adds a column to the table `downloads`. A database that
+    /// has no such table must not stop the runner.
+    #[test]
+    fn migration_v5_accepts_a_database_with_no_downloads_table() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch("PRAGMA user_version = 4").unwrap();
+
+        run_migrations(&conn).unwrap();
+
+        assert_eq!(schema_version(&conn).unwrap(), LATEST_VERSION);
+        assert_eq!(table_count(&conn, "pending_progress"), 1);
+    }
+
+    /// A row of an older version is a book. The migration gives it the
+    /// identity of the item.
+    #[test]
+    fn migration_v5_gives_a_book_its_own_identity() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch("PRAGMA user_version = 4").unwrap();
+        conn.execute(
+            "CREATE TABLE downloads (
+                id_item TEXT NOT NULL,
+                username TEXT NOT NULL,
+                title TEXT NOT NULL,
+                author TEXT NOT NULL,
+                file_path TEXT NOT NULL,
+                duration REAL NOT NULL DEFAULT 0,
+                current_time_offline INTEGER NOT NULL DEFAULT 0,
+                downloaded_at TEXT NOT NULL,
+                PRIMARY KEY (id_item, username)
+            )",
+            [],
+        )
+        .unwrap();
+        conn.execute(
+            "INSERT INTO downloads VALUES ('book-1', 'bob', 'A', 'B', '/a', 1.0, 0, 'now')",
+            [],
+        )
+        .unwrap();
+
+        run_migrations(&conn).unwrap();
+
+        let value: String = conn
+            .query_row("SELECT item_id FROM downloads WHERE id_item = 'book-1'", [], |row| {
+                row.get(0)
+            })
+            .unwrap();
+
+        assert_eq!(value, "book-1");
     }
 
     /// The runner does not fail if it runs two times.

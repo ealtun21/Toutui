@@ -129,6 +129,20 @@ async fn main() -> Result<()> {
         // address without a restart.
         api::client::probe::spawn_probe_task(std::sync::Arc::clone(&api));
 
+        // The application plays a local copy when the server does not answer.
+        // This task sends the positions when the server answers again, thus
+        // the user does not start the application again. See T-25.
+        //
+        // A user can have an account on more than one server. The task sends
+        // the positions of this server only.
+        let server_key = config::server_key(&config_file.servers, &server_address);
+
+        toutui::logic::offline::spawn_flush_task(
+            std::sync::Arc::clone(&api),
+            username.clone(),
+            server_key,
+        );
+
         let mut app = App::new(std::sync::Arc::clone(&api)).await?;
         let mut terminal = ratatui::init();
 

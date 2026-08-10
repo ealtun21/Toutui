@@ -225,11 +225,41 @@ The file on the disk agrees with the file on the server, byte for byte. A
 playback of that episode used the file on the disk, and a playback of a
 different episode of the same podcast used the server.
 
-### T-25: the application does not start without the server
+### T-25: the offline mode
 
-The same test stopped the server. The application then showed an empty screen,
-and the copy on the disk gave no help. Issue 25 holds that work. See the
-README.
+The first test of the download stopped the server. The application then showed
+an empty screen, and the copy on the disk gave no help. Three parts correct
+this:
+
+1. **The start.** The first request of `App::new` tells the condition. An
+   address that does not answer gives `ApiError::Unreachable` or
+   `ApiError::Timeout`, and the application then makes its lists from the table
+   `downloads`. A fault of the request, for example a token that is not valid,
+   does not start the offline mode: the local copy gives no help there.
+2. **The playback.** `play` tries the server first. If the server does not
+   answer, `play_offline` reads the files, the length, and the position from
+   the database. It needs no session on the server.
+3. **The sync.** A position that the server did not take waits in the table
+   `pending_progress`. A background task sends it every 30 seconds. The task
+   examines the addresses of the server itself, because the probe task waits 60
+   seconds and every address has the state `Down` after the offline mode.
+
+**The rule of the merge.** A different client can write a newer position during
+the offline period. The application asks for `lastUpdate` of the server and
+compares it with the local time. The newer position wins. This is the same rule
+as T-4.
+
+**More than one server.** A user can have an account on more than one server,
+and one server can have many addresses. The identity of a server is therefore
+the name in the `[[servers]]` block, and not one address. The tables
+`downloads` and `pending_progress` hold that identity, thus a position of one
+server never goes to a different server. The pool still selects the address
+that has the most importance.
+
+**A trap of SQLite.** The first name of the column of the position was
+`current_time`. That name is a keyword of SQLite, and a query gave the time of
+the day. The row then did not agree with the type, and the application sent no
+position at all. The name is `position_s` now, and a test guards it.
 
 ### T-9: show the playlists and the collections
 

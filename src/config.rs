@@ -130,6 +130,21 @@ pub fn server_name_for_address(servers: &[ServerConfig], stored_address: &str) -
         .map(|server| server.name.clone())
 }
 
+/// Gives the identity of the server that holds the stored address.
+///
+/// One server can have many addresses, and the pool changes between them. The
+/// identity must therefore not be one address: a position of a local address
+/// and a position of a public address belong to the same server.
+///
+/// The function gives the name of the configured server. A server that the
+/// configuration file does not name gives its address. Two servers then never
+/// have the same identity, and the application does not send the position of
+/// one server to a different server. See T-25.
+pub fn server_key(servers: &[ServerConfig], stored_address: &str) -> String {
+    server_name_for_address(servers, stored_address)
+        .unwrap_or_else(|| normalise(stored_address).to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -227,5 +242,40 @@ endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
 
         let servers: Vec<ServerConfig> = parsed.get("servers").unwrap_or_default();
         assert_eq!(servers.len(), 1);
+    }
+
+    /// Every address of one server gives the same identity. A position that
+    /// the user made on the local address therefore goes to the same server
+    /// through the public address.
+    #[test]
+    fn every_address_of_a_server_gives_the_same_identity() {
+        let list = servers();
+
+        let first = server_key(&list, "http://192.168.1.10:13378");
+        let second = server_key(&list, "https://abs.example.com");
+
+        assert_eq!(first, "home");
+        assert_eq!(second, "home");
+    }
+
+    /// A server that the configuration file does not name gives its address.
+    #[test]
+    fn a_server_that_is_not_configured_gives_its_address() {
+        assert_eq!(
+            server_key(&servers(), "http://other:13378/"),
+            "http://other:13378"
+        );
+        assert_eq!(server_key(&[], "http://only"), "http://only");
+    }
+
+    /// Two servers must never have the same identity.
+    #[test]
+    fn two_servers_have_two_identities() {
+        let list = servers();
+
+        assert_ne!(
+            server_key(&list, "http://localhost:13378"),
+            server_key(&list, "http://second-server:13378")
+        );
     }
 }

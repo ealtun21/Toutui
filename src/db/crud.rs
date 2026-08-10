@@ -568,16 +568,20 @@ pub fn init_db() -> Result<()> {
 }
 
 // Insert (or replace) a downloaded item (for `downloads` table)
-pub fn insert_download(id_item: &str, username: &str, title: &str, author: &str, file_path: &str, duration: f64) -> Result<()> {
+/// The parameter `id_item` is the key of the download: the item of a book, or
+/// the episode of a podcast. The parameter `item_id` is always the identity of
+/// the library item, because the server needs that value for the progress.
+#[allow(clippy::too_many_arguments)]
+pub fn insert_download(id_item: &str, username: &str, title: &str, author: &str, file_path: &str, duration: f64, item_id: &str, server: &str) -> Result<()> {
 
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
 
         conn.execute(
-            "INSERT OR REPLACE INTO downloads (id_item, username, title, author, file_path, duration, current_time_offline, downloaded_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0, datetime('now'))",
-            params![id_item, username, title, author, file_path, duration],
+            "INSERT OR REPLACE INTO downloads (id_item, username, title, author, file_path, duration, current_time_offline, downloaded_at, item_id, server)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0, datetime('now'), ?7, ?8)",
+            params![id_item, username, title, author, file_path, duration, item_id, server],
         )?;
     } else {
         let mut stdout = stdout();
@@ -704,3 +708,352 @@ pub fn delete_download(id_item: &str, username: &str) -> Result<()> {
 }
 
 
+
+/// One media that the user downloaded.
+///
+/// The offline mode makes its lists from these rows, because the server gives
+/// no answer. See T-25.
+#[derive(Debug, Clone, PartialEq)]
+pub struct DownloadRow {
+    /// The identity of the download. It is the item for a book, and the
+    /// episode for one episode of a podcast.
+    pub key: String,
+    /// The identity of the library item. It is the podcast for an episode.
+    pub item_id: String,
+    pub title: String,
+    pub author: String,
+    pub file_path: String,
+    pub duration: f64,
+    /// The position of the local playback, in seconds.
+    pub current_time: u32,
+}
+
+/// Gives every download of one user on one server, with the newest first.
+///
+/// A row of an older version has no server, and it belongs to the server that
+/// the user has now.
+pub fn get_all_downloads(username: &str, server: &str) -> Vec<DownloadRow> {
+    let Ok(conn) = crate::db::migrate::open_conn() else {
+        return Vec::new();
+    };
+
+    let Ok(mut stmt) = conn.prepare(
+        "SELECT id_item, title, author, file_path, duration, current_time_offline, item_id
+         FROM downloads
+         WHERE username = ?1 AND (server = ?2 OR server = '')
+         ORDER BY downloaded_at DESC, title",
+    ) else {
+        return Vec::new();
+    };
+
+    let rows = stmt.query_map(params![username, server], |row| {
+        Ok(DownloadRow {
+            key: row.get::<_, String>(0)?,
+            title: row.get::<_, String>(1)?,
+            author: row.get::<_, String>(2)?,
+            file_path: row.get::<_, String>(3)?,
+            duration: row.get::<_, f64>(4)?,
+            current_time: row.get::<_, u32>(5)?,
+            item_id: row.get::<_, String>(6)?,
+        })
+    });
+
+    match rows {
+        Ok(rows) => rows.filter_map(|row| row.ok()).collect(),
+        Err(_) => Vec::new(),
+    }
+}
+
+/// Gives one download by its key.
+pub fn get_download_row(key: &str, username: &str) -> Option<DownloadRow> {
+    let conn = crate::db::migrate::open_conn().ok()?;
+
+    let mut stmt = conn
+        .prepare(
+            "SELECT id_item, title, author, file_path, duration, current_time_offline, item_id
+             FROM downloads WHERE id_item = ?1 AND username = ?2",
+        )
+        .ok()?;
+
+    stmt.query_row(params![key, username], |row| {
+        Ok(DownloadRow {
+            key: row.get::<_, String>(0)?,
+            title: row.get::<_, String>(1)?,
+            author: row.get::<_, String>(2)?,
+            file_path: row.get::<_, String>(3)?,
+            duration: row.get::<_, f64>(4)?,
+            current_time: row.get::<_, u32>(5)?,
+            item_id: row.get::<_, String>(6)?,
+        })
+    })
+    .ok()
+}
+
+/// One position that waits for the server.
+#[derive(Debug, Clone, PartialEq)]
+pub struct PendingProgress {
+    /// The identity of the library item.
+    pub id_item: String,
+    /// The identity of the episode. A book has an empty value.
+    pub id_pod: String,
+    pub current_time: f64,
+    pub duration: f64,
+    pub is_finished: bool,
+    /// The time of the local computer in milliseconds.
+    pub updated_at: i64,
+}
+
+/// The statement that writes a position that waits for the server.
+///
+/// The name of a column must not be a keyword of SQLite. `current_time` is a
+/// keyword: a query then gives the time of the day, and not the value of the
+/// row. The test `a_pending_position_comes_back_as_a_number` guards this.
+const INSERT_PENDING: &str = "INSERT OR REPLACE INTO pending_progress
+     (id_item, username, server, id_pod, position_s, duration, is_finished, updated_at)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)";
+
+/// The statement that reads the positions that wait for the server.
+/// The application sends the rows of one server only. A row of an older
+/// version has an empty value, and it belongs to the server that the user has
+/// now.
+const SELECT_PENDING: &str = "SELECT id_item, id_pod, position_s, duration, is_finished, updated_at
+     FROM pending_progress
+     WHERE username = ?1 AND (server = ?2 OR server = '')
+     ORDER BY updated_at";
+
+/// Writes a position that waits for the server.
+///
+/// A newer position of the same media replaces the older position. The
+/// application sends the last position only.
+pub fn insert_pending_progress(
+    username: &str,
+    server: &str,
+    progress: &PendingProgress,
+) -> Result<()> {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
+        conn.execute(
+            INSERT_PENDING,
+            params![
+                progress.id_item,
+                username,
+                server,
+                progress.id_pod,
+                progress.current_time,
+                progress.duration,
+                if progress.is_finished { 1 } else { 0 },
+                progress.updated_at,
+            ],
+        )?;
+    } else {
+        error!("[insert_pending_progress] Error connecting to the database.");
+    }
+
+    Ok(())
+}
+
+/// Gives every position that waits for the given server, with the oldest
+/// first.
+pub fn get_pending_progress(username: &str, server: &str) -> Vec<PendingProgress> {
+    let Ok(conn) = crate::db::migrate::open_conn() else {
+        return Vec::new();
+    };
+
+    let Ok(mut stmt) = conn.prepare(SELECT_PENDING) else {
+        return Vec::new();
+    };
+
+    let rows = stmt.query_map(params![username, server], |row| {
+        Ok(PendingProgress {
+            id_item: row.get::<_, String>(0)?,
+            id_pod: row.get::<_, String>(1)?,
+            current_time: row.get::<_, f64>(2)?,
+            duration: row.get::<_, f64>(3)?,
+            is_finished: row.get::<_, i64>(4)? != 0,
+            updated_at: row.get::<_, i64>(5)?,
+        })
+    });
+
+    match rows {
+        Ok(rows) => rows.filter_map(|row| row.ok()).collect(),
+        Err(_) => Vec::new(),
+    }
+}
+
+/// Removes a position that the server has now.
+pub fn delete_pending_progress(username: &str, id_item: &str, id_pod: &str) -> Result<()> {
+    if let Ok(conn) = crate::db::migrate::open_conn() {
+        conn.execute(
+            "DELETE FROM pending_progress WHERE username = ?1 AND id_item = ?2 AND id_pod = ?3",
+            params![username, id_item, id_pod],
+        )?;
+    } else {
+        error!("[delete_pending_progress] Error connecting to the database.");
+    }
+
+    Ok(())
+}
+
+/// Gives the number of positions that wait for the given server.
+pub fn count_pending_progress(username: &str, server: &str) -> usize {
+    let Ok(conn) = crate::db::migrate::open_conn() else {
+        return 0;
+    };
+
+    conn.query_row(
+        "SELECT COUNT(*) FROM pending_progress
+         WHERE username = ?1 AND (server = ?2 OR server = '')",
+        params![username, server],
+        |row| row.get::<_, i64>(0),
+    )
+    .unwrap_or(0) as usize
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rusqlite::Connection;
+
+    /// The two statements of the table `pending_progress` must give a number
+    /// back.
+    ///
+    /// A column with the name `current_time` gave the time of the day,
+    /// because that name is a keyword of SQLite. The row then did not agree
+    /// with the type, and the application sent no position at all.
+    #[test]
+    fn a_pending_position_comes_back_as_a_number() {
+        let conn = Connection::open_in_memory().unwrap();
+        crate::db::migrate::run_migrations(&conn).unwrap();
+
+        conn.execute(
+            INSERT_PENDING,
+            params!["item-1", "bob", "home", "", 61.5_f64, 120.0_f64, 1_i64, 1_700_000_000_000_i64],
+        )
+        .unwrap();
+
+        let mut stmt = conn.prepare(SELECT_PENDING).unwrap();
+
+        let rows: Vec<(String, String, f64, f64, i64, i64)> = stmt
+            .query_map(params!["bob", "home"], |row| {
+                Ok((
+                    row.get::<_, String>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, f64>(2)?,
+                    row.get::<_, f64>(3)?,
+                    row.get::<_, i64>(4)?,
+                    row.get::<_, i64>(5)?,
+                ))
+            })
+            .unwrap()
+            .map(|row| row.unwrap())
+            .collect();
+
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].0, "item-1");
+        assert_eq!(rows[0].2, 61.5);
+        assert_eq!(rows[0].3, 120.0);
+        assert_eq!(rows[0].4, 1);
+        assert_eq!(rows[0].5, 1_700_000_000_000);
+    }
+
+    /// A newer position of the same media replaces the older position.
+    #[test]
+    fn a_newer_position_replaces_the_older_position() {
+        let conn = Connection::open_in_memory().unwrap();
+        crate::db::migrate::run_migrations(&conn).unwrap();
+
+        for position in [10.0_f64, 40.0_f64] {
+            conn.execute(
+                INSERT_PENDING,
+                params!["item-1", "bob", "home", "", position, 120.0_f64, 0_i64, 1_i64],
+            )
+            .unwrap();
+        }
+
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM pending_progress", [], |row| row.get(0))
+            .unwrap();
+        let value: f64 = conn
+            .query_row("SELECT position_s FROM pending_progress", [], |row| row.get(0))
+            .unwrap();
+
+        assert_eq!(count, 1);
+        assert_eq!(value, 40.0);
+    }
+
+    /// The same media on two servers gives two rows, and the application reads
+    /// the rows of one server only. A position must never go to a different
+    /// server.
+    #[test]
+    fn two_servers_keep_two_separate_positions() {
+        let conn = Connection::open_in_memory().unwrap();
+        crate::db::migrate::run_migrations(&conn).unwrap();
+
+        for (server, position) in [("home", 10.0_f64), ("work", 20.0_f64)] {
+            conn.execute(
+                INSERT_PENDING,
+                params!["item-1", "bob", server, "", position, 120.0_f64, 0_i64, 1_i64],
+            )
+            .unwrap();
+        }
+
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM pending_progress", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(count, 2);
+
+        let mut stmt = conn.prepare(SELECT_PENDING).unwrap();
+        let positions: Vec<f64> = stmt
+            .query_map(params!["bob", "work"], |row| row.get::<_, f64>(2))
+            .unwrap()
+            .map(|row| row.unwrap())
+            .collect();
+
+        assert_eq!(positions, vec![20.0]);
+    }
+
+    /// A row of an older version has no server. The application must still
+    /// send it.
+    #[test]
+    fn a_row_with_no_server_belongs_to_the_server_of_now() {
+        let conn = Connection::open_in_memory().unwrap();
+        crate::db::migrate::run_migrations(&conn).unwrap();
+
+        conn.execute(
+            INSERT_PENDING,
+            params!["item-1", "bob", "", "", 30.0_f64, 120.0_f64, 0_i64, 1_i64],
+        )
+        .unwrap();
+
+        let mut stmt = conn.prepare(SELECT_PENDING).unwrap();
+        let count = stmt
+            .query_map(params!["bob", "any-server"], |row| row.get::<_, f64>(2))
+            .unwrap()
+            .count();
+
+        assert_eq!(count, 1);
+    }
+
+    /// A book and an episode of the same podcast are two separate rows.
+    #[test]
+    fn an_episode_and_a_book_are_two_rows() {
+        let conn = Connection::open_in_memory().unwrap();
+        crate::db::migrate::run_migrations(&conn).unwrap();
+
+        conn.execute(
+            INSERT_PENDING,
+            params!["pod-1", "bob", "home", "ep-1", 10.0_f64, 120.0_f64, 0_i64, 1_i64],
+        )
+        .unwrap();
+        conn.execute(
+            INSERT_PENDING,
+            params!["pod-1", "bob", "home", "ep-2", 20.0_f64, 120.0_f64, 0_i64, 2_i64],
+        )
+        .unwrap();
+
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM pending_progress", [], |row| row.get(0))
+            .unwrap();
+
+        assert_eq!(count, 2);
+    }
+}

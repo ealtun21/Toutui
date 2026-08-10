@@ -1,9 +1,10 @@
 use crate::api::client::ApiClient;
-use crate::db::crud::*;
-use crate::api::sessions::close_open_session::*;
-use log::{info, warn};
 use crate::api::me::update_media_progress::*;
+use crate::api::sessions::close_open_session::*;
+use crate::db::crud::*;
+use crate::logic::offline::remember_progress;
 use crate::utils::exit_app::*;
+use log::{info, warn};
 
 /// Closes the listening session that the database holds, and sends the last
 /// position to the server.
@@ -13,15 +14,19 @@ use crate::utils::exit_app::*;
 ///
 /// The application decodes the audio itself. Therefore this function does not
 /// stop a separate program. The caller stops the engine.
+///
+/// A server that does not answer must not lose the position. The function
+/// keeps the position in the table `pending_progress`, and the application
+/// sends it when the server answers again. See T-25.
 pub async fn sync_session_from_database(
     api: &ApiClient,
     username: String,
+    server: String,
     app_quit: bool,
     handle_key: &str,
 ) {
     match get_listening_session() {
         Ok(Some(session)) => {
-
             if let Err(error) =
                 close_session_without_send_prg_data(api, session.id_session.as_str()).await
             {
@@ -34,86 +39,97 @@ pub async fn sync_session_from_database(
                 _ => {}
             }
 
-            if session.id_pod.is_empty() {
-                if !session.is_finished {
-                    if let Err(error) = update_media_progress_book(
-                        api,
-                        session.id_item.as_str(),
-                        Some(session.current_time),
-                        &session.duration).await
-                    {
-                        warn!("[sync_session_from_database] the server did not accept the position: {}", error);
-                    }
-
-                    match handle_key {
-                        "Q" => info!("[handle_key (Q)][book][Quit] Item {} closed at {:?}s (not finished)", session.id_item, session.current_time),
-                        "l" => info!("[handle_key (l)] Item {} closed at {:?}s (not finished)", session.id_item, session.current_time),
-                        _ => {}
-                    }
-                }
-
-                else {
-                    let is_finished = true;
-                    if let Err(error) = update_media_progress2_book(
-                        api,
-                        session.id_item.as_str(),
-                        Some(session.current_time),
-                        &session.duration,
-                        is_finished).await
-                    {
-                        warn!("[sync_session_from_database] the server did not accept the position: {}", error);
-                    }
-
-                    match handle_key {
-                        "Q" => info!("[handle_key (Q)][book][Quit] Item {} closed at {:?}s (finished)", session.id_item, session.current_time),
-                        "l" => info!("[handle_key (l)] Item {} closed at {:?}s (finished)", session.id_item, session.current_time),
-                        _ => {}
-                    }
-                }
-
+            let episode = if session.id_pod.is_empty() {
+                None
             } else {
-                if !session.is_finished {
-                    if let Err(error) = update_media_progress_pod(
+                Some(session.id_pod.as_str())
+            };
+
+            let result = match (episode, session.is_finished) {
+                (Some(episode), true) => {
+                    update_media_progress2_pod(
                         api,
                         session.id_item.as_str(),
                         Some(session.current_time),
                         &session.duration,
-                        session.id_pod.as_str()).await
-                    {
-                        warn!("[sync_session_from_database] the server did not accept the position: {}", error);
-                    }
-
-
-                    match handle_key {
-                        "Q" => info!("[handle_key (Q)][podcast][Quit] Item {} closed at {:?}s", session.id_pod, session.current_time),
-                        "l" => info!("[handle_key (l)] Item {} closed at {:?}s", session.id_pod, session.current_time),
-                        _ => {}
-                    }
-                } else {
-                    let is_finished = true;
-                    if let Err(error) = update_media_progress2_pod(
+                        true,
+                        episode,
+                    )
+                    .await
+                }
+                (Some(episode), false) => {
+                    update_media_progress_pod(
                         api,
                         session.id_item.as_str(),
                         Some(session.current_time),
                         &session.duration,
-                        is_finished,
-                        session.id_pod.as_str()).await
-                    {
-                        warn!("[sync_session_from_database] the server did not accept the position: {}", error);
-                    }
+                        episode,
+                    )
+                    .await
+                }
+                (None, true) => {
+                    update_media_progress2_book(
+                        api,
+                        session.id_item.as_str(),
+                        Some(session.current_time),
+                        &session.duration,
+                        true,
+                    )
+                    .await
+                }
+                (None, false) => {
+                    update_media_progress_book(
+                        api,
+                        session.id_item.as_str(),
+                        Some(session.current_time),
+                        &session.duration,
+                    )
+                    .await
+                }
+            };
 
-                    match handle_key {
-                        "Q" => info!("[handle_key (Q)][podcast][Quit] Item {} closed at {:?}s (finished)", session.id_pod, session.current_time),
-                        "l" => info!("[handle_key (l)] Item {} closed at {:?}s (finished)", session.id_pod, session.current_time),
-                        _ => {}
-                    }
+            if let Err(error) = result {
+                warn!("[sync_session_from_database] the server did not accept the position: {}", error);
+
+                // The server does not answer. The position waits in the
+                // database, and the application sends it later.
+                if error.is_offline() {
+                    remember_progress(
+                        &username,
+                        &server,
+                        session.id_item.as_str(),
+                        episode,
+                        session.current_time as f64,
+                        session.duration.parse::<f64>().unwrap_or(0.0),
+                        session.is_finished,
+                    );
                 }
             }
 
-            // The session is closed and the server has the position. Remove
-            // the row, so that the application does not send this position
-            // again at the next start. A different client can write a newer
-            // position, and that position must stay. See T-4.
+            let kind = if episode.is_some() { "podcast" } else { "book" };
+            let state = if session.is_finished {
+                "finished"
+            } else {
+                "not finished"
+            };
+
+            match handle_key {
+                "Q" => info!(
+                    "[handle_key (Q)][{}][Quit] Item {} closed at {:?}s ({})",
+                    kind, session.id_item, session.current_time, state
+                ),
+                "l" => info!(
+                    "[handle_key (l)][{}] Item {} closed at {:?}s ({})",
+                    kind, session.id_item, session.current_time, state
+                ),
+                _ => {}
+            }
+
+            // The session is closed and the position is safe: the server has
+            // it, or the table `pending_progress` holds it. Remove the row, so
+            // that the application does not send this position again at the
+            // next start. A different client can write a newer position, and
+            // that position must stay. See T-4.
             let _ = delete_listening_session();
 
             if app_quit {
@@ -138,4 +154,3 @@ pub async fn sync_session_from_database(
         }
     }
 }
-

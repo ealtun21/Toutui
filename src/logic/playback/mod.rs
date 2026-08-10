@@ -13,6 +13,7 @@ use crate::api::me::update_media_progress::*;
 use crate::api::sessions::close_open_session::*;
 use crate::api::sessions::sync_open_session::*;
 use crate::db::crud::*;
+use crate::logic::offline::{remember_progress, tracks_from_downloads};
 use crate::logic::sync_session::sync_session_from_database::*;
 use crate::logic::sync_session::wait_prev_session_finished::*;
 use crate::player::engine::source::{TrackSource, select_sources};
@@ -159,6 +160,7 @@ pub async fn play(
     target: PlaybackTarget,
     username: String,
     server_address: String,
+    server_key: String,
 ) {
     // The engine stops the media that plays now. There is no separate
     // program, thus the application does not stop a process.
@@ -171,7 +173,7 @@ pub async fn play(
 
     // If the application stopped without a correct exit, close the last
     // session now.
-    sync_session_from_database(api, username.clone(), false, "l").await;
+    sync_session_from_database(api, username.clone(), server_key.clone(), false, "l").await;
 
     let item_id = target.item_id().to_string();
 
@@ -183,6 +185,13 @@ pub async fn play(
 
     let info_item = match info_item {
         Ok(value) => value,
+        // The server does not answer. A copy on the disk still plays. See
+        // T-25.
+        Err(error) if error.is_offline() => {
+            warn!("[play] the server does not answer: {}. The offline mode starts.", error);
+            play_offline(player, &target, username, server_key, &mut stdout).await;
+            return;
+        }
         Err(error) => {
             error!("[play] the server did not start the session: {}", error);
             let _ = clear_message(&mut stdout, 3);
@@ -295,6 +304,162 @@ pub async fn play(
         total_duration,
     )
     .await;
+}
+
+/// Plays a local copy when the server does not answer.
+///
+/// The function needs no session on the server. It reads the files, the
+/// length, and the position from the database. It writes the position to the
+/// database, and it keeps that position for the server. See T-25.
+async fn play_offline(
+    player: &PlayerHandle,
+    target: &PlaybackTarget,
+    username: String,
+    server: String,
+    stdout: &mut std::io::Stdout,
+) {
+    let selected = target.item_id().to_string();
+
+    // The download of an episode has the identity of the episode.
+    let key = target.episode_id().unwrap_or(&selected).to_string();
+
+    let Some(row) = get_download_row(&key, &username) else {
+        error!("[play] the disk has no copy of {}", key);
+        let _ = pop_message(
+            stdout,
+            3,
+            "The server does not answer, and the disk has no copy of this media.",
+        );
+        return;
+    };
+
+    let Some(tracks) = tracks_from_downloads(&key, &username) else {
+        error!("[play] the disk has no audio file of {}", key);
+        let _ = pop_message(
+            stdout,
+            3,
+            "The server does not answer, and the disk has no audio file of this media.",
+        );
+        return;
+    };
+
+    let track_list: Vec<Track> = (0..tracks.len())
+        .filter_map(|index| tracks.get(index).cloned())
+        .collect();
+
+    let sources: Vec<TrackSource> = track_list
+        .iter()
+        .filter_map(|track| {
+            get_download_files(&key, &username)
+                .into_iter()
+                .find(|(index, _, _)| *index == track.index)
+                .map(|(_, path, _)| TrackSource::Local(std::path::PathBuf::from(path)))
+        })
+        .collect();
+
+    if sources.len() != track_list.len() {
+        error!("[play] the disk does not hold every file of {}", key);
+        let _ = pop_message(stdout, 3, "The disk does not hold every file of this media.");
+        return;
+    }
+
+    // The row holds the identity of the library item. The key of an episode is
+    // the identity of the episode, and the server needs both values. Therefore
+    // the offline mode reads them from the row, and not from the view.
+    let item_id = if row.item_id.is_empty() {
+        key.clone()
+    } else {
+        row.item_id.clone()
+    };
+
+    let episode_id = if item_id == key { None } else { Some(key.clone()) };
+
+    // The length of the download has more importance, because the tracks of a
+    // book with one file give the same value.
+    let total_duration = if row.duration > 0.0 {
+        row.duration
+    } else {
+        tracks.total_duration()
+    };
+
+    let speed = get_speed_rate(&username).parse::<f32>().unwrap_or(1.0);
+
+    let request = PlaybackRequest {
+        item_id: item_id.clone(),
+        title: row.title.clone(),
+        author: row.author.clone(),
+        username: username.clone(),
+        tracks,
+        sources,
+        start_position: row.current_time as f64,
+        speed,
+    };
+
+    info!(
+        "[play] the offline mode plays {} at {} seconds with {} track(s)",
+        row.title,
+        row.current_time,
+        request.tracks.len()
+    );
+
+    player.send(PlayerCommand::Start(Box::new(request)));
+
+    let _ = clear_message(stdout, 3);
+    let _ = pop_message(
+        stdout,
+        3,
+        &format!("Offline: \"{}\" plays from the disk.", row.title),
+    );
+
+    follow_playback_offline(player, key, item_id, episode_id, username, server, total_duration)
+        .await;
+}
+
+/// Follows a playback that has no server.
+///
+/// The loop writes the position in the database for each second. When the
+/// playback stops, the loop keeps the position for the server. The application
+/// sends it when the server answers again.
+#[allow(clippy::too_many_arguments)]
+async fn follow_playback_offline(
+    player: &PlayerHandle,
+    key: String,
+    item_id: String,
+    episode_id: Option<String>,
+    username: String,
+    server: String,
+    total_duration: f64,
+) {
+    loop {
+        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+
+        let state = player.state();
+        let position = state.position.max(0.0) as u32;
+
+        let _ = update_download_current_time(key.as_str(), username.as_str(), position);
+
+        if state.status == PlaybackStatus::Stopped {
+            let finished = state.finished;
+
+            info!(
+                "[follow_playback_offline] the playback stopped at {} seconds, finished={}",
+                position, finished
+            );
+
+            remember_progress(
+                &username,
+                &server,
+                &item_id,
+                episode_id.as_deref(),
+                position as f64,
+                total_duration,
+                finished,
+            );
+
+            let _ = update_is_loop_break("1", username.as_str());
+            return;
+        }
+    }
 }
 
 /// Gives the length that the application reports to the server.

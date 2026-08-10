@@ -93,6 +93,14 @@ pub struct App {
     pub series: Vec<SeriesView>,
     /// The collections and the playlists of the library. See T-9.
     pub lists: Vec<ListView>,
+    /// The server did not answer at the start. The application then shows the
+    /// media of the disk only. See T-25.
+    pub is_offline: bool,
+    /// The number of positions that wait for the server. See T-25.
+    pub waiting_progress: usize,
+    /// The identity of the server of this account. A user can have an account
+    /// on more than one server, and a position must go to the correct server.
+    pub server_key: String,
     pub search_query: String,
     pub search_mode: bool,
     pub is_podcast: bool,
@@ -243,9 +251,32 @@ impl App {
             }
         }
 
+    // A user can have an account on more than one server. The identity of the
+    // server keeps the positions of one server separate from the positions of
+    // a different server.
+    let server_key = crate::config::server_key(&config.servers, &server_address);
+
         // init for `Libraries` (get all Libraries (shelf), can be a podcast or book type)
-        let all_libraries = get_all_libraries(&api).await?;
-        let libraries_names = collect_library_names(&all_libraries).await; // all the libraries names of the user ex : {name1, name2}
+        //
+        // This is the first request. A server that does not answer starts the
+        // offline mode: the application then makes its lists from the media on
+        // the disk, and it sends no other request. See T-25.
+        let (all_libraries, is_offline) = match get_all_libraries(&api).await {
+            Ok(value) => (value, false),
+            Err(error) if error.is_offline() => {
+                log::warn!("[app] the server does not answer: {}. The offline mode starts.", error);
+                (crate::api::libraries::get_all_libraries::Root::default(), true)
+            }
+            Err(error) => return Err(error.into()),
+        };
+        // The server answers. Therefore the application sends every position that
+        // waited during the offline mode, before it asks for anything more. A
+        // request that fails later must not stop this. See T-25.
+        if !is_offline {
+            crate::logic::offline::flush_pending_progress(&api, &username, &server_key).await;
+        }
+
+    let libraries_names = collect_library_names(&all_libraries).await; // all the libraries names of the user ex : {name1, name2}
     let media_types = collect_media_types(&all_libraries).await; // all media type of libraries ex : {book, podcast}
     let libraries_ids = collect_library_ids(&all_libraries).await; // all all libraries ids
     let mut library_name = String::new(); // library name of the selected library
@@ -258,7 +289,13 @@ impl App {
         library_name = libraries_names[index].clone();
         media_type = media_types[index].clone();
     }         
-    let lib_name_type = format!("📖 {} ({})", library_name, media_type);
+    // The offline mode shows the media of the disk, and not a library of the
+    // server. The header must say that.
+    let lib_name_type = if is_offline {
+        "📴 Offline: the media on the disk".to_string()
+    } else {
+        format!("📖 {} ({})", library_name, media_type)
+    };
 
     // init is_podcast
     let is_podcast = media_type == "podcast";
@@ -281,7 +318,11 @@ impl App {
     let mut book_progress_cnt_list: Vec<Vec<String>> = Vec::new();
     let mut book_progress_cnt_list_cur_time: Vec<Vec<f64>> = Vec::new();
 
-    if is_podcast {
+    if is_offline {
+        // The server gives no "continue listening" list. The view Library
+        // holds the media of the disk, thus the Home view stays empty and the
+        // application starts in the Library view.
+    } else if is_podcast {
         // init for  `Home` (continue listening) for podcasts
         let continue_listening_pod = get_continue_listening_pod(&api, &id_selected_lib).await?;
         _ids_cnt_list = collect_ids_pod_cnt_list(&continue_listening_pod).await; // id of a podcast
@@ -328,7 +369,7 @@ impl App {
 
     // init for `Series`. A podcast library has no series, thus the application
     // sends no request for it. See T-22.
-    let series = if is_podcast {
+    let series = if is_podcast || is_offline {
         Vec::new()
     } else {
         match get_all_series(&api, &id_selected_lib).await {
@@ -344,7 +385,7 @@ impl App {
 
     // init for `Lists`. A podcast library has no collection, and it can have a
     // playlist. See T-9.
-    let collections = if is_podcast {
+    let collections = if is_podcast || is_offline {
         CollectionRoot::default()
     } else {
         get_all_collections(&api, &id_selected_lib).await.unwrap_or_else(|error| {
@@ -353,22 +394,78 @@ impl App {
         })
     };
 
-    let playlists = get_all_playlists(&api, &id_selected_lib).await.unwrap_or_else(|error| {
-        log::warn!("[app] the server did not give the playlists: {}", error);
+    let playlists = if is_offline {
         PlaylistRoot::default()
-    });
+    } else {
+        get_all_playlists(&api, &id_selected_lib).await.unwrap_or_else(|error| {
+            log::warn!("[app] the server did not give the playlists: {}", error);
+            PlaylistRoot::default()
+        })
+    };
 
     let lists = collect_lists(&collections, &playlists);
 
     //init for `Library ` (all books  or podcasts of a Library (shelf))
-    let all_books = get_all_books(&api, &id_selected_lib).await?;
-    let titles_library = collect_titles_library(&all_books).await;
-    let ids_library = collect_ids_library(&all_books).await;
-    let auth_names_library = collect_auth_names_library(&all_books).await; // for a book
-    let auth_names_library_pod = collect_auth_names_library_pod(&all_books).await; // for a podcast
-    let published_year_library = collect_published_year_library(&all_books).await;
-    let desc_library = collect_desc_library(&all_books).await;
-    let duration_library = collect_duration_library(&all_books).await;
+    //
+    // The offline mode makes this list from the media on the disk. A media
+    // that the disk does not hold cannot play, thus the list must not show it.
+    // See T-25.
+    let all_books = if is_offline {
+        crate::api::libraries::get_all_books::Root::default()
+    } else {
+        get_all_books(&api, &id_selected_lib).await?
+    };
+
+    let downloads = if is_offline {
+        get_all_downloads(&username, &server_key)
+    } else {
+        Vec::new()
+    };
+
+    let titles_library = if is_offline {
+        downloads.iter().map(|row| row.title.clone()).collect()
+    } else {
+        collect_titles_library(&all_books).await
+    };
+
+    let ids_library: Vec<String> = if is_offline {
+        downloads.iter().map(|row| row.key.clone()).collect()
+    } else {
+        collect_ids_library(&all_books).await
+    };
+
+    let auth_names_library = if is_offline {
+        downloads.iter().map(|row| row.author.clone()).collect()
+    } else {
+        collect_auth_names_library(&all_books).await
+    };
+
+    let duration_library: Vec<f64> = if is_offline {
+        downloads.iter().map(|row| row.duration).collect()
+    } else {
+        collect_duration_library(&all_books).await
+    };
+
+    let desc_library: Vec<String> = if is_offline {
+        downloads
+            .iter()
+            .map(|_| "This media plays from the disk. The server does not answer.".to_string())
+            .collect()
+    } else {
+        collect_desc_library(&all_books).await
+    };
+
+    let published_year_library = if is_offline {
+        downloads.iter().map(|_| "N/A".to_string()).collect()
+    } else {
+        collect_published_year_library(&all_books).await
+    };
+
+    let auth_names_library_pod = if is_offline {
+        downloads.iter().map(|row| row.author.clone()).collect()
+    } else {
+        collect_auth_names_library_pod(&all_books).await // for a podcast
+    };
 //    let mut book_progress_library: Vec<Vec<String>> = Vec::new();
 //    let mut book_progress_library_cur_time: Vec<Vec<f64>> = Vec::new();
 //    if !is_podcast{
@@ -513,10 +610,19 @@ impl App {
         }
     };
 
+    let waiting_progress = count_pending_progress(&username, &server_key);
+
     // Init for check_update
-    let update_msg = match check_update().await {
-        Some(msg) => msg,
-        None => "".to_string(),
+    //
+    // The offline mode sends no request to GitHub. The check costs time when
+    // no network is available.
+    let update_msg = if is_offline {
+        String::new()
+    } else {
+        match check_update().await {
+            Some(msg) => msg,
+            None => "".to_string(),
+        }
     };
 
     // Init ListeState for `Home` list (continue listening)
@@ -601,6 +707,9 @@ impl App {
         ids_search_book,
         series,
         lists,
+        is_offline,
+        waiting_progress,
+        server_key,
         search_mode,
         search_query,
         is_podcast,
@@ -753,6 +862,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
             let token = self.token.clone();
             let server_address = self.server_address.clone();
             let username = self.username.clone();
+            let server_key = self.server_key.clone();
 
             if let Some((target, title, author)) = self.selected_download() {
                 // The map is global. Therefore the bar stays correct when the
@@ -760,7 +870,8 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                 let progress = crate::logic::download::downloads();
                 tokio::spawn(async move {
                     download_with_progress(
-                        token, target, server_address, username, title, author, progress,
+                        token, target, server_address, username, title, author, server_key,
+                        progress,
                     )
                     .await;
                 });
@@ -828,12 +939,13 @@ pub fn handle_key(&mut self, key: KeyEvent) {
             // close and sync session before close the app
             let api = std::sync::Arc::clone(&self.api);
             let username = self.username.clone();
+            let server_key = self.server_key.clone();
 
             // Stop the engine before the application syncs and stops.
             self.player.send(crate::player::engine::PlayerCommand::Stop);
 
             tokio::spawn(async move {
-                sync_session_from_database(&api, username, true, "Q").await;
+                sync_session_from_database(&api, username, server_key, true, "Q").await;
             });
 
         }        
@@ -905,6 +1017,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
             let api = std::sync::Arc::clone(&self.api);
             let server_address = self.server_address.clone();
             let username = self.username.clone();
+            let server_key = self.server_key.clone();
             let player = self.player.clone();
 
             // Init for `Continue Listening` (AppView::Home)
@@ -969,6 +1082,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                     },
                                     username,
                                     server_address,
+                                    server_key,
                                 )
                                 .await;
                             }
@@ -987,6 +1101,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                     },
                                     username,
                                     server_address,
+                                    server_key,
                                 )
                                 .await;
                             }
@@ -1043,6 +1158,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                         },
                                         username,
                                         server_address,
+                                        server_key,
                                     )
                                     .await;
                                 }
@@ -1077,6 +1193,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                         },
                                         username,
                                         server_address,
+                                        server_key,
                                     )
                                     .await;
                                 }
@@ -1111,6 +1228,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                 },
                                 username,
                                 server_address,
+                                server_key,
                             )
                             .await;
                         });
@@ -1139,7 +1257,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                         };
 
                         tokio::spawn(async move {
-                            play(&api, &player, target, username, server_address).await;
+                            play(&api, &player, target, username, server_address, server_key).await;
                         });
                     }
                 }
@@ -1168,6 +1286,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                             },
                                             username,
                                             server_address,
+                                            server_key,
                                         )
                                         .await;
                                     }
@@ -1196,6 +1315,7 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                                             },
                                             username,
                                             server_address,
+                                            server_key,
                                         )
                                         .await;
                                     }
