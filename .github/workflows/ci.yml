@@ -47,3 +47,31 @@ jobs:
             exit 1
           fi
           echo "OpenSSL is not in the dependency tree."
+
+  # `flake.nix` and `flake.lock` are in the repository, and the README tells
+  # the user to run `nix build`. No job read them before, therefore the flake
+  # could stop to operate and every test stayed green. See T-27.
+  #
+  # This job is the only test of the flake. A machine of the development
+  # cannot always run Nix.
+  nix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      # `nix flake check` reads every output of the flake. It finds a flake
+      # that does not evaluate.
+      - name: Check the flake
+        run: nix flake check --print-build-logs
+
+      # Only a build finds a dependency that does not compile with the
+      # dependencies that the flake gives. The flake has `doCheck = true`,
+      # therefore this step runs the tests of the project as well.
+      - name: Build the flake
+        run: nix build --print-build-logs
