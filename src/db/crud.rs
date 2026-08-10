@@ -288,7 +288,7 @@ pub fn update_is_finished(value: &str, id_session: &str) -> Result<()> {
 // Delete an user
 pub fn delete_user(username: &str) -> Result<()> {
     
-    let message = format!("User '{}' deleted. Please restart the app to apply the changes.", &username);
+    let message = format!("User '{}' deleted. Please restart the app to apply the changes.", username);
     let err_message = "Error connecting to the database.";
     if let Ok(conn) = crate::db::migrate::open_conn() {
 
