@@ -780,8 +780,20 @@ The proof of the archives:
 | `./toutui --version` of the published archive | `toutui 0.6.0-rc.1` |
 | The published binary against the sandbox | The library came, and the cover of "Alice in Wonderland" drew with its own colours |
 
-What stays for `v0.6.0`: the word of the user after their test, the version
-`0.6.0` in `Cargo.toml`, and the tag.
+**The release `v0.6.0`, 2026-08-10.** The candidate is a pre-release, and
+`/releases/latest` gives no pre-release. Therefore `toutui --update` could not
+reach it, and the user asked for the release itself.
+
+| What | Result |
+|---|---|
+| `/releases/latest` | `v0.6.0` |
+| `sha256sum -c SHA256SUMS` | Every one of the five files: OK |
+| `gh attestation verify` on the three archives | Every one: verified |
+| **`--update` from a build of 0.5.1** | "The proof of the origin is correct. The workflow of ealtun21/Toutui made this archive." Then: "Version 0.6.0 is now installed. The version before it was 0.5.1." The binary then answers `toutui 0.6.0` |
+
+That last line is the whole path: the program found the release, it received the
+archive, it examined the proof of the origin and the sum, and it moved the new
+binary over itself.
 
 ## The report of the user of 2026-08-10, on v0.5.0
 
