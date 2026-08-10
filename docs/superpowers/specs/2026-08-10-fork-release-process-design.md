@@ -290,3 +290,72 @@ the AUR and a key SSH.
 
 Step 1 comes first. If the name changes before the migration operates, a user
 who updates loses the configuration.
+
+---
+
+# Revision, 2026-08-10: the project keeps its name
+
+The maintainer changed three decisions after the work on sections 3, 4, and 8
+started. This revision has more importance than the sections above it. Where
+this revision and a section above disagree, this revision governs.
+
+## R1. The name does not change
+
+The project keeps the name `toutui`. The binary keeps the name `toutui`. The
+directory of configuration keeps the path `~/.config/toutui/`.
+
+**The reasons.** The name `toutui` is free on crates.io, and thus no registry
+made the change necessary. Only the two packages of the AUR collide, and the
+decision R3 below removes the AUR from this work. The maintainer also finds
+that `toutui` is the better name.
+
+Section 3 does not apply. Section 3.3 continues to apply: the README, the
+LICENSE, and the screen of settings must name AlbanDAVID as the author of the
+original program.
+
+## R2. The program does not copy the configuration
+
+Section 4 does not apply. The directory of configuration does not move,
+therefore the program has nothing to copy. The program reads
+`TOUTUI_SECRET_KEY` only.
+
+**The consequence for T-14.** Section 4.2 said that the copy closes T-14. That
+was true only because the copy made a change of the directory safe. T-14
+stays open, and it needs its own examination.
+
+**What stays.** `src/paths.rs` stays. The code that finds the directory of
+configuration was in four files, and one module is better than four copies.
+`APP_DIR` becomes `"toutui"`, and `OLD_APP_DIR` goes away.
+
+## R3. The work uses no registry
+
+Section 8 does not apply. The work publishes nothing to crates.io and nothing
+to the AUR.
+
+**The reasons.** The maintainer has no account of the AUR. crates.io does not
+delete a version, and a registry that the maintainer does not need is a
+channel that the maintainer must keep.
+
+**The three ways to install.** The README must give these three, and no
+other:
+
+1. The script: `curl -LsSf .../install.sh | bash`, which receives the archive
+   of the last release and compares the sum.
+2. `cargo install --git https://github.com/ealtun21/Toutui`, for a system
+   that has no archive, such as Alpine.
+3. The releases of GitHub, for a user who wants the archive.
+
+The README must remove every instruction that names a registry, and every
+instruction that names the archived original project.
+
+## R4. What does not change
+
+Sections 5, 6, and 7 continue to apply, with the name `toutui` in place of
+`abstui`:
+
+- The releases come from a tag on `main`. The workflow makes `SHA256SUMS`
+  with the machine, and it publishes the release. The assets have the name
+  `toutui-<target>.tar.gz`.
+- The program updates itself. It compares the sum before it moves the binary,
+  and it runs no file that it receives.
+- `hello_toutui.sh` becomes a short `install.sh`.
