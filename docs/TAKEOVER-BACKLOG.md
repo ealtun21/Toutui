@@ -802,16 +802,19 @@ examination against the code of today, and the state.
 
 | Id | Title | State |
 |---|---|---|
-| T-36 | No way to leave a server, and no way to find that command | Open |
+| T-36 | No way to leave a server, and no way to find that command | Fixed |
 | T-37 | `Cargo.toml` names VLC | Not present |
-| T-38 | "Buffer overrun", and the book starts at the beginning again | Open, not reproduced |
+| T-38 | "Buffer overrun", and the book starts at the beginning again | Open, waits for a log |
 | T-39 | A key that repeats gives a slow list, and the list moves after the key | Fixed |
-| T-40 | The start takes a long time, and nothing tells the user | Open |
-| T-41 | An index of a vector stops the program | Fixed in the settings; the sweep is open |
+| T-40 | The start takes a long time, and nothing tells the user | Fixed |
+| T-41 | An index of a vector stops the program | Fixed |
 | T-42 | The key `R` leaves a broken screen | Fixed |
 | T-43 | A series with no description shows nothing | Fixed |
-| T-44 | The screen does not say what a line is | Open |
-| T-45 | The address of the server is examined after the password | Open |
+| T-44 | The screen does not say what a line is | Fixed |
+| T-45 | The address of the server is examined after the password | Fixed |
+| T-46 | A machine with no sound card cannot open the program | Fixed |
+
+Nine of the ten items are complete. T-38 waits for a log of the user.
 
 ### T-36: no way to leave a server
 
@@ -820,9 +823,14 @@ then `l` removes the account of the list. The footer says "l/→: remove saved
 user". The words do not say "log out", the view has no title of its own, and
 the settings screen names the entry "Account" only.
 
-**The work.** Name the entry "Accounts and log out", say "l: log out of this
-server (the program forgets the token)" in the footer, and ask the user to
-confirm before the program forgets a token.
+**The correction.** The entry says "Accounts and log out". The title of the
+view says "Accounts — l: log out of the account". The footer says "l/→: log out
+of this account (the program forgets its token)". The panel of the description
+tells what each entry of the settings does, and it said nothing for the first
+two entries before.
+
+A question before the program forgets a token stays open. That needs a screen
+of confirmation, and the program has none yet.
 
 ### T-37: `Cargo.toml` names VLC
 
@@ -862,15 +870,43 @@ The loop now takes every key that waits, up to 64 for one frame, and it draws
 one time for the whole group. It also drops an event of the release of a key,
 because a terminal that reports a release sent two events for one press.
 
-### T-40: the start takes a long time, and nothing tells the user
+### T-40: the start takes a long time — fixed
 
-The program asks the server for the libraries, for the items, for the
-personalized view, and for the progress before it draws the first frame. A slow
-server therefore gives a screen with nothing on it.
+**The measurement.** A server that accepts a connection and answers nothing
+showed the fault at once: the screen stayed black for 15 seconds, the whole
+timeout of one request. `App::new` asks the server many times before the first
+frame, and the old code drew nothing until all of it finished. A slow server
+with many books therefore gives a black screen for minutes.
 
-**The work.** Draw a frame before the requests, with the name of the server and
-the words "The program asks the server…". A test must measure the time to the
-first frame with a server that answers slowly.
+**The correction.** `ratatui::init` comes before `App::new`. The program draws
+while it waits, and that screen names the server and the step that runs. It
+names the time after five seconds, it gives advice after ten seconds, and the
+key `Q` stops the program. `src/utils/startup.rs` holds the name of the step,
+and `src/ui/loading.rs` draws the screen.
+
+The same server that answers nothing now gives this in the first second:
+
+```
+┌──────────────────────────────────────────────┐
+│                  🦜 Toutui                   │
+│                                              │
+│           🔗 http://127.0.0.1:13401          │
+│                                              │
+│        ⠹ the libraries of the server — 11 s  │
+│                                              │
+│  The server is slow. The program waits for   │
+│  the answer.                                 │
+│                                              │
+│              Q: stop the program             │
+└──────────────────────────────────────────────┘
+```
+
+**The start is also faster.** The position of each book of the list Continue
+Listening needs its own request, and the old code sent them one after the
+other. A server with a delay of 300 milliseconds and a list of ten books needed
+three seconds for that step alone. The requests go together now, eight at a
+time. A run against the sandbox shows that the answers keep the sequence of the
+list.
 
 ### T-41: an index of a vector stops the program — in part
 
@@ -880,12 +916,16 @@ list keeps its old length until the next refresh, and the next `l` reads a
 position that is not there. The two places use `get` now, and the list of the
 accounts follows the change at once.
 
-**The work that stays.** The render holds about 40 more places that read a
-vector with an index, for example `self.auth_names_library[selected]`. A panic
-inside `Widget::render` stops the program. The guard of T-17 gives the terminal
-back, and the user still loses the program. Every one of those places needs
-`get`, and a test must show that a list that is shorter than the selection
-draws a screen.
+**The sweep, complete.** The render read a vector with an index in 37 more
+places. Every one uses `at`, `at_number`, `at_part`, or `at_number_part` now,
+and a value that is not there gives "N/A".
+
+`tests/the_screen_survives_a_short_list.rs` makes a real `App` with no server,
+gives it lists of three lines and lists of no line, puts every selection at the
+line 99, and draws all eleven views for a book library, for a podcast library,
+and for a search. **The test found two more places that a search of the text
+did not find:** `vec![self.titles_pod[0].clone(); n]` stops the program when
+the list is empty, and two views hold that line.
 
 ### T-42: the key `R` leaves a broken screen — fixed
 
@@ -905,9 +945,16 @@ The list of the library gives a title and nothing else. The user cannot see a
 book that they started, a book that they finished, and a book that they never
 opened.
 
-**The work.** Give each line a mark: a book that plays now, a book with a
-position, a book that is finished, and a book on the disk. The information is
-present already, because the panel below the list shows "Progress: 50%".
+**The correction.** Every line of the Home view and of the Library view starts
+with a mark of four columns: `▶` for the media that plays, `✓` for a media that
+the user finished, `47%` for a media that the user started, and nothing for a
+media that the user did not start. `src/ui/marks.rs` holds the rule, and every
+function there is pure.
+
+The library holds no position for each book, therefore a line of the Library
+view shows the mark of the playback only. A mark of the position there needs
+one request for each book of the library, and that would make the start slow
+again. See T-40.
 
 ### T-45: the address of the server is examined after the password
 
@@ -915,9 +962,26 @@ The login asks for the address, for the name, and for the password, and it
 sends the three together. An address with no `http://` therefore fails after
 the user wrote everything.
 
-**The work.** Examine the address when the user leaves the first field: the
-text must start with `http://` or with `https://`, and the program must reach
-`/ping` of that address. Say what is wrong at that moment.
+**The correction.** `src/api/server/address.rs` examines the address when the
+user leaves the first field. The form comes first, and it needs no network:
+"The address must start with http:// or https://. Write
+http://192.168.1.10:13378". The function also refuses a port that is not a
+number and a name with a space, and it takes an address of IPv6 and an address
+behind a path. Then one request goes to `/ping`, which every Audiobookshelf
+server answers with no token. An address that answers nothing gives
+"http://127.0.0.1:19999 does not answer. Is the server running?" after four
+seconds.
+
+### T-46: a machine with no sound card cannot open the program — fixed
+
+`App::new` stopped the whole program when the audio engine did not start. A
+user on a machine with no sound device, or with a configuration of ALSA that
+does not work, could then not read their library, not download a book, and not
+see their progress.
+
+The program keeps every function that needs no sound now, and the header says
+"🔇 No sound device: no media can play". A thread takes the commands of the
+player and drops them, so that a key of the playback does not fill the memory.
 
 ## The upgrade of the dependencies, 2026-08-10
 
