@@ -725,6 +725,36 @@ bundle.
 text. They do not run on macOS, and this machine cannot run macOS. A user of
 macOS must confirm the list of `--uninstall` on that system.
 
+**The removal itself, 2026-08-10.** The decision above closed the bundle. The
+title of T-31 names the removal, and that part stayed open. The examination
+found three gaps, and macOS had all three.
+
+1. `--uninstall` wrote the paths and no command. The user composed `rm`
+   himself, and he guessed when the path needs `sudo`. `/usr/local/bin/toutui`
+   needs it, and `~/Library/Preferences/toutui` and `~/.local/share/toutui` do
+   not.
+2. `--uninstall` wrote two directories and no contents. The database
+   `db.sqlite3`, the secret key `.env`, the log `toutui.log`, and the downloads
+   are inside those two directories, and the user did not see them.
+3. A user of macOS who cannot run the binary got nothing. Two conditions give
+   that state: the binary is already absent and the configuration is not, and a
+   browser received the archive of the release. macOS then puts the attribute
+   `com.apple.quarantine` on the files, and Gatekeeper stops the program.
+
+**The work that is complete.** `uninstall_paths` is `uninstall_plan` now. That
+function gives the name, the path, the contents, and the command of each thing
+that an installation makes. The function stays pure, and it deletes nothing.
+`macos/uninstall.sh` gives the same list with no binary, and it deletes nothing
+as well. Eleven tests in `src/utils/clap.rs` guard the two: the paths of each
+system, the rule of `sudo`, the quotes of a path with a space or with a single
+quote, the contents of the message, and the two lists that must agree. One test
+reads `macos/uninstall.sh` and confirms that no line of that script removes a
+path.
+
+**What no test on Linux can show.** The tests give the paths of macOS as text.
+This machine cannot run macOS. A user of macOS must run `toutui --uninstall`
+and the script, and they must confirm that the two lists agree.
+
 ### T-14: the program does not lose the configuration
 
 T-14 says that the program loses the configuration after an update. The first

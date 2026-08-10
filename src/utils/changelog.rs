@@ -280,8 +280,7 @@ To make it work properly, perform a fresh reinstall.
      ####\n"
         .to_string();
 
-    let changelog_17 = format!(
-        "Changelog Toutui v{} (10/08/2026) \n\
+    let changelog_17 = "Changelog Toutui v0.6.1 (10/08/2026) \n\
      \n\
      This release answers a report of a user on v0.5.0 and v0.6.0.\n\
      \n\
@@ -309,6 +308,35 @@ To make it work properly, perform a fresh reinstall.
        what it does.\n\
      - TOUTUI_NO_COVERS turns the cover art off. Inside tmux the program\n\
        asks the terminal nothing.\n\
+     \n\
+     Contributors:\n\
+     \n\
+     - AlbanDAVID (the original project), ealtun21\n\
+     \n\
+     Enjoy and be toutui!\n\
+     ####\n"
+        .to_string();
+
+    let changelog_18 = format!(
+        "Changelog Toutui v{} (10/08/2026) \n\
+     \n\
+     Fixed:\n\
+     - The start cannot wait for ever now. The sound device gets five\n\
+       seconds, and the program then goes on with no sound. An answer of\n\
+       the server that the program cannot read no longer stops the\n\
+       program.\n\
+     - The start is faster with a large library. The pages of the items go\n\
+       to the server together. A library of 2056 items needs five pages,\n\
+       and the program asked for them one after the other before.\n\
+     \n\
+     Added:\n\
+     - The reader of EPUB reads a book, and no screen shows it yet. The\n\
+       part that reads the file refuses a book that is too large, a\n\
+       chapter that is too large, and every one of twelve files that\n\
+       attack the program.\n\
+     - macOS has a way to remove the program with no binary:\n\
+       macos/uninstall.sh. It deletes nothing, and it writes the paths\n\
+       and the commands.\n\
      \n\
      Contributors:\n\
      \n\
@@ -358,6 +386,7 @@ To make it work properly, perform a fresh reinstall.
          Enjoy and be toutui!\n
          ####\n".to_string();
 
+    changelog.push_str(&changelog_18);
     changelog.push_str(&changelog_17);
     changelog.push_str(&changelog_16);
     changelog.push_str(&changelog_15);

@@ -235,7 +235,19 @@ gh attestation verify toutui-x86_64-unknown-linux-gnu.tar.gz \
 toutui --uninstall
 ```
 
-The command writes the paths. It deletes nothing.
+The command writes the paths and the commands. It deletes nothing. You read
+each command, and you run the commands that you want. A path outside your home
+directory gets `sudo`, and a path inside it does not.
+
+On macOS you can also get the list with no binary at all:
+
+```bash
+curl -LsSf https://raw.githubusercontent.com/ealtun21/Toutui/main/macos/uninstall.sh | bash
+```
+
+That script deletes nothing as well. Use it if the binary is already absent, or
+if Gatekeeper stops the binary because a browser received the archive of the
+release. See T-31.
 
 ### Notes
 
