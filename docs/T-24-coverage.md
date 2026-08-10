@@ -85,6 +85,8 @@ Toutui calls 17 paths. The server has more than 100.
 | `R` | Ask the server again |
 | `F` | Send the position now (T-32) |
 | `T` | Show the time that you listened (T-24) |
+| `N` | Take a media away from Continue Listening, or put it back (T-24) |
+| `C` | Show the chapters of the media that plays (T-24) |
 | `f` | Choose the sequence and the filter of the library (T-24) |
 | `S` | Settings |
 | `B` | Show the keys, or hide them |
@@ -128,7 +130,7 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 | **Playlists** | `GET /api/libraries/:id/playlists` and `GET /api/playlists`. An entry holds `libraryItemId` and, for an episode, `episodeId` | Half | The same. The client reads and plays, and it changes nothing |
 | **The position of a media** | `GET /api/me/progress/:id` gives `currentTime`, `progress`, `isFinished`, `hideFromContinueListening`, `ebookLocation`, `ebookProgress`, `lastUpdate` | Yes | Nothing. The client reads the position at the start and it writes the position (T-4) |
 | **Mark as finished** | `PATCH /api/me/progress/:id` with `{"isFinished":true}` | Half | A key. The client sends this at the end of a playback only, in `update_media_progress2_book`. The user cannot mark a book that they will not finish |
-| **Hide from Continue Listening** | The field `hideFromContinueListening` of `PATCH /api/me/progress/:id` | No | Everything. A book that the user does not want stays on the Home view |
+| **Hide from Continue Listening** | The field `hideFromContinueListening` of `PATCH /api/me/progress/:id` | Yes | Nothing. The key `N`. A measurement on 2026-08-11 shows that the shelf of the server loses the media at once |
 | **Open a session** | `POST /api/items/:id/play` gives `id`, `audioTracks`, `chapters`, `duration`, `playMethod` | Yes | Nothing |
 | **Sync a session** | `POST /api/session/:id/sync` gives `200` | Yes | Nothing. The key `F` sends the position now (T-32) |
 | **Close a session** | `POST /api/session/:id/close` gives `200` | Yes | Nothing |
@@ -138,7 +140,7 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 | **Play, pause, and stop** | The client does this work | Yes | Nothing. ` ` and `Y` |
 | **Go forward and back** | The client does this work | Yes | Nothing. `p` and `u` |
 | **Chapters** | `POST /api/items/:id/play` gives `chapters` with `start`, `end`, and `title` | Yes | Nothing. `P` and `U`, and the player shows the name of the chapter. `src/logic/playback/mod.rs:73` reads them |
-| **The list of the chapters** | The same field | No | A view. The user cannot see the chapters and go to one of them by name |
+| **The list of the chapters** | The same field | Yes | Nothing. The key `C` shows them, with a mark on the chapter that plays, and `l` goes to a chapter |
 | **The speed** | The client does this work | Yes | Nothing. `O` and `I`, and the pitch does not change (T-19) |
 | **The volume** | The client does this work | Yes | Nothing. `o` and `i` |
 | **A timer for sleep** | Not a function of the server | No | Everything. The web player has this, and a person who listens in bed asks for it |
@@ -205,9 +207,8 @@ The sequence inside each group gives the value for the work.
    program needs no new dependency.
 4. ~~**A choice of the sequence.**~~ **Done on 2026-08-11.** The key `f`, and
    `src/logic/sort_filter.rs`.
-5. **Hide a media from Continue Listening.** The field
-   `hideFromContinueListening` of `PATCH /api/me/progress/:id`. The same file as
-   item 2, and the same key handler.
+5. ~~**Hide a media from Continue Listening.**~~ **Done on 2026-08-11.** The
+   key `N`, and `hide_the_media` beside `mark_the_media`.
 
 ### Medium: one or two days each
 

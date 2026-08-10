@@ -143,6 +143,9 @@ pub struct PlaybackState {
     pub duration: f64,
     /// The name of the chapter, if the book has chapters.
     pub chapter_title: Option<String>,
+    /// Every chapter of the media that plays. The view of the chapters reads
+    /// this list, and the user goes to a chapter by its name. See T-24.
+    pub chapters: Vec<track::Chapter>,
     pub speed: f32,
     pub volume: f32,
     pub status: PlaybackStatus,
@@ -163,6 +166,7 @@ impl Default for PlaybackState {
             position: 0.0,
             duration: 0.0,
             chapter_title: None,
+            chapters: Vec::new(),
             speed: 1.0,
             volume: 1.0,
             status: PlaybackStatus::Stopped,

@@ -57,6 +57,8 @@ pub enum AppView {
     Stats,
     /// The sequence and the filter of the library. See T-24.
     SortFilter,
+    /// The chapters of the media that plays. See T-24.
+    Chapters,
     Settings,
     SettingsAccount,
     SettingsLibrary,
@@ -118,6 +120,8 @@ pub struct App {
     pub library_filter: String,
     /// The list of the view of the sequence and of the filter.
     pub list_state_sort_filter: ListState,
+    /// The list of the chapters of the media that plays. See T-24.
+    pub list_state_chapters: ListState,
     /// The user changed the sequence or the filter. The loop of the program
     /// then makes the application again, in the same way as the key `R`. A
     /// new sequence needs a new request, and every list of the library comes
@@ -985,6 +989,7 @@ impl App {
             library_desc,
             library_filter,
             list_state_sort_filter,
+            list_state_chapters: ListState::default(),
             must_refresh: false,
             series_from: AppView::Series,
             lists,
@@ -1112,6 +1117,14 @@ impl App {
             // The key that marks a media as finished, or not finished.
             // See T-24.
             KeyCode::Char('M') => self.toggle_the_mark_of_finished(),
+
+            // The key that takes a media away from the shelf of Continue
+            // Listening, or puts it back. See T-24.
+            KeyCode::Char('N') => self.toggle_the_shelf_of_continue_listening(),
+
+            // The key that shows the chapters of the media that plays.
+            // See T-24.
+            KeyCode::Char('C') => self.show_the_chapters(),
 
             // The key that shows the time that the user listened. See T-24.
             KeyCode::Char('T') => self.show_the_statistics(),
@@ -1375,6 +1388,8 @@ impl App {
                     // settings do. See T-24.
                     AppView::Stats => self.view_state = AppView::Home,
                     AppView::SortFilter => self.view_state = AppView::Library,
+                    // The view of the chapters goes back to the Home view.
+                    AppView::Chapters => self.view_state = AppView::Home,
                     AppView::PodcastEpisode => {
                         if self.is_from_search_pod {
                             self.view_state = AppView::SearchBook
@@ -1586,6 +1601,7 @@ impl App {
                     // The view of the statistics holds no line to open.
                     AppView::Stats => {}
                     AppView::SortFilter => self.apply_the_sequence_or_the_filter(),
+                    AppView::Chapters => self.go_to_the_chapter(),
                     AppView::Library => {
                         // A line of a series opens the books of that series.
                         // See T-22.
@@ -1854,6 +1870,91 @@ impl App {
             let _ = clear_message(&mut stdout, 3);
             let _ = pop_message(&mut stdout, 3, text.as_str());
         });
+    }
+
+    /// Takes the selected media away from the shelf of Continue Listening,
+    /// or puts it back. See T-24.
+    ///
+    /// The field `hideFromContinueListening` of `PATCH /api/me/progress/:id`
+    /// does this work. A user who does not want a book on the Home view had
+    /// no way to take it away: the book stayed until they finished it.
+    pub fn toggle_the_shelf_of_continue_listening(&mut self) {
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+
+        let Some(item_id) = self.selected_item_id() else {
+            let _ = pop_message(&mut stdout, 3, "No media is selected.");
+            return;
+        };
+
+        if self.is_offline {
+            let _ = pop_message(&mut stdout, 3, "The server does not answer.");
+            return;
+        }
+
+        let _ = pop_message(&mut stdout, 3, "The change goes to the server…");
+        let api = std::sync::Arc::clone(&self.api);
+
+        tokio::spawn(async move {
+            let text = hide_the_media(&api, &item_id).await;
+
+            let mut stdout = std::io::stdout();
+            let _ = clear_message(&mut stdout, 3);
+            let _ = pop_message(&mut stdout, 3, text.as_str());
+        });
+    }
+
+    /// Shows the chapters of the media that plays. See T-24.
+    ///
+    /// The engine holds the chapters already: it uses them for the keys `P`
+    /// and `U`. The user could not see them, and they could not go to a
+    /// chapter by its name.
+    pub fn show_the_chapters(&mut self) {
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+
+        let state = self.player.state();
+
+        if state.status == crate::player::engine::PlaybackStatus::Stopped {
+            let _ = pop_message(&mut stdout, 3, "No media plays now.");
+            return;
+        }
+
+        if state.chapters.is_empty() {
+            let _ = pop_message(&mut stdout, 3, "This media has no chapter.");
+            return;
+        }
+
+        // The selection starts at the chapter that plays.
+        let now = crate::logic::chapters::chapter_at(&state.chapters, state.position);
+
+        self.list_state_chapters.select(Some(now.unwrap_or(0)));
+        self.scroll_offset = 0;
+        self.view_state = AppView::Chapters;
+    }
+
+    /// Goes to the chapter that the user selected.
+    pub fn go_to_the_chapter(&mut self) {
+        let state = self.player.state();
+
+        let Some(index) = self.list_state_chapters.selected() else {
+            return;
+        };
+
+        let Some(chapter) = state.chapters.get(index) else {
+            return;
+        };
+
+        self.player
+            .send(crate::player::engine::PlayerCommand::SeekTo(chapter.start));
+
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+        let _ = pop_message(
+            &mut stdout,
+            3,
+            &format!("The playback goes to \"{}\".", chapter.title),
+        );
     }
 
     /// Shows the time that the user listened, and asks the server for it.
@@ -2611,6 +2712,7 @@ impl App {
             AppView::Reader => AppView::Home,
             AppView::Stats => AppView::Home,
             AppView::SortFilter => AppView::Library,
+            AppView::Chapters => AppView::Home,
             AppView::Settings => AppView::Home,
             AppView::SettingsAccount => AppView::Home,
             AppView::SettingsLibrary => AppView::Home,
@@ -2716,6 +2818,16 @@ impl App {
                 self.list_state_sort_filter
                     .select(crate::logic::list_moves::next(&lines, from));
             }
+            AppView::Chapters => {
+                let count = self.player.state().chapters.len();
+                let from = self.list_state_chapters.selected().unwrap_or(0);
+
+                if from + 1 < count {
+                    self.list_state_chapters.select(Some(from + 1));
+                } else {
+                    self.list_state_chapters.select(Some(0));
+                }
+            }
             AppView::Settings => {
                 if let Some(selected) = self.list_state_settings.selected() {
                     if selected + 1 < self.settings.len() {
@@ -2778,6 +2890,7 @@ impl App {
                 self.list_state_sort_filter
                     .select(crate::logic::list_moves::previous(&lines, from));
             }
+            AppView::Chapters => self.list_state_chapters.select_previous(),
             AppView::Settings => self.list_state_settings.select_previous(),
             AppView::SettingsAccount => self.list_state_settings_account.select_previous(),
             AppView::SettingsLibrary => self.list_state_settings_library.select_previous(),
@@ -2807,6 +2920,7 @@ impl App {
                 self.list_state_sort_filter
                     .select(crate::logic::list_moves::first(&lines));
             }
+            AppView::Chapters => self.list_state_chapters.select_first(),
             AppView::Settings => self.list_state_settings.select_first(),
             AppView::SettingsAccount => self.list_state_settings_account.select_first(),
             AppView::SettingsLibrary => self.list_state_settings_library.select_first(),
@@ -2868,6 +2982,10 @@ impl App {
                 self.list_state_sort_filter
                     .select(crate::logic::list_moves::last(&lines));
             }
+            AppView::Chapters => {
+                let last = self.player.state().chapters.len().saturating_sub(1);
+                self.list_state_chapters.select(Some(last));
+            }
             AppView::Settings => {
                 let last_index = self.settings.len().saturating_sub(1);
                 self.list_state_settings.select(Some(last_index));
@@ -2919,6 +3037,48 @@ pub async fn mark_the_media(
     {
         Ok(()) => message_of_the_mark(!was_finished),
         Err(error) => format!("The server did not take the mark: {}", error),
+    }
+}
+
+/// Takes a media away from the shelf of Continue Listening, or puts it back.
+///
+/// The function reads the state first, therefore the key is a change of the
+/// state and not one direction only. A media that never played has no
+/// progress, and the server then gives an error to the first request; such a
+/// media does not stand on the shelf, and the program writes the field
+/// anyway. See T-24.
+pub async fn hide_the_media(
+    api: &std::sync::Arc<crate::api::client::ApiClient>,
+    item_id: &str,
+) -> String {
+    let answer: serde_json::Value =
+        match api.get_json(&format!("/api/me/progress/{}", item_id)).await {
+            Ok(answer) => answer,
+            Err(_) => serde_json::json!({}),
+        };
+
+    let was_hidden = answer
+        .get("hideFromContinueListening")
+        .and_then(|value| value.as_bool())
+        .unwrap_or(false);
+
+    let body = serde_json::json!({ "hideFromContinueListening": !was_hidden });
+
+    match api
+        .patch_json(&format!("/api/me/progress/{}", item_id), &body)
+        .await
+    {
+        Ok(()) => message_of_the_shelf(!was_hidden),
+        Err(error) => format!("The server did not take the change: {}", error),
+    }
+}
+
+/// Gives the text that the user reads after a change of the shelf.
+pub fn message_of_the_shelf(hidden: bool) -> String {
+    if hidden {
+        "The media is away from Continue Listening now. Press R to see the change.".to_string()
+    } else {
+        "The media is on Continue Listening again. Press R to see the change.".to_string()
     }
 }
 

@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod chapters;
 pub mod download;
 pub mod handle_input;
 pub mod home_view;

@@ -1056,6 +1056,34 @@ answer **both** questions:
 This is the same family as the trap of `ratatui-image` of the handover of
 2026-08-11. A real terminal answers both, therefore no user saw this.
 
+### Two small items of T-24 — complete, 2026-08-11 (v0.7.1)
+
+**The key `N` takes a media away from Continue Listening.** The field
+`hideFromContinueListening` of `PATCH /api/me/progress/:id` does the work. A
+measurement against the sandbox on 2026-08-11 shows that the shelf
+`continue-listening` of `/personalized` loses the media at once, and that it
+holds the media again after the second press. `hide_the_media` reads the state
+first, therefore the key is a change of the state and not one direction only.
+`tests/the_shelf_against_the_sandbox.rs` holds that measurement.
+
+**The key `C` shows the chapters.** The engine held the chapters already: the
+keys `P` and `U` use them. The state of the engine now carries the list, and
+`src/logic/chapters.rs` makes the lines. `l` sends `SeekTo(start)`.
+
+The state takes the chapters when the identity of the playback changes, and
+not at each tick. A copy at each tick would copy the name of every chapter
+twenty times each second.
+
+`chapter_at` gives the **last** chapter for a position after the end of the
+last chapter. The end of the last chapter can stand before the end of the
+audio, and a mark that goes away at the end of a book would look wrong.
+
+**A trap of the measurement: the device `null` played a book of 30 minutes in
+two seconds.** The view of the chapters needs a media that plays, therefore
+the harness must press the key inside that time. The answer is one write of
+two keys: `l` starts the playback and the space pauses it at once. The
+position then stops, and the view stays.
+
 ## The report of the user of 2026-08-10, on v0.5.0
 
 The user tested v0.5.0 and named ten items. This section holds each one, the

@@ -133,6 +133,11 @@ impl TrackList {
         }
     }
 
+    /// Gives every chapter of the book. The view of the chapters reads them.
+    pub fn chapters(&self) -> &[Chapter] {
+        &self.chapters
+    }
+
     /// Gives the chapter that holds a position.
     ///
     /// Gives `None` if the book has no chapter. 118 books of the test library

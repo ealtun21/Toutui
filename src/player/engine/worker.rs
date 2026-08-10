@@ -399,6 +399,13 @@ fn publish(
 
     let position = position_now(player, current);
 
+    // The chapters do not change while one media plays, therefore the state
+    // takes them one time. A copy at each tick would copy the name of every
+    // chapter twenty times each second. See T-24.
+    if value.playback_id != item.request.playback_id {
+        value.chapters = item.request.tracks.chapters().to_vec();
+    }
+
     value.playback_id = item.request.playback_id;
     value.item_id = item.request.item_id.clone();
     value.title = item.request.title.clone();

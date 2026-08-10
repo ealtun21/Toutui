@@ -118,6 +118,15 @@ The server sorts and filters the items. `f` chooses how.
   The title of the Library view says the sequence, and it says that a filter
   is on.
 
+## ⏱ The chapters, and Continue Listening
+
+- `C` — show the chapters of the media that plays. A mark stands before the
+  chapter that plays, and the time of the start stands at the end of the line.
+  `l`/`Enter` goes to that chapter, and `h` goes back.
+- `N` — take the selected media away from the shelf "Continue Listening", or
+  put it back. A book that you will not finish soon then leaves the Home view,
+  and it stays in the library. Press `R` to see the change.
+
 ## 📊 Your listening time
 
 The server counts the time of every session. `T` shows that count.

@@ -35,6 +35,7 @@ impl Widget for &mut App {
             AppView::Reader => self.render_reader(area, buf),
             AppView::Stats => self.render_stats(area, buf),
             AppView::SortFilter => self.render_sort_filter(area, buf),
+            AppView::Chapters => self.render_chapters(area, buf),
             AppView::Settings => self.render_settings(area, buf),
             AppView::SettingsAccount => self.render_settings_account(area, buf),
             AppView::SettingsLibrary => self.render_settings_library(area, buf),
@@ -260,6 +261,7 @@ impl App {
             AppView::Reader
             | AppView::Stats
             | AppView::SortFilter
+            | AppView::Chapters
             | AppView::Settings
             | AppView::SettingsAccount
             | AppView::SettingsLibrary
@@ -384,6 +386,48 @@ impl App {
     }
 }
 
+/// The chapters of the media that plays. See T-24.
+impl App {
+    /// AppView::Chapters rendering
+    fn render_chapters(&mut self, area: Rect, buf: &mut Buffer) {
+        let [header_area, main_area, footer_area] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Fill(1),
+            Constraint::Length(2),
+        ])
+        .areas(area);
+
+        let state = self.player.state();
+        let lines = crate::logic::chapters::lines(&state.chapters, state.position);
+
+        // The media stopped while the view was open. The list is then empty,
+        // and the screen says why.
+        let title = if lines.is_empty() {
+            "No media plays now. Press h to go back.".to_string()
+        } else {
+            format!(
+                "The chapters of \"{}\" [{} items]",
+                state.title,
+                lines.len()
+            )
+        };
+
+        self.render_header(header_area, buf);
+        App::render_footer(
+            footer_area,
+            buf,
+            "j/↓, k/↑: move, l/→: go to the chapter, g/G: first/last, h/Tab: back, Q/Esc: quit",
+        );
+        self.render_list(
+            main_area,
+            buf,
+            &title,
+            &lines,
+            &mut self.list_state_chapters.clone(),
+        );
+    }
+}
+
 /// The sequence and the filter of the library. See T-24.
 impl App {
     /// AppView::SortFilter rendering
@@ -484,9 +528,9 @@ impl App {
         // A library of podcasts has no series and no ebook. The footer of
         // that library must not name a key that does nothing.
         let text_render_footer = if self.is_podcast {
-            "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, M: mark finished, T: listening time, f: sequence, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
+            "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, M: mark finished, N: hide from Continue Listening, T: listening time, C: chapters, f: sequence, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
         } else {
-            "j/↓, k/↑: move, l/→: play or open a series, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, s: series, c: lists, f: sequence, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
+            "j/↓, k/↑: move, l/→: play or open a series, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, C: chapters, s: series, c: lists, f: sequence, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
         };
 
         self.render_header(header_area, buf);
@@ -559,7 +603,7 @@ impl App {
         if self.is_podcast {
             _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
         } else {
-            _text_render_footer = "j/↓, k/↑: move, l/→: play or open a series, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, s: series, c: lists, f: sequence, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
+            _text_render_footer = "j/↓, k/↑: move, l/→: play or open a series, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, C: chapters, s: series, c: lists, f: sequence, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
         }
 
         self.render_header(header_area, buf);
@@ -676,7 +720,7 @@ impl App {
         ])
         .areas(main_area);
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, C: chapters, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -820,7 +864,7 @@ impl App {
         ])
         .areas(main_area);
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, C: chapters, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -1027,7 +1071,7 @@ impl App {
         if self.is_podcast {
             _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n c: lists, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
         } else {
-            _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, s: series, c: lists, f: sequence, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+            _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, C: chapters, s: series, c: lists, f: sequence, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
         }
 
         if self.search_mode {
@@ -1246,7 +1290,7 @@ impl App {
         ])
         .areas(main_area);
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, C: chapters, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
