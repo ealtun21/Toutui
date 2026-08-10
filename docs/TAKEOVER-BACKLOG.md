@@ -39,6 +39,7 @@ the original issue, if there is one.
 | T-29 | The update tests the proof of the origin of an archive | `f123f8b` |
 | T-27 | Continuous integration builds the flake of Nix | `7f55e43` |
 | T-14 | The program does not lose the configuration (examined) | this document |
+| T-31 | The fork gives no bundle for macOS | this document |
 
 Sub-project 2 removed VLC. The application decodes the audio in the process
 now. Therefore a book with many audio files plays completely, the token stays
@@ -412,20 +413,37 @@ the memory with no limit, and only the limit of 120 seconds stops it.
 
 **The work.** Count the bytes as they arrive, and stop at the limit.
 
-### T-31: macOS has no way to remove the program
+### T-31: the fork gives no bundle for macOS
 
-`macos/Info.plist` and `macos/launch.command` describe a bundle of an
-application. `install.sh` does not install that bundle, therefore
-`--uninstall` cannot name it. A user of macOS who made the bundle by hand gets
-an incomplete list.
+`macos/Info.plist` and `macos/launch.command` described a bundle of an
+application. `install.sh` did not install that bundle, therefore `--uninstall`
+could not name it. A user of macOS who made the bundle by hand got an
+incomplete list.
 
-**The work.** Decide if the fork gives a bundle for macOS. If it gives one,
-`install.sh` must install it and `--uninstall` must name it. If it does not,
-remove the two files.
+**The decision of 2026-08-10: the fork gives no bundle.** The maintainer chose
+this answer. The reasons:
 
-`macos/launch.command` opens `$HOME/.cargo/bin/toutui`, but `install.sh`
-installs the binary to `/usr/local/bin`. Therefore the decision about
-`macos/` must cover that file too, and not the two files above alone.
+1. No part of the project used the two files. `install.sh` did not write the
+   bundle, `release.yml` did not put it in an archive, and `--uninstall` could
+   not name it. Only `Info.plist` named `launch.command`.
+2. The two files did not agree with the installation. `launch.command` opened
+   `$HOME/.cargo/bin/toutui`, and `install.sh` writes `/usr/local/bin/toutui`.
+3. A bundle of an application gives one thing to a program of the terminal: an
+   icon that opens Terminal. `install.sh` and the binary in `/usr/local/bin`
+   give macOS every other function.
+4. No machine of the development runs macOS. A bundle that nobody runs is the
+   fault that the candidates of v0.5.0 showed three times: every test was
+   green, and the installation still did not operate.
+
+**The work that is complete.** The fork removed the two files. `--uninstall`
+takes its list from `uninstall_paths` in `src/utils/clap.rs` now, and that
+function is pure. Therefore a test gives the paths of macOS and the paths of
+Linux, and it confirms that each list is complete and that no list names a
+bundle.
+
+**What no test on Linux can show.** These tests give the paths of macOS as
+text. They do not run on macOS, and this machine cannot run macOS. A user of
+macOS must confirm the list of `--uninstall` on that system.
 
 ### T-14: the program does not lose the configuration
 
