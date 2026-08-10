@@ -33,6 +33,7 @@ the original issue, if there is one.
 | T-22 | The application shows the series of a library | sub-project 5 |
 | T-9 | The application shows the playlists and the collections | sub-project 5 |
 | T-26 | The key `G` in an empty list stopped the application | `597ca2d` |
+| T-25 | The application does not start without the server | `bc9ceb0` |
 
 Sub-project 2 removed VLC. The application decodes the audio in the process
 now. Therefore a book with many audio files plays completely, the token stays
@@ -328,7 +329,6 @@ the application does not have yet.
 
 | Id | Upstream | Title |
 |---|---|---|
-| T-25 | — | The application does not start without the server |
 | T-13 | — | The description shows the HTML tags |
 | T-14 | — | The application loses the configuration after an update (`255b86`). The fork examined T-14 with T-21 and did not correct it. |
 | T-15 | — | The authentication fails at the first attempt (`4b3045`) |

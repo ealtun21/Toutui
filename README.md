@@ -93,11 +93,10 @@ The application starts and plays when the server does not answer:
 **Short-term Goals**  
 - Since this is a beta version, the main focus is on tracking and fixing bugs.
 - Improve the design of the integrated player.
-- **Currently working on the next release: [v1.0.0-stable].**
+- **Currently working on the next release: v1.0.0-stable.**
 
 
 **Mid-term Goals**   
-- CI/CD Implementation  
 - Add future features described bellow.
 
 ## 🔮 Future features
@@ -105,7 +104,6 @@ Here are some features that could be added in future releases:
 - Ability to add new podcasts from the app
 - Add stats
 - Read an EPUB book in the application
-- A full offline mode: the application needs the server to start today
   
 ## ⚠️ Caution: Beta Version  
 This beta app is still in **heavy development and contains bugs**.  
@@ -141,7 +139,8 @@ curl -LsSf https://raw.githubusercontent.com/ealtun21/Toutui/main/install.sh | b
 ```
 
 The script receives the archive of the last release, it compares the sum with
-`SHA256SUMS`, and it installs the binary in `/usr/local/bin`.
+`SHA256SUMS`, and it installs the binary in `/usr/local/bin`. It asks for a
+password with `sudo`, because that directory needs one on most systems.
 
 ### From the source
 
@@ -180,7 +179,7 @@ The command writes the paths. It deletes nothing.
 In `/usr/local/bin` (the script) or `~/.cargo/bin` (`cargo install`):
 - `toutui` - The binary file.
 
-In `~/.config/toutui` for Linux or `~/Library/Preferences` for macOS:    
+In `~/.config/toutui` for Linux or `~/Library/Preferences/toutui` for macOS:    
 **Note**: This is the default path if `XDG_CONFIG_HOME` is empty. 
 - `.env` - Contains the secret key.
 - `config.toml` - Configuration file.
@@ -202,10 +201,6 @@ nix build github:ealtun21/Toutui
 nix run github:ealtun21/Toutui
 nix develop            # a shell for development
 ```
-
-A build on 2026-08-10 completed, and the tests ran inside the sandbox of Nix.
-That sandbox has no sound card and no network, thus the tests do not need
-either one.
 
 #### **Requirements**
 - `Rust`

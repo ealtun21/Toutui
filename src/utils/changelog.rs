@@ -214,15 +214,15 @@ let changelog_12 = "Changelog Toutui v0.4.0-beta (10/05/2025) \n\
          Enjoy and be toutui!\n
          ####\n".to_string();
 let changelog_15 = format!(
-    "Changelog Toutui v{} (08/10/2026) \n\
+    "Changelog Toutui v{} (10/08/2026) \n\
      \n\
      Added:\n\
      - The program plays a local copy when the server does not answer, and\n\
        it sends the positions when the server answers again.\n\
      - The program updates itself with `toutui --update`. The program\n\
        compares the sum of the archive before it moves the new binary.\n\
-     - The releases come from this repository, and each archive has a proof\n\
-       of its origin.\n\
+     - The releases come from this repository, and the archives have a sum\n\
+       SHA-256 that the machine writes.\n\
      \n\
      Fixed:\n\
      - `--update` installed the archived original project.\n\
