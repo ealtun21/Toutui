@@ -91,7 +91,7 @@ jobs:
       # The machine writes the sums. No person writes a sum in a file.
       - name: Write SHA256SUMS
         working-directory: dist
-        run: sha256sum toutui-*.tar.gz > SHA256SUMS
+        run: sha256sum toutui-*.tar.gz config.example.toml toutui.desktop > SHA256SUMS
 
       - uses: actions/attest-build-provenance@v2
         with:
