@@ -892,6 +892,20 @@ That last line is the whole path: the program found the release, it received the
 archive, it examined the proof of the origin and the sum, and it moved the new
 binary over itself.
 
+### Two small items of T-24 — complete, 2026-08-11
+
+**The program reads the permissions of the account.** `GET /api/me` gives nine
+permissions. The program read none of them, therefore the key `D` on an account
+that may not download gave the error of the protocol of the server. The key now
+says "Your account cannot download a media. Ask the person who holds the
+server." An absent permission means "yes", therefore a server that names fewer
+permissions does not stop a user.
+
+**The words of the search start empty.** The program wrote two spaces in
+`search_query` at the start. That value stood for "no words", and only the
+order of the views kept it from reaching the screen. The value is an empty text
+now.
+
 ## The report of the user of 2026-08-10, on v0.5.0
 
 The user tested v0.5.0 and named ten items. This section holds each one, the

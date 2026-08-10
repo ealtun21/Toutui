@@ -203,6 +203,9 @@ pub struct App {
     /// store of the process, therefore no request goes to the server a second
     /// time. See T-23.
     pub covers: crate::ui::cover::CoverArt,
+    /// What this account may do on the server. An absent answer gives every
+    /// permission. See T-24.
+    pub permissions: crate::api::me::permissions::Permissions,
     /// The account that waits for the second press of the key `l`. A log out
     /// forgets a token, therefore the program asks one time. See T-36.
     pub confirm_logout: Option<String>,
@@ -542,11 +545,25 @@ impl App {
                 })
         };
 
-        let (series, collections, playlists, all_books) = tokio::join!(
+        let ask_for_the_permissions = async {
+            if is_offline {
+                return crate::api::me::permissions::Permissions::default();
+            }
+
+            crate::api::me::permissions::get_permissions(&api)
+                .await
+                .unwrap_or_else(|error| {
+                    log::warn!("[app] the server did not give the permissions: {}", error);
+                    crate::api::me::permissions::Permissions::default()
+                })
+        };
+
+        let (series, collections, playlists, all_books, permissions) = tokio::join!(
             ask_for_the_series,
             ask_for_the_collections,
             ask_for_the_playlists,
             ask_for_the_items,
+            ask_for_the_permissions,
         );
 
         let lists = collect_lists(&collections, &playlists);
@@ -647,7 +664,9 @@ impl App {
         let book_progress_search_book: Vec<Vec<String>> = Vec::new();
         let book_progress_search_book_cur_time: Vec<Vec<f64>> = Vec::new();
         let search_mode = false;
-        let search_query = "  ".to_string();
+        // No words yet. The view of the search never comes before the key
+        // `/`, and that key writes the words of the user here. See T-24.
+        let search_query = String::new();
         let all_titles_pod_ep_search: Vec<Vec<String>> = Vec::new(); // init in tui.rs in render search book function
         let all_ids_pod_ep_search: Vec<Vec<String>> = Vec::new();
         let all_subtitles_pod_ep_search: Vec<Vec<String>> = Vec::new();
@@ -979,6 +998,7 @@ impl App {
             changelog,
             update_msg,
             covers: crate::ui::cover::CoverArt::new(),
+            permissions,
             confirm_logout: None,
             reader: None,
             reader_message: None,
@@ -1080,6 +1100,16 @@ impl App {
 
             // download the selected book or episode for offline listening
             KeyCode::Char('D') => {
+                // The server refuses a download for an account that may not
+                // download, and it gives an error of the protocol. The user
+                // reads a sentence instead. See T-24.
+                if !self.permissions.download {
+                    let mut stdout = stdout();
+                    let _ = clear_message(&mut stdout, 3);
+                    let _ = pop_message(&mut stdout, 3, crate::api::me::permissions::no_download());
+                    return;
+                }
+
                 let token = self.token.clone();
                 let server_address = self.server_address.clone();
                 let username = self.username.clone();

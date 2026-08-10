@@ -431,8 +431,7 @@ To make it work properly, perform a fresh reinstall.
      ####\n"
         .to_string();
 
-    let changelog_23 = format!(
-        "Changelog Toutui v{} (11/08/2026) \n\
+    let changelog_23 = "Changelog Toutui v0.6.8 (11/08/2026) \n\
      \n\
      Added:\n\
      - **The key M marks a media as finished, or as not finished.** The\n\
@@ -442,6 +441,22 @@ To make it work properly, perform a fresh reinstall.
        first, and it sends the opposite.\n\
      - A media that goes to \"not finished\" loses its position: the\n\
        server puts it back to the start. The message says so.\n\
+     \n\
+     Contributors:\n\
+     \n\
+     - AlbanDAVID (the original project), ealtun21\n\
+     \n\
+     Enjoy and be toutui!\n\
+     ####\n"
+        .to_string();
+
+    let changelog_24 = format!(
+        "Changelog Toutui v{} (11/08/2026) \n\
+     \n\
+     Changed:\n\
+     - The program reads the permissions of your account. The key D on an\n\
+       account that may not download now says so, and it no longer shows\n\
+       the error of the protocol of the server.\n\
      \n\
      Contributors:\n\
      \n\
@@ -491,6 +506,7 @@ To make it work properly, perform a fresh reinstall.
          Enjoy and be toutui!\n
          ####\n".to_string();
 
+    changelog.push_str(&changelog_24);
     changelog.push_str(&changelog_23);
     changelog.push_str(&changelog_22);
     changelog.push_str(&changelog_21);
