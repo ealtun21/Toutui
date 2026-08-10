@@ -33,7 +33,22 @@ not in the archived repository.
  **Sync Progress & Stats:** Keep your listening progress in sync  
  **Streaming Support:** Play directly without downloading  
  **Local Copies:** Download a book or a podcast episode and read the audio from the disk (see below)  
+ **Cover art:** The cover of the media stands beside the description, and a series shows a shelf of its books  
  **Customizable Color Theme:** A config file will allow you to customize the color theme. Explore and try various themes [here](https://github.com/AlbanDAVID/Toutui-theme).
+
+## 🎛 The variables of the environment
+
+The program reads these variables. None of them is necessary.
+
+| Variable | What it does |
+|---|---|
+| `TOUTUI_NO_COVERS` | The program draws no cover art, and it asks the terminal nothing. The text then takes the whole width. Set it when the covers make trouble in your terminal. |
+| `TOUTUI_COVERS_IN_TMUX` | Inside tmux the program draws the covers with blocks of Unicode, and it asks the terminal nothing. tmux gives the question to the terminal only when `allow-passthrough` is on, and a question with no answer takes the first key of the user. Set this variable to ask anyway. |
+| `TOUTUI_AUDIO_DEVICE` | The name of the sound device. `null` plays nothing. |
+
+A machine with no sound device still opens the program. The header then says
+"🔇 No sound device: no media can play", and every function that needs no sound
+still works.
 
 ## 📚 Series
 

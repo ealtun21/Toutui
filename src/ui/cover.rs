@@ -102,7 +102,52 @@ fn store() -> &'static RwLock<HashMap<String, CoverBytes>> {
 /// write bytes on the screen of the user.
 pub fn picker() -> &'static Picker {
     static PICKER: OnceLock<Picker> = OnceLock::new();
-    PICKER.get_or_init(|| Picker::from_query_stdio().unwrap_or_else(|_| Picker::halfblocks()))
+    PICKER.get_or_init(|| {
+        if !asks_the_terminal() {
+            return Picker::halfblocks();
+        }
+
+        Picker::from_query_stdio().unwrap_or_else(|_| Picker::halfblocks())
+    })
+}
+
+/// Tells if the program may ask the terminal what it can do.
+///
+/// The question writes bytes to the terminal and it reads the answer. Two
+/// conditions make that question a risk, therefore the program does not ask:
+///
+/// 1. `TOUTUI_NO_COVERS` is set. The user then wants no cover at all, and the
+///    program shows no picture.
+/// 2. The program runs inside tmux, and `TOUTUI_COVERS_IN_TMUX` is not set.
+///    tmux gives the question to the terminal only when the option
+///    `allow-passthrough` is on. Without it the answer never comes, and the
+///    reader of the crate stays inside `read` and takes the keys of the user.
+///
+/// Blocks of Unicode need no question, and they draw a cover in every
+/// terminal.
+fn asks_the_terminal() -> bool {
+    if std::env::var_os("TOUTUI_NO_COVERS").is_some() {
+        log::info!("[cover] TOUTUI_NO_COVERS is set. The program shows no cover.");
+        return false;
+    }
+
+    if std::env::var_os("TMUX").is_some() && std::env::var_os("TOUTUI_COVERS_IN_TMUX").is_none() {
+        log::info!(
+            "[cover] the program runs inside tmux. It asks the terminal \
+             nothing, and it draws the covers with blocks of Unicode. Set \
+             TOUTUI_COVERS_IN_TMUX=1 to ask."
+        );
+        return false;
+    }
+
+    true
+}
+
+/// Tells if the program draws a cover at all.
+///
+/// `TOUTUI_NO_COVERS` gives the whole width to the text.
+pub fn covers_are_on() -> bool {
+    std::env::var_os("TOUTUI_NO_COVERS").is_none()
 }
 
 /// Asks the server for one cover, if nothing asked for it before.
@@ -308,6 +353,10 @@ pub struct CoverPlan {
 /// The function gives no area for the covers when the screen is too narrow.
 /// The text then takes the whole area.
 pub fn split_for_covers(area: Rect, screen_width: u16) -> (Rect, Option<Rect>) {
+    if !covers_are_on() {
+        return (area, None);
+    }
+
     if screen_width < MIN_WIDTH_FOR_COVER || area.height < MIN_HEIGHT_FOR_COVER {
         return (area, None);
     }
@@ -587,8 +636,30 @@ mod tests {
         );
     }
 
+    /// The tests of the panel need the covers to be on. The variable belongs
+    /// to the process, therefore the test sets it and gives it back.
+    struct WithCovers(Option<std::ffi::OsString>);
+
+    impl WithCovers {
+        fn on() -> Self {
+            let before = std::env::var_os("TOUTUI_NO_COVERS");
+            std::env::remove_var("TOUTUI_NO_COVERS");
+            WithCovers(before)
+        }
+    }
+
+    impl Drop for WithCovers {
+        fn drop(&mut self) {
+            match self.0.take() {
+                Some(value) => std::env::set_var("TOUTUI_NO_COVERS", value),
+                None => std::env::remove_var("TOUTUI_NO_COVERS"),
+            }
+        }
+    }
+
     #[test]
     fn a_narrow_screen_gives_the_whole_area_to_the_text() {
+        let _covers = WithCovers::on();
         let main = area(80, 20);
         let (text, panel) = split_for_covers(main, 80);
         assert_eq!(text, main);
@@ -597,6 +668,7 @@ mod tests {
 
     #[test]
     fn a_screen_of_the_smallest_width_shows_a_cover() {
+        let _covers = WithCovers::on();
         let main = area(MIN_WIDTH_FOR_COVER, 20);
         let (_text, panel) = split_for_covers(main, MIN_WIDTH_FOR_COVER);
         assert!(panel.is_some(), "the smallest width must show a cover");
@@ -604,6 +676,7 @@ mod tests {
 
     #[test]
     fn a_low_panel_gives_the_whole_area_to_the_text() {
+        let _covers = WithCovers::on();
         let main = area(150, MIN_HEIGHT_FOR_COVER - 1);
         let (text, panel) = split_for_covers(main, 150);
         assert_eq!(text, main);
@@ -612,6 +685,7 @@ mod tests {
 
     #[test]
     fn the_panel_stands_at_the_right_and_leaves_a_column() {
+        let _covers = WithCovers::on();
         let main = area(150, 25);
         let (text, panel) = split_for_covers(main, 150);
         let panel = panel.expect("a wide screen shows a cover");
@@ -623,12 +697,14 @@ mod tests {
 
     #[test]
     fn the_panel_is_never_wider_than_the_limit() {
+        let _covers = WithCovers::on();
         let (_text, panel) = split_for_covers(area(400, 40), 400);
         assert_eq!(panel.expect("a cover").width, PANEL_MAX_WIDTH);
     }
 
     #[test]
     fn the_panel_is_generous() {
+        let _covers = WithCovers::on();
         // A screen of 150 columns must give the cover more than 30 columns.
         let (_text, panel) = split_for_covers(area(150, 29), 150);
         assert!(panel.expect("a cover").width >= 30);
