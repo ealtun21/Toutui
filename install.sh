@@ -62,7 +62,7 @@ sum_of() {
 sum_agrees() {
     local file="$1" name="$2" sums="$3"
     local expected actual
-    expected=$(grep " ${name}\$" "$sums" | awk '{print $1}') || true
+    expected=$(awk -v n="$name" '$2 == n || $2 == "*" n {print $1}' "$sums") || true
     [ -n "$expected" ] || return 1
     actual=$(sum_of "$file")
     [ "$expected" = "$actual" ]
@@ -89,8 +89,10 @@ main() {
     trap 'rm -rf "$tmp"' EXIT
 
     local base="https://github.com/${REPO}/releases/download/${tag}"
-    curl -sSfL "${base}/${archive}" -o "${tmp}/${archive}"
-    curl -sSfL "${base}/SHA256SUMS" -o "${tmp}/SHA256SUMS"
+    curl -sSfL "${base}/${archive}" -o "${tmp}/${archive}" \
+        || fail "The archive ${archive} did not arrive."
+    curl -sSfL "${base}/SHA256SUMS" -o "${tmp}/SHA256SUMS" \
+        || fail "SHA256SUMS did not arrive."
 
     sum_agrees "${tmp}/${archive}" "$archive" "${tmp}/SHA256SUMS" \
         || fail "The sum of ${archive} is not correct."
@@ -99,6 +101,7 @@ main() {
 
     tar -xzf "${tmp}/${archive}" -C "$tmp"
 
+    mkdir -p "$BIN_DIR" 2>/dev/null || true
     if [ -w "$BIN_DIR" ]; then
         install -m 755 "${tmp}/toutui" "${BIN_DIR}/toutui"
     else
