@@ -8,6 +8,7 @@ use crossterm::event::{self, KeyCode, KeyEvent};
 use log::{error, info};
 use ratatui::backend::CrosstermBackend;
 use ratatui::text::Line;
+use ratatui::widgets::Paragraph;
 use ratatui::widgets::{Block, Borders};
 use ratatui::Terminal;
 use ratatui::{
@@ -15,9 +16,26 @@ use ratatui::{
     style::{Color, Style},
 };
 use std::io;
-use tui_textarea::TextArea;
+use tui_input::backend::crossterm::EventHandler;
+use tui_input::Input;
+
+use crate::ui::text_field::field_view;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+/// The character that the password field shows in place of a character of the
+/// password.
+const MASK: char = '\u{2022}';
+
+/// One field of the login screen.
+struct Field {
+    title: &'static str,
+    /// The text that the field shows when it is empty.
+    placeholder: &'static str,
+    /// A field with a mask never shows what the user wrote.
+    mask: Option<char>,
+    input: Input,
+}
 
 impl AppLogin {
     pub fn auth(&mut self) -> io::Result<()> {
@@ -32,41 +50,26 @@ impl AppLogin {
 
         let (fg_r, fg_g, fg_b) = rgb_parts(&self.config.colors.login_foreground_color);
 
-        let mut textarea1 = TextArea::default();
-        textarea1.set_block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title("Server address")
-                .title_bottom(
-                    Line::from(format!("🦜Toutui v{} - Esc to quit.", VERSION)).right_aligned(),
-                )
-                .border_style(Style::default().fg(Color::Rgb(fg_r, fg_g, fg_b))),
-        );
-
-        textarea1.set_placeholder_text("http:// or https:// required");
-
-        let mut textarea2 = TextArea::default();
-        textarea2.set_block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title("Username")
-                .title_bottom(
-                    Line::from(format!("🦜Toutui v{} - Esc to quit.", VERSION)).right_aligned(),
-                )
-                .border_style(Style::default().fg(Color::Rgb(fg_r, fg_g, fg_b))),
-        );
-
-        let mut textarea3 = TextArea::default();
-        textarea3.set_block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title("Password")
-                .title_bottom(
-                    Line::from(format!("🦜Toutui v{} - Esc to quit.", VERSION)).right_aligned(),
-                )
-                .border_style(Style::default().fg(Color::Rgb(fg_r, fg_g, fg_b))),
-        );
-        textarea3.set_mask_char('\u{2022}');
+        let mut fields = [
+            Field {
+                title: "Server address",
+                placeholder: "http:// or https:// required",
+                mask: None,
+                input: Input::default(),
+            },
+            Field {
+                title: "Username",
+                placeholder: "",
+                mask: None,
+                input: Input::default(),
+            },
+            Field {
+                title: "Password",
+                placeholder: "",
+                mask: Some(MASK),
+                input: Input::default(),
+            },
+        ];
 
         // display
         let size = term.size()?;
@@ -76,19 +79,46 @@ impl AppLogin {
             width: size.width / 2,
             height: 3,
         };
+        // The borders take one column at the left and one column at the right.
+        let inner_width = input_area.width.saturating_sub(2);
 
         // init variables
-        let mut textareas = [textarea1, textarea2, textarea3];
         let mut current_index = 0;
         let mut collected_data: Vec<String> = Vec::new();
         let (log_r, log_g, log_b) = rgb_parts(&self.config.colors.log_background_color);
 
         loop {
+            let field = &fields[current_index];
+            let view = field_view(&field.input, inner_width, field.mask);
+            let block = Block::default()
+                .borders(Borders::ALL)
+                .title(field.title)
+                .title_bottom(
+                    Line::from(format!("🦜Toutui v{} - Esc to quit.", VERSION)).right_aligned(),
+                )
+                .border_style(Style::default().fg(Color::Rgb(fg_r, fg_g, fg_b)));
+
+            // An empty field shows the text that tells the user what to write.
+            // That text is dark, so that nobody reads it as an answer.
+            let (text, style) = if view.text.is_empty() && !field.placeholder.is_empty() {
+                (
+                    field.placeholder,
+                    Style::default().fg(Color::Rgb(128, 128, 128)),
+                )
+            } else {
+                (view.text.as_str(), Style::default())
+            };
+
             term.draw(|f| {
                 let background =
                     Block::default().style(Style::default().bg(Color::Rgb(log_r, log_g, log_b)));
-                f.render_widget(&textareas[current_index], input_area);
+                let line = Paragraph::new(text)
+                    .style(style)
+                    .scroll((0, view.scroll))
+                    .block(block);
+                f.render_widget(line, input_area);
                 f.render_widget(background, f.area());
+                f.set_cursor_position((input_area.x + 1 + view.cursor, input_area.y + 1));
             })?;
 
             // display error message (in any)
@@ -108,10 +138,10 @@ impl AppLogin {
                     code: KeyCode::Enter,
                     ..
                 }) => {
-                    if current_index < textareas.len() - 1 {
-                        // will just take textarea 1 and 2, 3 will take after break loop
-
-                        collected_data.push(textareas[current_index].lines().join("\n"));
+                    if current_index < fields.len() - 1 {
+                        // The loop takes the first field and the second field
+                        // here. It takes the third field after the break.
+                        collected_data.push(fields[current_index].input.value().to_string());
                         current_index += 1;
                     } else {
                         break;
@@ -125,17 +155,16 @@ impl AppLogin {
                     clean_exit();
                 }
 
-                event::Event::Key(input) => {
-                    if let Some(active_textarea) = textareas.get_mut(current_index) {
-                        active_textarea.input(input);
+                other => {
+                    if let Some(field) = fields.get_mut(current_index) {
+                        field.input.handle_event(&other);
                     }
                 }
-                _ => {}
             }
         }
 
-        // save the last input (from textearea3)
-        collected_data.push(textareas[current_index].lines().join("\n"));
+        // save the last input (from the password field)
+        collected_data.push(fields[current_index].input.value().to_string());
 
         // make disappear search_area (the input bar) after the break loop
         term.draw(|f| {
@@ -146,7 +175,7 @@ impl AppLogin {
         // Fetch data from api and insert them in database
 
         // send result
-        if let Some(_active_textarea) = textareas.get(current_index) {
+        if let Some(_active_field) = fields.get(current_index) {
             let collected_data_clone = collected_data.clone();
 
             // The login must finish before the application continues.
