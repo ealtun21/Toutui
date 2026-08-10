@@ -117,7 +117,7 @@ At worst, you may experience **sync issues**, but there is **no risk** of data l
 
 ## 📝 Notes
 ### 🐛 **Issues**    
-For any issues, check first the [issues of this fork](https://github.com/ealtun21/Toutui/issues) and the [wiki of the original project](https://github.com/AlbanDAVID/Toutui/wiki/). Otherwise, open a new one **in this repository**. The original repository is archived and takes no report.
+For any issues, check first the [issues of this fork](https://github.com/ealtun21/Toutui/issues). Otherwise, open a new one **in this repository**. The original repository is archived and takes no report.
 
 ### 🤝 **Contributing**  
 Do not hesitate to contribute to this project by submitting your code, ideas, or feedback. Please make sure to read the [contributing guidelines](https://github.com/ealtun21/Toutui/blob/main/CONTRIBUTING.md) first.
@@ -132,77 +132,52 @@ To ensure the best experience, it's recommended to use **Kitty** or **Alacritty*
 
 
 
-## 🚨 Installation Instructions
+## Installation
 
->[!WARNING]
-> - **This is a beta app, please read [this](https://github.com/AlbanDAVID/Toutui?tab=readme-ov-file#%EF%B8%8F-caution-beta-version).**
->  - For any issues, check first the [issues of this fork](https://github.com/ealtun21/Toutui/issues) and the [wiki of the original project](https://github.com/AlbanDAVID/Toutui/wiki/). Otherwise, open a new one **in this repository**. The original repository is archived and takes no report.
-
-### <img src=".github/archlinux-icon.svg" align="top" width="24" alt="(Arch Linux)"/> Arch Linux
-[![GitHub release](https://img.shields.io/github/v/release/AlbanDAVID/Toutui?label=Latest%20Release&color=green&cacheSeconds=3600)](https://github.com/AlbanDAVID/Toutui/releases/latest)
-![AUR Version](https://img.shields.io/aur/version/toutui-bin?color=green&label=AUR)
-
-Installation and initial configuration
-```
-yay -S toutui
-mkdir -p ~/.config/toutui
-cp /usr/share/toutui/config.example.toml ~/.config/toutui/config.toml
-# Token encryption in the database (NOTE: replace 'secret'):
-echo 'TOUTUI_SECRET_KEY=secret' >> ~/.config/toutui/.env
-```
-Update
-```
-yay -S toutui
-```
-Uninstall
-```
-yay -R toutui-bin
-```
-
-### ⚡ Easy installation 
-
-**Run the following in your terminal, then follow the on-screen instructions:**    
-
-[![GitHub release](https://img.shields.io/github/v/release/AlbanDAVID/Toutui?label=Latest%20Release&color=green&cacheSeconds=3600)](https://github.com/AlbanDAVID/Toutui/releases/latest)
-
+### The script
 
 ```bash
-bash -c 'expected_sha256="b5c41bcd3c480fd2ca6ec0031ccecf2cf7cf4ae01f591cad64a320fa7d72331d" export expected_sha256 tmpfile=$(mktemp) && curl -LsSf https://github.com/AlbanDAVID/Toutui/raw/stable/hello_toutui.sh -o "$tmpfile" && bash "$tmpfile" install && rm -f "$tmpfile"'
+curl -LsSf https://raw.githubusercontent.com/ealtun21/Toutui/main/install.sh | bash
 ```
 
-#### **Update**
+The script receives the archive of the last release, it compares the sum with
+`SHA256SUMS`, and it installs the binary in `/usr/local/bin`.
 
-> [!IMPORTANT]  
-> `toutui --update` is not working. You can do this instead: 
-> ``` 
-> bash -c 'expected_sha256="b5c41bcd3c480fd2ca6ec0031ccecf2cf7cf4ae01f591cad64a320fa7d72331d" export expected_sha256 tmpfile=$(mktemp) && curl -LsSf https://github.com/AlbanDAVID/Toutui/raw/stable/hello_toutui.sh -o "$tmpfile" && bash "$tmpfile" update && rm -f "$tmpfile"'
-> ```
-
-Quit the app and run the following in your terminal
+### From the source
 
 ```bash
-bash -c 'expected_sha256="b5c41bcd3c480fd2ca6ec0031ccecf2cf7cf4ae01f591cad64a320fa7d72331d" export expected_sha256 tmpfile=$(mktemp) && curl -LsSf https://github.com/AlbanDAVID/Toutui/raw/stable/hello_toutui.sh -o "$tmpfile" && bash "$tmpfile" update && rm -f "$tmpfile"'
+cargo install --git https://github.com/ealtun21/Toutui
 ```
 
-#### **Uninstall**
+Alpine and every other system without glibc must use this method. The build
+needs the headers of ALSA: `libasound2-dev` on Debian, `alsa-lib` on Arch.
 
-> [!IMPORTANT]  
-> `toutui --uninstall` is not working. You can do this instead: 
-> ``` 
-> bash -c 'expected_sha256="b5c41bcd3c480fd2ca6ec0031ccecf2cf7cf4ae01f591cad64a320fa7d72331d" export expected_sha256 tmpfile=$(mktemp) && curl -LsSf https://github.com/AlbanDAVID/Toutui/raw/stable/hello_toutui.sh -o "$tmpfile" && bash "$tmpfile" uninstall && rm -f "$tmpfile"'
-> ```
+### The archives
 
-Quit the app and run the following in your terminal
+The [releases](https://github.com/ealtun21/Toutui/releases) hold one archive
+for each system, and `SHA256SUMS`. Compare the sum before you use an archive.
 
+### The update
 
 ```bash
-bash -c 'expected_sha256="b5c41bcd3c480fd2ca6ec0031ccecf2cf7cf4ae01f591cad64a320fa7d72331d" export expected_sha256 tmpfile=$(mktemp) && curl -LsSf https://github.com/AlbanDAVID/Toutui/raw/stable/hello_toutui.sh -o "$tmpfile" && bash "$tmpfile" uninstall && rm -f "$tmpfile"'
+toutui --update
 ```
 
-#### **Notes**  
+The program receives the archive of its target, it compares the sum, and it
+moves the new binary. The program runs no file that it receives.
+
+### The removal
+
+```bash
+toutui --uninstall
+```
+
+The command writes the paths. It deletes nothing.
+
+### Notes
 
 ##### Files installed:
-In `/usr/local/bin` (option 1, from install script) or `~/.cargo/bin` (option 2, from install script) or `/usr/bin` (yay)  :
+In `/usr/local/bin` (the script) or `~/.cargo/bin` (`cargo install`):
 - `toutui` - The binary file.
 
 In `~/.config/toutui` for Linux or `~/Library/Preferences` for macOS:    
@@ -212,16 +187,10 @@ In `~/.config/toutui` for Linux or `~/Library/Preferences` for macOS:
 - `toutui.log` - Log file.
 - `db.sqlite3` - SQLite database file.
 
-In `~/.local/share/applications` (option 1, from install script) or `/usr/share/applications` (yay) for Linux:
+In `~/.local/share/applications` (the script) for Linux:
 - `toutui.desktop` - Config file to launch Toutui from a launcher app.
 
-In `/usr/share/toutui` (yay):
-- `config.example.toml` - Configuration file.
-
-### Install from source
-
->[!WARNING]
-> This is a beta app, please read [this](https://github.com/AlbanDAVID/Toutui?tab=readme-ov-file#%EF%B8%8F-caution-beta-version).  
+### More on the build
 
 #### **Nix**
 
@@ -261,44 +230,5 @@ one sound card, give the name of the device in the variable
 TOUTUI_AUDIO_DEVICE="pipewire" toutui
 ```
 
-[![GitHub release](https://img.shields.io/github/v/release/AlbanDAVID/Toutui?label=Latest%20Release&color=green&cacheSeconds=3600)](https://github.com/AlbanDAVID/Toutui/releases/latest)
-
-Note: `main` might be unstable. Prefer `git clone --branch stable --single-branch https://github.com/AlbanDAVID/Toutui` if you want to have the last stable release.    
-```bash
-git clone https://github.com/AlbanDAVID/Toutui
-cd Toutui/
-mkdir -p ~/.config/toutui
-cp config.example.toml ~/.config/toutui/config.toml
-```
-
-Token encryption in the database (<u>**NOTE**</u>: replace `secret`)
-```bash
-echo TOUTUI_SECRET_KEY=secret >> ~/.config/toutui/.env
-```
-
-```bash
-cargo run --release
-```
-
-#### **Update**
-
-When a new release is available, follow these steps:
-
-```bash
-git pull https://github.com/AlbanDAVID/Toutui
-cargo run --release
-```
-
-#### **Notes**  
-##### Exec the binary:
-```bash
-cd target/release
-./Toutui
-```
-
-##### Files installed:
-After installation, you will have the following files in `~/.config/toutui`
-- `.env` - Contains the secret key.
-- `config.toml` - Configuration file.
-- `toutui.log` - Log file.
-- `db.sqlite3` - SQLite database file.
+To build from a local clone for development, see
+[CONTRIBUTING.md](https://github.com/ealtun21/Toutui/blob/main/CONTRIBUTING.md).

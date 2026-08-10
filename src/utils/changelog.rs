@@ -1,3 +1,5 @@
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 pub fn changelog() -> String {
     let mut changelog = String::new();
 
@@ -211,6 +213,34 @@ let changelog_12 = "Changelog Toutui v0.4.0-beta (10/05/2025) \n\
          \n\
          Enjoy and be toutui!\n
          ####\n".to_string();
+let changelog_15 = format!(
+    "Changelog Toutui v{} (08/10/2026) \n\
+     \n\
+     Added:\n\
+     - The program plays a local copy when the server does not answer, and\n\
+       it sends the positions when the server answers again.\n\
+     - The program updates itself with `toutui --update`. The program\n\
+       compares the sum of the archive before it moves the new binary.\n\
+     - The releases come from this repository, and each archive has a proof\n\
+       of its origin.\n\
+     \n\
+     Fixed:\n\
+     - `--update` installed the archived original project.\n\
+     - `Mark as finished` did not always operate.\n\
+     \n\
+     Changed:\n\
+     - The script of installation has 100 lines and not 1080. It installs\n\
+       no VLC and no netcat, because the player in the program needs\n\
+       neither.\n\
+     \n\
+     Contributors:\n\
+     \n\
+     - AlbanDAVID (the original project), ealtun21\n\
+     \n\
+     Enjoy and be toutui!\n\
+     ####\n",
+     VERSION
+);
 let changelog_13 = "Changelog Toutui v0.4.1-beta (14/05/2025) \n\
          \n\
          Warning:\n\
@@ -252,7 +282,8 @@ let changelog_14 =
          ####\n".to_string();
 
 
-    changelog.push_str(&changelog_14); 
+    changelog.push_str(&changelog_15);
+    changelog.push_str(&changelog_14);
     changelog.push_str(&changelog_13); 
     changelog.push_str(&changelog_12); 
     changelog.push_str(&changelog_11); 

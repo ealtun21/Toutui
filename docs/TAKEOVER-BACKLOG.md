@@ -122,12 +122,15 @@ application started again at 1234 seconds.
 `src/utils/clap.rs` ran the install script of the original repository, and
 every address in that script names `AlbanDAVID/Toutui`. Therefore the command
 built and installed the original program, and the user lost every correction
-of the fork. The most important loss was T-5, because the original program
-gives the token to VLC in a command line argument.
+of the fork.
 
-The two commands do nothing now. They write the reason and stop. Issue 21
-holds the work that gives the fork its own way to install and to update. T-14
-belongs to that work.
+**The correction.** The fork makes its own releases from a tag on `main`.
+`--update` receives the archive of its target, it compares the sum with
+`SHA256SUMS`, and it moves the new binary. The program runs no file that it
+receives. `--uninstall` writes the paths and deletes nothing.
+
+The fork publishes no package to a registry. The three ways to install are
+the script, `cargo install --git`, and the archives of the releases.
 
 ## Priority 2: security
 
@@ -327,7 +330,7 @@ the application does not have yet.
 |---|---|---|
 | T-25 | — | The application does not start without the server |
 | T-13 | — | The description shows the HTML tags |
-| T-14 | — | The application loses the configuration after an update (`255b86`) |
+| T-14 | — | The application loses the configuration after an update (`255b86`). The fork examined T-14 with T-21 and did not correct it. |
 | T-15 | — | The authentication fails at the first attempt (`4b3045`) |
 | T-16 | — | "Mark as finished" does not always work (`2d358c53`) |
 
