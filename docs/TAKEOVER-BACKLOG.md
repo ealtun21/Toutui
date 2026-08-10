@@ -41,6 +41,7 @@ the original issue, if there is one.
 | T-27 | Continuous integration builds the flake of Nix | `7f55e43` |
 | T-14 | The program does not lose the configuration (examined) | this document |
 | T-31 | The fork gives no bundle for macOS | this document |
+| T-15 | The authentication does not fail at the first attempt (examined) | `6796d91` |
 
 Sub-project 2 removed VLC. The application decodes the audio in the process
 now. Therefore a book with many audio files plays completely, the token stays
@@ -357,7 +358,7 @@ the application does not have yet.
 |---|---|---|
 | T-13 | — | The description shows the HTML tags |
 | T-14 | — | The application loses the configuration after an update (`255b86`). Examined on 2026-08-10: this fault does not occur in the fork. |
-| T-15 | — | The authentication fails at the first attempt (`4b3045`) |
+| T-15 | — | The authentication fails at the first attempt (`4b3045`). Examined on 2026-08-10: this fault does not occur in the fork. |
 | T-16 | — | "Mark as finished" does not always work (`2d358c53`) |
 
 ## Faults that did not occur again
@@ -582,3 +583,40 @@ tui_textarea::Input: From<Event> is not satisfied`.
 **The work.** Wait for a `tui-textarea` that takes `ratatui` 0.30. The other
 answer is to write the field of text in this project, and that work is larger
 than the gain.
+
+### T-15: the authentication does not fail at the first attempt
+
+`4b3045` says that a login with correct credentials fails, and that the second
+attempt works.
+
+**The mechanism that explains the report.** The program read the database
+before the login wrote the user. The old code started the login with
+`tokio::spawn` and did not wait for it, and it set `should_exit` at once.
+`main.rs` then read the database, found no user, and showed the screen of the
+login again. The user saw a login that failed. The row of the first attempt was
+in the database by then, therefore the second attempt found it and worked.
+
+**The state now.** `6796d91` closed that race: `auth_input.rs` runs the login
+on its own thread and waits for that thread with `join`. `auth_process` writes
+the user with `db_insert_usr` before it gives its answer, and `rusqlite` writes
+without a task in the background.
+
+**The measurement of 2026-08-10.** A test made an empty database, and it then
+ran the real login against the sandbox server of Audiobookshelf 2.36.0. It read
+the database with no wait at all. The list of the users held the name, the
+address of the server, the encrypted token, and the library that the program
+selected. Therefore the race does not exist.
+
+`tests/login_against_the_sandbox.rs` holds that test. Continuous integration
+does not run it, because it needs a server. The head of that file gives the
+command.
+
+`6796d91` said that it did not close T-15, because a test of that day did not
+reproduce the fault with the old code either. The report stays without a
+reproduction. The one mechanism that explains it is closed, a test confirms
+the rule that matters, and therefore T-15 closes.
+
+The comment of `main.rs` said that the program "will work at the second
+attempt". That comment is wrong now, and the file gives the true reason for
+the wait of one second: it stops a fast loop if the screen of the login comes
+back at once.

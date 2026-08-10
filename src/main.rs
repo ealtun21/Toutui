@@ -44,12 +44,18 @@ async fn main() -> Result<()> {
             let app_login = AppLogin::new().await?;
             let terminal = ratatui::init();
             let _app_result = app_login.run(terminal);
-            // Process login result here
-            // Wait for 1 second before checking again
-            // If database is reinit to quickly before `auth_process.rs` is finished
-            // it can be buggy and mark as failed. Maybe add more time to be sure (like 6 sec).
-            // But normally, even it's failed, data are written in db. It will work at the second
-            // attempt...
+            // The wait stops a fast loop. If the screen of the login comes
+            // back at once, for example because the terminal gives an error,
+            // this loop would use a full processor without it.
+            //
+            // The wait is not for the database. The comment here said before
+            // that the program could read the database before the login wrote
+            // the user, and that the second attempt then worked. That race is
+            // closed: `auth_input.rs` waits for the thread of the login, and
+            // `auth_process` writes the user before it gives its answer. A
+            // test on 2026-08-10 read the database with no wait after a real
+            // login and found the user. See T-15 and
+            // `tests/login_against_the_sandbox.rs`.
             tokio::time::sleep(Duration::from_secs(1)).await;
         } else {
             // If the database is ready, exit the loop

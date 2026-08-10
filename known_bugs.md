@@ -47,13 +47,40 @@ start and to play. The screen stayed empty. The application starts now, it
 shows the media of the disk, it plays them, and it sends the position when the
 server answers again.
 
-`bug_id: 4b3045`
-**Authentification Bug:** Even if you fill in valid credentials, the database sync can be buggy, and authentication may fail. Normally, it works on the second try.
 
 
 
+
+**NOT YET EXAMINED**
+
+These reports come from the original project, and no test of the fork has
+examined them yet. Every report that names VLC needs a new test, because the
+application plays the audio itself now and starts no other program.
+
+`bug_id: 9bacac` 
+**Sync**: If you open VLC to listen X, close VLC and quickly open VLC again to listen Y: X will still be sync — according to Y (normally, only Y has to be sync in this case).
+`bug_id: 86384e` 
+**Sync**: Rarely and especially if you open VLC to listen X, close VLC and quickly open VLC again to listen Y: the progress of X is set to 0 seconds.
+`bug_id: 06e548` 
+**Terminal broken**: The terminal is broken after the app is quit.
+`bug_id: 6ac5d8` 
+**Data loss if app crash or disgracefully quit**: If app crash, the last session is not closed.
+`bug_id: bf10cd` 
+**Launch a new media**: Have to close manually VLC to close and sync a session.
+`bug_id: dd9a649`
+**Listening Session:** Sometimes, the session (that you can see in `yourserveraddress/audiobookshelf/config/sessions`) does not close correctly, especially if you open VLC, quit it quickly, and start another book.
+`bug_id: fc695f`
+**Listening session:** The session (that you can see in `yourserveraddress/audiobookshelf/config/sessions`) does not close when the app is quit.
+`bug_id: 40f48d`
+**Cursor:** When you quit the app, terminal cursor disappear.
 
 **FIXED**  
+`bug_id: 4b3045` — CORRECTED on 2026-08-10
+**Authentification Bug:** One mechanism explains this report: the program read the database before the login wrote the user. The old code started the login with `tokio::spawn` and did not wait for it. `auth_input.rs` waits for the thread of the login now, and `auth_process` writes the user before it gives its answer. A test against a real server of Audiobookshelf 2.36.0 read the database with no wait after a first login: the user, the encrypted token, and the selected library were all present. `tests/login_against_the_sandbox.rs` holds that test.  
+`bug_id: e0b61c` — CORRECTED on 2026-08-10
+**VLC:** The application does not start VLC now, therefore VLC cannot continue to run after the application quits.  
+`bug_id: 3f729c` — CORRECTED on 2026-08-09
+**Loading time:** This fault did not occur in a test with a library of 2056 items on Audiobookshelf 2.36.0. The first screen came after 0.4 seconds, and the API gave all 2056 items in 0.48 seconds.  
 `bug_id: 255b86` — CORRECTED on 2026-08-10
 **Losing config after an update:** The script of the original project merged `config.example.toml` into the configuration of the user at every installation. Line 471 of `hello_toutui.sh` reads `$pseudo_escape_line`, and nothing gives that name a value. Therefore the test became `grep -E "^"`, that pattern agrees with every line, and the script added no line of the user that `config.example.toml` does not name. The merge also wrote the file again from the text of the example, thus the comments and the sequence of the example replaced those of the user. The fork writes `config.toml` only when that file is absent, and it merges nothing. `--update` moves one file: the binary. A test on 2026-08-10 changed a colour, added an option, and installed a newer release: the file of the user and the secret key did not change. `tests/update.rs` holds the guard.  
 `bug_id: 2d358c53` — CORRECTED on 2026-08-10
@@ -64,27 +91,3 @@ server answers again.
 **cvlc error sync with ctrl vlc from a terminal:** The application has no remote control interface now.  
 `bug_id: fe4116` — CORRECTED on 2026-08-10
 **cvlc macOS:** The application does not use `cvlc` on macOS now. It plays the audio itself.  
-`bug_id: 9bacac` 
-**Sync**: If you open VLC to listen X, close VLC and quickly open VLC again to listen Y: X will still be sync — according to Y (normally, only Y has to be sync in this case).   
-`bug_id: 86384e` 
-**Sync**: Rarely and especially if you open VLC to listen X, close VLC and quickly open VLC again to listen Y: the progress of X is set to 0 seconds.  
-`bug_id: 06e548` 
-**Terminal broken**: The terminal is broken after the app is quit.  
-`bug_id: 6ac5d8` 
-**Data loss if app crash or disgracefully quit**: If app crash, the last session is not closed.  
-`bug_id: bf10cd` 
-**Launch a new media**: Have to close manually VLC to close and sync a session.  
-`bug_id: 3f729c` 
-**Loading time**: for now, not optimized for a library with a lot of items (long start loading and refresh time)  
-NOTE 2026-08-09: this bug did not occur in a test with a library of 2056 items
-on Audiobookshelf 2.36.0. The first screen appeared after 0.4 seconds. The API
-gave all 2056 items in 0.48 seconds. Examine this bug again before you do work
-on it.  
-`bug_id: dd9a649`
-**Listening Session:** Sometimes, the session (that you can see in `yourserveraddress/audiobookshelf/config/sessions`) does not close correctly, especially if you open VLC, quit it quickly, and start another book.  
-`bug_id: e0b61c`
-**VLC:** `VLC` continue to run after the app is quit. The application does not start VLC now.  
-`bug_id: fc695f`
-**Listening session:** The session (that you can see in `yourserveraddress/audiobookshelf/config/sessions`) does not close when the app is quit.  
-`bug_id: 40f48d`
-**Cursor:** When you quit the app, terminal cursor disappear.
