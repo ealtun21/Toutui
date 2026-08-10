@@ -6,7 +6,7 @@
 use std::path::{Path, PathBuf};
 
 /// The name of the directory of this program.
-pub const APP_DIR: &str = "abstui";
+pub const APP_DIR: &str = "toutui";
 
 /// The name of the directory of the program before the fork.
 pub const OLD_APP_DIR: &str = "toutui";
@@ -69,7 +69,7 @@ pub fn db_file() -> PathBuf {
 
 /// Gives the path of the file of the log.
 pub fn log_file() -> PathBuf {
-    config_dir().join("abstui.log")
+    config_dir().join("toutui.log")
 }
 
 /// The files that the program copies from the old directory.
@@ -86,9 +86,9 @@ fn rename_secret_key_line(line: &str) -> String {
     let trimmed = line.trim_start();
     let indent = &line[..line.len() - trimmed.len()];
     if let Some(rest) = trimmed.strip_prefix("TOUTUI_SECRET_KEY=") {
-        format!("{indent}ABSTUI_SECRET_KEY={rest}")
+        format!("{indent}TOUTUI_SECRET_KEY={rest}")
     } else if let Some(rest) = trimmed.strip_prefix("export TOUTUI_SECRET_KEY=") {
-        format!("{indent}export ABSTUI_SECRET_KEY={rest}")
+        format!("{indent}export TOUTUI_SECRET_KEY={rest}")
     } else {
         line.to_string()
     }
@@ -121,7 +121,7 @@ fn copy_env_file(source: &Path, destination: &Path) -> std::io::Result<()> {
 }
 
 /// The name of the temporary directory that holds the files during the copy.
-const STAGING_DIR: &str = "abstui.partial";
+const STAGING_DIR: &str = "toutui.partial";
 
 /// Copies the configuration of the program before the fork.
 ///

@@ -14,8 +14,8 @@ use rodio::buffer::SamplesBuffer;
 use rodio::source::Source;
 use rodio::Player;
 use std::num::NonZero;
-use abstui::player::engine::speed::{SharedSpeed, SpeedSource};
-use abstui::player::engine::track::{Chapter, TrackList};
+use toutui::player::engine::speed::{SharedSpeed, SpeedSource};
+use toutui::player::engine::track::{Chapter, TrackList};
 
 /// The value of each sample of the test sound.
 const LEVEL: f32 = 0.5;

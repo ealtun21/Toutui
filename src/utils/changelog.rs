@@ -1,15 +1,6 @@
 pub fn changelog() -> String {
     let mut changelog = String::new();
 
-    // The screen of settings shows this text. The credit is at the top,
-    // because AlbanDAVID wrote the original program.
-    changelog.push_str(
-        "AbsTui is a fork of Toutui. AlbanDAVID wrote Toutui and archived it.\n\
-         https://github.com/AlbanDAVID/Toutui\n\
-         \n\
-         ####\n",
-    );
-
 let changelog_01 = "Changelog Toutui v0.1.0-beta (02/21/2025) \n\
          Fixed:\n\
          \n\

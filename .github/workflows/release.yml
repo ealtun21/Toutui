@@ -58,19 +58,19 @@ jobs:
           cargo build --release --target aarch64-apple-darwin
           cargo build --release --target x86_64-apple-darwin
           mkdir -p target/${{ matrix.target }}/release
-          lipo -create -output target/${{ matrix.target }}/release/abstui \
-            target/aarch64-apple-darwin/release/abstui \
-            target/x86_64-apple-darwin/release/abstui
+          lipo -create -output target/${{ matrix.target }}/release/toutui \
+            target/aarch64-apple-darwin/release/toutui \
+            target/x86_64-apple-darwin/release/toutui
 
       - name: Make the archive
         run: |
-          tar -czf abstui-${{ matrix.target }}.tar.gz \
-            -C target/${{ matrix.target }}/release abstui
+          tar -czf toutui-${{ matrix.target }}.tar.gz \
+            -C target/${{ matrix.target }}/release toutui
 
       - uses: actions/upload-artifact@v4
         with:
-          name: abstui-${{ matrix.target }}
-          path: abstui-${{ matrix.target }}.tar.gz
+          name: toutui-${{ matrix.target }}
+          path: toutui-${{ matrix.target }}.tar.gz
 
   publish:
     needs: build
@@ -86,16 +86,16 @@ jobs:
       - name: Add the other files
         run: |
           cp config.example.toml dist/
-          cp linux/abstui.desktop dist/
+          cp linux/toutui.desktop dist/
 
       # The machine writes the sums. No person writes a sum in a file.
       - name: Write SHA256SUMS
         working-directory: dist
-        run: sha256sum abstui-*.tar.gz > SHA256SUMS
+        run: sha256sum toutui-*.tar.gz > SHA256SUMS
 
       - uses: actions/attest-build-provenance@v2
         with:
-          subject-path: dist/abstui-*.tar.gz
+          subject-path: dist/toutui-*.tar.gz
 
       - name: Publish the release
         uses: softprops/action-gh-release@v2

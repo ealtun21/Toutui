@@ -4,16 +4,16 @@ use log::error;
 
 /// The message that tells the user how to make the secret key.
 const NO_KEY: &str = "No secret key is present. Do this:\n\
-    mkdir -p ~/.config/abstui\n\
-    echo 'ABSTUI_SECRET_KEY=secret' >> ~/.config/abstui/.env";
+    mkdir -p ~/.config/toutui\n\
+    echo 'TOUTUI_SECRET_KEY=secret' >> ~/.config/toutui/.env";
 
 /// Gives the secret key that encrypts the token.
 ///
-/// The name `ABSTUI_SECRET_KEY` has the higher importance. The program also
+/// The name `TOUTUI_SECRET_KEY` has the higher importance. The program also
 /// accepts `TOUTUI_SECRET_KEY`, because a user who wrote `.env` by hand
 /// before the fork has that name.
 pub fn secret_key() -> Result<String, String> {
-    env::var("ABSTUI_SECRET_KEY")
+    env::var("TOUTUI_SECRET_KEY")
         .or_else(|_| env::var("TOUTUI_SECRET_KEY"))
         .map_err(|_| {
             error!("{}", NO_KEY);

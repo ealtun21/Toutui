@@ -168,7 +168,7 @@ impl HttpFile {
         shared.finished.store(false, Ordering::SeqCst);
 
         let handle = std::thread::Builder::new()
-            .name("abstui-prefetch".to_string())
+            .name("toutui-prefetch".to_string())
             .spawn(move || fill_buffer(shared, url, token, from));
 
         self.handle = match handle {

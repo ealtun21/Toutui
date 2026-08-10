@@ -1,7 +1,7 @@
 [Desktop Entry]
-Name=AbsTui
+Name=Toutui
 GenericName=Audiobookshelf client
-Exec=abstui
+Exec=toutui
 Icon=utilities-terminal
 Type=Application
 Categories=Utility;

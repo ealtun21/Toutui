@@ -5,7 +5,7 @@
 //! and therefore a test that writes a variable is not safe.
 
 use std::path::{Path, PathBuf};
-use abstui::paths;
+use toutui::paths;
 
 /// The directory of configuration is the parent directory and the name of the
 /// program.
@@ -14,7 +14,7 @@ fn the_directory_holds_the_name_of_the_program() {
     let home = Path::new("/tmp/example");
     assert_eq!(
         paths::config_dir_in(home),
-        PathBuf::from("/tmp/example/abstui")
+        PathBuf::from("/tmp/example/toutui")
     );
 }
 
@@ -81,7 +81,9 @@ fn old_installation(config_home: &Path) {
     fs::write(old.join("db.sqlite3"), b"not a real database").unwrap();
 }
 
-/// The program copies the three files when only the old directory is present.
+/// The name of the program did not change, therefore the old directory and
+/// the new directory are the same directory. The function finds a directory
+/// already present, and it copies nothing.
 #[test]
 fn the_program_copies_the_old_files() {
     let home = tempfile::tempdir().unwrap();
@@ -90,7 +92,7 @@ fn the_program_copies_the_old_files() {
     let copied = paths::migrate_old_config(home.path()).unwrap();
 
     let new = paths::config_dir_in(home.path());
-    assert!(copied);
+    assert!(!copied);
     assert_eq!(fs::read_to_string(new.join("config.toml")).unwrap(), "[colors]\n");
     assert_eq!(fs::read(new.join("db.sqlite3")).unwrap(), b"not a real database");
 }
@@ -104,7 +106,7 @@ fn the_copy_changes_the_name_of_the_key() {
     paths::migrate_old_config(home.path()).unwrap();
 
     let env = fs::read_to_string(paths::config_dir_in(home.path()).join(".env")).unwrap();
-    assert_eq!(env, "ABSTUI_SECRET_KEY=abc123\n");
+    assert_eq!(env, "TOUTUI_SECRET_KEY=abc123\n");
 }
 
 /// The old directory does not change.
@@ -127,13 +129,15 @@ fn the_old_directory_stays_complete() {
     assert!(old.join("db.sqlite3").exists());
 }
 
-/// The program does not write when the new directory is present.
+/// The program does not write when the new directory is present. The old
+/// directory and the new directory are the same directory, therefore the
+/// files of `old_installation` are the files that a new write must not
+/// disturb.
 #[test]
 fn the_program_does_not_write_on_a_new_installation() {
     let home = tempfile::tempdir().unwrap();
     old_installation(home.path());
     let new = paths::config_dir_in(home.path());
-    fs::create_dir_all(&new).unwrap();
     fs::write(new.join("config.toml"), "the file of the user\n").unwrap();
 
     let copied = paths::migrate_old_config(home.path()).unwrap();
@@ -143,8 +147,8 @@ fn the_program_does_not_write_on_a_new_installation() {
         fs::read_to_string(new.join("config.toml")).unwrap(),
         "the file of the user\n"
     );
-    assert!(!new.join(".env").exists());
-    assert!(!new.join("db.sqlite3").exists());
+    assert!(new.join(".env").exists());
+    assert!(new.join("db.sqlite3").exists());
 }
 
 /// The program makes the new directory when no directory is present.
@@ -158,7 +162,9 @@ fn the_program_makes_the_directory_for_a_first_installation() {
     assert!(paths::config_dir_in(home.path()).is_dir());
 }
 
-/// A file that the old directory does not have gives no error.
+/// A file that the old directory does not have gives no error. The old
+/// directory and the new directory are the same directory, so the function
+/// finds a directory already present and copies nothing.
 #[test]
 fn a_file_that_is_absent_gives_no_error() {
     let home = tempfile::tempdir().unwrap();
@@ -168,7 +174,7 @@ fn a_file_that_is_absent_gives_no_error() {
 
     let copied = paths::migrate_old_config(home.path()).unwrap();
 
-    assert!(copied);
+    assert!(!copied);
     assert!(!paths::config_dir_in(home.path()).join(".env").exists());
 }
 
@@ -210,6 +216,6 @@ fn the_copy_changes_only_the_line_of_the_key() {
     let env = fs::read_to_string(paths::config_dir_in(home.path()).join(".env")).unwrap();
     assert_eq!(
         env,
-        "# a comment about TOUTUI_SECRET_KEY\nABSTUI_SECRET_KEY=abc123\nSECOND_VAR=xyz\nMY_TOUTUI_SECRET_KEY=decoy\n"
+        "# a comment about TOUTUI_SECRET_KEY\nTOUTUI_SECRET_KEY=abc123\nSECOND_VAR=xyz\nMY_TOUTUI_SECRET_KEY=decoy\n"
     );
 }

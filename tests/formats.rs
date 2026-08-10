@@ -9,8 +9,8 @@
 //! measurement is true only on the day of the measurement.
 
 use std::path::{Path, PathBuf};
-use abstui::player::engine::source::{open_decoder, TrackSource, SUPPORTED_FORMATS};
-use abstui::player::engine::track::Track;
+use toutui::player::engine::source::{open_decoder, TrackSource, SUPPORTED_FORMATS};
+use toutui::player::engine::track::Track;
 
 /// Gives the directory of the test files.
 fn fixture_dir() -> PathBuf {

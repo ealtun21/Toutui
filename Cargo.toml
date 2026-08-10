@@ -1,13 +1,11 @@
 [package]
-name = "abstui"
+name = "toutui"
 version = "0.5.0-beta"
 edition = "2021"
 description = "A TUI client of Audiobookshelf for Linux and macOS."
 license = "GPL-3.0-or-later"
-repository = "https://github.com/ealtun21/abstui"
+repository = "https://github.com/ealtun21/Toutui"
 readme = "README.md"
-keywords = ["audiobookshelf", "audiobook", "tui", "podcast", "terminal"]
-categories = ["command-line-utilities", "multimedia::audio"]
 authors = [
     "AlbanDAVID <https://github.com/AlbanDAVID>",
     "ealtun21 <https://github.com/ealtun21>",

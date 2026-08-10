@@ -39,7 +39,7 @@ pub fn spawn(
     let sink = open_sink()?;
 
     std::thread::Builder::new()
-        .name("abstui-audio".to_string())
+        .name("toutui-audio".to_string())
         .spawn(move || run(receiver, state, token, sink))
         .map_err(|error| format!("The application cannot start the audio thread: {}", error))?;
 

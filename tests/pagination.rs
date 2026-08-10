@@ -4,11 +4,11 @@
 //! books then made a very large answer. See upstream issue 35.
 
 use std::sync::Arc;
-use abstui::api::client::endpoint::{Endpoint, EndpointPool};
-use abstui::api::client::ApiClient;
-use abstui::api::libraries::get_all_books::{get_all_books, PAGE_SIZE};
-use abstui::api::libraries::get_all_series::get_all_series;
-use abstui::api::utils::collect_series::collect_series;
+use toutui::api::client::endpoint::{Endpoint, EndpointPool};
+use toutui::api::client::ApiClient;
+use toutui::api::libraries::get_all_books::{get_all_books, PAGE_SIZE};
+use toutui::api::libraries::get_all_series::get_all_series;
+use toutui::api::utils::collect_series::collect_series;
 use wiremock::matchers::{method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 

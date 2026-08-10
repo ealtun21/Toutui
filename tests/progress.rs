@@ -10,9 +10,9 @@
 //! guard that behaviour.
 
 use std::sync::Arc;
-use abstui::api::client::endpoint::{Endpoint, EndpointPool};
-use abstui::api::client::ApiClient;
-use abstui::api::me::update_media_progress::*;
+use toutui::api::client::endpoint::{Endpoint, EndpointPool};
+use toutui::api::client::ApiClient;
+use toutui::api::me::update_media_progress::*;
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
