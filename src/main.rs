@@ -1,3 +1,4 @@
+use toutui::config::rgb_parts;
 use toutui::{api, app, config, db, login_app, player, ui, utils};
 
 use crate::db::crud::*;
@@ -142,14 +143,11 @@ async fn main() -> Result<()> {
             let player_info = player_info(app.username.as_str(), &playback);
 
             terminal.draw(|frame| {
-                let bg_color = app.config.colors.background_color.clone();
+                let (bg_r, bg_g, bg_b) = rgb_parts(&app.config.colors.background_color);
                 let bg_color_player = app.config.colors.player_background_color.clone();
                 // global background
-                let background = Block::default().style(Style::default().bg(Color::Rgb(
-                    bg_color[0],
-                    bg_color[1],
-                    bg_color[2],
-                )));
+                let background =
+                    Block::default().style(Style::default().bg(Color::Rgb(bg_r, bg_g, bg_b)));
 
                 frame.render_widget(background, frame.area());
 

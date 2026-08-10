@@ -16,11 +16,8 @@ pub fn pop_message(stdout: &mut Stdout, lines_from_bottom: u16, message: &str) -
 
     let (_cols, rows) = terminal::size()?;
     let target_row = rows.saturating_sub(lines_from_bottom);
-    let bg_color = Color::Rgb {
-        r: color[0],
-        g: color[1],
-        b: color[2],
-    };
+    let (r, g, b) = rgb_parts(&color);
+    let bg_color = Color::Rgb { r, g, b };
 
     execute!(
         stdout,
@@ -42,11 +39,8 @@ pub fn clear_message(stdout: &mut Stdout, lines_from_bottom: u16) -> Result<()> 
     }
     let (_cols, rows) = terminal::size()?;
     let target_row = rows.saturating_sub(lines_from_bottom);
-    let bg_color = Color::Rgb {
-        r: color[0],
-        g: color[1],
-        b: color[2],
-    };
+    let (r, g, b) = rgb_parts(&color);
+    let bg_color = Color::Rgb { r, g, b };
 
     execute!(
         stdout,

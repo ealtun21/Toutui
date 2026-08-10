@@ -1,5 +1,6 @@
 use crate::app::App;
 use crate::app::AppView;
+use crate::config::rgb_parts;
 use ratatui::backend::CrosstermBackend;
 use ratatui::widgets::{Block, Borders};
 use ratatui::Terminal;
@@ -18,20 +19,16 @@ impl App {
         let backend = CrosstermBackend::new(stdout);
         let mut term = Terminal::new(backend)?;
 
-        let bg_color = self.config.colors.background_color.clone();
-        let fg_color = self.config.colors.search_bar_foreground_color.clone();
+        let (bg_r, bg_g, bg_b) = rgb_parts(&self.config.colors.background_color);
+        let (fg_r, fg_g, fg_b) = rgb_parts(&self.config.colors.search_bar_foreground_color);
 
         let mut textarea = TextArea::default();
         textarea.set_block(
             Block::default()
                 .borders(Borders::ALL)
                 .title("Search")
-                .border_style(Style::default().fg(Color::Rgb(
-                    fg_color[0],
-                    fg_color[1],
-                    fg_color[2],
-                )))
-                .style(Style::default().bg(Color::Rgb(bg_color[0], bg_color[1], bg_color[2]))),
+                .border_style(Style::default().fg(Color::Rgb(fg_r, fg_g, fg_b)))
+                .style(Style::default().bg(Color::Rgb(bg_r, bg_g, bg_b))),
         );
 
         let size = term.size()?;
@@ -66,11 +63,8 @@ impl App {
             }
         }
         term.draw(|f| {
-            let empty_block = Block::default().style(Style::default().bg(Color::Rgb(
-                bg_color[0],
-                bg_color[1],
-                bg_color[2],
-            )));
+            let empty_block =
+                Block::default().style(Style::default().bg(Color::Rgb(bg_r, bg_g, bg_b)));
             f.render_widget(empty_block, search_area);
         })?;
 

@@ -1,4 +1,5 @@
 use crate::api::server::auth_process::*;
+use crate::config::rgb_parts;
 use crate::db::crud::*;
 use crate::login_app::AppLogin;
 use crate::utils::exit_app::*;
@@ -29,7 +30,7 @@ impl AppLogin {
         let backend = CrosstermBackend::new(stdout);
         let mut term = Terminal::new(backend)?;
 
-        let fg_color = self.config.colors.login_foreground_color.clone();
+        let (fg_r, fg_g, fg_b) = rgb_parts(&self.config.colors.login_foreground_color);
 
         let mut textarea1 = TextArea::default();
         textarea1.set_block(
@@ -39,11 +40,7 @@ impl AppLogin {
                 .title_bottom(
                     Line::from(format!("🦜Toutui v{} - Esc to quit.", VERSION)).right_aligned(),
                 )
-                .border_style(Style::default().fg(Color::Rgb(
-                    fg_color[0],
-                    fg_color[1],
-                    fg_color[2],
-                ))),
+                .border_style(Style::default().fg(Color::Rgb(fg_r, fg_g, fg_b))),
         );
 
         textarea1.set_placeholder_text("http:// or https:// required");
@@ -56,11 +53,7 @@ impl AppLogin {
                 .title_bottom(
                     Line::from(format!("🦜Toutui v{} - Esc to quit.", VERSION)).right_aligned(),
                 )
-                .border_style(Style::default().fg(Color::Rgb(
-                    fg_color[0],
-                    fg_color[1],
-                    fg_color[2],
-                ))),
+                .border_style(Style::default().fg(Color::Rgb(fg_r, fg_g, fg_b))),
         );
 
         let mut textarea3 = TextArea::default();
@@ -71,11 +64,7 @@ impl AppLogin {
                 .title_bottom(
                     Line::from(format!("🦜Toutui v{} - Esc to quit.", VERSION)).right_aligned(),
                 )
-                .border_style(Style::default().fg(Color::Rgb(
-                    fg_color[0],
-                    fg_color[1],
-                    fg_color[2],
-                ))),
+                .border_style(Style::default().fg(Color::Rgb(fg_r, fg_g, fg_b))),
         );
         textarea3.set_mask_char('\u{2022}');
 
@@ -92,15 +81,12 @@ impl AppLogin {
         let mut textareas = [textarea1, textarea2, textarea3];
         let mut current_index = 0;
         let mut collected_data: Vec<String> = Vec::new();
-        let log_bg_color = self.config.colors.log_background_color.clone();
+        let (log_r, log_g, log_b) = rgb_parts(&self.config.colors.log_background_color);
 
         loop {
             term.draw(|f| {
-                let background = Block::default().style(Style::default().bg(Color::Rgb(
-                    log_bg_color[0],
-                    log_bg_color[1],
-                    log_bg_color[2],
-                )));
+                let background =
+                    Block::default().style(Style::default().bg(Color::Rgb(log_r, log_g, log_b)));
                 f.render_widget(&textareas[current_index], input_area);
                 f.render_widget(background, f.area());
             })?;

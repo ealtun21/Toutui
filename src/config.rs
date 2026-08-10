@@ -62,6 +62,34 @@ pub fn load_config() -> Result<ConfigFile> {
     Ok(ConfigFile { colors, servers })
 }
 
+/// The colour that a list with no value gives.
+const DEFAULT_COMPONENT: u8 = 128;
+
+/// Gives the three components of a colour of the configuration file.
+///
+/// A colour of the configuration file is a list of numbers. The user writes
+/// that list, therefore the list does not always hold three values. The
+/// program must not stop because of such a list.
+///
+/// The function repeats the last value for a component that the list does not
+/// give. A list with no value gives a middle grey.
+///
+/// The old code read the three components with an index. A list that was too
+/// short then stopped the program. `load_config` also gives an error for a
+/// file that a person cannot parse, and the old code then read an empty list.
+/// A measurement on 2026-08-10 stopped a thread with "index out of bounds: the
+/// len is 0 but the index is 0".
+pub fn rgb_parts(values: &[u8]) -> (u8, u8, u8) {
+    let component = |index: usize| -> u8 {
+        match values.get(index) {
+            Some(value) => *value,
+            None => *values.last().unwrap_or(&DEFAULT_COMPONENT),
+        }
+    };
+
+    (component(0), component(1), component(2))
+}
+
 /// Removes a slash at the end of an address, for a comparison.
 fn normalise(url: &str) -> &str {
     url.trim_end_matches('/')
@@ -260,5 +288,31 @@ endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
             server_key(&list, "http://localhost:13378"),
             server_key(&list, "http://second-server:13378")
         );
+    }
+
+    #[test]
+    fn a_complete_colour_gives_its_three_components() {
+        assert_eq!(rgb_parts(&[40, 50, 60]), (40, 50, 60));
+    }
+
+    /// A list with more than three values gives the first three values.
+    #[test]
+    fn a_colour_that_is_too_long_gives_the_first_three_components() {
+        assert_eq!(rgb_parts(&[40, 50, 60, 70]), (40, 50, 60));
+    }
+
+    /// This list stopped the program. `load_config` gives an error for a file
+    /// that a person cannot parse, and the old code then read an empty list.
+    #[test]
+    fn a_colour_with_no_value_gives_a_grey() {
+        assert_eq!(rgb_parts(&[]), (128, 128, 128));
+    }
+
+    /// The user writes the list. A list of one value or two values must not
+    /// stop the program.
+    #[test]
+    fn a_colour_that_is_too_short_repeats_the_last_value() {
+        assert_eq!(rgb_parts(&[40]), (40, 40, 40));
+        assert_eq!(rgb_parts(&[40, 50]), (40, 50, 50));
     }
 }
