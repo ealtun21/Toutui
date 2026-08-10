@@ -53,12 +53,14 @@ jobs:
         if: matrix.build == 'zig'
         run: sudo apt-get update && sudo apt-get install -y libasound2-dev
 
-      # Ubuntu 24.04 ships a Python that pip 23 and later refuse to install
-      # into. pipx does not have that limit.
+      # Ubuntu 24.04 marks its Python as externally managed, therefore pip
+      # refuses to write into it. cargo-zigbuild runs `python3 -m ziglang`,
+      # thus the package must go into the Python of the system.
       - name: Install cargo-zigbuild
         if: matrix.build == 'zig'
         run: |
-          pipx install ziglang
+          pip install --break-system-packages ziglang
+          python3 -m ziglang version
           cargo install cargo-zigbuild --locked
 
       - name: Build for Linux
