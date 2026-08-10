@@ -1012,6 +1012,10 @@ impl App {
             // The key that opens the ebook of the item that the user selected.
             KeyCode::Char('e') => self.open_the_ebook(),
 
+            // The key that marks a media as finished, or not finished.
+            // See T-24.
+            KeyCode::Char('M') => self.toggle_the_mark_of_finished(),
+
             // PLAYER //
             // toggle playback/pause
             KeyCode::Char(' ') => {
@@ -1684,6 +1688,41 @@ impl App {
             }
             _ => {}
         }
+    }
+
+    /// Marks the selected media as finished, or as not finished. See T-24.
+    ///
+    /// The program sent `isFinished` at the end of a playback only. A user who
+    /// leaves a book in the middle could not take it out of the list Continue
+    /// Listening.
+    ///
+    /// The task asks the server for the condition of the media first, and it
+    /// then sends the opposite. The user therefore presses one key, and the
+    /// key does the right work in every view.
+    pub fn toggle_the_mark_of_finished(&mut self) {
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+
+        let Some(item_id) = self.selected_item_id() else {
+            let _ = pop_message(&mut stdout, 3, "No media is selected.");
+            return;
+        };
+
+        if self.is_offline {
+            let _ = pop_message(&mut stdout, 3, "The server does not answer.");
+            return;
+        }
+
+        let _ = pop_message(&mut stdout, 3, "The mark of the media goes to the server…");
+        let api = std::sync::Arc::clone(&self.api);
+
+        tokio::spawn(async move {
+            let text = mark_the_media(&api, &item_id).await;
+
+            let mut stdout = std::io::stdout();
+            let _ = clear_message(&mut stdout, 3);
+            let _ = pop_message(&mut stdout, 3, text.as_str());
+        });
     }
 
     /// Asks the server for the media that agree with the words of the user.
@@ -2455,5 +2494,53 @@ impl App {
                 self.list_state_settings_update_uninstall.select_last()
             }
         }
+    }
+}
+
+/// Changes the mark "finished" of one media on the server.
+///
+/// The function reads the condition of the media, and it then sends the
+/// opposite. It gives the text for the user.
+///
+/// **A media that goes to "not finished" loses its position.** A measurement
+/// against an Audiobookshelf 2.36.0 on 2026-08-11 sent `isFinished: false` and
+/// read `currentTime: 0` and `progress: 0` back. The server does that, and
+/// this program tells the user. See T-24.
+pub async fn mark_the_media(
+    api: &std::sync::Arc<crate::api::client::ApiClient>,
+    item_id: &str,
+) -> String {
+    let answer: serde_json::Value =
+        match api.get_json(&format!("/api/me/progress/{}", item_id)).await {
+            Ok(answer) => answer,
+            // A media that never played has no progress, and the server gives an
+            // error. Such a media is not finished.
+            Err(_) => serde_json::json!({}),
+        };
+
+    let was_finished = answer
+        .get("isFinished")
+        .and_then(|value| value.as_bool())
+        .unwrap_or(false);
+
+    let body = serde_json::json!({ "isFinished": !was_finished });
+
+    match api
+        .patch_json(&format!("/api/me/progress/{}", item_id), &body)
+        .await
+    {
+        Ok(()) => message_of_the_mark(!was_finished),
+        Err(error) => format!("The server did not take the mark: {}", error),
+    }
+}
+
+/// Gives the text that the user reads after a change of the mark.
+pub fn message_of_the_mark(finished: bool) -> String {
+    if finished {
+        "The media is finished now. Press R to see the change.".to_string()
+    } else {
+        "The media is not finished now, and its position went back to the \
+         start. Press R to see the change."
+            .to_string()
     }
 }

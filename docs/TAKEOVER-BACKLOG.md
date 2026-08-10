@@ -626,8 +626,14 @@ The five that the document names as the next work:
    looks in the titles of the page that it holds, with `contains`. The server
    also finds an author, a series, a narrator, a tag, and a genre. A search for
    "Carroll" gives the author on the server, and nothing in this program.
-2. A key that marks a media as finished, `PATCH /api/me/progress/:id` with
-   `isFinished`. The program sends that body at the end of a playback only.
+2. ~~A key that marks a media as finished.~~ **Complete.** The key `M` marks
+   the selected media as finished, or as not finished. The task asks the server
+   for the condition first and it sends the opposite, therefore one key does
+   the right work in every view. A measurement on 2026-08-11 shows that
+   `isFinished: false` also puts `currentTime` and `progress` back to 0, and
+   the message of the program says so.
+   `tests/the_mark_of_finished_against_the_sandbox.rs` marks a book and marks
+   it back against a real server.
 3. The statistics of the user, `GET /api/me/listening-stats`.
 4. The other five shelves of the personalized view. The program asks for that
    view and it keeps one shelf of six.

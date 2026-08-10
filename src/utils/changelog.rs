@@ -400,8 +400,7 @@ To make it work properly, perform a fresh reinstall.
      ####\n"
         .to_string();
 
-    let changelog_22 = format!(
-        "Changelog Toutui v{} (11/08/2026) \n\
+    let changelog_22 = "Changelog Toutui v0.6.7 (11/08/2026) \n\
      \n\
      Added:\n\
      - **The search asks the server.** The program looked in the titles\n\
@@ -423,6 +422,26 @@ To make it work properly, perform a fresh reinstall.
        that gives that name in a different language gave an empty Home\n\
        view, with no error. The program matches the identity now.\n\
      - The list of the accounts no longer moves past its last line.\n\
+     \n\
+     Contributors:\n\
+     \n\
+     - AlbanDAVID (the original project), ealtun21\n\
+     \n\
+     Enjoy and be toutui!\n\
+     ####\n"
+        .to_string();
+
+    let changelog_23 = format!(
+        "Changelog Toutui v{} (11/08/2026) \n\
+     \n\
+     Added:\n\
+     - **The key M marks a media as finished, or as not finished.** The\n\
+       program sent that mark at the end of a playback only, therefore a\n\
+       user who left a book in the middle could not take it out of the\n\
+       list Continue Listening. The key asks the server for the condition\n\
+       first, and it sends the opposite.\n\
+     - A media that goes to \"not finished\" loses its position: the\n\
+       server puts it back to the start. The message says so.\n\
      \n\
      Contributors:\n\
      \n\
@@ -472,6 +491,7 @@ To make it work properly, perform a fresh reinstall.
          Enjoy and be toutui!\n
          ####\n".to_string();
 
+    changelog.push_str(&changelog_23);
     changelog.push_str(&changelog_22);
     changelog.push_str(&changelog_21);
     changelog.push_str(&changelog_20);
