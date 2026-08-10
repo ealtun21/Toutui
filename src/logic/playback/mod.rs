@@ -516,6 +516,11 @@ async fn follow_playback_offline(
     let mut engine_started = false;
     let mut waited: u64 = 0;
 
+    // The engine reported a position at the place where this playback starts.
+    // Before that, every value that the engine gives belongs to the time
+    // before the seek. See T-38.
+    let mut reached_the_start = false;
+
     loop {
         tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
 
@@ -549,7 +554,17 @@ async fn follow_playback_offline(
 
         engine_started = true;
 
-        let position = state.position.max(0.0) as u32;
+        let reported = state.position.max(0.0);
+
+        // The same rule as in `follow_playback`: the engine gives 0 until the
+        // seek finishes, and that 0 must not go to the database. See T-38.
+        if !reached_the_start && !position_is_at_the_start(reported, start_position) {
+            continue;
+        }
+
+        reached_the_start = true;
+
+        let position = reported as u32;
         own_position = position;
 
         let _ = update_download_current_time(key.as_str(), username.as_str(), position);
@@ -638,6 +653,23 @@ fn total_duration_of(
 /// `/progress`. Two requests at the same time can make a race condition, and
 /// then the item stays in "continue listening". See upstream issue 35.
 ///
+/// Tells if the engine reached the place where a playback starts.
+///
+/// `rodio` gives the position inside the source, and it gives 0 until the seek
+/// finishes. A book that starts at 1227 seconds therefore reports 0 for a
+/// short time, and a playback that never starts reports 0 for ever.
+///
+/// The tolerance of two seconds is for a decoder that gives a position a
+/// little before the target of the seek.
+///
+/// A book that starts at 0 gives `true` at once, therefore this rule changes
+/// nothing for a book that the user never opened. See T-38.
+pub fn position_is_at_the_start(reported: f64, start: f64) -> bool {
+    const TOLERANCE: f64 = 2.0;
+
+    reported + TOLERANCE >= start
+}
+
 /// # The identity of the playback
 ///
 /// The state of the engine is one value for the whole application. The loop
@@ -676,6 +708,11 @@ pub async fn follow_playback(
     let mut own_position = start_position.max(0.0) as u32;
     let mut engine_started = false;
     let mut waited: u64 = 0;
+
+    // The engine reported a position at the place where this playback starts.
+    // Before that, every value that the engine gives belongs to the time
+    // before the seek. See T-38.
+    let mut reached_the_start = false;
 
     loop {
         tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
@@ -722,7 +759,26 @@ pub async fn follow_playback(
 
         engine_started = true;
 
-        let position = state.position.max(0.0) as u32;
+        let reported = state.position.max(0.0);
+
+        // The engine did not reach the place where this playback starts.
+        //
+        // `rodio` gives the position inside the source, and `get_pos` gives 0
+        // until the seek finishes. A book of one file that starts at 1227
+        // seconds therefore reports 0 for a short time. A playback that never
+        // starts reports 0 for the whole wait.
+        //
+        // The old code wrote that 0 in the database every second, and it gave
+        // that 0 to the server when the session closed. The user then lost
+        // their place, on the disk and on the server, and the book started at
+        // the beginning. See T-38.
+        if !reached_the_start && !position_is_at_the_start(reported, start_position) {
+            continue;
+        }
+
+        reached_the_start = true;
+
+        let position = reported as u32;
         own_position = position;
 
         // Write the position for each second. A crash must not lose it.
@@ -879,6 +935,47 @@ async fn close_and_report(
             "[follow_playback] the server did not accept the position: {}",
             error
         );
+    }
+}
+
+#[cfg(test)]
+mod tests_of_the_start {
+    use super::position_is_at_the_start;
+
+    /// The report of the user of 2026-08-10: the book started at the
+    /// beginning, and the position of the disk and of the server went to 0.
+    ///
+    /// `rodio` gives 0 until the seek finishes. The old rule took every value
+    /// that the engine gave, therefore it wrote that 0.
+    #[test]
+    fn a_position_of_zero_is_not_the_place_of_a_book_that_starts_late() {
+        // The book starts at 1227 seconds. The engine says 0 while it seeks.
+        assert!(!position_is_at_the_start(0.0, 1227.0));
+        assert!(!position_is_at_the_start(3.0, 1227.0));
+        assert!(!position_is_at_the_start(1200.0, 1227.0));
+    }
+
+    #[test]
+    fn the_place_of_the_seek_is_the_start() {
+        assert!(position_is_at_the_start(1227.0, 1227.0));
+        assert!(position_is_at_the_start(1300.0, 1227.0));
+    }
+
+    #[test]
+    fn a_decoder_that_is_a_little_early_still_counts() {
+        // A decoder can give a position a little before the target of the
+        // seek. Two seconds are inside the rule, and three are not.
+        assert!(position_is_at_the_start(1225.5, 1227.0));
+        assert!(!position_is_at_the_start(1224.0, 1227.0));
+    }
+
+    #[test]
+    fn a_book_that_starts_at_the_beginning_changes_nothing() {
+        // Every value passes for a book that the user never opened. The rule
+        // must not hold the position of such a book.
+        assert!(position_is_at_the_start(0.0, 0.0));
+        assert!(position_is_at_the_start(0.0, 1.0));
+        assert!(position_is_at_the_start(5.0, 0.0));
     }
 }
 

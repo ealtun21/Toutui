@@ -874,7 +874,7 @@ examination against the code of today, and the state.
 |---|---|---|
 | T-36 | No way to leave a server, and no way to find that command | Fixed |
 | T-37 | `Cargo.toml` names VLC | Not present |
-| T-38 | "Buffer overrun", and the book starts at the beginning again | Open, waits for a log |
+| T-38 | "Buffer overrun", and the book starts at the beginning again | Fixed |
 | T-39 | A key that repeats gives a slow list, and the list moves after the key | Fixed |
 | T-40 | The start takes a long time, and nothing tells the user | Fixed |
 | T-41 | An index of a vector stops the program | Fixed |
@@ -884,7 +884,7 @@ examination against the code of today, and the state.
 | T-45 | The address of the server is examined after the password | Fixed |
 | T-46 | A machine with no sound card cannot open the program | Fixed |
 
-Nine of the ten items are complete. T-38 waits for a log of the user.
+Every one of the ten items is complete.
 
 ### T-36: no way to leave a server
 
@@ -910,20 +910,45 @@ version 4 renames the column `is_vlc_launched_first_time` and removes the
 column `is_vlc_running` of an old database. Those names must stay, because a
 database of v0.4 holds them.
 
-### T-38: "Buffer overrun", and the book starts at the beginning again
+### T-38: "Buffer overrun", and the book starts at the beginning — fixed
 
-`grep -rin "overrun" src` finds nothing, therefore the message comes from
+`grep -rin "overrun" src` finds nothing, therefore that message comes from
 outside the program: ALSA writes "buffer overrun" when the sound card takes the
-samples too slowly.
+samples too slowly. The serious part is the second one, and an examination of
+the code on 2026-08-11 found the mechanism.
 
-The second part is the serious part: the position went to the beginning, on the
-disk and on the server. T-4 and T-3 corrected two ways for that to happen, and
-this report comes from v0.5.0, which holds those corrections.
+**The mechanism.** `rodio` gives the position inside the source, and `get_pos`
+gives 0 until the seek finishes. A book of one file that starts at 1227 seconds
+therefore reports 0 for a short time. A playback that does not start reports 0
+for the whole wait, and that is the condition of the report: the sound card did
+not take the samples.
 
-**The work.** Reproduce it first. The report needs the log of the program and
-the answer of `GET /api/me/progress/:id` before and after. A position of 0 that
-goes to the server is a fault of a different kind from a position that the
-screen shows wrongly.
+The loop of the playback took every value that the engine gave. It wrote that 0
+in the table of the downloads and in the row of the session **every second**,
+and it gave that 0 to the server when the session closed. The user then lost
+their place, on the disk and on the server, and the book started at the
+beginning.
+
+Both loops had the fault: `follow_playback` and `follow_playback_offline`.
+
+**The correction.** The loop writes nothing until the engine reports a position
+at the place where the playback starts. `position_is_at_the_start` holds that
+rule, with a tolerance of two seconds for a decoder that lands a little early.
+A book that starts at 0 gives `true` at once, therefore the rule changes
+nothing for a book that the user never opened. After the engine reaches the
+place, the loop follows every value, and a move backwards of the user also
+works.
+
+**The proof.** `tests/the_position_survives_a_playback_that_does_not_start.rs`
+gives the loop an engine that says 0 and never moves, for a book that starts at
+1227 seconds. The test then reads the row of the download.
+
+- With the correction: 1227 seconds. The test passes.
+- Without it: **0 seconds**, and the message of the test is the report of the
+  user. A measurement on 2026-08-11 turned the rule off and saw that.
+
+The second part of the test moves the engine to 1237 seconds and then to 927
+seconds, and the row follows both.
 
 ### T-39: a key that repeats gives a slow list — fixed
 
