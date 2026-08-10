@@ -48,6 +48,7 @@ the original issue, if there is one.
 | T-35 | Every playback releases the wait of the next playback | `e4b51c9` |
 | T-33 | The application uses ratatui 0.30, crossterm 0.29, and `tui-input` | `8f5c938` |
 | T-23 | The application shows the cover art | `35a7703` |
+| T-22 | A series gives one line of the Library view | `ee36692` |
 
 Sub-project 2 removed VLC. The application decodes the audio in the process
 now. Therefore a book with many audio files plays completely, the token stays
@@ -386,7 +387,7 @@ largest frame. The padding is the tail of the encoder, and it is not a click.
 `tests/opus.rs` and `tests/formats.rs` hold the rules. The tests need no sound
 card and no server.
 
-### T-22: show the series of a library
+### T-22: show the series of a library — complete, `ee36692`
 
 The key `s` shows the series. The key `l` on a series shows its books, with
 the number of each book first. The books come in the sequence of the series,
@@ -396,8 +397,44 @@ The endpoint `GET /api/libraries/:id/series` has an important difference from
 the endpoint of the items: `limit=0` gives an empty list, and not every
 series. Therefore the application always asks for a page of 500.
 
-The work does not group the books of a series into one line in the Library
-view. That part of the issue stays open.
+**The last part, 2026-08-10.** The Library view gives one line to a series now.
+`src/logic/library_view.rs` holds the pure function `group_library`, and eight
+tests examine it.
+
+A run against the sandbox in a pseudo terminal of 150 by 40 shows the result.
+The library holds eight books: two series of three books, one book that stands
+alone, and one book of thirty minutes.
+
+```
+─────────────────────────────Library [4 items]──────────────────────────
+➤ A Long Test Book
+  The Test Chronicles [3 books]
+  Second Series [3 books]
+  Multi File Test Book
+```
+
+The key `l` on the line of the series gives:
+
+```
+───────────────────────The Test Chronicles [3 items]────────────────────
+➤ #1 - The Test Chronicles Volume 1
+  #2 - The Test Chronicles Volume 2
+  #3 - The Test Chronicles Volume 3
+```
+
+The key `h` then gives the Library back, and not the list of the series. The
+key `G` goes to the last of the four lines, and the key `j` after it goes to
+the first.
+
+**A trap of the test harness, measured 2026-08-10.** `ratatui-image` asks the
+terminal what it can do. The last question of that group is a Device Status
+Report, "implemented by all terminals", and it makes sure that the reader of
+the crate does not wait for ever. A pseudo terminal with no model of a
+terminal answers nothing. The reader then stays inside `read`, and it takes the
+first key of the user. A test then loses its first key press and the result
+looks wrong. A harness must answer `ESC [ 5 n` with `ESC [ 0 n`. A comparison
+with the build of before this session showed the difference, therefore this is
+a fault of the harness and not of the application.
 
 ### T-23: the cover art — complete, `35a7703`
 
