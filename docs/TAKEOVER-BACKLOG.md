@@ -49,6 +49,7 @@ the original issue, if there is one.
 | T-33 | The application uses ratatui 0.30, crossterm 0.29, and `tui-input` | `8f5c938` |
 | T-23 | The application shows the cover art | `35a7703` |
 | T-22 | A series gives one line of the Library view | `ee36692` |
+| T-32 | The key `F` sends the position at once | `a4904e0` |
 
 Sub-project 2 removed VLC. The application decodes the audio in the process
 now. Therefore a book with many audio files plays completely, the token stays
@@ -755,12 +756,44 @@ protocol:
    last release. The tests use a mock server with no TLS, therefore only a real
    request can show this.
 
-### T-32: a command that forces the sync
+### T-32: a command that forces the sync — complete, `a4904e0`
 
 Issue #37 of the original repository asks for a way to force the sync. The
 backlog did not hold this request before. The other four open issues of that
 repository are complete: #36 is T-8, #35 is T-3, T-6 and T-7, #33 is T-2, and
 #32 is T-9.
+
+**The key is `F`, and not `S`.** The design named `S`, and a measurement on
+2026-08-10 shows that `S` is not free: `src/app.rs` gives `S` to the settings,
+and every footer of the application says "S: Settings". `F` reads as "force the
+sync", and no view uses it.
+
+**Why the key writes a flag only.** The endpoint `POST /api/session/:id/sync`
+takes the time that the user listened since the last sync. A second sender
+would give that time to the server a second time, and the server would then
+hold too much listened time. Therefore the key writes a flag, and the loop of
+the playback does the work at its next second. That loop holds the position and
+the listened time.
+
+The flag carries the identity of the playback. A loop takes the flag only when
+the identity is its own, because two playbacks can run at the same time. That
+rule comes from `9bacac`.
+
+**The proof, 2026-08-10.**
+
+1. `tests/force_sync_against_the_sandbox.rs` opens a real session, gives the
+   engine the position 37 seconds, and asks for the sync. Two seconds later
+   `GET /api/me/progress/:id` holds 37 seconds, and `GET /api/sessions/open`
+   still holds the session. The test needs the sandbox, thus it carries
+   `#[ignore]`.
+2. A debug build in a pseudo terminal played the book of thirty minutes. The
+   server held 0 seconds while the player showed 3:17. The key `F` gave the
+   message "Sync: the server has the position 4m." on the screen, and the
+   server then held 268 seconds. The session `452859eb` was open before the key
+   and after it.
+
+**A trap of the server.** `GET /api/me/progress/:id` gives `currentTime` as a
+text, and not as a number. A test that reads a number only finds nothing.
 
 ### T-33: ratatui 0.30 — complete, `8f5c938`
 
