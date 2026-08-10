@@ -15,6 +15,7 @@ set -euo pipefail
 REPO="ealtun21/Toutui"
 API="https://api.github.com/repos/${REPO}/releases/latest"
 BIN_DIR="${TOUTUI_BIN_DIR:-/usr/local/bin}"
+tmp=""
 
 fail() {
     echo "[ERROR] $1" >&2
@@ -92,7 +93,7 @@ main() {
     command -v curl >/dev/null 2>&1 || fail "Install curl first."
     command -v tar  >/dev/null 2>&1 || fail "Install tar first."
 
-    local target archive tag tmp
+    local target archive tag
     target=$(identify_target)
     archive="toutui-${target}.tar.gz"
 
@@ -104,7 +105,7 @@ main() {
     echo "[INFO] The last release is ${tag}."
 
     tmp=$(mktemp -d)
-    trap 'rm -rf "$tmp"' EXIT
+    trap 'if [ -n "${tmp:-}" ]; then rm -rf "$tmp"; fi' EXIT
 
     local base="https://github.com/${REPO}/releases/download/${tag}"
     curl -sSfL "${base}/${archive}" -o "${tmp}/${archive}" \
