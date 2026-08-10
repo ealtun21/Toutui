@@ -34,6 +34,7 @@ the original issue, if there is one.
 | T-9 | The application shows the playlists and the collections | sub-project 5 |
 | T-26 | The key `G` in an empty list stopped the application | `597ca2d` |
 | T-25 | The application does not start without the server | `bc9ceb0` |
+| T-21 | The fork installs, updates, and removes its own program | v0.5.0 |
 | T-28 | A tag with a capital letter gave "update available" for ever | `4221f2a` |
 | T-30 | An answer with no length has a limit of size now | `ffe6a13` |
 | T-29 | The update tests the proof of the origin of an archive | `f123f8b` |
@@ -194,14 +195,33 @@ during playback.
 
 ### T-20: remove the two dependencies that compile C
 
-The rule of the project says that no dependency needs a C toolchain. A
-measurement on 2026-08-10 shows that two dependencies do not obey the rule:
+**The rule of 2026-08-10.** The maintainer gave the rule its present form. A
+dependency that compiles C when a person builds the program is acceptable, if
+the binary that the release gives needs no library of the system. Pure Rust
+stays the better answer, and the work must prefer it. A dependency that makes
+the binary ask the system for a library is not acceptable: such a binary does
+not run on a system that has no such library, and the candidates of v0.5.0
+showed that fault with `libasound`.
 
-- `libsqlite3-sys`, from `rusqlite` with the feature `bundled`.
-- `ring`, from `rustls` 0.21 through `reqwest` 0.11.
+Therefore T-20 is no longer a rule that stops work. It is an improvement, and
+it stays open.
+
+Two dependencies compile C today:
+
+- `libsqlite3-sys`, from `rusqlite` with the feature `bundled`. It links the
+  code into the binary, therefore the binary asks the system for nothing.
+- `ring`, from `rustls` 0.23 through `reqwest` 0.12. The same is true.
 
 `backtrace` names `cc` as a build dependency, but it compiles no C on this
 target. The audio crates of sub-project 2 compile no C.
+
+**Why the fork does not take reqwest 0.13.** 0.13 gives the feature of rustls
+the name `rustls`, and that feature brings `aws-lc-rs`. That crate needs
+`aws-lc-sys`, and that one needs cmake and a C compiler. Therefore a user who
+builds with `cargo install --git` would need cmake, and the flake of Nix would
+need it too. reqwest 0.12 with `rustls-tls` keeps `ring` and needs no cmake,
+and it gives the same rustls 0.23. The fork stays on 0.12 until a provider of
+pure Rust is ready.
 
 Both answers need a crate that is not ready today. `turso` is a pre-release,
 and `rustls-rustcrypto` is an alpha version. Issue 20 holds the details.
@@ -509,3 +529,56 @@ secret key did not change. The test
 same rule for `--update`.
 
 Therefore T-14 does not occur in the fork.
+
+## The upgrade of the dependencies, 2026-08-10
+
+Every crate went to the newest version that the fork can take. The gate passed
+after each step, and each step is its own commit.
+
+| Crate | Before | After | Note |
+|---|---|---|---|
+| every crate that semver allows | — | newest | `cargo update`, no range changed |
+| `rusqlite` | 0.33 | 0.40 | seven major versions, no change of the code |
+| `reqwest` | 0.11 | 0.12 | brings `rustls` 0.21 to 0.23 |
+| `magic-crypt` | 4.0.1 | 5.0.1 | the form of the cipher did not change |
+| `sha2` | 0.10 | 0.11 | one version in the tree now, and not two |
+| `dotenv` | 0.15 | `dotenvy` 0.15.7 | `dotenv` has no maintainer since 2019 |
+| `serde_derive` | 1.0 | removed | `serde` with `derive` gives that macro |
+
+Three measurements support the upgrades that touch a form of data or a
+protocol:
+
+1. **The token.** magic-crypt 4.0.1 wrote a cipher for a known token and a
+   known key. magic-crypt 5.0.1 read that text and gave the token back.
+   Therefore no user must give their password again.
+   `src/utils/encrypt_token.rs` holds that text and guards the rule.
+2. **The sum.** sha2 0.11 gives the same sum as `sha256sum` of coreutils for
+   the archive of v0.5.0, of 5960719 bytes.
+3. **TLS.** `--update` reached api.github.com through rustls 0.23 and read the
+   last release. The tests use a mock server with no TLS, therefore only a real
+   request can show this.
+
+### T-32: a command that forces the sync
+
+Issue #37 of the original repository asks for a way to force the sync. The
+backlog did not hold this request before. The other four open issues of that
+repository are complete: #36 is T-8, #35 is T-3, T-6 and T-7, #33 is T-2, and
+#32 is T-9.
+
+### T-33: ratatui 0.30 waits for tui-textarea
+
+`ratatui` 0.30.2 and `crossterm` 0.29 are available, and the fork stays on
+`ratatui` 0.29 and `crossterm` 0.28.
+
+`tui-textarea` 0.7.0 is the newest version of that crate, and it asks for
+`ratatui ^0.29.0` and `crossterm ^0.28`. A build with `ratatui` 0.30 therefore
+holds two versions of `ratatui`, and the types of the two do not agree. A
+measurement on 2026-08-10 gives nine errors of the compiler, and every one of
+them is at the boundary of `tui-textarea`: `expected
+ratatui::widgets::block::Block, found ratatui::widgets::Block`, `the trait
+bound &TextArea: Widget is not satisfied`, and `the trait bound
+tui_textarea::Input: From<Event> is not satisfied`.
+
+**The work.** Wait for a `tui-textarea` that takes `ratatui` 0.30. The other
+answer is to write the field of text in this project, and that work is larger
+than the gain.
