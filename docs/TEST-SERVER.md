@@ -174,6 +174,31 @@ curl -X POST "http://localhost:13399/api/items/$ITEM_ID/cover" \
   -H "Authorization: Bearer $TOKEN" -F "cover=@/tmp/cover-1.jpg"
 ```
 
+## 6g. Add an EPUB book
+
+The reader of T-10 needs an ebook. Project Gutenberg gives books of the public
+domain. Put the EPUB beside an audio file, in the directory of one book, and
+scan the library.
+
+```bash
+dir="$ABS/audiobooks/Lewis Carroll/Alice in Wonderland"
+mkdir -p "$dir"
+curl -L -o "$dir/alice.epub" https://www.gutenberg.org/ebooks/11.epub3.images
+ffmpeg -loglevel error -y -f lavfi \
+  -i "sine=frequency=440:duration=5:sample_rate=22050" \
+  -metadata title="Alice in Wonderland" -metadata artist="Lewis Carroll" \
+  -b:a 32k "$dir/alice.mp3"
+```
+
+The item then has `media.ebookFormat` `"epub"`. A measurement on 2026-08-10
+gives these answers:
+
+| Request | Answer |
+|---|---|
+| `GET /api/items/:id/ebook` | `200`, `application/epub+zip`, the whole file |
+| The same with `Range: bytes=0-99` | `206`, `Accept-Ranges: bytes` |
+| `PATCH /api/me/progress/:id` with `ebookLocation` and `ebookProgress` | `200`. The two fields come back, and `currentTime` does not change |
+
 ## 6d. Make a collection and two playlists
 
 The test of T-9 needs a collection and a playlist. A playlist can also hold

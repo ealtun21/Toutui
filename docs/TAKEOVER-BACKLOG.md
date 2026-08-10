@@ -247,6 +247,36 @@ and `rustls-rustcrypto` is an alpha version. Issue 20 holds the details.
 | T-23 | — | Show the cover art with the Kitty protocol or Sixel | 5 |
 | T-24 | — | Cover every function of Audiobookshelf | 5 |
 
+### T-10: read an EPUB book in the application
+
+**The design, 2026-08-10.**
+`docs/superpowers/specs/2026-08-10-epub-reader-design.md`. No code yet.
+
+The measurements that the design rests on:
+
+- **The crates.** `rbook` 0.7.10 for the container, and `html2text` 0.17.1 for
+  the XHTML. Both are pure Rust: `cargo tree -i cc` and `cargo tree -i
+  openssl-sys` find nothing. Two crates are not acceptable: `epub-parser` 0.3.4
+  brings `bzip2-sys`, `lzma-sys`, and `zstd-sys`, and `iepub` 1.3.7 brings
+  `zstd-sys`. `--no-default-features` does not remove them.
+- **Why not the crate `epub`.** A zip archive of 2 megabytes that opens to 2
+  gigabytes stops the whole process with both crates: the allocation fails,
+  Rust calls `abort`, and `catch_unwind` cannot help. `rbook` has
+  `ManifestEntry::copy_bytes`, which writes into a writer of the caller. With a
+  limit of 8 megabytes, the same file gives an error and the program uses 5
+  megabytes, and not 4102 megabytes. The crate `epub` has no such function.
+- **The other eleven hostile files did nothing.** A path with `../..` inside
+  the archive touches no file of the disk, and a billion laughs attack is
+  inert, because html5ever, xml5ever, and quick-xml take no entity of a DTD.
+- **The time.** One chapter of Moby Dick needs 3 milliseconds in a release
+  build and 18 milliseconds in a debug build. 10000 nested `<div>` need 1.85
+  seconds in a debug build, and the time grows with the square of the depth.
+  Therefore the render runs on a task and it has a limit of time.
+- **The server.** `GET /api/items/:id/ebook` gives the whole file and it takes
+  a `Range`. `PATCH /api/me/progress/:id` holds `ebookLocation` as a text of
+  the client and `ebookProgress` as a number, and it changes no position of the
+  audio. The sandbox holds an EPUB now. See `docs/TEST-SERVER.md` section 6g.
+
 ### T-11: download a podcast episode
 
 The application downloads a book with `src/logic/download/`. A podcast holds
