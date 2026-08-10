@@ -758,6 +758,31 @@ same rule for `--update`.
 
 Therefore T-14 does not occur in the fork.
 
+## The release 0.6.0
+
+**The candidate `v0.6.0-rc.1`, 2026-08-10.** The user asked for a candidate
+before the release. The tag is `v0.6.0-rc.1`, plain semver, because a name that
+semver cannot read gives "an update is available" for ever. `Cargo.toml` holds
+the same text, because the workflow of the release refuses a tag that does not
+agree with it.
+
+The workflow marks a tag that holds a hyphen as a pre-release. `/releases/latest`
+gives no pre-release, therefore a user of v0.5.0 sees no message. A measurement
+after the release confirms it: that address still gives `v0.5.0`.
+
+The proof of the archives:
+
+| What | Result |
+|---|---|
+| `sha256sum -c SHA256SUMS` | Every one of the five files: OK |
+| `gh attestation verify` on the three archives | Every one: the workflow `release.yml` of `ealtun21/Toutui`, at the commit `e6413343` |
+| The same command on `config.example.toml` | `HTTP 404`, therefore the test is real and not empty |
+| `./toutui --version` of the published archive | `toutui 0.6.0-rc.1` |
+| The published binary against the sandbox | The library came, and the cover of "Alice in Wonderland" drew with its own colours |
+
+What stays for `v0.6.0`: the word of the user after their test, the version
+`0.6.0` in `Cargo.toml`, and the tag.
+
 ## The report of the user of 2026-08-10, on v0.5.0
 
 The user tested v0.5.0 and named ten items. This section holds each one, the
