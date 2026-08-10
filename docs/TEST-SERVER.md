@@ -140,6 +140,21 @@ curl -X POST "http://localhost:13399/api/libraries/$BOOK_LIB_ID/scan" \
 This gives a book of three files and 60 seconds. A test with this book is
 quick, and it still proves that the engine plays every file.
 
+## 6c. Make a library with no item
+
+An empty library tests the condition that has no data: an empty list, and no
+series.
+
+```bash
+podman exec abs-test mkdir -p /emptybooks
+curl -X POST http://localhost:13399/api/libraries \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"name":"Empty","folders":[{"fullPath":"/emptybooks"}],"mediaType":"book"}'
+```
+
+A test with this library found a fault: the key `G` in an empty list made the
+calculation `len() - 1`, and the application stopped.
+
 ## 7. Give the application its own configuration
 
 `db_path()` follows `XDG_CONFIG_HOME`. Therefore a test gets its own database

@@ -1362,23 +1362,23 @@ pub fn select_first(&mut self) {
 pub fn select_last(&mut self) {
     match self.view_state {
         AppView::Home => {
-            let last_index = self._ids_cnt_list.len() - 1;
+            let last_index = self._ids_cnt_list.len().saturating_sub(1);
             self.list_state_cnt_list.select(Some(last_index));
         }            
         AppView::Library => {
-            let last_index = self.ids_library.len() - 1;
+            let last_index = self.ids_library.len().saturating_sub(1);
             self.list_state_library.select(Some(last_index));
         }            
         AppView::SearchBook => {
-            let last_index = self.ids_search_book.len() - 1;
+            let last_index = self.ids_search_book.len().saturating_sub(1);
             self.list_state_search_results.select(Some(last_index));
         }            
         AppView::PodcastEpisode => {
             if self.is_from_search_pod {
-                let last_index = self.ids_pod_ep_search.len() - 1;
+                let last_index = self.ids_pod_ep_search.len().saturating_sub(1);
                 self.list_state_pod_ep.select(Some(last_index));
             } else {
-                let last_index = self.ids_pod_ep.len() - 1;
+                let last_index = self.ids_pod_ep.len().saturating_sub(1);
                 self.list_state_pod_ep.select(Some(last_index));
             }}
         AppView::Series => {
@@ -1393,12 +1393,12 @@ pub fn select_last(&mut self) {
             self.list_state_series_book.select(Some(last_index));
         }
         AppView::Settings => {
-            let last_index = self.settings.len() - 1;
+            let last_index = self.settings.len().saturating_sub(1);
             self.list_state_settings.select(Some(last_index));
         }            
         AppView::SettingsAccount => self.list_state_settings_account.select_last(),
         AppView::SettingsLibrary => {
-            let last_index = self.media_types.len() - 1;
+            let last_index = self.media_types.len().saturating_sub(1);
             self.list_state_settings_library.select(Some(last_index));
         }            
         AppView::SettingsAbout => self.list_state_settings_about.select_last(),
