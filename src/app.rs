@@ -1211,15 +1211,32 @@ impl App {
                         Some(1) => self.view_state = AppView::SettingsLibrary,
                         _ => {}
                     },
+                    // The list can be shorter than the selection: the user
+                    // removes an account, and the list of the accounts keeps
+                    // its old length until the next refresh. An index of a
+                    // vector stops the program. `get` does not. See T-41.
                     AppView::SettingsAccount => {
-                        if let Some(index) = selected_account {
-                            let usr_to_delete = &self.all_usernames[index];
+                        if let Some(usr_to_delete) =
+                            selected_account.and_then(|index| self.all_usernames.get(index))
+                        {
+                            let usr_to_delete = usr_to_delete.clone();
                             let _ = delete_user(usr_to_delete.as_str());
+
+                            // The list must follow the change at once.
+                            self.all_usernames.retain(|name| name != &usr_to_delete);
+
+                            let last = self.all_usernames.len().saturating_sub(1);
+                            if self.all_usernames.is_empty() {
+                                self.list_state_settings_account.select(None);
+                            } else if selected_account.unwrap_or(0) > last {
+                                self.list_state_settings_account.select(Some(last));
+                            }
                         }
                     }
                     AppView::SettingsLibrary => {
-                        if let Some(index) = selected_settings_library {
-                            let new_selected_lib = &self.libraries_ids[index];
+                        if let Some(new_selected_lib) = selected_settings_library
+                            .and_then(|index| self.libraries_ids.get(index))
+                        {
                             let _ = update_id_selected_lib(new_selected_lib, &self.username);
                         }
                     }

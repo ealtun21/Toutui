@@ -30,6 +30,25 @@ pub struct SeriesView {
 }
 
 impl SeriesView {
+    /// Gives the text that the screen shows below the list.
+    ///
+    /// Audiobookshelf holds no description for most series. An empty panel
+    /// tells the user nothing. Therefore the description of the first book
+    /// takes that place, because the first book of a series describes the
+    /// series well. See T-43.
+    pub fn description_for_the_screen(&self) -> String {
+        if !self.description.trim().is_empty() {
+            return self.description.clone();
+        }
+
+        self.books
+            .iter()
+            .map(|book| book.description.trim())
+            .find(|text| !text.is_empty())
+            .unwrap_or_default()
+            .to_string()
+    }
+
     /// Gives the line of this series in the list.
     pub fn line(&self) -> String {
         match self.books.len() {
@@ -194,6 +213,57 @@ mod tests {
         assert_eq!(series.len(), 1);
         let order: Vec<&str> = series[0].books.iter().map(|b| b.title.as_str()).collect();
         assert_eq!(order, vec!["First", "Second"]);
+    }
+
+    #[test]
+    fn a_series_with_no_description_shows_the_first_book() {
+        let mut series = SeriesView {
+            id: "s".into(),
+            name: "A Series".into(),
+            description: "   ".into(),
+            books: vec![
+                SeriesBookView {
+                    id: "b1".into(),
+                    title: "One".into(),
+                    author: "An Author".into(),
+                    sequence: "1".into(),
+                    duration: 0.0,
+                    description: "The first book tells this.".into(),
+                },
+                SeriesBookView {
+                    id: "b2".into(),
+                    title: "Two".into(),
+                    author: "An Author".into(),
+                    sequence: "2".into(),
+                    duration: 0.0,
+                    description: "The second book tells this.".into(),
+                },
+            ],
+        };
+
+        assert_eq!(
+            series.description_for_the_screen(),
+            "The first book tells this."
+        );
+
+        // A series that has a description keeps it.
+        series.description = "The series tells this.".into();
+        assert_eq!(
+            series.description_for_the_screen(),
+            "The series tells this."
+        );
+    }
+
+    #[test]
+    fn a_series_with_no_text_at_all_gives_an_empty_text() {
+        let series = SeriesView {
+            id: "s".into(),
+            name: "A Series".into(),
+            description: String::new(),
+            books: Vec::new(),
+        };
+
+        assert_eq!(series.description_for_the_screen(), "");
     }
 
     /// A text sort gives `#10` before `#2`. A number sort does not.

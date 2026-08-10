@@ -428,7 +428,7 @@ impl App {
             .left_aligned()
             .render(item_area1, buf);
 
-            Paragraph::new(series.description.clone())
+            Paragraph::new(series.description_for_the_screen())
                 .scroll((self.scroll_offset, 0))
                 .wrap(Wrap { trim: true })
                 .render(item_area2, buf);
@@ -1277,7 +1277,7 @@ impl App {
     // description of the book or podcast `Library`
     fn render_desc_library(&self, area: Rect, buf: &mut Buffer) {
         let text = match self.selected_library_series() {
-            Some(series) => Some(series.description.clone()),
+            Some(series) => Some(series.description_for_the_screen()),
             None => self
                 .selected_library_item()
                 .and_then(|index| self.desc_library.get(index).cloned()),

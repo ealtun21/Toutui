@@ -758,6 +758,130 @@ same rule for `--update`.
 
 Therefore T-14 does not occur in the fork.
 
+## The report of the user of 2026-08-10, on v0.5.0
+
+The user tested v0.5.0 and named ten items. This section holds each one, the
+examination against the code of today, and the state.
+
+| Id | Title | State |
+|---|---|---|
+| T-36 | No way to leave a server, and no way to find that command | Open |
+| T-37 | `Cargo.toml` names VLC | Not present |
+| T-38 | "Buffer overrun", and the book starts at the beginning again | Open, not reproduced |
+| T-39 | A key that repeats gives a slow list, and the list moves after the key | Fixed |
+| T-40 | The start takes a long time, and nothing tells the user | Open |
+| T-41 | An index of a vector stops the program | Fixed in the settings; the sweep is open |
+| T-42 | The key `R` leaves a broken screen | Fixed |
+| T-43 | A series with no description shows nothing | Fixed |
+| T-44 | The screen does not say what a line is | Open |
+| T-45 | The address of the server is examined after the password | Open |
+
+### T-36: no way to leave a server
+
+The command is present, and the user did not find it: `S`, then "Account",
+then `l` removes the account of the list. The footer says "l/→: remove saved
+user". The words do not say "log out", the view has no title of its own, and
+the settings screen names the entry "Account" only.
+
+**The work.** Name the entry "Accounts and log out", say "l: log out of this
+server (the program forgets the token)" in the footer, and ask the user to
+confirm before the program forgets a token.
+
+### T-37: `Cargo.toml` names VLC
+
+`grep -in vlc Cargo.toml` on 2026-08-10 finds nothing. The word stays in
+`src/db/migrate.rs` only, and every use there is correct: the migration of
+version 4 renames the column `is_vlc_launched_first_time` and removes the
+column `is_vlc_running` of an old database. Those names must stay, because a
+database of v0.4 holds them.
+
+### T-38: "Buffer overrun", and the book starts at the beginning again
+
+`grep -rin "overrun" src` finds nothing, therefore the message comes from
+outside the program: ALSA writes "buffer overrun" when the sound card takes the
+samples too slowly.
+
+The second part is the serious part: the position went to the beginning, on the
+disk and on the server. T-4 and T-3 corrected two ways for that to happen, and
+this report comes from v0.5.0, which holds those corrections.
+
+**The work.** Reproduce it first. The report needs the log of the program and
+the answer of `GET /api/me/progress/:id` before and after. A position of 0 that
+goes to the server is a fault of a different kind from a position that the
+screen shows wrongly.
+
+### T-39: a key that repeats gives a slow list — fixed
+
+The loop of the events took one key for each turn. The turn then drew the
+screen and waited 50 milliseconds. A key that repeats gives about 30 keys each
+second, therefore the keys made a queue.
+
+A measurement on 2026-08-10 sent 40 keys in 1.3 seconds to a pseudo terminal
+and then watched the line of the selection every 250 milliseconds. The build of
+v0.5.0 moved the line for 0.78 seconds after the last key. The build with the
+correction had finished before the first look, at 0.26 seconds.
+
+The loop now takes every key that waits, up to 64 for one frame, and it draws
+one time for the whole group. It also drops an event of the release of a key,
+because a terminal that reports a release sent two events for one press.
+
+### T-40: the start takes a long time, and nothing tells the user
+
+The program asks the server for the libraries, for the items, for the
+personalized view, and for the progress before it draws the first frame. A slow
+server therefore gives a screen with nothing on it.
+
+**The work.** Draw a frame before the requests, with the name of the server and
+the words "The program asks the server…". A test must measure the time to the
+first frame with a server that answers slowly.
+
+### T-41: an index of a vector stops the program — in part
+
+`self.all_usernames[index]` and `self.libraries_ids[index]` stopped the program
+when the list was shorter than the selection. The user removes an account, the
+list keeps its old length until the next refresh, and the next `l` reads a
+position that is not there. The two places use `get` now, and the list of the
+accounts follows the change at once.
+
+**The work that stays.** The render holds about 40 more places that read a
+vector with an index, for example `self.auth_names_library[selected]`. A panic
+inside `Widget::render` stops the program. The guard of T-17 gives the terminal
+back, and the user still loses the program. Every one of those places needs
+`get`, and a test must show that a list that is shorter than the selection
+draws a screen.
+
+### T-42: the key `R` leaves a broken screen — fixed
+
+The refresh writes "Refreshing app…" with `pop_message`. That function writes
+to the terminal itself, outside the buffer of ratatui. ratatui writes the cells
+that changed only, therefore those bytes stayed on the screen. The loop now
+clears the terminal after a refresh, and the next draw writes every cell.
+
+### T-43: a series with no description shows nothing — fixed
+
+Audiobookshelf holds no description for most series. `description_for_the_screen`
+gives the description of the first book of the series that has one.
+
+### T-44: the screen does not say what a line is
+
+The list of the library gives a title and nothing else. The user cannot see a
+book that they started, a book that they finished, and a book that they never
+opened.
+
+**The work.** Give each line a mark: a book that plays now, a book with a
+position, a book that is finished, and a book on the disk. The information is
+present already, because the panel below the list shows "Progress: 50%".
+
+### T-45: the address of the server is examined after the password
+
+The login asks for the address, for the name, and for the password, and it
+sends the three together. An address with no `http://` therefore fails after
+the user wrote everything.
+
+**The work.** Examine the address when the user leaves the first field: the
+text must start with `http://` or with `https://`, and the program must reach
+`/ping` of that address. Say what is wrong at that moment.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

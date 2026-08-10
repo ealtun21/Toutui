@@ -195,26 +195,67 @@ async fn main() -> Result<()> {
                 frame.render_widget(&mut app, frame.area());
             })?;
 
-            // Checking if any key is pressed (waiting for events with a 200ms delay here)
+            // The loop waits for a key, and it then takes every key that
+            // waits.
+            //
+            // The old code took one key for each turn of the loop, and the
+            // loop then drew the screen and waited 50 milliseconds. A key that
+            // repeats gives about 30 keys each second, therefore the keys made
+            // a queue. The list moved slowly, and it went on moving after the
+            // user let the key go. See T-39.
+            //
+            // The limit stops a very long queue from holding the screen.
+            const KEYS_FOR_ONE_FRAME: usize = 64;
+            let mut taken = 0;
+
             if crossterm::event::poll(Duration::from_millis(200))? {
-                if let event::Event::Key(key) = crossterm::event::read()? {
-                    app.handle_key(key);
-                    // If the 'R' key is pressed, refresh the app
-                    if let KeyCode::Char('R') = key.code {
-                        // pop up message
-                        let mut stdout = stdout();
-                        let _ = clear_message(&mut stdout, 3); // clear a message, if any, before print the message bellow
-                        let _ = pop_message(&mut stdout, 3, "Refreshing app...");
-                        // Reinitialize app to refresh
-                        app = App::new(std::sync::Arc::clone(&api)).await?;
-                        // clear message above
-                        let _ = clear_message(&mut stdout, 3);
+                while taken < KEYS_FOR_ONE_FRAME
+                    && crossterm::event::poll(Duration::from_millis(0))?
+                {
+                    let event = crossterm::event::read()?;
+                    taken += 1;
+
+                    if let event::Event::Key(key) = event {
+                        // A terminal that reports the release of a key sends
+                        // two events for one press. The application must act
+                        // one time.
+                        if key.kind != event::KeyEventKind::Press {
+                            continue;
+                        }
+
+                        app.handle_key(key);
+
+                        // If the 'R' key is pressed, refresh the app
+                        if let KeyCode::Char('R') = key.code {
+                            // pop up message
+                            let mut stdout = stdout();
+                            let _ = clear_message(&mut stdout, 3); // clear a message, if any, before print the message bellow
+                            let _ = pop_message(&mut stdout, 3, "Refreshing app...");
+                            // Reinitialize app to refresh
+                            app = App::new(std::sync::Arc::clone(&api)).await?;
+                            // clear message above
+                            let _ = clear_message(&mut stdout, 3);
+
+                            // The messages above write to the terminal outside
+                            // the buffer of ratatui. ratatui draws the cells
+                            // that changed only, therefore those bytes stay on
+                            // the screen and the view looks broken. A clear
+                            // makes the next draw write every cell. See T-42.
+                            terminal.clear()?;
+                        }
+
+                        if app.should_exit {
+                            break;
+                        }
                     }
                 }
             }
 
-            // Short pause between event checks
-            tokio::time::sleep(Duration::from_millis(50)).await;
+            // Short pause between event checks. A turn that took keys draws at
+            // once, therefore the screen follows the user.
+            if taken == 0 {
+                tokio::time::sleep(Duration::from_millis(50)).await;
+            }
         }
     }
 
