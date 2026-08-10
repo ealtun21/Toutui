@@ -104,11 +104,75 @@ pub async fn get_continue_listening(
         .get_json(&format!("/api/libraries/{}/personalized", id_selected_lib))
         .await?;
 
-    // Filter libraries to keep only those with label "Continue Listening"
+    // The shelf of "Continue Listening" carries a name for the screen and an
+    // identity. The old code compared the name, and a name is a text for a
+    // person: a server that gives it in a different language would give this
+    // program an empty Home view, with no error at all. The identity
+    // `continue-listening` does not change. See T-24.
+    //
+    // The name stays as a second way, for a server that gives no identity.
     let continue_listening: Vec<Root> = libraries
         .into_iter()
-        .filter(|lib| lib.label == "Continue Listening")
+        .filter(is_the_shelf_of_continue_listening)
         .collect();
 
     Ok(continue_listening)
+}
+
+/// Tells if a shelf of the personalized view is "Continue Listening".
+///
+/// The identity comes first, because it is the same on every server. See T-24.
+pub fn is_the_shelf_of_continue_listening(shelf: &Root) -> bool {
+    match shelf.id.as_deref() {
+        Some(id) => id == "continue-listening",
+        None => shelf.label == "Continue Listening",
+    }
+}
+
+#[cfg(test)]
+mod tests_of_the_shelf {
+    use super::{is_the_shelf_of_continue_listening, Root};
+
+    fn shelf(id: Option<&str>, label: &str) -> Root {
+        Root {
+            id: id.map(|value| value.to_string()),
+            label: label.to_string(),
+            entities: None,
+        }
+    }
+
+    #[test]
+    fn the_identity_names_the_shelf() {
+        assert!(is_the_shelf_of_continue_listening(&shelf(
+            Some("continue-listening"),
+            "Continue Listening"
+        )));
+        assert!(!is_the_shelf_of_continue_listening(&shelf(
+            Some("recently-added"),
+            "Recently Added"
+        )));
+    }
+
+    /// A server in a different language gives a different name. The identity
+    /// stays the same, therefore the Home view still holds its media. The old
+    /// code gave an empty view here, and it gave no error. See T-24.
+    #[test]
+    fn a_name_in_a_different_language_changes_nothing() {
+        assert!(is_the_shelf_of_continue_listening(&shelf(
+            Some("continue-listening"),
+            "Continuer l'écoute"
+        )));
+    }
+
+    #[test]
+    fn a_shelf_with_no_identity_uses_the_name() {
+        assert!(is_the_shelf_of_continue_listening(&shelf(
+            None,
+            "Continue Listening"
+        )));
+        assert!(!is_the_shelf_of_continue_listening(&shelf(
+            None,
+            "Recently Added"
+        )));
+    }
 }

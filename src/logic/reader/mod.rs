@@ -22,7 +22,9 @@ pub mod render;
 pub mod session;
 
 pub use book::{Book, ReaderError, TocItem};
-pub use position::{fraction, from_ebook_location, from_fraction, to_ebook_location, Position};
+pub use position::{
+    chapter_of_epubcfi, fraction, from_ebook_location, from_fraction, to_ebook_location, Position,
+};
 pub use render::to_lines;
 pub use session::Reader;
 

@@ -616,8 +616,29 @@ gives those two, and it adds decoders that a cover never needs.
 - A narrow terminal has no width for a cover and a text. The cover must go away
   below a width that the code names.
 
-T-24 holds the comparison with Audiobookshelf, and it names the functions that
-the application does not have yet.
+**T-24 is complete: `docs/T-24-coverage.md`.** That document compares this
+program with an Audiobookshelf 2.36.0, function by function. Toutui calls 15
+paths, and the server gives more than 100.
+
+The five that the document names as the next work:
+
+1. The search of the server, `GET /api/libraries/:id/search?q=`. The program
+   looks in the titles of the page that it holds, with `contains`. The server
+   also finds an author, a series, a narrator, a tag, and a genre. A search for
+   "Carroll" gives the author on the server, and nothing in this program.
+2. A key that marks a media as finished, `PATCH /api/me/progress/:id` with
+   `isFinished`. The program sends that body at the end of a playback only.
+3. The statistics of the user, `GET /api/me/listening-stats`.
+4. The other five shelves of the personalized view. The program asks for that
+   view and it keeps one shelf of six.
+5. The sort and the filter of a library.
+
+**A fault that the comparison found, and this release corrects.** The program
+matched the shelf of "Continue Listening" on its name. A name is a text for a
+person, therefore a server that gives it in a different language would give an
+empty Home view, with no error at all. The program matches the identity
+`continue-listening` now, and it uses the name only when the server gives no
+identity.
 
 ## Priority 5: small faults
 

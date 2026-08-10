@@ -203,6 +203,9 @@ pub struct App {
     /// store of the process, therefore no request goes to the server a second
     /// time. See T-23.
     pub covers: crate::ui::cover::CoverArt,
+    /// The account that waits for the second press of the key `l`. A log out
+    /// forgets a token, therefore the program asks one time. See T-36.
+    pub confirm_logout: Option<String>,
     /// The book that the user reads now. See T-10.
     pub reader: Option<crate::logic::reader::Reader>,
     /// A message of the reader for the user, for example the reason why a
@@ -976,6 +979,7 @@ impl App {
             changelog,
             update_msg,
             covers: crate::ui::cover::CoverArt::new(),
+            confirm_logout: None,
             reader: None,
             reader_message: None,
             audio_fault,
@@ -986,6 +990,15 @@ impl App {
     pub fn handle_key(&mut self, key: KeyEvent) {
         if key.kind != KeyEventKind::Press {
             return;
+        }
+
+        // A key that is not `l` stops the question of the log out. The user
+        // then never logs out because a key came at a wrong moment. See T-36.
+        if !matches!(
+            key.code,
+            KeyCode::Char('l') | KeyCode::Right | KeyCode::Enter
+        ) {
+            self.confirm_logout = None;
         }
 
         match key.code {
@@ -1390,6 +1403,30 @@ impl App {
                             selected_account.and_then(|index| self.all_usernames.get(index))
                         {
                             let usr_to_delete = usr_to_delete.clone();
+
+                            // A log out forgets the token of a server, and the
+                            // user then gives their password again. Therefore
+                            // the program asks one time. Any key that is not
+                            // `l` stops the question. See T-36.
+                            if self.confirm_logout.as_deref() != Some(usr_to_delete.as_str()) {
+                                self.confirm_logout = Some(usr_to_delete.clone());
+
+                                let mut stdout = stdout();
+                                let _ = clear_message(&mut stdout, 3);
+                                let _ = pop_message(
+                                    &mut stdout,
+                                    3,
+                                    format!(
+                                        "Press l again to log out of \"{}\". Any other key stops this.",
+                                        usr_to_delete
+                                    )
+                                    .as_str(),
+                                );
+
+                                return;
+                            }
+
+                            self.confirm_logout = None;
                             let _ = delete_user(usr_to_delete.as_str());
 
                             // The list must follow the change at once.
@@ -2251,7 +2288,18 @@ impl App {
                     }
                 }
             }
-            AppView::SettingsAccount => self.list_state_settings_account.select_next(),
+            // The list of the accounts holds one line for each account. The
+            // old code moved past the end, and the key `l` then found no
+            // account and did nothing. See T-41.
+            AppView::SettingsAccount => {
+                if let Some(selected) = self.list_state_settings_account.selected() {
+                    if selected + 1 < self.all_usernames.len() {
+                        self.list_state_settings_account.select_next();
+                    } else {
+                        self.list_state_settings_account.select_first();
+                    }
+                }
+            }
             AppView::SettingsLibrary => {
                 if let Some(selected) = self.list_state_settings_library.selected() {
                     if selected + 1 < self.media_types.len() {

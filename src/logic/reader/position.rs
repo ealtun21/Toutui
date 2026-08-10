@@ -9,10 +9,15 @@
 //! - `ebookProgress`, a number from 0 to 1. Every client understands it.
 //!
 //! The web reader of Audiobookshelf writes an EPUBCFI in `ebookLocation`, for
-//! example `epubcfi(/6/14[id6]!/4/2/2/2[c1]/2/1:0)`. This application does not
-//! understand an EPUBCFI, and it must not fail on one. The rule is simple: a
-//! text that does not start with `toutui:` gives no position, and the caller
-//! then uses `ebookProgress` with [`from_fraction`].
+//! example `epubcfi(/6/14[id6]!/4/2/2/2[c1]/2/1:0)`. [`chapter_of_epubcfi`]
+//! takes the chapter out of such a text, therefore a user who reads in the web
+//! page and then in the terminal finds the correct chapter. The line inside
+//! the chapter needs the tree of the XHTML, and this program holds lines,
+//! therefore the user starts at the first line of that chapter.
+//!
+//! This program writes no EPUBCFI. A text that this program writes must come
+//! back exactly, and only a test with the real web reader can show that an
+//! EPUBCFI of this program is correct for it. That test is not possible here.
 //!
 //! Every function here is pure. A test needs no file and no server.
 
@@ -48,6 +53,48 @@ pub fn from_ebook_location(text: &str) -> Option<Position> {
         spine: spine.parse().ok()?,
         line: line.parse().ok()?,
     })
+}
+
+/// Gives the chapter of an EPUBCFI of the web reader.
+///
+/// The web reader of Audiobookshelf writes a value like
+/// `epubcfi(/6/14[id6]!/4/2/2/2[c1]/2/1:0)`. The part before the `!` names the
+/// place inside the package document: `/6` is the spine, and the step after it
+/// names the itemref.
+///
+/// EPUBCFI counts the children of an element with even numbers, and the first
+/// child is 2. Therefore `/14` is the seventh itemref, and the seventh itemref
+/// is the chapter 6 of this program, because this program counts from 0.
+///
+/// The part after the `!` names the place inside the chapter, in the tree of
+/// the XHTML. This program holds lines and not a tree, therefore it takes the
+/// chapter only, and the user starts at the first line of that chapter.
+///
+/// The function never fails. A text that is not an EPUBCFI gives `None`.
+pub fn chapter_of_epubcfi(text: &str) -> Option<usize> {
+    let text = text.trim();
+    let inside = text
+        .strip_prefix("epubcfi(")
+        .and_then(|rest| rest.strip_suffix(')'))?;
+
+    // The part before the first `!` names the place in the package document.
+    let package = inside.split('!').next()?;
+
+    // The last step of that part is the itemref of the spine. A step can carry
+    // an assertion in brackets, for example `14[id6]`, and the brackets are
+    // not part of the number.
+    let last = package.split('/').rfind(|step| !step.is_empty())?;
+
+    let number = last.split('[').next()?.trim();
+    let step: usize = number.parse().ok()?;
+
+    // An odd number names a text and not an element. Such a value names no
+    // itemref.
+    if step < 2 || !step.is_multiple_of(2) {
+        return None;
+    }
+
+    Some(step / 2 - 1)
 }
 
 /// The part of the book that the user read, from 0.0 to 1.0.
@@ -113,6 +160,67 @@ pub fn from_fraction(sizes: &[u64], fraction: f64) -> Position {
     Position {
         spine: sizes.len() - 1,
         line: 0,
+    }
+}
+
+#[cfg(test)]
+mod tests_of_the_epubcfi {
+    use super::chapter_of_epubcfi;
+
+    #[test]
+    fn a_real_value_of_the_web_reader_gives_its_chapter() {
+        // `/14` is the seventh itemref, and that is the chapter 6.
+        assert_eq!(
+            chapter_of_epubcfi("epubcfi(/6/14[id6]!/4/2/2/2[c1]/2/1:0)"),
+            Some(6)
+        );
+        // `/2` is the first itemref, and that is the chapter 0.
+        assert_eq!(chapter_of_epubcfi("epubcfi(/6/2!/4/2/1:0)"), Some(0));
+        assert_eq!(chapter_of_epubcfi("epubcfi(/6/4!/4)"), Some(1));
+    }
+
+    #[test]
+    fn a_value_with_no_assertion_also_works() {
+        assert_eq!(chapter_of_epubcfi("epubcfi(/6/14!/4/2/1:0)"), Some(6));
+    }
+
+    #[test]
+    fn a_space_at_the_ends_changes_nothing() {
+        assert_eq!(chapter_of_epubcfi("  epubcfi(/6/8!/4)  "), Some(3));
+    }
+
+    #[test]
+    fn a_text_that_is_not_an_epubcfi_gives_nothing() {
+        assert_eq!(chapter_of_epubcfi("toutui:3:120"), None);
+        assert_eq!(chapter_of_epubcfi(""), None);
+        assert_eq!(chapter_of_epubcfi("epubcfi("), None);
+        assert_eq!(chapter_of_epubcfi("epubcfi()"), None);
+        assert_eq!(chapter_of_epubcfi("epubcfi(/6/14!/4"), None);
+        assert_eq!(chapter_of_epubcfi("a text of a user"), None);
+    }
+
+    #[test]
+    fn a_step_that_names_no_element_gives_nothing() {
+        // An odd number names a text, and not an element.
+        assert_eq!(chapter_of_epubcfi("epubcfi(/6/13!/4)"), None);
+        // The number 0 names nothing at all.
+        assert_eq!(chapter_of_epubcfi("epubcfi(/6/0!/4)"), None);
+        assert_eq!(chapter_of_epubcfi("epubcfi(/6/abc!/4)"), None);
+    }
+
+    #[test]
+    fn a_value_that_attacks_the_program_gives_nothing_and_no_panic() {
+        // A number that is too large for the machine.
+        assert_eq!(
+            chapter_of_epubcfi("epubcfi(/6/99999999999999999999999999!/4)"),
+            None
+        );
+        // A value with no number at all.
+        assert_eq!(chapter_of_epubcfi("epubcfi(///!//)"), None);
+        // A value of many thousand characters.
+        let long = format!("epubcfi({}!/4)", "/2".repeat(10_000));
+        assert!(long.len() > 20_000);
+        assert_eq!(chapter_of_epubcfi(&long), Some(0));
     }
 }
 

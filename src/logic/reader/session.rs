@@ -263,11 +263,21 @@ impl Reader {
 
     /// Puts the user at a place that the server gave.
     pub fn go_to_the_place_of_the_server(&mut self, location: &str, ebook_fraction: f64) {
-        // A place that this program wrote names the chapter and the line. A
-        // place of a different client is an EPUBCFI, and this program does not
-        // read that form. The part of the book then gives the chapter.
-        let place =
-            crate::logic::reader::position::from_ebook_location(location).unwrap_or_else(|| {
+        // Three forms come from the server, and the program takes the first
+        // one that it understands.
+        //
+        // 1. A place that this program wrote. It names the chapter and the
+        //    line.
+        // 2. An EPUBCFI of the web reader. It names the chapter, and the user
+        //    starts at the first line of that chapter.
+        // 3. Nothing that the program understands. The part of the book then
+        //    gives the chapter.
+        let place = crate::logic::reader::position::from_ebook_location(location)
+            .or_else(|| {
+                crate::logic::reader::position::chapter_of_epubcfi(location)
+                    .map(|spine| Position { spine, line: 0 })
+            })
+            .unwrap_or_else(|| {
                 crate::logic::reader::position::from_fraction(&self.sizes, ebook_fraction)
             });
 
