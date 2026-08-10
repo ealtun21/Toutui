@@ -29,6 +29,7 @@ not in the archived repository.
  **Lightweight & Fast:** A minimalist terminal user interface (TUI) written in Rust 🦀  
  **Supports Books & Podcasts:** Enjoy both audiobooks and podcasts  
  **Series:** See the series of a library and the books of a series, in sequence (`s`)  
+ **The shelves of Home:** Continue Listening, Recently Added, Recent Series, Discover, and Listen Again  
  **Collections & Playlists:** See them and play their contents (`c`)  
  **Sync Progress:** Keep your listening progress in sync  
  **Your listening time:** See the time of each day, of each day of the week, and of each media (`T`)  
@@ -77,6 +78,21 @@ belongs to one user, and it can hold books or episodes of a podcast.
 - `D` and `X` operate on a book or on an episode of the list, in the same way
   as in the Library view.
 - A podcast library has no collection, and it can have a playlist.
+
+## 🏠 The Home view
+
+The server makes shelves of the media for each library, and the Home view
+shows them.
+
+- A library of books gives "Continue Listening", "Recently Added", "Recent
+  Series", "Discover", and "Listen Again".
+- A library of podcasts gives "Newest Episodes" and "Listen Again".
+- The name of a shelf stands at the first column, and a media of that shelf
+  stands after it. The keys `j` and `k` go over the name.
+- `l`/`Enter` plays a media. On a line of a series it opens the books of that
+  series, and `h` goes back to the Home view.
+- The program sends one request for every shelf, and that request did not
+  change.
 
 ## 📊 Your listening time
 

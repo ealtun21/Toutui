@@ -955,6 +955,58 @@ day of the week, and the longest one, `Wednesday`, takes nine columns.
 `tests/the_statistics_against_the_sandbox.rs` holds the measurement. It carries
 `#[ignore]`, because it needs a server.
 
+### The other shelves of the Home view — complete, 2026-08-11
+
+The program asked `GET /api/libraries/:id/personalized`, and it kept the shelf
+`continue-listening` only. The other five shelves came in the same answer, and
+the program threw them away. The request did not change with this work.
+
+A measurement against the sandbox on 2026-08-11:
+
+| Library | The shelves of the server |
+|---|---|
+| Books | `continue-listening` (4 media), `recently-added` (9), `recent-series` (2 series), `discover` (2), `listen-again` (2), `newest-authors` (4 authors) |
+| Podcasts | `newest-episodes` (3 episodes), `recently-added` (1 podcast), `listen-again` (2 episodes) |
+
+**A fault that the measurement showed: the Home view of a library of podcasts
+was empty.** That library gives no shelf `continue-listening`. The program
+kept that shelf only, therefore the view held nothing and it said nothing. The
+view now shows "Newest Episodes" and "Listen Again".
+
+**Two shelves give no line, and that is correct.** `newest-authors` holds an
+author, and an author has no media and no book. `recently-added` of a library
+of podcasts holds a podcast and not an episode, and the Home view plays an
+episode. A shelf that gives no line gives no name, therefore the user never
+reads a name with nothing below it.
+
+**A fault of the lists that no measurement showed yet.** The Home view holds
+six lists of the same length, and the screen reads them by one number. The
+functions that made those lists did not agree on what makes a value:
+`collect_ids_cnt_list` pushed for every entity, and the five other functions
+pushed for an entity that holds a media and a metadata only. With the shelf
+`continue-listening` alone, every entity held a media and the lists agreed. A
+shelf of series holds an entity with no media. That entity would have moved
+one list against the others, and the screen would have shown the title of one
+book beside the author of a different book. Every function of
+`collect_personalized_view.rs` and of `collect_personalized_view_pod.rs` now
+walks one iterator, and a test holds each one to the same length.
+
+**The lines.** `src/logic/home_view.rs` makes them, and it is pure:
+
+- `HomeRow::Shelf` is the name of a shelf. The user cannot select it, and the
+  keys `j`, `k`, `g`, and `G` go over it.
+- `HomeRow::Media` holds the place of the media in the lists of the view. That
+  place counts the media, and it does not count a name and does not count a
+  series.
+- `HomeRow::Series` holds the place of the series in `App::series`. The key
+  `l` opens the books of that series, in the same way as the Library view.
+  A series that the program does not hold gives no line, because the view of
+  the books reads that list.
+
+`App::series_from_library` was a yes or a no. The Home view opens a series
+too, therefore that field is now `App::series_from`, a view. The key `h` goes
+back to the view that opened the series.
+
 ## The report of the user of 2026-08-10, on v0.5.0
 
 The user tested v0.5.0 and named ten items. This section holds each one, the

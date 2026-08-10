@@ -148,30 +148,32 @@ pub struct AudioFile {
     pub mime_type: Option<String>,
 }
 
-/// Gets the podcast episodes that the user continues to listen to.
+/// Gets the shelves of the Home view of a library of podcasts.
 ///
-/// The function keeps the shelf that has the label `Continue Listening` only.
-pub async fn get_continue_listening_pod(
+/// **A library of podcasts can give no shelf of Continue Listening.** A
+/// measurement against an Audiobookshelf 2.36.0 on 2026-08-11 gives three
+/// shelves for the library of podcasts of the sandbox: `newest-episodes`
+/// (3 episodes), `recently-added` (1 podcast), and `listen-again`
+/// (2 episodes). The program kept the shelf `continue-listening` only,
+/// therefore the Home view of that library was empty and it said nothing.
+/// See T-24.
+pub async fn get_the_shelves_pod(
     client: &ApiClient,
     id_selected_lib: &str,
 ) -> Result<Vec<Root>, ApiError> {
-    let libraries: Vec<Root> = client
+    let mut shelves: Vec<Root> = client
         .get_json(&format!("/api/libraries/{}/personalized", id_selected_lib))
         .await?;
 
-    // The shelf of "Continue Listening" carries a name for the screen and an
-    // identity. The old code compared the name, and a name is a text for a
-    // person: a server that gives it in a different language would give this
-    // program an empty Home view, with no error at all. The identity
-    // `continue-listening` does not change. See T-24.
-    //
-    // The name stays as a second way, for a server that gives no identity.
-    let continue_listening: Vec<Root> = libraries
-        .into_iter()
-        .filter(is_the_shelf_of_continue_listening)
-        .collect();
+    // The shelf of Continue Listening comes first, if the server gives one.
+    let first = shelves.iter().position(is_the_shelf_of_continue_listening);
 
-    Ok(continue_listening)
+    if let Some(first) = first {
+        let shelf = shelves.remove(first);
+        shelves.insert(0, shelf);
+    }
+
+    Ok(shelves)
 }
 
 /// Tells if a shelf of the personalized view is "Continue Listening".

@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod download;
 pub mod handle_input;
+pub mod home_view;
 pub mod library_view;
 pub mod offline;
 pub mod playback;

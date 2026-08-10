@@ -61,6 +61,15 @@ fn fill(mark: &str) -> String {
     format!("{}{} ", mark, " ".repeat(space))
 }
 
+/// Gives the line that names a shelf of the Home view. See T-24.
+///
+/// The name stands at the first column, and a media of that shelf stands at
+/// the column `WIDTH`. Therefore the user sees which media belong to which
+/// shelf. The user cannot select this line.
+pub fn shelf(label: &str) -> String {
+    format!("▌ {}", label)
+}
+
 /// Puts the mark before the title.
 pub fn line(mark: &str, title: &str) -> String {
     format!("{}{}", mark, title)
@@ -122,6 +131,16 @@ mod tests {
         assert_eq!(of_progress("0", "Not finished", false).trim(), "");
         assert_eq!(of_progress(" N/A", " N/A", false).trim(), "");
         assert_eq!(of_library(false).trim(), "");
+    }
+
+    /// The name of a shelf must not stand at the column of a media, or the
+    /// user cannot tell a title from the name of a shelf.
+    #[test]
+    fn the_name_of_a_shelf_stands_before_the_column_of_a_media() {
+        let name = shelf("Recently Added");
+        assert!(name.contains("Recently Added"));
+        assert!(!name.starts_with(' '));
+        assert!(line(&of_library(false), "A Book").starts_with("   "));
     }
 
     #[test]

@@ -118,7 +118,7 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 | **Sort the items** | `?sort=media.metadata.title&desc=1` changes the sequence. Measured: `desc=1` gives `Volume 3, Volume 2, Volume 1`, and no `desc` gives `A Long Test Book, Alice in Wonderland, Multi File Test Book` | No | The client sends no `sort`. `Root` in `get_all_books.rs` reads `sortBy` from the answer, and the request never holds it. The user cannot choose "newest first" |
 | **Filter the items** | `?filter=<type>.<base64>` gives `filterBy` in the answer. `GET /api/libraries/:id/filterdata` gives the values: 4 authors, 2 series, 0 genres, 0 tags, 0 narrators, 0 languages | No | Both. The user cannot show one author, one genre, or one tag |
 | **Group a series in the list** | `?collapseseries=1` gives `collapseseries` in the answer | Half | The client makes the group itself, in `group_library` of `src/logic/library_view.rs`. The result is correct, and the server can do the same work |
-| **The shelves of Home** | `GET /api/libraries/:id/personalized` gives 6 shelves for a book library: `continue-listening` (5), `recently-added` (9), `recent-series` (2), `discover` (1), `listen-again` (2), `newest-authors` (4). A podcast library gives `newest-episodes` (3), `recently-added` (1), `listen-again` (2) | Half | Five of six. The client keeps the shelf `continue-listening` only. The user sees no new book, no series, and no new episode of a podcast |
+| **The shelves of Home** | `GET /api/libraries/:id/personalized` gives 6 shelves for a book library: `continue-listening` (4), `recently-added` (9), `recent-series` (2), `discover` (2), `listen-again` (2), `newest-authors` (4). A podcast library gives `newest-episodes` (3), `recently-added` (1), `listen-again` (2) | Yes | The shelf `newest-authors` only. An author holds no media and no book, therefore a terminal can show nothing for that shelf. Every other shelf gives its name and its lines. A line of `recent-series` opens the books of the series |
 | **Search** | `GET /api/libraries/:id/search?q=` gives six groups: `book`, `authors`, `series`, `narrators`, `tags`, `genres`. Measured: `q=Volume` gives 5 books, `q=Carroll` gives the author "Lewis Carroll" and no book | Half | The whole endpoint. `src/ui/tui.rs:884` filters the titles that the client holds already, with `to_lowercase().contains()`. The client finds no author, no narrator, no series, and no tag. It finds no word inside a description |
 | **The series of a library** | `GET /api/libraries/:id/series?limit=&page=` gives `results` and `total`. `limit=0` gives an empty list, and not every series | Yes | Nothing. The key `s`, and one line for each series in the Library view |
 | **One series** | `GET /api/series/:id` gives `id`, `name`, `nameIgnorePrefix`, `description` | Half | The description of the series. The client shows the name and the books only |
@@ -216,12 +216,9 @@ The sequence inside each group gives the value for the work.
    `GET /api/me`. A new file `src/api/me/bookmarks.rs`, a key in `src/app.rs`
    during the playback, and a list in `src/ui/player_tui.rs`. A user of a long
    book needs a place to come back to.
-7. **The other shelves of Home.** The client asks
-   `GET /api/libraries/:id/personalized` already, and it throws five of the six
-   shelves away. Change `get_continue_listening` in
-   `src/api/libraries/get_library_perso_view.rs` and the render at
-   `src/ui/tui.rs:339`. This gives "Recently Added", "Discover", and, for a
-   podcast library, "Newest Episodes". The request costs nothing more.
+7. ~~**The other shelves of Home.**~~ **Done on 2026-08-11.**
+   `get_the_shelves` gives every shelf, and `src/logic/home_view.rs` makes the
+   lines. The request did not change.
 8. **Add a podcast.** `GET /api/search/podcast?term=`, then
    `POST /api/podcasts/feed`, then `POST /api/podcasts`. A new directory
    `src/api/podcasts/`, and a view for the results. The README names this

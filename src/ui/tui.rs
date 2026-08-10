@@ -181,9 +181,22 @@ impl App {
         let one = |value: Option<&String>| value.cloned().into_iter().collect::<Vec<String>>();
 
         match self.view_state {
+            // A line of a series shows the cover of each of its books, in
+            // the same way as the Library view. See T-22 and T-24.
+            AppView::Home if self.selected_home_series().is_some() => self
+                .selected_home_series()
+                .map(|series| {
+                    series
+                        .books
+                        .iter()
+                        .take(cover::SHELF_MAX)
+                        .map(|book| book.id.clone())
+                        .collect()
+                })
+                .unwrap_or_default(),
+
             AppView::Home => one(self
-                .list_state_cnt_list
-                .selected()
+                .selected_home_item()
                 .and_then(|index| self._ids_cnt_list.get(index))),
 
             // A line of a series shows the cover of each of its books. See
@@ -398,9 +411,20 @@ impl App {
         // Every line starts with a mark: the media that plays, a media that
         // the user finished, or the part that the user heard. See T-44.
         let lines = self.home_lines();
-        let render_list_title = format!("Continue Listening [{} items]", lines.len());
+        let count = self
+            .home_rows
+            .iter()
+            .filter(|row| row.is_a_line_of_the_user())
+            .count();
+        let render_list_title = format!("Home [{} items]", count);
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, s: series, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
+        // A library of podcasts has no series and no ebook. The footer of
+        // that library must not name a key that does nothing.
+        let text_render_footer = if self.is_podcast {
+            "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, M: mark finished, T: listening time, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
+        } else {
+            "j/↓, k/↑: move, l/→: play or open a series, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, T: listening time, s: series, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
+        };
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -411,9 +435,9 @@ impl App {
             &lines,
             &mut self.list_state_cnt_list.clone(),
         );
-        if !&self._titles_cnt_list.is_empty() {
-            self.render_info_home(item_area1, buf, &self.list_state_cnt_list.clone());
-            self.render_desc_home(item_area2, buf, &self.list_state_cnt_list.clone());
+        if !lines.is_empty() {
+            self.render_info_home(item_area1, buf);
+            self.render_desc_home(item_area2, buf);
         }
     }
 
@@ -1313,10 +1337,29 @@ impl App {
     }
 
     // info about the book or podacst for `Home`
-    fn render_info_home(&self, area: Rect, buf: &mut Buffer, list_state: &ListState) {
+    fn render_info_home(&self, area: Rect, buf: &mut Buffer) {
         let duration_cnt_list_conv = convert_seconds(self.duration_cnt_list.clone());
 
-        if let Some(selected) = list_state.selected() {
+        // A line of a series tells the number of the books and the whole
+        // length, in the same way as the Library view. See T-22.
+        if let Some(series) = self.selected_home_series() {
+            let seconds: f64 = series.books.iter().map(|book| book.duration).sum();
+
+            Paragraph::new(format!(
+                "{} - {} book(s) - Duration: {}",
+                series.name,
+                series.books.len(),
+                convert_seconds(vec![seconds])
+                    .first()
+                    .cloned()
+                    .unwrap_or_default(),
+            ))
+            .left_aligned()
+            .render(area, buf);
+            return;
+        }
+
+        if let Some(selected) = self.selected_home_item() {
             if self.is_podcast {
                 let is_offline = self
                     .ids_ep_cnt_list
@@ -1360,8 +1403,16 @@ impl App {
     }
 
     // description of the book or podcast `Home`
-    fn render_desc_home(&self, area: Rect, buf: &mut Buffer, list_state: &ListState) {
-        if let Some(selected) = list_state.selected() {
+    fn render_desc_home(&self, area: Rect, buf: &mut Buffer) {
+        if let Some(series) = self.selected_home_series() {
+            Paragraph::new(series.description_for_the_screen())
+                .scroll((self.scroll_offset, 0))
+                .wrap(Wrap { trim: true })
+                .render(area, buf);
+            return;
+        }
+
+        if let Some(selected) = self.selected_home_item() {
             let mut _content: String = String::new();
             if self.is_podcast {
                 _content = at(&self.subtitles_pod_cnt_list, selected).to_string();

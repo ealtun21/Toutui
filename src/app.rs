@@ -1,8 +1,8 @@
 use crate::api::libraries::get_all_books::*;
 use crate::api::libraries::get_all_libraries::*;
 use crate::api::libraries::get_all_series::*;
-use crate::api::libraries::get_library_perso_view::*;
-use crate::api::libraries::get_library_perso_view_pod::*;
+use crate::api::libraries::get_library_perso_view::get_the_shelves;
+use crate::api::libraries::get_library_perso_view_pod::get_the_shelves_pod;
 use crate::api::libraries::get_lists::*;
 use crate::api::library_items::get_pod_ep::*;
 use crate::api::me::get_media_progress::*;
@@ -18,6 +18,7 @@ use crate::config::*;
 use crate::db::crud::*;
 use crate::db::database_struct::Database;
 use crate::logic::download::{download_with_progress, remove_download, DownloadTarget};
+use crate::logic::home_view::{group_home, group_home_pod, HomeRow};
 use crate::logic::library_view::{group_library, LibraryRow};
 use crate::logic::playback::{play, PlaybackTarget};
 use crate::logic::sync_session::sync_session_from_database::*;
@@ -102,9 +103,14 @@ pub struct App {
     /// The lines of the Library view. Every book of a series gives one line.
     /// See T-22.
     pub library_rows: Vec<LibraryRow>,
-    /// The user opened the books of a series from the Library view. The key
-    /// `h` then goes back to the Library, and not to the list of the series.
-    pub series_from_library: bool,
+    /// The lines of the Home view. A shelf gives a line for its name, and a
+    /// line for each of its media. See T-24.
+    pub home_rows: Vec<HomeRow>,
+    /// The view that opened the books of a series. The key `h` then goes
+    /// back to that view, and not to the list of the series. The Home view
+    /// can open a series too, therefore this is a view and not a yes or a no.
+    /// See T-22 and T-24.
+    pub series_from: AppView,
     /// The collections and the playlists of the library. See T-9.
     pub lists: Vec<ListView>,
     /// The server did not answer at the start. The application then shows the
@@ -363,55 +369,57 @@ impl App {
         let mut book_progress_cnt_list: Vec<Vec<String>> = Vec::new();
         let mut book_progress_cnt_list_cur_time: Vec<Vec<f64>> = Vec::new();
 
+        // The shelves of the Home view. The lines of that view need the
+        // shelves and the series together, therefore the program keeps the
+        // answer here and it makes the lines when it holds the series. See
+        // T-24.
+        let mut shelves: Vec<crate::api::libraries::get_library_perso_view::Root> = Vec::new();
+        let mut shelves_pod: Vec<crate::api::libraries::get_library_perso_view_pod::Root> =
+            Vec::new();
+
         if is_offline {
             // The server gives no "continue listening" list. The view Library
             // holds the media of the disk, thus the Home view stays empty and the
             // application starts in the Library view.
         } else if is_podcast {
             // init for  `Home` (continue listening) for podcasts
-            crate::utils::startup::set("the list Continue Listening");
+            crate::utils::startup::set("the shelves of the Home view");
             // A server that gives an answer that the program cannot read must
             // not stop the program. The Home view is then empty, and every
             // other view works. See T-41.
-            let continue_listening_pod = get_continue_listening_pod(&api, &id_selected_lib)
+            shelves_pod = get_the_shelves_pod(&api, &id_selected_lib)
                 .await
                 .unwrap_or_else(|error| {
-                    log::warn!(
-                        "[app] the server did not give the list Continue Listening: {}",
-                        error
-                    );
+                    log::warn!("[app] the server did not give the shelves: {}", error);
                     Default::default()
                 });
-            _ids_cnt_list = collect_ids_pod_cnt_list(&continue_listening_pod).await; // id of a podcast
-            _titles_cnt_list = collect_titles_cnt_list_pod(&continue_listening_pod).await; // title of podcast ep
-            ids_ep_cnt_list = collect_ids_ep_pod_cnt_list(&continue_listening_pod).await; // id of a podcast episode
-            subtitles_pod_cnt_list = collect_subtitles_pod_cnt_list(&continue_listening_pod).await;
-            nums_ep_pod_cnt_list = collect_nums_ep_pod_cnt_list(&continue_listening_pod).await;
-            seasons_pod_cnt_list = collect_seasons_pod_cnt_list(&continue_listening_pod).await;
-            authors_pod_cnt_list = collect_authors_pod_cnt_list(&continue_listening_pod).await;
-            descs_pod_cnt_list = collect_descs_pod_cnt_list(&continue_listening_pod).await;
-            titles_pod_cnt_list = collect_titles_pod_cnt_list(&continue_listening_pod).await; // title of a podcast
-            durations_pod_cnt_list = collect_durations_pod_cnt_list(&continue_listening_pod).await;
+            _ids_cnt_list = collect_ids_pod_cnt_list(&shelves_pod).await; // id of a podcast
+            _titles_cnt_list = collect_titles_cnt_list_pod(&shelves_pod).await; // title of podcast ep
+            ids_ep_cnt_list = collect_ids_ep_pod_cnt_list(&shelves_pod).await; // id of a podcast episode
+            subtitles_pod_cnt_list = collect_subtitles_pod_cnt_list(&shelves_pod).await;
+            nums_ep_pod_cnt_list = collect_nums_ep_pod_cnt_list(&shelves_pod).await;
+            seasons_pod_cnt_list = collect_seasons_pod_cnt_list(&shelves_pod).await;
+            authors_pod_cnt_list = collect_authors_pod_cnt_list(&shelves_pod).await;
+            descs_pod_cnt_list = collect_descs_pod_cnt_list(&shelves_pod).await;
+            titles_pod_cnt_list = collect_titles_pod_cnt_list(&shelves_pod).await; // title of a podcast
+            durations_pod_cnt_list = collect_durations_pod_cnt_list(&shelves_pod).await;
         } else {
             // init for  `Home` (continue listening) for books
-            crate::utils::startup::set("the list Continue Listening");
+            crate::utils::startup::set("the shelves of the Home view");
             // A server that gives an answer that the program cannot read must
             // not stop the program. See T-41.
-            let continue_listening = get_continue_listening(&api, &id_selected_lib)
+            shelves = get_the_shelves(&api, &id_selected_lib)
                 .await
                 .unwrap_or_else(|error| {
-                    log::warn!(
-                        "[app] the server did not give the list Continue Listening: {}",
-                        error
-                    );
+                    log::warn!("[app] the server did not give the shelves: {}", error);
                     Default::default()
                 });
-            _titles_cnt_list = collect_titles_cnt_list(&continue_listening).await;
-            auth_names_cnt_list = collect_auth_names_cnt_list(&continue_listening).await;
-            pub_year_cnt_list = collect_pub_year_cnt_list(&continue_listening).await;
-            duration_cnt_list = collect_duration_cnt_list(&continue_listening).await;
-            desc_cnt_list = collect_desc_cnt_list(&continue_listening).await;
-            _ids_cnt_list = collect_ids_cnt_list(&continue_listening).await;
+            _titles_cnt_list = collect_titles_cnt_list(&shelves).await;
+            auth_names_cnt_list = collect_auth_names_cnt_list(&shelves).await;
+            pub_year_cnt_list = collect_pub_year_cnt_list(&shelves).await;
+            duration_cnt_list = collect_duration_cnt_list(&shelves).await;
+            desc_cnt_list = collect_desc_cnt_list(&shelves).await;
+            _ids_cnt_list = collect_ids_cnt_list(&shelves).await;
             // The position of each book needs its own request. The old code
             // sent them one after the other, therefore the start of the
             // program took the time of one request for each book of the list.
@@ -597,6 +605,14 @@ impl App {
 
         // Every book of a series gives one line of the Library view. See T-22.
         let library_rows = group_library(&ids_library, &series);
+
+        // The lines of the Home view: a line for the name of each shelf, and
+        // a line for each media of that shelf. See T-24.
+        let home_rows = if is_podcast {
+            group_home_pod(&shelves_pod)
+        } else {
+            group_home(&shelves, &series)
+        };
 
         let auth_names_library = if is_offline {
             downloads.iter().map(|row| row.author.clone()).collect()
@@ -838,9 +854,13 @@ impl App {
             }
         };
 
-        // Init ListeState for `Home` list (continue listening)
-        let mut list_state_cnt_list = ListState::default(); // init the ListState ratatui's widget
-        list_state_cnt_list.select(Some(0)); // select the first item of the list when app is launch
+        // Init ListeState for `Home` list (the shelves)
+        //
+        // The first line of the Home view is the name of a shelf, and a name
+        // is not a line of the user. Therefore the selection starts at the
+        // first media. See T-24.
+        let mut list_state_cnt_list = ListState::default();
+        list_state_cnt_list.select(crate::logic::home_view::first_line(&home_rows));
 
         // Init ListeState for `Library` list
         let mut list_state_library = ListState::default();
@@ -920,7 +940,8 @@ impl App {
             ids_search_book,
             series,
             library_rows,
-            series_from_library: false,
+            home_rows,
+            series_from: AppView::Series,
             lists,
             is_offline,
             waiting_progress,
@@ -1320,12 +1341,8 @@ impl App {
                         self.scroll_offset = 0;
                         // The key `h` goes back to the view that opened the
                         // series. See T-22.
-                        self.view_state = if self.series_from_library {
-                            self.series_from_library = false;
-                            AppView::Library
-                        } else {
-                            AppView::Series
-                        }
+                        self.view_state = self.series_from;
+                        self.series_from = AppView::Series;
                     }
                     AppView::Lists => {
                         self.scroll_offset = 0;
@@ -1346,9 +1363,14 @@ impl App {
                 let server_key = self.server_key.clone();
                 let player = self.player.clone();
 
-                // Init for `Continue Listening` (AppView::Home)
+                // Init for the Home view.
+                //
+                // The Home view holds the name of a shelf and a series, and
+                // neither of them is a media. Therefore this number is the
+                // place of the media in the lists, and not the place of the
+                // line on the screen. See T-24.
                 let ids_cnt_list = self._ids_cnt_list.clone();
-                let selected_cnt_list = self.list_state_cnt_list.selected();
+                let selected_cnt_list = self.selected_home_item();
 
                 // Init for `Library`
                 let ids_library = self.ids_library.clone();
@@ -1394,7 +1416,17 @@ impl App {
                 // Now, spawn the async task based on the current view state
                 match self.view_state {
                     AppView::Home => {
-                        if self.is_podcast {
+                        // A line of a series opens the books of that series,
+                        // in the same way as the Library view. See T-22.
+                        if let Some(index) = self.selected_home_row().and_then(|row| row.series()) {
+                            if self.series.get(index).is_some_and(|s| !s.books.is_empty()) {
+                                self.list_state_series.select(Some(index));
+                                self.list_state_series_book.select(Some(0));
+                                self.scroll_offset = 0;
+                                self.series_from = AppView::Home;
+                                self.view_state = AppView::SeriesBook;
+                            }
+                        } else if self.is_podcast {
                             // init some variables
                             let _selected_pod_ep = self.list_state_pod_ep.selected();
                             let ids_ep_cnt_list = self.ids_ep_cnt_list.clone();
@@ -1514,7 +1546,7 @@ impl App {
                                 self.list_state_series.select(Some(index));
                                 self.list_state_series_book.select(Some(0));
                                 self.scroll_offset = 0;
-                                self.series_from_library = true;
+                                self.series_from = AppView::Library;
                                 self.view_state = AppView::SeriesBook;
                             }
                         } else if self.is_podcast {
@@ -1601,7 +1633,7 @@ impl App {
                             if self.series.get(index).is_some_and(|s| !s.books.is_empty()) {
                                 self.list_state_series_book.select(Some(0));
                                 self.scroll_offset = 0;
-                                self.series_from_library = false;
+                                self.series_from = AppView::Series;
                                 self.view_state = AppView::SeriesBook;
                             }
                         }
@@ -1848,8 +1880,7 @@ impl App {
     pub fn selected_item_id(&self) -> Option<String> {
         match self.view_state {
             AppView::Home => self
-                .list_state_cnt_list
-                .selected()
+                .selected_home_item()
                 .and_then(|index| self._ids_cnt_list.get(index))
                 .cloned(),
             AppView::Library => self
@@ -2092,6 +2123,23 @@ impl App {
         Some(self.selected_library_row()?.item())
     }
 
+    /// Gives the line that the user selected in the view `Home`. See T-24.
+    pub fn selected_home_row(&self) -> Option<&HomeRow> {
+        self.home_rows.get(self.list_state_cnt_list.selected()?)
+    }
+
+    /// Gives the position of the selected media in the lists of the Home
+    /// view. A line of a shelf and a line of a series give nothing.
+    pub fn selected_home_item(&self) -> Option<usize> {
+        self.selected_home_row()?.item()
+    }
+
+    /// Gives the series of the selected line of the view `Home`, if that line
+    /// is a series.
+    pub fn selected_home_series(&self) -> Option<&SeriesView> {
+        self.series.get(self.selected_home_row()?.series()?)
+    }
+
     /// Gives the series of the selected line of the view `Library`, if that
     /// line is a series.
     pub fn selected_library_series(&self) -> Option<&SeriesView> {
@@ -2118,27 +2166,49 @@ impl App {
     pub fn home_lines(&self) -> Vec<String> {
         let playing = self.playing_item();
 
-        self._titles_cnt_list
+        self.home_rows
             .iter()
-            .enumerate()
-            .map(|(index, title)| {
-                let row = self.book_progress_cnt_list.get(index);
-                let percent = row.and_then(|row| row.first()).map(|s| s.as_str());
-                let finished = row.and_then(|row| row.get(1)).map(|s| s.as_str());
+            .map(|row| match row {
+                // The name of a shelf. A media of that shelf stands at a
+                // column after it, therefore the user reads the shape.
+                HomeRow::Shelf { label } => crate::ui::marks::shelf(label),
 
-                let plays_now = self
-                    ._ids_cnt_list
-                    .get(index)
-                    .zip(playing.as_ref())
-                    .is_some_and(|(id, playing)| id == playing);
+                // A line of a series holds more than one book, therefore it
+                // gets no mark of a position. See T-44 and T-22.
+                HomeRow::Series { series } => crate::ui::marks::line(
+                    &crate::ui::marks::of_library(false),
+                    &self
+                        .series
+                        .get(*series)
+                        .map(|series| series.line())
+                        .unwrap_or_default(),
+                ),
 
-                let mark = crate::ui::marks::of_progress(
-                    percent.unwrap_or(""),
-                    finished.unwrap_or(""),
-                    plays_now,
-                );
+                HomeRow::Media { item } => {
+                    let progress = self.book_progress_cnt_list.get(*item);
+                    let percent = progress.and_then(|row| row.first()).map(|s| s.as_str());
+                    let finished = progress.and_then(|row| row.get(1)).map(|s| s.as_str());
 
-                crate::ui::marks::line(&mark, title)
+                    let plays_now = self
+                        ._ids_cnt_list
+                        .get(*item)
+                        .zip(playing.as_ref())
+                        .is_some_and(|(id, playing)| id == playing);
+
+                    let mark = crate::ui::marks::of_progress(
+                        percent.unwrap_or(""),
+                        finished.unwrap_or(""),
+                        plays_now,
+                    );
+
+                    crate::ui::marks::line(
+                        &mark,
+                        self._titles_cnt_list
+                            .get(*item)
+                            .map(|title| title.as_str())
+                            .unwrap_or_default(),
+                    )
+                }
             })
             .collect()
     }
@@ -2215,7 +2285,7 @@ impl App {
     pub fn selected_download(&self) -> Option<(DownloadTarget, String, String)> {
         match self.view_state {
             AppView::Home if self.is_podcast => {
-                let index = self.list_state_cnt_list.selected()?;
+                let index = self.selected_home_item()?;
 
                 Some((
                     DownloadTarget::Episode {
@@ -2227,7 +2297,9 @@ impl App {
                 ))
             }
             AppView::Home => {
-                let index = self.list_state_cnt_list.selected()?;
+                // A line of a series holds more than one book. The user opens
+                // the series with the key `l` and downloads one book there.
+                let index = self.selected_home_item()?;
 
                 Some((
                     DownloadTarget::Book {
@@ -2356,13 +2428,11 @@ impl App {
     pub fn select_next(&mut self) {
         match self.view_state {
             AppView::Home => {
-                if let Some(selected) = self.list_state_cnt_list.selected() {
-                    if selected + 1 < self._ids_cnt_list.len() {
-                        self.list_state_cnt_list.select_next();
-                    } else {
-                        self.list_state_cnt_list.select_first();
-                    }
-                }
+                // The name of a shelf is not a line of the user, therefore
+                // the move goes over it. See T-24.
+                let from = self.list_state_cnt_list.selected().unwrap_or(0);
+                self.list_state_cnt_list
+                    .select(crate::logic::home_view::next_line(&self.home_rows, from));
             }
             AppView::Library => {
                 if let Some(selected) = self.list_state_library.selected() {
@@ -2483,7 +2553,14 @@ impl App {
 
     pub fn select_previous(&mut self) {
         match self.view_state {
-            AppView::Home => self.list_state_cnt_list.select_previous(),
+            AppView::Home => {
+                let from = self.list_state_cnt_list.selected().unwrap_or(0);
+                self.list_state_cnt_list
+                    .select(crate::logic::home_view::previous_line(
+                        &self.home_rows,
+                        from,
+                    ));
+            }
             AppView::Library => self.list_state_library.select_previous(),
             AppView::SearchBook => self.list_state_search_results.select_previous(),
             AppView::PodcastEpisode => self.list_state_pod_ep.select_previous(),
@@ -2505,7 +2582,9 @@ impl App {
 
     pub fn select_first(&mut self) {
         match self.view_state {
-            AppView::Home => self.list_state_cnt_list.select_first(),
+            AppView::Home => self
+                .list_state_cnt_list
+                .select(crate::logic::home_view::first_line(&self.home_rows)),
             AppView::Library => self.list_state_library.select_first(),
             AppView::SearchBook => self.list_state_search_results.select_first(),
             AppView::PodcastEpisode => self.list_state_pod_ep.select_first(),
@@ -2527,10 +2606,9 @@ impl App {
 
     pub fn select_last(&mut self) {
         match self.view_state {
-            AppView::Home => {
-                let last_index = self._ids_cnt_list.len().saturating_sub(1);
-                self.list_state_cnt_list.select(Some(last_index));
-            }
+            AppView::Home => self
+                .list_state_cnt_list
+                .select(crate::logic::home_view::last_line(&self.home_rows)),
             AppView::Library => {
                 let last_index = self.library_rows.len().saturating_sub(1);
                 self.list_state_library.select(Some(last_index));
