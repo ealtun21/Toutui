@@ -34,6 +34,11 @@ the original issue, if there is one.
 | T-9 | The application shows the playlists and the collections | sub-project 5 |
 | T-26 | The key `G` in an empty list stopped the application | `597ca2d` |
 | T-25 | The application does not start without the server | `bc9ceb0` |
+| T-28 | A tag with a capital letter gave "update available" for ever | `4221f2a` |
+| T-30 | An answer with no length has a limit of size now | `ffe6a13` |
+| T-29 | The update tests the proof of the origin of an archive | `f123f8b` |
+| T-27 | Continuous integration builds the flake of Nix | `7f55e43` |
+| T-14 | The program does not lose the configuration (examined) | this document |
 
 Sub-project 2 removed VLC. The application decodes the audio in the process
 now. Therefore a book with many audio files plays completely, the token stays
@@ -330,7 +335,7 @@ the application does not have yet.
 | Id | Upstream | Title |
 |---|---|---|
 | T-13 | — | The description shows the HTML tags |
-| T-14 | — | The application loses the configuration after an update (`255b86`). The fork examined T-14 with T-21 and did not correct it. |
+| T-14 | — | The application loses the configuration after an update (`255b86`). Examined on 2026-08-10: this fault does not occur in the fork. |
 | T-15 | — | The authentication fails at the first attempt (`4b3045`) |
 | T-16 | — | "Mark as finished" does not always work (`2d358c53`) |
 
@@ -422,10 +427,35 @@ remove the two files.
 installs the binary to `/usr/local/bin`. Therefore the decision about
 `macos/` must cover that file too, and not the two files above alone.
 
-### T-14 stays open
+### T-14: the program does not lose the configuration
 
 T-14 says that the program loses the configuration after an update. The first
 plan of T-21 changed the name of the program, and it made the program copy the
 old directory of configuration. That copy closed T-14 as a result, and not as
-an examination. The maintainer then kept the name, therefore no copy exists
-and T-14 needs its own examination.
+an examination. The maintainer then kept the name, therefore no copy existed
+and T-14 needed its own examination. That examination came on 2026-08-10.
+
+**The cause in the original project.** `hello_toutui.sh` merged
+`config.example.toml` into the configuration of the user at every
+installation. The second loop of that merge reads `$pseudo_escape_line` at
+line 471, and no line of the script gives that name a value. The test is
+therefore `grep -E "^"`, that pattern agrees with every line, and the loop
+added no line of the user that `config.example.toml` does not name. The merge
+also wrote the file again from the text of the example. Thus the comments and
+the sequence of the example replaced those of the user, and every option that
+the example does not name went away.
+
+**The fork.** `install.sh` writes `config.toml` only when that file is absent,
+and it merges nothing. It writes `.env` only when that file is absent, thus the
+secret key stays and every stored token stays readable. `--update` moves one
+file: the binary. `src/config.rs` reads the configuration and never writes it.
+
+**The measurement of 2026-08-10.** A test installed the program with a local
+host, changed the colour to `magenta`, added an option that the example does
+not name, and installed a newer release whose `config.example.toml` had
+different contents. The file of the user did not change, byte for byte, and the
+secret key did not change. The test
+`the_update_does_not_touch_the_configuration` in `tests/update.rs` guards the
+same rule for `--update`.
+
+Therefore T-14 does not occur in the fork.

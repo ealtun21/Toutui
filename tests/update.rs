@@ -601,3 +601,37 @@ async fn a_gh_with_no_account_does_not_stop_the_update() {
     assert!(message.contains("gh auth login"), "{}", message);
     assert_eq!(std::fs::read(&binary).unwrap(), b"the new binary");
 }
+
+/// The update changes the binary, and it changes nothing else.
+///
+/// This is the guard of T-14. The script of the original project merged
+/// `config.example.toml` into the configuration of the user at every
+/// installation, and that merge lost the options of the user. The update of
+/// the fork moves one file: the binary.
+#[tokio::test]
+async fn the_update_does_not_touch_the_configuration() {
+    let (_server, api) = a_release_that_has_a_correct_sum().await;
+    let dir = tempfile::tempdir().unwrap();
+    let binary = dir.path().join("toutui");
+    std::fs::write(&binary, b"the old binary").unwrap();
+
+    // The configuration of a user: a colour that the user chose, and an
+    // option that `config.example.toml` does not name.
+    let config_dir = dir.path().join("config");
+    std::fs::create_dir_all(&config_dir).unwrap();
+    let config = config_dir.join("config.toml");
+    let contents = "[colors]\naccent = \"magenta\"\nmy_own_option = \"keep me\"\n";
+    std::fs::write(&config, contents).unwrap();
+    let env = config_dir.join(".env");
+    let key = "TOUTUI_SECRET_KEY=0123456789abcdef\n";
+    std::fs::write(&env, key).unwrap();
+
+    let gh = fake_gh(dir.path(), 0, "");
+    toutui::update::install::run_update_at_with(&api, &binary, gh.to_str().unwrap())
+        .await
+        .unwrap();
+
+    assert_eq!(std::fs::read(&binary).unwrap(), b"the new binary");
+    assert_eq!(std::fs::read_to_string(&config).unwrap(), contents);
+    assert_eq!(std::fs::read_to_string(&env).unwrap(), key);
+}

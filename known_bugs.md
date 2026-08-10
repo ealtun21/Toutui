@@ -47,9 +47,6 @@ start and to play. The screen stayed empty. The application starts now, it
 shows the media of the disk, it plays them, and it sends the position when the
 server answers again.
 
-`bug_id: 255b86`
-**Losing config after an update**: Ex: You change colors in config file and after an update, this configuration is lost and replaced by the config from main version.
-
 `bug_id: 4b3045`
 **Authentification Bug:** Even if you fill in valid credentials, the database sync can be buggy, and authentication may fail. Normally, it works on the second try.
 
@@ -57,6 +54,8 @@ server answers again.
 
 
 **FIXED**  
+`bug_id: 255b86` — CORRECTED on 2026-08-10
+**Losing config after an update:** The script of the original project merged `config.example.toml` into the configuration of the user at every installation. Line 471 of `hello_toutui.sh` reads `$pseudo_escape_line`, and nothing gives that name a value. Therefore the test became `grep -E "^"`, that pattern agrees with every line, and the script added no line of the user that `config.example.toml` does not name. The merge also wrote the file again from the text of the example, thus the comments and the sequence of the example replaced those of the user. The fork writes `config.toml` only when that file is absent, and it merges nothing. `--update` moves one file: the binary. A test on 2026-08-10 changed a colour, added an option, and installed a newer release: the file of the user and the secret key did not change. `tests/update.rs` holds the guard.  
 `bug_id: 2d358c53` — CORRECTED on 2026-08-10
 **Mark as finished:** The engine now reports that the media came to its end, and the application sends `isFinished`. A test with a real server shows `isFinished=true` and `progress=1` after the book comes to its end.  
 `bug_id: 2eb9e3` — CORRECTED on 2026-08-10
