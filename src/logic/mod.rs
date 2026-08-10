@@ -4,5 +4,6 @@ pub mod handle_input;
 pub mod library_view;
 pub mod offline;
 pub mod playback;
+pub mod reader;
 pub mod search;
 pub mod sync_session;

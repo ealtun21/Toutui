@@ -121,31 +121,108 @@ pub fn wants_more_pages(collected: usize, total: Option<i64>, last_page: usize) 
     }
 }
 
+/// Gives the number of pages that hold a number of items.
+///
+/// The first answer of the server tells how many items the library holds.
+/// Therefore the program knows the number of the other pages, and it does not
+/// ask for them one after the other.
+pub fn pages_for(total: i64) -> usize {
+    if total <= 0 {
+        return 1;
+    }
+
+    let size = PAGE_SIZE.max(1);
+    ((total + size - 1) / size) as usize
+}
+
+/// The largest number of pages that the program asks for at the same time.
+///
+/// A library of 2056 items needs five pages. Five requests at the same time
+/// are no load for a server, and they give the answer in the time of one.
+const PAGES_AT_THE_SAME_TIME: usize = 6;
+
 /// Gets all books or all podcasts of one library.
 ///
-/// The function asks for one page at a time. Therefore no answer of the server
+/// The function asks for one page at a time, therefore no answer of the server
 /// is very large. The function gives all the items together, thus the code
 /// that calls it does not change.
-pub async fn get_all_books(client: &ApiClient, id_selected_lib: &str) -> Result<Root, ApiError> {
-    let mut all: Vec<LibraryItem> = Vec::new();
-    let mut root = Root::default();
+///
+/// **The pages after the first one go together.** The first answer tells the
+/// number of the items, therefore the program knows how many pages follow. A
+/// measurement on 2026-08-10 against a library of 2056 items gave 1.0 second
+/// for one page. The old code asked for the five pages one after the other and
+/// needed five seconds. See T-40.
+pub async fn get_all_books(
+    client: &std::sync::Arc<ApiClient>,
+    id_selected_lib: &str,
+) -> Result<Root, ApiError> {
+    let address = |page: usize| {
+        format!(
+            "/api/libraries/{}/items?limit={}&page={}",
+            id_selected_lib, PAGE_SIZE, page
+        )
+    };
 
-    for page in 0..MAX_PAGES {
-        let answer: Root = client
-            .get_json(&format!(
-                "/api/libraries/{}/items?limit={}&page={}",
-                id_selected_lib, PAGE_SIZE, page
-            ))
-            .await?;
+    let mut root: Root = client.get_json(&address(0)).await?;
+    let mut all: Vec<LibraryItem> = root.results.clone().unwrap_or_default();
+    let first_count = all.len();
 
-        let items = answer.results.clone().unwrap_or_default();
-        let count = items.len();
+    if wants_more_pages(all.len(), root.total, first_count) {
+        let pages = match root.total {
+            // The server told the number of the items. The program then asks
+            // for every page that is left, at the same time.
+            Some(total) => pages_for(total).min(MAX_PAGES as usize),
+            // The server told nothing. The program then asks for the pages one
+            // group after the other, as it did before.
+            None => MAX_PAGES as usize,
+        };
 
-        all.extend(items);
-        root = answer;
+        let mut page = 1;
 
-        if !wants_more_pages(all.len(), root.total, count) {
-            break;
+        while page < pages {
+            let last = (page + PAGES_AT_THE_SAME_TIME).min(pages);
+            // Every page of the group goes to the server at the same time.
+            // A task needs a value that lives on its own, therefore each one
+            // takes a copy of the `Arc` of the client.
+            let mut tasks = tokio::task::JoinSet::new();
+
+            for number in page..last {
+                let client = std::sync::Arc::clone(client);
+                let one = address(number);
+                tasks.spawn(async move { (number, client.get_json::<Root>(&one).await) });
+            }
+
+            // The sequence matters: the items of the page 1 come before the
+            // items of the page 2. Therefore the answers go into their place.
+            let mut answers: Vec<Option<Root>> = vec![None; last - page];
+
+            while let Some(finished) = tasks.join_next().await {
+                match finished {
+                    Ok((number, Ok(answer))) => answers[number - page] = Some(answer),
+                    Ok((_, Err(error))) => return Err(error),
+                    Err(error) => return Err(ApiError::Decode(error.to_string())),
+                }
+            }
+
+            let mut short_page = false;
+
+            for answer in answers.into_iter().flatten() {
+                let items = answer.results.clone().unwrap_or_default();
+
+                if items.len() < PAGE_SIZE as usize {
+                    short_page = true;
+                }
+
+                all.extend(items);
+                root = answer;
+            }
+
+            // A page that is not full is the last page.
+            if short_page {
+                break;
+            }
+
+            page = last;
         }
     }
 

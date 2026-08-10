@@ -348,7 +348,18 @@ impl App {
         } else if is_podcast {
             // init for  `Home` (continue listening) for podcasts
             crate::utils::startup::set("the list Continue Listening");
-            let continue_listening_pod = get_continue_listening_pod(&api, &id_selected_lib).await?;
+            // A server that gives an answer that the program cannot read must
+            // not stop the program. The Home view is then empty, and every
+            // other view works. See T-41.
+            let continue_listening_pod = get_continue_listening_pod(&api, &id_selected_lib)
+                .await
+                .unwrap_or_else(|error| {
+                    log::warn!(
+                        "[app] the server did not give the list Continue Listening: {}",
+                        error
+                    );
+                    Default::default()
+                });
             _ids_cnt_list = collect_ids_pod_cnt_list(&continue_listening_pod).await; // id of a podcast
             _titles_cnt_list = collect_titles_cnt_list_pod(&continue_listening_pod).await; // title of podcast ep
             ids_ep_cnt_list = collect_ids_ep_pod_cnt_list(&continue_listening_pod).await; // id of a podcast episode
@@ -362,7 +373,17 @@ impl App {
         } else {
             // init for  `Home` (continue listening) for books
             crate::utils::startup::set("the list Continue Listening");
-            let continue_listening = get_continue_listening(&api, &id_selected_lib).await?;
+            // A server that gives an answer that the program cannot read must
+            // not stop the program. See T-41.
+            let continue_listening = get_continue_listening(&api, &id_selected_lib)
+                .await
+                .unwrap_or_else(|error| {
+                    log::warn!(
+                        "[app] the server did not give the list Continue Listening: {}",
+                        error
+                    );
+                    Default::default()
+                });
             _titles_cnt_list = collect_titles_cnt_list(&continue_listening).await;
             auth_names_cnt_list = collect_auth_names_cnt_list(&continue_listening).await;
             pub_year_cnt_list = collect_pub_year_cnt_list(&continue_listening).await;
@@ -442,12 +463,20 @@ impl App {
             }
         }
 
-        // init for `Series`. A podcast library has no series, thus the application
-        // sends no request for it. See T-22.
-        let series = if is_podcast || is_offline {
-            Vec::new()
-        } else {
-            crate::utils::startup::set("the series of the library");
+        // The series, the collections, the playlists, and the items do not
+        // need each other. The old code asked for them one after the other,
+        // therefore a slow server made the user wait for the sum of the four.
+        // They go together now, and the wait is the longest of the four. See
+        // T-40.
+        crate::utils::startup::set("the series, the lists, and every item");
+
+        let ask_for_the_series = async {
+            // A podcast library has no series, thus the application sends no
+            // request for it. See T-22.
+            if is_podcast || is_offline {
+                return Vec::new();
+            }
+
             match get_all_series(&api, &id_selected_lib).await {
                 Ok(root) => collect_series(&root),
                 Err(error) => {
@@ -459,12 +488,13 @@ impl App {
             }
         };
 
-        // init for `Lists`. A podcast library has no collection, and it can have a
-        // playlist. See T-9.
-        let collections = if is_podcast || is_offline {
-            CollectionRoot::default()
-        } else {
-            crate::utils::startup::set("the collections and the playlists");
+        let ask_for_the_collections = async {
+            // A podcast library has no collection, and it can have a playlist.
+            // See T-9.
+            if is_podcast || is_offline {
+                return CollectionRoot::default();
+            }
+
             get_all_collections(&api, &id_selected_lib)
                 .await
                 .unwrap_or_else(|error| {
@@ -473,9 +503,11 @@ impl App {
                 })
         };
 
-        let playlists = if is_offline {
-            PlaylistRoot::default()
-        } else {
+        let ask_for_the_playlists = async {
+            if is_offline {
+                return PlaylistRoot::default();
+            }
+
             get_all_playlists(&api, &id_selected_lib)
                 .await
                 .unwrap_or_else(|error| {
@@ -484,19 +516,30 @@ impl App {
                 })
         };
 
-        let lists = collect_lists(&collections, &playlists);
+        let ask_for_the_items = async {
+            // The offline mode makes this list from the media on the disk. A
+            // media that the disk does not hold cannot play, thus the list
+            // must not show it. See T-25.
+            if is_offline {
+                return crate::api::libraries::get_all_books::Root::default();
+            }
 
-        //init for `Library ` (all books  or podcasts of a Library (shelf))
-        //
-        // The offline mode makes this list from the media on the disk. A media
-        // that the disk does not hold cannot play, thus the list must not show it.
-        // See T-25.
-        let all_books = if is_offline {
-            crate::api::libraries::get_all_books::Root::default()
-        } else {
-            crate::utils::startup::set("every item of the library");
-            get_all_books(&api, &id_selected_lib).await?
+            get_all_books(&api, &id_selected_lib)
+                .await
+                .unwrap_or_else(|error| {
+                    log::warn!("[app] the server did not give the items: {}", error);
+                    crate::api::libraries::get_all_books::Root::default()
+                })
         };
+
+        let (series, collections, playlists, all_books) = tokio::join!(
+            ask_for_the_series,
+            ask_for_the_collections,
+            ask_for_the_playlists,
+            ask_for_the_items,
+        );
+
+        let lists = collect_lists(&collections, &playlists);
 
         let downloads = if is_offline {
             get_all_downloads(&username, &server_key)
@@ -701,7 +744,33 @@ impl App {
         // library, not download a book, and not see their progress. The
         // program keeps every function that needs no sound now, and it tells
         // the user why no playback starts. See T-46.
-        let (player, audio_fault) = match PlayerHandle::start(token.clone()) {
+        crate::utils::startup::set("the sound device");
+
+        // The sound device also gets a limit of time.
+        //
+        // `PlayerHandle::start` opens the sound card. ALSA can wait for ever
+        // there: a device that a different program holds, a server of sound
+        // that does not answer, or a device of Bluetooth that sleeps. The old
+        // code had no limit, and the program then drew nothing and never
+        // stopped. The program waits five seconds now, and it goes on with no
+        // sound. See T-46.
+        const TIME_FOR_THE_SOUND_DEVICE: std::time::Duration = std::time::Duration::from_secs(5);
+
+        let token_of_the_engine = token.clone();
+        let start_of_the_engine =
+            tokio::task::spawn_blocking(move || PlayerHandle::start(token_of_the_engine));
+
+        let outcome =
+            match tokio::time::timeout(TIME_FOR_THE_SOUND_DEVICE, start_of_the_engine).await {
+                Ok(Ok(outcome)) => outcome,
+                Ok(Err(error)) => Err(format!("the thread of the sound device stopped: {}", error)),
+                Err(_) => Err(format!(
+                    "the sound device did not answer in {} seconds",
+                    TIME_FOR_THE_SOUND_DEVICE.as_secs()
+                )),
+            };
+
+        let (player, audio_fault) = match outcome {
             Ok(player) => (player, None),
             Err(error) => {
                 log::error!("[app] the audio engine did not start: {}", error);

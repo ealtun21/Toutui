@@ -93,6 +93,22 @@ tempfile = "3"
 # older than the build it runs. Pure Rust; needs no C toolchain.
 semver = "1"
 dotenvy = "0.15.7"
+# The reader of EPUB. See T-10 and
+# `docs/superpowers/specs/2026-08-10-epub-reader-design.md`.
+#
+# `default-features = false` removes the writer, and the reader does not need
+# it. `threadsafe` keeps `Epub` as `Send + Sync`, thus a task can hold the book.
+#
+# A measurement on 2026-08-10 examined four crates. `epub-parser` brings
+# `bzip2-sys`, `lzma-sys`, and `zstd-sys`, and `iepub` brings `zstd-sys`;
+# neither is acceptable. The crate `epub` has no way to stop a read, therefore
+# a zip archive of 2 megabytes that opens to 2 gigabytes stops the whole
+# process. `rbook` has `copy_bytes`, and with a limit of 8 megabytes the same
+# file uses 5 megabytes of memory.
+rbook = { version = "0.7.10", default-features = false, features = ["threadsafe"] }
+# Turns XHTML into lines with a style. It uses html5ever, the parser of Servo,
+# therefore a page with an error cannot stop the parse.
+html2text = { version = "0.17.1", features = ["xml"] }
 
 [dev-dependencies]
 wiremock = "0.6"
