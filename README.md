@@ -22,10 +22,26 @@
  **Cross-platform:** <img src=".github/tux.png" align="top" width="24" alt="Tux (Linux)"/>  Linux and <img src=".github/apple.png" align="top" width="24" alt="Apple (macOS)"/> macOS    
  **Lightweight & Fast:** A minimalist terminal user interface (TUI) written in Rust 🦀  
  **Supports Books & Podcasts:** Enjoy both audiobooks and podcasts  
+ **Series:** See the series of a library and the books of a series, in sequence (`s`)  
  **Sync Progress & Stats:** Keep your listening progress in sync  
  **Streaming Support:** Play directly without downloading  
  **Local Copies:** Download a book or a podcast episode and read the audio from the disk (see below)  
  **Customizable Color Theme:** A config file will allow you to customize the color theme. Explore and try various themes [here](https://github.com/AlbanDAVID/Toutui-theme).
+
+## 📚 Series
+
+Audiobookshelf puts a book in a series and gives the book a number in that
+series.
+
+- `s` — show the series of the library. The key operates in the views Home,
+  Library, and Search. A podcast library has no series.
+- `l`/`Enter` on a series — show the books of that series. The number comes
+  first, for example `#1 - The First Book`.
+- The books come in the sequence of the series, and not in the sequence of the
+  alphabet. Therefore `#10` comes after `#2`.
+- `l`/`Enter` on a book plays it. `D` and `X` operate on it in the same way as
+  in the Library view.
+- `h` goes back one step.
 
 ## 📥 Offline Mode
 

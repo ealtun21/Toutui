@@ -7,6 +7,8 @@ use std::sync::Arc;
 use toutui::api::client::endpoint::{Endpoint, EndpointPool};
 use toutui::api::client::ApiClient;
 use toutui::api::libraries::get_all_books::{get_all_books, PAGE_SIZE};
+use toutui::api::libraries::get_all_series::get_all_series;
+use toutui::api::utils::collect_series::collect_series;
 use wiremock::matchers::{method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
@@ -143,4 +145,109 @@ async fn an_empty_library_gives_an_empty_list() {
     let root = get_all_books(&client(&server.uri()), "lib1").await.unwrap();
 
     assert_eq!(root.results.unwrap().len(), 0);
+}
+
+/// Makes a page of series. Each series holds two books.
+fn series_page(first: usize, count: usize, total: i64) -> serde_json::Value {
+    let results: Vec<serde_json::Value> = (first..first + count)
+        .map(|number| {
+            serde_json::json!({
+                "id": format!("series-{}", number),
+                "name": format!("Series {}", number),
+                "books": [
+                    { "id": format!("book-{}-2", number), "media": { "metadata":
+                        { "title": "Second", "seriesName": format!("Series {} #2", number) } } },
+                    { "id": format!("book-{}-1", number), "media": { "metadata":
+                        { "title": "First", "seriesName": format!("Series {} #1", number) } } }
+                ]
+            })
+        })
+        .collect();
+
+    serde_json::json!({ "results": results, "total": total })
+}
+
+/// The endpoint of the series gives an empty list for `limit=0`. Therefore the
+/// request must always hold a limit that is not zero, and a page.
+#[tokio::test]
+async fn the_request_for_the_series_asks_for_one_page() {
+    let server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path("/api/libraries/lib1/series"))
+        .and(query_param("limit", PAGE_SIZE.to_string().as_str()))
+        .and(query_param("page", "0"))
+        .and(query_param("sort", "name"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(series_page(0, 2, 2)))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let root = get_all_series(&client(&server.uri()), "lib1").await.unwrap();
+
+    assert_eq!(root.results.unwrap().len(), 2);
+    drop(server);
+}
+
+/// A library with many series needs more than one request.
+#[tokio::test]
+async fn a_library_with_many_series_gives_every_series() {
+    let server = MockServer::start().await;
+    let total = PAGE_SIZE + 7;
+
+    for number in 0..2 {
+        let first = (number * PAGE_SIZE) as usize;
+        let count = if number == 1 { 7 } else { PAGE_SIZE as usize };
+
+        Mock::given(method("GET"))
+            .and(path("/api/libraries/lib1/series"))
+            .and(query_param("page", number.to_string().as_str()))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(series_page(first, count, total)),
+            )
+            .expect(1)
+            .mount(&server)
+            .await;
+    }
+
+    let root = get_all_series(&client(&server.uri()), "lib1").await.unwrap();
+
+    assert_eq!(root.results.unwrap().len(), total as usize);
+    drop(server);
+}
+
+/// A library with no series gives an empty list, and not an error.
+#[tokio::test]
+async fn a_library_with_no_series_gives_an_empty_list() {
+    let server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path("/api/libraries/lib1/series"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(series_page(0, 0, 0)))
+        .mount(&server)
+        .await;
+
+    let root = get_all_series(&client(&server.uri()), "lib1").await.unwrap();
+
+    assert_eq!(root.results.unwrap().len(), 0);
+}
+
+/// The display data must come in the sequence of the series.
+#[tokio::test]
+async fn the_books_of_a_series_come_in_sequence() {
+    let server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path("/api/libraries/lib1/series"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(series_page(0, 1, 1)))
+        .mount(&server)
+        .await;
+
+    let root = get_all_series(&client(&server.uri()), "lib1").await.unwrap();
+    let series = collect_series(&root);
+
+    assert_eq!(series.len(), 1);
+    assert_eq!(series[0].line(), "Series 0 [2 books]");
+    assert_eq!(series[0].books[0].line(), "#1 - First");
+    assert_eq!(series[0].books[1].line(), "#2 - Second");
 }

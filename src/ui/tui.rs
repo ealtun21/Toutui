@@ -26,6 +26,8 @@ impl Widget for &mut App {
             AppView::Library => self.render_library(area, buf),
             AppView::SearchBook => self.render_search_book(area, buf),
             AppView::PodcastEpisode => self.render_pod_ep(area, buf),
+            AppView::Series => self.render_series(area, buf),
+            AppView::SeriesBook => self.render_series_book(area, buf),
             AppView::Settings => self.render_settings(area, buf),
             AppView::SettingsAccount => self.render_settings_account(area, buf),
             AppView::SettingsLibrary => self.render_settings_library(area, buf),
@@ -147,7 +149,7 @@ impl App {
         let items_number = self._titles_cnt_list.len();
         let render_list_title = format!("Continue Listening [{} items]", items_number);
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, D: download offline, X: remove offline, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, D: download offline, X: remove offline, s: series, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
 
         App::render_header(header_area, buf, self.lib_name_type.clone(), &self.username, &self.server_address_pretty, VERSION, &self.update_msg);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -177,7 +179,7 @@ impl App {
         if self.is_podcast {
         _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"       
         } else {
-        _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, D: download offline, X: remove offline, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
+        _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, D: download offline, X: remove offline, s: series, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
         }
 
         App::render_header(header_area, buf, self.lib_name_type.clone(), &self.username, &self.server_address_pretty, VERSION, &self.update_msg);
@@ -186,6 +188,102 @@ impl App {
         if !&self.titles_library.is_empty() {
             self.render_info_library(item_area1, buf, &self.list_state_library.clone());
             self.render_desc_library(item_area2, buf, &self.list_state_library.clone());
+        }
+    }
+
+    /// AppView::Series rendering: the list of the series of the library.
+    fn render_series(&mut self, area: Rect, buf: &mut Buffer) {
+        let [header_area, main_area, _player_area, _refresh_area, footer_area] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Fill(1),
+            Constraint::Length(6),
+            Constraint::Length(1),
+            Constraint::Length(2),
+        ]).areas(area);
+
+        let [list_area, item_area1, item_area2] = Layout::vertical([Constraint::Fill(1), Constraint::Length(3), Constraint::Fill(1)]).areas(main_area);
+
+        let text_render_footer = "j/↓, k/↑: move, l/→: books of the series, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+
+        App::render_header(header_area, buf, self.lib_name_type.clone(), &self.username, &self.server_address_pretty, VERSION, &self.update_msg);
+        App::render_footer(footer_area, buf, text_render_footer);
+
+        if self.series.is_empty() {
+            Paragraph::new("This library has no series.\nPress 'h' to go back.")
+                .centered()
+                .block(Block::new().borders(Borders::TOP).border_style(Style::new().fg(Color::DarkGray)))
+                .render(main_area, buf);
+            return;
+        }
+
+        let lines: Vec<String> = self.series.iter().map(|series| series.line()).collect();
+        let render_list_title = format!("Series [{} items]", self.series.len());
+
+        self.render_list(list_area, buf, &render_list_title, &lines, &mut self.list_state_series.clone());
+
+        if let Some(series) = self.selected_series() {
+            let books = series.books.len();
+            let seconds: f64 = series.books.iter().map(|book| book.duration).sum();
+
+            Paragraph::new(format!(
+                "{} - {} book(s) - Duration: {}",
+                series.name,
+                books,
+                convert_seconds(vec![seconds]).first().cloned().unwrap_or_default(),
+            ))
+                .left_aligned()
+                .render(item_area1, buf);
+
+            Paragraph::new(series.description.clone())
+                .scroll((self.scroll_offset, 0))
+                .wrap(Wrap { trim: true })
+                .render(item_area2, buf);
+        }
+    }
+
+    /// AppView::SeriesBook rendering: the books of one series.
+    fn render_series_book(&mut self, area: Rect, buf: &mut Buffer) {
+        let [header_area, main_area, _player_area, _refresh_area, footer_area] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Fill(1),
+            Constraint::Length(6),
+            Constraint::Length(1),
+            Constraint::Length(2),
+        ]).areas(area);
+
+        let [list_area, item_area1, item_area2] = Layout::vertical([Constraint::Fill(1), Constraint::Length(3), Constraint::Fill(1)]).areas(main_area);
+
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+
+        App::render_header(header_area, buf, self.lib_name_type.clone(), &self.username, &self.server_address_pretty, VERSION, &self.update_msg);
+        App::render_footer(footer_area, buf, text_render_footer);
+
+        let Some(series) = self.selected_series() else {
+            return;
+        };
+
+        let name = series.name.clone();
+        let lines: Vec<String> = series.books.iter().map(|book| book.line()).collect();
+        let render_list_title = format!("{} [{} items]", name, lines.len());
+
+        self.render_list(list_area, buf, &render_list_title, &lines, &mut self.list_state_series_book.clone());
+
+        if let Some(book) = self.selected_series_book() {
+            let is_offline = crate::db::crud::get_download(&book.id, &self.username).is_some();
+
+            Paragraph::new(format!(
+                "Author: {} - Duration: {}{}",
+                book.author,
+                convert_seconds(vec![book.duration]).first().cloned().unwrap_or_default(),
+                if is_offline { " - [Downloaded]" } else { "" },
+            ))
+                .left_aligned()
+                .render(item_area1, buf);
+
+            Paragraph::new(book.description.clone())
+                .scroll((self.scroll_offset, 0))
+                .wrap(Wrap { trim: true })
+                .render(item_area2, buf);
         }
     }
 
@@ -284,7 +382,7 @@ impl App {
         if self.is_podcast {
         _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
         } else {
-        _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, s: series, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
         }
 
 

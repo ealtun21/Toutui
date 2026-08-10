@@ -30,6 +30,7 @@ the original issue, if there is one.
 | T-16 | The application marks a media as finished at the end | sub-project 3 |
 | T-12 | The repository has a Nix flake | sub-project 0 |
 | T-11 | The application downloads a podcast episode | sub-project 5 |
+| T-22 | The application shows the series of a library | sub-project 5 |
 
 Sub-project 2 removed VLC. The application decodes the audio in the process
 now. Therefore a book with many audio files plays completely, the token stays
@@ -253,9 +254,22 @@ reader or decoder is available.
 
 Issue 17 holds the details.
 
-### T-22, T-23, T-24: the user interface and full coverage
+### T-22: show the series of a library
 
-T-22 adds the series. T-23 adds the cover art. A measurement on 2026-08-10
+The key `s` shows the series. The key `l` on a series shows its books, with
+the number of each book first. The books come in the sequence of the series,
+because a sort of the text gives `#10` before `#2`.
+
+The endpoint `GET /api/libraries/:id/series` has an important difference from
+the endpoint of the items: `limit=0` gives an empty list, and not every
+series. Therefore the application always asks for a page of 500.
+
+The work does not group the books of a series into one line in the Library
+view. That part of the issue stays open.
+
+### T-23, T-24: the user interface and full coverage
+
+T-23 adds the cover art. A measurement on 2026-08-10
 shows that `ratatui-image` 11.0.6 needs no C library, if the project does not
 use its default features. That crate finds the protocol of the terminal
 itself: the Kitty protocol, Sixel for `foot`, iTerm2, or blocks of Unicode.

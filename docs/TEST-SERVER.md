@@ -94,6 +94,42 @@ for i in 1 2 3; do
 done
 ```
 
+## 6b. Make books that are in a series
+
+The test of the series (T-22) needs books with a series. `ffmpeg` writes the
+tags `series` and `series-part`, and Audiobookshelf reads them.
+
+```bash
+for series in "The Test Chronicles" "Second Series"; do
+  for i in 1 2 3; do
+    dir="$ABS/audiobooks/Series Author/$series/Book $i"
+    mkdir -p "$dir"
+    ffmpeg -loglevel error -y -f lavfi \
+      -i "sine=frequency=$((300 + i * 100)):duration=3:sample_rate=44100" \
+      -ac 1 -c:a libmp3lame -b:a 64k \
+      -metadata title="$series $i" -metadata album="$series $i" \
+      -metadata artist="Series Author" \
+      -metadata series="$series" -metadata series-part="$i" \
+      "$dir/book.mp3"
+  done
+done
+```
+
+The scan gives the title from the name of the directory, and not from the tag
+`album`. Therefore the three books of a series have the same title. A `PATCH`
+on `/api/items/:id/media` gives each book its own title:
+
+```bash
+curl -X PATCH "http://localhost:13399/api/items/$ITEM_ID/media" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"metadata":{"title":"The Test Chronicles Volume 1"}}'
+```
+
+**A warning about the endpoint of the series.** `GET
+/api/libraries/:id/series?limit=0` gives an empty list, and not every series.
+The endpoint of the items gives every item for the same value. Therefore the
+application always asks for a page of a known size.
+
 Then scan the library:
 
 ```bash

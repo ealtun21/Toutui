@@ -28,12 +28,18 @@ use crate::player::engine::PlayerHandle;
 use crate::logic::playback::{play, PlaybackTarget};
 use crate::utils::check_update::*;
 use crate::logic::download::{DownloadTarget, download_with_progress, remove_download};
+use crate::api::libraries::get_all_series::*;
+use crate::api::utils::collect_series::*;
 
 pub enum AppView {
     Home,
     Library,
     SearchBook,
     PodcastEpisode,
+    /// The list of the series of the library. See T-22.
+    Series,
+    /// The books of one series, in the sequence of the series.
+    SeriesBook,
     Settings,
     SettingsAccount,
     SettingsLibrary,
@@ -53,6 +59,10 @@ pub struct App {
     pub list_state_library: ListState,
     pub list_state_search_results: ListState,
     pub list_state_pod_ep: ListState,
+    /// The list of the series. See T-22.
+    pub list_state_series: ListState,
+    /// The list of the books of one series.
+    pub list_state_series_book: ListState,
     pub list_state_settings: ListState,
     pub list_state_settings_account: ListState,
     pub list_state_settings_library: ListState,
@@ -68,6 +78,9 @@ pub struct App {
     pub ids_library: Vec<String>,
     pub auth_names_library: Vec<String>,
     pub ids_search_book: Vec<String>,
+    /// The series of the library, with their books. A podcast library has no
+    /// series, thus this list is then empty. See T-22.
+    pub series: Vec<SeriesView>,
     pub search_query: String,
     pub search_mode: bool,
     pub is_podcast: bool,
@@ -301,6 +314,22 @@ impl App {
                 book_progress_cnt_list_cur_time.push(values_f64);
             }}}
 
+    // init for `Series`. A podcast library has no series, thus the application
+    // sends no request for it. See T-22.
+    let series = if is_podcast {
+        Vec::new()
+    } else {
+        match get_all_series(&api, &id_selected_lib).await {
+            Ok(root) => collect_series(&root),
+            Err(error) => {
+                // A server that does not give the series must not stop the
+                // application. The user then sees an empty list.
+                log::warn!("[app] the server did not give the series: {}", error);
+                Vec::new()
+            }
+        }
+    };
+
     //init for `Library ` (all books  or podcasts of a Library (shelf))
     let all_books = get_all_books(&api, &id_selected_lib).await?;
     let titles_library = collect_titles_library(&all_books).await;
@@ -476,6 +505,13 @@ impl App {
     let mut list_state_pod_ep = ListState::default();
     list_state_pod_ep.select(Some(0));
 
+    // Init ListState for the two lists of the series
+    let mut list_state_series = ListState::default();
+    list_state_series.select(Some(0));
+
+    let mut list_state_series_book = ListState::default();
+    list_state_series_book.select(Some(0));
+
     // Init ListState for `Settings` list
     let mut list_state_settings = ListState::default();
     list_state_settings.select(Some(0));
@@ -506,6 +542,8 @@ impl App {
         list_state_library,
         list_state_search_results,
         list_state_pod_ep,
+        list_state_series,
+        list_state_series_book,
         list_state_settings,
         list_state_settings_account,
         list_state_settings_library,
@@ -522,6 +560,7 @@ impl App {
         ids_library,
         auth_names_library,
         ids_search_book,
+        series,
         search_mode,
         search_query,
         is_podcast,
@@ -700,6 +739,20 @@ pub fn handle_key(&mut self, key: KeyEvent) {
             }
         }
 
+        // show the series of the library
+        KeyCode::Char('s') => {
+            if !self.is_podcast {
+                match self.view_state {
+                    AppView::Home | AppView::Library | AppView::SearchBook => {
+                        self.list_state_series.select(Some(0));
+                        self.scroll_offset = 0;
+                        self.view_state = AppView::Series;
+                    }
+                    _ => {}
+                }
+            }
+        }
+
         KeyCode::Char('/') => {
             let _ = self.search_active();
         }
@@ -775,6 +828,14 @@ pub fn handle_key(&mut self, key: KeyEvent) {
                     } else {
                         self.view_state = AppView::Library
                     }
+                }
+                AppView::Series => {
+                    self.scroll_offset = 0;
+                    self.view_state = AppView::Library
+                }
+                AppView::SeriesBook => {
+                    self.scroll_offset = 0;
+                    self.view_state = AppView::Series
                 }
                 _ => {}
             }
@@ -963,6 +1024,38 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 
                         }
                 }
+                // The series gives the books of the series.
+                AppView::Series => {
+                    if let Some(index) = self.list_state_series.selected() {
+                        if self.series.get(index).is_some_and(|s| !s.books.is_empty()) {
+                            self.list_state_series_book.select(Some(0));
+                            self.scroll_offset = 0;
+                            self.view_state = AppView::SeriesBook;
+                        }
+                    }
+                }
+                // A book of a series plays in the same way as a book of the
+                // library.
+                AppView::SeriesBook => {
+                    if let Some(book) = self.selected_series_book() {
+                        let item_id = book.id.clone();
+                        let duration = book.duration;
+
+                        tokio::spawn(async move {
+                            play(
+                                &api,
+                                &player,
+                                PlaybackTarget::Book {
+                                    item_id,
+                                    whole_book_duration: Some(duration),
+                                },
+                                username,
+                                server_address,
+                            )
+                            .await;
+                        });
+                    }
+                }
                 AppView::PodcastEpisode => {
                     if self.is_from_search_pod {
                         // we need the index of selected_search_book to feet after with
@@ -1032,6 +1125,18 @@ pub fn handle_key(&mut self, key: KeyEvent) {
 }
 
 
+/// Gives the series that the user selected in the view `Series`.
+pub fn selected_series(&self) -> Option<&SeriesView> {
+    self.series.get(self.list_state_series.selected()?)
+}
+
+/// Gives the book that the user selected in the view `SeriesBook`.
+pub fn selected_series_book(&self) -> Option<&SeriesBookView> {
+    self.selected_series()?
+        .books
+        .get(self.list_state_series_book.selected()?)
+}
+
 /// Gives the item that the keys `D` and `X` operate on.
 ///
 /// The function gives the target of the download, the title, and the author.
@@ -1090,6 +1195,17 @@ pub fn selected_download(&self) -> Option<(DownloadTarget, String, String)> {
                 self.auth_names_search_book.get(index)?.clone(),
             ))
         }
+        AppView::SeriesBook => {
+            let book = self.selected_series_book()?;
+
+            Some((
+                DownloadTarget::Book {
+                    item_id: book.id.clone(),
+                },
+                book.title.clone(),
+                book.author.clone(),
+            ))
+        }
         AppView::PodcastEpisode => {
             let episode = self.list_state_pod_ep.selected()?;
 
@@ -1135,6 +1251,8 @@ fn toggle_view(&mut self) {
         AppView::Library => AppView::Home,
         AppView::SearchBook => AppView::Home,
         AppView::PodcastEpisode => AppView::Home,
+        AppView::Series => AppView::Home,
+        AppView::SeriesBook => AppView::Home,
         AppView::Settings => AppView::Home,
         AppView::SettingsAccount => AppView::Home,
         AppView::SettingsLibrary => AppView::Home,
@@ -1179,6 +1297,18 @@ pub fn select_next(&mut self) {
                 } else {
                     self.list_state_pod_ep.select_first();
                 }}}}
+        AppView::Series => { if let Some(selected) = self.list_state_series.selected() {
+            if selected + 1  < self.series.len() {
+                self.list_state_series.select_next();
+            } else {
+                self.list_state_series.select_first();
+            }}}
+        AppView::SeriesBook => { if let Some(selected) = self.list_state_series_book.selected() {
+            if selected + 1  < self.selected_series().map_or(0, |s| s.books.len()) {
+                self.list_state_series_book.select_next();
+            } else {
+                self.list_state_series_book.select_first();
+            }}}
         AppView::Settings => { if let Some(selected) = self.list_state_settings.selected() {
             if selected + 1  < self.settings.len() {
                 self.list_state_settings.select_next();
@@ -1203,6 +1333,8 @@ pub fn select_previous(&mut self) {
         AppView::Library => self.list_state_library.select_previous(),
         AppView::SearchBook => self.list_state_search_results.select_previous(),
         AppView::PodcastEpisode => self.list_state_pod_ep.select_previous(),
+        AppView::Series => self.list_state_series.select_previous(),
+        AppView::SeriesBook => self.list_state_series_book.select_previous(),
         AppView::Settings => self.list_state_settings.select_previous(),
         AppView::SettingsAccount => self.list_state_settings_account.select_previous(),
         AppView::SettingsLibrary => self.list_state_settings_library.select_previous(),
@@ -1217,6 +1349,8 @@ pub fn select_first(&mut self) {
         AppView::Library => self.list_state_library.select_first(),
         AppView::SearchBook => self.list_state_search_results.select_first(),
         AppView::PodcastEpisode => self.list_state_pod_ep.select_first(),
+        AppView::Series => self.list_state_series.select_first(),
+        AppView::SeriesBook => self.list_state_series_book.select_first(),
         AppView::Settings => self.list_state_settings.select_first(),
         AppView::SettingsAccount => self.list_state_settings_account.select_first(),
         AppView::SettingsLibrary => self.list_state_settings_library.select_first(),
@@ -1246,7 +1380,18 @@ pub fn select_last(&mut self) {
             } else {
                 let last_index = self.ids_pod_ep.len() - 1;
                 self.list_state_pod_ep.select(Some(last_index));
-            }}            
+            }}
+        AppView::Series => {
+            let last_index = self.series.len().saturating_sub(1);
+            self.list_state_series.select(Some(last_index));
+        }
+        AppView::SeriesBook => {
+            let last_index = self
+                .selected_series()
+                .map_or(0, |series| series.books.len())
+                .saturating_sub(1);
+            self.list_state_series_book.select(Some(last_index));
+        }
         AppView::Settings => {
             let last_index = self.settings.len() - 1;
             self.list_state_settings.select(Some(last_index));
