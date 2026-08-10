@@ -448,3 +448,156 @@ async fn a_file_inside_the_limit_arrives_whole() {
 
     assert_eq!(body, vec![b'x'; 4096]);
 }
+
+/// Makes a command that answers in place of `gh`.
+///
+/// The command writes its arguments to `args.txt`, it writes `output` to the
+/// error stream, and it ends with `code`. Therefore a test can read what the
+/// program asked, and it can choose the answer. See T-29.
+fn fake_gh(dir: &std::path::Path, code: i32, output: &str) -> std::path::PathBuf {
+    let path = dir.join("gh");
+    let script = format!(
+        "#!/bin/sh\nprintf '%s\\n' \"$@\" > '{}/args.txt'\nprintf '%s' '{}' >&2\nexit {}\n",
+        dir.display(),
+        output,
+        code
+    );
+    std::fs::write(&path, script).unwrap();
+
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o755)).unwrap();
+    }
+
+    path
+}
+
+/// Starts a host that gives a release whose sum agrees with its archive.
+///
+/// The tests of the proof of the origin need an archive that passes the test
+/// of the sum, because the test of the proof comes after it.
+async fn a_release_that_has_a_correct_sum() -> (MockServer, String) {
+    let server = MockServer::start().await;
+    let target = toutui::update::release::target().unwrap();
+    let name = format!("toutui-{}.tar.gz", target);
+    let archive = archive_of(b"the new binary");
+
+    let body = serde_json::json!({
+        "tag_name": "v99.0.0",
+        "assets": [
+            {"name": "SHA256SUMS",
+             "browser_download_url": format!("{}/SHA256SUMS", server.uri())},
+            {"name": name.clone(),
+             "browser_download_url": format!("{}/archive", server.uri())}
+        ]
+    });
+
+    Mock::given(method("GET"))
+        .and(path("/latest"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(body))
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/archive"))
+        .respond_with(ResponseTemplate::new(200).set_body_bytes(archive.clone()))
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/SHA256SUMS"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_string(format!("{}  {}\n", sum_of(&archive), name)),
+        )
+        .mount(&server)
+        .await;
+
+    let api = format!("{}/latest", server.uri());
+    (server, api)
+}
+
+/// A proof that `gh` confirms lets the update finish, and the program asks
+/// for the repository and for the workflow of the release.
+#[tokio::test]
+async fn a_proof_that_is_correct_lets_the_update_finish() {
+    let (_server, api) = a_release_that_has_a_correct_sum().await;
+    let dir = tempfile::tempdir().unwrap();
+    let binary = dir.path().join("toutui");
+    std::fs::write(&binary, b"the old binary").unwrap();
+    let gh = fake_gh(dir.path(), 0, "");
+
+    let message = toutui::update::install::run_update_at_with(&api, &binary, gh.to_str().unwrap())
+        .await
+        .unwrap();
+
+    assert!(message.contains("The proof of the origin is correct"), "{}", message);
+    assert_eq!(std::fs::read(&binary).unwrap(), b"the new binary");
+
+    let args = std::fs::read_to_string(dir.path().join("args.txt")).unwrap();
+    assert!(args.contains("attestation"), "{}", args);
+    assert!(args.contains("verify"), "{}", args);
+    assert!(args.contains("ealtun21/Toutui"), "{}", args);
+    assert!(args.contains("--signer-workflow"), "{}", args);
+    assert!(
+        args.contains("ealtun21/Toutui/.github/workflows/release.yml"),
+        "{}",
+        args
+    );
+}
+
+/// An archive that has no proof stops the update, and the binary does not
+/// change. This is the fault of T-29: the sum agrees here, and the sum alone
+/// let this archive pass.
+#[tokio::test]
+async fn an_archive_with_no_proof_stops_the_update() {
+    let (_server, api) = a_release_that_has_a_correct_sum().await;
+    let dir = tempfile::tempdir().unwrap();
+    let binary = dir.path().join("toutui");
+    std::fs::write(&binary, b"the old binary").unwrap();
+    let gh = fake_gh(dir.path(), 1, "No attestations found for subject");
+
+    let error = toutui::update::install::run_update_at_with(&api, &binary, gh.to_str().unwrap())
+        .await
+        .unwrap_err();
+
+    assert!(error.contains("proof of the origin"), "{}", error);
+    assert_eq!(std::fs::read(&binary).unwrap(), b"the old binary");
+}
+
+/// A system that has no `gh` gets the update, and the message tells the user
+/// what the program tested and what it did not test.
+#[tokio::test]
+async fn a_system_with_no_gh_gets_the_update_and_a_clear_message() {
+    let (_server, api) = a_release_that_has_a_correct_sum().await;
+    let dir = tempfile::tempdir().unwrap();
+    let binary = dir.path().join("toutui");
+    std::fs::write(&binary, b"the old binary").unwrap();
+    let absent = dir.path().join("no-gh-is-here");
+
+    let message =
+        toutui::update::install::run_update_at_with(&api, &binary, absent.to_str().unwrap())
+            .await
+            .unwrap();
+
+    assert!(message.contains("did not test the proof"), "{}", message);
+    assert!(message.contains("tested the sum SHA-256"), "{}", message);
+    assert_eq!(std::fs::read(&binary).unwrap(), b"the new binary");
+}
+
+/// A `gh` that has no account does not stop the update, because the archive
+/// can be correct. The message tells the user to run `gh auth login`.
+#[tokio::test]
+async fn a_gh_with_no_account_does_not_stop_the_update() {
+    let (_server, api) = a_release_that_has_a_correct_sum().await;
+    let dir = tempfile::tempdir().unwrap();
+    let binary = dir.path().join("toutui");
+    std::fs::write(&binary, b"the old binary").unwrap();
+    let gh = fake_gh(dir.path(), 4, "gh: you are not logged in. Run gh auth login");
+
+    let message = toutui::update::install::run_update_at_with(&api, &binary, gh.to_str().unwrap())
+        .await
+        .unwrap();
+
+    assert!(message.contains("gh auth login"), "{}", message);
+    assert_eq!(std::fs::read(&binary).unwrap(), b"the new binary");
+}

@@ -3,6 +3,7 @@
 //! The program compares the sum before it moves the binary. Therefore a
 //! download that stops leaves the binary that operates.
 
+use crate::update::attest::{self, Attestation};
 use crate::update::release::{is_newer, latest_release, target, Release};
 use sha2::{Digest, Sha256};
 use std::io::{Read, Write};
@@ -206,6 +207,19 @@ async fn receive(url: &str) -> Result<Vec<u8>, String> {
 /// `std::env::current_exe`. A test gives a path in a directory that the
 /// test made, so that the test cannot write over the binary of the test.
 pub async fn run_update_at(api: &str, binary: &Path) -> Result<String, String> {
+    run_update_at_with(api, binary, attest::GH).await
+}
+
+/// Does the full update, and asks the given command for the proof of the
+/// origin.
+///
+/// `gh` is the name of that command. A test gives the path of a command that
+/// it made itself, therefore no test asks GitHub.
+pub async fn run_update_at_with(
+    api: &str,
+    binary: &Path,
+    gh: &str,
+) -> Result<String, String> {
     let target = target().ok_or_else(|| {
         "This system has no archive. Use `cargo install --git https://github.com/ealtun21/Toutui`."
             .to_string()
@@ -249,6 +263,14 @@ pub async fn run_update_at(api: &str, binary: &Path) -> Result<String, String> {
         ));
     }
 
+    // The sum agrees. The sum comes from the same release, therefore it does
+    // not tell who made the release. The proof of the origin tells that. See
+    // T-29.
+    let attestation = attest::verify_bytes_with(gh, &archive, &release.archive_name);
+    if let Attestation::Refused(_) = attestation {
+        return Err(attest::message_of(&attestation));
+    }
+
     let new_binary = binary_from_archive(&archive)?;
 
     if let Err(e) = replace_binary(binary, &new_binary) {
@@ -265,8 +287,10 @@ pub async fn run_update_at(api: &str, binary: &Path) -> Result<String, String> {
     }
 
     Ok(format!(
-        "Version {} is now installed. The version before it was {}.",
-        release.version, LOCAL_VERSION
+        "{}\nVersion {} is now installed. The version before it was {}.",
+        attest::message_of(&attestation),
+        release.version,
+        LOCAL_VERSION
     ))
 }
 

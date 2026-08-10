@@ -5,10 +5,11 @@
 #   curl -LsSf https://raw.githubusercontent.com/ealtun21/Toutui/main/install.sh | bash
 #
 # The script receives the archive of the last release, it compares the sum
-# with SHA256SUMS of that release, and it installs the binary. The script
-# installs no other program, because toutui plays the audio itself. The
-# script asks for a password with sudo, if the directory of the binary
-# needs one.
+# with SHA256SUMS of that release, and it installs the binary. If the command
+# gh is on the system, the script also tests the proof of the origin of the
+# archive, and it stops if that proof is not correct. The script installs no
+# other program, because toutui plays the audio itself. The script asks for a
+# password with sudo, if the directory of the binary needs one.
 
 set -euo pipefail
 
@@ -21,6 +22,10 @@ tmp=""
 # without end must not fill the disk. The number agrees with
 # MAX_DOWNLOAD_BYTES in src/update/install.rs. See T-30.
 MAX_BYTES=$((200 * 1024 * 1024))
+
+# The workflow that has permission to make an archive of a release.
+# `--signer-workflow` refuses a proof that a different workflow made.
+SIGNER_WORKFLOW="${REPO}/.github/workflows/release.yml"
 
 fail() {
     echo "[ERROR] $1" >&2
@@ -103,6 +108,56 @@ sum_agrees() {
     [ "$expected" = "$actual" ]
 }
 
+# Tests the proof of the origin of one file. $1 = the file.
+#
+# The sum SHA-256 comes from SHA256SUMS of the same release. Therefore the sum
+# finds a download that stops, and it does not find a release that a different
+# person made. The workflow release.yml makes a proof of each archive, and gh
+# reads that proof. See T-29.
+#
+# A refusal of the proof stops the script. A condition that stops the test
+# itself, for example an account that gh does not have, gives a warning only,
+# because the archive can still be correct.
+verify_proof() {
+    local file="$1"
+    local out lower status=0
+
+    if ! command -v gh >/dev/null 2>&1; then
+        echo "[WARN] The script did not test the proof of the origin, because gh is not on this system." >&2
+        echo "[WARN] The script tested the sum SHA-256 only. That sum comes from the same release." >&2
+        echo "[WARN] Install gh from https://cli.github.com to test the proof." >&2
+        return 0
+    fi
+
+    out=$(gh attestation verify "$file" --repo "$REPO" \
+        --signer-workflow "$SIGNER_WORKFLOW" 2>&1) || status=$?
+
+    if [ "$status" -eq 0 ]; then
+        echo "[INFO] The proof of the origin is correct. The workflow of ${REPO} made this archive."
+        return 0
+    fi
+
+    lower=$(printf '%s' "$out" | tr '[:upper:]' '[:lower:]')
+    case "$lower" in
+        *"unknown flag"*|*"unknown command"*|*"unknown shorthand"*|*"unknown subcommand"*)
+            echo "[WARN] The command gh on this system is too old to test the proof." >&2
+            ;;
+        *"auth login"*|*"authentication"*|*"not logged in"*|*"http 401"*|*"http 403"*|*"bad credentials"*)
+            echo "[WARN] The command gh has no account. Run gh auth login to test the proof." >&2
+            ;;
+        *"no such host"*|*"dial tcp"*|*"connection refused"*|*"i/o timeout"*)
+            echo "[WARN] The command gh did not reach GitHub. The script did not test the proof." >&2
+            ;;
+        *)
+            fail "The proof of the origin of ${file} is not correct. The script installed nothing.
+${out}"
+            ;;
+    esac
+
+    echo "[WARN] The script tested the sum SHA-256 only." >&2
+    return 0
+}
+
 warn_if_no_alsa() {
     # The program connects to libasound at the time it runs. A system with a
     # desktop has that library. A small system does not, and the loader then
@@ -154,6 +209,8 @@ main() {
         || fail "The sum of ${archive} is not correct."
 
     echo "[INFO] The sum is correct."
+
+    verify_proof "${tmp}/${archive}"
 
     tar -xzf "${tmp}/${archive}" -C "$tmp"
 
