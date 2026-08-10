@@ -59,3 +59,41 @@ fn an_empty_variable_gives_the_home_directory_and_not_the_working_directory() {
     // Restore the environment for the tests that run after this one.
     std::env::remove_var("XDG_CONFIG_HOME");
 }
+
+/// The directory of data is the parent directory and the name of the
+/// program.
+#[test]
+fn the_data_directory_holds_the_name_of_the_program() {
+    let home = Path::new("/tmp/example");
+    assert_eq!(
+        paths::data_dir_in(home),
+        PathBuf::from("/tmp/example/toutui")
+    );
+}
+
+/// `data_home` must give the home directory when `XDG_DATA_HOME` is empty,
+/// and not the current directory, for the same reason as `config_home`.
+///
+/// This test covers all three states of the variable — absent, empty, and a
+/// real path — in one function, because the variable of the environment is
+/// common to every test of this process.
+#[test]
+fn an_empty_data_variable_gives_the_home_directory_and_not_the_working_directory() {
+    let home = dirs::home_dir().expect("Unable to find the user's home directory");
+    let expected_default = home.join(".local").join("share");
+
+    // The variable is absent.
+    std::env::remove_var("XDG_DATA_HOME");
+    assert_eq!(paths::data_home(), expected_default);
+
+    // The variable is present, but it holds no value.
+    std::env::set_var("XDG_DATA_HOME", "");
+    assert_eq!(paths::data_home(), expected_default);
+
+    // The variable holds a real path. That path takes the highest importance.
+    std::env::set_var("XDG_DATA_HOME", "/tmp/example");
+    assert_eq!(paths::data_home(), PathBuf::from("/tmp/example"));
+
+    // Restore the environment for the tests that run after this one.
+    std::env::remove_var("XDG_DATA_HOME");
+}

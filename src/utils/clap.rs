@@ -31,9 +31,9 @@ fn write_uninstall_message() {
                 "    {}",
                 home.join(".local/share/applications/toutui.desktop").display()
             );
-            println!("    {}", home.join(".local/share/toutui").display());
         }
     }
+    println!("    {}", paths::data_dir().display());
 }
 
 pub async fn clap() {

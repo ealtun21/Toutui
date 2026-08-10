@@ -44,6 +44,31 @@ pub fn config_dir_in(config_home: &Path) -> PathBuf {
     config_home.join(APP_DIR)
 }
 
+/// Gives the parent directory of the data of the program.
+///
+/// `XDG_DATA_HOME` has the highest importance. If that variable is absent or
+/// empty, the path is `~/.local/share`.
+pub fn data_home() -> PathBuf {
+    match std::env::var("XDG_DATA_HOME") {
+        Ok(value) if !value.is_empty() => PathBuf::from(value),
+        _ => {
+            let home = dirs::home_dir().expect("Unable to find the user's home directory");
+            home.join(".local").join("share")
+        }
+    }
+}
+
+/// Gives the directory that holds the data of this program.
+pub fn data_dir() -> PathBuf {
+    data_home().join(APP_DIR)
+}
+
+/// Gives the directory that holds the data of this program, in a parent
+/// directory. The tests use this function.
+pub fn data_dir_in(data_home: &Path) -> PathBuf {
+    data_home.join(APP_DIR)
+}
+
 /// Gives the path of `config.toml`.
 pub fn config_file() -> PathBuf {
     config_dir().join("config.toml")
