@@ -212,10 +212,16 @@ async fn main() -> Result<()> {
         loop {
             // The engine gives the state. The panel is visible only when the
             // engine holds a media.
+            // The timer for sleep works here, because the loop of the
+            // program runs at each frame and it holds the handle of the
+            // engine. See T-24.
+            app.tick_the_timer_for_sleep();
+
             let playback = app.player.state();
             let is_playing = playback.status != toutui::player::engine::PlaybackStatus::Stopped;
             let player_notice = playback.notice.clone();
             let player_info = player_info(app.username.as_str(), &playback);
+            let sleep = app.text_of_the_timer_for_sleep();
 
             terminal.draw(|frame| {
                 let (bg_r, bg_g, bg_b) = rgb_parts(&app.config.colors.background_color);
@@ -236,6 +242,7 @@ async fn main() -> Result<()> {
                         bg_color_player,
                         app.username.as_str(),
                         player_notice,
+                        sleep,
                     );
                 }
 

@@ -1119,6 +1119,37 @@ the chapters uses it also.
 the key `/` keeps its own file, because it does more than take a text: it
 changes the view and it asks the server.
 
+### A timer for sleep — complete, 2026-08-11 (v0.7.3)
+
+The server holds no timer, therefore the work is in the client. Every other
+client of Audiobookshelf has it, and a person who listens in bed asks for it.
+
+The key `t` moves through the choices: 5, 10, 15, 30, 45, and 60 minutes, the
+end of the chapter, and then off. One key stops the timer, therefore the user
+needs no second key.
+
+**The engine did not change.** The loop of the program runs at each frame and
+it holds the handle, therefore it sends `SetVolume` during the fall and
+`Pause` at the end. A timer inside the worker would have needed a new command
+and a new state.
+
+**The timer measures the time of the clock.** A user who says "in 30 minutes"
+means the clock, and a speed of 2.0 must not change that. The choice "the end
+of the chapter" reads the book, therefore `clock_time_of` divides by the
+speed.
+
+**A pause is not a stop.** A user who pauses a book and comes back keeps the
+timer. A playback that stopped, and a different media, stop it: the user asked
+for sleep during that book.
+
+**The decision is pure.** `action_for` takes the timer, the state of the
+engine, and the time, and it gives one of four answers. The method of the
+application is then six lines of glue. That shape was necessary here: the
+device `null` plays a book of 30 minutes in three seconds, therefore no
+harness can wait five minutes for a real fall of the volume. The measurement
+in a real process shows the message and the time in the player (`💤 4:59`),
+and the tests hold the whole life of a timer.
+
 ## The report of the user of 2026-08-10, on v0.5.0
 
 The user tested v0.5.0 and named ten items. This section holds each one, the

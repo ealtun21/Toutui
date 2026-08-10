@@ -28,6 +28,7 @@ not in the archived repository.
  **Cross-platform:** <img src=".github/tux.png" align="top" width="24" alt="Tux (Linux)"/>  Linux and <img src=".github/apple.png" align="top" width="24" alt="Apple (macOS)"/> macOS    
  **Lightweight & Fast:** A minimalist terminal user interface (TUI) written in Rust 🦀  
  **Supports Books & Podcasts:** Enjoy both audiobooks and podcasts  
+ **A timer for sleep:** The playback stops after a time, with a slow fall of the volume (`t`)  
  **Bookmarks:** Mark a place in a long book and come back to it (`b`, `V`)  
  **The sequence and the filter:** Sort a library and show one author, one genre, or one tag (`f`)  
  **Series:** See the series of a library and the books of a series, in sequence (`s`)  
@@ -118,6 +119,18 @@ The server sorts and filters the items. `f` chooses how.
 - The choice belongs to your account, and it stays after the program stops.
   The title of the Library view says the sequence, and it says that a filter
   is on.
+
+## 💤 A timer for sleep
+
+- `t` — move the timer to its next choice: 5, 10, 15, 30, 45, and 60 minutes,
+  the end of the chapter, and then off. The key operates while a media plays.
+- The volume falls slowly in the last 30 seconds, and the playback then
+  pauses. The volume of the user comes back at the pause.
+- The player shows the time that is left, for example `💤 12:34`.
+- The timer measures the time of the clock. A speed of 2.0 does not change
+  "in 30 minutes". The choice "the end of the chapter" reads the book,
+  therefore it divides by the speed.
+- A playback that stops, and a different media, stop the timer.
 
 ## 🔖 Bookmarks
 

@@ -11,6 +11,7 @@ pub mod playback;
 pub mod prompt;
 pub mod reader;
 pub mod search;
+pub mod sleep_timer;
 pub mod sort_filter;
 pub mod stats;
 pub mod sync_session;

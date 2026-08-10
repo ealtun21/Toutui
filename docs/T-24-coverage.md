@@ -91,6 +91,7 @@ Toutui calls 19 paths. The server has more than 100.
 | `C` | Show the chapters of the media that plays (T-24) |
 | `b` | Write a bookmark at the place of the playback (T-24) |
 | `V` | Show the bookmarks of a media (T-24) |
+| `t` | The timer for sleep (T-24) |
 | `f` | Choose the sequence and the filter of the library (T-24) |
 | `S` | Settings |
 | `B` | Show the keys, or hide them |
@@ -147,7 +148,7 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 | **The list of the chapters** | The same field | Yes | Nothing. The key `C` shows them, with a mark on the chapter that plays, and `l` goes to a chapter |
 | **The speed** | The client does this work | Yes | Nothing. `O` and `I`, and the pitch does not change (T-19) |
 | **The volume** | The client does this work | Yes | Nothing. `o` and `i` |
-| **A timer for sleep** | Not a function of the server | No | Everything. The web player has this, and a person who listens in bed asks for it |
+| **A timer for sleep** | Not a function of the server | Yes | Nothing. The key `t` gives 5, 10, 15, 30, 45, and 60 minutes, the end of the chapter, and then off. The volume falls in the last 30 seconds. The player shows the time that is left |
 | **A queue of media** | Not a function of the server | No | Everything. The client plays one media, and it stops |
 | **The cover art** | `GET /api/items/:id/cover` gives `200` and the bytes | Yes | Nothing. T-23. The panel stands beside the description, and a series shows its books |
 | **The description** | `media.metadata.description` of the item | Yes | Nothing. `src/utils/html_text.rs` removes the HTML tags (T-13) |
@@ -236,9 +237,9 @@ The sequence inside each group gives the value for the work.
 
 ### Large: a week or more each
 
-11. **A timer for sleep.** No endpoint. The work is in
-    `src/player/engine/worker.rs` and in `src/ui/player_tui.rs`: a time, a
-    slow fall of the volume, and a stop. Every other client has this.
+11. ~~**A timer for sleep.**~~ **Done on 2026-08-11.** The key `t`, and
+    `src/logic/sleep_timer.rs`. The work needed no change of the engine: the
+    loop of the program sends `SetVolume` and `Pause`.
 12. **The place of the ebook in the form of the web reader.** The reader
     writes `toutui:C:L` today. EPUBCFI needs a map from the position in the
     text to a path in the XHTML, in `src/logic/reader/position.rs`. Then the

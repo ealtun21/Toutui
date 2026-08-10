@@ -128,6 +128,11 @@ pub struct App {
     pub list_state_bookmarks: ListState,
     /// The media whose bookmarks the view shows. See T-24.
     pub bookmarks_of: String,
+    /// The timer for sleep, if the user set one. See T-24.
+    pub sleep: Option<crate::logic::sleep_timer::Timer>,
+    /// The choice of the timer, in minutes. `Some(0)` is the end of the
+    /// chapter, and `None` is off.
+    pub sleep_choice: Option<u64>,
     /// The user changed the sequence or the filter. The loop of the program
     /// then makes the application again, in the same way as the key `R`. A
     /// new sequence needs a new request, and every list of the library comes
@@ -998,6 +1003,8 @@ impl App {
             list_state_chapters: ListState::default(),
             list_state_bookmarks: ListState::default(),
             bookmarks_of: String::new(),
+            sleep: None,
+            sleep_choice: None,
             must_refresh: false,
             series_from: AppView::Series,
             lists,
@@ -1133,6 +1140,9 @@ impl App {
             // The key that shows the chapters of the media that plays.
             // See T-24.
             KeyCode::Char('C') => self.show_the_chapters(),
+
+            // The key of the timer for sleep. See T-24.
+            KeyCode::Char('t') => self.change_the_timer_for_sleep(),
 
             // The key that writes a bookmark at the place of the playback.
             // See T-24.
@@ -1978,6 +1988,132 @@ impl App {
             3,
             &format!("The playback goes to \"{}\".", chapter.title),
         );
+    }
+
+    /// Moves the timer for sleep to its next choice. See T-24.
+    ///
+    /// The key gives 5, 10, 15, 30, 45, and 60 minutes, the end of the
+    /// chapter, and then off. The volume falls in the last 30 seconds, and
+    /// the playback then pauses.
+    pub fn change_the_timer_for_sleep(&mut self) {
+        use crate::logic::sleep_timer as sleep;
+
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+
+        let state = self.player.state();
+
+        if state.status == crate::player::engine::PlaybackStatus::Stopped {
+            let _ = pop_message(&mut stdout, 3, "No media plays now.");
+            return;
+        }
+
+        self.sleep_choice = sleep::next_choice(self.sleep_choice);
+
+        // The volume of the user comes from the state, and not from a timer
+        // that falls already. A second press during the fall would keep the
+        // small volume for ever.
+        let volume = match &self.sleep {
+            Some(timer) => timer.volume,
+            None => state.volume,
+        };
+
+        let Some(choice) = self.sleep_choice else {
+            self.stop_the_timer_for_sleep(volume);
+            let _ = pop_message(&mut stdout, 3, "The timer for sleep is off.");
+            return;
+        };
+
+        let wait = if choice == 0 {
+            // The end of the chapter. The book plays at a speed, therefore
+            // the time of the clock is not the time of the book.
+            let end = crate::logic::chapters::chapter_at(&state.chapters, state.position)
+                .and_then(|index| state.chapters.get(index))
+                .map(|chapter| chapter.end - state.position);
+
+            match end {
+                Some(seconds) => sleep::clock_time_of(seconds, state.speed),
+                None => {
+                    self.sleep_choice = None;
+                    self.stop_the_timer_for_sleep(volume);
+                    let _ = pop_message(&mut stdout, 3, "This media has no chapter.");
+                    return;
+                }
+            }
+        } else {
+            std::time::Duration::from_secs(choice * 60)
+        };
+
+        self.sleep = Some(sleep::Timer {
+            ends_at: std::time::Instant::now() + wait,
+            volume,
+            playback_id: state.playback_id,
+            label: sleep::label_of(choice),
+        });
+
+        // A press during the fall must give the volume of the user back.
+        self.player
+            .send(crate::player::engine::PlayerCommand::SetVolume(volume));
+
+        let _ = pop_message(
+            &mut stdout,
+            3,
+            &format!("The playback stops after {}.", sleep::label_of(choice)),
+        );
+    }
+
+    /// Stops the timer, and gives the volume of the user back.
+    fn stop_the_timer_for_sleep(&mut self, volume: f32) {
+        if self.sleep.take().is_some() {
+            self.player
+                .send(crate::player::engine::PlayerCommand::SetVolume(volume));
+        }
+    }
+
+    /// Does the work of the timer for sleep. The loop of the program calls
+    /// this at each frame. See T-24.
+    pub fn tick_the_timer_for_sleep(&mut self) {
+        use crate::logic::sleep_timer as sleep;
+
+        let Some(timer) = self.sleep else {
+            return;
+        };
+
+        let state = self.player.state();
+
+        match sleep::action_for(
+            &timer,
+            state.status,
+            state.playback_id,
+            std::time::Instant::now(),
+        ) {
+            sleep::Action::Nothing => {}
+            sleep::Action::Off(volume) => {
+                self.sleep_choice = None;
+                self.stop_the_timer_for_sleep(volume);
+            }
+            sleep::Action::Volume(value) => {
+                self.player
+                    .send(crate::player::engine::PlayerCommand::SetVolume(value));
+            }
+            sleep::Action::Sleep(volume) => {
+                self.player
+                    .send(crate::player::engine::PlayerCommand::Pause);
+                self.sleep_choice = None;
+                self.stop_the_timer_for_sleep(volume);
+
+                let mut stdout = stdout();
+                let _ = clear_message(&mut stdout, 3);
+                let _ = pop_message(&mut stdout, 3, "The timer for sleep stopped the playback.");
+            }
+        }
+    }
+
+    /// Gives the text of the timer for the player, if a timer runs.
+    pub fn text_of_the_timer_for_sleep(&self) -> Option<String> {
+        self.sleep
+            .as_ref()
+            .map(|timer| crate::logic::sleep_timer::text_of(timer, std::time::Instant::now()))
     }
 
     /// Writes a bookmark at the place of the playback. See T-24.
