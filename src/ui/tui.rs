@@ -120,6 +120,39 @@ impl App {
     }
 }
 
+/// Reads one text of a list of the screen.
+///
+/// A list of the screen can be shorter than the selection. An example: the
+/// user removes an account, and the list keeps its old length until the next
+/// refresh. Another example: a library gives 40 items, and the list of the
+/// authors gives 39, because one item has no author. An index of a vector then
+/// stops the whole program, and a panic inside `Widget::render` gives the user
+/// no screen at all. This function gives a text instead. See T-41.
+fn at(list: &[String], index: usize) -> &str {
+    list.get(index).map(|value| value.as_str()).unwrap_or("N/A")
+}
+
+/// Reads one number of a list of the screen. See `at`.
+fn at_number(list: &[f64], index: usize) -> f64 {
+    list.get(index).copied().unwrap_or(0.0)
+}
+
+/// Reads one text of a list of lists of the screen. See `at`.
+fn at_part(list: &[Vec<String>], index: usize, part: usize) -> &str {
+    list.get(index)
+        .and_then(|row| row.get(part))
+        .map(|value| value.as_str())
+        .unwrap_or("N/A")
+}
+
+/// Reads one number of a list of lists of the screen. See `at`.
+fn at_number_part(list: &[Vec<f64>], index: usize, part: usize) -> f64 {
+    list.get(index)
+        .and_then(|row| row.get(part))
+        .copied()
+        .unwrap_or(0.0)
+}
+
 /// Changes a number of bytes to a text in megabytes.
 fn megabytes(bytes: u64) -> String {
     format!("{:.1} MB", bytes as f64 / 1_048_576.0)
@@ -1078,6 +1111,13 @@ impl App {
             )
         };
 
+        // The audio engine did not start. The user reads the library, and no
+        // media plays. See T-46.
+        let connection = match &self.audio_fault {
+            Some(_) => format!("{}\n🔇 No sound device: no media can play", connection),
+            None => connection,
+        };
+
         Paragraph::new(connection)
             .not_bold()
             .left_aligned()
@@ -1178,30 +1218,32 @@ impl App {
 
                 Paragraph::new(format!(
                     "[{}] - Author: {} - Episode: {} - Duration: {}{}",
-                    self.titles_pod_cnt_list[selected],
-                    self.authors_pod_cnt_list[selected],
-                    self.nums_ep_pod_cnt_list[selected],
-                    self.durations_pod_cnt_list[selected],
+                    at(&self.titles_pod_cnt_list, selected),
+                    at(&self.authors_pod_cnt_list, selected),
+                    at(&self.nums_ep_pod_cnt_list, selected),
+                    at(&self.durations_pod_cnt_list, selected),
                     if is_offline { " - [Downloaded]" } else { "" },
                 ))
                 .left_aligned()
                 .render(area, buf);
             } else {
-                let is_offline =
-                    crate::db::crud::get_download(&self._ids_cnt_list[selected], &self.username)
-                        .is_some();
+                let is_offline = crate::db::crud::get_download(
+                    at(&self._ids_cnt_list, selected),
+                    &self.username,
+                )
+                .is_some();
                 Paragraph::new(format!(
                     "Author: {} - Year: {} - Duration: {}{}\nProgress: {}%, {} {}",
-                    self.auth_names_cnt_list[selected],
-                    self.pub_year_cnt_list[selected],
-                    duration_cnt_list_conv[selected],
+                    at(&self.auth_names_cnt_list, selected),
+                    at(&self.pub_year_cnt_list, selected),
+                    at(&duration_cnt_list_conv, selected),
                     if is_offline { " - [Downloaded]" } else { "" },
-                    self.book_progress_cnt_list[selected][0], // percentage progression
+                    at_part(&self.book_progress_cnt_list, selected, 0), // percentage progression
                     convert_seconds_for_prg(
-                        self.duration_cnt_list[selected],
-                        self.book_progress_cnt_list_cur_time[selected][0]
+                        at_number(&self.duration_cnt_list, selected),
+                        at_number_part(&self.book_progress_cnt_list_cur_time, selected, 0)
                     ), // time left
-                    self.book_progress_cnt_list[selected][1], // is finished
+                    at_part(&self.book_progress_cnt_list, selected, 1), // is finished
                 ))
                 .left_aligned()
                 .render(area, buf);
@@ -1214,9 +1256,9 @@ impl App {
         if let Some(selected) = list_state.selected() {
             let mut _content: String = String::new();
             if self.is_podcast {
-                _content = self.subtitles_pod_cnt_list[selected].clone();
+                _content = at(&self.subtitles_pod_cnt_list, selected).to_string();
             } else {
-                _content = self.desc_cnt_list[selected].clone();
+                _content = at(&self.desc_cnt_list, selected).to_string();
             }
 
             Paragraph::new(_content.clone())
@@ -1251,17 +1293,20 @@ impl App {
 
         if let Some(selected) = self.selected_library_item() {
             if self.is_podcast {
-                Paragraph::new(format!("Author: {}", self.auth_names_library_pod[selected],))
-                    .left_aligned()
-                    .render(area, buf);
+                Paragraph::new(format!(
+                    "Author: {}",
+                    at(&self.auth_names_library_pod, selected),
+                ))
+                .left_aligned()
+                .render(area, buf);
             } else {
                 let is_offline =
-                    crate::db::crud::get_download(&self.ids_library[selected], &self.username)
+                    crate::db::crud::get_download(at(&self.ids_library, selected), &self.username)
                         .is_some();
                 Paragraph::new(format!(
                     "Author: {} - Year: {}{}", //- Duration: {}\nProgress:{} {}{}",
-                    self.auth_names_library[selected],
-                    self.published_year_library[selected],
+                    at(&self.auth_names_library, selected),
+                    at(&self.published_year_library, selected),
                     if is_offline { " - [Downloaded]" } else { "" },
                     //duration_library_conv[selected],
                     //self.book_progress_library[selected][0], // percentage progression
@@ -1305,8 +1350,8 @@ impl App {
 
         let n = self.durations_pod_ep.len();
         // Now safe to access index 0 as we've checked they are not empty
-        let duplicated_titles = vec![self.titles_pod[0].clone(); n];
-        let duplicated_authors = vec![self.authors_pod_ep[0].clone(); n];
+        let duplicated_titles = vec![at(&self.titles_pod, 0).to_string(); n];
+        let duplicated_authors = vec![at(&self.authors_pod_ep, 0).to_string(); n];
 
         if let Some(selected) = list_state.selected() {
             log::debug!(
@@ -1332,10 +1377,10 @@ impl App {
 
                     Paragraph::new(format!(
                         "[{}] - Author: {} - Episode: {} - Duration: {} {}",
-                        duplicated_titles[selected].trim(),
-                        duplicated_authors[selected].trim(),
-                        self.episodes_pod_ep[selected].trim(),
-                        self.durations_pod_ep[selected].trim(),
+                        at(&duplicated_titles, selected).trim(),
+                        at(&duplicated_authors, selected).trim(),
+                        at(&self.episodes_pod_ep, selected).trim(),
+                        at(&self.durations_pod_ep, selected).trim(),
                         if is_offline { "- [Downloaded]" } else { "" },
                     ))
                     .left_aligned()
@@ -1357,8 +1402,8 @@ impl App {
     // info about the podcast for `PodcastEpisode` (from search)
     fn render_info_pod_ep_search(&self, area: Rect, buf: &mut Buffer, list_state: &ListState) {
         let n = self.durations_pod_ep_search.len();
-        let duplicated_titles_search = vec![self.titles_pod_search[0].clone(); n];
-        let duplicated_authors_search = vec![self.authors_pod_ep_search[0].clone(); n];
+        let duplicated_titles_search = vec![at(&self.titles_pod_search, 0).to_string(); n];
+        let duplicated_authors_search = vec![at(&self.authors_pod_ep_search, 0).to_string(); n];
         if let Some(selected) = list_state.selected() {
             let is_offline = self
                 .ids_pod_ep_search
@@ -1368,10 +1413,10 @@ impl App {
 
             Paragraph::new(format!(
                 "[{}] - Author: {} - Episode: {} - Duration: {} {}",
-                duplicated_titles_search[selected].trim(),
-                duplicated_authors_search[selected].trim(),
-                self.episodes_pod_ep_search[selected].trim(),
-                self.durations_pod_ep_search[selected].trim(),
+                at(&duplicated_titles_search, selected).trim(),
+                at(&duplicated_authors_search, selected).trim(),
+                at(&self.episodes_pod_ep_search, selected).trim(),
+                at(&self.durations_pod_ep_search, selected).trim(),
                 if is_offline { "- [Downloaded]" } else { "" },
             ))
             .left_aligned()
@@ -1390,7 +1435,7 @@ impl App {
 
             // Check if index is valid for subtitles vector
             if selected < self.subtitles_pod_ep.len() {
-                Paragraph::new(self.subtitles_pod_ep[selected].clone())
+                Paragraph::new(at(&self.subtitles_pod_ep, selected).to_string())
                     .scroll((self.scroll_offset, 0))
                     .wrap(Wrap { trim: true })
                     .render(area, buf);
@@ -1410,7 +1455,7 @@ impl App {
     // desc of the podcast for `PodcastEpisode` (from search)
     fn render_desc_pod_ep_search(&self, area: Rect, buf: &mut Buffer, list_state: &ListState) {
         if let Some(selected) = list_state.selected() {
-            Paragraph::new(self.subtitles_pod_ep_search[selected].clone())
+            Paragraph::new(at(&self.subtitles_pod_ep_search, selected).to_string())
                 .scroll((self.scroll_offset, 0))
                 .wrap(Wrap { trim: true })
                 .render(area, buf);
@@ -1426,7 +1471,7 @@ impl App {
             if self.is_podcast {
                 Paragraph::new(format!(
                     "Author: {}",
-                    self.auth_names_pod_search_book[selected],
+                    at(&self.auth_names_pod_search_book, selected),
                 ))
                 .left_aligned()
                 .render(area, buf);
@@ -1438,8 +1483,8 @@ impl App {
                     .unwrap_or(false);
                 Paragraph::new(format!(
                     "Author: {} - Year: {}{}", //- Duration: {}\nProgress:{} {}{}",
-                    self.auth_names_search_book[selected],
-                    self.published_year_library_search_book[selected],
+                    at(&self.auth_names_search_book, selected),
+                    at(&self.published_year_library_search_book, selected),
                     if is_offline { " - [Downloaded]" } else { "" },
                     //  duration_library_search_book_conv[selected],
                     //  self.book_progress_search_book[selected][0], // percentage progression
@@ -1455,7 +1500,7 @@ impl App {
     // description of the book or podcast `SearchBook`
     fn render_desc_search_book(&self, area: Rect, buf: &mut Buffer, list_state: &ListState) {
         if let Some(selected) = list_state.selected() {
-            Paragraph::new(self.desc_library_search_book[selected].clone())
+            Paragraph::new(at(&self.desc_library_search_book, selected).to_string())
                 .scroll((self.scroll_offset, 0))
                 .wrap(Wrap { trim: true })
                 .render(area, buf);
@@ -1517,7 +1562,7 @@ Uninstall:
     // info for settings library
     fn render_info_settings_library(&self, area: Rect, buf: &mut Buffer, list_state: &ListState) {
         if let Some(selected) = list_state.selected() {
-            Paragraph::new(format!("Type: {}", self.media_types[selected],))
+            Paragraph::new(format!("Type: {}", at(&self.media_types, selected),))
                 .left_aligned()
                 .render(area, buf);
         }

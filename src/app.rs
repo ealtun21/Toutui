@@ -34,6 +34,9 @@ use ratatui::{
 };
 use std::io::stdout;
 
+/// The views of the application. The type has no field, therefore a copy
+/// costs nothing, and a test can name a view in a list.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum AppView {
     Home,
     Library,
@@ -187,6 +190,9 @@ pub struct App {
     pub book_progress_search_book_cur_time: Vec<Vec<f64>>,
     /// The audio engine. The application starts it one time.
     pub player: PlayerHandle,
+    /// The reason why the audio engine did not start. The program still shows
+    /// the library, and it tells the user that no media can play. See T-46.
+    pub audio_fault: Option<String>,
     pub config: ConfigFile,
     pub changelog: String,
     pub update_msg: String,
@@ -684,11 +690,26 @@ impl App {
         // Start the audio engine. The application decodes the audio itself,
         // thus the token stays in the memory of the process and `ps aux` does
         // not show it. See T-5.
-        let player = match PlayerHandle::start(token.clone()) {
-            Ok(player) => player,
+        // A machine with no sound card must still show the library.
+        //
+        // The old code stopped the whole program when the engine did not
+        // start. A user on a machine with no sound device, or with a
+        // configuration of ALSA that does not work, could then not read their
+        // library, not download a book, and not see their progress. The
+        // program keeps every function that needs no sound now, and it tells
+        // the user why no playback starts. See T-46.
+        let (player, audio_fault) = match PlayerHandle::start(token.clone()) {
+            Ok(player) => (player, None),
             Err(error) => {
-                eprintln!("{}", error);
-                return Err(color_eyre::eyre::eyre!(error));
+                log::error!("[app] the audio engine did not start: {}", error);
+                let (player, receiver) = PlayerHandle::without_engine();
+
+                // Nothing reads the commands of a player with no engine. A
+                // thread takes them and drops them, so that a key of the
+                // playback does not fill the memory.
+                std::thread::spawn(move || while receiver.recv().is_ok() {});
+
+                (player, Some(error.to_string()))
             }
         };
 
@@ -876,6 +897,7 @@ impl App {
             changelog,
             update_msg,
             covers: crate::ui::cover::CoverArt::new(),
+            audio_fault,
         })
     }
 
