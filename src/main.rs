@@ -23,10 +23,19 @@ use crate::utils::encrypt_token::decrypt_token;
 #[tokio::main]
 async fn main() -> Result<()> {
 
-    // clap 
+    // clap
     clap();
 
-    // this function allow to write all the logs in a file 
+    // The program before the fork used a different directory. The program
+    // copies that directory one time. The old directory does not change,
+    // therefore the user can use the old program again. See T-14 and T-21.
+    match toutui::paths::migrate_old_config_here() {
+        Ok(true) => println!("The configuration of the old directory is now in the new directory."),
+        Ok(false) => {}
+        Err(e) => eprintln!("The program cannot read the old directory: {}", e),
+    }
+
+    // this function allow to write all the logs in a file
     setup_logs().expect("Failed to execute logger");
 
     // The program reads the secret key from `.env`. See `encrypt_token.rs`.

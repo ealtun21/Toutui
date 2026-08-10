@@ -69,3 +69,99 @@ fn an_empty_variable_gives_the_home_directory_and_not_the_working_directory() {
     // Restore the environment for the tests that run after this one.
     std::env::remove_var("XDG_CONFIG_HOME");
 }
+
+use std::fs;
+
+/// Makes a parent directory that holds an old directory with the three files.
+fn old_installation(config_home: &Path) {
+    let old = paths::old_config_dir_in(config_home);
+    fs::create_dir_all(&old).unwrap();
+    fs::write(old.join("config.toml"), "[colors]\n").unwrap();
+    fs::write(old.join(".env"), "TOUTUI_SECRET_KEY=abc123\n").unwrap();
+    fs::write(old.join("db.sqlite3"), b"not a real database").unwrap();
+}
+
+/// The program copies the three files when only the old directory is present.
+#[test]
+fn the_program_copies_the_old_files() {
+    let home = tempfile::tempdir().unwrap();
+    old_installation(home.path());
+
+    let copied = paths::migrate_old_config(home.path()).unwrap();
+
+    let new = paths::config_dir_in(home.path());
+    assert!(copied);
+    assert_eq!(fs::read_to_string(new.join("config.toml")).unwrap(), "[colors]\n");
+    assert_eq!(fs::read(new.join("db.sqlite3")).unwrap(), b"not a real database");
+}
+
+/// The copy writes the new name of the key, and it keeps the value.
+#[test]
+fn the_copy_changes_the_name_of_the_key() {
+    let home = tempfile::tempdir().unwrap();
+    old_installation(home.path());
+
+    paths::migrate_old_config(home.path()).unwrap();
+
+    let env = fs::read_to_string(paths::config_dir_in(home.path()).join(".env")).unwrap();
+    assert_eq!(env, "ABSTUI_SECRET_KEY=abc123\n");
+}
+
+/// The old directory does not change.
+#[test]
+fn the_old_directory_stays_complete() {
+    let home = tempfile::tempdir().unwrap();
+    old_installation(home.path());
+
+    paths::migrate_old_config(home.path()).unwrap();
+
+    let old = paths::old_config_dir_in(home.path());
+    assert_eq!(
+        fs::read_to_string(old.join(".env")).unwrap(),
+        "TOUTUI_SECRET_KEY=abc123\n"
+    );
+    assert!(old.join("db.sqlite3").exists());
+}
+
+/// The program does not write when the new directory is present.
+#[test]
+fn the_program_does_not_write_on_a_new_installation() {
+    let home = tempfile::tempdir().unwrap();
+    old_installation(home.path());
+    let new = paths::config_dir_in(home.path());
+    fs::create_dir_all(&new).unwrap();
+    fs::write(new.join("config.toml"), "the file of the user\n").unwrap();
+
+    let copied = paths::migrate_old_config(home.path()).unwrap();
+
+    assert!(!copied);
+    assert_eq!(
+        fs::read_to_string(new.join("config.toml")).unwrap(),
+        "the file of the user\n"
+    );
+}
+
+/// The program makes the new directory when no directory is present.
+#[test]
+fn the_program_makes_the_directory_for_a_first_installation() {
+    let home = tempfile::tempdir().unwrap();
+
+    let copied = paths::migrate_old_config(home.path()).unwrap();
+
+    assert!(!copied);
+    assert!(paths::config_dir_in(home.path()).is_dir());
+}
+
+/// A file that the old directory does not have gives no error.
+#[test]
+fn a_file_that_is_absent_gives_no_error() {
+    let home = tempfile::tempdir().unwrap();
+    let old = paths::old_config_dir_in(home.path());
+    fs::create_dir_all(&old).unwrap();
+    fs::write(old.join("config.toml"), "[colors]\n").unwrap();
+
+    let copied = paths::migrate_old_config(home.path()).unwrap();
+
+    assert!(copied);
+    assert!(!paths::config_dir_in(home.path()).join(".env").exists());
+}

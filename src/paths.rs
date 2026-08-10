@@ -71,3 +71,51 @@ pub fn db_file() -> PathBuf {
 pub fn log_file() -> PathBuf {
     config_dir().join("abstui.log")
 }
+
+/// The files that the program copies from the old directory.
+const MIGRATED_FILES: [&str; 3] = ["config.toml", ".env", "db.sqlite3"];
+
+/// Copies the configuration of the program before the fork.
+///
+/// The function makes the new directory. If the new directory was present
+/// before, the function copies nothing, because the user has a configuration
+/// already. If the new directory was absent and the old directory is present,
+/// the function copies the files and gives `true`.
+///
+/// The function copies the files. It does not move them, thus the old
+/// directory stays complete and the user can use the old program again.
+pub fn migrate_old_config(config_home: &Path) -> std::io::Result<bool> {
+    let new = config_dir_in(config_home);
+    if new.is_dir() {
+        return Ok(false);
+    }
+
+    std::fs::create_dir_all(&new)?;
+
+    let old = old_config_dir_in(config_home);
+    if !old.is_dir() {
+        return Ok(false);
+    }
+
+    let mut copied = false;
+    for name in MIGRATED_FILES {
+        let source = old.join(name);
+        if !source.is_file() {
+            continue;
+        }
+        if name == ".env" {
+            let text = std::fs::read_to_string(&source)?;
+            std::fs::write(new.join(name), text.replace("TOUTUI_SECRET_KEY", "ABSTUI_SECRET_KEY"))?;
+        } else {
+            std::fs::copy(&source, new.join(name))?;
+        }
+        copied = true;
+    }
+
+    Ok(copied)
+}
+
+/// Copies the old configuration in the real parent directory.
+pub fn migrate_old_config_here() -> std::io::Result<bool> {
+    migrate_old_config(&config_home())
+}
