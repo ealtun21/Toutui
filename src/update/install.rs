@@ -11,6 +11,17 @@ use std::path::Path;
 /// The version of this build.
 const LOCAL_VERSION: &str = env!("CARGO_PKG_VERSION");
 
+/// The limit on the size of one file that the program receives.
+///
+/// A host that sends without end must not fill the memory of the computer.
+const MAX_DOWNLOAD_BYTES: u64 = 200 * 1024 * 1024;
+
+/// The limit on the time that the program waits for one address.
+///
+/// A host that does not answer must not stop the update forever with no
+/// message.
+const DOWNLOAD_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(120);
+
 /// Gives the sum SHA-256 of the bytes, in hexadecimal.
 pub fn sum_of(bytes: &[u8]) -> String {
     let mut hasher = Sha256::new();
@@ -24,12 +35,13 @@ pub fn sum_of(bytes: &[u8]) -> String {
 
 /// Finds the sum of one name in the file of the sums.
 ///
-/// Each line of the file has the form `<sum>  <name>`.
+/// Each line of the file has the form `<sum>  <name>`, or `<sum> *<name>`
+/// when a tool such as `sha256sum -b` makes the file.
 pub fn expected_sum(sums: &str, name: &str) -> Option<String> {
     sums.lines().find_map(|line| {
         let mut parts = line.split_whitespace();
         let sum = parts.next()?;
-        let file = parts.next()?;
+        let file = parts.next()?.trim_start_matches('*');
         if file == name {
             Some(sum.to_string())
         } else {
@@ -39,16 +51,26 @@ pub fn expected_sum(sums: &str, name: &str) -> Option<String> {
 }
 
 /// Takes the binary out of a `tar.gz`.
+///
+/// The decoder reads every member of the file, and not the first member
+/// only, because a `tar.gz` can hold more than one member.
 pub fn binary_from_archive(bytes: &[u8]) -> Result<Vec<u8>, String> {
-    let gz = flate2::read::GzDecoder::new(bytes);
+    let gz = flate2::read::MultiGzDecoder::new(bytes);
     let mut archive = tar::Archive::new(gz);
 
     for entry in archive.entries().map_err(|e| e.to_string())? {
         let mut entry = entry.map_err(|e| e.to_string())?;
         let path = entry.path().map_err(|e| e.to_string())?.into_owned();
-        if path.file_name().and_then(|name| name.to_str()) == Some("toutui") {
+        let is_named_toutui = path.file_name().and_then(|name| name.to_str()) == Some("toutui");
+
+        // A symlink, a hard link, or a directory can have the name `toutui`
+        // and the size 0. Only a plain file holds the bytes of the binary.
+        if entry.header().entry_type().is_file() && is_named_toutui {
             let mut contents = Vec::new();
             entry.read_to_end(&mut contents).map_err(|e| e.to_string())?;
+            if contents.is_empty() {
+                return Err("The file toutui in the archive holds no bytes.".to_string());
+            }
             return Ok(contents);
         }
     }
@@ -70,10 +92,31 @@ pub fn can_replace(binary: &Path) -> bool {
         .is_ok()
 }
 
+/// Gives the command that runs the update with more rights, with the path in
+/// quotation marks, so that a path with a space stays one argument.
+fn sudo_command(binary: &Path) -> String {
+    format!("sudo '{}' --update", binary.display())
+}
+
+/// Gives the mode that the new binary must have.
+///
+/// The new binary keeps the mode of the binary that is present, so that a
+/// binary that was private to one user stays private. The program uses
+/// 0o755 only when no binary is present yet.
+#[cfg(unix)]
+fn mode_for(binary: &Path) -> u32 {
+    use std::os::unix::fs::PermissionsExt;
+    std::fs::metadata(binary)
+        .map(|meta| meta.permissions().mode())
+        .unwrap_or(0o755)
+}
+
 /// Moves the new binary on to the old binary with one operation.
 ///
 /// The temporary file is in the directory of the binary, because a move
-/// between two file systems is not one operation.
+/// between two file systems is not one operation. The program sends the
+/// bytes and the mode to the disk before it moves the file, so that a loss
+/// of power right after the move cannot give a name with no data.
 pub fn replace_binary(binary: &Path, contents: &[u8]) -> std::io::Result<()> {
     let dir = binary.parent().unwrap_or(Path::new("."));
     let mut temp = tempfile::Builder::new()
@@ -81,22 +124,35 @@ pub fn replace_binary(binary: &Path, contents: &[u8]) -> std::io::Result<()> {
         .tempfile_in(dir)?;
 
     temp.write_all(contents)?;
-    temp.flush()?;
 
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
         temp.as_file()
-            .set_permissions(std::fs::Permissions::from_mode(0o755))?;
+            .set_permissions(std::fs::Permissions::from_mode(mode_for(binary)))?;
     }
+
+    // `flush` on this file does nothing, because the write goes straight to
+    // the file with no buffer in the program. `sync_all` is what sends the
+    // bytes and the mode to the disk.
+    temp.as_file().sync_all()?;
 
     temp.persist(binary).map_err(|e| e.error)?;
     Ok(())
 }
 
 /// Receives one file from an address.
+///
+/// The request has a limit on time and a limit on size, so that a host that
+/// does not answer, or a host that sends without end, cannot stop the
+/// update with no message or fill the memory of the computer.
 async fn receive(url: &str) -> Result<Vec<u8>, String> {
-    let response = reqwest::Client::new()
+    let client = reqwest::Client::builder()
+        .timeout(DOWNLOAD_TIMEOUT)
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let response = client
         .get(url)
         .header(reqwest::header::USER_AGENT, "Toutui-Updater")
         .send()
@@ -107,6 +163,15 @@ async fn receive(url: &str) -> Result<Vec<u8>, String> {
         return Err(format!("The address {} gives {}.", url, response.status()));
     }
 
+    if let Some(length) = response.content_length() {
+        if length > MAX_DOWNLOAD_BYTES {
+            return Err(format!(
+                "The address {} gives a file of {} bytes. The limit is {} bytes.",
+                url, length, MAX_DOWNLOAD_BYTES
+            ));
+        }
+    }
+
     response
         .bytes()
         .await
@@ -114,8 +179,13 @@ async fn receive(url: &str) -> Result<Vec<u8>, String> {
         .map_err(|e| e.to_string())
 }
 
-/// Does the full update, and gives the message that the user reads.
-pub async fn run_update(api: &str) -> Result<String, String> {
+/// Does the full update on the binary at the given path, and gives the
+/// message that the user reads.
+///
+/// A caller that runs as the program itself gives its own path, from
+/// `std::env::current_exe`. A test gives a path in a directory that the
+/// test made, so that the test cannot write over the binary of the test.
+pub async fn run_update_at(api: &str, binary: &Path) -> Result<String, String> {
     let target = target().ok_or_else(|| {
         "This system has no archive. Use `cargo install --git https://github.com/ealtun21/Toutui`."
             .to_string()
@@ -123,17 +193,32 @@ pub async fn run_update(api: &str) -> Result<String, String> {
 
     let release: Release = latest_release(api, target).await?;
 
-    if release.version == LOCAL_VERSION {
-        return Ok(format!("Version {} is the last version.", LOCAL_VERSION));
+    match (
+        semver::Version::parse(LOCAL_VERSION),
+        semver::Version::parse(&release.version),
+    ) {
+        (Ok(local), Ok(remote)) => {
+            if remote <= local {
+                return Ok(format!(
+                    "Version {} is installed. The release gives {}, and that version is not newer. The program did not change.",
+                    local, remote
+                ));
+            }
+        }
+        // A version that this program cannot read as semver keeps the old
+        // rule: install only when the text of the versions is not the same.
+        _ => {
+            if release.version == LOCAL_VERSION {
+                return Ok(format!("Version {} is the last version.", LOCAL_VERSION));
+            }
+        }
     }
 
-    let binary = std::env::current_exe().map_err(|e| e.to_string())?;
-
-    if !can_replace(&binary) {
+    if !can_replace(binary) {
         return Err(format!(
-            "The program cannot write in {}. Run this command:\n    sudo {} --update",
+            "The program cannot write in {}. Run this command:\n    {}",
             binary.parent().unwrap_or(Path::new(".")).display(),
-            binary.display()
+            sudo_command(binary)
         ));
     }
 
@@ -155,10 +240,29 @@ pub async fn run_update(api: &str) -> Result<String, String> {
     }
 
     let new_binary = binary_from_archive(&archive)?;
-    replace_binary(&binary, &new_binary).map_err(|e| e.to_string())?;
+
+    if let Err(e) = replace_binary(binary, &new_binary) {
+        // The permission to write can go away between the probe and the
+        // move. Give the command with `sudo` again when that happens.
+        if !can_replace(binary) {
+            return Err(format!(
+                "The program cannot write in {}. Run this command:\n    {}",
+                binary.parent().unwrap_or(Path::new(".")).display(),
+                sudo_command(binary)
+            ));
+        }
+        return Err(e.to_string());
+    }
 
     Ok(format!(
         "Version {} is now installed. The version before it was {}.",
         release.version, LOCAL_VERSION
     ))
+}
+
+/// Does the full update on this program's own binary, and gives the message
+/// that the user reads.
+pub async fn run_update(api: &str) -> Result<String, String> {
+    let binary = std::env::current_exe().map_err(|e| e.to_string())?;
+    run_update_at(api, &binary).await
 }
