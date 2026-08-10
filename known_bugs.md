@@ -61,8 +61,6 @@ application plays the audio itself now and starts no other program.
 **Sync**: If you open VLC to listen X, close VLC and quickly open VLC again to listen Y: X will still be sync — according to Y (normally, only Y has to be sync in this case).
 `bug_id: 86384e` 
 **Sync**: Rarely and especially if you open VLC to listen X, close VLC and quickly open VLC again to listen Y: the progress of X is set to 0 seconds.
-`bug_id: 06e548` 
-**Terminal broken**: The terminal is broken after the app is quit.
 `bug_id: 6ac5d8` 
 **Data loss if app crash or disgracefully quit**: If app crash, the last session is not closed.
 `bug_id: bf10cd` 
@@ -71,10 +69,12 @@ application plays the audio itself now and starts no other program.
 **Listening Session:** Sometimes, the session (that you can see in `yourserveraddress/audiobookshelf/config/sessions`) does not close correctly, especially if you open VLC, quit it quickly, and start another book.
 `bug_id: fc695f`
 **Listening session:** The session (that you can see in `yourserveraddress/audiobookshelf/config/sessions`) does not close when the app is quit.
-`bug_id: 40f48d`
-**Cursor:** When you quit the app, terminal cursor disappear.
 
 **FIXED**  
+`bug_id: 06e548` — CORRECTED on 2026-08-10
+**Terminal broken:** A panic gave the terminal back to the shell in the raw mode and on the alternate screen. The program installed no hook of the panic at all. `install_panic_hook` in `src/utils/exit_app.rs` gives the terminal back first and then writes the message, therefore the user can read that message and give it to a report. A measurement on 2026-08-10 ran a real process that took the terminal and then panicked: with no hook the bytes held no `ESC [ ? 1049 l`, and with the hook they hold it.  
+`bug_id: 40f48d` — CORRECTED on 2026-08-10
+**Cursor:** The same hook writes `ESC [ ? 25 h` and the cursor comes back. The same measurement shows the byte sequence with the hook and no sequence without it.  
 `bug_id: 4b3045` — CORRECTED on 2026-08-10
 **Authentification Bug:** One mechanism explains this report: the program read the database before the login wrote the user. The old code started the login with `tokio::spawn` and did not wait for it. `auth_input.rs` waits for the thread of the login now, and `auth_process` writes the user before it gives its answer. A test against a real server of Audiobookshelf 2.36.0 read the database with no wait after a first login: the user, the encrypted token, and the selected library were all present. `tests/login_against_the_sandbox.rs` holds that test.  
 `bug_id: e0b61c` — CORRECTED on 2026-08-10

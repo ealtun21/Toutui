@@ -25,6 +25,15 @@ async fn main() -> Result<()> {
     // clap
     clap().await;
 
+    // A panic must give the terminal back. Without this hook the shell stayed
+    // in the raw mode and on the alternate screen, therefore it showed no
+    // character that the user typed and it had no cursor. The message of the
+    // panic also stayed on the alternate screen, and the user did not read it.
+    // See `06e548` and `40f48d` in `known_bugs.md`.
+    //
+    // The hook comes before every other line that can panic.
+    toutui::utils::exit_app::install_panic_hook();
+
     // this function allow to write all the logs in a file
     setup_logs().expect("Failed to execute logger");
 
