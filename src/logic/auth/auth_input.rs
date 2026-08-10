@@ -27,6 +27,42 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// password.
 const MASK: char = '\u{2022}';
 
+/// The place of the field of the address in the list of the fields.
+const ADDRESS_FIELD: usize = 0;
+
+/// Examines the address of the server before the login asks for a password.
+///
+/// The function looks at the form of the address first, because that needs no
+/// network. Then it asks the address for `/ping`. Every Audiobookshelf server
+/// answers that path, and it needs no token.
+///
+/// This function is not asynchronous, because it runs inside the loop of the
+/// screen. Therefore the request runs on its own thread with its own runtime,
+/// as the login does. See T-15.
+fn check_the_address(written: &str) -> Result<String, String> {
+    let address = crate::api::server::address::check_shape(written)?;
+    let for_the_thread = address.clone();
+
+    let outcome = std::thread::spawn(move || {
+        let runtime = match tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+        {
+            Ok(runtime) => runtime,
+            Err(error) => return Err(format!("No runtime for the request: {}", error)),
+        };
+
+        runtime.block_on(crate::api::server::address::ask_ping(&for_the_thread))
+    })
+    .join();
+
+    match outcome {
+        Ok(Ok(())) => Ok(address),
+        Ok(Err(message)) => Err(message),
+        Err(_) => Err("The examination of the address stopped.".to_string()),
+    }
+}
+
 /// One field of the login screen.
 struct Field {
     title: &'static str,
@@ -131,6 +167,10 @@ impl AppLogin {
                     "".to_string()
                 }
             };
+            // The line must be empty before the new message. A message that
+            // is shorter than the message before it would otherwise keep the
+            // end of the old one.
+            let _ = clear_message(&mut stdout, 6);
             let _ = pop_message(&mut stdout, 6, error_message_login.as_str());
 
             match crossterm::event::read()? {
@@ -138,9 +178,32 @@ impl AppLogin {
                     code: KeyCode::Enter,
                     ..
                 }) => {
+                    // The address of the server is examined here, and not
+                    // after the password. The old code sent the three fields
+                    // together, therefore an address with no `http://` failed
+                    // after the user wrote everything. See T-45.
+                    if current_index == ADDRESS_FIELD {
+                        let written = fields[ADDRESS_FIELD].input.value().to_string();
+
+                        match check_the_address(&written) {
+                            Ok(address) => {
+                                let _ = update_login_err("");
+                                fields[ADDRESS_FIELD].input =
+                                    Input::default().with_value(address.clone());
+                                collected_data.push(address);
+                                current_index += 1;
+                            }
+                            Err(message) => {
+                                let _ = update_login_err(message.as_str());
+                            }
+                        }
+
+                        continue;
+                    }
+
                     if current_index < fields.len() - 1 {
-                        // The loop takes the first field and the second field
-                        // here. It takes the third field after the break.
+                        // The loop takes the second field here. It takes the
+                        // third field after the break.
                         collected_data.push(fields[current_index].input.value().to_string());
                         current_index += 1;
                     } else {
