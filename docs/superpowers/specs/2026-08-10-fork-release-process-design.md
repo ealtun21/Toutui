@@ -372,3 +372,24 @@ never receive the release. A measurement with the crate `semver` 1 on
 2026-08-10 confirms this order.
 
 `0.5.0-rc.1 < 0.5.0-rc.2 < 0.5.0` gives the correct order at every step.
+
+## R6. The floor of glibc is 2.31, and not 2.17
+
+Section 5.2 said that `cargo-zigbuild` gives a floor of glibc 2.17. A
+measurement on 2026-08-10 shows that this is not possible.
+
+The program links `libasound` of the system. The machine of the build has
+Ubuntu 24.04, therefore its `libasound.so` needs symbols of glibc 2.34 and
+later, such as `dlopen@GLIBC_2.34`. A build for a floor of 2.17 that links
+that library cannot complete, and the linker says
+`undefined reference: dlopen@GLIBC_2.34`.
+
+**The correction.** The two builds for Linux run inside a container of Debian
+bullseye. The binary and the `libasound` that it links then come from one
+system. The floor becomes glibc 2.31, which covers Debian 11 and later,
+Ubuntu 20.04 and later, and RHEL 9.
+
+A floor of 2.17 needs a build of `alsa-lib` from the source for each target.
+`alsa-lib` opens its plugins with `dlopen` and reads `/usr/share/alsa`,
+therefore that build can give a binary that finds no device of audio. The
+project does not do this.
