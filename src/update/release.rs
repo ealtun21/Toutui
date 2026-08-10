@@ -162,6 +162,34 @@ mod tests {
         assert!(!is_newer(version_of_tag("V0.5.1"), "0.5.1"));
     }
 
+    /// A release that this repository writes as a candidate must never take
+    /// the place of the release itself.
+    ///
+    /// Semver puts a version with a pre-release below the same version with
+    /// none. Therefore `0.6.0-rc.1` is older than `0.6.0`, and a user of the
+    /// candidate gets the message when `0.6.0` comes.
+    ///
+    /// A name that semver cannot read has no such rule. `0.6.0beta1` is not a
+    /// version at all, and the function then compares the two texts only.
+    #[test]
+    fn a_candidate_stands_below_its_release() {
+        assert!(is_newer("0.6.0", "0.6.0-rc.1"));
+        assert!(!is_newer("0.6.0-rc.1", "0.6.0"));
+        assert!(!is_newer("0.6.0-rc.1", "0.6.0-rc.2"));
+        assert!(is_newer("0.6.0-rc.2", "0.6.0-rc.1"));
+
+        // The release before it must not give a message to a candidate.
+        assert!(!is_newer("0.5.0", "0.6.0-rc.1"));
+
+        // A tag with a capital letter still gives the same answer. See T-28.
+        assert!(!is_newer(version_of_tag("V0.6.0-rc.1"), "0.6.0-rc.1"));
+
+        // A name that is not a version compares as a text. The two disagree,
+        // therefore the program would offer an update. This is the reason for
+        // the rule: write a candidate as `0.6.0-rc.N`, and nothing else.
+        assert!(is_newer("0.6.0beta1", "0.6.0"));
+    }
+
     #[test]
     fn newer_release_gives_true() {
         assert!(is_newer("0.6.0", "0.5.0"));

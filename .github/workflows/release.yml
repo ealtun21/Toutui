@@ -119,10 +119,16 @@ jobs:
         with:
           subject-path: dist/toutui-*.tar.gz
 
+      # A tag that holds a hyphen is a candidate, for example `v0.6.0-rc.1`.
+      # GitHub must mark it as a pre-release, because
+      # `/releases/latest` gives no pre-release. The program asks that
+      # address, therefore a candidate never reaches a user who did not ask
+      # for it. See T-28 and `src/utils/check_update.rs`.
       - name: Publish the release
         uses: softprops/action-gh-release@v2
         with:
           draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
           files: dist/*
           generate_release_notes: true
         env:
