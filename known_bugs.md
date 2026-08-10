@@ -12,12 +12,40 @@ path of the audio file.
 Measured on Audiobookshelf 2.36.0 on 2026-08-09. The archive of the test book
 contains `Cover.jpg` and one `.mp3` file.
 
+`bug_id: 8f31aa` — CORRECTED on 2026-08-10, commit a52a34d
+**A media does not stay marked as finished:** The server answered 200, the
+progress showed 100 percent, and `isFinished` stayed false. The item then
+stayed in "Continue listening". The cause is the sequence of the keys in the
+body: `{"currentTime":..,"isFinished":true,"progress":..}` does not mark the
+media, and `{"progress":..,"isFinished":true,"currentTime":..}` marks it.
+`serde_json` writes the keys in the sequence of the alphabet, thus the
+application always made the first body. The application sends the mark in its
+own request now. Measured on Audiobookshelf 2.36.0.
+
+`bug_id: 1c7e42` — CORRECTED on 2026-08-10, commit 597ca2d
+**The key `G` in an empty list stops the application:** `select_last`
+calculated `len() - 1`. A library with no item, a search with no result, and a
+podcast with no episode all give this condition. A debug build stopped with
+"attempt to subtract with overflow".
+
+`bug_id: 4d9b03` — CORRECTED on 2026-08-10, commit c9a68d8
+**The key `X` removes one file only:** The table `downloads` holds the path of
+the first file. A book with many audio files therefore kept every other file
+on the disk, and the user had no way to remove them from the application.
+
 **MINOR**
 
 `bug_id: 3a91e7` — CORRECTED on 2026-08-09, commit 14567c1
 **Descriptions show HTML:** The description panel shows the HTML tags of the
 description. An example is `<p>`, `<i>`, and `&amp;`. The application must
 remove the tags and change the HTML entities to characters.
+
+`bug_id: 7c5e18` — CORRECTED on 2026-08-10, commit bc9ceb0
+**The application does not start without the server:** The application
+downloaded a book for the offline mode, and it still needed the server to
+start and to play. The screen stayed empty. The application starts now, it
+shows the media of the disk, it plays them, and it sends the position when the
+server answers again.
 
 `bug_id: 255b86`
 **Losing config after an update**: Ex: You change colors in config file and after an update, this configuration is lost and replaced by the config from main version.

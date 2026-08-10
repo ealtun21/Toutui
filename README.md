@@ -1,8 +1,20 @@
-## ⚠️ I'm not able to properly maintain this project anymore. That's why I archived this repo. Thus, please don't wait for any new releases and issue fixing. Of course, you can still install the app and use it. Although it's a beta version, it might still work well for you. Thanks!
+## 🍴 This is a maintained fork
 
-[![GitHub release](https://img.shields.io/github/v/release/AlbanDAVID/Toutui?label=Latest%20Release&color=green&cacheSeconds=3600)](https://github.com/AlbanDAVID/Toutui/releases/latest)
-![AUR Version](https://img.shields.io/aur/version/toutui-bin?color=green&label=AUR)
-[![Release](https://github.com/AlbanDAVID/Toutui/actions/workflows/release.yml/badge.svg)](https://github.com/AlbanDAVID/Toutui/actions/workflows/release.yml)
+The original author archived [AlbanDAVID/Toutui](https://github.com/AlbanDAVID/Toutui)
+and cannot maintain it. This repository continues the work.
+
+The fork corrects the faults that the original project has, and it adds
+functions. `docs/TAKEOVER-BACKLOG.md` holds the full list. Report a fault in
+the [issues of this repository](https://github.com/ealtun21/Toutui/issues),
+and not in the archived repository.
+
+> [!WARNING]
+> The fork has no release yet. Build it from the source, and read
+> [T-21](https://github.com/ealtun21/Toutui/issues/21). The commands
+> `--update` and `--uninstall` of the original project installed the
+> **archived** program, thus this build refuses them.
+
+[![CI](https://github.com/ealtun21/Toutui/actions/workflows/ci.yml/badge.svg)](https://github.com/ealtun21/Toutui/actions/workflows/ci.yml)
 
 # 🦜 Toutui: A TUI Audiobookshelf client for Linux and macOS
 
@@ -103,18 +115,18 @@ Here are some features that could be added in future releases:
   
 ## ⚠️ Caution: Beta Version  
 This beta app is still in **heavy development and contains bugs**.  
-❗Please check [here](https://github.com/AlbanDAVID/Toutui/blob/main/known_bugs.md) for known bugs especially **MAJOR BUGS** before using the app, so you can use it with full awareness of any known issues.  
-If you encounter any issues that are **not yet listed** in the Issues section or into [known bugs](https://github.com/AlbanDAVID/Toutui/blob/main/known_bugs.md), please **open a new issue** to report them.  
+❗Please check [here](https://github.com/ealtun21/Toutui/blob/main/known_bugs.md) for known bugs especially **MAJOR BUGS** before using the app, so you can use it with full awareness of any known issues.  
+If you encounter any issues that are **not yet listed** in the Issues section or into [known bugs](https://github.com/ealtun21/Toutui/blob/main/known_bugs.md), please **open a new issue** to report them.  
 
 🔐 Although it's a beta version, you can use this app with **minimal risk** to your Audiobookshelf library.  
 At worst, you may experience **sync issues**, but there is **no risk** of data loss, deletion, or irreversible changes (API is just used to retrieve books and sync them).
 
 ## 📝 Notes
 ### 🐛 **Issues**    
-For any issues, check first the [wiki](https://github.com/AlbanDAVID/Toutui/wiki/) and [issues](https://github.com/AlbanDAVID/Toutui/issues). Otherwise, open a new one.
+For any issues, check first the [issues of this fork](https://github.com/ealtun21/Toutui/issues) and the [wiki of the original project](https://github.com/AlbanDAVID/Toutui/wiki/). Otherwise, open a new one **in this repository**. The original repository is archived and takes no report.
 
 ### 🤝 **Contributing**  
-Do not hesitate to contribute to this project by submitting your code, ideas, or feedback. Please make sure to read the [contributing guidelines](https://github.com/AlbanDAVID/Toutui/blob/main/CONTRIBUTING.md) first.
+Do not hesitate to contribute to this project by submitting your code, ideas, or feedback. Please make sure to read the [contributing guidelines](https://github.com/ealtun21/Toutui/blob/main/CONTRIBUTING.md) first.
 
 ### 🔁 Branching workflow 
 This project follow this [branching workflow](https://gist.github.com/digitaljhelms/4287848). 
@@ -130,7 +142,7 @@ To ensure the best experience, it's recommended to use **Kitty** or **Alacritty*
 
 >[!WARNING]
 > - **This is a beta app, please read [this](https://github.com/AlbanDAVID/Toutui?tab=readme-ov-file#%EF%B8%8F-caution-beta-version).**
->  - For any issues, check first the [wiki](https://github.com/AlbanDAVID/Toutui/wiki/) and [issues](https://github.com/AlbanDAVID/Toutui/issues). Otherwise, open a new one.
+>  - For any issues, check first the [issues of this fork](https://github.com/ealtun21/Toutui/issues) and the [wiki of the original project](https://github.com/AlbanDAVID/Toutui/wiki/). Otherwise, open a new one **in this repository**. The original repository is archived and takes no report.
 
 ### <img src=".github/archlinux-icon.svg" align="top" width="24" alt="(Arch Linux)"/> Arch Linux
 [![GitHub release](https://img.shields.io/github/v/release/AlbanDAVID/Toutui?label=Latest%20Release&color=green&cacheSeconds=3600)](https://github.com/AlbanDAVID/Toutui/releases/latest)
