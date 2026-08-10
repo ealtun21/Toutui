@@ -381,8 +381,7 @@ To make it work properly, perform a fresh reinstall.
      ####\n"
         .to_string();
 
-    let changelog_21 = format!(
-        "Changelog Toutui v{} (11/08/2026) \n\
+    let changelog_21 = "Changelog Toutui v0.6.5 (11/08/2026) \n\
      \n\
      Fixed:\n\
      - **A playback that does not start no longer loses your place.**\n\
@@ -392,6 +391,38 @@ To make it work properly, perform a fresh reinstall.
        when the session closed. The book then started at the beginning.\n\
        The program now writes nothing until the engine reaches the place\n\
        where the playback starts.\n\
+     \n\
+     Contributors:\n\
+     \n\
+     - AlbanDAVID (the original project), ealtun21\n\
+     \n\
+     Enjoy and be toutui!\n\
+     ####\n"
+        .to_string();
+
+    let changelog_22 = format!(
+        "Changelog Toutui v{} (11/08/2026) \n\
+     \n\
+     Added:\n\
+     - **The search asks the server.** The program looked in the titles\n\
+       that it holds, therefore the name of an author found nothing. The\n\
+       server also finds an author, a series, a narrator, a tag, and a\n\
+       genre. The screen shows the titles at once, and the answer of the\n\
+       server when it comes. The title of the list says where the answer\n\
+       comes from.\n\
+     - The reader follows the web reader of Audiobookshelf. It reads the\n\
+       chapter out of an EPUBCFI, therefore you find the correct chapter\n\
+       when you read in the web page and then in the terminal.\n\
+     - A log out asks one time. Press l a second time to log out, and any\n\
+       other key stops the question.\n\
+     - docs/T-24-coverage.md compares this program with the server,\n\
+       function by function.\n\
+     \n\
+     Fixed:\n\
+     - The Home view matched its shelf on a name for a person. A server\n\
+       that gives that name in a different language gave an empty Home\n\
+       view, with no error. The program matches the identity now.\n\
+     - The list of the accounts no longer moves past its last line.\n\
      \n\
      Contributors:\n\
      \n\
@@ -441,6 +472,7 @@ To make it work properly, perform a fresh reinstall.
          Enjoy and be toutui!\n
          ####\n".to_string();
 
+    changelog.push_str(&changelog_22);
     changelog.push_str(&changelog_21);
     changelog.push_str(&changelog_20);
     changelog.push_str(&changelog_19);

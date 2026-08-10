@@ -861,7 +861,23 @@ impl App {
         ])
         .areas(main_area);
 
-        let render_list_title = "Search result";
+        let from_the_server = crate::logic::search::from_the_server::answer_for(&self.search_query);
+
+        // The title tells the user where the answer comes from, and it names
+        // the author or the narrator that the server found. A search for the
+        // name of an author gives no book when the library holds no book of
+        // that name, and the user must not think that the program did
+        // nothing. See T-24.
+        let render_list_title = match &from_the_server {
+            Some(answer) if !answer.names.is_empty() => format!(
+                "Search result [the server also found: {}]",
+                answer.names.join(", ")
+            ),
+            Some(_) => "Search result [from the server]".to_string(),
+            None => "Search result [the titles of this program]".to_string(),
+        };
+        let render_list_title = render_list_title.as_str();
+
         let mut _text_render_footer = "";
         if self.is_podcast {
             _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n c: lists, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
@@ -877,13 +893,31 @@ impl App {
         }
 
         // init variables for search result (search by a book by title)
-        let idx_and_titles: Vec<(usize, String)> = self
-            .titles_library
-            .iter()
-            .enumerate()
-            .filter(|(_, x)| x.to_lowercase().contains(&self.search_query.to_lowercase()))
-            .map(|(index, title)| (index, title.clone()))
-            .collect();
+        // The answer of the server comes first, and the titles of this
+        // program come while the user waits for it.
+        //
+        // The server finds an author, a series, a narrator, a tag, and a
+        // genre. This program looks in the titles only, therefore a user who
+        // writes the name of an author finds nothing here. See T-24.
+        let idx_and_titles: Vec<(usize, String)> = match &from_the_server {
+            Some(answer) => answer
+                .items
+                .iter()
+                .filter_map(|id| self.ids_library.iter().position(|one| one == id))
+                .filter_map(|index| {
+                    self.titles_library
+                        .get(index)
+                        .map(|title| (index, title.clone()))
+                })
+                .collect(),
+            None => self
+                .titles_library
+                .iter()
+                .enumerate()
+                .filter(|(_, x)| x.to_lowercase().contains(&self.search_query.to_lowercase()))
+                .map(|(index, title)| (index, title.clone()))
+                .collect(),
+        };
 
         let mut titles_search_book_or_pod: Vec<String> = Vec::new();
         let mut index_to_keep: Vec<usize> = Vec::new();

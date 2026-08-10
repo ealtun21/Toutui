@@ -1686,6 +1686,43 @@ impl App {
         }
     }
 
+    /// Asks the server for the media that agree with the words of the user.
+    ///
+    /// The render is not asynchronous, therefore a task asks and the render
+    /// takes the answer at the next frame. See T-24.
+    pub fn ask_the_server_to_search(&mut self) {
+        crate::logic::search::from_the_server::forget();
+
+        if self.is_offline || self.search_query.trim().is_empty() {
+            return;
+        }
+
+        let api = std::sync::Arc::clone(&self.api);
+        let library = self.id_selected_lib.clone();
+        let words = self.search_query.clone();
+
+        tokio::spawn(async move {
+            let answer =
+                match crate::api::libraries::search_library::search_library(&api, &library, &words)
+                    .await
+                {
+                    Ok(answer) => answer,
+                    Err(error) => {
+                        log::warn!("[search] the server did not search: {}", error);
+                        return;
+                    }
+                };
+
+            crate::logic::search::from_the_server::keep(
+                crate::logic::search::from_the_server::Answer {
+                    words,
+                    items: crate::api::libraries::search_library::items_of(&answer),
+                    names: crate::api::libraries::search_library::names_of(&answer),
+                },
+            );
+        });
+    }
+
     /// Gives the identity of the item that the user selected, in any view of
     /// media.
     pub fn selected_item_id(&self) -> Option<String> {

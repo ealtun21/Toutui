@@ -64,6 +64,13 @@ impl App {
                     self.search_query = input.value().to_string();
                     self.view_state = AppView::SearchBook;
                     self.list_state_search_results.select(Some(0));
+
+                    // The server searches better than this program: it finds
+                    // an author, a series, a narrator, a tag, and a genre, and
+                    // this program looks in the titles that it holds. The
+                    // screen shows the titles at once, and it shows the answer
+                    // of the server when it comes. See T-24.
+                    self.ask_the_server_to_search();
                     break;
                 }
                 Event::Key(KeyEvent {
