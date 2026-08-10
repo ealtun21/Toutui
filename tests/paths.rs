@@ -117,6 +117,10 @@ fn the_old_directory_stays_complete() {
 
     let old = paths::old_config_dir_in(home.path());
     assert_eq!(
+        fs::read_to_string(old.join("config.toml")).unwrap(),
+        "[colors]\n"
+    );
+    assert_eq!(
         fs::read_to_string(old.join(".env")).unwrap(),
         "TOUTUI_SECRET_KEY=abc123\n"
     );
@@ -139,6 +143,8 @@ fn the_program_does_not_write_on_a_new_installation() {
         fs::read_to_string(new.join("config.toml")).unwrap(),
         "the file of the user\n"
     );
+    assert!(!new.join(".env").exists());
+    assert!(!new.join("db.sqlite3").exists());
 }
 
 /// The program makes the new directory when no directory is present.
@@ -164,4 +170,46 @@ fn a_file_that_is_absent_gives_no_error() {
 
     assert!(copied);
     assert!(!paths::config_dir_in(home.path()).join(".env").exists());
+}
+
+/// The new `.env` keeps the mode of the old `.env`. A user can set that mode
+/// to keep other users of the computer from reading the secret key.
+#[cfg(unix)]
+#[test]
+fn the_copy_keeps_the_permissions_of_the_env_file() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let home = tempfile::tempdir().unwrap();
+    old_installation(home.path());
+    let old_env = paths::old_config_dir_in(home.path()).join(".env");
+    fs::set_permissions(&old_env, fs::Permissions::from_mode(0o600)).unwrap();
+
+    paths::migrate_old_config(home.path()).unwrap();
+
+    let new_env = paths::config_dir_in(home.path()).join(".env");
+    let mode = fs::metadata(&new_env).unwrap().permissions().mode();
+    assert_eq!(mode & 0o777, 0o600);
+}
+
+/// The copy changes the name of the key on its own line only. A comment, a
+/// second variable, and a longer name that holds the old name inside it
+/// must not change.
+#[test]
+fn the_copy_changes_only_the_line_of_the_key() {
+    let home = tempfile::tempdir().unwrap();
+    let old = paths::old_config_dir_in(home.path());
+    fs::create_dir_all(&old).unwrap();
+    fs::write(
+        old.join(".env"),
+        "# a comment about TOUTUI_SECRET_KEY\nTOUTUI_SECRET_KEY=abc123\nSECOND_VAR=xyz\nMY_TOUTUI_SECRET_KEY=decoy\n",
+    )
+    .unwrap();
+
+    paths::migrate_old_config(home.path()).unwrap();
+
+    let env = fs::read_to_string(paths::config_dir_in(home.path()).join(".env")).unwrap();
+    assert_eq!(
+        env,
+        "# a comment about TOUTUI_SECRET_KEY\nABSTUI_SECRET_KEY=abc123\nSECOND_VAR=xyz\nMY_TOUTUI_SECRET_KEY=decoy\n"
+    );
 }

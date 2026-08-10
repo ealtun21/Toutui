@@ -32,7 +32,10 @@ async fn main() -> Result<()> {
     match toutui::paths::migrate_old_config_here() {
         Ok(true) => println!("The configuration of the old directory is now in the new directory."),
         Ok(false) => {}
-        Err(e) => eprintln!("The program cannot read the old directory: {}", e),
+        Err(e) => eprintln!(
+            "The program cannot copy the old directory: {}. The old directory did not change.",
+            e
+        ),
     }
 
     // this function allow to write all the logs in a file
