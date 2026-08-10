@@ -68,6 +68,24 @@ sum_agrees() {
     [ "$expected" = "$actual" ]
 }
 
+warn_if_no_alsa() {
+    # The program connects to libasound at the time it runs. A system with a
+    # desktop has that library. A small system does not, and the loader then
+    # gives a message that names no package.
+    if [ "$(uname -s)" != "Linux" ]; then
+        return 0
+    fi
+    if ldconfig -p 2>/dev/null | grep -q 'libasound\.so\.2'; then
+        return 0
+    fi
+    echo "[WARN] The library libasound.so.2 is not on this system." >&2
+    echo "[WARN] toutui needs it to play audio. Install one of these:" >&2
+    echo "           Debian, Ubuntu:  sudo apt install libasound2" >&2
+    echo "           Fedora, RHEL:    sudo dnf install alsa-lib" >&2
+    echo "           Arch:            sudo pacman -S alsa-lib" >&2
+    echo "           openSUSE:        sudo zypper install libasound2" >&2
+}
+
 main() {
     [ "$(id -u)" -ne 0 ] || fail "Do not run this script as root."
 
@@ -146,6 +164,8 @@ main() {
             echo "[WARN] The launcher entry did not arrive. Toutui still runs from the command line." >&2
         fi
     fi
+
+    warn_if_no_alsa
 
     echo "[DONE] Type toutui to start the program."
 }

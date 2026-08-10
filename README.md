@@ -131,6 +131,24 @@ To ensure the best experience, it's recommended to use **Kitty** or **Alacritty*
 
 ## Installation
 
+### What the program needs
+
+Linux: the library of ALSA, which nearly every system with a desktop has
+already. If `toutui` stops with `libasound.so.2: cannot open shared object
+file`, install it:
+
+| System | Command |
+|---|---|
+| Debian, Ubuntu | `sudo apt install libasound2` |
+| Fedora, RHEL | `sudo dnf install alsa-lib` |
+| Arch | `sudo pacman -S alsa-lib` |
+| openSUSE | `sudo zypper install libasound2` |
+
+macOS needs nothing. The system gives the audio.
+
+A build from the source needs the headers of ALSA instead of the library —
+see [From the source](#from-the-source).
+
 ### The script
 
 ```bash
@@ -154,6 +172,10 @@ needs the headers of ALSA: `libasound2-dev` on Debian, `alsa-lib` on Arch.
 
 The [releases](https://github.com/ealtun21/Toutui/releases) hold one archive
 for each system, and `SHA256SUMS`. Compare the sum before you use an archive.
+
+The Linux archives need glibc 2.31 or later: Debian 11 and later, Ubuntu
+20.04 and later, or RHEL 9. A system with an older glibc must use
+[From the source](#from-the-source) instead.
 
 ### The update
 
