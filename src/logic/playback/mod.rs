@@ -14,6 +14,7 @@ use crate::api::sessions::close_open_session::*;
 use crate::api::sessions::sync_open_session::*;
 use crate::db::crud::*;
 use crate::logic::offline::{remember_progress, tracks_from_downloads};
+use crate::logic::sync_session::force_sync;
 use crate::logic::sync_session::sync_session_from_database::*;
 use crate::logic::sync_session::wait_prev_session_finished::*;
 use crate::player::engine::source::{select_sources, TrackSource};
@@ -742,13 +743,23 @@ pub async fn follow_playback(
                 let moved = position.saturating_sub(last_position);
                 since_sync += 1;
 
-                if since_sync >= SYNC_PERIOD {
-                    if let Err(error) = sync_session(api, &session_id, Some(position), moved).await
-                    {
+                // The user asked for the sync now. The loop does the work,
+                // because the loop holds the listened time. Two senders would
+                // give that time to the server two times. See T-32.
+                let forced = force_sync::take_request(playback_id);
+
+                if since_sync >= SYNC_PERIOD || forced {
+                    let outcome = sync_session(api, &session_id, Some(position), moved).await;
+
+                    if let Err(error) = &outcome {
                         warn!(
                             "[follow_playback] the server did not accept the sync: {}",
                             error
                         );
+                    }
+
+                    if forced {
+                        force_sync::report(force_sync::message(&outcome, position));
                     }
 
                     let _ = update_elapsed_time(moved, session_id.as_str());
@@ -768,6 +779,21 @@ pub async fn follow_playback(
             }
 
             PlaybackStatus::Paused => {
+                // A playback that waits gives no new listened time. The sync
+                // therefore sends the position and the value 0. See T-32.
+                if force_sync::take_request(playback_id) {
+                    let outcome = sync_session(api, &session_id, Some(position), 0).await;
+
+                    if let Err(error) = &outcome {
+                        warn!(
+                            "[follow_playback] the server did not accept the sync: {}",
+                            error
+                        );
+                    }
+
+                    force_sync::report(force_sync::message(&outcome, position));
+                }
+
                 since_sync = 0;
                 last_position = position;
             }

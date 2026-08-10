@@ -964,6 +964,52 @@ impl App {
             KeyCode::Char('S') => {
                 self.view_state = AppView::Settings;
             }
+
+            // The key that forces the sync. See T-32 and upstream issue #37.
+            //
+            // The design named the key `S`, and `S` was not free: it opens the
+            // settings. `F` reads as "force the sync".
+            //
+            // The key writes a flag only. The loop of the playback sends the
+            // position at its next second, because that loop holds the
+            // listened time. The command does not close the session.
+            KeyCode::Char('F') => {
+                let state = self.player.state();
+                let mut stdout = stdout();
+
+                if state.status == crate::player::engine::PlaybackStatus::Stopped
+                    || !crate::logic::sync_session::force_sync::ask(state.playback_id)
+                {
+                    let _ = clear_message(&mut stdout, 3);
+                    let _ = pop_message(&mut stdout, 3, "Sync: nothing plays now.");
+                } else {
+                    let _ = clear_message(&mut stdout, 3);
+                    let _ =
+                        pop_message(&mut stdout, 3, "Sync: the application sends the position…");
+
+                    // The answer comes from the loop of the playback. This
+                    // task waits for it, and it stops after a short time when
+                    // no answer comes.
+                    tokio::spawn(async move {
+                        for _ in 0..40 {
+                            tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+
+                            if let Some(text) =
+                                crate::logic::sync_session::force_sync::take_report()
+                            {
+                                let mut stdout = std::io::stdout();
+                                let _ = clear_message(&mut stdout, 3);
+                                let _ = pop_message(&mut stdout, 3, text.as_str());
+                                return;
+                            }
+                        }
+
+                        let mut stdout = std::io::stdout();
+                        let _ = clear_message(&mut stdout, 3);
+                        let _ = pop_message(&mut stdout, 3, "Sync: the playback gave no answer.");
+                    });
+                }
+            }
             KeyCode::Tab => {
                 if self.is_from_search_pod {
                     self.is_from_search_pod = false;
