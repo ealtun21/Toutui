@@ -17,6 +17,11 @@ API="https://api.github.com/repos/${REPO}/releases/latest"
 BIN_DIR="${TOUTUI_BIN_DIR:-/usr/local/bin}"
 tmp=""
 
+# The largest file that the script accepts, in bytes. A host that sends
+# without end must not fill the disk. The number agrees with
+# MAX_DOWNLOAD_BYTES in src/update/install.rs. See T-30.
+MAX_BYTES=$((200 * 1024 * 1024))
+
 fail() {
     echo "[ERROR] $1" >&2
     exit 1
@@ -48,6 +53,35 @@ config_dir() {
     else
         echo "${HOME}/.config/toutui"
     fi
+}
+
+size_of() {
+    wc -c < "$1" | tr -d ' '
+}
+
+# Receives one address into one file, with a limit on the size.
+# $1 = the address, $2 = the file.
+#
+# `--max-filesize` stops a download whose header gives a size above the
+# limit. That header is not enough, because a host can send no header at all,
+# and the download then had no limit. Therefore `head` takes one byte more
+# than the limit, and the size of the file on the disk tells if the host sent
+# too much. `head` also closes the pipe, thus the download stops.
+receive() {
+    local url="$1" out="$2"
+    local status=0
+
+    curl -sSfL --max-filesize "$MAX_BYTES" "$url" \
+        | head -c "$((MAX_BYTES + 1))" > "$out" || status=$?
+
+    # The exit status 63 is the limit of curl itself. A newer curl stops the
+    # download at the limit, and an older curl stops only when the header
+    # gives a size above the limit.
+    if [ "$status" -eq 63 ] || [ "$(size_of "$out")" -gt "$MAX_BYTES" ]; then
+        fail "The address ${url} sends more than ${MAX_BYTES} bytes."
+    fi
+
+    return "$status"
 }
 
 sum_of() {
@@ -97,20 +131,23 @@ main() {
     target=$(identify_target)
     archive="toutui-${target}.tar.gz"
 
-    local body
-    body=$(curl -sSfL "$API") || fail "GitHub does not answer. Try again after some minutes."
-    tag=$(printf '%s\n' "$body" | sed -nE 's/.*"tag_name"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' | head -1)
+    # The temporary directory comes before the first download, because the
+    # answer of the API goes into a file as well. A file has a size that the
+    # script can test, and a variable does not.
+    tmp=$(mktemp -d)
+    trap 'if [ -n "${tmp:-}" ]; then rm -rf "$tmp"; fi' EXIT
+
+    receive "$API" "${tmp}/latest.json" \
+        || fail "GitHub does not answer. Try again after some minutes."
+    tag=$(sed -nE 's/.*"tag_name"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' "${tmp}/latest.json" | head -1)
     [ -n "$tag" ] || fail "The repository has no release."
 
     echo "[INFO] The last release is ${tag}."
 
-    tmp=$(mktemp -d)
-    trap 'if [ -n "${tmp:-}" ]; then rm -rf "$tmp"; fi' EXIT
-
     local base="https://github.com/${REPO}/releases/download/${tag}"
-    curl -sSfL "${base}/${archive}" -o "${tmp}/${archive}" \
+    receive "${base}/${archive}" "${tmp}/${archive}" \
         || fail "The archive ${archive} did not arrive."
-    curl -sSfL "${base}/SHA256SUMS" -o "${tmp}/SHA256SUMS" \
+    receive "${base}/SHA256SUMS" "${tmp}/SHA256SUMS" \
         || fail "SHA256SUMS did not arrive."
 
     sum_agrees "${tmp}/${archive}" "$archive" "${tmp}/SHA256SUMS" \
@@ -134,7 +171,7 @@ main() {
     config=$(config_dir)
     mkdir -p "$config"
     if [ ! -f "${config}/config.toml" ]; then
-        if curl -sSfL "${base}/config.example.toml" -o "${tmp}/config.example.toml"; then
+        if receive "${base}/config.example.toml" "${tmp}/config.example.toml"; then
             if sum_agrees "${tmp}/config.example.toml" "config.example.toml" "${tmp}/SHA256SUMS"; then
                 cp "${tmp}/config.example.toml" "${config}/config.toml"
                 echo "[INFO] The configuration is in ${config}/config.toml."
@@ -155,7 +192,7 @@ main() {
 
     if [ "$(uname -s)" = "Linux" ]; then
         mkdir -p "${HOME}/.local/share/applications"
-        if curl -sSfL "${base}/toutui.desktop" -o "${tmp}/toutui.desktop"; then
+        if receive "${base}/toutui.desktop" "${tmp}/toutui.desktop"; then
             if sum_agrees "${tmp}/toutui.desktop" "toutui.desktop" "${tmp}/SHA256SUMS"; then
                 cp "${tmp}/toutui.desktop" "${HOME}/.local/share/applications/toutui.desktop"
             else

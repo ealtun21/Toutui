@@ -4,7 +4,9 @@
 //! network.
 
 use std::io::Write;
-use toutui::update::install::{binary_from_archive, expected_sum, replace_binary, sum_of};
+use toutui::update::install::{
+    binary_from_archive, expected_sum, receive_at_most, replace_binary, sum_of,
+};
 use toutui::update::release::{parse_release, target, Release};
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -348,4 +350,101 @@ async fn a_newer_release_passes_the_version_test() {
         .unwrap_err();
 
     assert!(error.contains("not correct"));
+}
+
+/// Starts a host that answers with `Transfer-Encoding: chunked` and never
+/// stops.
+///
+/// The answer has no header `Content-Length`. Therefore the test of that
+/// header cannot stop this host, and only a count of the bytes can. The test
+/// needs a raw socket, because a mock server always gives a length. See T-30.
+async fn a_host_that_sends_without_end() -> String {
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let address = format!("http://{}", listener.local_addr().unwrap());
+
+    tokio::spawn(async move {
+        while let Ok((mut socket, _)) = listener.accept().await {
+            tokio::spawn(async move {
+                use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+                // Read the request, and stop at the empty line.
+                let mut request = Vec::new();
+                let mut byte = [0u8; 1];
+                while socket.read(&mut byte).await.unwrap_or(0) == 1 {
+                    request.push(byte[0]);
+                    if request.ends_with(b"\r\n\r\n") {
+                        break;
+                    }
+                }
+
+                let head = b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n";
+                if socket.write_all(head).await.is_err() {
+                    return;
+                }
+
+                // One chunk of 4096 bytes, again and again, and no last
+                // chunk. A program with no limit reads until the memory or
+                // the time runs out.
+                let chunk = [b'x'; 4096];
+                loop {
+                    if socket.write_all(b"1000\r\n").await.is_err()
+                        || socket.write_all(&chunk).await.is_err()
+                        || socket.write_all(b"\r\n").await.is_err()
+                    {
+                        return;
+                    }
+                }
+            });
+        }
+    });
+
+    address
+}
+
+/// An answer with no length stops at the limit. This is T-30.
+///
+/// The program read the whole body into the memory when the answer had no
+/// header `Content-Length`. Only the limit of 120 seconds stopped it.
+#[tokio::test]
+async fn an_answer_with_no_length_stops_at_the_limit() {
+    let address = a_host_that_sends_without_end().await;
+
+    let error = receive_at_most(&address, 64 * 1024).await.unwrap_err();
+
+    assert!(error.contains("more than the limit"), "{}", error);
+}
+
+/// A header that gives a size above the limit stops the download before the
+/// bytes arrive.
+#[tokio::test]
+async fn a_length_above_the_limit_stops_the_download() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/big"))
+        .respond_with(ResponseTemplate::new(200).set_body_bytes(vec![b'x'; 4096]))
+        .mount(&server)
+        .await;
+
+    let error = receive_at_most(&format!("{}/big", server.uri()), 1024)
+        .await
+        .unwrap_err();
+
+    assert!(error.contains("The limit is 1024 bytes"), "{}", error);
+}
+
+/// A file that is inside the limit arrives whole.
+#[tokio::test]
+async fn a_file_inside_the_limit_arrives_whole() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/small"))
+        .respond_with(ResponseTemplate::new(200).set_body_bytes(vec![b'x'; 4096]))
+        .mount(&server)
+        .await;
+
+    let body = receive_at_most(&format!("{}/small", server.uri()), 64 * 1024)
+        .await
+        .unwrap();
+
+    assert_eq!(body, vec![b'x'; 4096]);
 }

@@ -141,18 +141,21 @@ pub fn replace_binary(binary: &Path, contents: &[u8]) -> std::io::Result<()> {
     Ok(())
 }
 
-/// Receives one file from an address.
+/// Receives one file from an address, with a limit on the size.
 ///
-/// The request has a limit on time and a limit on size, so that a host that
-/// does not answer, or a host that sends without end, cannot stop the
-/// update with no message or fill the memory of the computer.
-async fn receive(url: &str) -> Result<Vec<u8>, String> {
+/// The header `Content-Length` is the first test, because a host that gives a
+/// correct header saves the whole download. That header is not enough: a host
+/// can send no header, or a header that is not true. Therefore the program
+/// counts the bytes as they arrive and stops at the limit. See T-30.
+///
+/// The limit is an argument, so that a test can use a small number.
+pub async fn receive_at_most(url: &str, limit: u64) -> Result<Vec<u8>, String> {
     let client = reqwest::Client::builder()
         .timeout(DOWNLOAD_TIMEOUT)
         .build()
         .map_err(|e| e.to_string())?;
 
-    let response = client
+    let mut response = client
         .get(url)
         .header(reqwest::header::USER_AGENT, "Toutui-Updater")
         .send()
@@ -164,19 +167,36 @@ async fn receive(url: &str) -> Result<Vec<u8>, String> {
     }
 
     if let Some(length) = response.content_length() {
-        if length > MAX_DOWNLOAD_BYTES {
+        if length > limit {
             return Err(format!(
                 "The address {} gives a file of {} bytes. The limit is {} bytes.",
-                url, length, MAX_DOWNLOAD_BYTES
+                url, length, limit
             ));
         }
     }
 
-    response
-        .bytes()
-        .await
-        .map(|bytes| bytes.to_vec())
-        .map_err(|e| e.to_string())
+    let mut body: Vec<u8> = Vec::new();
+    while let Some(chunk) = response.chunk().await.map_err(|e| e.to_string())? {
+        if body.len() as u64 + chunk.len() as u64 > limit {
+            return Err(format!(
+                "The address {} sends more than the limit of {} bytes. \
+                 The program stopped the download.",
+                url, limit
+            ));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    Ok(body)
+}
+
+/// Receives one file from an address, with the limit of the program.
+///
+/// The request has a limit on time and a limit on size, so that a host that
+/// does not answer, or a host that sends without end, cannot stop the
+/// update with no message or fill the memory of the computer.
+async fn receive(url: &str) -> Result<Vec<u8>, String> {
+    receive_at_most(url, MAX_DOWNLOAD_BYTES).await
 }
 
 /// Does the full update on the binary at the given path, and gives the
