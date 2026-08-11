@@ -1340,13 +1340,25 @@ impl App {
             KeyCode::Char('X') => {
                 let username = self.username.clone();
 
-                if let Some((target, _title, _author)) = self.selected_download() {
-                    if let Some(title) = remove_download(target.key(), &username) {
-                        crate::logic::message::say(&format!(
-                            "Removed offline copy of \"{}\".",
-                            title
-                        ));
-                    }
+                if let Some((target, title_of_the_line, _author)) = self.selected_download() {
+                    // The audio of the download, and the ebook that the reader
+                    // keeps. **The reader kept its file for ever before T-65**, and
+                    // a PDF of a scan holds some hundred megabytes.
+                    let of_the_audio = remove_download(target.key(), &username);
+
+                    let of_the_ebook = crate::logic::download::remove_the_ebook_of_the_item(
+                        target.item_id(),
+                        &username,
+                    );
+
+                    let of_the_audio_came = of_the_audio.is_some();
+                    let title = of_the_audio.unwrap_or(title_of_the_line);
+
+                    crate::logic::message::say(&crate::logic::download::text_of_the_removal(
+                        &title,
+                        of_the_audio_came,
+                        of_the_ebook,
+                    ));
                 }
             }
 

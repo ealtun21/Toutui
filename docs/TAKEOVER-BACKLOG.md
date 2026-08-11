@@ -2345,6 +2345,48 @@ tests. The name of the test did not reach the log of that run. **A next session 
 meets a fault of one run must keep the whole output of `cargo test`**, because the
 name of the test is the whole answer.
 
+### T-65: the reader kept every ebook for ever, and no key removed it
+
+The disk of the maintainer became full on 2026-08-11, and T-64 holds the large part
+of that: the build of the development. **A part of it belongs to the program**, and
+this item holds that part.
+
+The reader of T-10 writes the ebook of a media in the directory of the downloads,
+and it keeps that file: a second visit of the book then needs no request, and the
+reader works with no server. **Nothing removed such a file.**
+
+- The key `X` removes the files of the tables `downloads` and `download_files`, and
+  those tables hold the **audio** of a download only. The ebook stayed.
+- A user who read an ebook and downloaded no audio had **no way at all** to remove
+  it: `remove_download` gives nothing for a media with no row of a download, and it
+  then did no work.
+- T-54 makes this larger: an ebook of a PDF of a scan holds some hundred megabytes.
+  The measurement of that item used a file of 137 megabytes.
+
+**The correction.** `remove_the_ebook_of_the_item` removes the EPUB book and the PDF
+of one item, and the key `X` calls it beside `remove_download`. The key therefore
+does what its name says: it removes the local copy of that media, of every form.
+
+`text_of_the_removal` gives the sentence, and it names what went away:
+
+| The audio | The ebook | The sentence |
+|---|---|---|
+| Removed | Removed | `Removed the local copy of "X", and its ebook of 5 MB.` |
+| Removed | None | `Removed the local copy of "X".` |
+| None | Removed | `Removed the ebook of "X" of 137 MB. It held no local copy of the audio.` |
+| None | None | `"X" holds no local copy and no ebook.` |
+
+Both functions are pure, therefore a test holds every sentence with no file.
+
+**The measurement in the real program.** A media whose ebook of 137 megabytes stood
+on the disk. The key `X` gave: `Removed the ebook of "One File With No Decoder" of
+137 MB. It held no local copy of the audio.`, and the file went away.
+
+**What stays open.** The program removes no ebook of its own. A user who reads
+twenty books of a scan therefore holds twenty files, and the key `X` of each media
+is the answer. A limit of the whole cache would need a rule for the book that the
+user reads now, and the value of that work is small while the key exists.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

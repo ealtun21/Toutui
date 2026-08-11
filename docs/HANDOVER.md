@@ -1,6 +1,6 @@
 # The handover of 2026-08-11 (the sixth session of that day)
 
-**The newest release is v0.7.24.** The items T-52 to T-59 came after the first
+**The newest release is v0.7.25.** The items T-52 to T-59 came after the first
 form of this document. Read them in `docs/TAKEOVER-BACKLOG.md`.
 
 This document is for the next session. It says what is done, what is open, and
@@ -9,13 +9,13 @@ each item, and `docs/T-24-coverage.md` for the comparison with the server.
 
 ## The state
 
-`main` is clean and pushed. The newest release is **v0.7.24**. Every gate
+`main` is clean and pushed. The newest release is **v0.7.25**. Every gate
 passes:
 
 ```
 cargo clippy --all-targets -- -D warnings
 cargo fmt --check
-ALSA_CONFIG_PATH=<a real null asound file> cargo test    # 803 tests pass, 17 carry #[ignore], 36 binaries
+ALSA_CONFIG_PATH=<a real null asound file> cargo test    # 805 tests pass, 17 carry #[ignore], 36 binaries
 cargo tree -i openssl-sys                                # finds nothing
 ```
 
@@ -53,6 +53,8 @@ in v0.6.7. Do not try to publish v0.6.6.
 | T-61 | The task of the live messages waits longer after each fault. It asked every ten seconds for ever | — |
 | T-62 | A book of a scan held 137 megabytes of pictures. It holds 9.5 now | `e` |
 | T-63 | **The position and the movement of a playback of the stream.** A media that the user left at 26 hours would have lost its place | `p`, `u` |
+| T-64 | The build of the development filled the disk: 221 gigabytes of `target/debug` | — |
+| T-65 | The reader kept every ebook for ever. The key `X` removes it now | `X` |
 | — | T-7, T-8, and T-18 became complete: the pages of 500, the speed that changes during a playback, and a WMA file that plays through the stream | — |
 
 ### T-47, the live messages
@@ -296,7 +298,7 @@ new.
 > commit — `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,
 > and `cargo test` with `ALSA_CONFIG_PATH` pointing at a real null asound file
 > (`/dev/null` hangs the real binary). Baseline: 768 tests, 34 binaries, tree
-> clean. Baseline of the tests: 803 pass, 17 carry `#[ignore]`, 36 binaries. Run
+> clean. Baseline of the tests: 805 pass, 17 carry `#[ignore]`, 36 binaries. Run
 > every cargo command under `nice -n 19 ionice -c 3`: a full build uses every core,
 > and the user tests the program on the same machine. All
 > prose and user-facing strings in ASD-STE100 simplified technical

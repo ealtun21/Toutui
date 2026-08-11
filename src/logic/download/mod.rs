@@ -214,6 +214,77 @@ fn paths_to_remove(first: &str, files: &[String]) -> Vec<String> {
 ///
 /// The function gives the title of the download. It gives `None` when the
 /// database holds no download with this key.
+/// Removes the ebook of one item that the reader keeps on the disk. See T-65.
+///
+/// The reader of T-10 writes the file of an ebook in the directory of the
+/// downloads, and it keeps that file for ever: a second visit of the book then
+/// needs no request, and the reader works with no server. **Nothing removed such a
+/// file before this work**, and a PDF of a scan holds some hundred megabytes.
+///
+/// The function gives the number of bytes that it removed. An item with no ebook on
+/// the disk gives 0, and that is not a fault.
+pub fn remove_the_ebook_of_the_item(item_id: &str, username: &str) -> u64 {
+    let of_the_epub = crate::logic::reader::session::ebook_path(username, item_id);
+    let of_the_pdf = crate::logic::reader::session::pdf_path(username, item_id);
+
+    let mut bytes = 0u64;
+
+    for path in [of_the_epub, of_the_pdf] {
+        let size = match std::fs::metadata(&path) {
+            Ok(data) if data.is_file() => data.len(),
+            _ => continue,
+        };
+
+        match std::fs::remove_file(&path) {
+            Ok(()) => {
+                bytes += size;
+                info!(
+                    "[remove_the_ebook] the program removed the ebook of {} of {} bytes",
+                    item_id, size
+                );
+            }
+            Err(error) => error!(
+                "[remove_the_ebook] the ebook {} stays: {}",
+                path.display(),
+                error
+            ),
+        }
+    }
+
+    bytes
+}
+
+/// Gives the sentence of the key `X` for the user. See T-65.
+///
+/// The function is pure, therefore a test needs no file.
+pub fn text_of_the_removal(title: &str, the_audio_came: bool, bytes_of_the_ebook: u64) -> String {
+    match (the_audio_came, bytes_of_the_ebook > 0) {
+        (true, true) => format!(
+            "Removed the local copy of \"{}\", and its ebook of {}.",
+            title,
+            text_of_the_size(bytes_of_the_ebook)
+        ),
+        (true, false) => format!("Removed the local copy of \"{}\".", title),
+        (false, true) => format!(
+            "Removed the ebook of \"{}\" of {}. It held no local copy of the audio.",
+            title,
+            text_of_the_size(bytes_of_the_ebook)
+        ),
+        (false, false) => format!("\"{}\" holds no local copy and no ebook.", title),
+    }
+}
+
+/// Gives a number of bytes in the form that a person reads.
+pub fn text_of_the_size(bytes: u64) -> String {
+    const MEGABYTE: u64 = 1024 * 1024;
+
+    if bytes >= MEGABYTE {
+        return format!("{} MB", bytes / MEGABYTE);
+    }
+
+    format!("{} kB", (bytes / 1024).max(1))
+}
+
 pub fn remove_download(key: &str, username: &str) -> Option<String> {
     let (first, _current_time, _duration, title, _author) = get_download(key, username)?;
 
@@ -282,6 +353,48 @@ async fn get_item(
 
 #[cfg(test)]
 mod tests {
+    use super::{text_of_the_removal, text_of_the_size};
+
+    /// The key `X` removes the audio of the download and the ebook of the reader.
+    /// The sentence must name what went away. See T-65.
+    #[test]
+    fn the_sentence_of_the_key_names_what_went_away() {
+        // The title stands between the words and the size, therefore the test
+        // reads the two parts and not one text of the two.
+        let both = text_of_the_removal("A Book", true, 5 * 1024 * 1024);
+        assert!(both.contains("A Book"), "{}", both);
+        assert!(both.contains("local copy"), "{}", both);
+        assert!(both.contains("ebook"), "{}", both);
+        assert!(both.contains("5 MB"), "{}", both);
+
+        let audio = text_of_the_removal("A Book", true, 0);
+        assert!(audio.contains("local copy"), "{}", audio);
+        assert!(!audio.contains("ebook"), "{}", audio);
+
+        // A user who read an ebook and downloaded no audio must still remove that
+        // ebook, and the sentence must say what happened.
+        let ebook = text_of_the_removal("A Book", false, 137 * 1024 * 1024);
+        assert!(ebook.contains("ebook"), "{}", ebook);
+        assert!(ebook.contains("137 MB"), "{}", ebook);
+        assert!(ebook.contains("no local copy of the audio"), "{}", ebook);
+
+        let nothing = text_of_the_removal("A Book", false, 0);
+        assert!(
+            nothing.contains("no local copy and no ebook"),
+            "{}",
+            nothing
+        );
+    }
+
+    #[test]
+    fn the_size_comes_in_the_form_that_a_person_reads() {
+        assert_eq!(text_of_the_size(137 * 1024 * 1024), "137 MB");
+        assert_eq!(text_of_the_size(1024 * 1024), "1 MB");
+        assert_eq!(text_of_the_size(500 * 1024), "500 kB");
+        // A file of some bytes gives one kilobyte, and not zero.
+        assert_eq!(text_of_the_size(10), "1 kB");
+    }
+
     use super::*;
 
     /// A book with many files gives every file, and the first file one time

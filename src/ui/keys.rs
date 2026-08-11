@@ -59,7 +59,10 @@ pub const GROUPS: &[Group] = &[
             key("n", "Put the media at the end of the queue"),
             key("b", "Write a bookmark at the place of the playback"),
             key("D", "Make a copy on the disk"),
-            key("X", "Remove the copy of the disk"),
+            key(
+                "X",
+                "Remove the copy of the disk, and the ebook of the reader",
+            ),
             key("e", "Read the ebook of the media"),
             key("M", "Mark the media as finished"),
             key("N", "Hide the media from Continue Listening"),
