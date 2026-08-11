@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.48",
+        date: "12/08/2026",
+        body: &[
+            "Added:",
+            "- **The keys < and > move a media inside a collection or a playlist.** Open the \
+             list with c and then l, and move the line of the media. The sequence goes to the \
+             server, therefore every other client shows it too.",
+            "- The footer of that view names its keys: the sequence, and the key X that takes \
+             the media out of the list.",
+        ],
+    },
+    Entry {
         version: "0.7.47",
         date: "12/08/2026",
         body: &[
