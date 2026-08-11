@@ -1,6 +1,6 @@
 [package]
 name = "toutui"
-version = "0.7.24"
+version = "0.7.25"
 edition = "2021"
 description = "A TUI client of Audiobookshelf for Linux and macOS."
 license = "GPL-3.0-or-later"
@@ -141,3 +141,18 @@ html2text = { version = "0.17.1", features = ["xml"] }
 
 [dev-dependencies]
 wiremock = "0.6"
+
+# The build of the development. See T-64.
+#
+# A test binary of this project holds every dependency and the whole debug
+# information, and that gives about 300 megabytes. `cargo test` makes 36 such
+# binaries, and cargo keeps the binary of every build that came before: a session
+# of one day gave `target/debug` of **221 gigabytes**, and the disk of the
+# maintainer became full.
+#
+# `line-tables-only` keeps the file and the line of every frame, therefore a panic
+# of a test still names its place. It holds no type and no variable, therefore a
+# debugger of a step gives less. The tests of this project read the message of a
+# panic and the value of an assertion, and no test needs a debugger.
+[profile.dev]
+debug = "line-tables-only"

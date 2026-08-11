@@ -255,8 +255,13 @@ new.
   new `Cargo.lock` in the same commit: run `cargo build` after the bump, and see
   that `git status` is clean before the commit and the tag. The tag of v0.7.22 held
   `Cargo.toml` 0.7.22 and `Cargo.lock` 0.7.21, and it had to move.
-- **Run every cargo command under `nice -n 19 ionice -c 3`.** A full build uses
-  every core, and the user tests the program on the same machine.
+- **Run every cargo command under `nice -n 19 ionice -c 3` with `-j 16`.** The
+  machine has 32 cores, and the user tests the program while the tests build.
+- **Look at `du -sh target`, and run `cargo clean --profile dev` at the end of a
+  session.** `target/debug` grows by about 300 megabytes for each rebuild of the
+  tests, and cargo removes nothing: a session of one day gave 221 gigabytes and the
+  disk of the user became full. `[profile.dev]` holds `debug = "line-tables-only"`
+  for that reason, and a panic still names its file and its line. See T-64.
 - The address of the server of the user must stay outside this repository, and
   the account of the user too.
 

@@ -2296,6 +2296,55 @@ attempts and the delay of 10 seconds, because a wait there costs the user nothin
 then the key `u`: `▶ 26:36 / 30:29`, and the log says "the stream of the server
 starts again at 1597 seconds".
 
+### T-64: the build of the development filled the disk of the maintainer
+
+The maintainer reported this on 2026-08-11: "we need to cleanup toutui's disk usage,
+it's using over 200GB of space". The measurement:
+
+| The place | The size |
+|---|---|
+| `target/debug` | **221 gigabytes** |
+| `target/release` | 2 gigabytes |
+| The files of `target/debug/deps` | 11963 |
+| The free space of the disk | 356 megabytes of 1.8 terabytes |
+
+**The cause is not a fault of the program.** A test binary of this project holds
+every dependency and the whole debug information, and that gives about 300
+megabytes. `cargo test` makes 36 such binaries. **cargo keeps the binary of every
+build that came before**: a change of one line of the source gives a new name of the
+file, and the old file stays for ever. A session of one day of work therefore left
+hundreds of them.
+
+`cargo clean --profile dev` gave 410 gigabytes back, and it kept the binary of the
+release that the maintainer tests.
+
+**The correction of the growth.** `[profile.dev]` holds `debug = "line-tables-only"`
+now. That form keeps the file and the line of every frame, therefore a panic of a
+test still names its place. It holds no type and no variable: a debugger of a step
+gives less, and no test of this project needs one.
+
+The measurement of the same build of every test binary:
+
+| The debug information | `target/debug` |
+|---|---|
+| The whole (`debug = true`, the value of cargo) | 5.7 gigabytes |
+| `line-tables-only` | 2.4 gigabytes |
+
+**The rule for every session.** The growth of `target/debug` is about 300 megabytes
+for each rebuild of the tests, and cargo removes nothing. Therefore:
+
+- Look at `du -sh target` in a session of many builds.
+- Run `cargo clean --profile dev` at the end of such a session. The release stays.
+- Every cargo command runs under `nice -n 19 ionice -c 3` with `-j 16`: the machine
+  has 32 cores, and the maintainer tests the program while the tests build.
+
+**One run of the tests of ten gave a fault, and this session did not find it.** That
+run came after a clean of the build, and nine runs after it gave 803 of 803 — with
+`-j 16`, with `-j 4` beside a build of the release, and with eight threads of the
+tests. The name of the test did not reach the log of that run. **A next session that
+meets a fault of one run must keep the whole output of `cargo test`**, because the
+name of the test is the whole answer.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
