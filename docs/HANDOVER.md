@@ -160,6 +160,130 @@ reads the encrypted token, therefore an alpha version and a pre-release are not
 acceptable in those two places. Look again when `turso` is a release and
 `rustls-rustcrypto` is beta or better.
 
+## The harness: where the time went, with numbers
+
+The maintainer said on 2026-08-11 that the tests take much time and that they make
+the machine slow. **This session measured every part of the work.** The answer is not
+the one that the session expected: `cargo test` is not the slow part.
+
+| The work | The time | The measurement |
+|---|---|---|
+| A cold build of every test | **21 s** | `cargo test --no-run -j 16` after `cargo clean --profile dev` |
+| A build after **one** edit of the library | **6 s** | `touch src/logic/authors.rs`, then the same command |
+| The run of every test | **18 s** | `cargo test -j 16`, every binary built |
+| **One measurement in tmux** | **20 s to 60 s** | The session made about 30 of them |
+| One restart of the sandbox | 13 s | `podman restart abs-test` |
+
+### 1. The first frame comes after 673 milliseconds, and this session waited 17 seconds
+
+Every measurement of this session began with `sleep 17` before the first key. A
+measurement of 2026-08-11 polled the screen every 500 milliseconds instead:
+
+```
+the Home view came after 673 ms
+```
+
+**That is 16 seconds of waiting for each measurement, and this session made about 30
+of them: about eight minutes of nothing.** Every `sleep` after a key holds the same
+fault.
+
+**The answer stands in the repository now: `docs/harness/drive.sh`.** Give that file
+to your shell, and drive the program with it:
+
+```bash
+source docs/harness/drive.sh
+start_the_program                      # it comes back at the first frame
+press a; wait_for "The authors ["
+press v; wait_for "The narrators ["
+the_screen | head -20
+the_log "\\[authors\\]" 3
+stop_the_program
+```
+
+Every function polls, and every poll holds a timeout of 30 seconds. A poll that gives
+up writes the reason and the first twelve lines of the screen, therefore a
+measurement that fails says why.
+
+**The measurement of that file, 2026-08-11:**
+
+| The work | With `sleep` | With `drive.sh` |
+|---|---|---|
+| The start of the program | 17 s | **0.57 s** |
+| A sweep of three views | 27 s | **1.6 s** |
+
+`start_the_program "TOUTUI_EBOOK_CACHE_BYTES=200000"` gives more variables of the
+environment to the program, and `SESSION`, `COLUMNS_OF_THE_SCREEN`, and `TIMEOUT`
+change the harness. `wait_while` waits while a text stands on the screen: a message
+of the program lives six seconds, and a measurement of the message after it must wait
+for the first one to go.
+
+### 2. Two tests hold 12.7 seconds of the 18 seconds of the run
+
+| The test | The time | Why |
+|---|---|---|
+| `the_position_survives_a_playback_that_does_not_start` | 8.01 s | Four `tokio::time::sleep` of 3500, 1500, 1500, and 1500 milliseconds |
+| `playback_ownership` | 4.71 s | Four more of them |
+| Every other binary, together | about 5 s | — |
+
+**Do not change those eight sleeps without care, and read this first.** Some of them
+wait for a state of the engine, and a poll of that state gives the same measurement at
+once. **Others wait for a fault to appear**, and a poll of the value that the test
+wants is then a **false pass**.
+
+The sleep of 3500 milliseconds of
+`the_position_survives_a_playback_that_does_not_start` is of the second kind. The loop
+of the playback reads the state one time each second, and the test asks: does that
+loop write the **wrong** position of an engine that did not start? A poll of
+"the position is the position of the user" answers `true` **before the loop ever
+ran**, because the row of the database holds that value already. The test would then
+pass with no measurement at all.
+
+The correct answer for such a wait: poll for the evidence that **the loop acted** —
+one write of the loop, one sync, or one line of the log — and then read the value. The
+loop acts one time each second, therefore a poll of that evidence gives about 1.2
+seconds in place of 3.5. **A test that measures the absence of a fault must give the
+fault the time to appear.**
+
+### 3. `cargo test` runs the binaries one after the other
+
+34 files of `tests/` give 34 binaries, and cargo runs them in sequence: the 18 seconds
+are almost the sum of their times. **`cargo-nextest` runs every test of every binary
+in one pool of processes.** The run would then take the time of the slowest test, of
+about 8 seconds, and 6 seconds after the two sleeps above go away.
+
+`cargo-nextest` is a tool of the machine, and **not** a dependency of the program:
+`Cargo.toml` does not change, and the rule of T-20 stays. This machine does not hold
+it today. Two properties need a measurement before the change:
+
+- nextest gives **one process for each test**. The tests of a global slot of the
+  process (`logic::message`, `logic::live`, `logic::authors`, the cache of T-72) then
+  become **more** isolated, and the trap 29 of this document loses its cost. Measure
+  that the tests of those slots still pass.
+- The tests of the sandbox need `--test-threads=1` for the rate limit of the login.
+  nextest holds `--test-threads`, and it needs a group of the tests that run alone.
+
+### 4. The build is not the slow part, and the disk is
+
+`[profile.dev]` holds `debug = "line-tables-only"` since T-64. The build after one
+edit takes 6 seconds, therefore a faster linker gives almost nothing: `ld.lld` stands
+on this machine, and a measurement of `-C link-arg=-fuse-ld=lld` gave no useful
+change. **Do not put a linker in `.cargo/config.toml` of the repository**: a user who
+builds with `cargo install --git` and holds no `lld` would then get an error of the
+link.
+
+**The lag of the machine comes from the disk.** `target` grew from 2.1 gigabytes to 11
+gigabytes inside this session, three times, and each `cargo clean --profile dev` gave
+15 gigabytes back. A build of that size writes much, and the machine of the maintainer
+answers slowly while it writes. Two answers to measure:
+
+1. `CARGO_TARGET_DIR` on a different disk, or on a `tmpfs` of the memory for the tests.
+2. Fewer binaries: 34 files of `tests/` hold 300 megabytes each. **Some of those files
+   stand alone for a reason** — a test that writes `XDG_CONFIG_HOME` or
+   `XDG_DATA_HOME` must be alone in its binary (the trap 29). Every other file can
+   join a file of a group, and each join takes one binary of 300 megabytes away.
+   `cargo-nextest` makes the reason of the trap 29 go away, therefore do the two
+   works in that sequence.
+
 ## The traps that cost time
 
 ### Of the program and of the server
@@ -265,56 +389,60 @@ acceptable in those two places. Look again when `turso` is a release and
 
 ### Of the harness and of the machine
 
-1. **A screen of your own is not a terminal. Use tmux.** A hand-written model of the
+1. **A fixed `sleep` is the largest waste of a session.** The first frame of the
+   program comes after **673 milliseconds**, and this session slept 17 seconds before
+   each of about 30 measurements. **Poll for a marker of the screen, with a timeout.**
+   See the section of the harness.
+2. **A screen of your own is not a terminal. Use tmux.** A hand-written model of the
     screen mangled the line that the user selected, and it kept the old text of a
     line that the program wrote again. Both times the program was correct.
     ```
     tmux new-session -d -s check -x 160 -y 45 "<the program>"
     sleep 9; tmux capture-pane -p -t check        # -e keeps the colours
     ```
-2. **A frame of the program comes by itself.** A measurement of a live message needs
+3. **A frame of the program comes by itself.** A measurement of a live message needs
     **no key at all**: the three frames of T-66 came with no key press. A key press
     inside the measurement moves the selection, and it then looks like a fault of the
     rule of the selection.
-3. **A pseudo terminal must answer TWO questions**, and not one: `ESC [ 5 n` with
+4. **A pseudo terminal must answer TWO questions**, and not one: `ESC [ 5 n` with
     `ESC [ 0 n` for `ratatui-image`, and `ESC [ 6 n` with `ESC [ 1 ; 1 R` for
     crossterm inside `terminal.clear()`. With no answer the program stops with "The
     cursor position could not be read within a normal duration", and that message
     never reaches the log file.
-4. **ratatui writes the cells that changed only.** A change of one number therefore
+5. **ratatui writes the cells that changed only.** A change of one number therefore
     gives two bytes in the stream of the terminal. A move of the list (`j` and then
     `k`) makes the program write whole lines again.
-5. **A key of a login that comes too early goes to the application.** The login
+6. **A key of a login that comes too early goes to the application.** The login
     examines the address with a request, therefore the next field is not ready at
     once: the password `claudetmp` went to the application as the keys `c`, `l`,
     `a`, `u`, `d`, `e`, and `e` opened the reader. **Log in one time, and then reuse
     the database of that isolated `XDG_CONFIG_HOME`.**
-6. **An isolated `XDG_CONFIG_HOME` needs two files before the program starts.**
+7. **An isolated `XDG_CONFIG_HOME` needs two files before the program starts.**
     `config.toml`, and `.env` with `TOUTUI_SECRET_KEY=<something>`.
-7. **A test that sets `XDG_CONFIG_HOME` or `XDG_DATA_HOME` must be alone in its
+8. **A test that sets `XDG_CONFIG_HOME` or `XDG_DATA_HOME` must be alone in its
     binary**, and every test of a global slot must stand in one function.
     `logic::message` gave a fault of one run of three before its two tests became
     one, and `tests/the_cache_of_the_ebooks.rs` holds one function for that reason.
-8. **`target/debug` grew to 221 gigabytes and the disk of the maintainer became
+9. **`target/debug` grew to 221 gigabytes and the disk of the maintainer became
     full.** A test binary holds 300 megabytes, `cargo test` makes 37 of them, and
     cargo keeps the binary of every build that came before. Look at `du -sh target`,
     and run `cargo clean --profile dev` at the end of a session. See T-64.
-9. **The container of the sandbox lives longer than the session.** `podman ps -a`
+10. **The container of the sandbox lives longer than the session.** `podman ps -a`
     with `| head` did not show it, and `podman run` then said "the container name is
     already in use". **`podman start abs-test` gives the server back with every book
     of the session before**, therefore no session needs to make the data again.
-10. **`ALSA_CONFIG_PATH` with a null device does not silence the real program.** It
+11. **`ALSA_CONFIG_PATH` with a null device does not silence the real program.** It
     is correct for `cargo test`, because no test opens a sound device. A run of
     2026-08-11 played real sound through the sound card of the maintainer with that
     variable set, and the sound was **not smooth**: a half of a configuration of ALSA
     is worse than none. **Ask the user before a measurement that plays**, and use the
     real device: a null device hides the faults of the real path.
-11. **A transcode of the server that dies leaves the server in a bad state.** Every
+12. **A transcode of the server that dies leaves the server in a bad state.** Every
     new session of that media then answers "No Segments", and the log holds "Failed
     checking files" every two seconds for ever. `podman restart abs-test` is the
     answer, and a measurement of such a media must start from a server that came up
     now. See T-68.
-12. **`playwright` wants its own browser:**
+13. **`playwright` wants its own browser:**
     `play.chromium.launch(executable_path="/usr/bin/chromium")`.
 
 ## The shapes that the next work should follow
@@ -393,60 +521,102 @@ acceptable in those two places. Look again when `turso` is a release and
 > disagrees with `Cargo.toml`, **and it builds `--locked`, therefore the commit of
 > the bump must hold the new `Cargo.lock`**.
 >
-> Read `docs/HANDOVER.md` first: the state, the open items, and 40 traps that cost
-> real time. Then `docs/TAKEOVER-BACKLOG.md` (the evidence of every item; T-66, T-67,
-> T-68, T-69, and T-70 are the newest, and T-66, T-68, and T-69 are the ones to know) and
+> Read `docs/HANDOVER.md` first: the state, the open items, **the section of the
+> harness with the numbers of every slow part**, and 41 traps that cost real time.
+> Then `docs/TAKEOVER-BACKLOG.md` (the evidence of every item; T-66 to T-73 are the
+> newest, and T-66, T-68, and T-69 are the ones to know) and
 > `docs/T-24-coverage.md` (**section 6 names what the program must not have, and
-> why**).
+> why**; the table of section 4 holds rows that are old).
 >
-> **The work, in the sequence of its value:**
+> **Task 1, and it comes before every other task: make the harness fast.** The
+> maintainer said that the tests take much time and that they make the machine slow,
+> and the session of 2026-08-11 measured every part. `cargo test` is **not** the slow
+> part: a build after one edit takes 6 seconds and the run takes 18. The waste stands
+> in three places, and the section of the harness holds the numbers:
 >
-> 1. **A view of the settings that changes a value of `config.toml` (T-72).** The program
->    removes a book of the cache and it says that in the log only. The answer needs a
->    shape: a message of the reader must not go away for it.
-> 2. **The peak of the memory of a PDF (T-62)**, if a user meets it. `MAX_BOOK_BYTES`
->    of 512 megabytes holds the limit today.
-> 3. **A sweep of every view in tmux.** The session of 2026-08-11 found two faults of
->    the search that way, and a sweep of fifteen views found two more before it. The
->    key `Escape` of the view of the search closes the program: use `/` again.
+>  1. **Poll, never sleep. `docs/harness/drive.sh` holds that work already** — use
+>    it, and add to it. A measurement of 2026-08-11: the start of the program takes
+>    **0.57 s** with it and 17 s with a `sleep`, and a sweep of three views takes
+>    **1.6 s** and 27 s. Every measurement of the next session must come from that
+>    file.
+>  2. **Eight fixed sleeps of two test files hold 12.7 seconds of the run of 18
+>    seconds** (`the_position_survives_a_playback_that_does_not_start` and
+>    `playback_ownership`). **Read the warning of the section of the harness before
+>    you change them:** some of those sleeps give a **fault** the time to appear, and a
+>    poll of the value that the test wants is then a false pass. Poll for the evidence
+>    that the loop acted, and then read the value.
+>  3. **`cargo test` runs the 34 binaries one after the other.** Measure
+>    `cargo-nextest`: it runs every test in one pool, therefore the run takes the time
+>    of the slowest test. It is a tool of the machine and **not** a dependency of the
+>    program, therefore the rule of T-20 stays. Measure the tests of the global slots
+>    (`logic::message`, `logic::live`, `logic::authors`, the cache of T-72) and the
+>    tests of the sandbox that need one thread, and say in the handover what changed.
 >
-> **The book of xHE-AAC plays now (T-68 and T-69).** Do not look for a decoder of
-> Rust: symphonia reads no frame of that form, and the stream of the server gives the
-> sound. ffmpeg reads 77 percent of the frames, therefore the sound holds a hole at
-> each frame that it drops, and mpv gives the same holes. **A sentence of an error of
-> ffmpeg is not a measurement of the whole file**: measure the output.
+> **The lag of the machine comes from the disk, and not from the processor.** `target`
+> grew to 11 gigabytes three times in one session. Look at `du -sh target` often, run
+> `cargo clean --profile dev` at the end, and measure `CARGO_TARGET_DIR` on a
+> different disk. Do **not** put a linker in `.cargo/config.toml`: a user of
+> `cargo install --git` who holds no `lld` would then meet an error of the link.
 >
-> **The two decisions of the maintainer are made.** Toutui stays GPL, and a person
-> may read bookokrat for an idea and must then write their own code, and name that
-> project in the commit (T-51). `libsqlite3-sys` and `ring` stay (T-20). Do not open
-> either again.
+> **Then the work of the program, in the sequence of its value:**
+>
+> 1. **A sweep of every view in tmux, with the fast harness.** Two faults of the
+>    search came from such a sweep on 2026-08-11, and two more came from the sweep
+>    before it. A sweep of fifteen views costs one minute with a poll, and eight with
+>    a sleep. The key `Escape` of the view of the search closes the program: use `/`
+>    again.
+> 2. **The rows of section 4 of `docs/T-24-coverage.md` that are old.** T-73 changed
+>    one row of `No` to `Yes`, and the rows of the live messages, of the series, and of
+>    the sessions of the server name work that landed. **Read the code before you take
+>    a row of that table**, and correct the row that you measure.
+> 3. **A view of the settings that changes a value of `config.toml` (T-72).** The
+>    block `[reader]` holds `ebook_cache_mb`, and the user must open the file with an
+>    editor today. A write of that file must keep every comment of the user.
+> 4. **Empty the queue of the podcast of the server**, and **the list of the ebooks of
+>    an item** (an item can hold more than one ebook, and the program takes one). Both
+>    are small, and section 6 forbids neither.
+> 5. **The peak of the memory of a PDF (T-62)**, if a user meets it. `MAX_BOOK_BYTES`
+>    of 512 megabytes holds the limit, and no crate of pure Rust reads one page at a
+>    time.
+>
+> **The book of xHE-AAC plays now (T-68 and T-69). Do not open T-53 or T-63 again**,
+> and do not look for a decoder of Rust: symphonia reads no frame of that form, and
+> the stream of the server gives the sound. ffmpeg reads 77 percent of the frames,
+> therefore the sound holds a hole at each frame that it drops, and mpv gives the same
+> holes. **A sentence of an error of ffmpeg is not a measurement of the whole file:
+> measure the output.**
+>
+> **The two decisions of the maintainer are made.** Toutui stays GPL, and a person may
+> read bookokrat for an idea and must then write their own code, and name that project
+> in the commit (T-51). `libsqlite3-sys` and `ring` stay (T-20). Do not open either
+> again.
 >
 > **Rules that bind every change.** Run all three gates yourself before each commit,
 > under `nice -n 19 ionice -c 3` with `-j 16`: `cargo clippy --all-targets --
 > -D warnings`, `cargo fmt --check`, and `cargo test` with `ALSA_CONFIG_PATH`
 > pointing at a real null asound file (`/dev/null` hangs the real binary). Baseline:
-> 838 tests, 17 with `#[ignore]`, 37 binaries, tree clean. **A measurement that plays
-> sound needs the real device and the permission of the user**: that variable does not
-> silence the real program. Look at `du -sh target`
-> and run `cargo clean --profile dev` at the end of the session.
+> **838 tests, 17 with `#[ignore]`, 37 binaries**, tree clean. **A measurement that
+> plays sound needs the real device and the permission of the user**: that variable
+> does not silence the real program, and a measurement with `curl` against the sandbox
+> needs no sound at all.
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
-> crate needing a system library; `cargo tree -i openssl-sys` must find nothing. No
-> test may need the network — sandbox tests carry `#[ignore]` and run with
-> `--test-threads=1`, because the login of the server permits 40 requests of 600
-> seconds. Never write to AlbanDAVID/Toutui, and keep his credit everywhere it
-> appears.
+> crate needing a system library; `cargo tree -i openssl-sys` must find nothing, and
+> `cargo tree -i cc` must find `libsqlite3-sys` and `ring` only. No test may need the
+> network — sandbox tests carry `#[ignore]` and run with `--test-threads=1`, because
+> the login of the server permits 40 requests of 600 seconds. Never write to
+> AlbanDAVID/Toutui, and keep his credit everywhere it appears.
 >
 > **Show a fault before you fix it, and measure against the sandbox**
 > (`docs/TEST-SERVER.md`, podman on `:13399`; `podman start abs-test` gives the server
-> back with every book of the sessions before). Make the data exist first, because an
-> empty list shows you no shape — **and make it hold the shape that breaks the rule**:
-> T-66 hid behind one shelf, and one media of two shelves showed the fault. **Drive
-> the real program inside tmux for every view** (`tmux new-session -d -s check -x 160
-> -y 45 "<the program>"`, then `tmux capture-pane -p`); a screen of your own writing
-> lies to you, and a frame of a live message needs **no key at all**. Verify with a
-> second program: `podman logs abs-test`, a real browser, or `curl`. Tag, push, and
-> keep working; don't wait for CI.
+> back with every book of the sessions before, and `podman restart abs-test` after a
+> transcode that died). Make the data exist first, because an empty list shows you no
+> shape — **and make it hold the shape that breaks the rule**: T-66 hid behind one
+> shelf, and one media of two shelves showed the fault. **Drive the real program
+> inside tmux for every view**; a screen of your own writing lies to you, and a frame
+> of a live message needs no key at all. Verify with a second program: `podman logs
+> abs-test`, a real browser, or `curl`. Tag, push, and keep working; don't wait for
+> CI.
 >
 > The user tests each release as it lands and does not want to be asked before
 > publishing a patch. The server of the user is theirs alone: ask before you use it,
