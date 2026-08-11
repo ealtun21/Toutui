@@ -177,7 +177,11 @@ async fn every_view_draws_when_the_lists_are_shorter_than_the_selection() {
                 // library of podcasts ended with "?: every k" in 80 columns, and
                 // the keys `?` and `Q` are the two keys that a lost user needs.
                 // The footer wraps now. See T-90 and T-52.
-                for (width, height) in [(120, 40), (80, 24)] {
+                // **A terminal of 18 rows is a part of this measurement too.**
+                // The three parts of a view then hold 7 rows, the row of the
+                // item took 3 of them, and the list held one line of 24. See
+                // T-99.
+                for (width, height) in [(120, 40), (80, 24), (100, 18)] {
                     let backend = TestBackend::new(width, height);
                     let mut terminal = Terminal::new(backend).expect("a terminal");
 

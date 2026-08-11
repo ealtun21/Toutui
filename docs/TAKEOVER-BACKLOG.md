@@ -3799,6 +3799,49 @@ Two notes that stay:
   ZFS: `compression=on` makes a file of zeros almost nothing. **A measurement of
   a disk must write data that no algorithm makes smaller.**
 
+### T-99: a terminal of 18 rows showed one line of the list
+
+The sweep of a small terminal, in 100 columns by 18 rows: the Home view of a
+library of 24 media held **one line**.
+
+The three parts of a view of a list are the lines, the row of the item, and the
+description. They held 7 rows of that screen, the row of the item took 3 of them
+with `Constraint::Length(3)`, and the list and the description then took 2 rows
+each. **The description held "N/A", and 10 rows of the screen were empty.**
+
+`the_areas_of_a_list` holds that rule for the nine views that have those three
+parts. A terminal of 13 rows or more in that area keeps the split that it had:
+the row of the item takes 3 rows, and the list and the description take a half
+each of what stays. **Fewer rows give every row to the list**: the row of the
+item takes 2 (its text wraps in 80 columns, see T-94), the description takes
+none, and the lines take the rest.
+
+The measurement after the correction, in the same terminal: **four lines in place
+of one**. A terminal of 24 rows and one of 45 rows draw what they drew before,
+and `the_screen_survives_a_short_list` draws every view in 100 by 18 now.
+
+**The rows of the player are the next question, and this session did not answer
+it.** The layout of a view holds 6 rows for the player and 1 for the refresh,
+above the footer. Those 7 rows are empty while no media plays, and they are 7 of
+the 18 rows of a small terminal. **A view that gives them to the list while
+nothing plays would move every line when a playback starts**, therefore this is
+a choice of the maintainer and not a fault.
+
+### The sweep of two accounts found no fault
+
+The program holds more than one account in its database, and no session had
+measured that view. A second user of the sandbox, and then the view of the
+accounts (`S`, then the first line):
+
+- The view names the account, and the key `l` gives the question "Press l again
+  to log out of "toutuitest". Any other key stops this." **The key works at the
+  first press.**
+- A measurement of this session said the opposite for some minutes, and **the
+  measurement was wrong**: it read the top of the screen after the key, and then
+  it read the row of the message 10 seconds later. **A message of the program
+  lives six seconds** (the trap 8 of the program). Read the row of the message
+  inside that time, and read the row that holds it.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

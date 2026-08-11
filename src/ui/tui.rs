@@ -81,6 +81,41 @@ impl Widget for &mut App {
 }
 
 /// The message for the user. See T-59.
+/// Gives the three areas of a view of a list: the lines, the row of the item,
+/// and the description. See T-99.
+///
+/// **A terminal that holds few rows must show the list.** The measurement of
+/// 2026-08-11, in a terminal of 100 by 18: the area of these three parts held 7
+/// rows, the row of the item took 3 of them, and the list therefore held **one
+/// line** of 24. The description held "N/A" and 10 rows of the screen were
+/// empty.
+///
+/// A terminal that holds enough rows keeps the split that it had: the row of the
+/// item takes 3 rows, and the list and the description take a half each of what
+/// stays.
+fn the_areas_of_a_list(main_area: Rect) -> [Rect; 3] {
+    // 13 rows give the list 5 lines with the split of a large terminal. Fewer
+    // rows than that give every row to the list: the lines are the work of the
+    // view, and a description of one row says almost nothing.
+    if main_area.height <= 12 {
+        return Layout::vertical([
+            Constraint::Fill(1),
+            // The row of the item takes two rows, because its text wraps in a
+            // terminal of 80 columns. See T-94.
+            Constraint::Length(2),
+            Constraint::Length(0),
+        ])
+        .areas(main_area);
+    }
+
+    Layout::vertical([
+        Constraint::Fill(1),
+        Constraint::Length(3),
+        Constraint::Fill(1),
+    ])
+    .areas(main_area)
+}
+
 impl App {
     /// Draws the newest message of the program, if one is fresh.
     ///
@@ -1178,12 +1213,7 @@ impl App {
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
-        let [list_area, item_area1, item_area2] = Layout::vertical([
-            Constraint::Fill(1),
-            Constraint::Length(3),
-            Constraint::Fill(1),
-        ])
-        .areas(main_area);
+        let [list_area, item_area1, item_area2] = the_areas_of_a_list(main_area);
 
         // Every line starts with a mark: the media that plays, a media that
         // the user finished, or the part that the user heard. See T-44.
@@ -1236,12 +1266,7 @@ impl App {
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
-        let [list_area, item_area1, item_area2] = Layout::vertical([
-            Constraint::Fill(1),
-            Constraint::Length(3),
-            Constraint::Fill(1),
-        ])
-        .areas(main_area);
+        let [list_area, item_area1, item_area2] = the_areas_of_a_list(main_area);
 
         // Every book of a series gives one line. See T-22.
         let lines = self.library_lines();
@@ -1310,12 +1335,7 @@ impl App {
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
-        let [list_area, item_area1, item_area2] = Layout::vertical([
-            Constraint::Fill(1),
-            Constraint::Length(3),
-            Constraint::Fill(1),
-        ])
-        .areas(main_area);
+        let [list_area, item_area1, item_area2] = the_areas_of_a_list(main_area);
 
         let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST;
 
@@ -1395,12 +1415,7 @@ impl App {
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
-        let [list_area, item_area1, item_area2] = Layout::vertical([
-            Constraint::Fill(1),
-            Constraint::Length(3),
-            Constraint::Fill(1),
-        ])
-        .areas(main_area);
+        let [list_area, item_area1, item_area2] = the_areas_of_a_list(main_area);
 
         let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA;
 
@@ -1464,12 +1479,7 @@ impl App {
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
-        let [list_area, item_area1, item_area2] = Layout::vertical([
-            Constraint::Fill(1),
-            Constraint::Length(3),
-            Constraint::Fill(1),
-        ])
-        .areas(main_area);
+        let [list_area, item_area1, item_area2] = the_areas_of_a_list(main_area);
 
         // The keys `r` and `X` of this view need a footer of its own. See T-93.
         let text_render_footer = crate::ui::keys::FOOTER_OF_THE_LISTS;
@@ -1557,12 +1567,7 @@ impl App {
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
-        let [list_area, item_area1, item_area2] = Layout::vertical([
-            Constraint::Fill(1),
-            Constraint::Length(3),
-            Constraint::Fill(1),
-        ])
-        .areas(main_area);
+        let [list_area, item_area1, item_area2] = the_areas_of_a_list(main_area);
 
         let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA;
 
@@ -1630,12 +1635,7 @@ impl App {
             ])
             .areas(area);
 
-        let [list_area, item_area1, item_area2] = Layout::vertical([
-            Constraint::Fill(1),
-            Constraint::Length(3),
-            Constraint::Fill(1),
-        ])
-        .areas(main_area);
+        let [list_area, item_area1, item_area2] = the_areas_of_a_list(main_area);
 
         let render_list_title = "Settings";
 
@@ -1782,12 +1782,7 @@ impl App {
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
-        let [list_area, item_area1, item_area2] = Layout::vertical([
-            Constraint::Fill(1),
-            Constraint::Length(3),
-            Constraint::Fill(1),
-        ])
-        .areas(main_area);
+        let [list_area, item_area1, item_area2] = the_areas_of_a_list(main_area);
 
         let from_the_server = crate::logic::search::from_the_server::answer_for(&self.search_query);
 
@@ -2024,12 +2019,7 @@ impl App {
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
-        let [list_area, item_area1, item_area2] = Layout::vertical([
-            Constraint::Fill(1),
-            Constraint::Length(3),
-            Constraint::Fill(1),
-        ])
-        .areas(main_area);
+        let [list_area, item_area1, item_area2] = the_areas_of_a_list(main_area);
 
         let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA;
 
