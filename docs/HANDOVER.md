@@ -4,36 +4,38 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.35**, and the items T-74 to T-79 belong to this
+**The newest release is v0.7.37**, and the items T-74 to T-87 belong to this
 session. T-66 to T-73 belong to the session before it.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.35` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.37` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo test -j 16
-    # 862 tests pass, 18 carry #[ignore], 38 binaries
+    # 875 tests pass, 20 carry #[ignore], 40 binaries
 cargo tree -i openssl-sys                # finds nothing
 cargo tree -i cc                         # finds libsqlite3-sys and ring only
 ```
 
-**`cargo nextest run` gives the same tests in 2.3 seconds**, and `cargo test` gives
+**`cargo nextest run` gives the same tests in 2.2 seconds**, and `cargo test` gives
 them in 8.7. Use nextest: `.config/nextest.toml` stands in the repository, and the
 tool is on this machine. See T-74.
 
 **Every test of the sandbox passes too.** One run of
-`cargo nextest run --run-ignored all` gave 880 of 880 in 14.8 seconds, and the group
+`cargo nextest run --run-ignored all` gave 895 of 895 in 23.1 seconds, and the group
 `the-sandbox` of `.config/nextest.toml` runs them one at a time for the rate limit of
 the login. With `cargo test`, give `-- --ignored --test-threads=1`.
 
-**The fault of one run of ten did not come back.** This session ran the whole suite
-**ten** times one after the other, and every run gave 838 of 838 (the suite held 838
-tests before T-76). **Keep the whole output** at the next such fault: the name of the
-test is the whole answer. **nextest gives one process for each test**, therefore a
-fault of a global slot cannot come from a different test any more.
+**The fault of one run of ten has a name now: T-86.**
+`the_four_requests_of_the_start_go_together` failed when the whole start took more
+than two seconds, and that is a measurement of the machine as much as of the program:
+one run of twelve of this session failed at 4.2 seconds while a build and a program of
+tmux ran beside it. The test holds the **time of each request** now, therefore the load
+of the machine changes nothing. Twelve runs after that change gave 875 of 875 each
+time.
 
 Two tests read the books of the survey. Those books stand outside the repository,
 therefore give their directory in `TOUTUI_SURVEY_BOOKS`. A run with no such variable
@@ -53,6 +55,14 @@ v0.6.7. Do not try to publish v0.6.6.
 | T-77 | **The settings write `config.toml`**, and they keep every comment | `S` |
 | T-78 | The message of the program took the letters of the view below it | — |
 | T-79 | The key `h` of the view of the search did nothing | `/` |
+| T-80 | **The keys of the volume said nothing.** The row of the player names the volume now | `o`, `i` |
+| T-81 | **The queue of the episodes that the server downloads**, and the key that empties it | `d`, `X` |
+| T-82 | The choice of the library changed nothing on the screen | `S` |
+| T-83 | The key `s` of a library of podcasts said nothing | `s` |
+| T-84 | **The media of a collection and of a playlist** | `m`, `X` |
+| T-85 | "1 items" | — |
+| T-86 | The test of the requests of the start measured the machine | — |
+| T-87 | **One answer of 400 took the address of the server away** | — |
 
 ### What the session before this one closed
 
@@ -89,6 +99,14 @@ fails. `cargo nextest` runs every test in one pool of processes, and the run tak
 `docs/harness/drive.sh`. It found two texts that no test held: the footer of the
 narrators said "author", and a text of the settings held a run of 22 spaces. A test
 now holds every text of a view to one space between two words.
+
+**T-87, and it is the one to know.** `ApiError::is_endpoint_fault` held every status
+of `Server` as a fault of the address. One answer of **400** therefore marked the one
+address of the pool down, and **every request after it said "No server address
+answered"** until the examination of the address ran again. The server answers 400 for
+work that a user does every day: a book that stands in a collection already, and a
+podcast whose directory exists. A fault of the endpoint is a transport fault or a
+status of 500 or more now.
 
 **T-77, the settings that write.** `with_the_value` changes one line of the file
 and it keeps every other line, therefore every comment of the user stays. The
@@ -168,11 +186,10 @@ faults of the program that they found.
 
 ### 2. The work that needs no decision
 
-1. **The queue of the episodes of a podcast on the server.** This is the one
-   item of section 5 of `docs/T-24-coverage.md` that stays, and it is small.
-   `GET /api/libraries/:id/episode-downloads` gives the queue and
-   `GET /api/podcasts/:id/clear-queue` empties it. **Show the queue before you
-   offer the key that empties it**: the user cannot see that list today.
+1. **A view that makes a collection or a playlist.** T-84 gives the media of a
+   list, and the program makes no list: `POST /api/collections` and
+   `POST /api/playlists` take a name and a library. The line of the name of a
+   new podcast (`A`) holds the shape of that work already.
 2. **The list of Continue Listening of a **different** library.** T-66 holds the
    shelf of the library that the user selected. A media of a second library needs no
    work today, because the Home view shows one library.
@@ -473,7 +490,26 @@ answers slowly while it writes. Two answers to measure:
 35. **The contents of the reader close with `l` too.** The key `t` opens them and
     it closes them, and `l` goes to the chapter and closes them. A sweep that
     presses `t` after `l` therefore **opens** them again.
-36. **The reader keeps the book of the session while the user reads it.** The key `h`
+36. **A status of 400 is a fault of the request, and not of the address.** The
+    server answers 400 for a book that stands in a collection already, for an
+    episode that stands in a playlist already, and for a podcast whose directory
+    exists. **Read `is_endpoint_fault` before you add a status to it**: the pool
+    marks the address down for such a fault, and a pool of one address then has
+    no address at all. See T-87.
+37. **The queue of the downloads of the server does not fill at once.**
+    `POST /api/podcasts/:id/download-episodes` answers `200`, and a read two
+    seconds later gave an empty queue. Poll it. See T-81.
+38. **`GET /api/podcasts/:id/clear-queue` does not stop the episode that
+    downloads now.** The server holds that episode outside the queue, and
+    `currentDownload` names it. See T-81.
+39. **A message of the program hides the last row of the view below it.** The row
+    of the message stands above the footer, and `Clear` takes it for six seconds
+    (T-78). A list that fills the whole view therefore loses its last line while
+    a message lives. The line comes back with no key.
+40. **A key that writes a value of the server must ask for the lines after that
+    write, and not beside it.** A question that goes with the write gives the
+    state of the moment before the key. See T-84.
+41. **The reader keeps the book of the session while the user reads it.** The key `h`
     and a second `e` give the book with no call of `get_the_ebook`, therefore the
     time of the file does not change inside one run of the program. A measurement of
     the cache needs a second **run**. See T-67.
@@ -611,69 +647,47 @@ answers slowly while it writes. Two answers to measure:
 
 > Continue the Toutui takeover, and write the next version. Repo:
 > `/home/nyverino/Documents/Toutui` (ealtun21/Toutui, branch main). Maintained fork
-> of the archived AlbanDAVID/Toutui. Newest release **v0.7.35**; `Cargo.toml` is at
-> 0.7.35, so the next release bumps it first — the workflow refuses a tag that
+> of the archived AlbanDAVID/Toutui. Newest release **v0.7.37**; `Cargo.toml` is at
+> 0.7.37, so the next release bumps it first — the workflow refuses a tag that
 > disagrees with `Cargo.toml`, **and it builds `--locked`, therefore the commit of
 > the bump must hold the new `Cargo.lock`**.
 >
 > Read `docs/HANDOVER.md` first: the state, the open items, the section of the
-> harness, and 49 traps that cost real time. Then `docs/TAKEOVER-BACKLOG.md` (the
-> evidence of every item; T-74 to T-79 are the newest) and `docs/T-24-coverage.md`
-> (**section 6 names what the program must not have, and why**).
+> harness, and 54 traps that cost real time. Then `docs/TAKEOVER-BACKLOG.md` (the
+> evidence of every item; T-74 to T-87 are the newest, and **T-87 is the one to
+> know**) and `docs/T-24-coverage.md` (**section 6 names what the program must not
+> have, and why**).
 >
-> **The harness is fast now, and every measurement must use it.**
+> **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
+> `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
+> `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a real null asound file
+> (`/dev/null` hangs the real binary). Baseline: **875 tests in 2.2 seconds**, and
+> `cargo nextest run --run-ignored all` gives **895 of 895** with the sandbox up.
 >
->  1. **`cargo nextest run` gives 862 tests in 2.3 seconds**, and `cargo test` gives
->     them in 8.7. `.config/nextest.toml` stands in the repository, and the tests of
->     the sandbox run with `cargo nextest run --run-ignored all` (18 of 18 in 14.2 s).
->     **The three gates before each commit stay the same**, under
->     `nice -n 19 ionice -c 3` with `-j 16`: clippy with `-D warnings`, `cargo fmt
->     --check`, and the tests with `ALSA_CONFIG_PATH` pointing at a real null asound
->     file (`/dev/null` hangs the real binary).
->  2. **Poll, never sleep. `docs/harness/drive.sh` drives the real program in tmux.**
->     The start takes 0.57 s with it and 17 s with a `sleep`, and a sweep of thirteen
->     views takes 9.7 s. **A view key works in the Home view, in the Library view, and
->     in the view of the search only**: come back to the Library between two views.
->     The key `Escape` of the view of the search closes the program; use `/` again.
->  3. **A test that measures the absence of a fault must give the fault the time to
->     appear.** A poll of the value that the test wants is a false pass. Read section
->     2 of the harness of `docs/HANDOVER.md` before you touch a wait: a clock of the
->     test (`start_paused = true`) fits a test with no socket, and a poll of the
->     evidence that the loop acted fits a test that waits for a server.
+> **The sweep of the views is the tool that finds the faults.** Eleven items of the
+> session of 2026-08-11 came from sweeps in tmux with `docs/harness/drive.sh`, and no
+> test held one of them: a footer with the wrong word, a text with a run of 22 spaces,
+> a message that stood between the letters of a book, a key that moved nothing, keys of
+> the volume that said nothing, and a choice of the library that changed no line.
+> **Press every key of every view**, read the screen after each of them, and give the
+> program the shape of the data that breaks the rule.
 >
-> **The work of the program, in the sequence of its value:**
+> **The work that stays, in the sequence of its value:**
 >
-> 1. **The queue of the episodes of a podcast on the server.** This is the one item
->    of section 5 of `docs/T-24-coverage.md` that stays.
->    `GET /api/libraries/:id/episode-downloads` gives the queue, and
->    `GET /api/podcasts/:id/clear-queue` empties it. **Show the queue before you offer
->    the key that empties it**: a user cannot see that list today. Make the queue hold
->    something first: `POST /api/podcasts/:id/download-episodes` with many episodes.
-> 2. **A sweep of every view and of every key in tmux.** Six faults of two sessions
->    came from such sweeps (T-75, T-78, and T-79), and no test held one of them.
->    **Press every key of a view, and not the key that opens it only.** The sweeps of
->    2026-08-11 did not press the keys of the player (`p`, `u`, `P`, `U`, `O`, `I`,
->    `o`, `i`, `B`), the keys of a media (`n`, `D`, `X`, `M`, `N`, `b`), or the keys
->    of a library of podcasts (`A`, `E`).
-> 3. **A view of the settings for a value that is not the cache.** T-77 gave the
->    settings the writer of `config.toml` (`crate::config::write_the_value`), and it
->    holds any block and any key. The colours are the next value that a user changes
->    by hand.
-> 4. **`CARGO_TARGET_DIR` on a different disk or on a `tmpfs`.** The lag of the
->    machine comes from the disk: `target` grew to 11 gigabytes three times in one
->    session. Look at `du -sh target` often, and run `cargo clean --profile dev` at
->    the end. Do **not** put a linker in `.cargo/config.toml`: a user of
->    `cargo install --git` who holds no `lld` would then meet an error of the link.
-> 5. **The peak of the memory of a PDF (T-62)**, if a user meets it. `MAX_BOOK_BYTES`
->    of 512 megabytes holds the limit, and no crate of pure Rust reads one page at a
->    time.
+> 1. **A view that makes a collection or a playlist.** T-84 changes the media of a
+>    list that exists, and `POST /api/collections` and `POST /api/playlists` make one.
+>    The line of the name of a new podcast (`A`) holds the shape of that work.
+> 2. **The sweeps that no session made yet:** the offline mode (no server), a library
+>    with no item, the view of the login, and the program in a terminal of 80 columns.
+> 3. **`CARGO_TARGET_DIR` on a different disk or on a `tmpfs`.** The lag of the machine
+>    comes from the disk: `target` grew to 11 gigabytes three times in one session.
+>    Look at `du -sh target` often, and run `cargo clean --profile dev` at the end. Do
+>    **not** put a linker in `.cargo/config.toml`.
+> 4. **The peak of the memory of a PDF (T-62)**, if a user meets it.
 >
-> **Do not open these again.** The book of xHE-AAC plays (T-68 and T-69): symphonia
-> reads no frame of that form, and the stream of the server gives the sound. Toutui
-> stays GPL, and a person may read bookokrat for an idea and must then write their own
-> code and name that project in the commit (T-51). `libsqlite3-sys` and `ring` stay
-> (T-20). **A sentence of an error of ffmpeg is not a measurement of the whole file:
-> measure the output.**
+> **Do not open these again.** The book of xHE-AAC plays (T-68 and T-69). Toutui stays
+> GPL, and a person may read bookokrat for an idea and must then write their own code
+> and name that project in the commit (T-51). `libsqlite3-sys` and `ring` stay (T-20).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate needing a system library; `cargo tree -i openssl-sys` must find nothing, and
@@ -681,18 +695,15 @@ answers slowly while it writes. Two answers to measure:
 > network — the tests of the sandbox carry `#[ignore]` and run one at a time, because
 > the login of the server permits 40 requests of 600 seconds. Never write to
 > AlbanDAVID/Toutui, and keep his credit everywhere it appears. **Give
-> `-R ealtun21/Toutui` to every `gh` command**: `gh` resolves to the archived
-> repository by default in this clone.
+> `-R ealtun21/Toutui` to every `gh` command.**
 >
 > **Show a fault before you fix it, and measure against the sandbox**
 > (`docs/TEST-SERVER.md`, podman on `:13399`; `podman start abs-test` gives the server
 > back with every book of the sessions before, and `podman restart abs-test` after a
-> transcode that died). Make the data exist first, because an empty list shows you no
-> shape — **and make it hold the shape that breaks the rule**: T-66 hid behind one
-> shelf, and T-76 needed an item with two ebooks. **Drive the real program inside tmux
-> for every view**; a screen of your own writing lies to you. Verify with a second
-> program: `podman logs abs-test`, a real browser, or `curl`. Tag, push, and keep
-> working; don't wait for CI.
+> transcode that died). Make the data exist first, and make it hold the shape that
+> breaks the rule. **Drive the real program inside tmux for every view**; a screen of
+> your own writing lies to you. Verify with a second program: `podman logs abs-test`,
+> a real browser, or `curl`. Tag, push, and keep working; don't wait for CI.
 >
 > The user tests each release as it lands and does not want to be asked before
 > publishing a patch. The server of the user is theirs alone: ask before you use it,
