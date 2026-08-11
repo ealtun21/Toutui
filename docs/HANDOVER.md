@@ -114,10 +114,10 @@ that it cannot read, and it gives no silence.
 3. **The narrators and the tags.** `GET /api/libraries/:id/narrators` and
    `GET /api/tags`. The filter of the key `f` shows the books of one narrator
    and of one tag already, therefore a view of its own gives little.
-4. **The queue on the disk.** The queue lives in the memory of the process.
-5. **The position of a book that ends early goes on.** T-48 names it: the queue
-   of the player is empty and the position of the engine goes on to the end of
-   the whole book. A book with that shape is a fault of the library of the user.
+4. ~~**The queue on the disk.**~~ **Done: T-56.** The table `queue` of the
+   version 7 of the schema holds it, and a new start reads it.
+5. ~~**The position of a book that ends early goes on.**~~ **Done: T-55.**
+   `end_of_the_first` of `TrackList` gives the end of the tracks that play.
 
 `docs/T-24-coverage.md` section 6 names every function that the program must
 **not** have, with the reason.
@@ -233,8 +233,7 @@ new.
 >    writes such a file, therefore the measurement needs the book of the user.
 > 2. **The license of bookokrat.** That project is AGPL-3.0-or-later and Toutui
 >    is GPL-3.0-or-later. **No line of it comes in without the maintainer.**
-> 3. The narrators and the tags, the queue on the disk, and the position of a
->    book that ends early.
+> 3. The narrators and the tags, if they are worth a view of their own.
 >
 > Rules that bind every change: run all three gates yourself before each
 > commit — `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,

@@ -1952,6 +1952,45 @@ stream of the whole media, therefore a server with ffmpeg plays every file. A
 server with no ffmpeg keeps the direct playback, and this rule then holds the
 position.
 
+### T-56: the queue of the media stands on the disk
+
+The queue of T-24 lived in the memory of the process. A user who stopped the
+program lost every media that waited, and the handover named that as an open item.
+
+**The table.** The version 7 of the schema holds `queue`: the account, the server,
+the place, the item, the episode, the title, the author, and the length. The
+account and the server hold the queue apart, therefore a user with an account on
+two servers keeps one queue for each of them.
+
+**When the program writes.** Every change of the queue writes every row again. A
+queue holds some media, therefore that write costs almost nothing and it needs no
+rule for a row that changed. `write_the_queue` writes nothing while no account has
+a name: the queue then belongs to a test, and a test must not touch the database of
+a user.
+
+**When the program reads.** `read_the_queue_of_the_account` runs one time, before
+the first frame. It names the account of the queue, and it puts every row of the
+disk in the queue of the process.
+
+**The rule of a media that the server does not hold now.** The row holds the
+identity of the item, and the server answers the playback. A media that went away
+gives the fault of that playback, and the queue then goes on to the media after it.
+Therefore the program needs no examination of the queue at its start, and it asks
+the server nothing before the user plays a media.
+
+**The measurements of 2026-08-11, in tmux.**
+
+| What | The screen |
+|---|---|
+| The key `n` two times, and then `q` | "The queue [2 items]", "1. 📕 One File With No Decoder", "2. 📕 Alice in Wonderland" |
+| A new start of the program, and `q` | The same two media, in the same sequence |
+| The key `X` in the view of the queue | "The queue [1 items]", "1. 📕 Alice in Wonderland" |
+| A new start after that key | The same one media |
+
+`tests/the_queue_on_the_disk.rs` holds the rules with no server: the sequence, the
+account, the server, and the write that takes a row away. **That test sets
+`XDG_CONFIG_HOME`, therefore it stands alone in its binary.**
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

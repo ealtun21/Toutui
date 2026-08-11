@@ -1096,3 +1096,93 @@ mod tests {
         assert_eq!(count, 2);
     }
 }
+
+/// Writes the whole queue of one account of one server. See T-56.
+///
+/// The queue is short: a user puts some media in it. Therefore the function
+/// writes every row again, and it needs no rule for a row that changed.
+pub fn save_the_queue(username: &str, server: &str, rows: &[QueueRow]) -> Result<()> {
+    let Ok(mut conn) = crate::db::migrate::open_conn() else {
+        error!("[save_the_queue] the program cannot open the database.");
+        return Ok(());
+    };
+
+    let work = conn.transaction()?;
+
+    work.execute(
+        "DELETE FROM queue WHERE username = ?1 AND server = ?2",
+        params![username, server],
+    )?;
+
+    for (place, row) in rows.iter().enumerate() {
+        work.execute(
+            "INSERT OR REPLACE INTO queue
+             (username, server, place, id_item, id_pod, title, author, duration)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params![
+                username,
+                server,
+                place as i64,
+                row.id_item,
+                row.id_pod,
+                row.title,
+                row.author,
+                row.duration,
+            ],
+        )?;
+    }
+
+    work.commit()?;
+
+    Ok(())
+}
+
+/// Reads the queue of one account of one server, in the sequence of the queue.
+pub fn read_the_queue(username: &str, server: &str) -> Vec<QueueRow> {
+    let Ok(conn) = crate::db::migrate::open_conn() else {
+        error!("[read_the_queue] the program cannot open the database.");
+        return Vec::new();
+    };
+
+    let mut statement = match conn.prepare(
+        "SELECT id_item, id_pod, title, author, duration FROM queue
+         WHERE username = ?1 AND server = ?2 ORDER BY place",
+    ) {
+        Ok(statement) => statement,
+        Err(error) => {
+            error!("[read_the_queue] {}", error);
+            return Vec::new();
+        }
+    };
+
+    let rows = statement.query_map(params![username, server], |row| {
+        Ok(QueueRow {
+            id_item: row.get(0)?,
+            id_pod: row.get(1)?,
+            title: row.get(2)?,
+            author: row.get(3)?,
+            duration: row.get(4)?,
+        })
+    });
+
+    match rows {
+        Ok(rows) => rows.filter_map(|row| row.ok()).collect(),
+        Err(error) => {
+            error!("[read_the_queue] {}", error);
+            Vec::new()
+        }
+    }
+}
+
+/// One row of the table of the queue. See T-56.
+#[derive(Debug, Clone, PartialEq)]
+pub struct QueueRow {
+    pub id_item: String,
+    /// The identity of the episode. A book gives an empty text.
+    pub id_pod: String,
+    pub title: String,
+    pub author: String,
+    /// The length of the media, in seconds. A view that holds no length gives
+    /// nothing here.
+    pub duration: Option<f64>,
+}

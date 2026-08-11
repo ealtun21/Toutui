@@ -21,10 +21,22 @@
 //! function directly, and the tests do not need a sequence. The global value
 //! below is a thin box around that structure.
 //!
-//! The queue lives in the memory of the process. A user who stops the
-//! application loses it. A queue on the disk needs a table of the database and
-//! a rule for a media that the server does not hold now, and the value of that
-//! work is small.
+//! # The queue on the disk
+//!
+//! The queue stood in the memory of the process, and a user who stopped the
+//! program lost it. **The table `queue` of the database holds it now.** See
+//! T-56.
+//!
+//! - The program names the account one time at the start, and it then reads the
+//!   queue of that account. A user with an account on two servers keeps one
+//!   queue for each of them.
+//! - Every change of the queue writes every row again. A queue holds some media,
+//!   therefore that write costs almost nothing and it needs no rule for a row
+//!   that changed.
+//! - **A media that the server does not hold now stays in the queue.** The row
+//!   holds the identity of the item, and the server answers the playback. A
+//!   media that went away gives the fault of that playback, and the queue then
+//!   goes on to the media after it.
 
 use crate::logic::playback::PlaybackTarget;
 use crate::utils::convert_seconds::convert_seconds;
@@ -218,24 +230,135 @@ fn with_the_queue<T>(work: impl FnOnce(&mut Queue) -> T) -> T {
     work(&mut queue)
 }
 
+/// The account and the server of the queue on the disk. See T-56.
+///
+/// The functions of the queue take no account, because the keys of the program
+/// call them. Therefore the program names the account one time, at the start.
+fn the_account() -> &'static Mutex<Option<(String, String)>> {
+    static ACCOUNT: OnceLock<Mutex<Option<(String, String)>>> = OnceLock::new();
+    ACCOUNT.get_or_init(|| Mutex::new(None))
+}
+
+/// Names the account of the queue, and it reads the queue of the disk.
+///
+/// The start of the program calls this one time. A user of a second account on a
+/// second server gets the queue of that account: the two queues stand apart in
+/// the database.
+pub fn read_the_queue_of_the_account(username: &str, server: &str) {
+    if let Ok(mut place) = the_account().lock() {
+        *place = Some((username.to_string(), server.to_string()));
+    }
+
+    let rows = crate::db::crud::read_the_queue(username, server);
+
+    if rows.is_empty() {
+        return;
+    }
+
+    let entries: Vec<Entry> = rows.iter().map(entry_of_the_row).collect();
+
+    log::info!(
+        "[queue] the disk holds {} media of the queue",
+        entries.len()
+    );
+
+    with_the_queue(|queue| {
+        queue.clear();
+
+        for entry in entries {
+            queue.add(entry);
+        }
+    });
+}
+
+/// Makes an entry of the queue of one row of the database.
+///
+/// A row with an episode gives an episode, and a row with no episode gives a
+/// book. The length of a book of the database is the length of the whole book,
+/// therefore the playback needs no request for it.
+fn entry_of_the_row(row: &crate::db::crud::QueueRow) -> Entry {
+    let target = if row.id_pod.trim().is_empty() {
+        PlaybackTarget::Book {
+            item_id: row.id_item.clone(),
+            whole_book_duration: row.duration,
+        }
+    } else {
+        PlaybackTarget::Episode {
+            item_id: row.id_item.clone(),
+            episode_id: row.id_pod.clone(),
+        }
+    };
+
+    Entry {
+        target,
+        title: row.title.clone(),
+        author: row.author.clone(),
+        duration: row.duration,
+    }
+}
+
+/// Makes a row of the database of one entry of the queue.
+fn row_of_the_entry(entry: &Entry) -> crate::db::crud::QueueRow {
+    crate::db::crud::QueueRow {
+        id_item: entry.target.item_id().to_string(),
+        id_pod: entry.target.episode_id().unwrap_or_default().to_string(),
+        title: entry.title.clone(),
+        author: entry.author.clone(),
+        duration: entry.duration,
+    }
+}
+
+/// Writes the queue of the process on the disk.
+///
+/// The queue holds some media, therefore the write of every row costs almost
+/// nothing. A program that has no account named yet writes nothing: the queue
+/// then belongs to a test, and a test must not touch the database of a user.
+fn write_the_queue() {
+    let Some((username, server)) = the_account().lock().ok().and_then(|place| place.clone()) else {
+        return;
+    };
+
+    let rows: Vec<crate::db::crud::QueueRow> =
+        with_the_queue(|queue| queue.entries().iter().map(row_of_the_entry).collect());
+
+    if let Err(error) = crate::db::crud::save_the_queue(&username, &server, &rows) {
+        log::warn!("[queue] the program did not write the queue: {}", error);
+    }
+}
+
 /// Puts a media at the end of the queue of the process.
 pub fn add(entry: Entry) -> usize {
-    with_the_queue(|queue| queue.add(entry))
+    let place = with_the_queue(|queue| queue.add(entry));
+    write_the_queue();
+    place
 }
 
 /// Takes the first media out of the queue of the process.
 pub fn take_next() -> Option<Entry> {
-    with_the_queue(|queue| queue.take_next())
+    let entry = with_the_queue(|queue| queue.take_next());
+    write_the_queue();
+    entry
 }
 
 /// Takes one media out of the queue of the process, by its place.
 pub fn take_at(index: usize) -> Option<Entry> {
-    with_the_queue(|queue| queue.take_at(index))
+    let entry = with_the_queue(|queue| queue.take_at(index));
+    write_the_queue();
+    entry
 }
 
 /// Empties the queue of the process.
 pub fn clear() {
-    with_the_queue(|queue| queue.clear())
+    with_the_queue(|queue| queue.clear());
+    write_the_queue();
+}
+
+/// Forgets the account of the queue. A test calls this, and the queue then
+/// touches no database.
+pub fn forget_the_account() {
+    if let Ok(mut place) = the_account().lock() {
+        *place = None;
+    }
 }
 
 /// Gives a copy of the queue of the process.

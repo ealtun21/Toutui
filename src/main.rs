@@ -137,6 +137,10 @@ async fn main() -> Result<()> {
         // the positions of this server only.
         let server_key = config::server_key(&config_file.servers, &server_address);
 
+        // The queue of the media stands on the disk. The program reads the queue
+        // of this account and of this server before the first frame. See T-56.
+        toutui::logic::queue::read_the_queue_of_the_account(&username, &server_key);
+
         toutui::logic::offline::spawn_flush_task(
             std::sync::Arc::clone(&api),
             username.clone(),

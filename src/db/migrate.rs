@@ -8,7 +8,7 @@ use rusqlite::{Connection, Result};
 use std::path::PathBuf;
 
 /// The schema version that this build of the program expects.
-pub const LATEST_VERSION: i64 = 6;
+pub const LATEST_VERSION: i64 = 7;
 
 /// Gives the full path of the database file.
 pub fn db_path() -> PathBuf {
@@ -67,10 +67,41 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
 
     if version < 6 {
         migrate_to_v6(conn)?;
+        version = 6;
         conn.execute_batch("PRAGMA user_version = 6")?;
     }
 
+    if version < 7 {
+        migrate_to_v7(conn)?;
+        conn.execute_batch("PRAGMA user_version = 7")?;
+    }
+
     Ok(())
+}
+
+/// Version 7 adds the queue of the media. See T-56.
+///
+/// The queue lived in the memory of the process, therefore a user who stopped
+/// the program lost it. The server holds no queue: Audiobookshelf keeps its own
+/// queue inside the web page and it gives it to no client.
+///
+/// One row is one media that waits. `place` holds the sequence, and the account
+/// and the server hold the queue apart: a user with an account on two servers
+/// keeps one queue for each of them.
+fn migrate_to_v7(conn: &Connection) -> Result<()> {
+    conn.execute_batch(
+        "CREATE TABLE IF NOT EXISTS queue (
+            username   TEXT    NOT NULL,
+            server     TEXT    NOT NULL DEFAULT '',
+            place      INTEGER NOT NULL,
+            id_item    TEXT    NOT NULL,
+            id_pod     TEXT    NOT NULL DEFAULT '',
+            title      TEXT    NOT NULL DEFAULT '',
+            author     TEXT    NOT NULL DEFAULT '',
+            duration   REAL,
+            PRIMARY KEY (username, server, id_item, id_pod)
+        );",
+    )
 }
 
 /// Version 6 adds the sequence and the filter of the library. See T-24.
