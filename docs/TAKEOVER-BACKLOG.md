@@ -277,6 +277,24 @@ pure Rust is ready.
 Both answers need a crate that is not ready today. `turso` is a pre-release,
 and `rustls-rustcrypto` is an alpha version. Issue 20 holds the details.
 
+**The decision of the maintainer, 2026-08-11. This item waits, and it does not
+stop any work.**
+
+> **Both crates stay.** A later session looks again when `turso` is a release and
+> `rustls-rustcrypto` is beta or better.
+
+The reason: the binary of the release needs no library of the system, therefore
+the rule above holds today. Each of the two answers touches a part of the program
+where a fault costs the user a secret: `ring` carries the TLS of every request,
+and `libsqlite3-sys` reads and writes the encrypted token of the user. **An alpha
+version and a pre-release are not acceptable in those two places.** The gate of
+every session keeps the measurement:
+
+```
+cargo tree -i openssl-sys        # must find nothing
+cargo tree -i cc                 # must find libsqlite3-sys and ring only
+```
+
 ## Priority 4: new functions
 
 | Id | Upstream | Title | Sub-project |
@@ -1732,6 +1750,27 @@ code.** These are facts of a design, and not code:
 **The state of this item.** The license makes it a decision of the maintainer,
 therefore no code goes in before that decision. The PDF of the text needs no
 such decision: `pdf-extract` is MIT and pure Rust.
+
+**The decision of the maintainer, 2026-08-11. This item is closed.**
+
+> **Toutui stays `GPL-3.0-or-later`.** A person may read bookokrat for the idea
+> of a function, and they must then write their own code.
+
+The rules that come with that decision:
+
+1. **No line, and no near copy.** A name of a function, a sequence of the steps
+   of a function, and the shape of a data type are the work of that project. A
+   person who reads it must write the code from the **rule**, and not from the
+   text of the code.
+2. **The commit must say it.** A commit that comes from an idea of bookokrat
+   names that project and the idea, in the way that T-51 names the three ideas
+   above. The record must show what came from where.
+3. **The rule of T-20 holds too.** `mupdf` and every library of the machine stay
+   outside, therefore the way that bookokrat draws a PDF does not come in at all.
+   T-54 gives the text and the pictures of a PDF with `lopdf` of pure Rust, and
+   that work took no idea of bookokrat.
+4. **The licence of the fork does not change.** AlbanDAVID is the first author of
+   this work under GPL, and this decision keeps his choice.
 
 ### T-52: a fault of the reader looked like a program that stopped
 
