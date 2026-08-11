@@ -4,24 +4,25 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.40**, and the items T-88 to T-92 belong to this
+**The newest release is v0.7.44**, and the items T-88 to T-98 belong to this
 session. T-74 to T-87 belong to the session before it.
 
-**This session made the three sweeps that no session had made**: the terminal of
-80 columns, the offline mode, and the view of the login. **Each of the three found
-a fault**, and T-90, T-91, and T-92 are those faults. The sweep stays the tool that
-finds what a test does not.
+**This session made every sweep that no session had made**: the terminal of 80
+columns, the offline mode, the view of the login, and the reader of a book.
+**Each of them found a fault**, and T-90, T-91, T-92, T-94, and T-95 are those
+faults. The sweep stays the tool that finds what a test does not.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.40` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.44` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 880 tests pass in 2.2 s, 22 carry #[ignore], 41 binaries
-    # cargo nextest run --run-ignored all gives 902 of 902 with the sandbox up
+    # 885 tests pass in 2.2 s, 23 carry #[ignore], 42 binaries
+    # cargo nextest run --run-ignored all gives 908 of 908 with the sandbox up,
+    # in 44 s: one test of that run waits 15 s for the time limit of a request
 cargo tree -i openssl-sys                # finds nothing
 cargo tree -i cc                         # finds libsqlite3-sys and ring only
 ```
@@ -31,16 +32,19 @@ them in 8.7. Use nextest: `.config/nextest.toml` stands in the repository, and t
 tool is on this machine. See T-74.
 
 **Every test of the sandbox passes too.** One run of
-`cargo nextest run --run-ignored all` gave **902 of 902 in 19.6 seconds**, and the
-group `the-sandbox` of `.config/nextest.toml` runs them one at a time for the rate
-limit of the login. With `cargo test`, give `-- --ignored --test-threads=1`.
+`cargo nextest run --run-ignored all` gives **908 of 908**, and the group
+`the-sandbox` of `.config/nextest.toml` runs them one at a time for the rate limit
+of the login. With `cargo test`, give `-- --ignored --test-threads=1`.
 
-**One run of this session failed with "the answer must hold a token", and the
-cause was that rate limit.** The sweep of the view of the login (T-92) had used
-the 40 requests of 600 seconds. `podman logs abs-test` held "[RateLimiter] Rate
-limit exceeded", and `podman restart abs-test` gave the limiter back: the run
-after it gave 902 of 902. **A sweep of the login and a run of every test do not
-go together.**
+**The rate limit of the login stopped three runs of this session, and T-96 closed
+that fault.** Every test of the sandbox takes its token from
+`tests/common/mod.rs`, and that module keeps the token in a file of
+`CARGO_TARGET_TMPDIR`: one run makes **one** login, and the run after it makes
+none. Three runs one after the other now give no line of the rate limiter.
+
+**A run that says "the answer must hold a token" still means the rate limit.**
+Read `podman logs abs-test` for "[RateLimiter] Rate limit exceeded", and give the
+container a restart. A sweep of the view of the login uses those 40 requests.
 
 **The fault of one run of ten has a name now: T-86.**
 `the_four_requests_of_the_start_go_together` failed when the whole start took more
@@ -67,6 +71,12 @@ v0.6.7. Do not try to publish v0.6.6.
 | T-90 | **Every footer lost its end in a terminal of 80 columns** | — |
 | T-91 | The program said that the library holds no list, and the server was down | `c`, `s`, `m` |
 | T-92 | **The login said "ERROR: Login failed" for every fault** | — |
+| T-93 | **The keys that remove a list and that give it a new name** | `c`, then `r` and `X` |
+| T-94 | The row of the item lost its end in 80 columns | — |
+| T-95 | "1 items" a second time, in the view of the search | `/` |
+| T-96 | **One login for every test of the sandbox**, and a feed that is not a fault | — |
+| T-97 | **One request that stopped at its time limit took the server away** | — |
+| T-98 | **`CARGO_TARGET_DIR` on a `tmpfs` gives nothing.** A measurement, and no code | — |
 
 ### The items of this session, and what each of them taught
 
@@ -101,6 +111,32 @@ playlist", "This library has no series", and "Press c or p to make one". **The
 view of the authors held the rule already**: "The server gave no author: the
 server does not answer". A view must not give a reason that the program does not
 have.
+
+**T-93, the two keys of a list, and the asymmetry of the server.** `PATCH` of a
+collection with a name of no letter gives `200` and a collection with **no
+name**, and the same request of a playlist keeps the old name. The server
+examines the name when it **makes** a list (T-88), and it examines nothing here.
+**The rules of a name therefore belong to the program**, and they are the rules
+of T-88. The program asks one time before it removes a list, and the question
+names the kind: every user of the server sees a collection.
+
+**T-94 and T-95 came from the sweep of 80 columns**, and both are a fault that a
+session before this one corrected in a different place. T-94 is T-90 again: the
+row of the item holds three rows, it wrote on one, and 21 paragraphs of the views
+held that fault. T-95 is T-85 again: the title of the search counted its own
+items, and **the test of that title asked for "1 items" and it passed**.
+
+**T-96 and T-97 came from the tests themselves.** The rate limit of the login
+stopped three runs, and the answer is one login for a whole run. The measurement
+of that work gave the sequence of T-97: a request of a feed stopped at its time
+limit, and **every request after it said "No server address answered"** for up to
+60 seconds. T-87 corrected that for a status of the server, and this corrects it
+for a fault of the transport.
+
+**T-98 is a measurement that says "do not do this work".** Three handovers
+carried `CARGO_TARGET_DIR` on a `tmpfs`, and the memory is 16 percent faster than
+the ZFS of the maintainer for 3000 small files. A build writes 11 gigabytes, and
+that costs about 8 seconds of a disk that gives 1.4 GB/s.
 
 **T-92, the sweep of the view of the login.** Two of the three messages of that
 view are good work already, and the third said "ERROR: Login failed" for every
@@ -266,14 +302,10 @@ faults of the program that they found.
 
 ### 2. The work that needs no decision
 
-1. **The keys that remove a list, and that give it a new name.** T-88 makes a
-   collection and a playlist, and it removes neither: `DELETE
-   /api/collections/:id` and `DELETE /api/playlists/:id` answer `200` (the test
-   of T-88 uses both), and `PATCH` of the same two paths takes a new name. The
-   view of the lists (`c`) holds the line, and the key `X` of that view is free:
-   the key `X` of the view **inside** a list takes a media out of it already.
-   **Ask the user one time before a key removes a list that every user of the
-   server sees.**
+1. **The description of a collection, and the sequence of a playlist.** T-93
+   gives a list a new name with `PATCH`, and that request takes `description`
+   too. The sequence of the media inside a playlist needs a different request,
+   and no measurement of this project holds it yet.
 2. **The list of Continue Listening of a **different** library.** T-66 holds the
    shelf of the library that the user selected. A media of a second library needs no
    work today, because the Home view shows one library.
@@ -624,7 +656,29 @@ answers slowly while it writes. Two answers to measure:
 47. **The status of a login that failed holds the reason.** The old code made one
     error for every status. **429 is the status that costs the most time**: the
     rate limit of 40 requests of 600 seconds. See T-92 and the trap 22.
-48. **The key Esc quits the program from every view.** The key `h` goes back. A
+48. **`PATCH` of a list does not examine the name, and `POST` of a list does.**
+    A `PATCH` of a collection with a name of no letter gives `200` and a
+    collection with no name; the same request of a playlist keeps the old name.
+    **A rule of a name belongs to the program.** See T-93.
+49. **`DELETE` of a list that went away gives `404`.** A second key of the user
+    and a different client both make that condition. See T-93.
+50. **A `Paragraph` with no `Wrap` writes one row for each line of its text.**
+    The row of the item holds three rows, and 21 paragraphs of the views wrote
+    on one of them: a terminal of 80 columns lost the end of every long line.
+    **Every text of a view that can be long needs `Wrap`.** See T-94 and T-90.
+51. **A test that holds the answer of the code keeps the fault of the code.**
+    The test of the title of the search asked for "Search result [1 items]" and
+    it passed for two years of releases. **Write the rule of the user in the
+    test**, and not the words that the program gives today. See T-95.
+52. **A request that stops at its time limit is not evidence that the address is
+    down.** The server reads a web site for a feed and every file for a scan.
+    Two such requests, one after the other, give the state `Down` now, and one
+    answer of the address forgets them. See T-97.
+53. **`ApiError::Timeout` reaches the caller only when a second address exists.**
+    The old `send` gave `Unreachable` for a pool of one address, therefore the
+    user read "No server address answered" for a server that answered slowly.
+    See T-97.
+54. **The key Esc quits the program from every view.** The key `h` goes back. A
     sweep that presses Esc to leave a view kills the program, and the next
     `wait_for` then says "no server running on /tmp/tmux-1000/default".
 
@@ -695,6 +749,15 @@ answers slowly while it writes. Two answers to measure:
 16. **A sweep of the login needs a `XDG_CONFIG_HOME` with no database.** Two
     files make it (the trap 7), and the program then draws the field of the
     address. A second sweep needs the database of that directory removed again.
+17. **A measurement of a disk must write data that no algorithm makes smaller.**
+    `dd if=/dev/zero` gave 7.4 GB/s on the ZFS of the maintainer, because
+    `compression=on` makes a file of zeros almost nothing. The same measurement
+    with a file of `/dev/urandom` gave 1.4 GB/s. See T-98.
+18. **The disk of the maintainer is not the slow part of a build.** ZFS gives
+    1.4 GB/s of data that no algorithm makes smaller, and 3000 small files take
+    1140 ms against 953 ms of the memory. **A `tmpfs` for `target` gives some
+    seconds and it takes 11 gigabytes of the memory.** The processor makes the
+    machine slow, and `nice -n 19 ionice -c 3` is the answer. See T-98.
 
 ## The shapes that the next work should follow
 
@@ -782,48 +845,44 @@ answers slowly while it writes. Two answers to measure:
 
 > Continue the Toutui takeover, and write the next version. Repo:
 > `/home/nyverino/Documents/Toutui` (ealtun21/Toutui, branch main). Maintained fork
-> of the archived AlbanDAVID/Toutui. Newest release **v0.7.40**; `Cargo.toml` is at
-> 0.7.40, so the next release bumps it first — the workflow refuses a tag that
+> of the archived AlbanDAVID/Toutui. Newest release **v0.7.44**; `Cargo.toml` is at
+> 0.7.44, so the next release bumps it first — the workflow refuses a tag that
 > disagrees with `Cargo.toml`, **and it builds `--locked`, therefore the commit of
 > the bump must hold the new `Cargo.lock`**.
 >
 > Read `docs/HANDOVER.md` first: the state, the open items, the section of the
-> harness, and 64 traps that cost real time. Then `docs/TAKEOVER-BACKLOG.md` (the
-> evidence of every item; T-88 to T-92 are the newest, and **T-87 is still the one
-> to know**) and `docs/T-24-coverage.md` (**section 6 names what the program must
-> not have, and why**).
+> harness, and 72 traps that cost real time. Then `docs/TAKEOVER-BACKLOG.md` (the
+> evidence of every item; T-88 to T-98 are the newest, and **T-87 and T-97 are the
+> two to know**) and `docs/T-24-coverage.md` (**section 6 names what the program
+> must not have, and why**).
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a real null asound file
-> (`/dev/null` hangs the real binary). Baseline: **880 tests in 2.2 seconds**, and
-> `cargo nextest run --run-ignored all` gives **902 of 902** with the sandbox up.
+> (`/dev/null` hangs the real binary). Baseline: **885 tests in 2.2 seconds**, and
+> `cargo nextest run --run-ignored all` gives **908 of 908** with the sandbox up.
 >
-> **The sweep of the views is the tool that finds the faults.** Sixteen items of the
-> two sessions of 2026-08-11 came from sweeps in tmux with `docs/harness/drive.sh`,
-> and no test held one of them. **The three sweeps that no session had made all
-> found a fault**: 80 columns cut the end of every footer (T-90), the offline mode
-> made three views say something that the program cannot know (T-91), and the view
-> of the login said "ERROR: Login failed" for a wrong password, for the rate limit,
-> and for a fault of the server (T-92). **Press every key of every view**, read the
-> screen after each of them, and give the program the shape of the data that breaks
-> the rule.
+> **The sweep of the views is the tool that finds the faults.** Twenty-two items of
+> the two sessions of 2026-08-11 came from sweeps in tmux with
+> `docs/harness/drive.sh`, and no test held one of them. **Every sweep that a
+> session had not made found a fault**: 80 columns cut the end of every footer
+> (T-90) and of every row of an item (T-94), the offline mode made three views say
+> something that the program cannot know (T-91), the view of the login said "ERROR:
+> Login failed" for every fault (T-92), and the first screen of the sweep of the
+> reader said "Search result [1 items]" (T-95). **Press every key of every view**,
+> read the screen after each of them, and give the program the shape of the data
+> that breaks the rule.
 >
 > **The work that stays, in the sequence of its value:**
 >
-> 1. **The keys that remove a list and that give it a new name.** T-88 makes a
->    collection and a playlist, and it removes neither. `DELETE /api/collections/:id`
->    and `DELETE /api/playlists/:id` answer `200`, and `PATCH` of those paths takes a
->    new name. The key `X` of the view of the lists (`c`) is free. **Ask the user one
->    time before a key removes a collection that every user of the server sees.**
-> 2. **The sweeps that stay:** a terminal of 40 rows or fewer (the list of the Home
->    view gets 4 lines in 24 rows, and the description gets 14), a library of one
->    item, and the reader of a book in 80 columns.
-> 3. **`CARGO_TARGET_DIR` on a different disk or on a `tmpfs`.** The lag of the machine
->    comes from the disk: `target` grew to 11 gigabytes three times in one session.
->    Look at `du -sh target` often, and run `cargo clean --profile dev` at the end. Do
->    **not** put a linker in `.cargo/config.toml`.
-> 4. **The peak of the memory of a PDF (T-62)**, if a user meets it.
+> 1. **The sweeps that stay:** a terminal of 40 rows or fewer (the list of the Home
+>    view gets 4 lines in 24 rows, and the row of the description gets 14; that is a
+>    choice of the layout, and no fault), a library of one item, and the program of
+>    a user who holds two accounts.
+> 2. **The keys of a list that this session did not make:** the description of a
+>    collection (`PATCH` takes `description`), and the sequence of the media inside
+>    a playlist.
+> 3. **The peak of the memory of a PDF (T-62)**, if a user meets it.
 >
 > **Do not open these again.** The book of xHE-AAC plays (T-68 and T-69). Toutui stays
 > GPL, and a person may read bookokrat for an idea and must then write their own code

@@ -3757,6 +3757,48 @@ path, and the request after that one must reach the same address. It carries
 together. The count of the pool needs no wait, and a test of
 `src/api/client/endpoint.rs` holds it.
 
+### T-98: `CARGO_TARGET_DIR` on a `tmpfs` gives nothing. Do not do that work
+
+**Three sessions carried this item, and no session measured it.** The handover
+said "The lag of the machine comes from the disk", and the answer of the
+measurement of 2026-08-11 is **no**.
+
+The machine of the maintainer:
+
+| What | The value |
+|---|---|
+| The file system of `target` | ZFS, `zpcachyos/ROOT/cos/home`, two NVMe devices |
+| The pool | 2.72 T, **88 percent full**, 62 percent fragmentation |
+| `compression` / `recordsize` / `atime` | on / 16 K / off |
+| The memory | 60 G, 26 G free |
+
+**The measurements**, of data that no algorithm makes smaller (a file of
+`/dev/urandom` in the memory, and then a copy of it):
+
+| The work | ZFS (`/home`) | `tmpfs` (`/dev/shm`) |
+|---|---|---|
+| One write of 1 GiB | **1.4 GB/s** | 4.6 GB/s |
+| 3000 files of 16 KiB | **1140 ms** | 953 ms |
+
+**A build writes about 11 gigabytes**, therefore the write of the whole build
+takes about **8 seconds** of the disk at 1.4 GB/s. The 3000 files of the second
+row hold the shape of `target`, and the answer of the memory is 16 percent
+faster: the loop of the shell holds most of those 953 milliseconds.
+
+**A `tmpfs` therefore gives some seconds of a build of 21 seconds**, and it takes
+11 gigabytes of the 26 that stay. The machine feels slow while a build runs
+because **16 processes of rustc use the processor**, and `nice -n 19 ionice -c 3`
+is the answer that this project has already.
+
+Two notes that stay:
+
+- **The pool is 88 percent full.** ZFS writes more slowly above about 80 percent,
+  and `cargo clean --profile dev` gives 15 gigabytes back. That is a reason of
+  **space**, and not of speed.
+- A first measurement of this item wrote zeros with `dd`, and it gave 7.4 GB/s on
+  ZFS: `compression=on` makes a file of zeros almost nothing. **A measurement of
+  a disk must write data that no algorithm makes smaller.**
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
