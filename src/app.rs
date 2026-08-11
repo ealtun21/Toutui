@@ -2048,16 +2048,11 @@ impl App {
 
         let state = self.player.state();
 
-        if state.status == crate::player::engine::PlaybackStatus::Stopped {
-            let _ = pop_message(&mut stdout, 3, "No media plays now.");
-            return;
-        }
-
-        if state.chapters.is_empty() {
-            let _ = pop_message(&mut stdout, 3, "This media has no chapter.");
-            return;
-        }
-
+        // **The view opens for every answer.** A message of `pop_message` stands
+        // outside the buffer of ratatui, and the next frame of a view that draws
+        // that row takes it away. The user then presses a key and reads nothing.
+        // The view says why it holds no line. See T-42 and T-59.
+        //
         // The selection starts at the chapter that plays.
         let now = crate::logic::chapters::chapter_at(&state.chapters, state.position);
 

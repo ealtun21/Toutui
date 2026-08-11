@@ -781,16 +781,20 @@ impl App {
         let state = self.player.state();
         let lines = crate::logic::chapters::lines(&state.chapters, state.position);
 
-        // The media stopped while the view was open. The list is then empty,
-        // and the screen says why.
-        let title = if lines.is_empty() {
-            "No media plays now. Press h to go back.".to_string()
-        } else {
+        // The list holds no line for three reasons, and the title must name the
+        // right one. A user who presses `C` with no media reads a different
+        // sentence from a user whose media holds no chapter. See T-59.
+        let title = if !lines.is_empty() {
             format!(
                 "The chapters of \"{}\" [{} items]",
                 state.title,
                 lines.len()
             )
+        } else if state.status == PlaybackStatus::Stopped {
+            "No media plays now. A media that plays gives its chapters. Press h to go back."
+                .to_string()
+        } else {
+            format!("\"{}\" holds no chapter. Press h to go back.", state.title)
         };
 
         self.render_header(header_area, buf);

@@ -2060,6 +2060,50 @@ The measurement in tmux: the line at the top gave "One File With No Decoder — 
 1 of 60 — 0%", the key `?` gave the list of every key, and the key `h` gave the
 book back.
 
+### T-59: a message of `pop_message` can go away before the user reads it
+
+A sweep of every view on 2026-08-11 found this. The key `C` with no media that
+plays writes "No media plays now." with `pop_message`, and the screen of the user
+showed **nothing**: the Home view drew that row again, and the message went away.
+
+**The cause.** `pop_message` writes to the terminal at a row, **outside the buffer
+of ratatui**. ratatui writes the cells that changed at each frame. A message
+therefore stays while no view draws that row, and it goes away when a view draws
+it. The row 3 of the screen holds the title of a list in most views, therefore the
+message of that row is the message that goes away.
+
+T-42 met the other half of the same fault: a message that **stays** after the view
+changed, because ratatui writes no cell that did not change.
+
+**The correction of this item.** The view of the chapters opens for every answer
+now, and its title names the reason: "No media plays now. A media that plays gives
+its chapters." or "\"<the title>\" holds no chapter." The view of the bookmarks
+held that shape already, and it is the right shape: **a view says why it holds no
+line, and a message of one row says nothing.**
+
+**What stays open, and its measurement.** The program holds **93** calls of
+`pop_message`, in `src/app.rs`, `src/logic/playback/mod.rs`,
+`src/logic/download/mod.rs`, `src/db/crud.rs`, `src/main.rs`, and
+`src/logic/sync_session/`. Every one of them can go away in the same way.
+
+The answer is the shape of every other value of this program: **a slot between the
+work and the screen.**
+
+1. `src/logic/message.rs` holds the newest message and the time of it, as
+   `src/logic/live.rs` holds the live messages. A task and a key both write it, and
+   neither needs `&mut App`.
+2. The render of `App` draws that message inside the frame, above the footer, and
+   it takes the message away after some seconds.
+3. Every call of `pop_message` outside the screen of the login becomes a call of
+   that slot. The login draws no frame of ratatui, therefore it keeps
+   `pop_message`.
+
+**Why this session did not make that change.** 93 call sites is a change of one
+kind, and a half of it is worse than none: a program with two ways to show a
+message shows some messages two times and some messages nowhere. The next session
+must do the whole list in one commit, and the sweep of the views of the traps holds
+the measurement that finds a message that no user reads.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
