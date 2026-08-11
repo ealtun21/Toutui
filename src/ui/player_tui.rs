@@ -55,7 +55,7 @@ pub fn render_player(
 
     // Create the paragraph
     let paragraph = Paragraph::new(format!(
-        "\n{} by {} | {}{} \n {} {} / {} | Elapsed: {} | Left: {} ({}%) | Speed: {}x{}\n{}",
+        "\n{} by {} | {}{} \n {} {} / {} | Elapsed: {} | Left: {} ({}%) | Speed: {}x{}{}\n{}",
         player_info[0], // Title
         player_info[1], // Author
         player_info[2], // Chapter
@@ -65,13 +65,14 @@ pub fn render_player(
             "true" => "▶".to_string(),
             _ => "".to_string(),
         },
-        player_info[4], // Current time
-        player_info[5], // Total duration
-        player_info[6], // Elapsed time
-        player_info[7], // Remaining time
-        player_info[8], // Percent progress
-        player_info[9], // Speed rate
-        sleep,          // The timer for sleep
+        player_info[4],  // Current time
+        player_info[5],  // Total duration
+        player_info[6],  // Elapsed time
+        player_info[7],  // Remaining time
+        player_info[8],  // Percent progress
+        player_info[9],  // Speed rate
+        player_info[10], // The volume, when it is not the volume of the file
+        sleep,           // The timer for sleep
         key_bindings
     ))
     .centered()

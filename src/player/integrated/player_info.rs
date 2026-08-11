@@ -41,7 +41,26 @@ pub fn player_info(username: &str, state: &PlaybackState) -> Vec<String> {
         format_time(duration.saturating_sub(position)),
         format!("{}", progress_percent(position, duration)),
         format!("{:.2}", speed),
+        the_volume_of_the_row(state.volume),
     ]
+}
+
+/// Gives the volume for the row of the player.
+///
+/// **The row says nothing at the volume of the file.** That volume is the
+/// volume of almost every playback, and a row of 80 columns holds little. A
+/// user who changed the volume must read it, because a media that plays and
+/// gives no sound looks like a fault of the program. See T-80.
+///
+/// The function is pure, therefore a test needs no engine.
+pub fn the_volume_of_the_row(volume: f32) -> String {
+    let percent = (volume * 100.0).round() as i64;
+
+    if percent == 100 {
+        return String::new();
+    }
+
+    format!(" | Vol: {}%", percent)
 }
 
 /// Calculate the progress of the playback in percent.
@@ -74,6 +93,17 @@ fn format_time(seconds: u32) -> String {
 #[cfg(test)]
 mod tests {
     use super::progress_percent;
+    use super::the_volume_of_the_row;
+
+    /// The keys `o` and `i` changed the volume, and no row of the screen moved.
+    /// A sweep of 2026-08-11 found it. See T-80.
+    #[test]
+    fn the_row_names_the_volume_when_it_is_not_the_volume_of_the_file() {
+        assert_eq!(the_volume_of_the_row(1.0), "");
+        assert_eq!(the_volume_of_the_row(0.8), " | Vol: 80%");
+        assert_eq!(the_volume_of_the_row(0.0), " | Vol: 0%");
+        assert_eq!(the_volume_of_the_row(1.5), " | Vol: 150%");
+    }
 
     // Real values from upstream issue #33. The book has a total duration of
     // 53764 seconds. The first audio file is 841 seconds long.

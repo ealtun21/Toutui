@@ -43,11 +43,18 @@ pub fn handle_key_player(key: &str, player: &PlayerHandle, username: &str) {
         // The chapter before this chapter.
         "U" => player.send(PlayerCommand::PreviousChapter),
 
-        // More volume.
-        "o" => player.send(PlayerCommand::SetVolume(state.volume + VOLUME_STEP)),
+        // More volume. The message says the new value: the screen held no
+        // volume before T-80, therefore these two keys answered with nothing.
+        "o" => {
+            let value = player.change_the_volume(VOLUME_STEP);
+            crate::logic::message::say(&crate::player::engine::the_sentence_of_the_volume(value));
+        }
 
         // Less volume.
-        "i" => player.send(PlayerCommand::SetVolume(state.volume - VOLUME_STEP)),
+        "i" => {
+            let value = player.change_the_volume(-VOLUME_STEP);
+            crate::logic::message::say(&crate::player::engine::the_sentence_of_the_volume(value));
+        }
 
         // More speed. The engine changes the speed during the playback, thus
         // the user does not start the playback again. See T-8.

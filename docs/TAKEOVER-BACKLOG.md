@@ -3176,6 +3176,39 @@ first view.
 | `/`, "zzzqqq", Enter, `h` from the Library | `Library [7 items]` |
 | `/`, "alice", Enter, `/`, "wonder", Enter, `h` | `Library [7 items]` |
 
+### T-80: the keys of the volume answered with nothing
+
+The sweep of the keys of the player of 2026-08-11 pressed `o` and `i` and read
+the screen after each of them. **No row moved.** The row of the player names the
+speed and it named no volume, and the keys wrote no message: a user who presses
+`i` some times therefore hears less and reads nothing, and a media that plays and
+gives no sound looks like a fault of the program.
+
+- **The message says the new value.** 0% says "the media plays and you hear
+  nothing", 100% says "the volume of the file", and a value above 100% says "more
+  than the file".
+- **The row of the player names the volume when it is not 100%.** That value is
+  the value of almost every playback, and a row of 80 columns holds little.
+
+**A second fault stood behind the first one.** `handle_key_player` read
+`state.volume` of the engine, and the engine writes that value at its next tick
+only: two keys inside one tick both read the old value, and the second key gave
+no step. `PlayerHandle::change_the_volume` writes the new value in the state at
+once. A measurement pressed `i` ten times with 80 milliseconds between them, and
+the volume went from 100% to 0% with every step.
+
+The engine held the value between 0 and 2 before this work, therefore no volume
+of a negative number ever reached the sound card.
+
+**The measurement in the real program, 2026-08-11:**
+
+| The keys | The row of the player | The message |
+|---|---|---|
+| `i` | `… | Speed: 1.30x | Vol: 90%` | "The volume is 90%." |
+| `i` `i` | `… | Vol: 70%` | "The volume is 70%." |
+| ten times `i` | `… | Vol: 0%` | "The volume is 0%: the media plays and you hear nothing." |
+| `o` | `… | Vol: 10%` | "The volume is 10%." |
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

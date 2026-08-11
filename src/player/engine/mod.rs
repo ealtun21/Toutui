@@ -345,11 +345,73 @@ impl PlayerHandle {
     pub fn shared_state(&self) -> Arc<RwLock<PlaybackState>> {
         Arc::clone(&self.state)
     }
+
+    /// Changes the volume by one step, and it gives the new value. See T-80.
+    ///
+    /// **The state takes the new value at once.** The engine writes the volume
+    /// of the player in the state at each tick, and that write comes after the
+    /// command. Two keys inside one tick would else both read the old value,
+    /// and the second key would give no step.
+    pub fn change_the_volume(&self, step: f32) -> f32 {
+        let value = (self.state().volume + step).clamp(0.0, THE_LARGEST_VOLUME);
+
+        if let Ok(mut state) = self.state.write() {
+            state.volume = value;
+        }
+
+        self.send(PlayerCommand::SetVolume(value));
+
+        value
+    }
+}
+
+/// The largest volume of the engine. The value 1.0 is the volume of the file.
+pub const THE_LARGEST_VOLUME: f32 = 2.0;
+
+/// Gives the sentence of the volume for the user.
+///
+/// The keys `o` and `i` changed the volume and the screen said nothing: a sweep
+/// of 2026-08-11 pressed them and no row of the screen moved. The function is
+/// pure, therefore a test needs no engine. See T-80.
+pub fn the_sentence_of_the_volume(volume: f32) -> String {
+    let percent = (volume * 100.0).round() as i64;
+
+    match percent {
+        0 => "The volume is 0%: the media plays and you hear nothing.".to_string(),
+        100 => "The volume is 100%, the volume of the file.".to_string(),
+        value if value > 100 => format!("The volume is {}%, more than the file.", value),
+        value => format!("The volume is {}%.", value),
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use super::the_sentence_of_the_volume;
     use super::{is_complete, media_position, reached_the_end, seek_target};
+
+    /// The message of the volume says the value, and it says what 0% and 100%
+    /// mean. A media that plays and gives no sound looks like a fault of the
+    /// program. See T-80.
+    #[test]
+    fn the_message_of_the_volume_says_the_value() {
+        assert!(the_sentence_of_the_volume(1.0).contains("100%"));
+        assert!(the_sentence_of_the_volume(0.8).contains("80%"));
+
+        let nothing = the_sentence_of_the_volume(0.0);
+        assert!(nothing.contains("0%"), "{}", nothing);
+        assert!(
+            nothing.contains("hear nothing"),
+            "the user must read why the media gives no sound: {}",
+            nothing
+        );
+
+        let more = the_sentence_of_the_volume(1.5);
+        assert!(
+            more.contains("150%") && more.contains("more than the file"),
+            "{}",
+            more
+        );
+    }
     use std::time::Duration;
 
     #[test]
