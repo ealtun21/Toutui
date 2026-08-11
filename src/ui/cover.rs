@@ -34,7 +34,11 @@ pub const MIN_WIDTH_FOR_COVER: u16 = 84;
 pub const MIN_HEIGHT_FOR_COVER: u16 = 8;
 
 /// The share of the width that the panel of the covers takes, in percent.
-const PANEL_PERCENT: u16 = 30;
+///
+/// The user asked for a larger picture on 2026-08-11. The panel took 30 per
+/// cent, and a cover of 46 columns then stood in a panel of 34 rows: the
+/// picture used two thirds of the height of the panel. See T-50.
+const PANEL_PERCENT: u16 = 40;
 
 /// The smallest width of the panel of the covers, in columns.
 const PANEL_MIN_WIDTH: u16 = 22;
@@ -42,7 +46,19 @@ const PANEL_MIN_WIDTH: u16 = 22;
 /// The largest width of the panel of the covers, in columns.
 ///
 /// A very wide terminal must not give the covers the half of the screen.
-const PANEL_MAX_WIDTH: u16 = 46;
+///
+/// The height of the panel gives a second limit, and that limit is the one
+/// that binds on most screens: a picture that is as high as the panel needs a
+/// number of columns that comes from the height and from the form of the cell.
+/// See `width_that_the_height_can_use`.
+const PANEL_MAX_WIDTH: u16 = 72;
+
+/// The widest form that a cover has, as the width divided by the height.
+///
+/// A cover of Audible is square, and a cover of a book is higher than it is
+/// wide. A cover that is wider than a square is rare, and the panel gives it
+/// the columns of a square. Therefore the value is 1.0.
+const WIDEST_COVER: f32 = 1.0;
 
 /// The share of the height that the cover of the media that plays takes, in
 /// percent. The rest goes to the covers of the selection.
@@ -254,6 +270,10 @@ async fn fetch(api: &Arc<ApiClient>, id: &str) -> Option<Vec<u8>> {
 #[derive(Default)]
 pub struct CoverArt {
     pictures: HashMap<String, Option<StatefulProtocol>>,
+    /// The width divided by the height of each picture. The plan of the panel
+    /// reads it, therefore a cover that is higher than it is wide takes the
+    /// whole height of the panel. See T-50.
+    forms: HashMap<String, f32>,
 }
 
 impl std::fmt::Debug for CoverArt {
@@ -302,11 +322,26 @@ impl CoverArt {
                 }
             };
 
-            let picture = decode(&bytes).map(|image| picker().new_resize_protocol(image));
+            let picture = decode(&bytes).map(|image| {
+                if image.height() > 0 {
+                    let form = image.width() as f32 / image.height() as f32;
+                    self.forms.insert(id.to_string(), form);
+                }
+
+                picker().new_resize_protocol(image)
+            });
             self.pictures.insert(id.to_string(), picture);
         }
 
         self.pictures.get_mut(id).and_then(|slot| slot.as_mut())
+    }
+
+    /// Gives the form of one picture, as the width divided by the height.
+    ///
+    /// The value comes after the program read the picture. The plan then uses a
+    /// square, and the next frame uses the true form. See T-50.
+    pub fn form_of(&self, id: &str) -> Option<f32> {
+        self.forms.get(id).copied()
     }
 }
 
@@ -348,11 +383,30 @@ pub struct CoverPlan {
     pub shelf: Vec<Rect>,
 }
 
+/// Gives the width of a panel that a picture of the full height fills, in
+/// columns.
+///
+/// A cell of a terminal is higher than it is wide. A picture that is as high as
+/// the panel is therefore wider than the number of rows of the panel. A panel
+/// that is wider than this value gives the picture no more pixels, and it takes
+/// columns of the text for nothing. See T-50.
+pub fn width_that_the_height_can_use(height: u16, font: FontSize, ratio: f32) -> u16 {
+    if font.width == 0 || font.height == 0 || !ratio.is_finite() || ratio <= 0.0 {
+        return PANEL_MAX_WIDTH;
+    }
+
+    let pixels = f32::from(height) * f32::from(font.height) * ratio;
+    let columns = pixels / f32::from(font.width);
+
+    // The value must stay inside the numbers of a `u16`.
+    columns.min(f32::from(u16::MAX)) as u16
+}
+
 /// Cuts the main area into the area of the text and the area of the covers.
 ///
 /// The function gives no area for the covers when the screen is too narrow.
 /// The text then takes the whole area.
-pub fn split_for_covers(area: Rect, screen_width: u16) -> (Rect, Option<Rect>) {
+pub fn split_for_covers(area: Rect, screen_width: u16, font: FontSize) -> (Rect, Option<Rect>) {
     if !covers_are_on() {
         return (area, None);
     }
@@ -361,7 +415,14 @@ pub fn split_for_covers(area: Rect, screen_width: u16) -> (Rect, Option<Rect>) {
         return (area, None);
     }
 
-    let panel_width = (area.width * PANEL_PERCENT / 100).clamp(PANEL_MIN_WIDTH, PANEL_MAX_WIDTH);
+    // A panel that is wider than the height can use gives the picture no more
+    // pixels. The form of a cover is not always square, therefore the limit
+    // takes the widest form that a cover has. See T-50.
+    let of_the_height = width_that_the_height_can_use(area.height, font, WIDEST_COVER);
+
+    let panel_width = (area.width * PANEL_PERCENT / 100)
+        .min(of_the_height)
+        .clamp(PANEL_MIN_WIDTH, PANEL_MAX_WIDTH);
 
     // One column stays empty between the text and the covers.
     if area.width < panel_width + PANEL_MIN_WIDTH + 1 {
@@ -389,20 +450,56 @@ pub fn split_for_covers(area: Rect, screen_width: u16) -> (Rect, Option<Rect>) {
 /// A cell of a terminal is higher than it is wide. Therefore a square picture
 /// needs about two times more columns than rows.
 pub fn square_box(slot: Rect, font: FontSize) -> Rect {
+    box_of_the_picture(slot, font, 1.0)
+}
+
+/// Gives the largest area inside `slot` that shows a picture of the form
+/// `ratio` with no change of that form. The area stands in the middle of the
+/// slot.
+///
+/// `ratio` is the width divided by the height of the picture, in pixels. A
+/// cover of Audible is square and gives 1.0. A cover of a book is higher than
+/// it is wide and gives about 0.66; such a cover then takes the whole height of
+/// the slot, and the old rule of the square took two thirds of it. See T-50.
+pub fn box_of_the_picture(slot: Rect, font: FontSize, ratio: f32) -> Rect {
+    let nothing = Rect {
+        width: 0,
+        height: 0,
+        ..slot
+    };
+
     if slot.width == 0 || slot.height == 0 || font.width == 0 || font.height == 0 {
-        return Rect {
-            width: 0,
-            height: 0,
-            ..slot
-        };
+        return nothing;
     }
 
-    // The side of the square, in pixels.
-    let side = (u32::from(slot.width) * u32::from(font.width))
-        .min(u32::from(slot.height) * u32::from(font.height));
+    // A form that is not a number, or that is not above zero, gives a square.
+    let ratio = if ratio.is_finite() && ratio > 0.0 {
+        ratio
+    } else {
+        1.0
+    };
 
-    let width = (side / u32::from(font.width)).min(u32::from(slot.width)) as u16;
-    let height = (side / u32::from(font.height)).min(u32::from(slot.height)) as u16;
+    // The pixels of the slot.
+    let of_the_width = f32::from(slot.width) * f32::from(font.width);
+    let of_the_height = f32::from(slot.height) * f32::from(font.height);
+
+    // The picture takes the whole width, or the whole height. The side that
+    // gives the smaller picture decides.
+    let (pixels_wide, pixels_high) = if of_the_width / ratio <= of_the_height {
+        (of_the_width, of_the_width / ratio)
+    } else {
+        (of_the_height * ratio, of_the_height)
+    };
+
+    let width = (pixels_wide / f32::from(font.width)) as u16;
+    let height = (pixels_high / f32::from(font.height)) as u16;
+
+    let width = width.min(slot.width);
+    let height = height.min(slot.height);
+
+    if width == 0 || height == 0 {
+        return nothing;
+    }
 
     Rect {
         x: slot.x + (slot.width - width) / 2,
@@ -417,7 +514,16 @@ pub fn square_box(slot: Rect, font: FontSize) -> Rect {
 /// `wanted` is the number of covers of the selection. A book gives 1 and a
 /// series gives one for each book. The function shows `SHELF_MAX` covers at
 /// the most, and fewer when the panel is small.
-pub fn plan_covers(panel: Rect, font: FontSize, has_playing: bool, wanted: usize) -> CoverPlan {
+pub fn plan_covers(
+    panel: Rect,
+    font: FontSize,
+    has_playing: bool,
+    wanted: usize,
+    form_of_the_large: Option<f32>,
+) -> CoverPlan {
+    // A picture that the program did not read yet gives no form. The plan then
+    // uses a square, and the next frame uses the true form. See T-50.
+    let large = form_of_the_large.unwrap_or(1.0);
     let mut plan = CoverPlan::default();
 
     if panel.width == 0 || panel.height < MIN_HEIGHT_FOR_COVER {
@@ -429,19 +535,20 @@ pub fn plan_covers(panel: Rect, font: FontSize, has_playing: bool, wanted: usize
     // else. The selection also gives no second cover when it is the media
     // that plays, because one cover of one book is enough.
     if has_playing && (wanted == 0 || panel.height < 2 * MIN_HEIGHT_FOR_COVER) {
-        plan.playing = Some(square_box(panel, font));
+        plan.playing = Some(box_of_the_picture(panel, font, large));
         return plan;
     }
 
     let shelf_area = if has_playing {
         let playing_height = (panel.height * PLAYING_PERCENT / 100).max(MIN_HEIGHT_FOR_COVER);
 
-        plan.playing = Some(square_box(
+        plan.playing = Some(box_of_the_picture(
             Rect {
                 height: playing_height,
                 ..panel
             },
             font,
+            large,
         ));
 
         Rect {
@@ -453,8 +560,32 @@ pub fn plan_covers(panel: Rect, font: FontSize, has_playing: bool, wanted: usize
         panel
     };
 
-    plan.shelf = shelf(shelf_area, font, wanted);
+    // One cover of the selection takes the whole area, therefore it is a large
+    // cover and it uses the true form. More than one cover goes in a grid of
+    // squares: a shelf of a series shows the books, and a small picture is
+    // enough there. See T-50.
+    plan.shelf = if wanted == 1 && !has_playing {
+        shelf_of_one(shelf_area, font, large)
+    } else {
+        shelf(shelf_area, font, wanted)
+    };
+
     plan
+}
+
+/// Puts one cover of the selection in the whole area.
+fn shelf_of_one(area: Rect, font: FontSize, ratio: f32) -> Vec<Rect> {
+    if area.width == 0 || area.height == 0 {
+        return Vec::new();
+    }
+
+    let one = box_of_the_picture(area, font, ratio);
+
+    if one.width == 0 || one.height == 0 {
+        return Vec::new();
+    }
+
+    vec![one]
 }
 
 /// Puts the covers of the selection in a grid inside `area`.
@@ -661,7 +792,7 @@ mod tests {
     fn a_narrow_screen_gives_the_whole_area_to_the_text() {
         let _covers = WithCovers::on();
         let main = area(80, 20);
-        let (text, panel) = split_for_covers(main, 80);
+        let (text, panel) = split_for_covers(main, 80, FONT);
         assert_eq!(text, main);
         assert_eq!(panel, None);
     }
@@ -670,7 +801,7 @@ mod tests {
     fn a_screen_of_the_smallest_width_shows_a_cover() {
         let _covers = WithCovers::on();
         let main = area(MIN_WIDTH_FOR_COVER, 20);
-        let (_text, panel) = split_for_covers(main, MIN_WIDTH_FOR_COVER);
+        let (_text, panel) = split_for_covers(main, MIN_WIDTH_FOR_COVER, FONT);
         assert!(panel.is_some(), "the smallest width must show a cover");
     }
 
@@ -678,7 +809,7 @@ mod tests {
     fn a_low_panel_gives_the_whole_area_to_the_text() {
         let _covers = WithCovers::on();
         let main = area(150, MIN_HEIGHT_FOR_COVER - 1);
-        let (text, panel) = split_for_covers(main, 150);
+        let (text, panel) = split_for_covers(main, 150, FONT);
         assert_eq!(text, main);
         assert_eq!(panel, None);
     }
@@ -687,7 +818,7 @@ mod tests {
     fn the_panel_stands_at_the_right_and_leaves_a_column() {
         let _covers = WithCovers::on();
         let main = area(150, 25);
-        let (text, panel) = split_for_covers(main, 150);
+        let (text, panel) = split_for_covers(main, 150, FONT);
         let panel = panel.expect("a wide screen shows a cover");
 
         assert_eq!(panel.x + panel.width, main.x + main.width);
@@ -698,7 +829,7 @@ mod tests {
     #[test]
     fn the_panel_is_never_wider_than_the_limit() {
         let _covers = WithCovers::on();
-        let (_text, panel) = split_for_covers(area(400, 40), 400);
+        let (_text, panel) = split_for_covers(area(400, 40), 400, FONT);
         assert_eq!(panel.expect("a cover").width, PANEL_MAX_WIDTH);
     }
 
@@ -706,8 +837,87 @@ mod tests {
     fn the_panel_is_generous() {
         let _covers = WithCovers::on();
         // A screen of 150 columns must give the cover more than 30 columns.
-        let (_text, panel) = split_for_covers(area(150, 29), 150);
+        let (_text, panel) = split_for_covers(area(150, 29), 150, FONT);
         assert!(panel.expect("a cover").width >= 30);
+    }
+
+    /// A cover of a book is higher than it is wide. The old rule of the square
+    /// then took two thirds of the height of the slot. See T-50.
+    #[test]
+    fn a_picture_that_is_high_takes_the_whole_height() {
+        // The cell is 10 by 20 pixels. A slot of 40 by 20 cells holds 400 by
+        // 400 pixels.
+        let slot = area(40, 20);
+
+        // A square picture takes the 400 pixels of the width: 40 columns and
+        // 20 rows.
+        let square = box_of_the_picture(slot, FONT, 1.0);
+        assert_eq!((square.width, square.height), (40, 20));
+
+        // A picture of two thirds takes the whole height, and it needs 26
+        // columns of the 40.
+        let high = box_of_the_picture(slot, FONT, 2.0 / 3.0);
+        assert_eq!(high.height, 20, "the picture must take every row");
+        assert_eq!(high.width, 26);
+        // The picture stands in the middle of the slot.
+        assert_eq!(high.x, slot.x + (40 - 26) / 2);
+    }
+
+    /// A form that the program cannot use gives a square, and it stops nothing.
+    #[test]
+    fn a_form_that_is_not_a_number_gives_a_square() {
+        let slot = area(40, 20);
+        let square = box_of_the_picture(slot, FONT, 1.0);
+
+        assert_eq!(box_of_the_picture(slot, FONT, f32::NAN), square);
+        assert_eq!(box_of_the_picture(slot, FONT, 0.0), square);
+        assert_eq!(box_of_the_picture(slot, FONT, -2.0), square);
+        assert_eq!(box_of_the_picture(slot, FONT, f32::INFINITY), square);
+    }
+
+    /// The panel must not be wider than the height of the panel can use. Those
+    /// columns give the picture no pixel, and they take the width of the text.
+    #[test]
+    fn the_panel_uses_the_height_of_the_screen() {
+        let _covers = WithCovers::on();
+
+        // A screen of 160 columns and a main area of 34 rows. The cell is 10 by
+        // 20 pixels, therefore a square picture of 34 rows needs 68 columns.
+        assert_eq!(width_that_the_height_can_use(34, FONT, 1.0), 68);
+
+        let (_text, panel) = split_for_covers(area(160, 34), 160, FONT);
+        let panel = panel.expect("a wide screen shows a cover");
+
+        // 40 per cent of 160 is 64, and the height can use 68. Therefore the
+        // panel is 64 columns wide, and the old rule gave 46.
+        assert_eq!(panel.width, 64);
+
+        // A low panel takes fewer columns, because more columns would give the
+        // picture no pixel.
+        let (_text, low) = split_for_covers(area(160, 12), 160, FONT);
+        assert_eq!(low.expect("a cover").width, 24);
+    }
+
+    /// The cover of one book fills the panel now. A shelf of a series keeps the
+    /// small covers. See T-50.
+    #[test]
+    fn one_cover_fills_the_panel_and_a_shelf_does_not() {
+        let panel = area(64, 34);
+
+        let one = plan_covers(panel, FONT, false, 1, Some(2.0 / 3.0));
+        let box_of_one = one.shelf[0];
+        assert_eq!(box_of_one.height, 34, "one cover takes every row");
+
+        // Four covers of a series stay small.
+        let four = plan_covers(panel, FONT, false, 4, Some(2.0 / 3.0));
+        assert_eq!(four.shelf.len(), 4);
+
+        for small in &four.shelf {
+            assert!(
+                small.height < box_of_one.height,
+                "a cover of a shelf must stay small"
+            );
+        }
     }
 
     #[test]
@@ -742,26 +952,26 @@ mod tests {
 
     #[test]
     fn one_book_gives_one_cover() {
-        let plan = plan_covers(area(40, 24), FONT, false, 1);
+        let plan = plan_covers(area(40, 24), FONT, false, 1, None);
         assert_eq!(plan.playing, None);
         assert_eq!(plan.shelf.len(), 1);
     }
 
     #[test]
     fn a_series_gives_a_shelf() {
-        let plan = plan_covers(area(40, 24), FONT, false, 3);
+        let plan = plan_covers(area(40, 24), FONT, false, 3, None);
         assert_eq!(plan.shelf.len(), 3);
     }
 
     #[test]
     fn a_shelf_never_shows_more_than_the_limit() {
-        let plan = plan_covers(area(40, 24), FONT, false, 20);
+        let plan = plan_covers(area(40, 24), FONT, false, 20, None);
         assert_eq!(plan.shelf.len(), SHELF_MAX);
     }
 
     #[test]
     fn no_cover_of_a_shelf_covers_another_cover() {
-        let plan = plan_covers(area(40, 24), FONT, true, 4);
+        let plan = plan_covers(area(40, 24), FONT, true, 4, None);
 
         let mut boxes = plan.shelf.clone();
         if let Some(playing) = plan.playing {
@@ -791,7 +1001,7 @@ mod tests {
 
         for wanted in 1..=SHELF_MAX {
             for has_playing in [false, true] {
-                let plan = plan_covers(panel, FONT, has_playing, wanted);
+                let plan = plan_covers(panel, FONT, has_playing, wanted, None);
                 let mut boxes = plan.shelf.clone();
                 if let Some(playing) = plan.playing {
                     boxes.push(playing);
@@ -815,7 +1025,7 @@ mod tests {
 
         for height in (2 * MIN_HEIGHT_FOR_COVER)..40 {
             for wanted in 1..=SHELF_MAX {
-                let plan = plan_covers(area(40, height), FONT, true, wanted);
+                let plan = plan_covers(area(40, height), FONT, true, wanted, None);
                 let playing = plan.playing.expect("the media that plays has a cover");
 
                 for selected in &plan.shelf {
@@ -833,7 +1043,7 @@ mod tests {
 
     #[test]
     fn a_low_panel_shows_the_media_that_plays_only() {
-        let plan = plan_covers(area(40, MIN_HEIGHT_FOR_COVER), FONT, true, 3);
+        let plan = plan_covers(area(40, MIN_HEIGHT_FOR_COVER), FONT, true, 3, None);
         assert!(plan.playing.is_some());
         assert!(plan.shelf.is_empty());
     }
@@ -844,7 +1054,7 @@ mod tests {
         // the media that plays. The panel then holds one cover only, and that
         // cover takes the whole panel.
         let panel = area(40, 24);
-        let plan = plan_covers(panel, FONT, true, 0);
+        let plan = plan_covers(panel, FONT, true, 0, None);
         let playing = plan.playing.expect("the media that plays has a cover");
 
         assert!(plan.shelf.is_empty());
@@ -855,13 +1065,13 @@ mod tests {
     fn a_small_panel_shows_one_cover_and_not_four() {
         // The panel is high enough for one cover, and each cover of a grid of
         // four would be three columns wide. The panel then shows one.
-        let plan = plan_covers(area(10, 10), FONT, false, 4);
+        let plan = plan_covers(area(10, 10), FONT, false, 4, None);
         assert_eq!(plan.shelf.len(), 1);
     }
 
     #[test]
     fn a_panel_that_is_too_low_shows_no_cover() {
-        let plan = plan_covers(area(40, MIN_HEIGHT_FOR_COVER - 1), FONT, false, 3);
+        let plan = plan_covers(area(40, MIN_HEIGHT_FOR_COVER - 1), FONT, false, 3, None);
         assert!(plan.playing.is_none());
         assert!(plan.shelf.is_empty());
     }

@@ -1,4 +1,5 @@
 pub mod cover;
+pub mod keys;
 pub mod loading;
 pub mod login_tui;
 pub mod marks;

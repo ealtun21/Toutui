@@ -1565,6 +1565,69 @@ engine goes on. The book of the sandbox gave `currentTime` 60 for a book of 60
 seconds after 30 seconds of sound. A book with this shape is a fault of the
 library of the user: the same audio must not stand two times in one item.
 
+### T-49: the footer holds more keys than the screen shows
+
+The user reported this on 2026-08-11: "we have too many keybinds on the area,
+and I can't even see them, they go off-screen".
+
+The footer of the Home view held every key of that view in two lines of 342
+characters. A terminal of 160 columns showed the first 320, and a terminal of 80
+columns showed a quarter of them. The keys of the work of the view stood beside
+the keys that a user needs one time in a month.
+
+**The correction.** `src/ui/keys.rs` holds the keys now, and it holds them one
+time. The footer of a view names the keys of the work of that view, and it fits
+in 92 columns. The key `?` opens a list of **every** key, in six groups.
+
+- The list is a view of its own (`AppView::Keys`), therefore a small terminal
+  scrolls it with `j` and `k`.
+- The key `?` a second time gives the view of the user back, and so do `h` and
+  `Esc`. `Esc` alone stops the program in every other view; inside this list it
+  closes the list, because a user who opened a list to read must not lose their
+  work with the key that closes it.
+- A test reads `src/app.rs` and it finds every `KeyCode::Char` of the handler in
+  a group. Therefore a new key of a later session cannot stay hidden.
+
+**The measurement.** A run in tmux at 160 by 45 gave the footer "j/k: move  l:
+play or open  Tab: home/library  /: search  R: refresh  ?: every key  Q: quit",
+and the key `?` gave the whole list of 46 keys.
+
+### T-50: the cover is much smaller than the panel of the cover
+
+The user reported this on 2026-08-11: "the images is too small for the area, we
+can use more of the area for the image, if it's a series we can than put them
+small as they are now".
+
+Two rules made the picture small:
+
+1. **The panel took 30 per cent of the width, and never more than 46 columns.**
+   A cell of a terminal is two times higher than it is wide, therefore a picture
+   of 46 columns is 23 rows high. The panel had 34 rows, and 11 of them stayed
+   empty.
+2. **`square_box` fitted every picture in a square.** A cover of a book is
+   higher than it is wide, and such a cover then used two thirds of the height.
+
+**The correction.**
+
+- The panel takes 40 per cent of the width now, and the height gives the second
+  limit: `width_that_the_height_can_use` gives the columns that a picture of the
+  full height needs. A panel that is wider gives the picture no pixel, and it
+  takes columns of the text for nothing.
+- `box_of_the_picture` takes the form of the real picture. `CoverArt` keeps the
+  width divided by the height of each picture that it reads, therefore a cover
+  that is higher than it is wide takes every row of the panel.
+- **A shelf of a series does not change.** One cover of the selection takes the
+  whole area, and two to four covers stay in the grid of squares.
+
+**The measurement.** The real program at 160 by 45, with the same book selected:
+
+| The binary | The list | The picture |
+|---|---|---|
+| Before | 113 columns | 46 columns by 23 rows, from the column 114 |
+| After | 95 columns | 57 columns by 28 rows, from the column 103 |
+
+The picture holds about 50 per cent more cells, and the text keeps 95 columns.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

@@ -41,6 +41,7 @@ impl Widget for &mut App {
             AppView::Queue => self.render_queue(area, buf),
             AppView::NewPodcast => self.render_new_podcast(area, buf),
             AppView::Authors => self.render_authors(area, buf),
+            AppView::Keys => self.render_keys(area, buf),
             AppView::Settings => self.render_settings(area, buf),
             AppView::SettingsAccount => self.render_settings_account(area, buf),
             AppView::SettingsLibrary => self.render_settings_library(area, buf),
@@ -188,6 +189,9 @@ impl App {
         let one = |value: Option<&String>| value.cloned().into_iter().collect::<Vec<String>>();
 
         match self.view_state {
+            // The view of the keys holds no media, therefore it shows no
+            // cover. See T-49.
+            AppView::Keys => Vec::new(),
             // A line of a series shows the cover of each of its books, in
             // the same way as the Library view. See T-22 and T-24.
             AppView::Home if self.selected_home_series().is_some() => self
@@ -305,11 +309,20 @@ impl App {
             .take(cover::SHELF_MAX)
             .collect();
 
+        // The large cover takes the form of its own picture. Therefore a cover
+        // that is higher than it is wide takes the whole height of the panel.
+        // See T-50.
+        let large = playing
+            .as_deref()
+            .or(selected.first().map(|id| id.as_str()))
+            .and_then(|id| self.covers.form_of(id));
+
         let plan = cover::plan_covers(
             panel,
             cover::picker().font_size(),
             playing.is_some(),
             selected.len(),
+            large,
         );
 
         let api = std::sync::Arc::clone(&self.api);
@@ -378,7 +391,7 @@ impl App {
         App::render_footer(
             footer_area,
             buf,
-            "j/↓, k/↑: move, g/G: first/last, T: ask the server again, h/Tab: back, Q/Esc: quit",
+            "j/k: move  T: ask the server again  h: back  ?: every key  Q: quit",
         );
 
         // The task of the request writes the answer, and the screen takes it
@@ -411,7 +424,7 @@ impl App {
         App::render_footer(
             footer_area,
             buf,
-            "j/↓, k/↑: move, g/G: first/last, W: ask the server again, h/Tab: back, Q/Esc: quit",
+            "j/k: move  W: ask the server again  h: back  ?: every key  Q: quit",
         );
 
         let state = crate::logic::sessions_view::state();
@@ -464,7 +477,7 @@ impl App {
         App::render_footer(
             footer_area,
             buf,
-            "j/↓, k/↑: move, l/→: the books of this author, g/G: first/last, h/Tab: back, Q/Esc: quit",
+            &crate::ui::keys::footer_with("the books of this author", None),
         );
         self.render_list(
             main_area,
@@ -528,7 +541,7 @@ impl App {
         App::render_footer(
             footer_area,
             buf,
-            "j/↓, k/↑: move, l/→: add the podcast to the library, A: other words, h/Tab: back, Q/Esc: quit",
+            "j/k: move  l: add the podcast  A: other words  h: back  ?: every key  Q: quit",
         );
         self.render_list(
             main_area,
@@ -601,7 +614,7 @@ impl App {
         App::render_footer(
             footer_area,
             buf,
-            "j/↓, k/↑: move, l/→: go to the place, X: remove the bookmark, h/Tab: back, Q/Esc: quit",
+            &crate::ui::keys::footer_with("go to the place", Some("remove the bookmark")),
         );
         self.render_list(
             main_area,
@@ -637,7 +650,7 @@ impl App {
         App::render_footer(
             footer_area,
             buf,
-            "j/↓, k/↑: move, l/→: play it now, X: take it out, h/Tab: back, Q/Esc: quit",
+            &crate::ui::keys::footer_with("play it now", Some("take it out")),
         );
         self.render_list(
             main_area,
@@ -679,7 +692,7 @@ impl App {
         App::render_footer(
             footer_area,
             buf,
-            "j/↓, k/↑: move, l/→: go to the chapter, g/G: first/last, h/Tab: back, Q/Esc: quit",
+            &crate::ui::keys::footer_with("go to the chapter", None),
         );
         self.render_list(
             main_area,
@@ -737,11 +750,7 @@ impl App {
         );
 
         self.render_header(header_area, buf);
-        App::render_footer(
-            footer_area,
-            buf,
-            "j/↓, k/↑: move, l/→: take the choice, g/G: first/last, h/Tab: back, Q/Esc: quit\n The program asks the server again and it makes the library again.",
-        );
+        App::render_footer(footer_area, buf, crate::ui::keys::FOOTER_OF_A_LIST);
         self.render_list(
             main_area,
             buf,
@@ -754,6 +763,32 @@ impl App {
 
 /// Rendering logic
 impl App {
+    /// Draws every key of the program. The key `?` opens this view. See T-49.
+    ///
+    /// The footer of a view names the keys of the work of that view only. A
+    /// footer with every key needed two lines of more than 300 characters, and
+    /// a terminal of 80 columns showed a part of them only.
+    fn render_keys(&mut self, area: Rect, buf: &mut Buffer) {
+        let [header_area, main_area, footer_area] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Fill(1),
+            Constraint::Length(2),
+        ])
+        .areas(area);
+
+        let lines = crate::ui::keys::lines();
+
+        self.render_header(header_area, buf);
+        App::render_footer(footer_area, buf, crate::ui::keys::FOOTER_OF_THE_KEYS);
+        self.render_list(
+            main_area,
+            buf,
+            "Every key of the program",
+            &lines,
+            &mut self.list_state_keys.clone(),
+        );
+    }
+
     /// AppView::Home rendering
     fn render_home(&mut self, area: Rect, buf: &mut Buffer) {
         let [header_area, main_area, _player_area, _refresh_area, footer_area] =
@@ -768,7 +803,8 @@ impl App {
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
-        let (main_area, cover_panel) = cover::split_for_covers(main_area, area.width);
+        let (main_area, cover_panel) =
+            cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] = Layout::vertical([
@@ -791,9 +827,9 @@ impl App {
         // A library of podcasts has no series and no ebook. The footer of
         // that library must not name a key that does nothing.
         let text_render_footer = if self.is_podcast {
-            "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, n: to the queue, q: the queue, f: sequence, A: a new podcast, E: the server gets the episodes, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
+            crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_PODCASTS
         } else {
-            "j/↓, k/↑: move, l/→: play or open a series, Tab: library, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, n: to the queue, q: the queue, s: series, a: authors, c: lists, f: sequence, A: a new podcast, E: the server gets the episodes, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
+            crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_BOOKS
         };
 
         self.render_header(header_area, buf);
@@ -825,7 +861,8 @@ impl App {
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
-        let (main_area, cover_panel) = cover::split_for_covers(main_area, area.width);
+        let (main_area, cover_panel) =
+            cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] = Layout::vertical([
@@ -864,9 +901,9 @@ impl App {
 
         let mut _text_render_footer = "";
         if self.is_podcast {
-            _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
+            _text_render_footer = crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_PODCASTS
         } else {
-            _text_render_footer = "j/↓, k/↑: move, l/→: play or open a series, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, n: to the queue, q: the queue, s: series, a: authors, c: lists, f: sequence, A: a new podcast, E: the server gets the episodes, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
+            _text_render_footer = crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_BOOKS;
         }
 
         self.render_header(header_area, buf);
@@ -898,7 +935,8 @@ impl App {
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
-        let (main_area, cover_panel) = cover::split_for_covers(main_area, area.width);
+        let (main_area, cover_panel) =
+            cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] = Layout::vertical([
@@ -908,7 +946,7 @@ impl App {
         ])
         .areas(main_area);
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: books of the series, h: back, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST;
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -973,7 +1011,8 @@ impl App {
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
-        let (main_area, cover_panel) = cover::split_for_covers(main_area, area.width);
+        let (main_area, cover_panel) =
+            cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] = Layout::vertical([
@@ -983,7 +1022,7 @@ impl App {
         ])
         .areas(main_area);
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, n: to the queue, q: the queue, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA;
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -1040,7 +1079,8 @@ impl App {
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
-        let (main_area, cover_panel) = cover::split_for_covers(main_area, area.width);
+        let (main_area, cover_panel) =
+            cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] = Layout::vertical([
@@ -1050,7 +1090,7 @@ impl App {
         ])
         .areas(main_area);
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: contents, h: back, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST;
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -1117,7 +1157,8 @@ impl App {
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
-        let (main_area, cover_panel) = cover::split_for_covers(main_area, area.width);
+        let (main_area, cover_panel) =
+            cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] = Layout::vertical([
@@ -1127,7 +1168,7 @@ impl App {
         ])
         .areas(main_area);
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, n: to the queue, q: the queue, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA;
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -1197,16 +1238,8 @@ impl App {
 
         let render_list_title = "Settings";
 
-        let mut _text_render_footer = "";
-        if self.list_state_settings.selected() == Some(2) {
-            // for `About` section
-            _text_render_footer = "j/↓, k/↑: move, Scroll what's new: J(down) K(up) H(top),\n Tab: home, R: refresh, Q/Esc: quit.";
-        } else if self.list_state_settings.selected() == Some(3) {
-            _text_render_footer = "j/↓, k/↑: move, Scroll : J(down) K(up) H(top),\n Tab: home, R: refresh, Q/Esc: quit.";
-        } else {
-            _text_render_footer =
-                "j/↓, k/↑: move, l/→: see options,\n Tab: home, R: refresh, Q/Esc: quit.";
-        }
+        // Every line of the settings takes the same keys.
+        let _text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST;
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, _text_render_footer);
@@ -1303,7 +1336,8 @@ impl App {
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
-        let (main_area, cover_panel) = cover::split_for_covers(main_area, area.width);
+        let (main_area, cover_panel) =
+            cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] = Layout::vertical([
@@ -1332,9 +1366,9 @@ impl App {
 
         let mut _text_render_footer = "";
         if self.is_podcast {
-            _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n c: lists, A: a new podcast, E: the server gets the episodes, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+            _text_render_footer = crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_PODCASTS;
         } else {
-            _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, n: to the queue, q: the queue, s: series, a: authors, c: lists, f: sequence, A: a new podcast, E: the server gets the episodes, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+            _text_render_footer = crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_BOOKS;
         }
 
         if self.search_mode {
@@ -1543,7 +1577,8 @@ impl App {
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
-        let (main_area, cover_panel) = cover::split_for_covers(main_area, area.width);
+        let (main_area, cover_panel) =
+            cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] = Layout::vertical([
@@ -1553,7 +1588,7 @@ impl App {
         ])
         .areas(main_area);
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, n: to the queue, q: the queue, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA;
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);

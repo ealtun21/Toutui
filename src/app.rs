@@ -70,6 +70,8 @@ pub enum AppView {
     NewPodcast,
     /// The authors of the library. See T-24.
     Authors,
+    /// Every key of the program. The key `?` opens it. See T-49.
+    Keys,
     Settings,
     SettingsAccount,
     SettingsLibrary,
@@ -148,6 +150,11 @@ pub struct App {
     pub list_state_new_podcast: ListState,
     /// The list of the authors of the library. See T-24.
     pub list_state_authors: ListState,
+    /// The line of the view of every key. See T-49.
+    pub list_state_keys: ListState,
+    /// The view that the user came from, before the list of every key. The key
+    /// `?` a second time gives that view back. See T-49.
+    pub the_view_before_the_keys: AppView,
     /// The user changed the sequence or the filter. The loop of the program
     /// then makes the application again, in the same way as the key `R`. A
     /// new sequence needs a new request, and every list of the library comes
@@ -1027,6 +1034,8 @@ impl App {
             sleep_choice: None,
             list_state_new_podcast: ListState::default(),
             list_state_authors: ListState::default(),
+            list_state_keys: ListState::default(),
+            the_view_before_the_keys: AppView::Home,
             must_refresh: false,
             series_from: AppView::Series,
             lists,
@@ -1361,6 +1370,11 @@ impl App {
                 self.view_state = AppView::Settings;
             }
 
+            // The list of every key. The footer of a view names the keys of
+            // the work of that view only, therefore this list holds the rest.
+            // See T-49.
+            KeyCode::Char('?') => self.show_every_key(),
+
             // The key that forces the sync. See T-32 and upstream issue #37.
             //
             // The design named the key `S`, and `S` was not free: it opens the
@@ -1413,6 +1427,13 @@ impl App {
                 self.toggle_view()
             }
 
+            // `Esc` inside the list of every key closes that list. A key that
+            // stops the whole program must not stand alone in a view that the
+            // user opened to read. See T-49.
+            KeyCode::Esc if matches!(self.view_state, AppView::Keys) => {
+                self.view_state = self.the_view_before_the_keys;
+            }
+
             KeyCode::Char('Q') | KeyCode::Esc => {
                 // display message
                 let message_quit = "Exiting the application and syncing data, please hold on.";
@@ -1462,6 +1483,7 @@ impl App {
             KeyCode::Char('h') => {
                 // To return to a page
                 match self.view_state {
+                    AppView::Keys => self.view_state = self.the_view_before_the_keys,
                     AppView::SettingsAccount => self.view_state = AppView::Settings,
                     AppView::SettingsLibrary => self.view_state = AppView::Settings,
                     AppView::SettingsAbout => self.view_state = AppView::Settings,
@@ -1566,6 +1588,9 @@ impl App {
 
                 // Now, spawn the async task based on the current view state
                 match self.view_state {
+                    // The view of the keys is a list of text. No line of it
+                    // holds a media, therefore the key `l` does nothing.
+                    AppView::Keys => {}
                     AppView::Home => {
                         // A line of a series opens the books of that series,
                         // in the same way as the Library view. See T-22.
@@ -3665,6 +3690,24 @@ impl App {
         );
     }
 
+    /// Shows every key of the program. The key is `?`. See T-49.
+    ///
+    /// The key a second time gives the view of the user back. Therefore the
+    /// list is a look at the keys, and it takes no place of the work.
+    pub fn show_every_key(&mut self) {
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+
+        if matches!(self.view_state, AppView::Keys) {
+            self.view_state = self.the_view_before_the_keys;
+            return;
+        }
+
+        self.the_view_before_the_keys = self.view_state;
+        self.list_state_keys.select(Some(0));
+        self.view_state = AppView::Keys;
+    }
+
     /// Shows the media that wait in the queue. The key is `q`.
     pub fn show_the_queue(&mut self) {
         let mut stdout = stdout();
@@ -3754,6 +3797,7 @@ impl App {
             AppView::Home => AppView::Library,
             AppView::Library => AppView::Home,
             AppView::SearchBook => AppView::Home,
+            AppView::Keys => AppView::Home,
             AppView::PodcastEpisode => AppView::Home,
             AppView::Series => AppView::Home,
             AppView::SeriesBook => AppView::Home,
@@ -3925,6 +3969,18 @@ impl App {
                     self.list_state_new_podcast.select(Some(0));
                 }
             }
+            // The view of the keys is a list of text. The move goes to the
+            // next line, and the list scrolls. See T-49.
+            AppView::Keys => {
+                let count = crate::ui::keys::lines().len();
+                let from = self.list_state_keys.selected().unwrap_or(0);
+
+                self.list_state_keys.select(if from + 1 < count {
+                    Some(from + 1)
+                } else {
+                    Some(0)
+                });
+            }
             AppView::Authors => {
                 let count = crate::logic::authors::authors().len();
                 let from = self.list_state_authors.selected().unwrap_or(0);
@@ -4003,6 +4059,7 @@ impl App {
             AppView::Queue => self.list_state_queue.select_previous(),
             AppView::NewPodcast => self.list_state_new_podcast.select_previous(),
             AppView::Authors => self.list_state_authors.select_previous(),
+            AppView::Keys => self.list_state_keys.select_previous(),
             AppView::Settings => self.list_state_settings.select_previous(),
             AppView::SettingsAccount => self.list_state_settings_account.select_previous(),
             AppView::SettingsLibrary => self.list_state_settings_library.select_previous(),
@@ -4038,6 +4095,7 @@ impl App {
             AppView::Queue => self.list_state_queue.select_first(),
             AppView::NewPodcast => self.list_state_new_podcast.select_first(),
             AppView::Authors => self.list_state_authors.select_first(),
+            AppView::Keys => self.list_state_keys.select_first(),
             AppView::Settings => self.list_state_settings.select_first(),
             AppView::SettingsAccount => self.list_state_settings_account.select_first(),
             AppView::SettingsLibrary => self.list_state_settings_library.select_first(),
@@ -4050,6 +4108,10 @@ impl App {
 
     pub fn select_last(&mut self) {
         match self.view_state {
+            AppView::Keys => {
+                let last = crate::ui::keys::lines().len().saturating_sub(1);
+                self.list_state_keys.select(Some(last));
+            }
             AppView::Home => self
                 .list_state_cnt_list
                 .select(crate::logic::home_view::last_line(&self.home_rows)),
