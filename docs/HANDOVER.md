@@ -1,18 +1,21 @@
 # The handover of 2026-08-11 (the sixth session of that day)
 
+**The newest release is v0.7.16.** The items T-52, T-53, and T-54 came after the
+first form of this document. Read them in `docs/TAKEOVER-BACKLOG.md`.
+
 This document is for the next session. It says what is done, what is open, and
 the traps that cost time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of
 each item, and `docs/T-24-coverage.md` for the comparison with the server.
 
 ## The state
 
-`main` is clean and pushed. The newest release is **v0.7.13**. Every gate
+`main` is clean and pushed. The newest release is **v0.7.16**. Every gate
 passes:
 
 ```
 cargo clippy --all-targets -- -D warnings
 cargo fmt --check
-ALSA_CONFIG_PATH=<a real null asound file> cargo test    # 768 tests pass, 16 carry #[ignore], 34 binaries
+ALSA_CONFIG_PATH=<a real null asound file> cargo test    # 790 tests pass, 17 carry #[ignore], 35 binaries
 cargo tree -i openssl-sys                                # finds nothing
 ```
 
@@ -33,6 +36,9 @@ in v0.6.7. Do not try to publish v0.6.6.
 | T-49 | The key `?` shows every key, and the footer holds the useful ones | `?` |
 | T-50 | The cover fills the panel | — |
 | T-51 | bookokrat is AGPL, and a PDF of pure Rust: a decision waits | — |
+| T-52 | A fault of the reader locked the user in that view | `Q`, `Esc` |
+| T-53 | **Every codec of the server**, with no new dependency | — |
+| T-54 | The reader shows a PDF book, with its pictures | `e` |
 
 ### T-47, the live messages
 
@@ -82,6 +88,17 @@ the work.** The key `?` shows the list in the program. A new key needs a line in
 
 ## What is open
 
+### The one measurement that this session could not make
+
+**A file of xHE-AAC.** T-53 gives the program the stream of the server for a file
+that no decoder of the program reads, and the measurement used a WMA file. The
+book of the user holds xHE-AAC, and ffmpeg of the server copies that form into a
+transport stream as LATM, which symphonia does not read. The server makes AAC of
+the old form after ffmpeg gives it a fault, and the program waits for that second
+try. **No program of this machine writes a file of xHE-AAC**, therefore the next
+session must measure it against the book of the user. The screen says the form
+that it cannot read, and it gives no silence.
+
 ### Needs a decision of the maintainer
 
 1. **The license of bookokrat (T-51).** That project is **AGPL-3.0-or-later**,
@@ -91,9 +108,9 @@ the work.** The key `?` shows the list in the program. A new key needs a line in
 
 ### The work that needs no decision
 
-2. **A PDF of the text (T-51).** `pdf-extract` 0.12 is MIT and pure Rust, and it
-   read a real PDF in the measurement. The reader of T-10 can show that text. No
-   crate of pure Rust draws a **page** of a PDF, therefore Toutui shows the text.
+2. ~~**A PDF of the text.**~~ **Done: T-54.** The reader shows a PDF book and its
+   pictures. `lopdf` 0.44 gives the text and the pictures of each page, and one
+   page is one chapter. No crate of pure Rust draws a **page** of a PDF.
 3. **The narrators and the tags.** `GET /api/libraries/:id/narrators` and
    `GET /api/tags`. The filter of the key `f` shows the books of one narrator
    and of one tag already, therefore a view of its own gives little.
@@ -107,7 +124,7 @@ the work.** The key `?` shows the list in the program. A new key needs a line in
 
 ## The traps that cost time
 
-The seventeen traps of the handover before this one all stay true. These four are
+The seventeen traps of the handover before this one all stay true. These seven are
 new.
 
 1. **A screen of my own is not a terminal. Use tmux.** A hand-written model of
@@ -134,6 +151,21 @@ new.
    `config.toml` (the program stops with "configuration file not found") and
    `.env` with `TOUTUI_SECRET_KEY=<something>` (the login writes "No secret key
    is present"). Copy the `config.toml` of the harness of the sandbox.
+
+5. **A value of the state that belongs to one playback must name that playback.**
+   The engine clears the name of a file with no decoder when it starts a playback,
+   and the command of the start is not immediate. A loop that read that name saw
+   the fault of the playback before it. `playback_of_the_fault` holds the identity
+   now. See T-53.
+6. **`reqwest::blocking` stops the program inside a task of tokio.** The client of
+   that form makes a runtime of its own, and a runtime that goes away inside an
+   asynchronous context gives "Cannot drop a runtime in a context where blocking
+   is not allowed". The engine is a thread, therefore the real program is correct.
+   **A test of such a reader must use `std::thread::spawn`.** See
+   `tests/the_stream_against_the_sandbox.rs`.
+7. **A value that comes from the view of the user must come before the view
+   changes.** `open_the_ebook` read the title of the media after it set the view
+   to the reader, and the answer was then always nothing. See T-54.
 
 ## The shapes that this session made, and that the next work should follow
 
@@ -182,7 +214,7 @@ new.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.7.13**; `Cargo.toml` is at 0.7.13, so
+> AlbanDAVID/Toutui. Newest release **v0.7.16**; `Cargo.toml` is at 0.7.16, so
 > the next release bumps it first — the release workflow refuses a tag that
 > disagrees with `Cargo.toml`.
 >
@@ -194,9 +226,13 @@ new.
 > are the newest).
 >
 > What stays is in the section "What is open":
-> 1. **The license of bookokrat.** That project is AGPL-3.0-or-later and Toutui
+> 1. **Measure T-53 against a file of xHE-AAC.** The stream of the server plays
+>    every codec of ffmpeg, and a file of that form comes as LATM in a transport
+>    stream. The program refuses LATM with a clear message, and the server makes
+>    AAC of the old form after ffmpeg gives it a fault. No program of this machine
+>    writes such a file, therefore the measurement needs the book of the user.
+> 2. **The license of bookokrat.** That project is AGPL-3.0-or-later and Toutui
 >    is GPL-3.0-or-later. **No line of it comes in without the maintainer.**
-> 2. **A PDF of the text**, with `pdf-extract` 0.12 (MIT, pure Rust, measured).
 > 3. The narrators and the tags, the queue on the disk, and the position of a
 >    book that ends early.
 >
@@ -204,7 +240,8 @@ new.
 > commit — `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,
 > and `cargo test` with `ALSA_CONFIG_PATH` pointing at a real null asound file
 > (`/dev/null` hangs the real binary). Baseline: 768 tests, 34 binaries, tree
-> clean. All prose and user-facing strings in ASD-STE100 simplified technical
+> clean. Baseline of the tests: 790 pass, 17 carry `#[ignore]`, 35 binaries. All
+> prose and user-facing strings in ASD-STE100 simplified technical
 > English. No crate needing a system library; `cargo tree -i openssl-sys` must
 > find nothing. No test may need the network — sandbox tests carry `#[ignore]`
 > — and no test may hold a path of the machine. Never write to
