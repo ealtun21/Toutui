@@ -4,18 +4,18 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.28**, and the items T-66, T-67, and T-68 belong to
-this session. T-47 to T-65 belong to the session before it.
+**The newest release is v0.7.29**, and the items T-66 to T-69 belong to this
+session. T-47 to T-65 belong to the session before it.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.28` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.29` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo test -j 16
-    # 826 tests pass, 17 carry #[ignore], 37 binaries
+    # 829 tests pass, 17 carry #[ignore], 37 binaries
 cargo tree -i openssl-sys                # finds nothing
 cargo tree -i cc                         # finds libsqlite3-sys and ring only
 ```
@@ -26,7 +26,7 @@ the requests of the login under the rate limit of the server.
 
 **The fault of one run of ten did not come back.** This session ran the whole suite
 **eight** times: three runs beside the work, and five runs one after the other. Every
-run gave 820 of 820, and the suite holds 826 tests after T-68. The session before
+run gave 820 of 820, and the suite holds 829 tests after T-69. The session before
 this one saw one fault of ten runs and did not name it. **Keep the whole output of `cargo test`** at the next such fault: the
 name of the test is the whole answer.
 
@@ -45,6 +45,7 @@ v0.6.7. Do not try to publish v0.6.6.
 | T-66 | **A media that a different client finished leaves Continue Listening**, with no request | `N` |
 | T-67 | The cache of the ebooks holds a limit of one gigabyte | `e` |
 | T-68 | **The book of xHE-AAC of the user, and four faults of the stream.** T-53 and T-63 close with it | `l` |
+| T-69 | **That book plays now**, from a place beside the one that stops ffmpeg of the server | `l` |
 | T-51 | **The decision of the maintainer: Toutui stays GPL.** bookokrat gives ideas only | — |
 | T-20 | **The decision of the maintainer: the two builds of C stay.** Both answers need a crate that is not ready | — |
 
@@ -85,28 +86,34 @@ that file, or the test `every_key_of_the_handler_stands_in_the_list` fails.
 
 ## What is open
 
-### 1. The book of xHE-AAC: closed, and the answer is "no"
+### 1. The book of xHE-AAC: it plays now (T-68 and T-69)
 
-**T-53 and T-68 close this. Do not open it again, and do not look for a decoder.**
+**T-53 and T-63 close with T-68, and T-69 makes the file play.** The user gave the
+real file on 2026-08-11, and a piece of 10 minutes of it stands in the sandbox.
 
-The user gave the real file on 2026-08-11, and the measurement is complete. No
-program plays xHE-AAC: symphonia refuses it, ffmpeg 8.0.1 of the server and ffmpeg
-9.0 of this machine both answer "Not yet implemented in FFmpeg, patches welcome".
-The stream of the server cannot help, because ffmpeg is the program that makes it.
+**A wrong answer of that day, and the correction.** The first form of T-68 read the
+sentence "Not yet implemented in FFmpeg, patches welcome" and it said that no program
+plays that form. The user said "MPV can play xHE-acc but it does it with a lot of
+errors so we should be able as well", and they are right: **ffmpeg reads 77 percent of
+the frames.** 60 seconds of the file gave 46.2 seconds of audio, and mpv gave 196
+lines "Error decoding audio" in 20 seconds. **A sentence of an error is not a
+measurement of the whole file.**
 
-The two answers that T-53 expected were both wrong:
+What holds now:
 
-- **No LATM exists.** ffmpeg stops at the header of the transport stream, therefore
-  no byte of that form reaches the client.
-- **The forced AAC of the server does not rescue the file.** From the second 0 it
-  gives damaged sound, and from the middle it gives NaN to its own encoder, stops
-  with the code 234, and **deletes the session**.
+- symphonia reads no frame of that form, therefore the program uses the stream of the
+  server. That is the shape of T-53, and it needs no decoder.
+- ffmpeg of the server cannot **copy** the codec into a transport stream, therefore it
+  stops with the code 183 and the server tries again with `-c:a aac` **ten seconds**
+  later. No LATM exists at any moment.
+- **The place of the media decides if ffmpeg lives.** Two places of the eight of the
+  measurement give a frame of NaN to the encoder, ffmpeg stops with the code 234, and
+  the server deletes the session. T-69 tries a place beside it, and the file plays.
+- The sound holds a hole at each frame that ffmpeg drops. **No client does better
+  today**, and the AAC-LC file of the same book is the better answer for a user.
 
-**The answer for a user is a file of a different form.** The folder of that user held
-the same book as AAC-LC, and that file plays.
-
-T-68 of `docs/TAKEOVER-BACKLOG.md` holds the whole measurement, and the four faults
-of the program that it found.
+T-68 and T-69 of `docs/TAKEOVER-BACKLOG.md` hold every measurement and the five
+faults of the program that they found.
 
 ### 2. The work that needs no decision
 
@@ -181,59 +188,69 @@ acceptable in those two places. Look again when `turso` is a release and
    for a part of a stream: ffmpeg writes a part when it made that part. **A stream
    that the server deleted answers 404 for ever**, and one request of the playlist
    tells the two conditions apart. See T-68.
-7. **A stream of the server does not open in some milliseconds.** ffmpeg of the
+7. **The place of the transcode of the server comes from the position of the user**,
+   and **not** from the part that the client asks for. Its log says "Starting Stream
+   at startTime 4:52 (User startTime 5:22)", and it takes 30 seconds of that position
+   as a pre-roll. A client that moves the part it asks for changes nothing: the
+   program must write the position first. See T-69.
+8. **A sentence of an error of ffmpeg is not a measurement of the whole file.**
+   "Not yet implemented in FFmpeg, patches welcome" came 195 times in 20 seconds of a
+   file of xHE-AAC, and ffmpeg still gave 46.2 seconds of audio of 60. **Measure the
+   output**, and not the lines of the fault: `ffmpeg -i <file> -f wav out.wav` and
+   then `ffprobe` of the length. See T-68.
+9. **A stream of the server does not open in some milliseconds.** ffmpeg of the
    server makes the first part, and a copy that fails costs ten seconds more. Every
    wait of a stream must hold that time, and `WAIT_FOR_A_FAULT` of 2500 milliseconds
    held it for a **file** only. See T-68.
-8. **The row of the message of the screen holds one line.** A message of 200 letters
+10. **The row of the message of the screen holds one line.** A message of 200 letters
    loses its end in a terminal of 160 columns. Hold a message at 150 letters or
    fewer. See T-68.
-9. **The server takes a name of a field that does not exist.** `?sort=bogus.field`
+11. **The server takes a name of a field that does not exist.** `?sort=bogus.field`
    gives `200` and an unspecified sequence. Measure a field before you offer it.
-10. **`items` of `GET /api/me/listening-stats` is a map, and not a list.**
-11. **`GET /api/podcasts/:id/checknew` gives an empty list for a podcast that came one
+12. **`items` of `GET /api/me/listening-stats` is a map, and not a list.**
+13. **`GET /api/podcasts/:id/checknew` gives an empty list for a podcast that came one
    second before.** It compares with the time of the last examination.
-12. **`convert_seconds` rounds to the minute.** It is wrong for a place in a media.
+14. **`convert_seconds` rounds to the minute.** It is wrong for a place in a media.
    Use `clock` of `src/utils/convert_seconds.rs`.
-13. **`topGenres` of `GET /api/stats/year/:year` names its value `genre`**, and
+15. **`topGenres` of `GET /api/stats/year/:year` names its value `genre`**, and
     `topAuthors` and `topNarrators` name it `name`.
-14. **The lists of the narrators and of the genres stay empty until a session comes
+16. **The lists of the narrators and of the genres stay empty until a session comes
     after the metadata.** The server keeps a copy of the metadata inside each
     session.
-15. **The first page of `GET /api/me/listening-sessions` is the page 0**, and a page
+17. **The first page of `GET /api/me/listening-sessions` is the page 0**, and a page
     after the last page gives `200` and an empty list.
-16. **`quick-xml` 0.41 gives an entity as its own event `GeneralRef`**, and not
+18. **`quick-xml` 0.41 gives an entity as its own event `GeneralRef`**, and not
     inside the text. A reference makes no text node of the tree of a web page,
     therefore `cfi::Walk` must not count it as one.
-17. **A comparison of two lists of texts must not read the text.** A book holds the
+19. **A comparison of two lists of texts must not read the text.** A book holds the
     word "very" two hundred times. Read the two lists together, in the sequence of
     the document.
-18. **`GET /api/libraries/:id/filterdata` holds no tag.** `GET /api/tags` gives them,
+20. **`GET /api/libraries/:id/filterdata` holds no tag.** `GET /api/tags` gives them,
     and a filter of `tags.<base64>` works. A scan of the library changes nothing.
     See T-60.
-19. **The rate limit of the login is 40 requests of 600 seconds.** A run of every
+21. **The rate limit of the login is 40 requests of 600 seconds.** A run of every
     test of the sandbox reaches it, and the test then says "the answer must hold a
     token". Read `podman logs abs-test` for the line of the rate limiter, and run
     those tests with `--test-threads=1`.
-20. **A test that changes data must write a value that differs.** The test of the
+22. **A test that changes data must write a value that differs.** The test of the
     live messages wrote the same subtitle at every run: the server saw no change at
     the second run, therefore it sent no message and the test waited for nothing.
-21. **A value of the state that belongs to one playback must name that playback.**
+23. **A value of the state that belongs to one playback must name that playback.**
     The engine clears the name of a file with no decoder when it starts a playback,
     and the command of the start is not immediate. `playback_of_the_fault` holds the
     identity. See T-53.
-22. **`reqwest::blocking` stops the program inside a task of tokio.** That client
+24. **`reqwest::blocking` stops the program inside a task of tokio.** That client
     makes a runtime of its own, and a runtime that goes away inside an asynchronous
     context gives "Cannot drop a runtime in a context where blocking is not
     allowed". The engine is a thread, therefore the real program is correct. **A
     test of such a reader must use `std::thread::spawn`.**
-23. **A value that comes from the view of the user must come before the view
+25. **A value that comes from the view of the user must come before the view
     changes.** `open_the_ebook` read the title of the media after it set the view to
     the reader, and the answer was then always nothing.
-24. **One media stands on more than one shelf of the Home view.** A list that names a
+26. **One media stands on more than one shelf of the Home view.** A list that names a
     media by its identity therefore changes every line of that media. **The number of
     the line is the key of a rule of one shelf.** See T-66.
-25. **The reader keeps the book of the session while the user reads it.** The key `h`
+27. **The reader keeps the book of the session while the user reads it.** The key `h`
     and a second `e` give the book with no call of `get_the_ebook`, therefore the
     time of the file does not change inside one run of the program. A measurement of
     the cache needs a second **run**. See T-67.
@@ -363,14 +380,14 @@ acceptable in those two places. Look again when `turso` is a release and
 
 > Continue the Toutui takeover, and write the next version. Repo:
 > `/home/nyverino/Documents/Toutui` (ealtun21/Toutui, branch main). Maintained fork
-> of the archived AlbanDAVID/Toutui. Newest release **v0.7.28**; `Cargo.toml` is at
-> 0.7.28, so the next release bumps it first — the workflow refuses a tag that
+> of the archived AlbanDAVID/Toutui. Newest release **v0.7.29**; `Cargo.toml` is at
+> 0.7.29, so the next release bumps it first — the workflow refuses a tag that
 > disagrees with `Cargo.toml`, **and it builds `--locked`, therefore the commit of
 > the bump must hold the new `Cargo.lock`**.
 >
-> Read `docs/HANDOVER.md` first: the state, the open items, and 37 traps that cost
+> Read `docs/HANDOVER.md` first: the state, the open items, and 39 traps that cost
 > real time. Then `docs/TAKEOVER-BACKLOG.md` (the evidence of every item; T-66, T-67,
-> and T-68 are the newest, and T-66 and T-68 are the ones to know) and
+> T-68, and T-69 are the newest, and T-66, T-68, and T-69 are the ones to know) and
 > `docs/T-24-coverage.md` (**section 6 names what the program must not have, and
 > why**).
 >
@@ -386,9 +403,11 @@ acceptable in those two places. Look again when `turso` is a release and
 > 3. **The peak of the memory of a PDF (T-62)**, if a user meets it. `MAX_BOOK_BYTES`
 >    of 512 megabytes holds the limit today.
 >
-> **The book of xHE-AAC is closed (T-68).** No program plays that form: symphonia
-> refuses it, and ffmpeg 8.0.1 and 9.0 both answer "Not yet implemented in FFmpeg,
-> patches welcome". Do not look for a decoder, and do not open T-53 or T-63 again.
+> **The book of xHE-AAC plays now (T-68 and T-69).** Do not look for a decoder of
+> Rust: symphonia reads no frame of that form, and the stream of the server gives the
+> sound. ffmpeg reads 77 percent of the frames, therefore the sound holds a hole at
+> each frame that it drops, and mpv gives the same holes. **A sentence of an error of
+> ffmpeg is not a measurement of the whole file**: measure the output.
 >
 > **The two decisions of the maintainer are made.** Toutui stays GPL, and a person
 > may read bookokrat for an idea and must then write their own code, and name that
@@ -399,7 +418,7 @@ acceptable in those two places. Look again when `turso` is a release and
 > under `nice -n 19 ionice -c 3` with `-j 16`: `cargo clippy --all-targets --
 > -D warnings`, `cargo fmt --check`, and `cargo test` with `ALSA_CONFIG_PATH`
 > pointing at a real null asound file (`/dev/null` hangs the real binary). Baseline:
-> 826 tests, 17 with `#[ignore]`, 37 binaries, tree clean. **A measurement that plays
+> 829 tests, 17 with `#[ignore]`, 37 binaries, tree clean. **A measurement that plays
 > sound needs the real device and the permission of the user**: that variable does not
 > silence the real program. Look at `du -sh target`
 > and run `cargo clean --profile dev` at the end of the session.
