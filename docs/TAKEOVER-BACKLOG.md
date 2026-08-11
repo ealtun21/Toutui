@@ -3298,6 +3298,100 @@ the name of a new podcast, `E` reads the feed and gives the episodes to the
 server, `T` gives the time that the user listened, and `l` gives the episodes of
 the podcast.
 
+### T-84: the media of a collection and of a playlist, with the keys `m` and `X`
+
+Section 4 of `docs/T-24-coverage.md` said `Half` for the collections and for the
+playlists: "The client reads and plays. It cannot make a collection, add a book,
+or remove a book." A user who wanted a book in a playlist opened the web page of
+the server.
+
+**The measurement of 2026-08-11, against an Audiobookshelf 2.36.0:**
+
+| Request | Answer |
+|---|---|
+| `POST /api/collections/:id/book` with `{"id":"<the item>"}` | `200`, and the whole collection |
+| the same request a second time | **`400`, "Book already in collection"** |
+| `DELETE /api/collections/:id/book/:itemId` | `200` |
+| `POST /api/playlists/:id/item` with `{"libraryItemId":"…"}` | `200`, and the whole playlist |
+| the same request a second time | **`400`, "Item already in playlist"** |
+| `DELETE /api/playlists/:id/item/:itemId` | `200` |
+
+- **The key `m`** of a media opens the list of the collections and of the
+  playlists of the library, and the key `l` puts the media in the line that the
+  user took.
+- **The key `X`** of the view of the media of a list takes the media of the line
+  out of that list.
+- **A collection holds books.** The server refuses an episode of a podcast,
+  therefore the program says it before the request.
+- **The 400 of the server is not a fault of the program.** `put_in_the_list`
+  gives `Ok(false)` for it, and the message says "stands in the playlist
+  already".
+
+**The lines of the screen come after the write.** The first form of this work
+asked the server for the lists **beside** the write, and the view then showed the
+state of the moment before the key: the title said "[2 items]" after the key `X`
+took one media out. The question stands inside the task of the write now, after
+that write. `logic::the_lists` holds the answer, and the render takes it.
+
+`tests/the_lists_against_the_sandbox.rs` holds the whole path: it puts a book in
+every list of the library, it reads the 400 of the second request, and it gives
+the lists back.
+
+### T-85: "1 items"
+
+The measurement of T-84 read `A Test Playlist [1 items]` after the key `X` took
+one media out of a playlist of two. `ListView::line` held the rule of the
+singular already, and no title of a view held it.
+
+`crate::ui::keys::items` gives "1 item" and "2 items", and every title of every
+view uses it now: Home, the Library, the series, the episodes, the queue, the
+bookmarks, the chapters, the lists, the media of a list, the books of a media,
+the downloads of the server, the authors, the narrators, and the settings of the
+library.
+
+### T-86: the test of the requests of the start measured the machine
+
+`the_four_requests_of_the_start_go_together` gave the mock server a delay of 700
+milliseconds for each answer, and it failed when the whole start took more than
+2 seconds. **That is a measurement of the machine as much as of the program.**
+This session ran the suite with a build and a program of tmux beside it, and one
+run of twelve failed: the start took 4.2 seconds, and no line of the program had
+changed.
+
+The test holds the **time of each request** now, with a rule of `wiremock` that
+writes `Instant::now()`. Four requests that go together arrive inside some
+milliseconds of each other; four requests that wait for each other arrive 700
+milliseconds apart. A measurement of 2026-08-11 gave
+`[0 ms, 705, 705.5, 705.6, 705.6, 705.7]`: the examination of the address of the
+pool first, and then the list of the libraries with the four requests of the
+start, all together. **The time between the first request of the start and the
+last one is 0.5 milliseconds, and the load of the machine does not change it.**
+
+The first request of that list is the examination of the address, and it stands
+outside the rule.
+
+### T-87: one answer of 400 took the address of the server away
+
+The test of T-84 failed with "No server address answered", and the real program
+failed in the same way: a second `m` on the same media gave the message "stands
+in the playlist already", and **every request after it said that the program had
+no server**.
+
+`ApiError::is_endpoint_fault` held every status of `Server` as a fault of the
+address. `send` therefore called `mark_down` for a **400**, the pool of one
+address then had no address with the state `Up`, and `active()` gave `None`. The
+program came back when the examination of the address ran again.
+
+**The server of Audiobookshelf answers 400 for work that a user does every day:**
+a book that stands in a collection already, an episode that stands in a playlist
+already, and a podcast whose directory exists (T-24 holds that measurement).
+
+A fault of the endpoint is now a transport fault or a status of **500 or more**:
+the server answered and it understood the request, therefore a different address
+of the same server gives the same answer. The measurement in the real program of
+2026-08-11: the second `m` gave the message of the 400, and the key `T` after it
+gave the statistics of the user.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

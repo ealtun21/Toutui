@@ -35,6 +35,10 @@ impl Widget for &mut App {
         // See T-66.
         self.take_the_media_that_left_away();
 
+        // The program changed a collection or a playlist of the server. See
+        // T-84.
+        self.take_the_lists();
+
         match self.view_state {
             AppView::Home => self.render_home(area, buf),
             AppView::Library => self.render_library(area, buf),
@@ -55,6 +59,7 @@ impl Widget for &mut App {
             AppView::Authors => self.render_authors(area, buf),
             AppView::Ebooks => self.render_the_ebooks(area, buf),
             AppView::Downloads => self.render_the_downloads(area, buf),
+            AppView::PutInAList => self.render_put_in_a_list(area, buf),
             AppView::Keys => self.render_keys(area, buf),
             AppView::Settings => self.render_settings(area, buf),
             AppView::SettingsAccount => self.render_settings_account(area, buf),
@@ -273,9 +278,11 @@ impl App {
             // cover. See T-49. The list of the ebooks of one media holds one
             // media, and the cover of that media says nothing about the file
             // that the user takes. See T-76.
-            AppView::Keys | AppView::Ebooks | AppView::SettingsReader | AppView::Downloads => {
-                Vec::new()
-            }
+            AppView::Keys
+            | AppView::Ebooks
+            | AppView::SettingsReader
+            | AppView::Downloads
+            | AppView::PutInAList => Vec::new(),
             // A line of a series shows the cover of each of its books, in
             // the same way as the Library view. See T-22 and T-24.
             AppView::Home if self.selected_home_series().is_some() => self
@@ -690,6 +697,54 @@ impl App {
     }
 }
 
+/// The lists that take a media. See T-84.
+impl App {
+    /// AppView::PutInAList rendering
+    fn render_put_in_a_list(&mut self, area: Rect, buf: &mut Buffer) {
+        let [header_area, main_area, item_area, footer_area] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Fill(1),
+            Constraint::Length(4),
+            Constraint::Length(2),
+        ])
+        .areas(area);
+
+        let title = match self.the_media_of_the_list.as_ref() {
+            Some((_, _, name)) => {
+                format!(
+                    "Put \"{}\" in a list [{}]",
+                    name,
+                    crate::ui::keys::items(self.lists.len())
+                )
+            }
+            None => format!(
+                "Put the media in a list [{}]",
+                crate::ui::keys::items(self.lists.len())
+            ),
+        };
+
+        let lines: Vec<String> = self.lists.iter().map(|list| list.line()).collect();
+
+        self.render_header(header_area, buf);
+        App::render_footer(
+            footer_area,
+            buf,
+            &crate::ui::keys::footer_with("put the media in this list", None),
+        );
+        self.render_list(
+            main_area,
+            buf,
+            &title,
+            &lines,
+            &mut self.list_state_put_in_a_list.clone(),
+        );
+
+        Paragraph::new(crate::ui::keys::THE_LISTS_THAT_TAKE_A_MEDIA)
+            .wrap(Wrap { trim: true })
+            .render(item_area, buf);
+    }
+}
+
 /// The queue of the downloads of the server. See T-81.
 impl App {
     /// AppView::Downloads rendering
@@ -717,7 +772,10 @@ impl App {
                 Vec::new(),
             ),
             crate::logic::the_downloads::State::Ready(all) => (
-                format!("The downloads of the server [{} items]", all.len()),
+                format!(
+                    "The downloads of the server [{}]",
+                    crate::ui::keys::items(all.len())
+                ),
                 all.iter().map(|one| one.line()).collect(),
             ),
             crate::logic::the_downloads::State::Fault(text) => (
@@ -760,7 +818,10 @@ impl App {
                 ("This media has no ebook.".to_string(), Vec::new())
             }
             crate::logic::the_ebooks::State::Ready(all) => (
-                format!("The books of this media [{} items]", all.len()),
+                format!(
+                    "The books of this media [{}]",
+                    crate::ui::keys::items(all.len())
+                ),
                 all.iter().map(|one| one.line()).collect(),
             ),
             crate::logic::the_ebooks::State::Fault(text) => (
@@ -889,7 +950,7 @@ impl App {
                 Vec::new(),
             ),
             crate::logic::bookmarks::State::Ready(all) => (
-                format!("The bookmarks [{} items]", all.len()),
+                format!("The bookmarks [{}]", crate::ui::keys::items(all.len())),
                 crate::api::me::bookmarks::lines(all),
             ),
             crate::logic::bookmarks::State::Waiting => {
@@ -936,7 +997,7 @@ impl App {
         let title = if lines.is_empty() {
             "The queue is empty. Press n on a media to put it in the queue.".to_string()
         } else {
-            format!("The queue [{} items]", lines.len())
+            format!("The queue [{}]", crate::ui::keys::items(lines.len()))
         };
 
         self.render_header(header_area, buf);
@@ -974,9 +1035,9 @@ impl App {
         // sentence from a user whose media holds no chapter. See T-59.
         let title = if !lines.is_empty() {
             format!(
-                "The chapters of \"{}\" [{} items]",
+                "The chapters of \"{}\" [{}]",
                 state.title,
-                lines.len()
+                crate::ui::keys::items(lines.len())
             )
         } else if state.status == PlaybackStatus::Stopped {
             "No media plays now. A media that plays gives its chapters. Press h to go back."
@@ -1119,7 +1180,7 @@ impl App {
             .iter()
             .filter(|row| row.is_a_line_of_the_user())
             .count();
-        let render_list_title = format!("Home [{} items]", count);
+        let render_list_title = format!("Home [{}]", crate::ui::keys::items(count));
 
         // A library of podcasts has no series and no ebook. The footer of
         // that library must not name a key that does nothing.
@@ -1174,8 +1235,8 @@ impl App {
         // The title says the sequence and the filter, because a user who
         // does not see every item must know why. See T-24.
         let render_list_title = format!(
-            "Library [{} items]{}{}",
-            lines.len(),
+            "Library [{}]{}{}",
+            crate::ui::keys::items(lines.len()),
             if self.library_sort.is_empty() {
                 String::new()
             } else {
@@ -1261,7 +1322,7 @@ impl App {
         }
 
         let lines: Vec<String> = self.series.iter().map(|series| series.line()).collect();
-        let render_list_title = format!("Series [{} items]", self.series.len());
+        let render_list_title = format!("Series [{}]", crate::ui::keys::items(self.series.len()));
 
         self.render_list(
             list_area,
@@ -1330,7 +1391,7 @@ impl App {
 
         let name = series.name.clone();
         let lines: Vec<String> = series.books.iter().map(|book| book.line()).collect();
-        let render_list_title = format!("{} [{} items]", name, lines.len());
+        let render_list_title = format!("{} [{}]", name, crate::ui::keys::items(lines.len()));
 
         self.render_list(
             list_area,
@@ -1407,7 +1468,10 @@ impl App {
         }
 
         let lines: Vec<String> = self.lists.iter().map(|list| list.line()).collect();
-        let render_list_title = format!("Collections and playlists [{} items]", self.lists.len());
+        let render_list_title = format!(
+            "Collections and playlists [{}]",
+            crate::ui::keys::items(self.lists.len())
+        );
 
         self.render_list(
             list_area,
@@ -1475,7 +1539,11 @@ impl App {
         };
 
         let lines: Vec<String> = list.entries.iter().map(|entry| entry.line()).collect();
-        let render_list_title = format!("{} [{} items]", list.name.clone(), lines.len());
+        let render_list_title = format!(
+            "{} [{}]",
+            list.name.clone(),
+            crate::ui::keys::items(lines.len())
+        );
 
         self.render_list(
             list_area,
@@ -1636,7 +1704,10 @@ impl App {
             Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(main_area);
 
         let items_number = self.libraries_names.len();
-        let render_list_title = format!("Settings Library [{} items]", items_number);
+        let render_list_title = format!(
+            "Settings Library [{}]",
+            crate::ui::keys::items(items_number)
+        );
 
         let text_render_footer =
             "h: back, l/→: change library,\n Tab: home, R: refresh, Q/Esc: quit.";
@@ -1943,7 +2014,8 @@ impl App {
                     .render(main_area, buf);
             } else {
                 let items_number = self.titles_pod_ep_search.len();
-                let render_list_title = format!("Episodes [{} items]", items_number);
+                let render_list_title =
+                    format!("Episodes [{}]", crate::ui::keys::items(items_number));
                 // Only render list/info/desc if episodes exist
                 self.render_list(
                     list_area,
@@ -1968,7 +2040,8 @@ impl App {
                     .render(main_area, buf);
             } else {
                 let items_number = self.titles_pod_ep.len();
-                let render_list_title = format!("Episodes [{} items]", items_number);
+                let render_list_title =
+                    format!("Episodes [{}]", crate::ui::keys::items(items_number));
                 // Only render list/info/desc if episodes exist
                 self.render_list(
                     list_area,

@@ -73,6 +73,9 @@ pub enum AppView {
     /// The episodes that the server downloads, and the queue of that work.
     /// See T-81.
     Downloads,
+    /// The collections and the playlists that can take the media of the line.
+    /// See T-84.
+    PutInAList,
     /// Every key of the program. The key `?` opens it. See T-49.
     Keys,
     Settings,
@@ -181,8 +184,15 @@ pub struct App {
     pub list_state_settings_reader: ListState,
     /// The view that the search came from. The key `h` gives it back. See T-79.
     pub the_view_before_the_search: AppView,
+    /// The view that the key `m` came from. See T-84.
+    pub the_view_before_the_list: AppView,
     /// The line of the queue of the downloads of the server. See T-81.
     pub list_state_downloads: ListState,
+    /// The line of the lists that can take a media. See T-84.
+    pub list_state_put_in_a_list: ListState,
+    /// The media that the key `m` puts in a list: its identity, its episode,
+    /// and its title. See T-84.
+    pub the_media_of_the_list: Option<(String, Option<String>, String)>,
     /// The podcast whose queue the key `X` empties, after the question. See
     /// T-81.
     pub confirm_the_empty_queue: Option<String>,
@@ -1094,7 +1104,10 @@ impl App {
             list_state_ebooks: ListState::default(),
             list_state_settings_reader: ListState::default(),
             the_view_before_the_search: AppView::Library,
+            the_view_before_the_list: AppView::Library,
             list_state_downloads: ListState::default(),
+            list_state_put_in_a_list: ListState::default(),
+            the_media_of_the_list: None,
             confirm_the_empty_queue: None,
             list_state_keys: ListState::default(),
             the_view_before_the_keys: AppView::Home,
@@ -1269,6 +1282,10 @@ impl App {
             // the queue of that work. See T-81.
             KeyCode::Char('d') => self.show_the_downloads_of_the_server(),
 
+            // The key that puts the media of the line in a collection or in a
+            // playlist. See T-84.
+            KeyCode::Char('m') => self.show_the_lists_that_take_the_media(),
+
             // The key of the timer for sleep. See T-24.
             KeyCode::Char('t') => self.change_the_timer_for_sleep(),
 
@@ -1404,6 +1421,12 @@ impl App {
 
             KeyCode::Char('X') if matches!(self.view_state, AppView::Downloads) => {
                 self.empty_the_queue_of_the_downloads()
+            }
+
+            // The key that takes the media of the line out of the list that
+            // holds it. See T-84.
+            KeyCode::Char('X') if matches!(self.view_state, AppView::ListEntries) => {
+                self.take_the_media_out_of_the_list()
             }
 
             // remove the local copy of the selected book or episode
@@ -1594,6 +1617,7 @@ impl App {
                     // book that they read now. See T-76.
                     AppView::Ebooks => self.view_state = AppView::Reader,
                     AppView::Downloads => self.view_state = AppView::Library,
+                    AppView::PutInAList => self.view_state = self.the_view_before_the_list,
                     AppView::PodcastEpisode => {
                         if self.is_from_search_pod {
                             self.view_state = AppView::SearchBook
@@ -1830,6 +1854,7 @@ impl App {
                     // The server owns this work, therefore no line of this
                     // view opens. The key `X` empties the queue. See T-81.
                     AppView::Downloads => {}
+                    AppView::PutInAList => self.put_the_media_in_the_list(),
                     AppView::Library => {
                         // A line of a series opens the books of that series.
                         // See T-22.
@@ -2316,6 +2341,198 @@ impl App {
         );
 
         self.must_refresh = true;
+    }
+
+    /// Shows the lists that can take the media of the line. See T-84.
+    ///
+    /// The program read the collections and the playlists, and it changed none
+    /// of them: a user who wanted a book in a playlist opened the web page of
+    /// the server.
+    pub fn show_the_lists_that_take_the_media(&mut self) {
+        if !matches!(
+            self.view_state,
+            AppView::Home
+                | AppView::Library
+                | AppView::SearchBook
+                | AppView::SeriesBook
+                | AppView::ListEntries
+                | AppView::PodcastEpisode
+        ) {
+            return;
+        }
+
+        // `selected_download` names the media of every view that holds one, and
+        // it names the episode of a podcast. A line of a podcast itself holds no
+        // media for this work: a list of the server takes a book or an episode.
+        let Some((target, title, _author)) = self.selected_download() else {
+            crate::logic::message::say("This line holds no book and no episode.");
+            return;
+        };
+
+        let item_id = target.item_id().to_string();
+
+        // An episode of a podcast stands in a playlist, and never in a
+        // collection: a collection holds books. See T-84.
+        let episode_id = match &target {
+            crate::logic::download::DownloadTarget::Episode { episode_id, .. } => {
+                Some(episode_id.clone())
+            }
+            crate::logic::download::DownloadTarget::Book { .. } => None,
+        };
+
+        if self.lists.is_empty() {
+            crate::logic::message::say(
+                "This library holds no collection and no playlist. The web page of the server                  makes one.",
+            );
+            return;
+        }
+
+        self.the_media_of_the_list = Some((item_id, episode_id, title));
+        self.the_view_before_the_list = self.view_state;
+        self.list_state_put_in_a_list.select(Some(0));
+        self.view_state = AppView::PutInAList;
+    }
+
+    /// Puts the media in the list of the line. See T-84.
+    pub fn put_the_media_in_the_list(&mut self) {
+        let Some((item_id, episode_id, title)) = self.the_media_of_the_list.clone() else {
+            return;
+        };
+
+        let Some(list) = self
+            .list_state_put_in_a_list
+            .selected()
+            .and_then(|line| self.lists.get(line))
+            .cloned()
+        else {
+            return;
+        };
+
+        // A collection holds books. The server refuses an episode, therefore
+        // the program says it before the request.
+        if episode_id.is_some()
+            && matches!(
+                list.kind,
+                crate::api::utils::collect_lists::ListKind::Collection
+            )
+        {
+            crate::logic::message::say(
+                "A collection holds books only. Take a playlist for an episode of a podcast.",
+            );
+            return;
+        }
+
+        let api = std::sync::Arc::clone(&self.api);
+        let kind = list.kind;
+        let list_id = list.id.clone();
+        let name = list.name.clone();
+        let library = self.id_selected_lib.clone();
+
+        self.view_state = self.the_view_before_the_list;
+
+        tokio::spawn(async move {
+            let text = match crate::api::lists::put_in_the_list(
+                &api,
+                kind,
+                &list_id,
+                &item_id,
+                episode_id.as_deref(),
+            )
+            .await
+            {
+                Ok(came) => crate::api::lists::the_sentence_of_the_work(kind, &name, &title, came),
+                Err(error) => format!("The server did not take the media: {}", error),
+            };
+
+            crate::logic::message::say(&text);
+
+            // The lines of the screen come after the write. A question that
+            // goes with the write gives the list of the moment before it.
+            crate::logic::the_lists::ask(&api, &library).await;
+        });
+    }
+
+    /// Takes the media of the line out of the list that holds it. See T-84.
+    pub fn take_the_media_out_of_the_list(&mut self) {
+        let Some(list) = self.selected_list().cloned() else {
+            return;
+        };
+
+        let Some(entry) = self.selected_list_entry().cloned() else {
+            return;
+        };
+
+        let api = std::sync::Arc::clone(&self.api);
+        let kind = list.kind;
+        let list_id = list.id.clone();
+        let name = list.name.clone();
+        let title = entry.title.clone();
+        let item_id = entry.id.clone();
+        let episode_id = entry.episode_id.clone();
+        let library = self.id_selected_lib.clone();
+
+        tokio::spawn(async move {
+            let text = match crate::api::lists::take_out_of_the_list(
+                &api,
+                kind,
+                &list_id,
+                &item_id,
+                episode_id.as_deref(),
+            )
+            .await
+            {
+                Ok(()) => format!(
+                    "\"{}\" is not in the {} \"{}\" now.",
+                    title,
+                    kind.name().to_lowercase(),
+                    name
+                ),
+                Err(error) => format!("The server did not take the media out: {}", error),
+            };
+
+            crate::logic::message::say(&text);
+
+            // The lines of the screen come after the write.
+            crate::logic::the_lists::ask(&api, &library).await;
+        });
+    }
+
+    /// Asks the server for the collections and the playlists again. See T-84.
+    ///
+    /// The program changed a list of the server, therefore the lines of the
+    /// screen are old. The task writes the answer in `logic::the_lists`, and
+    /// the render takes it at the next frame.
+    pub fn ask_for_the_lists(&mut self) {
+        let api = std::sync::Arc::clone(&self.api);
+        let library = self.id_selected_lib.clone();
+
+        tokio::spawn(async move {
+            crate::logic::the_lists::ask(&api, &library).await;
+        });
+    }
+
+    /// Takes the lists that the task asked for, if they came. See T-84.
+    ///
+    /// The render calls this at each frame.
+    pub fn take_the_lists(&mut self) {
+        let Some(lists) = crate::logic::the_lists::take() else {
+            return;
+        };
+
+        self.lists = lists;
+
+        // The list of the line can hold fewer media than it held before, and
+        // the selection must stay inside it. See T-41.
+        let count = self
+            .selected_list()
+            .map(|list| list.entries.len())
+            .unwrap_or(0);
+
+        if count == 0 {
+            self.list_state_list_entries.select(None);
+        } else if self.list_state_list_entries.selected().unwrap_or(0) >= count {
+            self.list_state_list_entries.select(Some(count - 1));
+        }
     }
 
     /// Shows the episodes that the server downloads, and the queue. See T-81.
@@ -4291,6 +4508,7 @@ impl App {
             AppView::Authors => AppView::Library,
             AppView::Ebooks => AppView::Reader,
             AppView::Downloads => AppView::Library,
+            AppView::PutInAList => AppView::Library,
             AppView::Settings => AppView::Home,
             AppView::SettingsAccount => AppView::Home,
             AppView::SettingsLibrary => AppView::Home,
@@ -4482,6 +4700,16 @@ impl App {
                     self.list_state_ebooks.select(Some(0));
                 }
             }
+            AppView::PutInAList => {
+                let count = self.lists.len();
+                let from = self.list_state_put_in_a_list.selected().unwrap_or(0);
+
+                if from + 1 < count {
+                    self.list_state_put_in_a_list.select(Some(from + 1));
+                } else {
+                    self.list_state_put_in_a_list.select(Some(0));
+                }
+            }
             AppView::Downloads => {
                 let count = crate::logic::the_downloads::downloads().len();
                 let from = self.list_state_downloads.selected().unwrap_or(0);
@@ -4572,6 +4800,7 @@ impl App {
             AppView::Authors => self.list_state_authors.select_previous(),
             AppView::Ebooks => self.list_state_ebooks.select_previous(),
             AppView::Downloads => self.list_state_downloads.select_previous(),
+            AppView::PutInAList => self.list_state_put_in_a_list.select_previous(),
             AppView::Keys => self.list_state_keys.select_previous(),
             AppView::Settings => self.list_state_settings.select_previous(),
             AppView::SettingsAccount => self.list_state_settings_account.select_previous(),
@@ -4611,6 +4840,7 @@ impl App {
             AppView::Authors => self.list_state_authors.select_first(),
             AppView::Ebooks => self.list_state_ebooks.select_first(),
             AppView::Downloads => self.list_state_downloads.select_first(),
+            AppView::PutInAList => self.list_state_put_in_a_list.select_first(),
             AppView::Keys => self.list_state_keys.select_first(),
             AppView::Settings => self.list_state_settings.select_first(),
             AppView::SettingsAccount => self.list_state_settings_account.select_first(),
@@ -4713,6 +4943,10 @@ impl App {
                     .len()
                     .saturating_sub(1);
                 self.list_state_downloads.select(Some(last));
+            }
+            AppView::PutInAList => {
+                let last = self.lists.len().saturating_sub(1);
+                self.list_state_put_in_a_list.select(Some(last));
             }
             AppView::SettingsReader => {
                 let last = crate::logic::reader::cache::THE_VALUES_OF_THE_SETTINGS

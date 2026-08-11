@@ -89,6 +89,18 @@ belongs to one user, and it can hold books or episodes of a podcast.
   as in the Library view.
 - A podcast library has no collection, and it can have a playlist.
 
+## ➕ The media of a collection or of a playlist
+
+- `m` on a media — show the collections and the playlists of the library, and
+  `l` puts the media in the line that you take. The key operates in the views
+  Home, Library, Search, the books of a series, the media of a list, and the
+  episodes of a podcast.
+- `X` in the view of the media of a list — take the media of the line out of
+  that list.
+- A collection holds books. A playlist holds books or episodes of a podcast.
+- The web page of the server makes a new list. Toutui changes the media of a
+  list that exists.
+
 ## 🏠 The Home view
 
 The server makes shelves of the media for each library, and the Home view

@@ -1,6 +1,7 @@
 pub mod client;
 pub mod libraries;
 pub mod library_items;
+pub mod lists;
 pub mod live;
 pub mod me;
 pub mod podcasts;

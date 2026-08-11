@@ -23,8 +23,8 @@ impl Kind {
     /// The function is pure, therefore a test needs no screen.
     pub fn title(&self, count: usize) -> String {
         match self {
-            Kind::Authors => format!("The authors [{} items]", count),
-            Kind::Narrators => format!("The narrators [{} items]", count),
+            Kind::Authors => format!("The authors [{}]", crate::ui::keys::items(count)),
+            Kind::Narrators => format!("The narrators [{}]", crate::ui::keys::items(count)),
         }
     }
 
@@ -184,6 +184,9 @@ mod tests {
     fn each_list_gives_its_own_title() {
         assert_eq!(Kind::Authors.title(6), "The authors [6 items]");
         assert_eq!(Kind::Narrators.title(2), "The narrators [2 items]");
+
+        // One line of a view is "1 item", and not "1 items". See T-85.
+        assert_eq!(Kind::Authors.title(1), "The authors [1 item]");
 
         assert_eq!(
             Kind::Authors.title_of_nothing(),

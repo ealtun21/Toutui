@@ -57,6 +57,7 @@ pub const GROUPS: &[Group] = &[
             key("l / → / Enter", "Play the media, or open the line"),
             key("h", "One view back"),
             key("n", "Put the media at the end of the queue"),
+            key("m", "Put the media in a collection or in a playlist"),
             key("b", "Write a bookmark at the place of the playback"),
             key("D", "Make a copy on the disk"),
             key(
@@ -128,6 +129,22 @@ pub const GROUPS: &[Group] = &[
         keys: &[key("?", "This list of every key"), key("Q / Esc", "Quit")],
     },
 ];
+
+/// Gives the number of the lines of a view, for the title of that view.
+///
+/// **One line is "1 item", and not "1 items".** A measurement of 2026-08-11 read
+/// "A Test Playlist [1 items]" after the key `X` took one media out of a
+/// playlist of two. `ListView::line` held this rule already, and no title of a
+/// view held it. See T-85.
+///
+/// The function is pure, therefore a test needs no screen.
+pub fn items(count: usize) -> String {
+    if count == 1 {
+        return "1 item".to_string();
+    }
+
+    format!("{} items", count)
+}
 
 /// The line of a name of a group, in the view of the keys.
 pub fn line_of_a_group(name: &str) -> String {
@@ -258,16 +275,32 @@ pub const THE_DOWNLOADS_OF_THE_SERVER: &str = "The server gets the episodes, and
     The key X empties the queue of the podcast of the line. The episode that \
     downloads now (▼) goes on, because the server holds it outside the queue.";
 
+/// The text of the view that puts a media in a list. See T-84.
+pub const THE_LISTS_THAT_TAKE_A_MEDIA: &str = "A collection holds books, and every \
+    user of the server sees it. A playlist belongs to you, and it holds books or \
+    episodes of a podcast.\n\n\
+    The key X of a list takes the media of the line out of that list. The web \
+    page of the server makes a new list.";
+
 pub const THE_TEXTS_OF_THE_VIEWS: &[&str] = &[
     THE_ACCOUNTS,
     THE_LIBRARIES,
     THE_CACHE_OF_THE_EBOOKS,
     THE_DOWNLOADS_OF_THE_SERVER,
+    THE_LISTS_THAT_TAKE_A_MEDIA,
 ];
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// One line of a view is "1 item", and not "1 items". See T-85.
+    #[test]
+    fn the_title_of_a_view_names_one_line_in_the_singular() {
+        assert_eq!(items(0), "0 items");
+        assert_eq!(items(1), "1 item");
+        assert_eq!(items(2), "2 items");
+    }
 
     /// A text of a view holds one space between two words.
     ///

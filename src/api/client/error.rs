@@ -28,13 +28,28 @@ pub enum ApiError {
 impl ApiError {
     /// Tells if a different endpoint can give a better answer.
     ///
-    /// A fault of the endpoint permits a second attempt. A fault of the
-    /// request does not, because each endpoint gives the same answer.
+    /// A fault of the endpoint permits a second attempt, and the client marks
+    /// that address as down. A fault of the request does not: every address
+    /// gives the same answer, and the address is well.
+    ///
+    /// **A status of 400 is a fault of the request.** The old code held every
+    /// status of `Server` as a fault of the endpoint, therefore one answer of
+    /// 400 marked the address down and **every request after it said "No server
+    /// address answered"**. The server of Audiobookshelf answers 400 for work
+    /// that a user does every day: a book that stands in a collection already,
+    /// an episode that stands in a playlist already, and a podcast whose
+    /// directory exists. A measurement of 2026-08-11 put a book in a playlist
+    /// two times, and the program then had no server until the examination of
+    /// the address came again. See T-87.
     pub fn is_endpoint_fault(&self) -> bool {
-        matches!(
-            self,
-            ApiError::Unreachable | ApiError::Timeout | ApiError::Server(_)
-        )
+        match self {
+            ApiError::Unreachable | ApiError::Timeout => true,
+            // The server answered, and it understood the request. A status of
+            // 500 or more is the fault of that machine, and a different address
+            // of the same server can answer it.
+            ApiError::Server(status) => *status >= 500,
+            _ => false,
+        }
     }
 
     /// Tells if the application must use the offline mode.
@@ -135,6 +150,14 @@ mod tests {
         assert!(ApiError::Unreachable.is_endpoint_fault());
         assert!(ApiError::Timeout.is_endpoint_fault());
         assert!(ApiError::Server(503).is_endpoint_fault());
+        assert!(ApiError::Server(500).is_endpoint_fault());
+
+        // **A status of 400 is a fault of the request.** The server answers
+        // 400 for a book that stands in a collection already, and the program
+        // must not lose its address for that. See T-87.
+        assert!(!ApiError::Server(400).is_endpoint_fault());
+        assert!(!ApiError::Server(409).is_endpoint_fault());
+        assert!(!ApiError::Server(429).is_endpoint_fault());
 
         assert!(!ApiError::NotFound.is_endpoint_fault());
         assert!(!ApiError::Unauthorized.is_endpoint_fault());
