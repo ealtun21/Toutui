@@ -96,6 +96,23 @@ impl TrackList {
         self.total
     }
 
+    /// Gives the end of the first `count` tracks, in seconds from the start of
+    /// the book.
+    ///
+    /// A book whose later file no decoder reads ends at the track before that
+    /// file. The position of the playback must stay at that end. See T-55.
+    ///
+    /// `count` of 0 gives 0, and a `count` that is larger than the number of
+    /// tracks gives the end of the book.
+    pub fn end_of_the_first(&self, count: usize) -> f64 {
+        let count = count.min(self.tracks.len());
+
+        match count.checked_sub(1).and_then(|last| self.tracks.get(last)) {
+            Some(track) => track.start_offset + track.duration.max(0.0),
+            None => 0.0,
+        }
+    }
+
     /// Gives the track and the offset in that track for a position in the
     /// book.
     ///
@@ -200,6 +217,30 @@ mod tests {
     /// Three tracks of 10, 20, and 30 seconds. The book lasts 60 seconds.
     fn list() -> TrackList {
         TrackList::new(TrackList::from_durations(&[10.0, 20.0, 30.0]), Vec::new())
+    }
+
+    /// A book of three files whose third file no decoder reads ends at the second
+    /// 30. The position of the playback must stay there: the queue of the player
+    /// goes on counting when it is empty, and the loop would then send a position
+    /// that the user never heard. See T-55.
+    #[test]
+    fn the_end_of_the_tracks_that_play() {
+        let list = list();
+
+        assert_eq!(list.end_of_the_first(0), 0.0);
+        assert_eq!(list.end_of_the_first(1), 10.0);
+        assert_eq!(list.end_of_the_first(2), 30.0);
+
+        // Every track plays. The end is then the end of the book.
+        assert_eq!(list.end_of_the_first(3), list.total_duration());
+
+        // A count that is too large gives the end of the book, and it stops
+        // nothing.
+        assert_eq!(list.end_of_the_first(9), list.total_duration());
+
+        // A book with no track gives 0.
+        let empty = TrackList::new(Vec::new(), Vec::new());
+        assert_eq!(empty.end_of_the_first(1), 0.0);
     }
 
     /// Chapters at 0 to 25, 25 to 45, and 45 to 60.

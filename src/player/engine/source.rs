@@ -129,7 +129,11 @@ fn sources_from(
 pub const SUPPORTED_FORMATS: &str =
     "mp3, m4b, m4a, mp4, aac, flac, wav, aiff, ogg, oga, opus, mka, webm, and caf";
 
-/// The formats that the application does not play.
+/// The formats that the application does not play itself.
+///
+/// **The program still plays a media of such a file.** The engine gives the fault
+/// to the loop of the playback, and that loop asks the server for a stream of the
+/// whole media. ffmpeg of the server reads every form. See T-53 and T-18.
 ///
 /// Audiobookshelf accepts 19 audio formats. The engine plays 17 of them.
 /// `symphonia` has no decoder for AMR-WB, and it has no reader for the ASF
@@ -424,7 +428,8 @@ fn open_rodio(
     builder.build().map_err(|error| {
         format!(
             "The application cannot read the file {}: {}. \
-             The application plays {}. It does not play {}.",
+             The application plays {} itself. It does not play {}, and it asks \
+             the server for a stream of such a file. See T-53.",
             track.filename, error, SUPPORTED_FORMATS, UNSUPPORTED_FORMATS
         )
     })

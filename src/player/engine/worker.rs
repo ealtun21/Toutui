@@ -320,13 +320,19 @@ fn position_now(player: &Player, current: &Option<Current>) -> f64 {
         None => return 0.0,
     };
 
-    // Every track played. The position is then the end of the book. Without
-    // this rule, `position_of` gets an index that does not exist and gives
-    // the offset in the last track only. A book of many files then never
-    // reaches its end, and the application does not mark it as finished.
-    // See T-2 and T-16.
-    if item.playing >= item.request.tracks.len() {
-        return item.request.tracks.total_duration();
+    // Every track that plays played. The position is then the end of those
+    // tracks. Two rules stand behind this one:
+    //
+    // 1. Without it, `position_of` gets an index that does not exist and it
+    //    gives the offset in the last track only. A book of many files then
+    //    never reaches its end, and the application does not mark it as
+    //    finished. See T-2 and T-16.
+    // 2. The queue of the player goes on counting when it is empty. A book that
+    //    ends at a file that no decoder reads would then send a position that
+    //    the user never heard, and the position would reach the end of the
+    //    **whole** book. See T-48 and T-55.
+    if item.playing >= item.tracks_that_play {
+        return item.request.tracks.end_of_the_first(item.tracks_that_play);
     }
 
     let inside = media_position(player.get_pos(), item.speed.get());

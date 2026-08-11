@@ -183,9 +183,9 @@ the address. Issue #35 gives this advice. Sub-project 2 does this work.
 | Id | Upstream | Title | Sub-project |
 |---|---|---|---|
 | T-7 | #35 | The application gets all items in one request | 3 |
-| T-8 | #36 | A change of the speed needs a new start of the playback | 2 |
+| T-8 | #36 | A change of the speed needs a new start of the playback | complete, T-19 |
 | T-17 | — | Play an Opus file | complete, `c342f50` |
-| T-18 | — | Play a WMA file and an AWB file (the last two of 19) | later |
+| T-18 | — | Play a WMA file and an AWB file (the last two of 19) | complete, T-53 |
 | T-20 | — | Remove the two dependencies that compile C | later |
 
 ### T-7: the application gets all items in one request
@@ -197,13 +197,47 @@ and the resources of the server.
 Measurement on 2026-08-09: a library of 2056 books gives 3.7 megabytes in 0.48
 seconds. This is acceptable, but a larger library is not.
 
-### T-8: a change of the speed needs a new start of the playback
+### T-8: a change of the speed needs a new start of the playback — fixed
 
-The user changes the speed. The indicator changes, but the sound does not
-change. The user must press `L` to start the playback again.
+The user changed the speed, the indicator changed, and the sound did not change.
+VLC was the cause: that program took the speed at its start only.
 
-VLC is the cause. The audio engine in sub-project 2 can change the speed
-during playback.
+**The engine of sub-project 2 corrects it.** `PlayerCommand::SetSpeed` writes
+`SharedSpeed`, an `AtomicU32` that `SpeedSource` reads **on the next sample**. The
+playback does not start again, and WSOLA holds the pitch. See T-19.
+
+**The measurement of 2026-08-11.** A run in tmux pressed `O` two times during a
+playback. The panel gave `Speed: 1.00x`, then `Speed: 1.10x`, then `Speed: 1.20x`,
+and the position went on between the three frames: 12:13, 13:27, and 14:40. No key
+of the user started the playback again.
+
+`tests/engine.rs` holds the sound of the change: `a_double_speed_gives_half_the_length`
+and `a_double_speed_keeps_the_pitch` measure the frequency of a tone.
+
+### T-18: a WMA file and an AWB file play now — the server gives the stream
+
+Audiobookshelf accepts 19 forms of audio. symphonia reads 17 of them: it has no
+decoder for AMR-WB (`awb`) and no reader for the container ASF (`wma`).
+
+**T-53 closes this item, and it needed no decoder.** The engine gives the fault of
+a file to the loop of the playback, and that loop asks the server for a stream of
+the whole media. ffmpeg of the server reads every form.
+
+**The measurement of 2026-08-11.** A book of the sandbox of `01 - Part 1.mp3` of
+30 minutes and `02 - Part 2.wma` of 30 seconds:
+
+```
+[worker] the engine cannot open the track 2 of 2: ... It does not play wma and awb.
+[play] no decoder of the program reads 02 - Part 2.wma. The program asks the server for a stream of the whole media.
+[HlsFile] the stream holds 305 part(s). ... The audio is Mp3.
+```
+
+The player then showed `▶ 8:15 / 30:29` and the notice "The server makes the
+stream of this media". The whole media played, and the WMA file with it.
+
+**What a decoder of the program would add.** A playback of a WMA file with no work
+of the server. `symphonia` has no reader of ASF today, and no crate of pure Rust
+gives one. Therefore this item stays closed with the answer of the server.
 
 ### T-20: remove the two dependencies that compile C
 
@@ -1895,6 +1929,28 @@ Therefore the picture holds its form.
 `mupdf` needs a library of C and it is AGPL. Therefore the reader shows the text
 of the page and the pictures of the page, and not the page. A user who needs the
 form of a page of a figure opens the web page of the server. See T-51.
+
+### T-55: the position of a book that ends early goes on to the end
+
+T-48 gave the rule that a file with no decoder ends the book at the file before
+it. The position of the playback did not follow that rule: the queue of the player
+goes on counting when it is empty, therefore the position went to the end of the
+**whole** book. The book of the sandbox of 30 seconds of MP3 and 30 seconds of WMA
+gave `currentTime` 60 of 60 after 30 seconds of sound.
+
+**The correction.** `end_of_the_first` of `TrackList` gives the end of the tracks
+that play, and `position_now` gives that value when every such track played. The
+old rule of T-2 and T-16 counted the tracks of the book; the new rule counts the
+tracks that play, and the two agree for a book with no such file.
+
+The media does not become finished: `reached_the_end` compares the position with
+the length of the **whole** book. A book that ends early is not a book that the
+user heard.
+
+**This rule matters when the server gives no stream.** T-53 asks the server for a
+stream of the whole media, therefore a server with ffmpeg plays every file. A
+server with no ffmpeg keeps the direct playback, and this rule then holds the
+position.
 
 ## The upgrade of the dependencies, 2026-08-10
 
