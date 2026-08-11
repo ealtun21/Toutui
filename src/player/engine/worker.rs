@@ -126,6 +126,8 @@ struct Current {
     /// The name of the file that the decoder does not read, if one exists. The
     /// screen shows it, therefore the user knows why the playback stops early.
     the_file_that_no_decoder_reads: Option<String>,
+    /// The playback reads the stream of the server, and not the file. See T-53.
+    plays_the_stream_of_the_server: bool,
     /// The speed that every track of this book reads. WSOLA stretches the
     /// time, thus the pitch does not change.
     speed: SharedSpeed,
@@ -244,6 +246,18 @@ fn start(
 
     let tracks_that_play = item_count_of(&request);
 
+    // A new playback starts with no fault of a decoder. See T-53.
+    if let Ok(mut value) = state.write() {
+        value.file_with_no_decoder = None;
+    }
+
+    let plays_the_stream_of_the_server = request.sources.iter().any(|source| {
+        matches!(
+            source,
+            crate::player::engine::source::TrackSource::Stream { .. }
+        )
+    });
+
     let mut item = Current {
         request,
         playing: track_index,
@@ -251,10 +265,24 @@ fn start(
         speed,
         tracks_that_play,
         the_file_that_no_decoder_reads: None,
+        plays_the_stream_of_the_server,
     };
 
     if let Err(error) = fill_queue(player, &mut item, token) {
         error!("[worker] the engine cannot start the book: {}", error);
+
+        // The loop of the playback reads this name, and it then asks the server
+        // for a stream of the whole media. See T-53.
+        let name = item
+            .request
+            .tracks
+            .get(track_index)
+            .map(|track| track.filename.clone())
+            .unwrap_or_default();
+
+        if let Ok(mut value) = state.write() {
+            value.file_with_no_decoder = Some(name);
+        }
 
         // The queue of the player plays a track as soon as the engine appends
         // it. A start that ends here must therefore stop the player, or the
@@ -474,6 +502,11 @@ fn publish(
     // chapter twenty times each second. See T-24.
     if value.playback_id != item.request.playback_id {
         value.chapters = item.request.tracks.chapters().to_vec();
+
+        // A new playback starts with no fault of a decoder and with no message
+        // of the playback before it. See T-53.
+        value.file_with_no_decoder = None;
+        value.notice = None;
     }
 
     value.playback_id = item.request.playback_id;
@@ -512,9 +545,18 @@ fn publish(
     // the end. See T-16.
     value.finished = reached_the_end(position, value.duration, complete);
 
-    // The user must know why a book stops before its end. See T-48.
+    // The user must know why a book stops before its end. See T-48. The loop of
+    // the playback reads the name, and it asks the server for a stream of the
+    // whole media. See T-53.
     if let Some(name) = &item.the_file_that_no_decoder_reads {
         value.notice = Some(format!("The program cannot read {}", name));
+        value.file_with_no_decoder = Some(name.clone());
+    }
+
+    // A playback of the stream of the server waits for ffmpeg of that server.
+    // The user must know why, therefore the panel says it. See T-53.
+    if item.plays_the_stream_of_the_server {
+        value.notice = Some("The server makes the stream of this media".to_string());
     }
 
     if was_stalled && value.status == PlaybackStatus::Playing {

@@ -203,6 +203,7 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 | **The backups** | `GET /api/backups` gives `backups`, `backupLocation`, `backupPathEnvSet` | No | Everything. See section 6 |
 | **The file system of the server** | `GET /api/filesystem` gives `posix` and `directories` | No | Everything. See section 6 |
 | **The settings of the sign in** | `GET /api/auth-settings` gives 14 fields, and 12 of them belong to OpenID | No | Everything. See section 6 |
+| **A stream of the server** | `POST /api/items/:id/play` with `forceTranscode` gives one address of HLS for the whole media | Yes | Nothing. The program reads the file itself, and it takes the stream for a file that no decoder of the program reads. See T-53 |
 | **Live messages** | Audiobookshelf sends the changes over socket.io | No | Everything. A change of a different client comes to Toutui at the next `R` only |
 
 ## 5. What is worth building next

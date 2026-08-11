@@ -5,6 +5,7 @@
 //! mode needs no separate code.
 
 use crate::db::crud::get_download_files;
+use crate::player::engine::hls_file::HlsFile;
 use crate::player::engine::http_file::HttpFile;
 use crate::player::engine::opus::OpusSource;
 use crate::player::engine::track::Track;
@@ -35,6 +36,17 @@ pub enum TrackSource {
         item_id: String,
         /// The identity of the file.
         ino: String,
+    },
+    /// The stream of the server, for a file that no decoder of the program
+    /// reads. ffmpeg of the server makes the stream, therefore every codec of
+    /// ffmpeg becomes a codec of this program. See T-53.
+    Stream {
+        /// The base address of the server.
+        base_url: String,
+        /// The address of the playlist, as the session of the server gives it.
+        playlist: String,
+        /// The place of the media where the stream starts, in seconds.
+        seconds: f64,
     },
 }
 
@@ -218,6 +230,13 @@ pub fn open_decoder(
     token: &str,
     track: &Track,
 ) -> Result<EngineSource, String> {
+    // The stream of the server holds MP3 or ADTS. Therefore it never goes to
+    // the reader of Opus. See T-53.
+    if matches!(source, TrackSource::Stream { .. }) {
+        return open_rodio(source, token, track)
+            .map(|decoder| EngineSource::Rodio(Box::new(decoder)));
+    }
+
     let hint = hint_for(&track.filename);
     let opus_first = hint
         .as_deref()
@@ -277,17 +296,30 @@ pub fn open_decoder(
 ///
 /// The function gives the length of the stream, if it knows the length.
 /// Symphonia then knows where the stream ends.
-fn open_bytes(
-    source: &TrackSource,
-    token: &str,
-) -> Result<(Box<dyn MediaRead>, Option<u64>), String> {
+/// The bytes of one track, and what the decoder must know about them.
+struct Bytes {
+    /// The reader of the bytes.
+    data: Box<dyn MediaRead>,
+    /// The number of bytes, when the source knows it.
+    size: Option<u64>,
+    /// The hint of the form, for a source whose name says nothing. The stream of
+    /// the server gives it. A file gives nothing, and the name of the file is
+    /// then the hint. See T-53.
+    hint: Option<&'static str>,
+}
+
+fn open_bytes(source: &TrackSource, token: &str) -> Result<Bytes, String> {
     match source {
         TrackSource::Local(path) => {
             let file = std::fs::File::open(path)
                 .map_err(|error| format!("The application cannot open the file: {}", error))?;
 
             let size = file.metadata().ok().map(|meta| meta.len());
-            Ok((Box::new(file), size))
+            Ok(Bytes {
+                data: Box::new(file),
+                size,
+                hint: None,
+            })
         }
         TrackSource::Remote {
             base_url,
@@ -298,18 +330,47 @@ fn open_bytes(
                 .map_err(|error| format!("The server did not give the file: {}", error))?;
 
             let size = Some(file.len());
-            Ok((Box::new(file), size))
+
+            Ok(Bytes {
+                data: Box::new(file),
+                size,
+                hint: None,
+            })
+        }
+        // The stream of the server has no size in bytes, and it moves forward
+        // only. See T-53.
+        TrackSource::Stream {
+            base_url,
+            playlist,
+            seconds,
+        } => {
+            let file = HlsFile::open(base_url, token, playlist, *seconds)?;
+
+            // The name of the file of the media says nothing about the bytes of
+            // the stream: the file can be an M4B file, and the stream gives MP3
+            // or ADTS. A wrong hint sends the reader of symphonia to a box of
+            // MP4 that no byte of the stream holds. See T-53.
+            let hint = match file.form() {
+                crate::player::engine::hls::Form::Mp3 => "mp3",
+                _ => "aac",
+            };
+
+            Ok(Bytes {
+                data: Box::new(file),
+                size: None,
+                hint: Some(hint),
+            })
         }
     }
 }
 
 /// Opens the Opus source of this project.
 fn open_opus(source: &TrackSource, token: &str, track: &Track) -> Result<OpusSource, String> {
-    let (data, size) = open_bytes(source, token)?;
+    let bytes = open_bytes(source, token)?;
 
     OpusSource::open(
-        data,
-        size.or(track.size),
+        bytes.data,
+        bytes.size.or(track.size),
         hint_for(&track.filename).as_deref(),
         track.mime_type.as_deref(),
     )
@@ -321,27 +382,42 @@ fn open_rodio(
     token: &str,
     track: &Track,
 ) -> Result<Decoder<Box<dyn MediaRead>>, String> {
-    let (data, size) = open_bytes(source, token)?;
+    let Bytes {
+        data,
+        size,
+        hint: hint_of_the_stream,
+    } = open_bytes(source, token)?;
 
-    // The two sources obey `Seek`. Therefore symphonia can move in the file.
-    // An M4B file needs this, because the decoder reads the `moov` atom
-    // before it reads the audio.
+    // A file obeys `Seek`, therefore symphonia can move in it. An M4B file
+    // needs this, because the decoder reads the atom `moov` before the audio.
+    //
+    // The stream of the server moves forward only, and it has no size in bytes.
+    // See T-53.
+    let a_file = hint_of_the_stream.is_none();
+
     let mut builder = Decoder::builder()
         .with_data(data)
         .with_gapless(true)
-        .with_seekable(true);
+        .with_seekable(a_file);
 
-    if let Some(size) = size.or(track.size) {
-        builder = builder.with_byte_len(size);
+    if a_file {
+        if let Some(size) = size.or(track.size) {
+            builder = builder.with_byte_len(size);
+        }
     }
 
-    if let Some(hint) = hint_for(&track.filename) {
-        builder = builder.with_hint(&hint);
-    }
+    match hint_of_the_stream {
+        Some(hint) => builder = builder.with_hint(hint),
+        None => {
+            if let Some(hint) = hint_for(&track.filename) {
+                builder = builder.with_hint(&hint);
+            }
 
-    if let Some(mime_type) = track.mime_type.as_deref() {
-        if !mime_type.is_empty() {
-            builder = builder.with_mime_type(mime_type);
+            if let Some(mime_type) = track.mime_type.as_deref() {
+                if !mime_type.is_empty() {
+                    builder = builder.with_mime_type(mime_type);
+                }
+            }
         }
     }
 

@@ -331,3 +331,25 @@ because a track lasts many seconds. See T-2.
 podman stop abs-test
 podman rm abs-test
 ```
+
+## A book of two files, and one file with no decoder
+
+T-53 needs a media that the program cannot read by itself. The program plays no
+WMA file (T-18), therefore a book of one MP3 file and one WMA file gives the
+exact shape of a book of a user of 2026-08-11: that book held the same audio as
+AAC-LC and as xHE-AAC, and symphonia reads AAC-LC only.
+
+```
+dir="$HOME/.local/share/toutui-abs-test/audiobooks/Decoder Test/One File With No Decoder"
+mkdir -p "$dir"
+ffmpeg -f lavfi -i "sine=frequency=440:duration=1800" -c:a libmp3lame -y "$dir/01 - Part 1.mp3"
+ffmpeg -f lavfi -i "sine=frequency=660:duration=30"   -c:a wmav2     -y "$dir/02 - Part 2.wma"
+curl -X POST "http://localhost:13399/api/libraries/$BOOK_LIB_ID/scan" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+The first file is 30 minutes long, because the device `null` plays 30 seconds in
+two seconds and no view of the player then stays on the screen.
+
+`tests/the_stream_against_the_sandbox.rs` reads this book. A sandbox with no such
+book gives a line of text, and the test does not fail.

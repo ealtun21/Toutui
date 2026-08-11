@@ -4,6 +4,8 @@
 //! a different program. Therefore the token stays in the memory of the
 //! process.
 
+pub mod hls;
+pub mod hls_file;
 pub mod http_file;
 pub mod opus;
 pub mod pos_probe;
@@ -154,6 +156,12 @@ pub struct PlaybackState {
     pub finished: bool,
     /// A message for the user. An example is "Reconnected".
     pub notice: Option<String>,
+    /// The name of a file of this media that no decoder of the program reads.
+    ///
+    /// The engine writes it, and the loop of the playback reads it. That loop
+    /// then asks the server for a stream of the whole media, and every codec of
+    /// ffmpeg becomes a codec of this program. See T-53.
+    pub file_with_no_decoder: Option<String>,
 }
 
 impl Default for PlaybackState {
@@ -166,6 +174,7 @@ impl Default for PlaybackState {
             position: 0.0,
             duration: 0.0,
             chapter_title: None,
+            file_with_no_decoder: None,
             chapters: Vec::new(),
             speed: 1.0,
             volume: 1.0,

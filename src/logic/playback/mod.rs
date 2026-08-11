@@ -26,6 +26,7 @@ use crate::player::engine::{
 use crate::utils::pop_up_message::*;
 use log::{error, info, warn};
 use std::io::stdout;
+use std::time::Duration;
 
 /// The number of seconds between two sync requests to the server.
 const SYNC_PERIOD: u64 = 10;
@@ -388,6 +389,31 @@ async fn play_media(
 
     let _ = clear_message(&mut stdout, 3);
 
+    // The engine opens the file of the playback and the file after it. A file of
+    // a codec that no decoder of the program reads gives a fault at once, and
+    // the program then asks the server for a stream of the whole media. See
+    // T-53.
+    if let Some(name) = the_file_that_no_decoder_reads(player, playback_id).await {
+        info!(
+            "[play] no decoder of the program reads {}. The program asks the \
+             server for a stream of the whole media.",
+            name
+        );
+
+        return play_the_stream_of_the_server(
+            api,
+            player,
+            &target,
+            username,
+            session_id,
+            start_position,
+            speed,
+            &info_item,
+            &mut stdout,
+        )
+        .await;
+    }
+
     follow_playback(
         api,
         player,
@@ -400,6 +426,188 @@ async fn play_media(
         start_position,
     )
     .await
+}
+
+/// The time that the program waits for the fault of a decoder. See T-53.
+///
+/// The engine opens the decoders inside the command `Start`, therefore the fault
+/// comes in some milliseconds. This value gives room for a server that answers
+/// slowly, and it stays short: a playback that starts must not wait.
+const WAIT_FOR_A_FAULT: Duration = Duration::from_millis(2500);
+
+/// The time between two looks at the state of the engine.
+const LOOK_AGAIN: Duration = Duration::from_millis(100);
+
+/// Gives the name of the file that no decoder of the program reads, if the
+/// engine met one in this playback. See T-53.
+async fn the_file_that_no_decoder_reads(player: &PlayerHandle, playback_id: u64) -> Option<String> {
+    let end = std::time::Instant::now() + WAIT_FOR_A_FAULT;
+
+    loop {
+        let state = player.state();
+
+        if let Some(name) = state.file_with_no_decoder.clone() {
+            return Some(name);
+        }
+
+        // The engine plays this playback, and it opened every decoder that it
+        // needs now. A fault of a later file comes to the loop of the playback.
+        if state.playback_id == playback_id && state.status != PlaybackStatus::Stopped {
+            return None;
+        }
+
+        if std::time::Instant::now() >= end {
+            return None;
+        }
+
+        tokio::time::sleep(LOOK_AGAIN).await;
+    }
+}
+
+/// Plays the stream of the server, for a media with a file that no decoder of
+/// the program reads. See T-53.
+///
+/// ffmpeg of the server makes the stream, therefore every codec of ffmpeg
+/// becomes a codec of this program. The stream holds the **whole** media in one
+/// track, therefore a book of many files needs no queue here.
+#[allow(clippy::too_many_arguments)]
+async fn play_the_stream_of_the_server(
+    api: &ApiClient,
+    player: &PlayerHandle,
+    target: &PlaybackTarget,
+    username: String,
+    session_of_the_file: String,
+    start_position: f64,
+    speed: f32,
+    info_item: &[String],
+    stdout: &mut std::io::Stdout,
+) -> Outcome {
+    let item_id = target.item_id().to_string();
+
+    let _ = clear_message(stdout, 3);
+    let _ = pop_message(
+        stdout,
+        3,
+        "One file needs the server. The stream starts, please wait…",
+    );
+
+    // The session of the file stays open, and the server would then hold two
+    // sessions of one media. The program closes it before the new one.
+    player.send(PlayerCommand::Stop);
+
+    if let Err(error) = close_session_without_send_prg_data(api, &session_of_the_file).await {
+        warn!(
+            "[play] the server did not close the session of the file: {}",
+            error
+        );
+    }
+
+    let stream = match post_a_stream_session(api, &item_id, target.episode_id()).await {
+        Ok(stream) => stream,
+        Err(error) => {
+            error!("[play] the server gave no stream: {}", error);
+            let _ = clear_message(stdout, 3);
+            let _ = pop_message(
+                stdout,
+                3,
+                "The server cannot make a stream of this media. See the log.",
+            );
+            return Outcome::Fault;
+        }
+    };
+
+    let total_duration = if stream.duration > 0.0 {
+        format!("{}", stream.duration.round() as u64)
+    } else {
+        info_item[2].clone()
+    };
+
+    // The stream holds the whole media, therefore the list holds one track and
+    // that track starts at the second 0 of the media.
+    let tracks = TrackList::new(
+        vec![Track {
+            index: 1,
+            filename: format!("the stream of {}", item_id),
+            ino: String::new(),
+            size: None,
+            mime_type: None,
+            duration: stream.duration,
+            start_offset: 0.0,
+        }],
+        chapters_of_the_media(api, &item_id).await,
+    );
+
+    let sources = vec![TrackSource::Stream {
+        base_url: api.pool().active().unwrap_or_default(),
+        playlist: stream.playlist.clone(),
+        seconds: start_position.max(0.0),
+    }];
+
+    let playback_id = next_playback_id();
+
+    let request = PlaybackRequest {
+        playback_id,
+        item_id: item_id.clone(),
+        title: info_item[4].clone(),
+        author: info_item[6].clone(),
+        username: username.clone(),
+        tracks,
+        sources,
+        // The stream itself starts at the place of the user, therefore the
+        // engine starts at the second 0 of the stream. See T-53.
+        start_position: 0.0,
+        speed,
+    };
+
+    let _ = insert_listening_session(
+        stream.session_id.clone(),
+        item_id.clone(),
+        start_position.round() as u32,
+        total_duration.clone(),
+        target.episode_id().unwrap_or_default().to_string(),
+        0,
+        request.title.clone(),
+        request.author.clone(),
+        true,
+        String::new(),
+    );
+
+    info!(
+        "[play] the stream of the item {} starts at {} seconds",
+        item_id, start_position
+    );
+
+    player.send(PlayerCommand::Start(Box::new(request)));
+
+    let _ = clear_message(stdout, 3);
+
+    follow_playback(
+        api,
+        player,
+        stream.session_id,
+        item_id,
+        target.episode_id().map(|value| value.to_string()),
+        username,
+        total_duration,
+        playback_id,
+        // The engine gives the position inside the stream, and the stream starts
+        // at the place of the user. The loop adds that place. See T-53.
+        start_position,
+    )
+    .await
+}
+
+/// Gives the chapters of one media, for a playback of the stream of the server.
+///
+/// The stream holds no chapter, therefore the program asks the server for them.
+/// A media with no chapter gives an empty list, and that is not a fault.
+async fn chapters_of_the_media(api: &ApiClient, item_id: &str) -> Vec<Chapter> {
+    let item: serde_json::Value = match api.get_json(&format!("/api/items/{}", item_id)).await {
+        Ok(value) => value,
+        Err(_) => return Vec::new(),
+    };
+
+    chapters_from(&item)
 }
 
 /// Plays a local copy when the server does not answer.

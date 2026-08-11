@@ -1728,6 +1728,83 @@ have this item." **That screen named no key**, and three rules made it a trap:
   "The ebook of this media is a PDF file, and the reader shows EPUB books only.",
   or the fault of the request. That function is pure, and a test holds it.
 
+### T-53: every codec of the server, with no new dependency
+
+The user gave the rule on 2026-08-11: "we want to support as many codecs as
+possible so a part of a book failing is a big issue". T-48 stopped the fault of
+one file from stopping the whole playback, and the book of that user then played
+26 hours of 51. **That is a side-step, and not a correction.**
+
+**The measurement.** No decoder of pure Rust reads xHE-AAC. symphonia reads
+AAC-LC. `libfdk-aac` reads xHE-AAC, and the license of that library does not
+agree with the GPL. `faad2` reads no xHE-AAC. Therefore **the program cannot
+decode that file itself, today or soon.**
+
+**The answer of the server.** Audiobookshelf gives every media in two ways, and
+the second way was not used:
+
+| The way | The request | What comes |
+|---|---|---|
+| The file | `GET /api/items/:id/file/:ino` | The bytes of the file. The program reads 17 forms |
+| The stream | `POST /api/items/:id/play` with `forceTranscode` | `playMethod: 2` and **one** address of HLS for the **whole** media |
+
+ffmpeg of the server makes that stream. **Therefore every codec that ffmpeg reads
+becomes a codec that Toutui plays**, and the answer needs no new dependency of
+this program.
+
+**What the work needed.** Three readers, and every one of them is pure:
+
+1. **The playlist.** A list of lines. `parse_playlist` of
+   `src/player/engine/hls.rs`.
+2. **The container.** A part of the stream is an MPEG transport stream of packets
+   of 188 bytes. The program reads the table of the programs, it takes the
+   identity of the audio, and it gives the payload of those packets with no
+   header of PES. That payload is an elementary stream of MP3 or of ADTS AAC, and
+   symphonia reads both.
+3. **The form.** The table of the programs names the form. `0x11` is AAC inside
+   LATM, and symphonia reads no LATM. The program refuses that form **before** the
+   playback starts, therefore it never gives silence to the user.
+
+`src/player/engine/hls_file.rs` holds the reader of the stream. It has the shape
+of `HttpFile`: a thread fills a buffer, and `read` copies bytes of that buffer.
+**The stream moves forward only**, therefore a movement of the playback starts a
+new playback of the engine.
+
+**When the program uses the stream.** The engine opens the file of the playback
+and the file after it. A fault of a decoder comes in some milliseconds, therefore
+`the_file_that_no_decoder_reads` gives the name to the loop of the playback inside
+2.5 seconds. That loop then closes the session of the file, it asks for a session
+of a stream, and it starts the playback again with **one** track of the whole
+media. The direct playback of a file stays the first choice: it needs no work of
+the server.
+
+**The measurements of 2026-08-11.**
+
+| What | The answer of an Audiobookshelf 2.36.0 |
+|---|---|
+| `POST /api/items/:id/play` with `forceTranscode` | `playMethod: 2`, one track, `/hls/<session>/output.m3u8`, `duration` of the whole media |
+| The playlist of a book of 30 minutes | 305 parts of 6 seconds |
+| `output-0.ts` | 26884 bytes, 143 packets, the identity 256 gives 24033 bytes that start with `ff f3` |
+| A part that ffmpeg did not write yet | `404`. The reader waits, and it tries again |
+
+The whole way in the real program, with the book of `docs/TEST-SERVER.md` of one
+MP3 file and one WMA file:
+
+```
+[worker] the engine cannot open the track 2 of 2: ... It does not play wma and awb.
+[play] no decoder of the program reads 02 - Part 2.wma. The program asks the server for a stream of the whole media.
+[HlsFile] the stream holds 305 part(s). The reader starts at the part 0 and at 0.0 seconds inside it. The audio is Mp3.
+```
+
+The player then showed `⏸ 30:00 / 30:29`, and the server held `currentTime` 1800
+of 1830. **The book of two files played as one media, and the file that no
+decoder of the program reads gave no silence.**
+
+**What stays open.** The stream of the server needs ffmpeg on that server. A
+server with no ffmpeg gives no stream, and the program then plays the files that
+it reads. The panel says "The server makes the stream of this media" while the
+stream plays, therefore the user knows why the start takes longer.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
