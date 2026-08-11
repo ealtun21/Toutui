@@ -3209,6 +3209,77 @@ of a negative number ever reached the sound card.
 | ten times `i` | `… | Vol: 0%` | "The volume is 0%: the media plays and you hear nothing." |
 | `o` | `… | Vol: 10%` | "The volume is 10%." |
 
+### T-81: the queue of the episodes that the server downloads, with the key `d`
+
+The key `E` tells the server to get every episode of a feed that it does not
+hold, and **the server does that work alone**. The program showed nothing of it:
+a user who pressed `E` on the feed of the sandbox (57 episodes) read one message,
+and no view said what happened after it. Section 5 of `docs/T-24-coverage.md`
+named this work, and section 6 forbids it not.
+
+**The measurement of 2026-08-11, against an Audiobookshelf 2.36.0:**
+
+```json
+GET /api/libraries/:id/episode-downloads
+{ "currentDownload": { "episodeDisplayTitle": "Letter 4", "libraryItemId": "…",
+                       "podcastTitle": "Letters of Two Brides", … },
+  "queue": [ { "episodeDisplayTitle": "Letter 5", … }, … ] }
+```
+
+Three properties of the server, and each of them changed the work:
+
+1. **The episode that downloads now is not in `queue`.** The view holds it at the
+   top with the mark `▼`.
+2. **`GET /api/podcasts/:id/clear-queue` gives `200`, and it does not stop the
+   episode that downloads now.** The log of the server wrote "Successfully
+   downloaded podcast episode \"Letter 12\"" after the clear. The text of the view
+   says it, and the message of the key `X` says it again.
+3. **The queue does not fill at once.** `POST /api/podcasts/:id/download-episodes`
+   answers `200`, and a read two seconds later gave an **empty** queue. The clear
+   three seconds after that removed nine episodes. A measurement of this endpoint
+   must poll, and a sleep of two seconds says "the server queued nothing".
+
+**The view asks by itself.** `grep -rho "episode_download[a-z_]*"` of the server
+gives four messages of socket.io: `episode_download_queued`,
+`episode_download_started`, `episode_download_finished`, and
+`episode_download_queue_cleared`. The task of the live messages (T-47) writes a
+mark, and the render asks the server again at the next frame. A connection of the
+live messages that is not open gives no message, therefore the view asks again
+after three seconds too. **The user presses no key**, and the list moved from 9
+lines to 7, to 6, and to 4 in the measurement while the screen stood open.
+
+**The key `X` asks one time**, as the key of the log out does (T-36): the queue
+holds the work of the server, and a key at a wrong moment costs the user every
+episode of it.
+
+**The measurement in the real program, 2026-08-11:**
+
+| The keys | The screen |
+|---|---|
+| `d` in a library of books | "This library holds books. The server downloads the episodes of a podcast only." |
+| `d` in the library of the podcasts | `The downloads of the server [9 items]`, with `▼ Letter 31 — Letters of Two Brides…` |
+| nothing, four seconds later | `[7 items]`, then `[6 items]`, then `[4 items]` |
+| `X` | "Press X again to empty the queue of \"Letters of Two Brides…\". Any other key stops this." |
+| `X` again | "The queue of \"Letters of Two Brides…\" is empty now. The episode that downloads goes on." |
+| the view after it | "The server downloads no episode. Press E on a podcast to get its new episodes." |
+
+### T-82: the choice of the library changed nothing on the screen
+
+The measurement of T-81 needed the library of the podcasts. `S`, then "Library:
+choose the library", then `l` on "Podcasts": **the header still said
+"📖 Books (book)"**, every list of the screen stayed, and the program wrote no
+message. The log held "[update_id_selected_lib] The library has been updated".
+
+The key wrote the row of the database and nothing else. The user then reads the
+library of the books until they press `R` or start the program again, and the
+text of that view says "The key l on a library makes it the library that the
+program shows."
+
+`must_refresh` does that work already for the sequence and for the filter of the
+library (T-24), therefore the key takes it now, and the program says "The program
+shows the library \"Podcasts\" now." The header of the next frame holds
+"📖 Podcasts (podcast)".
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

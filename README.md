@@ -145,6 +145,20 @@ The server sorts and filters the items. `f` chooses how.
   The title of the Library view says the sequence, and it says that a filter
   is on.
 
+## 📥 The downloads of the server
+
+`E` tells the server to get every episode of a feed that it does not hold, and
+the server does that work alone.
+
+- `d` — show the episodes that the server downloads, and the queue of that work.
+  The key operates in a library of podcasts.
+- The episode that downloads now holds the mark `▼`, and it stands first.
+- **The list follows the server.** The server sends a message at each change,
+  therefore the lines go away as the episodes come, and you press no key.
+- `X` — empty the queue of the podcast of the line. The program asks one time,
+  and the episode that downloads now goes on: the server holds it outside the
+  queue.
+
 ## 🎙 Add a podcast
 
 - `A` — look for a podcast. The key operates in a library of podcasts, and it
@@ -296,8 +310,9 @@ The application starts and plays when the server does not answer:
 The EPUB reader, the PDF reader, the statistics, the podcasts, the place of the
 ebook in the form of the web reader (EPUBCFI), the queue of media, the changes of
 a different client as they happen (socket.io), and the view of the settings that
-writes `config.toml` are done. This stays:
-- The queue of the episodes of a podcast on the server
+writes `config.toml` are done. Every function of the list of `docs/T-24-coverage.md` that a terminal can show is
+done. Read section 6 of that document for the functions that Toutui must not
+have, and why.
   
 ## ⚠️ Caution: Beta Version  
 This beta app is still in **heavy development and contains bugs**.  

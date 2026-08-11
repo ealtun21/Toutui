@@ -54,6 +54,7 @@ impl Widget for &mut App {
             AppView::NewPodcast => self.render_new_podcast(area, buf),
             AppView::Authors => self.render_authors(area, buf),
             AppView::Ebooks => self.render_the_ebooks(area, buf),
+            AppView::Downloads => self.render_the_downloads(area, buf),
             AppView::Keys => self.render_keys(area, buf),
             AppView::Settings => self.render_settings(area, buf),
             AppView::SettingsAccount => self.render_settings_account(area, buf),
@@ -272,7 +273,9 @@ impl App {
             // cover. See T-49. The list of the ebooks of one media holds one
             // media, and the cover of that media says nothing about the file
             // that the user takes. See T-76.
-            AppView::Keys | AppView::Ebooks | AppView::SettingsReader => Vec::new(),
+            AppView::Keys | AppView::Ebooks | AppView::SettingsReader | AppView::Downloads => {
+                Vec::new()
+            }
             // A line of a series shows the cover of each of its books, in
             // the same way as the Library view. See T-22 and T-24.
             AppView::Home if self.selected_home_series().is_some() => self
@@ -684,6 +687,59 @@ impl App {
                 .wrap(Wrap { trim: true })
                 .render(item_area, buf);
         }
+    }
+}
+
+/// The queue of the downloads of the server. See T-81.
+impl App {
+    /// AppView::Downloads rendering
+    fn render_the_downloads(&mut self, area: Rect, buf: &mut Buffer) {
+        // The server sends a message at each change of the queue. The view then
+        // asks the server again, therefore the list moves while the user looks
+        // at it and the user presses no key. See T-81.
+        if crate::logic::the_downloads::the_view_must_ask() {
+            self.ask_for_the_downloads();
+        }
+
+        let [header_area, main_area, item_area, footer_area] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Fill(1),
+            Constraint::Length(4),
+            Constraint::Length(2),
+        ])
+        .areas(area);
+
+        let (title, lines) = match crate::logic::the_downloads::state() {
+            crate::logic::the_downloads::State::Ready(all) if all.is_empty() => (
+                "The server downloads no episode. Press E on a podcast to get its new \
+                 episodes."
+                    .to_string(),
+                Vec::new(),
+            ),
+            crate::logic::the_downloads::State::Ready(all) => (
+                format!("The downloads of the server [{} items]", all.len()),
+                all.iter().map(|one| one.line()).collect(),
+            ),
+            crate::logic::the_downloads::State::Fault(text) => (
+                format!("The server gave no queue of the downloads: {}", text),
+                Vec::new(),
+            ),
+            _ => ("The program asks the server…".to_string(), Vec::new()),
+        };
+
+        self.render_header(header_area, buf);
+        App::render_footer(footer_area, buf, crate::ui::keys::FOOTER_OF_THE_DOWNLOADS);
+        self.render_list(
+            main_area,
+            buf,
+            &title,
+            &lines,
+            &mut self.list_state_downloads.clone(),
+        );
+
+        Paragraph::new(crate::ui::keys::THE_DOWNLOADS_OF_THE_SERVER)
+            .wrap(Wrap { trim: true })
+            .render(item_area, buf);
     }
 }
 

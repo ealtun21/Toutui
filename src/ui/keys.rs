@@ -107,6 +107,7 @@ pub const GROUPS: &[Group] = &[
             key("L", "The server examines the library"),
             key("A", "Add a podcast to the library"),
             key("E", "The server gets the new episodes of the feed"),
+            key("d", "The episodes that the server downloads, and the queue"),
         ],
     },
     Group {
@@ -186,6 +187,13 @@ pub const FOOTER_OF_THE_SEARCH: &str =
 pub const FOOTER_OF_A_LIST: &str =
     "j/k: move  l: take the line  h: back  Tab: home  R: refresh  ?: every key  Q: quit";
 
+/// The footer of the view of the downloads of the server.
+///
+/// The footer names no key that asks the server again: **the view asks by
+/// itself**, at each message of the server and after three seconds. See T-81.
+pub const FOOTER_OF_THE_DOWNLOADS: &str =
+    "j/k: move  X: empty the queue of this podcast  h: back  ?: every key  Q: quit";
+
 /// The footer of a view that shows a fault and nothing else.
 ///
 /// A screen that names no key looks like a program that stopped. The user of
@@ -243,7 +251,19 @@ pub const THE_CACHE_OF_THE_EBOOKS: &str = "The program keeps the ebook of a medi
 /// Every text of the program that a view draws as a paragraph.
 ///
 /// A test holds each of them to one space between two words.
-pub const THE_TEXTS_OF_THE_VIEWS: &[&str] = &[THE_ACCOUNTS, THE_LIBRARIES, THE_CACHE_OF_THE_EBOOKS];
+/// The text of the view of the downloads of the server. See T-81.
+pub const THE_DOWNLOADS_OF_THE_SERVER: &str = "The server gets the episodes, and \
+    it holds a queue of that work. The key E on a podcast puts every episode of \
+    the feed that the server does not hold in this queue.\n\n\
+    The key X empties the queue of the podcast of the line. The episode that \
+    downloads now (▼) goes on, because the server holds it outside the queue.";
+
+pub const THE_TEXTS_OF_THE_VIEWS: &[&str] = &[
+    THE_ACCOUNTS,
+    THE_LIBRARIES,
+    THE_CACHE_OF_THE_EBOOKS,
+    THE_DOWNLOADS_OF_THE_SERVER,
+];
 
 #[cfg(test)]
 mod tests {
@@ -276,6 +296,7 @@ mod tests {
         let footers = [
             FOOTER_OF_THE_KEYS,
             FOOTER_OF_THE_SEARCH,
+            FOOTER_OF_THE_DOWNLOADS,
             FOOTER_OF_A_LIBRARY_OF_BOOKS,
             FOOTER_OF_A_LIBRARY_OF_PODCASTS,
             FOOTER_OF_A_LIST,

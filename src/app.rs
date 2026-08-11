@@ -70,6 +70,9 @@ pub enum AppView {
     Authors,
     /// The ebooks of one media. An item can hold more than one. See T-76.
     Ebooks,
+    /// The episodes that the server downloads, and the queue of that work.
+    /// See T-81.
+    Downloads,
     /// Every key of the program. The key `?` opens it. See T-49.
     Keys,
     Settings,
@@ -178,6 +181,11 @@ pub struct App {
     pub list_state_settings_reader: ListState,
     /// The view that the search came from. The key `h` gives it back. See T-79.
     pub the_view_before_the_search: AppView,
+    /// The line of the queue of the downloads of the server. See T-81.
+    pub list_state_downloads: ListState,
+    /// The podcast whose queue the key `X` empties, after the question. See
+    /// T-81.
+    pub confirm_the_empty_queue: Option<String>,
     /// The line of the view of every key. See T-49.
     pub list_state_keys: ListState,
     /// The view that the user came from, before the list of every key. The key
@@ -1086,6 +1094,8 @@ impl App {
             list_state_ebooks: ListState::default(),
             list_state_settings_reader: ListState::default(),
             the_view_before_the_search: AppView::Library,
+            list_state_downloads: ListState::default(),
+            confirm_the_empty_queue: None,
             list_state_keys: ListState::default(),
             the_view_before_the_keys: AppView::Home,
             the_view_before_the_reader: AppView::Home,
@@ -1205,6 +1215,11 @@ impl App {
             self.confirm_logout = None;
         }
 
+        // The same rule for the queue of the downloads of the server. See T-81.
+        if !matches!(key.code, KeyCode::Char('X')) {
+            self.confirm_the_empty_queue = None;
+        }
+
         match key.code {
             // The keys of the reader of an ebook come first. The reader uses
             // the same letters as the lists and as the player, and it uses
@@ -1249,6 +1264,10 @@ impl App {
 
             // The key that looks for a new podcast. See T-24.
             KeyCode::Char('A') => self.look_for_a_podcast(),
+
+            // The key that shows the episodes that the server downloads, and
+            // the queue of that work. See T-81.
+            KeyCode::Char('d') => self.show_the_downloads_of_the_server(),
 
             // The key of the timer for sleep. See T-24.
             KeyCode::Char('t') => self.change_the_timer_for_sleep(),
@@ -1381,6 +1400,10 @@ impl App {
 
             KeyCode::Char('X') if matches!(self.view_state, AppView::Bookmarks) => {
                 self.remove_the_bookmark()
+            }
+
+            KeyCode::Char('X') if matches!(self.view_state, AppView::Downloads) => {
+                self.empty_the_queue_of_the_downloads()
             }
 
             // remove the local copy of the selected book or episode
@@ -1567,6 +1590,7 @@ impl App {
                     // The user came from the reader, and the reader holds the
                     // book that they read now. See T-76.
                     AppView::Ebooks => self.view_state = AppView::Reader,
+                    AppView::Downloads => self.view_state = AppView::Library,
                     AppView::PodcastEpisode => {
                         if self.is_from_search_pod {
                             self.view_state = AppView::SearchBook
@@ -1767,6 +1791,24 @@ impl App {
                             .and_then(|index| self.libraries_ids.get(index))
                         {
                             let _ = update_id_selected_lib(new_selected_lib, &self.username);
+
+                            // **The screen must follow the choice.** The old
+                            // code wrote the row of the database only, and every
+                            // list of the screen stayed: the user read
+                            // "Books (book)" in the header after they took the
+                            // library of the podcasts, and the key `R` or a new
+                            // start of the program did the work. See T-82.
+                            let name = selected_settings_library
+                                .and_then(|index| self.libraries_names.get(index))
+                                .cloned()
+                                .unwrap_or_default();
+
+                            crate::logic::message::say(&format!(
+                                "The program shows the library \"{}\" now.",
+                                name
+                            ));
+
+                            self.must_refresh = true;
                         }
                     }
                     AppView::SettingsAbout => {}
@@ -1782,6 +1824,9 @@ impl App {
                     AppView::NewPodcast => self.add_the_podcast(),
                     AppView::Authors => self.show_the_books_of_the_author(),
                     AppView::Ebooks => self.open_the_ebook_of_the_line(),
+                    // The server owns this work, therefore no line of this
+                    // view opens. The key `X` empties the queue. See T-81.
+                    AppView::Downloads => {}
                     AppView::Library => {
                         // A line of a series opens the books of that series.
                         // See T-22.
@@ -2268,6 +2313,111 @@ impl App {
         );
 
         self.must_refresh = true;
+    }
+
+    /// Shows the episodes that the server downloads, and the queue. See T-81.
+    ///
+    /// The key `E` gives the server the episodes of a feed that it does not
+    /// hold, and the server does that work alone. **The program showed nothing
+    /// of it before this view**: a user who pressed `E` on a feed of 57 episodes
+    /// read one message and no more.
+    pub fn show_the_downloads_of_the_server(&mut self) {
+        if !matches!(
+            self.view_state,
+            AppView::Home | AppView::Library | AppView::SearchBook | AppView::PodcastEpisode
+        ) {
+            return;
+        }
+
+        if !self.is_podcast {
+            crate::logic::message::say(
+                "This library holds books. The server downloads the episodes of a podcast only.",
+            );
+            return;
+        }
+
+        crate::logic::the_downloads::forget();
+        self.list_state_downloads.select(Some(0));
+        self.confirm_the_empty_queue = None;
+        self.view_state = AppView::Downloads;
+    }
+
+    /// Asks the server for the queue of the downloads of the library.
+    ///
+    /// The render calls this at the first frame of the view, at each message of
+    /// the server, and after the time of `logic::the_downloads`. See T-81.
+    pub fn ask_for_the_downloads(&mut self) {
+        let api = std::sync::Arc::clone(&self.api);
+        let library = self.id_selected_lib.clone();
+
+        if !matches!(
+            crate::logic::the_downloads::state(),
+            crate::logic::the_downloads::State::Ready(_)
+        ) {
+            crate::logic::the_downloads::keep(crate::logic::the_downloads::State::Waiting);
+        }
+
+        tokio::spawn(async move {
+            let state = match crate::api::podcasts::the_downloads::the_downloads_of_the_library(
+                &api, &library,
+            )
+            .await
+            {
+                Ok(all) => crate::logic::the_downloads::State::Ready(all),
+                Err(error) => crate::logic::the_downloads::State::Fault(error.to_string()),
+            };
+
+            crate::logic::the_downloads::keep(state);
+        });
+    }
+
+    /// Empties the queue of the podcast of the line. See T-81.
+    ///
+    /// **The program asks one time.** The queue holds the work of the server,
+    /// and a key that stops it by mistake costs the user every episode of that
+    /// queue. The key `E` gives them back.
+    pub fn empty_the_queue_of_the_downloads(&mut self) {
+        let all = crate::logic::the_downloads::downloads();
+
+        let Some(one) = self
+            .list_state_downloads
+            .selected()
+            .and_then(|line| all.get(line))
+            .cloned()
+        else {
+            return;
+        };
+
+        if self.confirm_the_empty_queue.as_deref() != Some(one.item_id.as_str()) {
+            self.confirm_the_empty_queue = Some(one.item_id.clone());
+
+            crate::logic::message::say(&format!(
+                "Press X again to empty the queue of \"{}\". Any other key stops this.",
+                one.podcast
+            ));
+
+            return;
+        }
+
+        self.confirm_the_empty_queue = None;
+
+        let api = std::sync::Arc::clone(&self.api);
+        let podcast = one.podcast.clone();
+        let item_id = one.item_id.clone();
+
+        tokio::spawn(async move {
+            let text =
+                match crate::api::podcasts::the_downloads::empty_the_queue(&api, &item_id).await {
+                    Ok(()) => format!(
+                        "The queue of \"{}\" is empty now. The episode that downloads goes on.",
+                        podcast
+                    ),
+                    Err(error) => format!("The server did not empty the queue: {}", error),
+                };
+
+            crate::logic::message::say(&text);
+            crate::logic::the_downloads::note_that_the_queue_changed();
+        });
     }
 
     /// Tells the server to get the episodes that it does not hold. See T-24.
@@ -4137,6 +4287,7 @@ impl App {
             AppView::NewPodcast => AppView::Library,
             AppView::Authors => AppView::Library,
             AppView::Ebooks => AppView::Reader,
+            AppView::Downloads => AppView::Library,
             AppView::Settings => AppView::Home,
             AppView::SettingsAccount => AppView::Home,
             AppView::SettingsLibrary => AppView::Home,
@@ -4328,6 +4479,16 @@ impl App {
                     self.list_state_ebooks.select(Some(0));
                 }
             }
+            AppView::Downloads => {
+                let count = crate::logic::the_downloads::downloads().len();
+                let from = self.list_state_downloads.selected().unwrap_or(0);
+
+                if from + 1 < count {
+                    self.list_state_downloads.select(Some(from + 1));
+                } else {
+                    self.list_state_downloads.select(Some(0));
+                }
+            }
             AppView::SettingsReader => {
                 let count = crate::logic::reader::cache::THE_VALUES_OF_THE_SETTINGS.len();
                 let from = self.list_state_settings_reader.selected().unwrap_or(0);
@@ -4407,6 +4568,7 @@ impl App {
             AppView::NewPodcast => self.list_state_new_podcast.select_previous(),
             AppView::Authors => self.list_state_authors.select_previous(),
             AppView::Ebooks => self.list_state_ebooks.select_previous(),
+            AppView::Downloads => self.list_state_downloads.select_previous(),
             AppView::Keys => self.list_state_keys.select_previous(),
             AppView::Settings => self.list_state_settings.select_previous(),
             AppView::SettingsAccount => self.list_state_settings_account.select_previous(),
@@ -4445,6 +4607,7 @@ impl App {
             AppView::NewPodcast => self.list_state_new_podcast.select_first(),
             AppView::Authors => self.list_state_authors.select_first(),
             AppView::Ebooks => self.list_state_ebooks.select_first(),
+            AppView::Downloads => self.list_state_downloads.select_first(),
             AppView::Keys => self.list_state_keys.select_first(),
             AppView::Settings => self.list_state_settings.select_first(),
             AppView::SettingsAccount => self.list_state_settings_account.select_first(),
@@ -4541,6 +4704,12 @@ impl App {
             AppView::Ebooks => {
                 let last = crate::logic::the_ebooks::ebooks().len().saturating_sub(1);
                 self.list_state_ebooks.select(Some(last));
+            }
+            AppView::Downloads => {
+                let last = crate::logic::the_downloads::downloads()
+                    .len()
+                    .saturating_sub(1);
+                self.list_state_downloads.select(Some(last));
             }
             AppView::SettingsReader => {
                 let last = crate::logic::reader::cache::THE_VALUES_OF_THE_SETTINGS

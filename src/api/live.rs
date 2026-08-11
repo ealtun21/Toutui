@@ -569,6 +569,14 @@ fn take_the_message(name: &str, body: &serde_json::Value) {
         info!("[live] {}: the lists of the screen are old.", name);
         crate::logic::live::note_that_the_lists_are_old();
     }
+
+    // The queue of the episodes that the server downloads moved. The view of
+    // that queue asks the server again, and it needs no key of the user. See
+    // T-81.
+    if crate::logic::the_downloads::the_queue_of_the_downloads_changed(name) {
+        info!("[live] {}: the queue of the downloads changed.", name);
+        crate::logic::the_downloads::note_that_the_queue_changed();
+    }
 }
 
 #[cfg(test)]

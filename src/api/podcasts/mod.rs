@@ -16,6 +16,8 @@
 //! directory in the folder of the library. A title comes from the network, and
 //! a title can hold `/` and `..`; `directory_of` removes them. See the tests.
 
+pub mod the_downloads;
+
 use crate::api::client::error::ApiError;
 use crate::api::client::ApiClient;
 use serde::Deserialize;

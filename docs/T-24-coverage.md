@@ -75,8 +75,9 @@ This list comes from `src/api/` and from `src/logic/`. It is complete.
 | `PATCH /api/me/progress/:id`, `PATCH /api/me/progress/:id/:episodeId` | `src/api/me/update_media_progress.rs` |
 | `POST /api/session/:id/sync`, `POST /api/session/:id/close` | `src/api/sessions/` |
 | `GET /api/search/podcast?term=`, `POST /api/podcasts/feed`, `POST /api/podcasts`, `POST /api/podcasts/:id/download-episodes` | `src/api/podcasts/mod.rs` |
+| `GET /api/libraries/:id/episode-downloads`, `GET /api/podcasts/:id/clear-queue` | `src/api/podcasts/the_downloads.rs` |
 
-Toutui calls 28 paths. The server has more than 100.
+Toutui calls 32 paths. The server has more than 100.
 
 ## 3. The keys of Toutui
 
@@ -106,6 +107,7 @@ Toutui calls 28 paths. The server has more than 100.
 | `t` | The timer for sleep (T-24) |
 | `A` | Look for a new podcast, and add it (T-24) |
 | `E` | The server gets the episodes that it does not hold (T-24) |
+| `d` | The episodes that the server downloads, and the queue of that work (T-81) |
 | `a` | Show the authors of the library (T-24) |
 | `L` | The server examines the library again (T-24) |
 | `f` | Choose the sequence and the filter of the library (T-24) |
@@ -187,7 +189,7 @@ reader of a PDF.
 | **Make a podcast** | `POST /api/podcasts` gives `200` and the new item. A second add of one podcast gives `400`, because the directory exists | Yes | Nothing. The key `A` asks the user before it sends, because the request writes in the library |
 | **The server gets an episode** | `POST /api/podcasts/:id/download-episodes` with the episodes of the feed gives `200`, and the server holds the file a few seconds later. **`GET /api/podcasts/:id/episode-downloads` gives `404`** on 2.36.0; `GET /api/libraries/:id/episode-downloads` gives `{"queue":[]}` | Yes | Nothing. The key `E` |
 | **Look for a new episode** | `GET /api/podcasts/:id/checknew` gives `200` and the key `episodes`. **It gives an empty list for a podcast that came one second before**, and whose feed holds three episodes: it compares with the time of the last examination | Half | The program does not use it. It reads the feed and it compares with the episodes of the server itself, therefore it finds every episode that is missing and not the new ones only |
-| **Empty the queue of the podcast** | `GET /api/podcasts/:id/clear-queue` gives `200` | No | Everything |
+| **Empty the queue of the podcast** | `GET /api/podcasts/:id/clear-queue` gives `200`. It does **not** stop the episode that downloads now | Yes | Nothing. The key `d` shows the queue and the key `X` empties it (T-81) |
 | **A local copy** | `GET /api/items/:id/file/:ino/download` gives the one audio file | Yes | Nothing. `D` and `X`, for a book and for one episode (T-1, T-11) |
 | **Play with no server** | Not a function of the server | Yes | Nothing. The positions wait in `pending_progress`, and a task sends them (T-25) |
 | **The archive of a whole item** | `GET /api/items/:id/download` gives `200` and a ZIP archive | No | The client does not use it, and it must not: T-1 says that the archive cannot play |
@@ -280,8 +282,9 @@ The sequence inside each group gives the value for the work.
 
 **The four works that stay, and no one of them is large:**
 
-15. **Empty the queue of the podcast.** `GET /api/podcasts/:id/clear-queue`
-    gives `200`, and the program does not use it.
+15. ~~**Empty the queue of the podcast.**~~ **Done on 2026-08-11.** The key `d`
+    shows the queue of the downloads of the server, and the key `X` empties the
+    queue of one podcast (T-81).
 16. ~~**The list of the ebooks of an item.**~~ **Done on 2026-08-11.** The key
     `e` inside the reader gives the list, and `l` opens one book of it (T-76).
 17. ~~**A view of the settings that writes `config.toml`.**~~ **Done on
