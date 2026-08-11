@@ -385,6 +385,12 @@ impl Reader {
     ///
     /// The user leaves the book, or stops the program. The place must go to
     /// the server then, whatever the time of the last send.
+    /// Tells if the book is a PDF. One chapter of such a book is one page, and
+    /// the screen says "page" and not "chapter". See T-54.
+    pub fn holds_pages(&self) -> bool {
+        self.book.pdf().is_some()
+    }
+
     /// Gives the picture of the page that the screen shows, if the book is a PDF
     /// and if that page holds one. See T-54.
     ///

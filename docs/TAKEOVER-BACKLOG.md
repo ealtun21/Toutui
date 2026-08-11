@@ -2037,6 +2037,29 @@ gets the book…" while it works.
 The real program drew the picture of 1200 by 1600 as 63 columns by 42 rows: the
 form of the picture is 0.75, and a cell of 10 by 20 pixels gives 630 by 840 pixels.
 
+### T-58: the reader says "page" for a PDF, and `?` works inside it
+
+Three small faults of T-49 and of T-54, and every one of them costs the user a
+question:
+
+1. **The reader named a chapter of a PDF a "chapter".** One chapter of such a book
+   is one page, and the word says nothing about that file. The line at the top says
+   "page 1 of 60" now, and the footer says "n/p: page" and "t: the pages".
+2. **The key `?` did nothing inside the reader.** The reader takes every key
+   before the lists, and it uses `?` for no work of its own. Therefore that key
+   holds the same meaning in every view now, and `h` gives the book back.
+3. **The list of every key held no key of the reader.** A user who could not leave
+   a book found no line about it. The group "The reader of a book (the key `e`)"
+   holds those keys now.
+
+The rule "no key stands two times" became "no key stands two times **inside one
+group**". A key of two groups is correct: the reader uses the letters of a list for
+its own work, and the group of the reader says so.
+
+The measurement in tmux: the line at the top gave "One File With No Decoder — page
+1 of 60 — 0%", the key `?` gave the list of every key, and the key `h` gave the
+book back.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

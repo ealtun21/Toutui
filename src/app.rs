@@ -3247,6 +3247,14 @@ impl App {
             .map(|(_, rows)| rows.saturating_sub(5))
             .unwrap_or(20);
 
+        // The list of every key opens over the reader. The reader uses `?` for
+        // no work of its own, therefore the key holds the same meaning in every
+        // view. See T-49 and T-52.
+        if matches!(code, KeyCode::Char('?')) {
+            self.show_every_key();
+            return;
+        }
+
         // The key `h` leaves the reader always. `Esc` leaves it when the
         // contents are closed, and it closes the contents when they are open.
         // A view with a fault holds no reader, therefore this rule stands

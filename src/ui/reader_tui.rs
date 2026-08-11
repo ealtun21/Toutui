@@ -41,11 +41,28 @@ pub fn text_area(area: Rect) -> Rect {
 
 /// Makes the line at the top of the screen.
 pub fn header(title: &str, chapter: usize, count: usize, part: f64) -> String {
+    line_of_the_top(title, chapter, count, part, false)
+}
+
+/// Makes the line at the top of the screen, and it names the part of the book.
+///
+/// One chapter of a PDF is one page. Therefore the line says "page" for such a
+/// book: a user of a PDF looks for a page, and the word "chapter" says nothing
+/// about that file. See T-54.
+pub fn line_of_the_top(
+    title: &str,
+    chapter: usize,
+    count: usize,
+    part: f64,
+    holds_pages: bool,
+) -> String {
     let part = (part * 100.0).round().clamp(0.0, 100.0) as i64;
+    let word = if holds_pages { "page" } else { "chapter" };
 
     format!(
-        "{} — chapter {} of {} — {}%",
+        "{} — {} {} of {} — {}%",
         title,
+        word,
         chapter + 1,
         count.max(1),
         part
@@ -61,20 +78,31 @@ pub fn render(reader: &mut Reader, area: Rect, buf: &mut Buffer) {
     ])
     .areas(area);
 
-    Paragraph::new(header(
+    Paragraph::new(line_of_the_top(
         &reader.title,
         reader.chapter,
         reader.chapter_count(),
         reader.fraction(),
+        reader.holds_pages(),
     ))
     .style(Style::default().add_modifier(Modifier::BOLD))
     .render(top, buf);
 
-    let keys = if reader.contents_open {
-        "j/k: move, l/Enter: go to the chapter, t: back to the text, h: leave the book"
-    } else {
-        "j/k: line, Space/b: page, n/p: chapter, t: contents, g/G: start/end\n \
-         s: send the position, h: leave the book, Q: quit"
+    // One chapter of a PDF is one page, therefore the keys of that book name a
+    // page and not a chapter. See T-54.
+    let keys = match (reader.contents_open, reader.holds_pages()) {
+        (true, false) => {
+            "j/k: move  l/Enter: go to the chapter  t: back to the text  h: leave the book"
+        }
+        (true, true) => "j/k: move  l/Enter: go to the page  t: the pages  h: leave the book",
+        (false, false) => {
+            "j/k: line  Space/b: screen  n/p: chapter  t: contents  g/G: start/end\n \
+             s: send the position  ?: every key  h: leave the book  Q: quit"
+        }
+        (false, true) => {
+            "j/k: line  Space/b: screen  n/p: page  t: the pages  g/G: start/end\n \
+             s: send the position  ?: every key  h: leave the book  Q: quit"
+        }
     };
 
     Paragraph::new(keys)

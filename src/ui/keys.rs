@@ -106,6 +106,18 @@ pub const GROUPS: &[Group] = &[
         ],
     },
     Group {
+        name: "The reader of a book (the key `e`)",
+        keys: &[
+            key("j / k", "One line down, and up"),
+            key("Space / b", "One screen down, and up"),
+            key("n / p", "The next chapter or page, and the one before"),
+            key("t", "The contents of the book, and back to the text"),
+            key("g / G", "The start of the chapter, and the end"),
+            key("s", "Send the place of the book to the server"),
+            key("h / Esc", "Leave the book"),
+        ],
+    },
+    Group {
         name: "The program",
         keys: &[key("?", "This list of every key"), key("Q / Esc", "Quit")],
     },
@@ -243,22 +255,46 @@ mod tests {
         }
     }
 
-    /// A key must not stand two times. Two lines of the same key say two
-    /// different things to the user.
+    /// A key must not stand two times **inside one group**. Two lines of one
+    /// group with the same key say two different things about the same view.
+    ///
+    /// A key of two groups is correct: the reader of a book uses the letters of a
+    /// list for its own work, and the group of the reader says so. See T-54.
     #[test]
-    fn no_key_stands_two_times() {
-        let mut seen: Vec<&str> = Vec::new();
-
+    fn no_key_stands_two_times_in_one_group() {
         for group in GROUPS {
+            let mut seen: Vec<&str> = Vec::new();
+
             for one in group.keys {
                 assert!(
                     !seen.contains(&one.key),
-                    "the key {} stands two times",
-                    one.key
+                    "the key {} stands two times in the group {}",
+                    one.key,
+                    group.name
                 );
                 seen.push(one.key);
             }
         }
+    }
+
+    /// The reader of a book takes every key before the lists, therefore the list
+    /// of the keys must hold its group. A user who cannot leave a book reads that
+    /// group. See T-52.
+    #[test]
+    fn the_list_holds_the_keys_of_the_reader() {
+        let names: Vec<&str> = GROUPS.iter().map(|group| group.name).collect();
+
+        assert!(
+            names.iter().any(|name| name.contains("reader")),
+            "the groups must name the reader: {:?}",
+            names
+        );
+
+        let lines = lines();
+        assert!(lines.iter().any(|line| line.contains("Leave the book")));
+        assert!(lines
+            .iter()
+            .any(|line| line.contains("Send the place of the book")));
     }
 
     /// The lines of the view hold every key, and no line is wider than the
