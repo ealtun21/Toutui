@@ -1,6 +1,6 @@
 # The handover of 2026-08-11 (the sixth session of that day)
 
-**The newest release is v0.7.21.** The items T-52 to T-59 came after the first
+**The newest release is v0.7.22.** The items T-52 to T-59 came after the first
 form of this document. Read them in `docs/TAKEOVER-BACKLOG.md`.
 
 This document is for the next session. It says what is done, what is open, and
@@ -9,15 +9,20 @@ each item, and `docs/T-24-coverage.md` for the comparison with the server.
 
 ## The state
 
-`main` is clean and pushed. The newest release is **v0.7.21**. Every gate
+`main` is clean and pushed. The newest release is **v0.7.22**. Every gate
 passes:
 
 ```
 cargo clippy --all-targets -- -D warnings
 cargo fmt --check
-ALSA_CONFIG_PATH=<a real null asound file> cargo test    # 798 tests pass, 17 carry #[ignore], 36 binaries
+ALSA_CONFIG_PATH=<a real null asound file> cargo test    # 800 tests pass, 17 carry #[ignore], 36 binaries
 cargo tree -i openssl-sys                                # finds nothing
 ```
+
+**Every test of the sandbox passes too.** One run of
+`ALSA_CONFIG_PATH=/dev/null cargo test -- --ignored --test-threads=1` gave 17 of 17
+on 2026-08-11, with the sandbox of `docs/TEST-SERVER.md`. One thread at a time
+keeps the requests of the login under the rate limit of the server.
 
 Two tests read the books of the survey. Those books stand outside the
 repository, therefore give their directory in `TOUTUI_SURVEY_BOOKS`. A run with
@@ -44,6 +49,7 @@ in v0.6.7. Do not try to publish v0.6.6.
 | T-57 | A picture of a PDF of 16 bits gives a picture | — |
 | T-58 | The reader says "page" for a PDF, and `?` works inside it | `?` |
 | T-59 | The view of the chapters says why it holds no line, and **every message of the program stands inside the frame**: 93 calls of `pop_message` went away | `C` |
+| T-60 | The filter of the library holds the tags. `filterdata` gives none | `f` |
 | — | T-7, T-8, and T-18 became complete: the pages of 500, the speed that changes during a playback, and a WMA file that plays through the stream | — |
 
 ### T-47, the live messages
@@ -267,7 +273,7 @@ new.
 > commit — `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,
 > and `cargo test` with `ALSA_CONFIG_PATH` pointing at a real null asound file
 > (`/dev/null` hangs the real binary). Baseline: 768 tests, 34 binaries, tree
-> clean. Baseline of the tests: 798 pass, 17 carry `#[ignore]`, 36 binaries. Run
+> clean. Baseline of the tests: 800 pass, 17 carry `#[ignore]`, 36 binaries. Run
 > every cargo command under `nice -n 19 ionice -c 3`: a full build uses every core,
 > and the user tests the program on the same machine. All
 > prose and user-facing strings in ASD-STE100 simplified technical
