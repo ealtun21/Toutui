@@ -117,9 +117,10 @@ that it cannot read, and it gives no silence.
 2. ~~**A PDF of the text.**~~ **Done: T-54.** The reader shows a PDF book and its
    pictures. `lopdf` 0.44 gives the text and the pictures of each page, and one
    page is one chapter. No crate of pure Rust draws a **page** of a PDF.
-3. **The narrators and the tags.** `GET /api/libraries/:id/narrators` and
-   `GET /api/tags`. The filter of the key `f` shows the books of one narrator
-   and of one tag already, therefore a view of its own gives little.
+3. ~~**The narrators and the tags.**~~ **Done: T-60.** The narrators came from
+   `filterdata` already. **The tags did not**: that endpoint gives `tags: []` even
+   after a scan, therefore the program asks `GET /api/tags` and it puts them in the
+   same view.
 4. ~~**The queue on the disk.**~~ **Done: T-56.** The table `queue` of the
    version 7 of the schema holds it, and a new start reads it.
 5. ~~**The position of a book that ends early goes on.**~~ **Done: T-55.**
@@ -258,7 +259,9 @@ new.
 >    writes such a file, therefore the measurement needs the book of the user.
 > 2. **The license of bookokrat.** That project is AGPL-3.0-or-later and Toutui
 >    is GPL-3.0-or-later. **No line of it comes in without the maintainer.**
-> 3. The narrators and the tags, if they are worth a view of their own.
+> 3. Nothing of the old list stays. Read the newest items of
+>    `docs/TAKEOVER-BACKLOG.md` (T-60 is the last one) and
+>    `docs/T-24-coverage.md` section 5 for the work that is worth doing.
 >
 > Rules that bind every change: run all three gates yourself before each
 > commit — `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,

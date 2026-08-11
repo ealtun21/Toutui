@@ -2139,6 +2139,47 @@ work held two test functions that wrote it, and the two ran at the same time: on
 run of `cargo test` of three gave a fault. The parts of such a test stay in one
 function, as the tests of `live`, of `stats`, and of `queue` do.
 
+### T-60: the filter of the library holds the tags now
+
+The handover named "the narrators and the tags" as an open item, and it said that
+the filter of the key `f` shows both already. **A measurement on 2026-08-11 shows
+that the tags were absent.**
+
+| The request | The answer |
+|---|---|
+| `PATCH /api/items/:id/media` with `{"tags":["a-test-tag"]}` | `200`, and `GET /api/items/:id` then holds that tag |
+| `GET /api/tags` | `{"tags":["a-test-tag"]}` |
+| `GET /api/libraries/:id/filterdata` | `tags: []` — **and a scan of the library changes nothing** |
+| `GET /api/libraries/:id/items?filter=tags.YS10ZXN0LXRhZw==` | The one media of that tag |
+
+Therefore the filter of a tag works, and the **list** of the tags was missing: a
+user could not reach a tag from the program.
+
+**The correction.** `get_the_tags` asks `GET /api/tags`, and `with_the_tags` puts
+those tags in the data of the filter. The view of the key `f` then holds the group
+"The tags", and the choice of the user goes to the server as
+`filter=tags.<base64>`, in the same way as a narrator and a genre.
+
+- A tag that `filterdata` gave already does not stand two times.
+- A server that gives an error for that endpoint gives no tag, and every other
+  group of the view stays. A tag is one group of eight.
+- `GET /api/tags` holds the tags of the **whole server**. A tag of a different
+  library therefore gives no media, and the list of the library is then empty.
+
+**The measurement in the real program.** The key `f` after this work:
+
+```
+  ▌ The tags
+    a-test-tag
+  ▌ The narrators
+    A Test Narrator
+```
+
+**The narrators need no work.** `filterdata` gives them, and the measurement of the
+filter of `narrators.<base64>` gave the media of that narrator. A view of its own
+for the narrators would hold the same list as the group of the view of the key `f`.
+Therefore the item of the handover is complete.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

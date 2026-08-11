@@ -2875,9 +2875,18 @@ impl App {
             let state =
                 match crate::api::libraries::get_filter_data::get_filter_data(&api, &library).await
                 {
-                    Ok(data) => crate::logic::sort_filter::from_the_server::State::Ready(
-                        crate::api::libraries::get_filter_data::choices(&data),
-                    ),
+                    Ok(data) => {
+                        // The answer of `filterdata` holds no tag. Therefore the
+                        // program asks `GET /api/tags` and it puts those tags in
+                        // the same list. See T-60.
+                        let tags = crate::api::libraries::get_filter_data::get_the_tags(&api).await;
+                        let data =
+                            crate::api::libraries::get_filter_data::with_the_tags(data, tags);
+
+                        crate::logic::sort_filter::from_the_server::State::Ready(
+                            crate::api::libraries::get_filter_data::choices(&data),
+                        )
+                    }
                     Err(error) => {
                         log::warn!("[sort] the server gave no filter data: {}", error);
                         crate::logic::sort_filter::from_the_server::State::Fault(error.to_string())

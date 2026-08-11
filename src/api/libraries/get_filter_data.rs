@@ -9,6 +9,17 @@
 //! An author and a series come with an identity and a name, and the filter
 //! takes the identity. A genre, a tag, a narrator, a language, and a publisher
 //! come as a text, and the filter takes that text.
+//!
+//! **The answer of that endpoint holds no tag.** A measurement on 2026-08-11 gave
+//! a media with the tag `a-test-tag`: `GET /api/items/:id` holds that tag,
+//! `GET /api/tags` gives `{"tags":["a-test-tag"]}`, and `filterdata` gives
+//! `tags: []` — **after a scan of the library as well**. A filter of
+//! `tags.<base64>` works: it gave the one media of that tag.
+//!
+//! Therefore the program asks `GET /api/tags` for the tags, and it puts them in
+//! the same list. That endpoint holds the tags of the **whole server**, and the
+//! filter of a library then gives no media for a tag of a different library. A
+//! group of an empty answer says so. See T-60.
 
 use crate::api::client::error::ApiError;
 use crate::api::client::ApiClient;
@@ -50,6 +61,47 @@ pub async fn get_filter_data(
     client
         .get_json(&format!("/api/libraries/{}/filterdata", id_selected_lib))
         .await
+}
+
+/// The answer of `GET /api/tags`.
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct Tags {
+    #[serde(default)]
+    pub tags: Vec<String>,
+}
+
+/// Asks the server for the tags. See T-60.
+///
+/// `filterdata` holds no tag, therefore the program asks this endpoint. A server
+/// that gives an error gives no tag, and the view of the filter then holds every
+/// other group: a tag is one group of eight.
+pub async fn get_the_tags(client: &ApiClient) -> Vec<String> {
+    match client.get_json::<Tags>("/api/tags").await {
+        Ok(answer) => answer.tags,
+        Err(error) => {
+            log::warn!("[filter] the server gave no tag: {}", error);
+            Vec::new()
+        }
+    }
+}
+
+/// Puts the tags of the server in the data of the filter.
+///
+/// The function keeps a tag that `filterdata` gave already, and it adds no tag
+/// two times. The sequence of the answer of the server is the sequence of the
+/// list.
+pub fn with_the_tags(mut data: FilterData, tags: Vec<String>) -> FilterData {
+    for tag in tags {
+        let tag = tag.trim().to_string();
+
+        if tag.is_empty() || data.tags.iter().any(|one| one == &tag) {
+            continue;
+        }
+
+        data.tags.push(tag);
+    }
+
+    data
 }
 
 /// The largest number of values of one group.
@@ -109,6 +161,55 @@ pub fn choices(data: &FilterData) -> Vec<FilterChoice> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// `filterdata` holds no tag, therefore the program asks `GET /api/tags` and
+    /// it puts those tags in the same list. See T-60.
+    #[test]
+    fn the_tags_of_the_server_come_in_the_list() {
+        let data = FilterData::default();
+
+        let with = with_the_tags(
+            data,
+            vec!["a-test-tag".to_string(), "a second tag".to_string()],
+        );
+
+        assert_eq!(with.tags, vec!["a-test-tag", "a second tag"]);
+
+        // The sequence of the answer of the server is the sequence of the list,
+        // and the choices of the view hold every tag.
+        let choices = choices(&with);
+        let of_the_tags: Vec<&FilterChoice> = choices
+            .iter()
+            .filter(|one| one.group == "The tags")
+            .collect();
+
+        assert_eq!(of_the_tags.len(), 2);
+        assert_eq!(of_the_tags[0].label, "a-test-tag");
+        // The filter of the server takes the text in the form of base64.
+        assert_eq!(of_the_tags[0].value, filter_value("tags", "a-test-tag"));
+    }
+
+    /// A tag that `filterdata` gave already must not stand two times, and a tag
+    /// of no letters is no tag.
+    #[test]
+    fn a_tag_does_not_stand_two_times() {
+        let data = FilterData {
+            tags: vec!["a-test-tag".to_string()],
+            ..Default::default()
+        };
+
+        let with = with_the_tags(
+            data,
+            vec![
+                "a-test-tag".to_string(),
+                "  ".to_string(),
+                "  a-test-tag  ".to_string(),
+                "a new tag".to_string(),
+            ],
+        );
+
+        assert_eq!(with.tags, vec!["a-test-tag", "a new tag"]);
+    }
 
     /// The answer of the sandbox, measured on 2026-08-11.
     fn the_answer_of_the_server() -> FilterData {
