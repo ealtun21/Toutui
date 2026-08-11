@@ -1433,18 +1433,21 @@ impl App {
             }
 
             // show the series of the library
-            KeyCode::Char('s') => {
-                if !self.is_podcast {
-                    match self.view_state {
-                        AppView::Home | AppView::Library | AppView::SearchBook => {
-                            self.list_state_series.select(Some(0));
-                            self.scroll_offset = 0;
-                            self.view_state = AppView::Series;
-                        }
-                        _ => {}
+            KeyCode::Char('s') => match self.view_state {
+                AppView::Home | AppView::Library | AppView::SearchBook => {
+                    // **A key that does nothing must say why.** The key `a` of
+                    // a library of podcasts says "A library of podcasts has no
+                    // author", and this key said nothing at all. See T-83.
+                    if self.is_podcast {
+                        crate::logic::message::say("A library of podcasts has no series.");
+                    } else {
+                        self.list_state_series.select(Some(0));
+                        self.scroll_offset = 0;
+                        self.view_state = AppView::Series;
                     }
                 }
-            }
+                _ => {}
+            },
 
             // show the collections and the playlists
             KeyCode::Char('c') => match self.view_state {

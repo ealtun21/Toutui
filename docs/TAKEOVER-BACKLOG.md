@@ -3280,6 +3280,24 @@ library (T-24), therefore the key takes it now, and the program says "The progra
 shows the library \"Podcasts\" now." The header of the next frame holds
 "📖 Podcasts (podcast)".
 
+### T-83: the key `s` of a library of podcasts said nothing
+
+The sweep of the views of a library of podcasts of 2026-08-11 pressed `s`, `a`,
+and `v`. The keys `a` and `v` said "A library of podcasts has no author" and
+"…no narrator". **The key `s` said nothing at all**, and no line of the screen
+moved.
+
+This is the fault of T-79 in a different place: the user learns the key in a
+library of books, and one library of two answers with nothing. The key says "A
+library of podcasts has no series." now.
+
+The same sweep read every other key of that library, and each of them was
+correct: `c` gives the collections and the playlists of the podcasts, `f` gives
+the three fields of the sequence of a library of podcasts, `A` opens the line of
+the name of a new podcast, `E` reads the feed and gives the episodes to the
+server, `T` gives the time that the user listened, and `l` gives the episodes of
+the podcast.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
