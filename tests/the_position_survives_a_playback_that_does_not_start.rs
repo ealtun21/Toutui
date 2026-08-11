@@ -15,6 +15,22 @@
 //! of the download must keep the position of the start.
 //!
 //! The test needs no server: the address is a port that nothing listens on.
+//!
+//! # The clock of this test
+//!
+//! The loop reads the state one time each second, and this test must give the
+//! fault the time to appear: a poll of "the position is the position of the
+//! user" answers `true` before the loop ever ran, because the row holds that
+//! value already. Such a poll is a false pass.
+//!
+//! Therefore the test holds a clock of its own (`start_paused = true`). Each
+//! `sleep` below still gives the loop its steps — three steps for 3500
+//! milliseconds — and it takes no real time. The test took 8.01 seconds with
+//! the clock of the machine, and it takes about 0.02 seconds now.
+//!
+//! The test makes no request and it opens no socket. A test that waits for a
+//! server must not take this clock: the clock would move to the timeout of the
+//! request while the request is still on its way.
 
 use std::sync::Arc;
 use toutui::api::client::endpoint::{Endpoint, EndpointPool};
@@ -34,7 +50,7 @@ const START: f64 = 1227.0;
 /// The identity of this playback.
 const PLAYBACK: u64 = 21;
 
-#[tokio::test(flavor = "multi_thread")]
+#[tokio::test(start_paused = true)]
 async fn an_engine_that_stays_at_zero_does_not_move_the_position() {
     let dir = tempfile::tempdir().unwrap();
     std::env::set_var("XDG_CONFIG_HOME", dir.path());
@@ -93,7 +109,8 @@ async fn an_engine_that_stays_at_zero_does_not_move_the_position() {
         .await;
     });
 
-    // The loop reads the state one time each second.
+    // The loop reads the state one time each second. This time gives it three
+    // steps, and each of them can write the wrong position.
     tokio::time::sleep(tokio::time::Duration::from_millis(3500)).await;
 
     let position = get_download(ITEM, USER)

@@ -142,6 +142,18 @@ html2text = { version = "0.17.1", features = ["xml"] }
 [dev-dependencies]
 wiremock = "0.6"
 
+# The clock of the test. See the harness of `docs/HANDOVER.md`.
+#
+# `test-util` gives `#[tokio::test(start_paused = true)]`, and that test then
+# holds a clock of its own: a `sleep` of one second in the code takes no real
+# time, and the loop of the playback still makes each of its steps. One test of
+# 8.0 seconds became a test of 0.02 seconds with it.
+#
+# It is a feature of a dependency that the program has already, and the
+# resolver of the edition 2021 keeps a feature of a dev-dependency away from
+# the binary of the release. Therefore the rule of T-20 stays.
+tokio = { version = "1", features = ["test-util"] }
+
 # The build of the development. See T-64.
 #
 # A test binary of this project holds every dependency and the whole debug

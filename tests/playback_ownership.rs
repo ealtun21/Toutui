@@ -28,6 +28,13 @@ const PLAYBACK_X: u64 = 7;
 /// identity.
 const PLAYBACK_Y: u64 = 8;
 
+/// The identity of the playback of the second test.
+///
+/// The flag of the forced sync is one value for the whole process, and it
+/// carries the identity of a playback. The two tests run at the same time,
+/// therefore each of them needs an identity of its own. See `force_sync`.
+const PLAYBACK_Z: u64 = 9;
+
 /// Where the book X plays, in seconds.
 const POSITION_X: f64 = 100.0;
 
@@ -82,6 +89,70 @@ async fn requests(server: &MockServer) -> Vec<(String, String, serde_json::Value
             )
         })
         .collect()
+}
+
+/// How long a poll waits before it gives up.
+const LIMIT: std::time::Duration = std::time::Duration::from_secs(20);
+
+/// How long a poll waits between two examinations.
+const STEP: std::time::Duration = std::time::Duration::from_millis(20);
+
+/// Waits until the loop made one step with the state of its own playback.
+///
+/// **Why a forced sync, and not a sleep.** The loop reads the state one time
+/// each second, and it writes nothing while it agrees with the state. A sleep
+/// of 2200 milliseconds gave it two steps, and it cost 2.2 seconds of each
+/// run. The key `F` asks the loop to send its position at its next step
+/// (`force_sync`), therefore the request `POST /api/session/:id/sync` is the
+/// evidence that the loop read the state of this playback and took its
+/// position. The evidence comes after about one second.
+///
+/// The function gives the position that the loop sent to the server.
+async fn the_loop_made_a_step(server: &MockServer, playback_id: u64) -> serde_json::Value {
+    let start = std::time::Instant::now();
+
+    loop {
+        // The flag holds one identity for the whole process, and the two tests
+        // run at the same time: the request of the other test can take the
+        // place of this one. Therefore the poll asks again at each step.
+        assert!(
+            toutui::logic::sync_session::force_sync::ask(playback_id),
+            "the flag of the forced sync takes no identity 0"
+        );
+
+        let sync = requests(server)
+            .await
+            .into_iter()
+            .find(|(method, path, _)| method == "POST" && path.ends_with("/sync"));
+
+        if let Some((_, _, body)) = sync {
+            return body["currentTime"].clone();
+        }
+
+        assert!(
+            start.elapsed() < LIMIT,
+            "the loop of the playback {} made no step in {:?}. It sent {:?}",
+            playback_id,
+            LIMIT,
+            requests(server).await
+        );
+
+        tokio::time::sleep(STEP).await;
+    }
+}
+
+/// Waits until the loop stops.
+///
+/// A sleep of 2500 milliseconds held this wait before. The loop stops at its
+/// next step, and it then closes its session: the poll gives the same
+/// measurement after about one second.
+async fn the_loop_stops(loop_of_x: &tokio::task::JoinHandle<()>, why: &str) {
+    let start = std::time::Instant::now();
+
+    while !loop_of_x.is_finished() {
+        assert!(start.elapsed() < LIMIT, "{}", why);
+        tokio::time::sleep(STEP).await;
+    }
 }
 
 /// A different playback takes the engine. The loop of the book X must stop, it
@@ -142,9 +213,13 @@ async fn the_loop_stops_when_a_different_playback_takes_the_engine() {
         .await;
     });
 
-    // The loop reads the state one time each second. This time gives it two
-    // read operations of the book X.
-    tokio::time::sleep(tokio::time::Duration::from_millis(2200)).await;
+    // The loop must read the state of the book X before the book Y takes the
+    // engine. The forced sync gives the evidence of that step.
+    let position = the_loop_made_a_step(&server, PLAYBACK_X).await;
+    assert_eq!(
+        position, "100",
+        "the loop must hold the position of the book X after its first step"
+    );
 
     // The user starts the book Y. The engine plays Y now.
     {
@@ -156,12 +231,11 @@ async fn the_loop_stops_when_a_different_playback_takes_the_engine() {
         state.status = PlaybackStatus::Playing;
     }
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(2500)).await;
-
-    assert!(
-        loop_of_x.is_finished(),
-        "the loop of the book X must stop when the engine plays the book Y"
-    );
+    the_loop_stops(
+        &loop_of_x,
+        "the loop of the book X must stop when the engine plays the book Y",
+    )
+    .await;
 
     let requests = requests(&server).await;
 
@@ -217,11 +291,16 @@ async fn the_loop_reports_its_own_playback() {
     temporary_home();
     let server = MockServer::start().await;
 
-    Mock::given(method("POST"))
-        .and(path("/api/session/session-X/close"))
-        .respond_with(ResponseTemplate::new(200))
-        .mount(&server)
-        .await;
+    for route in [
+        "/api/session/session-X/sync",
+        "/api/session/session-X/close",
+    ] {
+        Mock::given(method("POST"))
+            .and(path(route))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&server)
+            .await;
+    }
 
     Mock::given(method("PATCH"))
         .and(path("/api/me/progress/item-X"))
@@ -234,7 +313,7 @@ async fn the_loop_reports_its_own_playback() {
 
     {
         let mut state = shared.write().unwrap();
-        state.playback_id = PLAYBACK_X;
+        state.playback_id = PLAYBACK_Z;
         state.item_id = "item-X".to_string();
         state.position = POSITION_X;
         state.duration = 1000.0;
@@ -252,13 +331,15 @@ async fn the_loop_reports_its_own_playback() {
             None,
             "user".to_string(),
             "1000".to_string(),
-            PLAYBACK_X,
+            PLAYBACK_Z,
             POSITION_X,
         )
         .await;
     });
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1500)).await;
+    // The loop must read the state one time before the playback stops.
+    let position = the_loop_made_a_step(&server, PLAYBACK_Z).await;
+    assert_eq!(position, "100", "the loop must follow the book X");
 
     // The user stops the playback. The engine keeps the identity and the
     // position of the book X.
@@ -268,9 +349,7 @@ async fn the_loop_reports_its_own_playback() {
         state.status = PlaybackStatus::Stopped;
     }
 
-    tokio::time::sleep(tokio::time::Duration::from_millis(1500)).await;
-
-    assert!(loop_of_x.is_finished(), "the loop must stop with the media");
+    the_loop_stops(&loop_of_x, "the loop must stop with the media").await;
 
     let requests = requests(&server).await;
 

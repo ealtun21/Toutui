@@ -21,6 +21,28 @@ echo "TOUTUI_SECRET_KEY=$(head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n')" 
 cargo run --release
 ```
 
+## 🧪 Run the tests
+
+```bash
+cargo test
+```
+
+`cargo nextest run` gives the same tests and it is much faster: `cargo test`
+runs the test binaries one after the other, and nextest runs every test in one
+pool of processes. A measurement of 2026-08-11 gave **8.7 s** with `cargo test`
+and **2.2 s** with nextest.
+
+```bash
+cargo install cargo-nextest --locked   # a tool of the machine, not a dependency
+cargo nextest run                      # the tests that need no server
+cargo nextest run --run-ignored all    # the tests of the sandbox too
+```
+
+The tests of the sandbox carry `#[ignore]`, because they need a server. Read
+[docs/TEST-SERVER.md](docs/TEST-SERVER.md) to make that server. `.config/nextest.toml`
+holds them in a group of one thread, because the login of the server has a
+limit of the rate. With `cargo test`, give `-- --ignored --test-threads=1`.
+
 ## 💬 How to Contribute
 - **Share your theme**: Check [here](https://github.com/AlbanDAVID/Toutui-theme).
 - **Suggestions/feedback**: Open an issue (feature request) or use [discussions](https://github.com/ealtun21/Toutui/discussions).
