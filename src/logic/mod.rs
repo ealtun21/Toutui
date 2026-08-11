@@ -13,6 +13,7 @@ pub mod playback;
 pub mod prompt;
 pub mod reader;
 pub mod search;
+pub mod sessions_view;
 pub mod sleep_timer;
 pub mod sort_filter;
 pub mod stats;

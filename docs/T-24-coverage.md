@@ -96,6 +96,7 @@ Toutui calls 25 paths. The server has more than 100.
 | `R` | Ask the server again |
 | `F` | Send the position now (T-32) |
 | `T` | Show the time that you listened (T-24) |
+| `W` | Show every session that you played, with pages (T-24) |
 | `N` | Take a media away from Continue Listening, or put it back (T-24) |
 | `C` | Show the chapters of the media that plays (T-24) |
 | `b` | Write a bookmark at the place of the playback (T-24) |
@@ -152,7 +153,7 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 | **Open a session** | `POST /api/items/:id/play` gives `id`, `audioTracks`, `chapters`, `duration`, `playMethod` | Yes | Nothing |
 | **Sync a session** | `POST /api/session/:id/sync` gives `200` | Yes | Nothing. The key `F` sends the position now (T-32) |
 | **Close a session** | `POST /api/session/:id/close` gives `200` | Yes | Nothing |
-| **The sessions of the user** | `GET /api/me/listening-sessions` gives `total`, `numPages`, `page`, `itemsPerPage`, `sessions`. It takes `itemsPerPage` and `page` | No | Everything. The user cannot see what they played, and when |
+| **The sessions of the user** | `GET /api/me/listening-sessions` gives `total`, `numPages`, `page`, `itemsPerPage`, `sessions`. It takes `itemsPerPage` and `page`. **The first page is the page 0**, and a page after the last page gives `200` and an empty list | Yes | Nothing. The key `W`. The view holds 25 sessions of one page, and it reads the next page when the user comes near the end |
 | **The sessions of the server** | `GET /api/sessions` gives the same shape for every user | No | Everything. This is for an administrator |
 | **Bookmarks** | `POST /api/me/item/:id/bookmark` with `{"time":12,"title":"..."}` gives `200` and `{libraryItemId,time,title,createdAt}`. `DELETE /api/me/item/:id/bookmark/:time` gives `200`, and `404` for a place that does not exist. `GET /api/me` gives the field `bookmarks` | Yes | Nothing. The key `b` writes a place, the key `V` shows the list, `l` goes to a place, and `X` removes one. The client reads the bookmarks of a different client, because they come from `GET /api/me` |
 | **Play, pause, and stop** | The client does this work | Yes | Nothing. ` ` and `Y` |

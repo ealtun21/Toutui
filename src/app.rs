@@ -55,6 +55,8 @@ pub enum AppView {
     Reader,
     /// The statistics of the user. See T-24.
     Stats,
+    /// Every session of the user, with pages. See T-24.
+    Sessions,
     /// The sequence and the filter of the library. See T-24.
     SortFilter,
     /// The chapters of the media that plays. See T-24.
@@ -266,6 +268,10 @@ pub struct App {
     /// The first line of the view of the statistics. The keys `j` and `k`
     /// change it. See T-24.
     pub stats_scroll: u16,
+    /// The first line of the view of the sessions.
+    pub sessions_scroll: u16,
+    /// The largest first line of the view of the sessions.
+    pub sessions_scroll_max: u16,
     /// The largest first line of the view of the statistics. The render
     /// writes it, because the render knows the height of the screen. The move
     /// then stops when the last line is visible.
@@ -1109,6 +1115,8 @@ impl App {
             reader: None,
             reader_message: None,
             stats_scroll: 0,
+            sessions_scroll: 0,
+            sessions_scroll_max: 0,
             stats_scroll_max: 0,
             audio_fault,
         })
@@ -1178,6 +1186,10 @@ impl App {
 
             // The key that shows the time that the user listened. See T-24.
             KeyCode::Char('T') => self.show_the_statistics(),
+
+            // The key that shows every session of the user, with pages. The
+            // key `T` shows the five last sessions only. See T-24.
+            KeyCode::Char('W') => self.show_the_sessions(),
 
             // The key that chooses the sequence and the filter. See T-24.
             KeyCode::Char('f') => self.show_the_sequence_and_the_filter(),
@@ -1442,7 +1454,7 @@ impl App {
                     AppView::Settings => self.view_state = AppView::Home,
                     // The view of the statistics goes back to Home, as the
                     // settings do. See T-24.
-                    AppView::Stats => self.view_state = AppView::Home,
+                    AppView::Stats | AppView::Sessions => self.view_state = AppView::Home,
                     AppView::SortFilter => self.view_state = AppView::Library,
                     // The view of the chapters goes back to the Home view.
                     AppView::Chapters => self.view_state = AppView::Home,
@@ -1658,7 +1670,7 @@ impl App {
                     // The reader has its own keys. See T-10.
                     AppView::Reader => {}
                     // The view of the statistics holds no line to open.
-                    AppView::Stats => {}
+                    AppView::Stats | AppView::Sessions => {}
                     AppView::SortFilter => self.apply_the_sequence_or_the_filter(),
                     AppView::Chapters => self.go_to_the_chapter(),
                     AppView::Bookmarks => self.go_to_the_bookmark(),
@@ -2748,6 +2760,82 @@ impl App {
         });
     }
 
+    /// Shows every session of the user, and asks the server for the first page.
+    ///
+    /// The view of the key `T` shows the five last sessions. This view shows
+    /// the whole history, and it reads the next page when the user comes near
+    /// the end. See T-24.
+    pub fn show_the_sessions(&mut self) {
+        self.sessions_scroll = 0;
+        self.view_state = AppView::Sessions;
+
+        if self.is_offline {
+            crate::logic::sessions_view::keep(crate::logic::sessions_view::State::Fault(
+                "The server does not answer. The program works with the disk only.".to_string(),
+            ));
+            return;
+        }
+
+        crate::logic::sessions_view::keep(crate::logic::sessions_view::State::Waiting);
+
+        let api = std::sync::Arc::clone(&self.api);
+
+        tokio::spawn(async move {
+            let per_page = crate::api::me::sessions::PER_PAGE;
+            let state = match crate::api::me::sessions::get_sessions(&api, 0, per_page).await {
+                Ok(page) => crate::logic::sessions_view::State::Ready(Box::new(
+                    crate::logic::sessions_view::Loaded::first(page),
+                )),
+                Err(error) => {
+                    log::warn!("[sessions] the server gave no session: {}", error);
+                    crate::logic::sessions_view::State::Fault(error.to_string())
+                }
+            };
+
+            crate::logic::sessions_view::keep(state);
+        });
+    }
+
+    /// Asks the server for the next page of the sessions, if that is necessary.
+    ///
+    /// The move calls this at each step down. `a_task_asks` gives `true` one
+    /// time only for one page, therefore a user who holds the key `j` makes one
+    /// request and not fifty.
+    pub fn read_the_next_page_of_the_sessions(&mut self) {
+        if self.is_offline {
+            return;
+        }
+
+        let state = crate::logic::sessions_view::state();
+        let crate::logic::sessions_view::State::Ready(loaded) = &state else {
+            return;
+        };
+
+        let lines = usize::from(self.sessions_scroll_max) + 1;
+        if !loaded.wants_the_next_page(usize::from(self.sessions_scroll), lines) {
+            return;
+        }
+
+        // The mark stops a second task for the same page.
+        if !crate::logic::sessions_view::a_task_asks() {
+            return;
+        }
+
+        let api = std::sync::Arc::clone(&self.api);
+        let next = loaded.page + 1;
+
+        tokio::spawn(async move {
+            let per_page = crate::api::me::sessions::PER_PAGE;
+            match crate::api::me::sessions::get_sessions(&api, next, per_page).await {
+                Ok(page) => crate::logic::sessions_view::add_a_page(page),
+                Err(error) => {
+                    log::warn!("[sessions] the page {} did not come: {}", next, error);
+                    crate::logic::sessions_view::the_page_did_not_come();
+                }
+            }
+        });
+    }
+
     /// Gives the lines of the view of the sequence and of the filter.
     ///
     /// The function is cheap: it makes about twenty lines from a list that
@@ -3469,7 +3557,7 @@ impl App {
             AppView::Lists => AppView::Home,
             AppView::ListEntries => AppView::Home,
             AppView::Reader => AppView::Home,
-            AppView::Stats => AppView::Home,
+            AppView::Stats | AppView::Sessions => AppView::Home,
             AppView::SortFilter => AppView::Library,
             AppView::Chapters => AppView::Home,
             AppView::Bookmarks => AppView::Home,
@@ -3569,6 +3657,14 @@ impl App {
             AppView::Reader => {}
             // The keys `j` and `k` move the view of the statistics, because
             // that view holds no list. The move stops at the last line.
+            AppView::Sessions => {
+                if self.sessions_scroll < self.sessions_scroll_max {
+                    self.sessions_scroll += 1;
+                }
+                // The view holds a part of the sessions only. A user who comes
+                // near the end of that part starts the read of the next page.
+                self.read_the_next_page_of_the_sessions();
+            }
             AppView::Stats => {
                 if self.stats_scroll < self.stats_scroll_max {
                     self.stats_scroll += 1;
@@ -3676,6 +3772,7 @@ impl App {
             AppView::ListEntries => self.list_state_list_entries.select_previous(),
             AppView::Reader => {}
             AppView::Stats => self.stats_scroll = self.stats_scroll.saturating_sub(1),
+            AppView::Sessions => self.sessions_scroll = self.sessions_scroll.saturating_sub(1),
             AppView::SortFilter => {
                 let lines = self.lines_of_the_sort_filter_view();
                 let from = self.list_state_sort_filter.selected().unwrap_or(0);
@@ -3710,6 +3807,7 @@ impl App {
             AppView::ListEntries => self.list_state_list_entries.select_first(),
             AppView::Reader => {}
             AppView::Stats => self.stats_scroll = 0,
+            AppView::Sessions => self.sessions_scroll = 0,
             AppView::SortFilter => {
                 let lines = self.lines_of_the_sort_filter_view();
                 self.list_state_sort_filter
@@ -3775,6 +3873,10 @@ impl App {
             }
             AppView::Reader => {}
             AppView::Stats => self.stats_scroll = self.stats_scroll_max,
+            AppView::Sessions => {
+                self.sessions_scroll = self.sessions_scroll_max;
+                self.read_the_next_page_of_the_sessions();
+            }
             AppView::SortFilter => {
                 let lines = self.lines_of_the_sort_filter_view();
                 self.list_state_sort_filter
