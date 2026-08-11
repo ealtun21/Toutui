@@ -353,3 +353,29 @@ two seconds and no view of the player then stays on the screen.
 
 `tests/the_stream_against_the_sandbox.rs` reads this book. A sandbox with no such
 book gives a line of text, and the test does not fail.
+
+## A PDF book with pictures
+
+T-54 needs a media whose ebook is a PDF. A media with an EPUB book keeps that
+book, therefore the PDF must stand beside a media that holds none.
+
+```
+groff -Tpdf -ms <<'END' > text.pdf
+.TL
+A Book Of The Test
+.PP
+This is the first paragraph of the book.
+END
+magick -size 400x300 gradient:blue-yellow pic1.jpg
+magick -size 300x300 plasma:red-blue pic2.jpg
+img2pdf pic1.jpg pic2.jpg -o pictures.pdf
+pdfunite text.pdf pictures.pdf book.pdf
+
+podman cp book.pdf \
+  abs-test:"/audiobooks/Decoder Test/One File With No Decoder/A Book Of The Test.pdf"
+curl -X POST "http://localhost:13399/api/libraries/$BOOK_LIB_ID/scan?force=1" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+The book then holds three pages: one page of text, and two pages of a picture of
+JPEG. The key `e` opens it.
