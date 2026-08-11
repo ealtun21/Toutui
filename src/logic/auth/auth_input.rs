@@ -30,6 +30,21 @@ const MASK: char = '\u{2022}';
 /// The place of the field of the address in the list of the fields.
 const ADDRESS_FIELD: usize = 0;
 
+/// The address that the user gave and that the server answered. See T-92.
+///
+/// **A login that fails starts this screen again**, and every field was empty
+/// again: the user wrote the whole address of their server after each wrong
+/// password. The address answered `/ping` already, therefore the program keeps
+/// it and it writes it in the field.
+///
+/// The value belongs to the process, and the login screen runs one time at a
+/// time. A login that succeeds leaves this loop, therefore no old value stays.
+fn the_address_that_answered() -> &'static std::sync::Mutex<Option<String>> {
+    static ADDRESS: std::sync::OnceLock<std::sync::Mutex<Option<String>>> =
+        std::sync::OnceLock::new();
+    ADDRESS.get_or_init(|| std::sync::Mutex::new(None))
+}
+
 /// Examines the address of the server before the login asks for a password.
 ///
 /// The function looks at the form of the address first, because that needs no
@@ -91,7 +106,14 @@ impl AppLogin {
                 title: "Server address",
                 placeholder: "http:// or https:// required",
                 mask: None,
-                input: Input::default(),
+                // The address of the attempt before this one. See T-92.
+                input: match the_address_that_answered().lock() {
+                    Ok(place) => match place.clone() {
+                        Some(address) => Input::default().with_value(address),
+                        None => Input::default(),
+                    },
+                    Err(_) => Input::default(),
+                },
             },
             Field {
                 title: "Username",
@@ -190,6 +212,13 @@ impl AppLogin {
                                 let _ = update_login_err("");
                                 fields[ADDRESS_FIELD].input =
                                     Input::default().with_value(address.clone());
+
+                                // The next attempt of the login starts with
+                                // this address. See T-92.
+                                if let Ok(mut place) = the_address_that_answered().lock() {
+                                    *place = Some(address.clone());
+                                }
+
                                 collected_data.push(address);
                                 current_index += 1;
                             }
@@ -201,10 +230,28 @@ impl AppLogin {
                         continue;
                     }
 
+                    // **A field of no letter needs no request.** The field of
+                    // the address held this rule already, and the two other
+                    // fields did not: the sweep of the login of 2026-08-11
+                    // pressed Enter on an empty username, and the view went to
+                    // the password with no word. See T-92.
+                    let written = fields[current_index].input.value().to_string();
+
+                    if written.is_empty() {
+                        let _ = update_login_err(match current_index {
+                            1 => "Write your username.",
+                            _ => "Write your password.",
+                        });
+
+                        continue;
+                    }
+
+                    let _ = update_login_err("");
+
                     if current_index < fields.len() - 1 {
                         // The loop takes the second field here. It takes the
                         // third field after the break.
-                        collected_data.push(fields[current_index].input.value().to_string());
+                        collected_data.push(written);
                         current_index += 1;
                     } else {
                         break;
@@ -279,11 +326,18 @@ impl AppLogin {
                 }
                 Ok(Err(error)) => {
                     error!("[auth_process] Login failed: {}", error);
-                    let _ = update_login_err(format!("ERROR: {}", error).as_str());
+
+                    // **The sentence of the fault reaches the user as it
+                    // stands.** The old code wrote "ERROR: " before it, and no
+                    // other message of the program holds that word: the two
+                    // other messages of this view are "The address must start
+                    // with http:// or https://" and "… does not answer. Is the
+                    // server running?". See T-92.
+                    let _ = update_login_err(error.as_str());
                 }
                 Err(_) => {
                     error!("[auth_process] The login thread stopped");
-                    let _ = update_login_err("ERROR: The login stopped.");
+                    let _ = update_login_err("The login stopped. Try it again.");
                 }
             }
 

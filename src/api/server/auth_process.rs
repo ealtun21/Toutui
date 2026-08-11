@@ -29,6 +29,33 @@ struct UserInfo {
     token: String,
 }
 
+/// Gives the sentence of a login that the server refused. See T-92.
+///
+/// **The old code said "Login failed" for every status.** A user then read the
+/// same four words for a wrong password, for a rate limit, and for a fault of
+/// the server, and no line of the screen told them what to do. The status of
+/// the answer holds that knowledge.
+///
+/// **The rate limit is the status that costs the most time.** Audiobookshelf
+/// permits 40 requests of the login in 600 seconds, and it answers `429` after
+/// that. A user who writes their password again and again reaches it, and
+/// "Login failed" then sends them to look for a fault that does not exist.
+///
+/// The function is pure, therefore a test needs no server.
+pub fn the_sentence_of_a_login_that_failed(status: u16) -> String {
+    match status {
+        401 | 403 => "The server refused the username or the password.".to_string(),
+        404 => {
+            "The server has no login at this address. Is it an Audiobookshelf server?".to_string()
+        }
+        429 => "The server took too many attempts of the login. Wait 10 minutes.".to_string(),
+        code if code >= 500 => {
+            format!("The server has a fault. It answered {}.", code)
+        }
+        code => format!("The server refused the login. It answered {}.", code),
+    }
+}
+
 /// Login
 /// https://api.audiobookshelf.org/#server
 ///
@@ -119,6 +146,46 @@ pub async fn auth_process(username: &str, password: &str, server_address: &str) 
 
         Ok(())
     } else {
-        Err(Report::new(std::io::Error::other("Login failed")))
+        // The status says why the server refused the login. See T-92.
+        Err(Report::new(std::io::Error::other(
+            the_sentence_of_a_login_that_failed(response.status().as_u16()),
+        )))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Each status of the login gives its own sentence, and the sentence says
+    /// what the user must do. See T-92.
+    #[test]
+    fn the_login_says_why_the_server_refused_it() {
+        assert_eq!(
+            the_sentence_of_a_login_that_failed(401),
+            "The server refused the username or the password."
+        );
+        assert_eq!(
+            the_sentence_of_a_login_that_failed(403),
+            "The server refused the username or the password."
+        );
+
+        // The rate limit of the login is 40 requests of 600 seconds.
+        assert_eq!(
+            the_sentence_of_a_login_that_failed(429),
+            "The server took too many attempts of the login. Wait 10 minutes."
+        );
+
+        assert!(the_sentence_of_a_login_that_failed(404).contains("Audiobookshelf"));
+        assert!(the_sentence_of_a_login_that_failed(500).contains("fault"));
+        assert!(the_sentence_of_a_login_that_failed(503).contains("503"));
+        assert!(the_sentence_of_a_login_that_failed(418).contains("418"));
+
+        // The row of the message of the login holds one line. Every sentence
+        // stays inside it. See the trap 11 of the harness.
+        for status in [401, 403, 404, 429, 500, 418] {
+            let text = the_sentence_of_a_login_that_failed(status);
+            assert!(text.len() <= 150, "the sentence of {} is too long", status);
+        }
     }
 }

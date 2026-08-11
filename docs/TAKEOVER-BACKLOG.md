@@ -3525,6 +3525,49 @@ reads `src/ui/tui.rs` and holds every text to the second form. The view of the
 episodes said "No episodes found for this podcast." too, and it says "This
 podcast has no episode." now.
 
+### T-92: the login said "ERROR: Login failed" for every fault
+
+**The sweep of the view of the login is the third sweep that no session had
+made.** A fresh `XDG_CONFIG_HOME` with a `config.toml` and a `.env` gives that
+view (the trap 7 of the harness). Two of its three messages are good work
+already:
+
+```
+The address must start with http:// or https://. Write http://localhost:13399
+http://127.0.0.1:1 does not answer. Is the server running?
+```
+
+**A wrong password gave "ERROR: Login failed".** Four items came out of that
+screen:
+
+1. **`auth_process` made one error for every status.** The status of the answer
+   holds the reason, and `the_sentence_of_a_login_that_failed` gives it now. The
+   status that costs the most time is **429**: the server permits 40 requests of
+   the login in 600 seconds (the trap 22), and a user who writes their password
+   again and again reaches it. The old four words sent them to look for a fault
+   that does not exist. That sentence now says "Wait 10 minutes."
+2. **"ERROR: " stood before the text**, and no other message of the program
+   holds that word.
+3. **An empty username and an empty password went forward with no word.** The
+   field of the address refused an empty value already, and the two other fields
+   did not. They say "Write your username." and "Write your password." now, and
+   they make no request.
+4. **A login that failed emptied the field of the address.** The user wrote the
+   whole address of their server again after each wrong password, and that
+   address answered `/ping` some seconds before. The program keeps it in the
+   process and it writes it in the field: the user presses Enter one time.
+
+The measurement after the corrections, against the sandbox: a wrong password
+gives "The server refused the username or the password.", the address stays in
+its field, and the login of `toutuitest` after it gives the Home view.
+
+**One run of every test failed while this item was open, and the cause was the
+rate limit.** `the_filter_of_the_user_reaches_the_server` said "the answer must
+hold a token", and `podman logs abs-test` held "[RateLimiter] Rate limit
+exceeded - Endpoint: POST /login". The sweep of the login had used the 40
+requests. `podman restart abs-test` gives the limiter back, and the run then
+gave 902 of 902.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
