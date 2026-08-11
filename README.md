@@ -99,6 +99,12 @@ shows them.
 - The program sends one request for every shelf, and that request did not
   change.
 
+## 🔄 Examine the library again
+
+- `L` — tell the server to read the directory of the library again. A file
+  that you put there by hand then comes to the library. The examination runs
+  on the server; press `R` after a moment to see the new media.
+
 ## 👤 The authors of a library
 
 - `a` — show the authors of the library, in the sequence of the alphabet. The

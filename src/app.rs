@@ -1152,6 +1152,10 @@ impl App {
             // See T-24.
             KeyCode::Char('C') => self.show_the_chapters(),
 
+            // The key that tells the server to examine the library. See
+            // T-24.
+            KeyCode::Char('L') => self.scan_the_library(),
+
             // The key that shows the authors of the library. See T-24.
             KeyCode::Char('a') => self.show_the_authors(),
 
@@ -2013,6 +2017,54 @@ impl App {
             3,
             &format!("The playback goes to \"{}\".", chapter.title),
         );
+    }
+
+    /// Tells the server to examine the library again. See T-24.
+    ///
+    /// A user who puts a file in the directory of the library must open the
+    /// web page today. `POST /api/libraries/:id/scan` gives `200`, and the
+    /// server then reads the directory.
+    ///
+    /// The scan runs on the server and it takes its own time. Therefore the
+    /// program says that the work started, and the user presses `R` after a
+    /// moment.
+    pub fn scan_the_library(&mut self) {
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+
+        if self.is_offline {
+            let _ = pop_message(&mut stdout, 3, "The server does not answer.");
+            return;
+        }
+
+        if self.id_selected_lib.is_empty() {
+            let _ = pop_message(&mut stdout, 3, "No library is selected.");
+            return;
+        }
+
+        let api = std::sync::Arc::clone(&self.api);
+        let library = self.id_selected_lib.clone();
+
+        let _ = pop_message(&mut stdout, 3, "The server examines the library…");
+
+        tokio::spawn(async move {
+            let text = match api
+                .post_no_content(
+                    &format!("/api/libraries/{}/scan", library),
+                    &serde_json::json!({}),
+                )
+                .await
+            {
+                Ok(()) => {
+                    "The server examines the library now. Press R after a moment.".to_string()
+                }
+                Err(error) => format!("The server did not start the examination: {}", error),
+            };
+
+            let mut stdout = std::io::stdout();
+            let _ = clear_message(&mut stdout, 3);
+            let _ = pop_message(&mut stdout, 3, text.as_str());
+        });
     }
 
     /// Shows the authors of the library, and asks the server for them.

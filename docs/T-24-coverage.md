@@ -103,6 +103,7 @@ Toutui calls 24 paths. The server has more than 100.
 | `A` | Look for a new podcast, and add it (T-24) |
 | `E` | The server gets the episodes that it does not hold (T-24) |
 | `a` | Show the authors of the library (T-24) |
+| `L` | The server examines the library again (T-24) |
 | `f` | Choose the sequence and the filter of the library (T-24) |
 | `S` | Settings |
 | `B` | Show the keys, or hide them |
@@ -145,7 +146,7 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 | **Collections** | `GET /api/libraries/:id/collections` and `GET /api/collections` give the collections | Half | The client reads and plays. It cannot make a collection, add a book, or remove a book |
 | **Playlists** | `GET /api/libraries/:id/playlists` and `GET /api/playlists`. An entry holds `libraryItemId` and, for an episode, `episodeId` | Half | The same. The client reads and plays, and it changes nothing |
 | **The position of a media** | `GET /api/me/progress/:id` gives `currentTime`, `progress`, `isFinished`, `hideFromContinueListening`, `ebookLocation`, `ebookProgress`, `lastUpdate` | Yes | Nothing. The client reads the position at the start and it writes the position (T-4) |
-| **Mark as finished** | `PATCH /api/me/progress/:id` with `{"isFinished":true}` | Half | A key. The client sends this at the end of a playback only, in `update_media_progress2_book`. The user cannot mark a book that they will not finish |
+| **Mark as finished** | `PATCH /api/me/progress/:id` with `{"isFinished":true}` | Yes | Nothing. The key `M`, and it marks a media back also |
 | **Hide from Continue Listening** | The field `hideFromContinueListening` of `PATCH /api/me/progress/:id` | Yes | Nothing. The key `N`. A measurement on 2026-08-11 shows that the shelf of the server loses the media at once |
 | **Open a session** | `POST /api/items/:id/play` gives `id`, `audioTracks`, `chapters`, `duration`, `playMethod` | Yes | Nothing |
 | **Sync a session** | `POST /api/session/:id/sync` gives `200` | Yes | Nothing. The key `F` sends the position now (T-32) |
@@ -182,7 +183,7 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 | **Find the metadata of an item** | `POST /api/items/:id/match` gives `200`. With `{"provider":"google"}` it gives `{"warning":...}`, because the item has no title to match | No | Everything |
 | **Make an M4B file** | `POST /api/items/:id/encode` of the reference. Not tested: the request starts a long job of ffmpeg on the server | No | Everything. See section 6 |
 | **Write the metadata in the audio files** | `POST /api/items/:id/update-embedded-metadata` of the reference. Not tested, for the same reason | No | Everything. See section 6 |
-| **Scan a library** | `POST /api/libraries/:id/scan` gives `200` | No | Everything. The user must open the web page to scan |
+| **Scan a library** | `POST /api/libraries/:id/scan` gives `200` | Yes | Nothing. The key `L`. The examination runs on the server, therefore the program says that the work started and the user presses `R` after a moment |
 | **The authors of a library** | `GET /api/libraries/:id/authors` gives the key `authors`, with `name`, `description`, and `numBooks`. `GET /api/authors/:id` gives no `numBooks`, therefore the list is the whole answer | Yes | Nothing. The key `a` shows the authors in the sequence of the alphabet, and `l` shows the books of one author |
 | **The narrators of a library** | `GET /api/libraries/:id/narrators` gives the key `narrators` | No | Everything |
 | **The tags** | `GET /api/tags` gives the key `tags` | No | Everything |
@@ -190,7 +191,7 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 | **The statistics of the user** | `GET /api/me/listening-stats` gives `totalTime` 281, `today` 281, `days` `{"2026-08-10":281}`, `dayOfWeek` `{"Monday":281}`, `items` (a map of 2), and `recentSessions` (5) | Yes | Nothing. The key `T` shows the time of this day and the time in total, the last 14 days, the seven days of the week, the five media of the largest time, and the five last sessions |
 | **The statistics of a year** | `GET /api/stats/year/2026` gives `numListeningSessions`, `totalListeningTime`, `topAuthors`, `topNarrators`, `topGenres`, and 8 more fields | No | Everything |
 | **The account of the user** | `GET /api/me` gives `id`, `username`, `type` (`root`), `permissions`, `mediaProgress` (9 rows), `bookmarks`, `lastSeen` | Half | The client signs in and holds the token. It shows no permission and no type. The README says that `D` needs the permission `download`, and the client does not read that permission before it tries |
-| **The permissions** | `GET /api/me` gives 9 permissions: `download`, `update`, `delete`, `upload`, `createEreader`, `accessAllLibraries`, `accessAllTags`, `accessExplicitContent`, `selectedTagsNotAccessible` | No | The client never reads them. A key that the account does not permit gives an error of the server and not a clear message |
+| **The permissions** | `GET /api/me` gives 9 permissions: `download`, `update`, `delete`, `upload`, `createEreader`, `accessAllLibraries`, `accessAllTags`, `accessExplicitContent`, `selectedTagsNotAccessible` | Half | The client reads four of them, in `src/api/me/permissions.rs`. The key `D` gives a clear sentence for an account that may not download. An absent permission means "yes" |
 | **The users of the server** | `GET /api/users` gives the key `users`. `GET /api/users/online` gives `usersOnline` and `openSessions`. `POST`, `PATCH`, and `DELETE` of the reference are not tested: they change the accounts of the server | No | Everything. See section 6 |
 | **An RSS feed of an item** | `GET /api/feeds` gives `{"feeds":[],"minified":false}`. `POST /api/items/:id/open-feed` of the reference is not tested: it makes a public address | No | Everything. See section 6 |
 | **A share of an item** | `GET /api/share/xx` gives `404` for an identity that does not exist, therefore the group answers | No | Everything. See section 6 |
