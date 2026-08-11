@@ -46,9 +46,12 @@ fn decode(name: &str) -> Result<usize, String> {
 
     let track = track_for(&path);
     let source = TrackSource::Local(path);
-    let decoder = open_decoder(&source, "no-token", &track)?;
+    let opened = open_decoder(&source, "no-token", &track)?;
 
-    Ok(decoder.take(1_000_000).count())
+    // A file starts at the start of its track. See T-63.
+    assert_eq!(opened.offset, 0.0, "a file must give the place 0");
+
+    Ok(opened.source.take(1_000_000).count())
 }
 
 /// Examines one format. The file must decode, and it must give audio.

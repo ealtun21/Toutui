@@ -534,8 +534,9 @@ async fn play_the_stream_of_the_server(
         username: username.clone(),
         tracks,
         sources,
-        // The stream itself starts at the place of the user, therefore the
-        // engine starts at the second 0 of the stream. See T-53.
+        // The stream itself starts at the place of the user, therefore the engine
+        // starts at the second 0 of the stream and it adds that place to every
+        // position that it reports. See T-53 and T-63.
         start_position: 0.0,
         speed,
     };

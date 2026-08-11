@@ -68,8 +68,14 @@ fn samples_of(name: &str) -> (EngineSourceKind, Vec<f32>) {
     let path = fixture(name);
     let track = track_for(&path);
 
-    let source = open_decoder(&TrackSource::Local(path), "no-token", &track)
+    let opened = open_decoder(&TrackSource::Local(path), "no-token", &track)
         .unwrap_or_else(|error| panic!("the file {} did not open: {}", name, error));
+
+    // A file starts at the start of its track. The stream of the server starts
+    // inside the media, and it gives a place that is not 0. See T-63.
+    assert_eq!(opened.offset, 0.0, "a file must give the place 0");
+
+    let source = opened.source;
 
     let kind = match &source {
         EngineSource::Rodio(_) => EngineSourceKind::Rodio,

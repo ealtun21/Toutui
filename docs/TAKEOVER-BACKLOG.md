@@ -2248,6 +2248,54 @@ one moment. `MAX_BOOK_BYTES` of 512 megabytes holds that limit.
 the top said "page 1 of 150", the line of the text said "[ the picture Im0: 1400 by
 1900 pixels ]", and the picture drew 48 columns by 32 rows.
 
+### T-63: the position and the movement of a playback of the stream
+
+T-53 gave the program the stream of the server for a file that no decoder reads.
+Two faults of that work came out of a measurement on 2026-08-11, and **both need a
+media that the user did not start at its beginning**. The measurements of T-53 all
+began at the second 0, therefore neither fault showed itself.
+
+**The first fault: the position was the position of the stream.** The stream begins
+at the place of the user, and `position_now` gave the position of the **decoder**.
+A book that the user left at 26 hours therefore reported 0 and then 1, 2, 3… , and
+the loop of the playback would write those numbers on the server: **the user would
+lose 26 hours of their place.**
+
+The loop also holds the rule of T-38: it writes nothing before the engine reaches
+the place where the playback starts. A stream that reports 0 for a place of 600
+seconds therefore wrote **nothing at all** for the first 600 seconds of the
+playback.
+
+**The correction.** `Opened` gives the place of the media where the bytes of a
+decoder begin: a file gives 0, and `HlsFile` gives the second of the part of the
+playlist where it opened. `Current` holds that value, and `position_now` adds it.
+The measurement: a book that the server holds at 600 seconds gave `⏸ 29:59 / 30:29`
+after the stream played to its end, and not `⏸ 19:59`.
+
+**The second fault: a movement of the playback did nothing.** The keys `p` and `u`
+of a stream gave a `try_seek` of a source that moves forward only. The engine wrote
+"the engine cannot move inside the track", and the playback stayed where it was.
+
+**The correction.** `seek_to` asks the server for the stream **again** at the new
+place: the value `seconds` of `TrackSource::Stream` takes the new position, and the
+queue of the player comes again. `HlsFile::open` then takes the part of the playlist
+that holds that second.
+
+**A movement back asks for a part that the server did not write.** The transcode of
+the server began at the place of the user, therefore a part before it does not
+exist. The server answers 404 and it starts the transcode again: its log says
+"Segment #N Request is before starting segment number #M - Reset Transcode". That
+work takes a second or two.
+
+`HlsFile::open` runs on the thread of the engine, and that thread reads the commands
+of the user. Therefore the open waits little: `ATTEMPTS_OF_THE_OPEN` of 8 with a
+delay of 2 seconds at the most. The thread that fills the buffer keeps the 20
+attempts and the delay of 10 seconds, because a wait there costs the user nothing.
+
+**The measurement of the movement.** The stream of a book at `⏸ 26:46 / 30:29`, and
+then the key `u`: `▶ 26:36 / 30:29`, and the log says "the stream of the server
+starts again at 1597 seconds".
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

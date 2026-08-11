@@ -229,16 +229,26 @@ const OGG_EXTENSIONS: [&str; 3] = ["opus", "oga", "ogg"];
 ///
 /// The function also sets the gapless mode, so that a book with many files has
 /// no silence between the files.
-pub fn open_decoder(
-    source: &TrackSource,
-    token: &str,
-    track: &Track,
-) -> Result<EngineSource, String> {
+/// One decoder, and the place of the media where its bytes start.
+///
+/// A file starts at the start of its track and gives 0. The stream of the server
+/// starts at a part of the playlist, and that part begins inside the media. See
+/// T-63.
+pub struct Opened {
+    /// The decoder.
+    pub source: EngineSource,
+    /// The place of the media where the bytes of the decoder start, in seconds.
+    pub offset: f64,
+}
+
+pub fn open_decoder(source: &TrackSource, token: &str, track: &Track) -> Result<Opened, String> {
     // The stream of the server holds MP3 or ADTS. Therefore it never goes to
     // the reader of Opus. See T-53.
     if matches!(source, TrackSource::Stream { .. }) {
-        return open_rodio(source, token, track)
-            .map(|decoder| EngineSource::Rodio(Box::new(decoder)));
+        return open_rodio(source, token, track).map(|(decoder, offset)| Opened {
+            source: EngineSource::Rodio(Box::new(decoder)),
+            offset,
+        });
     }
 
     let hint = hint_for(&track.filename);
@@ -256,7 +266,11 @@ pub fn open_decoder(
         match open_opus(source, token, track) {
             Ok(opus) => {
                 info!("[open_decoder] the file {} plays as Opus", track.filename);
-                return Ok(EngineSource::Opus(Box::new(opus)));
+
+                return Ok(Opened {
+                    source: EngineSource::Opus(Box::new(opus)),
+                    offset: 0.0,
+                });
             }
             Err(error) => {
                 // An OGG file also holds Vorbis or FLAC. The decoder of rodio
@@ -270,7 +284,10 @@ pub fn open_decoder(
     }
 
     match open_rodio(source, token, track) {
-        Ok(decoder) => Ok(EngineSource::Rodio(Box::new(decoder))),
+        Ok((decoder, offset)) => Ok(Opened {
+            source: EngineSource::Rodio(Box::new(decoder)),
+            offset,
+        }),
         Err(error) if opus_first => Err(error),
         Err(error) => {
             // The container is not one of the OGG containers, and the decoder of
@@ -279,7 +296,11 @@ pub fn open_decoder(
             match open_opus(source, token, track) {
                 Ok(opus) => {
                     info!("[open_decoder] the file {} plays as Opus", track.filename);
-                    Ok(EngineSource::Opus(Box::new(opus)))
+
+                    Ok(Opened {
+                        source: EngineSource::Opus(Box::new(opus)),
+                        offset: 0.0,
+                    })
                 }
                 Err(opus_error) => {
                     warn!(
@@ -310,6 +331,14 @@ struct Bytes {
     /// the server gives it. A file gives nothing, and the name of the file is
     /// then the hint. See T-53.
     hint: Option<&'static str>,
+    /// The place of the media where the bytes start, in seconds.
+    ///
+    /// A file starts at the start of its track, therefore it gives 0. **The stream
+    /// of the server starts at a part of the playlist**, and that part begins
+    /// inside the media. The engine adds this value to the position of the
+    /// decoder, therefore the position of the playback is the position of the
+    /// media and not the position of the stream. See T-63.
+    offset: f64,
 }
 
 fn open_bytes(source: &TrackSource, token: &str) -> Result<Bytes, String> {
@@ -323,6 +352,7 @@ fn open_bytes(source: &TrackSource, token: &str) -> Result<Bytes, String> {
                 data: Box::new(file),
                 size,
                 hint: None,
+                offset: 0.0,
             })
         }
         TrackSource::Remote {
@@ -339,6 +369,7 @@ fn open_bytes(source: &TrackSource, token: &str) -> Result<Bytes, String> {
                 data: Box::new(file),
                 size,
                 hint: None,
+                offset: 0.0,
             })
         }
         // The stream of the server has no size in bytes, and it moves forward
@@ -359,10 +390,13 @@ fn open_bytes(source: &TrackSource, token: &str) -> Result<Bytes, String> {
                 _ => "aac",
             };
 
+            let offset = file.offset();
+
             Ok(Bytes {
                 data: Box::new(file),
                 size: None,
                 hint: Some(hint),
+                offset,
             })
         }
     }
@@ -385,11 +419,12 @@ fn open_rodio(
     source: &TrackSource,
     token: &str,
     track: &Track,
-) -> Result<Decoder<Box<dyn MediaRead>>, String> {
+) -> Result<(Decoder<Box<dyn MediaRead>>, f64), String> {
     let Bytes {
         data,
         size,
         hint: hint_of_the_stream,
+        offset,
     } = open_bytes(source, token)?;
 
     // A file obeys `Seek`, therefore symphonia can move in it. An M4B file
@@ -425,14 +460,16 @@ fn open_rodio(
         }
     }
 
-    builder.build().map_err(|error| {
+    let decoder = builder.build().map_err(|error| {
         format!(
             "The application cannot read the file {}: {}. \
              The application plays {} itself. It does not play {}, and it asks \
              the server for a stream of such a file. See T-53.",
             track.filename, error, SUPPORTED_FORMATS, UNSUPPORTED_FORMATS
         )
-    })
+    })?;
+
+    Ok((decoder, offset))
 }
 
 #[cfg(test)]

@@ -37,12 +37,27 @@ const FIRST_BACKOFF: Duration = Duration::from_millis(500);
 /// The largest delay between two attempts.
 const MAX_BACKOFF: Duration = Duration::from_secs(10);
 
-/// The number of attempts for one part of the stream.
+/// The number of attempts for one part of the stream, for the thread that fills
+/// the buffer.
 ///
-/// ffmpeg of the server writes the parts while the client reads them.
-/// Therefore a part that does not exist yet answers 404, and the reader tries
-/// again.
+/// ffmpeg of the server writes the parts while the client reads them. Therefore a
+/// part that does not exist yet answers 404, and the reader tries again.
 const ATTEMPTS: usize = 20;
+
+/// The number of attempts for the **first** part, when the reader opens.
+///
+/// `HlsFile::open` runs on the thread of the engine, and that thread reads the
+/// commands of the user. A long wait there stops the keys of the player.
+///
+/// A movement of the playback asks for a part before the part where the transcode
+/// of the server began. The server answers 404 and it starts the transcode again
+/// at the new place: its log says "Segment #N Request is before starting segment
+/// number #M - Reset Transcode". That work takes a second or two, therefore a
+/// small number of attempts is enough. See T-63.
+const ATTEMPTS_OF_THE_OPEN: usize = 8;
+
+/// The largest delay between two attempts of the open.
+const LONGEST_WAIT_OF_THE_OPEN: Duration = Duration::from_secs(2);
 
 /// The time to wait for a connection.
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(3);
@@ -103,7 +118,14 @@ impl HlsFile {
         // The first part gives the form of the audio. The bytes go in the buffer
         // at once, therefore the request happens one time only.
         let name = segments[first].name.clone();
-        let bytes = ask_for_the_bytes(&client, &address_of_the_part(&address, &name), token)?;
+
+        let bytes = ask_for_the_bytes_with_a_limit(
+            &client,
+            &address_of_the_part(&address, &name),
+            token,
+            ATTEMPTS_OF_THE_OPEN,
+            LONGEST_WAIT_OF_THE_OPEN,
+        )?;
         let stream = hls::audio_stream_of(&bytes)
             .ok_or_else(|| "The stream of the server holds no audio.".to_string())?;
 
@@ -381,15 +403,30 @@ fn ask_for_the_bytes(
     address: &str,
     token: &str,
 ) -> Result<Vec<u8>, String> {
+    ask_for_the_bytes_with_a_limit(client, address, token, ATTEMPTS, MAX_BACKOFF)
+}
+
+/// Asks for the bytes of one part, with a number of attempts and a largest delay.
+///
+/// The thread that fills the buffer waits long, because a wait there costs the
+/// user nothing. The open waits little, because it runs on the thread that reads
+/// the keys of the player. See T-63.
+fn ask_for_the_bytes_with_a_limit(
+    client: &reqwest::blocking::Client,
+    address: &str,
+    token: &str,
+    attempts: usize,
+    longest: Duration,
+) -> Result<Vec<u8>, String> {
     let mut backoff = FIRST_BACKOFF;
     let mut last = String::from("The server did not answer.");
 
-    for attempt in 0..ATTEMPTS {
+    for attempt in 0..attempts {
         let answer = match client.get(address).bearer_auth(token).send() {
             Ok(answer) => answer,
             Err(_) => {
                 last = "The server did not answer.".to_string();
-                wait(&mut backoff, attempt);
+                wait(&mut backoff, attempt, longest);
                 continue;
             }
         };
@@ -398,7 +435,7 @@ fn ask_for_the_bytes(
         // A part that does not exist yet answers 404.
         if let Some(error) = classify_status(answer.status()) {
             last = text_of(&error);
-            wait(&mut backoff, attempt);
+            wait(&mut backoff, attempt, longest);
             continue;
         }
 
@@ -412,9 +449,9 @@ fn ask_for_the_bytes(
 }
 
 /// Waits, and it makes the delay longer.
-fn wait(backoff: &mut Duration, attempt: usize) {
+fn wait(backoff: &mut Duration, attempt: usize, longest: Duration) {
     std::thread::sleep(*backoff);
-    *backoff = (*backoff * 2).min(MAX_BACKOFF);
+    *backoff = (*backoff * 2).min(longest);
 
     if attempt == 0 {
         info!("[HlsFile] the part of the stream is not ready. The reader waits.");

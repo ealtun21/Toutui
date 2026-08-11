@@ -128,6 +128,14 @@ struct Current {
     the_file_that_no_decoder_reads: Option<String>,
     /// The playback reads the stream of the server, and not the file. See T-53.
     plays_the_stream_of_the_server: bool,
+    /// The place of the media where the bytes of the track that plays start, in
+    /// seconds.
+    ///
+    /// A file starts at the start of its track and gives 0. **The stream of the
+    /// server starts at a part of the playlist**, therefore the position of the
+    /// decoder is the position inside that part and not the position of the media.
+    /// See T-63.
+    offset_of_the_bytes: f64,
     /// The speed that every track of this book reads. WSOLA stretches the
     /// time, thus the pitch does not change.
     speed: SharedSpeed,
@@ -267,6 +275,7 @@ fn start(
         tracks_that_play,
         the_file_that_no_decoder_reads: None,
         plays_the_stream_of_the_server,
+        offset_of_the_bytes: 0.0,
     };
 
     if let Err(error) = fill_queue(player, &mut item, token) {
@@ -337,7 +346,10 @@ fn position_now(player: &Player, current: &Option<Current>) -> f64 {
 
     let inside = media_position(player.get_pos(), item.speed.get());
 
-    item.request.tracks.position_of(item.playing, inside)
+    // The stream of the server starts inside the media, therefore the position of
+    // the decoder is not the position of the media. A file gives the offset 0 and
+    // this sum does not change it. See T-63.
+    item.request.tracks.position_of(item.playing, inside) + item.offset_of_the_bytes
 }
 
 /// Moves to a position in the book.
@@ -351,6 +363,37 @@ fn seek_to(player: &mut Player, current: &mut Option<Current>, token: &str, posi
         Some(value) => value,
         None => return,
     };
+
+    // **The stream of the server moves forward only.** A movement therefore asks
+    // the server for the stream again, at the new place: the reader takes the part
+    // of the playlist that holds it. A `try_seek` of such a source gives a fault,
+    // and the playback then stayed where it was. See T-63.
+    if let Some(crate::player::engine::source::TrackSource::Stream { seconds, .. }) =
+        item.request.sources.get_mut(track_index)
+    {
+        *seconds = position.max(0.0);
+
+        player.clear();
+        item.playing = track_index;
+        item.queued = 0;
+
+        if let Err(error) = fill_queue(player, item, token) {
+            error!(
+                "[worker] the engine cannot ask for the stream again: {}",
+                error
+            );
+            return;
+        }
+
+        player.play();
+
+        info!(
+            "[worker] the stream of the server starts again at {} seconds",
+            position.round()
+        );
+
+        return;
+    }
 
     if track_index == item.playing {
         if let Err(error) = player.try_seek(seek_target(offset, item.speed.get())) {
@@ -423,8 +466,8 @@ fn fill_queue(player: &mut Player, item: &mut Current, token: &str) -> Result<()
             None => break,
         };
 
-        let decoder = match open_decoder(&source, token, &track) {
-            Ok(decoder) => decoder,
+        let opened = match open_decoder(&source, token, &track) {
+            Ok(opened) => opened,
             Err(error) => {
                 if the_fault_stops_the_playback(item.queued) {
                     return Err(error);
@@ -445,7 +488,13 @@ fn fill_queue(player: &mut Player, item: &mut Current, token: &str) -> Result<()
             }
         };
 
-        player.append(SpeedSource::new(decoder, item.speed.clone()));
+        // The bytes of the track that plays give the place of the media. See
+        // T-63.
+        if item.queued == 0 {
+            item.offset_of_the_bytes = opened.offset;
+        }
+
+        player.append(SpeedSource::new(opened.source, item.speed.clone()));
         item.queued += 1;
     }
 
