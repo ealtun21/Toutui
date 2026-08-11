@@ -171,31 +171,60 @@ async fn every_view_draws_when_the_lists_are_shorter_than_the_selection() {
                 app.list_state_settings_account = past_the_end();
                 app.list_state_settings_library = past_the_end();
 
-                let backend = TestBackend::new(120, 40);
-                let mut terminal = Terminal::new(backend).expect("a terminal");
+                // **The terminal of 80 columns is a part of this measurement.**
+                // The footer of a view holds up to 94 letters, and it wrote on
+                // one row of the two rows of its area: the Home view of a
+                // library of podcasts ended with "?: every k" in 80 columns, and
+                // the keys `?` and `Q` are the two keys that a lost user needs.
+                // The footer wraps now. See T-90 and T-52.
+                for (width, height) in [(120, 40), (80, 24)] {
+                    let backend = TestBackend::new(width, height);
+                    let mut terminal = Terminal::new(backend).expect("a terminal");
 
-                terminal
-                    .draw(|frame| frame.render_widget(&mut app, frame.area()))
-                    .unwrap_or_else(|error| {
-                        panic!("the view {} did not draw: {}", name, error);
-                    });
+                    terminal
+                        .draw(|frame| frame.render_widget(&mut app, frame.area()))
+                        .unwrap_or_else(|error| {
+                            panic!(
+                                "the view {} did not draw in {} columns: {}",
+                                name, width, error
+                            );
+                        });
 
-                // A screen that draws nothing at all is also a fault.
-                let text: String = terminal
-                    .backend()
-                    .buffer()
-                    .content()
-                    .iter()
-                    .map(|cell| cell.symbol())
-                    .collect();
+                    // A screen that draws nothing at all is also a fault.
+                    let text: String = terminal
+                        .backend()
+                        .buffer()
+                        .content()
+                        .iter()
+                        .map(|cell| cell.symbol())
+                        .collect();
 
-                assert!(
-                    text.contains("Toutui"),
-                    "the view {} drew no header (podcast={}, from a search={})",
-                    name,
-                    is_podcast,
-                    from_search
-                );
+                    assert!(
+                        text.contains("Toutui"),
+                        "the view {} drew no header in {} columns \
+                         (podcast={}, from a search={})",
+                        name,
+                        width,
+                        is_podcast,
+                        from_search
+                    );
+
+                    // The last word of every footer of the program. A view that
+                    // loses it says nothing about the key that leaves it.
+                    //
+                    // The test reads the word alone, and not "Q: quit": a
+                    // footer of 83 letters wraps between the two words in 80
+                    // columns, and the user reads both of them.
+                    assert!(
+                        text.contains("quit"),
+                        "the view {} lost the end of its footer in {} columns \
+                         (podcast={}, from a search={})",
+                        name,
+                        width,
+                        is_podcast,
+                        from_search
+                    );
+                }
             }
         }
     }

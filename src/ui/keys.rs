@@ -7,8 +7,11 @@
 //!
 //! Therefore this module holds two things:
 //!
-//! - **The footer of each view.** It names the keys of the work of that view,
-//!   and it fits in 80 columns.
+//! - **The footer of each view.** It names the keys of the work of that view.
+//!   The area of the footer holds two rows, and the text wraps: a footer of 94
+//!   letters therefore keeps every word in a terminal of 80 columns. The old
+//!   text of this line said that every footer fits in 80 columns, and no footer
+//!   of more than 80 letters did. See T-90.
 //! - **Every key, in groups.** The key `?` shows them. The view of the keys is
 //!   a list, therefore a small terminal scrolls it.
 //!

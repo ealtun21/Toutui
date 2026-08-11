@@ -2121,8 +2121,18 @@ impl App {
             .render(area, buf);
     }
 
+    /// Draws the footer of a view.
+    ///
+    /// **The footer holds two rows, and it writes on one of them only.** A
+    /// terminal of 80 columns therefore lost the end of every footer: the Home
+    /// view of a library of podcasts ended with "?: every k", and the keys `?`
+    /// and `Q` are the two keys that a lost user needs. See T-90 and T-52.
+    ///
+    /// The text wraps now. A wide terminal draws one row, as it did before,
+    /// and a terminal of 80 columns draws two.
     fn render_footer(area: Rect, buf: &mut Buffer, text_render_footer: &str) {
         Paragraph::new(text_render_footer)
+            .wrap(Wrap { trim: true })
             .centered()
             .render(area, buf);
     }

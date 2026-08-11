@@ -3464,6 +3464,35 @@ name of a podcast (`A`), and the name of a new list (`c` and `p`). The
 measurement after the correction: the two lines of the text of the view come
 back, and no letter of the box stays.
 
+### T-90: every footer lost its end in a terminal of 80 columns
+
+**The sweep of 80 columns is one of the sweeps that no session had made.** The
+first screen of that sweep, a Home view of a library of podcasts in a terminal
+of 80 by 24, ended with:
+
+```
+j/k: move  l: the episodes  Tab: home/library  /: search  R: refresh  ?: every k
+```
+
+The keys `?` and `Q` went away. **Those are the two keys that a lost user
+needs**, and T-52 holds that rule: "A screen that names no key looks like a
+program that stopped."
+
+The footer of a library of podcasts holds 94 letters, and the footer of a list
+holds 83. **The area of the footer holds two rows**, and `render_footer` wrote
+on one of them: a `Paragraph` with no `Wrap` writes one row for each line of its
+text, and it cuts every letter after the width. The module `ui::keys` said that
+every footer fits in 80 columns, and no footer of more than 80 letters did.
+
+The footer wraps now, therefore a wide terminal draws one row as it did before,
+and a terminal of 80 columns draws two. A sweep of thirteen views after the
+correction found no other text that goes away at that width.
+
+`the_screen_survives_a_short_list` draws every view in 120 by 40 **and in 80 by
+24** now, and it holds the last word of the footer on the screen. A build with
+the wrap removed fails with "the view Home lost the end of its footer in 80
+columns".
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
