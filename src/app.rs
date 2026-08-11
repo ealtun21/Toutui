@@ -1147,6 +1147,10 @@ impl App {
             // See T-24.
             KeyCode::Char('C') => self.show_the_chapters(),
 
+            // The key that tells the server to get the new episodes of a
+            // podcast. See T-24.
+            KeyCode::Char('E') => self.get_the_new_episodes(),
+
             // The key that looks for a new podcast. See T-24.
             KeyCode::Char('A') => self.look_for_a_podcast(),
 
@@ -1999,6 +2003,66 @@ impl App {
             3,
             &format!("The playback goes to \"{}\".", chapter.title),
         );
+    }
+
+    /// Tells the server to get the episodes that it does not hold. See T-24.
+    ///
+    /// The key `D` copies a media to the disk of the user. This key is a
+    /// different work: the server gets the file and it puts it in the library
+    /// of the server, therefore every client can play it.
+    pub fn get_the_new_episodes(&mut self) {
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+
+        if !self.is_podcast {
+            let _ = pop_message(&mut stdout, 3, "This library holds books.");
+            return;
+        }
+
+        if self.is_offline {
+            let _ = pop_message(&mut stdout, 3, "The server does not answer.");
+            return;
+        }
+
+        // The view of the episodes belongs to one podcast, and the Library
+        // view gives the podcast of the line.
+        let item_id = match self.view_state {
+            AppView::PodcastEpisode => self.podcast_of_the_episodes(),
+            _ => self.selected_item_id(),
+        };
+
+        let Some(item_id) = item_id else {
+            let _ = pop_message(&mut stdout, 3, "No podcast is selected.");
+            return;
+        };
+
+        let api = std::sync::Arc::clone(&self.api);
+        let _ = pop_message(&mut stdout, 3, "The server reads the feed…");
+
+        tokio::spawn(async move {
+            let text = ask_the_server_for_the_episodes(&api, &item_id).await;
+
+            let mut stdout = std::io::stdout();
+            let _ = clear_message(&mut stdout, 3);
+            let _ = pop_message(&mut stdout, 3, text.as_str());
+        });
+    }
+
+    /// Gives the identity of the podcast whose episodes the view shows.
+    fn podcast_of_the_episodes(&self) -> Option<String> {
+        let ids = if self.is_from_search_pod {
+            &self.ids_library_pod_search
+        } else {
+            &self.ids_library
+        };
+
+        let index = if self.is_from_search_pod {
+            self.list_state_search_results.selected()
+        } else {
+            self.selected_library_item()
+        };
+
+        index.and_then(|index| ids.get(index)).cloned()
     }
 
     /// Looks for a new podcast, and shows what the server found. See T-24.
@@ -3576,6 +3640,51 @@ pub async fn mark_the_media(
     {
         Ok(()) => message_of_the_mark(!was_finished),
         Err(error) => format!("The server did not take the mark: {}", error),
+    }
+}
+
+/// Asks the server to get the episodes of a feed that it does not hold.
+///
+/// The function gives the text that the user reads. See T-24.
+pub async fn ask_the_server_for_the_episodes(
+    api: &std::sync::Arc<crate::api::client::ApiClient>,
+    item_id: &str,
+) -> String {
+    let item: serde_json::Value = match api.get_json(&format!("/api/items/{}", item_id)).await {
+        Ok(value) => value,
+        Err(error) => return format!("The server did not give the podcast: {}", error),
+    };
+
+    let Some(feed_url) = item["media"]["metadata"]["feedUrl"].as_str() else {
+        return "This podcast holds no address of a feed.".to_string();
+    };
+
+    let feed = match crate::api::podcasts::get_feed(api, feed_url).await {
+        Ok(value) => value,
+        Err(error) => return format!("The server did not read the feed: {}", error),
+    };
+
+    let held: Vec<serde_json::Value> = item["media"]["episodes"]
+        .as_array()
+        .cloned()
+        .unwrap_or_default();
+
+    let asked = crate::api::podcasts::missing(&feed.episodes, &held);
+
+    if asked.is_empty() {
+        return format!(
+            "The server holds every episode of the feed ({} of {}).",
+            held.len(),
+            feed.episodes.len()
+        );
+    }
+
+    match crate::api::podcasts::download_episodes(api, item_id, &asked).await {
+        Ok(()) => format!(
+            "The server gets {} episode(s). Press R after a moment.",
+            asked.len()
+        ),
+        Err(error) => format!("The server did not take the request: {}", error),
     }
 }
 

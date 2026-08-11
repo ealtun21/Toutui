@@ -209,6 +209,78 @@ pub fn body_for(
     })
 }
 
+/// Tells the server to get the episodes of a feed. See T-24.
+///
+/// The key `D` copies a media to the disk of the user. This request is a
+/// different work: the server gets the file and it puts it in the library,
+/// therefore every client of that server can play it.
+///
+/// A measurement on 2026-08-11: the body is the list of the episodes of the
+/// feed, and the answer is `200`. The server holds the episode a few seconds
+/// later.
+pub async fn download_episodes(
+    client: &ApiClient,
+    item_id: &str,
+    episodes: &[serde_json::Value],
+) -> Result<(), ApiError> {
+    client
+        .post_no_content(
+            &format!("/api/podcasts/{}/download-episodes", item_id),
+            &episodes.to_vec(),
+        )
+        .await
+}
+
+/// Gives the episodes of a feed that the server does not hold.
+///
+/// **`GET /api/podcasts/:id/checknew` does not do this work.** A measurement
+/// on 2026-08-11 gives `{"episodes":[]}` for a podcast that the program added
+/// one second before, and whose feed holds three episodes. That endpoint
+/// compares with the time of the last examination, therefore a new podcast
+/// has nothing "new". The program reads the feed and it compares itself.
+///
+/// The `guid` names an episode. A feed with no `guid` gives the address of
+/// the file, and a feed with neither gives the title.
+pub fn missing(
+    feed: &[serde_json::Value],
+    on_the_server: &[serde_json::Value],
+) -> Vec<serde_json::Value> {
+    let held: Vec<String> = on_the_server.iter().filter_map(name_of).collect();
+
+    feed.iter()
+        .filter(|one| match name_of(one) {
+            Some(name) => !held.contains(&name),
+            // An episode with no name at all cannot be compared. The program
+            // does not ask for it: a second copy of one episode is worse than
+            // no copy.
+            None => false,
+        })
+        .cloned()
+        .collect()
+}
+
+/// Gives the name that tells one episode from another.
+fn name_of(episode: &serde_json::Value) -> Option<String> {
+    let text = |key: &str| {
+        episode
+            .get(key)
+            .and_then(|value| value.as_str())
+            .filter(|value| !value.is_empty())
+            .map(|value| value.to_string())
+    };
+
+    text("guid")
+        .or_else(|| {
+            episode
+                .get("enclosure")
+                .and_then(|one| one.get("url"))
+                .and_then(|value| value.as_str())
+                .filter(|value| !value.is_empty())
+                .map(|value| value.to_string())
+        })
+        .or_else(|| text("title"))
+}
+
 #[derive(Debug, Clone, Default, Deserialize)]
 pub struct Made {
     #[serde(default)]
@@ -420,6 +492,104 @@ mod tests {
         // A dash is a character of a name, therefore two dashes stay.
         assert_eq!(directory_of("A -- B"), "A -- B");
         assert_eq!(directory_of("A  /  B"), "A B");
+    }
+
+    fn episode(guid: &str, url: &str, title: &str) -> serde_json::Value {
+        serde_json::json!({
+            "guid": guid,
+            "enclosure": { "url": url },
+            "title": title
+        })
+    }
+
+    /// The shape of the sandbox, measured on 2026-08-11.
+    #[test]
+    fn the_program_asks_for_the_episodes_that_the_server_does_not_hold() {
+        let feed = vec![
+            episode(
+                "https://api.spreaker.com/episode/1",
+                "https://a.test/1.mp3",
+                "Chapter 1",
+            ),
+            episode(
+                "https://api.spreaker.com/episode/2",
+                "https://a.test/2.mp3",
+                "Chapter 2",
+            ),
+            episode(
+                "https://api.spreaker.com/episode/3",
+                "https://a.test/3.mp3",
+                "Chapter 3",
+            ),
+        ];
+
+        let held = vec![episode(
+            "https://api.spreaker.com/episode/1",
+            "https://a.test/1.mp3",
+            "Chapter 1",
+        )];
+
+        let asked = missing(&feed, &held);
+
+        assert_eq!(asked.len(), 2);
+        assert_eq!(asked[0]["title"], "Chapter 2");
+        assert_eq!(asked[1]["title"], "Chapter 3");
+    }
+
+    #[test]
+    fn a_server_that_holds_every_episode_gives_no_request() {
+        let feed = vec![episode("g1", "https://a.test/1.mp3", "One")];
+
+        assert!(missing(&feed, &feed).is_empty());
+    }
+
+    #[test]
+    fn a_feed_with_no_episode_gives_no_request() {
+        assert!(missing(&[], &[]).is_empty());
+    }
+
+    /// A feed with no `guid` must still work: the address of the file names
+    /// the episode.
+    #[test]
+    fn the_address_of_the_file_names_an_episode_with_no_guid() {
+        let feed = vec![serde_json::json!({
+            "enclosure": { "url": "https://a.test/1.mp3" }, "title": "One"
+        })];
+        let held = vec![serde_json::json!({
+            "enclosure": { "url": "https://a.test/1.mp3" }, "title": "A different name"
+        })];
+
+        assert!(missing(&feed, &held).is_empty());
+    }
+
+    #[test]
+    fn the_title_names_an_episode_with_no_guid_and_no_address() {
+        let feed = vec![serde_json::json!({ "title": "One" })];
+        let held = vec![serde_json::json!({ "title": "One" })];
+
+        assert!(missing(&feed, &held).is_empty());
+        assert_eq!(missing(&feed, &[]).len(), 1);
+    }
+
+    /// A second copy of one episode is worse than no copy.
+    #[test]
+    fn an_episode_with_no_name_at_all_gives_no_request() {
+        let feed = vec![serde_json::json!({ "pubDate": "a date" })];
+
+        assert!(missing(&feed, &[]).is_empty());
+    }
+
+    /// An empty text is not a name.
+    #[test]
+    fn an_empty_guid_gives_the_address_of_the_file() {
+        let feed = vec![serde_json::json!({
+            "guid": "", "enclosure": { "url": "https://a.test/1.mp3" }, "title": "One"
+        })];
+        let held = vec![serde_json::json!({
+            "guid": "", "enclosure": { "url": "https://a.test/1.mp3" }, "title": "One"
+        })];
+
+        assert!(missing(&feed, &held).is_empty());
     }
 
     #[test]

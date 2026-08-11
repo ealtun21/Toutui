@@ -134,6 +134,10 @@ The server sorts and filters the items. `f` chooses how.
 - The new podcast gets no episode by itself. The web page of Audiobookshelf
   starts a download of the episodes.
 - Press `R` to see the new podcast.
+- `E` — tell the server to get the episodes of the feed that it does not hold.
+  The key operates on a podcast of the Library view, and in the list of the
+  episodes. This is not the key `D`: `D` copies a media to your own disk, and
+  `E` puts the file in the library of the server for every client.
 
 ## 💤 A timer for sleep
 
@@ -224,8 +228,6 @@ The application starts and plays when the server does not answer:
 ## 🔮 Future features
 The EPUB reader, the statistics, and the podcasts of the old list are done.
 These stay:
-- Tell the server to get an episode of a podcast (the key `D` copies to your
-  own disk, and this puts the file in the library for every client)
 - The place of the ebook in the form of the web reader (EPUBCFI)
 - A view of the authors of a library
 - The changes of a different client, as they happen (this needs socket.io)

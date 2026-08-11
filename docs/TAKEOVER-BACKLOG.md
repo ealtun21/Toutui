@@ -1187,6 +1187,34 @@ Balzac (1799 - 1850)" to the sandbox, and the second run of the same test gave
 `400`. The program now says "The library can hold that podcast already" for
 that answer.
 
+### The server gets an episode — complete, 2026-08-11 (v0.7.5)
+
+The key `D` copies a media to the disk of the user. The key `E` is a different
+work: the server gets the file and it puts it in the library, therefore every
+client of that server can play it.
+
+**`GET /api/podcasts/:id/checknew` does not do this work.** A measurement on
+2026-08-11 gives `{"episodes":[]}` for a podcast that the program added one
+second before, and whose feed holds three episodes. That endpoint compares
+with the time of the last examination, therefore a new podcast has nothing
+"new". The program reads the feed with `POST /api/podcasts/feed` and it
+compares with `media.episodes` of the item itself. It then finds every episode
+that is missing, and not the new ones only.
+
+`missing` names an episode by its `guid`, then by the address of its file, and
+then by its title. An episode with no name at all gives no request: a second
+copy of one episode is worse than no copy.
+
+**A second correction of `docs/T-24-coverage.md`.**
+`GET /api/podcasts/:id/episode-downloads` gives `404` on 2.36.0. An older
+version of that document named it as an endpoint that answers. The queue
+belongs to the library: `GET /api/libraries/:id/episode-downloads` gives
+`{"queue":[]}`.
+
+`tests/the_new_podcast_against_the_sandbox.rs` holds the measurement. It adds
+a podcast of three episodes, it asks for them, it waits for the file, and it
+removes the podcast.
+
 ## The report of the user of 2026-08-10, on v0.5.0
 
 The user tested v0.5.0 and named ten items. This section holds each one, the
