@@ -58,6 +58,7 @@ This list comes from `src/api/` and from `src/logic/`. It is complete.
 | `GET /api/libraries/:id/personalized` | `src/api/libraries/get_library_perso_view.rs` |
 | `GET /api/libraries/:id/series?limit=500&page=N&sort=name` | `src/api/libraries/get_all_series.rs` |
 | `GET /api/libraries/:id/authors` | `src/api/libraries/get_authors.rs` |
+| `POST /api/libraries/:id/scan` | `src/app.rs`, the key `L` |
 | `GET /api/libraries/:id/collections?limit=&page=` | `src/api/libraries/get_lists.rs` |
 | `GET /api/libraries/:id/playlists?limit=&page=` | `src/api/libraries/get_lists.rs` |
 | `GET /api/items/:id` | `src/logic/playback/mod.rs` |
@@ -73,7 +74,7 @@ This list comes from `src/api/` and from `src/logic/`. It is complete.
 | `POST /api/session/:id/sync`, `POST /api/session/:id/close` | `src/api/sessions/` |
 | `GET /api/search/podcast?term=`, `POST /api/podcasts/feed`, `POST /api/podcasts`, `POST /api/podcasts/:id/download-episodes` | `src/api/podcasts/mod.rs` |
 
-Toutui calls 24 paths. The server has more than 100.
+Toutui calls 25 paths. The server has more than 100.
 
 ## 3. The keys of Toutui
 
