@@ -28,29 +28,13 @@ use toutui::player::engine::hls;
 use toutui::player::engine::hls_file::HlsFile;
 
 const SERVER: &str = "http://127.0.0.1:13399";
-const USER: &str = "toutuitest";
-const PASSWORD: &str = "toutuitest";
 
 /// The title of the book of the measurement. It holds `01 - Part 1.mp3` and
 /// `02 - Part 2.wma`, and the program plays no WMA file. See T-18.
 const TITLE: &str = "One File With No Decoder";
 
-async fn token() -> String {
-    let answer: serde_json::Value = reqwest::Client::new()
-        .post(format!("{}/login", SERVER))
-        .json(&serde_json::json!({ "username": USER, "password": PASSWORD }))
-        .send()
-        .await
-        .expect("the sandbox server must answer")
-        .json()
-        .await
-        .expect("the answer of the login must hold JSON");
-
-    answer["user"]["token"]
-        .as_str()
-        .expect("the answer must hold a token")
-        .to_string()
-}
+mod common;
+use common::token;
 
 /// The whole way: the session of the stream, the playlist, and the audio of one
 /// part.

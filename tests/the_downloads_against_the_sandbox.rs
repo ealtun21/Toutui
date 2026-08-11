@@ -23,8 +23,6 @@ use toutui::api::client::ApiClient;
 use toutui::api::podcasts::the_downloads::{empty_the_queue, the_downloads_of_the_library};
 
 const SERVER: &str = "http://127.0.0.1:13399";
-const USER: &str = "toutuitest";
-const PASSWORD: &str = "toutuitest";
 
 /// The feed of the sandbox. `docs/TEST-SERVER.md` names it.
 const FEED: &str = "https://librivox.org/rss/52";
@@ -36,22 +34,8 @@ const FEED: &str = "https://librivox.org/rss/52";
 /// held nine episodes three seconds later. See T-81.
 const LIMIT: Duration = Duration::from_secs(30);
 
-async fn token() -> String {
-    let answer: serde_json::Value = reqwest::Client::new()
-        .post(format!("{}/login", SERVER))
-        .json(&serde_json::json!({ "username": USER, "password": PASSWORD }))
-        .send()
-        .await
-        .expect("the sandbox server must answer")
-        .json()
-        .await
-        .expect("the answer of the login must hold JSON");
-
-    answer["user"]["token"]
-        .as_str()
-        .expect("the answer must hold a token")
-        .to_string()
-}
+mod common;
+use common::token;
 
 /// Gives the library of the podcasts and its first podcast.
 async fn the_podcast(api: &Arc<ApiClient>) -> Option<(String, String)> {
@@ -81,11 +65,18 @@ async fn the_podcast(api: &Arc<ApiClient>) -> Option<(String, String)> {
 }
 
 /// Gives the episodes of the feed that the server does not hold.
+///
+/// The function gives `None` when the **feed of the internet** does not answer.
+/// That is not a fault of this program: `POST /api/podcasts/feed` makes the
+/// server read a web site, and the request of the client stops after 15
+/// seconds. A measurement of 2026-08-11 gave that timeout in four runs of eight,
+/// and the test then said "the server must read the feed" for a slow network.
+/// See T-96.
 async fn the_episodes_that_are_missing(
     api: &Arc<ApiClient>,
     item_id: &str,
     how_many: usize,
-) -> Vec<serde_json::Value> {
+) -> Option<Vec<serde_json::Value>> {
     let item: serde_json::Value = api
         .get_json(&format!("/api/items/{}", item_id))
         .await
@@ -98,25 +89,47 @@ async fn the_episodes_that_are_missing(
         .filter_map(|episode| episode["title"].as_str().map(str::to_string))
         .collect();
 
-    let feed: serde_json::Value = api
-        .post_json(
-            "/api/podcasts/feed",
-            &serde_json::json!({ "rssFeed": FEED }),
-        )
-        .await
-        .expect("the server must read the feed");
+    // The server reads the feed of a web site. A network that is slow needs a
+    // second attempt, and a network that does not answer stops this test with
+    // a line of text and no fault.
+    let mut feed: Option<serde_json::Value> = None;
 
-    feed["podcast"]["episodes"]
-        .as_array()
-        .unwrap_or(&Vec::new())
-        .iter()
-        .filter(|episode| {
-            let title = episode["title"].as_str().unwrap_or_default().to_string();
-            !of_the_server.contains(&title)
-        })
-        .take(how_many)
-        .cloned()
-        .collect()
+    for attempt in 1..=3 {
+        match api
+            .post_json::<_, serde_json::Value>(
+                "/api/podcasts/feed",
+                &serde_json::json!({ "rssFeed": FEED }),
+            )
+            .await
+        {
+            Ok(answer) => {
+                feed = Some(answer);
+                break;
+            }
+            Err(error) => {
+                println!(
+                    "the attempt {} of the feed gave: {}. The server reads a web site.",
+                    attempt, error
+                );
+            }
+        }
+    }
+
+    let feed = feed?;
+
+    Some(
+        feed["podcast"]["episodes"]
+            .as_array()
+            .unwrap_or(&Vec::new())
+            .iter()
+            .filter(|episode| {
+                let title = episode["title"].as_str().unwrap_or_default().to_string();
+                !of_the_server.contains(&title)
+            })
+            .take(how_many)
+            .cloned()
+            .collect(),
+    )
 }
 
 /// Waits until the queue of the library holds a line, and it gives the lines.
@@ -156,7 +169,13 @@ async fn the_program_reads_the_queue_of_the_downloads_and_it_empties_it() {
         return;
     };
 
-    let episodes = the_episodes_that_are_missing(&api, &item_id, 3).await;
+    let Some(episodes) = the_episodes_that_are_missing(&api, &item_id, 3).await else {
+        println!(
+            "the feed of the internet did not answer in three attempts. \
+             This test measures nothing without it."
+        );
+        return;
+    };
 
     if episodes.is_empty() {
         println!("the server holds every episode of the feed. The test needs one that is missing.");

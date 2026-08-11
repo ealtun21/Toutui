@@ -31,8 +31,6 @@ use toutui::player::engine::{PlaybackStatus, PlayerHandle};
 
 /// The sandbox server of `docs/TEST-SERVER.md`.
 const SERVER: &str = "http://127.0.0.1:13399";
-const USER: &str = "toutuitest";
-const PASSWORD: &str = "toutuitest";
 
 /// The book of the test. It has three audio files and 60 seconds.
 const TITLE: &str = "Multi File Test Book";
@@ -48,22 +46,8 @@ const POSITION: f64 = 37.0;
 /// sync long before that.
 const BEFORE_THE_PERIOD: u64 = 2200;
 
-async fn token() -> String {
-    let answer: serde_json::Value = reqwest::Client::new()
-        .post(format!("{}/login", SERVER))
-        .json(&serde_json::json!({ "username": USER, "password": PASSWORD }))
-        .send()
-        .await
-        .expect("the sandbox server must answer")
-        .json()
-        .await
-        .expect("the answer of the login must hold JSON");
-
-    answer["user"]["token"]
-        .as_str()
-        .expect("the answer must hold a token")
-        .to_string()
-}
+mod common;
+use common::{token, USER};
 
 async fn get(token: &str, path: &str) -> serde_json::Value {
     reqwest::Client::new()

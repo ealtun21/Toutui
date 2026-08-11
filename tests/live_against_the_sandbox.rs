@@ -27,29 +27,13 @@ use toutui::api::client::endpoint::{Endpoint, EndpointPool};
 use toutui::api::client::ApiClient;
 
 const SERVER: &str = "http://127.0.0.1:13399";
-const USER: &str = "toutuitest";
-const PASSWORD: &str = "toutuitest";
 
 /// The time to wait for one message. The server sends it inside a second, and
 /// this value gives room for a machine that is busy.
 const WAIT: Duration = Duration::from_secs(20);
 
-async fn token() -> String {
-    let answer: serde_json::Value = reqwest::Client::new()
-        .post(format!("{}/login", SERVER))
-        .json(&serde_json::json!({ "username": USER, "password": PASSWORD }))
-        .send()
-        .await
-        .expect("the sandbox server must answer")
-        .json()
-        .await
-        .expect("the answer of the login must hold JSON");
-
-    answer["user"]["token"]
-        .as_str()
-        .expect("the answer must hold a token")
-        .to_string()
-}
+mod common;
+use common::token;
 
 /// Waits while a value of the box is not the value that the test needs.
 async fn wait_for(what: &str, mut ready: impl FnMut() -> bool) {

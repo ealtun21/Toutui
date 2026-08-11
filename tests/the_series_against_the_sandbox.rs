@@ -25,28 +25,12 @@ use toutui::api::libraries::get_all_series::get_all_series;
 use toutui::api::utils::collect_series::collect_series;
 
 const SERVER: &str = "http://127.0.0.1:13399";
-const USER: &str = "toutuitest";
-const PASSWORD: &str = "toutuitest";
 
 /// The text that the test writes on the server.
 const DESCRIPTION: &str = "Three books of a test. The series has a description.";
 
-async fn token() -> String {
-    let answer: serde_json::Value = reqwest::Client::new()
-        .post(format!("{}/login", SERVER))
-        .json(&serde_json::json!({ "username": USER, "password": PASSWORD }))
-        .send()
-        .await
-        .expect("the sandbox server must answer")
-        .json()
-        .await
-        .expect("the answer of the login must hold JSON");
-
-    answer["user"]["token"]
-        .as_str()
-        .expect("the answer must hold a token")
-        .to_string()
-}
+mod common;
+use common::token;
 
 #[tokio::test(flavor = "multi_thread")]
 #[ignore = "needs the sandbox server of docs/TEST-SERVER.md on port 13399, and it writes"]
