@@ -11,6 +11,7 @@ pub mod new_podcast;
 pub mod offline;
 pub mod playback;
 pub mod prompt;
+pub mod queue;
 pub mod reader;
 pub mod search;
 pub mod sessions_view;

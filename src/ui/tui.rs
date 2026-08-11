@@ -38,6 +38,7 @@ impl Widget for &mut App {
             AppView::SortFilter => self.render_sort_filter(area, buf),
             AppView::Chapters => self.render_chapters(area, buf),
             AppView::Bookmarks => self.render_bookmarks(area, buf),
+            AppView::Queue => self.render_queue(area, buf),
             AppView::NewPodcast => self.render_new_podcast(area, buf),
             AppView::Authors => self.render_authors(area, buf),
             AppView::Settings => self.render_settings(area, buf),
@@ -268,6 +269,7 @@ impl App {
             | AppView::SortFilter
             | AppView::Chapters
             | AppView::Bookmarks
+            | AppView::Queue
             | AppView::NewPodcast
             | AppView::Authors
             | AppView::Settings
@@ -611,6 +613,42 @@ impl App {
     }
 }
 
+/// The media that wait in the queue. See T-24.
+impl App {
+    /// AppView::Queue rendering
+    fn render_queue(&mut self, area: Rect, buf: &mut Buffer) {
+        let [header_area, main_area, footer_area] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Fill(1),
+            Constraint::Length(2),
+        ])
+        .areas(area);
+
+        let queue = crate::logic::queue::snapshot();
+        let lines = queue.lines();
+
+        let title = if lines.is_empty() {
+            "The queue is empty. Press n on a media to put it in the queue.".to_string()
+        } else {
+            format!("The queue [{} items]", lines.len())
+        };
+
+        self.render_header(header_area, buf);
+        App::render_footer(
+            footer_area,
+            buf,
+            "j/↓, k/↑: move, l/→: play it now, X: take it out, h/Tab: back, Q/Esc: quit",
+        );
+        self.render_list(
+            main_area,
+            buf,
+            &title,
+            &lines,
+            &mut self.list_state_queue.clone(),
+        );
+    }
+}
+
 /// The chapters of the media that plays. See T-24.
 impl App {
     /// AppView::Chapters rendering
@@ -753,9 +791,9 @@ impl App {
         // A library of podcasts has no series and no ebook. The footer of
         // that library must not name a key that does nothing.
         let text_render_footer = if self.is_podcast {
-            "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, f: sequence, A: a new podcast, E: the server gets the episodes, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
+            "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, n: to the queue, q: the queue, f: sequence, A: a new podcast, E: the server gets the episodes, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
         } else {
-            "j/↓, k/↑: move, l/→: play or open a series, Tab: library, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, s: series, a: authors, c: lists, f: sequence, A: a new podcast, E: the server gets the episodes, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
+            "j/↓, k/↑: move, l/→: play or open a series, Tab: library, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, n: to the queue, q: the queue, s: series, a: authors, c: lists, f: sequence, A: a new podcast, E: the server gets the episodes, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
         };
 
         self.render_header(header_area, buf);
@@ -828,7 +866,7 @@ impl App {
         if self.is_podcast {
             _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
         } else {
-            _text_render_footer = "j/↓, k/↑: move, l/→: play or open a series, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, s: series, a: authors, c: lists, f: sequence, A: a new podcast, E: the server gets the episodes, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
+            _text_render_footer = "j/↓, k/↑: move, l/→: play or open a series, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, n: to the queue, q: the queue, s: series, a: authors, c: lists, f: sequence, A: a new podcast, E: the server gets the episodes, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
         }
 
         self.render_header(header_area, buf);
@@ -945,7 +983,7 @@ impl App {
         ])
         .areas(main_area);
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, n: to the queue, q: the queue, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -1089,7 +1127,7 @@ impl App {
         ])
         .areas(main_area);
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, n: to the queue, q: the queue, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -1296,7 +1334,7 @@ impl App {
         if self.is_podcast {
             _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n c: lists, A: a new podcast, E: the server gets the episodes, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
         } else {
-            _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, s: series, a: authors, c: lists, f: sequence, A: a new podcast, E: the server gets the episodes, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+            _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, n: to the queue, q: the queue, s: series, a: authors, c: lists, f: sequence, A: a new podcast, E: the server gets the episodes, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
         }
 
         if self.search_mode {
@@ -1515,7 +1553,7 @@ impl App {
         ])
         .areas(main_area);
 
-        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+        let text_render_footer = "j/↓, k/↑: move, l/→: play, h: back, Tab: home, R: refresh, L: scan the library, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, W: your sessions, C: chapters, b: a bookmark, V: the bookmarks, n: to the queue, q: the queue, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);

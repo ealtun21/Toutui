@@ -14,6 +14,7 @@ use crate::api::sessions::close_open_session::*;
 use crate::api::sessions::sync_open_session::*;
 use crate::db::crud::*;
 use crate::logic::offline::{remember_progress, tracks_from_downloads};
+use crate::logic::queue::{self, the_queue_goes_on, Outcome};
 use crate::logic::sync_session::force_sync;
 use crate::logic::sync_session::sync_session_from_database::*;
 use crate::logic::sync_session::wait_prev_session_finished::*;
@@ -39,7 +40,7 @@ const SYNC_PERIOD: u64 = 10;
 const START_TIME_LIMIT: u64 = 30;
 
 /// What the user selected.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum PlaybackTarget {
     /// A book of the library.
     Book {
@@ -177,6 +178,16 @@ pub fn tracks_from_episode(item: &serde_json::Value, episode_id: &str) -> Option
 /// the answer 500, and the value stayed `0`.
 ///
 /// One place owns this value now. `tests/playback_wait_flag.rs` holds the rule.
+///
+/// # The queue
+///
+/// A media that comes to its end gives the engine to the next media of the
+/// queue. The function therefore does not come back after one media: it takes
+/// the next media of the queue and it plays that media in the same task. See
+/// `crate::logic::queue`.
+///
+/// A media that the user stopped, and a media that a different playback took
+/// away, leave the queue where it is. `the_queue_goes_on` holds that rule.
 pub async fn play(
     api: &ApiClient,
     player: &PlayerHandle,
@@ -185,17 +196,47 @@ pub async fn play(
     server_address: String,
     server_key: String,
 ) {
-    play_media(
-        api,
-        player,
-        target,
-        username.clone(),
-        server_address,
-        server_key,
-    )
-    .await;
+    let mut target = target;
 
-    let _ = update_is_loop_break("1", username.as_str());
+    loop {
+        let outcome = play_media(
+            api,
+            player,
+            target,
+            username.clone(),
+            server_address.clone(),
+            server_key.clone(),
+        )
+        .await;
+
+        // The next media of the queue opens its own session. Therefore this
+        // playback must release the wait before that media starts.
+        let _ = update_is_loop_break("1", username.as_str());
+
+        if !the_queue_goes_on(outcome) {
+            return;
+        }
+
+        let Some(entry) = queue::take_next() else {
+            return;
+        };
+
+        info!(
+            "[play] the media came to its end. The queue starts \"{}\", and {} \
+             media wait.",
+            entry.title,
+            queue::len()
+        );
+
+        let mut stdout = stdout();
+        let _ = pop_message(
+            &mut stdout,
+            3,
+            &format!("The queue starts \"{}\".", entry.title),
+        );
+
+        target = entry.target;
+    }
 }
 
 /// Starts a media, and follows the playback to the end. `play` calls this
@@ -207,7 +248,7 @@ async fn play_media(
     username: String,
     server_address: String,
     server_key: String,
-) {
+) -> Outcome {
     // The engine stops the media that plays now. There is no separate
     // program, thus the application does not stop a process.
     player.send(PlayerCommand::Stop);
@@ -238,13 +279,12 @@ async fn play_media(
                 "[play] the server does not answer: {}. The offline mode starts.",
                 error
             );
-            play_offline(player, &target, username, server_key, &mut stdout).await;
-            return;
+            return play_offline(player, &target, username, server_key, &mut stdout).await;
         }
         Err(error) => {
             error!("[play] the server did not start the session: {}", error);
             let _ = clear_message(&mut stdout, 3);
-            return;
+            return Outcome::Fault;
         }
     };
 
@@ -257,7 +297,7 @@ async fn play_media(
         Err(error) => {
             error!("[play] the server did not give the item: {}", error);
             let _ = clear_message(&mut stdout, 3);
-            return;
+            return Outcome::Fault;
         }
     };
 
@@ -271,7 +311,7 @@ async fn play_media(
         None => {
             error!("[play] the item has no audio file");
             let _ = clear_message(&mut stdout, 3);
-            return;
+            return Outcome::Fault;
         }
     };
 
@@ -359,7 +399,7 @@ async fn play_media(
         playback_id,
         start_position,
     )
-    .await;
+    .await
 }
 
 /// Plays a local copy when the server does not answer.
@@ -373,7 +413,7 @@ async fn play_offline(
     username: String,
     server: String,
     stdout: &mut std::io::Stdout,
-) {
+) -> Outcome {
     let selected = target.item_id().to_string();
 
     // The download of an episode has the identity of the episode.
@@ -386,7 +426,7 @@ async fn play_offline(
             3,
             "The server does not answer, and the disk has no copy of this media.",
         );
-        return;
+        return Outcome::Fault;
     };
 
     let Some(tracks) = tracks_from_downloads(&key, &username) else {
@@ -396,7 +436,7 @@ async fn play_offline(
             3,
             "The server does not answer, and the disk has no audio file of this media.",
         );
-        return;
+        return Outcome::Fault;
     };
 
     let track_list: Vec<Track> = (0..tracks.len())
@@ -420,7 +460,7 @@ async fn play_offline(
             3,
             "The disk does not hold every file of this media.",
         );
-        return;
+        return Outcome::Fault;
     }
 
     // The row holds the identity of the library item. The key of an episode is
@@ -489,7 +529,7 @@ async fn play_offline(
         playback_id,
         row.current_time as f64,
     )
-    .await;
+    .await
 }
 
 /// Follows a playback that has no server.
@@ -511,7 +551,7 @@ async fn follow_playback_offline(
     total_duration: f64,
     playback_id: u64,
     start_position: f64,
-) {
+) -> Outcome {
     let mut own_position = start_position.max(0.0) as u32;
     let mut engine_started = false;
     let mut waited: u64 = 0;
@@ -549,7 +589,7 @@ async fn follow_playback_offline(
                 false,
             );
 
-            return;
+            return Outcome::Stopped;
         }
 
         engine_started = true;
@@ -587,7 +627,7 @@ async fn follow_playback_offline(
                 finished,
             );
 
-            return;
+            return outcome_of(finished);
         }
     }
 }
@@ -605,6 +645,20 @@ async fn follow_playback_offline(
 /// A larger identity in the state means that a later playback took the engine.
 /// A loop that saw its own playback one time and does not see it now is also
 /// in the first condition.
+/// Gives the outcome of a playback that stopped.
+///
+/// The engine writes `finished` only when no track stays and the position is
+/// at the end. `PlayerCommand::Stop` writes `false` in the same field.
+/// Therefore this one value separates an end from a stop of the user, and the
+/// queue reads it. See T-16.
+pub fn outcome_of(finished: bool) -> Outcome {
+    if finished {
+        Outcome::Finished
+    } else {
+        Outcome::Stopped
+    }
+}
+
 fn gave_up(
     state: &crate::player::engine::PlaybackState,
     playback_id: u64,
@@ -697,7 +751,7 @@ pub async fn follow_playback(
     total_duration: String,
     playback_id: u64,
     start_position: f64,
-) {
+) -> Outcome {
     let mut since_sync: u64 = 0;
     let mut last_position: u32 = 0;
     let mut was_stalled = false;
@@ -754,7 +808,7 @@ pub async fn follow_playback(
             )
             .await;
 
-            return;
+            return Outcome::Stopped;
         }
 
         engine_started = true;
@@ -875,7 +929,7 @@ pub async fn follow_playback(
                 )
                 .await;
 
-                return;
+                return outcome_of(finished);
             }
         }
     }
@@ -1163,6 +1217,17 @@ mod tests {
     #[test]
     fn a_loop_stops_when_the_engine_does_not_start() {
         assert!(gave_up(&state_of(0), 7, false, START_TIME_LIMIT));
+    }
+
+    /// The queue reads this value. A media that came to its end gives the
+    /// engine to the next media, and a media that the user stopped does not.
+    #[test]
+    fn the_end_of_a_media_gives_the_outcome_of_an_end() {
+        assert_eq!(outcome_of(true), Outcome::Finished);
+        assert_eq!(outcome_of(false), Outcome::Stopped);
+
+        assert!(the_queue_goes_on(outcome_of(true)));
+        assert!(!the_queue_goes_on(outcome_of(false)));
     }
 
     #[test]

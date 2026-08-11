@@ -36,6 +36,7 @@ not in the archived repository.
  **Series:** See the series of a library and the books of a series, in sequence (`s`)  
  **The shelves of Home:** Continue Listening, Recently Added, Recent Series, Discover, and Listen Again  
  **Collections & Playlists:** See them and play their contents (`c`)  
+ **A queue of media:** Put media in a queue, and the next one starts at the end of the media that plays (`n`, `q`)  
  **Sync Progress:** Keep your listening progress in sync  
  **Your listening time:** See the time of each day, of each day of the week, and of each media (`T`)  
  **Streaming Support:** Play directly without downloading  
@@ -183,6 +184,28 @@ reads it. A user of a long book needs a place to come back to.
 - A bookmark of a different client stands in the list, and a bookmark of this
   program stands in the web page.
 
+## ▶ The queue of media
+
+The program played one media, and it then stopped. The queue plays the next
+media at the end of the media that plays.
+
+- `n` — put the selected media at the end of the queue. The key operates in
+  every view that holds one media: Home, the library, the results of a search,
+  the books of a series, the media of a collection or of a playlist, and the
+  episodes of a podcast. The key does not change the media that plays.
+- `q` — show the queue.
+- `l`/`Enter` — start that media now. It goes out of the queue.
+- `X` — take the media out of the queue.
+- `h`/`Tab` — go back.
+
+**The queue starts the next media at an end, and at nothing else.** A media
+that you stopped, and a media that a different media took away, leave the queue
+where it is. Press `q` and `l` to start the queue again.
+
+The queue lives in the memory of the program. A program that stops loses it.
+Audiobookshelf holds its own queue in the web page, and it sends that queue to
+no client. Therefore this queue belongs to this program only.
+
 ## ⏱ The chapters, and Continue Listening
 
 - `C` — show the chapters of the media that plays. A mark stands before the
@@ -243,9 +266,8 @@ The application starts and plays when the server does not answer:
 - Add future features described bellow.
 
 ## 🔮 Future features
-The EPUB reader, the statistics, and the podcasts of the old list are done.
-These stay:
-- The place of the ebook in the form of the web reader (EPUBCFI)
+The EPUB reader, the statistics, the podcasts, the place of the ebook in the
+form of the web reader (EPUBCFI), and the queue of media are done. This stays:
 - The changes of a different client, as they happen (this needs socket.io)
   
 ## ⚠️ Caution: Beta Version  

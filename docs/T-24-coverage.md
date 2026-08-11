@@ -165,7 +165,7 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 | **The speed** | The client does this work | Yes | Nothing. `O` and `I`, and the pitch does not change (T-19) |
 | **The volume** | The client does this work | Yes | Nothing. `o` and `i` |
 | **A timer for sleep** | Not a function of the server | Yes | Nothing. The key `t` gives 5, 10, 15, 30, 45, and 60 minutes, the end of the chapter, and then off. The volume falls in the last 30 seconds. The player shows the time that is left |
-| **A queue of media** | Not a function of the server | No | Everything. The client plays one media, and it stops |
+| **A queue of media** | Not a function of the server. Audiobookshelf holds its queue in the web page, and it sends it to no client | Yes | Nothing. The key `n` puts the selected media at the end of the queue, and the key `q` shows the queue. `l` starts a media now, and `X` takes one out. **The queue goes on at an end, and at nothing else.** `src/logic/queue.rs` |
 | **The cover art** | `GET /api/items/:id/cover` gives `200` and the bytes | Yes | Nothing. T-23. The panel stands beside the description, and a series shows its books |
 | **The description** | `media.metadata.description` of the item | Yes | Nothing. `src/utils/html_text.rs` removes the HTML tags (T-13) |
 | **Read an EPUB book** | `GET /api/items/:id/ebook` gives `200` and the whole file, and it takes a `Range` | Yes | Nothing. The reader writes an EPUBCFI in `ebookLocation` and it reads one, therefore the user reads on the telephone and continues in the terminal at the same line (T-10). `epub.js` gives a different step to 2.61 per cent of the texts; the user then loses the place inside the paragraph, and never the paragraph. See `src/logic/reader/cfi.rs` |

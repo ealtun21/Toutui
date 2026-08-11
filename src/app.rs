@@ -63,6 +63,8 @@ pub enum AppView {
     Chapters,
     /// The bookmarks of one media. See T-24.
     Bookmarks,
+    /// The media that wait in the queue. See T-24.
+    Queue,
     /// The podcasts that the server found for the words of the user. See
     /// T-24.
     NewPodcast,
@@ -133,6 +135,8 @@ pub struct App {
     pub list_state_chapters: ListState,
     /// The list of the bookmarks of one media. See T-24.
     pub list_state_bookmarks: ListState,
+    /// The list of the media that wait in the queue. See T-24.
+    pub list_state_queue: ListState,
     /// The media whose bookmarks the view shows. See T-24.
     pub bookmarks_of: String,
     /// The timer for sleep, if the user set one. See T-24.
@@ -1017,6 +1021,7 @@ impl App {
             list_state_sort_filter,
             list_state_chapters: ListState::default(),
             list_state_bookmarks: ListState::default(),
+            list_state_queue: ListState::default(),
             bookmarks_of: String::new(),
             sleep: None,
             sleep_choice: None,
@@ -1192,6 +1197,12 @@ impl App {
             KeyCode::Char('W') => self.show_the_sessions(),
 
             // The key that chooses the sequence and the filter. See T-24.
+            // The key `n` puts the selected media at the end of the queue,
+            // and the key `q` shows the queue. See T-24.
+            KeyCode::Char('n') => self.add_to_the_queue(),
+
+            KeyCode::Char('q') => self.show_the_queue(),
+
             KeyCode::Char('f') => self.show_the_sequence_and_the_filter(),
 
             // PLAYER //
@@ -1295,6 +1306,10 @@ impl App {
 
             // The key `X` removes a bookmark inside the view of the
             // bookmarks. Every other view removes the local copy. See T-24.
+            KeyCode::Char('X') if matches!(self.view_state, AppView::Queue) => {
+                self.remove_from_the_queue();
+            }
+
             KeyCode::Char('X') if matches!(self.view_state, AppView::Bookmarks) => {
                 self.remove_the_bookmark()
             }
@@ -1459,6 +1474,7 @@ impl App {
                     // The view of the chapters goes back to the Home view.
                     AppView::Chapters => self.view_state = AppView::Home,
                     AppView::Bookmarks => self.view_state = AppView::Home,
+                    AppView::Queue => self.view_state = AppView::Home,
                     AppView::NewPodcast => self.view_state = AppView::Library,
                     AppView::Authors => self.view_state = AppView::Library,
                     AppView::PodcastEpisode => {
@@ -1674,6 +1690,7 @@ impl App {
                     AppView::SortFilter => self.apply_the_sequence_or_the_filter(),
                     AppView::Chapters => self.go_to_the_chapter(),
                     AppView::Bookmarks => self.go_to_the_bookmark(),
+                    AppView::Queue => self.start_the_media_of_the_queue(),
                     AppView::NewPodcast => self.add_the_podcast(),
                     AppView::Authors => self.show_the_books_of_the_author(),
                     AppView::Library => {
@@ -3545,6 +3562,178 @@ impl App {
         }
     }
 
+    /// Gives the length of the selected media, in seconds.
+    ///
+    /// The function gives nothing when the view holds the length as a text
+    /// only. The view of the episodes of a podcast is such a view: the server
+    /// gives the seconds, and `collect_durations_pod_ep` makes the text at
+    /// once.
+    fn selected_length(&self) -> Option<f64> {
+        match self.view_state {
+            // A library of podcasts holds the lengths of the episodes in the
+            // lists of the podcasts, and not in this list.
+            AppView::Home if self.is_podcast => None,
+            AppView::Home => self
+                .selected_home_item()
+                .and_then(|index| self.duration_cnt_list.get(index).copied()),
+            AppView::Library => self
+                .selected_library_item()
+                .and_then(|index| self.duration_library.get(index).copied()),
+            AppView::SearchBook => self
+                .list_state_search_results
+                .selected()
+                .and_then(|index| self.duration_library_search_book.get(index).copied()),
+            AppView::SeriesBook => self.selected_series_book().map(|book| book.duration),
+            AppView::ListEntries => self.selected_list_entry().map(|entry| entry.duration),
+            _ => None,
+        }
+    }
+
+    /// Gives the media that the user selected, for the queue. See T-24.
+    ///
+    /// `selected_download` gives the media of every view that holds one media,
+    /// with its name and the name of its author. The queue needs the same
+    /// media. Therefore this function changes the target of the download to
+    /// the target of a playback, and it adds the length.
+    ///
+    /// A view that holds no media gives nothing. A podcast in the view
+    /// `Library` is an example: the user opens the podcast and selects one
+    /// episode.
+    pub fn selected_media(&self) -> Option<crate::logic::queue::Entry> {
+        let (target, title, author) = self.selected_download()?;
+
+        let target = match target {
+            DownloadTarget::Book { item_id } => PlaybackTarget::Book {
+                item_id,
+                whole_book_duration: self.selected_length(),
+            },
+            DownloadTarget::Episode {
+                item_id,
+                episode_id,
+            } => PlaybackTarget::Episode {
+                item_id,
+                episode_id,
+            },
+        };
+
+        Some(crate::logic::queue::Entry {
+            target,
+            title,
+            author,
+            duration: self.selected_length(),
+        })
+    }
+
+    /// Puts the selected media at the end of the queue. The key is `n`.
+    ///
+    /// The key does not change the media that plays. The queue starts the next
+    /// media when the media that plays comes to its end. The key `q` shows the
+    /// queue, and `l` in that view starts a media now.
+    pub fn add_to_the_queue(&mut self) {
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+
+        let Some(entry) = self.selected_media() else {
+            let _ = pop_message(&mut stdout, 3, "This line holds no media.");
+            return;
+        };
+
+        let title = entry.title.clone();
+        let place = crate::logic::queue::add(entry);
+
+        let _ = pop_message(
+            &mut stdout,
+            3,
+            &format!(
+                "\"{}\" is number {} of the queue. Press q to see the queue.",
+                title, place
+            ),
+        );
+    }
+
+    /// Shows the media that wait in the queue. The key is `q`.
+    pub fn show_the_queue(&mut self) {
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+
+        let count = crate::logic::queue::len();
+
+        // The selection must stand inside the list. An empty queue has no
+        // line to select.
+        self.list_state_queue.select(if count == 0 {
+            None
+        } else {
+            Some(self.list_state_queue.selected().unwrap_or(0).min(count - 1))
+        });
+
+        self.scroll_offset = 0;
+        self.view_state = AppView::Queue;
+    }
+
+    /// Takes the selected media out of the queue. The key is `X` inside the
+    /// view of the queue.
+    pub fn remove_from_the_queue(&mut self) {
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+
+        let Some(index) = self.list_state_queue.selected() else {
+            return;
+        };
+
+        let Some(entry) = crate::logic::queue::take_at(index) else {
+            return;
+        };
+
+        self.list_state_queue
+            .select(crate::logic::queue::snapshot().selection_after_a_remove(index));
+
+        let _ = pop_message(
+            &mut stdout,
+            3,
+            &format!("\"{}\" is not in the queue now.", entry.title),
+        );
+    }
+
+    /// Starts the selected media of the queue now. The key is `l` inside the
+    /// view of the queue.
+    ///
+    /// The media goes out of the queue: it plays, therefore it does not wait.
+    /// The media that plays now stops, in the same way as the key `l` in every
+    /// other view.
+    pub fn start_the_media_of_the_queue(&mut self) {
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+
+        let Some(index) = self.list_state_queue.selected() else {
+            return;
+        };
+
+        let Some(entry) = crate::logic::queue::take_at(index) else {
+            return;
+        };
+
+        self.list_state_queue
+            .select(crate::logic::queue::snapshot().selection_after_a_remove(index));
+
+        let api = std::sync::Arc::clone(&self.api);
+        let player = self.player.clone();
+        let username = self.username.clone();
+        let server_address = self.server_address.clone();
+        let server_key = self.server_key.clone();
+
+        tokio::spawn(async move {
+            play(
+                &api,
+                &player,
+                entry.target,
+                username,
+                server_address,
+                server_key,
+            )
+            .await;
+        });
+    }
+
     /// Toggle between Home and Library views
     fn toggle_view(&mut self) {
         self.view_state = match self.view_state {
@@ -3561,6 +3750,7 @@ impl App {
             AppView::SortFilter => AppView::Library,
             AppView::Chapters => AppView::Home,
             AppView::Bookmarks => AppView::Home,
+            AppView::Queue => AppView::Home,
             AppView::NewPodcast => AppView::Library,
             AppView::Authors => AppView::Library,
             AppView::Settings => AppView::Home,
@@ -3696,6 +3886,21 @@ impl App {
                     self.list_state_bookmarks.select(Some(0));
                 }
             }
+            // An empty queue holds no line, therefore the move selects
+            // nothing. The key `G` in an empty list stopped the program one
+            // time. See T-24 and the empty library of `docs/TEST-SERVER.md`.
+            AppView::Queue => {
+                let count = crate::logic::queue::len();
+                let from = self.list_state_queue.selected().unwrap_or(0);
+
+                self.list_state_queue.select(if count == 0 {
+                    None
+                } else if from + 1 < count {
+                    Some(from + 1)
+                } else {
+                    Some(0)
+                });
+            }
             AppView::NewPodcast => {
                 let count = crate::logic::new_podcast::found().len();
                 let from = self.list_state_new_podcast.selected().unwrap_or(0);
@@ -3781,6 +3986,7 @@ impl App {
             }
             AppView::Chapters => self.list_state_chapters.select_previous(),
             AppView::Bookmarks => self.list_state_bookmarks.select_previous(),
+            AppView::Queue => self.list_state_queue.select_previous(),
             AppView::NewPodcast => self.list_state_new_podcast.select_previous(),
             AppView::Authors => self.list_state_authors.select_previous(),
             AppView::Settings => self.list_state_settings.select_previous(),
@@ -3815,6 +4021,7 @@ impl App {
             }
             AppView::Chapters => self.list_state_chapters.select_first(),
             AppView::Bookmarks => self.list_state_bookmarks.select_first(),
+            AppView::Queue => self.list_state_queue.select_first(),
             AppView::NewPodcast => self.list_state_new_podcast.select_first(),
             AppView::Authors => self.list_state_authors.select_first(),
             AppView::Settings => self.list_state_settings.select_first(),
@@ -3889,6 +4096,12 @@ impl App {
             AppView::Bookmarks => {
                 let last = crate::logic::bookmarks::bookmarks().len().saturating_sub(1);
                 self.list_state_bookmarks.select(Some(last));
+            }
+            AppView::Queue => {
+                let count = crate::logic::queue::len();
+
+                self.list_state_queue
+                    .select(if count == 0 { None } else { Some(count - 1) });
             }
             AppView::NewPodcast => {
                 let last = crate::logic::new_podcast::found().len().saturating_sub(1);
