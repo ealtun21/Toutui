@@ -507,116 +507,283 @@ async fn play_the_stream_of_the_server(
         );
     }
 
-    let stream = match post_a_stream_session(api, &item_id, target.episode_id()).await {
-        Ok(stream) => stream,
-        Err(error) => {
-            error!("[play] the server gave no stream: {}", error);
-            crate::logic::message::say(
-                "The server cannot make a stream of this media. See the log.",
+    // **The program tries more than one place of the media.** The place decides
+    // where ffmpeg of the server starts, and one part of a file can stop that
+    // program. See T-69.
+    let places = the_places_to_try(start_position);
+    let mut the_last_fault: Option<String> = None;
+
+    // The ratio of the progress needs the length of the media, and the program
+    // holds it before the first session.
+    let total_duration_of_the_item = info_item[2].clone();
+
+    for (attempt, place) in places.iter().enumerate() {
+        let place = *place;
+
+        if attempt > 0 {
+            info!(
+                "[play] the place {} s gave no stream. The program tries {} s.",
+                start_position, place
             );
-            return Outcome::Fault;
+            crate::logic::message::say(&the_message_of_a_second_place(place));
+
+            // **The place of the server comes from the position of the user, and
+            // not from the part that the client asks for.** Its log says
+            // "Starting Stream at startTime 4:52 (User startTime 5:22)", and the
+            // argument of ffmpeg is then `-ss 292s` for every part that the
+            // client asks for. Therefore the program writes the position first.
+            //
+            // The program plays that place at once, therefore the position is
+            // true. A run that gives no stream at all writes the position of the
+            // user again. See T-69.
+            if let Err(error) =
+                write_the_place(api, target, place, &total_duration_of_the_item).await
+            {
+                warn!(
+                    "[play] the server did not take the place {}: {}",
+                    place, error
+                );
+            }
         }
-    };
 
-    let total_duration = if stream.duration > 0.0 {
-        format!("{}", stream.duration.round() as u64)
-    } else {
-        info_item[2].clone()
-    };
+        let stream = match post_a_stream_session(api, &item_id, target.episode_id()).await {
+            Ok(stream) => stream,
+            Err(error) => {
+                error!("[play] the server gave no stream: {}", error);
+                crate::logic::message::say(
+                    "The server cannot make a stream of this media. See the log.",
+                );
+                return Outcome::Fault;
+            }
+        };
 
-    // The stream holds the whole media, therefore the list holds one track and
-    // that track starts at the second 0 of the media.
-    let tracks = TrackList::new(
-        vec![Track {
-            index: 1,
-            filename: format!("the stream of {}", item_id),
-            ino: String::new(),
-            size: None,
-            mime_type: None,
-            duration: stream.duration,
-            start_offset: 0.0,
-        }],
-        chapters_of_the_media(api, &item_id).await,
-    );
+        let total_duration = if stream.duration > 0.0 {
+            format!("{}", stream.duration.round() as u64)
+        } else {
+            info_item[2].clone()
+        };
 
-    let sources = vec![TrackSource::Stream {
-        base_url: api.pool().active().unwrap_or_default(),
-        playlist: stream.playlist.clone(),
-        seconds: start_position.max(0.0),
-    }];
-
-    let playback_id = next_playback_id();
-
-    let request = PlaybackRequest {
-        playback_id,
-        item_id: item_id.clone(),
-        title: info_item[4].clone(),
-        author: info_item[6].clone(),
-        username: username.clone(),
-        tracks,
-        sources,
-        // The stream itself starts at the place of the user, therefore the engine
-        // starts at the second 0 of the stream and it adds that place to every
-        // position that it reports. See T-53 and T-63.
-        start_position: 0.0,
-        speed,
-    };
-
-    let _ = insert_listening_session(
-        stream.session_id.clone(),
-        item_id.clone(),
-        start_position.round() as u32,
-        total_duration.clone(),
-        target.episode_id().unwrap_or_default().to_string(),
-        0,
-        request.title.clone(),
-        request.author.clone(),
-        true,
-        String::new(),
-    );
-
-    info!(
-        "[play] the stream of the item {} starts at {} seconds",
-        item_id, start_position
-    );
-
-    player.send(PlayerCommand::Start(Box::new(request)));
-
-    // The stream of the server can hold the audio in a form that no decoder of
-    // the program reads. ffmpeg of the server copies the codec of the file when
-    // that codec fits a transport stream, and AAC of the newest form fits it as
-    // LATM only. The program must then say so, and it must not give silence.
-    // See T-53.
-    if let Some(name) =
-        the_file_that_no_decoder_reads(player, playback_id, WAIT_FOR_THE_STREAM).await
-    {
-        error!(
-            "[play] the stream of the server holds a form that no decoder of the \
-             program reads: {}",
-            name
+        // The stream holds the whole media, therefore the list holds one track and
+        // that track starts at the second 0 of the media.
+        let tracks = TrackList::new(
+            vec![Track {
+                index: 1,
+                filename: format!("the stream of {}", item_id),
+                ino: String::new(),
+                size: None,
+                mime_type: None,
+                duration: stream.duration,
+                start_offset: 0.0,
+            }],
+            chapters_of_the_media(api, &item_id).await,
         );
 
-        crate::logic::message::say(&the_message_of_a_stream_that_did_not_play(
-            player.state().why_the_start_did_not_work.as_deref(),
-        ));
+        let sources = vec![TrackSource::Stream {
+            base_url: api.pool().active().unwrap_or_default(),
+            playlist: stream.playlist.clone(),
+            seconds: place,
+        }];
 
-        return Outcome::Fault;
+        let playback_id = next_playback_id();
+
+        let request = PlaybackRequest {
+            playback_id,
+            item_id: item_id.clone(),
+            title: info_item[4].clone(),
+            author: info_item[6].clone(),
+            username: username.clone(),
+            tracks,
+            sources,
+            // The stream itself starts at the place of the user, therefore the engine
+            // starts at the second 0 of the stream and it adds that place to every
+            // position that it reports. See T-53 and T-63.
+            start_position: 0.0,
+            speed,
+        };
+
+        let _ = insert_listening_session(
+            stream.session_id.clone(),
+            item_id.clone(),
+            place.round() as u32,
+            total_duration.clone(),
+            target.episode_id().unwrap_or_default().to_string(),
+            0,
+            request.title.clone(),
+            request.author.clone(),
+            true,
+            String::new(),
+        );
+
+        info!(
+            "[play] the stream of the item {} starts at {} seconds",
+            item_id, place
+        );
+
+        player.send(PlayerCommand::Start(Box::new(request)));
+
+        // The stream of the server can hold the audio in a form that no decoder of
+        // the program reads. ffmpeg of the server copies the codec of the file when
+        // that codec fits a transport stream, and AAC of the newest form fits it as
+        // LATM only. The program must then say so, and it must not give silence.
+        // See T-53.
+        if let Some(name) =
+            the_file_that_no_decoder_reads(player, playback_id, WAIT_FOR_THE_STREAM).await
+        {
+            error!(
+                "[play] the stream of the place {} s did not play: {}",
+                place, name
+            );
+
+            the_last_fault = player.state().why_the_start_did_not_work.clone();
+
+            // **The session of this attempt must not stay open.** The server would
+            // hold one session for each place that the program tried, and a session
+            // that stays open is the report `dd9a649`.
+            player.send(PlayerCommand::Stop);
+
+            if let Err(error) = close_session_without_send_prg_data(api, &stream.session_id).await {
+                warn!(
+                    "[play] the server did not close the session of the stream: {}",
+                    error
+                );
+            }
+
+            continue;
+        }
+
+        return follow_playback(
+            api,
+            player,
+            stream.session_id,
+            item_id,
+            target.episode_id().map(|value| value.to_string()),
+            username,
+            total_duration,
+            playback_id,
+            // The engine gives the position inside the stream, and the stream starts
+            // at the place that the server gave. The loop adds that place. See T-53
+            // and T-69.
+            place,
+        )
+        .await;
     }
 
-    follow_playback(
-        api,
-        player,
-        stream.session_id,
-        item_id,
-        target.episode_id().map(|value| value.to_string()),
-        username,
-        total_duration,
-        playback_id,
-        // The engine gives the position inside the stream, and the stream starts
-        // at the place of the user. The loop adds that place. See T-53.
-        start_position,
+    // No place of the media gave a stream that plays. The program wrote a place
+    // of its own for each attempt, therefore the position of the user comes
+    // back. See T-69.
+    if places.len() > 1 {
+        if let Err(error) =
+            write_the_place(api, target, start_position, &total_duration_of_the_item).await
+        {
+            warn!(
+                "[play] the position {} of the user did not come back: {}",
+                start_position, error
+            );
+        }
+    }
+
+    crate::logic::message::say(&the_message_of_a_stream_that_did_not_play(
+        the_last_fault.as_deref(),
+    ));
+
+    Outcome::Fault
+}
+
+/// Writes one place of a media as the position of the user.
+///
+/// The stream of the server starts at the position of the user, therefore the
+/// program must write a place before it asks for a stream of that place. See T-69.
+async fn write_the_place(
+    api: &ApiClient,
+    target: &PlaybackTarget,
+    place: f64,
+    duration: &str,
+) -> Result<(), crate::api::client::error::ApiError> {
+    let seconds = Some(place.max(0.0).round() as u32);
+
+    match target.episode_id() {
+        Some(episode_id) => {
+            update_media_progress_pod(api, target.item_id(), seconds, duration, episode_id).await
+        }
+        None => update_media_progress_book(api, target.item_id(), seconds, duration).await,
+    }
+}
+
+/// Gives the sentence for a second place of a stream. See T-69.
+///
+/// The function is pure, therefore a test needs no server.
+pub fn the_message_of_a_second_place(place: f64) -> String {
+    format!(
+        "The server gave no stream of that place. The program tries {} now.",
+        crate::utils::convert_seconds::clock(place)
     )
-    .await
+}
+
+/// The length of one part of the stream of the server, in seconds.
+///
+/// Audiobookshelf gives ffmpeg the argument `-hls_time 6`, therefore every part
+/// of every playlist of that server holds six seconds. See T-69.
+const SECONDS_OF_A_PART: f64 = 6.0;
+
+/// The number of places that the program tries for one stream.
+///
+/// Each place costs the ten seconds of the server and the open, therefore a large
+/// number makes the user wait. Three places gave the playback in one step in every
+/// measurement of 2026-08-11. See T-69.
+const PLACES_TO_TRY: usize = 3;
+
+/// Gives the places of the media to try for a stream, in sequence.
+///
+/// **The place of the user decides where ffmpeg of the server starts.** The client
+/// asks for one part of the playlist, and the server then starts its transcode at
+/// that part: its log says "Segment #N Request is before starting segment number
+/// #M - Reset Transcode". One part of a file of xHE-AAC holds a frame that gives
+/// NaN to the encoder of ffmpeg, and ffmpeg then stops with the code 234 and the
+/// server deletes the whole session. **A part beside it plays.**
+///
+/// A measurement of 2026-08-11 with the book of the user, at the parts of the
+/// second 310 to 334:
+///
+/// | The place | The part | The answer of the server |
+/// |---|---|---|
+/// | 310 s | 51 | it ended the stream |
+/// | 316 s | 52 | 74448 bytes |
+/// | 322 s | 53 | it ended the stream |
+/// | 328 s | 54 | 79148 bytes |
+///
+/// The program tries the place of the user first. **The part before it comes
+/// next**, because a user hears a few seconds again more easily than they lose a
+/// few seconds. A place before the start of the media does not come.
+///
+/// The function is pure, therefore a test needs no server. See T-69.
+pub fn the_places_to_try(seconds: f64) -> Vec<f64> {
+    let wanted = seconds.max(0.0);
+    let mut places = vec![wanted];
+
+    let mut step = SECONDS_OF_A_PART;
+
+    while places.len() < PLACES_TO_TRY {
+        // The part before the place of the user, and then the part after it.
+        for place in [wanted - step, wanted + step] {
+            if places.len() >= PLACES_TO_TRY {
+                break;
+            }
+
+            if place >= 0.0 && !places.contains(&place) {
+                places.push(place);
+            }
+        }
+
+        step += SECONDS_OF_A_PART;
+
+        // A media that starts at its beginning has no place before it. The step
+        // must not grow for ever.
+        if step > SECONDS_OF_A_PART * PLACES_TO_TRY as f64 * 2.0 {
+            break;
+        }
+    }
+
+    places
 }
 
 /// Gives the sentence for a stream of the server that did not play.
@@ -1279,6 +1446,62 @@ mod tests_of_the_start {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The program tries the place of the user first, and then the part before
+    /// it: a user hears a few seconds again more easily than they lose a few
+    /// seconds. See T-69.
+    #[test]
+    fn the_places_of_a_stream_hold_the_place_of_the_user_first() {
+        // The measurement of 2026-08-11: the part of 322 s stops ffmpeg of the
+        // server, and the part of 316 s plays.
+        assert_eq!(the_places_to_try(322.0), vec![322.0, 316.0, 328.0]);
+
+        assert_eq!(the_places_to_try(322.0).len(), PLACES_TO_TRY);
+        assert_eq!(
+            the_places_to_try(322.0).first(),
+            Some(&322.0),
+            "the place of the user comes first"
+        );
+    }
+
+    /// A media at its beginning has no place before it. The places must stay
+    /// inside the media, and the list must hold no value two times.
+    #[test]
+    fn the_places_of_a_stream_stay_inside_the_media() {
+        let of_the_start = the_places_to_try(0.0);
+
+        assert_eq!(of_the_start.first(), Some(&0.0));
+        assert!(
+            of_the_start.iter().all(|place| *place >= 0.0),
+            "no place before the start of the media: {:?}",
+            of_the_start
+        );
+        assert_eq!(of_the_start, vec![0.0, 6.0, 12.0]);
+
+        // A negative place of the caller becomes the start of the media.
+        assert_eq!(the_places_to_try(-30.0).first(), Some(&0.0));
+
+        // A place of the first part has one place before it only.
+        let of_the_first_part = the_places_to_try(4.0);
+        assert!(of_the_first_part.iter().all(|place| *place >= 0.0));
+        assert_eq!(of_the_first_part.len(), PLACES_TO_TRY);
+
+        for places in [the_places_to_try(0.0), the_places_to_try(322.0)] {
+            let mut once = places.clone();
+            once.dedup();
+            assert_eq!(once.len(), places.len(), "no place two times: {:?}", places);
+        }
+    }
+
+    /// The message of a second place must name the place in the form of a clock,
+    /// and not a number of seconds. See T-69.
+    #[test]
+    fn the_message_of_a_second_place_names_the_place() {
+        let message = the_message_of_a_second_place(316.0);
+
+        assert!(message.contains("5:16"), "{}", message);
+        assert!(message.chars().count() <= 150, "{}", message);
+    }
 
     /// The message of a stream that did not play must give the sentence of the
     /// place that met the fault, and it must not name the program of the user as

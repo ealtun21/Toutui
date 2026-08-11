@@ -2560,7 +2560,28 @@ A piece of 10 minutes with `-c copy` keeps `profile=xHE-AAC`, therefore the
 measurement needs no file of 1.3 gigabytes. That piece stands in the sandbox as the
 book "Depthless Hunger, Book 2".
 
-#### The answer: no program of this machine plays xHE-AAC, and the server cannot help
+#### The answer: ffmpeg reads most of that form, and it drops the rest
+
+**A correction of the first form of this item.** The first measurement read the
+sentence "Not yet implemented in FFmpeg, patches welcome" and it said that no program
+plays xHE-AAC. **That is wrong**, and the user said so: mpv plays the file, "with a
+lot of errors". The sentence names the frames that ffmpeg cannot read, and not the
+file.
+
+The measurement of 2026-08-11, of the same piece of 10 minutes:
+
+| The program | The answer |
+|---|---|
+| mpv 0.41.0, 20 seconds | 196 lines "Error decoding audio", and the sound plays |
+| ffmpeg 9.0, 20 seconds | 195 lines of the same fault. The same frames |
+| ffmpeg 9.0, 60 seconds to a WAV file | **46.2 seconds of audio of 60 seconds** |
+
+**Therefore ffmpeg reads about 77 percent of the frames**, and it drops the other 23
+percent. The sound of mpv holds a hole at each frame that it drops, and that is the
+whole cause of the sound that "is not smooth". T-69 gives the same sound to Toutui,
+through the stream of the server, because ffmpeg of the server is the same program.
+
+#### The steps of the stream of the server
 
 | The step | The answer |
 |---|---|
@@ -2587,8 +2608,9 @@ bad:
   the code 234. The server then writes "Closing Stream" and "Deleted session data",
   and **every part of that stream answers 404 for ever**.
 
-**Therefore the answer for the user is the AAC-LC file**, and their folder holds it
-already. No client can play the other one.
+**T-69 makes this file play.** The place of the user decides where ffmpeg starts, and
+a place beside a bad one works. The AAC-LC file of the same book stays the better
+answer, because it holds every frame.
 
 #### The three faults of the program that this measurement found
 
@@ -2660,6 +2682,80 @@ test holds the message at 150 letters or fewer.
 it answers "No Segments" for every new session of that media, and it writes "Failed
 checking files" every two seconds for ever. `podman restart abs-test` is the answer,
 and a measurement of such a media must start from a server that came up now.
+
+### T-69: the book of xHE-AAC plays now, from a place beside the bad one
+
+The user said it: "MPV can play xHE-acc but it does it with a lot of errors so we
+should be able as well." **They are right**, and T-68 gives the reason: ffmpeg reads
+77 percent of the frames of that form. The program plays every codec of ffmpeg through
+the stream of the server, therefore it must play this one too.
+
+T-68 left one fault of the server between the user and the sound: **the place of the
+media where ffmpeg starts decides if ffmpeg lives.** A seek to some places gives a
+frame of NaN to the encoder, and ffmpeg then stops with the code 234 and the server
+deletes the whole session.
+
+**The measurement of the places, 2026-08-11**, of the book of the user in the sandbox:
+
+| The place of the user | The part | The answer of the server |
+|---|---|---|
+| 0 s | 0 | 77268 bytes after 10.5 s |
+| 60 s | 10 | 82156 bytes after 11.0 s |
+| 180 s | 30 | 78960 bytes after 11.0 s |
+| **310 s** | **51** | **it ended the stream** |
+| **322 s** | **53** | **it ended the stream** |
+| 316 s | 52 | 74448 bytes after 11.0 s |
+| 328 s | 54 | 79148 bytes after 11.0 s |
+| 480 s | 80 | 72004 bytes after 11.0 s |
+
+**Two places of eight fail, and a place beside each of them works.** Therefore the
+program tries more than one place: `the_places_to_try` gives the place of the user
+first, and then the part before it. **A user hears a few seconds again more easily
+than they lose a few seconds.** Three places are enough, and each one costs about 11
+seconds.
+
+**The trap that made the first form of this work useless.** The program moved the part
+that it asked for, and nothing changed: the server answered with the same ffmpeg
+command every time.
+
+```
+[STREAM] Starting Stream at startTime 4:52 (User startTime 5:22) and Segment #48
+ffmpeg ... -ss 292s -noaccurate_seek ... -start_number 48 ...
+```
+
+**The place of ffmpeg comes from the position of the user, and not from the part that
+the client asks for**, and the server takes 30 seconds of that position as a
+pre-roll. Therefore `write_the_place` writes the position of the user before each
+attempt after the first one. That position is true at once, because the program plays
+that place. **A run that gives no stream at all writes the position of the user
+again**, therefore a failure leaves nothing behind.
+
+**The measurement of the correction, 2026-08-11.** The server held the position 322
+seconds, and the program ran in tmux:
+
+```
+[play] the stream of the item bb9c73c7… starts at 322 seconds
+[HlsFile] the server ended the stream of this media.                     <- 11.5 s
+[play] the stream of the place 322 s did not play
+[play] the place 322 s gave no stream. The program tries 316 s.
+[play] the stream of the item bb9c73c7… starts at 316 seconds
+[HlsFile] the stream holds 101 part(s). The reader starts at the part 52 and at
+          4.0 seconds inside it. The audio is AdtsAac.
+```
+
+The screen said "The server gave no stream of that place. The program tries 05:16
+now.", and the panel then held `▶ Depthless Hunger, Book 2`. The whole work took 23
+seconds. A run of a place that works needs one attempt and 11 seconds.
+
+The position stays correct: the panel gave `▶ 6:00 / 10:00` for a stream that began at
+5:28, therefore the offset of T-63 holds for this file too.
+
+**The session of each attempt closes.** The server would hold one session for each
+place, and a session that stays open is the report `dd9a649`.
+
+**What stays true.** The sound holds a hole at each frame that ffmpeg drops, and no
+client can do better today: mpv gives the same holes. **The AAC-LC file of the same
+book is the better answer for a user**, and this work makes the other file playable.
 
 ## The upgrade of the dependencies, 2026-08-10
 
