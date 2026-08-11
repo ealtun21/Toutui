@@ -46,6 +46,17 @@ impl Kind {
         }
     }
 
+    /// Gives the work of the key `l` for the footer of the view.
+    ///
+    /// A measurement of 2026-08-11 read the footer of the list of the
+    /// narrators: it said "the books of this author". See T-73.
+    pub fn work_of_the_key_that_opens(&self) -> &'static str {
+        match self {
+            Kind::Authors => "the books of this author",
+            Kind::Narrators => "the books of this narrator",
+        }
+    }
+
     /// Gives the sentence for a library of podcasts.
     pub fn message_of_a_library_of_podcasts(&self) -> String {
         match self {
@@ -150,6 +161,22 @@ pub fn forget() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The footer of the view names the list that it holds.
+    ///
+    /// A sweep of every view of 2026-08-11 read "the books of this author" in
+    /// the footer of the list of the narrators. See T-73.
+    #[test]
+    fn the_footer_of_each_list_names_its_own_kind() {
+        assert_eq!(
+            Kind::Authors.work_of_the_key_that_opens(),
+            "the books of this author"
+        );
+        assert_eq!(
+            Kind::Narrators.work_of_the_key_that_opens(),
+            "the books of this narrator"
+        );
+    }
 
     /// The two lists give their own title, and the title of a list that holds
     /// no line says what a narrator is. See T-73.

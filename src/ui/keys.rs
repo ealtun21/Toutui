@@ -206,9 +206,50 @@ pub fn footer_with(what_l_does: &str, what_x_does: Option<&str>) -> String {
     }
 }
 
+/// The text of the line "Accounts and log out" of the settings.
+///
+/// A sweep of every view of 2026-08-11 read a run of 22 spaces inside a
+/// sentence of this text. `Wrap` takes a space away at the start of a line
+/// that it makes, and it keeps every space that stands inside a line.
+/// Therefore a text of the screen holds one space between two words.
+pub const THE_ACCOUNTS: &str = "The accounts that this program holds.\n\n\
+    The key l on an account logs out of it: the program forgets the token of \
+    that server, and it asks for the password again at the next start.\n\n\
+    A program that holds more than one account starts with the account that is \
+    the default one.";
+
+/// The text of the line "Library: choose the library" of the settings.
+pub const THE_LIBRARIES: &str = "The libraries of this server.\n\n\
+    The key l on a library makes it the library that the program shows.";
+
+/// Every text of the program that a view draws as a paragraph.
+///
+/// A test holds each of them to one space between two words.
+pub const THE_TEXTS_OF_THE_VIEWS: &[&str] = &[THE_ACCOUNTS, THE_LIBRARIES];
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A text of a view holds one space between two words.
+    ///
+    /// The text of the accounts held "the program" and "forgets" with 22
+    /// spaces between them: an old wrap of the source stayed in the string, and
+    /// the user read it on the screen. See the sweep of the views of
+    /// 2026-08-11.
+    #[test]
+    fn a_text_of_a_view_holds_no_run_of_spaces() {
+        for text in THE_TEXTS_OF_THE_VIEWS {
+            for line in text.lines() {
+                assert!(
+                    !line.trim().contains("  "),
+                    "the line \"{}\" holds a run of spaces. The screen shows it \
+                     as it stands.",
+                    line
+                );
+            }
+        }
+    }
 
     /// The footer of a view of 80 columns must hold every character. The old
     /// footer of the Home view had 342 characters in two lines. See T-49.

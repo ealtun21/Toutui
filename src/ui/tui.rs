@@ -640,7 +640,7 @@ impl App {
         App::render_footer(
             footer_area,
             buf,
-            &crate::ui::keys::footer_with("the books of this author", None),
+            &crate::ui::keys::footer_with(kind.work_of_the_key_that_opens(), None),
         );
         self.render_list(
             main_area,
@@ -2289,6 +2289,12 @@ impl App {
     }
 
     // desc for settings
+    //
+    // A sweep of every view of 2026-08-11 read "the program
+    // forgets the token" with a run of 22 spaces inside the line. The two texts
+    // below held the space of an old wrap of the source, and `Wrap` keeps a
+    // space that stands inside a line. They stand as constants now, and a test
+    // holds them to one space. See `THE_ACCOUNTS` and `THE_LIBRARIES`.
     fn render_desc_settings(&self, area: Rect, buf: &mut Buffer, list_state: &ListState) {
         let instructions = "\
 Update:
@@ -2304,18 +2310,14 @@ Uninstall:
 
         match list_state.selected() {
             Some(0) => {
-                Paragraph::new(
-                    "The accounts that this program holds.\n\n                     The key l on an account logs out of it: the program                      forgets the token of that server, and it asks for the                      password again at the next start.\n\n                     A program that holds more than one account starts with                      the account that is the default one.",
-                )
-                .wrap(Wrap { trim: true })
-                .render(area, buf);
+                Paragraph::new(crate::ui::keys::THE_ACCOUNTS)
+                    .wrap(Wrap { trim: true })
+                    .render(area, buf);
             }
             Some(1) => {
-                Paragraph::new(
-                    "The libraries of this server.\n\n                     The key l on a library makes it the library that the                      program shows.",
-                )
-                .wrap(Wrap { trim: true })
-                .render(area, buf);
+                Paragraph::new(crate::ui::keys::THE_LIBRARIES)
+                    .wrap(Wrap { trim: true })
+                    .render(area, buf);
             }
             Some(2) => {
                 Paragraph::new(self.changelog.clone())
