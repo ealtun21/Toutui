@@ -32,6 +32,24 @@
 # give its name in the variable TOUTUI_AUDIO_DEVICE:
 #   TOUTUI_AUDIO_DEVICE="pipewire" toutui
 
+#### THE READER OF THE EBOOKS ####
+# The application keeps the ebook of a media on the disk. A second visit of that
+# book then needs no request, and the reader also works with no server.
+#
+# `ebook_cache_mb` is the largest size of that cache, in megabytes. The
+# application removes the book of the oldest use first, and it never removes the
+# book that you read now.
+#
+# The value 0, and a file with no such key, give the value of the application:
+# 1024 megabytes. A cache of 0 megabytes cannot mean 0 bytes, because such a
+# cache would remove every book of the disk.
+#
+# The key `X` on a media removes the local copy of that media at once, of every
+# form.
+#
+# [reader]
+# ebook_cache_mb = 2048
+
 #### COLORS (RGB) ####
 [colors]
 # General background color of the app:

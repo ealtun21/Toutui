@@ -2864,6 +2864,52 @@ of the program: **a cache of 0 bytes would remove every book of the disk.**
 capture of the screen 9 seconds after the key gives no message, and the program is
 correct. Capture inside that time.
 
+### T-72: the limit of the cache of the ebooks belongs to the user
+
+T-71 gave `TOUTUI_EBOOK_CACHE_BYTES` for a measurement, and the user of a small disk
+had no way to change the limit. **A limit of the disk of a user belongs in
+`config.toml`.**
+
+The block is new, and every value of it is optional:
+
+```toml
+[reader]
+ebook_cache_mb = 2048
+```
+
+`load_config` reads that block with `unwrap_or_default`, therefore a file of an older
+version keeps working. This is the shape of the block `[[servers]]` of an earlier
+session.
+
+**The sequence of the three sources, and the reason for it:**
+
+| The source | Why it stands there |
+|---|---|
+| `TOUTUI_EBOOK_CACHE_BYTES` | A measurement of the real program must not change the file of the user |
+| `ebook_cache_mb` of `config.toml` | The value of the user |
+| `LIMIT_OF_THE_CACHE`, of one gigabyte | A file with no block, and the value 0 |
+
+**The value 0 cannot mean itself**, because a cache of 0 bytes would remove every
+book of the disk. It gives the source that comes after it.
+
+**The cache runs inside a task, and that task holds no `App`.** Therefore the start
+of the program writes the value in a slot of `logic::reader::cache`, one time. This
+is the shape of `logic::live` and of `logic::message`.
+
+**The measurement of the real program, 2026-08-11.** The program writes the limit
+that it uses in the log, therefore a user can see which source gave it:
+
+| The condition | The log |
+|---|---|
+| `ebook_cache_mb = 1` | `the cache of the ebooks holds 1048576 byte(s) at the most.` |
+| The same, with `TOUTUI_EBOOK_CACHE_BYTES=200000` | `… holds 200000 byte(s) at the most.` |
+| A file with no block `[reader]` | `… holds 1073741824 byte(s) at the most.` |
+
+**Why the log and not the screen.** Two books of the sandbox hold 133 kB each, and a
+limit of 1 megabyte removes neither of them. A measurement of the **resolution** of
+the limit therefore cannot come from the files of the disk: it needs the number that
+the program holds. One line of the log gives it, and it costs the user nothing.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

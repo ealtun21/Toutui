@@ -53,6 +53,7 @@ The program reads these variables. None of them is necessary.
 | `TOUTUI_NO_COVERS` | The program draws no cover art, and it asks the terminal nothing. The text then takes the whole width. Set it when the covers make trouble in your terminal. |
 | `TOUTUI_COVERS_IN_TMUX` | Inside tmux the program draws the covers with blocks of Unicode, and it asks the terminal nothing. tmux gives the question to the terminal only when `allow-passthrough` is on, and a question with no answer takes the first key of the user. Set this variable to ask anyway. |
 | `TOUTUI_AUDIO_DEVICE` | The name of the sound device. `null` plays nothing. |
+| `TOUTUI_EBOOK_CACHE_BYTES` | The largest cache of the ebooks, in bytes. It comes before `ebook_cache_mb` of `config.toml`. The log names the value that the program uses. |
 
 A machine with no sound device still opens the program. The header then says
 "🔇 No sound device: no media can play", and every function that needs no sound

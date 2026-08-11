@@ -101,6 +101,21 @@ async fn main() -> Result<()> {
         };
 
         let config_file = config::load_config()?;
+
+        // The cache of the ebooks runs inside a task, and that task holds no
+        // `App`. Therefore the limit of the configuration file goes to its slot
+        // here, one time. See T-72.
+        logic::reader::cache::keep_the_limit_of_the_configuration(
+            config_file.reader.ebook_cache_mb,
+        );
+
+        // The user must be able to see which of the three sources gave the
+        // limit: the variable of the environment, `config.toml`, or the program.
+        info!(
+            "[main][cache] the cache of the ebooks holds {} byte(s) at the most.",
+            logic::reader::cache::the_limit()
+        );
+
         let pool = config::pool_for_address(&config_file.servers, &server_address);
         info!("[main][api] The pool has {} address(es).", pool.len());
 

@@ -39,22 +39,64 @@ pub const LIMIT_OF_THE_CACHE: u64 = 1024 * 1024 * 1024;
 /// `TOUTUI_AUDIO_DEVICE` hold the same shape. See T-71.
 pub const LIMIT_VARIABLE: &str = "TOUTUI_EBOOK_CACHE_BYTES";
 
-/// Gives the limit of the cache of the ebooks.
+/// The limit that `config.toml` gives, in bytes.
 ///
-/// A value of the variable that is not a number, and the value 0, give the limit
-/// of the program. A cache of 0 bytes would remove every book of the disk.
-pub fn the_limit() -> u64 {
-    the_limit_of(std::env::var(LIMIT_VARIABLE).ok().as_deref())
+/// The cache runs inside a task, and that task holds no `App`. Therefore the
+/// start of the program writes the value of the configuration file here, and this
+/// is the shape of `logic::live` and of `logic::message`. See T-72.
+fn box_of_the_limit() -> &'static std::sync::Mutex<Option<u64>> {
+    static LIMIT: std::sync::OnceLock<std::sync::Mutex<Option<u64>>> = std::sync::OnceLock::new();
+    LIMIT.get_or_init(|| std::sync::Mutex::new(None))
 }
 
-/// Gives the limit for one value of the variable.
+/// Writes the limit of the configuration file. The start of the program calls
+/// this one time. See T-72.
+pub fn keep_the_limit_of_the_configuration(megabytes: u64) {
+    let bytes = megabytes.saturating_mul(1024 * 1024);
+
+    if let Ok(mut place) = box_of_the_limit().lock() {
+        *place = if bytes > 0 { Some(bytes) } else { None };
+    }
+}
+
+/// Forgets the limit of the configuration file. A test calls this.
+pub fn forget_the_limit_of_the_configuration() {
+    if let Ok(mut place) = box_of_the_limit().lock() {
+        *place = None;
+    }
+}
+
+/// Gives the limit of the cache of the ebooks.
 ///
-/// The function is pure, therefore a test needs no variable of the environment.
-/// A test that writes such a variable must stand alone in its binary. See the
-/// trap 29 of `docs/HANDOVER.md`.
-pub fn the_limit_of(value: Option<&str>) -> u64 {
-    match value.map(str::trim).unwrap_or("").parse::<u64>() {
-        Ok(bytes) if bytes > 0 => bytes,
+/// The sequence of the three sources: the variable of the environment, then
+/// `config.toml`, then the value of the program. **The variable comes first**,
+/// because a measurement of the real program needs a small limit and it must not
+/// change the file of the user. See T-71 and T-72.
+pub fn the_limit() -> u64 {
+    let of_the_config = box_of_the_limit().lock().ok().and_then(|place| *place);
+
+    the_limit_of(std::env::var(LIMIT_VARIABLE).ok().as_deref(), of_the_config)
+}
+
+/// Gives the limit for one value of the variable and one value of the
+/// configuration file.
+///
+/// A value that is not a number, and the value 0, give the source that comes
+/// after it. A cache of 0 bytes would remove every book of the disk, therefore
+/// that value cannot mean itself.
+///
+/// The function is pure, therefore a test needs no variable of the environment
+/// and no file. A test that writes such a variable must stand alone in its
+/// binary. See the trap 29 of `docs/HANDOVER.md`.
+pub fn the_limit_of(value: Option<&str>, of_the_config: Option<u64>) -> u64 {
+    if let Ok(bytes) = value.map(str::trim).unwrap_or("").parse::<u64>() {
+        if bytes > 0 {
+            return bytes;
+        }
+    }
+
+    match of_the_config {
+        Some(bytes) if bytes > 0 => bytes,
         _ => LIMIT_OF_THE_CACHE,
     }
 }
@@ -250,8 +292,8 @@ mod tests {
     /// would remove every book of the disk. See T-71.
     #[test]
     fn the_variable_of_the_limit_gives_a_number_of_bytes() {
-        assert_eq!(the_limit_of(Some("4096")), 4096);
-        assert_eq!(the_limit_of(Some("  4096  ")), 4096);
+        assert_eq!(the_limit_of(Some("4096"), None), 4096);
+        assert_eq!(the_limit_of(Some("  4096  "), None), 4096);
 
         for wrong in [
             None,
@@ -262,12 +304,56 @@ mod tests {
             Some("4096.5"),
         ] {
             assert_eq!(
-                the_limit_of(wrong),
+                the_limit_of(wrong, None),
                 LIMIT_OF_THE_CACHE,
                 "the value {:?} must give the limit of the program",
                 wrong
             );
         }
+    }
+
+    /// The sequence of the three sources: the variable, then the configuration
+    /// file, then the value of the program. See T-72.
+    #[test]
+    fn the_variable_comes_before_the_configuration_file() {
+        // The variable comes first: a measurement must not need the file of the
+        // user.
+        assert_eq!(the_limit_of(Some("4096"), Some(9999)), 4096);
+
+        // No variable, therefore the file of the user decides.
+        assert_eq!(the_limit_of(None, Some(9999)), 9999);
+
+        // A variable that is not a number gives the file, and not the value of
+        // the program.
+        assert_eq!(the_limit_of(Some("a lot"), Some(9999)), 9999);
+
+        // Neither source gives a value.
+        assert_eq!(the_limit_of(None, None), LIMIT_OF_THE_CACHE);
+        assert_eq!(the_limit_of(None, Some(0)), LIMIT_OF_THE_CACHE);
+    }
+
+    /// The slot of the configuration file takes megabytes, and it gives bytes. A
+    /// value of 0 megabytes gives the value of the program.
+    ///
+    /// **The slot belongs to the process, therefore every part of this test
+    /// stays in one function.** See the trap 29 of `docs/HANDOVER.md`.
+    #[test]
+    fn the_slot_of_the_configuration_holds_megabytes() {
+        forget_the_limit_of_the_configuration();
+        assert_eq!(the_limit(), LIMIT_OF_THE_CACHE);
+
+        keep_the_limit_of_the_configuration(2);
+        assert_eq!(the_limit(), 2 * 1024 * 1024);
+
+        keep_the_limit_of_the_configuration(0);
+        assert_eq!(the_limit(), LIMIT_OF_THE_CACHE);
+
+        // A number of megabytes that would go outside a `u64` must not stop the
+        // program.
+        keep_the_limit_of_the_configuration(u64::MAX);
+        assert_eq!(the_limit(), u64::MAX);
+
+        forget_the_limit_of_the_configuration();
     }
 
     /// The sentence names the number of the books, the size, and the key that

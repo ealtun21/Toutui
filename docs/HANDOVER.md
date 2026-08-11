@@ -4,18 +4,18 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.31**, and the items T-66 to T-71 belong to this
+**The newest release is v0.7.32**, and the items T-66 to T-72 belong to this
 session. T-47 to T-65 belong to the session before it.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.31` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.32` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo test -j 16
-    # 833 tests pass, 17 carry #[ignore], 37 binaries
+    # 835 tests pass, 17 carry #[ignore], 37 binaries
 cargo tree -i openssl-sys                # finds nothing
 cargo tree -i cc                         # finds libsqlite3-sys and ring only
 ```
@@ -26,7 +26,7 @@ the requests of the login under the rate limit of the server.
 
 **The fault of one run of ten did not come back.** This session ran the whole suite
 **eight** times: three runs beside the work, and five runs one after the other. Every
-run gave 820 of 820, and the suite holds 833 tests after T-71. The session before
+run gave 820 of 820, and the suite holds 835 tests after T-72. The session before
 this one saw one fault of ten runs and did not name it. **Keep the whole output of `cargo test`** at the next such fault: the
 name of the test is the whole answer.
 
@@ -48,6 +48,7 @@ v0.6.7. Do not try to publish v0.6.6.
 | T-69 | **That book plays now**, from a place beside the one that stops ffmpeg of the server | `l` |
 | T-70 | A search of the name of an author gives the books of that author | `/` |
 | T-71 | The user reads that the cache of the ebooks removed a book | `e` |
+| T-72 | `config.toml` holds the limit of that cache, in a block `[reader]` | — |
 | T-51 | **The decision of the maintainer: Toutui stays GPL.** bookokrat gives ideas only | — |
 | T-20 | **The decision of the maintainer: the two builds of C stay.** Both answers need a crate that is not ready | — |
 
@@ -122,10 +123,9 @@ faults of the program that they found.
 1. **The list of Continue Listening of a **different** library.** T-66 holds the
    shelf of the library that the user selected. A media of a second library needs no
    work today, because the Home view shows one library.
-2. **A cache of the ebooks that the user can change.** T-71 gives
-   `TOUTUI_EBOOK_CACHE_BYTES` for a measurement, and `config.toml` holds no value for
-   it. A user of a small disk, and a user of twenty books of a scan, want a different
-   limit.
+2. **A view of the settings for the block `[reader]` (T-72).** `config.toml` holds
+   `ebook_cache_mb` now, and the user must open the file with an editor. The view of
+   the settings shows the values of the program, and it changes none of them.
 3. **The peak of the memory of a PDF (T-62).** `Document::load` of `lopdf` reads the
    whole file, therefore a book of 500 megabytes needs a machine of a gigabyte for
    one moment. `MAX_BOOK_BYTES` of 512 megabytes holds that limit. A reader of one
@@ -383,8 +383,8 @@ acceptable in those two places. Look again when `turso` is a release and
 
 > Continue the Toutui takeover, and write the next version. Repo:
 > `/home/nyverino/Documents/Toutui` (ealtun21/Toutui, branch main). Maintained fork
-> of the archived AlbanDAVID/Toutui. Newest release **v0.7.31**; `Cargo.toml` is at
-> 0.7.31, so the next release bumps it first — the workflow refuses a tag that
+> of the archived AlbanDAVID/Toutui. Newest release **v0.7.32**; `Cargo.toml` is at
+> 0.7.32, so the next release bumps it first — the workflow refuses a tag that
 > disagrees with `Cargo.toml`, **and it builds `--locked`, therefore the commit of
 > the bump must hold the new `Cargo.lock`**.
 >
@@ -396,7 +396,7 @@ acceptable in those two places. Look again when `turso` is a release and
 >
 > **The work, in the sequence of its value:**
 >
-> 1. **A line of `config.toml` for the limit of the cache of the ebooks (T-71).** The program
+> 1. **A view of the settings that changes a value of `config.toml` (T-72).** The program
 >    removes a book of the cache and it says that in the log only. The answer needs a
 >    shape: a message of the reader must not go away for it.
 > 2. **The peak of the memory of a PDF (T-62)**, if a user meets it. `MAX_BOOK_BYTES`
@@ -420,7 +420,7 @@ acceptable in those two places. Look again when `turso` is a release and
 > under `nice -n 19 ionice -c 3` with `-j 16`: `cargo clippy --all-targets --
 > -D warnings`, `cargo fmt --check`, and `cargo test` with `ALSA_CONFIG_PATH`
 > pointing at a real null asound file (`/dev/null` hangs the real binary). Baseline:
-> 833 tests, 17 with `#[ignore]`, 37 binaries, tree clean. **A measurement that plays
+> 835 tests, 17 with `#[ignore]`, 37 binaries, tree clean. **A measurement that plays
 > sound needs the real device and the permission of the user**: that variable does not
 > silence the real program. Look at `du -sh target`
 > and run `cargo clean --profile dev` at the end of the session.

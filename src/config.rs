@@ -8,6 +8,21 @@ pub struct ConfigFile {
     pub colors: Colors,
     /// The servers that the configuration file gives.
     pub servers: Vec<ServerConfig>,
+    /// The settings of the reader of the ebooks. See T-72.
+    pub reader: ReaderConfig,
+}
+
+/// The settings of the reader of the ebooks. See T-72.
+#[derive(Debug, Deserialize, Clone, Default, PartialEq, Eq)]
+pub struct ReaderConfig {
+    /// The largest cache of the ebooks of the disk, in megabytes.
+    ///
+    /// The value 0, and a file with no such key, give the value of the program:
+    /// `logic::reader::cache::LIMIT_OF_THE_CACHE`, of one gigabyte. **A cache of
+    /// 0 bytes would remove every book of the disk**, therefore that value cannot
+    /// mean itself.
+    #[serde(default)]
+    pub ebook_cache_mb: u64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -58,8 +73,15 @@ pub fn load_config() -> Result<ConfigFile> {
     // A configuration file that an older version made has no `servers`
     // block. An empty list is correct in that condition.
     let servers: Vec<ServerConfig> = config.get("servers").unwrap_or_default();
+    // A configuration file of an older version has no block `reader`. Every
+    // value of that block then takes the value of the program. See T-72.
+    let reader: ReaderConfig = config.get("reader").unwrap_or_default();
 
-    Ok(ConfigFile { colors, servers })
+    Ok(ConfigFile {
+        colors,
+        servers,
+        reader,
+    })
 }
 
 /// The colour that a list with no value gives.
