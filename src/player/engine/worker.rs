@@ -249,6 +249,7 @@ fn start(
     // A new playback starts with no fault of a decoder. See T-53.
     if let Ok(mut value) = state.write() {
         value.file_with_no_decoder = None;
+        value.playback_of_the_fault = 0;
     }
 
     let plays_the_stream_of_the_server = request.sources.iter().any(|source| {
@@ -282,6 +283,7 @@ fn start(
 
         if let Ok(mut value) = state.write() {
             value.file_with_no_decoder = Some(name);
+            value.playback_of_the_fault = item.request.playback_id;
         }
 
         // The queue of the player plays a track as soon as the engine appends
@@ -551,6 +553,7 @@ fn publish(
     if let Some(name) = &item.the_file_that_no_decoder_reads {
         value.notice = Some(format!("The program cannot read {}", name));
         value.file_with_no_decoder = Some(name.clone());
+        value.playback_of_the_fault = item.request.playback_id;
     }
 
     // A playback of the stream of the server waits for ffmpeg of that server.

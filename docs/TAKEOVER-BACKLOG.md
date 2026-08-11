@@ -1800,6 +1800,35 @@ The player then showed `⏸ 30:00 / 30:29`, and the server held `currentTime` 18
 of 1830. **The book of two files played as one media, and the file that no
 decoder of the program reads gave no silence.**
 
+**A fault of the loop, and the correction.** The first form of this work read
+`file_with_no_decoder` of the state with no thought of the playback that met the
+fault. The engine clears that value when it starts a playback, and the command of
+the start is not immediate. Therefore the loop of the **stream** read the fault of
+the **file** and it said that the stream holds a form that no decoder reads, while
+the stream played. The state holds `playback_of_the_fault` now, and a loop reads
+the fault of its own playback only.
+
+**The file of the newest form of AAC.** ffmpeg of the server copies the codec of
+the file when that codec fits a transport stream, and it asks no question about
+the form of AAC: `codecsToForceAAC` of the server holds `alac`, `ac3`, `eac3`, and
+`opus` only. xHE-AAC names itself `aac`, therefore the server copies it. A
+transport stream holds that form as LATM, and symphonia has no reader of LATM.
+
+Two answers exist, and the program holds both:
+
+1. **ffmpeg gives a fault for such a copy.** The server then sets `forceAAC` and
+   it starts the transcode again, and the stream holds AAC of the old form. The
+   reader of the parts waits for a part that does not exist yet, therefore it
+   waits for that second try as well.
+2. **ffmpeg gives LATM.** The program refuses that form **before** the playback,
+   and the screen says: "The stream of the server holds a form that the program
+   cannot read." A user who meets that message must change the file of their
+   library.
+
+**The measurement of the answer 1 needs a file of xHE-AAC**, and no program of
+this machine writes one: an encoder of that form needs `libfdk-aac`. The next
+session must measure it against the book of the user.
+
 **What stays open.** The stream of the server needs ffmpeg on that server. A
 server with no ffmpeg gives no stream, and the program then plays the files that
 it reads. The panel says "The server makes the stream of this media" while the

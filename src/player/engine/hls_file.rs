@@ -108,9 +108,15 @@ impl HlsFile {
             .ok_or_else(|| "The stream of the server holds no audio.".to_string())?;
 
         if !stream.form.a_decoder_of_the_program_reads_it() {
+            // ffmpeg of the server copies the codec of the file when that codec
+            // fits a transport stream. AAC of the newest form (xHE-AAC) fits it
+            // as LATM only, and symphonia has no reader of LATM. The server
+            // makes AAC of the old form after ffmpeg gives it a fault, therefore
+            // a second try of the user can give a stream that plays.
             return Err(format!(
                 "The stream of the server holds the audio in the form {:?}, and \
-                 no decoder of the program reads it.",
+                 no decoder of the program reads it. The file of this media \
+                 needs a form that the server can put in a transport stream.",
                 stream.form
             ));
         }

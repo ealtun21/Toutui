@@ -162,6 +162,13 @@ pub struct PlaybackState {
     /// then asks the server for a stream of the whole media, and every codec of
     /// ffmpeg becomes a codec of this program. See T-53.
     pub file_with_no_decoder: Option<String>,
+    /// The identity of the playback that met the fault of the decoder.
+    ///
+    /// The loop of a playback must read the fault of **its own** playback. The
+    /// fault of the playback before it belongs to a media that the user left, and
+    /// a loop that reads it asks the server for a stream that it does not need.
+    /// See T-53.
+    pub playback_of_the_fault: u64,
 }
 
 impl Default for PlaybackState {
@@ -175,6 +182,7 @@ impl Default for PlaybackState {
             duration: 0.0,
             chapter_title: None,
             file_with_no_decoder: None,
+            playback_of_the_fault: 0,
             chapters: Vec::new(),
             speed: 1.0,
             volume: 1.0,

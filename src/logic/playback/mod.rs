@@ -446,8 +446,12 @@ async fn the_file_that_no_decoder_reads(player: &PlayerHandle, playback_id: u64)
     loop {
         let state = player.state();
 
-        if let Some(name) = state.file_with_no_decoder.clone() {
-            return Some(name);
+        // The fault must belong to this playback. The fault of the playback
+        // before it belongs to a media that the user left. See T-53.
+        if state.playback_of_the_fault == playback_id {
+            if let Some(name) = state.file_with_no_decoder.clone() {
+                return Some(name);
+            }
         }
 
         // The engine plays this playback, and it opened every decoder that it
@@ -578,6 +582,29 @@ async fn play_the_stream_of_the_server(
     );
 
     player.send(PlayerCommand::Start(Box::new(request)));
+
+    // The stream of the server can hold the audio in a form that no decoder of
+    // the program reads. ffmpeg of the server copies the codec of the file when
+    // that codec fits a transport stream, and AAC of the newest form fits it as
+    // LATM only. The program must then say so, and it must not give silence.
+    // See T-53.
+    if let Some(name) = the_file_that_no_decoder_reads(player, playback_id).await {
+        error!(
+            "[play] the stream of the server holds a form that no decoder of the \
+             program reads: {}",
+            name
+        );
+
+        let _ = clear_message(stdout, 3);
+        let _ = pop_message(
+            stdout,
+            3,
+            "The stream of the server holds a form that the program cannot read. \
+             Read the log, and see T-53.",
+        );
+
+        return Outcome::Fault;
+    }
 
     let _ = clear_message(stdout, 3);
 
