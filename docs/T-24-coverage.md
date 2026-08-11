@@ -218,11 +218,10 @@ The sequence inside each group gives the value for the work.
    no author and no series, and it cannot find a book that the client did not
    load. The work is small, and it removes the largest difference between the
    client and the web page.
-2. **A key that marks a media as finished.** `PATCH /api/me/progress/:id` with
-   `{"isFinished":true}`. `update_media_progress2_book` in
-   `src/api/me/update_media_progress.rs:88` sends this body already. Add a key
-   in `src/app.rs`. The user gives up on a book, and the book then leaves
-   "Continue Listening".
+2. ~~**A key that marks a media as finished.**~~ **Done on 2026-08-11.** The
+   key of the mark, and `mark_the_media`. The book leaves the shelf of Continue
+   Listening at the next frame, and the user presses no other key: T-66 reads
+   `isFinished` and `hideFromContinueListening` of the live message.
 3. ~~**The statistics of the user.**~~ **Done on 2026-08-11.** The key `T`,
    `src/api/me/listening_stats.rs`, `src/logic/stats.rs`, and
    `src/ui/stats_tui.rs`. The bar uses the blocks of Unicode, therefore the
@@ -230,7 +229,8 @@ The sequence inside each group gives the value for the work.
 4. ~~**A choice of the sequence.**~~ **Done on 2026-08-11.** The key `f`, and
    `src/logic/sort_filter.rs`.
 5. ~~**Hide a media from Continue Listening.**~~ **Done on 2026-08-11.** The
-   key `N`, and `hide_the_media` beside `mark_the_media`.
+   key `N`, and `hide_the_media` beside `mark_the_media`. The line goes away at
+   the next frame, and it comes back at the second press. See T-66.
 
 ### Medium: one or two days each
 
@@ -328,9 +328,17 @@ before it opens the address.
 
 | Function | Why not |
 |---|---|
-| Read a PDF and a CBZ | A page of a PDF is a picture with a layout. The cover art of T-23 shows one picture in a panel; a page of text as a picture is not readable in a terminal |
+| Read a CBZ | A page of such a book is a picture of a drawing, and the text of that page stands inside the picture. A terminal of 160 columns gives 160 cells for a page of 2000 pixels |
 | The picture of an author | The same. It gives no information |
 | A player of video | Audiobookshelf holds no video |
+
+**A measurement changed the answer for a PDF.** This row said "Read a PDF and a CBZ"
+before 2026-08-11, and the reason was that a page of a PDF is a picture. That is
+true of a book of a scan only. **A PDF of text holds the text**, therefore T-54 gives
+the words of the page in the terminal, and it draws the pictures of that page beside
+them with the protocol of T-23. T-62 holds the memory of a book of a scan to 9.5
+megabytes, and T-57 gives a picture of 16 bits. A book of a scan of 500 megabytes
+stays outside `MAX_BOOK_BYTES`.
 
 ## 7. What this document did not measure
 
