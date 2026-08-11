@@ -64,8 +64,9 @@ This list comes from `src/api/` and from `src/logic/`. It is complete.
 | `GET /api/me` | `src/api/me/permissions.rs`, `src/api/me/bookmarks.rs` |
 | `PATCH /api/me/progress/:id`, `PATCH /api/me/progress/:id/:episodeId` | `src/api/me/update_media_progress.rs` |
 | `POST /api/session/:id/sync`, `POST /api/session/:id/close` | `src/api/sessions/` |
+| `GET /api/search/podcast?term=`, `POST /api/podcasts/feed`, `POST /api/podcasts` | `src/api/podcasts/mod.rs` |
 
-Toutui calls 19 paths. The server has more than 100.
+Toutui calls 22 paths. The server has more than 100.
 
 ## 3. The keys of Toutui
 
@@ -92,6 +93,7 @@ Toutui calls 19 paths. The server has more than 100.
 | `b` | Write a bookmark at the place of the playback (T-24) |
 | `V` | Show the bookmarks of a media (T-24) |
 | `t` | The timer for sleep (T-24) |
+| `A` | Look for a new podcast, and add it (T-24) |
 | `f` | Choose the sequence and the filter of the library (T-24) |
 | `S` | Settings |
 | `B` | Show the keys, or hide them |
@@ -158,9 +160,9 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 | **List the podcasts** | The same endpoint as the books | Yes | Nothing |
 | **The episodes of a podcast** | `GET /api/items/:id` gives `media.episodes` | Yes | Nothing. `l` on a podcast gives the episodes |
 | **Play an episode** | `POST /api/items/:id/play/:episodeId` | Yes | Nothing |
-| **Search a new podcast** | `GET /api/search/podcast?term=balzac` gives a list of 48, with `title`, `artistName`, `description`, `feedUrl`, `trackCount`, `cover` | No | Everything. The README names this as a future function |
-| **Read a feed** | `POST /api/podcasts/feed` with `{"rssFeed":"..."}` gives `200` and the key `podcast` | No | Everything |
-| **Make a podcast** | `POST /api/podcasts`. Not tested today: the request writes a new podcast in the library, and this measurement changed no library. `docs/TEST-SERVER.md` section 5 used it | No | Everything |
+| **Search a new podcast** | `GET /api/search/podcast?term=balzac` gives a list of 48, with `title`, `artistName`, `description`, `feedUrl`, `trackCount`, `cover`. **`limit` changes nothing** | Yes | Nothing. The key `A` in a library of podcasts |
+| **Read a feed** | `POST /api/podcasts/feed` with `{"rssFeed":"..."}` gives `200` and the key `podcast` | Yes | Nothing. The key `A`, after the user selects an answer |
+| **Make a podcast** | `POST /api/podcasts` gives `200` and the new item. A second add of one podcast gives `400`, because the directory exists | Yes | Nothing. The key `A` asks the user before it sends, because the request writes in the library |
 | **The server gets an episode** | `POST /api/podcasts/:id/download-episodes`. Not tested today, for the same reason. `GET /api/podcasts/:id/episode-downloads` gives `{"downloads":[]}`, and `GET /api/libraries/:id/episode-downloads` gives `{"queue":[]}` | No | Everything. The client copies an episode to its own disk, and it cannot tell the server to get an episode |
 | **Look for a new episode** | `GET /api/podcasts/:id/checknew` gives `200` and the key `episodes` | No | Everything |
 | **Empty the queue of the podcast** | `GET /api/podcasts/:id/clear-queue` gives `200` | No | Everything |
@@ -222,10 +224,8 @@ The sequence inside each group gives the value for the work.
 7. ~~**The other shelves of Home.**~~ **Done on 2026-08-11.**
    `get_the_shelves` gives every shelf, and `src/logic/home_view.rs` makes the
    lines. The request did not change.
-8. **Add a podcast.** `GET /api/search/podcast?term=`, then
-   `POST /api/podcasts/feed`, then `POST /api/podcasts`. A new directory
-   `src/api/podcasts/`, and a view for the results. The README names this
-   function. The measurement gives 48 results for `term=balzac`.
+8. ~~**Add a podcast.**~~ **Done on 2026-08-11.** The key `A`, and
+   `src/api/podcasts/mod.rs`.
 9. ~~**Filter the library.**~~ **Done on 2026-08-11.** The same view as
    item 4, and `src/api/libraries/get_filter_data.rs`.
 10. **The server gets an episode.**
@@ -322,7 +322,6 @@ before it opens the address.
 
 | Item | Why |
 |---|---|
-| `POST /api/podcasts` | It writes a new podcast in the library of the sandbox |
 | `POST /api/podcasts/:id/download-episodes` | It gets files from the network and it writes them |
 | `POST /api/items/:id/encode` | It starts a long job of ffmpeg |
 | `POST /api/items/:id/update-embedded-metadata` | It changes the audio files |

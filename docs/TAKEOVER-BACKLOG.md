@@ -1150,6 +1150,43 @@ harness can wait five minutes for a real fall of the volume. The measurement
 in a real process shows the message and the time in the player (`💤 4:59`),
 and the tests hold the whole life of a timer.
 
+### Add a podcast — complete, 2026-08-11 (v0.7.4)
+
+The README named this function. Three requests do the work, and every one is
+measured against the sandbox on 2026-08-11:
+
+| Request | Answer |
+|---|---|
+| `GET /api/search/podcast?term=balzac` | 48 answers. **`limit=3` gave 48 also**, therefore the program cuts the list itself |
+| `POST /api/podcasts/feed` with `{"rssFeed":"..."}` | `200`, and `podcast` with `metadata` and `episodes` |
+| `POST /api/podcasts` | `200`, and the new item. A second add of one podcast gives `400` |
+
+**The server asks iTunes for the search.** The search therefore needs the
+network of the server, and not the network of the user. The sandbox in podman
+has that network.
+
+**The client gives the path of the directory, and the title comes from the
+network.** A title can hold `/`, and a title can be `..`; the server would
+then write outside the folder of the library. `directory_of` keeps a letter,
+a number, a space, a dash, and an underscore, and it removes every other
+character. A test gives it `../../etc/passwd`, `..`, `~/.ssh/id_rsa`,
+`$(rm -rf /)`, and a name with a byte of zero, and it holds the answer to a
+name of one part. A letter of a different writing is a letter, therefore a
+podcast in Greek or in Japanese keeps its name.
+
+**The request writes in the library of the server, therefore the program asks
+a question.** The user writes `yes` and presses Enter. Every other answer adds
+nothing. This is the rule of section 6 of `docs/T-24-coverage.md` for a
+request that changes the server: the program does not send it by one key.
+
+**`autoDownloadEpisodes` is `false`.** A new podcast must not start a download
+of every episode of a feed of 111 episodes by itself.
+
+A measurement in a real process added "Another Study of Woman by Honoré de
+Balzac (1799 - 1850)" to the sandbox, and the second run of the same test gave
+`400`. The program now says "The library can hold that podcast already" for
+that answer.
+
 ## The report of the user of 2026-08-10, on v0.5.0
 
 The user tested v0.5.0 and named ten items. This section holds each one, the

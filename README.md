@@ -28,6 +28,7 @@ not in the archived repository.
  **Cross-platform:** <img src=".github/tux.png" align="top" width="24" alt="Tux (Linux)"/>  Linux and <img src=".github/apple.png" align="top" width="24" alt="Apple (macOS)"/> macOS    
  **Lightweight & Fast:** A minimalist terminal user interface (TUI) written in Rust 🦀  
  **Supports Books & Podcasts:** Enjoy both audiobooks and podcasts  
+ **Add a podcast:** Look for a podcast and add it to a library (`A`)  
  **A timer for sleep:** The playback stops after a time, with a slow fall of the volume (`t`)  
  **Bookmarks:** Mark a place in a long book and come back to it (`b`, `V`)  
  **The sequence and the filter:** Sort a library and show one author, one genre, or one tag (`f`)  
@@ -120,6 +121,20 @@ The server sorts and filters the items. `f` chooses how.
   The title of the Library view says the sequence, and it says that a filter
   is on.
 
+## 🎙 Add a podcast
+
+- `A` — look for a podcast. The key operates in a library of podcasts, and it
+  asks for the name. The server asks iTunes, therefore this needs the network
+  of the server.
+- The list shows the name, the person, and the number of the episodes. The
+  address of the feed, or the description, stands below the list.
+- `l`/`Enter` adds the podcast to the library. **The request writes in the
+  library of the server**, therefore the program asks a question first: write
+  `yes` and press Enter. Every other answer adds nothing.
+- The new podcast gets no episode by itself. The web page of Audiobookshelf
+  starts a download of the episodes.
+- Press `R` to see the new podcast.
+
 ## 💤 A timer for sleep
 
 - `t` — move the timer to its next choice: 5, 10, 15, 30, 45, and 60 minutes,
@@ -207,9 +222,13 @@ The application starts and plays when the server does not answer:
 - Add future features described bellow.
 
 ## 🔮 Future features
-Here are some features that could be added in future releases:
-- Ability to add new podcasts from the app
-- Read an EPUB book in the application
+The EPUB reader, the statistics, and the podcasts of the old list are done.
+These stay:
+- Tell the server to get an episode of a podcast (the key `D` copies to your
+  own disk, and this puts the file in the library for every client)
+- The place of the ebook in the form of the web reader (EPUBCFI)
+- A view of the authors of a library
+- The changes of a different client, as they happen (this needs socket.io)
   
 ## ⚠️ Caution: Beta Version  
 This beta app is still in **heavy development and contains bugs**.  

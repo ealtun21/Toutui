@@ -61,6 +61,9 @@ pub enum AppView {
     Chapters,
     /// The bookmarks of one media. See T-24.
     Bookmarks,
+    /// The podcasts that the server found for the words of the user. See
+    /// T-24.
+    NewPodcast,
     Settings,
     SettingsAccount,
     SettingsLibrary,
@@ -133,6 +136,8 @@ pub struct App {
     /// The choice of the timer, in minutes. `Some(0)` is the end of the
     /// chapter, and `None` is off.
     pub sleep_choice: Option<u64>,
+    /// The list of the podcasts that the server found. See T-24.
+    pub list_state_new_podcast: ListState,
     /// The user changed the sequence or the filter. The loop of the program
     /// then makes the application again, in the same way as the key `R`. A
     /// new sequence needs a new request, and every list of the library comes
@@ -1005,6 +1010,7 @@ impl App {
             bookmarks_of: String::new(),
             sleep: None,
             sleep_choice: None,
+            list_state_new_podcast: ListState::default(),
             must_refresh: false,
             series_from: AppView::Series,
             lists,
@@ -1140,6 +1146,9 @@ impl App {
             // The key that shows the chapters of the media that plays.
             // See T-24.
             KeyCode::Char('C') => self.show_the_chapters(),
+
+            // The key that looks for a new podcast. See T-24.
+            KeyCode::Char('A') => self.look_for_a_podcast(),
 
             // The key of the timer for sleep. See T-24.
             KeyCode::Char('t') => self.change_the_timer_for_sleep(),
@@ -1422,6 +1431,7 @@ impl App {
                     // The view of the chapters goes back to the Home view.
                     AppView::Chapters => self.view_state = AppView::Home,
                     AppView::Bookmarks => self.view_state = AppView::Home,
+                    AppView::NewPodcast => self.view_state = AppView::Library,
                     AppView::PodcastEpisode => {
                         if self.is_from_search_pod {
                             self.view_state = AppView::SearchBook
@@ -1635,6 +1645,7 @@ impl App {
                     AppView::SortFilter => self.apply_the_sequence_or_the_filter(),
                     AppView::Chapters => self.go_to_the_chapter(),
                     AppView::Bookmarks => self.go_to_the_bookmark(),
+                    AppView::NewPodcast => self.add_the_podcast(),
                     AppView::Library => {
                         // A line of a series opens the books of that series.
                         // See T-22.
@@ -1988,6 +1999,125 @@ impl App {
             3,
             &format!("The playback goes to \"{}\".", chapter.title),
         );
+    }
+
+    /// Looks for a new podcast, and shows what the server found. See T-24.
+    ///
+    /// The key operates in a library of podcasts only: a library of books
+    /// cannot hold a podcast. The server asks iTunes, therefore the search
+    /// needs the network of the server.
+    pub fn look_for_a_podcast(&mut self) {
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+
+        if !matches!(
+            self.view_state,
+            AppView::Home | AppView::Library | AppView::SearchBook | AppView::NewPodcast
+        ) {
+            return;
+        }
+
+        if !self.is_podcast {
+            let _ = pop_message(
+                &mut stdout,
+                3,
+                "This library holds books. Choose a library of podcasts with S.",
+            );
+            return;
+        }
+
+        if self.is_offline {
+            let _ = pop_message(&mut stdout, 3, "The server does not answer.");
+            return;
+        }
+
+        let Ok(Some(words)) = self.ask_for_a_text("The name of the podcast (Enter, or Esc)") else {
+            return;
+        };
+
+        if words.trim().is_empty() {
+            return;
+        }
+
+        crate::logic::new_podcast::keep(crate::logic::new_podcast::State::Waiting);
+        self.list_state_new_podcast.select(Some(0));
+        self.scroll_offset = 0;
+        self.view_state = AppView::NewPodcast;
+
+        let api = std::sync::Arc::clone(&self.api);
+        let words = words.trim().to_string();
+
+        tokio::spawn(async move {
+            let state = match crate::api::podcasts::search_podcast(&api, &words).await {
+                Ok(all) => crate::logic::new_podcast::State::Ready(all),
+                Err(error) => {
+                    log::warn!("[podcast] the server found nothing: {}", error);
+                    crate::logic::new_podcast::State::Fault(error.to_string())
+                }
+            };
+
+            crate::logic::new_podcast::keep(state);
+        });
+    }
+
+    /// Writes the podcast that the user selected in the library. See T-24.
+    ///
+    /// The work needs two requests: the server reads the feed, and the server
+    /// then writes the podcast. **This request changes the library of the
+    /// server**, therefore the program asks the user one time before it
+    /// sends.
+    pub fn add_the_podcast(&mut self) {
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+
+        let all = crate::logic::new_podcast::found();
+
+        let Some(found) = self
+            .list_state_new_podcast
+            .selected()
+            .and_then(|index| all.get(index))
+            .cloned()
+        else {
+            return;
+        };
+
+        if found.feed_url.is_empty() {
+            let _ = pop_message(&mut stdout, 3, "This answer of the server holds no feed.");
+            return;
+        }
+
+        // The request writes a new directory in the library of the server.
+        // The user says yes one time.
+        let question = format!(
+            "Add \"{}\" to the library? Write yes, and then Enter.",
+            found.title
+        );
+
+        let Ok(Some(answer)) = self.ask_for_a_text(&question) else {
+            return;
+        };
+
+        if answer.trim().to_lowercase() != "yes" {
+            let _ = clear_message(&mut stdout, 3);
+            let _ = pop_message(&mut stdout, 3, "The program added no podcast.");
+            return;
+        }
+
+        let api = std::sync::Arc::clone(&self.api);
+        let library = self.id_selected_lib.clone();
+        let feed_url = found.feed_url.clone();
+        let title = found.title.clone();
+
+        let _ = clear_message(&mut stdout, 3);
+        let _ = pop_message(&mut stdout, 3, "The server reads the feed…");
+
+        tokio::spawn(async move {
+            let text = add_a_podcast(&api, &library, &feed_url, &title).await;
+
+            let mut stdout = std::io::stdout();
+            let _ = clear_message(&mut stdout, 3);
+            let _ = pop_message(&mut stdout, 3, text.as_str());
+        });
     }
 
     /// Moves the timer for sleep to its next choice. See T-24.
@@ -3089,6 +3219,7 @@ impl App {
             AppView::SortFilter => AppView::Library,
             AppView::Chapters => AppView::Home,
             AppView::Bookmarks => AppView::Home,
+            AppView::NewPodcast => AppView::Library,
             AppView::Settings => AppView::Home,
             AppView::SettingsAccount => AppView::Home,
             AppView::SettingsLibrary => AppView::Home,
@@ -3214,6 +3345,16 @@ impl App {
                     self.list_state_bookmarks.select(Some(0));
                 }
             }
+            AppView::NewPodcast => {
+                let count = crate::logic::new_podcast::found().len();
+                let from = self.list_state_new_podcast.selected().unwrap_or(0);
+
+                if from + 1 < count {
+                    self.list_state_new_podcast.select(Some(from + 1));
+                } else {
+                    self.list_state_new_podcast.select(Some(0));
+                }
+            }
             AppView::Settings => {
                 if let Some(selected) = self.list_state_settings.selected() {
                     if selected + 1 < self.settings.len() {
@@ -3278,6 +3419,7 @@ impl App {
             }
             AppView::Chapters => self.list_state_chapters.select_previous(),
             AppView::Bookmarks => self.list_state_bookmarks.select_previous(),
+            AppView::NewPodcast => self.list_state_new_podcast.select_previous(),
             AppView::Settings => self.list_state_settings.select_previous(),
             AppView::SettingsAccount => self.list_state_settings_account.select_previous(),
             AppView::SettingsLibrary => self.list_state_settings_library.select_previous(),
@@ -3309,6 +3451,7 @@ impl App {
             }
             AppView::Chapters => self.list_state_chapters.select_first(),
             AppView::Bookmarks => self.list_state_bookmarks.select_first(),
+            AppView::NewPodcast => self.list_state_new_podcast.select_first(),
             AppView::Settings => self.list_state_settings.select_first(),
             AppView::SettingsAccount => self.list_state_settings_account.select_first(),
             AppView::SettingsLibrary => self.list_state_settings_library.select_first(),
@@ -3378,6 +3521,10 @@ impl App {
                 let last = crate::logic::bookmarks::bookmarks().len().saturating_sub(1);
                 self.list_state_bookmarks.select(Some(last));
             }
+            AppView::NewPodcast => {
+                let last = crate::logic::new_podcast::found().len().saturating_sub(1);
+                self.list_state_new_podcast.select(Some(last));
+            }
             AppView::Settings => {
                 let last_index = self.settings.len().saturating_sub(1);
                 self.list_state_settings.select(Some(last_index));
@@ -3429,6 +3576,69 @@ pub async fn mark_the_media(
     {
         Ok(()) => message_of_the_mark(!was_finished),
         Err(error) => format!("The server did not take the mark: {}", error),
+    }
+}
+
+/// Reads a feed and writes the podcast in the library. See T-24.
+///
+/// The function gives the text that the user reads. It needs the folder of
+/// the library, therefore it asks the server for the library first.
+pub async fn add_a_podcast(
+    api: &std::sync::Arc<crate::api::client::ApiClient>,
+    library_id: &str,
+    feed_url: &str,
+    title: &str,
+) -> String {
+    #[derive(serde::Deserialize)]
+    struct Library {
+        #[serde(default)]
+        folders: Vec<Folder>,
+    }
+
+    #[derive(serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct Folder {
+        #[serde(default)]
+        id: String,
+        #[serde(default)]
+        full_path: String,
+    }
+
+    let library: Library = match api
+        .get_json(&format!("/api/libraries/{}", library_id))
+        .await
+    {
+        Ok(value) => value,
+        Err(error) => return format!("The server did not give the library: {}", error),
+    };
+
+    // The server makes the directory of the podcast inside a folder of the
+    // library. A library with no folder cannot hold a new podcast.
+    let Some(folder) = library.folders.first() else {
+        return "This library has no folder. The web page adds one.".to_string();
+    };
+
+    let feed = match crate::api::podcasts::get_feed(api, feed_url).await {
+        Ok(value) => value,
+        Err(error) => return format!("The server did not read the feed: {}", error),
+    };
+
+    let body = crate::api::podcasts::body_for(&feed, library_id, &folder.id, &folder.full_path);
+
+    match crate::api::podcasts::create_podcast(api, &body).await {
+        Ok(_) => format!(
+            "\"{}\" is in the library now, with {} episode(s). Press R to see it.",
+            title,
+            feed.episodes.len()
+        ),
+        // A `400` comes when the library holds that podcast already: the
+        // server cannot make a directory that exists. A measurement on
+        // 2026-08-11 gave that answer for a second add of one podcast.
+        Err(crate::api::client::error::ApiError::Server(400)) => format!(
+            "The server refused \"{}\". The library can hold that podcast already.",
+            title
+        ),
+        Err(error) => format!("The server did not add the podcast: {}", error),
     }
 }
 
