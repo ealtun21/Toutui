@@ -41,6 +41,17 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.49",
+        date: "12/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The Home view and the Library view of a library with no media said nothing.** \
+             The screen held an empty list, and no line said why. The two views name the \
+             reason now: a server that does not answer, a filter that hides every media, or a \
+             library that holds none.",
+        ],
+    },
+    Entry {
         version: "0.7.48",
         date: "12/08/2026",
         body: &[
