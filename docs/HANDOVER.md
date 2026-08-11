@@ -163,14 +163,7 @@ the view.
    `GET /api/tags`. The filter of the key `f` shows the books of one narrator
    and of one tag already, therefore a view of its own gives little.
 
-3. **The search of the server.** `GET /api/libraries/:id/search?q=` gives six
-   groups: `book`, `authors`, `series`, `narrators`, `tags`, `genres`. The key
-   `/` filters the titles that the client holds already, with
-   `to_lowercase().contains()`. Therefore the user finds no author, no series,
-   and no word inside a description. See section 4 of
-   `docs/T-24-coverage.md`.
-
-4. **The queue on the disk.** The queue lives in the memory of the process. A
+3. **The queue on the disk.** The queue lives in the memory of the process. A
    table of the database would keep it, and it would then need a rule for a
    media that the server does not hold now.
 
@@ -316,10 +309,8 @@ still says `No`.
 >    against the rule of T-20: the tree holds no client of socket.io in pure
 >    Rust, therefore this needs a new dependency. Measure what that dependency
 >    brings, and write the answer in the backlog before you write code.
-> 2. The search of the server (`GET /api/libraries/:id/search?q=`). The key `/`
->    filters the titles that the client holds, therefore the user finds no
->    author, no series, and no word inside a description.
-> 3. The narrators and the tags, if they are worth a view of their own.
+> 2. The narrators and the tags, if they are worth a view of their own.
+> 3. The queue on the disk, if a queue that a restart loses is not enough.
 >
 > Rules that bind every change: run all three gates yourself before each
 > commit — `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,
