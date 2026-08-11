@@ -4,7 +4,7 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.48**, and T-101 and T-102 belong to this session.
+**The newest release is v0.7.49**, and T-101, T-102, and T-103 belong to this session.
 The items T-88 to T-100 belong to the session before it, and T-74 to T-87 to the
 one before that.
 
@@ -14,6 +14,7 @@ one before that.
 |---|---|---|
 | T-101 | **The changelog holds every release of this fork**, and a test holds that rule | `S` |
 | T-102 | **The sequence of the media inside a collection or a playlist** | `c`, `l`, then `<` and `>` |
+| T-103 | **The Home view and the Library view of a library with no media said nothing** | `Tab` |
 
 **T-101, and the fault that hid itself.** The screen of "About and changelog"
 stopped at v0.6.8 while the program was at v0.7.46: **38 releases reached no
@@ -51,16 +52,34 @@ for the lists after the write.
 `handle_key` reads `key.code` only, therefore a key of Ctrl reaches the handler
 as the letter itself. A key with a modifier needs work in that function first.
 
+**T-103, and the sweep that found it.** A library of no item: the sandbox holds
+the library "Empty". The Home view and the Library view gave a title of
+"[0 items]" and ten rows of nothing, and **six other views held the rule of T-91
+already**. The program starts in the Library view when the Home view holds no
+line, therefore that text is the first text of such a user.
+
+**Three conditions, and their sequence is the rule.** A server that does not
+answer comes first (the program knows nothing then), a filter comes second (the
+library holds media, and the filter hides every one of them), and the library
+itself comes last. `App::render_the_reason` of `src/ui/tui.rs` holds the shape of
+that screen in one place now.
+
+**The sweeps of this session that found no fault**: a terminal of 300 columns
+(every text of every view fills the width, and the changelog of T-101 does too), a
+terminal of 80 columns with the new footer of T-102 (it wraps to the second row
+and it keeps every word), and a library of **one** item (every title says
+"1 item", and the three keys of a library of podcasts say why they do nothing).
+
 ## The state
 
-`main` is clean and pushed, and `v0.7.48` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.49` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 892 tests pass in 2.2 s, 24 carry #[ignore], 42 binaries
-    # cargo nextest run --run-ignored all gives 916 of 916 with the sandbox up,
+    # 893 tests pass in 2.2 s, 24 carry #[ignore], 42 binaries
+    # cargo nextest run --run-ignored all gives 917 of 917 with the sandbox up,
     # in 25 s: one test of that run waits 15 s for the time limit of a request
 cargo tree -i openssl-sys                # finds nothing
 cargo tree -i cc                         # finds libsqlite3-sys and ring only
@@ -71,7 +90,7 @@ them in 8.7. Use nextest: `.config/nextest.toml` stands in the repository, and t
 tool is on this machine. See T-74.
 
 **Every test of the sandbox passes too.** One run of
-`cargo nextest run --run-ignored all` gives **916 of 916**, and the group
+`cargo nextest run --run-ignored all` gives **917 of 917**, and the group
 `the-sandbox` of `.config/nextest.toml` runs them one at a time for the rate limit
 of the login. With `cargo test`, give `-- --ignored --test-threads=1`.
 
@@ -398,16 +417,19 @@ and that item was the first of this group.**
 columns (T-90 and T-94), the offline mode (T-91), the view of the login (T-92),
 the reader (T-95), and a terminal of 18 rows (T-99). These conditions stay:
 
-1. **A library of one item**, and **a book of one chapter**: every "1 item" of
-   the program (T-85, T-95, and T-100 each found one of those texts in a
-   different place).
+1. ~~**A library of one item**~~: done on 2026-08-12, and it found no fault. **A
+   book of one chapter** stays: every "1 item" of the program (T-85, T-95, and
+   T-100 each found one of those texts in a different place). **A library of no
+   item found T-103.**
 2. **A pool of two addresses.** `config.toml` takes more than one address of one
    server, and no sweep drove the program with two. T-97 changed the rule of that
    pool, and a measurement with two addresses would show the change of address
    that no test of a mock server shows.
 3. **A media that the server holds and the disk does not**, while the server goes
    away in the middle of a playback.
-4. **A terminal of 300 columns**: every text of a view that a wrap makes wide.
+4. ~~**A terminal of 300 columns**~~: done on 2026-08-12, and it found no fault.
+   The texts of the settings, of the keys, of the changelog, and of the Home view
+   all fill the width.
 
 #### Group 3: the tests and the harness
 
@@ -843,6 +865,13 @@ answers slowly while it writes. Two answers to measure:
 59. **A key that writes a sequence must move the screen at once.** A user presses
     the key more than one time, and a screen that waits for the answer of the
     server between two keys moves the wrong line. See T-102 and the trap 40.
+60. **A title of "[0 items]" is not a sentence.** The Home view and the Library
+    view of a library with no media drew an empty list and no word. **Every view
+    that can hold no line needs its own sentence**, and
+    `App::render_the_reason` of `src/ui/tui.rs` holds the shape. See T-103.
+61. **The program starts in the Library view when the Home view holds no line**
+    (`src/app.rs`, near the line 939). A measurement of the Home view of an empty
+    library must press `Tab` first. See T-103.
 
 ### Of the harness and of the machine
 
@@ -1011,24 +1040,24 @@ answers slowly while it writes. Two answers to measure:
 
 > Continue the Toutui takeover, and write the next version. Repo:
 > `/home/nyverino/Documents/Toutui` (ealtun21/Toutui, branch main). Maintained fork
-> of the archived AlbanDAVID/Toutui. Newest release **v0.7.48**; `Cargo.toml` is at
-> 0.7.48, so the next release bumps it first — the workflow refuses a tag that
+> of the archived AlbanDAVID/Toutui. Newest release **v0.7.49**; `Cargo.toml` is at
+> 0.7.49, so the next release bumps it first — the workflow refuses a tag that
 > disagrees with `Cargo.toml`, **and it builds `--locked`, therefore the commit of
 > the bump must hold the new `Cargo.lock`**. **A release also writes its entry of
 > the changelog** (`THE_ENTRIES_OF_THE_FORK` of `src/utils/changelog.rs`): the
 > gate fails without it. That is the rule of T-101.
 >
 > Read `docs/HANDOVER.md` first: the state, the open items, the section of the
-> harness, and 77 traps that cost real time. Then `docs/TAKEOVER-BACKLOG.md` (the
-> evidence of every item; T-101 and T-102 are the newest, and **T-87 and T-97 are the
+> harness, and 79 traps that cost real time. Then `docs/TAKEOVER-BACKLOG.md` (the
+> evidence of every item; T-101, T-102, and T-103 are the newest, and **T-87 and T-97 are the
 > two to know**) and `docs/T-24-coverage.md` (**section 6 names what the program
 > must not have, and why**).
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a real null asound file
-> (`/dev/null` hangs the real binary). Baseline: **892 tests in 2.2 seconds**, and
-> `cargo nextest run --run-ignored all` gives **916 of 916** with the sandbox up.
+> (`/dev/null` hangs the real binary). Baseline: **893 tests in 2.2 seconds**, and
+> `cargo nextest run --run-ignored all` gives **917 of 917** with the sandbox up.
 >
 > **The sweep of the views is the tool that finds the faults.** Twenty-two items of
 > the two sessions of 2026-08-11 came from sweeps in tmux with
