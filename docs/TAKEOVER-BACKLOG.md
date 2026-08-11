@@ -182,20 +182,25 @@ the address. Issue #35 gives this advice. Sub-project 2 does this work.
 
 | Id | Upstream | Title | Sub-project |
 |---|---|---|---|
-| T-7 | #35 | The application gets all items in one request | 3 |
+| T-7 | #35 | The application gets all items in one request | complete, `get_all_books.rs` |
 | T-8 | #36 | A change of the speed needs a new start of the playback | complete, T-19 |
 | T-17 | — | Play an Opus file | complete, `c342f50` |
 | T-18 | — | Play a WMA file and an AWB file (the last two of 19) | complete, T-53 |
 | T-20 | — | Remove the two dependencies that compile C | later |
 
-### T-7: the application gets all items in one request
+### T-7: the application gets all items in one request — fixed
 
-`src/api/libraries/get_all_books.rs:98` uses `?limit=0`. That value gets every
-item. A library with 10000 books makes a large answer. This uses time, memory,
-and the resources of the server.
+`?limit=0` told the server to send every item in one answer. A library with 10000
+books then makes a very large answer, and that uses time, memory, and the
+resources of the server. Upstream issue 35 gives this advice.
 
-Measurement on 2026-08-09: a library of 2056 books gives 3.7 megabytes in 0.48
-seconds. This is acceptable, but a larger library is not.
+Measurement on 2026-08-09: a library of 2056 books gave 3.7 megabytes in 0.48
+seconds. That is acceptable, and a larger library is not.
+
+**`get_all_books.rs` asks for pages of `PAGE_SIZE` items now**, and `PAGE_SIZE` is
+500. `wants_more_pages` stops at a page that is not full and at the number of items
+that the server reports, and `MAX_PAGES` of 500 stops an endless loop for a server
+that always gives a full page. `tests/pagination.rs` holds the rules.
 
 ### T-8: a change of the speed needs a new start of the playback — fixed
 
@@ -1990,6 +1995,47 @@ the server nothing before the user plays a media.
 `tests/the_queue_on_the_disk.rs` holds the rules with no server: the sequence, the
 account, the server, and the write that takes a row away. **That test sets
 `XDG_CONFIG_HOME`, therefore it stands alone in its binary.**
+
+### T-57: a picture of 16 bits, and the predictor of PNG
+
+The first form of T-54 read a picture of a PDF of 8 bits of one component only. A
+measurement on 2026-08-11 of a PDF that `img2pdf` made of a PNG file shows that
+this is not enough:
+
+```
+BitsPerComponent = 16
+ColorSpace = /DeviceGray
+DecodeParms = <</BitsPerComponent 16/Colors 1/Columns 1200/Predictor 15>>
+Filter = /FlateDecode
+```
+
+**Every PDF of a PNG file holds 16 bits**, therefore the reader gave the line of
+the text and no picture.
+
+**Two facts of the measurement.**
+
+1. `decompressed_content` of `lopdf` **undoes the predictor of PNG**. The stream
+   of 1200 by 1600 gave 3840000 bytes, and that is 1200 × 1600 × 2 with no byte of
+   a row of the predictor. Therefore this module needs no reader of a predictor.
+2. A sample of 16 bits holds the byte of the largest value first. A terminal shows
+   some hundred cells of one picture, therefore the high byte holds every
+   difference that a user can see. `eight_bits_of` takes that byte.
+
+**The measurement of the memory and of the time.** `Pdf::open` reads every page one
+time, therefore a book of many pictures must not stop the program:
+
+| The book | The pages | The time | The pictures in the memory |
+|---|---|---|---|
+| 120 pages of JPEG of 1200 by 1600 | 120 | 3.5 milliseconds | 1006 kilobytes |
+| 60 pages of Flate of 16 bits of 1200 by 1600 | 60 | 473 milliseconds | 784 kilobytes |
+
+A picture of JPEG costs almost nothing: the bytes of the stream **are** the file.
+A picture of raw samples needs one write of a PNG file, and the answer is small.
+`Pdf::open` runs in a task, therefore the screen of the reader shows "The program
+gets the book…" while it works.
+
+The real program drew the picture of 1200 by 1600 as 63 columns by 42 rows: the
+form of the picture is 0.75, and a cell of 10 by 20 pixels gives 630 by 840 pixels.
 
 ## The upgrade of the dependencies, 2026-08-10
 

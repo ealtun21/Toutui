@@ -412,8 +412,14 @@ fn picture_of_the_stream(
     }
 
     // Every other filter of a picture of a PDF gives raw samples. The program
-    // makes a PNG file of them, and it reads 8 bits of one component only.
-    if bits != 8 {
+    // reads 8 bits and 16 bits of one component.
+    //
+    // **`decompressed_content` of `lopdf` undoes the predictor of PNG.** A
+    // measurement on 2026-08-11 of a picture of 1200 by 1600 with
+    // `DecodeParms <</Predictor 15>>` gave 3840000 bytes, and that is
+    // 1200 × 1600 × 2 with no byte of a row of the predictor. Therefore this
+    // module needs no reader of a predictor. See T-57.
+    if bits != 8 && bits != 16 {
         return None;
     }
 
@@ -423,6 +429,15 @@ fn picture_of_the_stream(
         return None;
     }
 
+    // A terminal shows a picture of some hundred cells. Therefore the high byte
+    // of a sample of 16 bits is enough, and the program needs no arithmetic of
+    // the colour.
+    let samples = if bits == 16 {
+        eight_bits_of(&samples)
+    } else {
+        samples
+    };
+
     let file = png_of_the_samples(width, height, colours?, &samples)?;
 
     Some(Picture {
@@ -431,6 +446,15 @@ fn picture_of_the_stream(
         height,
         file: Arc::new(file),
     })
+}
+
+/// Takes the high byte of every sample of 16 bits.
+///
+/// A picture of 16 bits holds two bytes for one component, and the first byte is
+/// the byte of the largest value. A terminal shows some hundred cells of one
+/// picture, therefore that byte holds every difference that a user can see.
+fn eight_bits_of(samples: &[u8]) -> Vec<u8> {
+    samples.chunks_exact(2).map(|pair| pair[0]).collect()
 }
 
 /// Makes a PNG file of the raw samples of a picture.
@@ -648,14 +672,14 @@ mod tests {
 
         assert!(picture_of_the_stream("Im2", &dictionary, &[1, 2, 3], || None).is_none());
 
-        // A picture of 16 bits of one component.
+        // A picture of 1 bit of one component: the form of a fax.
         let mut deep = Dictionary::new();
         deep.set("Subtype", Object::Name(b"Image".to_vec()));
         deep.set("Width", 2_i64);
         deep.set("Height", 2_i64);
         deep.set("Filter", Object::Name(b"FlateDecode".to_vec()));
-        deep.set("BitsPerComponent", 16_i64);
-        deep.set("ColorSpace", Object::Name(b"DeviceRGB".to_vec()));
+        deep.set("BitsPerComponent", 1_i64);
+        deep.set("ColorSpace", Object::Name(b"DeviceGray".to_vec()));
 
         assert!(picture_of_the_stream("Im3", &deep, &[], || Some(vec![0; 24])).is_none());
 
@@ -666,6 +690,38 @@ mod tests {
         empty.set("Height", 10_i64);
 
         assert!(picture_of_the_stream("Im4", &empty, &[], || None).is_none());
+    }
+
+    /// A picture of 16 bits of one component comes from every PDF that a PNG
+    /// file made. The program takes the high byte of each sample. See T-57.
+    #[test]
+    fn a_picture_of_sixteen_bits_gives_a_picture() {
+        let mut dictionary = Dictionary::new();
+        dictionary.set("Subtype", Object::Name(b"Image".to_vec()));
+        dictionary.set("Width", 2_i64);
+        dictionary.set("Height", 1_i64);
+        dictionary.set("Filter", Object::Name(b"FlateDecode".to_vec()));
+        dictionary.set("BitsPerComponent", 16_i64);
+        dictionary.set("ColorSpace", Object::Name(b"DeviceGray".to_vec()));
+
+        // Two pixels of one component of two bytes: 0xff00 and 0x2010.
+        let samples = vec![0xff, 0x00, 0x20, 0x10];
+
+        let picture = picture_of_the_stream("Im0", &dictionary, &[], || Some(samples))
+            .expect("a picture of 16 bits must come");
+
+        let read = image::load_from_memory(&picture.file).expect("the file must be a picture");
+        assert_eq!((read.width(), read.height()), (2, 1));
+        assert_eq!(read.to_luma8().get_pixel(0, 0).0, [0xff]);
+        assert_eq!(read.to_luma8().get_pixel(1, 0).0, [0x20]);
+    }
+
+    #[test]
+    fn the_high_byte_of_every_sample() {
+        assert_eq!(eight_bits_of(&[0xff, 0x00, 0x01, 0x02]), vec![0xff, 0x01]);
+        // A list with one byte too many gives the pairs that are complete.
+        assert_eq!(eight_bits_of(&[0xaa, 0xbb, 0xcc]), vec![0xaa]);
+        assert!(eight_bits_of(&[]).is_empty());
     }
 
     /// A stream that names fewer samples than the size of the picture needs must
