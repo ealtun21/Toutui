@@ -17,8 +17,9 @@ use std::sync::Arc;
 
 use crate::api::client::ApiClient;
 use crate::logic::reader::book::{Book, ReaderError, TocItem};
+use crate::logic::reader::cfi::{self, CfiPlace, TextPlace};
 use crate::logic::reader::position::Position;
-use crate::logic::reader::render::to_lines;
+use crate::logic::reader::render::{letters_of_each_line, to_lines};
 
 /// The time that one chapter may take to render.
 ///
@@ -35,6 +36,9 @@ struct Rendered {
     chapter: usize,
     width: u16,
     lines: Vec<Line<'static>>,
+    /// Every text of the chapter, with the path of the EPUBCFI that names it.
+    /// The place of the user in the form of the web reader needs it.
+    places: Vec<TextPlace>,
     message: Option<String>,
 }
 
@@ -51,6 +55,17 @@ pub struct Reader {
     pub top_line: usize,
     /// The lines of the chapter, after the render.
     pub lines: Vec<Line<'static>>,
+    /// The number of letters of each line. The place of the user in the form of
+    /// the web reader counts the letters. See `cfi` and T-10.
+    letters_of_each_line: Vec<usize>,
+    /// Every text of the chapter, with the path of its EPUBCFI.
+    places: Vec<TextPlace>,
+    /// A place of the web reader that waits for the render of its chapter.
+    ///
+    /// The line of an EPUBCFI needs the lines of the chapter, and the render is
+    /// not immediate. The reader therefore holds the place here, and it takes
+    /// the line when the lines come.
+    waiting_place: Option<CfiPlace>,
     /// The width that the lines follow. A different width needs a new render.
     rendered_width: u16,
     /// The chapter that the task renders now.
@@ -105,6 +120,9 @@ impl Reader {
             chapter: 0,
             top_line: 0,
             lines: Vec::new(),
+            letters_of_each_line: Vec::new(),
+            places: Vec::new(),
+            waiting_place: None,
             rendered_width: 0,
             waiting_for: None,
             message: None,
@@ -131,9 +149,24 @@ impl Reader {
                 continue;
             }
 
+            self.letters_of_each_line = letters_of_each_line(&answer.lines);
             self.lines = answer.lines;
+            self.places = answer.places;
             self.message = answer.message;
             self.waiting_for = None;
+
+            // A place of the web reader waited for these lines. The reader now
+            // knows the letters of each line, therefore it knows the line.
+            if let Some(place) = self.waiting_place.take() {
+                if !self.lines.is_empty() {
+                    let letters = cfi::letters_before(&self.places, &place);
+                    self.top_line = cfi::line_of_letters(&self.letters_of_each_line, letters);
+                } else {
+                    // The chapter gave no line. The reader keeps the place, and
+                    // the next render of the same chapter uses it.
+                    self.waiting_place = Some(place);
+                }
+            }
 
             // A chapter that gives no line is the wrapper of the cover. Every
             // book of the measurement has one. The reader goes past it.
@@ -169,27 +202,34 @@ impl Reader {
 
         tokio::spawn(async move {
             let work = tokio::task::spawn_blocking(move || match book.chapter_xhtml(chapter) {
-                Ok(xhtml) => (to_lines(&xhtml, width), None),
-                Err(error) => (Vec::new(), Some(error.to_string())),
+                // The walk over the tree runs beside the render, in the same
+                // task. A measurement on 2026-08-11 gave 2 milliseconds for the
+                // longest chapter of Moby Dick in a debug build, and the render
+                // of that chapter needs 18 milliseconds.
+                Ok(xhtml) => (to_lines(&xhtml, width), cfi::text_places(&xhtml), None),
+                Err(error) => (Vec::new(), Vec::new(), Some(error.to_string())),
             });
 
             let answer = match tokio::time::timeout(TIME_FOR_ONE_CHAPTER, work).await {
-                Ok(Ok((lines, message))) => Rendered {
+                Ok(Ok((lines, places, message))) => Rendered {
                     chapter,
                     width,
                     lines,
+                    places,
                     message,
                 },
                 Ok(Err(_)) => Rendered {
                     chapter,
                     width,
                     lines: Vec::new(),
+                    places: Vec::new(),
                     message: Some("This chapter did not open.".to_string()),
                 },
                 Err(_) => Rendered {
                     chapter,
                     width,
                     lines: Vec::new(),
+                    places: Vec::new(),
                     message: Some("This chapter is too complex.".to_string()),
                 },
             };
@@ -207,6 +247,9 @@ impl Reader {
         self.chapter = chapter;
         self.top_line = 0;
         self.lines = Vec::new();
+        self.letters_of_each_line = Vec::new();
+        self.places = Vec::new();
+        self.waiting_place = None;
         self.rendered_width = 0;
         self.waiting_for = None;
         self.message = Some("Reading…".to_string());
@@ -261,23 +304,42 @@ impl Reader {
         }
     }
 
+    /// Gives the text of `ebookLocation` for the server.
+    ///
+    /// The reader writes an EPUBCFI, therefore the web reader of Audiobookshelf
+    /// and a telephone open the same paragraph. See `cfi` and T-10.
+    ///
+    /// A chapter that gives no text gives no EPUBCFI. The reader then writes
+    /// its own form `toutui:<spine>:<line>`, and it keeps the place of the
+    /// user.
+    pub fn location_text(&self) -> String {
+        let letters = cfi::letters_before_line(&self.letters_of_each_line, self.top_line);
+        cfi::to_epubcfi(self.chapter, &self.places, letters)
+            .unwrap_or_else(|| crate::logic::reader::position::to_ebook_location(self.position()))
+    }
+
     /// Puts the user at a place that the server gave.
+    ///
+    /// Three forms come from the server, and the program takes the first one
+    /// that it understands.
+    ///
+    /// 1. An EPUBCFI. The web reader writes it, and this reader also writes it.
+    ///    The reader takes the chapter now, and it takes the line when the
+    ///    render of that chapter gives the lines.
+    /// 2. The older form of this program, `toutui:<spine>:<line>`. A server
+    ///    holds such a text from a version before 0.7.8.
+    /// 3. Nothing that the program understands. The part of the book then gives
+    ///    the chapter.
     pub fn go_to_the_place_of_the_server(&mut self, location: &str, ebook_fraction: f64) {
-        // Three forms come from the server, and the program takes the first
-        // one that it understands.
-        //
-        // 1. A place that this program wrote. It names the chapter and the
-        //    line.
-        // 2. An EPUBCFI of the web reader. It names the chapter, and the user
-        //    starts at the first line of that chapter.
-        // 3. Nothing that the program understands. The part of the book then
-        //    gives the chapter.
-        let place = crate::logic::reader::position::from_ebook_location(location)
-            .or_else(|| {
-                crate::logic::reader::position::chapter_of_epubcfi(location)
-                    .map(|spine| Position { spine, line: 0 })
-            })
-            .unwrap_or_else(|| {
+        if let Some(place) = cfi::parse_epubcfi(location) {
+            let spine = place.spine.min(self.chapter_count().saturating_sub(1));
+            self.go_to_chapter(spine);
+            self.waiting_place = Some(place);
+            return;
+        }
+
+        let place =
+            crate::logic::reader::position::from_ebook_location(location).unwrap_or_else(|| {
                 crate::logic::reader::position::from_fraction(&self.sizes, ebook_fraction)
             });
 

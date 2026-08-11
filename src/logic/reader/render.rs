@@ -76,6 +76,23 @@ pub fn to_lines(xhtml: &str, width: u16) -> Vec<Line<'static>> {
         .collect()
 }
 
+/// Gives the number of letters of each line.
+///
+/// The place of the user in the form of the web reader counts the letters. See
+/// `cfi` and T-10. This function gives that count for the screen, and
+/// `cfi::text_places` gives it for the tree of the XHTML.
+pub fn letters_of_each_line(lines: &[Line<'static>]) -> Vec<usize> {
+    lines
+        .iter()
+        .map(|line| {
+            line.spans
+                .iter()
+                .map(|span| crate::logic::reader::cfi::letters(span.content.as_ref()))
+                .sum()
+        })
+        .collect()
+}
+
 /// Gives the style of one part of a line.
 ///
 /// A part can carry more than one annotation, for example bold inside a link.

@@ -17,14 +17,13 @@
 //! and they must run in a task, and never on the thread that draws.
 
 pub mod book;
+pub mod cfi;
 pub mod position;
 pub mod render;
 pub mod session;
 
 pub use book::{Book, ReaderError, TocItem};
-pub use position::{
-    chapter_of_epubcfi, fraction, from_ebook_location, from_fraction, to_ebook_location, Position,
-};
+pub use position::{fraction, from_ebook_location, from_fraction, to_ebook_location, Position};
 pub use render::to_lines;
 pub use session::Reader;
 

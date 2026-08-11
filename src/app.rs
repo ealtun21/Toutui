@@ -3088,7 +3088,7 @@ impl App {
         };
 
         let item_id = reader.item_id.clone();
-        let location = crate::logic::reader::to_ebook_location(reader.position());
+        let location = reader.location_text();
         let part = reader.fraction();
         let api = std::sync::Arc::clone(&self.api);
 
