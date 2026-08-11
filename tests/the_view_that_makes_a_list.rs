@@ -91,7 +91,27 @@ async fn the_view_says_the_two_keys_that_make_a_list() {
 
     // 1. The library holds no list. The title says the condition and the two
     //    keys: an empty box says nothing.
+    //
+    //    **The application of this test is in the offline mode**, because the
+    //    address of the server answers nothing. A list stands on the server,
+    //    therefore the view says a different sentence in that mode: the test
+    //    measures the two conditions, one after the other. See T-91.
     app.lists = Vec::new();
+    app.is_offline = true;
+
+    let text = the_screen(&mut app);
+
+    assert!(
+        text.contains("The server does not answer. A collection and a playlist stand on the "),
+        "the view must not say that the library holds no list when no request \
+         gave an answer"
+    );
+    assert!(
+        !text.contains("Press c or p to make one"),
+        "a server that does not answer takes no new list"
+    );
+
+    app.is_offline = false;
 
     let text = the_screen(&mut app);
 
@@ -104,7 +124,7 @@ async fn the_view_says_the_two_keys_that_make_a_list() {
 
     // 2. The footer names the two keys in every condition of this view.
     assert!(
-        text.contains("c/p: a new collection or playlist"),
+        text.contains("c: a collection  p: a playlist"),
         "the footer must name the keys that make a list"
     );
 
@@ -125,7 +145,7 @@ async fn the_view_says_the_two_keys_that_make_a_list() {
         "the title must name the media and the number of the lists"
     );
     assert!(
-        text.contains("c/p: a new collection or playlist"),
+        text.contains("c: a collection  p: a playlist"),
         "the footer must name the keys that make a list"
     );
     assert!(

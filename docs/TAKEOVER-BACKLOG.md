@@ -3493,6 +3493,38 @@ correction found no other text that goes away at that width.
 the wrap removed fails with "the view Home lost the end of its footer in 80
 columns".
 
+### T-91: the program said that the library holds no list, and the server was down
+
+**The sweep of the offline mode is the second sweep that no session had made.**
+`podman stop abs-test`, and then every key of the Library view. The program
+answers well almost everywhere: the header says "Offline", the row of the media
+says "This media plays from the disk", and the views of the authors and of the
+narrators say "The server gave no author: the server does not answer".
+
+**Three views said something that is not true.** With no answer from the server:
+
+| The key | What the view said | What is true |
+|---|---|---|
+| `c` | "This library has no collection and no playlist." | No request gave an answer |
+| `s` | "This library has no series." | The same |
+| `m` | "This library holds no collection and no playlist. Press c or p to make one." | A new list needs the server |
+
+The third one is the worst of the three: it names two keys that cannot work,
+because a collection and a playlist stand on the server. The key `c` of that
+view now says the reason and it asks for no name.
+
+The rule: **a view that holds no line must say the reason of that condition, and
+the program must not give a reason that it does not know.** The view of the
+authors held the rule already, and `App::is_offline` gives it to the three views
+of this item.
+
+The sweep of the empty library of the same day found one text of a different
+kind: "Press 'h' to go back." in three views, and "Press h to go back." in the
+view of the chapters. One program says one thing in one way, therefore a test
+reads `src/ui/tui.rs` and holds every text to the second form. The view of the
+episodes said "No episodes found for this podcast." too, and it says "This
+podcast has no episode." now.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

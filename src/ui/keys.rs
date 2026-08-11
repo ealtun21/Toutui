@@ -299,7 +299,7 @@ pub const THE_LISTS_THAT_TAKE_A_MEDIA: &str = "A collection holds books, and eve
 /// The keys `c` and `p` make a list, therefore this view has a footer of its
 /// own: `footer_with` names the key `l` only. See T-88.
 pub const FOOTER_OF_THE_LISTS_THAT_TAKE_A_MEDIA: &str =
-    "j/k: move  l: put in this list  c/p: a new collection or playlist  h: back  \
+    "j/k: move  l: put it here  c: a collection  p: a playlist  h: back  \
      ?: every key  Q: quit";
 
 pub const THE_TEXTS_OF_THE_VIEWS: &[&str] = &[
@@ -342,8 +342,13 @@ mod tests {
         }
     }
 
-    /// The footer of a view of 80 columns must hold every character. The old
-    /// footer of the Home view had 342 characters in two lines. See T-49.
+    /// The footer of a view must hold every character in a terminal of 80
+    /// columns. The old footer of the Home view had 342 characters in two
+    /// lines. See T-49.
+    ///
+    /// **The area of the footer holds two rows**, and the text wraps: 92
+    /// characters therefore reach the user in 80 columns, and 342 do not. See
+    /// T-90.
     #[test]
     fn every_footer_fits_in_eighty_columns() {
         let footers = [
@@ -355,6 +360,7 @@ mod tests {
             FOOTER_OF_A_LIST,
             FOOTER_OF_A_LIST_OF_MEDIA,
             FOOTER_OF_A_FAULT,
+            FOOTER_OF_THE_LISTS_THAT_TAKE_A_MEDIA,
         ];
 
         for footer in footers {
@@ -377,6 +383,24 @@ mod tests {
                 .chars()
                 .count()
                 <= 92
+        );
+    }
+
+    /// A text of a view names a key as the key stands, and never inside
+    /// quotation marks. See T-91.
+    ///
+    /// The sweep of the empty library of 2026-08-11 read "Press 'h' to go
+    /// back." in the view of the series, in the view of the lists, and in the
+    /// view of the episodes, and it read "Press h to go back." in the view of
+    /// the chapters. One program must say one thing in one way.
+    #[test]
+    fn a_text_of_a_view_names_a_key_with_no_quotation_mark() {
+        let views = include_str!("tui.rs");
+
+        assert!(
+            !views.contains("Press '"),
+            "a text of src/ui/tui.rs holds a key inside quotation marks. \
+             The program says \"Press h to go back.\""
         );
     }
 

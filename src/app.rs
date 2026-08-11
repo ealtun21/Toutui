@@ -2481,6 +2481,16 @@ impl App {
             return;
         };
 
+        // A list stands on the server, therefore a server that does not answer
+        // takes no new list. The program says it before it asks for a name.
+        // See T-91.
+        if self.is_offline {
+            crate::logic::message::say(
+                "The server does not answer. A collection and a playlist stand on the server.",
+            );
+            return;
+        }
+
         // A collection holds books. The server refuses an episode, therefore
         // the program says it before it asks for a name.
         if episode_id.is_some()

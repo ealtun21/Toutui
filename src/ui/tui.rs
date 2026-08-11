@@ -713,6 +713,12 @@ impl App {
         // says that condition, and it names the two keys that make a list:
         // an empty box says nothing. See T-88.
         let title = match (self.the_media_of_the_list.as_ref(), self.lists.is_empty()) {
+            // A server that does not answer takes no new list, and it gave no
+            // list either. See T-91.
+            (_, true) if self.is_offline => {
+                "The server does not answer. A collection and a playlist stand on the server."
+                    .to_string()
+            }
             (_, true) => {
                 "This library holds no collection and no playlist. Press c or p to make one."
                     .to_string()
@@ -1317,7 +1323,15 @@ impl App {
         App::render_footer(footer_area, buf, text_render_footer);
 
         if self.series.is_empty() {
-            Paragraph::new("This library has no series.\nPress 'h' to go back.")
+            // A server that does not answer gives no series, and that is not a
+            // library with no series. See T-91.
+            let text = if self.is_offline {
+                "The server gave no series: the server does not answer.\nPress h to go back."
+            } else {
+                "This library has no series.\nPress h to go back."
+            };
+
+            Paragraph::new(text)
                 .centered()
                 .block(
                     Block::new()
@@ -1461,16 +1475,26 @@ impl App {
         App::render_footer(footer_area, buf, text_render_footer);
 
         if self.lists.is_empty() {
-            Paragraph::new(
-                "This library has no collection and no playlist.\nPress 'h' to go back.",
-            )
-            .centered()
-            .block(
-                Block::new()
-                    .borders(Borders::TOP)
-                    .border_style(Style::new().fg(Color::DarkGray)),
-            )
-            .render(main_area, buf);
+            // **The program knows nothing of the lists of a server that does
+            // not answer.** The offline sweep of 2026-08-11 read "This library
+            // has no collection and no playlist" with the server stopped, and
+            // that sentence is not true: no request gave an answer. The view of
+            // the authors held this rule already. See T-91.
+            let text = if self.is_offline {
+                "The server gave no collection and no playlist: the server does not answer.\n\
+                 Press h to go back."
+            } else {
+                "This library has no collection and no playlist.\nPress h to go back."
+            };
+
+            Paragraph::new(text)
+                .centered()
+                .block(
+                    Block::new()
+                        .borders(Borders::TOP)
+                        .border_style(Style::new().fg(Color::DarkGray)),
+                )
+                .render(main_area, buf);
             return;
         }
 
@@ -2006,7 +2030,7 @@ impl App {
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
-        let no_episodes_message = "No episodes found for this podcast.\nPress 'h' to go back.";
+        let no_episodes_message = "This podcast has no episode.\nPress h to go back.";
 
         if self.is_from_search_pod {
             if self.titles_pod_ep_search.is_empty() {
