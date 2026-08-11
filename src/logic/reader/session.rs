@@ -86,6 +86,12 @@ pub struct Reader {
     /// The time of the last send. The reader sends every 30 seconds at the
     /// most, and not for each line that the user reads.
     sent_at: std::time::Instant,
+    /// The place of this book goes to the server.
+    ///
+    /// The server holds one place for each media, and an item can hold more
+    /// than one ebook. A book that is not the book of the server therefore
+    /// keeps its place on this machine. See T-76.
+    sends_the_place: bool,
     sender: Sender<Rendered>,
     receiver: Receiver<Rendered>,
 }
@@ -153,9 +159,26 @@ impl Reader {
             contents_line: 0,
             sent: None,
             sent_at: std::time::Instant::now(),
+            sends_the_place: true,
             sender,
             receiver,
         })
+    }
+
+    /// Says that this book is not the book of the server, therefore the place
+    /// of the user stays on this machine. See T-76.
+    ///
+    /// The server holds one place for each media (`ebookLocation`), and not one
+    /// place for each file. An item that holds two ebooks would then give the
+    /// place of the second book to the first one, and the user would lose their
+    /// line.
+    pub fn the_place_stays_here(&mut self) {
+        self.sends_the_place = false;
+    }
+
+    /// Tells if the place of this book goes to the server.
+    pub fn sends_the_place(&self) -> bool {
+        self.sends_the_place
     }
 
     pub fn chapter_count(&self) -> usize {
@@ -378,7 +401,7 @@ impl Reader {
     /// who reads a page each ten seconds therefore makes one request each 30
     /// seconds, and not one for each page.
     pub fn wants_to_send(&self) -> bool {
-        wants_to_send(self.sent, self.position(), self.sent_at.elapsed())
+        self.sends_the_place && wants_to_send(self.sent, self.position(), self.sent_at.elapsed())
     }
 
     /// Tells if the reader must send the place before it goes away.
@@ -403,7 +426,7 @@ impl Reader {
     }
 
     pub fn wants_to_send_at_the_end(&self) -> bool {
-        self.sent != Some(self.position())
+        self.sends_the_place && self.sent != Some(self.position())
     }
 
     /// Says that the place went to the server.
@@ -546,9 +569,44 @@ pub fn the_message_of_the_format(format: &str) -> String {
     }
 }
 
+/// Gives the name of the file of one ebook on the disk, with no form.
+///
+/// An item can hold more than one ebook, therefore the name of the item is not
+/// enough: the identity of the file of the server comes after it. The book of
+/// `media.ebookFile` keeps the name of the item, because the program held that
+/// name before T-76 and a user must not get the file a second time.
+///
+/// The function is pure, therefore a test needs no disk.
+pub fn the_name_of_the_book(item_id: &str, ino: Option<&str>) -> String {
+    match ino {
+        Some(ino) if !ino.is_empty() => format!("{}-{}", item_id, ino),
+        _ => item_id.to_string(),
+    }
+}
+
+/// Says that a file of the directory of the downloads is an ebook of one item.
+///
+/// The key `X` removes every such file. See T-65 and T-76.
+pub fn the_file_is_an_ebook_of_the_item(file_name: &str, item_id: &str) -> bool {
+    let Some(rest) = file_name.strip_prefix(item_id) else {
+        return false;
+    };
+
+    matches!(rest, ".epub" | ".pdf") || {
+        // The name of a second ebook of the item: `<item>-<ino>.epub`.
+        rest.starts_with('-') && (rest.ends_with(".epub") || rest.ends_with(".pdf"))
+    }
+}
+
 /// Gives the path of the ebook of one item on the disk.
 pub fn ebook_path(username: &str, item_id: &str) -> PathBuf {
-    crate::logic::download::downloads_base_dir(username).join(format!("{}.epub", item_id))
+    ebook_path_of(username, item_id, None)
+}
+
+/// Gives the path of the EPUB book of one ebook of an item. See T-76.
+pub fn ebook_path_of(username: &str, item_id: &str, ino: Option<&str>) -> PathBuf {
+    crate::logic::download::downloads_base_dir(username)
+        .join(format!("{}.epub", the_name_of_the_book(item_id, ino)))
 }
 
 /// Gives the path of the PDF of one item on the disk. See T-54.
@@ -556,7 +614,13 @@ pub fn ebook_path(username: &str, item_id: &str) -> PathBuf {
 /// The server gives the ebook of every form at one address, therefore the name
 /// of the file on the disk comes from the bytes of the answer.
 pub fn pdf_path(username: &str, item_id: &str) -> PathBuf {
-    crate::logic::download::downloads_base_dir(username).join(format!("{}.pdf", item_id))
+    pdf_path_of(username, item_id, None)
+}
+
+/// Gives the path of the PDF of one ebook of an item. See T-76.
+pub fn pdf_path_of(username: &str, item_id: &str, ino: Option<&str>) -> PathBuf {
+    crate::logic::download::downloads_base_dir(username)
+        .join(format!("{}.pdf", the_name_of_the_book(item_id, ino)))
 }
 
 /// Reads the ebook of one item from the server, if the disk does not hold it.
@@ -568,7 +632,21 @@ pub async fn get_the_ebook(
     username: &str,
     item_id: &str,
 ) -> Result<PathBuf, String> {
-    let path = ebook_path(username, item_id);
+    get_the_ebook_of(api, username, item_id, None).await
+}
+
+/// Reads one ebook of an item from the server, if the disk does not hold it.
+///
+/// `ino` names the file of the server. `None` takes the book that the server
+/// opens for the item, and that is `media.ebookFile`. An item can hold more
+/// than one ebook, and each of them takes its own name on the disk. See T-76.
+pub async fn get_the_ebook_of(
+    api: &Arc<ApiClient>,
+    username: &str,
+    item_id: &str,
+    ino: Option<&str>,
+) -> Result<PathBuf, String> {
+    let path = ebook_path_of(username, item_id, ino);
 
     // The time of the file is the time of the last use, therefore the cache
     // holds the book that the user reads often. See T-67.
@@ -578,7 +656,7 @@ pub async fn get_the_ebook(
     }
 
     // A PDF of a visit before this one. See T-54.
-    let of_the_pdf = pdf_path(username, item_id);
+    let of_the_pdf = pdf_path_of(username, item_id, ino);
 
     if of_the_pdf.exists() {
         crate::logic::reader::cache::the_book_is_in_use(&of_the_pdf);
@@ -590,12 +668,18 @@ pub async fn get_the_ebook(
         .map(|parent| parent.to_path_buf())
         .ok_or_else(|| String::from("The program cannot name the directory of the downloads."))?;
 
-    let name = format!("{}.epub", item_id);
+    let name = format!("{}.epub", the_name_of_the_book(item_id, ino));
 
-    if let Err(error) = api
-        .download_to_file(&format!("/api/items/{}/ebook", item_id), &directory, &name)
-        .await
-    {
+    // The address of one ebook is the address of the ebook of the item with the
+    // identity of the file after it. A measurement of 2026-08-11 gave the PDF
+    // for `/ebook` and for `/ebook/<the ino of the PDF>`, and the EPUB book for
+    // `/ebook/<the ino of that book>`. See T-76.
+    let address = match ino {
+        Some(ino) if !ino.is_empty() => format!("/api/items/{}/ebook/{}", item_id, ino),
+        _ => format!("/api/items/{}/ebook", item_id),
+    };
+
+    if let Err(error) = api.download_to_file(&address, &directory, &name).await {
         // The endpoint of the ebook answers 404 for a media that holds no
         // ebook, and the text "The server does not have this item" then tells
         // the user nothing. One request more names the true cause. See T-52.
@@ -616,7 +700,7 @@ pub async fn get_the_ebook(
     // The name of the file must say the form of the file. The server gives the
     // ebook of every form at one address, therefore the bytes decide. See T-54.
     if crate::logic::reader::book::the_file_is_a_pdf(&came) {
-        let of_the_pdf = pdf_path(username, item_id);
+        let of_the_pdf = pdf_path_of(username, item_id, ino);
 
         match std::fs::rename(&came, &of_the_pdf) {
             Ok(()) => {
@@ -672,6 +756,49 @@ fn hold_the_limit_of_the_cache(username: &str, came: &std::path::Path) {
 #[cfg(test)]
 mod tests {
     use super::the_message_of_the_format;
+    use super::{the_file_is_an_ebook_of_the_item, the_name_of_the_book};
+
+    /// The book of the server keeps the name of the item, therefore a user of
+    /// a version before T-76 gets no file a second time. Every other book of
+    /// the item takes the identity of its file after that name.
+    #[test]
+    fn each_ebook_of_an_item_takes_its_own_name() {
+        assert_eq!(the_name_of_the_book("an-item", None), "an-item");
+        assert_eq!(the_name_of_the_book("an-item", Some("")), "an-item");
+        assert_eq!(
+            the_name_of_the_book("an-item", Some("94488")),
+            "an-item-94488"
+        );
+    }
+
+    /// The key `X` removes every ebook of the item, and it removes the file of
+    /// no other item. See T-65 and T-76.
+    #[test]
+    fn the_key_that_removes_finds_every_book_of_the_item() {
+        assert!(the_file_is_an_ebook_of_the_item("an-item.epub", "an-item"));
+        assert!(the_file_is_an_ebook_of_the_item("an-item.pdf", "an-item"));
+        assert!(the_file_is_an_ebook_of_the_item(
+            "an-item-94488.epub",
+            "an-item"
+        ));
+        assert!(the_file_is_an_ebook_of_the_item(
+            "an-item-6121534.pdf",
+            "an-item"
+        ));
+
+        assert!(!the_file_is_an_ebook_of_the_item(
+            "a-different-item.epub",
+            "an-item"
+        ));
+        assert!(
+            !the_file_is_an_ebook_of_the_item("an-item.mp3", "an-item"),
+            "an audio file of the key D is not an ebook"
+        );
+        assert!(
+            !the_file_is_an_ebook_of_the_item("an-item", "an-item"),
+            "a directory of the audio files is not an ebook"
+        );
+    }
 
     /// A media with no ebook must not read "The server does not have this
     /// item". The user of 2026-08-11 met that text, and it says nothing about

@@ -272,9 +272,11 @@ The application starts and plays when the server does not answer:
 - Add future features described bellow.
 
 ## 🔮 Future features
-The EPUB reader, the statistics, the podcasts, the place of the ebook in the
-form of the web reader (EPUBCFI), and the queue of media are done. This stays:
-- The changes of a different client, as they happen (this needs socket.io)
+The EPUB reader, the PDF reader, the statistics, the podcasts, the place of the
+ebook in the form of the web reader (EPUBCFI), the queue of media, and the
+changes of a different client as they happen (socket.io) are done. This stays:
+- A view of the settings that writes `config.toml`
+- The queue of the episodes of a podcast on the server
   
 ## ⚠️ Caution: Beta Version  
 This beta app is still in **heavy development and contains bugs**.  

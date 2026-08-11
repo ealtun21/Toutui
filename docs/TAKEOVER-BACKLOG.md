@@ -2954,6 +2954,128 @@ the measurement of `curl` of T-70.
 `v` says "voice", and `src/ui/keys.rs` holds the line of the key `?`. The test
 `every_key_of_the_handler_stands_in_the_list` holds that rule.
 
+### T-74: the run of the tests took 18.7 seconds, and it takes 2.2
+
+The maintainer said that the tests take much time. The session of 2026-08-11
+measured every part, and `cargo test` was not the largest part: a build after
+one edit takes 6 seconds and the run took 18.7. **Two tests held 12.7 seconds of
+that run**, and `cargo test` runs the 37 test binaries one after the other.
+
+**The trap of such a wait, and it is real.** Some of those sleeps give a
+**fault** the time to appear. `the_position_survives_a_playback_that_does_not_start`
+asks: does the loop of the playback write the **wrong** position of an engine
+that did not start? A poll of "the position is the position of the user" answers
+`true` before the loop ever ran, because the row of the database holds that value
+already. **That poll is a false pass.**
+
+Two answers, and each fits its test:
+
+- **A clock of the test.** `#[tokio::test(start_paused = true)]` gives the test
+  its own clock: each `sleep` of the code still gives the loop its steps, and it
+  takes no real time. The test took 8.01 seconds, and it takes 0.01 now. **The
+  fault still appears:** a build with the correction of T-38 removed fails with
+  "the position went to 0 seconds". `test-util` is a feature of tokio, and the
+  resolver of the edition 2021 keeps a feature of a dev-dependency away from the
+  binary of the release, therefore the rule of T-20 stays.
+- **A poll of the evidence that the loop acted.** `playback_ownership` waits for
+  a server (wiremock), therefore it must not take a clock of its own: the clock
+  would move to the timeout of a request while that request is still on its way.
+  The key `F` of the forced sync asks the loop to send its position at its next
+  step, therefore `POST /api/session/:id/sync` is the evidence that the loop read
+  the state of **its own** playback. The two tests took 7.7 seconds, and they
+  take 3.0. A build with the correction removed fails after the limit of the
+  poll.
+
+**The flag of the forced sync holds one identity for the whole process.** The two
+tests of that file run at the same time, therefore each of them holds its own
+identity of a playback, and the poll asks again at each step.
+
+`cargo nextest` runs every test of every binary in one pool of processes.
+`.config/nextest.toml` holds the tests of the sandbox in a group of one thread,
+for the limit of the rate of the login of the server.
+
+| The work | Before | After |
+|---|---|---|
+| `cargo test` | 18.7 s | **8.7 s** |
+| `cargo nextest run` | 8.6 s | **2.2 s** |
+| The tests of the sandbox, with `--run-ignored all` | — | 14.2 s, 18 of 18 |
+
+Ten runs of the whole suite gave 838 of 838 each time.
+
+### T-75: two texts of the screen that a sweep of the views found
+
+The sweep of the thirteen views with `docs/harness/drive.sh` took 9.7 seconds. A
+sweep with a `sleep` takes about two minutes, and the session before this one
+made about 30 such measurements.
+
+- **The footer of the list of the narrators said "the books of this author".**
+  One view holds the authors and the narrators (T-73), and the footer held the
+  word of one list. `Kind::work_of_the_key_that_opens` gives the word of each
+  list now.
+- **The text of the accounts of the settings held a run of 22 spaces**: "the
+  program                      forgets the token". An old wrap of the source
+  stayed inside the string, and `Wrap` takes a space away at the start of a line
+  that it makes and keeps every space that stands inside a line. The two texts of
+  the settings stand as constants of `src/ui/keys.rs` now, and
+  `a_text_of_a_view_holds_no_run_of_spaces` holds every such text to one space.
+
+**A view key works in the Home view, in the Library view, and in the view of the
+search only.** The first sweep pressed `a`, `v`, `c`, and `f` inside the view of
+the series, and nothing came. That is the rule of `show_the_names`, of
+`show_the_sequence_and_the_filter`, and of the keys `s` and `c`, and it is not a
+fault. A sweep must come back to the Library between two views.
+
+### T-76: an item can hold more than one ebook
+
+Section 4 of `docs/T-24-coverage.md` said `Half` for "The list of the ebooks of an
+item": the program takes `media.ebookFile`, and that field names one book.
+
+**The measurement of 2026-08-11.** An EPUB book stood beside the PDF book of one
+item of the sandbox:
+
+```text
+ebookFile: A Book Of The Test.pdf
+ file: A Book Of The Test.pdf  ebook  ino 6121534
+ file: A Second Book.epub      ebook  ino 94488
+
+GET /api/items/:id/ebook           200  53688 bytes  application/pdf
+GET /api/items/:id/ebook/6121534   200  53688 bytes  application/pdf
+GET /api/items/:id/ebook/94488     200 136761 bytes  application/epub+zip
+```
+
+Therefore the address of one ebook is the address of the ebook of the item with
+the `ino` of the file after it, and `libraryFiles` names every file.
+
+**The key `e` inside the reader gives the list.** The key `e` of a list opens the
+book of the server, as before. The reader takes every key of the program,
+therefore `e` was free there, and no key of the program changed its work.
+
+**The trap, and the rule that comes from it.** The server holds one place for
+each **media** (`ebookLocation`), and not one place for each file. A reader of a
+second book of the same item would write the place of that book over the place of
+the book of the server, and the user would lose their line. Therefore a book that
+is not the book of the server **keeps its place on this machine**: the reader
+neither reads the place of the server nor writes it, the key `s` says why, and
+the view says the rule.
+
+Each book takes its own name on the disk: the book of the server keeps the name
+of the item (a user of a version before this work gets no file a second time),
+and every other book takes `<the item>-<the ino>`. The key `X` removes every
+ebook of the item, and it reads the directory for that work.
+
+**The measurement in the real program, 2026-08-11:**
+
+| The key | The screen |
+|---|---|
+| `e` on "One File With No Decoder" | `One File With No Decoder — page 1 of 3 — 0%`, the PDF of the server |
+| `e` inside the reader | `The books of this media [2 items]`, with "A Book Of The Test.pdf (the book of the server)" and "A Second Book.epub" |
+| `l` on the second line | `Alice's Adventures in Wonderland — chapter 1 of 14 — 0%` |
+| `s` in that book | "This is not the book of the server. The place of this book stays on this machine." |
+
+The disk then held `<the item>.pdf` and `<the item>-94488.epub`.
+`tests/the_ebooks_of_an_item_against_the_sandbox.rs` holds the whole path, and it
+carries `#[ignore]`.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

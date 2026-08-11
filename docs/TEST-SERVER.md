@@ -354,6 +354,36 @@ two seconds and no view of the player then stays on the screen.
 `tests/the_stream_against_the_sandbox.rs` reads this book. A sandbox with no such
 book gives a line of text, and the test does not fail.
 
+## An item with two ebooks
+
+T-76 needs an item that holds more than one ebook. Put an EPUB book beside the
+PDF book of the item of the section above, and tell the server to examine the
+library again:
+
+```
+podman cp tests/data/alice.epub \
+  abs-test:"/audiobooks/Decoder Test/One File With No Decoder/A Second Book.epub"
+curl -X POST "http://localhost:13399/api/libraries/$BOOK_LIB_ID/scan?force=1" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+A measurement of 2026-08-11 then gave this:
+
+```
+ebookFile: A Book Of The Test.pdf
+ file: A Book Of The Test.pdf  ebook  ino 6121534
+ file: A Second Book.epub      ebook  ino 94488
+
+GET /api/items/:id/ebook           200  53688 bytes  application/pdf
+GET /api/items/:id/ebook/6121534   200  53688 bytes  application/pdf
+GET /api/items/:id/ebook/94488     200 136761 bytes  application/epub+zip
+```
+
+**`media.ebookFile` names one book, and the item holds two.** The key `e` opens
+the book of the server, and the key `e` inside the reader gives the list.
+`tests/the_ebooks_of_an_item_against_the_sandbox.rs` reads this item. A sandbox
+with no such item gives a line of text, and the test does not fail.
+
 ## A PDF book with pictures
 
 T-54 needs a media whose ebook is a PDF. A media with an EPUB book keeps that

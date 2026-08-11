@@ -224,12 +224,29 @@ fn paths_to_remove(first: &str, files: &[String]) -> Vec<String> {
 /// The function gives the number of bytes that it removed. An item with no ebook on
 /// the disk gives 0, and that is not a fault.
 pub fn remove_the_ebook_of_the_item(item_id: &str, username: &str) -> u64 {
-    let of_the_epub = crate::logic::reader::session::ebook_path(username, item_id);
-    let of_the_pdf = crate::logic::reader::session::pdf_path(username, item_id);
+    // An item can hold more than one ebook, and each of them holds the name of
+    // the item and the identity of its file. The key `X` removes every one of
+    // them. See T-76.
+    let directory = downloads_base_dir(username);
+
+    let mut every_book: Vec<std::path::PathBuf> = Vec::new();
+
+    if let Ok(lines) = std::fs::read_dir(&directory) {
+        for line in lines.flatten() {
+            let name = line.file_name();
+            let Some(name) = name.to_str() else {
+                continue;
+            };
+
+            if crate::logic::reader::session::the_file_is_an_ebook_of_the_item(name, item_id) {
+                every_book.push(line.path());
+            }
+        }
+    }
 
     let mut bytes = 0u64;
 
-    for path in [of_the_epub, of_the_pdf] {
+    for path in every_book {
         let size = match std::fs::metadata(&path) {
             Ok(data) if data.is_file() => data.len(),
             _ => continue,

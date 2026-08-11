@@ -21,3 +21,4 @@ pub mod sleep_timer;
 pub mod sort_filter;
 pub mod stats;
 pub mod sync_session;
+pub mod the_ebooks;

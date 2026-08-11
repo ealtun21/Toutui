@@ -68,6 +68,8 @@ pub enum AppView {
     NewPodcast,
     /// The authors of the library. See T-24.
     Authors,
+    /// The ebooks of one media. An item can hold more than one. See T-76.
+    Ebooks,
     /// Every key of the program. The key `?` opens it. See T-49.
     Keys,
     Settings,
@@ -168,6 +170,8 @@ pub struct App {
     pub list_state_new_podcast: ListState,
     /// The list of the authors of the library. See T-24.
     pub list_state_authors: ListState,
+    /// The line of the list of the ebooks of one media. See T-76.
+    pub list_state_ebooks: ListState,
     /// The line of the view of every key. See T-49.
     pub list_state_keys: ListState,
     /// The view that the user came from, before the list of every key. The key
@@ -1071,6 +1075,7 @@ impl App {
             sleep_choice: None,
             list_state_new_podcast: ListState::default(),
             list_state_authors: ListState::default(),
+            list_state_ebooks: ListState::default(),
             list_state_keys: ListState::default(),
             the_view_before_the_keys: AppView::Home,
             the_view_before_the_reader: AppView::Home,
@@ -1545,6 +1550,9 @@ impl App {
                     AppView::Queue => self.view_state = AppView::Home,
                     AppView::NewPodcast => self.view_state = AppView::Library,
                     AppView::Authors => self.view_state = AppView::Library,
+                    // The user came from the reader, and the reader holds the
+                    // book that they read now. See T-76.
+                    AppView::Ebooks => self.view_state = AppView::Reader,
                     AppView::PodcastEpisode => {
                         if self.is_from_search_pod {
                             self.view_state = AppView::SearchBook
@@ -1757,6 +1765,7 @@ impl App {
                     AppView::Queue => self.start_the_media_of_the_queue(),
                     AppView::NewPodcast => self.add_the_podcast(),
                     AppView::Authors => self.show_the_books_of_the_author(),
+                    AppView::Ebooks => self.open_the_ebook_of_the_line(),
                     AppView::Library => {
                         // A line of a series opens the books of that series.
                         // See T-22.
@@ -3145,6 +3154,72 @@ impl App {
         }
     }
 
+    /// Shows the list of the ebooks of the media that the reader holds.
+    ///
+    /// **An item can hold more than one ebook.** The key `e` opens the book of
+    /// `media.ebookFile`, and the key `e` inside the reader gives the list of
+    /// every book of that media. See T-76.
+    pub fn show_the_ebooks_of_the_media(&mut self) {
+        let Some(item_id) = self.reader.as_ref().map(|reader| reader.item_id.clone()) else {
+            return;
+        };
+
+        crate::logic::the_ebooks::ask_for(&item_id);
+        self.list_state_ebooks.select(Some(0));
+        self.view_state = AppView::Ebooks;
+
+        let api = std::sync::Arc::clone(&self.api);
+
+        tokio::spawn(async move {
+            let state =
+                match crate::api::library_items::the_ebooks::the_ebooks_of_the_item(&api, &item_id)
+                    .await
+                {
+                    Ok(all) => crate::logic::the_ebooks::State::Ready(all),
+                    Err(error) => crate::logic::the_ebooks::State::Fault(error.to_string()),
+                };
+
+            crate::logic::the_ebooks::keep(&item_id, state);
+        });
+    }
+
+    /// Opens the ebook of the line that the user selected. See T-76.
+    pub fn open_the_ebook_of_the_line(&mut self) {
+        let all = crate::logic::the_ebooks::ebooks();
+
+        let Some(one) = self
+            .list_state_ebooks
+            .selected()
+            .and_then(|line| all.get(line))
+            .cloned()
+        else {
+            return;
+        };
+
+        let item_id = crate::logic::the_ebooks::item_id();
+
+        if item_id.is_empty() {
+            return;
+        }
+
+        let title = self
+            .reader
+            .as_ref()
+            .map(|reader| reader.title.clone())
+            .filter(|title| !title.trim().is_empty());
+
+        // The book of the server keeps the shape of T-10: the place of the user
+        // goes to the server. Every other book keeps its place on this machine,
+        // because the server holds one place for each media.
+        let ino = if one.is_the_book_of_the_server {
+            None
+        } else {
+            Some(one.ino.clone())
+        };
+
+        self.get_the_book(item_id, title, ino);
+    }
+
     /// Opens the ebook of the item that the user selected. See T-10.
     ///
     /// The program keeps the file in the directory of the downloads. Therefore
@@ -3163,7 +3238,7 @@ impl App {
         if self
             .reader
             .as_ref()
-            .is_some_and(|reader| reader.item_id == item_id)
+            .is_some_and(|reader| reader.item_id == item_id && reader.sends_the_place())
         {
             if !matches!(self.view_state, AppView::Reader) {
                 self.the_view_before_the_reader = self.view_state;
@@ -3173,6 +3248,14 @@ impl App {
             return;
         }
 
+        self.get_the_book(item_id, title, None);
+    }
+
+    /// Gets one book of an item, and it opens the reader on it.
+    ///
+    /// `ino` names the file of the server. `None` takes the book that the
+    /// server opens for the media. See T-10 and T-76.
+    fn get_the_book(&mut self, item_id: String, title: Option<String>, ino: Option<String>) {
         self.reader = None;
         self.reader_message = Some("The program gets the book…".to_string());
 
@@ -3188,17 +3271,22 @@ impl App {
         let answer = crate::logic::reader::opened_book();
 
         tokio::spawn(async move {
-            let outcome =
-                match crate::logic::reader::session::get_the_ebook(&api, &username, &item_id).await
-                {
-                    Ok(path) => crate::logic::reader::Reader::open_with_the_title(
-                        &path,
-                        &item_id,
-                        title.as_deref(),
-                    )
-                    .map_err(|error| error.to_string()),
-                    Err(message) => Err(message),
-                };
+            let outcome = match crate::logic::reader::session::get_the_ebook_of(
+                &api,
+                &username,
+                &item_id,
+                ino.as_deref(),
+            )
+            .await
+            {
+                Ok(path) => crate::logic::reader::Reader::open_with_the_title(
+                    &path,
+                    &item_id,
+                    title.as_deref(),
+                )
+                .map_err(|error| error.to_string()),
+                Err(message) => Err(message),
+            };
 
             let outcome = match outcome {
                 Ok(mut reader) => {
@@ -3208,11 +3296,20 @@ impl App {
                     // draws.
                     reader.measure_the_chapters();
 
-                    // The user reads the same book on a different machine. The
-                    // program opens the book where they stopped. See T-10,
-                    // section 6.
-                    if let Some((location, part)) =
-                        crate::logic::reader::session::place_of_the_server(&api, &item_id).await
+                    if ino.is_some() {
+                        // This book is not the book of the server. The place of
+                        // the server belongs to the book of `media.ebookFile`,
+                        // therefore the reader neither reads that place nor
+                        // writes it. See T-76.
+                        reader.the_place_stays_here();
+                    } else if let Some((location, part)) =
+                        // The user reads the same book on a different machine.
+                        // The program opens the book where they stopped. See
+                        // T-10, section 6.
+                        crate::logic::reader::session::place_of_the_server(
+                                &api, &item_id,
+                            )
+                            .await
                     {
                         reader.go_to_the_place_of_the_server(&location, part);
                     }
@@ -3348,6 +3445,8 @@ impl App {
                 reader.contents_line = 0;
             }
             KeyCode::Char('s') => self.send_the_place_of_the_reader(),
+            // An item can hold more than one ebook. See T-76.
+            KeyCode::Char('e') => self.show_the_ebooks_of_the_media(),
             _ => {}
         }
     }
@@ -3357,6 +3456,17 @@ impl App {
         let Some(reader) = self.reader.as_ref() else {
             return;
         };
+
+        // The server holds one place for each media, and this book is not the
+        // book of the server. A send would give the place of this book to the
+        // book of the server, and the user would lose their line. See T-76.
+        if !reader.sends_the_place() {
+            crate::logic::message::say(
+                "This is not the book of the server. The place of this book \
+                 stays on this machine.",
+            );
+            return;
+        }
 
         let item_id = reader.item_id.clone();
         let location = reader.location_text();
@@ -3951,6 +4061,7 @@ impl App {
             AppView::Queue => AppView::Home,
             AppView::NewPodcast => AppView::Library,
             AppView::Authors => AppView::Library,
+            AppView::Ebooks => AppView::Reader,
             AppView::Settings => AppView::Home,
             AppView::SettingsAccount => AppView::Home,
             AppView::SettingsLibrary => AppView::Home,
@@ -4131,6 +4242,16 @@ impl App {
                     self.list_state_authors.select(Some(0));
                 }
             }
+            AppView::Ebooks => {
+                let count = crate::logic::the_ebooks::ebooks().len();
+                let from = self.list_state_ebooks.selected().unwrap_or(0);
+
+                if from + 1 < count {
+                    self.list_state_ebooks.select(Some(from + 1));
+                } else {
+                    self.list_state_ebooks.select(Some(0));
+                }
+            }
             AppView::Settings => {
                 if let Some(selected) = self.list_state_settings.selected() {
                     if selected + 1 < self.settings.len() {
@@ -4199,6 +4320,7 @@ impl App {
             AppView::Queue => self.list_state_queue.select_previous(),
             AppView::NewPodcast => self.list_state_new_podcast.select_previous(),
             AppView::Authors => self.list_state_authors.select_previous(),
+            AppView::Ebooks => self.list_state_ebooks.select_previous(),
             AppView::Keys => self.list_state_keys.select_previous(),
             AppView::Settings => self.list_state_settings.select_previous(),
             AppView::SettingsAccount => self.list_state_settings_account.select_previous(),
@@ -4235,6 +4357,7 @@ impl App {
             AppView::Queue => self.list_state_queue.select_first(),
             AppView::NewPodcast => self.list_state_new_podcast.select_first(),
             AppView::Authors => self.list_state_authors.select_first(),
+            AppView::Ebooks => self.list_state_ebooks.select_first(),
             AppView::Keys => self.list_state_keys.select_first(),
             AppView::Settings => self.list_state_settings.select_first(),
             AppView::SettingsAccount => self.list_state_settings_account.select_first(),
@@ -4326,6 +4449,10 @@ impl App {
             AppView::Authors => {
                 let last = crate::logic::authors::authors().len().saturating_sub(1);
                 self.list_state_authors.select(Some(last));
+            }
+            AppView::Ebooks => {
+                let last = crate::logic::the_ebooks::ebooks().len().saturating_sub(1);
+                self.list_state_ebooks.select(Some(last));
             }
             AppView::Settings => {
                 let last_index = self.settings.len().saturating_sub(1);

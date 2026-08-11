@@ -93,7 +93,7 @@ Toutui calls 28 paths. The server has more than 100.
 | `/` | Search |
 | `s` | Show the series of the library (T-22) |
 | `c` | Show the collections and the playlists (T-9) |
-| `e` | Open the EPUB book of the item (T-10) |
+| `e` | Open the ebook of the item: an EPUB book (T-10) or a PDF book (T-54) |
 | `D`, `X` | Get a local copy, and remove a local copy |
 | `R` | Ask the server again |
 | `F` | Send the position now (T-32) |
@@ -119,10 +119,10 @@ Toutui calls 28 paths. The server has more than 100.
 | `o`, `i` | The volume up, and the volume down |
 | `Y` | Stop the playback |
 
-The reader of an EPUB book takes the keys first, and it uses the same letters
-for a different work: `j`/`k` a line, `Space`/`b` a page, `n`/`p` a chapter,
-`t` the contents, `g`/`G` the start and the end, `s` sends the place, and `h`
-leaves the book.
+The reader of a book takes the keys first, and it uses the same letters for a
+different work: `j`/`k` a line, `Space`/`b` a page, `n`/`p` a chapter, `t` the
+contents, `g`/`G` the start and the end, `s` sends the place, `e` the list of
+the books of that media (T-76), and `h` leaves the book.
 
 The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 `TOUTUI_COVERS_IN_TMUX` asks the terminal inside tmux. The variable
@@ -136,8 +136,9 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 **A row can be old. Read the code before you take one.** A session of
 2026-08-11 read the code of each row that said `No` or `Half`, and it corrected
 four of them: the live messages (`No`, and the work landed with T-47 and T-66),
-the list of the ebooks of an item (the reader reads a PDF since T-54), the
-narrators (T-73), and one new row for the reader of a PDF.
+the list of the ebooks of an item (the reader reads a PDF since T-54, and T-76
+gives the list of every ebook), the narrators (T-73), and one new row for the
+reader of a PDF.
 
 | Function | The server | Toutui | What is missing |
 |---|---|---|---|
@@ -175,7 +176,7 @@ narrators (T-73), and one new row for the reader of a PDF.
 | **The cover art** | `GET /api/items/:id/cover` gives `200` and the bytes | Yes | Nothing. T-23. The panel stands beside the description, and a series shows its books |
 | **The description** | `media.metadata.description` of the item | Yes | Nothing. `src/utils/html_text.rs` removes the HTML tags (T-13) |
 | **Read an EPUB book** | `GET /api/items/:id/ebook` gives `200` and the whole file, and it takes a `Range` | Yes | Nothing. The reader writes an EPUBCFI in `ebookLocation` and it reads one, therefore the user reads on the telephone and continues in the terminal at the same line (T-10). The path agrees with `epub.js`, the library of the web reader: a measurement with a real browser on 2026-08-11 compared 29315 texts of seven books, and every path agreed. The reader also reads the form of the specification, which the versions v0.7.8 to v0.7.11 wrote. See `src/logic/reader/cfi.rs` |
-| **The list of the ebooks of an item** | `media.ebookFile` of the item | Half | The client takes one ebook, and an item can hold more than one. **The reader reads an EPUB book and a PDF book** (T-54), and a CBZ stays outside: see section 6 |
+| **The list of the ebooks of an item** | `media.ebookFile` names one book, and `libraryFiles` holds every file of the item. `GET /api/items/:id/ebook/:ino` gives one of them | Yes | Nothing. The key `e` opens the book of the server, and the key `e` inside the reader gives the list of every ebook of that media (T-76). **The server holds one place for each media**, therefore the place of a book that is not the book of the server stays on this machine |
 | **Read a PDF book** | The same endpoint gives the file | Yes | Nothing. T-54 gives the words of a page in the terminal, and it draws the pictures of that page beside them with the protocol of T-23. A book of a scan holds its text inside a picture, therefore such a book gives few words. `MAX_BOOK_BYTES` of 512 megabytes holds the memory of the read (T-62) |
 | **Send an ebook to an e-reader** | `GET /api/emails/settings` gives `200`. The reference names the devices of an e-reader | No | Everything. This needs the settings of the email of the server |
 | **List the podcasts** | The same endpoint as the books | Yes | Nothing |
@@ -281,8 +282,8 @@ The sequence inside each group gives the value for the work.
 
 15. **Empty the queue of the podcast.** `GET /api/podcasts/:id/clear-queue`
     gives `200`, and the program does not use it.
-16. **The list of the ebooks of an item.** An item can hold more than one
-    ebook, and the program takes one.
+16. ~~**The list of the ebooks of an item.**~~ **Done on 2026-08-11.** The key
+    `e` inside the reader gives the list, and `l` opens one book of it (T-76).
 17. **A view of the settings that writes `config.toml`.** The block `[reader]`
     holds `ebook_cache_mb` (T-72), and the user opens the file with an editor
     today. A write of that file must keep every comment of the user.

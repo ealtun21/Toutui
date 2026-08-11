@@ -53,6 +53,7 @@ impl Widget for &mut App {
             AppView::Queue => self.render_queue(area, buf),
             AppView::NewPodcast => self.render_new_podcast(area, buf),
             AppView::Authors => self.render_authors(area, buf),
+            AppView::Ebooks => self.render_the_ebooks(area, buf),
             AppView::Keys => self.render_keys(area, buf),
             AppView::Settings => self.render_settings(area, buf),
             AppView::SettingsAccount => self.render_settings_account(area, buf),
@@ -249,8 +250,10 @@ impl App {
 
         match self.view_state {
             // The view of the keys holds no media, therefore it shows no
-            // cover. See T-49.
-            AppView::Keys => Vec::new(),
+            // cover. See T-49. The list of the ebooks of one media holds one
+            // media, and the cover of that media says nothing about the file
+            // that the user takes. See T-76.
+            AppView::Keys | AppView::Ebooks => Vec::new(),
             // A line of a series shows the cover of each of its books, in
             // the same way as the Library view. See T-22 and T-24.
             AppView::Home if self.selected_home_series().is_some() => self
@@ -662,6 +665,58 @@ impl App {
                 .wrap(Wrap { trim: true })
                 .render(item_area, buf);
         }
+    }
+}
+
+/// The ebooks of one media. See T-76.
+impl App {
+    /// AppView::Ebooks rendering
+    fn render_the_ebooks(&mut self, area: Rect, buf: &mut Buffer) {
+        let [header_area, main_area, item_area, footer_area] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Fill(1),
+            Constraint::Length(4),
+            Constraint::Length(2),
+        ])
+        .areas(area);
+
+        let (title, lines) = match crate::logic::the_ebooks::state() {
+            crate::logic::the_ebooks::State::Ready(all) if all.is_empty() => {
+                ("This media has no ebook.".to_string(), Vec::new())
+            }
+            crate::logic::the_ebooks::State::Ready(all) => (
+                format!("The books of this media [{} items]", all.len()),
+                all.iter().map(|one| one.line()).collect(),
+            ),
+            crate::logic::the_ebooks::State::Fault(text) => (
+                format!("The server gave no list of the books: {}", text),
+                Vec::new(),
+            ),
+            _ => ("The program asks the server…".to_string(), Vec::new()),
+        };
+
+        self.render_header(header_area, buf);
+        App::render_footer(
+            footer_area,
+            buf,
+            &crate::ui::keys::footer_with("read this book", None),
+        );
+        self.render_list(
+            main_area,
+            buf,
+            &title,
+            &lines,
+            &mut self.list_state_ebooks.clone(),
+        );
+
+        Paragraph::new(
+            "The server holds one place for each media, and not one place for \
+             each book. Therefore the program sends the place of the book of \
+             the server only, and it keeps the place of every other book on \
+             this machine.",
+        )
+        .wrap(Wrap { trim: true })
+        .render(item_area, buf);
     }
 }
 

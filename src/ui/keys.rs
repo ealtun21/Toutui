@@ -118,6 +118,7 @@ pub const GROUPS: &[Group] = &[
             key("t", "The contents of the book, and back to the text"),
             key("g / G", "The start of the chapter, and the end"),
             key("s", "Send the place of the book to the server"),
+            key("e", "The books of this media, when it holds more than one"),
             key("h / Esc", "Leave the book"),
         ],
     },
