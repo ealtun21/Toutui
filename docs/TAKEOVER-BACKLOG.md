@@ -3392,6 +3392,78 @@ of the same server gives the same answer. The measurement in the real program of
 2026-08-11: the second `m` gave the message of the 400, and the key `T` after it
 gave the statistics of the user.
 
+### T-88: a view that makes a collection or a playlist, with the keys `c` and `p`
+
+T-84 gave the media of a list, and the program made **no** list: a user who
+wanted a new playlist opened the web page of the server. A library that held no
+list showed a message of one row, "The web page of the server makes one", and the
+view did not open at all.
+
+**The measurement of 2026-08-11 decided the shape of this work.** The two
+requests do not behave in the same way:
+
+| Request | Answer |
+|---|---|
+| `POST /api/collections` with `books` of one item | `200`, and the whole collection |
+| `POST /api/collections` with **no** `books` | **`400`, "Invalid collection data. No books"** |
+| `POST /api/playlists` with **no** `items` | `200`, and an empty playlist |
+| Either, with a name of no letter | **`400`, "Invalid … data"** |
+| Either, with a name that a list of the library holds | `200`, **and a second list of that name** |
+
+**A new collection therefore needs a media**, and a view of its own with a name
+and a library would fail for every collection. The key `m` holds a media
+already, therefore the work stands in that view: the key `c` makes a collection
+of the media of the line, and the key `p` makes a playlist of it.
+
+The rules that the measurement gave:
+
+- **The view opens for a library that holds no list.** The title says the
+  condition and the two keys: an empty box says nothing.
+- **A collection holds books.** The program says it before it asks for a name,
+  and it makes no request for an episode of a podcast.
+- **A name of no letter needs no request.** The program says the reason.
+- **The program refuses a name that a list of that kind holds already.** The
+  server takes that name and it gives a second list its own identity: the
+  measurement made two lines "Measure Collection [1 item]" that no key of the
+  user tells apart. The comparison ignores the case and the spaces of the two
+  ends. A collection and a playlist of one name stay apart, because the line of
+  the screen names the kind.
+- **The lines come after the write**, as they do in T-84.
+
+The measurement in the real program, in tmux against the sandbox: the key `c`
+with the name "A Test Collection" gave "A collection of the name … exists
+already", the name "The Books I Want" gave "The collection … exists now, and it
+holds "A Long Test Book"", and the view held eight lines after it. `curl` of the
+server read the new collection with that one book. The key `p` on an episode of
+a podcast made a playlist that holds the **episode**, and the key `c` on that
+same episode said "A collection holds books only".
+
+### T-89: the box that takes a text left two columns of the view on the screen
+
+The measurement of T-88 read a letter `T` beside the left border of the box that
+asks for a name, and **that letter stayed after the box went away**. It is the
+first letter of the text of the view below the box.
+
+`ask_for_a_text` draws its box at the column 1, with a width of two columns fewer
+than the screen. The wipe at the end wrote the same rectangle, therefore the
+column 0 and the last column kept the letters of the view. **The rest of those
+rows never came back either**: the box makes a `Terminal` of its own, and the
+terminal of the program writes the cells that changed only — it knows nothing of
+the letters that a different terminal wrote over.
+
+Two answers together:
+
+1. The box writes `Clear` and its background over the **whole rows**, before it
+   draws and after it.
+2. `App::the_screen_must_be_drawn_again` says that a box took the cells. The loop
+   of the program then calls `terminal.clear()`, and the next draw writes every
+   cell. T-42 holds the same answer for the refresh of the key `R`.
+
+The fault belonged to every box of the program: the name of a bookmark (`b`), the
+name of a podcast (`A`), and the name of a new list (`c` and `p`). The
+measurement after the correction: the two lines of the text of the view come
+back, and no letter of the box stays.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
