@@ -71,6 +71,9 @@ series.
   alphabet. Therefore `#10` comes after `#2`.
 - `l`/`Enter` on a book plays it. `D` and `X` operate on it in the same way as
   in the Library view.
+- The panel below the list shows the description of the series. A series with
+  no description shows the description of its first book, because most series
+  of a library hold no description.
 - `h` goes back one step.
 
 ## 🗂 Collections and playlists

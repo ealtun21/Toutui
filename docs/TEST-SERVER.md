@@ -130,6 +130,21 @@ curl -X PATCH "http://localhost:13399/api/items/$ITEM_ID/media" \
 The endpoint of the items gives every item for the same value. Therefore the
 application always asks for a page of a known size.
 
+**A series of a new sandbox holds no description.** The list of the series
+gives the field `description`, and its value is then `null`. A measurement of
+that field needs the text to exist. `PATCH /api/series/:id` writes it, and it
+gives `200` with the whole series:
+
+```bash
+curl -s -X PATCH "http://127.0.0.1:13399/api/series/$SERIES_ID" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"description":"Three books of a test."}'
+```
+
+`GET /api/libraries/:id/series` then carries that same text, therefore the
+program needs no request for one series. `tests/the_series_against_the_sandbox.rs`
+holds this measurement, and that test writes the description itself.
+
 Then scan the library:
 
 ```bash
