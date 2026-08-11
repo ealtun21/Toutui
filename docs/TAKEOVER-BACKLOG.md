@@ -2458,6 +2458,51 @@ then holds `progress` 0 and `currentTime` 0. **`isFinished` false writes the pos
 back to the start, and it ignores every other field of the same request.** A media of
 progress 0 stands on no shelf of Continue Listening. Two requests do the work.
 
+### T-67: the cache of the ebooks holds a limit now
+
+T-65 gave the user the key `X`, and it left this open: **the program removed no ebook
+of its own.** A user who reads twenty books of a scan holds twenty files, and the
+measurement of T-62 used a PDF of 137 megabytes.
+
+`src/logic/reader/cache.rs` holds the rule, and `LIMIT_OF_THE_CACHE` is one
+gigabyte. That value holds some hundred EPUB books, or two of the largest books that
+the reader opens: `MAX_BOOK_BYTES` is 512 megabytes for one book.
+
+| The rule | Why |
+|---|---|
+| The book of the **oldest use** goes first | A book that the user reads every day must stay |
+| **The book that the user reads now never goes away** | A cache that removes it asks the server for it again at once. One book of 500 megabytes is a correct cache of one book |
+| The program stops **at** the limit | It must not empty the cache |
+| The program looks at the limit after a **new** book came | That is the one moment when the cache grows. No frame and no key costs a read of the directory |
+| A file that is not an `epub` and not a `pdf` stays | The audio of a download stands in a directory of the same parent |
+
+**The time of the file is the time of the last use.** `the_book_is_in_use` writes it
+with `std::fs::FileTimes`, and `get_the_ebook` calls that function for a book that
+the disk holds already. This needed no new dependency.
+
+`the_ebooks_that_must_go` is pure, and six tests hold it.
+`tests/the_cache_of_the_ebooks.rs` measures the work on the disk with real files:
+three ebooks of 1000 bytes with three times of use, one audio file in a directory,
+and one file of text. That test writes `XDG_DATA_HOME`, therefore it stays alone in
+its binary and it holds every part in one function. See the trap 25.
+
+**The measurement in the real program, 2026-08-11.** The key `e` on "Alice in
+Wonderland" wrote `8fda6e43….epub` of 136761 bytes at 17:02:43. A second run of the
+program pressed `e` on the same book: the reader gave chapter 3 with no request, and
+the time of the file became **17:03:55**. Therefore the program knows which book the
+user read last.
+
+**A limit that a user must know about.** The reader works with no server for a book
+of the cache. A user who wants a book of that form on a journey must read it one
+time, and a cache above one gigabyte then removes the book of the oldest use. The
+program says the name of every file that it removes in the log.
+
+**What the reader does not do.** The reader keeps the book of the session while the
+user reads it. Therefore the key `h` and a second `e` give the book again with no
+call of `get_the_ebook`, and the time of the file then does not change. The time
+changes at the next run of the program, and that is the moment that matters for the
+limit.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

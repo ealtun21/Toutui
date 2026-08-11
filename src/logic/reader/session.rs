@@ -10,7 +10,7 @@
 //! Therefore a task renders the chapter, and the screen shows "Reading…" until
 //! the lines come.
 
-use log::warn;
+use log::{info, warn};
 use ratatui::text::Line;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{channel, Receiver, Sender};
@@ -570,7 +570,10 @@ pub async fn get_the_ebook(
 ) -> Result<PathBuf, String> {
     let path = ebook_path(username, item_id);
 
+    // The time of the file is the time of the last use, therefore the cache
+    // holds the book that the user reads often. See T-67.
     if path.exists() {
+        crate::logic::reader::cache::the_book_is_in_use(&path);
         return Ok(path);
     }
 
@@ -578,6 +581,7 @@ pub async fn get_the_ebook(
     let of_the_pdf = pdf_path(username, item_id);
 
     if of_the_pdf.exists() {
+        crate::logic::reader::cache::the_book_is_in_use(&of_the_pdf);
         return Ok(of_the_pdf);
     }
 
@@ -615,7 +619,10 @@ pub async fn get_the_ebook(
         let of_the_pdf = pdf_path(username, item_id);
 
         match std::fs::rename(&came, &of_the_pdf) {
-            Ok(()) => return Ok(of_the_pdf),
+            Ok(()) => {
+                hold_the_limit_of_the_cache(username, &of_the_pdf);
+                return Ok(of_the_pdf);
+            }
             Err(error) => {
                 // A name that says `epub` for a PDF is not correct, and the
                 // reader still opens it: `Book::open` reads the bytes.
@@ -628,7 +635,29 @@ pub async fn get_the_ebook(
         }
     }
 
+    hold_the_limit_of_the_cache(username, &came);
+
     Ok(came)
+}
+
+/// Holds the cache of the ebooks at or below its limit, after a new book came.
+///
+/// A new book is the one moment when the cache grows, therefore the program
+/// looks at the limit here and at no other moment. The book that came now stays.
+/// See T-67.
+fn hold_the_limit_of_the_cache(username: &str, came: &std::path::Path) {
+    let bytes = crate::logic::reader::cache::hold_the_limit(
+        username,
+        came,
+        crate::logic::reader::cache::LIMIT_OF_THE_CACHE,
+    );
+
+    if bytes > 0 {
+        info!(
+            "[reader] the cache of the ebooks gave {} bytes back.",
+            bytes
+        );
+    }
 }
 
 #[cfg(test)]

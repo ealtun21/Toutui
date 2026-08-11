@@ -12,11 +12,14 @@
 //!    place into the two fields of the server.
 //! 4. [`session`] holds the book while the user reads it: the chapter, the
 //!    line, and the task that renders.
+//! 5. [`cache`] holds the files of the ebooks of the disk at or below a limit.
+//!    See T-67.
 //!
 //! Every function of [`position`] is pure. The other two parts read the file
 //! and they must run in a task, and never on the thread that draws.
 
 pub mod book;
+pub mod cache;
 pub mod cfi;
 pub mod pdf;
 pub mod position;
