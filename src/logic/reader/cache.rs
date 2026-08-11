@@ -101,6 +101,39 @@ pub fn the_limit_of(value: Option<&str>, of_the_config: Option<u64>) -> u64 {
     }
 }
 
+/// The values that the view of the settings offers, in megabytes. See T-77.
+///
+/// The user writes any value in `config.toml`. The view offers these values
+/// only, therefore the user needs no line of text and no examination of what
+/// they wrote.
+pub const THE_VALUES_OF_THE_SETTINGS: &[u64] = &[256, 512, 1024, 2048, 4096, 8192];
+
+/// Gives the line of one value of the view of the settings.
+///
+/// The line says which value the program uses now, and which value it uses when
+/// `config.toml` names none. The function is pure, therefore a test needs no
+/// screen. See T-77.
+pub fn line_of_a_value(megabytes: u64, of_the_config: u64) -> String {
+    let mark = if megabytes == of_the_config {
+        "✓"
+    } else {
+        " "
+    };
+
+    let of_the_program = if megabytes.saturating_mul(1024 * 1024) == LIMIT_OF_THE_CACHE {
+        " (the value of the program)"
+    } else {
+        ""
+    };
+
+    format!(
+        "{} {}{}",
+        mark,
+        crate::logic::download::text_of_the_size(megabytes.saturating_mul(1024 * 1024)),
+        of_the_program
+    )
+}
+
 /// Gives the sentence of the removal for the user.
 ///
 /// **The program removed a book of the user, therefore the user must read it.**
@@ -335,6 +368,40 @@ mod tests {
     /// The slot of the configuration file takes megabytes, and it gives bytes. A
     /// value of 0 megabytes gives the value of the program.
     ///
+    /// The view of the settings names the value that the program uses now, and
+    /// the value that it uses when the file names none. See T-77.
+    #[test]
+    fn the_line_of_the_view_of_the_settings_names_the_value_of_now() {
+        let lines: Vec<String> = THE_VALUES_OF_THE_SETTINGS
+            .iter()
+            .map(|value| line_of_a_value(*value, 2048))
+            .collect();
+
+        assert_eq!(
+            lines.iter().filter(|line| line.contains('✓')).count(),
+            1,
+            "one value of the list is the value of now: {:?}",
+            lines
+        );
+
+        assert!(lines
+            .iter()
+            .any(|line| line.contains("2048 MB") && line.contains('✓')));
+        assert!(lines
+            .iter()
+            .any(|line| line.contains("1024 MB") && line.contains("the value of the program")));
+
+        // A value that no line of the list holds gives a list with no mark. The
+        // user wrote that value in the file, and the view must not say that a
+        // different value is the value of now.
+        let lines: Vec<String> = THE_VALUES_OF_THE_SETTINGS
+            .iter()
+            .map(|value| line_of_a_value(*value, 3000))
+            .collect();
+
+        assert_eq!(lines.iter().filter(|line| line.contains('✓')).count(), 0);
+    }
+
     /// **The slot belongs to the process, therefore every part of this test
     /// stays in one function.** See the trap 29 of `docs/HANDOVER.md`.
     #[test]

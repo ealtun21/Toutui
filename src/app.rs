@@ -77,6 +77,8 @@ pub enum AppView {
     SettingsLibrary,
     SettingsAbout,
     SettingsUpdateUninstall,
+    /// The values of the block `[reader]` of `config.toml`. See T-77.
+    SettingsReader,
 }
 
 /// One picture of a page of a PDF, in the form that the screen draws. See T-54.
@@ -172,6 +174,8 @@ pub struct App {
     pub list_state_authors: ListState,
     /// The line of the list of the ebooks of one media. See T-76.
     pub list_state_ebooks: ListState,
+    /// The line of the values of the block `[reader]`. See T-77.
+    pub list_state_settings_reader: ListState,
     /// The line of the view of every key. See T-49.
     pub list_state_keys: ListState,
     /// The view that the user came from, before the list of every key. The key
@@ -879,6 +883,8 @@ impl App {
             "Library: choose the library".to_string(),
             "About and changelog".to_string(),
             "Update and uninstall".to_string(),
+            // The user changed this value with an editor before T-77.
+            "The reader: the cache of the ebooks".to_string(),
         ];
 
         // init for `SettingsAccount`
@@ -1076,6 +1082,7 @@ impl App {
             list_state_new_podcast: ListState::default(),
             list_state_authors: ListState::default(),
             list_state_ebooks: ListState::default(),
+            list_state_settings_reader: ListState::default(),
             list_state_keys: ListState::default(),
             the_view_before_the_keys: AppView::Home,
             the_view_before_the_reader: AppView::Home,
@@ -1705,8 +1712,10 @@ impl App {
                     AppView::Settings => match self.list_state_settings.selected() {
                         Some(0) => self.view_state = AppView::SettingsAccount,
                         Some(1) => self.view_state = AppView::SettingsLibrary,
+                        Some(4) => self.show_the_settings_of_the_reader(),
                         _ => {}
                     },
+                    AppView::SettingsReader => self.take_the_value_of_the_cache(),
                     // The list can be shorter than the selection: the user
                     // removes an account, and the list of the accounts keeps
                     // its old length until the next refresh. An index of a
@@ -3220,6 +3229,65 @@ impl App {
         self.get_the_book(item_id, title, ino);
     }
 
+    /// Shows the values of the block `[reader]` of `config.toml`. See T-77.
+    ///
+    /// The line of the value that the program uses now stands selected, and the
+    /// user reads which value that is.
+    pub fn show_the_settings_of_the_reader(&mut self) {
+        let now = self.megabytes_of_the_cache();
+
+        let line = crate::logic::reader::cache::THE_VALUES_OF_THE_SETTINGS
+            .iter()
+            .position(|value| *value == now)
+            .unwrap_or(0);
+
+        self.list_state_settings_reader.select(Some(line));
+        self.view_state = AppView::SettingsReader;
+    }
+
+    /// Gives the cache of the ebooks of `config.toml`, in megabytes.
+    ///
+    /// The value 0 means that the file names no value, therefore the program
+    /// uses its own. See T-72.
+    pub fn megabytes_of_the_cache(&self) -> u64 {
+        match self.config.reader.ebook_cache_mb {
+            0 => crate::logic::reader::cache::LIMIT_OF_THE_CACHE / (1024 * 1024),
+            value => value,
+        }
+    }
+
+    /// Writes the value of the cache of the ebooks that the user took. See T-77.
+    ///
+    /// The write keeps every comment of the file, and the program uses the new
+    /// value at once: the next book that comes holds the cache to it, and the
+    /// user starts the program no second time.
+    pub fn take_the_value_of_the_cache(&mut self) {
+        let Some(megabytes) = self
+            .list_state_settings_reader
+            .selected()
+            .and_then(|line| crate::logic::reader::cache::THE_VALUES_OF_THE_SETTINGS.get(line))
+            .copied()
+        else {
+            return;
+        };
+
+        match crate::config::write_the_value("reader", "ebook_cache_mb", &megabytes.to_string()) {
+            Ok(()) => {
+                self.config.reader.ebook_cache_mb = megabytes;
+                crate::logic::reader::cache::keep_the_limit_of_the_configuration(megabytes);
+
+                crate::logic::message::say(&format!(
+                    "The cache of the ebooks holds {} MB now. config.toml has the value.",
+                    megabytes
+                ));
+            }
+            Err(error) => crate::logic::message::say(&format!(
+                "The program did not write config.toml: {}",
+                error
+            )),
+        }
+    }
+
     /// Opens the ebook of the item that the user selected. See T-10.
     ///
     /// The program keeps the file in the directory of the downloads. Therefore
@@ -4067,6 +4135,7 @@ impl App {
             AppView::SettingsLibrary => AppView::Home,
             AppView::SettingsAbout => AppView::Home,
             AppView::SettingsUpdateUninstall => AppView::Home,
+            AppView::SettingsReader => AppView::Settings,
         };
     }
 
@@ -4252,6 +4321,16 @@ impl App {
                     self.list_state_ebooks.select(Some(0));
                 }
             }
+            AppView::SettingsReader => {
+                let count = crate::logic::reader::cache::THE_VALUES_OF_THE_SETTINGS.len();
+                let from = self.list_state_settings_reader.selected().unwrap_or(0);
+
+                if from + 1 < count {
+                    self.list_state_settings_reader.select(Some(from + 1));
+                } else {
+                    self.list_state_settings_reader.select(Some(0));
+                }
+            }
             AppView::Settings => {
                 if let Some(selected) = self.list_state_settings.selected() {
                     if selected + 1 < self.settings.len() {
@@ -4329,6 +4408,7 @@ impl App {
             AppView::SettingsUpdateUninstall => {
                 self.list_state_settings_update_uninstall.select_previous()
             }
+            AppView::SettingsReader => self.list_state_settings_reader.select_previous(),
         }
     }
 
@@ -4366,6 +4446,7 @@ impl App {
             AppView::SettingsUpdateUninstall => {
                 self.list_state_settings_update_uninstall.select_first()
             }
+            AppView::SettingsReader => self.list_state_settings_reader.select_first(),
         }
     }
 
@@ -4453,6 +4534,12 @@ impl App {
             AppView::Ebooks => {
                 let last = crate::logic::the_ebooks::ebooks().len().saturating_sub(1);
                 self.list_state_ebooks.select(Some(last));
+            }
+            AppView::SettingsReader => {
+                let last = crate::logic::reader::cache::THE_VALUES_OF_THE_SETTINGS
+                    .len()
+                    .saturating_sub(1);
+                self.list_state_settings_reader.select(Some(last));
             }
             AppView::Settings => {
                 let last_index = self.settings.len().saturating_sub(1);

@@ -284,9 +284,10 @@ The sequence inside each group gives the value for the work.
     gives `200`, and the program does not use it.
 16. ~~**The list of the ebooks of an item.**~~ **Done on 2026-08-11.** The key
     `e` inside the reader gives the list, and `l` opens one book of it (T-76).
-17. **A view of the settings that writes `config.toml`.** The block `[reader]`
-    holds `ebook_cache_mb` (T-72), and the user opens the file with an editor
-    today. A write of that file must keep every comment of the user.
+17. ~~**A view of the settings that writes `config.toml`.**~~ **Done on
+    2026-08-11.** The line "The reader: the cache of the ebooks" of the settings
+    writes `ebook_cache_mb` of the block `[reader]`, and the write keeps every
+    comment of the file (T-77).
 18. **`GET /api/podcasts/:id/checknew` for the new episodes.** The program
     compares the feed with the episodes of the server itself. That finds every
     episode that is missing, and the endpoint finds the new ones only.

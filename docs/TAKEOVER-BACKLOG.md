@@ -3076,6 +3076,53 @@ The disk then held `<the item>.pdf` and `<the item>-94488.epub`.
 `tests/the_ebooks_of_an_item_against_the_sandbox.rs` holds the whole path, and it
 carries `#[ignore]`.
 
+### T-77: the settings write `config.toml`, and they keep every comment
+
+T-72 gave `config.toml` the block `[reader]` with `ebook_cache_mb`, and the user
+had to open the file with an editor. The view of the settings showed the values
+of the program, and it changed none of them.
+
+**The file belongs to the user.** `config.example.toml` is 58 lines, and almost
+every one of them is a comment that says what a value does. A writer that makes
+the file again from the values of the program would remove every one of them, and
+the file of the user holds their own comments too.
+
+Therefore `with_the_value` changes **one line** and it keeps every other line:
+
+- The block holds the key: that line takes the new value, and it keeps the spaces
+  at its start.
+- The block exists and holds no such key: the key comes after the last value of
+  the block.
+- The block does not exist: the block and the key come at the end of the text.
+  **A block that stands inside a comment is not a block**, therefore the
+  `# [reader]` of the example file stays a comment and a real block comes at the
+  end.
+
+The function is pure, and a test gives it `config.example.toml` and finds every
+line of that file in the answer. A second test parses the answer and reads the
+value back, and a third holds a key whose name is longer (`ebook_cache_mb_old`)
+away from the key.
+
+**The write is atomic.** The bytes go to `config.toml.new` beside the file, and a
+rename puts that file in place: a program that stops in the middle of a write must
+not leave the user with half a configuration file.
+
+**The view.** The line "The reader: the cache of the ebooks" of the settings opens
+a list of six values, and the key `l` writes the value that the user takes. The
+program uses that value **at once**: `keep_the_limit_of_the_configuration` holds
+the slot that the task of the cache reads, therefore the user starts the program
+no second time. The view offers values only, therefore the program examines no
+line of text of the user, and the file still takes any value by hand.
+
+**The measurement in the real program, 2026-08-11:**
+
+| The key | What happened |
+|---|---|
+| `S`, then `G`, then `l` | `The cache of the ebooks — 1024 MB now`, with the mark `✓` on "1024 MB (the value of the program)" |
+| `j`, then `l` | "The cache of the ebooks holds 2048 MB now. config.toml has the value." |
+| The file | Three lines came at the end (a blank line, `[reader]`, and `ebook_cache_mb = 2048`), and the 58 lines of the user did not change |
+| `g`, `j`, then `l` | The same line took the value 512. The file holds 61 lines and one block `[reader]` |
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

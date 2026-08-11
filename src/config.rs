@@ -84,6 +84,145 @@ pub fn load_config() -> Result<ConfigFile> {
     })
 }
 
+/// Gives the text of `config.toml` with one value changed. See T-77.
+///
+/// **The file belongs to the user, and the user writes comments in it.**
+/// `config.example.toml` is almost all comments, and a writer that makes the
+/// file again from the values of the program would remove every one of them.
+/// Therefore this function changes one line, and it keeps every other line as
+/// it stands.
+///
+/// The three conditions:
+///
+/// - The block holds the key: the line takes the new value, and it keeps the
+///   spaces at its start.
+/// - The block exists and it holds no such key: the key comes after the last
+///   line of the block that holds a value.
+/// - The block does not exist: the block and the key come at the end of the
+///   text. **A block that stands inside a comment is not a block**, therefore a
+///   file with `# [reader]` gets a real block, and the comment stays.
+///
+/// The function is pure, therefore a test needs no file.
+pub fn with_the_value(text: &str, block: &str, key: &str, value: &str) -> String {
+    let head_of_the_block = format!("[{}]", block);
+    let mut lines: Vec<String> = text.lines().map(|line| line.to_string()).collect();
+
+    let mut inside = false;
+    let mut head_of_the_lines: Option<usize> = None;
+    let mut last_value_of_the_block: Option<usize> = None;
+    let mut end_of_the_block: Option<usize> = None;
+
+    for (number, line) in lines.iter().enumerate() {
+        let clean = line.trim();
+
+        if clean.starts_with('#') {
+            continue;
+        }
+
+        if clean.starts_with('[') {
+            if inside {
+                end_of_the_block = Some(number);
+                break;
+            }
+
+            inside = clean == head_of_the_block;
+
+            if inside {
+                head_of_the_lines = Some(number);
+            }
+
+            continue;
+        }
+
+        if !inside {
+            continue;
+        }
+
+        if the_line_holds_the_key(clean, key) {
+            let spaces = &line[..line.len() - line.trim_start().len()];
+            lines[number] = format!("{}{} = {}", spaces, key, value);
+            return join(&lines, text);
+        }
+
+        if !clean.is_empty() {
+            last_value_of_the_block = Some(number);
+        }
+    }
+
+    // The block stands in the text, and it holds no such key. The new line
+    // comes after the last value of the block, or after the head of the block
+    // when the block holds no value.
+    if let Some(head) = head_of_the_lines {
+        let after = last_value_of_the_block
+            .map(|number| number + 1)
+            .or(end_of_the_block)
+            .unwrap_or(head + 1);
+
+        lines.insert(after, format!("{} = {}", key, value));
+
+        return join(&lines, text);
+    }
+
+    // The text holds no such block.
+    let mut new = text.trim_end().to_string();
+
+    if !new.is_empty() {
+        new.push('\n');
+        new.push('\n');
+    }
+
+    new.push_str(&format!("{}\n{} = {}\n", head_of_the_block, key, value));
+
+    new
+}
+
+/// Says that a line of TOML gives a value to this key.
+///
+/// The name of a key can hold the name of a different key at its start
+/// (`ebook_cache_mb` and `ebook_cache_mb_old`), therefore the sign `=` must come
+/// after the name and after the spaces only.
+fn the_line_holds_the_key(clean: &str, key: &str) -> bool {
+    clean
+        .strip_prefix(key)
+        .is_some_and(|rest| rest.trim_start().starts_with('='))
+}
+
+/// Puts the lines together, and it keeps the end of the text as it was.
+fn join(lines: &[String], text: &str) -> String {
+    let mut new = lines.join("\n");
+
+    if text.ends_with('\n') {
+        new.push('\n');
+    }
+
+    new
+}
+
+/// Writes one value in `config.toml`, and it keeps every comment. See T-77.
+///
+/// The write goes to a file beside the file of the user, and a rename then puts
+/// it in place: a program that stops in the middle of a write must not leave the
+/// user with half a configuration file.
+pub fn write_the_value(block: &str, key: &str, value: &str) -> Result<()> {
+    let path = crate::paths::config_file();
+
+    let text = std::fs::read_to_string(&path).unwrap_or_default();
+    let new = with_the_value(&text, block, key, value);
+
+    let directory = path.parent().ok_or_else(|| {
+        Report::msg("The program cannot name the directory of the configuration.")
+    })?;
+
+    std::fs::create_dir_all(directory)?;
+
+    let beside = path.with_extension("toml.new");
+
+    std::fs::write(&beside, new.as_bytes())?;
+    std::fs::rename(&beside, &path)?;
+
+    Ok(())
+}
+
 /// The colour that a list with no value gives.
 const DEFAULT_COMPONENT: u8 = 128;
 
@@ -309,6 +448,139 @@ endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
         assert_ne!(
             server_key(&list, "http://localhost:13378"),
             server_key(&list, "http://second-server:13378")
+        );
+    }
+
+    /// The file of the user holds comments, and a write must keep every one of
+    /// them. See T-77.
+    #[test]
+    fn a_write_of_a_new_block_keeps_every_line_of_the_file() {
+        let text = include_str!("../config.example.toml");
+
+        let new = with_the_value(text, "reader", "ebook_cache_mb", "2048");
+
+        for line in text.lines() {
+            assert!(
+                new.lines().any(|of_the_new| of_the_new == line),
+                "the line \"{}\" of the user went away",
+                line
+            );
+        }
+
+        assert!(new.contains("[reader]\nebook_cache_mb = 2048"));
+
+        // The example file names the block inside a comment. That comment is
+        // not a block, and it must stay as it stands.
+        assert!(new.contains("# [reader]"));
+    }
+
+    /// The file that the write makes must still parse, and the value must come
+    /// back.
+    #[test]
+    fn the_value_of_the_write_comes_back() {
+        let text = include_str!("../config.example.toml");
+
+        let new = with_the_value(text, "reader", "ebook_cache_mb", "2048");
+
+        let parsed = ConfigLib::builder()
+            .add_source(config::File::from_str(&new, config::FileFormat::Toml))
+            .build()
+            .expect("the file of the write must parse");
+
+        let reader: ReaderConfig = parsed.get("reader").expect("the block must stand");
+        assert_eq!(reader.ebook_cache_mb, 2048);
+
+        // A second write changes the value, and it makes no second block.
+        let again = with_the_value(&new, "reader", "ebook_cache_mb", "512");
+
+        assert_eq!(
+            again.matches("[reader]").count(),
+            2,
+            "one block, and one comment of the example file"
+        );
+
+        let parsed = ConfigLib::builder()
+            .add_source(config::File::from_str(&again, config::FileFormat::Toml))
+            .build()
+            .expect("the file of the second write must parse");
+
+        let reader: ReaderConfig = parsed.get("reader").expect("the block must stand");
+        assert_eq!(reader.ebook_cache_mb, 512);
+    }
+
+    #[test]
+    fn a_write_changes_the_line_of_the_key_and_it_keeps_the_spaces() {
+        let text = "[reader]\n  ebook_cache_mb = 1\n";
+
+        assert_eq!(
+            with_the_value(text, "reader", "ebook_cache_mb", "2"),
+            "[reader]\n  ebook_cache_mb = 2\n"
+        );
+    }
+
+    /// The block stands between two other blocks, and it holds no such key.
+    #[test]
+    fn a_new_key_comes_inside_its_block() {
+        let text = "[colors]\nbackground_color = [1, 2, 3]\n\n[reader]\n# a comment\nsomething = 1\n\n[[servers]]\nname = \"home\"\n";
+
+        let new = with_the_value(text, "reader", "ebook_cache_mb", "64");
+
+        assert_eq!(
+            new,
+            "[colors]\nbackground_color = [1, 2, 3]\n\n[reader]\n# a comment\nsomething = 1\nebook_cache_mb = 64\n\n[[servers]]\nname = \"home\"\n"
+        );
+    }
+
+    /// A block with no value takes the new key after its head.
+    #[test]
+    fn a_block_with_no_value_takes_the_key_after_its_head() {
+        assert_eq!(
+            with_the_value("[reader]\n", "reader", "ebook_cache_mb", "64"),
+            "[reader]\nebook_cache_mb = 64\n"
+        );
+    }
+
+    /// A key that holds the name of the key at its start is a different key.
+    #[test]
+    fn a_key_of_a_name_that_is_longer_is_a_different_key() {
+        let text = "[reader]\nebook_cache_mb_of_the_old = 1\n";
+
+        let new = with_the_value(text, "reader", "ebook_cache_mb", "2");
+
+        assert!(new.contains("ebook_cache_mb_of_the_old = 1"));
+        assert!(new.contains("ebook_cache_mb = 2"));
+    }
+
+    /// A key of a different block must not change.
+    #[test]
+    fn the_write_stays_inside_its_block() {
+        let text = "[colors]\nebook_cache_mb = 1\n\n[reader]\nebook_cache_mb = 2\n";
+
+        let new = with_the_value(text, "reader", "ebook_cache_mb", "3");
+
+        assert_eq!(
+            new,
+            "[colors]\nebook_cache_mb = 1\n\n[reader]\nebook_cache_mb = 3\n"
+        );
+    }
+
+    /// A key inside a comment is not a key.
+    #[test]
+    fn a_key_of_a_comment_stays_a_comment() {
+        let text = "[reader]\n# ebook_cache_mb = 1\n";
+
+        let new = with_the_value(text, "reader", "ebook_cache_mb", "2");
+
+        assert!(new.contains("# ebook_cache_mb = 1"));
+        assert!(new.contains("\nebook_cache_mb = 2"));
+    }
+
+    /// A file with no line gives a file of one block.
+    #[test]
+    fn an_empty_file_gives_the_block_and_the_key() {
+        assert_eq!(
+            with_the_value("", "reader", "ebook_cache_mb", "64"),
+            "[reader]\nebook_cache_mb = 64\n"
         );
     }
 

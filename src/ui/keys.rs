@@ -223,10 +223,19 @@ pub const THE_ACCOUNTS: &str = "The accounts that this program holds.\n\n\
 pub const THE_LIBRARIES: &str = "The libraries of this server.\n\n\
     The key l on a library makes it the library that the program shows.";
 
+/// The text of the view of the cache of the ebooks. See T-77.
+pub const THE_CACHE_OF_THE_EBOOKS: &str = "The program keeps the ebook of a media \
+    on the disk, therefore a second visit needs no request and the reader works \
+    with no server.\n\n\
+    The key l writes the value that you take in config.toml, and it keeps every \
+    comment of that file. The program removes the book of the oldest use first, \
+    and it never removes the book that you read now.\n\n\
+    The variable TOUTUI_EBOOK_CACHE_BYTES comes before this value.";
+
 /// Every text of the program that a view draws as a paragraph.
 ///
 /// A test holds each of them to one space between two words.
-pub const THE_TEXTS_OF_THE_VIEWS: &[&str] = &[THE_ACCOUNTS, THE_LIBRARIES];
+pub const THE_TEXTS_OF_THE_VIEWS: &[&str] = &[THE_ACCOUNTS, THE_LIBRARIES, THE_CACHE_OF_THE_EBOOKS];
 
 #[cfg(test)]
 mod tests {

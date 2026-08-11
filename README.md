@@ -221,6 +221,27 @@ no client. Therefore this queue belongs to this program only.
   put it back. A book that you will not finish soon then leaves the Home view,
   and it stays in the library. Press `R` to see the change.
 
+## 📖 The reader of the ebooks
+
+The server holds an EPUB book or a PDF book beside the audio of a media.
+
+- `e` — read the ebook of the media. The reader shows an EPUB book and a PDF
+  book, and it draws the pictures of a page of a PDF.
+- The place of the user goes to the server in the form of the web reader
+  (EPUBCFI), therefore you read on the telephone and you continue in the
+  terminal at the same line. `s` sends the place now.
+- **An item can hold more than one ebook.** `e` inside the reader gives the list
+  of the books of that media, and `l` opens one of them. The server holds one
+  place for each media and not one place for each file, therefore the place of a
+  book that is not the book of the server stays on your machine.
+- The program keeps the file of the book on the disk: a second visit needs no
+  request, and the reader works with no server. `X` on the media removes every
+  such file at once.
+- **The cache of the ebooks holds one gigabyte.** `S` and the line "The reader:
+  the cache of the ebooks" change that value, and the program writes it in
+  `config.toml` with every comment of your file kept. The program removes the
+  book of the oldest use first, and it never removes the book that you read now.
+
 ## 📊 Your listening time
 
 The server counts the time of every session. `T` shows that count.
@@ -273,9 +294,9 @@ The application starts and plays when the server does not answer:
 
 ## 🔮 Future features
 The EPUB reader, the PDF reader, the statistics, the podcasts, the place of the
-ebook in the form of the web reader (EPUBCFI), the queue of media, and the
-changes of a different client as they happen (socket.io) are done. This stays:
-- A view of the settings that writes `config.toml`
+ebook in the form of the web reader (EPUBCFI), the queue of media, the changes of
+a different client as they happen (socket.io), and the view of the settings that
+writes `config.toml` are done. This stays:
 - The queue of the episodes of a podcast on the server
   
 ## ⚠️ Caution: Beta Version  

@@ -58,6 +58,7 @@ impl Widget for &mut App {
             AppView::Settings => self.render_settings(area, buf),
             AppView::SettingsAccount => self.render_settings_account(area, buf),
             AppView::SettingsLibrary => self.render_settings_library(area, buf),
+            AppView::SettingsReader => self.render_settings_reader(area, buf),
             AppView::SettingsAbout => {}
             AppView::SettingsUpdateUninstall => {}
         }
@@ -253,7 +254,7 @@ impl App {
             // cover. See T-49. The list of the ebooks of one media holds one
             // media, and the cover of that media says nothing about the file
             // that the user takes. See T-76.
-            AppView::Keys | AppView::Ebooks => Vec::new(),
+            AppView::Keys | AppView::Ebooks | AppView::SettingsReader => Vec::new(),
             // A line of a series shows the cover of each of its books, in
             // the same way as the Library view. See T-22 and T-24.
             AppView::Home if self.selected_home_series().is_some() => self
@@ -1507,6 +1508,44 @@ impl App {
         //self.render_selected_item(item_area, buf, &self.titles_library.clone(), self.auth_names_library.clone());
     }
 
+    /// AppView::SettingsReader rendering. See T-77.
+    fn render_settings_reader(&mut self, area: Rect, buf: &mut Buffer) {
+        let [header_area, main_area, item_area, footer_area] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Fill(1),
+            Constraint::Length(5),
+            Constraint::Length(2),
+        ])
+        .areas(area);
+
+        let now = self.megabytes_of_the_cache();
+
+        let lines: Vec<String> = crate::logic::reader::cache::THE_VALUES_OF_THE_SETTINGS
+            .iter()
+            .map(|value| crate::logic::reader::cache::line_of_a_value(*value, now))
+            .collect();
+
+        let title = format!("The cache of the ebooks — {} MB now", now);
+
+        self.render_header(header_area, buf);
+        App::render_footer(
+            footer_area,
+            buf,
+            &crate::ui::keys::footer_with("write this value in config.toml", None),
+        );
+        self.render_list(
+            main_area,
+            buf,
+            &title,
+            &lines,
+            &mut self.list_state_settings_reader.clone(),
+        );
+
+        Paragraph::new(crate::ui::keys::THE_CACHE_OF_THE_EBOOKS)
+            .wrap(Wrap { trim: true })
+            .render(item_area, buf);
+    }
+
     /// AppView::SettingsLibrary rendering
     fn render_settings_library(&mut self, area: Rect, buf: &mut Buffer) {
         let [header_area, main_area, _player_area, _refresh_area, footer_area] =
@@ -2383,6 +2422,12 @@ Uninstall:
             Some(3) => {
                 Paragraph::new(instructions)
                     .scroll((self.scroll_offset, 0))
+                    .wrap(Wrap { trim: true })
+                    .render(area, buf);
+            }
+            // The cache of the ebooks. See T-77.
+            Some(4) => {
+                Paragraph::new(crate::ui::keys::THE_CACHE_OF_THE_EBOOKS)
                     .wrap(Wrap { trim: true })
                     .render(area, buf);
             }
