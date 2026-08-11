@@ -64,6 +64,8 @@ pub enum AppView {
     /// The podcasts that the server found for the words of the user. See
     /// T-24.
     NewPodcast,
+    /// The authors of the library. See T-24.
+    Authors,
     Settings,
     SettingsAccount,
     SettingsLibrary,
@@ -138,6 +140,8 @@ pub struct App {
     pub sleep_choice: Option<u64>,
     /// The list of the podcasts that the server found. See T-24.
     pub list_state_new_podcast: ListState,
+    /// The list of the authors of the library. See T-24.
+    pub list_state_authors: ListState,
     /// The user changed the sequence or the filter. The loop of the program
     /// then makes the application again, in the same way as the key `R`. A
     /// new sequence needs a new request, and every list of the library comes
@@ -1011,6 +1015,7 @@ impl App {
             sleep: None,
             sleep_choice: None,
             list_state_new_podcast: ListState::default(),
+            list_state_authors: ListState::default(),
             must_refresh: false,
             series_from: AppView::Series,
             lists,
@@ -1146,6 +1151,9 @@ impl App {
             // The key that shows the chapters of the media that plays.
             // See T-24.
             KeyCode::Char('C') => self.show_the_chapters(),
+
+            // The key that shows the authors of the library. See T-24.
+            KeyCode::Char('a') => self.show_the_authors(),
 
             // The key that tells the server to get the new episodes of a
             // podcast. See T-24.
@@ -1436,6 +1444,7 @@ impl App {
                     AppView::Chapters => self.view_state = AppView::Home,
                     AppView::Bookmarks => self.view_state = AppView::Home,
                     AppView::NewPodcast => self.view_state = AppView::Library,
+                    AppView::Authors => self.view_state = AppView::Library,
                     AppView::PodcastEpisode => {
                         if self.is_from_search_pod {
                             self.view_state = AppView::SearchBook
@@ -1650,6 +1659,7 @@ impl App {
                     AppView::Chapters => self.go_to_the_chapter(),
                     AppView::Bookmarks => self.go_to_the_bookmark(),
                     AppView::NewPodcast => self.add_the_podcast(),
+                    AppView::Authors => self.show_the_books_of_the_author(),
                     AppView::Library => {
                         // A line of a series opens the books of that series.
                         // See T-22.
@@ -2003,6 +2013,92 @@ impl App {
             3,
             &format!("The playback goes to \"{}\".", chapter.title),
         );
+    }
+
+    /// Shows the authors of the library, and asks the server for them.
+    ///
+    /// A library of podcasts has no author. See T-24.
+    pub fn show_the_authors(&mut self) {
+        let mut stdout = stdout();
+        let _ = clear_message(&mut stdout, 3);
+
+        if !matches!(
+            self.view_state,
+            AppView::Home | AppView::Library | AppView::SearchBook | AppView::Authors
+        ) {
+            return;
+        }
+
+        if self.is_podcast {
+            let _ = pop_message(&mut stdout, 3, "A library of podcasts has no author.");
+            return;
+        }
+
+        self.list_state_authors.select(Some(0));
+        self.scroll_offset = 0;
+        self.view_state = AppView::Authors;
+
+        if self.is_offline {
+            crate::logic::authors::keep(crate::logic::authors::State::Fault(
+                "the server does not answer".to_string(),
+            ));
+            return;
+        }
+
+        // The authors of a library do not change while the program runs.
+        // Therefore the program asks one time, and the key `R` asks again.
+        if !matches!(
+            crate::logic::authors::state(),
+            crate::logic::authors::State::Nothing
+        ) {
+            return;
+        }
+
+        crate::logic::authors::keep(crate::logic::authors::State::Waiting);
+
+        let api = std::sync::Arc::clone(&self.api);
+        let library = self.id_selected_lib.clone();
+
+        tokio::spawn(async move {
+            let state = match crate::api::libraries::get_authors::get_authors(&api, &library).await
+            {
+                Ok(all) => crate::logic::authors::State::Ready(all),
+                Err(error) => {
+                    log::warn!("[authors] the server gave no author: {}", error);
+                    crate::logic::authors::State::Fault(error.to_string())
+                }
+            };
+
+            crate::logic::authors::keep(state);
+        });
+    }
+
+    /// Shows the books of the author that the user selected. See T-24.
+    ///
+    /// The work is the filter of the library, and the program holds it
+    /// already. The library then shows the books of that author, and the key
+    /// `f` takes the filter away.
+    pub fn show_the_books_of_the_author(&mut self) {
+        let all = crate::logic::authors::authors();
+
+        let Some(author) = self
+            .list_state_authors
+            .selected()
+            .and_then(|index| all.get(index))
+        else {
+            return;
+        };
+
+        self.library_filter = crate::logic::sort_filter::filter_value("authors", &author.id);
+
+        let _ = crate::db::crud::update_library_sort(
+            &self.username,
+            &self.library_sort,
+            self.library_desc,
+            &self.library_filter,
+        );
+
+        self.must_refresh = true;
     }
 
     /// Tells the server to get the episodes that it does not hold. See T-24.
@@ -3284,6 +3380,7 @@ impl App {
             AppView::Chapters => AppView::Home,
             AppView::Bookmarks => AppView::Home,
             AppView::NewPodcast => AppView::Library,
+            AppView::Authors => AppView::Library,
             AppView::Settings => AppView::Home,
             AppView::SettingsAccount => AppView::Home,
             AppView::SettingsLibrary => AppView::Home,
@@ -3419,6 +3516,16 @@ impl App {
                     self.list_state_new_podcast.select(Some(0));
                 }
             }
+            AppView::Authors => {
+                let count = crate::logic::authors::authors().len();
+                let from = self.list_state_authors.selected().unwrap_or(0);
+
+                if from + 1 < count {
+                    self.list_state_authors.select(Some(from + 1));
+                } else {
+                    self.list_state_authors.select(Some(0));
+                }
+            }
             AppView::Settings => {
                 if let Some(selected) = self.list_state_settings.selected() {
                     if selected + 1 < self.settings.len() {
@@ -3484,6 +3591,7 @@ impl App {
             AppView::Chapters => self.list_state_chapters.select_previous(),
             AppView::Bookmarks => self.list_state_bookmarks.select_previous(),
             AppView::NewPodcast => self.list_state_new_podcast.select_previous(),
+            AppView::Authors => self.list_state_authors.select_previous(),
             AppView::Settings => self.list_state_settings.select_previous(),
             AppView::SettingsAccount => self.list_state_settings_account.select_previous(),
             AppView::SettingsLibrary => self.list_state_settings_library.select_previous(),
@@ -3516,6 +3624,7 @@ impl App {
             AppView::Chapters => self.list_state_chapters.select_first(),
             AppView::Bookmarks => self.list_state_bookmarks.select_first(),
             AppView::NewPodcast => self.list_state_new_podcast.select_first(),
+            AppView::Authors => self.list_state_authors.select_first(),
             AppView::Settings => self.list_state_settings.select_first(),
             AppView::SettingsAccount => self.list_state_settings_account.select_first(),
             AppView::SettingsLibrary => self.list_state_settings_library.select_first(),
@@ -3588,6 +3697,10 @@ impl App {
             AppView::NewPodcast => {
                 let last = crate::logic::new_podcast::found().len().saturating_sub(1);
                 self.list_state_new_podcast.select(Some(last));
+            }
+            AppView::Authors => {
+                let last = crate::logic::authors::authors().len().saturating_sub(1);
+                self.list_state_authors.select(Some(last));
             }
             AppView::Settings => {
                 let last_index = self.settings.len().saturating_sub(1);

@@ -28,6 +28,7 @@ not in the archived repository.
  **Cross-platform:** <img src=".github/tux.png" align="top" width="24" alt="Tux (Linux)"/>  Linux and <img src=".github/apple.png" align="top" width="24" alt="Apple (macOS)"/> macOS    
  **Lightweight & Fast:** A minimalist terminal user interface (TUI) written in Rust 🦀  
  **Supports Books & Podcasts:** Enjoy both audiobooks and podcasts  
+ **The authors:** See the authors of a library and the books of one author (`a`)  
  **Add a podcast:** Look for a podcast and add it to a library (`A`)  
  **A timer for sleep:** The playback stops after a time, with a slow fall of the volume (`t`)  
  **Bookmarks:** Mark a place in a long book and come back to it (`b`, `V`)  
@@ -97,6 +98,16 @@ shows them.
   series, and `h` goes back to the Home view.
 - The program sends one request for every shelf, and that request did not
   change.
+
+## 👤 The authors of a library
+
+- `a` — show the authors of the library, in the sequence of the alphabet. The
+  key operates in the views Home, Library, and Search. A library of podcasts
+  has no author.
+- Each line holds the name and the number of the books. The description of
+  the author stands below the list.
+- `l`/`Enter` shows the books of that author. The work is the filter of the
+  library, therefore `f` takes the filter away again.
 
 ## 🔤 The sequence and the filter of a library
 
@@ -229,7 +240,6 @@ The application starts and plays when the server does not answer:
 The EPUB reader, the statistics, and the podcasts of the old list are done.
 These stay:
 - The place of the ebook in the form of the web reader (EPUBCFI)
-- A view of the authors of a library
 - The changes of a different client, as they happen (this needs socket.io)
   
 ## ⚠️ Caution: Beta Version  

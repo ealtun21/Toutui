@@ -1215,6 +1215,26 @@ belongs to the library: `GET /api/libraries/:id/episode-downloads` gives
 a podcast of three episodes, it asks for them, it waits for the file, and it
 removes the podcast.
 
+### A view of the authors — complete, 2026-08-11 (v0.7.6)
+
+`GET /api/libraries/:id/authors` gives every author with `name`,
+`description`, and `numBooks`. `GET /api/authors/:id` gives one author and it
+gives **no** `numBooks`, therefore the list is the whole answer that the view
+needs and the view sends one request.
+
+The key `a` shows the list. The server gives its own sequence; the view puts
+the names in the sequence of the alphabet, because a person reads a list of
+names in that sequence.
+
+`l` shows the books of one author. That work is the filter of the library, and
+the program held it already since the key `f`: the view writes
+`authors.<base64 of the identity>` and it asks for the application again. The
+key `f` then takes the filter away.
+
+The program asks the server one time. The authors of a library do not change
+while the program runs, therefore the key `a` a second time draws the answer
+that it holds. The key `R` forgets it.
+
 ## The report of the user of 2026-08-10, on v0.5.0
 
 The user tested v0.5.0 and named ten items. This section holds each one, the

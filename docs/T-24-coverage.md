@@ -57,6 +57,7 @@ This list comes from `src/api/` and from `src/logic/`. It is complete.
 | `GET /api/libraries/:id/filterdata` | `src/api/libraries/get_filter_data.rs` |
 | `GET /api/libraries/:id/personalized` | `src/api/libraries/get_library_perso_view.rs` |
 | `GET /api/libraries/:id/series?limit=500&page=N&sort=name` | `src/api/libraries/get_all_series.rs` |
+| `GET /api/libraries/:id/authors` | `src/api/libraries/get_authors.rs` |
 | `GET /api/libraries/:id/collections?limit=&page=` | `src/api/libraries/get_lists.rs` |
 | `GET /api/libraries/:id/playlists?limit=&page=` | `src/api/libraries/get_lists.rs` |
 | `GET /api/items/:id` | `src/logic/playback/mod.rs` |
@@ -72,7 +73,7 @@ This list comes from `src/api/` and from `src/logic/`. It is complete.
 | `POST /api/session/:id/sync`, `POST /api/session/:id/close` | `src/api/sessions/` |
 | `GET /api/search/podcast?term=`, `POST /api/podcasts/feed`, `POST /api/podcasts`, `POST /api/podcasts/:id/download-episodes` | `src/api/podcasts/mod.rs` |
 
-Toutui calls 23 paths. The server has more than 100.
+Toutui calls 24 paths. The server has more than 100.
 
 ## 3. The keys of Toutui
 
@@ -101,6 +102,7 @@ Toutui calls 23 paths. The server has more than 100.
 | `t` | The timer for sleep (T-24) |
 | `A` | Look for a new podcast, and add it (T-24) |
 | `E` | The server gets the episodes that it does not hold (T-24) |
+| `a` | Show the authors of the library (T-24) |
 | `f` | Choose the sequence and the filter of the library (T-24) |
 | `S` | Settings |
 | `B` | Show the keys, or hide them |
@@ -181,7 +183,7 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 | **Make an M4B file** | `POST /api/items/:id/encode` of the reference. Not tested: the request starts a long job of ffmpeg on the server | No | Everything. See section 6 |
 | **Write the metadata in the audio files** | `POST /api/items/:id/update-embedded-metadata` of the reference. Not tested, for the same reason | No | Everything. See section 6 |
 | **Scan a library** | `POST /api/libraries/:id/scan` gives `200` | No | Everything. The user must open the web page to scan |
-| **The authors of a library** | `GET /api/libraries/:id/authors` gives the key `authors`. `GET /api/authors/:id` gives `name`, `description`, `imagePath` | No | A view. The user cannot see the books of one author |
+| **The authors of a library** | `GET /api/libraries/:id/authors` gives the key `authors`, with `name`, `description`, and `numBooks`. `GET /api/authors/:id` gives no `numBooks`, therefore the list is the whole answer | Yes | Nothing. The key `a` shows the authors in the sequence of the alphabet, and `l` shows the books of one author |
 | **The narrators of a library** | `GET /api/libraries/:id/narrators` gives the key `narrators` | No | Everything |
 | **The tags** | `GET /api/tags` gives the key `tags` | No | Everything |
 | **The statistics of the library** | `GET /api/libraries/:id/stats` gives `totalItems`, `totalSize`, `totalDuration`, `numAudioTracks`, `largestItems`, `longestItems`, `totalAuthors`, `totalGenres` | No | Everything |
@@ -247,9 +249,9 @@ The sequence inside each group gives the value for the work.
     text to a path in the XHTML, in `src/logic/reader/position.rs`. Then the
     user reads on the telephone and continues in the terminal at the same
     line.
-13. **A view of the authors.** `GET /api/libraries/:id/authors`,
-    `GET /api/authors/:id`, and the filter of the items by the author. A new
-    view, and the keys to move inside it.
+13. ~~**A view of the authors.**~~ **Done on 2026-08-11.** The key `a`. The
+    key `l` uses the filter of the author, and the program held that work
+    already.
 14. **Live messages.** socket.io gives the changes of a different client. The
     tree holds no client of socket.io in pure Rust, therefore this needs a new
     dependency and an examination against the rule of section 6.

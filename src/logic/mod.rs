@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod authors;
 pub mod bookmarks;
 pub mod chapters;
 pub mod download;

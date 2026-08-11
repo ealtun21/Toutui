@@ -38,6 +38,7 @@ impl Widget for &mut App {
             AppView::Chapters => self.render_chapters(area, buf),
             AppView::Bookmarks => self.render_bookmarks(area, buf),
             AppView::NewPodcast => self.render_new_podcast(area, buf),
+            AppView::Authors => self.render_authors(area, buf),
             AppView::Settings => self.render_settings(area, buf),
             AppView::SettingsAccount => self.render_settings_account(area, buf),
             AppView::SettingsLibrary => self.render_settings_library(area, buf),
@@ -266,6 +267,7 @@ impl App {
             | AppView::Chapters
             | AppView::Bookmarks
             | AppView::NewPodcast
+            | AppView::Authors
             | AppView::Settings
             | AppView::SettingsAccount
             | AppView::SettingsLibrary
@@ -386,6 +388,68 @@ impl App {
         // stands after the last one, and the user sees nothing.
         if self.stats_scroll > self.stats_scroll_max {
             self.stats_scroll = self.stats_scroll_max;
+        }
+    }
+}
+
+/// The authors of the library. See T-24.
+impl App {
+    /// AppView::Authors rendering
+    fn render_authors(&mut self, area: Rect, buf: &mut Buffer) {
+        let [header_area, main_area, item_area, footer_area] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Fill(1),
+            Constraint::Length(4),
+            Constraint::Length(2),
+        ])
+        .areas(area);
+
+        let state = crate::logic::authors::state();
+
+        let (title, lines) = match &state {
+            crate::logic::authors::State::Ready(all) if all.is_empty() => {
+                ("This library has no author.".to_string(), Vec::new())
+            }
+            crate::logic::authors::State::Ready(all) => (
+                format!("The authors [{} items]", all.len()),
+                crate::api::libraries::get_authors::lines(all),
+            ),
+            crate::logic::authors::State::Waiting => {
+                ("The program asks the server…".to_string(), Vec::new())
+            }
+            crate::logic::authors::State::Fault(text) => {
+                (format!("The server gave no author: {}", text), Vec::new())
+            }
+            crate::logic::authors::State::Nothing => {
+                ("The program asks the server…".to_string(), Vec::new())
+            }
+        };
+
+        self.render_header(header_area, buf);
+        App::render_footer(
+            footer_area,
+            buf,
+            "j/↓, k/↑: move, l/→: the books of this author, g/G: first/last, h/Tab: back, Q/Esc: quit",
+        );
+        self.render_list(
+            main_area,
+            buf,
+            &title,
+            &lines,
+            &mut self.list_state_authors.clone(),
+        );
+
+        let all = crate::logic::authors::authors();
+
+        if let Some(one) = self
+            .list_state_authors
+            .selected()
+            .and_then(|index| all.get(index))
+        {
+            Paragraph::new(crate::api::libraries::get_authors::description_of(one))
+                .scroll((self.scroll_offset, 0))
+                .wrap(Wrap { trim: true })
+                .render(item_area, buf);
         }
     }
 }
@@ -658,7 +722,7 @@ impl App {
         let text_render_footer = if self.is_podcast {
             "j/↓, k/↑: move, l/→: play, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, M: mark finished, N: hide from Continue Listening, T: listening time, C: chapters, b: a bookmark, V: the bookmarks, f: sequence, A: a new podcast, E: the server gets the episodes, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
         } else {
-            "j/↓, k/↑: move, l/→: play or open a series, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, C: chapters, b: a bookmark, V: the bookmarks, s: series, c: lists, f: sequence, A: a new podcast, E: the server gets the episodes, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
+            "j/↓, k/↑: move, l/→: play or open a series, Tab: library, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, C: chapters, b: a bookmark, V: the bookmarks, s: series, a: authors, c: lists, f: sequence, A: a new podcast, E: the server gets the episodes, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
         };
 
         self.render_header(header_area, buf);
@@ -731,7 +795,7 @@ impl App {
         if self.is_podcast {
             _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, c: lists, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot"
         } else {
-            _text_render_footer = "j/↓, k/↑: move, l/→: play or open a series, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, C: chapters, b: a bookmark, V: the bookmarks, s: series, c: lists, f: sequence, A: a new podcast, E: the server gets the episodes, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
+            _text_render_footer = "j/↓, k/↑: move, l/→: play or open a series, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n B: toggle player ctrl, F: sync now, D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, C: chapters, b: a bookmark, V: the bookmarks, s: series, a: authors, c: lists, f: sequence, A: a new podcast, E: the server gets the episodes, '/': search, Scroll desc: J(↓) K(↑) H(⇡), g/G: top/bot";
         }
 
         self.render_header(header_area, buf);
@@ -1199,7 +1263,7 @@ impl App {
         if self.is_podcast {
             _text_render_footer = "j/↓, k/↑: move, l/→: episodes, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n c: lists, A: a new podcast, E: the server gets the episodes, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
         } else {
-            _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, C: chapters, b: a bookmark, V: the bookmarks, s: series, c: lists, f: sequence, A: a new podcast, E: the server gets the episodes, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
+            _text_render_footer = "j/↓, k/↑: move, l/→: play, Tab: home, R: refresh, S: Settings, Q/Esc: quit\n D: download offline, X: remove offline, e: read the ebook, M: mark finished, N: hide from Continue Listening, T: listening time, C: chapters, b: a bookmark, V: the bookmarks, s: series, a: authors, c: lists, f: sequence, A: a new podcast, E: the server gets the episodes, '/': search, Scroll desc: J(down) K(up) H(top), g/G: top/bottom";
         }
 
         if self.search_mode {

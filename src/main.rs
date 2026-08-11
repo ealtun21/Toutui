@@ -297,6 +297,7 @@ async fn main() -> Result<()> {
                             // The values of the filter come from the library.
                             // A new request must ask for them again.
                             logic::sort_filter::from_the_server::forget();
+                            logic::authors::forget();
 
                             // pop up message
                             let mut stdout = stdout();
