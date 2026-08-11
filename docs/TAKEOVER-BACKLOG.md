@@ -2180,6 +2180,74 @@ filter of `narrators.<base64>` gave the media of that narrator. A view of its ow
 for the narrators would hold the same list as the group of the view of the key `f`.
 Therefore the item of the handover is complete.
 
+### T-61: the task of the live messages asked for ever, every ten seconds
+
+T-47 gave the program the live messages of the server. The task of that work waited
+ten seconds after a connection that ended, and it then tried again — **for ever, and
+with the same wait**.
+
+**The measurement of 2026-08-11.** A server that answers `404` for every request of
+socket.io, which is an Audiobookshelf behind a proxy that does not pass
+`/socket.io/` and an older version of the server:
+
+| The rule | The requests of 65 seconds | The requests of one day |
+|---|---|---|
+| Before | 6 | 8640 |
+| After | 3, at the second 0, 10, and 30 | fewer than 200 |
+
+**The correction.** `wait_after_the_faults` doubles the wait after each fault, one
+after the other, and it stops at ten minutes. A connection that **opened** gives the
+count of the faults the value 0, therefore a server that answers again gives the
+live messages back at once. `Attempt` holds that answer: `opened` and the fault.
+
+The log holds the first fault of a server and it holds no fault after it, and it
+says one time that the program waits longer after each fault. A program that runs
+for days must not fill the log of the user with one line every ten seconds.
+
+### T-62: a book of a scan held every picture of every page in the memory
+
+T-54 gave the reader the pictures of a PDF, and `Pdf::open` kept the file of every
+picture of every page.
+
+**The measurement of 2026-08-11**, with a book of 150 pages of a scan of 1400 by
+1900 pixels (137 megabytes):
+
+| What | Before | After |
+|---|---|---|
+| The pictures in the memory | 137 megabytes | 9.5 megabytes |
+| The time of the open | 0.15 seconds | 3.85 seconds |
+| The largest memory of the program | 279 megabytes | 277 megabytes |
+
+**The correction.** The panel of the picture of a terminal of 160 by 45 holds about
+64 columns and 42 rows, and a cell of 10 by 20 pixels makes that 640 by 840 pixels.
+A picture of more pixels therefore gives the user **nothing**, and it takes their
+memory while they read. `smaller_if_it_is_large` reads such a picture, it makes it
+smaller with `thumbnail`, and it writes a JPEG file of quality 82.
+
+- **The two numbers of the picture stay the numbers of the page.** The user asks
+  how large a picture is, and the answer of the page is the answer that they want.
+  `thumbnail` keeps the form, therefore the panel draws the same rectangle.
+- A picture that the screen shows already keeps the bytes of its file: the program
+  then reads no picture and it writes no picture.
+- A file that `image` cannot read keeps its bytes. The screen shows what it can.
+- `MAX_PICTURES_OF_A_BOOK` of 48 megabytes is the backstop. A page after that limit
+  holds no picture, and the line of the text still says that a picture exists. The
+  log says how many pages lost their picture.
+
+**The time of the open is the cost.** The program reads and writes 150 pictures,
+therefore the open of that book takes 3.85 seconds. `Pdf::open` runs in a task, and
+the screen of the reader says "The program gets the book…" while it works.
+
+**The largest memory did not change, and that is `lopdf`.** `Document::load` reads
+the whole file, therefore the program holds the bytes of a book of 137 megabytes for
+a moment. That memory goes away after the open, and the 9.5 megabytes of the
+pictures stay. A book of 500 megabytes therefore needs a machine of a gigabyte for
+one moment. `MAX_BOOK_BYTES` of 512 megabytes holds that limit.
+
+**The measurement in the real program.** The heavy book of 150 pages: the line at
+the top said "page 1 of 150", the line of the text said "[ the picture Im0: 1400 by
+1900 pixels ]", and the picture drew 48 columns by 32 rows.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

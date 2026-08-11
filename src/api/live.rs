@@ -62,6 +62,14 @@ const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 /// The time to wait after a connection that ended, before a new one.
 const WAIT_BEFORE_AGAIN: Duration = Duration::from_secs(10);
 
+/// The longest time between two attempts. See T-61.
+///
+/// A server that gives no socket.io answers every attempt with a fault. The wait
+/// therefore becomes longer after each fault, and it stops at this value: one
+/// attempt of ten minutes costs the server almost nothing, and a user who mends
+/// their server waits ten minutes at the most for the live messages.
+const LONGEST_WAIT: Duration = Duration::from_secs(600);
+
 /// The answer of the handshake.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -157,6 +165,32 @@ const MESSAGES_OF_THE_LIBRARY: [&str; 9] = [
 /// Tells if a message makes the lists of the screen old.
 pub fn the_library_changed(name: &str) -> bool {
     MESSAGES_OF_THE_LIBRARY.contains(&name)
+}
+
+/// Gives the time to wait after a number of faults, one after the other.
+///
+/// The first fault waits `WAIT_BEFORE_AGAIN`, and each fault after it doubles
+/// that time to `LONGEST_WAIT`. A connection that opened gives the count the
+/// value 0, therefore a server that answers again gives the live messages back at
+/// once.
+///
+/// **A server that gives no socket.io must not get a request every ten seconds
+/// for ever.** A measurement on 2026-08-11 gave 6 requests in 65 seconds with the
+/// old rule, and that is 8640 requests in one day. See T-61.
+///
+/// The function is pure, therefore a test needs no server and no clock.
+pub fn wait_after_the_faults(faults: u32) -> Duration {
+    if faults <= 1 {
+        return WAIT_BEFORE_AGAIN;
+    }
+
+    // The value 2 gives two times the first wait, and the value n gives 2^(n-1)
+    // times it. A large number of faults would make that product too large for
+    // the type, therefore the count stops at 20.
+    let steps = faults.saturating_sub(1).min(20);
+    let seconds = WAIT_BEFORE_AGAIN.as_secs().saturating_mul(1 << steps);
+
+    Duration::from_secs(seconds).min(LONGEST_WAIT)
 }
 
 /// Reads every packet of one answer.
@@ -297,33 +331,92 @@ pub fn spawn_the_live_task(pool: Arc<EndpointPool>, token: String) -> tokio::tas
             }
         };
 
+        // The number of faults, one after the other. A connection that opened
+        // gives it the value 0. See T-61.
+        let mut faults: u32 = 0;
+
         loop {
             match pool.active() {
                 Some(base) => {
                     crate::logic::live::keep(crate::logic::live::State::Waiting);
 
-                    if let Err(text) = one_connection(&http, &base, &token).await {
-                        info!("[live] The connection ended: {}", text);
+                    let attempt = one_connection(&http, &base, &token).await;
+
+                    if attempt.opened {
+                        faults = 0;
+                    } else {
+                        faults = faults.saturating_add(1);
+                    }
+
+                    if let Some(text) = attempt.fault {
+                        // The first fault of a server tells the user something.
+                        // The tenth fault of the same server tells nothing, and
+                        // it fills the log of a program that runs for days.
+                        if faults <= 1 {
+                            info!("[live] The connection ended: {}", text);
+                        }
+
                         crate::logic::live::keep(crate::logic::live::State::Fault(text));
                     }
                 }
                 None => {
+                    faults = faults.saturating_add(1);
+
                     crate::logic::live::keep(crate::logic::live::State::Fault(
                         "no address of the server answers".to_string(),
                     ));
                 }
             }
 
-            tokio::time::sleep(WAIT_BEFORE_AGAIN).await;
+            let wait = wait_after_the_faults(faults);
+
+            if faults == 2 {
+                info!(
+                    "[live] The server gives no live message. The program tries \
+                     again, and it waits longer after each fault, to {} seconds.",
+                    LONGEST_WAIT.as_secs()
+                );
+            }
+
+            tokio::time::sleep(wait).await;
         }
     })
 }
 
+/// What one attempt of a connection gave. See T-61.
+pub struct Attempt {
+    /// The connection opened: the handshake came, and the server took the token.
+    /// The loop then waits the short time, and not the long one.
+    pub opened: bool,
+    /// The reason why the connection ended, if it ended with a fault.
+    pub fault: Option<String>,
+}
+
 /// Makes one connection, and it reads the messages while that connection lives.
-///
-/// The function gives `Ok` when the server closed the connection in the way of
-/// the protocol, and `Err` with a short text for every other end.
-async fn one_connection(http: &reqwest::Client, base: &str, token: &str) -> Result<(), String> {
+async fn one_connection(http: &reqwest::Client, base: &str, token: &str) -> Attempt {
+    let mut opened = false;
+
+    match one_connection_or_a_fault(http, base, token, &mut opened).await {
+        Ok(()) => Attempt {
+            opened,
+            fault: None,
+        },
+        Err(text) => Attempt {
+            opened,
+            fault: Some(text),
+        },
+    }
+}
+
+/// The work of one connection. `opened` becomes true when the connection is
+/// open, therefore the caller knows a fault of the handshake from a fault of a
+/// connection that lived.
+async fn one_connection_or_a_fault(
+    http: &reqwest::Client,
+    base: &str,
+    token: &str,
+    opened: &mut bool,
+) -> Result<(), String> {
     let hand = handshake(http, base).await?;
     let path = poll_path(&hand.sid).ok_or("the server gave an identity that is not safe")?;
     let address = format!("{}{}", base, path);
@@ -337,6 +430,8 @@ async fn one_connection(http: &reqwest::Client, base: &str, token: &str) -> Resu
         "[live] The connection is open. The ping comes every {} ms.",
         hand.ping_interval
     );
+
+    *opened = true;
     crate::logic::live::keep(crate::logic::live::State::Ready);
 
     loop {
@@ -607,6 +702,41 @@ mod tests {
         assert!(
             progress_of_the_user(&serde_json::json!({"mediaProgress": "not a list"})).is_empty()
         );
+    }
+
+    /// A server that gives no socket.io must not get a request every ten seconds
+    /// for ever. See T-61.
+    #[test]
+    fn the_wait_becomes_longer_after_each_fault() {
+        // No fault, and the first fault: the short wait. A connection that ends
+        // in the way of the protocol comes back at once.
+        assert_eq!(wait_after_the_faults(0), WAIT_BEFORE_AGAIN);
+        assert_eq!(wait_after_the_faults(1), WAIT_BEFORE_AGAIN);
+
+        // Each fault after the first one doubles the wait.
+        assert_eq!(wait_after_the_faults(2), WAIT_BEFORE_AGAIN * 2);
+        assert_eq!(wait_after_the_faults(3), WAIT_BEFORE_AGAIN * 4);
+        assert_eq!(wait_after_the_faults(4), WAIT_BEFORE_AGAIN * 8);
+
+        // The wait stops at the longest value, and it stays there.
+        assert_eq!(wait_after_the_faults(20), LONGEST_WAIT);
+        assert_eq!(wait_after_the_faults(1000), LONGEST_WAIT);
+        assert_eq!(wait_after_the_faults(u32::MAX), LONGEST_WAIT);
+
+        // The number of requests of one hour of a server that answers nothing.
+        let mut spent = Duration::from_secs(0);
+        let mut requests = 0;
+        let mut faults = 0;
+
+        while spent < Duration::from_secs(3600) {
+            faults += 1;
+            requests += 1;
+            spent += wait_after_the_faults(faults);
+        }
+
+        // The old rule gave 360 requests in one hour. This rule gives fewer than
+        // twenty.
+        assert!(requests < 20, "one hour gives {} requests", requests);
     }
 
     /// The program itself makes `user_updated` every ten seconds while a media

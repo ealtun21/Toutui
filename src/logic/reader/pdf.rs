@@ -46,6 +46,23 @@ const MAX_PICTURE_BYTES: usize = 32 * 1024 * 1024;
 /// The largest number of pixels of one picture.
 const MAX_PICTURE_PIXELS: u64 = 50_000_000;
 
+/// The largest side of a picture that the program keeps, in pixels. See T-62.
+///
+/// A terminal of 160 by 45 gives the panel of the picture about 64 columns and 42
+/// rows, and a cell of 10 by 20 pixels makes that 640 by 840 pixels. A picture of
+/// 1400 by 1900 therefore holds four times more pixels than the largest screen
+/// shows, and every one of those bytes stays in the memory while the user reads.
+///
+/// The value is the value of the cover art of T-23, for the same reason.
+const LARGEST_SIDE: u32 = 640;
+
+/// The largest memory that every picture of one book may take. See T-62.
+///
+/// A measurement on 2026-08-11 of a book of 150 pages of a scan of 1400 by 1900:
+/// the pictures held 137 megabytes, and the program took 279 megabytes. A book of
+/// 600 pages would take the memory of a small machine.
+const MAX_PICTURES_OF_A_BOOK: usize = 48 * 1024 * 1024;
+
 /// One picture of a page.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Picture {
@@ -57,6 +74,11 @@ pub struct Picture {
     pub height: u32,
     /// A **file** that the crate `image` reads: a JPEG file, or a PNG file that
     /// this module made of the raw samples.
+    ///
+    /// The file can hold **fewer** pixels than `width` and `height`: a picture of
+    /// more than 640 pixels of one side gives the screen nothing more, and it
+    /// takes the memory of the user. The form of the file is the form of the two
+    /// numbers. See T-62.
     pub file: Arc<Vec<u8>>,
 }
 
@@ -114,19 +136,47 @@ impl Pdf {
 
         let mut pages: Vec<Page> = Vec::with_capacity(numbers.len());
 
+        // The memory of every picture of the book. A book of a scan of many
+        // hundred pages must not take the memory of the machine. See T-62.
+        let mut bytes_of_the_pictures = 0usize;
+        let mut pages_with_no_picture = 0usize;
+
         for (number, id) in numbers {
             let text = document
                 .extract_text(&[number])
                 .unwrap_or_default()
                 .replace('\r', "");
 
-            let pictures = pictures_of_the_page(&document, id);
+            let pictures = if bytes_of_the_pictures < MAX_PICTURES_OF_A_BOOK {
+                let pictures = pictures_of_the_page(&document, id);
+
+                bytes_of_the_pictures += pictures
+                    .iter()
+                    .map(|picture| picture.file.len())
+                    .sum::<usize>();
+
+                pictures
+            } else {
+                // The line of the text of the page still says that a picture
+                // exists, therefore the user knows. See `xhtml_of_the_page`.
+                pages_with_no_picture += 1;
+                Vec::new()
+            };
 
             pages.push(Page {
                 number,
                 text,
                 pictures,
             });
+        }
+
+        if pages_with_no_picture > 0 {
+            warn!(
+                "[pdf] the pictures of this book hold {} megabytes. The program \
+                 keeps no picture of the last {} page(s).",
+                bytes_of_the_pictures / 1024 / 1024,
+                pages_with_no_picture
+            );
         }
 
         let letters: usize = pages.iter().map(|page| page.text.len()).sum();
@@ -397,18 +447,14 @@ fn picture_of_the_stream(
     let colours = colour_count(dictionary);
 
     // A picture of the filter `DCTDecode` is a JPEG file already. The bytes of
-    // the stream are that file, therefore the program copies nothing.
+    // the stream are that file, therefore a picture that the screen can show
+    // needs no work at all.
     if filters.iter().any(|filter| filter == "DCTDecode") {
         if content.len() > MAX_PICTURE_BYTES {
             return None;
         }
 
-        return Some(Picture {
-            name: name.to_string(),
-            width,
-            height,
-            file: Arc::new(content.to_vec()),
-        });
+        return Some(smaller_if_it_is_large(name, width, height, content));
     }
 
     // Every other filter of a picture of a PDF gives raw samples. The program
@@ -440,12 +486,83 @@ fn picture_of_the_stream(
 
     let file = png_of_the_samples(width, height, colours?, &samples)?;
 
-    Some(Picture {
+    Some(smaller_if_it_is_large(name, width, height, &file))
+}
+
+/// Gives a picture of the file, and it makes a large picture smaller.
+///
+/// The screen shows about 640 pixels of one side. A picture of more pixels gives
+/// the user nothing, and every byte of it stays in the memory while they read.
+/// Therefore this function reads such a picture, it makes it smaller, and it
+/// writes a JPEG file of the answer. See T-62.
+///
+/// A picture that the program cannot read keeps the bytes of the file. The screen
+/// then shows what it can, and the memory holds one picture more.
+fn smaller_if_it_is_large(name: &str, width: u32, height: u32, file: &[u8]) -> Picture {
+    let of_the_file = || Picture {
         name: name.to_string(),
         width,
         height,
-        file: Arc::new(file),
-    })
+        file: Arc::new(file.to_vec()),
+    };
+
+    if width <= LARGEST_SIDE && height <= LARGEST_SIDE {
+        return of_the_file();
+    }
+
+    let Some(image) = read_the_picture(file) else {
+        return of_the_file();
+    };
+
+    let small = image.thumbnail(LARGEST_SIDE, LARGEST_SIDE);
+    let mut out: Vec<u8> = Vec::new();
+
+    // A picture of a page is a picture of a photograph or of a scan, therefore
+    // JPEG gives a much smaller file than PNG. The screen of a terminal shows no
+    // difference of the two.
+    let written = image::codecs::jpeg::JpegEncoder::new_with_quality(
+        &mut std::io::Cursor::new(&mut out),
+        JPEG_QUALITY,
+    )
+    .encode_image(&small);
+
+    if written.is_err() || out.is_empty() {
+        return of_the_file();
+    }
+
+    // **The two numbers stay the numbers of the page.** The user asks "how large
+    // is this picture", and the answer of the page is the answer that they want.
+    // The form of the two numbers is the form of the smaller file as well, because
+    // `thumbnail` keeps the form. See T-62.
+    Picture {
+        name: name.to_string(),
+        width,
+        height,
+        file: Arc::new(out),
+    }
+}
+
+/// The quality of the JPEG file of a picture that the program made smaller.
+///
+/// A terminal draws some hundred cells of one picture. The value 82 gives a file
+/// of some tens of kilobytes, and the user sees no loss.
+const JPEG_QUALITY: u8 = 82;
+
+/// Reads a picture of a file, with the limits of the memory of this module.
+fn read_the_picture(file: &[u8]) -> Option<image::DynamicImage> {
+    let mut limits = image::Limits::default();
+    limits.max_alloc = Some(MAX_PICTURE_BYTES as u64 * 4);
+    // The picture holds `MAX_PICTURE_PIXELS` at the most, therefore a side of
+    // that number of pixels is the largest side that a file can name.
+    limits.max_image_width = Some(MAX_PICTURE_PIXELS as u32);
+    limits.max_image_height = Some(MAX_PICTURE_PIXELS as u32);
+
+    let mut reader = image::ImageReader::new(std::io::Cursor::new(file))
+        .with_guessed_format()
+        .ok()?;
+    reader.limits(limits);
+
+    reader.decode().ok()
 }
 
 /// Takes the high byte of every sample of 16 bits.
@@ -722,6 +839,68 @@ mod tests {
         // A list with one byte too many gives the pairs that are complete.
         assert_eq!(eight_bits_of(&[0xaa, 0xbb, 0xcc]), vec![0xaa]);
         assert!(eight_bits_of(&[]).is_empty());
+    }
+
+    /// A picture of more pixels than the screen shows must become smaller. See
+    /// T-62.
+    #[test]
+    fn a_large_picture_becomes_smaller_and_it_keeps_its_form() {
+        // A picture of 1400 by 1900, in the form of a JPEG file.
+        let large = image::DynamicImage::ImageRgb8(image::RgbImage::from_fn(1400, 1900, |x, y| {
+            image::Rgb([(x % 256) as u8, (y % 256) as u8, 128])
+        }));
+
+        let mut of_the_page: Vec<u8> = Vec::new();
+        image::codecs::jpeg::JpegEncoder::new_with_quality(
+            &mut std::io::Cursor::new(&mut of_the_page),
+            90,
+        )
+        .encode_image(&large)
+        .expect("the test must write a JPEG file");
+
+        let picture = smaller_if_it_is_large("Im0", 1400, 1900, &of_the_page);
+
+        // The two numbers stay the numbers of the page, therefore the line of the
+        // text tells the user the size of the picture of their book.
+        assert_eq!((picture.width, picture.height), (1400, 1900));
+
+        // The file holds fewer bytes and fewer pixels.
+        assert!(
+            picture.file.len() < of_the_page.len(),
+            "{} bytes of {}",
+            picture.file.len(),
+            of_the_page.len()
+        );
+
+        let read = image::load_from_memory(&picture.file).expect("the file must be a picture");
+        assert!(read.width() <= LARGEST_SIDE && read.height() <= LARGEST_SIDE);
+
+        // The form of the file agrees with the form of the page, to one part in a
+        // hundred.
+        let of_the_numbers = 1400.0 / 1900.0;
+        let of_the_file = f64::from(read.width()) / f64::from(read.height());
+        assert!(
+            (of_the_numbers - of_the_file).abs() < 0.01,
+            "the form changed from {} to {}",
+            of_the_numbers,
+            of_the_file
+        );
+    }
+
+    /// A picture that the screen shows already keeps the bytes of its file. The
+    /// program then reads no picture and it writes no picture.
+    #[test]
+    fn a_small_picture_keeps_the_bytes_of_the_page() {
+        let bytes = vec![0xff, 0xd8, 1, 2, 3, 4];
+        let picture = smaller_if_it_is_large("Im1", 400, 300, &bytes);
+
+        assert_eq!(picture.file.as_slice(), bytes.as_slice());
+        assert_eq!((picture.width, picture.height), (400, 300));
+
+        // A file that the program cannot read keeps its bytes as well, therefore a
+        // picture of a form that `image` does not know still reaches the screen.
+        let broken = smaller_if_it_is_large("Im2", 4000, 3000, &[1, 2, 3]);
+        assert_eq!(broken.file.as_slice(), &[1, 2, 3]);
     }
 
     /// A stream that names fewer samples than the size of the picture needs must
