@@ -313,6 +313,15 @@ async fn main() -> Result<()> {
 
                         app.handle_key(key);
 
+                        // A box that took a text wrote on the cells of the
+                        // view below it. ratatui writes the cells that changed
+                        // only, therefore those cells need a clear: the next
+                        // draw then writes every one of them. See T-89.
+                        if app.the_screen_must_be_drawn_again {
+                            app.the_screen_must_be_drawn_again = false;
+                            terminal.clear()?;
+                        }
+
                         // The key `R` refreshes the application. A new
                         // sequence or a new filter of the library needs the
                         // same work, because every list of the library comes

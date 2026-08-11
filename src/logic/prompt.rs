@@ -16,7 +16,7 @@ use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::backend::CrosstermBackend;
 use ratatui::layout::Rect;
 use ratatui::style::{Color, Style};
-use ratatui::widgets::{Block, Borders, Paragraph};
+use ratatui::widgets::{Block, Borders, Clear, Paragraph};
 use ratatui::Terminal;
 use std::io;
 
@@ -54,12 +54,34 @@ impl App {
         // The borders take one column at the left and one column at the right.
         let inner_width = area.width.saturating_sub(2);
 
+        // **The box starts at the column 1, and it ends one column before the
+        // end of the screen.** The letters of the view that stood in those two
+        // columns stay on the screen: a measurement of 2026-08-11 read a "T" of
+        // the text of a view beside the left border of the box, and that letter
+        // stayed after the box went away. Therefore this rectangle holds the
+        // whole rows of the box, and the program writes it before the box and
+        // after it. See T-89.
+        let the_whole_rows = Rect {
+            x: 0,
+            y: area.y,
+            width: size.width,
+            height: area.height,
+        };
+
         let mut answer: Option<String> = None;
 
         loop {
             let view = field_view(&input, inner_width, None);
 
             term.draw(|frame| {
+                // The letters that stood in the two columns beside the box go
+                // away. See T-89.
+                frame.render_widget(Clear, the_whole_rows);
+                frame.render_widget(
+                    Block::default().style(Style::default().bg(Color::Rgb(bg_r, bg_g, bg_b))),
+                    the_whole_rows,
+                );
+
                 let bar = Paragraph::new(view.text.as_str())
                     .scroll((0, view.scroll))
                     .block(block.clone());
@@ -91,9 +113,16 @@ impl App {
         // The box goes away. The next frame of the application draws the view
         // that stands below it.
         term.draw(|frame| {
+            frame.render_widget(Clear, the_whole_rows);
             let empty = Block::default().style(Style::default().bg(Color::Rgb(bg_r, bg_g, bg_b)));
-            frame.render_widget(empty, area);
+            frame.render_widget(empty, the_whole_rows);
         })?;
+
+        // The box wrote on the cells of the view below it, and the terminal of
+        // the program knows nothing of that work: it writes the cells that
+        // changed only. Therefore the loop of the program draws every cell
+        // again. See T-89, and T-42 for the same answer after a refresh.
+        self.the_screen_must_be_drawn_again = true;
 
         Ok(answer)
     }
