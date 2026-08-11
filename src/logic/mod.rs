@@ -8,6 +8,7 @@ pub mod home_view;
 pub mod library_view;
 pub mod list_moves;
 pub mod live;
+pub mod message;
 pub mod new_podcast;
 pub mod offline;
 pub mod playback;

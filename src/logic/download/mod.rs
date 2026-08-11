@@ -5,13 +5,11 @@ pub mod progress;
 use crate::db::crud::{
     delete_download, get_download, get_download_files, insert_download, insert_download_file,
 };
-use crate::utils::pop_up_message::*;
 use fetch::fetch_item;
 use log::{error, info};
 use plan::{plan_from_episode, plan_from_item};
 use progress::ProgressMap;
 use std::collections::HashMap;
-use std::io::stdout;
 use std::path::PathBuf;
 use std::sync::{Arc, OnceLock, RwLock};
 
@@ -91,19 +89,17 @@ pub async fn download_with_progress(
     server_key: String,
     progress: ProgressMap,
 ) {
-    let mut stdout = stdout();
-    let _ = pop_message(
-        &mut stdout,
-        3,
-        &format!("Downloading \"{}\" for offline listening...", title),
-    );
+    crate::logic::message::say(&format!(
+        "Downloading \"{}\" for offline listening...",
+        title
+    ));
 
     let Some(token) = token else {
         error!(
             "[download_item] No token. The download of \"{}\" stopped.",
             title
         );
-        let _ = pop_message(&mut stdout, 3, "Download failed: no authentication token.");
+        crate::logic::message::say("Download failed: no authentication token.");
         return;
     };
 
@@ -118,11 +114,7 @@ pub async fn download_with_progress(
         Ok(item) => item,
         Err(message) => {
             error!("[download_item] Failed to read \"{}\": {}", title, message);
-            let _ = pop_message(
-                &mut stdout,
-                3,
-                &format!("Download failed for \"{}\": {}", title, message),
-            );
+            crate::logic::message::say(&format!("Download failed for \"{}\": {}", title, message));
             return;
         }
     };
@@ -135,11 +127,7 @@ pub async fn download_with_progress(
     let Some(plan) = plan else {
         let message = "the server gave no audio file";
         error!("[download_item] Failed to plan \"{}\": {}", title, message);
-        let _ = pop_message(
-            &mut stdout,
-            3,
-            &format!("Download failed for \"{}\": {}", title, message),
-        );
+        crate::logic::message::say(&format!("Download failed for \"{}\": {}", title, message));
         return;
     };
 
@@ -189,22 +177,14 @@ pub async fn download_with_progress(
                 paths.len(),
                 dest_dir.display()
             );
-            let _ = pop_message(
-                &mut stdout,
-                3,
-                &format!("\"{}\" is now available offline.", title),
-            );
+            crate::logic::message::say(&format!("\"{}\" is now available offline.", title));
         }
         Err(message) => {
             error!(
                 "[download_item] Failed to download \"{}\": {}",
                 title, message
             );
-            let _ = pop_message(
-                &mut stdout,
-                3,
-                &format!("Download failed for \"{}\": {}", title, message),
-            );
+            crate::logic::message::say(&format!("Download failed for \"{}\": {}", title, message));
         }
     }
 }

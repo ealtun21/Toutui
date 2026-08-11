@@ -27,13 +27,11 @@ use crate::player::integrated::handle_key_player::*;
 use crate::utils::changelog::*;
 use crate::utils::check_update::*;
 use crate::utils::encrypt_token::*;
-use crate::utils::pop_up_message::*;
 use color_eyre::Result;
 use ratatui::{
     crossterm::event::{KeyCode, KeyEvent, KeyEventKind},
     widgets::ListState,
 };
-use std::io::stdout;
 
 /// The views of the application. The type has no field, therefore a copy
 /// costs nothing, and a test can name a view in a list.
@@ -1299,9 +1297,7 @@ impl App {
                 // download, and it gives an error of the protocol. The user
                 // reads a sentence instead. See T-24.
                 if !self.permissions.download {
-                    let mut stdout = stdout();
-                    let _ = clear_message(&mut stdout, 3);
-                    let _ = pop_message(&mut stdout, 3, crate::api::me::permissions::no_download());
+                    crate::logic::message::say(crate::api::me::permissions::no_download());
                     return;
                 }
 
@@ -1346,12 +1342,10 @@ impl App {
 
                 if let Some((target, _title, _author)) = self.selected_download() {
                     if let Some(title) = remove_download(target.key(), &username) {
-                        let mut stdout = stdout();
-                        let _ = pop_message(
-                            &mut stdout,
-                            3,
-                            &format!("Removed offline copy of \"{}\".", title),
-                        );
+                        crate::logic::message::say(&format!(
+                            "Removed offline copy of \"{}\".",
+                            title
+                        ));
                     }
                 }
             }
@@ -1402,17 +1396,13 @@ impl App {
             // listened time. The command does not close the session.
             KeyCode::Char('F') => {
                 let state = self.player.state();
-                let mut stdout = stdout();
 
                 if state.status == crate::player::engine::PlaybackStatus::Stopped
                     || !crate::logic::sync_session::force_sync::ask(state.playback_id)
                 {
-                    let _ = clear_message(&mut stdout, 3);
-                    let _ = pop_message(&mut stdout, 3, "Sync: nothing plays now.");
+                    crate::logic::message::say("Sync: nothing plays now.");
                 } else {
-                    let _ = clear_message(&mut stdout, 3);
-                    let _ =
-                        pop_message(&mut stdout, 3, "Sync: the application sends the position…");
+                    crate::logic::message::say("Sync: the application sends the position…");
 
                     // The answer comes from the loop of the playback. This
                     // task waits for it, and it stops after a short time when
@@ -1424,16 +1414,12 @@ impl App {
                             if let Some(text) =
                                 crate::logic::sync_session::force_sync::take_report()
                             {
-                                let mut stdout = std::io::stdout();
-                                let _ = clear_message(&mut stdout, 3);
-                                let _ = pop_message(&mut stdout, 3, text.as_str());
+                                crate::logic::message::say(text.as_str());
                                 return;
                             }
                         }
 
-                        let mut stdout = std::io::stdout();
-                        let _ = clear_message(&mut stdout, 3);
-                        let _ = pop_message(&mut stdout, 3, "Sync: the playback gave no answer.");
+                        crate::logic::message::say("Sync: the playback gave no answer.");
                     });
                 }
             }
@@ -1454,8 +1440,7 @@ impl App {
             KeyCode::Char('Q') | KeyCode::Esc => {
                 // display message
                 let message_quit = "Exiting the application and syncing data, please hold on.";
-                let mut stdout = stdout();
-                let _ = pop_message(&mut stdout, 3, message_quit);
+                crate::logic::message::say(message_quit);
 
                 // close and sync session before close the app
                 let api = std::sync::Arc::clone(&self.api);
@@ -1687,17 +1672,10 @@ impl App {
                             if self.confirm_logout.as_deref() != Some(usr_to_delete.as_str()) {
                                 self.confirm_logout = Some(usr_to_delete.clone());
 
-                                let mut stdout = stdout();
-                                let _ = clear_message(&mut stdout, 3);
-                                let _ = pop_message(
-                                    &mut stdout,
-                                    3,
-                                    format!(
-                                        "Press l again to log out of \"{}\". Any other key stops this.",
-                                        usr_to_delete
-                                    )
-                                    .as_str(),
-                                );
+                                crate::logic::message::say(&format!(
+                                    "Press l again to log out of \"{}\". Any other key stops this.",
+                                    usr_to_delete
+                                ));
 
                                 return;
                             }
@@ -1980,28 +1958,23 @@ impl App {
     /// then sends the opposite. The user therefore presses one key, and the
     /// key does the right work in every view.
     pub fn toggle_the_mark_of_finished(&mut self) {
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-
         let Some(item_id) = self.selected_item_id() else {
-            let _ = pop_message(&mut stdout, 3, "No media is selected.");
+            crate::logic::message::say("No media is selected.");
             return;
         };
 
         if self.is_offline {
-            let _ = pop_message(&mut stdout, 3, "The server does not answer.");
+            crate::logic::message::say("The server does not answer.");
             return;
         }
 
-        let _ = pop_message(&mut stdout, 3, "The mark of the media goes to the server…");
+        crate::logic::message::say("The mark of the media goes to the server…");
         let api = std::sync::Arc::clone(&self.api);
 
         tokio::spawn(async move {
             let text = mark_the_media(&api, &item_id).await;
 
-            let mut stdout = std::io::stdout();
-            let _ = clear_message(&mut stdout, 3);
-            let _ = pop_message(&mut stdout, 3, text.as_str());
+            crate::logic::message::say(text.as_str());
         });
     }
 
@@ -2012,28 +1985,23 @@ impl App {
     /// does this work. A user who does not want a book on the Home view had
     /// no way to take it away: the book stayed until they finished it.
     pub fn toggle_the_shelf_of_continue_listening(&mut self) {
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-
         let Some(item_id) = self.selected_item_id() else {
-            let _ = pop_message(&mut stdout, 3, "No media is selected.");
+            crate::logic::message::say("No media is selected.");
             return;
         };
 
         if self.is_offline {
-            let _ = pop_message(&mut stdout, 3, "The server does not answer.");
+            crate::logic::message::say("The server does not answer.");
             return;
         }
 
-        let _ = pop_message(&mut stdout, 3, "The change goes to the server…");
+        crate::logic::message::say("The change goes to the server…");
         let api = std::sync::Arc::clone(&self.api);
 
         tokio::spawn(async move {
             let text = hide_the_media(&api, &item_id).await;
 
-            let mut stdout = std::io::stdout();
-            let _ = clear_message(&mut stdout, 3);
-            let _ = pop_message(&mut stdout, 3, text.as_str());
+            crate::logic::message::say(text.as_str());
         });
     }
 
@@ -2043,9 +2011,6 @@ impl App {
     /// and `U`. The user could not see them, and they could not go to a
     /// chapter by its name.
     pub fn show_the_chapters(&mut self) {
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-
         let state = self.player.state();
 
         // **The view opens for every answer.** A message of `pop_message` stands
@@ -2076,13 +2041,7 @@ impl App {
         self.player
             .send(crate::player::engine::PlayerCommand::SeekTo(chapter.start));
 
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-        let _ = pop_message(
-            &mut stdout,
-            3,
-            &format!("The playback goes to \"{}\".", chapter.title),
-        );
+        crate::logic::message::say(&format!("The playback goes to \"{}\".", chapter.title));
     }
 
     /// Tells the server to examine the library again. See T-24.
@@ -2095,23 +2054,20 @@ impl App {
     /// program says that the work started, and the user presses `R` after a
     /// moment.
     pub fn scan_the_library(&mut self) {
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-
         if self.is_offline {
-            let _ = pop_message(&mut stdout, 3, "The server does not answer.");
+            crate::logic::message::say("The server does not answer.");
             return;
         }
 
         if self.id_selected_lib.is_empty() {
-            let _ = pop_message(&mut stdout, 3, "No library is selected.");
+            crate::logic::message::say("No library is selected.");
             return;
         }
 
         let api = std::sync::Arc::clone(&self.api);
         let library = self.id_selected_lib.clone();
 
-        let _ = pop_message(&mut stdout, 3, "The server examines the library…");
+        crate::logic::message::say("The server examines the library…");
 
         tokio::spawn(async move {
             let text = match api
@@ -2127,9 +2083,7 @@ impl App {
                 Err(error) => format!("The server did not start the examination: {}", error),
             };
 
-            let mut stdout = std::io::stdout();
-            let _ = clear_message(&mut stdout, 3);
-            let _ = pop_message(&mut stdout, 3, text.as_str());
+            crate::logic::message::say(text.as_str());
         });
     }
 
@@ -2137,9 +2091,6 @@ impl App {
     ///
     /// A library of podcasts has no author. See T-24.
     pub fn show_the_authors(&mut self) {
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-
         if !matches!(
             self.view_state,
             AppView::Home | AppView::Library | AppView::SearchBook | AppView::Authors
@@ -2148,7 +2099,7 @@ impl App {
         }
 
         if self.is_podcast {
-            let _ = pop_message(&mut stdout, 3, "A library of podcasts has no author.");
+            crate::logic::message::say("A library of podcasts has no author.");
             return;
         }
 
@@ -2225,16 +2176,13 @@ impl App {
     /// different work: the server gets the file and it puts it in the library
     /// of the server, therefore every client can play it.
     pub fn get_the_new_episodes(&mut self) {
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-
         if !self.is_podcast {
-            let _ = pop_message(&mut stdout, 3, "This library holds books.");
+            crate::logic::message::say("This library holds books.");
             return;
         }
 
         if self.is_offline {
-            let _ = pop_message(&mut stdout, 3, "The server does not answer.");
+            crate::logic::message::say("The server does not answer.");
             return;
         }
 
@@ -2246,19 +2194,17 @@ impl App {
         };
 
         let Some(item_id) = item_id else {
-            let _ = pop_message(&mut stdout, 3, "No podcast is selected.");
+            crate::logic::message::say("No podcast is selected.");
             return;
         };
 
         let api = std::sync::Arc::clone(&self.api);
-        let _ = pop_message(&mut stdout, 3, "The server reads the feed…");
+        crate::logic::message::say("The server reads the feed…");
 
         tokio::spawn(async move {
             let text = ask_the_server_for_the_episodes(&api, &item_id).await;
 
-            let mut stdout = std::io::stdout();
-            let _ = clear_message(&mut stdout, 3);
-            let _ = pop_message(&mut stdout, 3, text.as_str());
+            crate::logic::message::say(text.as_str());
         });
     }
 
@@ -2285,9 +2231,6 @@ impl App {
     /// cannot hold a podcast. The server asks iTunes, therefore the search
     /// needs the network of the server.
     pub fn look_for_a_podcast(&mut self) {
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-
         if !matches!(
             self.view_state,
             AppView::Home | AppView::Library | AppView::SearchBook | AppView::NewPodcast
@@ -2296,16 +2239,14 @@ impl App {
         }
 
         if !self.is_podcast {
-            let _ = pop_message(
-                &mut stdout,
-                3,
+            crate::logic::message::say(
                 "This library holds books. Choose a library of podcasts with S.",
             );
             return;
         }
 
         if self.is_offline {
-            let _ = pop_message(&mut stdout, 3, "The server does not answer.");
+            crate::logic::message::say("The server does not answer.");
             return;
         }
 
@@ -2345,9 +2286,6 @@ impl App {
     /// server**, therefore the program asks the user one time before it
     /// sends.
     pub fn add_the_podcast(&mut self) {
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-
         let all = crate::logic::new_podcast::found();
 
         let Some(found) = self
@@ -2360,7 +2298,7 @@ impl App {
         };
 
         if found.feed_url.is_empty() {
-            let _ = pop_message(&mut stdout, 3, "This answer of the server holds no feed.");
+            crate::logic::message::say("This answer of the server holds no feed.");
             return;
         }
 
@@ -2376,8 +2314,7 @@ impl App {
         };
 
         if answer.trim().to_lowercase() != "yes" {
-            let _ = clear_message(&mut stdout, 3);
-            let _ = pop_message(&mut stdout, 3, "The program added no podcast.");
+            crate::logic::message::say("The program added no podcast.");
             return;
         }
 
@@ -2386,15 +2323,12 @@ impl App {
         let feed_url = found.feed_url.clone();
         let title = found.title.clone();
 
-        let _ = clear_message(&mut stdout, 3);
-        let _ = pop_message(&mut stdout, 3, "The server reads the feed…");
+        crate::logic::message::say("The server reads the feed…");
 
         tokio::spawn(async move {
             let text = add_a_podcast(&api, &library, &feed_url, &title).await;
 
-            let mut stdout = std::io::stdout();
-            let _ = clear_message(&mut stdout, 3);
-            let _ = pop_message(&mut stdout, 3, text.as_str());
+            crate::logic::message::say(text.as_str());
         });
     }
 
@@ -2406,13 +2340,10 @@ impl App {
     pub fn change_the_timer_for_sleep(&mut self) {
         use crate::logic::sleep_timer as sleep;
 
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-
         let state = self.player.state();
 
         if state.status == crate::player::engine::PlaybackStatus::Stopped {
-            let _ = pop_message(&mut stdout, 3, "No media plays now.");
+            crate::logic::message::say("No media plays now.");
             return;
         }
 
@@ -2428,7 +2359,7 @@ impl App {
 
         let Some(choice) = self.sleep_choice else {
             self.stop_the_timer_for_sleep(volume);
-            let _ = pop_message(&mut stdout, 3, "The timer for sleep is off.");
+            crate::logic::message::say("The timer for sleep is off.");
             return;
         };
 
@@ -2444,7 +2375,7 @@ impl App {
                 None => {
                     self.sleep_choice = None;
                     self.stop_the_timer_for_sleep(volume);
-                    let _ = pop_message(&mut stdout, 3, "This media has no chapter.");
+                    crate::logic::message::say("This media has no chapter.");
                     return;
                 }
             }
@@ -2463,11 +2394,10 @@ impl App {
         self.player
             .send(crate::player::engine::PlayerCommand::SetVolume(volume));
 
-        let _ = pop_message(
-            &mut stdout,
-            3,
-            &format!("The playback stops after {}.", sleep::label_of(choice)),
-        );
+        crate::logic::message::say(&format!(
+            "The playback stops after {}.",
+            sleep::label_of(choice)
+        ));
     }
 
     /// Stops the timer, and gives the volume of the user back.
@@ -2510,9 +2440,7 @@ impl App {
                 self.sleep_choice = None;
                 self.stop_the_timer_for_sleep(volume);
 
-                let mut stdout = stdout();
-                let _ = clear_message(&mut stdout, 3);
-                let _ = pop_message(&mut stdout, 3, "The timer for sleep stopped the playback.");
+                crate::logic::message::say("The timer for sleep stopped the playback.");
             }
         }
     }
@@ -2530,18 +2458,15 @@ impl App {
     /// media that does not play has no place. The program asks the user for a
     /// name, and an empty name gives the name of the place.
     pub fn write_a_bookmark(&mut self) {
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-
         let state = self.player.state();
 
         if state.status == crate::player::engine::PlaybackStatus::Stopped {
-            let _ = pop_message(&mut stdout, 3, "No media plays now.");
+            crate::logic::message::say("No media plays now.");
             return;
         }
 
         if self.is_offline {
-            let _ = pop_message(&mut stdout, 3, "The server does not answer.");
+            crate::logic::message::say("The server does not answer.");
             return;
         }
 
@@ -2560,8 +2485,7 @@ impl App {
         };
 
         let api = std::sync::Arc::clone(&self.api);
-        let _ = clear_message(&mut stdout, 3);
-        let _ = pop_message(&mut stdout, 3, "The bookmark goes to the server…");
+        crate::logic::message::say("The bookmark goes to the server…");
 
         tokio::spawn(async move {
             let text =
@@ -2573,9 +2497,7 @@ impl App {
             // A bookmark that came now must stand in the view.
             crate::logic::bookmarks::forget();
 
-            let mut stdout = std::io::stdout();
-            let _ = clear_message(&mut stdout, 3);
-            let _ = pop_message(&mut stdout, 3, text.as_str());
+            crate::logic::message::say(text.as_str());
         });
     }
 
@@ -2585,9 +2507,6 @@ impl App {
     /// a place of that media. A media that plays no media gives the media of
     /// the line that the user selected.
     pub fn show_the_bookmarks(&mut self) {
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-
         let state = self.player.state();
 
         let item_id = if state.status != crate::player::engine::PlaybackStatus::Stopped {
@@ -2596,8 +2515,7 @@ impl App {
             match self.selected_item_id() {
                 Some(id) => id,
                 None => {
-                    let _ =
-                        pop_message(&mut stdout, 3, "No media plays, and no media is selected.");
+                    crate::logic::message::say("No media plays, and no media is selected.");
                     return;
                 }
             }
@@ -2641,9 +2559,6 @@ impl App {
 
     /// Goes to the place of the bookmark that the user selected.
     pub fn go_to_the_bookmark(&mut self) {
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-
         let all = crate::logic::bookmarks::bookmarks();
 
         let Some(bookmark) = self
@@ -2661,9 +2576,7 @@ impl App {
         if state.status == crate::player::engine::PlaybackStatus::Stopped
             || state.item_id != bookmark.library_item_id
         {
-            let _ = pop_message(
-                &mut stdout,
-                3,
+            crate::logic::message::say(
                 "Play this media first, and the bookmark then gives its place.",
             );
             return;
@@ -2672,18 +2585,11 @@ impl App {
         self.player
             .send(crate::player::engine::PlayerCommand::SeekTo(bookmark.time));
 
-        let _ = pop_message(
-            &mut stdout,
-            3,
-            &format!("The playback goes to \"{}\".", bookmark.title),
-        );
+        crate::logic::message::say(&format!("The playback goes to \"{}\".", bookmark.title));
     }
 
     /// Removes the bookmark that the user selected. See T-24.
     pub fn remove_the_bookmark(&mut self) {
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-
         let all = crate::logic::bookmarks::bookmarks();
 
         let Some(bookmark) = self
@@ -2696,7 +2602,7 @@ impl App {
         };
 
         if self.is_offline {
-            let _ = pop_message(&mut stdout, 3, "The server does not answer.");
+            crate::logic::message::say("The server does not answer.");
             return;
         }
 
@@ -2705,7 +2611,7 @@ impl App {
         let name = bookmark.title.clone();
         let time = bookmark.time;
 
-        let _ = pop_message(&mut stdout, 3, "The program removes the bookmark…");
+        crate::logic::message::say("The program removes the bookmark…");
 
         tokio::spawn(async move {
             let text = match crate::api::me::bookmarks::remove_bookmark(&api, &item_id, time).await
@@ -2716,9 +2622,7 @@ impl App {
 
             crate::logic::bookmarks::forget();
 
-            let mut stdout = std::io::stdout();
-            let _ = clear_message(&mut stdout, 3);
-            let _ = pop_message(&mut stdout, 3, text.as_str());
+            crate::logic::message::say(text.as_str());
         });
     }
 
@@ -3342,9 +3246,7 @@ impl App {
             reader.the_place_went_to_the_server();
         }
 
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-        let _ = pop_message(&mut stdout, 3, "The place of the book goes to the server…");
+        crate::logic::message::say("The place of the book goes to the server…");
 
         tokio::spawn(async move {
             let body = serde_json::json!({
@@ -3360,9 +3262,7 @@ impl App {
                 Err(error) => format!("The server did not take the place: {}", error),
             };
 
-            let mut stdout = std::io::stdout();
-            let _ = clear_message(&mut stdout, 3);
-            let _ = pop_message(&mut stdout, 3, text.as_str());
+            crate::logic::message::say(text.as_str());
         });
     }
 
@@ -3741,25 +3641,18 @@ impl App {
     /// media when the media that plays comes to its end. The key `q` shows the
     /// queue, and `l` in that view starts a media now.
     pub fn add_to_the_queue(&mut self) {
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-
         let Some(entry) = self.selected_media() else {
-            let _ = pop_message(&mut stdout, 3, "This line holds no media.");
+            crate::logic::message::say("This line holds no media.");
             return;
         };
 
         let title = entry.title.clone();
         let place = crate::logic::queue::add(entry);
 
-        let _ = pop_message(
-            &mut stdout,
-            3,
-            &format!(
-                "\"{}\" is number {} of the queue. Press q to see the queue.",
-                title, place
-            ),
-        );
+        crate::logic::message::say(&format!(
+            "\"{}\" is number {} of the queue. Press q to see the queue.",
+            title, place
+        ));
     }
 
     /// Shows every key of the program. The key is `?`. See T-49.
@@ -3767,9 +3660,6 @@ impl App {
     /// The key a second time gives the view of the user back. Therefore the
     /// list is a look at the keys, and it takes no place of the work.
     pub fn show_every_key(&mut self) {
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-
         if matches!(self.view_state, AppView::Keys) {
             self.view_state = self.the_view_before_the_keys;
             return;
@@ -3782,9 +3672,6 @@ impl App {
 
     /// Shows the media that wait in the queue. The key is `q`.
     pub fn show_the_queue(&mut self) {
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-
         let count = crate::logic::queue::len();
 
         // The selection must stand inside the list. An empty queue has no
@@ -3802,9 +3689,6 @@ impl App {
     /// Takes the selected media out of the queue. The key is `X` inside the
     /// view of the queue.
     pub fn remove_from_the_queue(&mut self) {
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-
         let Some(index) = self.list_state_queue.selected() else {
             return;
         };
@@ -3816,11 +3700,7 @@ impl App {
         self.list_state_queue
             .select(crate::logic::queue::snapshot().selection_after_a_remove(index));
 
-        let _ = pop_message(
-            &mut stdout,
-            3,
-            &format!("\"{}\" is not in the queue now.", entry.title),
-        );
+        crate::logic::message::say(&format!("\"{}\" is not in the queue now.", entry.title));
     }
 
     /// Starts the selected media of the queue now. The key is `l` inside the
@@ -3830,9 +3710,6 @@ impl App {
     /// The media that plays now stops, in the same way as the key `l` in every
     /// other view.
     pub fn start_the_media_of_the_queue(&mut self) {
-        let mut stdout = stdout();
-        let _ = clear_message(&mut stdout, 3);
-
         let Some(index) = self.list_state_queue.selected() else {
             return;
         };

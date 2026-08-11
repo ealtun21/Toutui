@@ -1,7 +1,5 @@
 use crate::db::crud::*;
-use crate::utils::pop_up_message::*;
 use log::info;
-use std::io::stdout;
 
 /// Waits until the playback before this playback is complete.
 ///
@@ -13,7 +11,6 @@ use std::io::stdout;
 /// does not wait in that condition.
 pub fn wait_prev_session_finished(username: String) {
     let message = "Syncing your last listening session. Please wait...";
-    let mut stdout = stdout();
 
     let has_played_before = get_has_played_before(&username);
     info!(
@@ -31,12 +28,12 @@ pub fn wait_prev_session_finished(username: String) {
         while is_loop_break != "1" {
             std::thread::sleep(std::time::Duration::from_secs(1));
             is_loop_break = get_is_loop_break(&username);
-            let _ = pop_message(&mut stdout, 3, message);
+            crate::logic::message::say(message);
         }
     }
 
     let _ = update_is_loop_break("0", &username);
     let _ = update_has_played_before("0", &username);
 
-    let _ = clear_message(&mut stdout, 3);
+    crate::logic::message::forget();
 }

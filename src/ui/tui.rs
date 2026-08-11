@@ -17,6 +17,9 @@ use ratatui::{
 };
 use ratatui_image::StatefulImage;
 
+/// The number of rows of the footer of every view.
+const FOOTER_HEIGHT: u16 = 2;
+
 /// The number of pictures of the pages of a PDF that the render keeps. See T-54.
 const PICTURES_OF_THE_READER: usize = 8;
 
@@ -52,9 +55,56 @@ impl Widget for &mut App {
             AppView::SettingsUpdateUninstall => {}
         }
 
+        // The message of the user stands inside the frame, above the footer. A
+        // message outside the frame goes away when a view draws its row, and it
+        // stays when no view draws it. See T-59 and T-42.
+        self.render_the_message(area, buf);
+
         // The bar goes above the other widgets. Therefore the user sees a
         // download in every view.
         App::render_downloads(area, buf);
+    }
+}
+
+/// The message for the user. See T-59.
+impl App {
+    /// Draws the newest message of the program, if one is fresh.
+    ///
+    /// The message takes one row above the footer. It stands after the view and
+    /// before the bar of the downloads: a download is the work that the user
+    /// waits for, therefore that bar keeps its rows.
+    fn render_the_message(&self, area: Rect, buf: &mut Buffer) {
+        let Some(text) = crate::logic::message::for_the_screen() else {
+            return;
+        };
+
+        // The row of the message stands above the two rows of the footer. A
+        // screen that holds no such row draws no message.
+        if area.height < FOOTER_HEIGHT + 1 {
+            return;
+        }
+
+        let row = Rect {
+            x: area.x,
+            y: area.y + area.height - FOOTER_HEIGHT - 1,
+            width: area.width,
+            height: 1,
+        };
+
+        let background = self.config.colors.header_background_color.clone();
+        let (bg_r, bg_g, bg_b) = rgb_parts(&background);
+        let letters = self.config.colors.line_header_color.clone();
+        let (fg_r, fg_g, fg_b) = rgb_parts(&letters);
+
+        let style = Style::default()
+            .bg(Color::Rgb(bg_r, bg_g, bg_b))
+            .fg(Color::Rgb(fg_r, fg_g, fg_b))
+            .add_modifier(Modifier::BOLD);
+
+        Paragraph::new(crate::logic::message::one_line(&text, area.width))
+            .centered()
+            .style(style)
+            .render(row, buf);
     }
 }
 

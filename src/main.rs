@@ -8,7 +8,6 @@ use crate::ui::player_tui::*;
 use crate::utils::clap::*;
 use crate::utils::encrypt_token::decrypt_token;
 use crate::utils::logs::*;
-use crate::utils::pop_up_message::*;
 use app::App;
 use color_eyre::Result;
 use crossterm::event::{self, KeyCode};
@@ -18,7 +17,6 @@ use ratatui::{
     style::{Color, Style},
     widgets::Block,
 };
-use std::io::stdout;
 use std::time::Duration;
 
 #[tokio::main]
@@ -320,10 +318,15 @@ async fn main() -> Result<()> {
                             // no list of the screen is old after it. See T-47.
                             logic::live::the_lists_are_new_again();
 
-                            // pop up message
-                            let mut stdout = stdout();
-                            let _ = clear_message(&mut stdout, 3); // clear a message, if any, before print the message bellow
-                            let _ = pop_message(&mut stdout, 3, "Refreshing app...");
+                            // The refresh asks the server many times, and the
+                            // loop draws no frame while it waits. Therefore the
+                            // program says the message and it draws **one** frame
+                            // before the work. The message stands inside that
+                            // frame, therefore no byte of it stays on the screen.
+                            // See T-59 and T-42.
+                            logic::message::say("The program asks the server again…");
+                            terminal.draw(|frame| frame.render_widget(&mut app, frame.area()))?;
+
                             // Reinitialize app to refresh
                             app = App::new(std::sync::Arc::clone(&api)).await?;
 
@@ -331,14 +334,11 @@ async fn main() -> Result<()> {
                                 app.view_state = app::AppView::Library;
                             }
 
-                            // clear message above
-                            let _ = clear_message(&mut stdout, 3);
+                            logic::message::forget();
 
-                            // The messages above write to the terminal outside
-                            // the buffer of ratatui. ratatui draws the cells
-                            // that changed only, therefore those bytes stay on
-                            // the screen and the view looks broken. A clear
-                            // makes the next draw write every cell. See T-42.
+                            // A refresh makes a new application, therefore every
+                            // view can change. A clear makes the next draw write
+                            // every cell. See T-42.
                             terminal.clear()?;
                         }
 

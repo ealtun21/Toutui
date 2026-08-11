@@ -23,9 +23,7 @@ use crate::player::engine::track::{Chapter, Track, TrackList};
 use crate::player::engine::{
     next_playback_id, PlaybackRequest, PlaybackStatus, PlayerCommand, PlayerHandle,
 };
-use crate::utils::pop_up_message::*;
 use log::{error, info, warn};
-use std::io::stdout;
 use std::time::Duration;
 
 /// The number of seconds between two sync requests to the server.
@@ -229,12 +227,7 @@ pub async fn play(
             queue::len()
         );
 
-        let mut stdout = stdout();
-        let _ = pop_message(
-            &mut stdout,
-            3,
-            &format!("The queue starts \"{}\".", entry.title),
-        );
+        crate::logic::message::say(&format!("The queue starts \"{}\".", entry.title));
 
         target = entry.target;
     }
@@ -256,8 +249,7 @@ async fn play_media(
 
     wait_prev_session_finished(username.clone());
 
-    let mut stdout = stdout();
-    let _ = pop_message(&mut stdout, 3, "Loading the media...");
+    crate::logic::message::say("Loading the media...");
 
     // If the application stopped without a correct exit, close the last
     // session now.
@@ -280,11 +272,10 @@ async fn play_media(
                 "[play] the server does not answer: {}. The offline mode starts.",
                 error
             );
-            return play_offline(player, &target, username, server_key, &mut stdout).await;
+            return play_offline(player, &target, username, server_key).await;
         }
         Err(error) => {
             error!("[play] the server did not start the session: {}", error);
-            let _ = clear_message(&mut stdout, 3);
             return Outcome::Fault;
         }
     };
@@ -297,7 +288,6 @@ async fn play_media(
         Ok(value) => value,
         Err(error) => {
             error!("[play] the server did not give the item: {}", error);
-            let _ = clear_message(&mut stdout, 3);
             return Outcome::Fault;
         }
     };
@@ -311,7 +301,6 @@ async fn play_media(
         Some(tracks) => tracks,
         None => {
             error!("[play] the item has no audio file");
-            let _ = clear_message(&mut stdout, 3);
             return Outcome::Fault;
         }
     };
@@ -387,8 +376,6 @@ async fn play_media(
 
     player.send(PlayerCommand::Start(Box::new(request)));
 
-    let _ = clear_message(&mut stdout, 3);
-
     // The engine opens the file of the playback and the file after it. A file of
     // a codec that no decoder of the program reads gives a fault at once, and
     // the program then asks the server for a stream of the whole media. See
@@ -409,7 +396,6 @@ async fn play_media(
             start_position,
             speed,
             &info_item,
-            &mut stdout,
         )
         .await;
     }
@@ -484,16 +470,10 @@ async fn play_the_stream_of_the_server(
     start_position: f64,
     speed: f32,
     info_item: &[String],
-    stdout: &mut std::io::Stdout,
 ) -> Outcome {
     let item_id = target.item_id().to_string();
 
-    let _ = clear_message(stdout, 3);
-    let _ = pop_message(
-        stdout,
-        3,
-        "One file needs the server. The stream starts, please wait…",
-    );
+    crate::logic::message::say("One file needs the server. The stream starts, please wait…");
 
     // The session of the file stays open, and the server would then hold two
     // sessions of one media. The program closes it before the new one.
@@ -510,10 +490,7 @@ async fn play_the_stream_of_the_server(
         Ok(stream) => stream,
         Err(error) => {
             error!("[play] the server gave no stream: {}", error);
-            let _ = clear_message(stdout, 3);
-            let _ = pop_message(
-                stdout,
-                3,
+            crate::logic::message::say(
                 "The server cannot make a stream of this media. See the log.",
             );
             return Outcome::Fault;
@@ -595,18 +572,13 @@ async fn play_the_stream_of_the_server(
             name
         );
 
-        let _ = clear_message(stdout, 3);
-        let _ = pop_message(
-            stdout,
-            3,
+        crate::logic::message::say(
             "The stream of the server holds a form that the program cannot read. \
              Read the log, and see T-53.",
         );
 
         return Outcome::Fault;
     }
-
-    let _ = clear_message(stdout, 3);
 
     follow_playback(
         api,
@@ -647,7 +619,6 @@ async fn play_offline(
     target: &PlaybackTarget,
     username: String,
     server: String,
-    stdout: &mut std::io::Stdout,
 ) -> Outcome {
     let selected = target.item_id().to_string();
 
@@ -656,9 +627,7 @@ async fn play_offline(
 
     let Some(row) = get_download_row(&key, &username) else {
         error!("[play] the disk has no copy of {}", key);
-        let _ = pop_message(
-            stdout,
-            3,
+        crate::logic::message::say(
             "The server does not answer, and the disk has no copy of this media.",
         );
         return Outcome::Fault;
@@ -666,9 +635,7 @@ async fn play_offline(
 
     let Some(tracks) = tracks_from_downloads(&key, &username) else {
         error!("[play] the disk has no audio file of {}", key);
-        let _ = pop_message(
-            stdout,
-            3,
+        crate::logic::message::say(
             "The server does not answer, and the disk has no audio file of this media.",
         );
         return Outcome::Fault;
@@ -690,11 +657,7 @@ async fn play_offline(
 
     if sources.len() != track_list.len() {
         error!("[play] the disk does not hold every file of {}", key);
-        let _ = pop_message(
-            stdout,
-            3,
-            "The disk does not hold every file of this media.",
-        );
+        crate::logic::message::say("The disk does not hold every file of this media.");
         return Outcome::Fault;
     }
 
@@ -746,12 +709,7 @@ async fn play_offline(
 
     player.send(PlayerCommand::Start(Box::new(request)));
 
-    let _ = clear_message(stdout, 3);
-    let _ = pop_message(
-        stdout,
-        3,
-        &format!("Offline: \"{}\" plays from the disk.", row.title),
-    );
+    crate::logic::message::say(&format!("Offline: \"{}\" plays from the disk.", row.title));
 
     follow_playback_offline(
         player,

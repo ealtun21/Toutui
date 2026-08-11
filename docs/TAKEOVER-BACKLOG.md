@@ -2098,11 +2098,46 @@ work and the screen.**
    that slot. The login draws no frame of ratatui, therefore it keeps
    `pop_message`.
 
-**Why this session did not make that change.** 93 call sites is a change of one
-kind, and a half of it is worse than none: a program with two ways to show a
-message shows some messages two times and some messages nowhere. The next session
-must do the whole list in one commit, and the sweep of the views of the traps holds
-the measurement that finds a message that no user reads.
+**The change of the 93 call sites, in one commit.** `src/logic/message.rs` holds
+the slot, and the render of `App` draws the message inside the frame:
+
+| The part | What it does |
+|---|---|
+| `say(text)` | The work writes the newest message. A key and a task both call it, and neither needs `&mut App` |
+| `for_the_screen()` | The render takes the message, and it gives nothing for a message that is older than `LIFE` of 6 seconds |
+| `one_line(text, width)` | Cuts a message that is wider than the screen, and it names the cut with three points. The row of the message holds one row |
+| `forget()` | A work that ended takes its message away |
+| `render_the_message` | Draws the row above the footer, with the colours of the header. It stands after the view and **before the bar of the downloads**: a download is the work that the user waits for, therefore that bar keeps its rows |
+
+Every call of `pop_message` and of `clear_message` went away, and the local values
+of `stdout` with them: `src/app.rs` (53 and 38), `src/db/crud.rs` (22),
+`src/logic/playback/mod.rs` (9), `src/logic/download/mod.rs` (6),
+`src/logic/sync_session/wait_prev_session_finished.rs` (1), and `src/main.rs` (1).
+`play_media` and `play_the_stream_of_the_server` take no `stdout` any more.
+
+**The two exceptions, and the reason of each.**
+
+1. **The screen of the login** keeps `pop_message`. That screen holds its own loop
+   and it draws no frame of the application. The module of `pop_message` says so
+   now, therefore no later work brings the pattern back.
+2. **The key `R`** says its message and then draws **one** frame before the work.
+   The loop draws no frame while `App::new` asks the server, therefore a message of
+   the slot alone would come after the work and not during it.
+
+**The measurements of 2026-08-11, in tmux at 160 by 45.**
+
+| The key | The row above the footer |
+|---|---|
+| `n` | `"One File With No Decoder" is number 3 of the queue. Press q to see the queue.` |
+| The same, 7 seconds later | Empty. The message went away with no work of the user |
+| `F` with no media | `Sync: nothing plays now.` |
+| `M` | `The media is not finished now, and its position went back to the start. Press R to see the change.` |
+| `F` while a media plays | `Sync: the server has the position 23m.`, **and the panel of the player above it** |
+
+**A trap of the tests.** The slot belongs to the process. The first form of this
+work held two test functions that wrote it, and the two ran at the same time: one
+run of `cargo test` of three gave a fault. The parts of such a test stay in one
+function, as the tests of `live`, of `stats`, and of `queue` do.
 
 ## The upgrade of the dependencies, 2026-08-10
 

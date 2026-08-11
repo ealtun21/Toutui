@@ -1,10 +1,8 @@
 use crate::db::database_struct::ListeningSession;
 use crate::db::database_struct::Others;
 use crate::db::database_struct::User;
-use crate::utils::pop_up_message::*;
 use log::{error, info};
 use rusqlite::{params, Connection, Result};
-use std::io::stdout;
 
 // Update is_show_key_bindings
 pub fn update_is_show_key_bindings(value: &str, username: &str) -> Result<()> {
@@ -16,8 +14,7 @@ pub fn update_is_show_key_bindings(value: &str, username: &str) -> Result<()> {
             params![value, username],
         )?;
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[update_is_show_key_bindings] {}", err_message);
     }
 
@@ -107,8 +104,7 @@ pub fn update_speed_rate(username: &str, is_speed_rate_up: bool) -> Result<()> {
             )?;
         }
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[update_speed_rate] {}", err_message);
     }
 
@@ -163,8 +159,7 @@ pub fn get_listening_session() -> Result<Option<ListeningSession>> {
             return Ok(Some(session));
         }
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[get_listening_session] {}", err_message);
     }
 
@@ -197,8 +192,7 @@ pub fn insert_listening_session(
             params![id_session, id_item, current_time, duration, id_pod, elapsed_time, title, author, is_playback, chapter],
         )?;
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[insert_listening_session] {}", err_message);
     }
 
@@ -217,8 +211,7 @@ pub fn delete_listening_session() -> Result<()> {
     if let Ok(conn) = crate::db::migrate::open_conn() {
         conn.execute("DELETE FROM listening_session", params![])?;
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[delete_listening_session] {}", err_message);
     }
 
@@ -235,8 +228,7 @@ pub fn update_chapter(value: &str, id_session: &str) -> Result<()> {
             params![value, id_session],
         )?;
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[update_chapter] {}", err_message);
     }
 
@@ -252,8 +244,7 @@ pub fn update_is_playback(value: &str, id_session: &str) -> Result<()> {
             params![value, id_session],
         )?;
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[update_is_playback] {}", err_message);
     }
 
@@ -269,8 +260,7 @@ pub fn update_current_time(value: u32, id_session: &str) -> Result<()> {
             params![value, id_session],
         )?;
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[update_current_time] {}", err_message);
     }
 
@@ -287,8 +277,7 @@ pub fn update_elapsed_time(value: u32, id_session: &str) -> Result<()> {
             params![value, id_session],
         )?;
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[update_elapsed_time] {}", err_message);
     }
 
@@ -305,8 +294,7 @@ pub fn update_is_finished(value: &str, id_session: &str) -> Result<()> {
             params![value, id_session],
         )?;
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[update_is_finished] {}", err_message);
     }
 
@@ -325,15 +313,13 @@ pub fn delete_user(username: &str) -> Result<()> {
             conn.execute("DELETE FROM users WHERE username = ?1", params![username])?;
 
         if rows_deleted > 0 {
-            let mut stdout = stdout();
-            let _ = pop_message(&mut stdout, 3, message.as_str());
+            crate::logic::message::say(message.as_str());
             info!("[delete_user] User deleted.");
         } else {
             //println!("No user found with this username '{}'.", username);
         }
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[delete user] {}", err_message);
     }
 
@@ -350,8 +336,7 @@ pub fn update_is_loop_break(value: &str, username: &str) -> Result<()> {
             params![value, username],
         )?;
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[update_is_loop_break] {}", err_message);
     }
 
@@ -386,8 +371,7 @@ pub fn update_has_played_before(value: &str, username: &str) -> Result<()> {
             params![value, username],
         )?;
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[update_has_played_before] {}", err_message);
     }
 
@@ -420,12 +404,10 @@ pub fn update_id_selected_lib(id_selected_lib: &str, username: &str) -> Result<(
             "UPDATE users SET id_selected_lib = ?1 WHERE username = ?2",
             params![id_selected_lib, username],
         )?;
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, message);
+        crate::logic::message::say(message);
         info!("[update_id_selected_lib] The library has been updated");
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[update_id_selected_lib] {}", err_message);
     }
 
@@ -493,8 +475,7 @@ pub fn get_others() -> Result<Option<Others>> {
             return Ok(Some(others));
         }
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[get_others] {}", err_message);
     }
 
@@ -514,8 +495,7 @@ pub fn update_login_err(value: &str) -> Result<()> {
             params![value],
         )?;
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[update_login_err] {}", err_message);
     }
 
@@ -607,8 +587,7 @@ pub fn insert_download(
             params![id_item, username, title, author, file_path, duration, item_id, server],
         )?;
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[insert_download] {}", err_message);
     }
 
@@ -645,8 +624,7 @@ pub fn update_download_current_time(id_item: &str, username: &str, value: u32) -
             params![value, id_item, username],
         )?;
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[update_download_current_time] {}", err_message);
     }
 
@@ -672,8 +650,7 @@ pub fn insert_download_file(
             params![id_item, username, idx, ino, file_path, size as i64, duration],
         )?;
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[insert_download_file] {}", err_message);
     }
 
@@ -723,8 +700,7 @@ pub fn delete_download(id_item: &str, username: &str) -> Result<()> {
             params![id_item, username],
         )?;
     } else {
-        let mut stdout = stdout();
-        let _ = pop_message(&mut stdout, 3, err_message);
+        crate::logic::message::say(err_message);
         error!("[delete_download] {}", err_message);
     }
 
