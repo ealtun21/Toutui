@@ -1,6 +1,6 @@
 # The handover of 2026-08-11 (the sixth session of that day)
 
-**The newest release is v0.7.20.** The items T-52 to T-59 came after the first
+**The newest release is v0.7.21.** The items T-52 to T-59 came after the first
 form of this document. Read them in `docs/TAKEOVER-BACKLOG.md`.
 
 This document is for the next session. It says what is done, what is open, and
@@ -9,13 +9,13 @@ each item, and `docs/T-24-coverage.md` for the comparison with the server.
 
 ## The state
 
-`main` is clean and pushed. The newest release is **v0.7.20**. Every gate
+`main` is clean and pushed. The newest release is **v0.7.21**. Every gate
 passes:
 
 ```
 cargo clippy --all-targets -- -D warnings
 cargo fmt --check
-ALSA_CONFIG_PATH=<a real null asound file> cargo test    # 795 tests pass, 17 carry #[ignore], 36 binaries
+ALSA_CONFIG_PATH=<a real null asound file> cargo test    # 798 tests pass, 17 carry #[ignore], 36 binaries
 cargo tree -i openssl-sys                                # finds nothing
 ```
 
@@ -43,7 +43,7 @@ in v0.6.7. Do not try to publish v0.6.6.
 | T-56 | **The queue of the media stands on the disk** | `n`, `q` |
 | T-57 | A picture of a PDF of 16 bits gives a picture | — |
 | T-58 | The reader says "page" for a PDF, and `?` works inside it | `?` |
-| T-59 | The view of the chapters says why it holds no line | `C` |
+| T-59 | The view of the chapters says why it holds no line, and **every message of the program stands inside the frame**: 93 calls of `pop_message` went away | `C` |
 | — | T-7, T-8, and T-18 became complete: the pages of 500, the speed that changes during a playback, and a WMA file that plays through the stream | — |
 
 ### T-47, the live messages
@@ -117,12 +117,7 @@ that it cannot read, and it gives no silence.
 2. ~~**A PDF of the text.**~~ **Done: T-54.** The reader shows a PDF book and its
    pictures. `lopdf` 0.44 gives the text and the pictures of each page, and one
    page is one chapter. No crate of pure Rust draws a **page** of a PDF.
-3. **The 93 messages of `pop_message` (T-59).** Every one of them can go away
-   before the user reads it, because it stands outside the buffer of ratatui. The
-   backlog holds the design of the slot that corrects them all. **That change must
-   come in one commit**: a program with two ways to show a message shows some
-   messages two times and some messages nowhere.
-4. **The narrators and the tags.** `GET /api/libraries/:id/narrators` and
+3. **The narrators and the tags.** `GET /api/libraries/:id/narrators` and
    `GET /api/tags`. The filter of the key `f` shows the books of one narrator
    and of one tag already, therefore a view of its own gives little.
 4. ~~**The queue on the disk.**~~ **Done: T-56.** The table `queue` of the
@@ -185,6 +180,17 @@ new.
 9. **A sweep of every view finds what a test does not.** One run in tmux pressed
    the key of each view and counted the lines of text of each screen. Two views of
    fifteen answered with nothing, and one of them was a real fault.
+
+10. **A `429` of the login looks like a fault of the token.** The sandbox permits
+    40 requests of `POST /login` in 600 seconds. A run of every test of the
+    sandbox beside some requests of `curl` reaches that limit, and the test then
+    says "the answer must hold a token". Read `podman logs abs-test` for the line
+    of the rate limiter. `docs/TEST-SERVER.md` holds the numbers.
+11. **A test that changes data must write a value that differs.** The test of the
+    live messages wrote the same subtitle at every run. The server saw no change at
+    the second run, therefore it sent no message and the test waited 20 seconds for
+    nothing. That test reads the value of the server now, and it writes the other
+    one.
 
 ## The shapes that this session made, and that the next work should follow
 
@@ -252,16 +258,15 @@ new.
 >    writes such a file, therefore the measurement needs the book of the user.
 > 2. **The license of bookokrat.** That project is AGPL-3.0-or-later and Toutui
 >    is GPL-3.0-or-later. **No line of it comes in without the maintainer.**
-> 3. **The 93 calls of `pop_message` (T-59).** A message outside the buffer of
->    ratatui goes away when a view draws its row. The backlog holds the design of
->    the slot, and that change must come in one commit.
-> 4. The narrators and the tags, if they are worth a view of their own.
+> 3. The narrators and the tags, if they are worth a view of their own.
 >
 > Rules that bind every change: run all three gates yourself before each
 > commit — `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,
 > and `cargo test` with `ALSA_CONFIG_PATH` pointing at a real null asound file
 > (`/dev/null` hangs the real binary). Baseline: 768 tests, 34 binaries, tree
-> clean. Baseline of the tests: 795 pass, 17 carry `#[ignore]`, 36 binaries. All
+> clean. Baseline of the tests: 798 pass, 17 carry `#[ignore]`, 36 binaries. Run
+> every cargo command under `nice -n 19 ionice -c 3`: a full build uses every core,
+> and the user tests the program on the same machine. All
 > prose and user-facing strings in ASD-STE100 simplified technical
 > English. No crate needing a system library; `cargo tree -i openssl-sys` must
 > find nothing. No test may need the network — sandbox tests carry `#[ignore]`

@@ -379,3 +379,25 @@ curl -X POST "http://localhost:13399/api/libraries/$BOOK_LIB_ID/scan?force=1" \
 
 The book then holds three pages: one page of text, and two pages of a picture of
 JPEG. The key `e` opens it.
+
+## The rate limit of the login
+
+The server permits **40 requests of `POST /login` in 600 seconds** for one address:
+the answer of the header is `RateLimit-Policy: 40;w=600`.
+
+Every test of the sandbox logs in one time. The whole list of the tests of the
+sandbox is 17 files today, and a run of `cargo test -- --ignored` beside some
+requests of `curl` therefore reaches that limit. The server then answers `429`, and
+a test that reads `answer["user"]["token"]` gives:
+
+```
+panicked at tests/force_sync_against_the_sandbox.rs:64:10:
+the answer must hold a token
+```
+
+**That message names the token, and the cause is the limit.** Read
+`podman logs abs-test`: it holds one line "[RateLimiter] Rate limit exceeded -
+Endpoint: POST /login" for each such request.
+
+The limit gives its own time back: the header `Retry-After` says how many seconds
+are left. Wait for that time, and run the tests again.

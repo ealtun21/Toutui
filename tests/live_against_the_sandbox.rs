@@ -150,9 +150,33 @@ async fn a_change_of_a_different_client_comes_to_the_screen() {
          program itself sends a position every ten seconds"
     );
 
+    // **The value must differ from the value of the server.** A `PATCH` of the
+    // same value changes nothing, therefore the server sends no message and this
+    // test waited 20 seconds for a message that never comes. The first form of
+    // this test always wrote the same subtitle, and it failed at its second run.
+    let item_now: serde_json::Value = api
+        .get_json(&format!("/api/items/{}", item))
+        .await
+        .expect("the server must give the item");
+
+    let subtitle_of_the_server = item_now["media"]["metadata"]["subtitle"]
+        .as_str()
+        .unwrap_or("");
+
+    let new_subtitle = if subtitle_of_the_server == "A live message of T-47" {
+        "A live message of T-47, the second form"
+    } else {
+        "A live message of T-47"
+    };
+
+    println!(
+        "the subtitle goes from {:?} to {:?}",
+        subtitle_of_the_server, new_subtitle
+    );
+
     api.patch_json(
         &format!("/api/items/{}/media", item),
-        &serde_json::json!({ "metadata": { "subtitle": "A live message of T-47" } }),
+        &serde_json::json!({ "metadata": { "subtitle": new_subtitle } }),
     )
     .await
     .expect("the server must take the metadata");
