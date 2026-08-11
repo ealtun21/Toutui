@@ -404,6 +404,42 @@ mod tests {
         );
     }
 
+    /// **One function holds the rule of "1 item".** A title that writes those
+    /// words itself holds a second copy of the rule, and the copy of the view
+    /// of the search said "1 items" for two years of releases. See T-95.
+    ///
+    /// The test reads the files that make a title of a list, and it finds every
+    /// text that counts its own items. A new file of that kind joins this list.
+    #[test]
+    fn no_title_of_a_view_counts_its_own_items() {
+        let sources: &[(&str, &str)] = &[
+            ("src/ui/tui.rs", include_str!("tui.rs")),
+            (
+                "src/logic/search/mod.rs",
+                include_str!("../logic/search/mod.rs"),
+            ),
+            ("src/logic/authors.rs", include_str!("../logic/authors.rs")),
+            (
+                "src/api/utils/collect_lists.rs",
+                include_str!("../api/utils/collect_lists.rs"),
+            ),
+        ];
+
+        for (name, text) in sources {
+            for line in text.lines() {
+                // The tests of a file hold the words of the answer, and the
+                // answer of `items` is that text. A line of a test says
+                // "1 item" or "6 items" with a number, and never with a value.
+                assert!(
+                    !line.contains("{} items"),
+                    "{} counts its own items: {}. Use ui::keys::items.",
+                    name,
+                    line.trim()
+                );
+            }
+        }
+    }
+
     /// A text of a view names a key as the key stands, and never inside
     /// quotation marks. See T-91.
     ///

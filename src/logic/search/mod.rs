@@ -37,11 +37,15 @@ pub fn the_title_of_the_search(
     };
 
     if the_server_answered {
-        format!("Search result [{} items{}]", count, of_the_names)
+        format!(
+            "Search result [{}{}]",
+            crate::ui::keys::items(count),
+            of_the_names
+        )
     } else {
         format!(
-            "Search result [{} items of the titles of this program]",
-            count
+            "Search result [{} of the titles of this program]",
+            crate::ui::keys::items(count)
         )
     }
 }
@@ -79,7 +83,7 @@ mod tests {
 
         assert_eq!(
             title,
-            "Search result [1 items, with the books of Lewis Carroll]"
+            "Search result [1 item, with the books of Lewis Carroll]"
         );
 
         let two = the_title_of_the_search(
@@ -91,9 +95,23 @@ mod tests {
         assert!(two.contains("A Test Narrator, Test Author"), "{}", two);
 
         // No name, and the answer of the server holds books.
+        //
+        // **One line is "1 item", and not "1 items".** The sweep of 80 columns
+        // of 2026-08-11 read "Search result [1 items]" for the book of the
+        // measurement: this title held its own words, and it did not use
+        // `ui::keys::items`. The old form of this test held the fault too.
+        // See T-95 and T-85.
         assert_eq!(
             the_title_of_the_search("alice", true, &[], 1),
-            "Search result [1 items]"
+            "Search result [1 item]"
+        );
+        assert_eq!(
+            the_title_of_the_search("alice", true, &[], 2),
+            "Search result [2 items]"
+        );
+        assert_eq!(
+            the_title_of_the_search("alice", false, &[], 1),
+            "Search result [1 item of the titles of this program]"
         );
 
         // The titles of the program, while the server answers.

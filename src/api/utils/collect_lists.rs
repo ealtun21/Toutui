@@ -53,14 +53,14 @@ pub struct ListView {
 impl ListView {
     /// Gives the line of this list in the list of the lists.
     pub fn line(&self) -> String {
-        let count = self.entries.len();
-        let items = if count == 1 {
-            "1 item"
-        } else {
-            &format!("{} items", count)
-        };
-
-        format!("[{}] {} [{}]", self.kind.name(), self.name, items)
+        // `ui::keys::items` holds the rule of "1 item" for the whole program.
+        // This function held a second copy of it. See T-85 and T-95.
+        format!(
+            "[{}] {} [{}]",
+            self.kind.name(),
+            self.name,
+            crate::ui::keys::items(self.entries.len())
+        )
     }
 }
 

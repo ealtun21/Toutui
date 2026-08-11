@@ -3656,6 +3656,39 @@ line then fit in 80 columns. A test of a limit must hold data that goes past the
 limit: the name has 84 letters now, and a build with the wrap removed fails with
 "the row of the item lost its end in 80 columns".
 
+### T-95: "1 items", a second time, in the view of the search
+
+The sweep of the reader of 80 columns began with a search for "alice", and the
+title of the answer said:
+
+```
+Search result [1 items]
+```
+
+**T-85 made `ui::keys::items` for this rule**, and it corrected every title that
+it found. The title of the search held its own words (`format!("Search result
+[{} items{}]", …)`), therefore no correction of T-85 reached it. **The test of
+that title held the fault too**: it asked for "Search result [1 items]" and it
+passed.
+
+`ListView::line` held a second copy of the rule as well — an `if count == 1` of
+its own. It gives the same answer, and a rule in two places is a rule that goes
+apart.
+
+Both call `ui::keys::items` now, and **a test finds the next copy**:
+`no_title_of_a_view_counts_its_own_items` reads the four files that make a title
+of a list with `include_str!`, and it fails for a line that holds `{} items`. A
+build with the old title gives:
+
+```
+src/logic/search/mod.rs counts its own items: "Search result [{} items{}]",. Use ui::keys::items.
+```
+
+**The lesson of this item is about the test, and not about the words.** A test
+that holds the answer of the code, and not the rule of the user, keeps a fault
+for as long as the code lives. The rule is "one line is 1 item", and the test of
+T-85 wrote it for the titles that T-85 read.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
