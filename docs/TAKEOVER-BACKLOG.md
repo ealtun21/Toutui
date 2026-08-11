@@ -3622,6 +3622,40 @@ empty name gave "A collection and a playlist need a name", and the two presses o
 `X` took the collection away. `curl` of the server read the three lists of
 `docs/TEST-SERVER.md` after the measurement, and nothing else.
 
+### T-94: the row of the item lost its end in a terminal of 80 columns
+
+**This is the fault of T-90 a second time, in a different row of the screen.**
+The sweep of 80 columns read this in the Home view of a library of podcasts:
+
+```
+[Letters of Two Brides by Honoré de Balzac (1799 - 1850)] - Author: LibriVox - E
+```
+
+The line stops at "- E", and **the two rows below it are empty**. The words
+"Episode: 57 - Duration: 12m" reached no user.
+
+The row of the item holds **three** rows (`Constraint::Length(3)`), and the
+`Paragraph` of that row wrote on one of them: a paragraph with no `Wrap` writes
+one row for each line of its text, and it cuts every letter after the width.
+**Twenty-one paragraphs of `src/ui/tui.rs` held that fault**, one for each view
+that shows the author, the year, the length, or the number of an episode. The
+description below them wrapped already.
+
+The measurement after the correction, in the same terminal:
+
+```
+[Letters of Two Brides by Honoré de Balzac (1799 - 1850)] - Author: LibriVox -
+Episode: 57 - Duration: 12m
+```
+
+`the_screen_survives_a_short_list` holds the rule now: it gives the author a name
+of 84 letters, it draws the Library view in 80 columns, and it asks for the year
+that stands after that name. **The first form of that test passed with the fault
+in the program**, because the name of the author held 53 letters and the whole
+line then fit in 80 columns. A test of a limit must hold data that goes past the
+limit: the name has 84 letters now, and a build with the wrap removed fails with
+"the row of the item lost its end in 80 columns".
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

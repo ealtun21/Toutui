@@ -229,6 +229,46 @@ async fn every_view_draws_when_the_lists_are_shorter_than_the_selection() {
         }
     }
 
+    // **The row of the item of a view holds three rows, and it wrote on one.**
+    // The sweep of 80 columns of 2026-08-11 read
+    // "… - Author: LibriVox - E" in the Home view of a library of podcasts, and
+    // the two rows below that line were empty: the words "Episode: 57 -
+    // Duration: 12m" reached no user. The text wraps now. See T-94.
+    //
+    // The measurement gives the author a name that no terminal of 80 columns
+    // holds in one row, and it then asks for the end of the line.
+    app.view_state = AppView::Library;
+    app.is_podcast = false;
+    app.list_state_library.select(Some(0));
+    app.titles_library = three("A Book");
+    app.ids_library = three("id");
+    app.library_rows = toutui::logic::library_view::group_library(&app.ids_library, &app.series);
+    app.auth_names_library = vec![
+        "A Name Of An Author That No Terminal Of Eighty Columns Holds In One Row Of Its Screen"
+            .to_string(),
+    ];
+    app.published_year_library = vec!["1899".to_string()];
+
+    let backend = TestBackend::new(80, 24);
+    let mut terminal = Terminal::new(backend).expect("a terminal");
+
+    terminal
+        .draw(|frame| frame.render_widget(&mut app, frame.area()))
+        .expect("the Library view must draw");
+
+    let text: String = terminal
+        .backend()
+        .buffer()
+        .content()
+        .iter()
+        .map(|cell| cell.symbol())
+        .collect();
+
+    assert!(
+        text.contains("1899"),
+        "the row of the item lost its end in 80 columns"
+    );
+
     // A list with no line at all must also draw.
     app.titles_library = Vec::new();
     app.ids_library = Vec::new();

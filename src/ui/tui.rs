@@ -1366,6 +1366,7 @@ impl App {
                     .cloned()
                     .unwrap_or_default(),
             ))
+            .wrap(Wrap { trim: true })
             .left_aligned()
             .render(item_area1, buf);
 
@@ -1434,6 +1435,7 @@ impl App {
                     .unwrap_or_default(),
                 if is_offline { " - [Downloaded]" } else { "" },
             ))
+            .wrap(Wrap { trim: true })
             .left_aligned()
             .render(item_area1, buf);
 
@@ -1525,6 +1527,7 @@ impl App {
                     .cloned()
                     .unwrap_or_default(),
             ))
+            .wrap(Wrap { trim: true })
             .left_aligned()
             .render(item_area1, buf);
 
@@ -1604,6 +1607,7 @@ impl App {
                     .unwrap_or_default(),
                 if is_offline { " - [Downloaded]" } else { "" },
             ))
+            .wrap(Wrap { trim: true })
             .left_aligned()
             .render(item_area1, buf);
 
@@ -2121,6 +2125,7 @@ impl App {
 
         Paragraph::new(connection)
             .not_bold()
+            .wrap(Wrap { trim: true })
             .left_aligned()
             .render(area, buf);
 
@@ -2238,6 +2243,7 @@ impl App {
                     .cloned()
                     .unwrap_or_default(),
             ))
+            .wrap(Wrap { trim: true })
             .left_aligned()
             .render(area, buf);
             return;
@@ -2259,6 +2265,7 @@ impl App {
                     at(&self.durations_pod_cnt_list, selected),
                     if is_offline { " - [Downloaded]" } else { "" },
                 ))
+                .wrap(Wrap { trim: true })
                 .left_aligned()
                 .render(area, buf);
             } else {
@@ -2280,6 +2287,7 @@ impl App {
                     ), // time left
                     at_part(&self.book_progress_cnt_list, selected, 1), // is finished
                 ))
+                .wrap(Wrap { trim: true })
                 .left_aligned()
                 .render(area, buf);
             }
@@ -2329,6 +2337,7 @@ impl App {
                     .cloned()
                     .unwrap_or_default(),
             ))
+            .wrap(Wrap { trim: true })
             .left_aligned()
             .render(area, buf);
             return;
@@ -2340,6 +2349,7 @@ impl App {
                     "Author: {}",
                     at(&self.auth_names_library_pod, selected),
                 ))
+                .wrap(Wrap { trim: true })
                 .left_aligned()
                 .render(area, buf);
             } else {
@@ -2356,6 +2366,7 @@ impl App {
                     //format!("{}",convert_seconds_for_prg(self.duration_library[selected], self.book_progress_library_cur_time[selected][0])), // time left
                     //self.book_progress_library[selected][1] // is_finished
                 ))
+                .wrap(Wrap { trim: true })
                 .left_aligned()
                 .render(area, buf);
             }
@@ -2386,6 +2397,7 @@ impl App {
             log::error!("render_info_pod_ep: titles_pod or authors_pod_ep is empty. Cannot render episode info.");
             // Render placeholder text or handle appropriately
             Paragraph::new("Error: Podcast metadata missing.")
+                .wrap(Wrap { trim: true })
                 .left_aligned()
                 .render(area, buf);
             return; // Exit the function early
@@ -2426,17 +2438,20 @@ impl App {
                         at(&self.durations_pod_ep, selected).trim(),
                         if is_offline { "- [Downloaded]" } else { "" },
                     ))
+                    .wrap(Wrap { trim: true })
                     .left_aligned()
                     .render(area, buf);
                 } else {
                     log::error!("render_info_pod_ep: Index {} out of bounds for duplicated title/author vectors (len={})!", selected, duplicated_titles.len());
                     Paragraph::new("Error: Episode info rendering mismatch.")
+                        .wrap(Wrap { trim: true })
                         .left_aligned()
                         .render(area, buf);
                 }
             } else {
                 log::error!("render_info_pod_ep: Index {} out of bounds for episode/duration vectors (ep_len={}, dur_len={})!", selected, self.episodes_pod_ep.len(), self.durations_pod_ep.len());
                 Paragraph::new("Error: Episode data unavailable or index out of bounds.")
+                    .wrap(Wrap { trim: true })
                     .left_aligned()
                     .render(area, buf);
             }
@@ -2462,6 +2477,7 @@ impl App {
                 at(&self.durations_pod_ep_search, selected).trim(),
                 if is_offline { "- [Downloaded]" } else { "" },
             ))
+            .wrap(Wrap { trim: true })
             .left_aligned()
             .render(area, buf);
         }
@@ -2490,6 +2506,7 @@ impl App {
                 );
                 // Render placeholder text
                 Paragraph::new("Error: Episode description unavailable.")
+                    .wrap(Wrap { trim: true })
                     .left_aligned()
                     .render(area, buf);
             }
@@ -2516,6 +2533,7 @@ impl App {
                     "Author: {}",
                     at(&self.auth_names_pod_search_book, selected),
                 ))
+                .wrap(Wrap { trim: true })
                 .left_aligned()
                 .render(area, buf);
             } else {
@@ -2534,6 +2552,7 @@ impl App {
                     //  format!("{}",convert_seconds_for_prg(self.duration_library_search_book[selected], self.book_progress_search_book_cur_time[selected][0])), // time left
                     //  self.book_progress_search_book[selected][1] // is finished
                 ))
+                .wrap(Wrap { trim: true })
                 .left_aligned()
                 .render(area, buf);
             }
@@ -2562,6 +2581,7 @@ impl App {
                     "https://github.com/ealtun21/Toutui/issues",
                     "https://github.com/ealtun21/Toutui",
                 ))
+                .wrap(Wrap { trim: true })
                 .left_aligned()
                 .render(area, buf);
             }
@@ -2626,6 +2646,7 @@ Uninstall:
     fn render_info_settings_library(&self, area: Rect, buf: &mut Buffer, list_state: &ListState) {
         if let Some(selected) = list_state.selected() {
             Paragraph::new(format!("Type: {}", at(&self.media_types, selected),))
+                .wrap(Wrap { trim: true })
                 .left_aligned()
                 .render(area, buf);
         }
