@@ -79,6 +79,9 @@ pub enum AppView {
     SettingsUpdateUninstall,
 }
 
+/// One picture of a page of a PDF, in the form that the screen draws. See T-54.
+pub type PictureOfThePage = ratatui_image::protocol::StatefulProtocol;
+
 pub struct App {
     pub view_state: AppView,
     /// The HTTP client. It holds the addresses of the server and the token.
@@ -269,6 +272,9 @@ pub struct App {
     /// store of the process, therefore no request goes to the server a second
     /// time. See T-23.
     pub covers: crate::ui::cover::CoverArt,
+    /// The pictures of the pages of a PDF book that the render holds. The key is
+    /// the item, the page, and the name of the picture. See T-54.
+    pub pictures_of_the_reader: std::collections::HashMap<String, Option<PictureOfThePage>>,
     /// What this account may do on the server. An absent answer gives every
     /// permission. See T-24.
     pub permissions: crate::api::me::permissions::Permissions,
@@ -1129,6 +1135,7 @@ impl App {
             changelog,
             update_msg,
             covers: crate::ui::cover::CoverArt::new(),
+            pictures_of_the_reader: std::collections::HashMap::new(),
             permissions,
             confirm_logout: None,
             reader: None,
@@ -3072,6 +3079,29 @@ impl App {
 
     /// Gives the identity of the item that the user selected, in any view of
     /// media.
+    /// Gives the title of the media that the user selected.
+    ///
+    /// A PDF holds no title in most files, and the name of the file on the disk
+    /// is the identity of the item. Therefore the reader takes the title of the
+    /// server for such a book. See T-54.
+    pub fn selected_item_title(&self) -> Option<String> {
+        match self.view_state {
+            AppView::Home => self
+                .selected_home_item()
+                .and_then(|index| self._titles_cnt_list.get(index))
+                .cloned(),
+            AppView::Library => self
+                .selected_library_item()
+                .and_then(|index| self.titles_library.get(index))
+                .cloned(),
+            // The view of the search holds no list of the titles. The reader
+            // then takes the title of the file, and that is not a fault.
+            AppView::SeriesBook => self.selected_series_book().map(|book| book.title.clone()),
+            AppView::ListEntries => self.selected_list_entry().map(|entry| entry.title.clone()),
+            _ => None,
+        }
+    }
+
     pub fn selected_item_id(&self) -> Option<String> {
         match self.view_state {
             AppView::Home => self
@@ -3102,6 +3132,10 @@ impl App {
         let Some(item_id) = self.selected_item_id() else {
             return;
         };
+
+        // The title comes from the view of the user, therefore it must come
+        // before the view changes to the reader. See T-54.
+        let title = self.selected_item_title();
 
         // A book that the reader holds already needs no work.
         if self
@@ -3135,8 +3169,12 @@ impl App {
             let outcome =
                 match crate::logic::reader::session::get_the_ebook(&api, &username, &item_id).await
                 {
-                    Ok(path) => crate::logic::reader::Reader::open(&path, &item_id)
-                        .map_err(|error| error.to_string()),
+                    Ok(path) => crate::logic::reader::Reader::open_with_the_title(
+                        &path,
+                        &item_id,
+                        title.as_deref(),
+                    )
+                    .map_err(|error| error.to_string()),
                     Err(message) => Err(message),
                 };
 

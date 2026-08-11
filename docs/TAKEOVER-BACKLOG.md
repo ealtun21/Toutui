@@ -1805,6 +1805,68 @@ server with no ffmpeg gives no stream, and the program then plays the files that
 it reads. The panel says "The server makes the stream of this media" while the
 stream plays, therefore the user knows why the start takes longer.
 
+### T-54: the reader shows a PDF book, with its pictures
+
+The user asked for it on 2026-08-11: "we do want pdf's with image supports", and
+"let's just read and write our own code, but write it very nicely". T-51 holds the
+reason why no line of bookokrat comes in: that project is AGPL, and Toutui is
+GPL-3.0-or-later.
+
+**The dependency.** `lopdf` 0.44, MIT, pure Rust, with no default feature. A
+measurement on 2026-08-11: `cargo tree -i cc` finds `libsqlite3-sys` and `ring`
+only, and `cargo tree -i openssl-sys` finds nothing. The tree grew from 452
+crates to 471.
+
+**The shape of the work.** A PDF holds no chapter and no flow of text: it holds
+pages, and each page holds a program that draws letters at places. Therefore:
+
+| The part | What it does |
+|---|---|
+| `src/logic/reader/pdf.rs` | Opens the file, and gives the text and the pictures of each page |
+| `xhtml_of_the_page` | Makes XHTML of one page. **The render of the EPUB book then makes the lines**, therefore the program holds one render only |
+| `Book` | Holds two forms now: `Kind::Epub` and `Kind::Pdf`. Every function of that type answers for both, therefore the reader of T-10, the position, and the list of the contents needed no change |
+| `the_file_is_a_pdf` | The first five bytes decide, and not the name of the file. The server gives the ebook of every form at one address |
+| `render_the_picture_of_the_page` | Draws the picture at the right of the text, with the form of the real picture. See T-50 |
+
+**One page is one chapter.** The keys `n` and `p` of the reader move between the
+pages, and the list of the contents of the key `t` names them.
+
+**The pictures.** A picture of the filter `DCTDecode` **is** a JPEG file, therefore
+the program copies the bytes and reads nothing. A picture of raw samples of 8 bits
+becomes a PNG file of `image`, which the tree holds already for the cover art of
+T-23. A picture of a different form gives no picture, and the line of the text
+still says that the picture exists. Therefore a terminal that draws no picture
+loses nothing.
+
+The program keeps the form of `ratatui-image` of eight pictures. A form at each
+frame would read the file twenty times in one second.
+
+**The limits of the memory.** The file 512 megabytes, the pages 5000, one picture
+32 megabytes, and the pixels of one picture 50 million. A stream that names fewer
+samples than the size of the picture needs gives no picture: a reader that trusts
+the size of the dictionary reads memory that is not its own.
+
+**The title.** A PDF holds no title in most files, and the name of the file on the
+disk is the identity of the item. Therefore the reader takes the title of the
+media of the server. **That value must come before the view changes**, because the
+title comes from the line that the user selected.
+
+**The measurement of 2026-08-11.** A PDF of three pages: one page of text and two
+pages of a picture of JPEG. The program opened it in tmux at 160 by 45:
+
+| The page | The screen |
+|---|---|
+| 1 | "One File With No Decoder — chapter 1 of 3 — 0%", and the text of the page |
+| 2 | "[ the picture Im0: 400 by 300 pixels ]", and **the picture of 40 columns by 15 rows at the column 96** |
+
+400 by 300 pixels in a cell of 10 by 20 pixels gives 40 columns by 15 rows.
+Therefore the picture holds its form.
+
+**What a PDF does not give.** No crate of pure Rust draws a **page** of a PDF, and
+`mupdf` needs a library of C and it is AGPL. Therefore the reader shows the text
+of the page and the pictures of the page, and not the page. A user who needs the
+form of a page of a figure opens the web page of the server. See T-51.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

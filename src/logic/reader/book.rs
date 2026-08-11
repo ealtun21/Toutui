@@ -148,16 +148,51 @@ impl Write for CappedWriter {
     }
 }
 
+/// Tells if a file is a PDF.
+///
+/// Every PDF starts with `%PDF-`. The name of the file says nothing: the server
+/// gives the ebook of a media at one address for every form. See T-54.
+pub fn the_file_is_a_pdf(path: &Path) -> bool {
+    use std::io::Read;
+
+    let Ok(mut file) = std::fs::File::open(path) else {
+        return false;
+    };
+
+    let mut head = [0u8; 5];
+
+    match file.read_exact(&mut head) {
+        Ok(()) => &head == b"%PDF-",
+        Err(_) => false,
+    }
+}
+
 /// One open book.
 ///
 /// The structure holds the `Epub` and the length of the spine only. It holds
 /// no entry of the book, because the API of `rbook` uses `impl Trait` in a
 /// trait and such a value borrows the `Epub`.
 pub struct Book {
-    /// The open archive.
-    epub: Epub,
-    /// The number of chapters in the spine.
-    spine_len: usize,
+    /// The form of the book: an archive of EPUB, or a PDF. See T-54.
+    kind: Kind,
+}
+
+/// The form of an open book.
+///
+/// The two forms hold a different size, therefore the archive of EPUB stands
+/// behind a `Box`. A large value inside a small one makes every copy of the
+/// small one expensive.
+enum Kind {
+    /// An EPUB book. One chapter is one entry of the spine.
+    Epub {
+        /// The open archive.
+        epub: Box<Epub>,
+        /// The number of chapters in the spine.
+        spine_len: usize,
+    },
+    /// A PDF book. **One chapter is one page**, because a PDF holds no chapter.
+    /// See T-54.
+    Pdf(Box<crate::logic::reader::pdf::Pdf>),
 }
 
 impl Book {
@@ -166,6 +201,16 @@ impl Book {
     /// The function refuses a file that is too large, and an archive with too
     /// many entries, before it reads any chapter.
     pub fn open(path: &Path) -> Result<Book, ReaderError> {
+        // The form of the file comes from the first bytes, and not from the name
+        // of the file. A server can give a PDF with any name. See T-54.
+        if the_file_is_a_pdf(path) {
+            let pdf = crate::logic::reader::pdf::Pdf::open(path)?;
+
+            return Ok(Book {
+                kind: Kind::Pdf(Box::new(pdf)),
+            });
+        }
+
         // Look at the size first. A read of the directory of the file costs
         // almost nothing, and it stops a very large file at once.
         if let Ok(data) = std::fs::metadata(path) {
@@ -185,18 +230,50 @@ impl Book {
         }
 
         let spine_len = epub.spine().len();
-        Ok(Book { epub, spine_len })
+
+        Ok(Book {
+            kind: Kind::Epub {
+                epub: Box::new(epub),
+                spine_len,
+            },
+        })
     }
 
-    /// The number of chapters in the spine.
+    /// Gives the PDF of this book, if the book is a PDF. The screen reads the
+    /// pictures of a page with it. See T-54.
+    pub fn pdf(&self) -> Option<&crate::logic::reader::pdf::Pdf> {
+        match &self.kind {
+            Kind::Pdf(pdf) => Some(pdf),
+            Kind::Epub { .. } => None,
+        }
+    }
+
+    /// Gives the archive of EPUB of this book, if the book is an EPUB book.
+    fn epub(&self) -> Option<&Epub> {
+        match &self.kind {
+            Kind::Epub { epub, .. } => Some(epub),
+            Kind::Pdf(_) => None,
+        }
+    }
+
+    /// The number of chapters. A PDF gives the number of its pages.
     pub fn chapter_count(&self) -> usize {
-        self.spine_len
+        match &self.kind {
+            Kind::Epub { spine_len, .. } => *spine_len,
+            Kind::Pdf(pdf) => pdf.page_count(),
+        }
     }
 
     /// The title of the book. A book with no title gives a short message.
     pub fn title(&self) -> String {
-        self.epub
-            .metadata()
+        let Some(epub) = self.epub() else {
+            return match &self.kind {
+                Kind::Pdf(pdf) => pdf.title(),
+                Kind::Epub { .. } => String::new(),
+            };
+        };
+
+        epub.metadata()
             .title()
             .map(|title| title.value().to_string())
             .filter(|text| !text.trim().is_empty())
@@ -206,8 +283,14 @@ impl Book {
     /// The author of the book. Two authors come in one text, with a comma
     /// between them. A book with no author gives a short message.
     pub fn author(&self) -> String {
-        let names: Vec<String> = self
-            .epub
+        let Some(epub) = self.epub() else {
+            return match &self.kind {
+                Kind::Pdf(pdf) => pdf.author(),
+                Kind::Epub { .. } => String::new(),
+            };
+        };
+
+        let names: Vec<String> = epub
             .metadata()
             .creators()
             .map(|creator| creator.value().to_string())
@@ -229,8 +312,26 @@ impl Book {
     /// books: Alice 16 of 16, Pride and Prejudice 63 of 63, Frankenstein 32 of
     /// 32, and Moby Dick 146 of 146.
     pub fn contents(&self) -> Vec<TocItem> {
+        // A PDF holds no table of contents that every file has. The list of the
+        // pages is the list that the user needs. See T-54.
+        if let Kind::Pdf(pdf) = &self.kind {
+            return (0..pdf.page_count())
+                .map(|index| TocItem {
+                    depth: 0,
+                    label: match pdf.page(index) {
+                        Some(page) => format!("The page {}", page.number),
+                        None => format!("The page {}", index + 1),
+                    },
+                    spine_index: Some(index),
+                })
+                .collect();
+        }
+
         let spine_of_href = self.spine_by_href();
-        let Some(root) = self.epub.toc().contents() else {
+        let Some(epub) = self.epub() else {
+            return Vec::new();
+        };
+        let Some(root) = epub.toc().contents() else {
             return Vec::new();
         };
         root.flatten()
@@ -265,6 +366,14 @@ impl Book {
     /// error. That answer is correct: the user sees a page with no meaning,
     /// and the program does not stop.
     pub fn chapter_xhtml(&self, index: usize) -> Result<String, ReaderError> {
+        // One page of a PDF gives the XHTML of its text and of its pictures.
+        // Therefore the render of the EPUB book makes the lines of both forms.
+        // See T-54.
+        if let Kind::Pdf(pdf) = &self.kind {
+            let page = pdf.page(index).ok_or(ReaderError::NoSuchChapter(index))?;
+            return Ok(crate::logic::reader::pdf::xhtml_of_the_page(page));
+        }
+
         let bytes = self.chapter_bytes(index)?;
         Ok(String::from_utf8_lossy(&bytes).into_owned())
     }
@@ -282,7 +391,11 @@ impl Book {
     /// debug build: Alice 2.5 milliseconds, Frankenstein 7.1 milliseconds,
     /// Pride and Prejudice 9.9 milliseconds, Moby Dick 17.9 milliseconds.
     pub fn chapter_sizes(&self) -> Vec<u64> {
-        (0..self.spine_len)
+        if let Kind::Pdf(pdf) = &self.kind {
+            return pdf.page_sizes();
+        }
+
+        (0..self.chapter_count())
             .map(|index| match self.chapter_bytes(index) {
                 Ok(bytes) => bytes.len() as u64,
                 Err(_) => 0,
@@ -292,11 +405,13 @@ impl Book {
 
     /// Reads one chapter into memory, with the limit of 8 megabytes.
     fn chapter_bytes(&self, index: usize) -> Result<Vec<u8>, ReaderError> {
-        if index >= self.spine_len {
+        let epub = self.epub().ok_or(ReaderError::NoSuchChapter(index))?;
+
+        if index >= self.chapter_count() {
             return Err(ReaderError::NoSuchChapter(index));
         }
-        let spine_entry = self
-            .epub
+
+        let spine_entry = epub
             .spine()
             .get(index)
             .ok_or(ReaderError::NoSuchChapter(index))?;
@@ -318,7 +433,12 @@ impl Book {
     /// Gives the number in the spine of each file of the spine.
     fn spine_by_href(&self) -> HashMap<String, usize> {
         let mut map = HashMap::new();
-        for entry in self.epub.spine().iter() {
+
+        let Some(epub) = self.epub() else {
+            return map;
+        };
+
+        for entry in epub.spine().iter() {
             let Some(manifest_entry) = entry.manifest_entry() else {
                 continue;
             };
@@ -334,8 +454,14 @@ impl Book {
 
 impl fmt::Debug for Book {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let form = match &self.kind {
+            Kind::Epub { .. } => "epub",
+            Kind::Pdf(_) => "pdf",
+        };
+
         f.debug_struct("Book")
-            .field("spine_len", &self.spine_len)
+            .field("form", &form)
+            .field("chapters", &self.chapter_count())
             .finish_non_exhaustive()
     }
 }

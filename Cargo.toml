@@ -1,6 +1,6 @@
 [package]
 name = "toutui"
-version = "0.7.14"
+version = "0.7.15"
 edition = "2021"
 description = "A TUI client of Audiobookshelf for Linux and macOS."
 license = "GPL-3.0-or-later"
@@ -61,6 +61,24 @@ rusqlite = { version = "0.40", features = ["bundled"] }
 # C toolchain. It expands no entity of a DTD, therefore a file of the form
 # "billion laughs" gives no growth of the memory. See T-20.
 quick-xml = { version = "0.41", default-features = false }
+# The reader of a PDF book. See T-54.
+#
+# Audiobookshelf holds a PDF beside an EPUB book, and the reader of T-10 showed
+# EPUB books only. `lopdf` gives the text of each page and the pictures of each
+# page.
+#
+# A measurement on 2026-08-11: the crate is MIT, it is pure Rust, `cargo tree -i
+# cc` finds nothing of it, and `cargo tree -i openssl-sys` still finds nothing.
+# `pdf-extract` gives the text only, and it uses `lopdf` itself. Therefore the
+# fork takes `lopdf` and it writes the reader of the pictures.
+#
+# No crate of pure Rust draws a **page** of a PDF. `mupdf` needs a library of C
+# and it is AGPL, therefore T-20 and the license refuse it. Toutui shows the text
+# of a PDF and the pictures of a PDF. See T-51.
+# The default features bring `chrono`, `jiff`, `rayon`, and `time`. The reader
+# needs no date and no pool of threads, therefore the line takes no default
+# feature. `chrono` stands in the tree already, for a different work.
+lopdf = { version = "0.44", default-features = false }
 log = "0.4.25"
 fern = "0.7.1"
 chrono = "0.4.39"

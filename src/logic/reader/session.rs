@@ -10,6 +10,7 @@
 //! Therefore a task renders the chapter, and the screen shows "Reading…" until
 //! the lines come.
 
+use log::warn;
 use ratatui::text::Line;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{channel, Receiver, Sender};
@@ -107,11 +108,33 @@ impl std::fmt::Debug for Reader {
 impl Reader {
     /// Opens a book that stands on the disk.
     pub fn open(path: &Path, item_id: &str) -> Result<Reader, ReaderError> {
+        Reader::open_with_the_title(path, item_id, None)
+    }
+
+    /// Opens the book, and it takes the title of the media when the file gives no
+    /// better one.
+    ///
+    /// A PDF holds no title in most files, and the name of the file on the disk is
+    /// the identity of the item. The title of the media then says more to the
+    /// user. See T-54.
+    pub fn open_with_the_title(
+        path: &Path,
+        item_id: &str,
+        title_of_the_media: Option<&str>,
+    ) -> Result<Reader, ReaderError> {
         let book = Arc::new(Book::open(path)?);
         let (sender, receiver) = channel();
 
+        // The title of the file has more importance for an EPUB book: that form
+        // always names the book. A PDF names the file, and the name of the file
+        // is the identity of the item.
+        let title = match (book.pdf().is_some(), title_of_the_media) {
+            (true, Some(title)) if !title.trim().is_empty() => title.to_string(),
+            _ => book.title(),
+        };
+
         Ok(Reader {
-            title: book.title(),
+            title,
             author: book.author(),
             contents: book.contents(),
             sizes: Vec::new(),
@@ -362,6 +385,17 @@ impl Reader {
     ///
     /// The user leaves the book, or stops the program. The place must go to
     /// the server then, whatever the time of the last send.
+    /// Gives the picture of the page that the screen shows, if the book is a PDF
+    /// and if that page holds one. See T-54.
+    ///
+    /// The bytes stand behind an `Arc`, therefore the call copies no picture.
+    pub fn picture_of_the_page(&self) -> Option<crate::logic::reader::pdf::Picture> {
+        let pdf = self.book.pdf()?;
+        let page = pdf.page(self.chapter)?;
+
+        page.pictures.first().cloned()
+    }
+
     pub fn wants_to_send_at_the_end(&self) -> bool {
         self.sent != Some(self.position())
     }
@@ -493,12 +527,14 @@ pub fn the_message_of_the_format(format: &str) -> String {
         "" => "This media has no ebook. The key `e` needs a media with an EPUB \
                book."
             .to_string(),
-        "epub" => "The server holds an EPUB book for this media, and it did not \
-                   give the file. Try again, or read the log."
-            .to_string(),
+        "epub" | "pdf" => format!(
+            "The server holds a {} book for this media, and it did not give the \
+             file. Try again, or read the log.",
+            format.to_uppercase()
+        ),
         other => format!(
-            "The ebook of this media is a {} file, and the reader shows EPUB \
-             books only.",
+            "The ebook of this media is a {} file. The reader shows an EPUB book \
+             and a PDF book.",
             other.to_uppercase()
         ),
     }
@@ -507,6 +543,14 @@ pub fn the_message_of_the_format(format: &str) -> String {
 /// Gives the path of the ebook of one item on the disk.
 pub fn ebook_path(username: &str, item_id: &str) -> PathBuf {
     crate::logic::download::downloads_base_dir(username).join(format!("{}.epub", item_id))
+}
+
+/// Gives the path of the PDF of one item on the disk. See T-54.
+///
+/// The server gives the ebook of every form at one address, therefore the name
+/// of the file on the disk comes from the bytes of the answer.
+pub fn pdf_path(username: &str, item_id: &str) -> PathBuf {
+    crate::logic::download::downloads_base_dir(username).join(format!("{}.pdf", item_id))
 }
 
 /// Reads the ebook of one item from the server, if the disk does not hold it.
@@ -522,6 +566,13 @@ pub async fn get_the_ebook(
 
     if path.exists() {
         return Ok(path);
+    }
+
+    // A PDF of a visit before this one. See T-54.
+    let of_the_pdf = pdf_path(username, item_id);
+
+    if of_the_pdf.exists() {
+        return Ok(of_the_pdf);
     }
 
     let directory = path
@@ -546,11 +597,32 @@ pub async fn get_the_ebook(
     // again, therefore the file takes the name of the item.
     let with_the_name_of_the_server = directory.join(&name);
 
-    if with_the_name_of_the_server.exists() {
-        return Ok(with_the_name_of_the_server);
+    let came = if with_the_name_of_the_server.exists() {
+        with_the_name_of_the_server
+    } else {
+        path
+    };
+
+    // The name of the file must say the form of the file. The server gives the
+    // ebook of every form at one address, therefore the bytes decide. See T-54.
+    if crate::logic::reader::book::the_file_is_a_pdf(&came) {
+        let of_the_pdf = pdf_path(username, item_id);
+
+        match std::fs::rename(&came, &of_the_pdf) {
+            Ok(()) => return Ok(of_the_pdf),
+            Err(error) => {
+                // A name that says `epub` for a PDF is not correct, and the
+                // reader still opens it: `Book::open` reads the bytes.
+                warn!(
+                    "[reader] the program cannot give the file the name of a \
+                     PDF: {}",
+                    error
+                );
+            }
+        }
     }
 
-    Ok(path)
+    Ok(came)
 }
 
 #[cfg(test)]
@@ -565,9 +637,11 @@ mod tests {
         let nothing = the_message_of_the_format("");
         assert!(nothing.contains("no ebook"), "{}", nothing);
 
+        // The reader shows a PDF book now, therefore a PDF that did not come is
+        // a fault of the request. See T-54.
         let pdf = the_message_of_the_format("pdf");
         assert!(pdf.contains("PDF"), "{}", pdf);
-        assert!(pdf.contains("EPUB books only"), "{}", pdf);
+        assert!(!pdf.contains("no ebook"), "{}", pdf);
 
         // The server names the form in small letters, and a different server
         // can name it in capital letters.
@@ -576,9 +650,11 @@ mod tests {
 
         let epub = the_message_of_the_format("epub");
         assert!(epub.contains("EPUB"), "{}", epub);
-        // An EPUB book that did not come is a fault of the request, and not a
-        // media with no book.
         assert!(!epub.contains("no ebook"), "{}", epub);
+
+        // A form that the reader does not show names itself.
+        let other = the_message_of_the_format("mobi");
+        assert!(other.contains("MOBI"), "{}", other);
     }
 
     use super::*;

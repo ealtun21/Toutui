@@ -18,6 +18,7 @@
 
 pub mod book;
 pub mod cfi;
+pub mod pdf;
 pub mod position;
 pub mod render;
 pub mod session;

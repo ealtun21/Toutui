@@ -17,6 +17,9 @@ use ratatui::{
 };
 use ratatui_image::StatefulImage;
 
+/// The number of pictures of the pages of a PDF that the render keeps. See T-54.
+const PICTURES_OF_THE_READER: usize = 8;
+
 // const version
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -388,6 +391,20 @@ impl App {
 
         self.render_header(header_area, buf);
 
+        // A page of a PDF can hold a picture. The panel of the picture stands at
+        // the right of the text, as the panel of the cover art does. See T-54
+        // and T-23.
+        let picture = self
+            .reader
+            .as_ref()
+            .filter(|reader| !reader.contents_open)
+            .and_then(|reader| reader.picture_of_the_page());
+
+        let (text_area, panel) = match &picture {
+            Some(_) => cover::split_for_covers(main_area, area.width, cover::picker().font_size()),
+            None => (main_area, None),
+        };
+
         let Some(reader) = self.reader.as_mut() else {
             return;
         };
@@ -396,7 +413,71 @@ impl App {
         // and it never waits for them.
         reader.take_the_answer();
 
-        crate::ui::reader_tui::render(reader, main_area, buf);
+        crate::ui::reader_tui::render(reader, text_area, buf);
+
+        // The reader of the text holds the book, therefore the picture comes
+        // after that render: two borrows of `self` must not live at the same
+        // time.
+        if let (Some(picture), Some(panel)) = (picture, panel) {
+            self.render_the_picture_of_the_page(&picture, panel, buf);
+        }
+    }
+
+    /// Draws one picture of a page of a PDF. See T-54.
+    ///
+    /// The program makes the form of `ratatui-image` one time for each picture,
+    /// and it keeps it. A new form at each frame would read the file of the
+    /// picture twenty times in one second.
+    fn render_the_picture_of_the_page(
+        &mut self,
+        picture: &crate::logic::reader::pdf::Picture,
+        panel: Rect,
+        buf: &mut Buffer,
+    ) {
+        let key = format!(
+            "{}:{}",
+            self.reader
+                .as_ref()
+                .map(|reader| format!("{}:{}", reader.item_id, reader.chapter))
+                .unwrap_or_default(),
+            picture.name
+        );
+
+        if !self.pictures_of_the_reader.contains_key(&key) {
+            // A user who reads a book of many pictures must not fill the memory
+            // of the machine. The program keeps the pictures of the pages that
+            // the user visited, and it forgets them all when they are too many.
+            if self.pictures_of_the_reader.len() >= PICTURES_OF_THE_READER {
+                self.pictures_of_the_reader.clear();
+            }
+
+            let made = image::load_from_memory(&picture.file)
+                .ok()
+                .map(|image| cover::picker().new_resize_protocol(image));
+
+            if made.is_none() {
+                log::info!(
+                    "[reader] the program cannot read the picture {} of the page",
+                    picture.name
+                );
+            }
+
+            self.pictures_of_the_reader.insert(key.clone(), made);
+        }
+
+        // The form of the real picture gives the box, therefore a picture that is
+        // higher than it is wide takes every row of the panel. See T-50.
+        let form = if picture.height > 0 {
+            picture.width as f32 / picture.height as f32
+        } else {
+            1.0
+        };
+
+        let area = cover::box_of_the_picture(panel, cover::picker().font_size(), form);
+
+        if let Some(Some(made)) = self.pictures_of_the_reader.get_mut(&key) {
+            StatefulImage::default().render(area, buf, made);
+        }
     }
 }
 
