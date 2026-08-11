@@ -4,7 +4,7 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.44**, and the items T-88 to T-98 belong to this
+**The newest release is v0.7.46**, and the items T-88 to T-100 belong to this
 session. T-74 to T-87 belong to the session before it.
 
 **This session made every sweep that no session had made**: the terminal of 80
@@ -14,7 +14,7 @@ faults. The sweep stays the tool that finds what a test does not.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.44` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.46` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
@@ -77,6 +77,8 @@ v0.6.7. Do not try to publish v0.6.6.
 | T-96 | **One login for every test of the sandbox**, and a feed that is not a fault | — |
 | T-97 | **One request that stopped at its time limit took the server away** | — |
 | T-98 | **`CARGO_TARGET_DIR` on a `tmpfs` gives nothing.** A measurement, and no code | — |
+| T-99 | A terminal of 18 rows showed one line of the list | — |
+| T-100 | **The description of a collection and of a playlist** | `c`, then `D` |
 
 ### The items of this session, and what each of them taught
 
@@ -137,6 +139,25 @@ for a fault of the transport.
 carried `CARGO_TARGET_DIR` on a `tmpfs`, and the memory is 16 percent faster than
 the ZFS of the maintainer for 3000 small files. A build writes 11 gigabytes, and
 that costs about 8 seconds of a disk that gives 1.4 GB/s.
+
+**T-99, the sweep of a small terminal.** A terminal of 100 by 18 gave the Home
+view **one line** of 24 media: the row of the item took 3 of the 7 rows of that
+area with a fixed length, and 10 rows of the screen were empty.
+`the_areas_of_a_list` gives every row to the list when the area holds 12 rows or
+fewer, and a terminal of 24 rows and one of 45 rows draw what they drew before.
+**The 7 rows of the player stay empty while nothing plays**, and they are the
+next question of a small terminal: a view that takes them would move every line
+when a playback starts, therefore that is a choice of the maintainer.
+
+**T-100, the description of a list.** The view showed the description of a list
+already, and no key made one. The same `PATCH` of T-93 takes it.
+
+**The sweep of two accounts found no fault, and a measurement of this session
+said the opposite for some minutes.** The key `l` of the view of the accounts
+gives its question at the first press. The wrong measurement read the top of the
+screen after the key, and then it read the row of the message 10 seconds later:
+**a message of the program lives six seconds.** Read the row that holds the
+message, and read it inside that time.
 
 **T-92, the sweep of the view of the login.** Two of the three messages of that
 view are good work already, and the third said "ERROR: Login failed" for every
@@ -845,14 +866,14 @@ answers slowly while it writes. Two answers to measure:
 
 > Continue the Toutui takeover, and write the next version. Repo:
 > `/home/nyverino/Documents/Toutui` (ealtun21/Toutui, branch main). Maintained fork
-> of the archived AlbanDAVID/Toutui. Newest release **v0.7.44**; `Cargo.toml` is at
-> 0.7.44, so the next release bumps it first — the workflow refuses a tag that
+> of the archived AlbanDAVID/Toutui. Newest release **v0.7.46**; `Cargo.toml` is at
+> 0.7.46, so the next release bumps it first — the workflow refuses a tag that
 > disagrees with `Cargo.toml`, **and it builds `--locked`, therefore the commit of
 > the bump must hold the new `Cargo.lock`**.
 >
 > Read `docs/HANDOVER.md` first: the state, the open items, the section of the
 > harness, and 72 traps that cost real time. Then `docs/TAKEOVER-BACKLOG.md` (the
-> evidence of every item; T-88 to T-98 are the newest, and **T-87 and T-97 are the
+> evidence of every item; T-88 to T-100 are the newest, and **T-87 and T-97 are the
 > two to know**) and `docs/T-24-coverage.md` (**section 6 names what the program
 > must not have, and why**).
 >
@@ -875,14 +896,15 @@ answers slowly while it writes. Two answers to measure:
 >
 > **The work that stays, in the sequence of its value:**
 >
-> 1. **The sweeps that stay:** a terminal of 40 rows or fewer (the list of the Home
->    view gets 4 lines in 24 rows, and the row of the description gets 14; that is a
->    choice of the layout, and no fault), a library of one item, and the program of
->    a user who holds two accounts.
-> 2. **The keys of a list that this session did not make:** the description of a
->    collection (`PATCH` takes `description`), and the sequence of the media inside
->    a playlist.
-> 3. **The peak of the memory of a PDF (T-62)**, if a user meets it.
+> 1. **The 7 rows of the player of a small terminal (T-99).** They stay empty while
+>    nothing plays, and they are 7 rows of 18. A view that gives them to the list
+>    moves every line when a playback starts. **This needs the decision of the
+>    maintainer**, and not a measurement.
+> 2. **The sequence of the media inside a playlist.** T-100 closes the description,
+>    and the sequence needs a request that no session has measured.
+> 3. **A library of one item**, and the reader of a book of one chapter: the two
+>    sweeps that stay.
+> 4. **The peak of the memory of a PDF (T-62)**, if a user meets it.
 >
 > **Do not open these again.** The book of xHE-AAC plays (T-68 and T-69). Toutui stays
 > GPL, and a person may read bookokrat for an idea and must then write their own code
