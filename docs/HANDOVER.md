@@ -4,15 +4,16 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.47**, and T-101 belongs to this session. The items
-T-88 to T-100 belong to the session before it, and T-74 to T-87 to the one before
-that.
+**The newest release is v0.7.48**, and T-101 and T-102 belong to this session.
+The items T-88 to T-100 belong to the session before it, and T-74 to T-87 to the
+one before that.
 
 ## What this session closed
 
 | Item | What | Keys |
 |---|---|---|
 | T-101 | **The changelog holds every release of this fork**, and a test holds that rule | `S` |
+| T-102 | **The sequence of the media inside a collection or a playlist** | `c`, `l`, then `<` and `>` |
 
 **T-101, and the fault that hid itself.** The screen of "About and changelog"
 stopped at v0.6.8 while the program was at v0.7.46: **38 releases reached no
@@ -33,17 +34,34 @@ sequence. Therefore **a release now holds three files together**: `Cargo.toml`,
 and it never joins two lines: every old entry held the wrap of its source,
 therefore a terminal of 200 columns showed a column of 65 letters.
 
+**T-102, and the measurement that came before the code.** The two lists do not
+behave in the same way, again (T-88 found that first). `PATCH
+/api/playlists/:id` with `items` **refuses a body of one item fewer** with `400`
+and "Invalid playlist items. Length mismatch", and `PATCH /api/collections/:id`
+with `books` takes such a body and it moves the book that the body forgot **to
+the first line**. Therefore the program always sends every media of the list.
+
+**The screen holds the new sequence before the answer of the server.** A user
+presses `>` more than one time to move a media some lines, and a screen that
+waits for the answer between two keys moves the wrong line. `self.lists` takes
+the new sequence, the selection follows the media, and the task asks the server
+for the lists after the write.
+
+**The keys `<` and `>` need no modifier**, and that is not an accident:
+`handle_key` reads `key.code` only, therefore a key of Ctrl reaches the handler
+as the letter itself. A key with a modifier needs work in that function first.
+
 ## The state
 
-`main` is clean and pushed, and `v0.7.47` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.48` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 889 tests pass in 2.2 s, 23 carry #[ignore], 42 binaries
-    # cargo nextest run --run-ignored all gives 908 of 908 with the sandbox up,
-    # in 44 s: one test of that run waits 15 s for the time limit of a request
+    # 892 tests pass in 2.2 s, 24 carry #[ignore], 42 binaries
+    # cargo nextest run --run-ignored all gives 916 of 916 with the sandbox up,
+    # in 25 s: one test of that run waits 15 s for the time limit of a request
 cargo tree -i openssl-sys                # finds nothing
 cargo tree -i cc                         # finds libsqlite3-sys and ring only
 ```
@@ -53,7 +71,7 @@ them in 8.7. Use nextest: `.config/nextest.toml` stands in the repository, and t
 tool is on this machine. See T-74.
 
 **Every test of the sandbox passes too.** One run of
-`cargo nextest run --run-ignored all` gives **908 of 908**, and the group
+`cargo nextest run --run-ignored all` gives **916 of 916**, and the group
 `the-sandbox` of `.config/nextest.toml` runs them one at a time for the rate limit
 of the login. With `cargo test`, give `-- --ignored --test-threads=1`.
 
@@ -362,18 +380,17 @@ and that item was the first of this group.**
    **A view that takes them while nothing plays moves every line when a playback
    starts**, therefore this needs the decision of the maintainer. Ask, and hold
    the answer here.
-2. **The sequence of the media inside a playlist.** T-100 closes the description
-   of a list, and the sequence stays: a user cannot move an episode of a playlist
-   up or down. **Measure `PATCH /api/playlists/:id` with `items` first**: T-93
-   measured `name` and `description` of that path, and not `items`.
-3. **The keys of a media that the server offers and the program does not.** Read
+2. **The keys of a media that the server offers and the program does not.** Read
    the table of section 4 of `docs/T-24-coverage.md`, and **read the code of each
    row before you take it**: the session of T-88 to T-100 found four rows of that
-   table that were old.
-4. **The changelog is complete, and a test holds it there (T-101).** A release
+   table that were old, and T-102 corrected the two rows of the lists.
+3. **The changelog is complete, and a test holds it there (T-101).** A release
    writes its entry at the top of `THE_ENTRIES_OF_THE_FORK`, in the words of a
    user. The gate refuses a release with no entry, therefore this item needs no
    sweep: it needs the habit.
+4. **The sequence of the media of a list is done (T-102).** The two rows of the
+   lists of `docs/T-24-coverage.md` say "Yes" now, and the sequence inside a
+   **series** belongs to the server and not to a user.
 
 #### Group 2: the sweeps that stay
 
@@ -814,6 +831,18 @@ answers slowly while it writes. Two answers to measure:
     the screen said "Changelog Toutui v0.7.46" above the words of v0.6.9: the
     reader of that screen therefore had no way to see that 38 releases were
     absent. See T-101.
+57. **`PATCH` of a list with a body that is not complete.** `items` of a playlist
+    that holds one media fewer gives `400` and "Invalid playlist items. Length
+    mismatch"; `books` of a collection gives `200`, **and the book that the body
+    does not name goes to the first line**. A body of the sequence therefore
+    holds every media. See T-102.
+58. **`handle_key` of `src/app.rs` reads `key.code` only.** A key of Ctrl or of
+    Alt reaches the handler as the letter itself, therefore a new key with a
+    modifier needs work in that function first. The keys `<` and `>` of T-102
+    need none.
+59. **A key that writes a sequence must move the screen at once.** A user presses
+    the key more than one time, and a screen that waits for the answer of the
+    server between two keys moves the wrong line. See T-102 and the trap 40.
 
 ### Of the harness and of the machine
 
@@ -982,24 +1011,24 @@ answers slowly while it writes. Two answers to measure:
 
 > Continue the Toutui takeover, and write the next version. Repo:
 > `/home/nyverino/Documents/Toutui` (ealtun21/Toutui, branch main). Maintained fork
-> of the archived AlbanDAVID/Toutui. Newest release **v0.7.47**; `Cargo.toml` is at
-> 0.7.47, so the next release bumps it first — the workflow refuses a tag that
+> of the archived AlbanDAVID/Toutui. Newest release **v0.7.48**; `Cargo.toml` is at
+> 0.7.48, so the next release bumps it first — the workflow refuses a tag that
 > disagrees with `Cargo.toml`, **and it builds `--locked`, therefore the commit of
 > the bump must hold the new `Cargo.lock`**. **A release also writes its entry of
 > the changelog** (`THE_ENTRIES_OF_THE_FORK` of `src/utils/changelog.rs`): the
 > gate fails without it. That is the rule of T-101.
 >
 > Read `docs/HANDOVER.md` first: the state, the open items, the section of the
-> harness, and 74 traps that cost real time. Then `docs/TAKEOVER-BACKLOG.md` (the
-> evidence of every item; T-101 is the newest, and **T-87 and T-97 are the
+> harness, and 77 traps that cost real time. Then `docs/TAKEOVER-BACKLOG.md` (the
+> evidence of every item; T-101 and T-102 are the newest, and **T-87 and T-97 are the
 > two to know**) and `docs/T-24-coverage.md` (**section 6 names what the program
 > must not have, and why**).
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a real null asound file
-> (`/dev/null` hangs the real binary). Baseline: **889 tests in 2.2 seconds**, and
-> `cargo nextest run --run-ignored all` gives **908 of 908** with the sandbox up.
+> (`/dev/null` hangs the real binary). Baseline: **892 tests in 2.2 seconds**, and
+> `cargo nextest run --run-ignored all` gives **916 of 916** with the sandbox up.
 >
 > **The sweep of the views is the tool that finds the faults.** Twenty-two items of
 > the two sessions of 2026-08-11 came from sweeps in tmux with
@@ -1020,9 +1049,9 @@ answers slowly while it writes. Two answers to measure:
 >    7 rows of a terminal of 18. A view that takes them moves every line when a
 >    playback starts: **ask the maintainer**, and write the answer in the
 >    handover.
-> 2. **The sequence of the media inside a playlist.** Measure
->    `PATCH /api/playlists/:id` with `items` first: T-93 measured `name` and
->    `description` of that path only.
+> 2. **The keys of a media that the server offers and the program does not.**
+>    Section 4 of `docs/T-24-coverage.md` holds the table, and **read the code of
+>    each row before you take it**: some rows are older than the program.
 > 3. **The sweeps that stay:** a library of one item, a book of one chapter, a
 >    pool of two addresses, and a server that goes away in the middle of a
 >    playback. **Every sweep of a condition that no session had made found a
