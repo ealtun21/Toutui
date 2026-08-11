@@ -1235,6 +1235,18 @@ impl App {
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
+
+        // **A view says why it holds no line.** The Home view of a library with
+        // no media drew an empty list and no word at all. See T-103 and T-91.
+        if lines.is_empty() {
+            App::render_the_reason(
+                main_area,
+                buf,
+                crate::ui::keys::the_text_of_the_home_view_with_no_line(self.is_offline),
+            );
+            return;
+        }
+
         self.render_list(
             list_area,
             buf,
@@ -1242,10 +1254,24 @@ impl App {
             &lines,
             &mut self.list_state_cnt_list.clone(),
         );
-        if !lines.is_empty() {
-            self.render_info_home(item_area1, buf);
-            self.render_desc_home(item_area2, buf);
-        }
+        self.render_info_home(item_area1, buf);
+        self.render_desc_home(item_area2, buf);
+    }
+
+    /// Draws the sentence of a view that holds no line. See T-103.
+    ///
+    /// Every view of the program that can hold no line says why, and this
+    /// function holds the shape of that screen in one place.
+    fn render_the_reason(area: Rect, buf: &mut Buffer, text: &str) {
+        Paragraph::new(text)
+            .centered()
+            .wrap(Wrap { trim: true })
+            .block(
+                Block::new()
+                    .borders(Borders::TOP)
+                    .border_style(Style::new().fg(Color::DarkGray)),
+            )
+            .render(area, buf);
     }
 
     /// AppView::Library rendering
@@ -1304,6 +1330,22 @@ impl App {
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, _text_render_footer);
+
+        // **A filter that hides every media is not a library with no media**,
+        // and a server that does not answer is neither. See T-103 and T-91.
+        if lines.is_empty() {
+            App::render_the_reason(
+                main_area,
+                buf,
+                crate::ui::keys::the_text_of_the_library_view_with_no_line(
+                    self.is_offline,
+                    !self.library_filter.is_empty(),
+                    self.is_podcast,
+                ),
+            );
+            return;
+        }
+
         self.render_list(
             list_area,
             buf,
@@ -1311,10 +1353,8 @@ impl App {
             &lines,
             &mut self.list_state_library.clone(),
         );
-        if !lines.is_empty() {
-            self.render_info_library(item_area1, buf);
-            self.render_desc_library(item_area2, buf);
-        }
+        self.render_info_library(item_area1, buf);
+        self.render_desc_library(item_area2, buf);
     }
 
     /// AppView::Series rendering: the list of the series of the library.

@@ -336,7 +336,82 @@ pub const FOOTER_OF_THE_LISTS_THAT_TAKE_A_MEDIA: &str =
     "j/k: move  l: put it here  c: a collection  p: a playlist  h: back  \
      ?: every key  Q: quit";
 
+/// The text of the Home view that holds no shelf. See T-103.
+pub const THE_HOME_VIEW_WITH_NO_LINE: &str = "The server gave no shelf for this library.\n\
+     Press Tab for the Library, and R to ask the server again.";
+
+/// The text of the Home view with a server that does not answer. See T-103.
+///
+/// **A view must not give a reason that the program does not have** (T-91). With
+/// no answer of the server, the program knows nothing of the shelves of this
+/// library.
+pub const THE_HOME_VIEW_WITH_NO_ANSWER: &str =
+    "The server does not answer, therefore this screen holds no shelf.\n\
+     A media of the disk plays in this mode. Press R when the server answers again.";
+
+/// The text of the Library view of a library of books with no media. See T-103.
+pub const THE_LIBRARY_WITH_NO_MEDIA: &str = "This library holds no media.\n\
+     Press L to tell the server to examine the library.";
+
+/// The text of the Library view of a library of podcasts with no media. See
+/// T-103.
+pub const THE_LIBRARY_OF_PODCASTS_WITH_NO_MEDIA: &str = "This library holds no podcast.\n\
+     Press A to add a podcast, and L to tell the server to examine the library.";
+
+/// The text of the Library view that a filter emptied. See T-103.
+///
+/// **The library holds media, and the filter hides every one of them.** A screen
+/// that says "This library holds no media" is false for that condition.
+pub const THE_LIBRARY_WITH_A_FILTER: &str = "No media of this library agrees with the filter.\n\
+     Press f for the sequence and the filter.";
+
+/// The text of the Library view with a server that does not answer. See T-103.
+pub const THE_LIBRARY_WITH_NO_ANSWER: &str =
+    "The server gave no media: the server does not answer.\n\
+     A media of the disk plays in this mode. Press R when the server answers again.";
+
+/// Gives the text of the Home view that holds no line. See T-103.
+pub fn the_text_of_the_home_view_with_no_line(is_offline: bool) -> &'static str {
+    if is_offline {
+        return THE_HOME_VIEW_WITH_NO_ANSWER;
+    }
+
+    THE_HOME_VIEW_WITH_NO_LINE
+}
+
+/// Gives the text of the Library view that holds no line. See T-103.
+///
+/// **The sequence of the three conditions holds a rule of its own.** A server
+/// that does not answer comes first, because the program then knows nothing of
+/// the library. A filter comes before the library itself, because the library
+/// holds media in that condition.
+pub fn the_text_of_the_library_view_with_no_line(
+    is_offline: bool,
+    a_filter_is_on: bool,
+    is_podcast: bool,
+) -> &'static str {
+    if is_offline {
+        return THE_LIBRARY_WITH_NO_ANSWER;
+    }
+
+    if a_filter_is_on {
+        return THE_LIBRARY_WITH_A_FILTER;
+    }
+
+    if is_podcast {
+        return THE_LIBRARY_OF_PODCASTS_WITH_NO_MEDIA;
+    }
+
+    THE_LIBRARY_WITH_NO_MEDIA
+}
+
 pub const THE_TEXTS_OF_THE_VIEWS: &[&str] = &[
+    THE_HOME_VIEW_WITH_NO_LINE,
+    THE_HOME_VIEW_WITH_NO_ANSWER,
+    THE_LIBRARY_WITH_NO_MEDIA,
+    THE_LIBRARY_OF_PODCASTS_WITH_NO_MEDIA,
+    THE_LIBRARY_WITH_A_FILTER,
+    THE_LIBRARY_WITH_NO_ANSWER,
     THE_ACCOUNTS,
     THE_LIBRARIES,
     THE_CACHE_OF_THE_EBOOKS,
@@ -455,6 +530,69 @@ mod tests {
                     line.trim()
                 );
             }
+        }
+    }
+
+    /// **A view that holds no line says why**, and the reason of the Home view
+    /// and of the Library view came late: those two views drew an empty list and
+    /// no word. See T-103.
+    ///
+    /// The sequence of the conditions is the rule of this test. A server that
+    /// does not answer comes first (T-91), and a filter comes before the library
+    /// itself: the library holds media in that condition.
+    #[test]
+    fn a_view_with_no_line_says_why() {
+        assert_eq!(
+            the_text_of_the_home_view_with_no_line(false),
+            THE_HOME_VIEW_WITH_NO_LINE
+        );
+        assert_eq!(
+            the_text_of_the_home_view_with_no_line(true),
+            THE_HOME_VIEW_WITH_NO_ANSWER
+        );
+
+        // A server that does not answer comes before every other reason, and
+        // before the filter too.
+        assert_eq!(
+            the_text_of_the_library_view_with_no_line(true, true, true),
+            THE_LIBRARY_WITH_NO_ANSWER
+        );
+
+        // The filter comes before the library, because the library holds media.
+        assert_eq!(
+            the_text_of_the_library_view_with_no_line(false, true, false),
+            THE_LIBRARY_WITH_A_FILTER
+        );
+
+        assert_eq!(
+            the_text_of_the_library_view_with_no_line(false, false, true),
+            THE_LIBRARY_OF_PODCASTS_WITH_NO_MEDIA
+        );
+        assert_eq!(
+            the_text_of_the_library_view_with_no_line(false, false, false),
+            THE_LIBRARY_WITH_NO_MEDIA
+        );
+
+        // Every one of those texts names a key of the program, and it says one
+        // thing in one sentence.
+        for text in [
+            THE_HOME_VIEW_WITH_NO_LINE,
+            THE_HOME_VIEW_WITH_NO_ANSWER,
+            THE_LIBRARY_WITH_NO_MEDIA,
+            THE_LIBRARY_OF_PODCASTS_WITH_NO_MEDIA,
+            THE_LIBRARY_WITH_A_FILTER,
+            THE_LIBRARY_WITH_NO_ANSWER,
+        ] {
+            assert!(
+                text.contains("Press "),
+                "the text \"{}\" names no key of the program",
+                text
+            );
+            assert!(
+                !text.contains("Press '"),
+                "a text of a view names a key with no quotation mark: {}",
+                text
+            );
         }
     }
 

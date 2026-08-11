@@ -3982,6 +3982,63 @@ and `the_program_writes_the_sequence_of_a_list` of
 `tests/the_lists_against_the_sandbox.rs` moves one line of every list of two
 media or more and it gives the sequence back.
 
+### T-103: the Home view and the Library view of a library with no media said nothing
+
+**The sweep of a library of no item found this**, and no session had made that
+sweep. The sandbox holds a library "Empty" of 0 items. The screen of 2026-08-12,
+before the correction:
+
+```
+👋 Connected as toutuitest          📖 Empty (book)          🦜 Toutui v0.7.48
+🔗 localhost:13399
+──────────────────────────────Library [0 items]──────────────────────────────
+                            (nothing, 10 rows)
+```
+
+The title said "[0 items]" and no line of the screen said why. **Six views of the
+program held the rule of T-91 already** — the series, the authors, the narrators,
+the lists, the chapters, and the queue — and the two views that a user sees first
+did not.
+
+**The program starts in the Library view when the Home view holds no line**
+(`src/app.rs`, near the line 939), therefore a user of such a library reads the
+text of the Library view first.
+
+**Three conditions, and their sequence is the rule.** `the_text_of_the_library_view_with_no_line`
+of `src/ui/keys.rs` holds it:
+
+1. **The server does not answer.** The program then knows nothing of the library,
+   and it must not say that the library holds no media (T-91).
+2. **A filter is on.** The library holds media, and the filter hides every one of
+   them: "This library holds no media" is false for that condition.
+3. **The library itself.** A library of podcasts names the key `A` and a library
+   of books names the key `L`, because those keys give the user the next step.
+
+The Home view holds two of those conditions: the server that does not answer, and
+a library with no shelf.
+
+**The measurement after the correction**, with the sandbox and an isolated
+`XDG_CONFIG_HOME`:
+
+- The library "Empty": the Library view says "This library holds no media. Press L
+  to tell the server to examine the library.", and the Home view says "The server
+  gave no shelf for this library. Press Tab for the Library, and R to ask the
+  server again."
+- With `podman stop abs-test`: the Home view says "The server does not answer,
+  therefore this screen holds no shelf. A media of the disk plays in this mode.
+  Press R when the server answers again." **The Library view of that mode holds
+  the four media of the disk**, therefore its own sentence stays away, and that is
+  correct.
+
+`a_view_with_no_line_says_why` of `src/ui/keys.rs` holds the sequence of the
+conditions, and every text of the two views joined `THE_TEXTS_OF_THE_VIEWS`:
+those texts now hold the rule of one space between two words and the rule of a
+key with no quotation mark.
+
+**`App::render_the_reason` holds the shape of such a screen in one place.** Five
+views wrote that paragraph themselves before, and a sixth view of the future needs
+one line now.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
