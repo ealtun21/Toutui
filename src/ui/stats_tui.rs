@@ -12,6 +12,7 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Paragraph, Widget};
 
 use crate::api::me::listening_stats::{bar, human_time, largest, last_days, top_items, week};
+use crate::api::stats::{human_size, LibraryStats, TopName, YearStats};
 use crate::logic::stats::State;
 
 /// The number of days of the first group.
@@ -25,6 +26,13 @@ pub const TOP: usize = 5;
 
 /// The number of the last sessions.
 pub const SESSIONS: usize = 5;
+
+/// The number of lines of each list of the two groups of the statistics of the
+/// library and of the year.
+///
+/// The server gives ten items and this view shows five, because the view holds
+/// six groups and the user must reach the end of it.
+pub const BIG: usize = 5;
 
 /// The largest width of a bar, in columns.
 const BAR_WIDTH: usize = 30;
@@ -91,7 +99,7 @@ fn line_of_a_bar(name: &str, seconds: f64, most: f64, width: usize) -> Line<'sta
 /// The function gives a line for a state that holds no answer. The user then
 /// reads what the program does, and the screen is never empty.
 pub fn lines(state: &State, width: u16) -> Vec<Line<'static>> {
-    let stats = match state {
+    let all = match state {
         State::Nothing => return vec![quiet("The program did not ask the server.".to_string())],
         State::Waiting => {
             return vec![quiet("The program asks the server…".to_string())];
@@ -105,8 +113,10 @@ pub fn lines(state: &State, width: u16) -> Vec<Line<'static>> {
                 quiet(text.clone()),
             ];
         }
-        State::Ready(stats) => stats,
+        State::Ready(all) => all,
     };
+    let (library, year) = (all.library.as_ref(), all.year.as_ref());
+    let stats = &all.listening;
 
     let bars = bar_width(width);
     let mut out: Vec<Line<'static>> = Vec::new();
@@ -196,7 +206,118 @@ pub fn lines(state: &State, width: u16) -> Vec<Line<'static>> {
         }
     }
 
+    out.push(Line::raw(""));
+    lines_of_the_library(&mut out, library, &all.library_name);
+
+    out.push(Line::raw(""));
+    lines_of_the_year(&mut out, year, all.year_number);
+
     out
+}
+
+/// Makes a line of a list of names, with a number and a time.
+fn line_of_a_name(number: usize, name: &TopName) -> Line<'static> {
+    Line::from(format!(
+        "{}. {}  ({})",
+        number + 1,
+        name.label(),
+        human_time(name.time)
+    ))
+}
+
+/// The group of the statistics of the library.
+///
+/// A library that gives no answer keeps one quiet line. The user then knows
+/// that the group exists, and that the server said nothing.
+fn lines_of_the_library(out: &mut Vec<Line<'static>>, stats: Option<&LibraryStats>, name: &str) {
+    let heading = if name.trim().is_empty() {
+        "The library".to_string()
+    } else {
+        format!("The library {}", name)
+    };
+    out.push(title(&heading));
+
+    let Some(stats) = stats else {
+        out.push(quiet(
+            "The server gave no number for this library.".to_string(),
+        ));
+        return;
+    };
+
+    out.push(Line::from(format!(
+        "{} items,  {} tracks,  {} authors,  {} genres",
+        stats.total_items, stats.num_audio_tracks, stats.total_authors, stats.total_genres
+    )));
+    out.push(Line::from(format!(
+        "{} on the disk,  {} of media",
+        human_size(stats.total_size),
+        human_time(stats.total_duration)
+    )));
+
+    if !stats.longest_items.is_empty() {
+        out.push(Line::raw(""));
+        out.push(quiet("The longest items".to_string()));
+        for (number, item) in stats.longest_items.iter().take(BIG).enumerate() {
+            out.push(Line::from(format!(
+                "{}. {}  ({})",
+                number + 1,
+                item.name(),
+                human_time(item.duration)
+            )));
+        }
+    }
+
+    if !stats.largest_items.is_empty() {
+        out.push(Line::raw(""));
+        out.push(quiet("The largest items".to_string()));
+        for (number, item) in stats.largest_items.iter().take(BIG).enumerate() {
+            out.push(Line::from(format!(
+                "{}. {}  ({})",
+                number + 1,
+                item.name(),
+                human_size(item.size)
+            )));
+        }
+    }
+}
+
+/// The group of the statistics of the year.
+fn lines_of_the_year(out: &mut Vec<Line<'static>>, stats: Option<&YearStats>, year: i32) {
+    out.push(title(&format!("The year {}", year)));
+
+    let Some(stats) = stats else {
+        out.push(quiet(
+            "The server gave no number for this year.".to_string(),
+        ));
+        return;
+    };
+
+    out.push(Line::from(format!(
+        "{} of listening in {} sessions",
+        human_time(stats.total_listening_time),
+        stats.num_listening_sessions
+    )));
+    out.push(Line::from(format!(
+        "{} books came, and {} authors.  {} of them on the disk",
+        stats.num_books_added,
+        stats.num_authors_added,
+        human_size(stats.total_books_added_size)
+    )));
+
+    for (heading, list) in [
+        ("The authors of the year", &stats.top_authors),
+        ("The narrators of the year", &stats.top_narrators),
+        ("The genres of the year", &stats.top_genres),
+    ] {
+        if list.is_empty() {
+            continue;
+        }
+        out.push(Line::raw(""));
+        out.push(quiet(heading.to_string()));
+        for (number, name) in list.iter().take(BIG).enumerate() {
+            out.push(line_of_a_name(number, name));
+        }
+    }
 }
 
 /// Draws the statistics, and gives the largest first line.
@@ -249,6 +370,17 @@ mod tests {
         .expect("the answer of the server must read")
     }
 
+    /// The answer of the server, in the shape that the screen takes. The two
+    /// groups of the library and of the year are absent, therefore each of them
+    /// gives its quiet line.
+    fn the_state_of_the_screen() -> State {
+        State::Ready(Box::new(crate::logic::stats::Statistics {
+            listening: the_answer_of_the_server(),
+            year_number: 2026,
+            ..Default::default()
+        }))
+    }
+
     fn text_of(lines: &[Line<'static>]) -> String {
         lines
             .iter()
@@ -264,7 +396,7 @@ mod tests {
 
     #[test]
     fn the_screen_shows_every_group() {
-        let state = State::Ready(Box::new(the_answer_of_the_server()));
+        let state = the_state_of_the_screen();
         let text = text_of(&lines(&state, 80));
 
         assert!(text.contains("Today: 4 min 41 s"));
@@ -295,7 +427,14 @@ mod tests {
     fn an_account_with_no_session_gives_every_group_and_no_fault() {
         let empty: ListeningStats =
             serde_json::from_value(serde_json::json!({})).expect("an answer must read");
-        let text = text_of(&lines(&State::Ready(Box::new(empty)), 80));
+        let text = text_of(&lines(
+            &State::Ready(Box::new(crate::logic::stats::Statistics {
+                listening: empty,
+                year_number: 2026,
+                ..Default::default()
+            })),
+            80,
+        ));
 
         assert!(text.contains("Today: 0 s"));
         assert!(text.contains("You played no media."));
@@ -308,7 +447,7 @@ mod tests {
     /// line. A line of a day that has time must hold a bar.
     #[test]
     fn a_day_with_no_time_gives_no_bar() {
-        let state = State::Ready(Box::new(the_answer_of_the_server()));
+        let state = the_state_of_the_screen();
         let text = text_of(&lines(&state, 80));
 
         let monday = text
@@ -325,12 +464,108 @@ mod tests {
         assert!(!sunday.contains(" s"));
     }
 
+    /// The answers of the sandbox on 2026-08-11, for the two new groups.
+    fn the_state_with_the_two_groups() -> State {
+        let library: crate::api::stats::LibraryStats = serde_json::from_value(serde_json::json!({
+            "totalItems": 9, "totalSize": 7987553, "totalDuration": 1883,
+            "numAudioTracks": 11, "totalAuthors": 4, "totalGenres": 2,
+            "largestItems": [{"id":"a","title":"A Long Test Book","size":7200565}],
+            "longestItems": [{"id":"a","title":"A Long Test Book","duration":1800}]
+        }))
+        .expect("the answer of the library must read");
+
+        let year: crate::api::stats::YearStats = serde_json::from_value(serde_json::json!({
+            "numListeningSessions": 6, "totalListeningTime": 401,
+            "numBooksAdded": 9, "numAuthorsAdded": 4,
+            "totalBooksAddedSize": 7987553,
+            "topAuthors":   [{"name":"Long Author","time":396}],
+            "topNarrators": [{"name":"A Test Narrator","time":120}],
+            "topGenres":    [{"genre":"Fiction","time":120}]
+        }))
+        .expect("the answer of the year must read");
+
+        State::Ready(Box::new(crate::logic::stats::Statistics {
+            listening: the_answer_of_the_server(),
+            library: Some(library),
+            library_name: "Books".to_string(),
+            year: Some(year),
+            year_number: 2026,
+        }))
+    }
+
+    #[test]
+    fn the_screen_shows_the_group_of_the_library() {
+        let text = text_of(&lines(&the_state_with_the_two_groups(), 80));
+
+        assert!(text.contains("The library Books"), "{text}");
+        assert!(text.contains("9 items,  11 tracks,  4 authors,  2 genres"));
+        assert!(text.contains("7.6 MB on the disk,  31 min 23 s of media"));
+        assert!(text.contains("The longest items"));
+        assert!(text.contains("1. A Long Test Book  (30 min 00 s)"));
+        assert!(text.contains("The largest items"));
+        assert!(text.contains("1. A Long Test Book  (6.9 MB)"));
+    }
+
+    #[test]
+    fn the_screen_shows_the_group_of_the_year() {
+        let text = text_of(&lines(&the_state_with_the_two_groups(), 80));
+
+        assert!(text.contains("The year 2026"), "{text}");
+        assert!(text.contains("6 min 41 s of listening in 6 sessions"));
+        assert!(text.contains("9 books came, and 4 authors.  7.6 MB of them on the disk"));
+        assert!(text.contains("The authors of the year"));
+        assert!(text.contains("1. Long Author  (6 min 36 s)"));
+        assert!(text.contains("The narrators of the year"));
+        assert!(text.contains("1. A Test Narrator  (2 min 00 s)"));
+        // The list of the genres names its value `genre` on the server. The
+        // screen must show that name, and never "No name".
+        assert!(text.contains("The genres of the year"));
+        assert!(text.contains("1. Fiction  (2 min 00 s)"));
+        assert!(!text.contains("No name"));
+    }
+
+    /// A server that gives no number for one of the two groups must take that
+    /// group away only. The user keeps the rest of the view.
+    #[test]
+    fn a_group_with_no_answer_keeps_one_quiet_line() {
+        let text = text_of(&lines(&the_state_of_the_screen(), 80));
+
+        assert!(text.contains("The library"));
+        assert!(text.contains("The server gave no number for this library."));
+        assert!(text.contains("The year 2026"));
+        assert!(text.contains("The server gave no number for this year."));
+        // The groups of the time of the user stay.
+        assert!(text.contains("The days of the week"));
+        assert!(text.contains("The last sessions"));
+    }
+
+    /// A list with no name gives no heading. An empty heading with nothing
+    /// below it would say that the server lost something.
+    #[test]
+    fn a_list_with_no_name_gives_no_heading() {
+        let year: crate::api::stats::YearStats =
+            serde_json::from_str("{}").expect("an empty answer must read");
+        let state = State::Ready(Box::new(crate::logic::stats::Statistics {
+            listening: the_answer_of_the_server(),
+            year: Some(year),
+            year_number: 2026,
+            ..Default::default()
+        }));
+        let text = text_of(&lines(&state, 80));
+
+        assert!(text.contains("The year 2026"));
+        assert!(!text.contains("The authors of the year"));
+        assert!(!text.contains("The genres of the year"));
+        // The library has no name here, therefore the heading is short.
+        assert!(text.contains("The library\n"), "{text}");
+    }
+
     #[test]
     fn a_narrow_screen_gives_no_bar_and_no_fault() {
         assert_eq!(bar_width(10), 0);
         assert_eq!(bar_width(0), 0);
 
-        let state = State::Ready(Box::new(the_answer_of_the_server()));
+        let state = the_state_of_the_screen();
         let text = text_of(&lines(&state, 10));
 
         assert!(text.contains("Monday"));
@@ -346,7 +581,7 @@ mod tests {
     /// time at its end.
     #[test]
     fn no_line_of_a_bar_is_wider_than_the_screen() {
-        let state = State::Ready(Box::new(the_answer_of_the_server()));
+        let state = the_state_of_the_screen();
 
         // A screen of fewer columns than the name, the space, and the time
         // cannot hold a line. No terminal of that width can show a book.

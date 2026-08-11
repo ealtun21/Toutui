@@ -2692,10 +2692,52 @@ impl App {
         crate::logic::stats::keep(crate::logic::stats::State::Waiting);
 
         let api = std::sync::Arc::clone(&self.api);
+        let library = self.id_selected_lib.clone();
+        let library_name = self.library_name.clone();
 
         tokio::spawn(async move {
-            let state = match crate::api::me::listening_stats::get_listening_stats(&api).await {
-                Ok(stats) => crate::logic::stats::State::Ready(Box::new(stats)),
+            let year_number = crate::api::stats::this_year();
+
+            // The three requests go together. They ask three different paths,
+            // therefore the view waits for the slowest one and not for the sum
+            // of the three.
+            let (listening, of_the_library, of_the_year) = tokio::join!(
+                crate::api::me::listening_stats::get_listening_stats(&api),
+                async {
+                    if library.is_empty() {
+                        return None;
+                    }
+                    crate::api::stats::get_library_stats(&api, &library)
+                        .await
+                        .ok()
+                },
+                async {
+                    crate::api::stats::get_year_stats(&api, year_number)
+                        .await
+                        .ok()
+                },
+            );
+
+            // The time of the user is the important answer. A fault of one of
+            // the two other requests takes its group away only: a user with no
+            // permission for the statistics of the year keeps the rest of the
+            // view. See `logic::stats::Statistics`.
+            let state = match listening {
+                Ok(listening) => {
+                    if of_the_library.is_none() && !library.is_empty() {
+                        log::warn!("[stats] the server gave no number for the library {library}");
+                    }
+                    if of_the_year.is_none() {
+                        log::warn!("[stats] the server gave no number for the year {year_number}");
+                    }
+                    crate::logic::stats::State::Ready(Box::new(crate::logic::stats::Statistics {
+                        listening,
+                        library: of_the_library,
+                        library_name,
+                        year: of_the_year,
+                        year_number,
+                    }))
+                }
                 Err(error) => {
                     log::warn!("[stats] the server gave no statistics: {}", error);
                     crate::logic::stats::State::Fault(error.to_string())

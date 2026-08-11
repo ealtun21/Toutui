@@ -5,4 +5,5 @@ pub mod me;
 pub mod podcasts;
 pub mod server;
 pub mod sessions;
+pub mod stats;
 pub mod utils;
