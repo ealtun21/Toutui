@@ -1694,6 +1694,40 @@ code.** These are facts of a design, and not code:
 therefore no code goes in before that decision. The PDF of the text needs no
 such decision: `pdf-extract` is MIT and pure Rust.
 
+### T-52: a fault of the reader looked like a program that stopped
+
+The user reported this on 2026-08-11: "the player gave an error saying it had no
+book or something, than I couldn't even go back, it locked in me that error, had
+to relaunch the whole app".
+
+A run in tmux gave the fault at once. The key `e` on a media with no EPUB book
+gave a screen of one line: "The program did not get the book: The server does not
+have this item." **That screen named no key**, and three rules made it a trap:
+
+| The fault | Why |
+|---|---|
+| The screen named no key | The view of the reader draws no footer, and a view with no book drew a line of text and nothing else |
+| `Q` did nothing | Every key of the view of the reader went to the reader, and the reader uses `Q` for no work. Therefore the program could not stop |
+| `Esc` did nothing | The same rule. `Esc` closed the contents of the book only |
+| `h` went to the Library | The user came from the Home view, and they lost their line |
+| The text says nothing about the media | The endpoint of the ebook answers 404 for a media with no ebook **and** for an item that does not exist |
+
+**The correction.**
+
+- A view of the reader with no book keeps two lines for the footer, and that
+  footer says "h/Esc: back  ?: every key  Q: quit". The message stands under a
+  title, therefore the screen looks like a view and not like a program that died.
+- `Q` reaches the handler of the program in every view now. The reader takes
+  every other key.
+- `Esc` leaves the reader when the contents are closed, and it closes the
+  contents when they are open.
+- `h` and `Esc` give the view that the user came from back. `App` holds
+  `the_view_before_the_reader`.
+- `why_the_book_did_not_come` asks for the item after a 404, and
+  `the_message_of_the_format` gives the sentence: "This media has no ebook.",
+  "The ebook of this media is a PDF file, and the reader shows EPUB books only.",
+  or the fault of the request. That function is pure, and a test holds it.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

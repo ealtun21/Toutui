@@ -7,7 +7,7 @@ use crate::ui::cover;
 use crate::utils::convert_seconds::*;
 use ratatui::{
     buffer::Buffer,
-    layout::{Constraint, Layout, Rect},
+    layout::{Alignment, Constraint, Layout, Rect},
     style::{Color, Modifier, Style, Stylize},
     text::Line,
     widgets::{
@@ -346,25 +346,49 @@ impl App {
     /// Draws the reader. The whole screen belongs to the book, because a book
     /// needs every line that the terminal has.
     fn render_reader(&mut self, area: Rect, buf: &mut Buffer) {
+        // The task that opens a book puts it in a place of the process. The
+        // screen takes it here.
+        self.take_the_book();
+
+        // A view with no book keeps two lines for the footer. A screen that
+        // names no key looks like a program that stopped: the user of
+        // 2026-08-11 had to start the program again. See T-52.
+        if self.reader.is_none() {
+            let [header_area, main_area, footer_area] = Layout::vertical([
+                Constraint::Length(2),
+                Constraint::Fill(1),
+                Constraint::Length(2),
+            ])
+            .areas(area);
+
+            let message = self
+                .reader_message
+                .clone()
+                .unwrap_or_else(|| "No book is open.".to_string());
+
+            self.render_header(header_area, buf);
+            App::render_footer(footer_area, buf, crate::ui::keys::FOOTER_OF_A_FAULT);
+
+            Paragraph::new(message)
+                .centered()
+                .wrap(Wrap { trim: true })
+                .block(
+                    Block::default()
+                        .borders(Borders::TOP)
+                        .title("The reader of the ebook")
+                        .title_alignment(Alignment::Center),
+                )
+                .render(main_area, buf);
+
+            return;
+        }
+
         let [header_area, main_area] =
             Layout::vertical([Constraint::Length(2), Constraint::Fill(1)]).areas(area);
 
         self.render_header(header_area, buf);
 
-        // The task that opens a book puts it in a place of the process. The
-        // screen takes it here.
-        self.take_the_book();
-
         let Some(reader) = self.reader.as_mut() else {
-            let message = self
-                .reader_message
-                .clone()
-                .unwrap_or_else(|| "No book is open. Press h to go back.".to_string());
-
-            Paragraph::new(message)
-                .centered()
-                .wrap(Wrap { trim: true })
-                .render(main_area, buf);
             return;
         };
 

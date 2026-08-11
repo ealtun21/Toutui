@@ -455,6 +455,55 @@ fn number_of(value: &serde_json::Value) -> Option<f64> {
     }
 }
 
+/// Gives the sentence that says why the ebook did not come.
+///
+/// The endpoint of the ebook answers 404 for a media with no ebook and for an
+/// item that does not exist. Therefore this function asks for the item, and it
+/// names what that item holds. A request that failed for a different reason
+/// keeps its own text.
+async fn why_the_book_did_not_come(
+    api: &Arc<ApiClient>,
+    item_id: &str,
+    error: &crate::api::client::error::ApiError,
+) -> String {
+    if !matches!(error, crate::api::client::error::ApiError::NotFound) {
+        return format!("The program did not get the book: {}", error);
+    }
+
+    let item: serde_json::Value = match api.get_json(&format!("/api/items/{}", item_id)).await {
+        Ok(value) => value,
+        Err(_) => return "The server has no ebook for this media.".to_string(),
+    };
+
+    let format = item["media"]["ebookFile"]["ebookFormat"]
+        .as_str()
+        .or_else(|| item["media"]["ebookFormat"].as_str())
+        .unwrap_or("");
+
+    the_message_of_the_format(format)
+}
+
+/// Gives the sentence for the form of the ebook that the media holds.
+///
+/// The function is pure, therefore a test needs no server.
+pub fn the_message_of_the_format(format: &str) -> String {
+    let format = format.trim().to_lowercase();
+
+    match format.as_str() {
+        "" => "This media has no ebook. The key `e` needs a media with an EPUB \
+               book."
+            .to_string(),
+        "epub" => "The server holds an EPUB book for this media, and it did not \
+                   give the file. Try again, or read the log."
+            .to_string(),
+        other => format!(
+            "The ebook of this media is a {} file, and the reader shows EPUB \
+             books only.",
+            other.to_uppercase()
+        ),
+    }
+}
+
 /// Gives the path of the ebook of one item on the disk.
 pub fn ebook_path(username: &str, item_id: &str) -> PathBuf {
     crate::logic::download::downloads_base_dir(username).join(format!("{}.epub", item_id))
@@ -482,9 +531,15 @@ pub async fn get_the_ebook(
 
     let name = format!("{}.epub", item_id);
 
-    api.download_to_file(&format!("/api/items/{}/ebook", item_id), &directory, &name)
+    if let Err(error) = api
+        .download_to_file(&format!("/api/items/{}/ebook", item_id), &directory, &name)
         .await
-        .map_err(|error| format!("The program did not get the book: {}", error))?;
+    {
+        // The endpoint of the ebook answers 404 for a media that holds no
+        // ebook, and the text "The server does not have this item" then tells
+        // the user nothing. One request more names the true cause. See T-52.
+        return Err(why_the_book_did_not_come(api, item_id, &error).await);
+    }
 
     // `download_to_file` takes the name of the header, and that name is the
     // name of the file of the server. The reader needs a name that it can find
@@ -500,6 +555,32 @@ pub async fn get_the_ebook(
 
 #[cfg(test)]
 mod tests {
+    use super::the_message_of_the_format;
+
+    /// A media with no ebook must not read "The server does not have this
+    /// item". The user of 2026-08-11 met that text, and it says nothing about
+    /// the media. See T-52.
+    #[test]
+    fn the_message_names_the_form_of_the_ebook() {
+        let nothing = the_message_of_the_format("");
+        assert!(nothing.contains("no ebook"), "{}", nothing);
+
+        let pdf = the_message_of_the_format("pdf");
+        assert!(pdf.contains("PDF"), "{}", pdf);
+        assert!(pdf.contains("EPUB books only"), "{}", pdf);
+
+        // The server names the form in small letters, and a different server
+        // can name it in capital letters.
+        assert_eq!(the_message_of_the_format("PDF"), pdf);
+        assert_eq!(the_message_of_the_format(" pdf "), pdf);
+
+        let epub = the_message_of_the_format("epub");
+        assert!(epub.contains("EPUB"), "{}", epub);
+        // An EPUB book that did not come is a fault of the request, and not a
+        // media with no book.
+        assert!(!epub.contains("no ebook"), "{}", epub);
+    }
+
     use super::*;
 
     fn a_place(spine: usize, line: usize) -> Position {

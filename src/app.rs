@@ -155,6 +155,10 @@ pub struct App {
     /// The view that the user came from, before the list of every key. The key
     /// `?` a second time gives that view back. See T-49.
     pub the_view_before_the_keys: AppView,
+    /// The view that the user came from, before the reader of an ebook. The key
+    /// `h` gives that view back. The old code always gave the Library view, and
+    /// a user of the Home view then lost their line. See T-52.
+    pub the_view_before_the_reader: AppView,
     /// The user changed the sequence or the filter. The loop of the program
     /// then makes the application again, in the same way as the key `R`. A
     /// new sequence needs a new request, and every list of the library comes
@@ -1036,6 +1040,7 @@ impl App {
             list_state_authors: ListState::default(),
             list_state_keys: ListState::default(),
             the_view_before_the_keys: AppView::Home,
+            the_view_before_the_reader: AppView::Home,
             must_refresh: false,
             series_from: AppView::Series,
             lists,
@@ -1155,7 +1160,12 @@ impl App {
             // The keys of the reader of an ebook come first. The reader uses
             // the same letters as the lists and as the player, and it uses
             // them for a different work. See T-10.
-            code if matches!(self.view_state, AppView::Reader) => {
+            // The key `Q` stops the program in every view. The reader took
+            // every key before this rule, therefore a user of the reader could
+            // not stop the program at all. See T-52.
+            code if matches!(self.view_state, AppView::Reader)
+                && !matches!(code, KeyCode::Char('Q')) =>
+            {
                 self.handle_key_of_the_reader(code);
             }
 
@@ -3099,12 +3109,22 @@ impl App {
             .as_ref()
             .is_some_and(|reader| reader.item_id == item_id)
         {
+            if !matches!(self.view_state, AppView::Reader) {
+                self.the_view_before_the_reader = self.view_state;
+            }
+
             self.view_state = AppView::Reader;
             return;
         }
 
         self.reader = None;
         self.reader_message = Some("The program gets the book…".to_string());
+
+        // The key `h` of the reader gives this view back. See T-52.
+        if !matches!(self.view_state, AppView::Reader) {
+            self.the_view_before_the_reader = self.view_state;
+        }
+
         self.view_state = AppView::Reader;
 
         let api = std::sync::Arc::clone(&self.api);
@@ -3189,7 +3209,18 @@ impl App {
             .map(|(_, rows)| rows.saturating_sub(5))
             .unwrap_or(20);
 
-        if matches!(code, KeyCode::Char('h')) {
+        // The key `h` leaves the reader always. `Esc` leaves it when the
+        // contents are closed, and it closes the contents when they are open.
+        // A view with a fault holds no reader, therefore this rule stands
+        // before every rule that needs one. See T-52.
+        let contents_are_open = self
+            .reader
+            .as_ref()
+            .is_some_and(|reader| reader.contents_open);
+
+        if matches!(code, KeyCode::Char('h'))
+            || (matches!(code, KeyCode::Esc) && !contents_are_open)
+        {
             // The place goes to the server before the user leaves the book.
             let wants = self
                 .reader
@@ -3200,7 +3231,7 @@ impl App {
                 self.send_the_place_of_the_reader();
             }
 
-            self.view_state = AppView::Library;
+            self.view_state = self.the_view_before_the_reader;
             return;
         }
 

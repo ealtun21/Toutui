@@ -161,6 +161,13 @@ pub const FOOTER_OF_A_LIBRARY_OF_PODCASTS: &str =
 pub const FOOTER_OF_A_LIST: &str =
     "j/k: move  l: take the line  h: back  Tab: home  R: refresh  ?: every key  Q: quit";
 
+/// The footer of a view that shows a fault and nothing else.
+///
+/// A screen that names no key looks like a program that stopped. The user of
+/// 2026-08-11 met the fault of the reader, and they started the program again
+/// because no line of the screen named a key. See T-52.
+pub const FOOTER_OF_A_FAULT: &str = "h/Esc: back  ?: every key  Q: quit";
+
 /// The footer of a list of media that comes from one line of a different list:
 /// the books of a series, the media of a collection, and the episodes of a
 /// podcast. The key `l` plays there, therefore this footer is not the footer of
@@ -197,6 +204,7 @@ mod tests {
             FOOTER_OF_A_LIBRARY_OF_PODCASTS,
             FOOTER_OF_A_LIST,
             FOOTER_OF_A_LIST_OF_MEDIA,
+            FOOTER_OF_A_FAULT,
         ];
 
         for footer in footers {
