@@ -4,28 +4,28 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.34**, and the items T-74 to T-76 belong to this
+**The newest release is v0.7.35**, and the items T-74 to T-79 belong to this
 session. T-66 to T-73 belong to the session before it.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.34` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.35` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo test -j 16
-    # 851 tests pass, 18 carry #[ignore], 38 binaries
+    # 862 tests pass, 18 carry #[ignore], 38 binaries
 cargo tree -i openssl-sys                # finds nothing
 cargo tree -i cc                         # finds libsqlite3-sys and ring only
 ```
 
-**`cargo nextest run` gives the same tests in 2.2 seconds**, and `cargo test` gives
+**`cargo nextest run` gives the same tests in 2.3 seconds**, and `cargo test` gives
 them in 8.7. Use nextest: `.config/nextest.toml` stands in the repository, and the
 tool is on this machine. See T-74.
 
 **Every test of the sandbox passes too.** One run of
-`cargo nextest run --run-ignored all` gave 18 of 18 in 14.2 seconds, and the group
+`cargo nextest run --run-ignored all` gave 880 of 880 in 14.8 seconds, and the group
 `the-sandbox` of `.config/nextest.toml` runs them one at a time for the rate limit of
 the login. With `cargo test`, give `-- --ignored --test-threads=1`.
 
@@ -50,6 +50,9 @@ v0.6.7. Do not try to publish v0.6.6.
 | T-74 | **The run of the tests takes 2.2 seconds**, and it took 18.7 | — |
 | T-75 | Two texts of the screen that a sweep of the views found | `v`, `S` |
 | T-76 | **The books of a media, when an item holds more than one** | `e` |
+| T-77 | **The settings write `config.toml`**, and they keep every comment | `S` |
+| T-78 | The message of the program took the letters of the view below it | — |
+| T-79 | The key `h` of the view of the search did nothing | `/` |
 
 ### What the session before this one closed
 
@@ -86,6 +89,17 @@ fails. `cargo nextest` runs every test in one pool of processes, and the run tak
 `docs/harness/drive.sh`. It found two texts that no test held: the footer of the
 narrators said "author", and a text of the settings held a run of 22 spaces. A test
 now holds every text of a view to one space between two words.
+
+**T-77, the settings that write.** `with_the_value` changes one line of the file
+and it keeps every other line, therefore every comment of the user stays. The
+write is atomic (a file beside it, and a rename), and the program uses the new
+value with no restart.
+
+**T-78 and T-79 came from the sweep of the reader and of the search**, and no
+test held either. A `Paragraph` of ratatui gives its style to every cell of its
+area and it writes its own text only: the message of the program therefore stood
+between the letters of the book. The key `h` of the view of the search moved
+nothing, because the handler held no line for that view.
 
 **T-76, the books of a media.** `media.ebookFile` names one book, and `libraryFiles`
 holds every file of the item. The key `e` inside the reader gives the list.
@@ -154,12 +168,14 @@ faults of the program that they found.
 
 ### 2. The work that needs no decision
 
-1. **The list of Continue Listening of a **different** library.** T-66 holds the
+1. **The queue of the episodes of a podcast on the server.** This is the one
+   item of section 5 of `docs/T-24-coverage.md` that stays, and it is small.
+   `GET /api/libraries/:id/episode-downloads` gives the queue and
+   `GET /api/podcasts/:id/clear-queue` empties it. **Show the queue before you
+   offer the key that empties it**: the user cannot see that list today.
+2. **The list of Continue Listening of a **different** library.** T-66 holds the
    shelf of the library that the user selected. A media of a second library needs no
    work today, because the Home view shows one library.
-2. **A view of the settings for the block `[reader]` (T-72).** `config.toml` holds
-   `ebook_cache_mb` now, and the user must open the file with an editor. The view of
-   the settings shows the values of the program, and it changes none of them.
 3. **The peak of the memory of a PDF (T-62).** `Document::load` of `lopdf` reads the
    whole file, therefore a book of 500 megabytes needs a machine of a gigabyte for
    one moment. `MAX_BOOK_BYTES` of 512 megabytes holds that limit. A reader of one
@@ -168,12 +184,7 @@ faults of the program that they found.
    of each row that said `No` or `Half` and it corrected four of them (the live
    messages, the list of the ebooks, the tags, and a new row for the reader of a PDF).
    **A row can still be old: read the code before you take one.**
-5. **The queue of the episodes of a podcast on the server.**
-   `GET /api/podcasts/:id/clear-queue` gives `200`, and the program does not use it.
-   The queue of that work is invisible in Toutui today
-   (`GET /api/libraries/:id/episode-downloads` gives `{"queue":[]}`), therefore a key
-   that empties a list which the user cannot see says little. **Show the queue first.**
-6. **A view of the search that holds its own titles (T-70).** The lines of that view
+5. **A view of the search that holds its own titles (T-70).** The lines of that view
    come from the lists of the library, therefore a book that the program did not load
    gives no line. `get_all_books` reads every page at the start, and 500 pages of 500
    items hold 250000 items, therefore no library of a user meets this today.
@@ -449,7 +460,20 @@ answers slowly while it writes. Two answers to measure:
     tests of one binary that ask for a sync at the same time take the flag from each
     other. Give each test its own identity of a playback, and ask again at each step
     of the poll. See T-74.
-32. **The reader keeps the book of the session while the user reads it.** The key `h`
+32. **A `Paragraph` of ratatui gives its style to every cell of its area, and it
+    writes its own text only.** Every letter that stood on those cells stays.
+    `Clear` takes them away. The row of the message met this in the reader, and
+    no list view showed it: that row holds no letter there. See T-78.
+33. **A key that does nothing in one view of fifteen is a fault of its own.** The
+    user learns `h` in every other view. **Press every key of a view in the
+    sweep**, and not the key that opens it only. See T-79.
+34. **The key `t` of the timer of sleep is not a view.** It goes to the next value
+    (5, 10, 15, 30, 45, and 60 minutes, the end of the chapter, and off) and it
+    writes a message. A sweep that waits for a view waits for nothing.
+35. **The contents of the reader close with `l` too.** The key `t` opens them and
+    it closes them, and `l` goes to the chapter and closes them. A sweep that
+    presses `t` after `l` therefore **opens** them again.
+36. **The reader keeps the book of the session while the user reads it.** The key `h`
     and a second `e` give the book with no call of `get_the_ebook`, therefore the
     time of the file does not change inside one run of the program. A measurement of
     the cache needs a second **run**. See T-67.
@@ -587,19 +611,19 @@ answers slowly while it writes. Two answers to measure:
 
 > Continue the Toutui takeover, and write the next version. Repo:
 > `/home/nyverino/Documents/Toutui` (ealtun21/Toutui, branch main). Maintained fork
-> of the archived AlbanDAVID/Toutui. Newest release **v0.7.34**; `Cargo.toml` is at
-> 0.7.34, so the next release bumps it first — the workflow refuses a tag that
+> of the archived AlbanDAVID/Toutui. Newest release **v0.7.35**; `Cargo.toml` is at
+> 0.7.35, so the next release bumps it first — the workflow refuses a tag that
 > disagrees with `Cargo.toml`, **and it builds `--locked`, therefore the commit of
 > the bump must hold the new `Cargo.lock`**.
 >
 > Read `docs/HANDOVER.md` first: the state, the open items, the section of the
-> harness, and 45 traps that cost real time. Then `docs/TAKEOVER-BACKLOG.md` (the
-> evidence of every item; T-74 to T-76 are the newest) and `docs/T-24-coverage.md`
+> harness, and 49 traps that cost real time. Then `docs/TAKEOVER-BACKLOG.md` (the
+> evidence of every item; T-74 to T-79 are the newest) and `docs/T-24-coverage.md`
 > (**section 6 names what the program must not have, and why**).
 >
 > **The harness is fast now, and every measurement must use it.**
 >
->  1. **`cargo nextest run` gives 851 tests in 2.2 seconds**, and `cargo test` gives
+>  1. **`cargo nextest run` gives 862 tests in 2.3 seconds**, and `cargo test` gives
 >     them in 8.7. `.config/nextest.toml` stands in the repository, and the tests of
 >     the sandbox run with `cargo nextest run --run-ignored all` (18 of 18 in 14.2 s).
 >     **The three gates before each commit stay the same**, under
@@ -619,18 +643,22 @@ answers slowly while it writes. Two answers to measure:
 >
 > **The work of the program, in the sequence of its value:**
 >
-> 1. **A view of the settings that changes a value of `config.toml`.** The block
->    `[reader]` holds `ebook_cache_mb` (T-72), and the user must open the file with an
->    editor today. **A write of that file must keep every comment of the user**, and
->    `config.example.toml` holds many.
-> 2. **A sweep of every view in tmux, and a sweep of the reader.** Two faults came
->    from such a sweep on 2026-08-11 (T-75), and two more came from the sweep before
->    it. The sweep of this session did not press the keys of the reader, of the view
->    of the search, or of the timer of sleep.
-> 3. **The queue of the episodes of a podcast on the server.**
+> 1. **The queue of the episodes of a podcast on the server.** This is the one item
+>    of section 5 of `docs/T-24-coverage.md` that stays.
 >    `GET /api/libraries/:id/episode-downloads` gives the queue, and
 >    `GET /api/podcasts/:id/clear-queue` empties it. **Show the queue before you offer
->    the key that empties it**: a user cannot see that list today.
+>    the key that empties it**: a user cannot see that list today. Make the queue hold
+>    something first: `POST /api/podcasts/:id/download-episodes` with many episodes.
+> 2. **A sweep of every view and of every key in tmux.** Six faults of two sessions
+>    came from such sweeps (T-75, T-78, and T-79), and no test held one of them.
+>    **Press every key of a view, and not the key that opens it only.** The sweeps of
+>    2026-08-11 did not press the keys of the player (`p`, `u`, `P`, `U`, `O`, `I`,
+>    `o`, `i`, `B`), the keys of a media (`n`, `D`, `X`, `M`, `N`, `b`), or the keys
+>    of a library of podcasts (`A`, `E`).
+> 3. **A view of the settings for a value that is not the cache.** T-77 gave the
+>    settings the writer of `config.toml` (`crate::config::write_the_value`), and it
+>    holds any block and any key. The colours are the next value that a user changes
+>    by hand.
 > 4. **`CARGO_TARGET_DIR` on a different disk or on a `tmpfs`.** The lag of the
 >    machine comes from the disk: `target` grew to 11 gigabytes three times in one
 >    session. Look at `du -sh target` often, and run `cargo clean --profile dev` at
