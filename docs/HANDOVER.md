@@ -239,6 +239,12 @@ new.
   `-R ealtun21/Toutui` to every `gh` command.
 - Show a fault before you correct it.
 - Tag, push, and go on. Do not wait for continuous integration.
+- **The release builds `--locked`.** A bump of the version must therefore hold the
+  new `Cargo.lock` in the same commit: run `cargo build` after the bump, and see
+  that `git status` is clean before the commit and the tag. The tag of v0.7.22 held
+  `Cargo.toml` 0.7.22 and `Cargo.lock` 0.7.21, and it had to move.
+- **Run every cargo command under `nice -n 19 ionice -c 3`.** A full build uses
+  every core, and the user tests the program on the same machine.
 - The address of the server of the user must stay outside this repository, and
   the account of the user too.
 
