@@ -1309,6 +1309,13 @@ impl App {
                 self.give_the_list_of_the_line_a_new_name()
             }
 
+            // The key of the description of a list. See T-100. It stands
+            // before the key `D` of the copy on the disk, and a list holds no
+            // copy on the disk.
+            KeyCode::Char('D') if matches!(self.view_state, AppView::Lists) => {
+                self.give_the_list_of_the_line_a_new_description()
+            }
+
             // The keys that make a new collection and a new playlist. See
             // T-88. They stand before the keys `c` and `p` of the program,
             // therefore this view takes them. The key `p` of the player and the
@@ -2703,6 +2710,66 @@ impl App {
             {
                 Ok(()) => crate::api::lists::the_sentence_of_the_new_name(kind, &old, &name),
                 Err(error) => format!("The server did not take the new name: {}", error),
+            };
+
+            crate::logic::message::say(&text);
+
+            crate::logic::the_lists::ask(&api, &library).await;
+        });
+    }
+
+    /// Gives the collection or the playlist of the line a new description.
+    /// See T-100.
+    ///
+    /// **A description of no letter takes the description away.** The server
+    /// takes that value, therefore the program needs no rule of its own here:
+    /// a list with no description is a list that the user made that way.
+    pub fn give_the_list_of_the_line_a_new_description(&mut self) {
+        let Some(list) = self.selected_list().cloned() else {
+            return;
+        };
+
+        if self.is_offline {
+            crate::logic::message::say(
+                "The server does not answer. A collection and a playlist stand on the server.",
+            );
+            return;
+        }
+
+        let question = format!(
+            "The description of the {} \"{}\" (Enter, or Esc)",
+            list.kind.name().to_lowercase(),
+            list.name
+        );
+
+        let Ok(Some(description)) = self.ask_for_a_text(&question) else {
+            return;
+        };
+
+        let description = description.trim().to_string();
+
+        if description == list.description {
+            return;
+        }
+
+        let api = std::sync::Arc::clone(&self.api);
+        let kind = list.kind;
+        let list_id = list.id.clone();
+        let name = list.name.clone();
+        let library = self.id_selected_lib.clone();
+        let gone = description.is_empty();
+
+        tokio::spawn(async move {
+            let text = match crate::api::lists::give_the_list_a_new_description(
+                &api,
+                kind,
+                &list_id,
+                &description,
+            )
+            .await
+            {
+                Ok(()) => crate::api::lists::the_sentence_of_the_new_description(kind, &name, gone),
+                Err(error) => format!("The server did not take the description: {}", error),
             };
 
             crate::logic::message::say(&text);

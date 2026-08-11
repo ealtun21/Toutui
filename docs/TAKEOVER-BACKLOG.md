@@ -3842,6 +3842,27 @@ accounts (`S`, then the first line):
   lives six seconds** (the trap 8 of the program). Read the row of the message
   inside that time, and read the row that holds it.
 
+### T-100: the description of a collection and of a playlist, with the key `D`
+
+T-93 gives a list a new name, and the same request takes the description:
+`PATCH` with `description` only gives `200`, and the name does not change. The
+key `D` of the view of the lists (`c`) writes it.
+
+**The view showed the description of a list already**, and no key of the program
+made one. A description of no letter takes the description away, and the server
+takes that value: the program needs no rule of its own here, and the sentence for
+the user says which of the two happened.
+
+The measurement in the real program: the key `D` of "A Test Collection" wrote "A
+collection of the measurement of T-100.", the row of the description of the view
+held it at the next frame with no key of the user, and `curl` of the server read
+the same words.
+
+**One text of that view held the fault of T-85 in a third place.** The row of the
+item said `{} item(s)`, and the rule of the program is "1 item" and "2 items".
+The guard test of T-95 reads `{} items` only, therefore it did not find this one.
+The row uses `ui::keys::items` now.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

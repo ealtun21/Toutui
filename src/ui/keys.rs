@@ -140,6 +140,7 @@ pub const GROUPS: &[Group] = &[
         keys: &[
             key("l", "The media of the list of the line"),
             key("r", "Give the list a new name"),
+            key("D", "Give the list a new description"),
             key("X", "Remove the list. The program asks one time"),
         ],
     },
@@ -308,7 +309,7 @@ pub const THE_LISTS_THAT_TAKE_A_MEDIA: &str = "A collection holds books, and eve
 /// therefore the view has a footer of its own: `FOOTER_OF_A_LIST` names neither
 /// of them. See T-93.
 pub const FOOTER_OF_THE_LISTS: &str =
-    "j/k: move  l: the media  r: a new name  X: remove the list  h: back  \
+    "j/k: move  l: the media  r/D: a name/description  X: remove  h: back  \
      ?: every key  Q: quit";
 
 /// The footer of the view that puts a media in a list.

@@ -182,6 +182,47 @@ pub async fn remove_the_list(
     client.delete_no_content(&path).await
 }
 
+/// Gives a collection or a playlist a new description. See T-100.
+///
+/// **The same request takes the name and the description.** The measurement of
+/// 2026-08-11: a `PATCH` with `description` only gives `200`, and the name of
+/// the list does not change.
+pub async fn give_the_list_a_new_description(
+    client: &ApiClient,
+    kind: ListKind,
+    list_id: &str,
+    description: &str,
+) -> Result<(), ApiError> {
+    let path = match kind {
+        ListKind::Collection => format!("/api/collections/{}", list_id),
+        ListKind::Playlist => format!("/api/playlists/{}", list_id),
+    };
+
+    client
+        .patch_json(&path, &serde_json::json!({ "description": description }))
+        .await
+}
+
+/// Gives the sentence of a list that took a new description. See T-100.
+///
+/// A description of no letter is a description that goes away, and the sentence
+/// says that condition with its own words.
+pub fn the_sentence_of_the_new_description(kind: ListKind, name: &str, gone: bool) -> String {
+    if gone {
+        return format!(
+            "The {} \"{}\" has no description now.",
+            kind.name().to_lowercase(),
+            name
+        );
+    }
+
+    format!(
+        "The {} \"{}\" has a new description.",
+        kind.name().to_lowercase(),
+        name
+    )
+}
+
 /// Gives a collection or a playlist a new name. See T-93.
 ///
 /// **The server does not examine the name here**, and it does examine it when it
@@ -483,6 +524,17 @@ mod tests {
         assert_eq!(
             the_sentence_of_the_new_name(ListKind::Collection, "An Old Name", "A New Name"),
             "The collection \"An Old Name\" has the name \"A New Name\" now."
+        );
+
+        // A description of no letter goes away, and the sentence says it.
+        // See T-100.
+        assert_eq!(
+            the_sentence_of_the_new_description(ListKind::Playlist, "A Name", false),
+            "The playlist \"A Name\" has a new description."
+        );
+        assert_eq!(
+            the_sentence_of_the_new_description(ListKind::Collection, "A Name", true),
+            "The collection \"A Name\" has no description now."
         );
     }
 }

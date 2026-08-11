@@ -1529,9 +1529,9 @@ impl App {
             let seconds: f64 = list.entries.iter().map(|entry| entry.duration).sum();
 
             Paragraph::new(format!(
-                "{} - {} item(s) - Duration: {}",
+                "{} - {} - Duration: {}",
                 list.kind.name(),
-                list.entries.len(),
+                crate::ui::keys::items(list.entries.len()),
                 convert_seconds(vec![seconds])
                     .first()
                     .cloned()
