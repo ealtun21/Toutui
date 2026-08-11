@@ -9,7 +9,7 @@ not done.
 | What | Value |
 |---|---|
 | The server | Audiobookshelf 2.36.0 |
-| The client | Toutui 0.7.0 (`Cargo.toml`) |
+| The client | Toutui 0.7.33 (`Cargo.toml`) |
 | The address of the server | `http://127.0.0.1:13399`, the sandbox of `docs/TEST-SERVER.md` |
 | The user | `toutuitest`, of the type `root` |
 
@@ -133,6 +133,12 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 `Yes` means that the user can do the work. `Half` means that a part operates.
 `No` means that the client has nothing.
 
+**A row can be old. Read the code before you take one.** A session of
+2026-08-11 read the code of each row that said `No` or `Half`, and it corrected
+four of them: the live messages (`No`, and the work landed with T-47 and T-66),
+the list of the ebooks of an item (the reader reads a PDF since T-54), the
+narrators (T-73), and one new row for the reader of a PDF.
+
 | Function | The server | Toutui | What is missing |
 |---|---|---|---|
 | **Sign in** | `POST /login` gives a token of 201 characters. `GET /status` gives `authMethods: ["local"]` and the fields of OpenID | Yes | OpenID. `GET /api/auth-settings` gives 14 fields of OpenID. A terminal cannot open a browser page of a provider with no work |
@@ -169,7 +175,8 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 | **The cover art** | `GET /api/items/:id/cover` gives `200` and the bytes | Yes | Nothing. T-23. The panel stands beside the description, and a series shows its books |
 | **The description** | `media.metadata.description` of the item | Yes | Nothing. `src/utils/html_text.rs` removes the HTML tags (T-13) |
 | **Read an EPUB book** | `GET /api/items/:id/ebook` gives `200` and the whole file, and it takes a `Range` | Yes | Nothing. The reader writes an EPUBCFI in `ebookLocation` and it reads one, therefore the user reads on the telephone and continues in the terminal at the same line (T-10). The path agrees with `epub.js`, the library of the web reader: a measurement with a real browser on 2026-08-11 compared 29315 texts of seven books, and every path agreed. The reader also reads the form of the specification, which the versions v0.7.8 to v0.7.11 wrote. See `src/logic/reader/cfi.rs` |
-| **The list of the ebooks of an item** | `media.ebookFile` of the item | Half | An item can hold one ebook only in this measurement. A PDF or a CBZ has no reader in the client |
+| **The list of the ebooks of an item** | `media.ebookFile` of the item | Half | The client takes one ebook, and an item can hold more than one. **The reader reads an EPUB book and a PDF book** (T-54), and a CBZ stays outside: see section 6 |
+| **Read a PDF book** | The same endpoint gives the file | Yes | Nothing. T-54 gives the words of a page in the terminal, and it draws the pictures of that page beside them with the protocol of T-23. A book of a scan holds its text inside a picture, therefore such a book gives few words. `MAX_BOOK_BYTES` of 512 megabytes holds the memory of the read (T-62) |
 | **Send an ebook to an e-reader** | `GET /api/emails/settings` gives `200`. The reference names the devices of an e-reader | No | Everything. This needs the settings of the email of the server |
 | **List the podcasts** | The same endpoint as the books | Yes | Nothing |
 | **The episodes of a podcast** | `GET /api/items/:id` gives `media.episodes` | Yes | Nothing. `l` on a podcast gives the episodes |
@@ -190,7 +197,7 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 | **Scan a library** | `POST /api/libraries/:id/scan` gives `200` | Yes | Nothing. The key `L`. The examination runs on the server, therefore the program says that the work started and the user presses `R` after a moment |
 | **The authors of a library** | `GET /api/libraries/:id/authors` gives the key `authors`, with `name`, `description`, and `numBooks`. `GET /api/authors/:id` gives no `numBooks`, therefore the list is the whole answer | Yes | Nothing. The key `a` shows the authors in the sequence of the alphabet, and `l` shows the books of one author |
 | **The narrators of a library** | `GET /api/libraries/:id/narrators` gives the key `narrators` | Yes |Nothing. The key `v`, and one view with the authors. The filter of a narrator takes the name, and not an identity. See T-73 |
-| **The tags** | `GET /api/tags` gives the key `tags` | No | Everything |
+| **The tags** | `GET /api/tags` gives the key `tags` | Half | The program does not use this endpoint, and it needs it not: `GET /api/libraries/:id/filterdata` gives the tags of the library, and the key `f` holds a line for each of them. This endpoint gives the tags of every library |
 | **The statistics of the library** | `GET /api/libraries/:id/stats` gives `totalItems`, `totalSize`, `totalDuration`, `numAudioTracks`, `largestItems`, `longestItems`, `totalAuthors`, `totalGenres` | Yes | Nothing. The view of the key `T` holds the group "The library", with the five longest items and the five largest items |
 | **The statistics of the user** | `GET /api/me/listening-stats` gives `totalTime` 281, `today` 281, `days` `{"2026-08-10":281}`, `dayOfWeek` `{"Monday":281}`, `items` (a map of 2), and `recentSessions` (5) | Yes | Nothing. The key `T` shows the time of this day and the time in total, the last 14 days, the seven days of the week, the five media of the largest time, and the five last sessions |
 | **The statistics of a year** | `GET /api/stats/year/2026` gives `numListeningSessions`, `totalListeningTime`, `topAuthors`, `topNarrators`, `topGenres`, and 8 more fields. **`topGenres` names its value `genre`, and the two other lists name it `name`** | Yes | Nothing. The view of the key `T` holds the group "The year". The lists of the narrators and of the genres come from the copy of the metadata inside each session, therefore a session that came before the metadata gives an empty list |
@@ -204,7 +211,7 @@ The variable `TOUTUI_NO_COVERS` stops the cover art. The variable
 | **The file system of the server** | `GET /api/filesystem` gives `posix` and `directories` | No | Everything. See section 6 |
 | **The settings of the sign in** | `GET /api/auth-settings` gives 14 fields, and 12 of them belong to OpenID | No | Everything. See section 6 |
 | **A stream of the server** | `POST /api/items/:id/play` with `forceTranscode` gives one address of HLS for the whole media | Yes | Nothing. The program reads the file itself, and it takes the stream for a file that no decoder of the program reads. See T-53 |
-| **Live messages** | Audiobookshelf sends the changes over socket.io | No | Everything. A change of a different client comes to Toutui at the next `R` only |
+| **Live messages** | Audiobookshelf sends the changes over socket.io | Yes | Nothing. The second transport of socket.io is plain HTTP, therefore this needed no dependency. `src/api/live.rs` holds the connection and `src/logic/live.rs` holds the box between the task and the render. The mark of a line takes the position of a different client (T-44 and T-47), a media that a different client finished leaves the shelf of Continue Listening with no request (T-66), and a change of the metadata makes the header ask for the key `R`. The log holds the name of a message and never its body, because `user_updated` carries a new token |
 
 ## 5. What is worth building next
 
@@ -262,12 +269,26 @@ The sequence inside each group gives the value for the work.
 13. ~~**A view of the authors.**~~ **Done on 2026-08-11.** The key `a`. The
     key `l` uses the filter of the author, and the program held that work
     already.
-14. **Live messages.** socket.io gives the changes of a different client. The
-    two crates of socket.io both bring `native-tls`, therefore the rule of
-    section 6 refuses both. **The work needs no crate.** The transport
-    `polling` of socket.io is plain HTTP, and `reqwest` does it already. T-47 of
-    `docs/TAKEOVER-BACKLOG.md` holds the measurement of the whole flow against
-    the sandbox, and the three rules of that transport.
+14. ~~**Live messages.**~~ **Done on 2026-08-11.** socket.io gives the changes
+    of a different client. The two crates of socket.io both bring
+    `native-tls`, therefore the rule of section 6 refuses both. **The work
+    needed no crate:** the transport `polling` of socket.io is plain HTTP, and
+    `reqwest` does it already. `src/api/live.rs` holds the connection, and
+    `src/logic/live.rs` holds the box between the task and the render. T-47 and
+    T-66 of `docs/TAKEOVER-BACKLOG.md` hold the measurements.
+
+**The four works that stay, and no one of them is large:**
+
+15. **Empty the queue of the podcast.** `GET /api/podcasts/:id/clear-queue`
+    gives `200`, and the program does not use it.
+16. **The list of the ebooks of an item.** An item can hold more than one
+    ebook, and the program takes one.
+17. **A view of the settings that writes `config.toml`.** The block `[reader]`
+    holds `ebook_cache_mb` (T-72), and the user opens the file with an editor
+    today. A write of that file must keep every comment of the user.
+18. **`GET /api/podcasts/:id/checknew` for the new episodes.** The program
+    compares the feed with the episodes of the server itself. That finds every
+    episode that is missing, and the endpoint finds the new ones only.
 
 ## 6. What Toutui should not do
 
