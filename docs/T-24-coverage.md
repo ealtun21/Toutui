@@ -259,8 +259,11 @@ The sequence inside each group gives the value for the work.
     key `l` uses the filter of the author, and the program held that work
     already.
 14. **Live messages.** socket.io gives the changes of a different client. The
-    tree holds no client of socket.io in pure Rust, therefore this needs a new
-    dependency and an examination against the rule of section 6.
+    two crates of socket.io both bring `native-tls`, therefore the rule of
+    section 6 refuses both. **The work needs no crate.** The transport
+    `polling` of socket.io is plain HTTP, and `reqwest` does it already. T-47 of
+    `docs/TAKEOVER-BACKLOG.md` holds the measurement of the whole flow against
+    the sandbox, and the three rules of that transport.
 
 ## 6. What Toutui should not do
 

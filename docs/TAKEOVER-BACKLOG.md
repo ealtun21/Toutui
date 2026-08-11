@@ -1448,6 +1448,68 @@ The program keeps every function that needs no sound now, and the header says
 "🔇 No sound device: no media can play". A thread takes the commands of the
 player and drops them, so that a key of the playback does not fill the memory.
 
+### T-47: live messages need no new dependency
+
+Audiobookshelf sends the changes of a different client over socket.io. The
+handover of 2026-08-11 said that this needs a new dependency, and that a new
+dependency needs an examination against T-20. **The measurement of 2026-08-11
+shows that the program needs no new dependency at all.**
+
+**The examination of the two crates.** Both fail the rule of T-20:
+
+| Crate | Version | `cargo tree -i openssl-sys` |
+|---|---|---|
+| `rust_socketio` | 0.6.0 | `openssl` 0.10.81, through `native-tls` |
+| `tf-rust-socketio` | 0.8.1 | the same |
+
+Both crates ask for `native-tls` with no feature that removes it. `native-tls`
+asks the binary to find `libssl` of the system, therefore a release binary would
+not run on a machine that has no such library. That is the exact fault of the
+candidates of v0.5.0. Both crates also hold `tokio-tungstenite` 0.21, which is
+old, and both add more than 180 crates to the tree. **Therefore the fork takes
+neither crate.**
+
+**Why no crate is necessary.** socket.io has two transports, and the client
+chooses. The transport `websocket` needs a library. The transport `polling` is
+plain HTTP: a `GET` that the server answers when it has a message, and a `POST`
+that carries a message to the server. `reqwest` does both already.
+
+A measurement on 2026-08-11 against the sandbox made the whole flow with `curl`
+and with plain HTTP requests:
+
+| Step | The request | The answer |
+|---|---|---|
+| 1 | `GET /socket.io/?EIO=4&transport=polling` | `0{"sid":"...","upgrades":["websocket"],"pingInterval":25000,"pingTimeout":20000,"maxPayload":1000000}` |
+| 2 | `POST` the body `40`, with `&sid=` | `ok` |
+| 3 | `GET` | `40{"sid":"..."}`, the identity of the socket |
+| 4 | `POST` the body `42["auth","<the token>"]` | `ok` |
+| 5 | `GET` | `42["user_online",{...}]` and `42["init",{...}]` |
+
+Then a second program changed the data, and the `GET` of the step 5 gave the
+message of each change inside 3 seconds:
+
+| The change of the second program | The message |
+|---|---|
+| `PATCH /api/me/progress/:id` | `user_updated` |
+| `PATCH /api/items/:id/media` | `item_updated` |
+| `POST /api/items/:id/play` | `user_stream_update`, `stream_progress`, `stream_open` |
+
+**The three rules of the transport.** The measurement found all three:
+
+1. **The server sends `2`, and the client must answer `3`.** `2` is a ping and
+   `3` is a pong. The period is `pingInterval`, therefore 25 seconds. A client
+   that does not answer gets `1` (close) after `pingTimeout`, and every later
+   request of that identity gives `400`.
+2. **One `GET` at a time for one identity.** A second `GET` in parallel gives an
+   error. A `POST` beside the `GET` is correct.
+3. **One answer can hold more than one packet.** The separator is the byte
+   `0x1e`, and not a comma. A reader that takes the whole body as one packet
+   loses every message after the first.
+
+**A message can hold a secret.** `user_updated` carries the whole account of the
+user, and that object holds a **new token**. The log must never write the body
+of a message.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
