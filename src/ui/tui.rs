@@ -709,15 +709,22 @@ impl App {
         ])
         .areas(area);
 
-        let title = match self.the_media_of_the_list.as_ref() {
-            Some((_, _, name)) => {
+        // A library holds no list until a user makes the first one. The title
+        // says that condition, and it names the two keys that make a list:
+        // an empty box says nothing. See T-88.
+        let title = match (self.the_media_of_the_list.as_ref(), self.lists.is_empty()) {
+            (_, true) => {
+                "This library holds no collection and no playlist. Press c or p to make one."
+                    .to_string()
+            }
+            (Some((_, _, name)), false) => {
                 format!(
                     "Put \"{}\" in a list [{}]",
                     name,
                     crate::ui::keys::items(self.lists.len())
                 )
             }
-            None => format!(
+            (None, false) => format!(
                 "Put the media in a list [{}]",
                 crate::ui::keys::items(self.lists.len())
             ),
@@ -729,7 +736,7 @@ impl App {
         App::render_footer(
             footer_area,
             buf,
-            &crate::ui::keys::footer_with("put the media in this list", None),
+            crate::ui::keys::FOOTER_OF_THE_LISTS_THAT_TAKE_A_MEDIA,
         );
         self.render_list(
             main_area,

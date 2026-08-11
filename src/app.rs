@@ -210,6 +210,15 @@ pub struct App {
     /// new sequence needs a new request, and every list of the library comes
     /// from that request. See T-24.
     pub must_refresh: bool,
+    /// A box of the program wrote on the cells of the view, and the next draw
+    /// must write every cell again. See T-89.
+    ///
+    /// **ratatui writes the cells that changed only**, and it compares with the
+    /// buffer that it holds itself. The box of `ask_for_a_text` makes a terminal
+    /// of its own, therefore the terminal of the program knows nothing of the
+    /// letters that the box wrote over. Those letters stayed on the screen until
+    /// a key made the program write the same rows again.
+    pub the_screen_must_be_drawn_again: bool,
     /// The view that opened the books of a series. The key `h` then goes
     /// back to that view, and not to the list of the series. The Home view
     /// can open a series too, therefore this is a view and not a yes or a no.
@@ -1113,6 +1122,7 @@ impl App {
             the_view_before_the_keys: AppView::Home,
             the_view_before_the_reader: AppView::Home,
             must_refresh: false,
+            the_screen_must_be_drawn_again: false,
             series_from: AppView::Series,
             lists,
             is_offline,
@@ -1285,6 +1295,17 @@ impl App {
             // The key that puts the media of the line in a collection or in a
             // playlist. See T-84.
             KeyCode::Char('m') => self.show_the_lists_that_take_the_media(),
+
+            // The keys that make a new collection and a new playlist. See
+            // T-88. They stand before the keys `c` and `p` of the program,
+            // therefore this view takes them. The key `p` of the player and the
+            // key `c` of the collections do their work in every other view.
+            KeyCode::Char('c') if matches!(self.view_state, AppView::PutInAList) => {
+                self.make_a_new_list(crate::api::utils::collect_lists::ListKind::Collection)
+            }
+            KeyCode::Char('p') if matches!(self.view_state, AppView::PutInAList) => {
+                self.make_a_new_list(crate::api::utils::collect_lists::ListKind::Playlist)
+            }
 
             // The key of the timer for sleep. See T-24.
             KeyCode::Char('t') => self.change_the_timer_for_sleep(),
@@ -2380,13 +2401,10 @@ impl App {
             crate::logic::download::DownloadTarget::Book { .. } => None,
         };
 
-        if self.lists.is_empty() {
-            crate::logic::message::say(
-                "This library holds no collection and no playlist. The web page of the server                  makes one.",
-            );
-            return;
-        }
-
+        // A library that holds no list opens this view too: the keys `c` and
+        // `p` make the first list of that library. See T-88. The view held a
+        // message of one row before that work, and that message said "The web
+        // page of the server makes one".
         self.the_media_of_the_list = Some((item_id, episode_id, title));
         self.the_view_before_the_list = self.view_state;
         self.list_state_put_in_a_list.select(Some(0));
@@ -2448,6 +2466,82 @@ impl App {
 
             // The lines of the screen come after the write. A question that
             // goes with the write gives the list of the moment before it.
+            crate::logic::the_lists::ask(&api, &library).await;
+        });
+    }
+
+    /// Makes a collection or a playlist, and it puts the media in it.
+    /// See T-88.
+    ///
+    /// **The server refuses a collection with no book**, therefore this work
+    /// starts from a media: the key `m` names one, and the keys `c` and `p` of
+    /// that view make the list.
+    pub fn make_a_new_list(&mut self, kind: crate::api::utils::collect_lists::ListKind) {
+        let Some((item_id, episode_id, title)) = self.the_media_of_the_list.clone() else {
+            return;
+        };
+
+        // A collection holds books. The server refuses an episode, therefore
+        // the program says it before it asks for a name.
+        if episode_id.is_some()
+            && matches!(kind, crate::api::utils::collect_lists::ListKind::Collection)
+        {
+            crate::logic::message::say(
+                "A collection holds books only. Make a playlist for an episode of a podcast.",
+            );
+            return;
+        }
+
+        let question = format!(
+            "The name of the new {} (Enter, or Esc)",
+            kind.name().to_lowercase()
+        );
+
+        let Ok(Some(name)) = self.ask_for_a_text(&question) else {
+            return;
+        };
+
+        let name = name.trim().to_string();
+
+        // The server answers 400 for a name of no letter. The program says the
+        // reason, and it makes no request.
+        if name.is_empty() {
+            crate::logic::message::say("A collection and a playlist need a name.");
+            return;
+        }
+
+        // The server takes two lists of one name, and the user cannot tell the
+        // two lines apart. See T-88.
+        if crate::api::lists::a_list_holds_that_name(&self.lists, kind, &name) {
+            crate::logic::message::say(&crate::api::lists::the_sentence_of_the_name_that_exists(
+                kind, &name,
+            ));
+            return;
+        }
+
+        let api = std::sync::Arc::clone(&self.api);
+        let library = self.id_selected_lib.clone();
+
+        self.view_state = self.the_view_before_the_list;
+
+        tokio::spawn(async move {
+            let text = match crate::api::lists::make_the_list(
+                &api,
+                kind,
+                &library,
+                &name,
+                &item_id,
+                episode_id.as_deref(),
+            )
+            .await
+            {
+                Ok(_) => crate::api::lists::the_sentence_of_the_new_list(kind, &name, &title),
+                Err(error) => format!("The server did not make the list: {}", error),
+            };
+
+            crate::logic::message::say(&text);
+
+            // The lines of the screen come after the write. See T-84.
             crate::logic::the_lists::ask(&api, &library).await;
         });
     }

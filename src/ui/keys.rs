@@ -125,6 +125,14 @@ pub const GROUPS: &[Group] = &[
         ],
     },
     Group {
+        name: "The lists that take a media (the key `m`)",
+        keys: &[
+            key("l", "Put the media in the list of the line"),
+            key("c", "Make a new collection, and put the media in it"),
+            key("p", "Make a new playlist, and put the media in it"),
+        ],
+    },
+    Group {
         name: "The program",
         keys: &[key("?", "This list of every key"), key("Q / Esc", "Quit")],
     },
@@ -279,8 +287,17 @@ pub const THE_DOWNLOADS_OF_THE_SERVER: &str = "The server gets the episodes, and
 pub const THE_LISTS_THAT_TAKE_A_MEDIA: &str = "A collection holds books, and every \
     user of the server sees it. A playlist belongs to you, and it holds books or \
     episodes of a podcast.\n\n\
-    The key X of a list takes the media of the line out of that list. The web \
-    page of the server makes a new list.";
+    The key X of a list takes the media of the line out of that list. The key c \
+    makes a new collection of this media, and the key p makes a new playlist of \
+    it.";
+
+/// The footer of the view that puts a media in a list.
+///
+/// The keys `c` and `p` make a list, therefore this view has a footer of its
+/// own: `footer_with` names the key `l` only. See T-88.
+pub const FOOTER_OF_THE_LISTS_THAT_TAKE_A_MEDIA: &str =
+    "j/k: move  l: put in this list  c/p: a new collection or playlist  h: back  \
+     ?: every key  Q: quit";
 
 pub const THE_TEXTS_OF_THE_VIEWS: &[&str] = &[
     THE_ACCOUNTS,

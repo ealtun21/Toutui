@@ -17,7 +17,9 @@ use std::sync::Arc;
 use toutui::api::client::endpoint::{Endpoint, EndpointPool};
 use toutui::api::client::ApiClient;
 use toutui::api::libraries::get_lists::{get_all_collections, get_all_playlists};
-use toutui::api::lists::{put_in_the_list, take_out_of_the_list};
+use toutui::api::lists::{
+    a_list_holds_that_name, make_the_list, put_in_the_list, take_out_of_the_list,
+};
 use toutui::api::utils::collect_lists::{collect_lists, ListKind, ListView};
 
 const SERVER: &str = "http://127.0.0.1:13399";
@@ -194,4 +196,111 @@ async fn the_program_puts_a_book_in_a_list_and_it_takes_it_out() {
 
     // A collection holds books, and the program must not offer an episode.
     assert_eq!(ListKind::Collection.name(), "Collection");
+}
+
+/// The program makes a collection and a playlist. See T-88.
+///
+/// **The server refuses a collection with no book**, therefore the two requests
+/// of this test name a book. The test removes the two lists at its end, and the
+/// sandbox then holds what it held before.
+#[tokio::test(flavor = "multi_thread")]
+#[ignore = "needs the sandbox of docs/TEST-SERVER.md on :13399"]
+async fn the_program_makes_a_collection_and_a_playlist() {
+    let pool = EndpointPool::new(vec![Endpoint::new(SERVER, 0)]);
+    let api = Arc::new(ApiClient::new(Arc::new(pool), token().await).unwrap());
+
+    let Some((library_id, lists, item_id, title)) = the_library(&api).await else {
+        println!(
+            "this sandbox holds no list, or every book stands in a list already. \
+             See docs/TEST-SERVER.md, section 6d."
+        );
+        return;
+    };
+
+    println!("the test makes two lists that hold \"{}\"", title);
+
+    // The name of each new list must differ from the name of every list of the
+    // library: the program refuses a name that a list holds already.
+    let of_a_collection = "The Test Of A New Collection";
+    let of_a_playlist = "The Test Of A New Playlist";
+
+    assert!(
+        !a_list_holds_that_name(&lists, ListKind::Collection, of_a_collection),
+        "the sandbox holds the name of this test already"
+    );
+    assert!(
+        !a_list_holds_that_name(&lists, ListKind::Playlist, of_a_playlist),
+        "the sandbox holds the name of this test already"
+    );
+
+    let collection = make_the_list(
+        &api,
+        ListKind::Collection,
+        &library_id,
+        of_a_collection,
+        &item_id,
+        None,
+    )
+    .await
+    .unwrap_or_else(|error| panic!("the server did not make the collection: {}", error));
+
+    let playlist = make_the_list(
+        &api,
+        ListKind::Playlist,
+        &library_id,
+        of_a_playlist,
+        &item_id,
+        None,
+    )
+    .await
+    .unwrap_or_else(|error| panic!("the server did not make the playlist: {}", error));
+
+    assert!(!collection.is_empty(), "the answer must give an identity");
+    assert!(!playlist.is_empty(), "the answer must give an identity");
+
+    // The two lists stand on the server, and each of them holds the book.
+    let collections = get_all_collections(&api, &library_id).await.unwrap();
+    let playlists = get_all_playlists(&api, &library_id).await.unwrap();
+    let now = collect_lists(&collections, &playlists);
+
+    for (id, name, kind) in [
+        (&collection, of_a_collection, ListKind::Collection),
+        (&playlist, of_a_playlist, ListKind::Playlist),
+    ] {
+        let of_the_server = now
+            .iter()
+            .find(|one| &one.id == id)
+            .unwrap_or_else(|| panic!("the server must hold the new {}", kind.name()));
+
+        assert_eq!(of_the_server.name, name);
+        assert_eq!(of_the_server.kind, kind);
+        assert_eq!(
+            of_the_server.entries.len(),
+            1,
+            "the new {} must hold one medium",
+            kind.name().to_lowercase()
+        );
+        assert_eq!(of_the_server.entries[0].id, item_id);
+
+        // The program refuses this name now.
+        assert!(a_list_holds_that_name(&now, kind, name));
+    }
+
+    // The test gives the sandbox back.
+    api.delete_no_content(&format!("/api/collections/{}", collection))
+        .await
+        .expect("the server must remove the collection");
+    api.delete_no_content(&format!("/api/playlists/{}", playlist))
+        .await
+        .expect("the server must remove the playlist");
+
+    let collections = get_all_collections(&api, &library_id).await.unwrap();
+    let playlists = get_all_playlists(&api, &library_id).await.unwrap();
+    let at_the_end = collect_lists(&collections, &playlists);
+
+    assert_eq!(
+        at_the_end.len(),
+        lists.len(),
+        "the sandbox must hold the lists that it held before this test"
+    );
 }
