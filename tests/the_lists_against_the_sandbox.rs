@@ -19,7 +19,8 @@ use toutui::api::client::ApiClient;
 use toutui::api::libraries::get_lists::{get_all_collections, get_all_playlists};
 use toutui::api::lists::{
     a_different_list_holds_that_name, a_list_holds_that_name, give_the_list_a_new_name,
-    make_the_list, put_in_the_list, remove_the_list, take_out_of_the_list,
+    give_the_list_a_new_sequence, make_the_list, put_in_the_list, remove_the_list,
+    take_out_of_the_list, the_sequence_that_moved,
 };
 use toutui::api::utils::collect_lists::{collect_lists, ListKind, ListView};
 
@@ -374,4 +375,121 @@ async fn the_program_gives_a_list_a_new_name_and_it_removes_a_list() {
         lists.len(),
         "the sandbox must hold the lists that it held before this test"
     );
+}
+
+/// The sequence of the media inside a collection and inside a playlist. See
+/// T-102.
+///
+/// The test moves the first line of every list of the library down, it reads the
+/// sequence of the server, and it moves that line up again. **The list holds the
+/// sequence that it held before the test.**
+#[tokio::test(flavor = "multi_thread")]
+#[ignore = "needs the sandbox of docs/TEST-SERVER.md on :13399"]
+async fn the_program_writes_the_sequence_of_a_list() {
+    let pool = EndpointPool::new(vec![Endpoint::new(SERVER, 0)]);
+    let api = Arc::new(ApiClient::new(Arc::new(pool), token().await).unwrap());
+
+    let libraries: serde_json::Value = api
+        .get_json("/api/libraries")
+        .await
+        .expect("the server must give the libraries");
+
+    let mut measured = 0;
+
+    for library in libraries["libraries"]
+        .as_array()
+        .expect("the answer holds the libraries")
+    {
+        let library_id = library["id"]
+            .as_str()
+            .expect("a library holds an identity")
+            .to_string();
+
+        let collections = get_all_collections(&api, &library_id).await.unwrap();
+        let playlists = get_all_playlists(&api, &library_id).await.unwrap();
+        let lists = collect_lists(&collections, &playlists);
+
+        for list in lists.iter().filter(|list| list.entries.len() >= 2) {
+            measured += 1;
+
+            let before: Vec<String> = list.entries.iter().map(|entry| entry.id.clone()).collect();
+
+            // The first line goes down one place.
+            let moved = the_sequence_that_moved(&list.entries, 0, true)
+                .expect("the first line of a list of two moves down");
+
+            give_the_list_a_new_sequence(&api, list.kind, &list.id, &moved)
+                .await
+                .unwrap_or_else(|error| panic!("the server did not take the sequence: {}", error));
+
+            let of_the_server = the_list_again(&api, &library_id, &list.id).await;
+            let now: Vec<String> = of_the_server
+                .entries
+                .iter()
+                .map(|entry| entry.id.clone())
+                .collect();
+
+            assert_eq!(
+                now.len(),
+                before.len(),
+                "the {} \"{}\" must hold every media that it held",
+                list.kind.name().to_lowercase(),
+                list.name
+            );
+
+            assert_eq!(
+                now,
+                moved
+                    .iter()
+                    .map(|entry| entry.id.clone())
+                    .collect::<Vec<String>>(),
+                "the {} \"{}\" must hold the new sequence",
+                list.kind.name().to_lowercase(),
+                list.name
+            );
+
+            // The test gives the sequence back.
+            let back = the_sequence_that_moved(&of_the_server.entries, 1, false)
+                .expect("the second line moves up");
+
+            give_the_list_a_new_sequence(&api, list.kind, &list.id, &back)
+                .await
+                .expect("the server must take the old sequence again");
+
+            let at_the_end = the_list_again(&api, &library_id, &list.id).await;
+            let ids: Vec<String> = at_the_end
+                .entries
+                .iter()
+                .map(|entry| entry.id.clone())
+                .collect();
+
+            assert_eq!(
+                ids,
+                before,
+                "the {} \"{}\" must hold the sequence of the start",
+                list.kind.name().to_lowercase(),
+                list.name
+            );
+        }
+    }
+
+    println!("the test moved one line of {} list(s)", measured);
+
+    if measured == 0 {
+        println!(
+            "this sandbox holds no list of two media or more. See \
+             docs/TEST-SERVER.md, section 6d."
+        );
+    }
+}
+
+/// Gives one list of the server again, after a write.
+async fn the_list_again(api: &Arc<ApiClient>, library_id: &str, list_id: &str) -> ListView {
+    let collections = get_all_collections(api, library_id).await.unwrap();
+    let playlists = get_all_playlists(api, library_id).await.unwrap();
+
+    collect_lists(&collections, &playlists)
+        .into_iter()
+        .find(|list| list.id == list_id)
+        .expect("the list must stay")
 }

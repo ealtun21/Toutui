@@ -40,7 +40,7 @@
 
 use crate::api::client::error::ApiError;
 use crate::api::client::ApiClient;
-use crate::api::utils::collect_lists::{ListKind, ListView};
+use crate::api::utils::collect_lists::{ListEntry, ListKind, ListView};
 use serde_json::Value;
 
 /// Puts one medium in a collection or in a playlist.
@@ -221,6 +221,125 @@ pub fn the_sentence_of_the_new_description(kind: ListKind, name: &str, gone: boo
         kind.name().to_lowercase(),
         name
     )
+}
+
+/// Gives the body of the request that writes the sequence of a list. See T-102.
+///
+/// **The two lists name their media in two different ways.** A collection takes
+/// `books` with the identity of each item, and a playlist takes `items` with an
+/// object for each line: an episode of a podcast needs `episodeId` beside
+/// `libraryItemId`.
+///
+/// The function is pure, therefore a test needs no server.
+pub fn the_body_of_the_sequence(kind: ListKind, entries: &[ListEntry]) -> Value {
+    match kind {
+        ListKind::Collection => {
+            let books: Vec<&str> = entries.iter().map(|entry| entry.id.as_str()).collect();
+
+            serde_json::json!({ "books": books })
+        }
+        ListKind::Playlist => {
+            let items: Vec<Value> = entries
+                .iter()
+                .map(|entry| match &entry.episode_id {
+                    Some(episode) => serde_json::json!({
+                        "libraryItemId": entry.id,
+                        "episodeId": episode,
+                    }),
+                    None => serde_json::json!({ "libraryItemId": entry.id }),
+                })
+                .collect();
+
+            serde_json::json!({ "items": items })
+        }
+    }
+}
+
+/// Gives the sequence of a list with the line of the user one place up or down.
+/// See T-102.
+///
+/// The function gives `None` for a line that cannot move: the first line goes no
+/// higher, and the last line goes no lower. The function is pure, therefore a
+/// test needs no server.
+pub fn the_sequence_that_moved(
+    entries: &[ListEntry],
+    line: usize,
+    down: bool,
+) -> Option<Vec<ListEntry>> {
+    if line >= entries.len() {
+        return None;
+    }
+
+    let target = if down {
+        line.checked_add(1)?
+    } else {
+        line.checked_sub(1)?
+    };
+
+    if target >= entries.len() {
+        return None;
+    }
+
+    let mut moved = entries.to_vec();
+    moved.swap(line, target);
+
+    Some(moved)
+}
+
+/// Writes the sequence of a collection or of a playlist. See T-102.
+///
+/// **The body must hold every media of the list.** The measurement of 2026-08-12
+/// against an Audiobookshelf 2.36.0:
+///
+/// | Request | Answer |
+/// |---|---|
+/// | `PATCH /api/playlists/:id` with `items` of the same media | `200`, and the new sequence |
+/// | The same request with one item fewer | **`400`, "Invalid playlist items. Length mismatch"** |
+/// | `PATCH /api/collections/:id` with `books` of the same books | `200`, and the new sequence |
+/// | The same request with one book fewer | `200`, **and the book that the body does not name goes to the first line** |
+///
+/// The name and the description of the list do not change.
+pub async fn give_the_list_a_new_sequence(
+    client: &ApiClient,
+    kind: ListKind,
+    list_id: &str,
+    entries: &[ListEntry],
+) -> Result<(), ApiError> {
+    let path = match kind {
+        ListKind::Collection => format!("/api/collections/{}", list_id),
+        ListKind::Playlist => format!("/api/playlists/{}", list_id),
+    };
+
+    client
+        .patch_json(&path, &the_body_of_the_sequence(kind, entries))
+        .await
+}
+
+/// Gives the sentence of a media that moved inside its list. See T-102.
+///
+/// The sentence names the line as a user counts it: the first line is the line 1.
+pub fn the_sentence_of_the_new_sequence(
+    kind: ListKind,
+    name: &str,
+    title: &str,
+    line: usize,
+) -> String {
+    format!(
+        "\"{}\" is the line {} of the {} \"{}\" now.",
+        title,
+        line + 1,
+        kind.name().to_lowercase(),
+        name
+    )
+}
+
+/// Gives the sentence of a line that cannot move. See T-102.
+pub fn the_sentence_of_a_line_that_stays(down: bool) -> String {
+    if down {
+        return "This media is the last line of the list.".to_string();
+    }
+
+    "This media is the first line of the list.".to_string()
 }
 
 /// Gives a collection or a playlist a new name. See T-93.
@@ -535,6 +654,99 @@ mod tests {
         assert_eq!(
             the_sentence_of_the_new_description(ListKind::Collection, "A Name", true),
             "The collection \"A Name\" has no description now."
+        );
+    }
+
+    /// Makes the entries of a list, for the tests of the sequence.
+    fn the_entries(count: usize) -> Vec<ListEntry> {
+        (0..count)
+            .map(|number| ListEntry {
+                id: format!("item-{}", number),
+                episode_id: None,
+                title: format!("The Book {}", number),
+                author: String::new(),
+                duration: 0.0,
+                description: String::new(),
+            })
+            .collect()
+    }
+
+    /// The key `>` moves the line one place down, and the key `<` moves it one
+    /// place up. **The first line goes no higher, and the last line goes no
+    /// lower.** See T-102.
+    #[test]
+    fn a_line_of_a_list_moves_one_place() {
+        let entries = the_entries(3);
+
+        let down = the_sequence_that_moved(&entries, 0, true).expect("the first line moves down");
+        let names: Vec<&str> = down.iter().map(|entry| entry.id.as_str()).collect();
+
+        assert_eq!(names, ["item-1", "item-0", "item-2"]);
+
+        let up = the_sequence_that_moved(&entries, 2, false).expect("the last line moves up");
+        let names: Vec<&str> = up.iter().map(|entry| entry.id.as_str()).collect();
+
+        assert_eq!(names, ["item-0", "item-2", "item-1"]);
+
+        // The two ends, and a line that no list holds.
+        assert!(the_sequence_that_moved(&entries, 0, false).is_none());
+        assert!(the_sequence_that_moved(&entries, 2, true).is_none());
+        assert!(the_sequence_that_moved(&entries, 7, true).is_none());
+        assert!(the_sequence_that_moved(&[], 0, true).is_none());
+    }
+
+    /// A collection names its books, and a playlist names its items: **the two
+    /// lists do not take one body.** The server answers 400 for a playlist whose
+    /// body holds fewer items than the list, therefore the body always holds
+    /// every media. See T-102.
+    #[test]
+    fn the_body_of_the_sequence_names_every_media() {
+        let mut entries = the_entries(2);
+
+        let of_a_collection = the_body_of_the_sequence(ListKind::Collection, &entries);
+
+        assert_eq!(
+            of_a_collection,
+            serde_json::json!({ "books": ["item-0", "item-1"] })
+        );
+
+        let of_a_playlist = the_body_of_the_sequence(ListKind::Playlist, &entries);
+
+        assert_eq!(
+            of_a_playlist,
+            serde_json::json!({ "items": [
+                { "libraryItemId": "item-0" },
+                { "libraryItemId": "item-1" },
+            ] })
+        );
+
+        // An episode of a podcast holds a second identity.
+        entries[1].episode_id = Some("an-episode".to_string());
+
+        let of_a_podcast = the_body_of_the_sequence(ListKind::Playlist, &entries);
+
+        assert_eq!(
+            of_a_podcast["items"][1],
+            serde_json::json!({ "libraryItemId": "item-1", "episodeId": "an-episode" })
+        );
+    }
+
+    /// The sentence of the sequence counts the lines as a user counts them: the
+    /// first line is the line 1. See T-102.
+    #[test]
+    fn the_sentence_of_the_sequence_names_the_line_of_a_user() {
+        assert_eq!(
+            the_sentence_of_the_new_sequence(ListKind::Playlist, "A Name", "Letter 2", 0),
+            "\"Letter 2\" is the line 1 of the playlist \"A Name\" now."
+        );
+
+        assert_eq!(
+            the_sentence_of_a_line_that_stays(true),
+            "This media is the last line of the list."
+        );
+        assert_eq!(
+            the_sentence_of_a_line_that_stays(false),
+            "This media is the first line of the list."
         );
     }
 }

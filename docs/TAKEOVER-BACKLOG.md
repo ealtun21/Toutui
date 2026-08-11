@@ -3919,6 +3919,69 @@ measurement of that run stands here: "v0.7.46 does not come after v0.6.8", and
   entry: no two entries name one version, no entry is empty, and no line of a
   body holds a new line.
 
+### T-102: the sequence of the media inside a collection and inside a playlist
+
+A user could not move a book of a collection or an episode of a playlist. The
+keys `<` and `>` of the view of the media of a list (`c`, and then `l`) do that
+work now.
+
+**The measurement of the request came before the code**, and it decided the
+shape. Against Audiobookshelf 2.36.0 on 2026-08-12:
+
+| Request | Answer |
+|---|---|
+| `PATCH /api/playlists/:id` with `items` of the same media, in a new sequence | `200`, and the new sequence |
+| The same, with one item fewer | **`400`, "Invalid playlist items. Length mismatch"** |
+| The same, with an `episodeId` that no episode holds | **`400`**, the same words |
+| The same, with one item two times | `200`, **and no change of the sequence** |
+| `PATCH /api/collections/:id` with `books` of the same books | `200`, and the new sequence |
+| The same, with one book fewer | `200`, **and the book that the body does not name goes to the first line** |
+
+**The two lists therefore do not behave in the same way, and the program must
+always send every media.** A playlist refuses a body that is not complete, and a
+collection takes it and moves the book that the body forgot to the front. The
+name and the description of the list do not change in either case.
+
+**The screen holds the new sequence before the answer of the server.** A user
+presses the key more than one time to move a media some lines: a screen that
+waits for the answer between two keys shows the old sequence, and the second key
+then moves the wrong line. `move_the_media_of_the_list` writes the new sequence
+in `self.lists`, it moves the selection with the media, and the task asks the
+server for the lists after the write (the trap 40). An answer that differs takes
+the place of the sequence of the screen.
+
+**The keys.** `<` and `>` are free in the whole program, and they need no
+modifier: `handle_key` reads `key.code` only, therefore a key of Ctrl would reach
+the handler as the letter itself. The two keys work in the view of the media of a
+list, and no other view of the program holds a sequence that a user writes. The
+group "The media of a list" of `src/ui/keys.rs` names them, and the view has a
+footer of its own now: `FOOTER_OF_A_LIST_OF_MEDIA` named neither `<`, `>`, nor
+the key `X` of T-84.
+
+**The measurement in the real program**, with the sandbox and an isolated
+`XDG_CONFIG_HOME`:
+
+- The collection "A Test Collection" of 5 books. The key `>` moved "The Test
+  Chronicles Volume 1" to the line 2, the message said "\"The Test Chronicles
+  Volume 1\" is the line 2 of the collection \"A Test Collection\" now.", and
+  `curl` of `GET /api/collections/:id` gave the same sequence.
+- Three more presses put that book at the last line, and the fourth said "This
+  media is the last line of the list." Four presses of `<` brought it back to the
+  line 1, and the fifth said "This media is the first line of the list."
+- The playlist "A Podcast Playlist" of 2 episodes. The key `>` moved "Letter 2"
+  down, and `curl` gave `['Letter 1', 'Letter 2']`: **an episode needs
+  `episodeId` beside `libraryItemId`**, and the body of the program holds it.
+
+**The fault before the correction.** `give_the_list_a_new_sequence` with the
+request removed gives a test that fails: "the collection \"A Test Collection\"
+must hold the new sequence", with the old sequence beside the new one.
+
+Three tests hold the pure part with no server (`the_sequence_that_moved` at the
+two ends and outside the list, the body of each kind of list, and the sentences),
+and `the_program_writes_the_sequence_of_a_list` of
+`tests/the_lists_against_the_sandbox.rs` moves one line of every list of two
+media or more and it gives the sequence back.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

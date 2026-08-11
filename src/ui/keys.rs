@@ -145,6 +145,14 @@ pub const GROUPS: &[Group] = &[
         ],
     },
     Group {
+        name: "The media of a list (the key `c`, and then `l`)",
+        keys: &[
+            key("l", "Play the media of the line"),
+            key("< / >", "Move the media one line up, and down"),
+            key("X", "Take the media out of the list"),
+        ],
+    },
+    Group {
         name: "The program",
         keys: &[key("?", "This list of every key"), key("Q / Esc", "Quit")],
     },
@@ -308,6 +316,14 @@ pub const THE_LISTS_THAT_TAKE_A_MEDIA: &str = "A collection holds books, and eve
 /// The keys `r` and `X` of that view give a list a new name and remove it,
 /// therefore the view has a footer of its own: `FOOTER_OF_A_LIST` names neither
 /// of them. See T-93.
+/// The footer of the view of the media of a collection or of a playlist.
+///
+/// **The keys `<` and `>` write the sequence of that list**, and the key `X`
+/// takes the media out of it: `FOOTER_OF_A_LIST_OF_MEDIA` names neither of them,
+/// and that footer stood in this view before. See T-102.
+pub const FOOTER_OF_THE_MEDIA_OF_A_LIST: &str =
+    "j/k: move  l: play  </>: the sequence  X: take it out  h: back  ?: every key  Q: quit";
+
 pub const FOOTER_OF_THE_LISTS: &str =
     "j/k: move  l: the media  r/D: a name/description  X: remove  h: back  \
      ?: every key  Q: quit";
@@ -380,6 +396,7 @@ mod tests {
             FOOTER_OF_A_FAULT,
             FOOTER_OF_THE_LISTS_THAT_TAKE_A_MEDIA,
             FOOTER_OF_THE_LISTS,
+            FOOTER_OF_THE_MEDIA_OF_A_LIST,
         ];
 
         for footer in footers {

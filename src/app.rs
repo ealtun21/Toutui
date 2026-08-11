@@ -1474,6 +1474,17 @@ impl App {
                 self.take_the_media_out_of_the_list()
             }
 
+            // The sequence of the media inside a collection or a playlist. The
+            // keys stand in the view of the media of a list only: no other view
+            // of the program holds a sequence that a user writes. See T-102.
+            KeyCode::Char('<') if matches!(self.view_state, AppView::ListEntries) => {
+                self.move_the_media_of_the_list(false)
+            }
+
+            KeyCode::Char('>') if matches!(self.view_state, AppView::ListEntries) => {
+                self.move_the_media_of_the_list(true)
+            }
+
             // remove the local copy of the selected book or episode
             KeyCode::Char('X') => {
                 let username = self.username.clone();
@@ -2819,6 +2830,66 @@ impl App {
             crate::logic::message::say(&text);
 
             // The lines of the screen come after the write.
+            crate::logic::the_lists::ask(&api, &library).await;
+        });
+    }
+
+    /// Moves the media of the line one place up or down inside its collection or
+    /// its playlist. See T-102.
+    ///
+    /// **The screen holds the new sequence before the answer of the server.** The
+    /// user presses the key more than one time to move a media some lines, and a
+    /// screen that waits for the server between two keys moves the wrong line.
+    /// The request goes with every media of the list, and the task asks the
+    /// server for the lists after the write: an answer that differs takes the
+    /// place of the sequence of the screen.
+    pub fn move_the_media_of_the_list(&mut self, down: bool) {
+        let Some(place) = self.list_state_lists.selected() else {
+            return;
+        };
+
+        let Some(line) = self.list_state_list_entries.selected() else {
+            return;
+        };
+
+        let Some(list) = self.lists.get(place) else {
+            return;
+        };
+
+        let Some(moved) = crate::api::lists::the_sequence_that_moved(&list.entries, line, down)
+        else {
+            crate::logic::message::say(&crate::api::lists::the_sentence_of_a_line_that_stays(down));
+            return;
+        };
+
+        let kind = list.kind;
+        let list_id = list.id.clone();
+        let name = list.name.clone();
+        let to = if down { line + 1 } else { line - 1 };
+        let title = moved[to].title.clone();
+
+        // The screen takes the new sequence now, and the selection follows the
+        // media that moved.
+        self.lists[place].entries = moved.clone();
+        self.list_state_list_entries.select(Some(to));
+
+        let api = std::sync::Arc::clone(&self.api);
+        let library = self.id_selected_lib.clone();
+
+        tokio::spawn(async move {
+            let text =
+                match crate::api::lists::give_the_list_a_new_sequence(&api, kind, &list_id, &moved)
+                    .await
+                {
+                    Ok(()) => {
+                        crate::api::lists::the_sentence_of_the_new_sequence(kind, &name, &title, to)
+                    }
+                    Err(error) => format!("The server did not take the new sequence: {}", error),
+                };
+
+            crate::logic::message::say(&text);
+
+            // The lines of the screen come after the write. See the trap 40.
             crate::logic::the_lists::ask(&api, &library).await;
         });
     }

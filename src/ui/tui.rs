@@ -1569,7 +1569,7 @@ impl App {
 
         let [list_area, item_area1, item_area2] = the_areas_of_a_list(main_area);
 
-        let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA;
+        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_MEDIA_OF_A_LIST;
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
