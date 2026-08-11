@@ -86,7 +86,7 @@ attempt). **#24** holds a comment with the state of the comparison, and it stays
 as the umbrella. **#20** stays open, and its comment holds the decision above.
 **The items T-27 to T-67 have no issue.**
 
-### The three items of this session
+### The items of this session, and what each of them taught
 
 **T-74, the tests.** `cargo test` was not the slow part: two tests held 12.7 seconds
 of the 18.7 of the run. One of them holds a clock of its own now
@@ -124,6 +124,21 @@ holds every file of the item. The key `e` inside the reader gives the list.
 **The server holds one place for each media, and not one place for each file**,
 therefore the place of a book that is not the book of the server stays on this
 machine.
+
+**T-81, the queue of the downloads of the server (`d`).** The key `E` gives the server
+the episodes of a feed, and the server does that work alone. The view holds the episode
+of now with the mark `▼` and the queue after it, and **it asks the server again at each
+message `episode_download_*` of socket.io**: the list moved from 9 lines to 4 while the
+screen stood open and the user pressed no key. The key `X` empties the queue of one
+podcast, and it asks one time first.
+
+**T-84, the media of a collection and of a playlist (`m` and `X`).** The program read
+the lists and it changed none of them. Four requests do that work, and the server
+answers **400** for a media that stands in the list already. That answer found T-87.
+
+**T-80, T-82, T-83, and T-85 came from the sweeps too**: the keys of the volume said
+nothing, the choice of the library changed no line of the screen, the key `s` of a
+library of podcasts said nothing, and every title of a view said "1 items".
 
 ### The two items of the session before this one
 
