@@ -321,32 +321,114 @@ What holds now:
 T-68 and T-69 of `docs/TAKEOVER-BACKLOG.md` hold every measurement and the five
 faults of the program that they found.
 
-### 2. The work that needs no decision
+### 2. The road to a program with no fault, in the sequence of its value
 
-1. **The description of a collection, and the sequence of a playlist.** T-93
-   gives a list a new name with `PATCH`, and that request takes `description`
-   too. The sequence of the media inside a playlist needs a different request,
-   and no measurement of this project holds it yet.
-2. **The list of Continue Listening of a **different** library.** T-66 holds the
-   shelf of the library that the user selected. A media of a second library needs no
-   work today, because the Home view shows one library.
-3. **The peak of the memory of a PDF (T-62).** `Document::load` of `lopdf` reads the
-   whole file, therefore a book of 500 megabytes needs a machine of a gigabyte for
-   one moment. `MAX_BOOK_BYTES` of 512 megabytes holds that limit. A reader of one
-   page at a time needs a different crate, and no such crate of pure Rust exists.
-4. **The table of section 4 of `docs/T-24-coverage.md`.** This session read the code
-   of each row that said `No` or `Half` and it corrected four of them (the live
-   messages, the list of the ebooks, the tags, and a new row for the reader of a PDF).
-   **A row can still be old: read the code before you take one.**
-5. **A view of the search that holds its own titles (T-70).** The lines of that view
-   come from the lists of the library, therefore a book that the program did not load
-   gives no line. `get_all_books` reads every page at the start, and 500 pages of 500
-   items hold 250000 items, therefore no library of a user meets this today.
+**Take one item, measure it, correct it, tag it, and go on.** Every item below
+holds its evidence, and no item needs a decision of the maintainer except the
+first one of the group 1.
 
-`docs/T-24-coverage.md` section 6 names every function that the program must **not**
-have, with the reason. Read it before you take a row of the table that says `No`.
-**A measurement changed one row of that section on 2026-08-11:** a PDF of text holds
-its text, therefore T-54 reads it. A CBZ stays outside.
+#### Group 1: what a user sees
+
+1. **The changelog of the fork stops at v0.6.8, and the program is at v0.7.46.**
+   `src/utils/changelog.rs` holds 48 entries, and the newest of them is
+   `Changelog Toutui v0.6.8`. The key `S` and then "About and changelog" shows
+   that screen to a user, therefore **38 releases of this fork are not there**:
+   T-27 to T-100 all went to a user who reads nothing of them. The file is a list
+   of `String` in one function, and a new entry is 10 lines.
+   **Take the entries from `git log --oneline` and from
+   `docs/TAKEOVER-BACKLOG.md`**, and write them in the words of a user and not in
+   the words of the code: "The keys c and p make a collection or a playlist" and
+   not "T-88".
+2. **The 7 rows of the player in a small terminal (T-99).** The layout of every
+   view holds 6 rows for the player and 1 for the refresh, and they stay empty
+   while no media plays. In a terminal of 18 rows they are 7 of the 18.
+   **A view that takes them while nothing plays moves every line when a playback
+   starts**, therefore this needs the decision of the maintainer. Ask, and hold
+   the answer here.
+3. **The sequence of the media inside a playlist.** T-100 closes the description
+   of a list, and the sequence stays: a user cannot move an episode of a playlist
+   up or down. **Measure `PATCH /api/playlists/:id` with `items` first**: T-93
+   measured `name` and `description` of that path, and not `items`.
+4. **The keys of a media that the server offers and the program does not.** Read
+   the table of section 4 of `docs/T-24-coverage.md`, and **read the code of each
+   row before you take it**: this session found four rows of that table that were
+   old.
+
+#### Group 2: the sweeps that stay
+
+**Every sweep of a condition that no session had made found a fault**: 80
+columns (T-90 and T-94), the offline mode (T-91), the view of the login (T-92),
+the reader (T-95), and a terminal of 18 rows (T-99). These conditions stay:
+
+1. **A library of one item**, and **a book of one chapter**: every "1 item" of
+   the program (T-85, T-95, and T-100 each found one of those texts in a
+   different place).
+2. **A pool of two addresses.** `config.toml` takes more than one address of one
+   server, and no sweep drove the program with two. T-97 changed the rule of that
+   pool, and a measurement with two addresses would show the change of address
+   that no test of a mock server shows.
+3. **A media that the server holds and the disk does not**, while the server goes
+   away in the middle of a playback.
+4. **A terminal of 300 columns**: every text of a view that a wrap makes wide.
+
+#### Group 3: the tests and the harness
+
+1. **The fast suite must stay at about 2 seconds.** It holds 885 tests in 2.2 s
+   today. A new test that needs a wait belongs behind `#[ignore]`, as
+   `one_request_that_stops_at_its_time_limit_keeps_the_address` does with its 15
+   seconds.
+2. **A guard test must hold the rule of the user, and not the form of the code.**
+   `no_title_of_a_view_counts_its_own_items` reads `{} items` of four files, and
+   it did not find `{} item(s)` of the view of the lists (T-100 found that one by
+   hand). **A better guard reads every file of `src/ui` and of `src/logic`**, and
+   it names every text that counts its own items in any form.
+3. **The tests of the sandbox take one token (T-96).** A new test of that kind
+   takes `mod common; use common::token;` and it writes no login of its own.
+4. **A test that measures the absence of a fault must give the fault the time to
+   appear** (T-74). A poll of the value that the test wants is a false pass.
+
+#### Group 4: the words for the user
+
+1. **Every text in ASD-STE100 simplified technical English.** Short sentences,
+   active voice, one instruction per sentence.
+2. **A view says why it holds no line**, and it never says a reason that the
+   program does not have (T-91).
+3. **A key that does nothing in one view is a fault of its own** (T-79).
+4. **The row of the message holds one line of 150 letters** (the trap 11), and
+   **a message lives six seconds**: read it inside that time, and read the row
+   that holds it.
+
+#### Group 5: the work that waits for a user
+
+1. **The peak of the memory of a PDF (T-62).** `Document::load` of `lopdf` reads
+   the whole file, therefore a book of 500 megabytes needs a machine of a
+   gigabyte for one moment. `MAX_BOOK_BYTES` of 512 megabytes holds that limit.
+   A reader of one page at a time needs a different crate, and no such crate of
+   pure Rust exists. **Take this when a user meets it.**
+2. **The list of Continue Listening of a different library (T-66).** The Home
+   view shows one library, therefore no user meets this today.
+3. **A view of the search that holds its own titles (T-70).** `get_all_books`
+   reads every page at the start, and 500 pages of 500 items hold 250000 items:
+   no library of a user meets this today.
+
+#### How to know that the work of an item is done
+
+- The three gates pass: `cargo clippy --all-targets -- -D warnings`,
+  `cargo fmt --check`, and `cargo nextest run` with a real null asound file.
+- `cargo nextest run --run-ignored all` gives every test with the sandbox up.
+- **A build with the correction removed fails.** Show the fault before you
+  correct it, and show that the test finds it.
+- The real program in tmux shows the new behaviour, and a second program
+  (`curl`, `podman logs abs-test`, or a browser) says the same.
+- `docs/TAKEOVER-BACKLOG.md` holds the measurement, and this document holds the
+  item, the trap, and the next work.
+- The commit names the item (T-nn), and the release holds `Cargo.toml` and
+  `Cargo.lock` together.
+
+`docs/T-24-coverage.md` section 6 names every function that the program must
+**not** have, with the reason. Read it before you take a row of the table that
+says `No`. **A measurement changed one row of that section on 2026-08-11:** a PDF
+of text holds its text, therefore T-54 reads it. A CBZ stays outside.
 
 ### 3. The decisions that the maintainer made, and what they bind
 
@@ -894,17 +976,25 @@ answers slowly while it writes. Two answers to measure:
 > read the screen after each of them, and give the program the shape of the data
 > that breaks the rule.
 >
-> **The work that stays, in the sequence of its value:**
+> **The work that stays, in the sequence of its value.**
+> `docs/HANDOVER.md`, "The road to a program with no fault", holds every item
+> with its evidence. The first four:
 >
-> 1. **The 7 rows of the player of a small terminal (T-99).** They stay empty while
->    nothing plays, and they are 7 rows of 18. A view that gives them to the list
->    moves every line when a playback starts. **This needs the decision of the
->    maintainer**, and not a measurement.
-> 2. **The sequence of the media inside a playlist.** T-100 closes the description,
->    and the sequence needs a request that no session has measured.
-> 3. **A library of one item**, and the reader of a book of one chapter: the two
->    sweeps that stay.
-> 4. **The peak of the memory of a PDF (T-62)**, if a user meets it.
+> 1. **The changelog of the fork stops at v0.6.8, and the program is at v0.7.46.**
+>    `src/utils/changelog.rs` shows that screen with the key `S`, therefore 38
+>    releases of this fork reach no user. Write the entries in the words of a
+>    user, and take them from `git log` and from `docs/TAKEOVER-BACKLOG.md`.
+> 2. **The 7 rows of the player stay empty while nothing plays (T-99).** They are
+>    7 rows of a terminal of 18. A view that takes them moves every line when a
+>    playback starts: **ask the maintainer**, and write the answer in the
+>    handover.
+> 3. **The sequence of the media inside a playlist.** Measure
+>    `PATCH /api/playlists/:id` with `items` first: T-93 measured `name` and
+>    `description` of that path only.
+> 4. **The sweeps that stay:** a library of one item, a book of one chapter, a
+>    pool of two addresses, and a server that goes away in the middle of a
+>    playback. **Every sweep of a condition that no session had made found a
+>    fault.**
 >
 > **Do not open these again.** The book of xHE-AAC plays (T-68 and T-69). Toutui stays
 > GPL, and a person may read bookokrat for an idea and must then write their own code
