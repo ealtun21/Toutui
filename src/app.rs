@@ -176,6 +176,8 @@ pub struct App {
     pub list_state_ebooks: ListState,
     /// The line of the values of the block `[reader]`. See T-77.
     pub list_state_settings_reader: ListState,
+    /// The view that the search came from. The key `h` gives it back. See T-79.
+    pub the_view_before_the_search: AppView,
     /// The line of the view of every key. See T-49.
     pub list_state_keys: ListState,
     /// The view that the user came from, before the list of every key. The key
@@ -1083,6 +1085,7 @@ impl App {
             list_state_authors: ListState::default(),
             list_state_ebooks: ListState::default(),
             list_state_settings_reader: ListState::default(),
+            the_view_before_the_search: AppView::Library,
             list_state_keys: ListState::default(),
             the_view_before_the_keys: AppView::Home,
             the_view_before_the_reader: AppView::Home,
@@ -1557,6 +1560,10 @@ impl App {
                     AppView::Queue => self.view_state = AppView::Home,
                     AppView::NewPodcast => self.view_state = AppView::Library,
                     AppView::Authors => self.view_state = AppView::Library,
+                    // The view of the search goes back to the view that opened
+                    // it. A sweep of 2026-08-11 pressed `h` there, and the
+                    // screen did not move. See T-79.
+                    AppView::SearchBook => self.view_state = self.the_view_before_the_search,
                     // The user came from the reader, and the reader holds the
                     // book that they read now. See T-76.
                     AppView::Ebooks => self.view_state = AppView::Reader,

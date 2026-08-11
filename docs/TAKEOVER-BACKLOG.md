@@ -3150,6 +3150,32 @@ left: "CHAPTER The server has the place.n a Bil"
 **The sweep found this, and no test did.** A message of the program lives six
 seconds, and every measurement of a message before this one read a list view.
 
+### T-79: the key `h` of the view of the search did nothing
+
+The sweep of 2026-08-11 searched "zzzqqq", read "The server found nothing for
+\"zzzqqq\". Press / to write other words.", and pressed `h`. **The screen did not
+move.** Every other view of the program goes back one step with that key, and
+the handler held no line for `AppView::SearchBook`.
+
+The footer of that view was the footer of the Library, and it named `Tab:
+home/library` therefore the user was not held there. **A key that does nothing
+in one view of fifteen is a fault of its own**: the user learns the key in every
+other view.
+
+`FOOTER_OF_THE_SEARCH` names the keys of that view now (`h: back` and `/: search
+again`), and `the_view_before_the_search` holds the view that opened the search:
+the search of the Home view goes back to Home, and the search of the Library goes
+back to the Library. A second search inside the view of the search keeps the
+first view.
+
+**The measurement in the real program, 2026-08-11:**
+
+| The keys | The screen |
+|---|---|
+| `/`, "alice", Enter, `h` from Home | `Home [24 items]` |
+| `/`, "zzzqqq", Enter, `h` from the Library | `Library [7 items]` |
+| `/`, "alice", Enter, `/`, "wonder", Enter, `h` | `Library [7 items]` |
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

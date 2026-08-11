@@ -1635,12 +1635,10 @@ impl App {
         // The number of the lines comes below, therefore the program makes the
         // title after the lines.
 
-        let mut _text_render_footer = "";
-        if self.is_podcast {
-            _text_render_footer = crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_PODCASTS;
-        } else {
-            _text_render_footer = crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_BOOKS;
-        }
+        // The keys of this view are not the keys of the Library: `h` goes back
+        // to the view that the search came from, and `/` searches again. See
+        // T-79.
+        let _text_render_footer = crate::ui::keys::FOOTER_OF_THE_SEARCH;
 
         if self.search_mode {
             if let Ok(query) = self.search_active() {

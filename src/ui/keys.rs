@@ -173,6 +173,14 @@ pub const FOOTER_OF_A_LIBRARY_OF_BOOKS: &str =
 pub const FOOTER_OF_A_LIBRARY_OF_PODCASTS: &str =
     "j/k: move  l: the episodes  Tab: home/library  /: search  R: refresh  ?: every key  Q: quit";
 
+/// The footer of the view of the search.
+///
+/// **The key `h` goes back**, as it does in every other view, and the footer
+/// says so: a sweep of 2026-08-11 pressed `h` in that view and the screen did
+/// not move. See T-79.
+pub const FOOTER_OF_THE_SEARCH: &str =
+    "j/k: move  l: play or open  h: back  /: search again  R: refresh  ?: every key  Q: quit";
+
 /// The footer of a list that comes from one line of a different list. The
 /// series, the books of a series, the lists, and the episodes use it.
 pub const FOOTER_OF_A_LIST: &str =
@@ -267,6 +275,7 @@ mod tests {
     fn every_footer_fits_in_eighty_columns() {
         let footers = [
             FOOTER_OF_THE_KEYS,
+            FOOTER_OF_THE_SEARCH,
             FOOTER_OF_A_LIBRARY_OF_BOOKS,
             FOOTER_OF_A_LIBRARY_OF_PODCASTS,
             FOOTER_OF_A_LIST,

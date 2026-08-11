@@ -62,6 +62,14 @@ impl App {
                 }) => {
                     self.search_mode = false;
                     self.search_query = input.value().to_string();
+
+                    // The key `h` of the view of the search gives this view
+                    // back. A second search inside that view keeps the view
+                    // that the first search came from. See T-79.
+                    if !matches!(self.view_state, AppView::SearchBook) {
+                        self.the_view_before_the_search = self.view_state;
+                    }
+
                     self.view_state = AppView::SearchBook;
                     self.list_state_search_results.select(Some(0));
 
