@@ -401,3 +401,35 @@ Endpoint: POST /login" for each such request.
 
 The limit gives its own time back: the header `Retry-After` says how many seconds
 are left. Wait for that time, and run the tests again.
+
+## 11. The book of xHE-AAC, for T-68
+
+The sandbox holds a book "Depthless Hunger, Book 2" of one file:
+
+```
+audiobooks/Sarah Lin/Depthless Hunger xHE-AAC/01 - xHE-AAC.m4b     8.8 MB
+```
+
+That file is a piece of 10 minutes of a real book of a user. **No program of this
+machine writes a file of xHE-AAC**, therefore no command of this document makes it
+again: `ffmpeg` reads no such file, and it encodes none. A person who needs a new
+piece must take it from a file of that form with a copy of the codec, because a copy
+keeps the form:
+
+```bash
+ffmpeg -i <a file of xHE-AAC> -t 600 -map 0:a -c copy piece.m4b
+ffprobe -v error -show_entries stream=codec_name,profile piece.m4b
+# codec_name=aac
+# profile=xHE-AAC
+```
+
+**Why the sandbox holds it.** T-68 measured every step of a media that no program
+plays, and that measurement needs a file of that form. Keep this book: a session that
+changes `src/player/engine/hls*.rs` can measure the whole path with it, and the
+measurement needs no sound at all.
+
+**The state of the server after such a media.** ffmpeg of the server stops with the
+code 234, and the server then deletes the session of the stream. Every new session of
+that media answers "No Segments", and the log holds "Failed checking files" every two
+seconds for ever. **`podman restart abs-test` gives a server that works**, and a
+measurement of that media must start from a server that came up now.
