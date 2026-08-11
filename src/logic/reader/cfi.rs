@@ -53,27 +53,60 @@
 //! because a web page counts them. A text of the Latin alphabet gives the same
 //! number for a character and for a code unit.
 //!
-//! ## A known difference with `epub.js`
+//! ## The rule of `epub.js`, and not the rule of the specification
 //!
 //! The web reader of Audiobookshelf uses `epub.js`, and `epub.js` gives the
-//! step of a text with a different rule: it counts the texts only, and it does
-//! not count the elements between them. The two rules agree for `<p>a text</p>`,
-//! and they disagree for `<p><b>A</b>: a text</p>`. This module gives the step 3
-//! to that text, because the specification of EPUBCFI gives the step 3.
-//! `epub.js` gives the step 1.
+//! step of a text with its own rule: **it counts the texts only.** The text
+//! number `n` of an element, counting from 0, takes the step `2n + 1`, and the
+//! elements between the texts take no place in that count.
 //!
-//! **A measurement on 2026-08-11 counted this difference.** The four books of
-//! the survey hold 11343 texts with a letter, and the two rules disagree for
-//! 296 of them, therefore for 2.61 per cent.
+//! The specification counts the elements: the text after the element `n` takes
+//! the step `2n + 1`. The two rules agree for `<p>a text</p>` and for
+//! `<p>before <i>x</i> after</p>`, and they disagree for a text that stands
+//! after an element and after no text.
 //!
-//! The difference costs the user little, because [`letters_before`] takes the
-//! first text that follows a path that it does not find. A text with the step 1
-//! that is absent therefore gives the text with the step 3 of the same
-//! paragraph. **The user loses the place inside the paragraph, and never the
-//! paragraph.** See `a_place_of_epub_js_gives_the_same_paragraph`.
+//! **A measurement with a real browser on 2026-08-11 gives the rule.** The
+//! program loaded `epub.js` 0.3.93 in Chromium, and it asked the library for
+//! the path of one text of each shape:
 //!
-//! A session with a web page and a real web reader must measure this. This
-//! session had no browser.
+//! | The XHTML | The text | `epub.js` | The specification |
+//! |---|---|---|---|
+//! | `<p>A plain text.</p>` | `A plain text.` | `/4/2/1` | `/4/2/1` |
+//! | `<p><b>A</b>: a text.</p>` | `: a text.` | `/4/2/1` | `/4/2/3` |
+//! | `<p>Before <i>x</i> after.</p>` | ` after.` | `/4/2/3` | `/4/2/3` |
+//! | `<p><span>S</span><b>B</b>: a text.</p>` | `: a text.` | `/4/2/1` | `/4/2/5` |
+//! | `<p>Before <i>x</i> after.</p>` | `x` | `/4/2/2/1` | `/4/2/2/1` |
+//!
+//! The server of the sandbox holds the same rule in the code that it gives to
+//! the browser. `/app/client/dist/_nuxt/2c96a53.js` of Audiobookshelf 2.36.0
+//! holds `position(t){...r=(e=this.textNodes(t.parentNode)).indexOf(t),r}`, and
+//! `textNodes` keeps the children of the type text only.
+//!
+//! **Therefore this module counts the texts, and not the elements.** The
+//! versions v0.7.8 to v0.7.11 wrote the step of the specification.
+//!
+//! A second measurement of the same day compared every path of seven books
+//! with the answer of the real `epub.js`, in the same browser. The program
+//! gave the XHTML of each chapter to the library, and it read the path of
+//! every text node:
+//!
+//! | The book | Texts | The old rule disagreed | This rule disagrees |
+//! |---|---|---|---|
+//! | Frankenstein | 993 | 35 | 0 |
+//! | Moby Dick | 3463 | 6 | 0 |
+//! | Pride and Prejudice | 3768 | 195 | 0 |
+//! | Alice in Wonderland | 1440 | 30 | 0 |
+//! | Three books of a different producer | 19651 | 454 | 0 |
+//! | **In total** | **29315** | **720, therefore 2.46 per cent** | **0** |
+//!
+//! [`letters_before`] reads the two forms, therefore a value of an older
+//! version still gives the exact place.
+//!
+//! A text of the count is a text node of the tree of a web page. A tag and a
+//! comment each make a new text node, and a reference of an entity does not: a
+//! web page reads `&nbsp;` into the same text node. A text with no letter, for
+//! example the space between two tags, takes a place in the count and it gives
+//! no place of the reader.
 //!
 //! Every function here is pure. A test needs no file and no server.
 
@@ -99,11 +132,23 @@ const SILENT: [&str; 4] = ["head", "script", "style", "title"];
 /// One text of a chapter, with the path of the EPUBCFI that names it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TextPlace {
-    /// The steps after the `!`, for example `[4, 2, 1]`.
+    /// The steps after the `!`, for example `[4, 2, 1]`, in the form of
+    /// `epub.js`. The program writes this form, because the web reader of
+    /// Audiobookshelf writes it.
     ///
     /// The last step is odd for a text. It is even for the alternative text of
     /// a picture, because that text is an attribute of an element.
     pub steps: Vec<usize>,
+    /// The same place in the form of the specification, where the step of a
+    /// text counts the elements before it.
+    ///
+    /// The program keeps this second form for two reasons. The versions v0.7.8
+    /// to v0.7.11 wrote it, therefore a server still holds such a value. And
+    /// **this form grows with the sequence of the document, and the form of
+    /// `epub.js` does not**: the text of `<p><b>A</b>: a text</p>` takes the
+    /// step 1, and the text of the `<b>` before it takes the steps 2 and 1.
+    /// Therefore a search that needs the sequence reads this form.
+    pub steps_of_the_specification: Vec<usize>,
     /// The text of the place.
     pub text: String,
 }
@@ -132,11 +177,23 @@ struct Walk {
     /// The number of element children that each open element has now. The last
     /// value belongs to the element that is open.
     seen: Vec<usize>,
+    /// The number of text children that each open element has now. The last
+    /// value belongs to the element that is open. `epub.js` counts the texts
+    /// only, therefore this count and not `seen` gives the step of a text. See
+    /// the head of this module.
+    texts: Vec<usize>,
+    /// A text is open now. A tag and a comment close it, because each of them
+    /// makes a new text node in the tree of a web page. A reference of an
+    /// entity does not close it, because a web page reads that reference into
+    /// the same text node.
+    in_text: bool,
     /// The steps from the root element to the element that is open.
     path: Vec<usize>,
-    /// The text that the walk builds now, and the steps of that text.
+    /// The text that the walk builds now, and the steps of that text, in the
+    /// two forms.
     pending: String,
     pending_steps: Vec<usize>,
+    pending_steps_of_the_specification: Vec<usize>,
     /// The depth of the first element whose text the screen never shows.
     silent_at: Option<usize>,
 }
@@ -146,9 +203,12 @@ impl Walk {
         Walk {
             places: Vec::new(),
             seen: Vec::new(),
+            texts: Vec::new(),
+            in_text: false,
             path: Vec::new(),
             pending: String::new(),
             pending_steps: Vec::new(),
+            pending_steps_of_the_specification: Vec::new(),
             silent_at: None,
         }
     }
@@ -162,26 +222,67 @@ impl Walk {
         {
             self.places.push(TextPlace {
                 steps: std::mem::take(&mut self.pending_steps),
+                steps_of_the_specification: std::mem::take(
+                    &mut self.pending_steps_of_the_specification,
+                ),
                 text: std::mem::take(&mut self.pending),
             });
         }
         self.pending.clear();
         self.pending_steps.clear();
+        self.pending_steps_of_the_specification.clear();
+    }
+
+    /// Closes the text that is open. A tag and a comment do this.
+    ///
+    /// The next character data then makes a new text node, and it takes the
+    /// next odd step.
+    fn close_the_text(&mut self) {
+        self.flush();
+        self.in_text = false;
     }
 
     /// Adds a part of a text to the text that the walk holds.
+    ///
+    /// **The step counts the texts, and not the elements.** `epub.js` gives
+    /// the step `2n + 1` to the text number `n` of an element, counting from
+    /// 0, and it does not count the elements between the texts. A measurement
+    /// with a real browser on 2026-08-11 gives the path `/4/2/1` to the text
+    /// of `<p><b>A</b>: a text.</p>`, and the specification gives `/4/2/3`.
+    /// See the head of this module.
     fn text(&mut self, part: &str) {
-        if self.seen.is_empty() || self.silent_at.is_some() || part.is_empty() {
+        if self.seen.is_empty() || part.is_empty() {
             return;
         }
-        let step = 2 * self.seen.last().copied().unwrap_or(0) + 1;
+
+        // A text of `<head>` or of `<script>` is a text node of the tree, and
+        // the screen never shows it. The walk counts it and it keeps no place.
+        if !self.in_text {
+            if let Some(count) = self.texts.last_mut() {
+                *count += 1;
+            }
+            self.in_text = true;
+        }
+
+        if self.silent_at.is_some() {
+            return;
+        }
+
+        let step = 2 * self.texts.last().copied().unwrap_or(1) - 1;
         let mut steps = self.path.clone();
         steps.push(step);
+
+        let of_the_specification = 2 * self.seen.last().copied().unwrap_or(0) + 1;
+        let mut steps_of_the_specification = self.path.clone();
+        steps_of_the_specification.push(of_the_specification);
+
         if self.pending.is_empty() {
             self.pending_steps = steps;
+            self.pending_steps_of_the_specification = steps_of_the_specification;
         } else if self.pending_steps != steps {
             self.flush();
             self.pending_steps = steps;
+            self.pending_steps_of_the_specification = steps_of_the_specification;
         }
         self.pending.push_str(part);
     }
@@ -210,7 +311,10 @@ impl Walk {
         let mut steps = self.path.clone();
         steps.push(step);
         self.places.push(TextPlace {
-            steps,
+            // The steps name the element itself. The two forms give the same
+            // even step to an element.
+            steps: steps.clone(),
+            steps_of_the_specification: steps,
             text: alt.to_string(),
         });
     }
@@ -272,12 +376,13 @@ pub fn text_places(xhtml: &str) -> Vec<TextPlace> {
                     // The root element. Its own step stands before the `!`, and
                     // the steps of this module start at its children.
                     walk.seen.push(0);
+                    walk.texts.push(0);
                     if SILENT.contains(&name.as_str()) {
                         walk.silent_at = Some(0);
                     }
                     continue;
                 }
-                walk.flush();
+                walk.close_the_text();
                 let step = walk.count_the_child();
                 if name == "img" {
                     if let Some(alt) = alt_of(&tag) {
@@ -286,6 +391,7 @@ pub fn text_places(xhtml: &str) -> Vec<TextPlace> {
                 }
                 walk.path.push(step);
                 walk.seen.push(0);
+                walk.texts.push(0);
                 if walk.silent_at.is_none() && SILENT.contains(&name.as_str()) {
                     walk.silent_at = Some(walk.seen.len() - 1);
                 }
@@ -295,9 +401,10 @@ pub fn text_places(xhtml: &str) -> Vec<TextPlace> {
                 if walk.seen.is_empty() {
                     // A root element with no child. The chapter holds no text.
                     walk.seen.push(0);
+                    walk.texts.push(0);
                     continue;
                 }
-                walk.flush();
+                walk.close_the_text();
                 let step = walk.count_the_child();
                 if name_of(&tag) == "img" {
                     if let Some(alt) = alt_of(&tag) {
@@ -307,11 +414,12 @@ pub fn text_places(xhtml: &str) -> Vec<TextPlace> {
             }
 
             Ok(Event::End(_)) => {
-                walk.flush();
+                walk.close_the_text();
                 if walk.seen.len() > 1 {
                     walk.path.pop();
                 }
                 walk.seen.pop();
+                walk.texts.pop();
                 if let Some(depth) = walk.silent_at {
                     if walk.seen.len() <= depth {
                         walk.silent_at = None;
@@ -343,6 +451,10 @@ pub fn text_places(xhtml: &str) -> Vec<TextPlace> {
                     _ => walk.text(" "),
                 }
             }
+
+            // A comment makes two text nodes of one text, in the tree of a
+            // web page. Therefore the text after it takes the next odd step.
+            Ok(Event::Comment(_)) => walk.close_the_text(),
 
             _ => {}
         }
@@ -512,18 +624,37 @@ fn steps_of(local: &str) -> (Vec<usize>, usize) {
 
 /// The number of letters of a chapter that stand before a place of an EPUBCFI.
 ///
+/// The function reads **the two forms of the step of a text**: the form of
+/// `epub.js`, which the web reader and this program write, and the form of the
+/// specification, which the versions v0.7.8 to v0.7.11 wrote. A server holds
+/// values of both forms, and each form gives the exact place.
+///
 /// A place that names no text of the chapter gives the letters before the first
 /// text that follows it. A place after the last text gives every letter of the
 /// chapter.
 pub fn letters_before(places: &[TextPlace], place: &CfiPlace) -> usize {
+    // The form of `epub.js` first: the web reader writes it, therefore it is
+    // the common form. A path can name one place in that form and a different
+    // place in the form of the specification.
+    for form in [
+        (|one: &TextPlace| &one.steps) as fn(&TextPlace) -> &Vec<usize>,
+        |one: &TextPlace| &one.steps_of_the_specification,
+    ] {
+        if let Some(index) = places.iter().position(|one| *form(one) == place.steps) {
+            let before: usize = places[..index].iter().map(|one| letters(&one.text)).sum();
+            return before + letters_before_offset(&places[index].text, place.offset);
+        }
+    }
+
+    // No text of the chapter carries this path. The answer is the first text
+    // that follows it.
+    //
+    // **The comparison reads the form of the specification**, because that
+    // form alone grows with the sequence of the document. See `TextPlace`.
     let mut before = 0usize;
     for text_place in places {
-        if text_place.steps >= place.steps {
-            return if text_place.steps == place.steps {
-                before + letters_before_offset(&text_place.text, place.offset)
-            } else {
-                before
-            };
+        if text_place.steps_of_the_specification >= place.steps {
+            return before;
         }
         before += letters(&text_place.text);
     }
@@ -609,10 +740,79 @@ mod tests_of_the_walk {
         );
     }
 
+    /// A comment makes two text nodes of one text, in the tree of a web page.
+    /// `epub.js` counts both, therefore the text after the comment takes the
+    /// next odd step.
     #[test]
-    fn a_comment_between_two_texts_makes_one_text() {
+    fn a_comment_between_two_texts_makes_two_texts() {
         let places = steps_and_text("<html><body>one<!-- a note -->two</body></html>");
-        assert_eq!(vec![(vec![2, 1], "onetwo".to_string())], places);
+        assert_eq!(
+            vec![
+                (vec![2, 1], "one".to_string()),
+                (vec![2, 3], "two".to_string()),
+            ],
+            places
+        );
+    }
+
+    /// The measurement with the real `epub.js` of 2026-08-11. Every line of
+    /// the table of the head of this module stands here.
+    ///
+    /// The page holds a `<head>`, in the same way as the page of the
+    /// measurement. Therefore `<body>` is the second element of `<html>`, and
+    /// its step is 4.
+    #[test]
+    fn the_step_of_a_text_agrees_with_epub_js() {
+        fn page(body: &str) -> String {
+            format!(
+                "<html><head><title>t</title></head><body>{}</body></html>",
+                body
+            )
+        }
+
+        // `<p><b>A</b>: a text.</p>`: the text after the element is the first
+        // text of the paragraph, therefore it takes the step 1. The
+        // specification gives the step 3.
+        assert_eq!(
+            vec![
+                (vec![4, 2, 2, 1], "A".to_string()),
+                (vec![4, 2, 1], ": a text.".to_string()),
+            ],
+            steps_and_text(&page("<p><b>A</b>: a text.</p>")),
+        );
+
+        // `<p><span>S</span><b>B</b>: a text.</p>`: two elements before the
+        // text change nothing. The specification gives the step 5.
+        assert_eq!(
+            vec![
+                (vec![4, 2, 2, 1], "S".to_string()),
+                (vec![4, 2, 4, 1], "B".to_string()),
+                (vec![4, 2, 1], ": a text.".to_string()),
+            ],
+            steps_and_text(&page("<p><span>S</span><b>B</b>: a text.</p>")),
+        );
+
+        // `<p>Before <i>x</i> after.</p>`: the two rules agree here, because a
+        // text stands before the element.
+        assert_eq!(
+            vec![
+                (vec![4, 2, 1], "Before".to_string()),
+                (vec![4, 2, 2, 1], "x".to_string()),
+                (vec![4, 2, 3], "after.".to_string()),
+            ],
+            steps_and_text(&page("<p>Before <i>x</i> after.</p>")),
+        );
+
+        // A text with no letter takes its place in the count. The space
+        // between the tags is the first text of the paragraph, therefore the
+        // text after the element takes the step 3.
+        assert_eq!(
+            vec![
+                (vec![4, 2, 2, 1], "A".to_string()),
+                (vec![4, 2, 3], ": a text.".to_string()),
+            ],
+            steps_and_text(&page("<p>\n<b>A</b>: a text.</p>")),
+        );
     }
 
     #[test]
@@ -721,9 +921,18 @@ mod tests_of_the_text {
 mod tests_of_the_text_of_the_epubcfi {
     use super::*;
 
+    /// A place whose two forms of the steps agree. Most texts are of this
+    /// shape: the two rules disagree for a text that stands after an element
+    /// and after no text.
     fn place(steps: &[usize], text: &str) -> TextPlace {
+        two_forms(steps, steps, text)
+    }
+
+    /// A place whose two forms disagree.
+    fn two_forms(steps: &[usize], of_the_specification: &[usize], text: &str) -> TextPlace {
         TextPlace {
             steps: steps.to_vec(),
+            steps_of_the_specification: of_the_specification.to_vec(),
             text: text.to_string(),
         }
     }
@@ -825,33 +1034,56 @@ mod tests_of_the_text_of_the_epubcfi {
         }
     }
 
-    /// `epub.js` gives a different step to some texts. See the head of this
-    /// module. The user must lose the place inside the paragraph, and never the
+    /// The versions v0.7.8 to v0.7.11 wrote the step of the specification. A
+    /// server still holds such a value, and this module reads it exactly.
+    #[test]
+    fn a_place_of_the_old_form_gives_the_exact_place() {
+        // The page is `<p>The paragraph before.</p><p><b>Title</b>: the text of
+        // the line</p>`. This module gives the step 1 to the text after the
+        // `<b>`, because `epub.js` gives that step. The specification gives
+        // the step 3.
+        let places = vec![
+            place(&[4, 2, 1], "The paragraph before."),
+            place(&[4, 4, 2, 1], "Title"),
+            two_forms(&[4, 4, 1], &[4, 4, 3], ": the text of the line"),
+        ];
+
+        let before_the_text = letters(&places[0].text) + letters(&places[1].text);
+
+        // The form of `epub.js`, and the form of the specification, name the
+        // same place. Both must give the same number of letters.
+        for text in ["epubcfi(/6/2!/4/4/1:12)", "epubcfi(/6/2!/4/4/3:12)"] {
+            let read = parse_epubcfi(text).expect("it must be an EPUBCFI");
+            let letters_of_it = letters_before(&places, &read);
+
+            assert_eq!(
+                before_the_text + letters_before_offset(&places[2].text, 12),
+                letters_of_it,
+                "{text}"
+            );
+        }
+    }
+
+    /// A path that names no text of the chapter gives the first text that
+    /// follows it. The user loses the place inside the paragraph, and never the
     /// paragraph.
     #[test]
-    fn a_place_of_epub_js_gives_the_same_paragraph() {
-        // The page is `<p><b>Title</b>: the text of the line</p>`, and it is the
-        // second paragraph of the body.
+    fn a_place_that_this_chapter_does_not_hold_gives_the_same_paragraph() {
         let places = vec![
-            place(&[4, 2, 2, 1], "The paragraph before."),
+            place(&[4, 2, 1], "The paragraph before."),
             place(&[4, 4, 2, 1], "Title"),
-            // This module gives the step 3 to the text after the `<b>`.
-            place(&[4, 4, 3], ": the text of the line"),
+            two_forms(&[4, 4, 1], &[4, 4, 3], ": the text of the line"),
         ];
         let before_the_paragraph = letters(&places[0].text);
 
-        // `epub.js` names that same text `/4/4/1`, because it counts the texts
-        // only. This module holds no such place.
-        let of_epub_js = parse_epubcfi("epubcfi(/6/2!/4/4/1:12)").expect("it must be an EPUBCFI");
-        let letters_of_it = letters_before(&places, &of_epub_js);
+        // `/4/4/2` names the `<b>` of the second paragraph, and no text
+        // carries that path.
+        let read = parse_epubcfi("epubcfi(/6/2!/4/4/2)").expect("it must be an EPUBCFI");
+        let letters_of_it = letters_before(&places, &read);
 
-        // The answer stands inside the same paragraph: after the paragraph
-        // before it, and before the end of the paragraph.
-        assert!(letters_of_it >= before_the_paragraph, "{letters_of_it}");
+        assert_eq!(before_the_paragraph, letters_of_it);
         let end: usize = places.iter().map(|p| letters(&p.text)).sum();
         assert!(letters_of_it < end, "{letters_of_it}");
-        // The place is the start of the text of that paragraph.
-        assert_eq!(before_the_paragraph, letters_of_it);
     }
 
     #[test]
