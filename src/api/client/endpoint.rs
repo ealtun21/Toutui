@@ -37,11 +37,28 @@ enum Health {
     Down,
 }
 
+/// How many requests of one address must stop at their time limit, one after
+/// the other, before that address takes the state `Down`. See T-97.
+///
+/// **A request that stops at its time limit is not evidence that the address is
+/// down.** The server does slow work for some requests of a user:
+/// `POST /api/podcasts/feed` makes it read a web site, and a scan of a library
+/// reads every file. A measurement of 2026-08-11 gave that timeout for the
+/// feed, and **every request after it said "No server address answered"** until
+/// the probe task ran again, one minute later.
+///
+/// A connection that no machine takes is a different condition, and one of them
+/// gives the state `Down` at once.
+const TIMEOUTS_OF_ONE_ADDRESS: u8 = 2;
+
 /// The addresses of one server, in priority sequence.
 #[derive(Debug)]
 pub struct EndpointPool {
     endpoints: Vec<Endpoint>,
     health: RwLock<Vec<Health>>,
+    /// The requests of each address that stopped at their time limit, one
+    /// after the other. An answer of the address puts it back to 0.
+    timeouts: RwLock<Vec<u8>>,
 }
 
 impl EndpointPool {
@@ -52,9 +69,12 @@ impl EndpointPool {
         endpoints.sort_by_key(|endpoint| endpoint.priority);
         let health = vec![Health::Up; endpoints.len()];
 
+        let timeouts = vec![0; endpoints.len()];
+
         EndpointPool {
             endpoints,
             health: RwLock::new(health),
+            timeouts: RwLock::new(timeouts),
         }
     }
 
@@ -91,6 +111,45 @@ impl EndpointPool {
     /// Records that an address does not answer.
     pub fn mark_down(&self, url: &str) {
         self.set_health(url, Health::Down);
+    }
+
+    /// Records one request of this address that stopped at its time limit.
+    ///
+    /// The function gives `true` when the address must take the state `Down`:
+    /// **one such request is not evidence that an address is down**, and
+    /// `TIMEOUTS_OF_ONE_ADDRESS` of them, one after the other, are. See T-97.
+    pub fn a_request_stopped_at_its_time_limit(&self, url: &str) -> bool {
+        let Some(position) = self.endpoints.iter().position(|e| e.url == url) else {
+            return true;
+        };
+
+        let Ok(mut timeouts) = self.timeouts.write() else {
+            return true;
+        };
+
+        let Some(count) = timeouts.get_mut(position) else {
+            return true;
+        };
+
+        *count = count.saturating_add(1);
+
+        *count >= TIMEOUTS_OF_ONE_ADDRESS
+    }
+
+    /// Forgets the requests of this address that stopped at their time limit.
+    ///
+    /// **The address answered**, therefore the requests before that answer say
+    /// nothing about it now. See T-97.
+    pub fn the_address_answered(&self, url: &str) {
+        let Some(position) = self.endpoints.iter().position(|e| e.url == url) else {
+            return;
+        };
+
+        if let Ok(mut timeouts) = self.timeouts.write() {
+            if let Some(count) = timeouts.get_mut(position) {
+                *count = 0;
+            }
+        }
     }
 
     /// Records that an address answers again.
@@ -144,6 +203,33 @@ mod tests {
             Endpoint::new("https://wan", 1),
             Endpoint::new("https://backup", 2),
         ])
+    }
+
+    /// **One request that stops at its time limit does not take an address
+    /// away.** The server does slow work for some requests of a user: the
+    /// measurement of 2026-08-11 gave a timeout of `POST /api/podcasts/feed`,
+    /// and every request after it said "No server address answered". See T-97.
+    #[test]
+    fn one_request_that_stops_at_its_time_limit_keeps_the_address() {
+        let pool = pool();
+
+        // The first one says nothing about the address.
+        assert!(!pool.a_request_stopped_at_its_time_limit("http://lan"));
+
+        // The second one, with no answer between them, says it.
+        assert!(pool.a_request_stopped_at_its_time_limit("http://lan"));
+
+        // An answer of the address forgets the two of them.
+        pool.the_address_answered("http://lan");
+        assert!(!pool.a_request_stopped_at_its_time_limit("http://lan"));
+
+        // Each address holds its own count.
+        assert!(!pool.a_request_stopped_at_its_time_limit("https://wan"));
+        assert!(pool.a_request_stopped_at_its_time_limit("https://wan"));
+
+        // An address that the pool does not hold gives the state `Down` at
+        // once: the program knows nothing of it.
+        assert!(pool.a_request_stopped_at_its_time_limit("http://nothing"));
     }
 
     #[test]

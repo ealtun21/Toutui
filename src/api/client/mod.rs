@@ -99,7 +99,12 @@ impl ApiClient {
             .attempt(&first, method.clone(), path, body.clone())
             .await
         {
-            Ok(response) => return Ok(response),
+            Ok(response) => {
+                // The address answered, therefore the requests that stopped at
+                // their time limit before it say nothing about it. See T-97.
+                self.pool.the_address_answered(&first);
+                return Ok(response);
+            }
             Err(error) => error,
         };
 
@@ -108,26 +113,53 @@ impl ApiClient {
             return Err(first_error);
         }
 
-        self.pool.mark_down(&first);
+        // **A request that stopped at its time limit is not evidence that the
+        // address is down.** The server does slow work for some requests of a
+        // user, and a pool of one address then has no address at all. See T-97
+        // and T-87.
+        if self.the_address_must_go_down(&first, &first_error) {
+            self.pool.mark_down(&first);
+        }
 
         if idempotent == Idempotent::No {
             return Err(first_error);
         }
 
         let second = match self.pool.next_after(&first) {
+            // **The fault of the first address is the answer of this request.**
+            // The old code gave `Unreachable` here, therefore a pool of one
+            // address said "No server address answered" for a request that
+            // stopped at its time limit, and the user did not read the reason.
+            // See T-97.
+            None => return Err(first_error),
             Some(url) => url,
-            None => return Err(ApiError::Unreachable),
         };
 
         match self.attempt(&second, method, path, body).await {
-            Ok(response) => Ok(response),
+            Ok(response) => {
+                self.pool.the_address_answered(&second);
+                Ok(response)
+            }
             Err(error) => {
-                if error.is_endpoint_fault() {
+                if error.is_endpoint_fault() && self.the_address_must_go_down(&second, &error) {
                     self.pool.mark_down(&second);
                 }
                 Err(error)
             }
         }
+    }
+
+    /// Tells if this fault of this address gives it the state `Down`.
+    ///
+    /// A connection that no machine takes is evidence at once. A request that
+    /// stopped at its time limit needs a second one of its kind: the server
+    /// does slow work for some requests of a user. See T-97.
+    fn the_address_must_go_down(&self, url: &str, error: &ApiError) -> bool {
+        if !matches!(error, ApiError::Timeout) {
+            return true;
+        }
+
+        self.pool.a_request_stopped_at_its_time_limit(url)
     }
 
     /// Sends one request to one address.
@@ -256,7 +288,10 @@ impl ApiClient {
             .await
             .map_err(|error| {
                 let error = classify_transport(&error);
-                if error.is_endpoint_fault() {
+                // A download holds a time limit of its own, and a download that
+                // reaches it says no more of the address than a request does.
+                // See T-97.
+                if error.is_endpoint_fault() && self.the_address_must_go_down(&base_url, &error) {
                     self.pool.mark_down(&base_url);
                 }
                 error

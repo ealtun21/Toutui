@@ -294,3 +294,76 @@ async fn a_download_without_permission_gives_forbidden() {
 
     assert!(matches!(result, Err(ApiError::Forbidden)));
 }
+
+/// **A request that stops at its time limit must not take the address away.**
+/// See T-97.
+///
+/// The measurement that found this: `POST /api/podcasts/feed` makes the server
+/// read a web site, and a web site that answers slowly gave the client its time
+/// limit of 15 seconds. The old client marked the address `Down` for that one
+/// request, therefore **every request after it said "No server address
+/// answered"** until the probe task ran again, one minute later:
+///
+/// ```text
+/// the attempt 1 of the feed gave: The server did not answer in time.
+/// the attempt 2 of the feed gave: No server address answered.
+/// ```
+///
+/// The server of this test waits 16 seconds for the first request, and it
+/// answers the requests after it at once. Therefore this test carries
+/// `#[ignore]`: it is longer than every other test of the program together.
+#[tokio::test]
+#[ignore = "it waits 16 seconds for the time limit of one request"]
+async fn one_request_that_stops_at_its_time_limit_keeps_the_address() {
+    use std::time::Duration;
+
+    let server = MockServer::start().await;
+
+    // The first path answers after the time limit of the client of 15 seconds.
+    Mock::given(method("GET"))
+        .and(path("/api/slow"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_json(serde_json::json!({ "ok": true }))
+                .set_delay(Duration::from_secs(16)),
+        )
+        .mount(&server)
+        .await;
+
+    Mock::given(method("GET"))
+        .and(path("/api/libraries"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({ "ok": true })))
+        .mount(&server)
+        .await;
+
+    let client = client(vec![&server.uri()]);
+
+    let slow: Result<serde_json::Value, ApiError> = client.get_json("/api/slow").await;
+
+    assert!(
+        matches!(slow, Err(ApiError::Timeout)),
+        "the request must stop at its time limit: {:?}",
+        slow
+    );
+
+    // **The address must still hold the state `Up`.**
+    assert!(
+        client.pool().down_urls().is_empty(),
+        "one request that stopped at its time limit took the address away: {:?}",
+        client.pool().down_urls()
+    );
+
+    // The request after it reaches the same address.
+    let body: serde_json::Value = client
+        .get_json("/api/libraries")
+        .await
+        .expect("the address of the server must stay");
+
+    assert_eq!(body["ok"], true);
+
+    // **Two requests that stop, one after the other, do take the address
+    // away**: an address that never answers is a different condition. That
+    // count belongs to the pool, and
+    // `one_request_that_stops_at_its_time_limit_keeps_the_address` of
+    // `src/api/client/endpoint.rs` holds it with no wait at all.
+}

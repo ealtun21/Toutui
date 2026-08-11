@@ -3689,6 +3689,74 @@ that holds the answer of the code, and not the rule of the user, keeps a fault
 for as long as the code lives. The rule is "one line is 1 item", and the test of
 T-85 wrote it for the titles that T-85 read.
 
+### T-96: one login for every test of the sandbox, and a feed that is not a fault
+
+**The rate limit of the login stopped a run of the tests three times in one
+session.** Sixteen files of `tests/` held the same `token()`, and each of them
+asked the server for a token of its own: one run of every test of the sandbox
+made about twenty logins, and the server permits 40 of 600 seconds. Two runs
+inside ten minutes therefore gave `429`, and the test said "the answer must hold
+a token" — a sentence that names the token and not the cause.
+
+`tests/common/mod.rs` holds that work one time now. It keeps the token in a file
+of `CARGO_TARGET_TMPDIR`, and a run that finds a token there **examines it with a
+request that is not a login** (`GET /api/libraries`). One run of every test makes
+one login, and the run after it makes none. **Three runs one after the other gave
+no line of the rate limiter**, and the same three runs before this work gave two
+faults.
+
+The message of the login also names the cause now: "A run of the tests that comes
+after many logins meets the rate limit of 40 requests of 600 seconds: read
+`podman logs abs-test`, and give the container a restart."
+
+**A second item of the same measurement: the feed of the internet.**
+`the_program_reads_the_queue_of_the_downloads_and_it_empties_it` failed in four
+runs of eight with "the server must read the feed". `POST /api/podcasts/feed`
+makes the server read librivox.org, and a slow answer of that web site gives the
+client its time limit of 15 seconds. **That measures the network, and not this
+program.** The test tries three times now, and it writes a line and gives no
+fault when the feed never answers.
+
+### T-97: one request that stopped at its time limit took the server away
+
+**This is T-87 a second time, for a transport fault.** The measurement of T-96
+gave the sequence that shows it:
+
+```
+the attempt 1 of the feed gave: The server did not answer in time.
+the attempt 2 of the feed gave: No server address answered.
+the attempt 3 of the feed gave: No server address answered.
+```
+
+The first request stopped at its time limit. `is_endpoint_fault` holds
+`ApiError::Timeout` as a fault of the address, therefore the client marked the
+one address `Down`, and **every request after it found no address at all** until
+the probe task ran again — up to **60 seconds** later.
+
+**A request that stops at its time limit is not evidence that the address is
+down.** The server does slow work for requests that a user makes every day:
+`POST /api/podcasts/feed` reads a web site, and a scan of a library reads every
+file. A connection that no machine takes is a different condition, and it still
+gives the state `Down` at once.
+
+The pool counts the requests of each address that stopped, one after the other.
+**Two of them give the state `Down`**, and one answer of that address forgets
+them. `TIMEOUTS_OF_ONE_ADDRESS` holds that number.
+
+**A second fault of the same path, and the user reads it:** a pool of one address
+had no second address for the attempt after the fault, and `send` then gave
+`ApiError::Unreachable` in place of the fault that came. The user therefore read
+"No server address answered" for a server that answered slowly. The fault of the
+first address is the answer of the request now, and the user reads "The server
+did not answer in time."
+
+`one_request_that_stops_at_its_time_limit_keeps_the_address` of
+`tests/api_client.rs` holds the rule: a mock server waits 16 seconds for one
+path, and the request after that one must reach the same address. It carries
+`#[ignore]`, because 15 seconds is longer than every other test of the program
+together. The count of the pool needs no wait, and a test of
+`src/api/client/endpoint.rs` holds it.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
