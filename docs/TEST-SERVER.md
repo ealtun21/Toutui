@@ -410,6 +410,38 @@ curl -X POST "http://localhost:13399/api/libraries/$BOOK_LIB_ID/scan?force=1" \
 The book then holds three pages: one page of text, and two pages of a picture of
 JPEG. The key `e` opens it.
 
+## The queue of the episodes that the server downloads
+
+T-81 needs a queue that holds lines. The feed of the section 5 gives 57 episodes,
+and the server holds three of them:
+
+```bash
+# The episodes of the feed that the server does not hold.
+curl -s -X POST http://localhost:13399/api/podcasts/feed \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"rssFeed":"https://librivox.org/rss/52"}' > feed.json
+
+# Ten of them go in the queue. The server takes some seconds to fill it.
+curl -X POST "http://localhost:13399/api/podcasts/$POD_ID/download-episodes" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d @ten-episodes.json
+
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:13399/api/libraries/$POD_LIB_ID/episode-downloads"
+
+# The queue of one podcast goes away. The episode that downloads now goes on.
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:13399/api/podcasts/$POD_ID/clear-queue"
+```
+
+**The queue does not fill at once.** A measurement of 2026-08-11 read an empty
+queue two seconds after the request, and the clear three seconds later removed
+nine episodes. **Poll that endpoint**, and do not sleep.
+
+`tests/the_downloads_against_the_sandbox.rs` does this work with three episodes,
+and it empties the queue at the end. The episode that the server downloaded stays
+in the library.
+
 ## The rate limit of the login
 
 The server permits **40 requests of `POST /login` in 600 seconds** for one address:
