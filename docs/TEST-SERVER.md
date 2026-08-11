@@ -433,3 +433,20 @@ code 234, and the server then deletes the session of the stream. Every new sessi
 that media answers "No Segments", and the log holds "Failed checking files" every two
 seconds for ever. **`podman restart abs-test` gives a server that works**, and a
 measurement of that media must start from a server that came up now.
+
+## 12. Two books with an ebook, for T-71
+
+The limit of the cache of the ebooks needs **two** books with an ebook. The sandbox
+holds the EPUB book of "Alice in Wonderland" and a copy of it in "A Long Test Book":
+
+```bash
+cp tests/data/alice.epub \
+  "$ABS/audiobooks/Long Author/A Long Test Book/book.epub"
+curl -s -X POST "http://localhost:13399/api/libraries/$LIB/scan" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Each file holds 136761 bytes. A run of the program with
+`TOUTUI_EBOOK_CACHE_BYTES=200000` therefore removes one book when the user opens the
+second one, and the row of the message says it. **A message lives six seconds**:
+capture the screen inside that time.

@@ -4,18 +4,18 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.30**, and the items T-66 to T-70 belong to this
+**The newest release is v0.7.31**, and the items T-66 to T-71 belong to this
 session. T-47 to T-65 belong to the session before it.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.30` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.31` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo test -j 16
-    # 831 tests pass, 17 carry #[ignore], 37 binaries
+    # 833 tests pass, 17 carry #[ignore], 37 binaries
 cargo tree -i openssl-sys                # finds nothing
 cargo tree -i cc                         # finds libsqlite3-sys and ring only
 ```
@@ -26,7 +26,7 @@ the requests of the login under the rate limit of the server.
 
 **The fault of one run of ten did not come back.** This session ran the whole suite
 **eight** times: three runs beside the work, and five runs one after the other. Every
-run gave 820 of 820, and the suite holds 831 tests after T-70. The session before
+run gave 820 of 820, and the suite holds 833 tests after T-71. The session before
 this one saw one fault of ten runs and did not name it. **Keep the whole output of `cargo test`** at the next such fault: the
 name of the test is the whole answer.
 
@@ -47,6 +47,7 @@ v0.6.7. Do not try to publish v0.6.6.
 | T-68 | **The book of xHE-AAC of the user, and four faults of the stream.** T-53 and T-63 close with it | `l` |
 | T-69 | **That book plays now**, from a place beside the one that stops ffmpeg of the server | `l` |
 | T-70 | A search of the name of an author gives the books of that author | `/` |
+| T-71 | The user reads that the cache of the ebooks removed a book | `e` |
 | T-51 | **The decision of the maintainer: Toutui stays GPL.** bookokrat gives ideas only | — |
 | T-20 | **The decision of the maintainer: the two builds of C stay.** Both answers need a crate that is not ready | — |
 
@@ -121,11 +122,10 @@ faults of the program that they found.
 1. **The list of Continue Listening of a **different** library.** T-66 holds the
    shelf of the library that the user selected. A media of a second library needs no
    work today, because the Home view shows one library.
-2. **The message of the user for the cache of the ebooks (T-67).** The program says
-   the name of every file that it removes in the log only. A user who keeps a book of
-   a scan for a journey loses it with no word on the screen when the cache goes above
-   one gigabyte. A line of `logic::message` at that moment would take the place of
-   the message of the reader, therefore the answer needs a shape and not one call.
+2. **A cache of the ebooks that the user can change.** T-71 gives
+   `TOUTUI_EBOOK_CACHE_BYTES` for a measurement, and `config.toml` holds no value for
+   it. A user of a small disk, and a user of twenty books of a scan, want a different
+   limit.
 3. **The peak of the memory of a PDF (T-62).** `Document::load` of `lopdf` reads the
    whole file, therefore a book of 500 megabytes needs a machine of a gigabyte for
    one moment. `MAX_BOOK_BYTES` of 512 megabytes holds that limit. A reader of one
@@ -194,64 +194,66 @@ acceptable in those two places. Look again when `turso` is a release and
    at startTime 4:52 (User startTime 5:22)", and it takes 30 seconds of that position
    as a pre-roll. A client that moves the part it asks for changes nothing: the
    program must write the position first. See T-69.
-8. **A sentence of an error of ffmpeg is not a measurement of the whole file.**
+8. **A message of the screen lives six seconds** (`message::LIFE`). A capture of the
+   screen after that time gives no message, and the program is correct. See T-71.
+9. **A sentence of an error of ffmpeg is not a measurement of the whole file.**
    "Not yet implemented in FFmpeg, patches welcome" came 195 times in 20 seconds of a
    file of xHE-AAC, and ffmpeg still gave 46.2 seconds of audio of 60. **Measure the
    output**, and not the lines of the fault: `ffmpeg -i <file> -f wav out.wav` and
    then `ffprobe` of the length. See T-68.
-9. **A stream of the server does not open in some milliseconds.** ffmpeg of the
+10. **A stream of the server does not open in some milliseconds.** ffmpeg of the
    server makes the first part, and a copy that fails costs ten seconds more. Every
    wait of a stream must hold that time, and `WAIT_FOR_A_FAULT` of 2500 milliseconds
    held it for a **file** only. See T-68.
-10. **The row of the message of the screen holds one line.** A message of 200 letters
+11. **The row of the message of the screen holds one line.** A message of 200 letters
    loses its end in a terminal of 160 columns. Hold a message at 150 letters or
    fewer. See T-68.
-11. **The server takes a name of a field that does not exist.** `?sort=bogus.field`
+12. **The server takes a name of a field that does not exist.** `?sort=bogus.field`
    gives `200` and an unspecified sequence. Measure a field before you offer it.
-12. **`items` of `GET /api/me/listening-stats` is a map, and not a list.**
-13. **`GET /api/podcasts/:id/checknew` gives an empty list for a podcast that came one
+13. **`items` of `GET /api/me/listening-stats` is a map, and not a list.**
+14. **`GET /api/podcasts/:id/checknew` gives an empty list for a podcast that came one
    second before.** It compares with the time of the last examination.
-14. **`convert_seconds` rounds to the minute.** It is wrong for a place in a media.
+15. **`convert_seconds` rounds to the minute.** It is wrong for a place in a media.
    Use `clock` of `src/utils/convert_seconds.rs`.
-15. **`topGenres` of `GET /api/stats/year/:year` names its value `genre`**, and
+16. **`topGenres` of `GET /api/stats/year/:year` names its value `genre`**, and
     `topAuthors` and `topNarrators` name it `name`.
-16. **The lists of the narrators and of the genres stay empty until a session comes
+17. **The lists of the narrators and of the genres stay empty until a session comes
     after the metadata.** The server keeps a copy of the metadata inside each
     session.
-17. **The first page of `GET /api/me/listening-sessions` is the page 0**, and a page
+18. **The first page of `GET /api/me/listening-sessions` is the page 0**, and a page
     after the last page gives `200` and an empty list.
-18. **`quick-xml` 0.41 gives an entity as its own event `GeneralRef`**, and not
+19. **`quick-xml` 0.41 gives an entity as its own event `GeneralRef`**, and not
     inside the text. A reference makes no text node of the tree of a web page,
     therefore `cfi::Walk` must not count it as one.
-19. **A comparison of two lists of texts must not read the text.** A book holds the
+20. **A comparison of two lists of texts must not read the text.** A book holds the
     word "very" two hundred times. Read the two lists together, in the sequence of
     the document.
-20. **`GET /api/libraries/:id/filterdata` holds no tag.** `GET /api/tags` gives them,
+21. **`GET /api/libraries/:id/filterdata` holds no tag.** `GET /api/tags` gives them,
     and a filter of `tags.<base64>` works. A scan of the library changes nothing.
     See T-60.
-21. **The rate limit of the login is 40 requests of 600 seconds.** A run of every
+22. **The rate limit of the login is 40 requests of 600 seconds.** A run of every
     test of the sandbox reaches it, and the test then says "the answer must hold a
     token". Read `podman logs abs-test` for the line of the rate limiter, and run
     those tests with `--test-threads=1`.
-22. **A test that changes data must write a value that differs.** The test of the
+23. **A test that changes data must write a value that differs.** The test of the
     live messages wrote the same subtitle at every run: the server saw no change at
     the second run, therefore it sent no message and the test waited for nothing.
-23. **A value of the state that belongs to one playback must name that playback.**
+24. **A value of the state that belongs to one playback must name that playback.**
     The engine clears the name of a file with no decoder when it starts a playback,
     and the command of the start is not immediate. `playback_of_the_fault` holds the
     identity. See T-53.
-24. **`reqwest::blocking` stops the program inside a task of tokio.** That client
+25. **`reqwest::blocking` stops the program inside a task of tokio.** That client
     makes a runtime of its own, and a runtime that goes away inside an asynchronous
     context gives "Cannot drop a runtime in a context where blocking is not
     allowed". The engine is a thread, therefore the real program is correct. **A
     test of such a reader must use `std::thread::spawn`.**
-25. **A value that comes from the view of the user must come before the view
+26. **A value that comes from the view of the user must come before the view
     changes.** `open_the_ebook` read the title of the media after it set the view to
     the reader, and the answer was then always nothing.
-26. **One media stands on more than one shelf of the Home view.** A list that names a
+27. **One media stands on more than one shelf of the Home view.** A list that names a
     media by its identity therefore changes every line of that media. **The number of
     the line is the key of a rule of one shelf.** See T-66.
-27. **The reader keeps the book of the session while the user reads it.** The key `h`
+28. **The reader keeps the book of the session while the user reads it.** The key `h`
     and a second `e` give the book with no call of `get_the_ebook`, therefore the
     time of the file does not change inside one run of the program. A measurement of
     the cache needs a second **run**. See T-67.
@@ -381,12 +383,12 @@ acceptable in those two places. Look again when `turso` is a release and
 
 > Continue the Toutui takeover, and write the next version. Repo:
 > `/home/nyverino/Documents/Toutui` (ealtun21/Toutui, branch main). Maintained fork
-> of the archived AlbanDAVID/Toutui. Newest release **v0.7.30**; `Cargo.toml` is at
-> 0.7.30, so the next release bumps it first — the workflow refuses a tag that
+> of the archived AlbanDAVID/Toutui. Newest release **v0.7.31**; `Cargo.toml` is at
+> 0.7.31, so the next release bumps it first — the workflow refuses a tag that
 > disagrees with `Cargo.toml`, **and it builds `--locked`, therefore the commit of
 > the bump must hold the new `Cargo.lock`**.
 >
-> Read `docs/HANDOVER.md` first: the state, the open items, and 39 traps that cost
+> Read `docs/HANDOVER.md` first: the state, the open items, and 40 traps that cost
 > real time. Then `docs/TAKEOVER-BACKLOG.md` (the evidence of every item; T-66, T-67,
 > T-68, T-69, and T-70 are the newest, and T-66, T-68, and T-69 are the ones to know) and
 > `docs/T-24-coverage.md` (**section 6 names what the program must not have, and
@@ -394,7 +396,7 @@ acceptable in those two places. Look again when `turso` is a release and
 >
 > **The work, in the sequence of its value:**
 >
-> 1. **The message of the user for the cache of the ebooks (T-67).** The program
+> 1. **A line of `config.toml` for the limit of the cache of the ebooks (T-71).** The program
 >    removes a book of the cache and it says that in the log only. The answer needs a
 >    shape: a message of the reader must not go away for it.
 > 2. **The peak of the memory of a PDF (T-62)**, if a user meets it. `MAX_BOOK_BYTES`
@@ -418,7 +420,7 @@ acceptable in those two places. Look again when `turso` is a release and
 > under `nice -n 19 ionice -c 3` with `-j 16`: `cargo clippy --all-targets --
 > -D warnings`, `cargo fmt --check`, and `cargo test` with `ALSA_CONFIG_PATH`
 > pointing at a real null asound file (`/dev/null` hangs the real binary). Baseline:
-> 831 tests, 17 with `#[ignore]`, 37 binaries, tree clean. **A measurement that plays
+> 833 tests, 17 with `#[ignore]`, 37 binaries, tree clean. **A measurement that plays
 > sound needs the real device and the permission of the user**: that variable does not
 > silence the real program. Look at `du -sh target`
 > and run `cargo clean --profile dev` at the end of the session.

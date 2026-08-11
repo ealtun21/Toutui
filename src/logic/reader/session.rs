@@ -646,18 +646,27 @@ pub async fn get_the_ebook(
 /// looks at the limit here and at no other moment. The book that came now stays.
 /// See T-67.
 fn hold_the_limit_of_the_cache(username: &str, came: &std::path::Path) {
-    let bytes = crate::logic::reader::cache::hold_the_limit(
+    let (books, bytes) = crate::logic::reader::cache::the_removal(
         username,
         came,
-        crate::logic::reader::cache::LIMIT_OF_THE_CACHE,
+        crate::logic::reader::cache::the_limit(),
     );
 
-    if bytes > 0 {
-        info!(
-            "[reader] the cache of the ebooks gave {} bytes back.",
-            bytes
-        );
+    if books == 0 {
+        return;
     }
+
+    info!(
+        "[reader] the cache of the ebooks gave {} bytes of {} book(s) back.",
+        bytes, books
+    );
+
+    // **The user must read that the program removed a book of the disk.** The
+    // render draws the message in every view, therefore the reader shows it.
+    // See T-71.
+    crate::logic::message::say(&crate::logic::reader::cache::the_sentence_of_the_cache(
+        books, bytes,
+    ));
 }
 
 #[cfg(test)]

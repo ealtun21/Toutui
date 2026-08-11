@@ -31,6 +31,50 @@ use std::time::SystemTime;
 /// that the reader opens.
 pub const LIMIT_OF_THE_CACHE: u64 = 1024 * 1024 * 1024;
 
+/// The name of the variable that changes the limit of the cache.
+///
+/// **A measurement of the real program needs a small limit.** A cache of one
+/// gigabyte needs some hundred books, and a session cannot make them. The
+/// variable holds a number of bytes, and `TOUTUI_NO_COVERS` and
+/// `TOUTUI_AUDIO_DEVICE` hold the same shape. See T-71.
+pub const LIMIT_VARIABLE: &str = "TOUTUI_EBOOK_CACHE_BYTES";
+
+/// Gives the limit of the cache of the ebooks.
+///
+/// A value of the variable that is not a number, and the value 0, give the limit
+/// of the program. A cache of 0 bytes would remove every book of the disk.
+pub fn the_limit() -> u64 {
+    the_limit_of(std::env::var(LIMIT_VARIABLE).ok().as_deref())
+}
+
+/// Gives the limit for one value of the variable.
+///
+/// The function is pure, therefore a test needs no variable of the environment.
+/// A test that writes such a variable must stand alone in its binary. See the
+/// trap 29 of `docs/HANDOVER.md`.
+pub fn the_limit_of(value: Option<&str>) -> u64 {
+    match value.map(str::trim).unwrap_or("").parse::<u64>() {
+        Ok(bytes) if bytes > 0 => bytes,
+        _ => LIMIT_OF_THE_CACHE,
+    }
+}
+
+/// Gives the sentence of the removal for the user.
+///
+/// **The program removed a book of the user, therefore the user must read it.**
+/// T-67 wrote that work in the log only, and a user who kept a book of a scan for
+/// a journey then lost it with no word.
+///
+/// The function is pure, therefore a test needs no file. See T-71.
+pub fn the_sentence_of_the_cache(books: usize, bytes: u64) -> String {
+    format!(
+        "The cache of the ebooks was full. The program removed {} book(s) of the \
+         disk, and it gave {} back. Press e to get one again.",
+        books,
+        crate::logic::download::text_of_the_size(bytes)
+    )
+}
+
 /// One ebook of the cache on the disk.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InTheCache {
@@ -148,14 +192,21 @@ pub fn the_cache_of(username: &str) -> Vec<InTheCache> {
 /// function gives the number of bytes that it removed, therefore a caller can
 /// write that number in the log.
 pub fn hold_the_limit(username: &str, keep: &Path, limit: u64) -> u64 {
+    the_removal(username, keep, limit).1
+}
+
+/// Holds the limit, and it gives the number of the books and the number of the
+/// bytes that went away. See T-71.
+pub fn the_removal(username: &str, keep: &Path, limit: u64) -> (usize, u64) {
     let books = the_cache_of(username);
     let must_go = the_ebooks_that_must_go(&books, keep, limit);
 
     if must_go.is_empty() {
-        return 0;
+        return (0, 0);
     }
 
     let mut bytes = 0u64;
+    let mut count = 0usize;
 
     for path in must_go {
         let size = match std::fs::metadata(&path) {
@@ -166,6 +217,7 @@ pub fn hold_the_limit(username: &str, keep: &Path, limit: u64) -> u64 {
         match std::fs::remove_file(&path) {
             Ok(()) => {
                 bytes += size;
+                count += 1;
                 info!(
                     "[cache] the cache of the ebooks is full. The program \
                      removed {} of {} bytes.",
@@ -177,7 +229,7 @@ pub fn hold_the_limit(username: &str, keep: &Path, limit: u64) -> u64 {
         }
     }
 
-    bytes
+    (count, bytes)
 }
 
 #[cfg(test)]
@@ -191,6 +243,47 @@ mod tests {
             bytes,
             used: SystemTime::UNIX_EPOCH + Duration::from_secs(seconds),
         }
+    }
+
+    /// The variable of the limit gives a number of bytes. A value that is not a
+    /// number, and the value 0, give the limit of the program: a cache of 0 bytes
+    /// would remove every book of the disk. See T-71.
+    #[test]
+    fn the_variable_of_the_limit_gives_a_number_of_bytes() {
+        assert_eq!(the_limit_of(Some("4096")), 4096);
+        assert_eq!(the_limit_of(Some("  4096  ")), 4096);
+
+        for wrong in [
+            None,
+            Some(""),
+            Some("0"),
+            Some("a lot"),
+            Some("-1"),
+            Some("4096.5"),
+        ] {
+            assert_eq!(
+                the_limit_of(wrong),
+                LIMIT_OF_THE_CACHE,
+                "the value {:?} must give the limit of the program",
+                wrong
+            );
+        }
+    }
+
+    /// The sentence names the number of the books, the size, and the key that
+    /// gets a book again. See T-71.
+    #[test]
+    fn the_sentence_of_the_cache_names_the_key() {
+        let sentence = the_sentence_of_the_cache(2, 5 * 1024 * 1024);
+
+        assert!(sentence.contains('2'), "{}", sentence);
+        assert!(sentence.contains("5 MB"), "{}", sentence);
+        assert!(sentence.contains("Press e"), "{}", sentence);
+        assert!(
+            sentence.chars().count() <= 150,
+            "the row of the screen holds one line: {} letters",
+            sentence.chars().count()
+        );
     }
 
     #[test]

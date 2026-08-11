@@ -12,7 +12,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
-use toutui::logic::reader::cache::{hold_the_limit, the_book_is_in_use, the_cache_of};
+use toutui::logic::reader::cache::{hold_the_limit, the_book_is_in_use, the_cache_of, the_removal};
 
 /// Makes a file of `bytes` bytes, and gives it a time of use of `ago` seconds
 /// before now.
@@ -93,6 +93,10 @@ fn the_cache_of_the_ebooks_holds_its_limit() {
     // A cache below the limit loses no book, and it removes nothing.
     assert_eq!(hold_the_limit("a user", &now, 2500), 0);
     assert!(newer.exists());
+
+    // The removal gives the number of the books too. The sentence of the user
+    // holds that number. See T-71.
+    assert_eq!(the_removal("a user", &now, 2500), (0, 0));
 
     // The reader says that it uses the older book. That book then holds the
     // newest time, therefore the other book goes away at the next limit.

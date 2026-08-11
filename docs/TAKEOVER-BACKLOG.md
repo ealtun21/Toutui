@@ -2825,6 +2825,45 @@ view that holds the title of the answer of the server itself.
 **A trap of the harness.** The key `Escape` of the view of the search closes the
 program. A sweep of the views must use `/` again, or `Tab`.
 
+### T-71: the program removed a book of the user with no word
+
+T-67 gave the cache of the ebooks its limit, and it left this open: **the program
+removed a file of the user and it wrote that in the log only.** A user who keeps a
+book of a scan for a journey then loses it with no word on the screen.
+
+`the_sentence_of_the_cache` gives the sentence, and the render draws it in the row of
+the message of **every** view. The reader is the view of that moment, therefore the
+user reads it there:
+
+```
+The cache of the ebooks was full. The program removed 1 book(s) of the disk, and it
+gave 133 kB back. Press e to get one again.
+```
+
+The sentence names the key that gets the book again, because the answer of the user to
+that message is `e`.
+
+**A measurement of the real program needs a small limit.** A cache of one gigabyte
+needs some hundred books, and no session makes them. `TOUTUI_EBOOK_CACHE_BYTES` holds
+a number of bytes, and it has the shape of `TOUTUI_NO_COVERS` and of
+`TOUTUI_AUDIO_DEVICE`. A value that is not a number, and the value 0, give the limit
+of the program: **a cache of 0 bytes would remove every book of the disk.**
+
+**The measurement of 2026-08-11.** The sandbox holds two books with an EPUB book of
+136761 bytes each, and the program ran with `TOUTUI_EBOOK_CACHE_BYTES=200000`:
+
+| The step | The answer |
+|---|---|
+| The key `e` on "A Long Test Book" | The reader opens. The cache holds one file |
+| The key `e` on "Alice in Wonderland" | The reader opens, and the file of the book before it goes away |
+| The row of the message, 2 to 6 seconds | The sentence above |
+| The log | `[reader] the cache of the ebooks gave 136761 bytes of 1 book(s) back.` |
+| The disk | One file of the cache |
+
+**A trap of the measurement.** A message lives **six** seconds (`message::LIFE`). A
+capture of the screen 9 seconds after the key gives no message, and the program is
+correct. Capture inside that time.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
