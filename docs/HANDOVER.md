@@ -1,6 +1,6 @@
 # The handover of 2026-08-11 (the sixth session of that day)
 
-**The newest release is v0.7.22.** The items T-52 to T-59 came after the first
+**The newest release is v0.7.24.** The items T-52 to T-59 came after the first
 form of this document. Read them in `docs/TAKEOVER-BACKLOG.md`.
 
 This document is for the next session. It says what is done, what is open, and
@@ -9,13 +9,13 @@ each item, and `docs/T-24-coverage.md` for the comparison with the server.
 
 ## The state
 
-`main` is clean and pushed. The newest release is **v0.7.22**. Every gate
+`main` is clean and pushed. The newest release is **v0.7.24**. Every gate
 passes:
 
 ```
 cargo clippy --all-targets -- -D warnings
 cargo fmt --check
-ALSA_CONFIG_PATH=<a real null asound file> cargo test    # 800 tests pass, 17 carry #[ignore], 36 binaries
+ALSA_CONFIG_PATH=<a real null asound file> cargo test    # 803 tests pass, 17 carry #[ignore], 36 binaries
 cargo tree -i openssl-sys                                # finds nothing
 ```
 
@@ -50,6 +50,9 @@ in v0.6.7. Do not try to publish v0.6.6.
 | T-58 | The reader says "page" for a PDF, and `?` works inside it | `?` |
 | T-59 | The view of the chapters says why it holds no line, and **every message of the program stands inside the frame**: 93 calls of `pop_message` went away | `C` |
 | T-60 | The filter of the library holds the tags. `filterdata` gives none | `f` |
+| T-61 | The task of the live messages waits longer after each fault. It asked every ten seconds for ever | — |
+| T-62 | A book of a scan held 137 megabytes of pictures. It holds 9.5 now | `e` |
+| T-63 | **The position and the movement of a playback of the stream.** A media that the user left at 26 hours would have lost its place | `p`, `u` |
 | — | T-7, T-8, and T-18 became complete: the pages of 500, the speed that changes during a playback, and a WMA file that plays through the stream | — |
 
 ### T-47, the live messages
@@ -99,6 +102,15 @@ the work.** The key `?` shows the list in the program. A new key needs a line in
 `keys.rs`, or the test `every_key_of_the_handler_stands_in_the_list` fails.
 
 ## What is open
+
+### The work that this session did after the first form of this document
+
+The items T-52 to T-63 all came after it. **T-63 is the one to know**: a playback of
+the stream of the server reported the position of the stream, and not the position
+of the media. A user who left a book at 26 hours would have lost that place. Every
+measurement of T-53 began at the second 0, therefore the fault stayed hidden. **A
+measurement of a media that the user did not start at its beginning is a different
+measurement.**
 
 ### The one measurement that this session could not make
 
@@ -279,7 +291,7 @@ new.
 > commit — `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,
 > and `cargo test` with `ALSA_CONFIG_PATH` pointing at a real null asound file
 > (`/dev/null` hangs the real binary). Baseline: 768 tests, 34 binaries, tree
-> clean. Baseline of the tests: 800 pass, 17 carry `#[ignore]`, 36 binaries. Run
+> clean. Baseline of the tests: 803 pass, 17 carry `#[ignore]`, 36 binaries. Run
 > every cargo command under `nice -n 19 ionice -c 3`: a full build uses every core,
 > and the user tests the program on the same machine. All
 > prose and user-facing strings in ASD-STE100 simplified technical
