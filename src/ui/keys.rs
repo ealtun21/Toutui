@@ -136,6 +136,14 @@ pub const GROUPS: &[Group] = &[
         ],
     },
     Group {
+        name: "The collections and the playlists (the key `c`)",
+        keys: &[
+            key("l", "The media of the list of the line"),
+            key("r", "Give the list a new name"),
+            key("X", "Remove the list. The program asks one time"),
+        ],
+    },
+    Group {
         name: "The program",
         keys: &[key("?", "This list of every key"), key("Q / Esc", "Quit")],
     },
@@ -294,6 +302,15 @@ pub const THE_LISTS_THAT_TAKE_A_MEDIA: &str = "A collection holds books, and eve
     makes a new collection of this media, and the key p makes a new playlist of \
     it.";
 
+/// The footer of the view of the collections and of the playlists.
+///
+/// The keys `r` and `X` of that view give a list a new name and remove it,
+/// therefore the view has a footer of its own: `FOOTER_OF_A_LIST` names neither
+/// of them. See T-93.
+pub const FOOTER_OF_THE_LISTS: &str =
+    "j/k: move  l: the media  r: a new name  X: remove the list  h: back  \
+     ?: every key  Q: quit";
+
 /// The footer of the view that puts a media in a list.
 ///
 /// The keys `c` and `p` make a list, therefore this view has a footer of its
@@ -361,6 +378,7 @@ mod tests {
             FOOTER_OF_A_LIST_OF_MEDIA,
             FOOTER_OF_A_FAULT,
             FOOTER_OF_THE_LISTS_THAT_TAKE_A_MEDIA,
+            FOOTER_OF_THE_LISTS,
         ];
 
         for footer in footers {

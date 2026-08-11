@@ -196,6 +196,10 @@ pub struct App {
     /// The podcast whose queue the key `X` empties, after the question. See
     /// T-81.
     pub confirm_the_empty_queue: Option<String>,
+    /// The identity of the list that the key `X` removes at a second press.
+    /// **Every user of the server sees a collection**, therefore the program
+    /// asks one time. See T-93.
+    pub confirm_the_removal_of_the_list: Option<String>,
     /// The line of the view of every key. See T-49.
     pub list_state_keys: ListState,
     /// The view that the user came from, before the list of every key. The key
@@ -1118,6 +1122,7 @@ impl App {
             list_state_put_in_a_list: ListState::default(),
             the_media_of_the_list: None,
             confirm_the_empty_queue: None,
+            confirm_the_removal_of_the_list: None,
             list_state_keys: ListState::default(),
             the_view_before_the_keys: AppView::Home,
             the_view_before_the_reader: AppView::Home,
@@ -1238,9 +1243,11 @@ impl App {
             self.confirm_logout = None;
         }
 
-        // The same rule for the queue of the downloads of the server. See T-81.
+        // The same rule for the queue of the downloads of the server (T-81),
+        // and for the list that the key `X` removes (T-93).
         if !matches!(key.code, KeyCode::Char('X')) {
             self.confirm_the_empty_queue = None;
+            self.confirm_the_removal_of_the_list = None;
         }
 
         match key.code {
@@ -1295,6 +1302,12 @@ impl App {
             // The key that puts the media of the line in a collection or in a
             // playlist. See T-84.
             KeyCode::Char('m') => self.show_the_lists_that_take_the_media(),
+
+            // The key that gives a collection or a playlist a new name. See
+            // T-93. It works in the view of the lists only.
+            KeyCode::Char('r') if matches!(self.view_state, AppView::Lists) => {
+                self.give_the_list_of_the_line_a_new_name()
+            }
 
             // The keys that make a new collection and a new playlist. See
             // T-88. They stand before the keys `c` and `p` of the program,
@@ -1446,6 +1459,10 @@ impl App {
 
             // The key that takes the media of the line out of the list that
             // holds it. See T-84.
+            KeyCode::Char('X') if matches!(self.view_state, AppView::Lists) => {
+                self.remove_the_list_of_the_line()
+            }
+
             KeyCode::Char('X') if matches!(self.view_state, AppView::ListEntries) => {
                 self.take_the_media_out_of_the_list()
             }
@@ -2552,6 +2569,144 @@ impl App {
             crate::logic::message::say(&text);
 
             // The lines of the screen come after the write. See T-84.
+            crate::logic::the_lists::ask(&api, &library).await;
+        });
+    }
+
+    /// Removes the collection or the playlist of the line. See T-93.
+    ///
+    /// **The program asks one time.** Every user of the server sees a
+    /// collection, therefore a key that removes one by mistake takes it away
+    /// from every one of them. The question names the kind of the list and the
+    /// number of its media.
+    pub fn remove_the_list_of_the_line(&mut self) {
+        let Some(list) = self.selected_list().cloned() else {
+            return;
+        };
+
+        // A list stands on the server. See T-91.
+        if self.is_offline {
+            crate::logic::message::say(
+                "The server does not answer. A collection and a playlist stand on the server.",
+            );
+            return;
+        }
+
+        if self.confirm_the_removal_of_the_list.as_deref() != Some(list.id.as_str()) {
+            self.confirm_the_removal_of_the_list = Some(list.id.clone());
+
+            crate::logic::message::say(&crate::api::lists::the_question_of_the_removal(
+                list.kind,
+                &list.name,
+                list.entries.len(),
+            ));
+
+            return;
+        }
+
+        self.confirm_the_removal_of_the_list = None;
+
+        let api = std::sync::Arc::clone(&self.api);
+        let kind = list.kind;
+        let list_id = list.id.clone();
+        let name = list.name.clone();
+        let library = self.id_selected_lib.clone();
+
+        // The line of the list goes away, therefore the selection must stay
+        // inside the list of the lists. `take_the_lists` holds that rule for
+        // the media of a list, and this holds it for the lists themselves.
+        let count = self.lists.len();
+
+        if let Some(line) = self.list_state_lists.selected() {
+            if line + 1 >= count && line > 0 {
+                self.list_state_lists.select(Some(line - 1));
+            }
+        }
+
+        tokio::spawn(async move {
+            let text = match crate::api::lists::remove_the_list(&api, kind, &list_id).await {
+                Ok(()) => crate::api::lists::the_sentence_of_the_removal(kind, &name),
+                Err(error) => format!("The server did not remove the list: {}", error),
+            };
+
+            crate::logic::message::say(&text);
+
+            // The lines of the screen come after the write. See T-84.
+            crate::logic::the_lists::ask(&api, &library).await;
+        });
+    }
+
+    /// Gives the collection or the playlist of the line a new name. See T-93.
+    ///
+    /// **The server does not examine the name of this request**, and it does
+    /// examine it when it makes a list: a `PATCH` of a collection with a name of
+    /// no letter gives a collection with no name. Therefore the program holds
+    /// the two rules of the name here, and they are the rules of T-88.
+    pub fn give_the_list_of_the_line_a_new_name(&mut self) {
+        let Some(list) = self.selected_list().cloned() else {
+            return;
+        };
+
+        if self.is_offline {
+            crate::logic::message::say(
+                "The server does not answer. A collection and a playlist stand on the server.",
+            );
+            return;
+        }
+
+        let question = format!(
+            "The new name of the {} \"{}\" (Enter, or Esc)",
+            list.kind.name().to_lowercase(),
+            list.name
+        );
+
+        let Ok(Some(name)) = self.ask_for_a_text(&question) else {
+            return;
+        };
+
+        let name = name.trim().to_string();
+
+        if name.is_empty() {
+            crate::logic::message::say("A collection and a playlist need a name.");
+            return;
+        }
+
+        // The list keeps its own name, therefore a name that this list holds
+        // already is not a name of a different list.
+        if crate::api::lists::a_different_list_holds_that_name(
+            &self.lists,
+            list.kind,
+            &name,
+            &list.id,
+        ) {
+            crate::logic::message::say(&crate::api::lists::the_sentence_of_the_name_that_exists(
+                list.kind, &name,
+            ));
+            return;
+        }
+
+        if name == list.name {
+            return;
+        }
+
+        let api = std::sync::Arc::clone(&self.api);
+        let kind = list.kind;
+        let list_id = list.id.clone();
+        let old = list.name.clone();
+        let library = self.id_selected_lib.clone();
+
+        tokio::spawn(async move {
+            let text = match crate::api::lists::give_the_list_a_new_name(
+                &api, kind, &list_id, &name,
+            )
+            .await
+            {
+                Ok(()) => crate::api::lists::the_sentence_of_the_new_name(kind, &old, &name),
+                Err(error) => format!("The server did not take the new name: {}", error),
+            };
+
+            crate::logic::message::say(&text);
+
             crate::logic::the_lists::ask(&api, &library).await;
         });
     }

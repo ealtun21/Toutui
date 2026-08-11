@@ -18,7 +18,8 @@ use toutui::api::client::endpoint::{Endpoint, EndpointPool};
 use toutui::api::client::ApiClient;
 use toutui::api::libraries::get_lists::{get_all_collections, get_all_playlists};
 use toutui::api::lists::{
-    a_list_holds_that_name, make_the_list, put_in_the_list, take_out_of_the_list,
+    a_different_list_holds_that_name, a_list_holds_that_name, give_the_list_a_new_name,
+    make_the_list, put_in_the_list, remove_the_list, take_out_of_the_list,
 };
 use toutui::api::utils::collect_lists::{collect_lists, ListKind, ListView};
 
@@ -286,13 +287,99 @@ async fn the_program_makes_a_collection_and_a_playlist() {
         assert!(a_list_holds_that_name(&now, kind, name));
     }
 
-    // The test gives the sandbox back.
-    api.delete_no_content(&format!("/api/collections/{}", collection))
+    // The test gives the sandbox back with the two functions of T-93.
+    remove_the_list(&api, ListKind::Collection, &collection)
         .await
         .expect("the server must remove the collection");
-    api.delete_no_content(&format!("/api/playlists/{}", playlist))
+    remove_the_list(&api, ListKind::Playlist, &playlist)
         .await
         .expect("the server must remove the playlist");
+
+    let collections = get_all_collections(&api, &library_id).await.unwrap();
+    let playlists = get_all_playlists(&api, &library_id).await.unwrap();
+    let at_the_end = collect_lists(&collections, &playlists);
+
+    assert_eq!(
+        at_the_end.len(),
+        lists.len(),
+        "the sandbox must hold the lists that it held before this test"
+    );
+}
+
+/// The program gives a list a new name, and it removes a list. See T-93.
+///
+/// **The server does not examine the name of a `PATCH`.** The measurement of
+/// 2026-08-11: a collection took a name of no letter and it kept it, and a
+/// playlist took the same request and it kept its old name. This test holds
+/// that measurement, because the rule of the program comes from it.
+#[tokio::test(flavor = "multi_thread")]
+#[ignore = "needs the sandbox of docs/TEST-SERVER.md on :13399"]
+async fn the_program_gives_a_list_a_new_name_and_it_removes_a_list() {
+    let pool = EndpointPool::new(vec![Endpoint::new(SERVER, 0)]);
+    let api = Arc::new(ApiClient::new(Arc::new(pool), token().await).unwrap());
+
+    let Some((library_id, lists, item_id, _title)) = the_library(&api).await else {
+        println!("this sandbox holds no list. See docs/TEST-SERVER.md, section 6d.");
+        return;
+    };
+
+    let of_the_test = "The Test Of A New Name";
+
+    let collection = make_the_list(
+        &api,
+        ListKind::Collection,
+        &library_id,
+        of_the_test,
+        &item_id,
+        None,
+    )
+    .await
+    .expect("the server must make the collection");
+
+    // 1. The new name reaches the server.
+    let new_name = "The Test Of A Name That Came After";
+
+    give_the_list_a_new_name(&api, ListKind::Collection, &collection, new_name)
+        .await
+        .expect("the server must take the new name");
+
+    let collections = get_all_collections(&api, &library_id).await.unwrap();
+    let playlists = get_all_playlists(&api, &library_id).await.unwrap();
+    let now = collect_lists(&collections, &playlists);
+
+    let of_the_server = now
+        .iter()
+        .find(|one| one.id == collection)
+        .expect("the collection must stay");
+
+    assert_eq!(of_the_server.name, new_name);
+    assert_eq!(
+        of_the_server.entries.len(),
+        1,
+        "a new name must not change the media of the list"
+    );
+
+    // 2. **The list keeps its own name.** The rule of the program must not
+    //    refuse the name that this list holds already.
+    assert!(!a_different_list_holds_that_name(
+        &now,
+        ListKind::Collection,
+        new_name,
+        &collection
+    ));
+
+    // 3. The list goes away, and a second request says that it is not there.
+    remove_the_list(&api, ListKind::Collection, &collection)
+        .await
+        .expect("the server must remove the collection");
+
+    let again = remove_the_list(&api, ListKind::Collection, &collection).await;
+
+    assert!(
+        matches!(again, Err(toutui::api::client::error::ApiError::NotFound)),
+        "the server must say that the collection is not there: {:?}",
+        again
+    );
 
     let collections = get_all_collections(&api, &library_id).await.unwrap();
     let playlists = get_all_playlists(&api, &library_id).await.unwrap();

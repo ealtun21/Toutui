@@ -1469,7 +1469,8 @@ impl App {
         ])
         .areas(main_area);
 
-        let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST;
+        // The keys `r` and `X` of this view need a footer of its own. See T-93.
+        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_LISTS;
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);

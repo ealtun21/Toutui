@@ -142,11 +142,68 @@ pub fn the_body_of_the_new_list(
 /// The comparison ignores the case and the spaces at the two ends, because a
 /// name that differs in those two ways only is the same name for a user.
 pub fn a_list_holds_that_name(lists: &[ListView], kind: ListKind, name: &str) -> bool {
+    // No list holds an empty identity, therefore this compares with every list.
+    a_different_list_holds_that_name(lists, kind, name, "")
+}
+
+/// Tells if a list **that is not this one** holds that name already. See T-93.
+///
+/// A new name of a list must differ from the name of every other list of that
+/// kind. **The list itself keeps its own name**: a user who writes the same name
+/// again changes nothing, and the program must not refuse that.
+pub fn a_different_list_holds_that_name(
+    lists: &[ListView],
+    kind: ListKind,
+    name: &str,
+    of_this_list: &str,
+) -> bool {
     let name = name.trim().to_lowercase();
 
-    lists
-        .iter()
-        .any(|list| list.kind == kind && list.name.trim().to_lowercase() == name)
+    lists.iter().any(|list| {
+        list.kind == kind && list.id != of_this_list && list.name.trim().to_lowercase() == name
+    })
+}
+
+/// Removes a collection or a playlist. See T-93.
+///
+/// **The server answers `404` for a list that went away already.** A second key
+/// of the user, or a different client that removed the same list, gives that
+/// answer.
+pub async fn remove_the_list(
+    client: &ApiClient,
+    kind: ListKind,
+    list_id: &str,
+) -> Result<(), ApiError> {
+    let path = match kind {
+        ListKind::Collection => format!("/api/collections/{}", list_id),
+        ListKind::Playlist => format!("/api/playlists/{}", list_id),
+    };
+
+    client.delete_no_content(&path).await
+}
+
+/// Gives a collection or a playlist a new name. See T-93.
+///
+/// **The server does not examine the name here**, and it does examine it when it
+/// makes a list. The measurement of 2026-08-11: a `PATCH` of a collection with a
+/// name of no letter gives `200` and a collection with no name, and the same
+/// request of a playlist gives `200` and keeps the old name. Therefore the
+/// **program** holds the rule of the name, and this function makes the request
+/// only.
+pub async fn give_the_list_a_new_name(
+    client: &ApiClient,
+    kind: ListKind,
+    list_id: &str,
+    name: &str,
+) -> Result<(), ApiError> {
+    let path = match kind {
+        ListKind::Collection => format!("/api/collections/{}", list_id),
+        ListKind::Playlist => format!("/api/playlists/{}", list_id),
+    };
+
+    client
+        .patch_json(&path, &serde_json::json!({ "name": name }))
+        .await
 }
 
 /// Makes a collection or a playlist, and it puts one medium in it. See T-88.
@@ -182,6 +239,44 @@ pub fn the_sentence_of_the_new_list(kind: ListKind, name: &str, title: &str) -> 
         kind.name().to_lowercase(),
         name,
         title
+    )
+}
+
+/// Gives the question that the program asks before it removes a list. See T-93.
+///
+/// **Every user of the server sees a collection**, and a playlist belongs to one
+/// user. The question says which of the two the key removes.
+pub fn the_question_of_the_removal(kind: ListKind, name: &str, media: usize) -> String {
+    match kind {
+        ListKind::Collection => format!(
+            "Press X again to remove the collection \"{}\" ({}). Every user of the server loses it.",
+            name,
+            crate::ui::keys::items(media)
+        ),
+        ListKind::Playlist => format!(
+            "Press X again to remove your playlist \"{}\" ({}). Any other key stops this.",
+            name,
+            crate::ui::keys::items(media)
+        ),
+    }
+}
+
+/// Gives the sentence of a list that went away. See T-93.
+pub fn the_sentence_of_the_removal(kind: ListKind, name: &str) -> String {
+    format!(
+        "The {} \"{}\" is not on the server now.",
+        kind.name().to_lowercase(),
+        name
+    )
+}
+
+/// Gives the sentence of a list that took a new name. See T-93.
+pub fn the_sentence_of_the_new_name(kind: ListKind, old: &str, new: &str) -> String {
+    format!(
+        "The {} \"{}\" has the name \"{}\" now.",
+        kind.name().to_lowercase(),
+        old,
+        new
     )
 }
 
@@ -320,5 +415,74 @@ mod tests {
             ListKind::Collection,
             "A Different Name"
         ));
+    }
+
+    /// A list keeps its own name. A user who writes the name that the list
+    /// holds already changes nothing, and the program must not refuse it.
+    /// See T-93.
+    #[test]
+    fn a_list_does_not_take_its_own_name_away_from_itself() {
+        let lists = vec![
+            ListView {
+                id: "one".to_string(),
+                kind: ListKind::Collection,
+                name: "A Test Collection".to_string(),
+                description: String::new(),
+                entries: Vec::new(),
+            },
+            ListView {
+                id: "two".to_string(),
+                kind: ListKind::Collection,
+                name: "A Second Collection".to_string(),
+                description: String::new(),
+                entries: Vec::new(),
+            },
+        ];
+
+        // The list of the line holds this name, therefore the name is free for
+        // that list.
+        assert!(!a_different_list_holds_that_name(
+            &lists,
+            ListKind::Collection,
+            "A Test Collection",
+            "one"
+        ));
+
+        // A different list of the same kind holds it.
+        assert!(a_different_list_holds_that_name(
+            &lists,
+            ListKind::Collection,
+            "A Second Collection",
+            "one"
+        ));
+    }
+
+    /// The question of the removal says which of the two lists the key
+    /// removes: every user of the server sees a collection. See T-93.
+    #[test]
+    fn the_question_names_the_kind_of_the_list() {
+        let of_a_collection = the_question_of_the_removal(ListKind::Collection, "A Name", 3);
+
+        assert!(of_a_collection.contains("collection \"A Name\" (3 items)"));
+        assert!(of_a_collection.contains("Every user of the server"));
+
+        let of_a_playlist = the_question_of_the_removal(ListKind::Playlist, "A Name", 1);
+
+        assert!(of_a_playlist.contains("your playlist \"A Name\" (1 item)"));
+
+        // The row of the message of the screen holds one line. See the trap 11
+        // of the harness.
+        for text in [of_a_collection, of_a_playlist] {
+            assert!(text.chars().count() <= 150, "the question is too long");
+        }
+
+        assert_eq!(
+            the_sentence_of_the_removal(ListKind::Playlist, "A Name"),
+            "The playlist \"A Name\" is not on the server now."
+        );
+        assert_eq!(
+            the_sentence_of_the_new_name(ListKind::Collection, "An Old Name", "A New Name"),
+            "The collection \"An Old Name\" has the name \"A New Name\" now."
+        );
     }
 }

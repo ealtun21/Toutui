@@ -3568,6 +3568,60 @@ exceeded - Endpoint: POST /login". The sweep of the login had used the 40
 requests. `podman restart abs-test` gives the limiter back, and the run then
 gave 902 of 902.
 
+### T-93: the keys that remove a list and that give it a new name
+
+T-88 makes a collection and a playlist, and it removed neither and renamed
+neither. The view of the lists (`c`) holds the line of each list, and its two
+free keys do that work now: **`r` gives the list a new name, and `X` removes
+it.**
+
+**The measurement of 2026-08-11 found the asymmetry that decides the rules of the
+program:**
+
+| Request | Answer |
+|---|---|
+| `PATCH /api/collections/:id` with a new name | `200`, and the media of the list do not change |
+| `PATCH /api/collections/:id` with a name of no letter | **`200`, and the collection then has no name** |
+| `PATCH /api/playlists/:id` with a name of no letter | `200`, and the playlist **keeps** its old name |
+| Either, with a name that a different list holds | `200` |
+| `DELETE` of either | `200` |
+| `DELETE` of either, a second time | `404` |
+
+**The server examines the name when it makes a list (T-88), and it does not
+examine it here.** A `PATCH` of a collection with no name gives a line
+"[Collection]  [1 item]" that names nothing. Therefore the rules of the name
+belong to the program, and they are the rules of T-88: a name of no letter and a
+name that a different list of that kind holds both give a message and no request.
+
+**A list keeps its own name.** `a_different_list_holds_that_name` takes the
+identity of the list of the line, therefore a user who writes the name that the
+list holds already gets no refusal. The program makes no request in that
+condition either: the name did not change.
+
+**The program asks one time before it removes a list**, as it does for the queue
+of the downloads (T-81). The question names the kind, because the two kinds are
+not the same thing for a user:
+
+```
+Press X again to remove the collection "A List With A New Name" (1 item). Every user of the server loses it.
+Press X again to remove your playlist "A Test Playlist" (1 item). Any other key stops this.
+```
+
+**Any other key stops the removal.** The measurement pressed `X`, then `j`, then
+`X`: the second `X` asked the question of the **second** list, and it removed
+nothing.
+
+The line of the list goes away after the removal, therefore the selection moves
+to the line before it when the last line goes. `take_the_lists` held that rule
+for the media of a list already (T-41).
+
+The measurement in the real program: a collection "A List To Remove" took the
+name "A List With A New Name" and the line of the screen changed with no key of
+the user, "A Test Collection" gave "A collection of that name exists already", an
+empty name gave "A collection and a playlist need a name", and the two presses of
+`X` took the collection away. `curl` of the server read the three lists of
+`docs/TEST-SERVER.md` after the measurement, and nothing else.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
