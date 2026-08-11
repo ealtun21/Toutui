@@ -1,21 +1,27 @@
-# The handover of 2026-08-11 (the eighth session of that day)
+# The handover of 2026-08-11 (the ninth session of that day)
 
 This document is for the next session. It says what is done, what is open, and the
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.37**, and the items T-74 to T-87 belong to this
-session. T-66 to T-73 belong to the session before it.
+**The newest release is v0.7.40**, and the items T-88 to T-92 belong to this
+session. T-74 to T-87 belong to the session before it.
+
+**This session made the three sweeps that no session had made**: the terminal of
+80 columns, the offline mode, and the view of the login. **Each of the three found
+a fault**, and T-90, T-91, and T-92 are those faults. The sweep stays the tool that
+finds what a test does not.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.37` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.40` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
-ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo test -j 16
-    # 875 tests pass, 20 carry #[ignore], 40 binaries
+ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
+    # 880 tests pass in 2.2 s, 22 carry #[ignore], 41 binaries
+    # cargo nextest run --run-ignored all gives 902 of 902 with the sandbox up
 cargo tree -i openssl-sys                # finds nothing
 cargo tree -i cc                         # finds libsqlite3-sys and ring only
 ```
@@ -25,16 +31,23 @@ them in 8.7. Use nextest: `.config/nextest.toml` stands in the repository, and t
 tool is on this machine. See T-74.
 
 **Every test of the sandbox passes too.** One run of
-`cargo nextest run --run-ignored all` gave 895 of 895 in 23.1 seconds, and the group
-`the-sandbox` of `.config/nextest.toml` runs them one at a time for the rate limit of
-the login. With `cargo test`, give `-- --ignored --test-threads=1`.
+`cargo nextest run --run-ignored all` gave **902 of 902 in 19.6 seconds**, and the
+group `the-sandbox` of `.config/nextest.toml` runs them one at a time for the rate
+limit of the login. With `cargo test`, give `-- --ignored --test-threads=1`.
+
+**One run of this session failed with "the answer must hold a token", and the
+cause was that rate limit.** The sweep of the view of the login (T-92) had used
+the 40 requests of 600 seconds. `podman logs abs-test` held "[RateLimiter] Rate
+limit exceeded", and `podman restart abs-test` gave the limiter back: the run
+after it gave 902 of 902. **A sweep of the login and a run of every test do not
+go together.**
 
 **The fault of one run of ten has a name now: T-86.**
 `the_four_requests_of_the_start_go_together` failed when the whole start took more
 than two seconds, and that is a measurement of the machine as much as of the program:
 one run of twelve of this session failed at 4.2 seconds while a build and a program of
 tmux ran beside it. The test holds the **time of each request** now, therefore the load
-of the machine changes nothing. Twelve runs after that change gave 875 of 875 each
+of the machine changes nothing. Twelve runs after that change gave every test each
 time.
 
 Two tests read the books of the survey. Those books stand outside the repository,
@@ -46,6 +59,58 @@ reads `tests/data/alice.epub` only, and it passes.
 v0.6.7. Do not try to publish v0.6.6.
 
 ## What this session closed
+
+| Item | What | Keys |
+|---|---|---|
+| T-88 | **A view that makes a collection or a playlist** | `m`, then `c` or `p` |
+| T-89 | The box that takes a text left two columns of the view on the screen | `b`, `A`, `c`, `p` |
+| T-90 | **Every footer lost its end in a terminal of 80 columns** | — |
+| T-91 | The program said that the library holds no list, and the server was down | `c`, `s`, `m` |
+| T-92 | **The login said "ERROR: Login failed" for every fault** | — |
+
+### The items of this session, and what each of them taught
+
+**T-88, and the measurement that decided its shape.** The first idea was a view
+that asks for a name and a library. **The server refuses it**: `POST
+/api/collections` answers `400` with "No books" for a collection with no book. A
+playlist with no item gives `200`, therefore the two requests do not behave in the
+same way. **A new collection needs a media**, and the key `m` holds one already:
+the work stands in that view, and it needs no new view at all. **Measure the
+request before you draw the screen that sends it.**
+
+The server also takes **two lists of one name**, and it gives the second one its
+own identity. The measurement made two lines "Measure Collection [1 item]" on the
+screen that no key tells apart, therefore the program refuses that name.
+
+**T-89, and the shape of every box of the program.** `ask_for_a_text` makes a
+`Terminal` of its own. **ratatui writes the cells that changed only**, and it
+compares with the buffer that it holds itself: the terminal of the program knew
+nothing of the letters that the box wrote over, therefore they stayed. `Clear`
+over the whole rows and one `terminal.clear()` after the box answer it. T-42 held
+the same answer for the key `R` already.
+
+**T-90, the first screen of the sweep of 80 columns.** The footer said
+"?: every k". **The area of the footer holds two rows**, and the footer wrote on
+one of them: a `Paragraph` with no `Wrap` cuts every letter after the width. The
+module `ui::keys` said that every footer fits in 80 columns, and no footer of more
+than 80 letters did.
+
+**T-91, the sweep of the offline mode.** With `podman stop abs-test`, three views
+said something that they cannot know: "This library has no collection and no
+playlist", "This library has no series", and "Press c or p to make one". **The
+view of the authors held the rule already**: "The server gave no author: the
+server does not answer". A view must not give a reason that the program does not
+have.
+
+**T-92, the sweep of the view of the login.** Two of the three messages of that
+view are good work already, and the third said "ERROR: Login failed" for every
+status. **The status of the answer holds the reason**, and 429 is the status that
+costs the most time: the rate limit of 40 requests of 600 seconds. Three other
+items came out of the same screen: the word "ERROR: " that no other message holds,
+an empty username that went forward with no word, and the field of the address
+that a wrong password emptied.
+
+## What the session before this one closed
 
 | Item | What | Keys |
 |---|---|---|
@@ -64,7 +129,7 @@ v0.6.7. Do not try to publish v0.6.6.
 | T-86 | The test of the requests of the start measured the machine | — |
 | T-87 | **One answer of 400 took the address of the server away** | — |
 
-### What the session before this one closed
+### The sessions before those two
 
 | Item | What | Keys |
 |---|---|---|
@@ -86,7 +151,7 @@ attempt). **#24** holds a comment with the state of the comparison, and it stays
 as the umbrella. **#20** stays open, and its comment holds the decision above.
 **The items T-27 to T-67 have no issue.**
 
-### The items of this session, and what each of them taught
+### The items of the session before this one, and what each of them taught
 
 **T-74, the tests.** `cargo test` was not the slow part: two tests held 12.7 seconds
 of the 18.7 of the run. One of them holds a clock of its own now
@@ -140,7 +205,7 @@ answers **400** for a media that stands in the list already. That answer found T
 nothing, the choice of the library changed no line of the screen, the key `s` of a
 library of podcasts said nothing, and every title of a view said "1 items".
 
-### The two items of the session before this one
+### The two items of an older session
 
 **T-66, the shelf of Continue Listening.** T-47 gave the mark of the line the
 position of a live message. **The line itself stayed**: a different client finished a
@@ -201,10 +266,14 @@ faults of the program that they found.
 
 ### 2. The work that needs no decision
 
-1. **A view that makes a collection or a playlist.** T-84 gives the media of a
-   list, and the program makes no list: `POST /api/collections` and
-   `POST /api/playlists` take a name and a library. The line of the name of a
-   new podcast (`A`) holds the shape of that work already.
+1. **The keys that remove a list, and that give it a new name.** T-88 makes a
+   collection and a playlist, and it removes neither: `DELETE
+   /api/collections/:id` and `DELETE /api/playlists/:id` answer `200` (the test
+   of T-88 uses both), and `PATCH` of the same two paths takes a new name. The
+   view of the lists (`c`) holds the line, and the key `X` of that view is free:
+   the key `X` of the view **inside** a list takes a media out of it already.
+   **Ask the user one time before a key removes a list that every user of the
+   server sees.**
 2. **The list of Continue Listening of a **different** library.** T-66 holds the
    shelf of the library that the user selected. A media of a second library needs no
    work today, because the Home view shows one library.
@@ -528,6 +597,36 @@ answers slowly while it writes. Two answers to measure:
     and a second `e` give the book with no call of `get_the_ebook`, therefore the
     time of the file does not change inside one run of the program. A measurement of
     the cache needs a second **run**. See T-67.
+42. **`POST /api/collections` refuses a collection with no book.** It answers
+    `400` with "Invalid collection data. No books". `POST /api/playlists` with no
+    item gives `200` and an empty playlist. **The two lists do not behave in the
+    same way**, therefore a view that makes a collection must hold a media. Both
+    refuse a name of no letter with `400`. See T-88.
+43. **The server takes two lists of one name.** It answers `200` and it gives the
+    second list its own identity. The user then reads two lines that say the same
+    words, and no key tells them apart. **The program refuses that name before the
+    request.** See T-88.
+44. **A box that makes a `Terminal` of its own writes on the cells of the view,
+    and the terminal of the program does not know it.** ratatui writes the cells
+    that changed only, and it compares with its own buffer. The letters of the
+    view stay on the screen until a key makes the program write those rows again.
+    **`Clear` over the whole rows, and then `terminal.clear()` of the loop.** See
+    T-89, and T-42 for the key `R`.
+45. **The area of the footer holds two rows, and a `Paragraph` with no `Wrap`
+    writes one.** Every footer of more than 80 letters lost its end in a terminal
+    of 80 columns, and the keys `?` and `Q` stand at the end of every one of
+    them. See T-90.
+46. **A view must not give a reason that the program does not have.** With no
+    answer from the server, three views said "This library has no …". No request
+    gave an answer, therefore the program knows nothing of that library.
+    **`App::is_offline` says which of the two sentences the view takes.** See
+    T-91.
+47. **The status of a login that failed holds the reason.** The old code made one
+    error for every status. **429 is the status that costs the most time**: the
+    rate limit of 40 requests of 600 seconds. See T-92 and the trap 22.
+48. **The key Esc quits the program from every view.** The key `h` goes back. A
+    sweep that presses Esc to leave a view kills the program, and the next
+    `wait_for` then says "no server running on /tmp/tmux-1000/default".
 
 ### Of the harness and of the machine
 
@@ -586,6 +685,16 @@ answers slowly while it writes. Two answers to measure:
     now. See T-68.
 13. **`playwright` wants its own browser:**
     `play.chromium.launch(executable_path="/usr/bin/chromium")`.
+14. **The sweep of the view of the login uses the rate limit of the login.** Each
+    attempt is one `POST /login` of the 40 of 600 seconds, and the tests of the
+    sandbox need that limit too. **Run the sweep, and then `podman restart
+    abs-test` before the tests.** See T-92.
+15. **The offline mode needs no new configuration**: `podman stop abs-test`, and
+    the program starts in that mode with the media of the disk. The header says
+    "Offline". `podman start abs-test` gives the server back. See T-91.
+16. **A sweep of the login needs a `XDG_CONFIG_HOME` with no database.** Two
+    files make it (the trap 7), and the program then draws the field of the
+    address. A second sweep needs the database of that directory removed again.
 
 ## The shapes that the next work should follow
 
@@ -632,6 +741,17 @@ answers slowly while it writes. Two answers to measure:
 - **A test may hold every text of the views to one rule.**
   `a_text_of_a_view_holds_no_run_of_spaces` reads a list of constants, and a new text
   of a view joins that list. A rule with no list is a rule that the next text breaks.
+  **A rule that no list can hold reads the source**:
+  `a_text_of_a_view_names_a_key_with_no_quotation_mark` reads `src/ui/tui.rs` with
+  `include_str!` and it finds every text that says "Press '". See T-91.
+- **Measure the request before you draw the screen that sends it.** The first
+  shape of T-88 was a view that asks for a name and a library, and the server
+  refuses a collection with no book. Four minutes of `curl` moved the whole work
+  into a view that exists already.
+- **A test of a view must hold the two conditions of the server.** The test of the
+  view of T-88 makes an `App` with an address that answers nothing, therefore that
+  application is in the **offline mode**. The screen of that mode says a different
+  sentence (T-91), and the test measures the two conditions one after the other.
 
 ## The rules that do not change
 
@@ -662,38 +782,43 @@ answers slowly while it writes. Two answers to measure:
 
 > Continue the Toutui takeover, and write the next version. Repo:
 > `/home/nyverino/Documents/Toutui` (ealtun21/Toutui, branch main). Maintained fork
-> of the archived AlbanDAVID/Toutui. Newest release **v0.7.37**; `Cargo.toml` is at
-> 0.7.37, so the next release bumps it first — the workflow refuses a tag that
+> of the archived AlbanDAVID/Toutui. Newest release **v0.7.40**; `Cargo.toml` is at
+> 0.7.40, so the next release bumps it first — the workflow refuses a tag that
 > disagrees with `Cargo.toml`, **and it builds `--locked`, therefore the commit of
 > the bump must hold the new `Cargo.lock`**.
 >
 > Read `docs/HANDOVER.md` first: the state, the open items, the section of the
-> harness, and 54 traps that cost real time. Then `docs/TAKEOVER-BACKLOG.md` (the
-> evidence of every item; T-74 to T-87 are the newest, and **T-87 is the one to
-> know**) and `docs/T-24-coverage.md` (**section 6 names what the program must not
-> have, and why**).
+> harness, and 64 traps that cost real time. Then `docs/TAKEOVER-BACKLOG.md` (the
+> evidence of every item; T-88 to T-92 are the newest, and **T-87 is still the one
+> to know**) and `docs/T-24-coverage.md` (**section 6 names what the program must
+> not have, and why**).
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a real null asound file
-> (`/dev/null` hangs the real binary). Baseline: **875 tests in 2.2 seconds**, and
-> `cargo nextest run --run-ignored all` gives **895 of 895** with the sandbox up.
+> (`/dev/null` hangs the real binary). Baseline: **880 tests in 2.2 seconds**, and
+> `cargo nextest run --run-ignored all` gives **902 of 902** with the sandbox up.
 >
-> **The sweep of the views is the tool that finds the faults.** Eleven items of the
-> session of 2026-08-11 came from sweeps in tmux with `docs/harness/drive.sh`, and no
-> test held one of them: a footer with the wrong word, a text with a run of 22 spaces,
-> a message that stood between the letters of a book, a key that moved nothing, keys of
-> the volume that said nothing, and a choice of the library that changed no line.
-> **Press every key of every view**, read the screen after each of them, and give the
-> program the shape of the data that breaks the rule.
+> **The sweep of the views is the tool that finds the faults.** Sixteen items of the
+> two sessions of 2026-08-11 came from sweeps in tmux with `docs/harness/drive.sh`,
+> and no test held one of them. **The three sweeps that no session had made all
+> found a fault**: 80 columns cut the end of every footer (T-90), the offline mode
+> made three views say something that the program cannot know (T-91), and the view
+> of the login said "ERROR: Login failed" for a wrong password, for the rate limit,
+> and for a fault of the server (T-92). **Press every key of every view**, read the
+> screen after each of them, and give the program the shape of the data that breaks
+> the rule.
 >
 > **The work that stays, in the sequence of its value:**
 >
-> 1. **A view that makes a collection or a playlist.** T-84 changes the media of a
->    list that exists, and `POST /api/collections` and `POST /api/playlists` make one.
->    The line of the name of a new podcast (`A`) holds the shape of that work.
-> 2. **The sweeps that no session made yet:** the offline mode (no server), a library
->    with no item, the view of the login, and the program in a terminal of 80 columns.
+> 1. **The keys that remove a list and that give it a new name.** T-88 makes a
+>    collection and a playlist, and it removes neither. `DELETE /api/collections/:id`
+>    and `DELETE /api/playlists/:id` answer `200`, and `PATCH` of those paths takes a
+>    new name. The key `X` of the view of the lists (`c`) is free. **Ask the user one
+>    time before a key removes a collection that every user of the server sees.**
+> 2. **The sweeps that stay:** a terminal of 40 rows or fewer (the list of the Home
+>    view gets 4 lines in 24 rows, and the description gets 14), a library of one
+>    item, and the reader of a book in 80 columns.
 > 3. **`CARGO_TARGET_DIR` on a different disk or on a `tmpfs`.** The lag of the machine
 >    comes from the disk: `target` grew to 11 gigabytes three times in one session.
 >    Look at `du -sh target` often, and run `cargo clean --profile dev` at the end. Do
