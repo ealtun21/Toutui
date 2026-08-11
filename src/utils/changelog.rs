@@ -1,4 +1,687 @@
+//! The changelog that the settings show. The key `S` and then "About and
+//! changelog" gives it to the user.
+//!
+//! **Every release of this fork holds one entry**, and the entry names its own
+//! version. The entries of the fork stood in ten local values of one function
+//! before, and the newest of them took the version of the build: the screen
+//! therefore said "Changelog Toutui v0.7.46" above the words of v0.6.9, and 38
+//! releases reached no user. See T-101.
+//!
+//! A release writes its entry in the words of a user, and not in the words of
+//! the code: "The keys c and p make a collection or a playlist" and not "T-88".
+//! Four tests of this module hold the rules of an entry.
+
+/// The version of this build.
+///
+/// A test holds the newest entry of the changelog to this value, therefore a
+/// release that writes no entry fails the gate. See T-101.
+#[cfg(test)]
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+/// One entry of the changelog: one release of this fork.
+struct Entry {
+    /// The version of the release, as `Cargo.toml` holds it.
+    version: &'static str,
+    /// The day of the release, as DD/MM/YYYY.
+    date: &'static str,
+    /// The words for the user: one line for each name of a group ("Added:"),
+    /// one line for each item, and an empty line between two groups.
+    ///
+    /// **One item of the list is one line of the text**, and the view wraps it:
+    /// a paragraph of ratatui breaks a line that is too long, and it never joins
+    /// two lines. A body that holds the wrap of the source therefore gives a
+    /// column of 65 letters in a terminal of 200.
+    body: &'static [&'static str],
+}
+
+/// Every entry of this fork, the newest first.
+///
+/// **A new release puts its entry at the top of this list**, and it names its
+/// own version. The versions 0.6.6 and 0.7.25 have no release, and
+/// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
+const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
+    Entry {
+        version: "0.7.46",
+        date: "12/08/2026",
+        body: &[
+            "Added:",
+            "- The key D gives a collection or a playlist a new description.",
+        ],
+    },
+    Entry {
+        version: "0.7.45",
+        date: "12/08/2026",
+        body: &[
+            "Fixed:",
+            "- A terminal of 18 rows showed one line of the list. Every row of a small screen \
+             goes to the list now.",
+        ],
+    },
+    Entry {
+        version: "0.7.44",
+        date: "11/08/2026",
+        body: &[
+            "Fixed:",
+            "- **One request that stopped at its time limit took the server away.** Every \
+             request after it said \"No server address answered\" for up to 60 seconds.",
+        ],
+    },
+    Entry {
+        version: "0.7.43",
+        date: "11/08/2026",
+        body: &["Fixed:", "- The view of the search said \"1 items\"."],
+    },
+    Entry {
+        version: "0.7.42",
+        date: "11/08/2026",
+        body: &[
+            "Fixed:",
+            "- The row of an item lost its end in a terminal of 80 columns.",
+        ],
+    },
+    Entry {
+        version: "0.7.41",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- The key r gives a collection or a playlist a new name, and the key X removes \
+             it. The program asks one time first, and the question names the kind: every user \
+             of the server sees a collection.",
+        ],
+    },
+    Entry {
+        version: "0.7.40",
+        date: "11/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The login says why the server refused it.** Every fault gave \"ERROR: Login \
+             failed\" before. The rate limit of the login has its own message, with the time \
+             to wait.",
+        ],
+    },
+    Entry {
+        version: "0.7.39",
+        date: "11/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Every footer lost its end in a terminal of 80 columns.** The keys ? and Q \
+             stand at the end of a footer, therefore no user of a narrow terminal read them.",
+            "- A view says that the server does not answer, and it no longer says that your \
+             library holds nothing.",
+        ],
+    },
+    Entry {
+        version: "0.7.38",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- The keys c and p make a new collection or a new playlist of the media that you \
+             selected.",
+            "",
+            "Fixed:",
+            "- A box that asks for a text left two columns of the view on the screen.",
+        ],
+    },
+    Entry {
+        version: "0.7.37",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- The key m puts a media in a collection or in a playlist, and the key X of that \
+             view takes it out again.",
+            "",
+            "Fixed:",
+            "- The key s of a library of podcasts says why it does nothing: a podcast holds no \
+             series.",
+        ],
+    },
+    Entry {
+        version: "0.7.36",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- The key d shows the episodes that the server downloads, and the queue of that \
+             work. The key X empties the queue of one podcast.",
+            "",
+            "Changed:",
+            "- The keys of the volume say what they did. The row of the player names the \
+             volume.",
+        ],
+    },
+    Entry {
+        version: "0.7.35",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- **The settings write config.toml**, and they keep every comment of that file.",
+            "",
+            "Fixed:",
+            "- A message of the program no longer writes on the letters of the view below it.",
+            "- The key h of the view of the search goes back.",
+        ],
+    },
+    Entry {
+        version: "0.7.34",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- The key e inside the reader gives every book of a media that holds more than \
+             one.",
+            "",
+            "Fixed:",
+            "- Two texts of the screen: the footer of the narrators said \"author\", and a \
+             text of the settings held a run of spaces.",
+            "- The run of the tests takes 2.2 seconds, and it took 18.7.",
+        ],
+    },
+    Entry {
+        version: "0.7.33",
+        date: "11/08/2026",
+        body: &["Added:", "- The key v shows the narrators of the library."],
+    },
+    Entry {
+        version: "0.7.32",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- config.toml holds the limit of the cache of the ebooks, in a block [reader]. \
+             The settings write that value.",
+        ],
+    },
+    Entry {
+        version: "0.7.31",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- The program says which book the cache of the ebooks removed.",
+        ],
+    },
+    Entry {
+        version: "0.7.30",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- A search of the name of an author gives the books of that author.",
+        ],
+    },
+    Entry {
+        version: "0.7.29",
+        date: "11/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A book of xHE-AAC plays.** The program starts the stream at a place beside \
+             the one that stops the ffmpeg of the server.",
+        ],
+    },
+    Entry {
+        version: "0.7.28",
+        date: "11/08/2026",
+        body: &[
+            "Fixed:",
+            "- The message of a stream that the server cannot make says the truth. An answer \
+             of 404 of one part of a stream is not a media that the server does not hold.",
+        ],
+    },
+    Entry {
+        version: "0.7.27",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- **A media that a different client finished leaves the list Continue \
+             Listening**, with no key and with no request.",
+            "- The program keeps the ebooks on the disk, with a limit of one gigabyte. The \
+             book that you read now never goes away.",
+        ],
+    },
+    Entry {
+        version: "0.7.26",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- The key X removes the ebook of the reader too.",
+            "",
+            "Changed:",
+            "- The build of the development holds the lines of the debug only. It is faster, \
+             and it writes less on the disk.",
+        ],
+    },
+    Entry {
+        version: "0.7.24",
+        date: "11/08/2026",
+        body: &[
+            "Fixed:",
+            "- The position and the movement of a playback that comes from a stream of the \
+             server.",
+        ],
+    },
+    Entry {
+        version: "0.7.23",
+        date: "11/08/2026",
+        body: &[
+            "Fixed:",
+            "- The task of the live messages waits longer after each fault, and a scan of the \
+             library holds less memory.",
+        ],
+    },
+    Entry {
+        version: "0.7.22",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- The filter of a library holds the tags of the server.",
+        ],
+    },
+    Entry {
+        version: "0.7.21",
+        date: "11/08/2026",
+        body: &[
+            "Fixed:",
+            "- Every message of the program stands inside the frame of the screen.",
+        ],
+    },
+    Entry {
+        version: "0.7.20",
+        date: "11/08/2026",
+        body: &[
+            "Fixed:",
+            "- The view of the chapters says why it holds no line.",
+        ],
+    },
+    Entry {
+        version: "0.7.19",
+        date: "11/08/2026",
+        body: &[
+            "Changed:",
+            "- The reader says \"page\" for a PDF, and \"chapter\" for an EPUB.",
+            "",
+            "Fixed:",
+            "- The key ? works inside the reader.",
+        ],
+    },
+    Entry {
+        version: "0.7.18",
+        date: "11/08/2026",
+        body: &[
+            "Fixed:",
+            "- A picture of 16 bits of a PDF reaches the screen.",
+        ],
+    },
+    Entry {
+        version: "0.7.17",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- The queue of the media stands on the disk, therefore it survives a stop of the \
+             program.",
+            "",
+            "Fixed:",
+            "- A book that ends before its length keeps the position of that end. It went back \
+             to the start before.",
+        ],
+    },
+    Entry {
+        version: "0.7.16",
+        date: "11/08/2026",
+        body: &[
+            "Fixed:",
+            "- The loop of a playback read the fault of the playback that came before it, and \
+             it stopped the new playback.",
+        ],
+    },
+    Entry {
+        version: "0.7.15",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- **The reader shows a PDF book**, with its pictures.",
+        ],
+    },
+    Entry {
+        version: "0.7.14",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- **Every codec of the server plays.** The program asks the server for a stream \
+             when it cannot read the file itself.",
+            "",
+            "Fixed:",
+            "- A fault of the reader left the user in that view. The screen of a fault names \
+             the keys now.",
+        ],
+    },
+    Entry {
+        version: "0.7.13",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- **The program reads the live messages of the server.** A change that a \
+             different client makes therefore reaches the screen with no key.",
+            "- The key ? shows every key of the program, in groups.",
+            "- The cover art fills its panel.",
+            "",
+            "Fixed:",
+            "- A book of more than one file plays. It needed a player of the system before.",
+        ],
+    },
+    Entry {
+        version: "0.7.12",
+        date: "11/08/2026",
+        body: &[
+            "Fixed:",
+            "- The place of an ebook agrees with the web reader of the server. A place that \
+             this program wrote gave a different chapter there.",
+        ],
+    },
+    Entry {
+        version: "0.7.11",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- **A queue of media.** The key n puts a media at the end of the queue, and the \
+             key q shows the queue. The next media starts when the one before it ends.",
+        ],
+    },
+    Entry {
+        version: "0.7.10",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- The key W shows every session that you played, with pages.",
+        ],
+    },
+    Entry {
+        version: "0.7.9",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- The view of the key T holds the statistics of the library and of the year too.",
+        ],
+    },
+    Entry {
+        version: "0.7.8",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- The reader writes the place of a book as an EPUBCFI, and it reads that form \
+             too. The web reader of the server and this program therefore give the same \
+             chapter.",
+        ],
+    },
+    Entry {
+        version: "0.7.7",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- The key L tells the server to examine the library for new files.",
+        ],
+    },
+    Entry {
+        version: "0.7.6",
+        date: "11/08/2026",
+        body: &["Added:", "- The key a shows the authors of the library."],
+    },
+    Entry {
+        version: "0.7.5",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- The key E tells the server to get the new episodes of a feed.",
+        ],
+    },
+    Entry {
+        version: "0.7.4",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- The key A adds a podcast to a library, with the address of its feed.",
+        ],
+    },
+    Entry {
+        version: "0.7.3",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- The key t gives a timer for sleep: 5, 10, 15, 30, 45, or 60 minutes, or the end \
+             of the chapter. The playback stops at that time.",
+        ],
+    },
+    Entry {
+        version: "0.7.2",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- The key b writes a bookmark at the place of the playback, and the key V shows \
+             the bookmarks of a media.",
+        ],
+    },
+    Entry {
+        version: "0.7.1",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- The key N hides a media from the list Continue Listening.",
+            "- The key C shows the chapters of the media that plays.",
+        ],
+    },
+    Entry {
+        version: "0.7.0",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- **The Home view shows every shelf of the server**, and not the list Continue \
+             Listening only.",
+            "- The key T shows the time that you listened.",
+            "- The key f gives the sequence and the filter of a library.",
+        ],
+    },
+    Entry {
+        version: "0.6.9",
+        date: "11/08/2026",
+        body: &[
+            "Changed:",
+            "- The program reads the permissions of your account. The key D on an account that \
+             may not download now says so, and it no longer shows the error of the protocol of \
+             the server.",
+            "- The bar of the search starts with no text.",
+        ],
+    },
+    Entry {
+        version: "0.6.8",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- **The key M marks a media as finished, or as not finished.** The program sent \
+             that mark at the end of a playback only, therefore a user who left a book in the \
+             middle could not take it out of the list Continue Listening. The key asks the \
+             server for the condition first, and it sends the opposite.",
+            "- A media that goes to \"not finished\" loses its position: the server puts it \
+             back to the start. The message says so.",
+        ],
+    },
+    Entry {
+        version: "0.6.7",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- **The search asks the server.** The program looked in the titles that it holds, \
+             therefore the name of an author found nothing. The server also finds an author, a \
+             series, a narrator, a tag, and a genre. The screen shows the titles at once, and \
+             the answer of the server when it comes. The title of the list says where the \
+             answer comes from.",
+            "- The reader follows the web reader of Audiobookshelf. It reads the chapter out \
+             of an EPUBCFI, therefore you find the correct chapter when you read in the web \
+             page and then in the terminal.",
+            "- A log out asks one time. Press l a second time to log out, and any other key \
+             stops the question.",
+            "- docs/T-24-coverage.md compares this program with the server, function by \
+             function.",
+            "",
+            "Fixed:",
+            "- The Home view matched its shelf on a name for a person. A server that gives \
+             that name in a different language gave an empty Home view, with no error. The \
+             program matches the identity now.",
+            "- The list of the accounts no longer moves past its last line.",
+        ],
+    },
+    Entry {
+        version: "0.6.5",
+        date: "11/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A playback that does not start no longer loses your place.** rodio gives the \
+             position 0 until the seek finishes, and a playback that never starts gives 0 for \
+             the whole wait. The program wrote that 0 on the disk every second, and it gave \
+             that 0 to the server when the session closed. The book then started at the \
+             beginning. The program now writes nothing until the engine reaches the place \
+             where the playback starts.",
+        ],
+    },
+    Entry {
+        version: "0.6.4",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- The reader opens a book where you stopped. The place comes from the server, \
+             therefore a different machine gives the same place.",
+            "- The reader sends the place by itself: when the place changed and 30 seconds \
+             went by, and when you leave the book with h.",
+        ],
+    },
+    Entry {
+        version: "0.6.3",
+        date: "11/08/2026",
+        body: &[
+            "Added:",
+            "- **Read an EPUB book in the terminal.** The key e on an item that holds an ebook \
+             opens the reader. The keys: j/k a line, Space/b a page, n/p a chapter, t the \
+             table of contents, g/G the start and the end, s sends the place to the server, \
+             and h leaves the book.",
+            "- The program keeps the file of the book, therefore the reader also works with no \
+             server.",
+            "- The place of the reader goes to the field of the ebook of the server. It \
+             changes no position of the audio.",
+        ],
+    },
+    Entry {
+        version: "0.6.2",
+        date: "10/08/2026",
+        body: &[
+            "Fixed:",
+            "- The start cannot wait for ever now. The sound device gets five seconds, and the \
+             program then goes on with no sound. An answer of the server that the program \
+             cannot read no longer stops the program.",
+            "- The start is faster with a large library. The pages of the items go to the \
+             server together. A library of 2056 items needs five pages, and the program asked \
+             for them one after the other before.",
+            "",
+            "Added:",
+            "- The reader of EPUB reads a book, and no screen shows it yet. The part that \
+             reads the file refuses a book that is too large, a chapter that is too large, and \
+             every one of twelve files that attack the program.",
+            "- macOS has a way to remove the program with no binary: macos/uninstall.sh. It \
+             deletes nothing, and it writes the paths and the commands.",
+        ],
+    },
+    Entry {
+        version: "0.6.1",
+        date: "10/08/2026",
+        body: &[
+            "This release answers a report of a user on v0.5.0 and v0.6.0.",
+            "",
+            "Fixed:",
+            "- The program drew nothing while it started. A slow server gave a black screen, \
+             and the user could not tell a slow server from a program that stopped. The \
+             program now draws at once, it names the step that it waits for, and the key Q \
+             stops it.",
+            "- The start is faster: the position of each book of the list Continue Listening \
+             goes in one group of requests, and not one after the other.",
+            "- A machine with no sound device could not open the program at all. Every \
+             function that needs no sound works now.",
+            "- No index of a vector can stop the screen. The render read a vector with the \
+             number of the selected line in 39 places, and a list of the screen can be shorter \
+             than that number.",
+            "- The login examines the address of the server before it asks for the password, \
+             and it says what is wrong.",
+            "",
+            "Added:",
+            "- Every line of the Home view and of the Library view has a mark: the media that \
+             plays, a media that is finished, or the part that the user heard.",
+            "- The settings say \"Accounts and log out\", and each entry tells what it does.",
+            "- TOUTUI_NO_COVERS turns the cover art off. Inside tmux the program asks the \
+             terminal nothing.",
+        ],
+    },
+    Entry {
+        version: "0.6.0",
+        date: "10/08/2026",
+        body: &[
+            "Added:",
+            "- The cover art. The cover stands beside the description and it is always \
+             visible. A series shows the cover of each of its books. The cover of the media \
+             that plays is the largest one. A narrow terminal gives the whole width to the \
+             text.",
+            "- A series takes one line of the Library view. The key l opens its books, in the \
+             sequence of the series.",
+            "- The key F sends the position to the server at once. It does not close the \
+             listening session.",
+            "",
+            "Changed:",
+            "- The program uses ratatui 0.30 and crossterm 0.29. tui-textarea is gone, and \
+             tui-input takes its place. The login screen and the bar of the search work as \
+             before.",
+            "- The build still needs no C toolchain for a library of the system, and it needs \
+             no OpenSSL.",
+        ],
+    },
+    Entry {
+        version: "0.5.0",
+        date: "10/08/2026",
+        body: &[
+            "Added:",
+            "- The program plays a local copy when the server does not answer, and it sends \
+             the positions when the server answers again.",
+            "- The program updates itself with `toutui --update`. The program compares the sum \
+             of the archive before it moves the new binary.",
+            "- The releases come from this repository, and the archives have a sum SHA-256 \
+             that the machine writes.",
+            "",
+            "Fixed:",
+            "- `--update` installed the archived original project.",
+            "- `Mark as finished` did not always operate.",
+            "",
+            "Changed:",
+            "- The script of installation has 100 lines and not 1080. It installs no VLC and \
+             no netcat, because the player in the program needs neither.",
+        ],
+    },
+];
+
+/// The text of one entry, with the credit and the words that close it.
+fn the_text_of_an_entry(entry: &Entry) -> String {
+    let mut text = String::new();
+
+    text.push_str("Changelog Toutui v");
+    text.push_str(entry.version);
+    text.push_str(" (");
+    text.push_str(entry.date);
+    text.push_str(")\n\n");
+
+    for line in entry.body {
+        text.push_str(line);
+        text.push('\n');
+    }
+
+    text.push_str(
+        "\nContributors:\n\
+         \n\
+         - AlbanDAVID (the original project), ealtun21\n\
+         \n\
+         Enjoy and be toutui!\n\
+         ####\n",
+    );
+
+    text
+}
 
 pub fn changelog() -> String {
     let mut changelog = String::new();
@@ -9,13 +692,17 @@ pub fn changelog() -> String {
         "AlbanDAVID wrote Toutui and archived it. This repository continues\n\
          that work. https://github.com/AlbanDAVID/Toutui\n\
          \n\
-         The entries below this line describe the original project. Some\n\
-         name a script or a package that does not exist now. The README of\n\
-         this repository gives the ways to install, to update, and to\n\
-         remove the fork.\n\
+         The entries of this fork come first, and the entries of the original\n\
+         project come after them. Some of those name a script or a package\n\
+         that does not exist now. The README of this repository gives the ways\n\
+         to install, to update, and to remove the fork.\n\
          \n\
          ####\n",
     );
+
+    for entry in THE_ENTRIES_OF_THE_FORK {
+        changelog.push_str(&the_text_of_an_entry(entry));
+    }
 
     let changelog_01 = "Changelog Toutui v0.1.0-beta (02/21/2025) \n\
          Fixed:\n\
@@ -224,249 +911,7 @@ To make it work properly, perform a fresh reinstall.
          \n\
          Enjoy and be toutui!\n
          ####\n".to_string();
-    // The entry of a release that came before this build names its own
-    // version. Only the newest entry takes the version of the build.
-    let changelog_15 = "Changelog Toutui v0.5.0 (10/08/2026) \n\
-     \n\
-     Added:\n\
-     - The program plays a local copy when the server does not answer, and\n\
-       it sends the positions when the server answers again.\n\
-     - The program updates itself with `toutui --update`. The program\n\
-       compares the sum of the archive before it moves the new binary.\n\
-     - The releases come from this repository, and the archives have a sum\n\
-       SHA-256 that the machine writes.\n\
-     \n\
-     Fixed:\n\
-     - `--update` installed the archived original project.\n\
-     - `Mark as finished` did not always operate.\n\
-     \n\
-     Changed:\n\
-     - The script of installation has 100 lines and not 1080. It installs\n\
-       no VLC and no netcat, because the player in the program needs\n\
-       neither.\n\
-     \n\
-     Contributors:\n\
-     \n\
-     - AlbanDAVID (the original project), ealtun21\n\
-     \n\
-     Enjoy and be toutui!\n\
-     ####\n"
-        .to_string();
-
-    let changelog_16 = "Changelog Toutui v0.6.0 (10/08/2026) \n\
-     \n\
-     Added:\n\
-     - The cover art. The cover stands beside the description and it is\n\
-       always visible. A series shows the cover of each of its books. The\n\
-       cover of the media that plays is the largest one. A narrow terminal\n\
-       gives the whole width to the text.\n\
-     - A series takes one line of the Library view. The key `l` opens its\n\
-       books, in the sequence of the series.\n\
-     - The key `F` sends the position to the server at once. It does not\n\
-       close the listening session.\n\
-     \n\
-     Changed:\n\
-     - The program uses ratatui 0.30 and crossterm 0.29. `tui-textarea` is\n\
-       gone, and `tui-input` takes its place. The login screen and the bar\n\
-       of the search work as before.\n\
-     - The build still needs no C toolchain for a library of the system,\n\
-       and it needs no OpenSSL.\n\
-     \n\
-     Contributors:\n\
-     \n\
-     - AlbanDAVID (the original project), ealtun21\n\
-     \n\
-     Enjoy and be toutui!\n\
-     ####\n"
-        .to_string();
-
-    let changelog_17 = "Changelog Toutui v0.6.1 (10/08/2026) \n\
-     \n\
-     This release answers a report of a user on v0.5.0 and v0.6.0.\n\
-     \n\
-     Fixed:\n\
-     - The program drew nothing while it started. A slow server gave a\n\
-       black screen, and the user could not tell a slow server from a\n\
-       program that stopped. The program now draws at once, it names the\n\
-       step that it waits for, and the key Q stops it.\n\
-     - The start is faster: the position of each book of the list\n\
-       Continue Listening goes in one group of requests, and not one\n\
-       after the other.\n\
-     - A machine with no sound device could not open the program at all.\n\
-       Every function that needs no sound works now.\n\
-     - No index of a vector can stop the screen. The render read a\n\
-       vector with the number of the selected line in 39 places, and a\n\
-       list of the screen can be shorter than that number.\n\
-     - The login examines the address of the server before it asks for\n\
-       the password, and it says what is wrong.\n\
-     \n\
-     Added:\n\
-     - Every line of the Home view and of the Library view has a mark:\n\
-       the media that plays, a media that is finished, or the part that\n\
-       the user heard.\n\
-     - The settings say \"Accounts and log out\", and each entry tells\n\
-       what it does.\n\
-     - TOUTUI_NO_COVERS turns the cover art off. Inside tmux the program\n\
-       asks the terminal nothing.\n\
-     \n\
-     Contributors:\n\
-     \n\
-     - AlbanDAVID (the original project), ealtun21\n\
-     \n\
-     Enjoy and be toutui!\n\
-     ####\n"
-        .to_string();
-
-    let changelog_18 = "Changelog Toutui v0.6.2 (10/08/2026) \n\
-     \n\
-     Fixed:\n\
-     - The start cannot wait for ever now. The sound device gets five\n\
-       seconds, and the program then goes on with no sound. An answer of\n\
-       the server that the program cannot read no longer stops the\n\
-       program.\n\
-     - The start is faster with a large library. The pages of the items go\n\
-       to the server together. A library of 2056 items needs five pages,\n\
-       and the program asked for them one after the other before.\n\
-     \n\
-     Added:\n\
-     - The reader of EPUB reads a book, and no screen shows it yet. The\n\
-       part that reads the file refuses a book that is too large, a\n\
-       chapter that is too large, and every one of twelve files that\n\
-       attack the program.\n\
-     - macOS has a way to remove the program with no binary:\n\
-       macos/uninstall.sh. It deletes nothing, and it writes the paths\n\
-       and the commands.\n\
-     \n\
-     Contributors:\n\
-     \n\
-     - AlbanDAVID (the original project), ealtun21\n\
-     \n\
-     Enjoy and be toutui!\n\
-     ####\n"
-        .to_string();
-
-    let changelog_19 = "Changelog Toutui v0.6.3 (11/08/2026) \n\
-     \n\
-     Added:\n\
-     - **Read an EPUB book in the terminal.** The key e on an item that\n\
-       holds an ebook opens the reader. The keys: j/k a line, Space/b a\n\
-       page, n/p a chapter, t the table of contents, g/G the start and\n\
-       the end, s sends the place to the server, and h leaves the book.\n\
-     - The program keeps the file of the book, therefore the reader also\n\
-       works with no server.\n\
-     - The place of the reader goes to the field of the ebook of the\n\
-       server. It changes no position of the audio.\n\
-     \n\
-     Contributors:\n\
-     \n\
-     - AlbanDAVID (the original project), ealtun21\n\
-     \n\
-     Enjoy and be toutui!\n\
-     ####\n"
-        .to_string();
-
-    let changelog_20 = "Changelog Toutui v0.6.4 (11/08/2026) \n\
-     \n\
-     Added:\n\
-     - The reader opens a book where you stopped. The place comes from\n\
-       the server, therefore a different machine gives the same place.\n\
-     - The reader sends the place by itself: when the place changed and\n\
-       30 seconds went by, and when you leave the book with h.\n\
-     \n\
-     Contributors:\n\
-     \n\
-     - AlbanDAVID (the original project), ealtun21\n\
-     \n\
-     Enjoy and be toutui!\n\
-     ####\n"
-        .to_string();
-
-    let changelog_21 = "Changelog Toutui v0.6.5 (11/08/2026) \n\
-     \n\
-     Fixed:\n\
-     - **A playback that does not start no longer loses your place.**\n\
-       rodio gives the position 0 until the seek finishes, and a playback\n\
-       that never starts gives 0 for the whole wait. The program wrote\n\
-       that 0 on the disk every second, and it gave that 0 to the server\n\
-       when the session closed. The book then started at the beginning.\n\
-       The program now writes nothing until the engine reaches the place\n\
-       where the playback starts.\n\
-     \n\
-     Contributors:\n\
-     \n\
-     - AlbanDAVID (the original project), ealtun21\n\
-     \n\
-     Enjoy and be toutui!\n\
-     ####\n"
-        .to_string();
-
-    let changelog_22 = "Changelog Toutui v0.6.7 (11/08/2026) \n\
-     \n\
-     Added:\n\
-     - **The search asks the server.** The program looked in the titles\n\
-       that it holds, therefore the name of an author found nothing. The\n\
-       server also finds an author, a series, a narrator, a tag, and a\n\
-       genre. The screen shows the titles at once, and the answer of the\n\
-       server when it comes. The title of the list says where the answer\n\
-       comes from.\n\
-     - The reader follows the web reader of Audiobookshelf. It reads the\n\
-       chapter out of an EPUBCFI, therefore you find the correct chapter\n\
-       when you read in the web page and then in the terminal.\n\
-     - A log out asks one time. Press l a second time to log out, and any\n\
-       other key stops the question.\n\
-     - docs/T-24-coverage.md compares this program with the server,\n\
-       function by function.\n\
-     \n\
-     Fixed:\n\
-     - The Home view matched its shelf on a name for a person. A server\n\
-       that gives that name in a different language gave an empty Home\n\
-       view, with no error. The program matches the identity now.\n\
-     - The list of the accounts no longer moves past its last line.\n\
-     \n\
-     Contributors:\n\
-     \n\
-     - AlbanDAVID (the original project), ealtun21\n\
-     \n\
-     Enjoy and be toutui!\n\
-     ####\n"
-        .to_string();
-
-    let changelog_23 = "Changelog Toutui v0.6.8 (11/08/2026) \n\
-     \n\
-     Added:\n\
-     - **The key M marks a media as finished, or as not finished.** The\n\
-       program sent that mark at the end of a playback only, therefore a\n\
-       user who left a book in the middle could not take it out of the\n\
-       list Continue Listening. The key asks the server for the condition\n\
-       first, and it sends the opposite.\n\
-     - A media that goes to \"not finished\" loses its position: the\n\
-       server puts it back to the start. The message says so.\n\
-     \n\
-     Contributors:\n\
-     \n\
-     - AlbanDAVID (the original project), ealtun21\n\
-     \n\
-     Enjoy and be toutui!\n\
-     ####\n"
-        .to_string();
-
-    let changelog_24 = format!(
-        "Changelog Toutui v{} (11/08/2026) \n\
-     \n\
-     Changed:\n\
-     - The program reads the permissions of your account. The key D on an\n\
-       account that may not download now says so, and it no longer shows\n\
-       the error of the protocol of the server.\n\
-     \n\
-     Contributors:\n\
-     \n\
-     - AlbanDAVID (the original project), ealtun21\n\
-     \n\
-     Enjoy and be toutui!\n\
-     ####\n",
-        VERSION
-    );
-    let changelog_13 = "Changelog Toutui v0.4.1-beta (14/05/2025) \n\
+    let changelog_13 ="Changelog Toutui v0.4.1-beta (14/05/2025) \n\
          \n\
          Warning:\n\
          - If you're already using the app v0.3.5 or bellow, please follow the upgrade instructions here: => 
@@ -506,16 +951,6 @@ To make it work properly, perform a fresh reinstall.
          Enjoy and be toutui!\n
          ####\n".to_string();
 
-    changelog.push_str(&changelog_24);
-    changelog.push_str(&changelog_23);
-    changelog.push_str(&changelog_22);
-    changelog.push_str(&changelog_21);
-    changelog.push_str(&changelog_20);
-    changelog.push_str(&changelog_19);
-    changelog.push_str(&changelog_18);
-    changelog.push_str(&changelog_17);
-    changelog.push_str(&changelog_16);
-    changelog.push_str(&changelog_15);
     changelog.push_str(&changelog_14);
     changelog.push_str(&changelog_13);
     changelog.push_str(&changelog_12);
@@ -532,4 +967,198 @@ To make it work properly, perform a fresh reinstall.
     changelog.push_str(&changelog_01);
 
     changelog
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The two versions of this fork that have no release. The tag `v0.6.6` came
+    /// before the version of `Cargo.toml`, therefore the workflow refused it and
+    /// the work of that tag went to v0.6.7. No commit ever gave the version
+    /// 0.7.25.
+    const THE_VERSIONS_WITH_NO_RELEASE: &[&str] = &["0.6.6", "0.7.25"];
+
+    /// The first release of this fork. Every version before it belongs to the
+    /// original project.
+    const THE_FIRST_VERSION_OF_THE_FORK: &str = "0.5.0";
+
+    /// Gives the three numbers of a version.
+    fn the_numbers_of_a_version(version: &str) -> (u32, u32, u32) {
+        let mut numbers = version.split('.').map(|number| {
+            number
+                .parse::<u32>()
+                .unwrap_or_else(|_| panic!("\"{}\" is not a version", version))
+        });
+
+        (
+            numbers.next().expect("a version holds three numbers"),
+            numbers.next().expect("a version holds three numbers"),
+            numbers.next().expect("a version holds three numbers"),
+        )
+    }
+
+    /// Gives the version of every entry of this fork, the oldest first.
+    fn the_versions_of_the_fork() -> Vec<String> {
+        let text = changelog();
+        let mut versions: Vec<String> = Vec::new();
+
+        for line in text.lines() {
+            let line = line.trim();
+
+            let Some(rest) = line.strip_prefix("Changelog Toutui v") else {
+                continue;
+            };
+
+            let version = rest
+                .split_whitespace()
+                .next()
+                .expect("the line of an entry names a version");
+
+            // The original project ends at v0.4.2-beta.
+            if version.contains('-') {
+                continue;
+            }
+
+            if the_numbers_of_a_version(version)
+                < the_numbers_of_a_version(THE_FIRST_VERSION_OF_THE_FORK)
+            {
+                continue;
+            }
+
+            versions.push(version.to_string());
+        }
+
+        versions.reverse();
+        versions
+    }
+
+    /// **The screen of the changelog must name the version of the program.** The
+    /// entries stopped at v0.6.8 while the program was at v0.7.46, therefore 38
+    /// releases of this fork reached no user. See T-101.
+    #[test]
+    fn the_changelog_holds_an_entry_for_the_version_of_the_program() {
+        let versions = the_versions_of_the_fork();
+
+        assert_eq!(
+            versions.last().map(|version| version.as_str()),
+            Some(VERSION),
+            "the newest entry of the changelog does not name v{}. A release \
+             writes its entry in the words of a user.",
+            VERSION
+        );
+    }
+
+    /// **Every release of this fork holds an entry.** A user who reads the screen
+    /// of the changelog must find the work of each version. See T-101.
+    #[test]
+    fn the_changelog_holds_an_entry_for_every_release_of_the_fork() {
+        let versions = the_versions_of_the_fork();
+
+        assert_eq!(
+            versions.first().map(|version| version.as_str()),
+            Some(THE_FIRST_VERSION_OF_THE_FORK),
+            "the oldest entry of this fork must be v{}",
+            THE_FIRST_VERSION_OF_THE_FORK
+        );
+
+        for two in versions.windows(2) {
+            let before = the_numbers_of_a_version(&two[0]);
+            let after = the_numbers_of_a_version(&two[1]);
+
+            // A new minor version starts at the patch 0.
+            if after == (before.0, before.1 + 1, 0) {
+                continue;
+            }
+
+            assert!(
+                after.0 == before.0 && after.1 == before.1 && after.2 > before.2,
+                "v{} does not come after v{}",
+                two[1],
+                two[0]
+            );
+
+            // Every version between the two must have no release.
+            for patch in (before.2 + 1)..after.2 {
+                let missing = format!("{}.{}.{}", before.0, before.1, patch);
+
+                assert!(
+                    THE_VERSIONS_WITH_NO_RELEASE.contains(&missing.as_str()),
+                    "the changelog holds no entry for v{}. It stands between \
+                     v{} and v{}.",
+                    missing,
+                    two[0],
+                    two[1]
+                );
+            }
+        }
+    }
+
+    /// **An entry names its own version, and never the version of the build.**
+    /// The entry of v0.6.9 took `CARGO_PKG_VERSION`, therefore the screen said
+    /// "Changelog Toutui v0.7.46" above the words of v0.6.9 and the fault stayed
+    /// hidden for 38 releases. See T-101.
+    #[test]
+    fn no_entry_of_the_changelog_takes_the_version_of_the_build() {
+        let source = include_str!("changelog.rs");
+
+        let start = source
+            .find("const THE_ENTRIES_OF_THE_FORK")
+            .expect("the module holds the entries of the fork");
+        let end = source[start..]
+            .find("\n];")
+            .expect("the list of the entries ends")
+            + start;
+
+        for line in source[start..end].lines() {
+            assert!(
+                !line.contains("VERSION"),
+                "an entry takes the version of the build: {}. Write the version \
+                 of that release.",
+                line.trim()
+            );
+        }
+    }
+
+    /// Every entry names a version one time, and two entries never name one
+    /// version.
+    #[test]
+    fn every_entry_of_the_changelog_names_its_own_version() {
+        let mut versions: Vec<&str> = THE_ENTRIES_OF_THE_FORK
+            .iter()
+            .map(|entry| entry.version)
+            .collect();
+
+        let count = versions.len();
+        versions.sort_unstable();
+        versions.dedup();
+
+        assert_eq!(count, versions.len(), "two entries name one version");
+
+        for entry in THE_ENTRIES_OF_THE_FORK {
+            assert!(
+                !entry.body.is_empty(),
+                "the entry of v{} holds no line",
+                entry.version
+            );
+
+            for line in entry.body {
+                assert!(
+                    !line.contains('\n'),
+                    "one line of the entry of v{} holds a new line: {}. The view \
+                     wraps a line, therefore one item is one line.",
+                    entry.version,
+                    line
+                );
+            }
+
+            let text = the_text_of_an_entry(entry);
+
+            assert!(
+                text.starts_with(&format!("Changelog Toutui v{} (", entry.version)),
+                "the entry of v{} does not name that version",
+                entry.version
+            );
+        }
+    }
 }

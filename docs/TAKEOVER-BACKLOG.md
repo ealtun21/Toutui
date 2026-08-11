@@ -3863,6 +3863,62 @@ item said `{} item(s)`, and the rule of the program is "1 item" and "2 items".
 The guard test of T-95 reads `{} items` only, therefore it did not find this one.
 The row uses `ui::keys::items` now.
 
+### T-101: the changelog of the fork stopped at v0.6.8, and the program was at v0.7.46
+
+The key `S` and then "About and changelog" shows `src/utils/changelog.rs` to the
+user. That file held 24 entries, and the newest of them named v0.6.8: **38
+releases of this fork reached no user.** T-27 to T-100 all stood outside that
+screen.
+
+**The fault hid itself.** The newest entry took `CARGO_PKG_VERSION` with
+`format!`, therefore the first line of the screen said "Changelog Toutui
+v0.7.46" above the words of v0.6.9. A reader of the screen saw the version of
+their build at the top, and no line said that 38 releases were absent. **A text
+that names the version of the build is not a text that names the release.**
+
+The measurement of 2026-08-12: the program in tmux, the key `S`, the line "About
+and changelog", and the key `J` nine times. The screen held "Changelog Toutui
+v0.7.46 (11/08/2026)" and then "The program reads the permissions of your
+account", which is the work of v0.6.9.
+
+**The shape now.** `THE_ENTRIES_OF_THE_FORK` is a list of `Entry`, the newest
+first, and each entry holds its version, its date, and its lines. A release puts
+one entry at the top of that list. The entries of the original project stay in
+the local values of `changelog()`, because they belong to a program that no
+commit of this repository changes.
+
+**The words come from `git log` and from this file**, and they are the words of a
+user: "The key D gives a collection or a playlist a new description." and not
+"T-100". Every version from 0.6.9 to 0.7.46 has one entry now, and the whole
+list holds 56 entries of the fork.
+
+**One item of a body is one line.** A `Paragraph` of ratatui breaks a line that
+is too long, and it never joins two lines: the old entries held the wrap of the
+source, therefore a terminal of 200 columns showed a column of 65 letters. The
+measurement after the change: the line "- A terminal of 18 rows showed one line
+of the list. Every row of a small screen goes to the list now." filled the width
+of the panel.
+
+**Four tests hold the rules.** Two of them fail with the old file, and the
+measurement of that run stands here: "v0.7.46 does not come after v0.6.8", and
+"an entry takes the version of the build".
+
+- `the_changelog_holds_an_entry_for_the_version_of_the_program` reads the newest
+  entry and it compares with `CARGO_PKG_VERSION`. **A release that writes no
+  entry fails the gate.** This test passed with the old file, because the
+  `format!` gave the version of the build: the entry of a release must therefore
+  name its own version, and
+  `no_entry_of_the_changelog_takes_the_version_of_the_build` reads the source of
+  the list and it refuses the word `VERSION` inside it.
+- `the_changelog_holds_an_entry_for_every_release_of_the_fork` walks the versions
+  of the entries from 0.5.0 up. A step of more than one patch is a fault, and
+  `THE_VERSIONS_WITH_NO_RELEASE` names the two exceptions: **v0.6.6** came before
+  the version of `Cargo.toml` and the workflow refused that tag (the work went to
+  v0.6.7), and no commit ever gave the version **0.7.25**.
+- `every_entry_of_the_changelog_names_its_own_version` holds the shape of an
+  entry: no two entries name one version, no entry is empty, and no line of a
+  body holds a new line.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
