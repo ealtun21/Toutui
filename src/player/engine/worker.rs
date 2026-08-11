@@ -116,6 +116,16 @@ struct Current {
     playing: usize,
     /// The number of tracks in the queue.
     queued: usize,
+    /// The number of tracks that the engine can play, from the first one.
+    ///
+    /// This value is the number of tracks of the book, and it becomes smaller
+    /// when the decoder does not read a track. The playback then stops at the
+    /// track before it, and the engine asks the server for that file no more.
+    /// See T-48.
+    tracks_that_play: usize,
+    /// The name of the file that the decoder does not read, if one exists. The
+    /// screen shows it, therefore the user knows why the playback stops early.
+    the_file_that_no_decoder_reads: Option<String>,
     /// The speed that every track of this book reads. WSOLA stretches the
     /// time, thus the pitch does not change.
     speed: SharedSpeed,
@@ -232,15 +242,25 @@ fn start(
 
     let speed = SharedSpeed::new(request.speed);
 
+    let tracks_that_play = item_count_of(&request);
+
     let mut item = Current {
         request,
         playing: track_index,
         queued: 0,
         speed,
+        tracks_that_play,
+        the_file_that_no_decoder_reads: None,
     };
 
     if let Err(error) = fill_queue(player, &mut item, token) {
         error!("[worker] the engine cannot start the book: {}", error);
+
+        // The queue of the player plays a track as soon as the engine appends
+        // it. A start that ends here must therefore stop the player, or the
+        // sound goes on while the screen shows no player and no position goes
+        // to the server. See T-48.
+        player.stop();
         set_status(state, PlaybackStatus::Stopped);
         *current = None;
         return;
@@ -256,6 +276,11 @@ fn start(
     info!("[worker] the playback starts at {} seconds", start_position);
 
     *current = Some(item);
+}
+
+/// Gives the number of tracks of a request.
+fn item_count_of(request: &PlaybackRequest) -> usize {
+    request.tracks.len()
 }
 
 /// Gives the position in the book.
@@ -323,10 +348,34 @@ fn seek_to(player: &mut Player, current: &mut Option<Current>, token: &str, posi
     player.play();
 }
 
+/// Tells if the fault of one track stops the whole playback. See T-48.
+///
+/// The queue holds `QUEUE_DEPTH` tracks, therefore the engine opens the track
+/// that plays now **and the track after it**. A book of two files can hold one
+/// file that the decoder reads and one file that it does not read: a book of a
+/// user on 2026-08-11 held the same audio two times, as AAC-LC and as xHE-AAC,
+/// and symphonia reads AAC-LC only.
+///
+/// The fault of the track that plays now stops the playback, because no sound
+/// can come. The fault of a track after it must not: the user hears the first
+/// 26 hours, and the engine tries that track again at each tick.
+pub fn the_fault_stops_the_playback(queued_before_the_fault: usize) -> bool {
+    queued_before_the_fault == 0
+}
+
 /// Appends tracks until the queue holds `QUEUE_DEPTH` tracks.
+///
+/// A track that the decoder does not read stops the filling. The function then
+/// gives `Ok`, because the tracks before it play. See `the_fault_stops_the_playback`.
 fn fill_queue(player: &mut Player, item: &mut Current, token: &str) -> Result<(), String> {
     while item.queued < QUEUE_DEPTH {
         let track_index = item.playing + item.queued;
+
+        // A track that no decoder reads ends the book. The engine must not ask
+        // the server for that file again at each tick. See T-48.
+        if track_index >= item.tracks_that_play {
+            break;
+        }
 
         let track = match item.request.tracks.get(track_index) {
             Some(track) => track.clone(),
@@ -338,7 +387,28 @@ fn fill_queue(player: &mut Player, item: &mut Current, token: &str) -> Result<()
             None => break,
         };
 
-        let decoder = open_decoder(&source, token, &track)?;
+        let decoder = match open_decoder(&source, token, &track) {
+            Ok(decoder) => decoder,
+            Err(error) => {
+                if the_fault_stops_the_playback(item.queued) {
+                    return Err(error);
+                }
+
+                warn!(
+                    "[worker] the engine cannot open the track {} of {}: {}. \
+                     The tracks before it play.",
+                    track_index + 1,
+                    item.request.tracks.len(),
+                    error
+                );
+
+                item.tracks_that_play = track_index;
+                item.the_file_that_no_decoder_reads = Some(track.filename.clone());
+
+                return Ok(());
+            }
+        };
+
         player.append(SpeedSource::new(decoder, item.speed.clone()));
         item.queued += 1;
     }
@@ -425,7 +495,10 @@ fn publish(
     // The queue becomes empty for a short time between two tracks. Therefore
     // an empty queue alone does not mean that the playback is complete. See
     // T-2.
-    let complete = is_complete(player.empty(), item.playing, item.request.tracks.len());
+    // A track that no decoder reads ends the book at the track before it.
+    // Therefore the count of this rule is the count of the tracks that play,
+    // and not the count of the tracks of the book. See T-48.
+    let complete = is_complete(player.empty(), item.playing, item.tracks_that_play);
 
     value.status = if player.is_paused() {
         PlaybackStatus::Paused
@@ -438,6 +511,11 @@ fn publish(
     // The media came to its end only if no track stays and the position is at
     // the end. See T-16.
     value.finished = reached_the_end(position, value.duration, complete);
+
+    // The user must know why a book stops before its end. See T-48.
+    if let Some(name) = &item.the_file_that_no_decoder_reads {
+        value.notice = Some(format!("The program cannot read {}", name));
+    }
 
     if was_stalled && value.status == PlaybackStatus::Playing {
         value.notice = Some("Reconnected".to_string());
@@ -456,5 +534,49 @@ fn publish(
 fn set_status(state: &Arc<RwLock<PlaybackState>>, status: PlaybackStatus) {
     if let Ok(mut value) = state.write() {
         value.status = status;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::the_fault_stops_the_playback;
+    use crate::player::engine::is_complete;
+
+    /// A book of a user on 2026-08-11 held the same audio two times: one file
+    /// of AAC-LC, and one file of xHE-AAC. symphonia reads AAC-LC only.
+    ///
+    /// The queue holds two tracks, therefore the engine opened the second file
+    /// at the start and the whole start then failed. The first file was in the
+    /// queue of the player already, and the queue of the player plays a track
+    /// as soon as the engine appends it. Therefore the sound came, the state
+    /// said `Stopped`, the screen showed no player, and no position went to the
+    /// server. See T-48.
+    #[test]
+    fn the_fault_of_a_later_track_does_not_stop_the_playback() {
+        // No track plays yet. No sound can come, therefore the playback stops.
+        assert!(the_fault_stops_the_playback(0));
+
+        // One track plays already. The user hears that track.
+        assert!(!the_fault_stops_the_playback(1));
+        assert!(!the_fault_stops_the_playback(2));
+    }
+
+    /// The book ends at the track before the track that no decoder reads.
+    /// Therefore the rule of the end counts the tracks that play, and not the
+    /// tracks of the book.
+    #[test]
+    fn the_book_ends_at_the_track_that_no_decoder_reads() {
+        // Two tracks, and the second one has no decoder. The first track
+        // played, and the queue is empty.
+        let tracks_that_play = 1;
+        assert!(is_complete(true, 1, tracks_that_play));
+
+        // The old rule counted the two tracks of the book. The state then said
+        // `Playing` for ever with an empty queue.
+        assert!(!is_complete(true, 1, 2));
+
+        // A book with no such fault does not change.
+        assert!(!is_complete(true, 1, 3));
+        assert!(is_complete(true, 3, 3));
     }
 }

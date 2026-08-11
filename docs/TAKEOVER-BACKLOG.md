@@ -1510,6 +1510,61 @@ message of each change inside 3 seconds:
 user, and that object holds a **new token**. The log must never write the body
 of a message.
 
+### T-48: a book of two files plays with no player and with no position
+
+A user reported this on 2026-08-11: one book of their library played the sound,
+**and the program showed no player and sent no position.** The book started at
+minute 0 every time. Every other book of that library was correct.
+
+**The cause.** The queue of the engine holds two tracks, therefore the engine
+opens the track that plays now **and the track after it**. That book held the
+same audio two times: one file of AAC-LC, and one file of xHE-AAC. symphonia
+reads AAC-LC only.
+
+`fill_queue` gave the fault of the second file to `start`, and `start` then
+stopped the whole playback: the status became `Stopped` and `current` became
+`None`. **The first file was in the queue of the player already, and the queue
+of the player plays a track as soon as the engine appends it.** Therefore:
+
+| What the user saw | Why |
+|---|---|
+| The sound plays | The queue of the player holds the first track |
+| No player on the screen | The state says `Stopped`, and the screen draws the player for a state that is not `Stopped` |
+| No position on the server | `follow_playback` reads the state of that playback, and the state holds no playback |
+| The book starts at minute 0 | No position ever went to the server |
+| The keys of the player do nothing | `current` is `None` |
+
+**The correction.** `the_fault_stops_the_playback` gives the rule: the fault of
+the track that plays now stops the playback, because no sound can come. The
+fault of a track after it does not. `Current` holds `tracks_that_play` now, and
+that value becomes the number of the track with the fault. Therefore:
+
+- The playback starts, the screen shows the player, and the position goes to the
+  server.
+- The engine asks the server for that file no more. The old code would ask five
+  times each second, because `advance` calls `fill_queue` at each tick.
+- The book ends at the track before the file with the fault. `is_complete` reads
+  `tracks_that_play`, and not the number of files of the book.
+- The panel of the player says "The program cannot read <the file>", therefore
+  the user knows why the book stops early.
+- A start that ends with a fault calls `player.stop()` now. The sound of a track
+  that the engine appended already must not go on.
+
+**The measurement.** A book of the sandbox held `01 - Part 1.mp3` of 30 minutes
+and `02 - Part 2.wma` of 30 seconds. Toutui plays no WMA file (T-18), therefore
+this book has the exact shape of the book of the user.
+
+| The binary | The log | The screen |
+|---|---|---|
+| Before | `[ERROR] the engine cannot start the book: ... It does not play wma and awb.` | No player, and the line has no mark |
+| After | `[WARN] the engine cannot open the track 2 of 2: ... The tracks before it play.` | `▶` on the line, and the player says `⏸ 28:52 / 30:29 ... (95%)` and `The program cannot read 02 - Part 2.wma` |
+
+**What stays open.** The position of a book that ends early goes on to the end of
+the whole book, because the queue of the player is empty and the position of the
+engine goes on. The book of the sandbox gave `currentTime` 60 for a book of 60
+seconds after 30 seconds of sound. A book with this shape is a fault of the
+library of the user: the same audio must not stand two times in one item.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
