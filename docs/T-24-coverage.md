@@ -68,13 +68,15 @@ This list comes from `src/api/` and from `src/logic/`. It is complete.
 | `POST /api/items/:id/play`, `POST /api/items/:id/play/:episodeId` | `src/api/library_items/play_lib_item_or_pod.rs` |
 | `GET /api/me/progress/:id` | `src/api/me/get_media_progress.rs` |
 | `GET /api/me/listening-stats` | `src/api/me/listening_stats.rs` |
+| `GET /api/me/listening-sessions?itemsPerPage=&page=` | `src/api/me/sessions.rs` |
+| `GET /api/libraries/:id/stats`, `GET /api/stats/year/:year` | `src/api/stats/mod.rs` |
 | `POST /api/me/item/:id/bookmark`, `DELETE /api/me/item/:id/bookmark/:time` | `src/api/me/bookmarks.rs` |
 | `GET /api/me` | `src/api/me/permissions.rs`, `src/api/me/bookmarks.rs` |
 | `PATCH /api/me/progress/:id`, `PATCH /api/me/progress/:id/:episodeId` | `src/api/me/update_media_progress.rs` |
 | `POST /api/session/:id/sync`, `POST /api/session/:id/close` | `src/api/sessions/` |
 | `GET /api/search/podcast?term=`, `POST /api/podcasts/feed`, `POST /api/podcasts`, `POST /api/podcasts/:id/download-episodes` | `src/api/podcasts/mod.rs` |
 
-Toutui calls 25 paths. The server has more than 100.
+Toutui calls 28 paths. The server has more than 100.
 
 ## 3. The keys of Toutui
 
