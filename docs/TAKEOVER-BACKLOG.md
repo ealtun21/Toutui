@@ -3123,6 +3123,33 @@ line of text of the user, and the file still takes any value by hand.
 | The file | Three lines came at the end (a blank line, `[reader]`, and `ebook_cache_mb = 2048`), and the 58 lines of the user did not change |
 | `g`, `j`, then `l` | The same line took the value 512. The file holds 61 lines and one block `[reader]` |
 
+### T-78: the message of the program kept the letters of the view below it
+
+The sweep of the keys of the reader of 2026-08-11 read this row of the screen,
+after the key `s`:
+
+```text
+CHAPTER IV.       │The Rabbit SeThe server has the place of the book.
+```
+
+**A `Paragraph` of ratatui gives its style to every cell of its area, and it
+writes its own text only.** The background of the row therefore changed, and
+every letter that the view wrote on that row stayed. The message stands one row
+above the footer (T-59), and in every list view that row holds no letter:
+therefore no session saw this before the reader.
+
+`Clear` takes the row away before the message comes.
+`draw_the_row_of_the_message` holds that work, and a test writes a line of a view
+in a buffer, draws the message over it, and reads the row back. A build with the
+`Clear` removed gives:
+
+```text
+left: "CHAPTER The server has the place.n a Bil"
+```
+
+**The sweep found this, and no test did.** A message of the program lives six
+seconds, and every measurement of a message before this one read a list view.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

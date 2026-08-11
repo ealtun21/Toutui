@@ -11,7 +11,7 @@ use ratatui::{
     style::{Color, Modifier, Style, Stylize},
     text::Line,
     widgets::{
-        Block, Borders, Gauge, HighlightSpacing, List, ListItem, ListState, Paragraph,
+        Block, Borders, Clear, Gauge, HighlightSpacing, List, ListItem, ListState, Paragraph,
         StatefulWidget, Widget, Wrap,
     },
 };
@@ -109,7 +109,25 @@ impl App {
             .fg(Color::Rgb(fg_r, fg_g, fg_b))
             .add_modifier(Modifier::BOLD);
 
-        Paragraph::new(crate::logic::message::one_line(&text, area.width))
+        App::draw_the_row_of_the_message(
+            row,
+            buf,
+            &crate::logic::message::one_line(&text, area.width),
+            style,
+        );
+    }
+
+    /// Draws the row of the message over the view that stands below it.
+    ///
+    /// **The row must hold the message and nothing else.** A `Paragraph` gives
+    /// its style to every cell of its area, and it writes its own text only:
+    /// every letter that stood on that row before it stays. A measurement of
+    /// 2026-08-11 read "CHAPTER IV.  │The Rabbit SeThe server has the place of
+    /// the book." in the reader. `Clear` takes the row away first. See T-78.
+    fn draw_the_row_of_the_message(row: Rect, buf: &mut Buffer, text: &str, style: Style) {
+        Clear.render(row, buf);
+
+        Paragraph::new(text.to_string())
             .centered()
             .style(style)
             .render(row, buf);
@@ -2460,5 +2478,59 @@ Uninstall:
                 color_alt_bg_list[2],
             )
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The row of the message must hold the message and nothing else.
+    ///
+    /// A measurement of the real program on 2026-08-11 read this row of the
+    /// reader:
+    ///
+    /// ```text
+    /// CHAPTER IV.       │The Rabbit SeThe server has the place of the book.
+    /// ```
+    ///
+    /// A `Paragraph` gives its style to every cell of its area, and it writes
+    /// its own text only. Every letter of the view stayed. See T-78.
+    #[test]
+    fn the_row_of_the_message_takes_the_letters_of_the_view_away() {
+        let row = Rect {
+            x: 0,
+            y: 0,
+            width: 40,
+            height: 1,
+        };
+
+        let mut buf = Buffer::empty(row);
+
+        // The view wrote a line of text on that row.
+        buf.set_string(
+            0,
+            0,
+            "CHAPTER IV.    The Rabbit Sends in a Bill",
+            Style::default(),
+        );
+
+        App::draw_the_row_of_the_message(
+            row,
+            &mut buf,
+            "The server has the place.",
+            Style::default(),
+        );
+
+        let line: String = (0..row.width)
+            .map(|column| buf[(column, 0)].symbol().to_string())
+            .collect();
+
+        assert_eq!(line.trim(), "The server has the place.");
+        assert!(
+            !line.contains("CHAPTER"),
+            "the row holds the text of the view: \"{}\"",
+            line
+        );
     }
 }
