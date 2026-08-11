@@ -1628,6 +1628,72 @@ Two rules made the picture small:
 
 The picture holds about 50 per cent more cells, and the text keeps 95 columns.
 
+### T-51: read a PDF book, and what bookokrat can give
+
+The user named `https://github.com/bugzmanov/bookokrat` on 2026-08-11, a reader
+of EPUB and of PDF for the terminal, and they said: "We are both GPLv3 so we can
+copy code where we need it."
+
+**The measurement of the license says no.** `bookokrat/LICENSE` holds the **GNU
+Affero General Public License, Version 3**, and `Cargo.toml` of that project
+says `license = "AGPL-3.0-or-later"`. Toutui is `GPL-3.0-or-later`.
+
+The AGPL adds the rule of the section 13: a user who reaches the program over a
+network must get the source. GPLv3 permits a **combination** with AGPL code, and
+the AGPL part keeps its own rule inside that combination. Therefore:
+
+- **No line of bookokrat may go into this repository** while `Cargo.toml` says
+  `GPL-3.0-or-later`. The file would then say a license that the work does not
+  have, and every user of the fork would get a wrong answer.
+- A change of the license of Toutui to AGPL is a decision of the maintainer, and
+  it touches AlbanDAVID as the first author. **Do not make that change without
+  the maintainer.**
+- **A person may read that project and write their own code.** A rule of a
+  layout and the name of a crate are facts, and a fact has no license.
+
+**The second fault: the way that bookokrat draws a PDF does not pass T-20.**
+`src/pdf/converter.rs` asks `mupdf` 0.6 with the features `svg`,
+`system-fonts`, and `img`, and it draws the pages of the pixmap with the
+protocol of Kitty. MuPDF is a library of C, and MuPDF itself is AGPL. The
+feature `system-fonts` asks the machine for the fonts. Therefore that path
+breaks the rule of the dependencies **and** the rule of the license.
+
+**What Toutui can do instead: read the text, and not the page.** A measurement
+on 2026-08-11 of three crates of pure Rust:
+
+| Crate | Version | License | `cargo tree -i cc` | `cargo tree -i openssl-sys` |
+|---|---|---|---|---|
+| `pdf-extract` | 0.12.0 | MIT | nothing | nothing |
+| `lopdf` | 0.44.0 | MIT | nothing | nothing |
+| `pdf` | 0.10.0 | MIT | nothing | nothing |
+
+`pdf_extract::extract_text` read a real PDF of 11445 bytes and it gave 6751
+letters in 157 lines, and the first lines are the lines of the page. Therefore
+one dependency of pure Rust gives the text of a PDF, and the reader of T-10 can
+show that text with the same widget as an EPUB book.
+
+**What the program must not try.** No crate of pure Rust draws a page of a PDF
+today. `pdfium-render` needs a library of the machine, and `mupdf` needs C and
+AGPL. Therefore a PDF in Toutui is text, and a user who needs the page of a
+figure opens the web page of the server.
+
+**The ideas of bookokrat that a person may use, after they write their own
+code.** These are facts of a design, and not code:
+
+1. **HTML to a middle form, and then to lines.** That project makes markdown of
+   the XHTML of a chapter, and it draws the markdown. Toutui walks the XHTML
+   itself in `src/logic/reader/cfi.rs`. A middle form makes the search and the
+   selection of a text easy, because the place of a letter stays the same.
+2. **A picture of a chapter gets a line of its own in the flow.** The reader
+   keeps the place of the picture, and it draws the picture when the terminal
+   can. A terminal that cannot draw shows a line that names the picture.
+3. **A task loads the pictures behind the screen.** The same shape as the covers
+   of T-23: a store of the process, and the render takes what is ready.
+
+**The state of this item.** The license makes it a decision of the maintainer,
+therefore no code goes in before that decision. The PDF of the text needs no
+such decision: `pdf-extract` is MIT and pure Rust.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
