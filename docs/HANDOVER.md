@@ -4,18 +4,18 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.32**, and the items T-66 to T-72 belong to this
+**The newest release is v0.7.33**, and the items T-66 to T-73 belong to this
 session. T-47 to T-65 belong to the session before it.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.32` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.33` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo test -j 16
-    # 835 tests pass, 17 carry #[ignore], 37 binaries
+    # 838 tests pass, 17 carry #[ignore], 37 binaries
 cargo tree -i openssl-sys                # finds nothing
 cargo tree -i cc                         # finds libsqlite3-sys and ring only
 ```
@@ -26,7 +26,7 @@ the requests of the login under the rate limit of the server.
 
 **The fault of one run of ten did not come back.** This session ran the whole suite
 **eight** times: three runs beside the work, and five runs one after the other. Every
-run gave 820 of 820, and the suite holds 835 tests after T-72. The session before
+run gave 820 of 820, and the suite holds 838 tests after T-73. The session before
 this one saw one fault of ten runs and did not name it. **Keep the whole output of `cargo test`** at the next such fault: the
 name of the test is the whole answer.
 
@@ -49,6 +49,7 @@ v0.6.7. Do not try to publish v0.6.6.
 | T-70 | A search of the name of an author gives the books of that author | `/` |
 | T-71 | The user reads that the cache of the ebooks removed a book | `e` |
 | T-72 | `config.toml` holds the limit of that cache, in a block `[reader]` | — |
+| T-73 | **The narrators of the library**, in the view of the authors | `v` |
 | T-51 | **The decision of the maintainer: Toutui stays GPL.** bookokrat gives ideas only | — |
 | T-20 | **The decision of the maintainer: the two builds of C stay.** Both answers need a crate that is not ready | — |
 
@@ -130,7 +131,11 @@ faults of the program that they found.
    whole file, therefore a book of 500 megabytes needs a machine of a gigabyte for
    one moment. `MAX_BOOK_BYTES` of 512 megabytes holds that limit. A reader of one
    page at a time needs a different crate, and no such crate of pure Rust exists.
-4. **A view of the search that holds its own titles (T-70).** The lines of that view
+4. **The table of section 4 of `docs/T-24-coverage.md` holds rows that are old.**
+   T-73 changed one row of `No` to `Yes`, and the rows of the live messages, of the
+   series, and of the sessions of the server say `No` or `Half` for work that landed.
+   **Read the code before you take a row of that table.**
+5. **A view of the search that holds its own titles (T-70).** The lines of that view
    come from the lists of the library, therefore a book that the program did not load
    gives no line. `get_all_books` reads every page at the start, and 500 pages of 500
    items hold 250000 items, therefore no library of a user meets this today.
@@ -383,8 +388,8 @@ acceptable in those two places. Look again when `turso` is a release and
 
 > Continue the Toutui takeover, and write the next version. Repo:
 > `/home/nyverino/Documents/Toutui` (ealtun21/Toutui, branch main). Maintained fork
-> of the archived AlbanDAVID/Toutui. Newest release **v0.7.32**; `Cargo.toml` is at
-> 0.7.32, so the next release bumps it first — the workflow refuses a tag that
+> of the archived AlbanDAVID/Toutui. Newest release **v0.7.33**; `Cargo.toml` is at
+> 0.7.33, so the next release bumps it first — the workflow refuses a tag that
 > disagrees with `Cargo.toml`, **and it builds `--locked`, therefore the commit of
 > the bump must hold the new `Cargo.lock`**.
 >
@@ -420,7 +425,7 @@ acceptable in those two places. Look again when `turso` is a release and
 > under `nice -n 19 ionice -c 3` with `-j 16`: `cargo clippy --all-targets --
 > -D warnings`, `cargo fmt --check`, and `cargo test` with `ALSA_CONFIG_PATH`
 > pointing at a real null asound file (`/dev/null` hangs the real binary). Baseline:
-> 835 tests, 17 with `#[ignore]`, 37 binaries, tree clean. **A measurement that plays
+> 838 tests, 17 with `#[ignore]`, 37 binaries, tree clean. **A measurement that plays
 > sound needs the real device and the permission of the user**: that variable does not
 > silence the real program. Look at `du -sh target`
 > and run `cargo clean --profile dev` at the end of the session.

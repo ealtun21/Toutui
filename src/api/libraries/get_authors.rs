@@ -27,6 +27,13 @@ struct Answer {
     authors: Vec<Author>,
 }
 
+/// The answer of the narrators. See T-73.
+#[derive(Debug, Clone, Default, Deserialize)]
+struct AnswerOfTheNarrators {
+    #[serde(default)]
+    narrators: Vec<Author>,
+}
+
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Author {
@@ -54,6 +61,35 @@ pub async fn get_authors(
         .await?;
 
     let mut all = answer.authors;
+    all.sort_by_key(|one| one.name.to_lowercase());
+
+    Ok(all)
+}
+
+/// Asks the server for the narrators of a library. See T-73.
+///
+/// A narrator of the server holds the shape of an author: an identity, a name,
+/// and a number of books. A measurement against an Audiobookshelf 2.36.0 on
+/// 2026-08-11:
+///
+/// ```json
+/// { "narrators": [ { "id": "QSBUZXN0IE5hcnJhdG9y",
+///                    "name": "A Test Narrator", "numBooks": 2 } ] }
+/// ```
+///
+/// **A narrator holds no row of its own on the server.** The identity is the name
+/// in base64, and the server holds the narrator inside the metadata of a file.
+/// Therefore the answer gives no description, and the filter of the library takes
+/// the name. See `logic::authors::Kind::filter_of`.
+pub async fn get_narrators(
+    client: &ApiClient,
+    id_selected_lib: &str,
+) -> Result<Vec<Author>, ApiError> {
+    let answer: AnswerOfTheNarrators = client
+        .get_json(&format!("/api/libraries/{}/narrators", id_selected_lib))
+        .await?;
+
+    let mut all = answer.narrators;
     all.sort_by_key(|one| one.name.to_lowercase());
 
     Ok(all)

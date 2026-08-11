@@ -1225,6 +1225,9 @@ impl App {
             // The key that shows the authors of the library. See T-24.
             KeyCode::Char('a') => self.show_the_authors(),
 
+            // The key that shows the narrators of the library. See T-73.
+            KeyCode::Char('v') => self.show_the_narrators(),
+
             // The key that tells the server to get the new episodes of a
             // podcast. See T-24.
             KeyCode::Char('E') => self.get_the_new_episodes(),
@@ -2132,6 +2135,19 @@ impl App {
     ///
     /// A library of podcasts has no author. See T-24.
     pub fn show_the_authors(&mut self) {
+        self.show_the_names(crate::logic::authors::Kind::Authors);
+    }
+
+    /// Shows the narrators of the library. See T-73.
+    ///
+    /// A narrator of the server holds the shape of an author, therefore one view
+    /// and one function hold the two lists.
+    pub fn show_the_narrators(&mut self) {
+        self.show_the_names(crate::logic::authors::Kind::Narrators);
+    }
+
+    /// Shows the authors of the library, or its narrators. See T-24 and T-73.
+    fn show_the_names(&mut self, kind: crate::logic::authors::Kind) {
         if !matches!(
             self.view_state,
             AppView::Home | AppView::Library | AppView::SearchBook | AppView::Authors
@@ -2140,9 +2156,12 @@ impl App {
         }
 
         if self.is_podcast {
-            crate::logic::message::say("A library of podcasts has no author.");
+            crate::logic::message::say(&kind.message_of_a_library_of_podcasts());
             return;
         }
+
+        // A new list forgets the answer of the list that came before it.
+        crate::logic::authors::keep_the_kind(kind);
 
         self.list_state_authors.select(Some(0));
         self.scroll_offset = 0;
@@ -2155,7 +2174,7 @@ impl App {
             return;
         }
 
-        // The authors of a library do not change while the program runs.
+        // The names of a library do not change while the program runs.
         // Therefore the program asks one time, and the key `R` asks again.
         if !matches!(
             crate::logic::authors::state(),
@@ -2170,11 +2189,26 @@ impl App {
         let library = self.id_selected_lib.clone();
 
         tokio::spawn(async move {
-            let state = match crate::api::libraries::get_authors::get_authors(&api, &library).await
-            {
-                Ok(all) => crate::logic::authors::State::Ready(all),
+            let answer = match kind {
+                crate::logic::authors::Kind::Authors => {
+                    crate::api::libraries::get_authors::get_authors(&api, &library).await
+                }
+                crate::logic::authors::Kind::Narrators => {
+                    crate::api::libraries::get_authors::get_narrators(&api, &library).await
+                }
+            };
+
+            let state = match answer {
+                Ok(all) => {
+                    log::info!(
+                        "[authors] the server gave {} name(s) of {:?}",
+                        all.len(),
+                        kind
+                    );
+                    crate::logic::authors::State::Ready(all)
+                }
                 Err(error) => {
-                    log::warn!("[authors] the server gave no author: {}", error);
+                    log::warn!("[authors] the server gave no name of {:?}: {}", kind, error);
                     crate::logic::authors::State::Fault(error.to_string())
                 }
             };
@@ -2199,7 +2233,7 @@ impl App {
             return;
         };
 
-        self.library_filter = crate::logic::sort_filter::filter_value("authors", &author.id);
+        self.library_filter = crate::logic::authors::kind().filter_of(author);
 
         let _ = crate::db::crud::update_library_sort(
             &self.username,

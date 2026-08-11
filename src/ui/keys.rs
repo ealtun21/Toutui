@@ -89,6 +89,7 @@ pub const GROUPS: &[Group] = &[
             key("/", "Search on the server"),
             key("s", "The series of the library"),
             key("a", "The authors of the library"),
+            key("v", "The narrators of the library"),
             key("c", "The collections and the playlists"),
             key("f", "The sequence and the filter of the library"),
             key("C", "The chapters of the media that plays"),

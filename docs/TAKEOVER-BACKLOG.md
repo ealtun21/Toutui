@@ -2910,6 +2910,50 @@ limit of 1 megabyte removes neither of them. A measurement of the **resolution**
 the limit therefore cannot come from the files of the disk: it needs the number that
 the program holds. One line of the log gives it, and it costs the user nothing.
 
+### T-73: the narrators of a library, with the key `v`
+
+Section 4 of `docs/T-24-coverage.md` said `No` for "The narrators of a library", and
+section 6 does not forbid it: the work needs no library of the system, it makes no
+public address, and a terminal shows a list of names well.
+
+**A narrator of the server holds the shape of an author.** A measurement against an
+Audiobookshelf 2.36.0 on 2026-08-11:
+
+```json
+GET /api/libraries/:id/narrators
+{ "narrators": [ { "id": "QSBUZXN0IE5hcnJhdG9y", "name": "A Test Narrator",
+                   "numBooks": 2 } ] }
+```
+
+Therefore **one view holds the two lists**, and `logic::authors::Kind` says which list
+the view holds. The key `a` gives the authors and the key `v` gives the narrators.
+`Kind` holds every sentence of the two lists, and it is pure.
+
+**The one difference between the two lists, and it matters.** The filter of an author
+takes the **identity** of that author, and the filter of a narrator takes the
+**name**: the server holds a narrator inside the metadata of a file, and not as a row
+of its own. The identity of the answer is already the name in base64
+(`QSBUZXN0IE5hcnJhdG9y` for "A Test Narrator"), and `filter_of` does not depend on
+that form.
+
+**A new list forgets the answer of the list before it.** The view would else show the
+authors under the title of the narrators, because the two lists share one slot.
+
+**The measurement in the real program, 2026-08-11:**
+
+| The key | The screen |
+|---|---|
+| `a` | `The authors [6 items]`, with "Decoder Test [1 book(s)]", "Lewis Carroll [1 book(s)]", … |
+| `v` | `The narrators [2 items]`, with "A Test Narrator [2 book(s)]" and "Jonathan Davis [1 book(s)]" |
+| `l` on "A Test Narrator" | `Library [2 items] — a filter is on (f)`, with "A Long Test Book" and "Alice in Wonderland" |
+
+The database then held `narrators.QSBUZXN0IE5hcnJhdG9y`, and that value agrees with
+the measurement of `curl` of T-70.
+
+**The key `v`.** Eight letters had no key: `d`, `m`, `r`, `v`, `w`, `x`, `y`, and `z`.
+`v` says "voice", and `src/ui/keys.rs` holds the line of the key `?`. The test
+`every_key_of_the_handler_stands_in_the_list` holds that rule.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

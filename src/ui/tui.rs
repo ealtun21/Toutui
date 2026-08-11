@@ -615,20 +615,22 @@ impl App {
 
         let state = crate::logic::authors::state();
 
+        // The view holds the authors or the narrators, and the title says which
+        // list it holds. See T-73.
+        let kind = crate::logic::authors::kind();
+
         let (title, lines) = match &state {
             crate::logic::authors::State::Ready(all) if all.is_empty() => {
-                ("This library has no author.".to_string(), Vec::new())
+                (kind.title_of_nothing(), Vec::new())
             }
             crate::logic::authors::State::Ready(all) => (
-                format!("The authors [{} items]", all.len()),
+                kind.title(all.len()),
                 crate::api::libraries::get_authors::lines(all),
             ),
             crate::logic::authors::State::Waiting => {
                 ("The program asks the server…".to_string(), Vec::new())
             }
-            crate::logic::authors::State::Fault(text) => {
-                (format!("The server gave no author: {}", text), Vec::new())
-            }
+            crate::logic::authors::State::Fault(text) => (kind.title_of_a_fault(text), Vec::new()),
             crate::logic::authors::State::Nothing => {
                 ("The program asks the server…".to_string(), Vec::new())
             }

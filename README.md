@@ -28,7 +28,7 @@ not in the archived repository.
  **Cross-platform:** <img src=".github/tux.png" align="top" width="24" alt="Tux (Linux)"/>  Linux and <img src=".github/apple.png" align="top" width="24" alt="Apple (macOS)"/> macOS    
  **Lightweight & Fast:** A minimalist terminal user interface (TUI) written in Rust 🦀  
  **Supports Books & Podcasts:** Enjoy both audiobooks and podcasts  
- **The authors:** See the authors of a library and the books of one author (`a`)  
+ **The authors and the narrators:** See them, and the books of one of them (`a`, `v`)  
  **Add a podcast:** Look for a podcast and add it to a library (`A`)  
  **A timer for sleep:** The playback stops after a time, with a slow fall of the volume (`t`)  
  **Bookmarks:** Mark a place in a long book and come back to it (`b`, `V`)  
@@ -110,15 +110,17 @@ shows them.
   that you put there by hand then comes to the library. The examination runs
   on the server; press `R` after a moment to see the new media.
 
-## 👤 The authors of a library
+## 👤 The authors and the narrators of a library
 
 - `a` — show the authors of the library, in the sequence of the alphabet. The
   key operates in the views Home, Library, and Search. A library of podcasts
   has no author.
+- `v` — show the narrators of the library, in the same view. A narrator comes
+  from the metadata of a file, therefore it has no description and no picture.
 - Each line holds the name and the number of the books. The description of
   the author stands below the list.
-- `l`/`Enter` shows the books of that author. The work is the filter of the
-  library, therefore `f` takes the filter away again.
+- `l`/`Enter` shows the books of that author or of that narrator. The work is
+  the filter of the library, therefore `f` takes the filter away again.
 
 ## 🔤 The sequence and the filter of a library
 
