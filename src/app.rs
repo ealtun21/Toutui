@@ -3355,11 +3355,25 @@ impl App {
                         .zip(playing.as_ref())
                         .is_some_and(|(id, playing)| id == playing);
 
-                    let mark = crate::ui::marks::of_progress(
-                        percent.unwrap_or(""),
-                        finished.unwrap_or(""),
-                        plays_now,
-                    );
+                    // A live message of the server gives a newer position than
+                    // the request of the start. A different client of the same
+                    // account moved in this book, and the mark then shows the
+                    // new place at the next frame. See T-47.
+                    let live = self
+                        ._ids_cnt_list
+                        .get(*item)
+                        .and_then(|id| crate::logic::live::progress_of(id));
+
+                    let mark = match &live {
+                        Some(live) => {
+                            crate::ui::marks::of_progress(&live.percent, &live.finished, plays_now)
+                        }
+                        None => crate::ui::marks::of_progress(
+                            percent.unwrap_or(""),
+                            finished.unwrap_or(""),
+                            plays_now,
+                        ),
+                    };
 
                     crate::ui::marks::line(
                         &mark,

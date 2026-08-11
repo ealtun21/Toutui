@@ -1,0 +1,625 @@
+//! The live messages of the server. See T-47.
+//!
+//! Audiobookshelf sends every change of every client over socket.io. A change
+//! of a different client came to Toutui at the next `R` only.
+//!
+//! socket.io has two transports, and the client chooses. The transport
+//! `websocket` needs a library, and the two crates of socket.io both bring
+//! `native-tls`. The rule of T-20 refuses that. **The transport `polling` is
+//! plain HTTP**, therefore `reqwest` does the whole work and the program needs
+//! no new dependency.
+//!
+//! The flow, measured against an Audiobookshelf 2.36.0 on 2026-08-11:
+//!
+//! | Step | The request | The answer |
+//! |---|---|---|
+//! | 1 | `GET /socket.io/?EIO=4&transport=polling` | `0{"sid":"...","pingInterval":25000,...}` |
+//! | 2 | `POST` the body `40` | `ok` |
+//! | 3 | `GET` | `40{"sid":"..."}` |
+//! | 4 | `POST` the body `42["auth","<the token>"]` | `ok` |
+//! | 5 | `GET` | `42["user_online",{...}]` and `42["init",{...}]` |
+//!
+//! Three rules of that transport, and the measurement found all three:
+//!
+//! 1. **The server sends `2`, and the client must answer `3`.** The period is
+//!    `pingInterval`. A client that does not answer gets `1` (close), and every
+//!    later request of that identity gives `400`.
+//! 2. **One `GET` at a time for one identity.** A `POST` beside the `GET` is
+//!    correct.
+//! 3. **One answer can hold more than one packet.** The separator is the byte
+//!    `0x1e`.
+//!
+//! **A message can hold a secret.** `user_updated` carries the account of the
+//! user, and that object holds a new token. Therefore this module writes the
+//! name of a message in the log, and never the body.
+//!
+//! Every function that reads a packet is pure. Therefore a test examines the
+//! whole protocol with no server and no network.
+
+use crate::api::client::endpoint::EndpointPool;
+use log::{info, warn};
+use serde::Deserialize;
+use std::sync::Arc;
+use std::time::Duration;
+
+/// The address of the handshake. The transport and the version of the protocol
+/// stand in the address, therefore every request carries them.
+pub const HANDSHAKE_PATH: &str = "/socket.io/?EIO=4&transport=polling";
+
+/// The separator of two packets inside one answer.
+pub const SEPARATOR: char = '\u{1e}';
+
+/// The time to wait for one `GET` of the poll.
+///
+/// The server answers with a ping every `pingInterval`, therefore 25 seconds
+/// with an Audiobookshelf 2.36.0. This value gives room for a slow answer, and
+/// it stays short enough to find a connection that died.
+const POLL_TIMEOUT: Duration = Duration::from_secs(60);
+
+/// The time to wait for a connection.
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
+
+/// The time to wait after a connection that ended, before a new one.
+const WAIT_BEFORE_AGAIN: Duration = Duration::from_secs(10);
+
+/// The answer of the handshake.
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Handshake {
+    /// The identity of the connection. Every later request carries it.
+    pub sid: String,
+    /// The period of the ping of the server, in milliseconds.
+    #[serde(default)]
+    pub ping_interval: u64,
+    /// The time that the server waits for the pong, in milliseconds.
+    #[serde(default)]
+    pub ping_timeout: u64,
+}
+
+/// One packet of the protocol.
+#[derive(Debug, Clone, PartialEq)]
+pub enum Packet {
+    /// `0` and the answer of the handshake.
+    Open(Handshake),
+    /// `1`. The server closed the connection.
+    Close,
+    /// `2`. The client must answer with a pong.
+    Ping,
+    /// `3`. The answer of the client to a ping.
+    Pong,
+    /// `40`. The server accepted the connection of socket.io.
+    Connected,
+    /// `42` and a list of two values: the name and the body.
+    Event {
+        /// The name that the server gives the message.
+        name: String,
+        /// The body of the message.
+        body: serde_json::Value,
+    },
+    /// A packet that this program does not use.
+    Other(String),
+}
+
+/// The position of one media, in the form that the mark of a line needs.
+///
+/// The two values have the exact form of
+/// `collect_progress_percentage_book` and of `collect_is_finished_book`,
+/// therefore the screen shows a live value and a value of a request in the
+/// same way. See T-44.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Progress {
+    /// The part of the media that the user heard, in percent, as a text.
+    pub percent: String,
+    /// `Finished` or `Not finished`.
+    pub finished: String,
+}
+
+/// One row of `mediaProgress` of the message `user_updated`.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ProgressRow {
+    #[serde(default)]
+    library_item_id: String,
+    /// The part that the user heard, between 0 and 1.
+    #[serde(default)]
+    progress: f64,
+    #[serde(default)]
+    is_finished: bool,
+    /// The identity of the episode, for a podcast. A book gives `null`.
+    #[serde(default)]
+    episode_id: Option<String>,
+}
+
+/// The messages that make every list of the screen old.
+///
+/// A change of the metadata of an item changes the title, the author, and the
+/// cover of that item. Those values stand in the list of the library, in the
+/// list of a series, and in the Home view. Therefore the program cannot correct
+/// one line: the user must ask the server again with the key `R`.
+///
+/// `user_updated` is **not** in this list. The program itself sends the position
+/// of the playback every ten seconds, and the server answers every such request
+/// with `user_updated` to the client that sent it. That message would then keep
+/// a notice on the screen for ever. The position of the message goes to the mark
+/// of the line instead, and that needs no request. See `Progress`.
+const MESSAGES_OF_THE_LIBRARY: [&str; 9] = [
+    "item_updated",
+    "items_updated",
+    "item_added",
+    "items_added",
+    "item_removed",
+    "items_removed",
+    "library_updated",
+    "library_added",
+    "library_removed",
+];
+
+/// Tells if a message makes the lists of the screen old.
+pub fn the_library_changed(name: &str) -> bool {
+    MESSAGES_OF_THE_LIBRARY.contains(&name)
+}
+
+/// Reads every packet of one answer.
+///
+/// One answer can hold more than one packet, and the separator is the byte
+/// `0x1e`. A part that this function cannot read gives `Packet::Other`, because
+/// a message of a newer server must not stop the connection.
+pub fn packets_of_the_body(body: &str) -> Vec<Packet> {
+    body.split(SEPARATOR)
+        .filter(|part| !part.is_empty())
+        .map(packet_of_the_text)
+        .collect()
+}
+
+/// Reads one packet.
+fn packet_of_the_text(text: &str) -> Packet {
+    let mut letters = text.chars();
+
+    match letters.next() {
+        Some('0') => match serde_json::from_str::<Handshake>(letters.as_str()) {
+            Ok(hand) => Packet::Open(hand),
+            Err(_) => Packet::Other(text.to_string()),
+        },
+        Some('1') => Packet::Close,
+        Some('2') => Packet::Ping,
+        Some('3') => Packet::Pong,
+        // The packets of socket.io start with `4`, and the second letter gives
+        // the kind.
+        Some('4') => match letters.next() {
+            Some('0') => Packet::Connected,
+            Some('2') => match event_of_the_text(letters.as_str()) {
+                Some(packet) => packet,
+                None => Packet::Other(text.to_string()),
+            },
+            _ => Packet::Other(text.to_string()),
+        },
+        _ => Packet::Other(text.to_string()),
+    }
+}
+
+/// Reads the list of two values of a message.
+///
+/// The server sends `["<the name>",<the body>]`. A message with no body gives
+/// `Value::Null`, and that is not a fault.
+fn event_of_the_text(text: &str) -> Option<Packet> {
+    let list: Vec<serde_json::Value> = serde_json::from_str(text).ok()?;
+    let name = list.first()?.as_str()?.to_string();
+    let body = list.get(1).cloned().unwrap_or(serde_json::Value::Null);
+
+    Some(Packet::Event { name, body })
+}
+
+/// Makes the body that sends the token to the server.
+///
+/// The token stands in the body, and never in the address. An address goes in
+/// the log of the server of the user.
+pub fn auth_message(token: &str) -> String {
+    format!(
+        "42[\"auth\",{}]",
+        serde_json::Value::String(token.to_string())
+    )
+}
+
+/// Gives the address of the poll of one identity.
+///
+/// The identity comes from the server, therefore this function examines it. An
+/// identity of engine.io holds the letters of base64 of an address only. A
+/// value with a different letter gives no address, and the connection then
+/// starts again.
+pub fn poll_path(sid: &str) -> Option<String> {
+    if sid.is_empty() {
+        return None;
+    }
+
+    let is_safe = sid
+        .chars()
+        .all(|letter| letter.is_ascii_alphanumeric() || letter == '-' || letter == '_');
+
+    if !is_safe {
+        return None;
+    }
+
+    Some(format!("{}&sid={}", HANDSHAKE_PATH, sid))
+}
+
+/// Gives the position of every media of the message `user_updated`.
+///
+/// The message carries the whole account of the user. This function takes the
+/// positions only, therefore the token of that message goes nowhere.
+///
+/// A row of a podcast names an episode. The Home view holds one line for one
+/// episode, and the mark of that line comes from a different list. Therefore
+/// this function gives the rows of the books only.
+pub fn progress_of_the_user(body: &serde_json::Value) -> Vec<(String, Progress)> {
+    let Some(rows) = body.get("mediaProgress").and_then(|value| value.as_array()) else {
+        return Vec::new();
+    };
+
+    rows.iter()
+        .filter_map(|row| serde_json::from_value::<ProgressRow>(row.clone()).ok())
+        .filter(|row| row.episode_id.is_none() && !row.library_item_id.is_empty())
+        .map(|row| {
+            let progress = Progress {
+                percent: format!("{}", (row.progress * 100.0).round() as i64),
+                finished: if row.is_finished {
+                    "Finished".to_string()
+                } else {
+                    "Not finished".to_string()
+                },
+            };
+
+            (row.library_item_id, progress)
+        })
+        .collect()
+}
+
+/// Follows the messages of the server, and it never gives up.
+///
+/// The task holds its own HTTP client. The client of the application changes
+/// the address when one address does not answer, and an identity of socket.io
+/// belongs to one address. Therefore this task asks the pool for an address one
+/// time for each connection, and it keeps that address while the connection
+/// lives.
+pub fn spawn_the_live_task(pool: Arc<EndpointPool>, token: String) -> tokio::task::JoinHandle<()> {
+    tokio::spawn(async move {
+        let http = match reqwest::Client::builder()
+            .connect_timeout(CONNECT_TIMEOUT)
+            .timeout(POLL_TIMEOUT)
+            .build()
+        {
+            Ok(http) => http,
+            Err(error) => {
+                warn!("[live] The client did not start: {}", error);
+                crate::logic::live::keep(crate::logic::live::State::Fault(
+                    "the client did not start".to_string(),
+                ));
+                return;
+            }
+        };
+
+        loop {
+            match pool.active() {
+                Some(base) => {
+                    crate::logic::live::keep(crate::logic::live::State::Waiting);
+
+                    if let Err(text) = one_connection(&http, &base, &token).await {
+                        info!("[live] The connection ended: {}", text);
+                        crate::logic::live::keep(crate::logic::live::State::Fault(text));
+                    }
+                }
+                None => {
+                    crate::logic::live::keep(crate::logic::live::State::Fault(
+                        "no address of the server answers".to_string(),
+                    ));
+                }
+            }
+
+            tokio::time::sleep(WAIT_BEFORE_AGAIN).await;
+        }
+    })
+}
+
+/// Makes one connection, and it reads the messages while that connection lives.
+///
+/// The function gives `Ok` when the server closed the connection in the way of
+/// the protocol, and `Err` with a short text for every other end.
+async fn one_connection(http: &reqwest::Client, base: &str, token: &str) -> Result<(), String> {
+    let hand = handshake(http, base).await?;
+    let path = poll_path(&hand.sid).ok_or("the server gave an identity that is not safe")?;
+    let address = format!("{}{}", base, path);
+
+    // The packet `40` opens the namespace of socket.io. The packet of the
+    // token comes after it, and the server then sends `init`.
+    send(http, &address, "40").await?;
+    send(http, &address, &auth_message(token)).await?;
+
+    info!(
+        "[live] The connection is open. The ping comes every {} ms.",
+        hand.ping_interval
+    );
+    crate::logic::live::keep(crate::logic::live::State::Ready);
+
+    loop {
+        let body = http
+            .get(&address)
+            .send()
+            .await
+            .map_err(|error| short_text(&error))?
+            .text()
+            .await
+            .map_err(|error| short_text(&error))?;
+
+        for packet in packets_of_the_body(&body) {
+            match packet {
+                // The server asks, and the client must answer. A client that
+                // does not answer loses the connection.
+                Packet::Ping => send(http, &address, "3").await?,
+                Packet::Close => {
+                    info!("[live] The server closed the connection.");
+                    return Ok(());
+                }
+                Packet::Event { name, body } => take_the_message(&name, &body),
+                Packet::Open(_) | Packet::Connected | Packet::Pong | Packet::Other(_) => {}
+            }
+        }
+    }
+}
+
+/// Asks for the handshake, and it reads the identity of the connection.
+async fn handshake(http: &reqwest::Client, base: &str) -> Result<Handshake, String> {
+    let body = http
+        .get(format!("{}{}", base, HANDSHAKE_PATH))
+        .send()
+        .await
+        .map_err(|error| short_text(&error))?
+        .text()
+        .await
+        .map_err(|error| short_text(&error))?;
+
+    packets_of_the_body(&body)
+        .into_iter()
+        .find_map(|packet| match packet {
+            Packet::Open(hand) => Some(hand),
+            _ => None,
+        })
+        .ok_or_else(|| "the server gave no handshake".to_string())
+}
+
+/// Sends one packet to the server.
+async fn send(http: &reqwest::Client, address: &str, body: &str) -> Result<(), String> {
+    let answer = http
+        .post(address)
+        .header(reqwest::header::CONTENT_TYPE, "text/plain;charset=UTF-8")
+        .body(body.to_string())
+        .send()
+        .await
+        .map_err(|error| short_text(&error))?;
+
+    if !answer.status().is_success() {
+        return Err(format!("the server answered {}", answer.status().as_u16()));
+    }
+
+    Ok(())
+}
+
+/// Gives a short text of a fault of a request.
+///
+/// The text of `reqwest` holds the whole address. The address of the server of
+/// the user must not go in the log, therefore this function gives the kind of
+/// the fault only.
+fn short_text(error: &reqwest::Error) -> String {
+    if error.is_timeout() {
+        "the server did not answer in time".to_string()
+    } else if error.is_connect() {
+        "the program cannot connect to the server".to_string()
+    } else if let Some(status) = error.status() {
+        format!("the server answered {}", status.as_u16())
+    } else {
+        "the request failed".to_string()
+    }
+}
+
+/// Puts one message in the box that the screen reads.
+///
+/// This function writes the name of the message in the log, and never the body.
+/// `user_updated` carries a new token of the user.
+fn take_the_message(name: &str, body: &serde_json::Value) {
+    if name == "user_updated" || name == "init" {
+        let rows = progress_of_the_user(body);
+
+        if !rows.is_empty() {
+            info!("[live] {}: the position of {} media.", name, rows.len());
+            crate::logic::live::note_the_progress(rows);
+        }
+
+        return;
+    }
+
+    if the_library_changed(name) {
+        info!("[live] {}: the lists of the screen are old.", name);
+        crate::logic::live::note_that_the_lists_are_old();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The exact answer of the handshake of an Audiobookshelf 2.36.0, of the
+    /// measurement of 2026-08-11.
+    const HANDSHAKE_OF_THE_SERVER: &str = "0{\"sid\":\"HtEDXf_uhkTPO7cnAAAA\",\"upgrades\":[\"websocket\"],\"pingInterval\":25000,\"pingTimeout\":20000,\"maxPayload\":1000000}";
+
+    #[test]
+    fn the_handshake_gives_the_identity_and_the_period_of_the_ping() {
+        match packets_of_the_body(HANDSHAKE_OF_THE_SERVER).as_slice() {
+            [Packet::Open(hand)] => {
+                assert_eq!(hand.sid, "HtEDXf_uhkTPO7cnAAAA");
+                assert_eq!(hand.ping_interval, 25000);
+                assert_eq!(hand.ping_timeout, 20000);
+            }
+            other => panic!("the answer must give one open packet: {:?}", other),
+        }
+    }
+
+    /// One answer holds more than one packet, and the separator is the byte
+    /// `0x1e`. A reader that takes the whole body as one packet loses every
+    /// message after the first. See T-47.
+    #[test]
+    fn one_answer_holds_more_than_one_message() {
+        let body = format!(
+            "42[\"user_online\",{{\"id\":\"a\"}}]{}42[\"init\",{{\"userId\":\"a\"}}]",
+            SEPARATOR
+        );
+
+        let packets = packets_of_the_body(&body);
+        assert_eq!(packets.len(), 2);
+
+        match &packets[0] {
+            Packet::Event { name, .. } => assert_eq!(name, "user_online"),
+            other => panic!("the first packet must be a message: {:?}", other),
+        }
+
+        match &packets[1] {
+            Packet::Event { name, body } => {
+                assert_eq!(name, "init");
+                assert_eq!(body.get("userId").and_then(|v| v.as_str()), Some("a"));
+            }
+            other => panic!("the second packet must be a message: {:?}", other),
+        }
+    }
+
+    #[test]
+    fn the_program_knows_the_ping_the_pong_and_the_close() {
+        assert_eq!(packets_of_the_body("2"), vec![Packet::Ping]);
+        assert_eq!(packets_of_the_body("3"), vec![Packet::Pong]);
+        assert_eq!(packets_of_the_body("1"), vec![Packet::Close]);
+        assert_eq!(
+            packets_of_the_body("40{\"sid\":\"40j8IkJgf7aoZxi4AAAC\"}"),
+            vec![Packet::Connected]
+        );
+    }
+
+    /// An empty answer gives no packet. The body of the answer of a `POST` is
+    /// `ok`, and that value is not a packet of the protocol.
+    #[test]
+    fn a_body_that_the_program_does_not_know_stops_nothing() {
+        assert!(packets_of_the_body("").is_empty());
+        assert_eq!(
+            packets_of_the_body("ok"),
+            vec![Packet::Other("ok".to_string())]
+        );
+        assert_eq!(
+            packets_of_the_body("44{\"message\":\"no\"}"),
+            vec![Packet::Other("44{\"message\":\"no\"}".to_string())]
+        );
+        // A message with no body must not stop the connection.
+        assert_eq!(
+            packets_of_the_body("42[\"pong\"]"),
+            vec![Packet::Event {
+                name: "pong".to_string(),
+                body: serde_json::Value::Null
+            }]
+        );
+    }
+
+    #[test]
+    fn the_token_stands_in_the_body_of_the_message() {
+        assert_eq!(auth_message("abc.def"), "42[\"auth\",\"abc.def\"]");
+        // A token is a JWT, and a JWT holds no quotation mark. A value that
+        // holds one must still give a body that a parser can read.
+        let message = auth_message("a\"b");
+        let packets = packets_of_the_body(&message);
+
+        match packets.as_slice() {
+            [Packet::Event { name, body }] => {
+                assert_eq!(name, "auth");
+                assert_eq!(body.as_str(), Some("a\"b"));
+            }
+            other => panic!("the message must hold the token: {:?}", other),
+        }
+    }
+
+    #[test]
+    fn the_address_of_the_poll_refuses_an_identity_that_is_not_safe() {
+        assert_eq!(
+            poll_path("HtEDXf_uhkTPO7cnAAAA"),
+            Some("/socket.io/?EIO=4&transport=polling&sid=HtEDXf_uhkTPO7cnAAAA".to_string())
+        );
+        assert_eq!(poll_path(""), None);
+        assert_eq!(poll_path("a&transport=websocket"), None);
+        assert_eq!(poll_path("a b"), None);
+        assert_eq!(poll_path("../../api/me"), None);
+    }
+
+    /// The exact shape of one row of `mediaProgress`, of the measurement of
+    /// 2026-08-11.
+    #[test]
+    fn the_position_of_a_media_comes_from_the_message_of_the_user() {
+        let body = serde_json::json!({
+            "id": "5484c9aa",
+            "username": "toutuitest",
+            "token": "a token that the log must never hold",
+            "mediaProgress": [
+                {
+                    "libraryItemId": "9a671047",
+                    "episodeId": null,
+                    "duration": 1800.0,
+                    "progress": 0.4315,
+                    "currentTime": 776.7,
+                    "isFinished": false
+                },
+                {
+                    "libraryItemId": "8fda6e43",
+                    "episodeId": null,
+                    "progress": 1.0,
+                    "isFinished": true
+                },
+                {
+                    "libraryItemId": "a podcast",
+                    "episodeId": "an episode",
+                    "progress": 0.5,
+                    "isFinished": false
+                }
+            ]
+        });
+
+        let rows = progress_of_the_user(&body);
+
+        // The row of the episode of a podcast does not come, because the mark
+        // of that line comes from a different list.
+        assert_eq!(rows.len(), 2);
+
+        assert_eq!(rows[0].0, "9a671047");
+        // 0.4315 gives 43 percent, and the form is the form of
+        // `collect_progress_percentage_book`.
+        assert_eq!(rows[0].1.percent, "43");
+        assert_eq!(rows[0].1.finished, "Not finished");
+
+        assert_eq!(rows[1].0, "8fda6e43");
+        assert_eq!(rows[1].1.percent, "100");
+        assert_eq!(rows[1].1.finished, "Finished");
+    }
+
+    #[test]
+    fn a_message_with_no_position_gives_no_row() {
+        assert!(progress_of_the_user(&serde_json::Value::Null).is_empty());
+        assert!(progress_of_the_user(&serde_json::json!({"mediaProgress": []})).is_empty());
+        assert!(
+            progress_of_the_user(&serde_json::json!({"mediaProgress": "not a list"})).is_empty()
+        );
+    }
+
+    /// The program itself makes `user_updated` every ten seconds while a media
+    /// plays. That message must not put a notice on the screen. See T-47.
+    #[test]
+    fn the_message_of_the_user_does_not_make_the_lists_old() {
+        assert!(!the_library_changed("user_updated"));
+        assert!(!the_library_changed("init"));
+        assert!(!the_library_changed("user_online"));
+        assert!(!the_library_changed("stream_progress"));
+
+        assert!(the_library_changed("item_updated"));
+        assert!(the_library_changed("items_added"));
+        assert!(the_library_changed("library_updated"));
+    }
+}

@@ -1656,6 +1656,11 @@ impl App {
             };
 
             format!("R: try the server again{}", waiting)
+        } else if crate::logic::live::the_lists_are_old() {
+            // A different client changed the metadata of an item. That value
+            // stands in many lists, therefore one line cannot hold the
+            // correction. See T-47.
+            "R: the server has newer data".to_string()
         } else {
             self.update_msg.clone()
         };

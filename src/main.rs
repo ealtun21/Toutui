@@ -106,6 +106,10 @@ async fn main() -> Result<()> {
         let pool = config::pool_for_address(&config_file.servers, &server_address);
         info!("[main][api] The pool has {} address(es).", pool.len());
 
+        // The task of the live messages needs the plain token, and the client
+        // keeps its own token for itself. See T-47.
+        let token_of_the_live_task = token.clone();
+
         let api = std::sync::Arc::new(api::client::ApiClient::new(
             std::sync::Arc::new(pool),
             token,
@@ -115,6 +119,15 @@ async fn main() -> Result<()> {
         // address answers. Therefore the application returns to the local
         // address without a restart.
         api::client::probe::spawn_probe_task(std::sync::Arc::clone(&api));
+
+        // The live messages of the server. Audiobookshelf sends every change
+        // of every client over socket.io, and the transport `polling` of that
+        // protocol is plain HTTP. Therefore this task needs no new dependency.
+        // See T-47.
+        //
+        // The task takes the token here, because `ApiClient` keeps its token
+        // for itself.
+        api::live::spawn_the_live_task(api.pool(), token_of_the_live_task);
 
         // The application plays a local copy when the server does not answer.
         // This task sends the positions when the server answers again, thus
@@ -298,6 +311,10 @@ async fn main() -> Result<()> {
                             // A new request must ask for them again.
                             logic::sort_filter::from_the_server::forget();
                             logic::authors::forget();
+
+                            // This request asks for every list again, therefore
+                            // no list of the screen is old after it. See T-47.
+                            logic::live::the_lists_are_new_again();
 
                             // pop up message
                             let mut stdout = stdout();
