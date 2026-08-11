@@ -212,12 +212,15 @@ The sequence inside each group gives the value for the work.
 
 ### Small: a few hours each
 
-1. **Search on the server.** `GET /api/libraries/:id/search?q=`. Change
-   `src/logic/search/search_active.rs` and the filter at `src/ui/tui.rs:884`.
-   The search today reads the titles that the client holds, therefore it finds
-   no author and no series, and it cannot find a book that the client did not
-   load. The work is small, and it removes the largest difference between the
-   client and the web page.
+1. ~~**Search on the server.**~~ **Done on 2026-08-11.**
+   `GET /api/libraries/:id/search?q=`, `src/api/libraries/search_library.rs`, and
+   the slot `logic::search::from_the_server`. The screen shows the titles of the
+   program at once, and the answer of the server when it comes.
+   **T-70 finished it:** the group of the books of that endpoint holds no name of
+   an author, therefore a search of "carroll" gave one author and no line. The
+   program asks the server for the books of each author and of each narrator that
+   it found, with `?filter=authors.<base64>` and `?filter=narrators.<base64>`. A
+   tag and a genre stay with the view of the filter of T-60.
 2. ~~**A key that marks a media as finished.**~~ **Done on 2026-08-11.** The
    key of the mark, and `mark_the_media`. The book leaves the shelf of Continue
    Listening at the next frame, and the user presses no other key: T-66 reads

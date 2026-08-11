@@ -2757,6 +2757,74 @@ place, and a session that stays open is the report `dd9a649`.
 client can do better today: mpv gives the same holes. **The AAC-LC file of the same
 book is the better answer for a user**, and this work makes the other file playable.
 
+### T-70: a search of the name of an author gave no line
+
+The search of the server came in an earlier session, and it left one hole. **The
+group of the books of `GET /api/libraries/:id/search?q=` does not hold the name of an
+author.** A measurement of 2026-08-11 against the sandbox:
+
+```
+q=carroll     -> book: 0   authors: 1 ("Lewis Carroll")   series: 0   narrators: 0
+q=chronicles  -> book: 2   series: 1 (with its three books)
+```
+
+The screen of the program then held one line of the header and **no line of a book**:
+
+```
+─────────────Search result [the server also found: Lewis Carroll]─────────────
+                          (and nothing below it)
+```
+
+The book of that author stands in the library, and the user cannot reach it.
+
+**The correction.** The filter of the library gives the books of a name, and the
+program measured both forms on 2026-08-11:
+
+| The request | The answer |
+|---|---|
+| `?filter=authors.MzEyYzQyZmY…` (the identity of the author in base64) | Alice in Wonderland |
+| `?filter=narrators.QSBUZXN0IE5hcnJhdG9y` (the name of the narrator in base64) | A Long Test Book, Alice in Wonderland |
+
+`the_names_to_ask` gives the names of the answer with their filter, and the task of
+the search then asks `get_all_books` for each of them. **An author comes before a
+narrator**, because a user who writes a name looks for the writer more often, and
+`NAMES_TO_ASK` of 3 holds the number of requests.
+
+**A tag and a genre do not come.** The view of the filter of T-60 holds them, and a
+genre of a large library gives some hundred books.
+
+**A view says why it holds no line.** The old title said "Search result [from the
+server]" for an answer of nothing. `the_title_of_the_search` is pure and it holds
+every case:
+
+| The condition | The title |
+|---|---|
+| The server found nothing | `The server found nothing for "zzzznothing". Press / to write other words.` |
+| The answer did not come yet | `The program looks in its own titles. The answer of the server comes.` |
+| The answer holds a name | `Search result [1 items, with the books of Lewis Carroll]` |
+| The answer holds no name | `Search result [1 items]` |
+
+The name is the **reason** of a line now, and not a note beside it.
+
+**The measurement in the real program, 2026-08-11**, of the three conditions:
+
+```
+"carroll"       -> Search result [1 items, with the books of Lewis Carroll]
+                   ➤ Alice in Wonderland
+"test narrator" -> Search result [2 items, with the books of A Test Narrator]
+                   ➤ A Long Test Book / Alice in Wonderland
+"zzzznothing"   -> The server found nothing for "zzzznothing". Press / to write other words.
+```
+
+**What the search still does not do.** The lines of that view come from the lists of
+the library, therefore a book that the program did not load gives no line.
+`get_all_books` reads every page at the start, and `MAX_PAGES` of 500 with
+`PAGE_SIZE` of 500 holds 250000 items. A library that is larger than that needs a
+view that holds the title of the answer of the server itself.
+
+**A trap of the harness.** The key `Escape` of the view of the search closes the
+program. A sweep of the views must use `/` again, or `Tab`.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

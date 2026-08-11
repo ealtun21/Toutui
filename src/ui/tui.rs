@@ -1514,20 +1514,12 @@ impl App {
 
         let from_the_server = crate::logic::search::from_the_server::answer_for(&self.search_query);
 
-        // The title tells the user where the answer comes from, and it names
-        // the author or the narrator that the server found. A search for the
-        // name of an author gives no book when the library holds no book of
-        // that name, and the user must not think that the program did
-        // nothing. See T-24.
-        let render_list_title = match &from_the_server {
-            Some(answer) if !answer.names.is_empty() => format!(
-                "Search result [the server also found: {}]",
-                answer.names.join(", ")
-            ),
-            Some(_) => "Search result [from the server]".to_string(),
-            None => "Search result [the titles of this program]".to_string(),
-        };
-        let render_list_title = render_list_title.as_str();
+        // The title says where the answer comes from, it names the author and the
+        // narrator of the answer, and **it says why the view holds no line**.
+        // `the_title_of_the_search` holds every case. See T-24 and T-70.
+        //
+        // The number of the lines comes below, therefore the program makes the
+        // title after the lines.
 
         let mut _text_render_footer = "";
         if self.is_podcast {
@@ -1578,6 +1570,17 @@ impl App {
         }
 
         let titles_search_book_or_pod: &[String] = &titles_search_book_or_pod;
+
+        let render_list_title = crate::logic::search::the_title_of_the_search(
+            &self.search_query,
+            from_the_server.is_some(),
+            from_the_server
+                .as_ref()
+                .map(|answer| answer.names.as_slice())
+                .unwrap_or(&[]),
+            titles_search_book_or_pod.len(),
+        );
+        let render_list_title = render_list_title.as_str();
 
         // apply search filtering for book
         self.ids_search_book = self

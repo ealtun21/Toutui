@@ -53,6 +53,82 @@ pub struct SeriesMatch {
 #[derive(Debug, Clone, Deserialize)]
 pub struct NamedMatch {
     pub name: Option<String>,
+    /// The identity of an author. A narrator has none: the server holds a
+    /// narrator as a name of the metadata, and not as a row of its own.
+    #[serde(default)]
+    pub id: Option<String>,
+}
+
+/// One name that the server found, with the filter that gives its books.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Named {
+    pub name: String,
+    /// The query for `get_all_books`, for example
+    /// `&filter=authors.MzEyYzQyZmY…`.
+    pub query: String,
+}
+
+/// The largest number of names that the program asks the server about.
+///
+/// Each name costs one request of the library. A user reads a screen, and three
+/// names hold every measurement of the sandbox. See T-70.
+const NAMES_TO_ASK: usize = 3;
+
+/// Gives the names of an answer that can give books, with their filter.
+///
+/// **The group of the books of the server does not hold the name of an author.**
+/// A measurement of 2026-08-11: `q=carroll` gives one author, "Lewis Carroll",
+/// and **no book**. The screen of the program then held one line of the header and
+/// no line of a book, and the book of that author stands in the library.
+///
+/// The filter of the server gives those books:
+/// `?filter=authors.<the identity in base64>` gave "Alice in Wonderland", and
+/// `?filter=narrators.<the name in base64>` gave the two books of a narrator.
+///
+/// An author comes before a narrator, because a user who writes a name looks for
+/// the writer of the book more often. **A tag and a genre do not come**: the view
+/// of the filter of T-60 holds them, and a genre of a large library gives some
+/// hundred books.
+///
+/// The function is pure, therefore a test needs no server. See T-70.
+pub fn the_names_to_ask(answer: &SearchRoot) -> Vec<Named> {
+    let of_the_authors = answer.authors.iter().filter_map(|author| {
+        let name = author.name.clone()?;
+        let id = author.id.clone()?;
+
+        if name.trim().is_empty() || id.trim().is_empty() {
+            return None;
+        }
+
+        Some(Named {
+            name,
+            query: format!(
+                "&filter=authors.{}",
+                crate::logic::sort_filter::encode_base64(&id)
+            ),
+        })
+    });
+
+    let of_the_narrators = answer.narrators.iter().filter_map(|narrator| {
+        let name = narrator.name.clone()?;
+
+        if name.trim().is_empty() {
+            return None;
+        }
+
+        Some(Named {
+            query: format!(
+                "&filter=narrators.{}",
+                crate::logic::sort_filter::encode_base64(&name)
+            ),
+            name,
+        })
+    });
+
+    of_the_authors
+        .chain(of_the_narrators)
+        .take(NAMES_TO_ASK)
+        .collect()
 }
 
 #[derive(Debug, Clone, Deserialize)]

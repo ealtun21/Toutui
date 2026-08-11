@@ -3016,10 +3016,49 @@ impl App {
                     }
                 };
 
+            let mut items = crate::api::libraries::search_library::items_of(&answer);
+
+            // **The group of the books of the server holds no name of an author.**
+            // A user who writes the name of an author therefore saw the name in
+            // the header and no book at all. The filter of the library gives the
+            // books of that name. See T-70.
+            for named in crate::api::libraries::search_library::the_names_to_ask(&answer) {
+                match crate::api::libraries::get_all_books::get_all_books(
+                    &api,
+                    &library,
+                    &named.query,
+                )
+                .await
+                {
+                    Ok(root) => {
+                        let found = root.results.unwrap_or_default();
+
+                        log::info!(
+                            "[search] the name \"{}\" gives {} book(s) of the library",
+                            named.name,
+                            found.len()
+                        );
+
+                        for item in found {
+                            if let Some(id) = item.id {
+                                if !items.contains(&id) {
+                                    items.push(id);
+                                }
+                            }
+                        }
+                    }
+                    Err(error) => log::warn!(
+                        "[search] the server gave no book of the name \"{}\": {}",
+                        named.name,
+                        error
+                    ),
+                }
+            }
+
             crate::logic::search::from_the_server::keep(
                 crate::logic::search::from_the_server::Answer {
                     words,
-                    items: crate::api::libraries::search_library::items_of(&answer),
+                    items,
                     names: crate::api::libraries::search_library::names_of(&answer),
                 },
             );
