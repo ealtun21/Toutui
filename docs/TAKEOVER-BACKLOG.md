@@ -2387,6 +2387,77 @@ twenty books of a scan therefore holds twenty files, and the key `X` of each med
 is the answer. A limit of the whole cache would need a rule for the book that the
 user reads now, and the value of that work is small while the key exists.
 
+### T-66: a media that a different client finished stayed on Continue Listening
+
+T-47 gave the program the live messages of the server, and the mark of a line takes
+the new position at once. **The line itself stayed.** A different client finished a
+book, and the shelf of Continue Listening of the server then held that book no more,
+but the Home view of the program held its line until the user pressed `R`.
+
+**The fault, measured on 2026-08-11.** The program ran in tmux against the sandbox,
+and `curl` of a second client wrote `{"isFinished":true}` on
+`PATCH /api/me/progress/:id` of "A Long Test Book":
+
+```
+────────────────────Home [22 items]────────────────────      the log of the program:
+  ▌ Continue Listening                                       [live] user_updated: the position
+  87% One File With No Decoder                                     of 10 media.
+➤ ✓   A Long Test Book        <- the mark is new, the line stays
+  ▌ Recently Added
+```
+
+The server gave one media of that shelf at the same moment:
+`server CL: ['One File With No Decoder']`.
+
+**The correction.** The program holds every line of the shelf already, therefore it
+needs no request. `mediaProgress` of `user_updated` carries the whole account, and
+two of its values keep a media away from that shelf: `isFinished` and
+`hideFromContinueListening`. `the_media_away_from_continue_listening` reads them,
+the box of `logic::live` holds the list, and the render makes the lines of the Home
+view again when that list changed.
+
+| The part | What it does |
+|---|---|
+| `api::live::the_media_away_from_continue_listening` | The identity of each media of the message that must leave the shelf |
+| `logic::live::note_the_media_away_from_continue_listening` | Writes that list. The new list **takes the place** of the old one, because the message holds the whole account: a media that becomes unfinished comes back |
+| `home_view::the_media_of_continue_listening` | `true` for each media of the Home view that stands on that shelf |
+| `home_view::without_the_media_that_left` | The lines with the media that left away. A shelf with no line gives no name |
+| `App::take_the_media_that_left_away` | The render calls it. It does nothing when the list did not change |
+
+**The program asks the server for nothing.** The sync of its own playback makes one
+`user_updated` every ten seconds, and each of those messages costs a comparison of
+two small lists. The key `R` clears the list, because the shelf of the new request
+holds none of those media already.
+
+**A fault of the first form of this work, and the measurement that showed it.** The
+list held the **identity** of a media, and `without_the_media_that_left` then took
+away every line of that identity. One media stands on two shelves: the book stood on
+Continue Listening and on Recently Added together, and the count of the view went
+from 22 lines to 20. The server gives the line of Recently Added, and a book that
+the user finished belongs there. **The list holds the number of the line now**, and
+each shelf gives its own number.
+
+**The measurement of the correction, 2026-08-11.** The program ran in tmux, and
+**no key was pressed at all** for any of the three frames:
+
+| What a second client did | The Home view |
+|---|---|
+| `{"isFinished":true}` | 22 lines to 21. The line left Continue Listening, and `✓ A Long Test Book` stays on Recently Added |
+| `{"isFinished":false}` and then `{"progress":0.5}` | 21 lines to 22. The line came back |
+| The key `N` of the program | 22 lines to 21. The line left at once |
+
+The selection stays on the line of the user. A line that went away gives the line
+that took its place, and never the top of the view.
+
+The key `N` and the key of the mark said "Press R to see the change". That sentence
+is wrong now, and both messages say what happened only.
+
+**A trap of the server, measured 2026-08-11.** `PATCH /api/me/progress/:id` with
+`{"isFinished":false,"progress":0.5,"currentTime":900}` gives `200`, and the record
+then holds `progress` 0 and `currentTime` 0. **`isFinished` false writes the position
+back to the start, and it ignores every other field of the same request.** A media of
+progress 0 stands on no shelf of Continue Listening. Two requests do the work.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

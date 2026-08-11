@@ -29,6 +29,12 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// init widget for selected AppView
 impl Widget for &mut App {
     fn render(self, area: Rect, buf: &mut Buffer) {
+        // A live message of the server can take a media away from the shelf of
+        // Continue Listening. The render is not asynchronous, therefore the
+        // lines change here and the program asks the server for nothing.
+        // See T-66.
+        self.take_the_media_that_left_away();
+
         match self.view_state {
             AppView::Home => self.render_home(area, buf),
             AppView::Library => self.render_library(area, buf),

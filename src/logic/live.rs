@@ -4,17 +4,22 @@
 //! every change here, and the render takes it at the next frame. This is the
 //! shape of `src/logic/stats.rs` and of `src/logic/bookmarks.rs`.
 //!
-//! The box holds two things, and they answer two different needs:
+//! The box holds three things, and they answer three different needs:
 //!
 //! - **The position of a media.** A different client of the same account moved
 //!   in a book. The mark of the line shows the new position at the next frame,
 //!   and the program asks the server for nothing. See T-44.
+//! - **The media away from Continue Listening.** A different client finished a
+//!   media, or hid it. That media must leave the shelf of Continue Listening,
+//!   and the program holds every line of that shelf already. Therefore the
+//!   render makes the lines again, and it asks the server for nothing. See
+//!   T-66.
 //! - **The lists are old.** A different client changed the metadata of an item.
 //!   That value stands in many lists, therefore the program cannot correct one
 //!   line. The header asks the user for the key `R`.
 
 use crate::api::live::Progress;
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 use std::sync::{Mutex, OnceLock};
 
 /// The state of the connection of the live messages.
@@ -40,6 +45,9 @@ struct Live {
     progress: HashMap<String, Progress>,
     /// A different client changed a list of the screen.
     the_lists_are_old: bool,
+    /// The media that must not stand on the shelf of Continue Listening. The
+    /// user finished them, or the user hid them. See T-66.
+    away_from_continue_listening: BTreeSet<String>,
 }
 
 fn box_of_the_live() -> &'static Mutex<Live> {
@@ -91,6 +99,28 @@ pub fn progress_of(item_id: &str) -> Option<Progress> {
     }
 }
 
+/// Writes the media that must not stand on the shelf of Continue Listening.
+///
+/// This list **takes the place** of the list that came before it, because a
+/// message carries the whole account. A media that a different client made
+/// unfinished comes back on the shelf in that way. See T-66.
+pub fn note_the_media_away_from_continue_listening(ids: Vec<String>) {
+    if let Ok(mut place) = box_of_the_live().lock() {
+        place.away_from_continue_listening = ids.into_iter().collect();
+    }
+}
+
+/// Gives the media that must not stand on the shelf of Continue Listening.
+///
+/// The Home view reads this at the frame, and it asks the server for nothing.
+/// A message that never came gives an empty list, and every line then stays.
+pub fn the_media_away_from_continue_listening() -> BTreeSet<String> {
+    match box_of_the_live().lock() {
+        Ok(place) => place.away_from_continue_listening.clone(),
+        Err(_) => BTreeSet::new(),
+    }
+}
+
 /// Says that a different client changed a list of the screen.
 pub fn note_that_the_lists_are_old() {
     if let Ok(mut place) = box_of_the_live().lock() {
@@ -108,9 +138,15 @@ pub fn the_lists_are_old() -> bool {
 
 /// Forgets that the lists are old. The key `R` calls this, because that key
 /// asks the server for every list again.
+///
+/// The list of the media away from Continue Listening goes away too: the shelf
+/// of the new request holds none of them already, and a media that came back on
+/// that shelf must not go away a second time. The next message gives the list
+/// again. See T-66.
 pub fn the_lists_are_new_again() {
     if let Ok(mut place) = box_of_the_live().lock() {
         place.the_lists_are_old = false;
+        place.away_from_continue_listening.clear();
     }
 }
 
@@ -177,11 +213,35 @@ mod tests {
             Some("7".to_string())
         );
 
+        // The media away from Continue Listening. See T-66.
+        assert!(the_media_away_from_continue_listening().is_empty());
+
+        note_the_media_away_from_continue_listening(vec![
+            "a book that ended".to_string(),
+            "a book that the user hid".to_string(),
+        ]);
+        assert!(the_media_away_from_continue_listening().contains("a book that ended"));
+        assert_eq!(the_media_away_from_continue_listening().len(), 2);
+
+        // A message carries the whole account, therefore the new list takes the
+        // place of the old one: the book that the user hid comes back.
+        note_the_media_away_from_continue_listening(vec!["a book that ended".to_string()]);
+        assert_eq!(
+            the_media_away_from_continue_listening()
+                .into_iter()
+                .collect::<Vec<_>>(),
+            vec!["a book that ended".to_string()]
+        );
+
         // The lists become old, and the key `R` makes them new again.
         note_that_the_lists_are_old();
         assert!(the_lists_are_old());
         the_lists_are_new_again();
         assert!(!the_lists_are_old());
+
+        // That key asks the server for the shelves again, therefore the list of
+        // the media away from Continue Listening goes away too. See T-66.
+        assert!(the_media_away_from_continue_listening().is_empty());
 
         // A fault of the connection keeps the positions that came before it.
         keep(State::Fault(

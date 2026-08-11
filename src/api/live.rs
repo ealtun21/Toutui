@@ -136,6 +136,10 @@ struct ProgressRow {
     /// The identity of the episode, for a podcast. A book gives `null`.
     #[serde(default)]
     episode_id: Option<String>,
+    /// The user asked the server to keep this media away from the shelf of
+    /// Continue Listening. The key `N` of the program writes this value.
+    #[serde(default)]
+    hide_from_continue_listening: bool,
 }
 
 /// The messages that make every list of the screen old.
@@ -304,6 +308,28 @@ pub fn progress_of_the_user(body: &serde_json::Value) -> Vec<(String, Progress)>
 
             (row.library_item_id, progress)
         })
+        .collect()
+}
+
+/// Gives the media that must not stand on the shelf of Continue Listening.
+///
+/// The server keeps two values away from that shelf: a media that the user
+/// finished, and a media that the user hid with `hideFromContinueListening`.
+/// The shelf of a request holds neither of them, therefore a line of the screen
+/// must go away when a message gives one of the two. See T-66.
+///
+/// The message carries the whole account, therefore this list is complete: a
+/// media that is absent from it belongs on the shelf again.
+pub fn the_media_away_from_continue_listening(body: &serde_json::Value) -> Vec<String> {
+    let Some(rows) = body.get("mediaProgress").and_then(|value| value.as_array()) else {
+        return Vec::new();
+    };
+
+    rows.iter()
+        .filter_map(|row| serde_json::from_value::<ProgressRow>(row.clone()).ok())
+        .filter(|row| row.episode_id.is_none() && !row.library_item_id.is_empty())
+        .filter(|row| row.is_finished || row.hide_from_continue_listening)
+        .map(|row| row.library_item_id)
         .collect()
 }
 
@@ -525,6 +551,15 @@ fn take_the_message(name: &str, body: &serde_json::Value) {
         if !rows.is_empty() {
             info!("[live] {}: the position of {} media.", name, rows.len());
             crate::logic::live::note_the_progress(rows);
+
+            // The message holds the whole account, therefore this list takes
+            // the place of the list that came before it. See T-66.
+            let away = the_media_away_from_continue_listening(body);
+            info!(
+                "[live] {} media of the account stay away from Continue Listening.",
+                away.len()
+            );
+            crate::logic::live::note_the_media_away_from_continue_listening(away);
         }
 
         return;
@@ -693,6 +728,53 @@ mod tests {
         assert_eq!(rows[1].0, "8fda6e43");
         assert_eq!(rows[1].1.percent, "100");
         assert_eq!(rows[1].1.finished, "Finished");
+    }
+
+    /// The exact shape of `mediaProgress` of an Audiobookshelf 2.36.0, of the
+    /// measurement of 2026-08-11. The two values that take a media away from
+    /// the shelf of Continue Listening are `isFinished` and
+    /// `hideFromContinueListening`. See T-66.
+    #[test]
+    fn the_finished_media_and_the_hidden_media_leave_continue_listening() {
+        let body = serde_json::json!({
+            "mediaProgress": [
+                { "libraryItemId": "a book that plays", "episodeId": null,
+                  "progress": 0.4315, "isFinished": false,
+                  "hideFromContinueListening": false },
+                { "libraryItemId": "a book that ended", "episodeId": null,
+                  "progress": 1.0, "isFinished": true,
+                  "hideFromContinueListening": false },
+                { "libraryItemId": "a book that the user hid", "episodeId": null,
+                  "progress": 0.2, "isFinished": false,
+                  "hideFromContinueListening": true },
+                { "libraryItemId": "a podcast", "episodeId": "an episode",
+                  "progress": 1.0, "isFinished": true }
+            ]
+        });
+
+        assert_eq!(
+            the_media_away_from_continue_listening(&body),
+            vec![
+                "a book that ended".to_string(),
+                "a book that the user hid".to_string()
+            ],
+            "the episode of a podcast does not come, and the book that plays stays"
+        );
+    }
+
+    /// A server that gives no such field must give no media away. An old
+    /// server, and a message of a different shape, keep every line.
+    #[test]
+    fn a_message_with_no_such_field_takes_no_media_away() {
+        assert!(the_media_away_from_continue_listening(&serde_json::Value::Null).is_empty());
+        assert!(the_media_away_from_continue_listening(
+            &serde_json::json!({"mediaProgress": [{"libraryItemId": "a book"}]})
+        )
+        .is_empty());
+        assert!(the_media_away_from_continue_listening(
+            &serde_json::json!({"mediaProgress": "not a list"})
+        )
+        .is_empty());
     }
 
     #[test]

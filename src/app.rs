@@ -123,7 +123,24 @@ pub struct App {
     pub library_rows: Vec<LibraryRow>,
     /// The lines of the Home view. A shelf gives a line for its name, and a
     /// line for each of its media. See T-24.
+    ///
+    /// A media that left the shelf of Continue Listening is absent from this
+    /// list. `home_rows_of_the_server` holds every line. See T-66.
     pub home_rows: Vec<HomeRow>,
+    /// Every line that the server gave. The program makes `home_rows` from it
+    /// each time a live message changes the shelf of Continue Listening, and a
+    /// media that comes back on that shelf needs no request. See T-66.
+    pub home_rows_of_the_server: Vec<HomeRow>,
+    /// `true` for a media of the Home view that stands on the shelf of
+    /// Continue Listening. The number is the number of a `HomeRow::Media`.
+    /// See T-66.
+    pub of_continue_listening: Vec<bool>,
+    /// The lines that left the shelf of Continue Listening in `home_rows`. The
+    /// value is the number of a `HomeRow::Media`, and **not** the identity of a
+    /// media: one media stands on two shelves, and one line of the two goes
+    /// away. The program makes the lines again when this list differs from the
+    /// list of the live messages. See T-66.
+    pub the_media_that_left: std::collections::BTreeSet<usize>,
     /// The field of the sequence of the library, for the server. An empty
     /// text asks the server for its own sequence. See T-24.
     pub library_sort: String,
@@ -697,6 +714,15 @@ impl App {
             group_home(&shelves, &series)
         };
 
+        // The shelf of each media of the Home view. A live message takes a
+        // media away from the shelf of Continue Listening, and it must take
+        // nothing away from the other shelves. See T-66.
+        let of_continue_listening = if is_podcast {
+            crate::logic::home_view::the_media_of_continue_listening_pod(&shelves_pod)
+        } else {
+            crate::logic::home_view::the_media_of_continue_listening(&shelves)
+        };
+
         let auth_names_library = if is_offline {
             downloads.iter().map(|row| row.author.clone()).collect()
         } else {
@@ -1029,7 +1055,10 @@ impl App {
             ids_search_book,
             series,
             library_rows,
+            home_rows_of_the_server: home_rows.clone(),
             home_rows,
+            of_continue_listening,
+            the_media_that_left: std::collections::BTreeSet::new(),
             library_sort,
             library_desc,
             library_filter,
@@ -3301,6 +3330,74 @@ impl App {
         Some(self.selected_library_row()?.item())
     }
 
+    /// Takes the media that left the shelf of Continue Listening away from the
+    /// lines of the Home view.
+    ///
+    /// The server keeps a media that the user finished, and a media that the
+    /// user hid, away from that shelf. A live message says that one of the two
+    /// happened, and this function then makes the lines again. It does nothing
+    /// when the list did not change, therefore the sync of the playback of the
+    /// program itself costs one comparison of two small lists. See T-66.
+    ///
+    /// The render calls this, because the render is not asynchronous.
+    pub fn take_the_media_that_left_away(&mut self) {
+        let away = crate::logic::live::the_media_away_from_continue_listening();
+
+        // **The list holds the number of the line, and not the identity of the
+        // media.** One media stands on two shelves: a measurement of
+        // 2026-08-11 showed a book on Continue Listening and on Recently Added
+        // together. A list of the identities took both lines away, and the
+        // server gives the second one. Each shelf gives its own number.
+        let mut that_left: std::collections::BTreeSet<usize> = std::collections::BTreeSet::new();
+
+        for (item, on_the_shelf) in self.of_continue_listening.iter().enumerate() {
+            if !on_the_shelf {
+                continue;
+            }
+
+            if let Some(id) = self._ids_cnt_list.get(item) {
+                if away.contains(id) {
+                    that_left.insert(item);
+                }
+            }
+        }
+
+        if that_left == self.the_media_that_left {
+            return;
+        }
+
+        let selected = self.selected_home_row().cloned();
+        self.the_media_that_left = that_left;
+
+        self.home_rows = crate::logic::home_view::without_the_media_that_left(
+            &self.home_rows_of_the_server,
+            |item| self.the_media_that_left.contains(&item),
+        );
+
+        // The user keeps the line that they selected. A line that went away
+        // gives the line above it, and never the top of the view.
+        let place = selected.and_then(|row| self.home_rows.iter().position(|one| *one == row));
+
+        let place =
+            match place {
+                Some(place) => Some(place),
+                None => {
+                    let old = self.list_state_cnt_list.selected().unwrap_or(0);
+                    let at = old.min(self.home_rows.len().saturating_sub(1));
+
+                    if self.home_rows.get(at).is_some_and(|row| {
+                        crate::logic::home_view::HomeRow::is_a_line_of_the_user(row)
+                    }) {
+                        Some(at)
+                    } else {
+                        crate::logic::home_view::previous_line(&self.home_rows, at)
+                    }
+                }
+            };
+
+        self.list_state_cnt_list.select(place);
+    }
+
     /// Gives the line that the user selected in the view `Home`. See T-24.
     pub fn selected_home_row(&self) -> Option<&HomeRow> {
         self.home_rows.get(self.list_state_cnt_list.selected()?)
@@ -4353,21 +4450,28 @@ pub async fn hide_the_media(
 }
 
 /// Gives the text that the user reads after a change of the shelf.
+///
+/// The message asks for no key: the server answers this request with a live
+/// message, and the line of the Home view goes away or comes back at the next
+/// frame. A measurement of 2026-08-11 shows both directions. See T-66.
 pub fn message_of_the_shelf(hidden: bool) -> String {
     if hidden {
-        "The media is away from Continue Listening now. Press R to see the change.".to_string()
+        "The media is away from Continue Listening now.".to_string()
     } else {
-        "The media is on Continue Listening again. Press R to see the change.".to_string()
+        "The media is on Continue Listening again.".to_string()
     }
 }
 
 /// Gives the text that the user reads after a change of the mark.
+///
+/// A media that the user finished leaves the shelf of Continue Listening by
+/// itself. The mark of every other list needs the key `R`. See T-66.
 pub fn message_of_the_mark(finished: bool) -> String {
     if finished {
-        "The media is finished now. Press R to see the change.".to_string()
+        "The media is finished now.".to_string()
     } else {
         "The media is not finished now, and its position went back to the \
-         start. Press R to see the change."
+         start."
             .to_string()
     }
 }

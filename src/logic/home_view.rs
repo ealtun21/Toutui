@@ -135,6 +135,97 @@ pub fn group_home_pod(shelves: &[RootPod]) -> Vec<HomeRow> {
     rows
 }
 
+/// Tells, for each media of the lists of the Home view, if that media stands on
+/// the shelf of Continue Listening.
+///
+/// The number of the value is the number of `HomeRow::Media`, therefore this
+/// function counts the entities in the same way as `group_home`.
+pub fn the_media_of_continue_listening(shelves: &[Root]) -> Vec<bool> {
+    let mut of_the_shelf: Vec<bool> = Vec::new();
+
+    for shelf in shelves {
+        let is_the_shelf = the_shelf_of_continue_listening(shelf.id.as_deref(), &shelf.label);
+
+        for entity in shelf.entities.iter().flatten() {
+            if entity.media.is_some() {
+                of_the_shelf.push(is_the_shelf);
+            }
+        }
+    }
+
+    of_the_shelf
+}
+
+/// The same for a library of podcasts. See `group_home_pod` for the count.
+pub fn the_media_of_continue_listening_pod(shelves: &[RootPod]) -> Vec<bool> {
+    let mut of_the_shelf: Vec<bool> = Vec::new();
+
+    for shelf in shelves {
+        let is_the_shelf = the_shelf_of_continue_listening(shelf.id.as_deref(), &shelf.label);
+
+        for entity in shelf.entities.iter().flatten() {
+            if entity.recent_episode.is_some() && entity.media.is_some() {
+                of_the_shelf.push(is_the_shelf);
+            }
+        }
+    }
+
+    of_the_shelf
+}
+
+/// Tells if a shelf is the shelf of Continue Listening.
+///
+/// The identity comes first, because it is the same on every server. The label
+/// is the answer for a server that gives no identity. See T-24.
+fn the_shelf_of_continue_listening(id: Option<&str>, label: &str) -> bool {
+    match id {
+        Some(id) => id == "continue-listening",
+        None => label == "Continue Listening",
+    }
+}
+
+/// Takes the media that left the shelf of Continue Listening away from the
+/// lines.
+///
+/// `has_left` reads the number of the media, and that number does **not**
+/// change: the lists of the Home view stand beside the lines, therefore a line
+/// that goes away must not move the number of the line after it.
+///
+/// **A shelf that holds no line any more gives no name.** This is the rule of
+/// `group_home`, and a name with nothing below it says nothing to the user.
+/// See T-66.
+pub fn without_the_media_that_left(
+    rows: &[HomeRow],
+    has_left: impl Fn(usize) -> bool,
+) -> Vec<HomeRow> {
+    let kept: Vec<&HomeRow> = rows
+        .iter()
+        .filter(|row| match row {
+            HomeRow::Media { item } => !has_left(*item),
+            _ => true,
+        })
+        .collect();
+
+    let mut answer: Vec<HomeRow> = Vec::new();
+
+    for (place, row) in kept.iter().enumerate() {
+        if matches!(row, HomeRow::Shelf { .. }) {
+            let holds_a_line = matches!(
+                kept.get(place + 1),
+                Some(HomeRow::Media { .. }) | Some(HomeRow::Series { .. })
+            );
+
+            if !holds_a_line {
+                continue;
+            }
+        }
+
+        answer.push((*row).clone());
+    }
+
+    answer
+}
+
 /// Gives the position of a series of the list of the series.
 fn position_of_the_series(id: Option<&str>, series: &[SeriesView]) -> Option<usize> {
     let id = id?;
@@ -338,6 +429,134 @@ mod tests {
         let last = last_line(&rows).expect("the view holds a line");
 
         assert_eq!(next_line(&rows, last), first_line(&rows));
+    }
+
+    /// The value belongs to the number of the media, and not to the number of
+    /// the line. The shelf of Continue Listening holds the media 0 and 1 of
+    /// the answer of the sandbox.
+    #[test]
+    fn the_shelf_of_each_media_of_the_home_view() {
+        assert_eq!(
+            the_media_of_continue_listening(&the_shelves()),
+            vec![true, true, false, false],
+            "the two media of Continue Listening, the media of Recently Added, and the media of Discover"
+        );
+    }
+
+    /// A server that gives no identity of a shelf gives the label only.
+    #[test]
+    fn the_label_names_the_shelf_when_the_identity_is_absent() {
+        let shelves: Vec<Root> = serde_json::from_value(serde_json::json!([
+            { "label": "Continue Listening", "entities": [ { "id": "a", "media": {} } ] },
+            { "label": "Recently Added", "entities": [ { "id": "b", "media": {} } ] }
+        ]))
+        .expect("the answer must read");
+
+        assert_eq!(the_media_of_continue_listening(&shelves), vec![true, false]);
+    }
+
+    /// A media that the user finished leaves the shelf of Continue Listening,
+    /// and it stays on every other shelf. See T-66.
+    #[test]
+    fn a_media_that_left_goes_away_from_its_line() {
+        let rows = group_home(&the_shelves(), &[series("series-1", "A Series")]);
+
+        // The media 1 is the second media of Continue Listening.
+        let after = without_the_media_that_left(&rows, |item| item == 1);
+
+        assert_eq!(
+            after,
+            vec![
+                HomeRow::Shelf {
+                    label: "Continue Listening".to_string()
+                },
+                HomeRow::Media { item: 0 },
+                HomeRow::Shelf {
+                    label: "Recently Added".to_string()
+                },
+                HomeRow::Media { item: 2 },
+                HomeRow::Shelf {
+                    label: "Recent Series".to_string()
+                },
+                HomeRow::Series { series: 0 },
+                HomeRow::Shelf {
+                    label: "Discover".to_string()
+                },
+                HomeRow::Media { item: 3 },
+            ],
+            "the number of every other media must not change"
+        );
+    }
+
+    /// A shelf that holds no media any more must give no name. This is the
+    /// rule of `group_home`. See T-66.
+    #[test]
+    fn a_shelf_with_no_media_left_gives_no_name() {
+        let rows = group_home(&the_shelves(), &[series("series-1", "A Series")]);
+        let after = without_the_media_that_left(&rows, |item| item == 0 || item == 1);
+
+        assert!(
+            !after.contains(&HomeRow::Shelf {
+                label: "Continue Listening".to_string()
+            }),
+            "the shelf holds no line, therefore it gives no name"
+        );
+        assert_eq!(
+            after.first(),
+            Some(&HomeRow::Shelf {
+                label: "Recently Added".to_string()
+            })
+        );
+        assert_eq!(
+            after.iter().filter_map(HomeRow::item).collect::<Vec<_>>(),
+            vec![2, 3]
+        );
+    }
+
+    /// A shelf of series keeps its name, because a series is a line too.
+    #[test]
+    fn a_shelf_of_series_keeps_its_name() {
+        let rows = group_home(&the_shelves(), &[series("series-1", "A Series")]);
+        let after = without_the_media_that_left(&rows, |_| true);
+
+        assert_eq!(
+            after,
+            vec![
+                HomeRow::Shelf {
+                    label: "Recent Series".to_string()
+                },
+                HomeRow::Series { series: 0 },
+            ],
+            "every media left, and the shelf of the series stays"
+        );
+    }
+
+    /// Nothing left, therefore the lines do not change.
+    #[test]
+    fn no_media_that_left_keeps_every_line() {
+        let rows = group_home(&the_shelves(), &[series("series-1", "A Series")]);
+
+        assert_eq!(without_the_media_that_left(&rows, |_| false), rows);
+    }
+
+    /// A library of podcasts can give a shelf of Continue Listening, and it
+    /// counts the entities that hold an episode.
+    #[test]
+    fn the_shelf_of_each_episode_of_a_library_of_podcasts() {
+        let shelves: Vec<RootPod> = serde_json::from_value(serde_json::json!([
+            { "id": "continue-listening", "label": "Continue Listening",
+              "entities": [ { "id": "p1", "media": {}, "recentEpisode": { "id": "e1" } },
+                            { "id": "p2", "media": {} } ] },
+            { "id": "newest-episodes", "label": "Newest Episodes",
+              "entities": [ { "id": "p3", "media": {}, "recentEpisode": { "id": "e2" } } ] }
+        ]))
+        .expect("the answer must read");
+
+        assert_eq!(
+            the_media_of_continue_listening_pod(&shelves),
+            vec![true, false],
+            "the entity with no episode gives no line and no value"
+        );
     }
 
     /// A view of names only must not give a line, and it must not stop the
