@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.47",
+        date: "12/08/2026",
+        body: &[
+            "Added:",
+            "- **This screen holds every release of this fork.** It stopped at v0.6.8 while \
+             the program was at v0.7.46, therefore 38 releases reached no user. The first line \
+             took the version of your build, and that hid the fault.",
+            "",
+            "Changed:",
+            "- A line of this screen fills the width of your terminal. It held the wrap of \
+             the source before, therefore a wide terminal showed a narrow column.",
+        ],
+    },
+    Entry {
         version: "0.7.46",
         date: "12/08/2026",
         body: &[
