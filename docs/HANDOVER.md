@@ -4,18 +4,18 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.29**, and the items T-66 to T-69 belong to this
+**The newest release is v0.7.30**, and the items T-66 to T-70 belong to this
 session. T-47 to T-65 belong to the session before it.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.29` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.30` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo test -j 16
-    # 829 tests pass, 17 carry #[ignore], 37 binaries
+    # 831 tests pass, 17 carry #[ignore], 37 binaries
 cargo tree -i openssl-sys                # finds nothing
 cargo tree -i cc                         # finds libsqlite3-sys and ring only
 ```
@@ -26,7 +26,7 @@ the requests of the login under the rate limit of the server.
 
 **The fault of one run of ten did not come back.** This session ran the whole suite
 **eight** times: three runs beside the work, and five runs one after the other. Every
-run gave 820 of 820, and the suite holds 829 tests after T-69. The session before
+run gave 820 of 820, and the suite holds 831 tests after T-70. The session before
 this one saw one fault of ten runs and did not name it. **Keep the whole output of `cargo test`** at the next such fault: the
 name of the test is the whole answer.
 
@@ -46,6 +46,7 @@ v0.6.7. Do not try to publish v0.6.6.
 | T-67 | The cache of the ebooks holds a limit of one gigabyte | `e` |
 | T-68 | **The book of xHE-AAC of the user, and four faults of the stream.** T-53 and T-63 close with it | `l` |
 | T-69 | **That book plays now**, from a place beside the one that stops ffmpeg of the server | `l` |
+| T-70 | A search of the name of an author gives the books of that author | `/` |
 | T-51 | **The decision of the maintainer: Toutui stays GPL.** bookokrat gives ideas only | — |
 | T-20 | **The decision of the maintainer: the two builds of C stay.** Both answers need a crate that is not ready | — |
 
@@ -129,10 +130,10 @@ faults of the program that they found.
    whole file, therefore a book of 500 megabytes needs a machine of a gigabyte for
    one moment. `MAX_BOOK_BYTES` of 512 megabytes holds that limit. A reader of one
    page at a time needs a different crate, and no such crate of pure Rust exists.
-4. **The search on the server.** `GET /api/libraries/:id/search?q=`. It is the
-   largest difference between the program and the web page, and section 5 of
-   `docs/T-24-coverage.md` holds the plan. The search of today reads the titles that
-   the client holds, therefore it finds no author and no series.
+4. **A view of the search that holds its own titles (T-70).** The lines of that view
+   come from the lists of the library, therefore a book that the program did not load
+   gives no line. `get_all_books` reads every page at the start, and 500 pages of 500
+   items hold 250000 items, therefore no library of a user meets this today.
 
 `docs/T-24-coverage.md` section 6 names every function that the program must **not**
 have, with the reason. Read it before you take a row of the table that says `No`.
@@ -380,28 +381,27 @@ acceptable in those two places. Look again when `turso` is a release and
 
 > Continue the Toutui takeover, and write the next version. Repo:
 > `/home/nyverino/Documents/Toutui` (ealtun21/Toutui, branch main). Maintained fork
-> of the archived AlbanDAVID/Toutui. Newest release **v0.7.29**; `Cargo.toml` is at
-> 0.7.29, so the next release bumps it first — the workflow refuses a tag that
+> of the archived AlbanDAVID/Toutui. Newest release **v0.7.30**; `Cargo.toml` is at
+> 0.7.30, so the next release bumps it first — the workflow refuses a tag that
 > disagrees with `Cargo.toml`, **and it builds `--locked`, therefore the commit of
 > the bump must hold the new `Cargo.lock`**.
 >
 > Read `docs/HANDOVER.md` first: the state, the open items, and 39 traps that cost
 > real time. Then `docs/TAKEOVER-BACKLOG.md` (the evidence of every item; T-66, T-67,
-> T-68, and T-69 are the newest, and T-66, T-68, and T-69 are the ones to know) and
+> T-68, T-69, and T-70 are the newest, and T-66, T-68, and T-69 are the ones to know) and
 > `docs/T-24-coverage.md` (**section 6 names what the program must not have, and
 > why**).
 >
 > **The work, in the sequence of its value:**
 >
-> 1. **The search on the server** (`GET /api/libraries/:id/search?q=`). It is the
->    largest difference between the program and the web page. Section 5 of
->    `docs/T-24-coverage.md` holds the plan, and `src/logic/search/` holds the code
->    that reads the titles of the client today.
-> 2. **The message of the user for the cache of the ebooks (T-67).** The program
+> 1. **The message of the user for the cache of the ebooks (T-67).** The program
 >    removes a book of the cache and it says that in the log only. The answer needs a
 >    shape: a message of the reader must not go away for it.
-> 3. **The peak of the memory of a PDF (T-62)**, if a user meets it. `MAX_BOOK_BYTES`
+> 2. **The peak of the memory of a PDF (T-62)**, if a user meets it. `MAX_BOOK_BYTES`
 >    of 512 megabytes holds the limit today.
+> 3. **A sweep of every view in tmux.** The session of 2026-08-11 found two faults of
+>    the search that way, and a sweep of fifteen views found two more before it. The
+>    key `Escape` of the view of the search closes the program: use `/` again.
 >
 > **The book of xHE-AAC plays now (T-68 and T-69).** Do not look for a decoder of
 > Rust: symphonia reads no frame of that form, and the stream of the server gives the
@@ -418,7 +418,7 @@ acceptable in those two places. Look again when `turso` is a release and
 > under `nice -n 19 ionice -c 3` with `-j 16`: `cargo clippy --all-targets --
 > -D warnings`, `cargo fmt --check`, and `cargo test` with `ALSA_CONFIG_PATH`
 > pointing at a real null asound file (`/dev/null` hangs the real binary). Baseline:
-> 829 tests, 17 with `#[ignore]`, 37 binaries, tree clean. **A measurement that plays
+> 831 tests, 17 with `#[ignore]`, 37 binaries, tree clean. **A measurement that plays
 > sound needs the real device and the permission of the user**: that variable does not
 > silence the real program. Look at `du -sh target`
 > and run `cargo clean --profile dev` at the end of the session.
