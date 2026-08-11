@@ -162,6 +162,12 @@ pub struct PlaybackState {
     /// then asks the server for a stream of the whole media, and every codec of
     /// ffmpeg becomes a codec of this program. See T-53.
     pub file_with_no_decoder: Option<String>,
+    /// Why the start of the playback did not work, in a sentence for the user.
+    ///
+    /// The place that meets the fault writes the sentence, therefore no other
+    /// place must read the text and decide the cause. The loop of the playback
+    /// gives it to the user. See T-68.
+    pub why_the_start_did_not_work: Option<String>,
     /// The identity of the playback that met the fault of the decoder.
     ///
     /// The loop of a playback must read the fault of **its own** playback. The
@@ -182,6 +188,7 @@ impl Default for PlaybackState {
             duration: 0.0,
             chapter_title: None,
             file_with_no_decoder: None,
+            why_the_start_did_not_work: None,
             playback_of_the_fault: 0,
             chapters: Vec::new(),
             speed: 1.0,
@@ -230,6 +237,50 @@ pub enum PlayerCommand {
     Stop,
 }
 
+impl PlayerCommand {
+    /// Tells if this command makes a long wait of the engine pointless.
+    ///
+    /// The open of a stream of HLS waits for the first part of the server, and
+    /// that wait runs on the thread of the engine. A command of this group says
+    /// that the user does not want the playback that the engine opens now,
+    /// therefore the open stops and the keys of the user work again.
+    ///
+    /// `SetVolume` and `SetSpeed` are **not** in this group: the sleep timer of
+    /// T-24 sends them while a playback runs, and a stop of the open for such a
+    /// command would lose a playback that the user asked for. See T-68.
+    pub fn the_user_does_not_want_the_open(&self) -> bool {
+        matches!(
+            self,
+            PlayerCommand::Start(_)
+                | PlayerCommand::Stop
+                | PlayerCommand::Pause
+                | PlayerCommand::SeekTo(_)
+                | PlayerCommand::SeekBy(_)
+        )
+    }
+}
+
+/// `true` when a command of the user waits for the engine. See T-68.
+static A_COMMAND_WAITS: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// Says that a command of the user waits for the engine.
+pub fn note_that_a_command_waits() {
+    A_COMMAND_WAITS.store(true, std::sync::atomic::Ordering::SeqCst);
+}
+
+/// Tells if a command of the user waits for the engine.
+///
+/// The open of a stream of HLS reads this at each attempt, therefore a key of
+/// the user stops a wait of many seconds. See T-68.
+pub fn a_command_waits() -> bool {
+    A_COMMAND_WAITS.load(std::sync::atomic::Ordering::SeqCst)
+}
+
+/// Says that the engine took the command. The worker calls this.
+pub fn the_engine_took_the_command() {
+    A_COMMAND_WAITS.store(false, std::sync::atomic::Ordering::SeqCst);
+}
+
 /// The connection to the engine.
 ///
 /// The handle sends commands. It also gives the state that the user interface
@@ -256,6 +307,12 @@ impl PlayerHandle {
 
     /// Sends a command. The function does not wait for the engine.
     pub fn send(&self, command: PlayerCommand) {
+        // The engine can wait many seconds for the first part of a stream of
+        // the server. This note stops that wait. See T-68.
+        if command.the_user_does_not_want_the_open() {
+            note_that_a_command_waits();
+        }
+
         if self.sender.send(command).is_err() {
             log::error!("[PlayerHandle] the engine stopped");
         }

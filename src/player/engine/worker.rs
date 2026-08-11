@@ -153,7 +153,12 @@ fn run(
 
     loop {
         match receiver.recv_timeout(TICK) {
-            Ok(command) => handle(command, &mut player, &sink, &mut current, &token, &state),
+            Ok(command) => {
+                // The engine holds this command now, therefore no wait of the
+                // engine must stop for it. See T-68.
+                crate::player::engine::the_engine_took_the_command();
+                handle(command, &mut player, &sink, &mut current, &token, &state)
+            }
             Err(RecvTimeoutError::Timeout) => {}
             Err(RecvTimeoutError::Disconnected) => return,
         }
@@ -257,6 +262,7 @@ fn start(
     // A new playback starts with no fault of a decoder. See T-53.
     if let Ok(mut value) = state.write() {
         value.file_with_no_decoder = None;
+        value.why_the_start_did_not_work = None;
         value.playback_of_the_fault = 0;
     }
 
@@ -292,6 +298,10 @@ fn start(
 
         if let Ok(mut value) = state.write() {
             value.file_with_no_decoder = Some(name);
+            // The place that met the fault wrote this sentence. The loop of the
+            // playback gives it to the user, therefore the user reads the true
+            // cause and not a guess. See T-68.
+            value.why_the_start_did_not_work = Some(error.clone());
             value.playback_of_the_fault = item.request.playback_id;
         }
 
@@ -563,6 +573,7 @@ fn publish(
         // A new playback starts with no fault of a decoder and with no message
         // of the playback before it. See T-53.
         value.file_with_no_decoder = None;
+        value.why_the_start_did_not_work = None;
         value.notice = None;
     }
 

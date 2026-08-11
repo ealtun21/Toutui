@@ -380,7 +380,8 @@ async fn play_media(
     // a codec that no decoder of the program reads gives a fault at once, and
     // the program then asks the server for a stream of the whole media. See
     // T-53.
-    if let Some(name) = the_file_that_no_decoder_reads(player, playback_id).await {
+    if let Some(name) = the_file_that_no_decoder_reads(player, playback_id, WAIT_FOR_A_FAULT).await
+    {
         info!(
             "[play] no decoder of the program reads {}. The program asks the \
              server for a stream of the whole media.",
@@ -414,20 +415,40 @@ async fn play_media(
     .await
 }
 
-/// The time that the program waits for the fault of a decoder. See T-53.
+/// The time that the program waits for the fault of a decoder of a **file**.
+/// See T-53.
 ///
 /// The engine opens the decoders inside the command `Start`, therefore the fault
 /// comes in some milliseconds. This value gives room for a server that answers
 /// slowly, and it stays short: a playback that starts must not wait.
 const WAIT_FOR_A_FAULT: Duration = Duration::from_millis(2500);
 
+/// The time that the program waits for the fault of a **stream** of the server.
+///
+/// **A stream does not open in some milliseconds.** The open asks the server for
+/// the first part, and ffmpeg of the server writes that part when it made it. A
+/// measurement of 2026-08-11 with a file of xHE-AAC: the server needed 10.5
+/// seconds for the first part of its second try, and the open of the program
+/// waits about 25 seconds.
+///
+/// The old value of 2500 milliseconds therefore lost every message of such a
+/// playback: the engine wrote the fault at the second 11.6, and no loop read it
+/// any more. **The user pressed a key and read nothing at all.** A playback that
+/// starts costs nothing here, because the loop stops at the first frame of the
+/// engine. See T-68.
+const WAIT_FOR_THE_STREAM: Duration = Duration::from_secs(35);
+
 /// The time between two looks at the state of the engine.
 const LOOK_AGAIN: Duration = Duration::from_millis(100);
 
 /// Gives the name of the file that no decoder of the program reads, if the
 /// engine met one in this playback. See T-53.
-async fn the_file_that_no_decoder_reads(player: &PlayerHandle, playback_id: u64) -> Option<String> {
-    let end = std::time::Instant::now() + WAIT_FOR_A_FAULT;
+async fn the_file_that_no_decoder_reads(
+    player: &PlayerHandle,
+    playback_id: u64,
+    how_long: Duration,
+) -> Option<String> {
+    let end = std::time::Instant::now() + how_long;
 
     loop {
         let state = player.state();
@@ -566,17 +587,18 @@ async fn play_the_stream_of_the_server(
     // that codec fits a transport stream, and AAC of the newest form fits it as
     // LATM only. The program must then say so, and it must not give silence.
     // See T-53.
-    if let Some(name) = the_file_that_no_decoder_reads(player, playback_id).await {
+    if let Some(name) =
+        the_file_that_no_decoder_reads(player, playback_id, WAIT_FOR_THE_STREAM).await
+    {
         error!(
             "[play] the stream of the server holds a form that no decoder of the \
              program reads: {}",
             name
         );
 
-        crate::logic::message::say(
-            "The stream of the server holds a form that the program cannot read. \
-             Read the log, and see T-53.",
-        );
+        crate::logic::message::say(&the_message_of_a_stream_that_did_not_play(
+            player.state().why_the_start_did_not_work.as_deref(),
+        ));
 
         return Outcome::Fault;
     }
@@ -595,6 +617,33 @@ async fn play_the_stream_of_the_server(
         start_position,
     )
     .await
+}
+
+/// Gives the sentence for a stream of the server that did not play.
+///
+/// **The old sentence said that the program cannot read the form of the stream.**
+/// A measurement of 2026-08-11 with a file of xHE-AAC showed that this is often
+/// false: the server made **no part at all**, because its own ffmpeg cannot read
+/// the form of the file. The user then read a sentence that names the wrong
+/// program, and the log of the server holds the true cause.
+///
+/// The engine writes the sentence of the fault that it met, therefore this
+/// function gives that sentence and it adds what the user can do. A start with no
+/// such sentence keeps the old text.
+///
+/// The function is pure, therefore a test needs no server and no engine.
+/// See T-68.
+pub fn the_message_of_a_stream_that_did_not_play(why: Option<&str>) -> String {
+    let Some(why) = why.map(str::trim).filter(|text| !text.is_empty()) else {
+        return "The stream of the server did not play. Read the log, and see \
+                T-53."
+            .to_string();
+    };
+
+    // **The message stands in one row of the screen.** A measurement of
+    // 2026-08-11 lost the end of a message of 200 letters in a terminal of 160
+    // columns. Therefore the two parts together must stay short. See T-68.
+    format!("{} A file of a different form is the answer.", why)
 }
 
 /// Gives the chapters of one media, for a playback of the stream of the server.
@@ -1230,6 +1279,50 @@ mod tests_of_the_start {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The message of a stream that did not play must give the sentence of the
+    /// place that met the fault, and it must not name the program of the user as
+    /// the cause. See T-68.
+    #[test]
+    fn the_message_names_the_true_cause_of_a_stream_that_did_not_play() {
+        let of_the_server = crate::player::engine::hls_file::the_sentence_of_no_part(14);
+        let message = the_message_of_a_stream_that_did_not_play(Some(&of_the_server));
+
+        assert!(
+            message.contains("made no part"),
+            "the message must hold the sentence of the engine: {}",
+            message
+        );
+        assert!(
+            message.contains("A file of a different form"),
+            "the message must say what the user can do: {}",
+            message
+        );
+
+        // The message stands in one row of the screen. A terminal of 160 columns
+        // loses the end of a longer message. See T-68.
+        assert!(
+            message.chars().count() <= 150,
+            "the message holds {} letters, and the row of the screen is shorter",
+            message.chars().count()
+        );
+        assert!(
+            !message.contains("the program cannot read"),
+            "the message must not name the program of the user: {}",
+            message
+        );
+
+        // A fault of the form of the stream keeps its own sentence.
+        let of_the_form = "The stream of the server holds the audio in the form \
+                           Latm, and no decoder of the program reads it.";
+        assert!(the_message_of_a_stream_that_did_not_play(Some(of_the_form)).contains("Latm"));
+
+        // A start with no sentence gives the old text, and it names the log.
+        for nothing in [None, Some(""), Some("   ")] {
+            let message = the_message_of_a_stream_that_did_not_play(nothing);
+            assert!(message.contains("Read the log"), "{}", message);
+        }
+    }
 
     fn book() -> serde_json::Value {
         serde_json::json!({

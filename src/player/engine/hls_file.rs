@@ -47,17 +47,34 @@ const ATTEMPTS: usize = 20;
 /// The number of attempts for the **first** part, when the reader opens.
 ///
 /// `HlsFile::open` runs on the thread of the engine, and that thread reads the
-/// commands of the user. A long wait there stops the keys of the player.
+/// commands of the user. **A command of the user stops this wait**, therefore the
+/// number can be large: `a_command_waits` of the engine gives the answer at each
+/// attempt. See T-68.
 ///
 /// A movement of the playback asks for a part before the part where the transcode
 /// of the server began. The server answers 404 and it starts the transcode again
 /// at the new place: its log says "Segment #N Request is before starting segment
-/// number #M - Reset Transcode". That work takes a second or two, therefore a
-/// small number of attempts is enough. See T-63.
-const ATTEMPTS_OF_THE_OPEN: usize = 8;
+/// number #M - Reset Transcode". A measurement of 2026-08-11 gave the first part
+/// of such a start in 0.5 seconds for a file of MP3.
+///
+/// **A copy that fails costs ten seconds more.** ffmpeg of the server writes no
+/// part when the codec of the file does not fit a transport stream, and the
+/// server needs ten seconds to see that its own transcode died: its log says
+/// "Transcode never closed...". It then starts ffmpeg again with `-c:a aac`.
+/// Fourteen attempts with `LONGEST_WAIT_OF_THE_OPEN` give about 25 seconds, and
+/// that holds the ten seconds of the server and the first part of the second try.
+/// See T-68.
+const ATTEMPTS_OF_THE_OPEN: usize = 14;
 
 /// The largest delay between two attempts of the open.
 const LONGEST_WAIT_OF_THE_OPEN: Duration = Duration::from_secs(2);
+
+/// The number of attempts of a part before the reader asks for the playlist.
+///
+/// A part that ffmpeg did not write yet answers 404, and that answer is the
+/// common one. Therefore the reader does not ask for the playlist at the first
+/// attempts. See T-68.
+const ATTEMPTS_BEFORE_THE_PLAYLIST: usize = 2;
 
 /// The time to wait for a connection.
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(3);
@@ -123,18 +140,27 @@ impl HlsFile {
             &client,
             &address_of_the_part(&address, &name),
             token,
-            ATTEMPTS_OF_THE_OPEN,
-            LONGEST_WAIT_OF_THE_OPEN,
+            Patience {
+                attempts: ATTEMPTS_OF_THE_OPEN,
+                longest: LONGEST_WAIT_OF_THE_OPEN,
+                a_command_stops_it: true,
+                playlist: &address,
+            },
         )?;
         let stream = hls::audio_stream_of(&bytes)
             .ok_or_else(|| "The stream of the server holds no audio.".to_string())?;
 
         if !stream.form.a_decoder_of_the_program_reads_it() {
             // ffmpeg of the server copies the codec of the file when that codec
-            // fits a transport stream. AAC of the newest form (xHE-AAC) fits it
-            // as LATM only, and symphonia has no reader of LATM. The server
-            // makes AAC of the old form after ffmpeg gives it a fault, therefore
-            // a second try of the user can give a stream that plays.
+            // fits a transport stream, and it gives a fault when it does not.
+            //
+            // **A measurement of 2026-08-11 with a real file of xHE-AAC gave no
+            // LATM at all.** T-53 expected that form here. ffmpeg stops at the
+            // header of the transport stream instead: "Could not write header
+            // (incorrect codec parameters ?)", and it writes no part. The server
+            // then starts ffmpeg again with `-c:a aac`. Therefore this arm holds
+            // a form that no measurement met yet, and it stays for a server that
+            // gives one. See T-68.
             return Err(format!(
                 "The stream of the server holds the audio in the form {:?}, and \
                  no decoder of the program reads it. The file of this media \
@@ -397,36 +423,121 @@ fn ask_for_the_text(
         .map_err(|_| "The server gave no playlist.".to_string())
 }
 
-/// Asks for the bytes of one part of the stream.
+/// How long a reader of the parts waits, and what stops that wait.
+struct Patience<'a> {
+    /// The number of attempts for one part.
+    attempts: usize,
+    /// The largest delay between two attempts.
+    longest: Duration,
+    /// A command of the user stops the wait. The open gives `true`, because it
+    /// runs on the thread of the engine. See T-68.
+    a_command_stops_it: bool,
+    /// The address of the playlist. A reader that holds it can see a stream that
+    /// the server ended. See T-68.
+    playlist: &'a str,
+}
+
+/// Asks for the bytes of one part of the stream, for the thread of the buffer.
 fn ask_for_the_bytes(
     client: &reqwest::blocking::Client,
     address: &str,
     token: &str,
+    playlist: &str,
 ) -> Result<Vec<u8>, String> {
-    ask_for_the_bytes_with_a_limit(client, address, token, ATTEMPTS, MAX_BACKOFF)
+    ask_for_the_bytes_with_a_limit(
+        client,
+        address,
+        token,
+        Patience {
+            attempts: ATTEMPTS,
+            longest: MAX_BACKOFF,
+            a_command_stops_it: false,
+            playlist,
+        },
+    )
+}
+
+/// Gives the sentence for a stream that the server ended.
+///
+/// **A stream of the server can go away while the client reads it.** A
+/// measurement of 2026-08-11 with a file of xHE-AAC: the decoder of ffmpeg gave
+/// samples of NaN to its encoder, ffmpeg stopped with the code 234, and the
+/// server then wrote "Closing Stream" and "Deleted session data". Every part of
+/// that stream answers 404 after that moment, and the answer never changes.
+///
+/// A reader that does not see this waits for every attempt, and the user waits
+/// with it. Therefore the reader asks for the playlist, and a playlist that
+/// answers 404 says that the stream is gone.
+///
+/// The function is pure, therefore a test needs no server. See T-68.
+pub fn the_sentence_of_a_stream_that_ended() -> String {
+    "The server ended the stream of this media. Its ffmpeg cannot read the form \
+     of this audio."
+        .to_string()
+}
+
+/// Tells if the stream of the server is gone.
+///
+/// A playlist that answers 404 says that the server removed the session of the
+/// stream. Any other answer, and a fault of the network, give `false`: the
+/// reader must not stop for a server that is slow. See T-68.
+fn the_stream_is_gone(client: &reqwest::blocking::Client, playlist: &str, token: &str) -> bool {
+    match client.get(playlist).bearer_auth(token).send() {
+        Ok(answer) => classify_status(answer.status()) == Some(ApiError::NotFound),
+        Err(_) => false,
+    }
+}
+
+/// Gives the sentence for a part that the server never made.
+///
+/// **A 404 of a part is not a media that the server does not have.** ffmpeg of
+/// the server writes a part when it made that part, therefore a part that answers
+/// 404 to every attempt says that the server made no part at all. The old
+/// sentence came from `classify_status`, and it said "The server does not have
+/// this item": the user then reads that their book is absent, and the book is
+/// there.
+///
+/// A measurement of 2026-08-11 with a file of xHE-AAC: ffmpeg cannot read that
+/// form, therefore it wrote no part and the program said the wrong sentence.
+///
+/// The function is pure, therefore a test needs no server. See T-68.
+pub fn the_sentence_of_no_part(attempts: usize) -> String {
+    format!(
+        "The server made no part of the stream after {} attempts. Its ffmpeg \
+         cannot read the form of this audio.",
+        attempts
+    )
 }
 
 /// Asks for the bytes of one part, with a number of attempts and a largest delay.
 ///
 /// The thread that fills the buffer waits long, because a wait there costs the
-/// user nothing. The open waits little, because it runs on the thread that reads
-/// the keys of the player. See T-63.
+/// user nothing. The open waits long too, and **a command of the user stops that
+/// wait**: `stops_for_a_command` gives `true` for the open. See T-63 and T-68.
 fn ask_for_the_bytes_with_a_limit(
     client: &reqwest::blocking::Client,
     address: &str,
     token: &str,
-    attempts: usize,
-    longest: Duration,
+    patience: Patience,
 ) -> Result<Vec<u8>, String> {
     let mut backoff = FIRST_BACKOFF;
     let mut last = String::from("The server did not answer.");
+    let mut every_answer_was_404 = true;
 
-    for attempt in 0..attempts {
+    for attempt in 0..patience.attempts {
+        // The open runs on the thread of the engine. A key of the user must not
+        // wait for a server that makes no part. See T-68.
+        if patience.a_command_stops_it && crate::player::engine::a_command_waits() {
+            info!("[HlsFile] a command of the user stops the wait of the open.");
+            return Err("The user asked for something else.".to_string());
+        }
+
         let answer = match client.get(address).bearer_auth(token).send() {
             Ok(answer) => answer,
             Err(_) => {
                 last = "The server did not answer.".to_string();
-                wait(&mut backoff, attempt, longest);
+                every_answer_was_404 = false;
+                wait(&mut backoff, attempt, patience.longest);
                 continue;
             }
         };
@@ -434,8 +545,23 @@ fn ask_for_the_bytes_with_a_limit(
         // ffmpeg of the server writes the parts while the client reads them.
         // A part that does not exist yet answers 404.
         if let Some(error) = classify_status(answer.status()) {
+            every_answer_was_404 = every_answer_was_404 && error == ApiError::NotFound;
             last = text_of(&error);
-            wait(&mut backoff, attempt, longest);
+
+            // **A stream that the server ended answers 404 for ever.** One
+            // request of the playlist gives that answer, therefore the reader
+            // stops at once and the user reads the true cause. The reader asks
+            // after the second attempt, because a part that is not ready yet is
+            // the common answer and it needs no second request. See T-68.
+            if error == ApiError::NotFound
+                && attempt >= ATTEMPTS_BEFORE_THE_PLAYLIST
+                && the_stream_is_gone(client, patience.playlist, token)
+            {
+                warn!("[HlsFile] the server ended the stream of this media.");
+                return Err(the_sentence_of_a_stream_that_ended());
+            }
+
+            wait(&mut backoff, attempt, patience.longest);
             continue;
         }
 
@@ -443,6 +569,10 @@ fn ask_for_the_bytes_with_a_limit(
             .bytes()
             .map(|bytes| bytes.to_vec())
             .map_err(|_| "The part of the stream did not come.".to_string());
+    }
+
+    if every_answer_was_404 {
+        return Err(the_sentence_of_no_part(patience.attempts));
     }
 
     Err(last)
@@ -502,18 +632,22 @@ fn fill_buffer(
             let _ = shared.signal.wait_timeout(buffer, READ_WAIT);
         }
 
-        let bytes =
-            match ask_for_the_bytes(&client, &address_of_the_part(&address, &part.name), &token) {
-                Ok(bytes) => bytes,
-                Err(error) => {
-                    warn!(
-                        "[HlsFile] the part {} did not come: {}. The playback stops \
+        let bytes = match ask_for_the_bytes(
+            &client,
+            &address_of_the_part(&address, &part.name),
+            &token,
+            &address,
+        ) {
+            Ok(bytes) => bytes,
+            Err(error) => {
+                warn!(
+                    "[HlsFile] the part {} did not come: {}. The playback stops \
                      there.",
-                        part.name, error
-                    );
-                    break;
-                }
-            };
+                    part.name, error
+                );
+                break;
+            }
+        };
 
         let audio = hls::audio_payload(&bytes, pid);
 
@@ -536,6 +670,105 @@ fn fill_buffer(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A 404 of a part is not a media that the server does not have. The old
+    /// sentence came from `classify_status`, and the user read "The server does
+    /// not have this item" for a book that stands in their library. See T-68.
+    #[test]
+    fn the_sentence_of_a_part_that_the_server_never_made() {
+        let sentence = the_sentence_of_no_part(14);
+
+        assert!(
+            sentence.contains("made no part"),
+            "the sentence must name the part: {}",
+            sentence
+        );
+        assert!(
+            sentence.contains("14"),
+            "the sentence must hold the number of the attempts: {}",
+            sentence
+        );
+        assert!(
+            !sentence.contains("does not have this item"),
+            "the sentence must not say that the item is absent: {}",
+            sentence
+        );
+        assert!(
+            sentence.contains("form of this audio"),
+            "the sentence must name the true cause: {}",
+            sentence
+        );
+    }
+
+    /// The commands of the user that make a long open pointless. `SetVolume`
+    /// and `SetSpeed` must not stop an open, because the sleep timer sends them
+    /// while a playback runs. See T-68.
+    #[test]
+    fn a_key_of_the_user_stops_the_wait_of_the_open() {
+        use crate::player::engine::PlayerCommand;
+
+        assert!(PlayerCommand::Stop.the_user_does_not_want_the_open());
+        assert!(PlayerCommand::Pause.the_user_does_not_want_the_open());
+        assert!(PlayerCommand::SeekTo(10.0).the_user_does_not_want_the_open());
+        assert!(PlayerCommand::SeekBy(-10.0).the_user_does_not_want_the_open());
+
+        assert!(!PlayerCommand::SetVolume(0.5).the_user_does_not_want_the_open());
+        assert!(!PlayerCommand::SetSpeed(1.5).the_user_does_not_want_the_open());
+        assert!(!PlayerCommand::Resume.the_user_does_not_want_the_open());
+    }
+
+    /// A stream that the server ended must stop the reader at once. The
+    /// sentence must not say that the item is absent. See T-68.
+    #[test]
+    fn the_sentence_of_a_stream_that_the_server_ended() {
+        let sentence = the_sentence_of_a_stream_that_ended();
+
+        assert!(sentence.contains("ended the stream"), "{}", sentence);
+        assert!(sentence.contains("form of this audio"), "{}", sentence);
+        assert!(
+            !sentence.contains("does not have this item"),
+            "{}",
+            sentence
+        );
+    }
+
+    /// The reader asks for the playlist after the first attempts only. A part
+    /// that ffmpeg did not write yet is the common answer, and it must cost one
+    /// request. See T-68.
+    #[test]
+    fn the_reader_does_not_ask_for_the_playlist_at_the_first_attempt() {
+        // The open must reach the examination of the playlist, and it must not
+        // make that request at the first attempt of a part.
+        let attempts_that_ask: Vec<usize> = (0..ATTEMPTS_OF_THE_OPEN)
+            .filter(|attempt| *attempt >= ATTEMPTS_BEFORE_THE_PLAYLIST)
+            .collect();
+
+        assert_eq!(attempts_that_ask.first(), Some(&2));
+        assert_eq!(attempts_that_ask.len(), ATTEMPTS_OF_THE_OPEN - 2);
+    }
+
+    /// The open must wait longer than the server needs to see that its own
+    /// transcode died. A measurement of 2026-08-11 gave ten seconds for that,
+    /// and the server then starts ffmpeg again. See T-68.
+    #[test]
+    fn the_open_waits_longer_than_the_server_needs_for_its_second_try() {
+        // The first delay, then the double of it, and then the longest wait for
+        // every attempt after those two.
+        let mut total = Duration::from_secs(0);
+        let mut backoff = FIRST_BACKOFF;
+
+        for _ in 0..ATTEMPTS_OF_THE_OPEN {
+            total += backoff;
+            backoff = (backoff * 2).min(LONGEST_WAIT_OF_THE_OPEN);
+        }
+
+        assert!(
+            total >= Duration::from_secs(20),
+            "the open waits {:?}, and the server needs ten seconds to see a \
+             transcode that died, and more for the first part of the second try",
+            total
+        );
+    }
 
     #[test]
     fn the_address_of_the_playlist_takes_the_base_of_the_server() {

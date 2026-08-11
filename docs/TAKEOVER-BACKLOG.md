@@ -2542,6 +2542,125 @@ call of `get_the_ebook`, and the time of the file then does not change. The time
 changes at the next run of the program, and that is the moment that matters for the
 limit.
 
+### T-68: the book of xHE-AAC of the user, and three faults that it showed
+
+**T-53 and T-63 waited for this measurement, and it is complete now.** The user gave
+the real file on 2026-08-11:
+
+```
+02_Depthless Hunger 2_[B0GGDKX4GP]_AAC-LC.m4b     1.5 GB
+02_Depthless Hunger 2_[B0GGDKX4GP]_xHE-AAC.m4b    1.3 GB
+```
+
+```
+ffprobe: codec_name=aac  profile=xHE-AAC  codec_tag_string=mp4a  duration=93278 s
+```
+
+A piece of 10 minutes with `-c copy` keeps `profile=xHE-AAC`, therefore the
+measurement needs no file of 1.3 gigabytes. That piece stands in the sandbox as the
+book "Depthless Hunger, Book 2".
+
+#### The answer: no program of this machine plays xHE-AAC, and the server cannot help
+
+| The step | The answer |
+|---|---|
+| symphonia of the program | "The format of the data has not been recognized." It **refuses** the file, and it gives no wrong sound |
+| `codecsToForceAAC` of the server | `alac`, `ac3`, `eac3`, `opus`. xHE-AAC names itself `aac`, therefore the server **copies** it |
+| ffmpeg of the server, first try, `-c:a copy` | "Could not write header (incorrect codec parameters ?)", and it stops with the code 183. **It writes no part** |
+| The server, 10 seconds later | "Transcode never closed...", and it starts ffmpeg again with `-c:a aac` |
+| ffmpeg of the server, second try, `-c:a aac` | "[dec:aac] Error submitting packet to decoder: **Not yet implemented in FFmpeg, patches welcome**" |
+| ffmpeg 9.0 of this machine, on the whole file | The same sentence, 195 times in 20 seconds. The AAC-LC file of the same book decodes with no fault |
+
+**T-53 expected LATM here, and no LATM exists.** ffmpeg stops at the header of the
+transport stream, therefore no byte of that form ever reaches the client. The arm of
+`HlsFile::open` for such a form stays, for a server that gives one.
+
+**What the second try gives depends on the place of the media**, and both answers are
+bad:
+
+- **From the second 0:** the parts come after **10.5 seconds**, and they hold the
+  full number of bytes (77 kB for 6 seconds). ffmpeg decodes some frames and it
+  drops the others. **The sound plays, and it is not smooth**: the user heard that,
+  and this is the whole cause of it.
+- **From the middle (322 s):** the samples of the decoder hold NaN, therefore the
+  **encoder** stops too: "Input contains (near) NaN/+-Inf", "Error encoding a frame",
+  the code 234. The server then writes "Closing Stream" and "Deleted session data",
+  and **every part of that stream answers 404 for ever**.
+
+**Therefore the answer for the user is the AAC-LC file**, and their folder holds it
+already. No client can play the other one.
+
+#### The three faults of the program that this measurement found
+
+**1. The program said something false.** The old message was "The stream of the
+server holds a form that the program cannot read", and the log said "The server does
+not have this item". Both are wrong: the item stands in the library, and the program
+never received a form at all. `classify_status` gives that sentence for a 404, and a
+404 of a **part** is not a media that is absent. `the_sentence_of_no_part` and
+`the_sentence_of_a_stream_that_ended` say the truth now, and
+`the_message_of_a_stream_that_did_not_play` adds what the user can do. **The place
+that meets the fault writes the sentence**, therefore no other place reads a text and
+guesses the cause: `PlaybackState::why_the_start_did_not_work` carries it.
+
+**2. The open gave up at the edge of the ten seconds of the server.**
+`ATTEMPTS_OF_THE_OPEN` was 8, and that is 13.5 seconds. The server needs 10.5
+seconds for the first part of its second try. **Therefore the same book played one
+time and failed the next time**, and the measurements of this session showed both.
+The value is 14 attempts now, and that is about 25 seconds.
+
+**A long wait of the open must not cost the user their keys.** That open runs on the
+thread of the engine. `PlayerCommand::the_user_does_not_want_the_open` names the
+commands that stop it — `Start`, `Stop`, `Pause`, `SeekTo`, and `SeekBy` — and
+`a_command_waits` of the engine gives the answer at each attempt. `SetVolume` and
+`SetSpeed` are **not** in that group, because the sleep timer of T-24 sends them
+while a playback runs. The log says "a command of the user stops the wait of the
+open", and a measurement of 2026-08-11 showed it at the second 23 of an open.
+
+**3. A stream that the server ended made the program wait for nothing.** The server
+deletes the session, therefore every part answers 404 and the answer never changes.
+The reader asks for the **playlist** after the second attempt of a part: a playlist
+that answers 404 says that the stream is gone. **The measurement: 25 seconds of
+waiting became 11.6 seconds and a true sentence.**
+
+**4. The user read nothing at all.** `WAIT_FOR_A_FAULT` is 2500 milliseconds, and
+its comment said that "the engine opens the decoders inside the command `Start`,
+therefore the fault comes in some milliseconds". **That is true of a file and false
+of a stream:** the open of a stream waits for ffmpeg of the server. The engine wrote
+the fault at the second 11.6, and no loop read it any more. `WAIT_FOR_THE_STREAM` of
+35 seconds holds the stream now, and a playback that starts costs nothing: the loop
+stops at the first frame of the engine.
+
+#### The measurement of the correction, 2026-08-11
+
+The program in tmux, against the sandbox, with the media at 322 seconds of 600:
+
+```
+[HlsFile] the part of the stream is not ready. The reader waits.
+[HlsFile] the server ended the stream of this media.                    <- 11.6 s
+[worker] the engine cannot start the book: The server ended the stream of this
+         media. Its ffmpeg cannot read the form of this audio.
+```
+
+And the row of the message of the screen, inside the frame:
+
+```
+The server ended the stream of this media. Its ffmpeg cannot read the form of this
+audio. A file of a different form is the answer.
+```
+
+The keys `j` and `k` work after it, and the position of the media stays: the server
+held `currentTime` 322 for a playback that began at 300 seconds, therefore the rule
+of T-63 is correct for this file too.
+
+**A trap of the message of the screen.** That row holds one line. The first form of
+this message held 200 letters, and a terminal of 160 columns lost the end of it. A
+test holds the message at 150 letters or fewer.
+
+**A trap of the sandbox.** A transcode that dies leaves the server in a state where
+it answers "No Segments" for every new session of that media, and it writes "Failed
+checking files" every two seconds for ever. `podman restart abs-test` is the answer,
+and a measurement of such a media must start from a server that came up now.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
