@@ -1,26 +1,47 @@
-# The handover of 2026-08-11 (the ninth session of that day)
+# The handover of 2026-08-12
 
 This document is for the next session. It says what is done, what is open, and the
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.46**, and the items T-88 to T-100 belong to this
-session. T-74 to T-87 belong to the session before it.
+**The newest release is v0.7.47**, and T-101 belongs to this session. The items
+T-88 to T-100 belong to the session before it, and T-74 to T-87 to the one before
+that.
 
-**This session made every sweep that no session had made**: the terminal of 80
-columns, the offline mode, the view of the login, and the reader of a book.
-**Each of them found a fault**, and T-90, T-91, T-92, T-94, and T-95 are those
-faults. The sweep stays the tool that finds what a test does not.
+## What this session closed
+
+| Item | What | Keys |
+|---|---|---|
+| T-101 | **The changelog holds every release of this fork**, and a test holds that rule | `S` |
+
+**T-101, and the fault that hid itself.** The screen of "About and changelog"
+stopped at v0.6.8 while the program was at v0.7.46: **38 releases reached no
+user.** The newest entry took `CARGO_PKG_VERSION` with `format!`, therefore the
+first line said "Changelog Toutui v0.7.46" above the words of v0.6.9, and a
+reader of that screen saw the version of their own build at the top. **A text
+that names the version of the build is not a text that names the release.**
+
+`THE_ENTRIES_OF_THE_FORK` of `src/utils/changelog.rs` holds one entry for each
+release now, the newest first, and **the gate refuses a release that writes no
+entry**: `the_changelog_holds_an_entry_for_the_version_of_the_program` compares
+the newest entry with `Cargo.toml`, and
+`the_changelog_holds_an_entry_for_every_release_of_the_fork` finds a gap in the
+sequence. Therefore **a release now holds three files together**: `Cargo.toml`,
+`Cargo.lock`, and the entry of the changelog.
+
+**One item of an entry is one line.** A `Paragraph` of ratatui breaks a long line
+and it never joins two lines: every old entry held the wrap of its source,
+therefore a terminal of 200 columns showed a column of 65 letters.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.46` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.47` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 885 tests pass in 2.2 s, 23 carry #[ignore], 42 binaries
+    # 889 tests pass in 2.2 s, 23 carry #[ignore], 42 binaries
     # cargo nextest run --run-ignored all gives 908 of 908 with the sandbox up,
     # in 44 s: one test of that run waits 15 s for the time limit of a request
 cargo tree -i openssl-sys                # finds nothing
@@ -36,8 +57,8 @@ tool is on this machine. See T-74.
 `the-sandbox` of `.config/nextest.toml` runs them one at a time for the rate limit
 of the login. With `cargo test`, give `-- --ignored --test-threads=1`.
 
-**The rate limit of the login stopped three runs of this session, and T-96 closed
-that fault.** Every test of the sandbox takes its token from
+**The rate limit of the login stopped three runs of the session of T-96, and that
+item closed the fault.** Every test of the sandbox takes its token from
 `tests/common/mod.rs`, and that module keeps the token in a file of
 `CARGO_TARGET_TMPDIR`: one run makes **one** login, and the run after it makes
 none. Three runs one after the other now give no line of the rate limiter.
@@ -49,7 +70,7 @@ container a restart. A sweep of the view of the login uses those 40 requests.
 **The fault of one run of ten has a name now: T-86.**
 `the_four_requests_of_the_start_go_together` failed when the whole start took more
 than two seconds, and that is a measurement of the machine as much as of the program:
-one run of twelve of this session failed at 4.2 seconds while a build and a program of
+one run of twelve of that session failed at 4.2 seconds while a build and a program of
 tmux ran beside it. The test holds the **time of each request** now, therefore the load
 of the machine changes nothing. Twelve runs after that change gave every test each
 time.
@@ -62,7 +83,7 @@ reads `tests/data/alice.epub` only, and it passes.
 `Cargo.toml`, and the workflow refused it, as it must. The work of that tag is in
 v0.6.7. Do not try to publish v0.6.6.
 
-## What this session closed
+## What the session before this one closed (T-88 to T-100)
 
 | Item | What | Keys |
 |---|---|---|
@@ -80,7 +101,12 @@ v0.6.7. Do not try to publish v0.6.6.
 | T-99 | A terminal of 18 rows showed one line of the list | — |
 | T-100 | **The description of a collection and of a playlist** | `c`, then `D` |
 
-### The items of this session, and what each of them taught
+**That session made every sweep that no session had made**: the terminal of 80
+columns, the offline mode, the view of the login, and the reader of a book.
+**Each of them found a fault**, and T-90, T-91, T-92, T-94, and T-95 are those
+faults. The sweep stays the tool that finds what a test does not.
+
+### The items of that session, and what each of them taught
 
 **T-88, and the measurement that decided its shape.** The first idea was a view
 that asks for a name and a library. **The server refuses it**: `POST
@@ -167,7 +193,7 @@ items came out of the same screen: the word "ERROR: " that no other message hold
 an empty username that went forward with no word, and the field of the address
 that a wrong password emptied.
 
-## What the session before this one closed
+## What the session before that one closed (T-74 to T-87)
 
 | Item | What | Keys |
 |---|---|---|
@@ -325,34 +351,29 @@ faults of the program that they found.
 
 **Take one item, measure it, correct it, tag it, and go on.** Every item below
 holds its evidence, and no item needs a decision of the maintainer except the
-first one of the group 1.
+first one of the group 1. **The changelog of the fork is complete now (T-101),
+and that item was the first of this group.**
 
 #### Group 1: what a user sees
 
-1. **The changelog of the fork stops at v0.6.8, and the program is at v0.7.46.**
-   `src/utils/changelog.rs` holds 48 entries, and the newest of them is
-   `Changelog Toutui v0.6.8`. The key `S` and then "About and changelog" shows
-   that screen to a user, therefore **38 releases of this fork are not there**:
-   T-27 to T-100 all went to a user who reads nothing of them. The file is a list
-   of `String` in one function, and a new entry is 10 lines.
-   **Take the entries from `git log --oneline` and from
-   `docs/TAKEOVER-BACKLOG.md`**, and write them in the words of a user and not in
-   the words of the code: "The keys c and p make a collection or a playlist" and
-   not "T-88".
-2. **The 7 rows of the player in a small terminal (T-99).** The layout of every
+1. **The 7 rows of the player in a small terminal (T-99).** The layout of every
    view holds 6 rows for the player and 1 for the refresh, and they stay empty
    while no media plays. In a terminal of 18 rows they are 7 of the 18.
    **A view that takes them while nothing plays moves every line when a playback
    starts**, therefore this needs the decision of the maintainer. Ask, and hold
    the answer here.
-3. **The sequence of the media inside a playlist.** T-100 closes the description
+2. **The sequence of the media inside a playlist.** T-100 closes the description
    of a list, and the sequence stays: a user cannot move an episode of a playlist
    up or down. **Measure `PATCH /api/playlists/:id` with `items` first**: T-93
    measured `name` and `description` of that path, and not `items`.
-4. **The keys of a media that the server offers and the program does not.** Read
+3. **The keys of a media that the server offers and the program does not.** Read
    the table of section 4 of `docs/T-24-coverage.md`, and **read the code of each
-   row before you take it**: this session found four rows of that table that were
-   old.
+   row before you take it**: the session of T-88 to T-100 found four rows of that
+   table that were old.
+4. **The changelog is complete, and a test holds it there (T-101).** A release
+   writes its entry at the top of `THE_ENTRIES_OF_THE_FORK`, in the words of a
+   user. The gate refuses a release with no entry, therefore this item needs no
+   sweep: it needs the habit.
 
 #### Group 2: the sweeps that stay
 
@@ -784,6 +805,15 @@ answers slowly while it writes. Two answers to measure:
 54. **The key Esc quits the program from every view.** The key `h` goes back. A
     sweep that presses Esc to leave a view kills the program, and the next
     `wait_for` then says "no server running on /tmp/tmux-1000/default".
+55. **A `Paragraph` of ratatui breaks a line that is too long, and it never
+    joins two lines.** A text that holds the wrap of its source therefore gives
+    a narrow column in a wide terminal. **One item of a list is one line**, and
+    `Wrap { trim: true }` gives it the width of the panel. See T-101.
+56. **A text that names the version of the build is not a text that names the
+    release.** The newest entry of the changelog took `CARGO_PKG_VERSION`, and
+    the screen said "Changelog Toutui v0.7.46" above the words of v0.6.9: the
+    reader of that screen therefore had no way to see that 38 releases were
+    absent. See T-101.
 
 ### Of the harness and of the machine
 
@@ -939,6 +969,10 @@ answers slowly while it writes. Two answers to measure:
   `Cargo.lock` in the same commit: run `cargo build` after the bump, and see that
   `git status` is clean before the commit and the tag. The tag of v0.7.22 held
   `Cargo.toml` 0.7.22 and `Cargo.lock` 0.7.21, and it had to move.
+- **A release holds three files: `Cargo.toml`, `Cargo.lock`, and the entry of the
+  changelog.** `THE_ENTRIES_OF_THE_FORK` of `src/utils/changelog.rs` takes the
+  new entry at the top, in the words of a user. The gate fails without it, and
+  that is the rule of T-101.
 - **Run every cargo command under `nice -n 19 ionice -c 3` with `-j 16`.** The
   machine has 32 cores, and the user tests the program while the tests build.
 - The address of the server of the user must stay outside this repository, and the
@@ -948,21 +982,23 @@ answers slowly while it writes. Two answers to measure:
 
 > Continue the Toutui takeover, and write the next version. Repo:
 > `/home/nyverino/Documents/Toutui` (ealtun21/Toutui, branch main). Maintained fork
-> of the archived AlbanDAVID/Toutui. Newest release **v0.7.46**; `Cargo.toml` is at
-> 0.7.46, so the next release bumps it first — the workflow refuses a tag that
+> of the archived AlbanDAVID/Toutui. Newest release **v0.7.47**; `Cargo.toml` is at
+> 0.7.47, so the next release bumps it first — the workflow refuses a tag that
 > disagrees with `Cargo.toml`, **and it builds `--locked`, therefore the commit of
-> the bump must hold the new `Cargo.lock`**.
+> the bump must hold the new `Cargo.lock`**. **A release also writes its entry of
+> the changelog** (`THE_ENTRIES_OF_THE_FORK` of `src/utils/changelog.rs`): the
+> gate fails without it. That is the rule of T-101.
 >
 > Read `docs/HANDOVER.md` first: the state, the open items, the section of the
-> harness, and 72 traps that cost real time. Then `docs/TAKEOVER-BACKLOG.md` (the
-> evidence of every item; T-88 to T-100 are the newest, and **T-87 and T-97 are the
+> harness, and 74 traps that cost real time. Then `docs/TAKEOVER-BACKLOG.md` (the
+> evidence of every item; T-101 is the newest, and **T-87 and T-97 are the
 > two to know**) and `docs/T-24-coverage.md` (**section 6 names what the program
 > must not have, and why**).
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a real null asound file
-> (`/dev/null` hangs the real binary). Baseline: **885 tests in 2.2 seconds**, and
+> (`/dev/null` hangs the real binary). Baseline: **889 tests in 2.2 seconds**, and
 > `cargo nextest run --run-ignored all` gives **908 of 908** with the sandbox up.
 >
 > **The sweep of the views is the tool that finds the faults.** Twenty-two items of
@@ -978,20 +1014,16 @@ answers slowly while it writes. Two answers to measure:
 >
 > **The work that stays, in the sequence of its value.**
 > `docs/HANDOVER.md`, "The road to a program with no fault", holds every item
-> with its evidence. The first four:
+> with its evidence. The first three:
 >
-> 1. **The changelog of the fork stops at v0.6.8, and the program is at v0.7.46.**
->    `src/utils/changelog.rs` shows that screen with the key `S`, therefore 38
->    releases of this fork reach no user. Write the entries in the words of a
->    user, and take them from `git log` and from `docs/TAKEOVER-BACKLOG.md`.
-> 2. **The 7 rows of the player stay empty while nothing plays (T-99).** They are
+> 1. **The 7 rows of the player stay empty while nothing plays (T-99).** They are
 >    7 rows of a terminal of 18. A view that takes them moves every line when a
 >    playback starts: **ask the maintainer**, and write the answer in the
 >    handover.
-> 3. **The sequence of the media inside a playlist.** Measure
+> 2. **The sequence of the media inside a playlist.** Measure
 >    `PATCH /api/playlists/:id` with `items` first: T-93 measured `name` and
 >    `description` of that path only.
-> 4. **The sweeps that stay:** a library of one item, a book of one chapter, a
+> 3. **The sweeps that stay:** a library of one item, a book of one chapter, a
 >    pool of two addresses, and a server that goes away in the middle of a
 >    playback. **Every sweep of a condition that no session had made found a
 >    fault.**
