@@ -173,16 +173,30 @@ async fn the_view_holds_a_media_that_the_program_did_not_read() {
         "the reader takes the title of the line of the search"
     );
 
-    // A library of podcasts reads the episodes of a media with the place of that
-    // media in the lists of the library. A podcast that the program did not read
-    // therefore gives no line, and the view says that it found nothing.
+    // **A library of podcasts reads the episodes of a media with the place of
+    // that media in the lists of the library**, therefore a podcast that the
+    // program did not read gives no line yet. T-113 left the title of that
+    // condition at "The server found nothing", and the sweep of a library of
+    // 520 podcasts of 2026-08-12 met it: the server found the podcast, and the
+    // screen said the opposite. The title says what the program does now, and
+    // the program reads the pages of the library. See T-125 and T-91.
     app.is_podcast = true;
 
     let of_a_podcast = the_screen(&mut app);
 
     assert!(
-        of_a_podcast.contains("found nothing"),
-        "a podcast of a page that the program did not read gives no line: {}",
+        !of_a_podcast.contains("found nothing"),
+        "the server found that podcast: {}",
+        &of_a_podcast[..of_a_podcast.len().min(400)]
+    );
+    assert!(
+        of_a_podcast.contains("1 podcast"),
+        "the title says how many podcasts come: {}",
+        &of_a_podcast[..of_a_podcast.len().min(400)]
+    );
+    assert!(
+        of_a_podcast.contains("reads the pages"),
+        "the title says what the program does now: {}",
         &of_a_podcast[..of_a_podcast.len().min(400)]
     );
 

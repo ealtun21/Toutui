@@ -150,6 +150,10 @@ pub struct App {
     /// key **six** times. The program asks for the page that is left now, and it
     /// takes the last line again at each page. See T-112.
     pub reads_every_page_of_the_library: bool,
+    /// `true` while the program reads the pages that the search of a library of
+    /// podcasts needs. The line of the user does not move for this work.
+    /// See T-125.
+    pub reads_the_pages_for_the_search: bool,
     /// The lines of the Home view. A shelf gives a line for its name, and a
     /// line for each of its media. See T-24.
     ///
@@ -277,6 +281,12 @@ pub struct App {
     pub all_descs_pod_ep: Vec<Vec<String>>,
     pub all_titles_pod: Vec<Vec<String>>,
     pub all_durations_pod_ep: Vec<Vec<String>>,
+    /// `true` for each podcast whose episodes the program read. See T-126.
+    ///
+    /// A podcast of no episode and a podcast whose episodes the program did not
+    /// read hold the same empty row, and the view says a different sentence for
+    /// each of them.
+    pub the_episodes_that_came: Vec<bool>,
     pub titles_pod_ep: Vec<String>,
     pub ids_pod_ep: Vec<String>,
     pub ids_pod_ep_search: Vec<String>,
@@ -960,28 +970,30 @@ impl App {
         let titles_pod: Vec<String> = Vec::new();
         let durations_pod_ep: Vec<String> = Vec::new();
 
+        // **The start makes no request for a podcast now.** It read the
+        // episodes of every podcast of the page, one request after the other:
+        // a library of 520 podcasts gave 500 requests, and the first frame took
+        // 11.9 seconds with a server of 20 milliseconds. The program reads the
+        // episodes of one podcast when the user opens it (T-126), and this rule
+        // is the rule of T-70 for the pages of the library.
+        //
+        // The lists hold one row for each item of the library, and every row is
+        // empty. A row that no request filled stands in
+        // `the_episodes_that_came`.
+        let mut the_episodes_that_came: Vec<bool> = Vec::new();
+
         if is_podcast {
-            for id_library in ids_library.iter() {
-                crate::utils::startup::set("the episodes of the podcasts");
-                let podcast_episode = get_pod_ep(&api, id_library.as_str()).await?;
-                let title = collect_titles_pod_ep(&podcast_episode).await;
-                all_titles_pod_ep.push(title);
-                let id = collect_ids_pod_ep(&podcast_episode).await;
-                all_ids_pod_ep.push(id);
-                let sub = collect_subtitles_pod_ep(&podcast_episode).await;
-                all_subtitles_pod_ep.push(sub);
-                let seasons = collect_seasons_pod_ep(&podcast_episode).await;
-                all_seasons_pod_ep.push(seasons);
-                let numep = collect_episodes_pod_ep(&podcast_episode).await;
-                all_episodes_pod_ep.push(numep);
-                let authors = collect_authors_pod_ep(&podcast_episode).await;
-                all_authors_pod_ep.push(authors);
-                let desc = collect_descs_pod_ep(&podcast_episode).await;
-                all_descs_pod_ep.push(desc);
-                let title_pod = collect_titles_pod(&podcast_episode).await;
-                all_titles_pod.push(title_pod);
-                let duration = collect_durations_pod_ep(&podcast_episode).await;
-                all_durations_pod_ep.push(duration);
+            for _ in ids_library.iter() {
+                all_titles_pod_ep.push(Vec::new());
+                all_ids_pod_ep.push(Vec::new());
+                all_subtitles_pod_ep.push(Vec::new());
+                all_seasons_pod_ep.push(Vec::new());
+                all_episodes_pod_ep.push(Vec::new());
+                all_authors_pod_ep.push(Vec::new());
+                all_descs_pod_ep.push(Vec::new());
+                all_titles_pod.push(Vec::new());
+                all_durations_pod_ep.push(Vec::new());
+                the_episodes_that_came.push(false);
             }
         }
         // init for `Settings`
@@ -1186,6 +1198,7 @@ impl App {
             library_total: all_books.total.unwrap_or_default().max(0) as usize,
             library_query,
             reads_every_page_of_the_library: false,
+            reads_the_pages_for_the_search: false,
             home_rows_of_the_server: home_rows.clone(),
             home_rows,
             of_continue_listening,
@@ -1268,6 +1281,7 @@ impl App {
             all_descs_pod_ep,
             all_titles_pod,
             all_durations_pod_ep,
+            the_episodes_that_came,
             subtitles_pod_ep,
             seasons_pod_ep,
             episodes_pod_ep,
@@ -1859,19 +1873,26 @@ impl App {
                     .and_then(|i| self.duration_library_search_book.get(i).copied());
 
                 // Init for `PodcastEpisode`
+                // **`get` gives nothing for a line that these lists do not
+                // hold, and an index of a vector stops the program.** A podcast
+                // of a page that the program did not read has no row here.
+                // See T-126 and T-41.
                 if self.is_podcast {
                     if let Some(index) = selected_library {
-                        if let Some(_id_pod) = ids_library.get(index) {
-                            self.ids_pod_ep = self.all_ids_pod_ep[index].clone();
+                        if ids_library.get(index).is_some() {
+                            self.ids_pod_ep =
+                                self.all_ids_pod_ep.get(index).cloned().unwrap_or_default();
                         }
                     }
                     if let Some(index) = selected_search_book {
                         // ids_library_pod_search because we need the pod id and he is given by
                         // this variable
-                        if let Some(_id_pod) = self.ids_library_pod_search.get(index) {
-                            //    println!("{:?}", id_pod);
-                            self.ids_pod_ep_search = self.all_ids_pod_ep_search[index].clone();
-                            //   println!("{:?}", all_ids_pod_ep_search_clone[index]);
+                        if self.ids_library_pod_search.get(index).is_some() {
+                            self.ids_pod_ep_search = self
+                                .all_ids_pod_ep_search
+                                .get(index)
+                                .cloned()
+                                .unwrap_or_default();
                         }
                     }
                 }
@@ -2074,15 +2095,14 @@ impl App {
                                 self.view_state = AppView::SeriesBook;
                             }
                         } else if self.is_podcast {
+                            // **An index of a vector stops the program, and
+                            // `get` does not** (T-41). A podcast of a page that
+                            // the program did not read holds no row of these
+                            // lists, and the key `l` of that line stopped the
+                            // program: the sweep of a library of 520 podcasts
+                            // of 2026-08-12 measured it. See T-126.
                             if let Some(index) = selected_library {
-                                self.titles_pod_ep = self.all_titles_pod_ep[index].clone();
-                                self.subtitles_pod_ep = self.all_subtitles_pod_ep[index].clone();
-                                self.seasons_pod_ep = self.all_seasons_pod_ep[index].clone();
-                                self.episodes_pod_ep = self.all_episodes_pod_ep[index].clone();
-                                self.authors_pod_ep = self.all_authors_pod_ep[index].clone();
-                                self.descs_pod_ep = self.all_descs_pod_ep[index].clone();
-                                self.titles_pod = self.all_titles_pod[index].clone();
-                                self.durations_pod_ep = self.all_durations_pod_ep[index].clone();
+                                self.take_the_episodes_of_the_line(index);
                                 self.list_state_pod_ep.select(Some(0));
                                 self.view_state = AppView::PodcastEpisode;
                             }
@@ -2111,21 +2131,36 @@ impl App {
                         if self.is_podcast {
                             self.is_from_search_pod = true;
                             if let Some(index) = selected_search_book {
-                                self.titles_pod_ep_search =
-                                    self.all_titles_pod_ep_search[index].clone();
+                                // The lists of this view come from the place of
+                                // the media in the lists of the library (T-113),
+                                // and `get` gives nothing for a line that they
+                                // do not hold. See T-126 and T-41.
+                                let at = |list: &Vec<Vec<String>>| {
+                                    list.get(index).cloned().unwrap_or_default()
+                                };
+
+                                self.titles_pod_ep_search = at(&self.all_titles_pod_ep_search);
                                 self.subtitles_pod_ep_search =
-                                    self.all_subtitles_pod_ep_search[index].clone();
-                                self.seasons_pod_ep_search =
-                                    self.all_seasons_pod_ep_search[index].clone();
-                                self.episodes_pod_ep_search =
-                                    self.all_episodes_pod_ep_search[index].clone();
-                                self.authors_pod_ep_search =
-                                    self.all_authors_pod_ep_search[index].clone();
-                                self.descs_pod_ep_search =
-                                    self.all_descs_pod_ep_search[index].clone();
-                                self.titles_pod_search = self.all_titles_pod_search[index].clone();
+                                    at(&self.all_subtitles_pod_ep_search);
+                                self.seasons_pod_ep_search = at(&self.all_seasons_pod_ep_search);
+                                self.episodes_pod_ep_search = at(&self.all_episodes_pod_ep_search);
+                                self.authors_pod_ep_search = at(&self.all_authors_pod_ep_search);
+                                self.descs_pod_ep_search = at(&self.all_descs_pod_ep_search);
+                                self.titles_pod_search = at(&self.all_titles_pod_search);
                                 self.durations_pod_ep_search =
-                                    self.all_durations_pod_ep_search[index].clone();
+                                    at(&self.all_durations_pod_ep_search);
+
+                                // **The program reads the episodes of a podcast
+                                // when the user opens it**, and the view of the
+                                // search opens one too. See T-126.
+                                if let Some(place) =
+                                    self.ids_library_pod_search.get(index).and_then(|id| {
+                                        self.ids_library.iter().position(|one| one == id)
+                                    })
+                                {
+                                    self.ask_the_server_for_the_episodes(place);
+                                }
+
                                 self.list_state_pod_ep.select(Some(0));
                                 self.view_state = AppView::PodcastEpisode;
                             }
@@ -2262,12 +2297,13 @@ impl App {
                             // ids_library
                             if let Some(index) = selected_library {
                                 if let Some(id_pod) = ids_library.get(index) {
-                                    let all_ids_pod_ep_clone = self.all_ids_pod_ep.clone();
-                                    self.ids_pod_ep = all_ids_pod_ep_clone[index].clone();
+                                    let of_the_podcast: Vec<String> =
+                                        self.all_ids_pod_ep.get(index).cloned().unwrap_or_default();
+                                    self.ids_pod_ep = of_the_podcast.clone();
                                     let id_pod_clone = id_pod.clone();
                                     let selected_pod_ep = self.list_state_pod_ep.selected();
                                     tokio::spawn(async move {
-                                        if let Some(episode_id) = all_ids_pod_ep_clone[index]
+                                        if let Some(episode_id) = of_the_podcast
                                             .get(selected_pod_ep.unwrap_or(0))
                                             .cloned()
                                         {
@@ -2484,6 +2520,24 @@ impl App {
             return;
         }
 
+        self.ask_for_one_page_now();
+    }
+
+    /// Asks the server for the page after the page that came last. See T-125.
+    ///
+    /// **The line of the user decides for the key that moves, and it decides
+    /// for nothing else.** The key `G` and the search of a library of podcasts
+    /// both need every page, and the line of the user says nothing of that
+    /// need: this function holds the request itself, and
+    /// `ask_for_the_next_page_of_the_library` holds the rule of the line.
+    fn ask_for_one_page_now(&mut self) {
+        if self.is_offline
+            || crate::logic::library_pages::asks()
+            || self.ids_library.len() >= self.library_total
+        {
+            return;
+        }
+
         crate::logic::library_pages::keep_the_flag(true);
 
         let api = std::sync::Arc::clone(&self.api);
@@ -2545,6 +2599,24 @@ impl App {
         self.library_page = page.number;
         self.library_total = page.total;
 
+        // A library of podcasts holds one row of the episodes for each item,
+        // and every row of a new page is empty: the program reads the episodes
+        // of a podcast when the user opens it. See T-126.
+        if self.is_podcast {
+            for _ in 0..page.ids.len() {
+                self.all_titles_pod_ep.push(Vec::new());
+                self.all_ids_pod_ep.push(Vec::new());
+                self.all_subtitles_pod_ep.push(Vec::new());
+                self.all_seasons_pod_ep.push(Vec::new());
+                self.all_episodes_pod_ep.push(Vec::new());
+                self.all_authors_pod_ep.push(Vec::new());
+                self.all_descs_pod_ep.push(Vec::new());
+                self.all_titles_pod.push(Vec::new());
+                self.all_durations_pod_ep.push(Vec::new());
+                self.the_episodes_that_came.push(false);
+            }
+        }
+
         self.titles_library.extend(page.titles);
         self.ids_library.extend(page.ids);
         self.auth_names_library.extend(page.authors);
@@ -2570,9 +2642,242 @@ impl App {
             } else {
                 // **No key comes between two pages.** The user pressed `G` one
                 // time, therefore the page that is left needs no key at all.
-                self.ask_for_the_next_page_of_the_library();
+                self.ask_for_one_page_now();
+            }
+        } else if self.reads_the_pages_for_the_search {
+            // The search of a library of podcasts reads the pages that are
+            // left, and it moves no line of the library. See T-125.
+            if self.ids_library.len() >= self.library_total {
+                self.reads_the_pages_for_the_search = false;
+                log::info!(
+                    "[search] the program holds every page of the library now: {} item(s)",
+                    self.ids_library.len()
+                );
+            } else {
+                self.ask_for_one_page_now();
             }
         }
+    }
+
+    /// Puts the episodes of the podcast of the line in the lists of the view,
+    /// and it asks the server for them when the program does not hold them.
+    /// See T-126.
+    ///
+    /// **The start of the program read the episodes of every podcast**, one
+    /// request after the other: 500 requests of a library of 520 podcasts, and
+    /// a first frame of 11.9 seconds with a server of 20 milliseconds. The
+    /// program reads one podcast now, and it reads it when the user opens that
+    /// podcast.
+    pub fn take_the_episodes_of_the_line(&mut self, place: usize) {
+        self.titles_pod_ep = self
+            .all_titles_pod_ep
+            .get(place)
+            .cloned()
+            .unwrap_or_default();
+        self.subtitles_pod_ep = self
+            .all_subtitles_pod_ep
+            .get(place)
+            .cloned()
+            .unwrap_or_default();
+        self.seasons_pod_ep = self
+            .all_seasons_pod_ep
+            .get(place)
+            .cloned()
+            .unwrap_or_default();
+        self.episodes_pod_ep = self
+            .all_episodes_pod_ep
+            .get(place)
+            .cloned()
+            .unwrap_or_default();
+        self.authors_pod_ep = self
+            .all_authors_pod_ep
+            .get(place)
+            .cloned()
+            .unwrap_or_default();
+        self.descs_pod_ep = self
+            .all_descs_pod_ep
+            .get(place)
+            .cloned()
+            .unwrap_or_default();
+        self.titles_pod = self.all_titles_pod.get(place).cloned().unwrap_or_default();
+        self.durations_pod_ep = self
+            .all_durations_pod_ep
+            .get(place)
+            .cloned()
+            .unwrap_or_default();
+
+        self.ask_the_server_for_the_episodes(place);
+    }
+
+    /// Asks the server for the episodes of one podcast. See T-126.
+    ///
+    /// The program asks one time for each podcast: the answer stays in the
+    /// lists of the library, therefore a second visit needs no request. A
+    /// podcast of no episode gives an empty answer, and the flag of that
+    /// podcast then says that the program asked.
+    pub fn ask_the_server_for_the_episodes(&mut self, place: usize) {
+        if self.is_offline || crate::logic::the_episodes::asks() {
+            return;
+        }
+
+        if self
+            .the_episodes_that_came
+            .get(place)
+            .copied()
+            .unwrap_or(false)
+        {
+            return;
+        }
+
+        let Some(id) = self.ids_library.get(place).cloned() else {
+            return;
+        };
+
+        crate::logic::the_episodes::keep_the_flag(true);
+
+        let api = std::sync::Arc::clone(&self.api);
+
+        tokio::spawn(async move {
+            let answer = get_pod_ep(&api, id.as_str()).await;
+
+            let podcast = match answer {
+                Ok(podcast) => podcast,
+                Err(error) => {
+                    log::warn!(
+                        "[podcast] the server gave no episode of the podcast {}: {}",
+                        id,
+                        error
+                    );
+                    crate::logic::the_episodes::keep_the_flag(false);
+                    return;
+                }
+            };
+
+            crate::logic::the_episodes::keep(crate::logic::the_episodes::Episodes {
+                place,
+                id,
+                titles: collect_titles_pod_ep(&podcast).await,
+                ids: collect_ids_pod_ep(&podcast).await,
+                subtitles: collect_subtitles_pod_ep(&podcast).await,
+                seasons: collect_seasons_pod_ep(&podcast).await,
+                numbers: collect_episodes_pod_ep(&podcast).await,
+                authors: collect_authors_pod_ep(&podcast).await,
+                descriptions: collect_descs_pod_ep(&podcast).await,
+                titles_of_the_podcast: collect_titles_pod(&podcast).await,
+                durations: collect_durations_pod_ep(&podcast).await,
+            });
+
+            crate::logic::the_episodes::keep_the_flag(false);
+        });
+    }
+
+    /// Puts the episodes that came in the lists of the library. See T-126.
+    ///
+    /// The render calls this at each frame, and it does the work one time. The
+    /// user stands in the view of the episodes of that podcast, therefore the
+    /// lists of the view take the answer too.
+    pub fn take_the_episodes_that_came(&mut self) {
+        let Some(episodes) = crate::logic::the_episodes::take() else {
+            return;
+        };
+
+        let place = episodes.place;
+
+        // A new library or a new filter moves every line. The answer of a
+        // podcast that stands at a different place now goes away.
+        if self.ids_library.get(place) != Some(&episodes.id) {
+            return;
+        }
+
+        let keep = |list: &mut Vec<Vec<String>>, values: Vec<String>| {
+            if let Some(row) = list.get_mut(place) {
+                *row = values;
+            }
+        };
+
+        keep(&mut self.all_titles_pod_ep, episodes.titles.clone());
+        keep(&mut self.all_ids_pod_ep, episodes.ids.clone());
+        keep(&mut self.all_subtitles_pod_ep, episodes.subtitles.clone());
+        keep(&mut self.all_seasons_pod_ep, episodes.seasons.clone());
+        keep(&mut self.all_episodes_pod_ep, episodes.numbers.clone());
+        keep(&mut self.all_authors_pod_ep, episodes.authors.clone());
+        keep(&mut self.all_descs_pod_ep, episodes.descriptions.clone());
+        keep(
+            &mut self.all_titles_pod,
+            episodes.titles_of_the_podcast.clone(),
+        );
+        keep(&mut self.all_durations_pod_ep, episodes.durations.clone());
+
+        if let Some(flag) = self.the_episodes_that_came.get_mut(place) {
+            *flag = true;
+        }
+
+        // The user waits in the view of the episodes of that podcast. The view
+        // of the search holds its own lists, and the line of the search names
+        // the same podcast.
+        if !matches!(self.view_state, AppView::PodcastEpisode) {
+            return;
+        }
+
+        if self.is_from_search_pod {
+            let of_the_line = self
+                .list_state_search_results
+                .selected()
+                .and_then(|line| self.ids_library_pod_search.get(line));
+
+            if of_the_line != Some(&episodes.id) {
+                return;
+            }
+
+            self.titles_pod_ep_search = episodes.titles;
+            self.ids_pod_ep_search = episodes.ids;
+            self.subtitles_pod_ep_search = episodes.subtitles;
+            self.seasons_pod_ep_search = episodes.seasons;
+            self.episodes_pod_ep_search = episodes.numbers;
+            self.authors_pod_ep_search = episodes.authors;
+            self.descs_pod_ep_search = episodes.descriptions;
+            self.titles_pod_search = episodes.titles_of_the_podcast;
+            self.durations_pod_ep_search = episodes.durations;
+            return;
+        }
+
+        self.titles_pod_ep = episodes.titles;
+        self.ids_pod_ep = episodes.ids;
+        self.subtitles_pod_ep = episodes.subtitles;
+        self.seasons_pod_ep = episodes.seasons;
+        self.episodes_pod_ep = episodes.numbers;
+        self.authors_pod_ep = episodes.authors;
+        self.descs_pod_ep = episodes.descriptions;
+        self.titles_pod = episodes.titles_of_the_podcast;
+        self.durations_pod_ep = episodes.durations;
+    }
+
+    /// The search found a podcast of a page that the program did not read.
+    /// See T-125.
+    ///
+    /// **The lists of the episodes of a podcast come from the place of that
+    /// media in the lists of the library** (T-113), therefore a podcast of a
+    /// page that the program did not read gave no line at all: a library of 520
+    /// podcasts said "The server found nothing" for a podcast that the server
+    /// found. The program reads the pages that are left now, and the line comes
+    /// with its episodes. The user asked for that media, therefore the cost of
+    /// the requests is theirs (T-112).
+    pub fn the_search_reads_the_pages_that_are_left(&mut self) {
+        if self.is_offline
+            || self.reads_the_pages_for_the_search
+            || self.ids_library.len() >= self.library_total
+        {
+            return;
+        }
+
+        log::info!(
+            "[search] the server found a podcast of a page that the program did not read. \
+             The program reads the {} item(s) that are left.",
+            self.library_total - self.ids_library.len()
+        );
+
+        self.reads_the_pages_for_the_search = true;
+        self.ask_for_one_page_now();
     }
 
     /// Takes the last line of the Library view.

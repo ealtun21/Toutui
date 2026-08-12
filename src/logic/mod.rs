@@ -25,5 +25,6 @@ pub mod sync_session;
 pub mod the_accounts;
 pub mod the_downloads;
 pub mod the_ebooks;
+pub mod the_episodes;
 pub mod the_ereaders;
 pub mod the_lists;

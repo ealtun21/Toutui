@@ -52,6 +52,9 @@ impl Widget for &mut App {
         // library of every size. See T-70.
         self.take_the_next_page_of_the_library();
 
+        // The episodes of the podcast that the user opened came. See T-126.
+        self.take_the_episodes_that_came();
+
         match self.view_state {
             AppView::Home => self.render_home(area, buf),
             AppView::Library => self.render_library(area, buf),
@@ -2033,16 +2036,22 @@ impl App {
         // of that media in the lists of the library.** A podcast of a page that
         // the program did not read therefore gives no line, and one page holds
         // 500 podcasts. See T-113.
+        //
+        // **The program reads those pages now** (T-125). A library of 520
+        // podcasts said "The server found nothing" for a podcast that the
+        // server found, and that is a reason that the program does not have
+        // (T-91). The line comes when the page of that media comes, therefore
+        // the title says what the program does while the user waits.
+        let mut the_podcasts_that_come = 0;
+
         if self.is_podcast {
             let before = found.len();
 
             found.retain(|one| one.place.is_some());
+            the_podcasts_that_come = before - found.len();
 
-            if found.len() != before {
-                log::info!(
-                    "[search] the program did not read {} podcast(s) of the answer",
-                    before - found.len()
-                );
+            if the_podcasts_that_come > 0 {
+                self.the_search_reads_the_pages_that_are_left();
             }
         }
 
@@ -2060,6 +2069,7 @@ impl App {
                 .map(|answer| answer.names.as_slice())
                 .unwrap_or(&[]),
             titles_search_book_or_pod.len(),
+            the_podcasts_that_come,
         );
         let render_list_title = render_list_title.as_str();
 
@@ -2143,11 +2153,38 @@ impl App {
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
-        let no_episodes_message = "This podcast has no episode.\nPress h to go back.";
+        // **A view must not give a reason that the program does not have**
+        // (T-91). The view said "This podcast has no episode" while the
+        // program had not read one episode of that podcast: a podcast of a
+        // page after the first met that sentence, and it holds one episode.
+        // See T-126.
+        let the_place_of_the_podcast = if self.is_from_search_pod {
+            self.list_state_search_results
+                .selected()
+                .and_then(|line| self.ids_library_pod_search.get(line))
+                .and_then(|id| self.ids_library.iter().position(|one| one == id))
+        } else {
+            self.selected_library_item()
+        };
+
+        // A place that these lists do not hold is a podcast that the program
+        // did not read: the answer of the server did not come for it.
+        let the_episodes_came = the_place_of_the_podcast
+            .and_then(|place| self.the_episodes_that_came.get(place))
+            .copied()
+            .unwrap_or(false);
+
+        let no_episodes_message = format!(
+            "{}\nPress h to go back.",
+            crate::logic::the_episodes::the_reason_of_no_episode(
+                the_episodes_came && !crate::logic::the_episodes::asks(),
+                self.is_offline
+            )
+        );
+        let no_episodes_message = no_episodes_message.as_str();
 
         if self.is_from_search_pod {
             if self.titles_pod_ep_search.is_empty() {
-                log::warn!("render_pod_ep (search): No episodes found.");
                 Paragraph::new(no_episodes_message)
                     .centered()
                     .block(
@@ -2173,7 +2210,6 @@ impl App {
             }
         } else {
             if self.titles_pod_ep.is_empty() {
-                log::warn!("render_pod_ep (library): No episodes found.");
                 Paragraph::new(no_episodes_message)
                     .centered()
                     .block(

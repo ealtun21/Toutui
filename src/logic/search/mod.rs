@@ -86,18 +86,32 @@ pub fn the_media_that_the_server_found(media: &[LibraryItem]) -> Vec<Found> {
 /// books of those names, therefore the name is the **reason** of a line and not a
 /// note beside it.
 ///
+/// `the_podcasts_that_come` is the number of the podcasts of the answer that
+/// the program did not read. **The title must not say "The server found
+/// nothing" for them**: the server found them, and the program reads the pages
+/// of the library that hold them. See T-125 and T-91.
+///
 /// The function is pure, therefore a test needs no server and no screen.
 pub fn the_title_of_the_search(
     words: &str,
     the_server_answered: bool,
     names: &[String],
     count: usize,
+    the_podcasts_that_come: usize,
 ) -> String {
     if count == 0 {
         if !the_server_answered {
             return "The program looks in its own titles. The answer of the server \
                     comes."
                 .to_string();
+        }
+
+        if the_podcasts_that_come > 0 {
+            return format!(
+                "The server found {}. The program reads the pages of the library, \
+                 and the line comes.",
+                crate::ui::keys::counted(the_podcasts_that_come, "podcast")
+            );
         }
 
         return format!(
@@ -112,11 +126,21 @@ pub fn the_title_of_the_search(
         format!(", with the books of {}", names.join(", "))
     };
 
+    let of_the_pages = if the_podcasts_that_come > 0 {
+        format!(
+            " — the program reads the pages of the library for {} more",
+            crate::ui::keys::counted(the_podcasts_that_come, "podcast")
+        )
+    } else {
+        String::new()
+    };
+
     if the_server_answered {
         format!(
-            "Search result [{}{}]",
+            "Search result [{}{}]{}",
             crate::ui::keys::items(count),
-            of_the_names
+            of_the_names,
+            of_the_pages
         )
     } else {
         format!(
@@ -133,7 +157,7 @@ mod tests {
     /// A view with no line must say why, and it must say what the user can do.
     #[test]
     fn the_title_says_why_the_view_holds_no_line() {
-        let nothing = the_title_of_the_search("zzzznothing", true, &[], 0);
+        let nothing = the_title_of_the_search("zzzznothing", true, &[], 0, 0);
 
         assert!(nothing.contains("found nothing"), "{}", nothing);
         assert!(nothing.contains("zzzznothing"), "{}", nothing);
@@ -145,7 +169,7 @@ mod tests {
 
         // The answer of the server did not come yet. The program shows its own
         // titles, and it must not say that the server found nothing.
-        let waiting = the_title_of_the_search("carroll", false, &[], 0);
+        let waiting = the_title_of_the_search("carroll", false, &[], 0, 0);
 
         assert!(!waiting.contains("found nothing"), "{}", waiting);
         assert!(waiting.contains("comes"), "{}", waiting);
@@ -155,7 +179,7 @@ mod tests {
     /// books of that name.
     #[test]
     fn the_title_names_the_author_of_the_answer() {
-        let title = the_title_of_the_search("carroll", true, &["Lewis Carroll".to_string()], 1);
+        let title = the_title_of_the_search("carroll", true, &["Lewis Carroll".to_string()], 1, 0);
 
         assert_eq!(
             title,
@@ -167,6 +191,7 @@ mod tests {
             true,
             &["A Test Narrator".to_string(), "Test Author".to_string()],
             5,
+            0,
         );
         assert!(two.contains("A Test Narrator, Test Author"), "{}", two);
 
@@ -178,20 +203,51 @@ mod tests {
         // `ui::keys::items`. The old form of this test held the fault too.
         // See T-95 and T-85.
         assert_eq!(
-            the_title_of_the_search("alice", true, &[], 1),
+            the_title_of_the_search("alice", true, &[], 1, 0),
             "Search result [1 item]"
         );
         assert_eq!(
-            the_title_of_the_search("alice", true, &[], 2),
+            the_title_of_the_search("alice", true, &[], 2, 0),
             "Search result [2 items]"
         );
         assert_eq!(
-            the_title_of_the_search("alice", false, &[], 1),
+            the_title_of_the_search("alice", false, &[], 1, 0),
             "Search result [1 item of the titles of this program]"
         );
 
         // The titles of the program, while the server answers.
-        assert!(the_title_of_the_search("alice", false, &[], 2).contains("this program"));
+        assert!(the_title_of_the_search("alice", false, &[], 2, 0).contains("this program"));
+    }
+
+    /// **The server found a podcast of a page that the program did not read,
+    /// and the old title said "The server found nothing".**
+    ///
+    /// The sweep of a library of 520 podcasts of 2026-08-12 met that condition:
+    /// the log said "the program did not read 1 podcast(s) of the answer" while
+    /// the screen said that the server found nothing. A view must not say a
+    /// reason that the program does not have. See T-125 and T-91.
+    #[test]
+    fn the_title_says_that_the_pages_of_the_library_come() {
+        let one = the_title_of_the_search("Many Podcast 001", true, &[], 0, 1);
+
+        assert!(
+            !one.contains("found nothing"),
+            "the server found that podcast: {}",
+            one
+        );
+        assert!(one.contains("1 podcast"), "{}", one);
+        assert!(
+            one.contains("reads the pages"),
+            "the title says what the program does now: {}",
+            one
+        );
+
+        // A line came, and a podcast of a page that the program did not read
+        // waits for its page too.
+        let some = the_title_of_the_search("Many Podcast", true, &[], 3, 2);
+
+        assert!(some.contains("3 items"), "{}", some);
+        assert!(some.contains("2 podcasts"), "{}", some);
     }
 }
 

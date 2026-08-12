@@ -5471,6 +5471,139 @@ that a playback stops when the program starts again. The footer holds two rows o
 80 columns (T-90), therefore it names the keys and the text of the view holds the
 reason of each.
 
+### The sweep of a media that plays while the program does other work, 2026-08-12
+
+**The road of 2026-08-12 named this sweep, and it found no fault.** That is the
+first sweep of a new condition of seven sessions that found none.
+
+The measurement, with `TOUTUI_AUDIO_DEVICE=null` and a book of 30 minutes:
+
+| The work, while the media plays | The measurement |
+|---|---|
+| The key `/` and a search of the server | the view came, and the player row went on: 2:30 → 3:11 |
+| A resize to 80x24, and back to 160x45 | every view drew again, and the player row kept its place |
+| The reader of a book (`e`), 5 seconds of it | **2:28 → 9:34**, and `user_updated` of the live messages came at each sync |
+| Four sizes, each with the reader and a search | the program stands, and the log holds no line of a fault |
+
+**The reader holds every key of the user** (T-10 and T-52), therefore the space
+of a playback is the space of a page there. The footer of the reader says it, and
+the key `h` gives the keys of the player back.
+
+### The sweep of a library of podcasts of more than 500 items, 2026-08-12
+
+**The road named this sweep for the paging of T-70, and it found three faults.**
+One of them stops the program.
+
+The data: a library `ManyPods` of **520 podcasts** of one episode each, in the
+sandbox. `docs/TEST-SERVER.md` holds the commands.
+
+| Item | What | The measurement |
+|---|---|---|
+| T-125 | The search said "The server found nothing" for a podcast that the server found | the log said "the program did not read 1 podcast(s) of the answer" |
+| T-126 | **The key `l` on a podcast of a later page stopped the program** | tmux said "can't find pane" after that key |
+| T-126 | The podcasts of the second page held no episode, and the view said "This podcast has no episode" | the server said `numEpisodes: 1` |
+| T-126 | The start read the episodes of every podcast, one request after the other | **11.9 s** for the first frame with a server of 20 ms, and 0.409 s now |
+
+### T-125: the search said that the server found nothing, and the server found a podcast
+
+**T-113 gave the view of the search the media of the server**, and it left one
+condition open for a library of podcasts: the lists of the episodes of a podcast
+come from the place of that media in the lists of the library, therefore a
+podcast of a page that the program did not read gave **no line at all**. The
+decision of that day said "one page holds 500 podcasts, therefore no user of the
+measurement meets that condition". **A library of 520 podcasts meets it.**
+
+The screen of the measurement, with the words "Many Podcast 001":
+
+```
+The server found nothing for "Many Podcast 001". Press / to write other words.
+```
+
+and the log of the same moment:
+
+```
+[search] the program did not read 1 podcast(s) of the answer
+```
+
+**The program reads the pages of the library now.** The user asked for that
+media, therefore the cost of the requests is theirs: that is the decision of the
+key `G` of T-112. The line came after **705 ms** in the measurement, and the key
+`l` then opened its episodes.
+
+The title of the view says what the program does while those pages come, and it
+never says that the server found nothing for a media that the server found
+(T-91). `the_title_of_the_search` holds the rule, and two tests of that function
+fail with the old words.
+
+**The line of the log went to the render**, therefore it came at every frame:
+four lines of one search in one second. The program says it one time now, in
+`the_search_reads_the_pages_that_are_left`.
+
+### T-126: the key `l` of a podcast of a later page stopped the program
+
+**`App::new` read the episodes of every podcast of the first page**, one request
+after the other, and it wrote nine lists of 500 rows. Three faults came out of
+that shape, and the sweep of 520 podcasts met all three.
+
+**1. The program stopped.** `self.all_ids_pod_ep[index]` with the line 519 of a
+list of 500 rows: an index of a vector that does not exist stops the program, and
+`get` does not (T-41). The measurement pressed `G` for the end of the library and
+then `l`:
+
+```
+=== after the key l on that line:
+can't find pane: pods
+=== the program stands: NO
+```
+
+**The panic never reached the log of the program**, therefore a user who meets
+this reads a shell and no line of a file.
+
+**2. The podcasts of a later page held no episode.**
+`take_the_next_page_of_the_library` extended seven lists of the library, and it
+extended none of the nine lists of the episodes. The view then said "This podcast
+has no episode" for a podcast whose `numEpisodes` is 1: a reason that the program
+does not have (T-91).
+
+**3. The start made one request for each podcast.** The measurement, with a proxy
+of Python that gives every request of the sandbox a delay of 20 milliseconds:
+
+| The library | The first frame, before | The first frame, now |
+|---|---|---|
+| `ManyPods`, 520 podcasts | **11.9 s** | **0.409 s** |
+| `Podcasts`, 1 podcast | 0.409 s | 0.409 s |
+
+500 requests, one after the other. A user of a server of the internet meets 30 or
+50 milliseconds of each request, therefore that start took half a minute.
+
+**The program reads the episodes of one podcast now, and it reads them when the
+user opens that podcast.** This is the shape of `logic::library_pages` (T-70): a
+task asks, `logic::the_episodes` holds the answer, and the render takes it at the
+next frame. The lists of the library hold one empty row for each item, and a new
+page adds its own empty rows. `the_episodes_that_came` tells a podcast of no
+episode apart from a podcast that the program did not read, therefore the view
+says one of three sentences: the podcast holds no episode, the program gets the
+episodes, or the server does not answer.
+
+**The view of the search opens a podcast too**, and it asks for the same
+episodes: the line of that view names the podcast, and the answer goes to the
+lists of that view.
+
+**The measurement after the work, with the 520 podcasts:**
+
+| The work | The measurement |
+|---|---|
+| The first frame | **409 ms**, and it was 1624 ms |
+| The key `l` on a podcast of the first page | `Episodes [1 item]` |
+| The key `G`, and then `l` on the line 520 | `Episodes [1 item]`, and the program stands |
+| The search of `Many Podcast 001`, and then `l` | `Episodes [1 item]` |
+| The podcast of 57 episodes of the sandbox | `Episodes [57 items]`, the info of the line, and the mark `[Downloaded]` |
+| A second visit of one podcast | no request, and the list comes at once |
+
+`tests/a_podcast_of_a_later_page.rs` holds the fault: it makes a library of 520
+podcasts whose lists of the episodes hold 500 rows, and the key `l` of the line
+519 stopped the program before this work.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

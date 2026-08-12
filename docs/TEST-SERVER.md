@@ -44,6 +44,7 @@ stay. `podman start abs-test` gives them back.
 | `Podcasts` | 1 podcast of a feed of 57 episodes (T-110) |
 | `Empty` | no item (T-103) |
 | **`Large`** | **2056 items**, and every one of them holds no tag at all (T-112, T-114) |
+| **`ManyPods`** | **520 podcasts** of one episode, for the paging of a library of podcasts (T-125, T-126) |
 
 ## 2c. The library of 2056 items, for the paging of T-70
 
@@ -112,6 +113,45 @@ curl -X POST "http://localhost:13399/api/libraries/$BOOK_LIB_ID/scan" \
 **The parse of that book takes 2 minutes 4 seconds in the child of T-62**, and the
 child holds 974 megabytes at its peak. The program of the user holds 44
 megabytes. See T-116.
+
+## 2f. The library of 520 podcasts, for the sweep of T-126
+
+A library of podcasts of more than 500 items meets the paging of T-70: the page
+holds 500 podcasts, and the podcasts of the second page found three faults
+(T-125 and T-126). The library `ManyPods` holds **520 podcasts** of one episode.
+
+```bash
+cd $(mktemp -d)
+ffmpeg -loglevel error -y -f lavfi \
+  -i "sine=frequency=440:duration=1:sample_rate=8000" \
+  -ac 1 -c:a libmp3lame -b:a 32k seed.mp3
+
+mkdir manypods && cd manypods
+for i in $(seq -w 1 520); do
+  mkdir -p "Many Podcast $i"
+  cp ../seed.mp3 "Many Podcast $i/episode-1.mp3"
+done
+
+podman exec abs-test mkdir -p /manypodcasts
+tar cf - . | podman exec -i abs-test tar xf - -C /manypodcasts
+
+curl -X POST http://localhost:13399/api/libraries \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"name":"ManyPods","folders":[{"fullPath":"/manypodcasts"}],"mediaType":"podcast"}'
+```
+
+**A library that a `POST` makes examines nothing** (the trap 28): give the scan
+yourself, and poll `total`. The scan of 520 podcasts took **20 seconds**.
+
+```bash
+curl -X POST "http://localhost:13399/api/libraries/$LIB/scan" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**A server that answers slowly needs no new container.** A proxy of Python gives
+every request a delay, and a block `[[servers]]` of `config.toml` puts that
+address first (the trap 68). The first frame of `ManyPods` took 11.9 seconds with
+20 milliseconds of every request before T-126, and it takes 0.409 seconds now.
 
 ## 2e. A second server, for the sweep of two accounts
 

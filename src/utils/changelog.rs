@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.66",
+        date: "12/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A library of podcasts of more than 500 podcasts works now.** The key that \
+             opens a podcast of a page after the first stopped the program, and that podcast \
+             showed no episode. The program reads the episodes of a podcast when you open it.",
+            "- **The start of a library of podcasts is fast.** The program read the episodes of \
+             every podcast of the library before its first screen: a library of 520 podcasts \
+             took 11.9 seconds with a slow server, and it takes 0.4 seconds now.",
+            "- **The search of a podcast that this program did not read gives its line.** The \
+             screen said \"The server found nothing\" for a podcast that the server found. The \
+             program reads the pages of the library now, and the line comes.",
+        ],
+    },
+    Entry {
         version: "0.7.65",
         date: "12/08/2026",
         body: &[
