@@ -155,6 +155,14 @@ pub const GROUPS: &[Group] = &[
         ],
     },
     Group {
+        name: "The accounts (the key `S`, and then the first line)",
+        keys: &[
+            key("a", "Add an account. The program starts again"),
+            key("c", "Start with the account of the line. It asks one time"),
+            key("l", "Log out. The program forgets the token of the account"),
+        ],
+    },
+    Group {
         name: "The program",
         keys: &[key("?", "This list of every key"), key("Q / Esc", "Quit")],
     },
@@ -406,19 +414,17 @@ pub fn footer_with(what_l_does: &str, what_x_does: Option<&str>) -> String {
 /// that it makes, and it keeps every space that stands inside a line.
 /// Therefore a text of the screen holds one space between two words.
 ///
-/// **The text said what the program does not do.** It said "The accounts that
-/// this program holds" and "A program that holds more than one account starts
-/// with the account that is the default one". The sweep of two accounts of two
-/// servers of 2026-08-12 found that no key of the program adds a second account,
-/// that this view lists the account of the start only, and that no key chooses
-/// the account of the start. **A text must not promise a function that the
-/// program does not have.** See T-118.
-pub const THE_ACCOUNTS: &str = "The account of this program.\n\n\
-    The key l on the account logs out: the program removes it, and it asks you \
-    for a server, a name, and a password at the next start.\n\n\
-    A second account needs a second configuration: give the variable \
-    XDG_CONFIG_HOME a directory of its own, and this program then holds its own \
-    database there.";
+/// **The text said what the program does not do**, and T-118 corrected the
+/// words: the program held one account then. **T-124 gives the program the
+/// function**, therefore the text names the three keys of this view now. A text
+/// must say what the program does, and no more (T-91 and T-118).
+pub const THE_ACCOUNTS: &str = "The accounts of this program.\n\n\
+    The mark ▶ is on the account that the program starts with.\n\n\
+    The key a adds an account: the program starts again, and it asks you for a \
+    server, a name, and a password. The key c gives the start to the account of \
+    the line, and the program starts again with it. The key l logs out: the \
+    program removes the account and it forgets its token.\n\n\
+    A playback stops when the program starts again.";
 
 /// The text of the line "Library: choose the library" of the settings.
 pub const THE_LIBRARIES: &str = "The libraries of this server.\n\n\
@@ -715,27 +721,35 @@ mod tests {
 
     /// **A text must not promise a function that the program does not have.**
     ///
-    /// The sweep of two accounts of two servers of 2026-08-12: the text said
-    /// "The accounts that this program holds" and "A program that holds more
-    /// than one account starts with the account that is the default one". No key
-    /// of the program adds a second account, the view lists the account of the
-    /// start only, and no key chooses that account. See T-118 and T-91.
+    /// The sweep of two accounts of two servers of 2026-08-12 found that no key
+    /// of the program added a second account, and T-118 gave the view a text
+    /// that says what the program does. **T-124 gives the program the three
+    /// keys**, therefore the text names each of them: a key that a view holds
+    /// and that no text names is a key that no user finds (T-79).
+    ///
+    /// The text also names the cost of the two keys that start the program
+    /// again: a playback stops with the process.
     #[test]
-    fn the_text_of_the_accounts_says_what_the_program_does() {
-        assert!(
-            !THE_ACCOUNTS.contains("more than one account"),
-            "the text promises a function of more than one account: {}",
-            THE_ACCOUNTS
-        );
-        assert!(
-            !THE_ACCOUNTS.contains("The accounts that this program holds"),
-            "the program holds one account: {}",
-            THE_ACCOUNTS
-        );
+    fn the_text_of_the_accounts_names_every_key_of_the_view() {
+        for key in ["The key a", "The key c", "The key l"] {
+            assert!(
+                THE_ACCOUNTS.contains(key),
+                "the text names no {}: {}",
+                key,
+                THE_ACCOUNTS
+            );
+        }
 
-        // The text names the key, and it says what a second account needs.
-        assert!(THE_ACCOUNTS.contains("The key l"), "{}", THE_ACCOUNTS);
-        assert!(THE_ACCOUNTS.contains("XDG_CONFIG_HOME"), "{}", THE_ACCOUNTS);
+        assert!(
+            THE_ACCOUNTS.contains("▶"),
+            "the text says nothing of the mark of the account that starts: {}",
+            THE_ACCOUNTS
+        );
+        assert!(
+            THE_ACCOUNTS.contains("A playback stops"),
+            "the text says nothing of the playback that stops: {}",
+            THE_ACCOUNTS
+        );
     }
 
     /// A text of a view holds one space between two words.

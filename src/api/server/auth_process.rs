@@ -7,7 +7,7 @@ use crate::db::crud::*;
 use crate::db::database_struct::User;
 use crate::utils::encrypt_token::*;
 use color_eyre::eyre::{Report, Result};
-use log::info;
+use log::{error, info};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -143,6 +143,19 @@ pub async fn auth_process(username: &str, password: &str, server_address: &str) 
 
         // insert the new user in database
         let _ = db_insert_usr(&users);
+
+        // **One account starts the program, and the database must hold that
+        // rule.** A second login writes a second row, and two rows with
+        // `is_default_usr = 1` let the rowid decide which account the program
+        // takes: the user who added an account would then meet the account of
+        // the login before it. The account of the newest login starts. See
+        // T-124.
+        if let Err(error) = crate::db::crud::make_this_account_the_default(username) {
+            error!(
+                "[auth_process] the account of the login must start: {}",
+                error
+            );
+        }
 
         Ok(())
     } else {

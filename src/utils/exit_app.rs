@@ -137,6 +137,20 @@ pub fn clean_exit() {
 /// it: the login screen of the new program then writes the address of the user
 /// in its first field.
 pub fn start_the_program_again(the_address_of_the_login: &str) -> io::Error {
+    start_the_program_again_with(&[(
+        crate::logic::auth::auth_input::THE_ADDRESS_OF_THE_LOGIN,
+        the_address_of_the_login,
+    )])
+}
+
+/// Starts this program again, with the variables of the environment that the
+/// caller gives. See T-123 and T-124.
+///
+/// A token that the server refused gives the address of the login (T-123). A
+/// user who adds an account gives that address **and** the request of the login
+/// screen, and a user who takes a different account gives nothing at all: the
+/// database then holds the account of the start.
+pub fn start_the_program_again_with(variables: &[(&str, &str)]) -> io::Error {
     restore_terminal();
 
     let program = match std::env::current_exe() {
@@ -148,19 +162,20 @@ pub fn start_the_program_again(the_address_of_the_login: &str) -> io::Error {
     {
         use std::os::unix::process::CommandExt;
 
+        let mut command = std::process::Command::new(program);
+        command.args(std::env::args_os().skip(1));
+
+        for (name, value) in variables {
+            command.env(name, value);
+        }
+
         // `exec` gives an answer only when it fails.
-        std::process::Command::new(program)
-            .args(std::env::args_os().skip(1))
-            .env(
-                crate::logic::auth::auth_input::THE_ADDRESS_OF_THE_LOGIN,
-                the_address_of_the_login,
-            )
-            .exec()
+        command.exec()
     }
 
     #[cfg(not(unix))]
     {
-        let _ = (program, the_address_of_the_login);
+        let _ = (program, variables);
         io::Error::new(
             io::ErrorKind::Unsupported,
             "This system cannot start the program in the place of this process.",

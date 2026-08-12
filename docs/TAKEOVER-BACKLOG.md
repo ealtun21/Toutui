@@ -5388,6 +5388,89 @@ refuses. The next start: the row went away, the login screen came with the
 sentence and with `http://127.0.0.1:13399` in its field, and Enter, the username,
 and the password gave the Home view of the account again.
 
+### T-124: the program holds more than one account
+
+**The sweep of two accounts of two servers of 2026-08-12 found that the condition
+cannot exist**, and T-118 gave the view a text that says so. The maintainer
+answered "yes, and a later session does the work". This is that work.
+
+The three faults of the program, and the key of each:
+
+| The fault | The key now |
+|---|---|
+| The view of the login came only when the database held no account | **`a`** adds an account |
+| The view of the accounts listed the account of the start alone | every account holds a line, and `▶` marks the account that starts |
+| No key gave the start to a different account | **`c`** gives it, and the program asks one time |
+
+**The database needed no new column.** The table `users` holds a row for each
+account already, with `is_default_usr`. Two functions of `db/crud.rs` do the
+work: `select_every_usr` gives every row to the view, and
+`make_this_account_the_default` gives one row the start **in a transaction**
+(`UPDATE users SET is_default_usr = 0`, and then the row of the name). The SQL of
+the second function stood in that file as a comment for the whole life of the
+fork.
+
+**Every key that changes the account starts the program again**, and that is the
+shape of T-123: a login screen inside the same process draws a box that goes
+away, and every task of the old account holds the old token. `exec` gives the new
+program the terminal of the old one, and no value of the process crosses it.
+`start_the_program_again_with` takes the variables of the environment that the
+caller needs:
+
+| The key | The variables | What the user sees |
+|---|---|---|
+| `a` | `TOUTUI_ADD_AN_ACCOUNT=1`, and the address of the login | the login screen, with the address of the account of now in its field |
+| `c` | none: the database holds the account of the start | the Home view of the account of the line |
+| `l` of the account that starts, with a second account | none | the Home view of the account that stays |
+| `l` of the one account | the address of the login | the login screen |
+
+**A second login writes a second row, and the newest login starts the program.**
+`auth_process` wrote `is_default_usr = true` and it changed no other row: two
+such rows let the **rowid** decide (T-118). It calls
+`make_this_account_the_default` after the insert now.
+
+**The rule of the log out is a pure function.** `the_account_after_a_log_out` of
+`src/logic/the_accounts.rs` gives one of three answers: the view only, this
+account starts, or the login screen. `tests/two_accounts_of_one_program.rs` holds
+the rules of the database, and it stands alone in its binary (the trap 8).
+
+**The measurement of 2026-08-12, with the two containers and tmux.** An isolated
+`XDG_CONFIG_HOME`, a login of `toutuitest` of `127.0.0.1:13399`, and then:
+
+```
+--- the key a, and the login of secondtest of 127.0.0.1:13400
+👋 Connected as secondtest   🔗 127.0.0.1:13400   Home [2 items]
+
+--- the view of the accounts
+Accounts — a: add, c: this account starts, l: log out
+➤   toutuitest — http://127.0.0.1:13399
+  ▶ secondtest — http://127.0.0.1:13400
+
+--- the key c on the account that starts already
+The program starts with the account secondtest already.
+
+--- the key c on the line of toutuitest
+Press c again to start with the account "toutuitest". The program starts again, and a playback stops.
+👋 Connected as toutuitest   🔗 127.0.0.1:13399   Home [13 items]
+
+--- the key l on the account that starts, with a second account
+👋 Connected as secondtest   🔗 127.0.0.1:13400
+
+--- the key l on the one account that stays
+┌Server address────────────┐
+│http://127.0.0.1:13400    │
+```
+
+**Each of the two servers gave its own values**: 13 items of the library of
+`toutuitest`, and 2 items and 33% of A Book Of The Second Server of `secondtest`.
+That is the measurement of T-118, and the user reaches it with two keys now.
+
+**The words of the view say what the program does** (T-118 and T-91). The text of
+"Accounts and log out" names the three keys, it names the mark `▶`, and it says
+that a playback stops when the program starts again. The footer holds two rows of
+80 columns (T-90), therefore it names the keys and the text of the view holds the
+reason of each.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

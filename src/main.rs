@@ -66,7 +66,15 @@ async fn main() -> Result<()> {
         // Wait for the database to be ready, waiting for the user to enter their credentials
         loop {
             _database = Database::new().await?;
-            if _database.default_usr.is_empty() {
+            // **The login screen comes for two reasons now.** The database
+            // holds no account, or the user asked for a new account with the
+            // key `a` of the view of the accounts: that key starts the program
+            // again, and the variable of the environment carries the request
+            // through `exec`. The request lives for one login only, therefore
+            // the program forgets it here. See T-124.
+            let the_user_adds_an_account = logic::the_accounts::the_program_adds_an_account();
+            if _database.default_usr.is_empty() || the_user_adds_an_account {
+                std::env::remove_var(logic::the_accounts::THE_PROGRAM_ADDS_AN_ACCOUNT);
                 let app_login = AppLogin::new().await?;
                 let terminal = ratatui::init();
                 let _app_result = app_login.run(terminal);

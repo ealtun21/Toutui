@@ -131,7 +131,7 @@ async fn every_view_draws_when_the_lists_are_shorter_than_the_selection() {
     app.desc_library_search_book = Vec::new();
     app.duration_library_search_book = Vec::new();
 
-    app.all_usernames = Vec::new();
+    app.the_accounts = Vec::new();
     app.libraries_names = three("A Library");
     app.libraries_ids = Vec::new();
     app.media_types = Vec::new();

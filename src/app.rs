@@ -300,8 +300,9 @@ pub struct App {
     pub media_type: String,
     pub lib_name_type: String,
     pub settings: Vec<String>,
-    pub all_usernames: Vec<String>,
-    pub all_server_addresses: Vec<String>,
+    /// Every account of the database: the name, the address of the server, and
+    /// "this account starts the program". See T-124.
+    pub the_accounts: Vec<(String, String, bool)>,
     pub username: String,
     pub server_address: String,
     pub server_address_pretty: String,
@@ -373,6 +374,10 @@ pub struct App {
     /// The account that waits for the second press of the key `l`. A log out
     /// forgets a token, therefore the program asks one time. See T-36.
     pub confirm_logout: Option<String>,
+    /// The account that waits for the second press of the key `c`. The program
+    /// starts again for that key, and a playback stops with the process.
+    /// See T-124.
+    pub confirm_the_account_that_starts: Option<String>,
     /// The book that the user reads now. See T-10.
     pub reader: Option<crate::logic::reader::Reader>,
     /// A message of the reader for the user, for example the reason why a
@@ -992,14 +997,20 @@ impl App {
             "The reader: the cache of the ebooks".to_string(),
         ];
 
-        // init for `SettingsAccount`
-        let mut all_usernames: Vec<String> = Vec::new();
-        let mut all_server_addresses: Vec<String> = Vec::new();
-        if let Some(var_username) = database.default_usr.first() {
-            all_usernames.push(var_username.clone());
-        }
-        if let Some(var_server_address) = database.default_usr.get(1) {
-            all_server_addresses.push(var_server_address.clone());
+        // **The view of the accounts holds every account of the database.** It
+        // held the account of the start alone before T-124, therefore a user
+        // who had two accounts read one line. The database of an older program
+        // gives the account of the start only, and that account then makes the
+        // one line as it did before.
+        let mut the_accounts = crate::db::crud::select_every_usr().unwrap_or_default();
+        if the_accounts.is_empty() {
+            if let Some(var_username) = database.default_usr.first() {
+                the_accounts.push((
+                    var_username.clone(),
+                    database.default_usr.get(1).cloned().unwrap_or_default(),
+                    true,
+                ));
+            }
         }
 
         // init variables for for scrolling into description section
@@ -1234,8 +1245,7 @@ impl App {
             media_type,
             lib_name_type,
             settings,
-            all_usernames,
-            all_server_addresses,
+            the_accounts,
             username,
             server_address,
             server_address_pretty,
@@ -1298,6 +1308,7 @@ impl App {
             pictures_of_the_reader: std::collections::HashMap::new(),
             account,
             confirm_logout: None,
+            confirm_the_account_that_starts: None,
             reader: None,
             reader_message: None,
             stats_scroll: 0,
@@ -1330,6 +1341,13 @@ impl App {
             self.confirm_the_removal_of_the_list = None;
         }
 
+        // The same rule for the account that starts the program: that key
+        // starts the program again, and a playback stops with the process.
+        // See T-124.
+        if !matches!(key.code, KeyCode::Char('c')) {
+            self.confirm_the_account_that_starts = None;
+        }
+
         match key.code {
             // The keys of the reader of an ebook come first. The reader uses
             // the same letters as the lists and as the player, and it uses
@@ -1341,6 +1359,17 @@ impl App {
                 && !matches!(code, KeyCode::Char('Q')) =>
             {
                 self.handle_key_of_the_reader(code);
+            }
+
+            // The keys of the view of the accounts. They stand before the key
+            // `a` of the authors and the key `c` of the lists, therefore that
+            // view takes them and every other view keeps its own key.
+            // See T-124.
+            KeyCode::Char('a') if matches!(self.view_state, AppView::SettingsAccount) => {
+                self.add_an_account()
+            }
+            KeyCode::Char('c') if matches!(self.view_state, AppView::SettingsAccount) => {
+                self.this_account_starts()
             }
 
             // The key that opens the ebook of the item that the user selected.
@@ -1926,11 +1955,10 @@ impl App {
                     // its old length until the next refresh. An index of a
                     // vector stops the program. `get` does not. See T-41.
                     AppView::SettingsAccount => {
-                        if let Some(usr_to_delete) =
-                            selected_account.and_then(|index| self.all_usernames.get(index))
+                        if let Some(usr_to_delete) = selected_account
+                            .and_then(|index| self.the_accounts.get(index))
+                            .map(|(name, _, _)| name.clone())
                         {
-                            let usr_to_delete = usr_to_delete.clone();
-
                             // A log out forgets the token of a server, and the
                             // user then gives their password again. Therefore
                             // the program asks one time. Any key that is not
@@ -1949,11 +1977,40 @@ impl App {
                             self.confirm_logout = None;
                             let _ = delete_user(usr_to_delete.as_str());
 
-                            // The list must follow the change at once.
-                            self.all_usernames.retain(|name| name != &usr_to_delete);
+                            // **A log out of the account that starts leaves the
+                            // program with no account of a start.** The first
+                            // account that stays takes that work, and the
+                            // program starts again with it: every list of the
+                            // screen comes from one account. With no account at
+                            // all the program starts again too, and the login
+                            // screen of a first start comes. See T-124 and
+                            // T-123.
+                            let what_comes_now =
+                                crate::logic::the_accounts::the_account_after_a_log_out(
+                                    &self.the_accounts,
+                                    &usr_to_delete,
+                                );
 
-                            let last = self.all_usernames.len().saturating_sub(1);
-                            if self.all_usernames.is_empty() {
+                            // The list must follow the change at once.
+                            self.the_accounts
+                                .retain(|(name, _, _)| name != &usr_to_delete);
+
+                            match what_comes_now {
+                                crate::logic::the_accounts::AfterALogOut::ThisAccountStarts(
+                                    name,
+                                ) => {
+                                    self.start_the_program_with_this_account(&name);
+                                    return;
+                                }
+                                crate::logic::the_accounts::AfterALogOut::TheLoginScreen => {
+                                    self.the_login_screen_comes();
+                                    return;
+                                }
+                                crate::logic::the_accounts::AfterALogOut::TheViewOnly => {}
+                            }
+
+                            let last = self.the_accounts.len().saturating_sub(1);
+                            if self.the_accounts.is_empty() {
                                 self.list_state_settings_account.select(None);
                             } else if selected_account.unwrap_or(0) > last {
                                 self.list_state_settings_account.select(Some(last));
@@ -4378,6 +4435,155 @@ impl App {
         self.get_the_book(item_id, title, ino);
     }
 
+    /// The lines of the view of the accounts. See T-124.
+    ///
+    /// One line for each account of the database. The account that starts the
+    /// program holds the mark, and the address of the server stands beside the
+    /// name: two accounts of one name on two servers are two accounts.
+    pub fn the_lines_of_the_accounts(&self) -> Vec<String> {
+        self.the_accounts
+            .iter()
+            .map(|(name, address, starts)| {
+                crate::logic::the_accounts::the_line_of_an_account(name, address, *starts)
+            })
+            .collect()
+    }
+
+    /// The key `a` of the view of the accounts: it adds an account. See T-124.
+    ///
+    /// **The login screen needs a terminal that no view holds** (T-123),
+    /// therefore the program starts again and the new program shows that
+    /// screen. Every account of the database stays: the login writes a new row,
+    /// and that row takes the start of the program.
+    pub fn add_an_account(&mut self) {
+        log::info!("[the accounts] the user adds an account. The program starts again.");
+
+        let of_the_system = crate::utils::exit_app::start_the_program_again_with(&[
+            (crate::logic::the_accounts::THE_PROGRAM_ADDS_AN_ACCOUNT, "1"),
+            (
+                crate::logic::auth::auth_input::THE_ADDRESS_OF_THE_LOGIN,
+                self.server_address.as_str(),
+            ),
+        ]);
+
+        // The program stays. A system that has no `exec` says why, and the user
+        // reads the way that works there.
+        log::error!(
+            "[the accounts] the program does not start again: {}",
+            of_the_system
+        );
+
+        crate::logic::message::say(
+            "This system cannot start the program again. Stop the program, and start it again \
+             with the variable TOUTUI_ADD_AN_ACCOUNT=1.",
+        );
+    }
+
+    /// The login screen comes, because the program holds no account. See T-124.
+    ///
+    /// The user logged out of the one account of the program. The database
+    /// holds no row of an account now, therefore the program that starts again
+    /// draws the login screen of a first start.
+    pub fn the_login_screen_comes(&mut self) {
+        log::info!(
+            "[the accounts] no account stays. The program starts again, and the login screen comes."
+        );
+
+        let of_the_system = crate::utils::exit_app::start_the_program_again_with(&[(
+            crate::logic::auth::auth_input::THE_ADDRESS_OF_THE_LOGIN,
+            self.server_address.as_str(),
+        )]);
+
+        log::error!(
+            "[the accounts] the program does not start again: {}",
+            of_the_system
+        );
+
+        crate::logic::message::say(
+            "The program removed the account. Stop the program, and start it again: it asks you \
+             for a server, a name, and a password then.",
+        );
+    }
+
+    /// The key `c` of the view of the accounts: the account of the line starts
+    /// the program. See T-124.
+    ///
+    /// The program asks one time, because it starts again: a playback stops
+    /// with the process. Any key that is not `c` stops the question, and that
+    /// is the rule of the log out (T-36).
+    pub fn this_account_starts(&mut self) {
+        let Some(name) = self
+            .list_state_settings_account
+            .selected()
+            .and_then(|line| self.the_accounts.get(line))
+            .map(|(name, _, _)| name.clone())
+        else {
+            return;
+        };
+
+        if self
+            .the_accounts
+            .iter()
+            .any(|(one, _, starts)| *one == name && *starts)
+        {
+            crate::logic::message::say(&format!(
+                "The program starts with the account {} already.",
+                name
+            ));
+            return;
+        }
+
+        if self.confirm_the_account_that_starts.as_deref() != Some(name.as_str()) {
+            self.confirm_the_account_that_starts = Some(name.clone());
+
+            crate::logic::message::say(&format!(
+                "Press c again to start with the account \"{}\". The program starts again, and a \
+                 playback stops.",
+                name
+            ));
+
+            return;
+        }
+
+        self.confirm_the_account_that_starts = None;
+        self.start_the_program_with_this_account(&name);
+    }
+
+    /// Writes the account of the start, and starts the program again.
+    ///
+    /// **Every list of the program comes from one account**, therefore a change
+    /// of the account is the work of `App::new` and of every task: the new
+    /// process does that work, and no state of this process crosses it. The key
+    /// `c` and a log out of the account that starts both come here. See T-124.
+    pub fn start_the_program_with_this_account(&mut self, name: &str) {
+        if let Err(error) = crate::db::crud::make_this_account_the_default(name) {
+            log::error!(
+                "[the accounts] the account {} cannot start: {}",
+                name,
+                error
+            );
+            crate::logic::message::say("The program cannot write the account of the start.");
+            return;
+        }
+
+        log::info!(
+            "[the accounts] the account {} starts the program. The program starts again.",
+            name
+        );
+
+        let of_the_system = crate::utils::exit_app::start_the_program_again_with(&[]);
+
+        log::error!(
+            "[the accounts] the program does not start again: {}",
+            of_the_system
+        );
+
+        crate::logic::message::say(
+            "This system cannot start the program again. Stop the program, and start it again: \
+             it takes the account then.",
+        );
+    }
+
     /// Shows the values of the block `[reader]` of `config.toml`. See T-77.
     ///
     /// The line of the value that the program uses now stands selected, and the
@@ -5578,7 +5784,7 @@ impl App {
             // account and did nothing. See T-41.
             AppView::SettingsAccount => {
                 if let Some(selected) = self.list_state_settings_account.selected() {
-                    if selected + 1 < self.all_usernames.len() {
+                    if selected + 1 < self.the_accounts.len() {
                         self.list_state_settings_account.select_next();
                     } else {
                         self.list_state_settings_account.select_first();

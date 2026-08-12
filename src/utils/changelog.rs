@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.65",
+        date: "12/08/2026",
+        body: &[
+            "Added:",
+            "- **This program holds more than one account now.** The view \"Accounts and log \
+             out\" of the settings shows every account, and the mark ▶ is on the account that \
+             the program starts with. The key `a` adds an account: the program starts again, and \
+             it asks you for a server, a name, and a password. The key `c` gives the start to \
+             the account of the line. A log out of the account that starts gives the start to \
+             the account that stays, and a log out of the one account brings the login screen. \
+             The program starts again for each of those keys, therefore a playback stops.",
+        ],
+    },
+    Entry {
         version: "0.7.64",
         date: "12/08/2026",
         body: &[

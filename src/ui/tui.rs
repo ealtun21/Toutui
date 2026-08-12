@@ -1833,9 +1833,15 @@ impl App {
         let [list_area, item_area] =
             Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(main_area);
 
-        let render_list_title = "Accounts — l: log out of the account";
-        let text_render_footer =
-            "h: back, l/→: log out of this account (the program forgets its token),\n Tab: home, R: refresh, Q/Esc: quit.";
+        // **The title and the footer name every key of this view.** A key that
+        // a view holds and that no text names is a key that no user finds.
+        // See T-124 and T-79.
+        let render_list_title = "Accounts — a: add, c: this account starts, l: log out";
+        // **The area of the footer holds two rows, and 80 columns give 160
+        // cells** (T-90). The words of the log out stand in the text of the
+        // view: the footer names the keys.
+        let text_render_footer = "h: back, a: add an account, c: this account starts, \
+             l/→: log out,\n Tab: home, R: refresh, Q/Esc: quit.";
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -1843,7 +1849,7 @@ impl App {
             list_area,
             buf,
             render_list_title,
-            &self.all_usernames.clone(),
+            &self.the_lines_of_the_accounts(),
             &mut self.list_state_settings_account.clone(),
         );
 

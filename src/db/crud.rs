@@ -433,22 +433,49 @@ pub fn update_id_selected_lib(id_selected_lib: &str, username: &str) -> Result<(
     Ok(())
 }
 
-// update default user
-//pub fn update_default_user(conn: &Connection, username: &str) -> Result<()> {
-//    // Mark all user as 0 by default
-//    conn.execute(
-//        "UPDATE users SET is_default_usr = 0",
-//        [],
-//    )?;
-//
-//    // Put the desired user as default
-//    conn.execute(
-//        "UPDATE users SET is_default_usr = 1 WHERE username = ?1",
-//        params![username],
-//    )?;
-//
-//    Ok(())
-//}
+/// Gives every account of the database, in the sequence of its row. See T-124.
+///
+/// The three values of a line are the name, the address of the server, and
+/// "this account starts". The view of the accounts holds one line for each of
+/// them, and the key `c` gives the mark to a different line.
+pub fn select_every_usr() -> Result<Vec<(String, String, bool)>> {
+    let conn = crate::db::migrate::open_conn()?;
+
+    let mut stmt =
+        conn.prepare("SELECT username, server_address, is_default_usr FROM users ORDER BY rowid")?;
+
+    let rows = stmt.query_map([], |row| {
+        Ok((
+            row.get::<_, String>(0)?,
+            row.get::<_, String>(1)?,
+            row.get::<_, i32>(2)? != 0,
+        ))
+    })?;
+
+    Ok(rows.flatten().collect())
+}
+
+/// Gives one account the start of the program, and it takes that mark from
+/// every other account. See T-124.
+///
+/// `select_default_usr` reads `WHERE is_default_usr = 1 LIMIT 1`, therefore two
+/// rows with that value let the **rowid** decide. The two writes stand in one
+/// transaction: a program that stops between them would hold no account at all,
+/// and the login screen would then come at the next start.
+pub fn make_this_account_the_default(username: &str) -> Result<usize> {
+    let mut conn = crate::db::migrate::open_conn()?;
+    let work = conn.transaction()?;
+
+    work.execute("UPDATE users SET is_default_usr = 0", [])?;
+    let rows = work.execute(
+        "UPDATE users SET is_default_usr = 1 WHERE username = ?1",
+        params![username],
+    )?;
+
+    work.commit()?;
+
+    Ok(rows)
+}
 
 // Insert user in database
 pub fn db_insert_usr(users: &Vec<User>) -> Result<()> {
