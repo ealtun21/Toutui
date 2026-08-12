@@ -40,7 +40,7 @@ stay. `podman start abs-test` gives them back.
 
 | The library | What it holds |
 |---|---|
-| `Books` | 15 items: a book of many files, two series of three books, a book of one chapter (T-106), a PDF of 47 megabytes of a scan of 60 pages (T-62), **a PDF of 502 megabytes of a scan of 150 pages (T-116)**, a PDF that no reader reads (T-62), the book of xHE-AAC of the user, a book with a WMA file, Alice in Wonderland with an EPUB, and a long book of 30 minutes |
+| `Books` | 19 items: a book of many files, two series of three books, a book of one chapter (T-106), a PDF of 47 megabytes of a scan of 60 pages (T-62), **a PDF of 502 megabytes of a scan of 150 pages (T-116)**, a PDF that no reader reads (T-62), the book of xHE-AAC of the user, a book with a WMA file, Alice in Wonderland with an EPUB, and a long book of 30 minutes |
 | `Podcasts` | 1 podcast of a feed of 57 episodes (T-110) |
 | `Empty` | no item (T-103) |
 | **`Large`** | **2056 items**, and every one of them holds no tag at all (T-112, T-114) |
@@ -113,6 +113,24 @@ curl -X POST "http://localhost:13399/api/libraries/$BOOK_LIB_ID/scan" \
 **The parse of that book takes 2 minutes 4 seconds in the child of T-62**, and the
 child holds 974 megabytes at its peak. The program of the user holds 44
 megabytes. See T-116.
+
+## 2g. The books of an EPUB, for the sweep of T-127
+
+The sweep of a book of an EPUB of 100 megabytes and of an EPUB that is not valid
+needs four books. A script of Python makes the EPUB: 100 chapters of text and 18
+pictures of random bytes give **100.5 megabytes**, and no algorithm makes those
+pictures smaller (the trap 23).
+
+| The book | The file |
+|---|---|
+| `A Very Large Book` | a valid EPUB of 100.5 MB, 100 chapters |
+| `A Book Of A Broken Epub` | 200000 bytes of `/dev/urandom` with the name `.epub` |
+| `A Book Of An Epub With No Container` | a zip with no `META-INF/container.xml` |
+| `A Book Of An Epub That Names Nothing` | a zip whose container names a file that is absent |
+
+Each directory holds one MP3 file beside the book, because a library of books
+needs a media. `tar cf - . | podman exec -i abs-test tar xf - -C /audiobooks`
+writes them, and one `POST /api/libraries/:id/scan` reads them.
 
 ## 2f. The library of 520 podcasts, for the sweep of T-126
 

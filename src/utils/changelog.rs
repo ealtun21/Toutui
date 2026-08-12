@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.67",
+        date: "12/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The start is much faster with a server that answers slowly.** The program asked \
+             the server for the position of each media of the Home view, one request for each of \
+             them. One answer holds every position now: a start of 3.8 seconds with a server of \
+             500 milliseconds takes 1.7 seconds.",
+            "- **A book that you read keeps its position on the screen.** The place of the \
+             reader inside a book is a fraction, and this program read a whole number: the \
+             answer of the server for such a book did not read at all, and the line said \
+             \"N/A\" for a book of 92 percent.",
+        ],
+    },
+    Entry {
         version: "0.7.66",
         date: "12/08/2026",
         body: &[

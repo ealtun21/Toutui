@@ -108,6 +108,24 @@ async fn the_four_requests_of_the_start_go_together() {
         .mount(&server)
         .await;
 
+    // **The account of the token stands outside this measurement.** The
+    // program asks `GET /api/me` at the first moment of the start, and that
+    // answer holds the position of every media (T-127): it does not wait for
+    // the four requests below, and the four do not wait for it. A measurement
+    // of 2026-08-12 saw it at 0.34 ms, while the four came at 702 ms.
+    let of_the_account = NotesTheTime::default();
+
+    Mock::given(method("GET"))
+        .and(path("/api/me"))
+        .and(of_the_account.clone())
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_delay(DELAY)
+                .set_body_json(serde_json::json!({})),
+        )
+        .mount(&server)
+        .await;
+
     // Every other answer is slow, and it holds no item. The program takes an
     // empty answer and it goes on; this test measures the sequence only.
     let times = NotesTheTime::default();
@@ -173,6 +191,17 @@ async fn the_four_requests_of_the_start_go_together() {
             .iter()
             .map(|time| time.duration_since(times[0]))
             .collect::<Vec<_>>()
+    );
+
+    // The account of the token: one request, and it goes with the examination
+    // of the address.
+    let of_the_account = of_the_account.0.lock().expect("the account").clone();
+
+    assert_eq!(
+        of_the_account.len(),
+        1,
+        "the start asks the server for the account of the token one time. \
+         The positions of the media come with that answer (T-127)."
     );
 
     let between = last.duration_since(*first);

@@ -587,6 +587,43 @@ impl App {
         let mut book_progress_cnt_list: Vec<Vec<String>> = Vec::new();
         let mut book_progress_cnt_list_cur_time: Vec<Vec<f64>> = Vec::new();
 
+        // **The account of the token, beside the shelves.** The answer holds
+        // the permissions (T-110) and the position of every media of the
+        // account (T-127): the start asked one request for each media of the
+        // Home view before, and 29 media of a server of 500 milliseconds cost
+        // 2.1 seconds of a start of 3.8. The task runs while the program asks
+        // for the shelves.
+        // The account of the token, for every branch below. The books read the
+        // positions of that answer, and the other branches take the
+        // permissions only.
+        let mut the_account = crate::api::me::permissions::TheAccount::default();
+
+        let mut the_account_of_the_token = Some({
+            let api = std::sync::Arc::clone(&api);
+
+            tokio::spawn(async move {
+                if is_offline {
+                    return (
+                        crate::api::me::permissions::TheAccount::default(),
+                        Vec::new(),
+                        false,
+                    );
+                }
+
+                match crate::api::me::permissions::the_account_of_the_token(&api).await {
+                    Ok((account, positions)) => (account, positions, true),
+                    Err(error) => {
+                        log::warn!("[app] the server did not give the account: {}", error);
+                        (
+                            crate::api::me::permissions::TheAccount::default(),
+                            Vec::new(),
+                            false,
+                        )
+                    }
+                }
+            })
+        });
+
         // The shelves of the Home view. The lines of that view need the
         // shelves and the series together, therefore the program keeps the
         // answer here and it makes the lines when it holds the series. See
@@ -651,12 +688,66 @@ impl App {
             let mut answers: Vec<Option<(Vec<String>, Vec<f64>)>> = vec![None; count_of_the_list];
             let mut done = 0;
 
-            for group in _ids_cnt_list.clone().chunks(AT_THE_SAME_TIME).enumerate() {
-                let (group_number, ids) = group;
+            // **One request holds every position.** `GET /api/me` gives
+            // `mediaProgress` for every media of the account, and the program
+            // asks that endpoint for the permissions already: a media of that
+            // answer needs no request of its own. See T-127.
+            let (account_of_the_token, the_positions, the_answer_came) =
+                match the_account_of_the_token.take() {
+                    Some(task) => task.await.unwrap_or_else(|error| {
+                        log::warn!("[app] the task of the account stopped: {}", error);
+                        (
+                            crate::api::me::permissions::TheAccount::default(),
+                            Vec::new(),
+                            false,
+                        )
+                    }),
+                    None => (
+                        crate::api::me::permissions::TheAccount::default(),
+                        Vec::new(),
+                        false,
+                    ),
+                };
+
+            the_account = account_of_the_token;
+
+            let mut the_media_that_need_a_request: Vec<(usize, String)> = Vec::new();
+
+            for (place, id) in _ids_cnt_list.iter().enumerate() {
+                match crate::logic::the_positions::the_position_of_a_media(&the_positions, id) {
+                    Some(row) => {
+                        answers[place] = Some((
+                            vec![
+                                collect_progress_percentage_book(row).await,
+                                collect_is_finished_book(row).await,
+                            ],
+                            vec![collect_current_time_prg(row).await],
+                        ));
+                        done += 1;
+                    }
+                    // **The answer of the account holds every media that this
+                    // account played**, therefore a book of no row played
+                    // never: `GET /api/me/progress/:id` answers 404 for it, and
+                    // the line says "N/A" either way. The program asks for such
+                    // a book only when that answer did not come. See T-127.
+                    None if the_answer_came => done += 1,
+                    None => the_media_that_need_a_request.push((place, id.clone())),
+                }
+            }
+
+            log::info!(
+                "[app] the answer of the account holds the position of {} media of {}. \
+                 The program asks the server for {}.",
+                the_positions.len(),
+                count_of_the_list,
+                the_media_that_need_a_request.len()
+            );
+
+            for group in the_media_that_need_a_request.chunks(AT_THE_SAME_TIME) {
                 let mut tasks = tokio::task::JoinSet::new();
 
-                for (inside, id) in ids.iter().enumerate() {
-                    let place = group_number * AT_THE_SAME_TIME + inside;
+                for (place, id) in group.iter() {
+                    let place = *place;
                     let api = std::sync::Arc::clone(&api);
                     let id = id.clone();
 
@@ -790,25 +881,30 @@ impl App {
             })
         };
 
-        let ask_for_the_permissions = async {
-            if is_offline {
-                return crate::api::me::permissions::TheAccount::default();
-            }
-
-            crate::api::me::permissions::get_permissions(&api)
+        // **The account of the token came with the shelves** (T-127). A branch
+        // that did not read it takes it here, and that wait is the wait of a
+        // request that ran already.
+        if let Some(task) = the_account_of_the_token.take() {
+            the_account = task
                 .await
                 .unwrap_or_else(|error| {
-                    log::warn!("[app] the server did not give the permissions: {}", error);
-                    crate::api::me::permissions::TheAccount::default()
+                    log::warn!("[app] the task of the account stopped: {}", error);
+                    (
+                        crate::api::me::permissions::TheAccount::default(),
+                        Vec::new(),
+                        false,
+                    )
                 })
-        };
+                .0;
+        }
 
-        let (series, collections, playlists, all_books, account) = tokio::join!(
+        let account = the_account;
+
+        let (series, collections, playlists, all_books) = tokio::join!(
             ask_for_the_series,
             ask_for_the_collections,
             ask_for_the_playlists,
             ask_for_the_items,
-            ask_for_the_permissions,
         );
 
         let lists = collect_lists(&collections, &playlists);

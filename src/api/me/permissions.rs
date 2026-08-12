@@ -51,6 +51,13 @@ struct Me {
     /// The type of the account: `root`, `admin`, `user`, or `guest`.
     #[serde(default, rename = "type")]
     kind: Option<String>,
+    /// The position of every media of this account. See T-127.
+    ///
+    /// **A row that the program cannot read must not take the other rows
+    /// away** (T-41). The server gives a whole number for one media and a
+    /// fraction for the next one, therefore each row reads by itself here.
+    #[serde(default, rename = "mediaProgress")]
+    media_progress: Vec<serde_json::Value>,
 }
 
 /// The account of the user, as the settings show it. See T-110.
@@ -113,12 +120,38 @@ fn the_line_of_a_permission(may: bool, what: &str) -> String {
 /// works as it did before this function, and the server still refuses what it
 /// must refuse.
 pub async fn get_permissions(client: &ApiClient) -> Result<TheAccount, ApiError> {
+    Ok(the_account_of_the_token(client).await?.0)
+}
+
+/// Asks the server for the account of the token: what it may do, and the
+/// position of every media of it. See T-110 and T-127.
+///
+/// **One request holds every position.** The start of the program asked
+/// `GET /api/me/progress/:id` for each media of the Home view: a list of 29
+/// media of a server of 500 milliseconds took **2.1 seconds** of a start of
+/// 3.8. `GET /api/me` gives `mediaProgress` for every media of the account,
+/// and the program asks that endpoint for the permissions already.
+pub async fn the_account_of_the_token(
+    client: &ApiClient,
+) -> Result<(TheAccount, Vec<crate::api::me::get_media_progress::Root>), ApiError> {
     let me: Me = client.get_json("/api/me").await?;
 
-    Ok(TheAccount {
-        kind: me.kind.unwrap_or_default(),
-        permissions: me.permissions.unwrap_or_default(),
-    })
+    let mut the_positions = Vec::new();
+
+    for row in me.media_progress {
+        match serde_json::from_value::<crate::api::me::get_media_progress::Root>(row) {
+            Ok(one) => the_positions.push(one),
+            Err(error) => log::warn!("[app] a position of the account does not read: {}", error),
+        }
+    }
+
+    Ok((
+        TheAccount {
+            kind: me.kind.unwrap_or_default(),
+            permissions: me.permissions.unwrap_or_default(),
+        },
+        the_positions,
+    ))
 }
 
 /// Gives the sentence for a user who may not download.

@@ -5604,6 +5604,98 @@ lists of that view.
 podcasts whose lists of the episodes hold 500 rows, and the key `l` of the line
 519 stopped the program before this work.
 
+### The sweep of a book of an EPUB of 100 megabytes, and of an EPUB that is not valid, 2026-08-12
+
+**The road named this sweep, and it found no fault.** Four books stand in the
+sandbox now: a valid EPUB of **100.5 megabytes** (100 chapters of text and 18
+pictures of 4 megabytes), a file of random bytes with the name `.epub`, a zip
+with no `container.xml`, and a zip whose container names a file that is absent.
+
+| The book | The measurement |
+|---|---|
+| The EPUB of 100.5 MB, with no copy on the disk | the reader came after **2 seconds**, "chapter 1 of 100" |
+| The same book, with the copy on the disk | the reader came at once |
+| The memory of the program with that book open | **55 megabytes** (T-116 holds that shape) |
+| The three files that are not an EPUB | "This file is not an EPUB.", and the program stands |
+
+**One measurement of that sweep did not repeat.** The first attempt of the book
+of 100 megabytes said "The program did not get the book: No server address
+answered", and the server sends that book in **0.13 seconds** with `curl`. Four
+attempts after it gave the book. The measurement of that moment came after a scan
+of the library of the server, therefore the socket of the live messages can have
+marked the address down (T-107). **A later session must look again**, with the
+log of the program at that moment.
+
+### The sweep of a server that answers slowly, 2026-08-12
+
+**The session before this one began this sweep and the fault of the user stopped
+it.** This session finished it, and it found the sequence of the start.
+
+A proxy of Python holds a port and it gives every request of the sandbox a delay
+of 500 milliseconds. The steps of the start come from the box of the start
+itself, and a poll of the screen every 50 milliseconds reads them:
+
+| The step | Before T-127 | After T-127 |
+|---|---|---|
+| the libraries of the server | 165 ms | 165 ms |
+| the shelves of the Home view | 649 ms | 649 ms |
+| **the position of each book of that list (29 media)** | **1134 → 3228 ms** | — |
+| the series, the lists, and every item | 3228 ms | 1134 ms |
+| the sound device | 3713 ms | 1618 ms |
+| **THE FIRST FRAME** | **3767 ms** | **1725 ms** |
+
+**The positions held 2.1 seconds of a start of 3.8**, and one endpoint holds all
+of them.
+
+### T-127: the start asked one request for the position of each media
+
+`GET /api/me/progress/:id` gives the position of one media, and the Home view of
+the measurement holds **29** media: the start therefore made 29 requests, eight
+at a time (T-40). **`GET /api/me` holds `mediaProgress` for every media of the
+account**, and the program asks that endpoint for the permissions of the account
+already (T-110): one answer holds every position, and the start of a library of
+every size costs the same.
+
+The rows of the two endpoints are the same rows. A measurement of 2026-08-12,
+of the book "A Long Test Book":
+
+```
+GET /api/me/progress/9a671047-…   {"id":"ed7bcef3-…","progress":1,"currentTime":1800,"isFinished":true, …}
+the row of GET /api/me            {"id":"ed7bcef3-…","progress":1,"currentTime":1800,"isFinished":true, …}
+```
+
+**The request of the account goes at the first moment of the start now**, beside
+the examination of the address, and no request of the start waits for it. The
+test `the_four_requests_of_the_start_go_together` of T-86 holds that rule: the
+account has its own mock, and the four requests still arrive together.
+
+**A media that the answer does not name played never.** `GET /api/me/progress/:id`
+answers 404 for it, and the line of the view says "N/A" either way: the program
+therefore asks for **no** media of a library of books now. It asks as it did
+before when the answer of the account did not come at all, because a program that
+knows nothing must not say that every book is at the start.
+
+**A row of a podcast names the episode beside the media**, and the position of
+one episode is not the position of the line of the Home view. Such a media keeps
+its own request, and `the_position_of_a_media` of `src/logic/the_positions.rs`
+holds that rule with three tests.
+
+**Two faults of the program came out of this work.**
+
+1. **`ebookProgress` is a fraction, and the program read a whole number.** The
+   field held `i64`. A book that the user read gives
+   `"ebookProgress": 0.8277488992014371`, therefore the answer of
+   `GET /api/me/progress/:id` **did not read at all** and the line of that book
+   lost its position: the user read "N/A" for a book of 92 percent. The field is
+   `f64` now, and a test holds the answer of the real server.
+2. **A row that the program cannot read took every other row away.** One answer
+   holds 20 rows, and `serde` gives an error for the whole list when one row does
+   not read. Each row reads by itself now (T-41).
+
+**The measurement of the sandbox after the work**: the first frame of the program
+takes **207 milliseconds**, and every percentage of the Home view is the
+percentage of the server (92%, 42%, and the mark of a book that is finished).
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

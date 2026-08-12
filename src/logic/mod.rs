@@ -28,3 +28,4 @@ pub mod the_ebooks;
 pub mod the_episodes;
 pub mod the_ereaders;
 pub mod the_lists;
+pub mod the_positions;
