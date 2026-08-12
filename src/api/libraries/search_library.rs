@@ -12,12 +12,24 @@
 //! - `q=chronicles` gives three books and one series, and the group of the
 //!   series carries the books of that series.
 //!
-//! The program takes the identity of every book of the answer, from the group
-//! of the books and from the books of every series. The screen then shows the
-//! items of the library that the server found.
+//! The program takes the **media** of every group of the answer, and not the
+//! identity alone: `libraryItem` of a hit holds the title, the author, the year,
+//! the description, and the length. The view of the search therefore shows a
+//! media of a page that the program did not read. See T-113.
+//!
+//! **A library of podcasts answers with the group `podcast`.** A measurement of
+//! 2026-08-12: `q=Balzac` of the library of the sandbox gives
+//! `{"podcast": 1, "tags": 0, "genres": 0, "episodes": 0}`, and that group holds
+//! `libraryItem` in the same shape as the group of the books. The program read
+//! the group of the books only, therefore every search of a library of podcasts
+//! said "The server found nothing". See T-113.
+//!
+//! **The group `episodes` stays outside.** No measurement of the sandbox gave
+//! one hit of that group, therefore the program has no evidence of its shape.
 
 use crate::api::client::error::ApiError;
 use crate::api::client::ApiClient;
+use crate::api::libraries::get_all_books::LibraryItem;
 use serde::Deserialize;
 
 /// The largest number of answers of one group.
@@ -30,6 +42,9 @@ const LIMIT: usize = 50;
 pub struct SearchRoot {
     #[serde(default)]
     pub book: Vec<BookMatch>,
+    /// The media of a library of podcasts. See T-113.
+    #[serde(default)]
+    pub podcast: Vec<BookMatch>,
     #[serde(default)]
     pub series: Vec<SeriesMatch>,
     #[serde(default)]
@@ -41,13 +56,13 @@ pub struct SearchRoot {
 #[derive(Debug, Clone, Deserialize)]
 pub struct BookMatch {
     #[serde(rename = "libraryItem")]
-    pub library_item: Option<Item>,
+    pub library_item: Option<LibraryItem>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct SeriesMatch {
     #[serde(default)]
-    pub books: Vec<Item>,
+    pub books: Vec<LibraryItem>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -131,11 +146,6 @@ pub fn the_names_to_ask(answer: &SearchRoot) -> Vec<Named> {
         .collect()
 }
 
-#[derive(Debug, Clone, Deserialize)]
-pub struct Item {
-    pub id: Option<String>,
-}
-
 /// Asks the server for the media that agree with the words of the user.
 pub async fn search_library(
     client: &ApiClient,
@@ -153,33 +163,47 @@ pub async fn search_library(
         .await
 }
 
-/// Gives the identity of every book of an answer, with no repetition.
+/// Gives the media of every group of an answer, with no repetition.
 ///
-/// The group of the books gives the books that agree by themselves. The group
-/// of the series gives the books of a series whose name agrees. A book can
-/// stand in the two groups, therefore this function gives it one time.
-pub fn items_of(answer: &SearchRoot) -> Vec<String> {
-    let mut ids: Vec<String> = Vec::new();
+/// The group of the books gives the books that agree by themselves, and the
+/// group of the podcasts does the same work in a library of podcasts. The group
+/// of the series gives the books of a series whose name agrees. A media can
+/// stand in two groups, therefore this function gives it one time.
+///
+/// **Each media holds its own values**, therefore the view of the search shows a
+/// media of a page that the program did not read. See T-113.
+pub fn media_of(answer: &SearchRoot) -> Vec<LibraryItem> {
+    let mut media: Vec<LibraryItem> = Vec::new();
 
-    let from_the_books = answer
+    let of_the_books = answer
         .book
         .iter()
-        .filter_map(|one| one.library_item.as_ref())
-        .filter_map(|item| item.id.clone());
+        .chain(answer.podcast.iter())
+        .filter_map(|one| one.library_item.as_ref());
 
-    let from_the_series = answer
-        .series
-        .iter()
-        .flat_map(|one| one.books.iter())
-        .filter_map(|item| item.id.clone());
+    let of_the_series = answer.series.iter().flat_map(|one| one.books.iter());
 
-    for id in from_the_books.chain(from_the_series) {
-        if !ids.contains(&id) {
-            ids.push(id);
+    for item in of_the_books.chain(of_the_series) {
+        let Some(id) = item.id.as_ref() else {
+            continue;
+        };
+
+        if media.iter().any(|one| one.id.as_ref() == Some(id)) {
+            continue;
         }
+
+        media.push(item.clone());
     }
 
-    ids
+    media
+}
+
+/// Gives the identity of every media of an answer, with no repetition.
+pub fn items_of(answer: &SearchRoot) -> Vec<String> {
+    media_of(answer)
+        .into_iter()
+        .filter_map(|item| item.id)
+        .collect()
 }
 
 /// Gives the names that the server found, for the line of the screen.
@@ -257,6 +281,76 @@ mod tests {
     fn the_answer_gives_every_book_one_time() {
         // `book-3` stands in the two groups, and it must come one time.
         assert_eq!(items_of(&an_answer()), vec!["book-3", "book-2", "book-1"]);
+    }
+
+    /// A library of podcasts answers with the group `podcast`. See T-113.
+    #[test]
+    fn the_answer_of_a_library_of_podcasts_gives_its_media() {
+        // The measurement of 2026-08-12, of the podcast of the sandbox:
+        // `q=Balzac` gives one hit of the group `podcast`.
+        let answer: SearchRoot = serde_json::from_value(serde_json::json!({
+            "podcast": [ { "libraryItem": {
+                "id": "pod-1",
+                "mediaType": "podcast",
+                "media": { "metadata": {
+                    "title": "Letters of Two Brides by Honore de Balzac",
+                    "author": "Honore de Balzac"
+                } }
+            } } ],
+            "tags": [], "genres": [], "episodes": []
+        }))
+        .expect("the answer of a library of podcasts must read");
+
+        // The old code read the group of the books only, therefore every search
+        // of a library of podcasts said "The server found nothing".
+        assert_eq!(items_of(&answer), vec!["pod-1"]);
+
+        let media = media_of(&answer);
+
+        assert_eq!(media.len(), 1);
+        assert_eq!(
+            media[0]
+                .media
+                .as_ref()
+                .and_then(|one| one.metadata.as_ref())
+                .and_then(|data| data.author.as_deref()),
+            Some("Honore de Balzac")
+        );
+    }
+
+    /// The media of the answer holds every value of its line. See T-113.
+    #[test]
+    fn the_media_of_the_answer_holds_the_values_of_its_line() {
+        let answer: SearchRoot = serde_json::from_value(serde_json::json!({
+            "book": [ { "libraryItem": {
+                "id": "item-100",
+                "media": {
+                    "metadata": {
+                        "title": "Large Book 0100",
+                        "authorName": "A Test Author",
+                        "publishedYear": "2026",
+                        "description": "A book of the page 4."
+                    },
+                    "duration": 60.0
+                }
+            } } ]
+        }))
+        .expect("an answer");
+
+        let media = media_of(&answer);
+        let metadata = media[0]
+            .media
+            .as_ref()
+            .and_then(|one| one.metadata.as_ref())
+            .expect("the media of the answer holds its metadata");
+
+        assert_eq!(metadata.title.as_deref(), Some("Large Book 0100"));
+        assert_eq!(metadata.author_name.as_deref(), Some("A Test Author"));
+        assert_eq!(metadata.published_year.as_deref(), Some("2026"));
+        assert_eq!(
+            media[0].media.as_ref().and_then(|one| one.duration),
+            Some(60.0)
+        );
     }
 
     #[test]

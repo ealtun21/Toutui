@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.58",
+        date: "12/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The search shows every media that the server finds.** This program reads your \
+             library page by page, and the view of the search showed the media of the pages \
+             that it holds: a search for a book of a later page said \"The server found \
+             nothing\", and the server had found that book.",
+            "- **The search works in a library of podcasts.** The server answers with a group \
+             of its own for such a library, and this program read no line of it: every search \
+             said that the server found nothing.",
+        ],
+    },
+    Entry {
         version: "0.7.57",
         date: "12/08/2026",
         body: &[

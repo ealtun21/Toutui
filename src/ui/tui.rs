@@ -312,6 +312,29 @@ fn at(list: &[String], index: usize) -> &str {
     list.get(index).map(|value| value.as_str()).unwrap_or("N/A")
 }
 
+/// Takes one value of a list of the library for each line of the view of the
+/// search.
+///
+/// The place of a line is the place of its media in the lists of the library.
+/// **The lines of the view are not the lines of the library**: the server gives
+/// its answer in the sequence of the search, and a filter of the list of the
+/// library would give the episodes of a different podcast.
+///
+/// A line whose media the program did not read has no place. The view of the
+/// search drops such a line in a library of podcasts, therefore the value that
+/// is empty reaches no screen. See T-113.
+fn the_values_at<T: Clone + Default>(list: &[T], places: &[Option<usize>]) -> Vec<T> {
+    places
+        .iter()
+        .map(|place| {
+            place
+                .and_then(|place| list.get(place))
+                .cloned()
+                .unwrap_or_default()
+        })
+        .collect()
+}
+
 /// Reads one number of a list of the screen. See `at`.
 fn at_number(list: &[f64], index: usize) -> f64 {
     list.get(index).copied().unwrap_or(0.0)
@@ -1843,6 +1866,32 @@ impl App {
         );
     }
 
+    /// Gives the lines of the search that the program can make by itself.
+    ///
+    /// The answer of the server comes some hundred milliseconds after the key
+    /// Enter. The program looks in the titles that it holds while the user
+    /// waits, and the title of the view says where the lines come from. See
+    /// T-24 and T-113.
+    fn the_titles_of_this_program_that_hold_the_words(&self) -> Vec<crate::logic::search::Found> {
+        let words = self.search_query.to_lowercase();
+
+        self.titles_library
+            .iter()
+            .enumerate()
+            .filter(|(_, title)| title.to_lowercase().contains(&words))
+            .map(|(place, title)| crate::logic::search::Found {
+                id: at(&self.ids_library, place).to_string(),
+                title: title.clone(),
+                author: at(&self.auth_names_library, place).to_string(),
+                author_of_a_podcast: at(&self.auth_names_library_pod, place).to_string(),
+                year: at(&self.published_year_library, place).to_string(),
+                description: at(&self.desc_library, place).to_string(),
+                duration: at_number(&self.duration_library, place),
+                place: Some(place),
+            })
+            .collect()
+    }
+
     /// AppView::SearchBook rendering
     fn render_search_book(&mut self, area: Rect, buf: &mut Buffer) {
         let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
@@ -1884,33 +1933,41 @@ impl App {
         // The server finds an author, a series, a narrator, a tag, and a
         // genre. This program looks in the titles only, therefore a user who
         // writes the name of an author finds nothing here. See T-24.
-        let idx_and_titles: Vec<(usize, String)> = match &from_the_server {
+        // **The answer of the server holds every value of its lines**, therefore
+        // a media of a page that the program did not read gives a line too. The
+        // program looks in the titles that it holds while the answer comes.
+        // See T-113.
+        let mut found: Vec<crate::logic::search::Found> = match &from_the_server {
             Some(answer) => answer
-                .items
+                .media
                 .iter()
-                .filter_map(|id| self.ids_library.iter().position(|one| one == id))
-                .filter_map(|index| {
-                    self.titles_library
-                        .get(index)
-                        .map(|title| (index, title.clone()))
+                .map(|one| crate::logic::search::Found {
+                    place: self.ids_library.iter().position(|id| id == &one.id),
+                    ..one.clone()
                 })
                 .collect(),
-            None => self
-                .titles_library
-                .iter()
-                .enumerate()
-                .filter(|(_, x)| x.to_lowercase().contains(&self.search_query.to_lowercase()))
-                .map(|(index, title)| (index, title.clone()))
-                .collect(),
+            None => self.the_titles_of_this_program_that_hold_the_words(),
         };
 
-        let mut titles_search_book_or_pod: Vec<String> = Vec::new();
-        let mut index_to_keep: Vec<usize> = Vec::new();
-        for (index, title) in idx_and_titles {
-            titles_search_book_or_pod.push(title.to_string());
-            index_to_keep.push(index)
+        // **A library of podcasts reads the episodes of a media with the place
+        // of that media in the lists of the library.** A podcast of a page that
+        // the program did not read therefore gives no line, and one page holds
+        // 500 podcasts. See T-113.
+        if self.is_podcast {
+            let before = found.len();
+
+            found.retain(|one| one.place.is_some());
+
+            if found.len() != before {
+                log::info!(
+                    "[search] the program did not read {} podcast(s) of the answer",
+                    before - found.len()
+                );
+            }
         }
 
+        let titles_search_book_or_pod: Vec<String> =
+            found.iter().map(|one| one.title.clone()).collect();
         let titles_search_book_or_pod: &[String] = &titles_search_book_or_pod;
 
         let render_list_title = crate::logic::search::the_title_of_the_search(
@@ -1924,49 +1981,17 @@ impl App {
         );
         let render_list_title = render_list_title.as_str();
 
-        // apply search filtering for book
-        self.ids_search_book = self
-            .ids_library
+        // Every list of the view holds one value for each line of the view.
+        self.ids_search_book = found.iter().map(|one| one.id.clone()).collect();
+        self.auth_names_pod_search_book = found
             .iter()
-            .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(index))
-            .map(|(_, value)| value.clone())
+            .map(|one| one.author_of_a_podcast.clone())
             .collect();
-        self.auth_names_pod_search_book = self
-            .auth_names_library_pod
-            .iter()
-            .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(index))
-            .map(|(_, value)| value.clone())
-            .collect();
-        self.auth_names_search_book = self
-            .auth_names_library
-            .iter()
-            .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(index))
-            .map(|(_, value)| value.clone())
-            .collect();
-        self.published_year_library_search_book = self
-            .published_year_library
-            .iter()
-            .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(index))
-            .map(|(_, value)| value.clone())
-            .collect();
-        self.desc_library_search_book = self
-            .desc_library
-            .iter()
-            .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(index))
-            .map(|(_, value)| value.clone())
-            .collect();
-        self.duration_library_search_book = self
-            .duration_library
-            .iter()
-            .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(index))
-            .map(|(_, value)| *value)
-            .collect();
+        self.auth_names_search_book = found.iter().map(|one| one.author.clone()).collect();
+        self.published_year_library_search_book =
+            found.iter().map(|one| one.year.clone()).collect();
+        self.desc_library_search_book = found.iter().map(|one| one.description.clone()).collect();
+        self.duration_library_search_book = found.iter().map(|one| one.duration).collect();
         //        self.book_progress_search_book = self.book_progress_library
         //            .iter()
         //            .enumerate()
@@ -1986,77 +2011,23 @@ impl App {
         //            .map(|(_, value)| value.clone())
         //            .collect();
 
+        // **The lists of a podcast come from the place of the media in the lists
+        // of the library**, and they hold one value for each line of the view: a
+        // list in the sequence of the library would give the episodes of a
+        // different podcast. See T-113.
+        let places: Vec<Option<usize>> = found.iter().map(|one| one.place).collect();
+
         // apply search filtering for podacst
-        self.all_titles_pod_ep_search = self
-            .all_titles_pod_ep
-            .iter()
-            .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(index))
-            .map(|(_, value)| value.clone())
-            .collect();
-        self.all_ids_pod_ep_search = self
-            .all_ids_pod_ep
-            .iter()
-            .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(index))
-            .map(|(_, value)| value.clone())
-            .collect();
-        self.all_subtitles_pod_ep_search = self
-            .all_subtitles_pod_ep
-            .iter()
-            .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(index))
-            .map(|(_, value)| value.clone())
-            .collect();
-        self.all_seasons_pod_ep_search = self
-            .all_seasons_pod_ep
-            .iter()
-            .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(index))
-            .map(|(_, value)| value.clone())
-            .collect();
-        self.all_episodes_pod_ep_search = self
-            .all_episodes_pod_ep
-            .iter()
-            .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(index))
-            .map(|(_, value)| value.clone())
-            .collect();
-        self.all_authors_pod_ep_search = self
-            .all_authors_pod_ep
-            .iter()
-            .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(index))
-            .map(|(_, value)| value.clone())
-            .collect();
-        self.all_descs_pod_ep_search = self
-            .all_descs_pod_ep
-            .iter()
-            .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(index))
-            .map(|(_, value)| value.clone())
-            .collect();
-        self.all_titles_pod_search = self
-            .all_titles_pod
-            .iter()
-            .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(index))
-            .map(|(_, value)| value.clone())
-            .collect();
-        self.all_durations_pod_ep_search = self
-            .all_durations_pod_ep
-            .iter()
-            .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(index))
-            .map(|(_, value)| value.clone())
-            .collect();
-        self.ids_library_pod_search = self
-            .ids_library
-            .iter()
-            .enumerate()
-            .filter(|(index, _)| index_to_keep.contains(index))
-            .map(|(_, value)| value.clone())
-            .collect();
+        self.all_titles_pod_ep_search = the_values_at(&self.all_titles_pod_ep, &places);
+        self.all_ids_pod_ep_search = the_values_at(&self.all_ids_pod_ep, &places);
+        self.all_subtitles_pod_ep_search = the_values_at(&self.all_subtitles_pod_ep, &places);
+        self.all_seasons_pod_ep_search = the_values_at(&self.all_seasons_pod_ep, &places);
+        self.all_episodes_pod_ep_search = the_values_at(&self.all_episodes_pod_ep, &places);
+        self.all_authors_pod_ep_search = the_values_at(&self.all_authors_pod_ep, &places);
+        self.all_descs_pod_ep_search = the_values_at(&self.all_descs_pod_ep, &places);
+        self.all_titles_pod_search = the_values_at(&self.all_titles_pod, &places);
+        self.all_durations_pod_ep_search = the_values_at(&self.all_durations_pod_ep, &places);
+        self.ids_library_pod_search = the_values_at(&self.ids_library, &places);
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, _text_render_footer);

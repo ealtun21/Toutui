@@ -1,5 +1,81 @@
 pub mod search_active;
 
+use crate::api::libraries::get_all_books::LibraryItem;
+
+/// One media of the view of the search.
+///
+/// **The view of the search held the lists of the library**, and it read them
+/// with the place of the media in those lists: a media of a page that the
+/// program did not read therefore gave no line at all, and the screen said "The
+/// server found nothing" for a book that the server found. Every value of a line
+/// comes from the answer now. See T-113.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct Found {
+    pub id: String,
+    pub title: String,
+    /// The author of a book (`authorName`).
+    pub author: String,
+    /// The author of a podcast (`author`).
+    pub author_of_a_podcast: String,
+    pub year: String,
+    pub description: String,
+    pub duration: f64,
+    /// The place of the media in the lists of the library, when the program
+    /// holds it.
+    ///
+    /// The lists of the episodes of a podcast come from that place. A library of
+    /// books needs it for no line. See T-113.
+    pub place: Option<usize>,
+}
+
+/// Makes one line of the view of the search for each media of the server.
+///
+/// The rule of a text of no letter is the rule of every other view (T-114),
+/// therefore a book with no author says "N/A" here too.
+///
+/// The function is pure, therefore a test needs no server.
+pub fn the_media_that_the_server_found(media: &[LibraryItem]) -> Vec<Found> {
+    media
+        .iter()
+        .map(|item| {
+            let metadata = item
+                .media
+                .as_ref()
+                .and_then(|media| media.metadata.as_ref());
+
+            let description = metadata
+                .and_then(|data| data.description.as_deref())
+                .map(crate::utils::html_text::to_plain_text);
+
+            Found {
+                id: item.id.clone().unwrap_or_default(),
+                title: crate::utils::values_of_the_server::a_text_or_nothing(
+                    metadata.and_then(|data| data.title.as_deref()),
+                ),
+                author: crate::utils::values_of_the_server::a_text_or_nothing(
+                    metadata.and_then(|data| data.author_name.as_deref()),
+                ),
+                author_of_a_podcast: crate::utils::values_of_the_server::a_text_or_nothing(
+                    metadata.and_then(|data| data.author.as_deref()),
+                ),
+                year: crate::utils::values_of_the_server::a_text_or_nothing(
+                    metadata.and_then(|data| data.published_year.as_deref()),
+                ),
+                description: crate::utils::values_of_the_server::a_text_or(
+                    description.as_deref(),
+                    "No description available",
+                ),
+                duration: item
+                    .media
+                    .as_ref()
+                    .and_then(|media| media.duration)
+                    .unwrap_or(0.0),
+                place: None,
+            }
+        })
+        .collect()
+}
+
 /// Gives the title of the view of the search.
 ///
 /// **A view says why it holds no line.** The old title said "Search result [from
@@ -133,8 +209,8 @@ pub mod from_the_server {
     pub struct Answer {
         /// The words that the user wrote.
         pub words: String,
-        /// The identity of every media that the server found.
-        pub items: Vec<String>,
+        /// Every media that the server found, with its own values. See T-113.
+        pub media: Vec<super::Found>,
         /// The names of the authors and of the narrators that the server
         /// found. The screen shows them when the library holds no media of
         /// that name.

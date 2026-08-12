@@ -4041,7 +4041,7 @@ impl App {
                     }
                 };
 
-            let mut items = crate::api::libraries::search_library::items_of(&answer);
+            let mut items = crate::api::libraries::search_library::media_of(&answer);
 
             // **The group of the books of the server holds no name of an author.**
             // A user who writes the name of an author therefore saw the name in
@@ -4065,11 +4065,15 @@ impl App {
                         );
 
                         for item in found {
-                            if let Some(id) = item.id {
-                                if !items.contains(&id) {
-                                    items.push(id);
-                                }
+                            let Some(id) = item.id.clone() else {
+                                continue;
+                            };
+
+                            if items.iter().any(|one| one.id.as_deref() == Some(&id)) {
+                                continue;
                             }
+
+                            items.push(item);
                         }
                     }
                     Err(error) => log::warn!(
@@ -4083,7 +4087,10 @@ impl App {
             crate::logic::search::from_the_server::keep(
                 crate::logic::search::from_the_server::Answer {
                     words,
-                    items,
+                    // **Every value of a line comes from the answer**, therefore
+                    // the view shows a media of a page that the program did not
+                    // read. See T-113.
+                    media: crate::logic::search::the_media_that_the_server_found(&items),
                     names: crate::api::libraries::search_library::names_of(&answer),
                 },
             );

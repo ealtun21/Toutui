@@ -4630,6 +4630,87 @@ items of 2056, and the key G asked for the end".
 **The offline mode asks for nothing.** The wait needs a server, therefore the key
 takes the last line that the program holds and it stops there.
 
+### T-113: the search showed the media that the program holds, and not the media that the server found
+
+**Two faults of one shape, and the docs of T-70 said the opposite of both.** That
+item wrote "the search of the server stays the authority for a title that the
+program did not load". The view of the search held the **lists of the library**,
+and it read them with the place of the media in those lists:
+
+```rust
+Some(answer) => answer.items.iter()
+    .filter_map(|id| self.ids_library.iter().position(|one| one == id))
+```
+
+**A media that the program did not read therefore gave no line at all.**
+
+**1. A book of a page that the program did not read.** The measurement of
+2026-08-12, of the library of 2056 items:
+
+| Who asks | The words | The answer |
+|---|---|---|
+| `curl` of `/api/libraries/:id/search` | `q=Large Book 0100` | **1 book**, "Large Book 0100" |
+| The program, in the same library | `Large Book 0100` | **"The server found nothing for "Large Book 0100". Press / to write other words."** |
+
+The book stands on the page 4 of 5. The program held the page 0, therefore the
+identity of that book stood in no list of the library.
+
+**2. Every search of a library of podcasts.** The answer of the server for such a
+library holds the group `podcast`, and `SearchRoot` read `book`, `series`,
+`authors`, and `narrators` only:
+
+```
+q=Balzac  -> {"podcast": 1, "tags": 0, "genres": 0, "episodes": 0}
+q=Letters -> {"podcast": 1, "tags": 0, "genres": 0, "episodes": 0}
+```
+
+The program said "The server found nothing for "Letters"" for the one podcast of
+the sandbox, whose name is "Letters of Two Brides by Honoré de Balzac". **The
+answer of the server also stopped the work that the program does itself**: the
+titles of the program hold that name, and a view that has an answer does not look
+in them.
+
+**The answer: the answer of the server carries the media, and not the identity
+alone.** `libraryItem` of every hit holds the title, the author, the year, the
+description, and the length already, therefore this needs **no request more**.
+
+- `search_library::media_of` gives every media of the groups `book`, `podcast`,
+  and `series`, with no repetition. `BookMatch` and `SeriesMatch` hold a
+  `LibraryItem` of `get_all_books` now, and not an identity alone.
+- `logic::search::Found` is one line of the view, and
+  `the_media_that_the_server_found` makes those lines. It is pure, and it holds
+  the rule of a text of no letter (T-114).
+- The view builds its seven lists from those lines, therefore **every value of a
+  line comes from the answer**.
+- `Found::place` holds the place of the media in the lists of the library, when
+  the program holds it. **The lists of the episodes of a podcast come from that
+  place**, and they come in the sequence of the lines of the view: the old code
+  filtered the list of the library, therefore an answer in a different sequence
+  gave the episodes of a different podcast. That is a fault that no user
+  reported, and the measurement of a podcast library found it.
+
+**A library of podcasts drops a line whose media the program did not read**, and
+the log says how many. One page holds 500 podcasts, therefore no user of the
+measurement meets that condition, and a view that opens a podcast with no episode
+would say a reason that it does not have (T-91).
+
+**The measurement of the answer, with the real program:**
+
+| The library | The words | The screen |
+|---|---|---|
+| Large (2056 books, one page read) | `Large Book 0100` | "Search result [1 item]", and the book |
+| Podcasts | `Balzac` | "Search result [1 item]", and the key `l` gives its 57 episodes |
+| Books | `carroll` | "Search result [1 item, with the books of Lewis Carroll]" |
+| Books | `chronicles` | "Search result [3 items]", the three books of the series |
+
+`tests/the_search_shows_a_media_of_the_server.rs` draws the view with a real
+`App` and a media that the lists of the library do not hold. Two tests of
+`search_library` hold the group `podcast` and the values of a media.
+
+**The group `episodes` stays outside.** No measurement of the sandbox gave one
+hit of that group (`q=Chapter` of a podcast of 57 episodes gives 0), therefore
+the program has no evidence of its shape. **Do not add what you cannot measure.**
+
 ### T-114: a text of no letter is not a value
 
 **The line of the Library view said `Author:  - Year: N/A`.** The two values of
