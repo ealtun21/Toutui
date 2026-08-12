@@ -4564,6 +4564,72 @@ item of the form `epub` now.
 at the end of one item: it took 16 seconds, and it found two faults that 913
 tests of the fast suite did not.
 
+### The sweep of a library of the size that a user has, 2026-08-12
+
+**The road of 2026-08-12 named this sweep, and it found four faults.** The
+sandbox held 14 books, and the paging of T-70 came from a mock server only: a
+library of 2056 items had no measurement with the real program at all.
+
+**The data.** A library `Large` of **2056 items** stands in the sandbox now
+(`/largebooks` inside the container, 2056 directories of one MP3 file of 4940
+bytes). `docs/TEST-SERVER.md` holds the commands. Every item of that library
+holds **no author, no narrator, and no year**, because the file holds no such
+tag: that is the shape of a book that a user takes from a disk of their own, and
+it found the fault T-114.
+
+**What the sweep measured, and what was correct.**
+
+| The work | The measurement |
+|---|---|
+| The first frame | **609 ms**, and the library holds 2056 items |
+| The start | **one** request of `/items`, and the title says "500 items of 2056" |
+| Shift+Tab to that library | **610 ms** |
+| 500 presses of `j`, over the end of the page | the page came, and **no line of the user moved** |
+| The sequence and the filter (`f`) | the page goes back to 0, and the title says "500 items of 2056" |
+| The Home view of that library | 20 lines of Recently Added, and no page of the library |
+| A page of the server, with `curl` | **2 ms** and 470 kilobytes for 500 items |
+
+**The four faults: T-112 (the key `G`), T-113 (the search), and T-114 (a text of
+no letter).** T-113 holds two faults of one shape.
+
+### T-112: the key `G` went to the end of the page, and not to the end of the library
+
+**The user pressed `G` six times for a library of 2056 items.** The key means "go
+to the end", and `select_last` took the last line of the lines that the program
+holds. The program holds one page of 500 items at the start (T-70), therefore the
+measurement of 2026-08-12 gave this:
+
+| The press | The title of the view | The line of the user |
+|---|---|---|
+| The first | 1000 items of 2056 | Large Book 1557 (the item 500) |
+| The second | 1500 items of 2056 | Large Book 1057 |
+| The third | 2000 items of 2056 | Large Book 0557 |
+| The fourth | 2056 items | Large Book 0057 |
+| The fifth | 2056 items | **Large Book 0001** |
+
+**Every press asked for one page**, because the line of the user then stood near
+the end of the lines (`wants_the_next_page`), and the page that came moved no
+line: the key had to come again for each of the four pages.
+
+**The answer: the key waits for the pages that are left.**
+`reads_every_page_of_the_library` of `App` holds that wait. The key `G` sets it
+when the program holds fewer items than the library, it asks for the page at
+once, and `take_the_next_page_of_the_library` takes the last line again and asks
+for the page after it. The wait ends with the last page, and **a move of the user
+(`j`, `k`, or `g`) ends it too**: a user who does not want the end must not fight
+the key.
+
+**The measurement of the answer, with the real program:** one press of `G`, and
+the last item of 2056 came after **2026 ms** (four pages, and the title said
+"2056 items"). The key `g` gives the first line back with no request.
+
+`tests/the_key_g_goes_to_the_end_of_the_library.rs` holds the rule against a mock
+server of 2056 items, and it fails with the old code: "the program holds 500
+items of 2056, and the key G asked for the end".
+
+**The offline mode asks for nothing.** The wait needs a server, therefore the key
+takes the last line that the program holds and it stops there.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

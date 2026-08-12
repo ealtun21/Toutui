@@ -41,6 +41,17 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.56",
+        date: "12/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key G goes to the last media of your library.** This program reads your \
+             library page by page, and that key went to the end of the page: a user of a \
+             library of 2056 media had to press it six times. One press is enough now, and \
+             the key g gives the first line back.",
+        ],
+    },
+    Entry {
         version: "0.7.55",
         date: "12/08/2026",
         body: &[

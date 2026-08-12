@@ -139,6 +139,14 @@ pub struct App {
     /// The sequence and the filter of the library, for the request of the next
     /// page. See T-70.
     pub library_query: String,
+    /// `true` while the program reads the pages that are left, for the key `G`.
+    ///
+    /// The key `G` means "go to the end of the library". The program holds one
+    /// page of 500 items at the start, therefore the end of the lines is not the
+    /// end of the library: a user of a library of 2056 items had to press that
+    /// key **six** times. The program asks for the page that is left now, and it
+    /// takes the last line again at each page. See T-112.
+    pub reads_every_page_of_the_library: bool,
     /// The lines of the Home view. A shelf gives a line for its name, and a
     /// line for each of its media. See T-24.
     ///
@@ -1148,6 +1156,7 @@ impl App {
             library_page: 0,
             library_total: all_books.total.unwrap_or_default().max(0) as usize,
             library_query,
+            reads_every_page_of_the_library: false,
             home_rows_of_the_server: home_rows.clone(),
             home_rows,
             of_continue_listening,
@@ -2464,6 +2473,30 @@ impl App {
         // of a series gives one line, and the function reads the items in their
         // sequence: the lines of the pages before this one are the same lines.
         self.library_rows = group_library(&self.ids_library, &self.series);
+
+        // The key `G` waits for the end of the library. The new lines stand
+        // after the line of that key, therefore the key takes the last line
+        // again. See T-112.
+        if self.reads_every_page_of_the_library {
+            self.take_the_last_line_of_the_library();
+
+            if self.ids_library.len() >= self.library_total {
+                self.reads_every_page_of_the_library = false;
+            } else {
+                // **No key comes between two pages.** The user pressed `G` one
+                // time, therefore the page that is left needs no key at all.
+                self.ask_for_the_next_page_of_the_library();
+            }
+        }
+    }
+
+    /// Takes the last line of the Library view.
+    ///
+    /// The key `G` and the page that comes after that key both need it. See
+    /// T-112.
+    fn take_the_last_line_of_the_library(&mut self) {
+        let last_line = self.library_rows.len().saturating_sub(1);
+        self.list_state_library.select(Some(last_line));
     }
 
     /// Shows the authors of the library, or its narrators. See T-24 and T-73.
@@ -5132,6 +5165,9 @@ impl App {
     /// Select functions that apply to both views
     /// all select functions are from ListState widget
     pub fn select_next(&mut self) {
+        // A move of the user stops the wait of the key `G`. See T-112.
+        self.reads_every_page_of_the_library = false;
+
         match self.view_state {
             AppView::Home => {
                 // The name of a shelf is not a line of the user, therefore
@@ -5379,6 +5415,9 @@ impl App {
     }
 
     pub fn select_previous(&mut self) {
+        // A move of the user stops the wait of the key `G`. See T-112.
+        self.reads_every_page_of_the_library = false;
+
         match self.view_state {
             AppView::Home => {
                 let from = self.list_state_cnt_list.selected().unwrap_or(0);
@@ -5425,6 +5464,10 @@ impl App {
     }
 
     pub fn select_first(&mut self) {
+        // The key `g` goes to the first line, therefore the wait of the key `G`
+        // stops. See T-112.
+        self.reads_every_page_of_the_library = false;
+
         match self.view_state {
             AppView::Home => self
                 .list_state_cnt_list
@@ -5473,9 +5516,18 @@ impl App {
             AppView::Home => self
                 .list_state_cnt_list
                 .select(crate::logic::home_view::last_line(&self.home_rows)),
+            // **The end of the lines is not the end of the library.** The
+            // program holds one page at the start, therefore this key must read
+            // the pages that are left. See T-112 and T-70.
             AppView::Library => {
-                let last_index = self.library_rows.len().saturating_sub(1);
-                self.list_state_library.select(Some(last_index));
+                self.take_the_last_line_of_the_library();
+
+                self.reads_every_page_of_the_library =
+                    !self.is_offline && self.ids_library.len() < self.library_total;
+
+                if self.reads_every_page_of_the_library {
+                    self.ask_for_the_next_page_of_the_library();
+                }
             }
             AppView::SearchBook => {
                 let last_index = self.ids_search_book.len().saturating_sub(1);
