@@ -41,6 +41,17 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.50",
+        date: "12/08/2026",
+        body: &[
+            "Changed:",
+            "- **A small terminal shows more lines.** The 6 rows of the player stood empty \
+             while nothing played, and every view holds them now: a terminal of 18 rows gives \
+             the Home view 10 lines, and it gave 4. The lines move down when a playback \
+             starts, and they move back when it stops.",
+        ],
+    },
+    Entry {
         version: "0.7.49",
         date: "12/08/2026",
         body: &[
