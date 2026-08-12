@@ -1,112 +1,97 @@
-# The handover of 2026-08-12
+# The handover of 2026-08-12 (the second session of that day)
 
 This document is for the next session. It says what is done, what is open, and the
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.50**, and T-101 to T-104 belong to this session.
-The items T-88 to T-100 belong to the session before it, and T-74 to T-87 to the
+**The newest release is v0.7.55**, and T-105 to T-111 belong to this session.
+The items T-101 to T-104 belong to the session before it, and T-88 to T-100 to the
 one before that.
+
+**No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
 ## What this session closed
 
 | Item | What | Keys |
 |---|---|---|
-| T-101 | **The changelog holds every release of this fork**, and a test holds that rule | `S` |
-| T-102 | **The sequence of the media inside a collection or a playlist** | `c`, `l`, then `<` and `>` |
-| T-103 | **The Home view and the Library view of a library with no media said nothing** | `Tab` |
-| T-104 | **The 6 rows of the player go to the view while nothing plays**, and the maintainer decided it | — |
+| T-105 | **The header names the address of the server that answers**, and not the address of the login | — |
+| T-106 | The statistics of a library of one media said "1 items" | `T` |
+| T-107 | **The program said "Connected" while it knew that the server does not answer** | — |
+| T-108 | **The guard of "1 item" read one form of one text, in four files.** It reads every file of `src/ui` and of `src/logic` now | — |
+| T-70 | **The program reads the library page by page.** The start made 5 requests of a library of 2056 items, and it makes 1 | — |
+| T-62 | **A child process reads a PDF book.** The memory of the parse stays outside the program of the user | `e` |
+| T-66 | **Shift+Tab takes the next library of the server** | `S-Tab` |
+| T-110 | **The account and its permissions, `?collapseseries=1`, and two endpoints that stay outside** | `S` |
+| T-111 | A child read a PDF inside a test, and that child was the test | — |
 
-**T-101, and the fault that hid itself.** The screen of "About and changelog"
-stopped at v0.6.8 while the program was at v0.7.46: **38 releases reached no
-user.** The newest entry took `CARGO_PKG_VERSION` with `format!`, therefore the
-first line said "Changelog Toutui v0.7.46" above the words of v0.6.9, and a
-reader of that screen saw the version of their own build at the top. **A text
-that names the version of the build is not a text that names the release.**
+**Five releases: v0.7.51 to v0.7.55.** Four groups of work, and one release more
+for T-111: the run of every test with the sandbox found that fault after the tag
+of its group.
 
-`THE_ENTRIES_OF_THE_FORK` of `src/utils/changelog.rs` holds one entry for each
-release now, the newest first, and **the gate refuses a release that writes no
-entry**: `the_changelog_holds_an_entry_for_the_version_of_the_program` compares
-the newest entry with `Cargo.toml`, and
-`the_changelog_holds_an_entry_for_every_release_of_the_fork` finds a gap in the
-sequence. Therefore **a release now holds three files together**: `Cargo.toml`,
-`Cargo.lock`, and the entry of the changelog.
+**The three sweeps that no session had made each found a fault, again.**
 
-**One item of an entry is one line.** A `Paragraph` of ratatui breaks a long line
-and it never joins two lines: every old entry held the wrap of its source,
-therefore a terminal of 200 columns showed a column of 65 letters.
+- **A pool of two addresses (T-105).** `socat` held the first address and it sent
+  every byte to the sandbox: 9 connections of the start went to
+  `127.0.0.1:13456`, and the header said `localhost:13399`. Every view of the
+  program works with two addresses, and the change of the address needs no key.
+- **A library of one media (T-106).** The view of the statistics said
+  "1 items, 57 tracks, 0 authors, 0 genres". **The book of one chapter found no
+  fault**: the view of the chapters says "[1 item]".
+- **A server that goes away in the middle of a playback (T-107).** The playback
+  went on from the bytes that the program held, the position of 1800 seconds
+  waited in `pending_progress`, and the header said "Connected as toutuitest"
+  for **60 seconds** while the log of the same program said "the server does not
+  answer" every six seconds.
 
-**T-102, and the measurement that came before the code.** The two lists do not
-behave in the same way, again (T-88 found that first). `PATCH
-/api/playlists/:id` with `items` **refuses a body of one item fewer** with `400`
-and "Invalid playlist items. Length mismatch", and `PATCH /api/collections/:id`
-with `books` takes such a body and it moves the book that the body forgot **to
-the first line**. Therefore the program always sends every media of the list.
+**The pool is the truth of the header now.** `render_header` reads
+`pool.active()`, and the task of the live messages marks an address down for one
+fault only: a connection that no machine takes. A time limit is not evidence
+(T-97), and a connection that opened is not evidence either.
 
-**The screen holds the new sequence before the answer of the server.** A user
-presses `>` more than one time to move a media some lines, and a screen that
-waits for the answer between two keys moves the wrong line. `self.lists` takes
-the new sequence, the selection follows the media, and the task asks the server
-for the lists after the write.
+**T-70, and the measurement of a mock server.** A library of 2056 items: the
+start made **5** requests of `/items`, and it makes **1**. The program asks for
+the next page when the user comes near the end of the lines that it holds, and
+`ui::keys::the_lines_of_the_library` says "500 items of 2056" while a page stays
+outside.
 
-**The keys `<` and `>` need no modifier**, and that is not an accident:
-`handle_key` reads `key.code` only, therefore a key of Ctrl reaches the handler
-as the letter itself. A key with a modifier needs work in that function first.
+**T-62, and the memory of a book of a scan.** A PDF of 47 megabytes, 60 pages of
+1200 by 1600 pixels:
 
-**T-103, and the sweep that found it.** A library of no item: the sandbox holds
-the library "Empty". The Home view and the Library view gave a title of
-"[0 items]" and ten rows of nothing, and **six other views held the rule of T-91
-already**. The program starts in the Library view when the Home view holds no
-line, therefore that text is the first text of such a user.
+| The moment | With the parse in the program | With a child |
+|---|---|---|
+| While the parse runs | 101 MB, and it grows to 113 | **39 MB, and it does not move** |
+| The book stands on the screen | 113 MB | **53 MB** |
 
-**Three conditions, and their sequence is the rule.** A server that does not
-answer comes first (the program knows nothing then), a filter comes second (the
-library holds media, and the filter hides every one of them), and the library
-itself comes last. `App::render_the_reason` of `src/ui/tui.rs` holds the shape of
-that screen in one place now.
+The child took 106 megabytes at its peak, and that memory went away with the
+process. **This needed no dependency**: `std::process` spawns the child, and
+`pdf_of_a_child` writes the form of the file.
 
-**T-104, and the decision of the maintainer.** The question of T-99 has an answer
-now: **"let the rows reflow when nothing plays"** (2026-08-12). A terminal of 100
-by 18 gives the Home view **10 lines**; it gave 4 after T-99, and 1 before it.
-`the_areas_of_a_view` of `src/ui/tui.rs` holds the layout of the eleven views of a
-list in one place, and the row of the message above the footer stays at every
-moment (the trap 39), therefore the reflow gives the view 6 rows and not 7.
-
-**The first form of that work took a line of the list away.** `the_areas_of_a_list`
-compared **its own area** with the 12 rows of T-99, and that area grew by 6: a
-screen of 20 rows then gave the list 6 lines with no playback and 7 with one,
-because the larger area crossed the threshold and a half of it went to the
-description. **The split is a rule of the screen, and not of the area**, and
-`one_screen_holds_one_split_of_the_work_of_a_view` holds that rule for 60 heights
-of a screen.
-
-**The sweeps of this session that found no fault**: a terminal of 300 columns
-(every text of every view fills the width, and the changelog of T-101 does too), a
-terminal of 80 columns with the new footer of T-102 (it wraps to the second row
-and it keeps every word), and a library of **one** item (every title says
-"1 item", and the three keys of a library of podcasts say why they do nothing).
+**T-110, and the two measurements that decided a row.** `?collapseseries=1` gives
+the **same screen**: 14 items with no parameter and 10 lines with it, the same 10
+lines that `group_library` makes. `GET /api/podcasts/:id/checknew` gives **0**
+episodes for a podcast that is missing **54**, therefore it stays outside.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.50` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.55` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 896 tests pass in 2.2 s, 24 carry #[ignore], 42 binaries
-    # cargo nextest run --run-ignored all gives 920 of 920 with the sandbox up,
+    # 913 tests pass in 2.3 s, 24 carry #[ignore], 43 binaries
+    # cargo nextest run --run-ignored all gives 937 of 937 with the sandbox up,
     # in 16 s: one test of that run waits 15 s for the time limit of a request
 cargo tree -i openssl-sys                # finds nothing
 cargo tree -i cc                         # finds libsqlite3-sys and ring only
 ```
 
-**`cargo nextest run` gives the same tests in 2.2 seconds**, and `cargo test` gives
+**`cargo nextest run` gives the same tests in 2.3 seconds**, and `cargo test` gives
 them in 8.7. Use nextest: `.config/nextest.toml` stands in the repository, and the
 tool is on this machine. See T-74.
 
 **Every test of the sandbox passes too.** One run of
-`cargo nextest run --run-ignored all` gives **920 of 920**, and the group
+`cargo nextest run --run-ignored all` gives **937 of 937**, and the group
 `the-sandbox` of `.config/nextest.toml` runs them one at a time for the rate limit
 of the login. With `cargo test`, give `-- --ignored --test-threads=1`.
 
@@ -136,7 +121,20 @@ reads `tests/data/alice.epub` only, and it passes.
 `Cargo.toml`, and the workflow refused it, as it must. The work of that tag is in
 v0.6.7. Do not try to publish v0.6.6.
 
-## What the session before this one closed (T-88 to T-100)
+## What the session before this one closed (T-101 to T-104)
+
+| Item | What | Keys |
+|---|---|---|
+| T-101 | **The changelog holds every release of this fork**, and a test holds that rule | `S` |
+| T-102 | **The sequence of the media inside a collection or a playlist** | `c`, `l`, then `<` and `>` |
+| T-103 | **The Home view and the Library view of a library with no media said nothing** | `Tab` |
+| T-104 | **The 6 rows of the player go to the view while nothing plays** | — |
+
+**A release holds three files together**: `Cargo.toml`, `Cargo.lock`, and one new
+entry at the top of `THE_ENTRIES_OF_THE_FORK` of `src/utils/changelog.rs`. The
+gate refuses a release with no entry (T-101).
+
+## What the session before that one closed (T-88 to T-100)
 
 | Item | What | Keys |
 |---|---|---|
@@ -246,7 +244,7 @@ items came out of the same screen: the word "ERROR: " that no other message hold
 an empty username that went forward with no word, and the field of the address
 that a wrong password emptied.
 
-## What the session before that one closed (T-74 to T-87)
+## The sessions before those (T-74 to T-87)
 
 | Item | What | Keys |
 |---|---|---|
@@ -400,105 +398,36 @@ What holds now:
 T-68 and T-69 of `docs/TAKEOVER-BACKLOG.md` hold every measurement and the five
 faults of the program that they found.
 
-### 2. The road to a program with no fault, in the sequence of its value
+### 2. The road, and what stays of it
 
-**Take one item, measure it, correct it, tag it, and go on.** Every item below
-holds its evidence, and **no item of this list needs a decision of the
-maintainer**: the changelog is complete (T-101), the sequence of a list is done
-(T-102), and the rows of the player reflow (T-104, the decision of 2026-08-12).
+**Every item of the road of the session before this one is closed.** The three
+sweeps that stayed (T-105, T-106, T-107), the guard of the texts (T-108), the
+three items that waited for a user (T-70, T-62, T-66), and the four rows of the
+table that said `Half` (T-110). **No item of that road stays.**
 
-#### Group 1: what a user sees
+#### What a next session can take
 
-1. **The keys of a media that the server offers and the program does not.** Read
-   the table of section 4 of `docs/T-24-coverage.md`, and **read the code of each
-   row before you take it**: the session of T-88 to T-100 found four rows of that
-   table that were old, and T-102 corrected the two rows of the lists.
-2. **The changelog is complete, and a test holds it there (T-101).** A release
-   writes its entry at the top of `THE_ENTRIES_OF_THE_FORK`, in the words of a
-   user. The gate refuses a release with no entry, therefore this item needs no
-   sweep: it needs the habit.
-3. **The sequence of the media of a list is done (T-102).** The two rows of the
-   lists of `docs/T-24-coverage.md` say "Yes" now, and the sequence inside a
-   **series** belongs to the server and not to a user.
-
-#### Group 2: the sweeps that stay
-
-**Every sweep of a condition that no session had made found a fault**: 80
-columns (T-90 and T-94), the offline mode (T-91), the view of the login (T-92),
-the reader (T-95), and a terminal of 18 rows (T-99). These conditions stay:
-
-1. ~~**A library of one item**~~: done on 2026-08-12, and it found no fault. **A
-   book of one chapter** stays: every "1 item" of the program (T-85, T-95, and
-   T-100 each found one of those texts in a different place). **A library of no
-   item found T-103.**
-2. **A pool of two addresses.** `config.toml` takes more than one address of one
-   server, and no sweep drove the program with two. T-97 changed the rule of that
-   pool, and a measurement with two addresses would show the change of address
-   that no test of a mock server shows.
-3. **A media that the server holds and the disk does not**, while the server goes
-   away in the middle of a playback.
-4. ~~**A terminal of 300 columns**~~: done on 2026-08-12, and it found no fault.
-   The texts of the settings, of the keys, of the changelog, and of the Home view
-   all fill the width.
-
-#### Group 3: the tests and the harness
-
-1. **The fast suite must stay at about 2 seconds.** It holds 885 tests in 2.2 s
-   today. A new test that needs a wait belongs behind `#[ignore]`, as
-   `one_request_that_stops_at_its_time_limit_keeps_the_address` does with its 15
-   seconds.
-2. **A guard test must hold the rule of the user, and not the form of the code.**
-   `no_title_of_a_view_counts_its_own_items` reads `{} items` of four files, and
-   it did not find `{} item(s)` of the view of the lists (T-100 found that one by
-   hand). **A better guard reads every file of `src/ui` and of `src/logic`**, and
-   it names every text that counts its own items in any form.
-3. **The tests of the sandbox take one token (T-96).** A new test of that kind
-   takes `mod common; use common::token;` and it writes no login of its own.
-4. **A test that measures the absence of a fault must give the fault the time to
-   appear** (T-74). A poll of the value that the test wants is a false pass.
-
-#### Group 4: the words for the user
-
-1. **Every text in ASD-STE100 simplified technical English.** Short sentences,
-   active voice, one instruction per sentence.
-2. **A view says why it holds no line**, and it never says a reason that the
-   program does not have (T-91).
-3. **A key that does nothing in one view is a fault of its own** (T-79).
-4. **The row of the message holds one line of 150 letters** (the trap 11), and
-   **a message lives six seconds**: read it inside that time, and read the row
-   that holds it.
-
-#### Group 5: the work that waits for a user
-
-1. **The peak of the memory of a PDF (T-62).** `Document::load` of `lopdf` reads
-   the whole file, therefore a book of 500 megabytes needs a machine of a
-   gigabyte for one moment. `MAX_BOOK_BYTES` of 512 megabytes holds that limit.
-   A reader of one page at a time needs a different crate, and no such crate of
-   pure Rust exists. **Take this when a user meets it.**
-2. **The list of Continue Listening of a different library (T-66).** The Home
-   view shows one library, therefore no user meets this today.
-3. **A view of the search that holds its own titles (T-70).** `get_all_books`
-   reads every page at the start, and 500 pages of 500 items hold 250000 items:
-   no library of a user meets this today.
-
-#### How to know that the work of an item is done
-
-- The three gates pass: `cargo clippy --all-targets -- -D warnings`,
-  `cargo fmt --check`, and `cargo nextest run` with a real null asound file.
-- `cargo nextest run --run-ignored all` gives every test with the sandbox up.
-- **A build with the correction removed fails.** Show the fault before you
-  correct it, and show that the test finds it.
-- The real program in tmux shows the new behaviour, and a second program
-  (`curl`, `podman logs abs-test`, or a browser) says the same.
-- `docs/TAKEOVER-BACKLOG.md` holds the measurement, and this document holds the
-  item, the trap, and the next work.
-- The commit names the item (T-nn), and the release holds `Cargo.toml` and
-  `Cargo.lock` together.
-
-`docs/T-24-coverage.md` section 6 names every function that the program must
-**not** have, with the reason. Read it before you take a row of the table that
-says `No`. **A measurement changed one row of that section on 2026-08-11:** a PDF
-of text holds its text, therefore T-54 reads it. A CBZ stays outside.
+1. **The sweeps that no session has made.** Every sweep of a condition that no
+   session had made found a fault, five sessions in a row. These conditions stay:
+   - **A library of a size that the user has**, with the paging of T-70: 2056
+     items in the sandbox, and a user who presses `G` at the first frame.
+   - **A terminal that changes its size while the program runs.**
+   - **Two accounts of two servers**, with a position of a media of each.
+   - **A book of a scan of 500 megabytes**, at `MAX_BOOK_BYTES`: the child of
+     T-62 holds the memory, and the time of the parse is the value to measure.
+2. **The row of the table that stays.** *Send an ebook to an e-reader*
+   (`GET /api/emails/settings`). It is the one row of section 4 that says `No`
+   for a function that a user of a terminal can use, and it needs the settings
+   of the email of the server. **The issue #24 stays open for that row.**
+3. **The fast suite stays at about 2 seconds.** It holds 913 tests in 2.3 s. A
+   new test that needs a wait belongs behind `#[ignore]`.
+4. **`cargo nextest run --run-ignored all` belongs at the end of a session**, and
+   not at the end of one item: it took 16 seconds on 2026-08-12, and it found two
+   faults that the 913 tests of the fast suite did not (T-111).
+5. **The words for the user.** Every text in ASD-STE100. A view says why it holds
+   no line, and it never says a reason that the program does not have (T-91). A
+   key that does nothing in one view is a fault of its own (T-79). A message
+   lives six seconds.
 
 ### 3. The decisions that the maintainer made, and what they bind
 
@@ -515,9 +444,10 @@ reads the encrypted token, therefore an alpha version and a pre-release are not
 acceptable in those two places. Look again when `turso` is a release and
 `rustls-rustcrypto` is beta or better.
 
-**The seven decisions of 2026-08-12, for the session that closes every item.** The
-maintainer answered each of them before that session began, therefore **no item of
-the road needs a question and no item stays deferred**:
+**The seven decisions of 2026-08-12, and every one of them is done.** The
+maintainer answered each of them before the session of that day, therefore no
+item of the road needed a question. Section 4 below holds the two answers that a
+measurement changed.
 
 1. **The rows of the player reflow while nothing plays** (T-104, done).
 2. **T-62, the memory of a PDF: a child process reads the book.** The program
@@ -547,6 +477,50 @@ the road needs a question and no item stays deferred**:
    while it runs, therefore the sweep of a server that dies in the middle of a
    playback measures the position, the message, the session of the server, and the
    parts of the stream. **No run of that session opens the real sound device.**
+
+### 4. The decisions that this session made
+
+The maintainer answered seven questions before this session. **Two of those
+answers could not hold as they stood**, and this section holds the change and the
+measurement that made it. Every other answer holds as the maintainer gave it.
+
+**1. `GET /api/podcasts/:id/checknew` stays outside.** The maintainer asked for
+that endpoint *where it is cheaper than the work of the program*, and with the
+rule that *no episode that is missing may go away*. The measurement of
+2026-08-12 shows that the two conditions cannot both hold: the podcast of the
+sandbox holds **3 episodes of a feed of 57**, and the endpoint gives **0**
+episodes in 15 bytes while the feed gives 57 in 27598 bytes. It compares with the
+time of the last examination, therefore it says that nothing is new for a podcast
+that is missing 54 episodes. **It is cheaper only where it is wrong.** The
+nearest answer that keeps the rules: the program keeps its own work, the row of
+the table says `Yes` for the function, and section 6 of
+`docs/T-24-coverage.md` holds the endpoint with this measurement.
+
+**2. Shift+Tab works in the Home view and in the Library view.** The maintainer
+named the Home view. **The two views share one footer**, and a key that a footer
+names and that does nothing in that view is a fault of its own (T-79). The
+nearest answer that keeps the rules of this document is therefore the key in both
+views. `Tab` still moves between them, and the Home view still holds one library.
+
+**3. `group_library` stays, and the program takes `?collapseseries=1`.** The
+maintainer said that `group_library` goes away only when the screen of the server
+is the same screen. **It is the same screen**, and the function still holds work
+that the server does not do: it gives the line of a series the place of that
+series in `App::series`, and the view reads the books, the description, and the
+cover there. The parameter takes the items of a series out of the answer, and
+`total` then counts the lines that the user reads.
+
+**4. The largest footer is 130 characters, and it was 92.** The key of T-66 needs
+a place in the footer of the Home view and of the Library view. The area of the
+footer holds **two rows**, therefore a terminal of 80 columns holds 160 cells. A
+measurement of the real program in a terminal of 80 columns read every word of a
+footer of 116 characters, on two rows.
+
+**5. `TOUTUI_AUDIO_DEVICE=null` is the way to measure a playback with no sound.**
+`ALSA_CONFIG_PATH` does not silence the real program (the trap 11 of the
+harness), and this variable gives the null device of ALSA: the log of the program
+then says "[worker] the application uses the sound device alsa:null". **No run of
+this session opened the real sound device.**
 
 ## The harness: where the time went, with numbers
 
@@ -921,6 +895,39 @@ answers slowly while it writes. Two answers to measure:
     the description: the list of a screen of 20 rows lost one line. Take the rows
     that the player left away before you compare. See T-104.
 
+63. **The header of the screen named the address of the **login**, and the pool
+    moves between the addresses at every request.** A sweep of two addresses read
+    `localhost:13399` in the header while every request went to
+    `127.0.0.1:13456`. `render_header` reads `pool.active()` now. See T-105.
+64. **`App::is_offline` comes from `App::new` only.** The start of the program
+    and the key `R` are the two moments that give it a value, therefore the
+    screen said "Connected" for as long as the user pressed no key. **The pool
+    knows more, and it knows it earlier.** See T-107.
+65. **No request of the program fails while the user presses no key.** The pool
+    therefore learned nothing of a server that went away. The task of the live
+    messages tries a connection every few seconds, and it marks the address down
+    for one fault only: a connection that no machine takes. See T-107.
+66. **A rule of a text that reads one form finds one fault of many.** The guard
+    of "1 item" read `{} items` of four files, and it did not find `{} item(s)`,
+    `{} sessions`, `{} book(s)`, or `{count} files`. A guard reads **every** file
+    of `src/ui` and of `src/logic` now. See T-108.
+67. **`total` of the library changes with `?collapseseries=1`.** With no
+    parameter it counts the items (14 in the sandbox), and with the parameter it
+    counts the **lines** (10). A measurement of the paging that reads `total`
+    must therefore come after the decision of that parameter. See T-70 and T-110.
+68. **`GET /api/podcasts/:id/checknew` compares with the time of the last
+    examination, and not with the episodes that the server holds.** A podcast of
+    3 episodes of a feed of 57 gives **0**. It is cheaper only where it is wrong.
+    See T-110 and the trap 14.
+69. **`std::env::current_exe()` is the binary of a test inside a test.** A
+    program that spawns itself must know that the program of the user runs:
+    `main` writes that value, and a test and every program that takes this
+    library read the book in their own process. See T-62 and T-111.
+70. **A `Paragraph` of ratatui needs an area, and an area of no work is an area
+    that a session forgets.** The view of the accounts held `_item_area` and it
+    drew nothing there for a year of releases. Look for a name that starts with
+    an underscore before you say that a view has no room. See T-110.
+
 ### Of the harness and of the machine
 
 1. **A fixed `sleep` is the largest waste of a session.** The first frame of the
@@ -976,23 +983,49 @@ answers slowly while it writes. Two answers to measure:
     checking files" every two seconds for ever. `podman restart abs-test` is the
     answer, and a measurement of such a media must start from a server that came up
     now. See T-68.
-13. **`playwright` wants its own browser:**
+13. **`TOUTUI_AUDIO_DEVICE=null` gives the null device of ALSA**, and the log of
+    the program then says "[worker] the application uses the sound device
+    alsa:null". **This is the way to measure a playback with no sound**, and
+    `ALSA_CONFIG_PATH` is not (the trap 11). `docs/TEST-SERVER.md` names it.
+14. **The null device plays fast, therefore a media of 30 minutes comes to its
+    end in about 50 seconds.** A measurement of a playback that must live longer
+    needs a pause, and a measurement of the end of a media needs that time.
+15. **`pkill -f <a text>` kills the shell of the harness.** The command line of
+    that shell holds the text of the script, therefore the pattern finds it.
+    **Write the identity of the process in a file** and give that identity to
+    `kill`.
+16. **`pgrep -f "target/debug/toutui"` finds the client of tmux too.** That
+    process holds the whole command of `tmux new-session`. Take
+    `pgrep -n -f` for the newest process, and read
+    `/proc/<the process>/cmdline` before you measure its memory: a measurement of
+    the wrong process gave 5.9 megabytes for a program that held 128.
+17. **A large PDF for a measurement needs samples that no algorithm makes
+    smaller.** `convert -size 1200x1600 -depth 8 rgb:<random bytes> big.jpg` and
+    then `img2pdf` of 60 copies give a file of 47 megabytes.
+18. **`/usr/bin/time` stands on no machine of this session.** Read
+    `resource.getrusage(RUSAGE_CHILDREN)` of Python for the peak of a child, and
+    `/proc/<the process>/status` (`VmHWM` and `VmRSS`) for a program that runs.
+19. **`playwright` wants its own browser:**
     `play.chromium.launch(executable_path="/usr/bin/chromium")`.
-14. **The sweep of the view of the login uses the rate limit of the login.** Each
+20. **The sweep of the view of the login uses the rate limit of the login.** Each
     attempt is one `POST /login` of the 40 of 600 seconds, and the tests of the
     sandbox need that limit too. **Run the sweep, and then `podman restart
     abs-test` before the tests.** See T-92.
-15. **The offline mode needs no new configuration**: `podman stop abs-test`, and
+21. **The offline mode needs no new configuration**: `podman stop abs-test`, and
     the program starts in that mode with the media of the disk. The header says
     "Offline". `podman start abs-test` gives the server back. See T-91.
-16. **A sweep of the login needs a `XDG_CONFIG_HOME` with no database.** Two
+22. **A sweep of the login needs a `XDG_CONFIG_HOME` with no database.** Two
     files make it (the trap 7), and the program then draws the field of the
     address. A second sweep needs the database of that directory removed again.
-17. **A measurement of a disk must write data that no algorithm makes smaller.**
+23. **A measurement of a disk must write data that no algorithm makes smaller.**
     `dd if=/dev/zero` gave 7.4 GB/s on the ZFS of the maintainer, because
     `compression=on` makes a file of zeros almost nothing. The same measurement
     with a file of `/dev/urandom` gave 1.4 GB/s. See T-98.
-18. **The disk of the maintainer is not the slow part of a build.** ZFS gives
+24. **A second `XDG_DATA_HOME` gives a cache of the ebooks that is empty.**
+    `start_the_program "XDG_DATA_HOME=<a new directory>"` gives the variable a
+    second time, and the last value wins. A measurement of a book that the cache
+    holds already needs it.
+25. **The disk of the maintainer is not the slow part of a build.** ZFS gives
     1.4 GB/s of data that no algorithm makes smaller, and 3000 small files take
     1140 ms against 953 ms of the memory. **A `tmpfs` for `target` gives some
     seconds and it takes 11 gigabytes of the memory.** The processor makes the
@@ -1086,181 +1119,87 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This prompt is for one continuous session that closes every item that stays.**
-The maintainer answered every question before it begins (section 3 of this
-document, "The seven decisions of 2026-08-12"), therefore **nothing stays
-deferred, and nothing needs a question**. Work alone from the first minute to the
-last, and **give one report at the end**.
+**Every item of the road of 2026-08-12 is closed**, therefore this prompt asks for
+work of a different kind: the sweeps that no session has made, and the one row of
+the table that stays.
 
-> Continue the Toutui takeover, and close every item that stays. Repo:
-> `/home/nyverino/Documents/Toutui` (ealtun21/Toutui, branch main). Maintained
-> fork of the archived AlbanDAVID/Toutui. Newest release **v0.7.50**;
-> `Cargo.toml` is at 0.7.50. The workflow refuses a tag that disagrees with
-> `Cargo.toml`, **and it builds `--locked`**. **A release holds three files
-> together**: `Cargo.toml`, `Cargo.lock`, and one new entry at the top of
-> `THE_ENTRIES_OF_THE_FORK` of `src/utils/changelog.rs`. The gate fails without
-> that entry (T-101).
+> Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
+> (ealtun21/Toutui, branch main). Maintained fork of the archived
+> AlbanDAVID/Toutui. Newest release **v0.7.55**; `Cargo.toml` is at 0.7.55. The
+> workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
+> `--locked`**. **A release holds three files together**: `Cargo.toml`,
+> `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
+> `src/utils/changelog.rs`. The gate fails without that entry (T-101).
 >
-> **One session, one report.** Close every group below, in the sequence below.
-> **Do not report between two groups, and do not ask a question**: the maintainer
-> answered every question of this work already, and each answer stands in the
-> item that needs it. **No item may stay deferred.** If a measurement shows that
-> an answer cannot hold, take the nearest answer that keeps the rules of this
-> document, and write that change in the handover under "The decisions that this
-> session made".
->
-> **Read before you touch code:** `docs/HANDOVER.md` (the state, the seven
-> decisions, the road, and 80 traps that cost real time),
-> `docs/TAKEOVER-BACKLOG.md` (the evidence of every item; **T-87 and T-97 are the
-> two to know**, and T-101 to T-104 are the newest), and
-> `docs/T-24-coverage.md` (**section 4** is the table of the work that stays, and
-> **section 6 names what the program must not have, with the reason**).
+> **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
+> the road, and 95 traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
+> evidence of every item; **T-87, T-97, T-105, and T-107 are the four to know**,
+> and T-105 to T-111 are the newest), and `docs/T-24-coverage.md` (**no row of
+> section 4 says `Half`**, and **section 6 names what the program must not have,
+> with the reason**).
 >
 > **The way of working, for every item.** Show the fault before you correct it,
 > and let a test find it: a build with the correction removed must fail. Make the
 > data of the fault exist in the sandbox (`docs/TEST-SERVER.md`, podman on
 > `:13399`; `podman start abs-test` gives the server back with every book of the
-> sessions before, and `podman restart abs-test` after a transcode that died).
-> **Drive the real program inside tmux** with `docs/harness/drive.sh`; a screen of
-> your own writing lies to you. Verify with a second program: `curl`,
-> `podman logs abs-test`, or a browser. Write the measurement in
-> `docs/TAKEOVER-BACKLOG.md` under a new item (T-105 and up), and name that item
-> in the commit.
+> sessions before). **Drive the real program inside tmux** with
+> `docs/harness/drive.sh`; a screen of your own writing lies to you. Verify with a
+> second program: `curl`, `podman logs abs-test`, or a browser. Write the
+> measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-112 and up), and
+> name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
-> `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a real null asound file
-> (`/dev/null` hangs the real binary). Baseline: **896 tests in 2.2 seconds**, and
-> `cargo nextest run --run-ignored all` gives **920 of 920** with the sandbox up.
-> The fast suite stays near two seconds: a test that needs a wait carries
-> `#[ignore]`.
+> `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a real null asound file.
+> Baseline: **913 tests in 2.3 seconds**, and `cargo nextest run --run-ignored all`
+> gives **937 of 937** with the sandbox up, in 16 seconds. **Run that second
+> command at the end of the session too**: it found two faults of 2026-08-12 that
+> the fast suite did not (T-111).
 >
-> **The releases: one for each group of work**, and not one for each item. Four
-> groups, therefore four tags. Every tag holds its changelog entry, in the words
-> of a user, and every tag goes to the remote at once. **Never wait for continuous
-> integration.**
+> **No run opens the real sound device.** `TOUTUI_AUDIO_DEVICE=null` gives the
+> null device of ALSA, and the log then says "the application uses the sound
+> device alsa:null". `ALSA_CONFIG_PATH` does **not** silence the real program.
 >
-> **No run of this session opens the real sound device.** Nobody can answer a
-> question while you work. The device `null` of ALSA is for `cargo test` only, and
-> it does not silence the real program: measure a playback with the position of the
-> media, the message of the program, the session of the server
-> (`podman logs abs-test` writes "Starting session for user"), and the parts of the
-> stream.
+> ### The work, in the sequence of its value
 >
-> ### Group 1 — the three sweeps that stay. Take these first: every sweep that no
-> session had made found a fault.
->
-> 1. **A pool of two addresses.** `config.toml` takes more than one address of one
->    server, and no sweep ever drove the program with two. T-97 changed the rule of
->    that pool (a request that stops at its time limit is not an address that is
->    down), and no test of a mock server shows a change of address. Give the
->    isolated `XDG_CONFIG_HOME` two addresses of the sandbox — one that answers and
->    one that does not — drive every view, and then stop the first address in the
->    middle of the work.
-> 2. **A book of one chapter**, and every "1 item" that stays. T-85, T-95, and
->    T-100 each found one of those texts in a different place.
-> 3. **A media that the server holds and the disk does not, while the server goes
->    away in the middle of a playback.** `podman stop abs-test` while a playback
->    runs, with no sound device.
->
-> Every fault of a sweep is its own item of the backlog, with the screen that shows
-> it. **One tag closes this group.**
->
-> ### Group 2 — the guard test that a fault of T-100 asked for
->
-> `no_title_of_a_view_counts_its_own_items` of `src/ui/keys.rs` reads `{} items` in
-> four files, and it did not find `{} item(s)` of the view of the lists. **Write a
-> guard that reads every file of `src/ui` and of `src/logic`** and names every text
-> that counts its own items in any form. Correct every text that it finds, and use
-> `ui::keys::items`. **One tag closes this group.**
->
-> ### Group 3 — the three items that waited for a user. **The answers are made,
-> and the sequence is fixed: T-70 comes before the endpoint of the series.**
->
-> 1. **T-70: the program reads the library page by page.** `get_all_books` read
->    every page at the start; ask the server for a page when the user comes near the
->    end of what the program holds. The cost of the start goes away for a library of
->    every size. The search of the server stays the authority for a title that the
->    program did not load, and the title of a view says nothing that the program
->    cannot know (T-91).
-> 2. **T-62: a child process reads a PDF book.** The program spawns itself with a
->    hidden flag, it parses the book in that process, and it writes the text and the
->    pictures to the cache of the ebooks. **The peak of the memory and every fault
->    of `lopdf` stay outside the program that the user sees.** This needs no
->    dependency, and `mupdf` stays outside (T-20). A book that the child cannot read
->    gives a message and no dead screen (T-52).
-> 3. **T-66: Shift+Tab cycles the library in the Home view.** crossterm gives that
->    key as `BackTab`, therefore `handle_key` needs no work for a modifier. `Tab`
->    keeps Home and the Library. The Home view holds one library, and no request of
->    the start changes. The footer and `src/ui/keys.rs` name the new key, or
->    `every_key_of_the_handler_stands_in_the_list` fails.
->
-> **One tag closes this group.**
->
-> ### Group 4 — the rows of `docs/T-24-coverage.md` that say Half
->
-> **Read the code of each row before you take it**: four rows of that table were
-> older than the program in an earlier session, and T-102 corrected two more.
->
-> 1. **The account and its permissions stand in the settings, under "Accounts and
->    log out".** `GET /api/me` gives the type and nine permissions, and the program
->    shows none of them. Write the type and the permissions that change the work of
->    the program, in the words of a user ("You may download", "You may not
->    delete"). A key that a permission refuses keeps its own message too.
-> 2. **Take `?collapseseries=1`**, and take it **after** the lazy paging of T-70:
->    the grouping of the server changes what one page of the answer holds, and
->    `total` with that parameter needs its own measurement. `group_library` of
->    `src/logic/library_view.rs` goes away only when the screen of the server is the
->    same screen; measure the two answers against each other first, and keep the
->    line of a series as the user reads it today.
-> 3. **Take `GET /api/podcasts/:id/checknew`** where it is cheaper than the work of
->    the program, and **keep the comparison of the feed**: that endpoint compares
->    with the time of the last examination, therefore it gives an empty list for a
->    podcast that came one second before. **No episode that is missing may go away**
->    from the answer that the user reads.
-> 4. **`GET /api/tags` stays outside.** `filterdata` gives the tags of the library
->    that the user reads, and that is what the key `f` needs. Write that reason in
->    **section 6**, and move the row out of "Half".
->
-> Every row that you close moves to "Yes" or to section 6 with its reason. **One
-> tag closes this group.**
+> 1. **The sweeps that no session has made.** Every sweep of a new condition found
+>    a fault, five sessions in a row.
+>    - **A library of the size that a user has**, with the paging of T-70. Make
+>      2056 items in the sandbox, press `G` at the first frame, and measure the
+>      time of the start and every line of the screen.
+>    - **A terminal that changes its size while the program runs.**
+>    - **Two accounts of two servers**, with a position of a media of each.
+>    - **A book of a scan of 500 megabytes**, at `MAX_BOOK_BYTES`: the child of
+>      T-62 holds the memory, and the time of the parse is the value to measure.
+> 2. **Send an ebook to an e-reader.** It is the one row of section 4 of
+>    `docs/T-24-coverage.md` that says `No` for a function that a user of a
+>    terminal can use, and **the issue #24 stays open for it**. Measure
+>    `GET /api/emails/settings` and the endpoints of the e-reader of the reference
+>    against the sandbox first: a server with no settings of the email can give no
+>    such function, and the screen must then say why.
+> 3. **The words for the user.** Every text in ASD-STE100. A view says why it
+>    holds no line, and it never says a reason that the program does not have
+>    (T-91). A key that does nothing in one view is a fault of its own (T-79).
 >
 > ### The two issues of the fork
 >
-> Give `-R ealtun21/Toutui` to every `gh` command. Write one comment on **#24**
-> with the state of the table after your work, and **close it if no row of section
-> 4 says Half or No for a function that a user of a terminal can use**. **#20**
-> stays open with its decision (`libsqlite3-sys` and `ring` stay until `turso` is a
-> release and `rustls-rustcrypto` is beta or better). Never write to
+> Give `-R ealtun21/Toutui` to every `gh` command. **#24** holds the state of the
+> table of 2026-08-12, and it stays open for the row of the e-reader. **#20**
+> stays open with its decision (`libsqlite3-sys` and `ring` stay until `turso` is
+> a release and `rustls-rustcrypto` is beta or better). Never write to
 > AlbanDAVID/Toutui: it is archived, and his credit stays in the README, the
 > LICENSE, `Cargo.toml`, and the settings screen.
 >
-> ### Before you write the report
->
-> - `docs/TAKEOVER-BACKLOG.md` holds the measurement of every new item.
-> - `docs/HANDOVER.md` holds the new state, the table of what this session closed,
->   every new trap, the road with the items that went away, "The decisions that this
->   session made", and a new prompt for the session after you.
-> - Every one of the four releases holds its entry of the changelog.
-> - `cargo nextest run --run-ignored all` gives every test with the sandbox up.
-> - `du -sh target`, and then `cargo clean --profile dev`.
-> - `git status` is clean, and `main` and every tag stand on the remote.
->
-> **The report, and it is the first word that the maintainer reads.** One message:
-> every group with its release, the fault that each sweep found, every measurement
-> that changed an answer of the maintainer, and the state of the gates. **Say
-> plainly what you did not do, and why.**
->
 > **Do not open these again.** The book of xHE-AAC plays (T-68 and T-69). Toutui
-> stays GPL, and a person may read bookokrat for an idea and must then write their
-> own code and name that project in the commit (T-51). `libsqlite3-sys` and `ring`
-> stay (T-20). The rows of section 6 of `docs/T-24-coverage.md` belong to an
-> administrator, and the program must not hold them.
+> stays GPL (T-51). `libsqlite3-sys` and `ring` stay (T-20).
+> `GET /api/podcasts/:id/checknew` and `GET /api/tags` stay outside, and section 6
+> of `docs/T-24-coverage.md` holds the measurement of each (T-110). The rows of
+> section 6 belong to an administrator, and the program must not hold them.
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
 > nothing, and `cargo tree -i cc` must find `libsqlite3-sys` and `ring` only. No
-> test may need the network — the tests of the sandbox carry `#[ignore]` and run one
-> at a time, because the login of the server permits 40 requests of 600 seconds.
-> The server of the maintainer is theirs alone: **never use it**, and never write
-> its address or its account into this repository. Measure against the sandbox.
+> test may need the network — the tests of the sandbox carry `#[ignore]` and run
+> one at a time. The server of the maintainer is theirs alone: **never use it**,
+> and never write its address or its account into this repository. Measure against
+> the sandbox.

@@ -33,6 +33,21 @@ podman run -d --name abs-test -p 13399:80 \
 The server answers at `http://localhost:13399`. The port is not 13378, thus
 the server of the user stays free.
 
+## 2b. What the sandbox holds now, 2026-08-12
+
+The container lives longer than a session, therefore the books of every session
+stay. `podman start abs-test` gives them back.
+
+| The library | What it holds |
+|---|---|
+| `Books` | 14 items: a book of many files, two series of three books, a book of one chapter (T-106), a PDF of 47 megabytes of a scan of 60 pages (T-62), a PDF that no reader reads (T-62), the book of xHE-AAC of the user, a book with a WMA file, Alice in Wonderland with an EPUB, and a long book of 30 minutes |
+| `Podcasts` | 1 podcast of **3 episodes of a feed of 57** (T-110) |
+| `Empty` | no item (T-103) |
+
+**A test that needs an EPUB must ask for the form `epub`.** The PDF of 47
+megabytes stands first in the alphabet, and a rule that takes "the first item with
+an ebook" takes that PDF. See T-111.
+
 ## 3. Make the first user
 
 ```bash
