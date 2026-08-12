@@ -5903,6 +5903,35 @@ the test, and the test reads the command of a key. The second reads
 media stand in the application, and a new application holds neither. No
 measurement of a user names them, therefore this item does not move them.
 
+### T-132: the test of the live messages passed for the data of the sandbox, and not for the program
+
+**The run of every test at the end of the session found it**, as T-111 was found:
+`a_change_of_a_different_client_comes_to_the_screen` failed after this session
+wrote the position of one book with `curl`. **The fault was in the test**, and it
+held three weaknesses of one shape — the test measured the data of the sandbox and
+not the work of the program.
+
+1. **It took the first item of the library** (`?limit=1`). The sandbox holds four
+   books of **one second** before that item now (the books of an EPUB of T-127),
+   and the test sends the second 756: the server marks such a media as finished,
+   therefore the box said "Finished" and 100 percent while the test waited for
+   "42".
+2. **It waited for a value that the row of the sandbox held already.** The message
+   `init` of the connection carries the position of every media of the account,
+   therefore a row of 42 percent let the test pass **with no live message at
+   all**.
+3. **It trusted the arithmetic of the server.** `PATCH /api/me/progress/:id`
+   keeps the `progress` of the body, and a body that holds `isFinished` beside it
+   gives the fraction of the position that stood there before: the measurement of
+   2026-08-12 sent `progress: 0.10` and read `0.1722` back. A body of `progress`
+   alone keeps the value.
+
+The test takes a media of more than 1000 seconds now, it writes **two** positions
+and it waits for each of them, and it reads the value of the second one **from the
+server**: the box must hold a value that the message `init` never carried, and one
+`assert_ne!` holds that rule. The mark goes away in a request of its own. Three
+runs one after the other give the test each time.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

@@ -77,13 +77,28 @@ async fn a_change_of_a_different_client_comes_to_the_screen() {
         .to_string();
 
     let items: serde_json::Value = api
-        .get_json(&format!("/api/libraries/{}/items?limit=1", library))
+        .get_json(&format!("/api/libraries/{}/items?limit=500", library))
         .await
         .expect("the server must give the items");
 
-    let item = items["results"][0]["id"]
+    // **A media of a duration that holds the position of this test.** The test
+    // sends the second 756, and the server marks a media of one second as
+    // finished for that value: the box then says "Finished" and 100 percent, and
+    // this test waited 20 seconds for "42" that never comes. The first form took
+    // the **first** item of the library, and the sandbox holds four books of one
+    // second before that one now (the books of an EPUB of T-127). See T-132 and
+    // T-111.
+    let item = items["results"]
+        .as_array()
+        .expect("the answer must hold a list")
+        .iter()
+        .find(|item| item["media"]["duration"].as_f64().unwrap_or(0.0) > 1000.0)
+        .expect(
+            "the sandbox must hold a book of more than 1000 seconds. \
+             `docs/TEST-SERVER.md` holds the commands of \"A Long Test Book\".",
+        )["id"]
         .as_str()
-        .expect("the library must hold one item")
+        .expect("an item must hold an identity")
         .to_string();
 
     println!("the item of the test: {}", item);
@@ -104,6 +119,60 @@ async fn a_change_of_a_different_client_comes_to_the_screen() {
     // `isFinished` must not stand before `progress` in this body. The server
     // reads the fields in the sequence of the text, and a `progress` after an
     // `isFinished` writes over it. See the traps of `docs/HANDOVER.md`.
+    // **The position of the server must differ from the position that this test
+    // measures**, and **the server decides that value**. The message `init` of
+    // the connection carries the position of every media of the account: a row
+    // that holds the value of the measurement already lets this test pass with
+    // no live message at all. And `PATCH /api/me/progress/:id` does not keep
+    // every value of the body: a measurement of 2026-08-12 sent
+    // `progress: 0.10` with `currentTime: 180` and the server wrote
+    // `progress: 0.1722`, the fraction of the position that stood there before.
+    //
+    // The test therefore writes a first position, it asks the server what that
+    // row holds now, and it then writes the second position and waits for the
+    // value **of the server**. See T-132.
+    let percent_of_the_server = |row: &serde_json::Value| -> String {
+        format!(
+            "{}",
+            (row["progress"].as_f64().unwrap_or(0.0) * 100.0).round() as i64
+        )
+    };
+
+    // **The mark of the media goes away in its own request.** The server takes
+    // the fields of one body in the sequence of the text, and a body that holds
+    // `isFinished` beside `progress` gave the fraction of the position that stood
+    // there before: a measurement of 2026-08-12 sent `progress: 0.10` with
+    // `isFinished: false` and read `0.1722` back. A body of `progress` alone
+    // keeps the value that it gives. See T-132.
+    api.patch_json(
+        &format!("/api/me/progress/{}", item),
+        &serde_json::json!({ "isFinished": false }),
+    )
+    .await
+    .expect("the server must take the mark");
+
+    api.patch_json(
+        &format!("/api/me/progress/{}", item),
+        &serde_json::json!({ "progress": 0.10, "currentTime": 180.0 }),
+    )
+    .await
+    .expect("the server must take the position of the start");
+
+    let of_the_start: serde_json::Value = api
+        .get_json(&format!("/api/me/progress/{}", item))
+        .await
+        .expect("the server must give the position of the start");
+
+    // The box must hold the first position before the second one goes, therefore
+    // the value of the measurement comes from a live message of that second
+    // position and from no other moment.
+    let of_the_start = percent_of_the_server(&of_the_start);
+
+    wait_for("the position of the start", || {
+        toutui::logic::live::progress_of(&item).is_some_and(|row| row.percent == of_the_start)
+    })
+    .await;
+
     api.patch_json(
         &format!("/api/me/progress/{}", item),
         &serde_json::json!({ "progress": 0.42, "currentTime": 756.0 }),
@@ -111,9 +180,22 @@ async fn a_change_of_a_different_client_comes_to_the_screen() {
     .await
     .expect("the server must take the position");
 
+    let of_the_measurement: serde_json::Value = api
+        .get_json(&format!("/api/me/progress/{}", item))
+        .await
+        .expect("the server must give the position");
+
+    let wanted = percent_of_the_server(&of_the_measurement);
+
+    assert_ne!(
+        wanted, of_the_start,
+        "the two positions of this test must differ, therefore the value of the \
+         box comes from a live message and not from the message `init`"
+    );
+
     wait_for("the position of the different client", || {
         toutui::logic::live::progress_of(&item)
-            .is_some_and(|row| row.percent == "42" && row.finished == "Not finished")
+            .is_some_and(|row| row.percent == wanted && row.finished == "Not finished")
     })
     .await;
 
@@ -122,7 +204,7 @@ async fn a_change_of_a_different_client_comes_to_the_screen() {
     let live = toutui::logic::live::progress_of(&item).expect("the box must hold the position");
     assert_eq!(
         toutui::ui::marks::of_progress(&live.percent, &live.finished, false).trim_end(),
-        "42%"
+        format!("{}%", wanted)
     );
 
     // A different client changes the metadata of the item. The title and the
