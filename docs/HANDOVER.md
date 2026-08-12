@@ -4,7 +4,7 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.49**, and T-101, T-102, and T-103 belong to this session.
+**The newest release is v0.7.50**, and T-101 to T-104 belong to this session.
 The items T-88 to T-100 belong to the session before it, and T-74 to T-87 to the
 one before that.
 
@@ -15,6 +15,7 @@ one before that.
 | T-101 | **The changelog holds every release of this fork**, and a test holds that rule | `S` |
 | T-102 | **The sequence of the media inside a collection or a playlist** | `c`, `l`, then `<` and `>` |
 | T-103 | **The Home view and the Library view of a library with no media said nothing** | `Tab` |
+| T-104 | **The 6 rows of the player go to the view while nothing plays**, and the maintainer decided it | — |
 
 **T-101, and the fault that hid itself.** The screen of "About and changelog"
 stopped at v0.6.8 while the program was at v0.7.46: **38 releases reached no
@@ -64,6 +65,21 @@ library holds media, and the filter hides every one of them), and the library
 itself comes last. `App::render_the_reason` of `src/ui/tui.rs` holds the shape of
 that screen in one place now.
 
+**T-104, and the decision of the maintainer.** The question of T-99 has an answer
+now: **"let the rows reflow when nothing plays"** (2026-08-12). A terminal of 100
+by 18 gives the Home view **10 lines**; it gave 4 after T-99, and 1 before it.
+`the_areas_of_a_view` of `src/ui/tui.rs` holds the layout of the eleven views of a
+list in one place, and the row of the message above the footer stays at every
+moment (the trap 39), therefore the reflow gives the view 6 rows and not 7.
+
+**The first form of that work took a line of the list away.** `the_areas_of_a_list`
+compared **its own area** with the 12 rows of T-99, and that area grew by 6: a
+screen of 20 rows then gave the list 6 lines with no playback and 7 with one,
+because the larger area crossed the threshold and a half of it went to the
+description. **The split is a rule of the screen, and not of the area**, and
+`one_screen_holds_one_split_of_the_work_of_a_view` holds that rule for 60 heights
+of a screen.
+
 **The sweeps of this session that found no fault**: a terminal of 300 columns
 (every text of every view fills the width, and the changelog of T-101 does too), a
 terminal of 80 columns with the new footer of T-102 (it wraps to the second row
@@ -72,15 +88,15 @@ and it keeps every word), and a library of **one** item (every title says
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.49` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.50` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 893 tests pass in 2.2 s, 24 carry #[ignore], 42 binaries
-    # cargo nextest run --run-ignored all gives 917 of 917 with the sandbox up,
-    # in 25 s: one test of that run waits 15 s for the time limit of a request
+    # 896 tests pass in 2.2 s, 24 carry #[ignore], 42 binaries
+    # cargo nextest run --run-ignored all gives 920 of 920 with the sandbox up,
+    # in 16 s: one test of that run waits 15 s for the time limit of a request
 cargo tree -i openssl-sys                # finds nothing
 cargo tree -i cc                         # finds libsqlite3-sys and ring only
 ```
@@ -90,7 +106,7 @@ them in 8.7. Use nextest: `.config/nextest.toml` stands in the repository, and t
 tool is on this machine. See T-74.
 
 **Every test of the sandbox passes too.** One run of
-`cargo nextest run --run-ignored all` gives **917 of 917**, and the group
+`cargo nextest run --run-ignored all` gives **920 of 920**, and the group
 `the-sandbox` of `.config/nextest.toml` runs them one at a time for the rate limit
 of the login. With `cargo test`, give `-- --ignored --test-threads=1`.
 
@@ -208,9 +224,9 @@ view **one line** of 24 media: the row of the item took 3 of the 7 rows of that
 area with a fixed length, and 10 rows of the screen were empty.
 `the_areas_of_a_list` gives every row to the list when the area holds 12 rows or
 fewer, and a terminal of 24 rows and one of 45 rows draw what they drew before.
-**The 7 rows of the player stay empty while nothing plays**, and they are the
-next question of a small terminal: a view that takes them would move every line
-when a playback starts, therefore that is a choice of the maintainer.
+**T-104 closed the question that this item left.** The 7 rows of the player stayed
+empty while nothing played, and the maintainer decided on 2026-08-12: the view
+takes 6 of them, and the row of the message keeps the seventh.
 
 **T-100, the description of a list.** The view showed the description of a list
 already, and no key made one. The same `PATCH` of T-93 takes it.
@@ -387,27 +403,21 @@ faults of the program that they found.
 ### 2. The road to a program with no fault, in the sequence of its value
 
 **Take one item, measure it, correct it, tag it, and go on.** Every item below
-holds its evidence, and no item needs a decision of the maintainer except the
-first one of the group 1. **The changelog of the fork is complete now (T-101),
-and that item was the first of this group.**
+holds its evidence, and **no item of this list needs a decision of the
+maintainer**: the changelog is complete (T-101), the sequence of a list is done
+(T-102), and the rows of the player reflow (T-104, the decision of 2026-08-12).
 
 #### Group 1: what a user sees
 
-1. **The 7 rows of the player in a small terminal (T-99).** The layout of every
-   view holds 6 rows for the player and 1 for the refresh, and they stay empty
-   while no media plays. In a terminal of 18 rows they are 7 of the 18.
-   **A view that takes them while nothing plays moves every line when a playback
-   starts**, therefore this needs the decision of the maintainer. Ask, and hold
-   the answer here.
-2. **The keys of a media that the server offers and the program does not.** Read
+1. **The keys of a media that the server offers and the program does not.** Read
    the table of section 4 of `docs/T-24-coverage.md`, and **read the code of each
    row before you take it**: the session of T-88 to T-100 found four rows of that
    table that were old, and T-102 corrected the two rows of the lists.
-3. **The changelog is complete, and a test holds it there (T-101).** A release
+2. **The changelog is complete, and a test holds it there (T-101).** A release
    writes its entry at the top of `THE_ENTRIES_OF_THE_FORK`, in the words of a
    user. The gate refuses a release with no entry, therefore this item needs no
    sweep: it needs the habit.
-4. **The sequence of the media of a list is done (T-102).** The two rows of the
+3. **The sequence of the media of a list is done (T-102).** The two rows of the
    lists of `docs/T-24-coverage.md` say "Yes" now, and the sequence inside a
    **series** belongs to the server and not to a user.
 
@@ -872,6 +882,11 @@ answers slowly while it writes. Two answers to measure:
 61. **The program starts in the Library view when the Home view holds no line**
     (`src/app.rs`, near the line 939). A measurement of the Home view of an empty
     library must press `Tab` first. See T-103.
+62. **A rule of a split is a rule of the screen, and not of an area.** The area of
+    the work of a view grows by the 6 rows of the player while nothing plays
+    (T-104), and the threshold of 12 rows of T-99 then gave a half of that area to
+    the description: the list of a screen of 20 rows lost one line. Take the rows
+    that the player left away before you compare. See T-104.
 
 ### Of the harness and of the machine
 
@@ -1040,24 +1055,24 @@ answers slowly while it writes. Two answers to measure:
 
 > Continue the Toutui takeover, and write the next version. Repo:
 > `/home/nyverino/Documents/Toutui` (ealtun21/Toutui, branch main). Maintained fork
-> of the archived AlbanDAVID/Toutui. Newest release **v0.7.49**; `Cargo.toml` is at
-> 0.7.49, so the next release bumps it first — the workflow refuses a tag that
+> of the archived AlbanDAVID/Toutui. Newest release **v0.7.50**; `Cargo.toml` is at
+> 0.7.50, so the next release bumps it first — the workflow refuses a tag that
 > disagrees with `Cargo.toml`, **and it builds `--locked`, therefore the commit of
 > the bump must hold the new `Cargo.lock`**. **A release also writes its entry of
 > the changelog** (`THE_ENTRIES_OF_THE_FORK` of `src/utils/changelog.rs`): the
 > gate fails without it. That is the rule of T-101.
 >
 > Read `docs/HANDOVER.md` first: the state, the open items, the section of the
-> harness, and 79 traps that cost real time. Then `docs/TAKEOVER-BACKLOG.md` (the
-> evidence of every item; T-101, T-102, and T-103 are the newest, and **T-87 and T-97 are the
+> harness, and 80 traps that cost real time. Then `docs/TAKEOVER-BACKLOG.md` (the
+> evidence of every item; T-101 to T-104 are the newest, and **T-87 and T-97 are the
 > two to know**) and `docs/T-24-coverage.md` (**section 6 names what the program
 > must not have, and why**).
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a real null asound file
-> (`/dev/null` hangs the real binary). Baseline: **893 tests in 2.2 seconds**, and
-> `cargo nextest run --run-ignored all` gives **917 of 917** with the sandbox up.
+> (`/dev/null` hangs the real binary). Baseline: **896 tests in 2.2 seconds**, and
+> `cargo nextest run --run-ignored all` gives **920 of 920** with the sandbox up.
 >
 > **The sweep of the views is the tool that finds the faults.** Twenty-two items of
 > the two sessions of 2026-08-11 came from sweeps in tmux with
@@ -1072,19 +1087,15 @@ answers slowly while it writes. Two answers to measure:
 >
 > **The work that stays, in the sequence of its value.**
 > `docs/HANDOVER.md`, "The road to a program with no fault", holds every item
-> with its evidence. The first three:
+> with its evidence. The first two:
 >
-> 1. **The 7 rows of the player stay empty while nothing plays (T-99).** They are
->    7 rows of a terminal of 18. A view that takes them moves every line when a
->    playback starts: **ask the maintainer**, and write the answer in the
->    handover.
-> 2. **The keys of a media that the server offers and the program does not.**
+> 1. **The keys of a media that the server offers and the program does not.**
 >    Section 4 of `docs/T-24-coverage.md` holds the table, and **read the code of
 >    each row before you take it**: some rows are older than the program.
-> 3. **The sweeps that stay:** a library of one item, a book of one chapter, a
->    pool of two addresses, and a server that goes away in the middle of a
->    playback. **Every sweep of a condition that no session had made found a
->    fault.**
+> 2. **The sweeps that stay:** a book of one chapter, a pool of two addresses,
+>    and a server that goes away in the middle of a playback. **Every sweep of a
+>    condition that no session had made found a fault**, and the sweep of a
+>    library of no item found T-103.
 >
 > **Do not open these again.** The book of xHE-AAC plays (T-68 and T-69). Toutui stays
 > GPL, and a person may read bookokrat for an idea and must then write their own code
