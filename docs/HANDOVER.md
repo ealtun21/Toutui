@@ -1,15 +1,72 @@
-# The handover of 2026-08-12 (the seventh session of that day)
+# The handover of 2026-08-13 (the first session of that day)
 
 This document is for the next session. It says what is done, what is open, and the
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.71**, and T-128 to T-132 belong to this session.
-The items T-124 to T-127 belong to the session before it, T-122 and T-123 to the
-one before that, T-119 to T-121 to the one before those, and T-112 to T-118 to the
-one before them.
+**The newest release is v0.7.75**, and T-133 to T-136 belong to this session.
+The items T-128 to T-132 belong to the session before it, T-124 to T-127 to the
+one before that, T-122 and T-123 to the one before those, and T-119 to T-121 to
+the one before them.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of 2026-08-13: two faults of the maintainer, one of the road, and one sweep
+
+**Four releases: v0.7.72 to v0.7.75.** The maintainer named two faults, and both
+of them stopped a user of a first start. The session then took the two items of
+the road that a measurement could reach.
+
+| Item | What | Keys |
+|---|---|---|
+| T-133 | **A program that a user builds keeps no token, and it stops with a screen of no character.** `install.sh` made the secret key, and no other way to the program did | the login |
+| T-134 | **The cursor of the terminal stood six rows below the field of the user.** The message of the login stood outside the frame of ratatui | the login |
+| T-135 | The key `R` took the timer for sleep of the user away, and the media played on | `R`, `S-Tab` |
+| T-136 | **An account that loses a library could not use the program again**, in any view and after every start | every key |
+
+### T-133, and it is the one to know of this session
+
+**The maintainer met it, and no session had met it**: every measurement of every
+session before this one wrote `.env` by hand, because `docs/TEST-SERVER.md` said
+so. A user who builds the program with `cargo`, with `nix`, or with a package of
+their system has no such file, therefore **`encrypt_token` failed for every one
+of them**.
+
+The screen of no character came of a `println!` of the thread of the login: the
+login screen holds the lock of the standard output while it waits for that thread
+with `join`, therefore the two threads waited for each other for ever. **A
+`println!` of a thread of the login stops the program**, and no line of
+`auth_process` writes to the terminal now.
+
+The program makes the key itself at the start, when the machine has none. It
+reads `.env` first, therefore it never makes a second key: a new key makes every
+token of every account unreadable.
+
+### T-136, and the sweep that the road named in three sessions
+
+The account `toutuilimited` of the sandbox reads one library of the five. **An
+administrator can take that library away while the program holds it**, and the
+program then held a library that answers `403`: the header said `📖  ()`, every
+view said "This library holds no media", the key `S-Tab` moved to nothing, and a
+new start gave the same screen. **No key gave the user the library that they may
+read.**
+
+The start is the place of the answer: `App::new` takes the first library of the
+account when the library of the database is not one of them, and it says so. The
+key `S-Tab` keeps its rule, because a key must not guess.
+
+Two traps of the API came with the sweep, and `docs/TEST-SERVER.md` holds them: a
+`PATCH` of an account takes `librariesAccessible` **inside `permissions`** only,
+and an empty list of libraries is **every** library.
+
+### The measurements of this session
+
+| The measurement | The answer |
+|---|---|
+| A first start with a configuration directory of no file | **one fault** (T-133), and it stops the program |
+| The cursor of the terminal of the login screen | **one fault** (T-134), at every moment of that screen and not only with a message |
+| The key `t` and then the key `R` | **one fault** (T-135): `💤 4:58` before, and no timer after |
+| An account of the type `user` that reads one library of five | **one fault** (T-136), and it locks the account out for ever |
 
 ## The session of the seventh turn of that day: the address, the rounds of the start, and the playback
 
@@ -475,16 +532,15 @@ episodes for a podcast that is missing **54**, therefore it stays outside.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.71` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.75` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 991 tests pass in 2.2 s, 25 carry #[ignore], 50 binaries
-    # cargo nextest run --run-ignored all gives 1016 of 1016 with the sandbox up,
-    # in 27.6 s: one test waits 16 s for the time limit of the send of a book
-    # (T-119)
+    # cargo nextest run --run-ignored all gives 1023 of 1023 with the sandbox up,
+    # in 16.4 s of wall clock: one test waits 16 s for the time limit of the send
+    # of a book (T-119), and one waits 15 s for the time limit of a request
 cargo tree -i openssl-sys                # finds nothing
 cargo tree -i cc                         # finds libsqlite3-sys and ring only
 ```
