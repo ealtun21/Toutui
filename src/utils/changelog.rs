@@ -41,6 +41,17 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.61",
+        date: "12/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The screen of the accounts says what this program does.** It said that the \
+             program holds more than one account and that it starts with the account that is \
+             the default one, and no key does that work. It now says how a second account \
+             works today: give the variable XDG_CONFIG_HOME a directory of its own.",
+        ],
+    },
+    Entry {
         version: "0.7.60",
         date: "12/08/2026",
         body: &[

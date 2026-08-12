@@ -4930,6 +4930,94 @@ that names the phase and the pages ("the program reads the page 84 of 150") need
 a slot between the child and the render, and `logic::reader::opened_book` holds
 the shape of such a slot already.
 
+### The sweep of two accounts of two servers, 2026-08-12
+
+**The road of 2026-08-12 named this sweep**, and it found that the condition
+cannot exist: **no key of the program makes a second account.**
+
+**The data.** A second Audiobookshelf stands in a container of its own on the port
+**13400** (`abs-test-2`), with the account `secondtest`, a library "Second Books",
+and one book of 30 minutes. Each server holds a position of a media of its own:
+
+| The server | The media | The position |
+|---|---|---|
+| `127.0.0.1:13399` | A Long Test Book | 900 s of 1800 (50%) |
+| `127.0.0.1:13400` | A Book Of The Second Server | 600 s of 1800 (33%) |
+
+**Every value of an account is correct, for the account that the program starts
+with.** The measurement of 2026-08-12, of a login of each server in an isolated
+`XDG_CONFIG_HOME`:
+
+```
+👋 Connected as toutuitest    🔗 127.0.0.1:13399   Continue Listening: 50% A Long Test Book
+👋 Connected as secondtest    🔗 127.0.0.1:13400   Continue Listening: 33% A Book Of The Second Server
+```
+
+The token, the address, the library, and the shelves of each account come from the
+row of that account. **The program holds every value that a second account
+needs.**
+
+**The four measurements of the fault:**
+
+1. **The view of the login comes only when the database holds no default
+   account** (`main.rs`, the loop of `_database.default_usr.is_empty()`). A user
+   who holds one account can therefore never reach that view, and **no key of the
+   program adds an account**: the key `l` of the accounts view removes one.
+2. **The view of the accounts lists the account of the start only.** `App::new`
+   makes `all_usernames` from `database.default_usr`, and that is one row. The
+   database of the measurement held two accounts, and the view held one line.
+3. **Every login writes `is_default_usr = true`** (`auth_process.rs`), and
+   `get_default_usr` reads `WHERE is_default_usr = 1 LIMIT 1`. With two such rows
+   the **rowid** decides: the measurement started the program with `toutuitest`,
+   the account of the first login, and the user had no key to reach `secondtest`.
+   **No key chooses the account of the start**, and the SQL of that work stands in
+   `db/crud.rs` as a comment.
+4. **The way to make the condition at all**: give `is_default_usr` of the first
+   row the value 0 with an editor of SQLite, and the view of the login then comes.
+   No user does that work.
+
+### T-118: the text of the accounts promised a function that the program does not have
+
+The text of "Accounts and log out" said:
+
+> The accounts that this program holds. … A program that holds more than one
+> account starts with the account that is the default one.
+
+**Both sentences are false**, and the second one names a function that no key of
+the program reaches. This is the rule of T-91 for a view: **a view must not say a
+thing that the program cannot do.**
+
+The text says this now:
+
+> The account of this program. The key l on the account logs out: the program
+> removes it, and it asks you for a server, a name, and a password at the next
+> start. A second account needs a second configuration: give the variable
+> XDG_CONFIG_HOME a directory of its own, and this program then holds its own
+> database there.
+
+**The last sentence is the answer that works today**, and the tests of the sandbox
+use it. `delete_user` said "User 'x' deleted. Please restart the app to apply the
+changes"; it says "The program removed the account x. Start the program again."
+
+`the_text_of_the_accounts_says_what_the_program_does` of `ui::keys` holds the
+rule, and it fails with the old text.
+
+### The question for the maintainer, of the function itself
+
+**Must this program hold more than one account?** The rows of the database, the
+column `is_default_usr`, and the view of the accounts all come from a session that
+wanted it, and no session finished it. The work needs three keys and no new data:
+
+1. A key that opens the view of the login while an account stands.
+2. A key of the accounts view that gives an account the value `is_default_usr = 1`
+   and takes it from every other row (`db/crud.rs` holds that SQL as a comment).
+3. A start of the program that takes the new account with no restart, or a message
+   that names the restart.
+
+**The cost of the work stands in the render**: every list of the program comes from
+one account, therefore the change of an account is the work of `App::new`. The key
+`R` does almost that work already.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

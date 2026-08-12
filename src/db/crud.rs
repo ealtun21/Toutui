@@ -303,8 +303,9 @@ pub fn update_is_finished(value: &str, id_session: &str) -> Result<()> {
 
 // Delete an user
 pub fn delete_user(username: &str) -> Result<()> {
+    // The words of a user, and not the words of the code. See T-118.
     let message = format!(
-        "User '{}' deleted. Please restart the app to apply the changes.",
+        "The program removed the account {}. Start the program again.",
         username
     );
     let err_message = "Error connecting to the database.";
