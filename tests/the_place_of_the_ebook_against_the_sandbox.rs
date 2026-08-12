@@ -24,12 +24,24 @@ const WIDTH: u16 = 80;
 mod common;
 use common::token;
 
-/// The first item of the sandbox that holds an ebook.
+/// The items of the sandbox that hold an EPUB book, and the book of the
+/// measurement first.
+///
+/// **The first EPUB of the library is not always a book that opens.** The sweep
+/// of 2026-08-12 put three files that are not a valid EPUB in the sandbox, and
+/// each of their titles stands before "Alice in Wonderland" in the answer of
+/// the server: this test then said "the book must open: NotAnEpub". The test
+/// names the book that it needs, and it takes every other EPUB after it. See
+/// T-127.
+const THE_BOOK_OF_THE_MEASUREMENT: &str = "Alice in Wonderland";
+
 async fn item_with_an_ebook(api: &Arc<ApiClient>) -> String {
     let libraries: serde_json::Value = api
         .get_json("/api/libraries")
         .await
         .expect("the server must give the libraries");
+
+    let mut of_the_measurement: Option<String> = None;
 
     for library in libraries["libraries"].as_array().unwrap_or(&Vec::new()) {
         if library["mediaType"].as_str() != Some("book") {
@@ -46,15 +58,28 @@ async fn item_with_an_ebook(api: &Arc<ApiClient>) -> String {
             // put a PDF of 47 megabytes of a scan in the sandbox: that book
             // stands first in the alphabet, it holds no chapter, and the test
             // then measured a form of the place that a PDF never writes.
-            if item["media"]["ebookFormat"].as_str() == Some("epub") {
-                return item["id"].as_str().unwrap_or_default().to_string();
+            if item["media"]["ebookFormat"].as_str() != Some("epub") {
+                continue;
+            }
+
+            let id = item["id"].as_str().unwrap_or_default().to_string();
+
+            if item["media"]["metadata"]["title"].as_str() == Some(THE_BOOK_OF_THE_MEASUREMENT) {
+                return id;
+            }
+
+            if of_the_measurement.is_none() {
+                of_the_measurement = Some(id);
             }
         }
     }
-    panic!(
-        "the sandbox must hold one item with an EPUB book. See docs/TEST-SERVER.md, \
-         section of T-10."
-    );
+    of_the_measurement.unwrap_or_else(|| {
+        panic!(
+            "the sandbox must hold the book \"{}\", or one other item with an EPUB \
+             book. See docs/TEST-SERVER.md, section of T-10.",
+            THE_BOOK_OF_THE_MEASUREMENT
+        )
+    })
 }
 
 /// Renders the chapter that the reader shows, and waits for the lines.
