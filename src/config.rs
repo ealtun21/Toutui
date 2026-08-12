@@ -2,8 +2,15 @@ use crate::api::client::endpoint::{Endpoint, EndpointPool};
 use color_eyre::eyre::{Report, Result};
 use config::{Config as ConfigLib, File};
 use serde::Deserialize;
+use std::path::Path;
 
-#[derive(Debug, Deserialize)]
+/// The text of `config.example.toml`.
+///
+/// The program holds that text, therefore it can make the file itself. See
+/// T-122.
+pub const THE_EXAMPLE_OF_THE_CONFIGURATION: &str = include_str!("../config.example.toml");
+
+#[derive(Debug, Deserialize, Default)]
 pub struct ConfigFile {
     pub colors: Colors,
     /// The servers that the configuration file gives.
@@ -25,7 +32,15 @@ pub struct ReaderConfig {
     pub ebook_cache_mb: u64,
 }
 
+/// The colors of the views.
+///
+/// **A key that the file does not hold takes the value of the program**, and it
+/// keeps every other color of the file. A configuration file of an older
+/// version holds no `player_background_color`, and such a file stopped the
+/// program before T-122: the block `colors` is one value for `serde`, therefore
+/// one key that was absent lost the whole block.
 #[derive(Debug, Deserialize)]
+#[serde(default)]
 pub struct Colors {
     pub background_color: Vec<u8>,
     pub log_background_color: Vec<u8>,
@@ -38,6 +53,25 @@ pub struct Colors {
     pub search_bar_foreground_color: Vec<u8>,
     pub login_foreground_color: Vec<u8>,
     pub player_background_color: Vec<u8>,
+}
+
+impl Default for Colors {
+    /// The colors of `config.example.toml`.
+    fn default() -> Self {
+        Self {
+            background_color: vec![40, 40, 40],
+            log_background_color: vec![40, 40, 40],
+            header_background_color: vec![60, 60, 60],
+            line_header_color: vec![180, 180, 180],
+            list_background_color: vec![50, 50, 50],
+            list_background_color_alt_row: vec![60, 60, 60],
+            list_selected_background_color: vec![80, 80, 80],
+            list_selected_foreground_color: vec![180, 180, 180],
+            search_bar_foreground_color: vec![180, 180, 180],
+            login_foreground_color: vec![180, 180, 180],
+            player_background_color: vec![80, 80, 80],
+        }
+    }
 }
 
 /// One address of a server, from the configuration file.
@@ -59,17 +93,74 @@ pub struct ServerConfig {
     pub endpoints: Vec<EndpointConfig>,
 }
 
+/// Makes `config.toml` when no file stands at that place. See T-122.
+///
+/// **A user who builds the program has no configuration file.** `install.sh`
+/// copies `config.example.toml`, and `cargo install`, a package of a
+/// distribution, and a move from the program of before this fork copy nothing:
+/// the program then stopped with `configuration file … not found`, and it said
+/// a line of its own source. The program holds the text of the example,
+/// therefore it writes the file and it goes on.
+///
+/// The function gives `true` when a file stands at that place after it. A disk
+/// that permits no write gives `false`, and `load_config_from` then uses the
+/// values of the program.
+pub fn make_the_configuration_if_it_is_absent(path: &Path) -> bool {
+    if path.exists() {
+        return true;
+    }
+
+    if let Some(directory) = path.parent() {
+        if let Err(error) = std::fs::create_dir_all(directory) {
+            log::warn!(
+                "[config] the directory {} does not open: {}",
+                directory.display(),
+                error
+            );
+            return false;
+        }
+    }
+
+    match std::fs::write(path, THE_EXAMPLE_OF_THE_CONFIGURATION) {
+        Ok(()) => {
+            log::info!("[config] the program made {}.", path.display());
+            true
+        }
+        Err(error) => {
+            log::warn!(
+                "[config] the program cannot make {}: {}. The values of the program stay.",
+                path.display(),
+                error
+            );
+            false
+        }
+    }
+}
+
 /// load config from `config.toml` file
 pub fn load_config() -> Result<ConfigFile> {
-    let config_path = crate::paths::config_file();
-    let config_path_str = config_path.to_str().unwrap().to_string();
+    load_config_from(&crate::paths::config_file())
+}
+
+/// Reads the configuration file of a path. `load_config` gives the path of the
+/// user, and a test gives a path of its own.
+pub fn load_config_from(path: &Path) -> Result<ConfigFile> {
+    // A file that is absent comes into existence here. A disk that permits no
+    // write gives the values of the program, and the program still starts.
+    if !make_the_configuration_if_it_is_absent(path) {
+        return Ok(ConfigFile::default());
+    }
+
+    let config_path_str = path.to_string_lossy().to_string();
 
     let config = ConfigLib::builder()
         .add_source(File::with_name(&config_path_str))
         .build()
         .map_err(|e| Report::new(e))?;
 
-    let colors: Colors = config.get("colors").map_err(|e| Report::new(e))?;
+    // A block `colors` that is absent, and a key of that block that is absent,
+    // take the value of the program. See T-122.
+    let colors: Colors = config.get("colors").unwrap_or_default();
     // A configuration file that an older version made has no `servers`
     // block. An empty list is correct in that condition.
     let servers: Vec<ServerConfig> = config.get("servers").unwrap_or_default();
@@ -608,5 +699,128 @@ endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
     fn a_colour_that_is_too_short_repeats_the_last_value() {
         assert_eq!(rgb_parts(&[40]), (40, 40, 40));
         assert_eq!(rgb_parts(&[40, 50]), (40, 50, 50));
+    }
+
+    /// **A user who builds the program has no configuration file**, and the
+    /// program stopped with a line of its own source. It makes the file now,
+    /// and the file is the example: every comment of it reaches the user. See
+    /// T-122.
+    #[test]
+    fn a_configuration_that_is_absent_comes_into_existence() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("of_a_directory").join("config.toml");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert!(path.exists(), "the program must make the file");
+        assert_eq!(
+            std::fs::read_to_string(&path).expect("the file of the test"),
+            THE_EXAMPLE_OF_THE_CONFIGURATION
+        );
+        assert_eq!(config.colors.background_color, vec![40, 40, 40]);
+    }
+
+    /// A second start must read the file of the user, and it must not write
+    /// over it.
+    #[test]
+    fn a_configuration_that_exists_stays_as_it_stands() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(&path, "[colors]\nbackground_color = [1, 2, 3]\n")
+            .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(config.colors.background_color, vec![1, 2, 3]);
+        assert_eq!(
+            std::fs::read_to_string(&path).expect("the file of the test"),
+            "[colors]\nbackground_color = [1, 2, 3]\n"
+        );
+    }
+
+    /// A file of an older version, and of the program before this fork, holds
+    /// no `player_background_color`. Such a file stopped the program. Now the
+    /// key that is absent takes the value of the program, and every color of
+    /// the file stays. See T-122.
+    #[test]
+    fn a_key_of_a_colour_that_is_absent_keeps_every_other_colour() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[colors]\nbackground_color = [1, 2, 3]\nlogin_foreground_color = [4, 5, 6]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(config.colors.background_color, vec![1, 2, 3]);
+        assert_eq!(config.colors.login_foreground_color, vec![4, 5, 6]);
+        assert_eq!(config.colors.player_background_color, vec![80, 80, 80]);
+    }
+
+    /// A file with no block of colors at all must not stop the program.
+    #[test]
+    fn a_file_with_no_colour_at_all_starts_the_program() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(&path, "[reader]\nebook_cache_mb = 64\n").expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(config.reader.ebook_cache_mb, 64);
+        assert_eq!(config.colors.background_color, vec![40, 40, 40]);
+    }
+
+    /// The example of the repository must hold every key of the program. A key
+    /// that the example does not name would take the value of the program in
+    /// silence, and the user would find no line to change.
+    #[test]
+    fn the_example_names_every_colour_of_the_program() {
+        for key in [
+            "background_color",
+            "log_background_color",
+            "header_background_color",
+            "line_header_color",
+            "list_background_color",
+            "list_background_color_alt_row",
+            "list_selected_background_color",
+            "list_selected_foreground_color",
+            "search_bar_foreground_color",
+            "login_foreground_color",
+            "player_background_color",
+        ] {
+            assert!(
+                THE_EXAMPLE_OF_THE_CONFIGURATION
+                    .lines()
+                    .any(|line| line.trim_start().starts_with(key)),
+                "the example does not hold {}",
+                key
+            );
+        }
+    }
+
+    /// The values of the example and the values of the program must agree. A
+    /// user who removes a line must see no change of the color.
+    #[test]
+    fn the_example_and_the_program_hold_the_same_colours() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+
+        let of_the_example = load_config_from(&path).expect("the program must start");
+        let of_the_program = Colors::default();
+
+        assert_eq!(
+            of_the_example.colors.background_color,
+            of_the_program.background_color
+        );
+        assert_eq!(
+            of_the_example.colors.player_background_color,
+            of_the_program.player_background_color
+        );
+        assert_eq!(
+            of_the_example.colors.list_selected_background_color,
+            of_the_program.list_selected_background_color
+        );
     }
 }
