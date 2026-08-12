@@ -53,6 +53,12 @@ pub const MAX_CHAPTER_BYTES: usize = 8 * 1024 * 1024;
 pub enum ReaderError {
     /// The file is not an EPUB, or the archive is damaged.
     NotAnEpub,
+    /// The file starts as a PDF, and no page came out of it. **A child process
+    /// reads a PDF** (T-62), therefore this value holds a child that stopped, a
+    /// child that gave a fault, and a file that `lopdf` cannot read. The user
+    /// reads one sentence and a key of the program, and never a dead screen
+    /// (T-52).
+    ThePdfGivesNoPage,
     /// The file is larger than [`MAX_BOOK_BYTES`]. The number is the size of
     /// the file in bytes.
     BookTooLarge(u64),
@@ -71,6 +77,10 @@ impl fmt::Display for ReaderError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ReaderError::NotAnEpub => write!(f, "This file is not an EPUB."),
+            ReaderError::ThePdfGivesNoPage => write!(
+                f,
+                "This PDF gives no page. The file can be damaged. Press h to go back."
+            ),
             ReaderError::BookTooLarge(size) => write!(
                 f,
                 "This book is too large. It has {size} bytes, and the limit is {MAX_BOOK_BYTES} bytes."

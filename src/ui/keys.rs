@@ -90,6 +90,7 @@ pub const GROUPS: &[Group] = &[
         name: "The views",
         keys: &[
             key("Tab", "Home, and the Library"),
+            key("Shift+Tab", "The next library of the server"),
             key("/", "Search on the server"),
             key("s", "The series of the library"),
             key("a", "The authors of the library"),
@@ -187,6 +188,23 @@ pub fn items(count: usize) -> String {
     counted(count, "item")
 }
 
+/// The number of the lines of the Library view, for the title of that view.
+///
+/// **The program reads the library page by page** (T-70), therefore it holds
+/// the items of the pages that came only. The title says the number of the
+/// lines that it draws, and the number of the items of the library when the
+/// program did not read every page.
+///
+/// A line is not an item: every book of a series gives one line (T-22).
+/// Therefore the title says "8 items of 12" and never "8 of 12 items".
+pub fn the_lines_of_the_library(lines: usize, loaded: usize, total: usize) -> String {
+    if loaded >= total {
+        return items(lines);
+    }
+
+    format!("{} of {}", items(lines), total)
+}
+
 /// Removes `http://` or `https://` from an address.
 ///
 /// The header of the screen holds no scheme: the user reads the machine and the
@@ -278,12 +296,12 @@ pub fn lines() -> Vec<String> {
 pub const FOOTER_OF_THE_KEYS: &str = "j/k: move  h/Esc: back  ?: close  Q: quit";
 
 /// The footer of the Home view and of the Library view of books.
-pub const FOOTER_OF_A_LIBRARY_OF_BOOKS: &str =
-    "j/k: move  l: play or open  Tab: home/library  /: search  R: refresh  ?: every key  Q: quit";
+pub const FOOTER_OF_A_LIBRARY_OF_BOOKS: &str = "j/k: move  l: play or open  \
+     Tab: home/library  S-Tab: the next library  /: search  R: refresh  ?: every key  Q: quit";
 
 /// The footer of the Home view and of the Library view of podcasts.
-pub const FOOTER_OF_A_LIBRARY_OF_PODCASTS: &str =
-    "j/k: move  l: the episodes  Tab: home/library  /: search  R: refresh  ?: every key  Q: quit";
+pub const FOOTER_OF_A_LIBRARY_OF_PODCASTS: &str = "j/k: move  l: the episodes  \
+     Tab: home/library  S-Tab: the next library  /: search  R: refresh  ?: every key  Q: quit";
 
 /// The footer of the view of the search.
 ///
@@ -506,6 +524,25 @@ mod tests {
         assert_eq!(counted(1, "item"), items(1));
     }
 
+    /// The title of the Library view says what the program holds, and what the
+    /// library holds. See T-70.
+    #[test]
+    fn the_title_of_the_library_says_the_pages_that_came() {
+        // Every page came: the title says the lines only, as it did before.
+        assert_eq!(the_lines_of_the_library(8, 12, 12), "8 items");
+        assert_eq!(the_lines_of_the_library(1, 1, 1), "1 item");
+
+        // The program holds the first page of a library of 2056 items.
+        assert_eq!(
+            the_lines_of_the_library(500, 500, 2056),
+            "500 items of 2056"
+        );
+
+        // A library that the server did not give holds nothing, and the title
+        // must not say a number of the server that the program cannot show.
+        assert_eq!(the_lines_of_the_library(0, 0, 0), "0 items");
+    }
+
     /// **The header names the address that the program uses now.**
     ///
     /// A sweep of two addresses on 2026-08-12 gave the pool
@@ -587,11 +624,20 @@ mod tests {
     /// columns. The old footer of the Home view had 342 characters in two
     /// lines. See T-49.
     ///
-    /// **The area of the footer holds two rows**, and the text wraps: 92
-    /// characters therefore reach the user in 80 columns, and 342 do not. See
-    /// T-90.
+    /// **The area of the footer holds two rows**, and the text wraps: the two
+    /// rows of a terminal of 80 columns hold 160 cells, and a wrap of the words
+    /// loses some of them at the end of the first row. A measurement of the real
+    /// program on 2026-08-12 read every word of a footer of 116 characters in a
+    /// terminal of 80 columns, on two rows. See T-90 and T-109.
     #[test]
     fn every_footer_fits_in_eighty_columns() {
+        /// The largest number of characters of a footer.
+        ///
+        /// The area holds two rows of the width of the terminal. A terminal of
+        /// 80 columns therefore holds 160 cells, and this value leaves room for
+        /// the words that the wrap moves to the second row.
+        const THE_WIDEST_FOOTER: usize = 130;
+
         let footers = [
             FOOTER_OF_THE_KEYS,
             FOOTER_OF_THE_SEARCH,
@@ -609,7 +655,7 @@ mod tests {
         for footer in footers {
             let width = footer.chars().count();
             assert!(
-                width <= 92,
+                width <= THE_WIDEST_FOOTER,
                 "the footer of {} characters is too wide: {}",
                 width,
                 footer
@@ -625,7 +671,7 @@ mod tests {
             footer_with("play it now", Some("take it out"))
                 .chars()
                 .count()
-                <= 92
+                <= THE_WIDEST_FOOTER
         );
     }
 

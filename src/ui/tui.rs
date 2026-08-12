@@ -47,6 +47,11 @@ impl Widget for &mut App {
         // T-84.
         self.take_the_lists();
 
+        // The next page of the library came. The program reads the first page
+        // at the start, therefore the cost of the start is the same for a
+        // library of every size. See T-70.
+        self.take_the_next_page_of_the_library();
+
         match self.view_state {
             AppView::Home => self.render_home(area, buf),
             AppView::Library => self.render_library(area, buf),
@@ -1356,7 +1361,15 @@ impl App {
         // does not see every item must know why. See T-24.
         let render_list_title = format!(
             "Library [{}]{}{}",
-            crate::ui::keys::items(lines.len()),
+            // **The program holds the pages that it read, and the server told
+            // how many items the library holds.** A title that says the number
+            // of the lines only is not false, and it says less than the program
+            // knows. See T-70 and T-91.
+            crate::ui::keys::the_lines_of_the_library(
+                lines.len(),
+                self.ids_library.len(),
+                self.library_total
+            ),
             if self.library_sort.is_empty() {
                 String::new()
             } else {

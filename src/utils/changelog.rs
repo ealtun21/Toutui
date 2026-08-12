@@ -41,6 +41,28 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.53",
+        date: "12/08/2026",
+        body: &[
+            "Added:",
+            "- **Shift+Tab takes the next library of the server.** The Home view shows the \
+             shelves of one library, and this key goes round every library of your account. \
+             Tab keeps the Home view and the Library view.",
+            "",
+            "Changed:",
+            "- **The program starts with one page of the library.** It read every page before, \
+             therefore a large library made you wait at each start. It asks the server for the \
+             next page when you come near the end of the list, and the title of the view says \
+             how many items the library holds.",
+            "- **A book of the form PDF opens in a process of its own.** A large book of a scan \
+             took the memory of the program that you read, and a book that no reader can read \
+             stopped it. That memory and that fault stay outside now, and a PDF that gives no \
+             page gives you one sentence and the key h.",
+            "- A second visit of a PDF opens at once: the program keeps the pages of that book \
+             beside the file, and the cache of the ebooks holds them.",
+        ],
+    },
+    Entry {
         version: "0.7.52",
         date: "12/08/2026",
         body: &[

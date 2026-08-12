@@ -21,6 +21,15 @@ use std::time::Duration;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // **The child that reads a PDF comes first.** The program spawns itself
+    // with this flag, and that child must open no terminal, make no database,
+    // and play nothing: it reads one book, it writes the pages, and it stops.
+    // The peak of the memory of `lopdf` and every fault of that crate stay in
+    // this process. See T-62.
+    if let Some(code) = toutui::logic::reader::pdf_of_a_child::the_child_of_the_line_of_command() {
+        std::process::exit(code);
+    }
+
     // clap
     clap().await;
 

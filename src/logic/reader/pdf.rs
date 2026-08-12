@@ -109,7 +109,30 @@ impl Pdf {
     ///
     /// The call reads the whole file. The caller must run it in a task, and never
     /// on the thread that draws.
+    ///
+    /// **A child process does this work now** (T-62). `Pdf::open` therefore
+    /// spawns the program itself with a hidden flag, and the child calls
+    /// `Pdf::of_the_file`. The peak of the memory of `Document::load` and every
+    /// fault of `lopdf` stay outside the program that the user reads.
     pub fn open(path: &Path) -> Result<Pdf, ReaderError> {
+        crate::logic::reader::pdf_of_a_child::the_book_that_a_child_reads(path)
+    }
+
+    /// Makes a book of its parts. The parent reads the file of the child with
+    /// it. See T-62.
+    pub fn of_the_parts(pages: Vec<Page>, title: String, author: String) -> Pdf {
+        Pdf {
+            pages,
+            title,
+            author,
+        }
+    }
+
+    /// Reads the PDF at `path` in this process.
+    ///
+    /// **The child of T-62 calls this**, and no other caller does: this is the
+    /// function that holds the whole file in the memory.
+    pub fn of_the_file(path: &Path) -> Result<Pdf, ReaderError> {
         if let Ok(data) = std::fs::metadata(path) {
             if data.is_file() && data.len() > MAX_BOOK_BYTES {
                 return Err(ReaderError::BookTooLarge(data.len()));

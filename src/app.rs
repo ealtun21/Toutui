@@ -1,4 +1,3 @@
-use crate::api::libraries::get_all_books::*;
 use crate::api::libraries::get_all_libraries::*;
 use crate::api::libraries::get_all_series::*;
 use crate::api::libraries::get_library_perso_view::get_the_shelves;
@@ -131,6 +130,15 @@ pub struct App {
     /// The lines of the Library view. Every book of a series gives one line.
     /// See T-22.
     pub library_rows: Vec<LibraryRow>,
+    /// The number of the page of the library that came last. The first page is
+    /// 0. See T-70.
+    pub library_page: usize,
+    /// The number of items of the library, over every page. The server gives
+    /// this value with the first page.
+    pub library_total: usize,
+    /// The sequence and the filter of the library, for the request of the next
+    /// page. See T-70.
+    pub library_query: String,
     /// The lines of the Home view. A shelf gives a line for its name, and a
     /// line for each of its media. See T-24.
     ///
@@ -362,6 +370,11 @@ impl App {
     /// The caller gives the HTTP client. The client holds the addresses of the
     /// server and the decrypted token.
     pub async fn new(api: std::sync::Arc<crate::api::client::ApiClient>) -> Result<Self> {
+        // A new application reads the first page of the library again. A page
+        // of the library before it belongs to a different filter, a different
+        // library, or a different server. See T-70.
+        crate::logic::library_pages::forget();
+
         // init config
         let config = load_config()?;
 
@@ -695,12 +708,22 @@ impl App {
                 return crate::api::libraries::get_all_books::Root::default();
             }
 
-            get_all_books(&api, &id_selected_lib, &library_query)
-                .await
-                .unwrap_or_else(|error| {
-                    log::warn!("[app] the server did not give the items: {}", error);
-                    crate::api::libraries::get_all_books::Root::default()
-                })
+            // **The first page, and not every page.** `get_all_books` read
+            // every page of the library before the first frame: a library of
+            // 2056 items made five requests, and a library of 250000 items made
+            // 500 of them. The program asks for the page after this one when
+            // the user comes near the end of the lines that it holds. See T-70.
+            crate::api::libraries::get_all_books::get_one_page_of_books(
+                &api,
+                &id_selected_lib,
+                &library_query,
+                0,
+            )
+            .await
+            .unwrap_or_else(|error| {
+                log::warn!("[app] the server did not give the items: {}", error);
+                crate::api::libraries::get_all_books::Root::default()
+            })
         };
 
         let ask_for_the_permissions = async {
@@ -1098,6 +1121,9 @@ impl App {
             ids_search_book,
             series,
             library_rows,
+            library_page: 0,
+            library_total: all_books.total.unwrap_or_default().max(0) as usize,
+            library_query,
             home_rows_of_the_server: home_rows.clone(),
             home_rows,
             of_continue_listening,
@@ -1593,6 +1619,11 @@ impl App {
                 };
                 self.toggle_view()
             }
+
+            // The key that takes the next library of the server. crossterm
+            // gives Shift+Tab as its own code, therefore this handler needs no
+            // work for a modifier (the trap 58). See T-66.
+            KeyCode::BackTab => self.take_the_next_library(),
 
             // `Esc` inside the list of every key closes that list. A key that
             // stops the whole program must not stand alone in a view that the
@@ -2144,6 +2175,11 @@ impl App {
             }
             _ => {}
         }
+
+        // **The key moved the list, therefore the user can be near the end of
+        // the lines that the program holds.** The function itself decides, and
+        // it asks the server for one page at the most at a time. See T-70.
+        self.ask_for_the_next_page_of_the_library();
     }
 
     /// Marks the selected media as finished, or as not finished. See T-24.
@@ -2298,6 +2334,112 @@ impl App {
     /// and one function hold the two lists.
     pub fn show_the_narrators(&mut self) {
         self.show_the_names(crate::logic::authors::Kind::Narrators);
+    }
+
+    /// Asks the server for the next page of the library, when the user comes
+    /// near the end of the lines that the program holds. See T-70.
+    ///
+    /// The program reads the first page at the start. Therefore the cost of the
+    /// start is the same for a library of 12 items and for a library of 250000.
+    /// **The search of the server stays the authority** for a title of a page
+    /// that the program did not read.
+    pub fn ask_for_the_next_page_of_the_library(&mut self) {
+        if self.is_offline {
+            return;
+        }
+
+        // The position of the item of the line that the user selected. A line
+        // of a series holds the position of its first book.
+        let selected = self
+            .list_state_library
+            .selected()
+            .and_then(|line| self.library_rows.get(line))
+            .map(|row| row.item())
+            .unwrap_or(0);
+
+        if !crate::logic::library_pages::wants_the_next_page(
+            self.ids_library.len(),
+            self.library_total,
+            selected,
+            crate::logic::library_pages::asks(),
+        ) {
+            return;
+        }
+
+        crate::logic::library_pages::keep_the_flag(true);
+
+        let api = std::sync::Arc::clone(&self.api);
+        let library = self.id_selected_lib.clone();
+        let query = self.library_query.clone();
+        let number = self.library_page + 1;
+
+        tokio::spawn(async move {
+            let answer = crate::api::libraries::get_all_books::get_one_page_of_books(
+                &api, &library, &query, number,
+            )
+            .await;
+
+            let root = match answer {
+                Ok(root) => root,
+                Err(error) => {
+                    log::warn!("[library] the server gave no page {}: {}", number, error);
+                    crate::logic::library_pages::keep_the_flag(false);
+                    return;
+                }
+            };
+
+            let count = root.results.as_ref().map(|all| all.len()).unwrap_or(0);
+            log::info!("[library] the page {} gives {} item(s)", number, count);
+
+            // The lists of the screen come from the task, because these seven
+            // functions are asynchronous and the render is not.
+            crate::logic::library_pages::keep(crate::logic::library_pages::Page {
+                number,
+                total: root.total.unwrap_or_default().max(0) as usize,
+                titles: collect_titles_library(&root).await,
+                ids: collect_ids_library(&root).await,
+                authors: collect_auth_names_library(&root).await,
+                authors_of_a_podcast: collect_auth_names_library_pod(&root).await,
+                durations: collect_duration_library(&root).await,
+                descriptions: collect_desc_library(&root).await,
+                years: collect_published_year_library(&root).await,
+            });
+
+            crate::logic::library_pages::keep_the_flag(false);
+        });
+    }
+
+    /// Puts the page that came in the lists of the library. See T-70.
+    ///
+    /// The render calls this at each frame, and it does the work one time: the
+    /// box holds one page, and `take` leaves it empty. A page that is not the
+    /// page after the page that came last goes away, because a new library or a
+    /// new filter makes every page before it wrong.
+    pub fn take_the_next_page_of_the_library(&mut self) {
+        let Some(page) = crate::logic::library_pages::take() else {
+            return;
+        };
+
+        if page.number != self.library_page + 1 {
+            return;
+        }
+
+        self.library_page = page.number;
+        self.library_total = page.total;
+
+        self.titles_library.extend(page.titles);
+        self.ids_library.extend(page.ids);
+        self.auth_names_library.extend(page.authors);
+        self.auth_names_library_pod
+            .extend(page.authors_of_a_podcast);
+        self.duration_library.extend(page.durations);
+        self.desc_library.extend(page.descriptions);
+        self.published_year_library.extend(page.years);
+
+        // **The lines of the view grow, and no line of them moves.** Every book
+        // of a series gives one line, and the function reads the items in their
+        // sequence: the lines of the pages before this one are the same lines.
+        self.library_rows = group_library(&self.ids_library, &self.series);
     }
 
     /// Shows the authors of the library, or its narrators. See T-24 and T-73.
@@ -4913,6 +5055,54 @@ impl App {
             AppView::SettingsUpdateUninstall => AppView::Home,
             AppView::SettingsReader => AppView::Settings,
         };
+    }
+
+    /// Takes the next library of the server, in the Home view and in the
+    /// Library view. See T-66.
+    ///
+    /// **The Home view shows the shelves of one library**, therefore a user of
+    /// two libraries read the shelf of Continue Listening of one of them only.
+    /// The settings hold the same work behind three keys (`S`, the line
+    /// "Library", and `l`), and this key does it with one.
+    ///
+    /// **The two views share one footer**, therefore the key works in both: a
+    /// key that a footer names and that does nothing is a fault of its own
+    /// (T-79).
+    ///
+    /// The program holds one library at every moment, and no request of the
+    /// start changes: the refresh makes the application again with the new
+    /// library, as the settings do (T-82).
+    pub fn take_the_next_library(&mut self) {
+        if !matches!(self.view_state, AppView::Home | AppView::Library) {
+            return;
+        }
+
+        if self.is_offline {
+            crate::logic::message::say(
+                "The server does not answer, therefore the program holds one library.",
+            );
+            return;
+        }
+
+        let Some(next) = crate::logic::library_pages::the_next_library(
+            &self.libraries_ids,
+            &self.id_selected_lib,
+        ) else {
+            crate::logic::message::say("This server holds one library.");
+            return;
+        };
+
+        let name = self.libraries_names.get(next).cloned().unwrap_or_default();
+
+        let Some(id) = self.libraries_ids.get(next) else {
+            return;
+        };
+
+        let _ = update_id_selected_lib(id, &self.username);
+
+        crate::logic::message::say(&format!("The program shows the library \"{}\" now.", name));
+
+        self.must_refresh = true;
     }
 
     /// Select functions that apply to both views

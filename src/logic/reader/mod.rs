@@ -22,6 +22,7 @@ pub mod book;
 pub mod cache;
 pub mod cfi;
 pub mod pdf;
+pub mod pdf_of_a_child;
 pub mod position;
 pub mod render;
 pub mod session;

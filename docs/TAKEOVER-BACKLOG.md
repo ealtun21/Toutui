@@ -4292,6 +4292,161 @@ not answer` names no thing, `{} bytes of {}` names a unit of measure, and
 A build with one of those texts back gives the name of the file, the number of
 the line, and the whole line.
 
+### T-70 (closed): the program reads the library page by page
+
+**The decision of the maintainer of 2026-08-12.** `get_all_books` read **every**
+page of the library before the first frame. A page holds 500 items (T-7),
+therefore a library of 2056 items made five requests and a library of 250000
+items made 500 of them: the cost of the start grew with the library of the user.
+
+`get_one_page_of_books` reads one page now, and `App::new` takes the page 0 only.
+`crate::logic::library_pages` holds the state between the task and the render,
+and it is the shape of `logic::sessions_view`:
+
+- `ask_for_the_next_page_of_the_library` runs at the end of every key. It reads
+  the position of the item of the line that the user selected, and
+  `wants_the_next_page` says if the program must ask. The rule: the server holds
+  more items, no task asks already, and the user stands 50 lines or fewer from
+  the end of the items that the program holds.
+- The **task** makes the seven lists of the screen (`collect_titles_library` and
+  the six functions beside it are asynchronous, and the render is not), and it
+  puts them in the box.
+- `take_the_next_page_of_the_library` runs at each frame. It takes the page one
+  time, it puts the lists after the lists that came, and it makes the lines of
+  the view again with `group_library`.
+
+**The lines of the pages before a new page do not move.** `group_library` reads
+the items in their sequence, and every book of a series gives one line: the lines
+of the first page are therefore the same lines after the second page came.
+
+**The title of the view says what the program knows** (T-91).
+`ui::keys::the_lines_of_the_library` gives "500 items of 2056" while a page of the
+library stays outside, and "8 items" when the program holds every page. A line is
+not an item, therefore the title says "8 items of 12" and never "8 of 12 items".
+
+**The search of the server stays the authority** for a title of a page that the
+program did not read. The key `/` shows the titles of the program at once, and it
+adds the answer of the server when that answer comes.
+
+**The measurement**, `tests/the_library_comes_page_by_page.rs` with a mock server
+of a library of 2056 items:
+
+| | The requests of `/items` of the start |
+|---|---|
+| Before | **5** |
+| Now | **1** |
+
+A build with the correction removed fails with "the start must read one page of
+the library, and it read 5". The same test moves the line of the user to the item
+499 and it holds every list of the library to 1000 items after the page came.
+
+The real program against the sandbox: the library of 12 items gives one request,
+8 lines (two series of three books), and the title "Library [8 items]".
+
+### T-62 (closed): a child process reads a PDF book
+
+**The decision of the maintainer of 2026-08-12.** `Document::load` of `lopdf`
+reads the whole file, and `MAX_BOOK_BYTES` of 512 megabytes permits a file that
+needs a machine of a gigabyte for one moment. **That memory belonged to the
+program that the user reads**, and a fault of `lopdf` stopped that program.
+
+`Pdf::open` spawns the program itself now, with the flag
+`--the-pdf-of-a-child`, the path of the book, and the path of the pages. The
+child reads the book with `Pdf::of_the_file`, it writes the text and the
+pictures, and it stops. **This needs no dependency**: `std::process` spawns the
+child and `pdf_of_a_child` writes the form of the file. The rule of T-20 stays,
+and `mupdf` stays outside.
+
+`the_child_of_the_line_of_command` stands at the **first** line of `main`: the
+child opens no terminal, it makes no database, and it plays nothing.
+
+**The form of the file** is a mark of 12 bytes, the title, the author, and one
+group for each page. Every number holds four bytes with the little end first, and
+every text and every picture holds its length before its bytes. A file of a
+different mark and a file that stops in the middle both give no book, therefore a
+child that the machine stopped costs one read of the book again.
+
+**The pages stand beside the PDF, in the cache of the ebooks** (T-67). A second
+visit of the book therefore spawns no child at all, and `the_cache_of` counts the
+bytes of the pages with the bytes of the book: the removal of a book removes its
+pages too.
+
+**The measurement of 2026-08-12.** A PDF of 47 megabytes: 60 pages of a scan of
+1200 by 1600 pixels, and no algorithm makes those samples smaller. The reader of
+the real program in tmux, and `/proc/<the program>/status`:
+
+| The moment | The memory of the program, with the parse inside it | With a child |
+|---|---|---|
+| Before the key `e` | 37 MB | 39 MB |
+| While the parse runs | **101 MB, and it grows to 113** | **39 MB, and it does not move** |
+| The book stands on the screen | 113 MB | **53 MB** |
+
+The child itself took **106 megabytes** at its peak and 46 seconds (a build of
+the development), and that memory went away with the process. The pages of that
+book hold 9.2 megabytes, and the program of the user keeps those.
+
+**A book that the child cannot read gives a message and no dead screen** (T-52).
+The first 120 kilobytes of that PDF make such a book: the child writes
+"toutui: this PDF gives no page" and it gives the code 2, and the screen of the
+user says
+
+```
+                    The reader of the ebook
+   This PDF gives no page. The file can be damaged. Press h to go back.
+                 h/Esc: back  ?: every key  Q: quit
+```
+
+`ReaderError::ThePdfGivesNoPage` holds that message. The old value said "This
+file is not an EPUB." for a file that starts as a PDF, and that sentence is false.
+
+**The parent stops a child that never comes back** after 300 seconds, and it
+reads the message of the child from its `stderr` into the log. A child that gives
+no page, a child that stopped, and a child that never came back all give the same
+message to the user and the same screen.
+
+### T-66 (closed): Shift+Tab takes the next library of the server
+
+**The decision of the maintainer of 2026-08-12.** The Home view shows the shelves
+of one library, therefore a user of two libraries read the shelf of Continue
+Listening of one of them only. The settings hold that work behind three keys
+(`S`, the line "Library", and `l`).
+
+crossterm gives Shift+Tab as its own code, `KeyCode::BackTab`, therefore
+`handle_key` needed no work for a modifier (the trap 58). `Tab` keeps the Home
+view and the Library view, and the new key reads as its pair.
+
+`the_next_library` of `crate::logic::library_pages` gives the place of the next
+library, and the list goes round: the last library gives the first one. A server
+of one library says "This server holds one library.", and the offline mode says
+that the program holds one library.
+
+**The key works in the Home view and in the Library view.** The decision named
+the Home view, and **the two views share one footer**: a key that a footer names
+and that does nothing in that view is a fault of its own (T-79). This is the
+nearest answer that keeps the rules of the handover, and "The decisions that this
+session made" of `docs/HANDOVER.md` holds it.
+
+The program holds one library at every moment, and no request of the start
+changes: the key writes the choice in the database and it asks for a refresh, as
+the settings do (T-82).
+
+**The footer holds 116 characters now**, and the old rule of the test said 92.
+The area of the footer holds **two rows**, and a terminal of 80 columns therefore
+holds 160 cells. A measurement of the real program on 2026-08-12 in a terminal of
+80 columns read every word:
+
+```
+   j/k: move  l: play or open  Tab: home/library  S-Tab: the next library  /:
+                    search  R: refresh  ?: every key  Q: quit
+```
+
+The test holds 130 characters now, and that value leaves room for the words that
+the wrap moves to the second row.
+
+The real program with the three libraries of the sandbox: `Books` → `Empty` →
+`Podcasts` → `Books`. The header names the library at each press, and the message
+of the program says the name.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

@@ -156,6 +156,31 @@ const PAGES_AT_THE_SAME_TIME: usize = 6;
 /// `query` holds the sequence and the filter of the user, for example
 /// `&sort=addedAt&desc=1`. `crate::logic::sort_filter::query` writes it, and
 /// an empty text gives the request that the program sent before T-24.
+/// Gives the address of one page of the items of a library.
+pub fn address_of_a_page(id_selected_lib: &str, query: &str, page: usize) -> String {
+    format!(
+        "/api/libraries/{}/items?limit={}&page={}{}",
+        id_selected_lib, PAGE_SIZE, page, query
+    )
+}
+
+/// Gets **one** page of the items of a library.
+///
+/// The program reads the first page at the start, and it asks for the page
+/// after it when the user comes near the end of the lines that it holds. The
+/// cost of the start is then the same for a library of every size. See T-70
+/// and `crate::logic::library_pages`.
+pub async fn get_one_page_of_books(
+    client: &std::sync::Arc<ApiClient>,
+    id_selected_lib: &str,
+    query: &str,
+    page: usize,
+) -> Result<Root, ApiError> {
+    client
+        .get_json(&address_of_a_page(id_selected_lib, query, page))
+        .await
+}
+
 pub async fn get_all_books(
     client: &std::sync::Arc<ApiClient>,
     id_selected_lib: &str,

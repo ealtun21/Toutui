@@ -251,9 +251,17 @@ pub fn the_cache_of(username: &str) -> Vec<InTheCache> {
             continue;
         }
 
+        // **The pages of a PDF stand beside the PDF**, and they belong to that
+        // book: a child process writes them one time, and the cache must count
+        // them and remove them with the book. See T-62.
+        let pages = crate::logic::reader::pdf_of_a_child::the_parsed_book_of(&path);
+        let bytes_of_the_pages = std::fs::metadata(&pages)
+            .map(|data| data.len())
+            .unwrap_or(0);
+
         books.push(InTheCache {
             path,
-            bytes: data.len(),
+            bytes: data.len().saturating_add(bytes_of_the_pages),
             used: data.modified().unwrap_or(SystemTime::UNIX_EPOCH),
         });
     }
@@ -288,6 +296,19 @@ pub fn the_removal(username: &str, keep: &Path, limit: u64) -> (usize, u64) {
             Ok(data) => data.len(),
             Err(_) => continue,
         };
+
+        // The pages of a PDF go with the book of those pages. A file that stays
+        // alone holds bytes of the disk and it gives the user nothing. See
+        // T-62.
+        let pages = crate::logic::reader::pdf_of_a_child::the_parsed_book_of(&path);
+
+        if let Ok(data) = std::fs::metadata(&pages) {
+            let of_the_pages = data.len();
+
+            if std::fs::remove_file(&pages).is_ok() {
+                bytes += of_the_pages;
+            }
+        }
 
         match std::fs::remove_file(&path) {
             Ok(()) => {

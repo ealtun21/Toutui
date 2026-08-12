@@ -5,6 +5,7 @@ pub mod chapters;
 pub mod download;
 pub mod handle_input;
 pub mod home_view;
+pub mod library_pages;
 pub mod library_view;
 pub mod list_moves;
 pub mod live;
