@@ -764,3 +764,40 @@ of the request comes from its size:
 | A Book That No Reader Reads | 0.1 MB | 0.007 s |
 | A Big Book Of A Scan | 45.2 MB | 3.6 s |
 | A Huge Book Of A Scan | 479.5 MB | 36.2 s |
+
+## 14. An account that reads one library only, for T-136
+
+The sandbox holds `toutuilimited` / `toutuilimited`: an account of the type
+`user`, with `download` false, and with one library of the five. **Reuse it**, so
+that the rate limit of the login of section "The rate limit of the login" stays
+free.
+
+```bash
+# The account, if it is not there. `isActive` needs a request of its own: the
+# request that makes an account gives `isActive: false`.
+curl -X POST http://localhost:13399/api/users \
+  -H "Authorization: Bearer $ADMIN" -H 'Content-Type: application/json' \
+  -d '{"username":"toutuilimited","password":"toutuilimited","type":"user",
+       "permissions":{"download":false,"accessAllLibraries":false,
+                      "accessAllTags":true,"accessExplicitContent":true},
+       "librariesAccessible":["<the identity of Books>"]}'
+
+curl -X PATCH "http://localhost:13399/api/users/$ID" \
+  -H "Authorization: Bearer $ADMIN" -H 'Content-Type: application/json' \
+  -d '{"isActive":true}'
+```
+
+**A `PATCH` takes `librariesAccessible` inside `permissions` only.** The same name
+beside `permissions` gives `200`, and it changes nothing:
+
+```bash
+curl -X PATCH "http://localhost:13399/api/users/$ID" \
+  -H "Authorization: Bearer $ADMIN" -H 'Content-Type: application/json' \
+  -d '{"permissions":{"download":false,"accessAllLibraries":false,
+                      "accessAllTags":true,"accessExplicitContent":true,
+                      "librariesAccessible":["<the identity of Podcasts>"]}}'
+```
+
+**An empty `librariesAccessible` is every library**, and not no library:
+Audiobookshelf 2.36.0 reads it that way, therefore an account that reads nothing
+at all does not exist. Read the account again after each request.
