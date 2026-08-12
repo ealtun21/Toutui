@@ -1,18 +1,50 @@
-# The handover of 2026-08-12 (the fourth session of that day)
+# The handover of 2026-08-12 (the fifth session of that day)
 
 This document is for the next session. It says what is done, what is open, and the
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.63**, and T-119 to T-121 belong to this session.
-The items T-112 to T-118 belong to the session before it, T-105 to T-111 to the one
-before that, and T-101 to T-104 to the one before those.
+**The newest release is v0.7.64**, and T-122 and T-123 belong to this session.
+The items T-119 to T-121 belong to the session before it, T-112 to T-118 to the one
+before that, T-105 to T-111 to the one before those, and T-101 to T-104 to the one
+before them.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-## What this session closed
+## The session of the fifth turn of that day: the two faults of a first start
 
-**This session closed the last row of the table, and it then took a fault of the
+**The newest release is v0.7.64, and T-122 and T-123 belong to it.** The user moved
+from the program before this fork to this fork, and the first start gave two faults
+one after the other. Each of them said a line of the source of the program, and each
+of them drew no view.
+
+| Item | What | The answer |
+|---|---|---|
+| T-122 | `configuration file … not found` | the binary holds `config.example.toml`, and it writes the file |
+| T-123 | `The token is not valid. Log in again.` with no way to log in | the row of the account goes away, and the program starts again at its login screen |
+
+**The trap of T-123, and it cost the design.** The first shape of the work made the
+login screen inside the same process, after `restore_terminal` and a second
+`ratatui::init`. The screen drew the box of the address one time, the box then went
+away, and no key gave a character: **a second start of the terminal inside one
+process does not work.** `start_the_program_again` of `src/utils/exit_app.rs` uses
+`exec`, therefore the login screen of a first start comes, and every task of the old
+token goes away with the process. The loop `'the_session` of `src/main.rs` stays for
+a system that has no `exec`.
+
+**A value of the process does not cross `exec`.** The address of the server goes to
+the new program in `TOUTUI_THE_ADDRESS_OF_THE_LOGIN`, therefore the user reads their
+address in the first field and one press of Enter takes it.
+
+**The measurement, 2026-08-12, with the sandbox and tmux.** A configuration
+directory with no file gave `config.toml` and the login screen. A real login of
+`toutuitest` wrote the row; the token of that row then became a token that the
+server refuses; the next start removed the row, said the reason, held the address,
+and gave the Home view again after the name and the password.
+
+## What the session before this one closed (T-119 to T-121)
+
+**That session closed the last row of the table, and it then took a fault of the
 user that is worth more than every row of it.**
 
 | Item | What | Keys |
