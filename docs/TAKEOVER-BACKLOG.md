@@ -4039,6 +4039,51 @@ key with no quotation mark.
 views wrote that paragraph themselves before, and a sixth view of the future needs
 one line now.
 
+### T-104: the 6 rows of the player go to the view while nothing plays
+
+**The decision of the maintainer of 2026-08-12: "let the rows reflow when nothing
+plays".** T-99 left this question, because a view that takes those rows moves
+every line when a playback starts.
+
+`main.rs` draws the panel of the player for a playback only, and the eleven views
+of a list reserved its 6 rows at every moment. A terminal of 18 rows therefore
+gave the work of the view 7 rows and it held 6 empty ones.
+
+`the_areas_of_a_view` of `src/ui/tui.rs` holds the layout of every one of those
+eleven views now, in one place: the header, the work of the view, and the footer.
+The rows of the player stand in that layout while a media plays, and the work of
+the view takes them while nothing plays. **A playback that a pause holds is a
+playback**: the panel stays, and the user reads the place of that media.
+
+**The row above the footer stays at every moment.** `render_the_message` writes
+the message of the program there. A view that takes that row loses its last line
+for the six seconds of a message (the trap 39), therefore the reflow gives the
+view 6 rows and not 7.
+
+**The first form of this work took a line of the list away, and a test found
+it.** `the_areas_of_a_list` compared its own area with 12 rows, and that area
+grew by 6: a screen of 20 rows then gave the list **6** lines while nothing
+played and **7** while a media played, because the larger area crossed the
+threshold of T-99 and a half of it went to the description. **The split is a rule
+of the screen, and not of the area**: the function takes the rows that the player
+left away before it compares, therefore one screen holds one split and a playback
+moves no line into the description.
+
+The measurement in the real program, a terminal of 100 by 18 with nothing
+playing:
+
+| The moment | The lines of the Home view |
+|---|---|
+| Before T-99 | 1 of 24 |
+| After T-99, before this item | 4 of 24 |
+| Now | **10 of 24**, with the row of the item and the footer |
+
+Three tests hold the rules: `the_view_takes_the_rows_of_the_player_while_nothing_plays`
+(the work of the view grows by 6 rows, and the header and the footer stay where
+they stand), `one_screen_holds_one_split_of_the_work_of_a_view` (60 heights of a
+screen, and the list of a screen with no playback never holds fewer lines than
+the list of the same screen with one), and `a_terminal_of_five_rows_gives_the_areas_of_a_view`.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

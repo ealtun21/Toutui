@@ -20,6 +20,14 @@ use ratatui_image::StatefulImage;
 /// The number of rows of the footer of every view.
 const FOOTER_HEIGHT: u16 = 2;
 
+/// The number of rows of the panel of the player.
+///
+/// `render_player` of `src/ui/player_tui.rs` draws 4 rows at 9 rows above the end
+/// of the screen, therefore the panel needs 6 rows above the row of the message
+/// and the footer. **`main.rs` draws that panel for a playback only**, and the
+/// views give those rows to the work of the view while nothing plays. See T-104.
+const PLAYER_HEIGHT: u16 = 6;
+
 /// The number of pictures of the pages of a PDF that the render keeps. See T-54.
 const PICTURES_OF_THE_READER: usize = 8;
 
@@ -81,8 +89,38 @@ impl Widget for &mut App {
 }
 
 /// The message for the user. See T-59.
-/// Gives the three areas of a view of a list: the lines, the row of the item,
-/// and the description. See T-99.
+/// Gives the three areas of every view of a list: the header, the work of the
+/// view, and the footer. See T-104.
+///
+/// **The panel of the player takes 6 rows, and it is visible only while a media
+/// plays**: `main.rs` draws it for a playback and for nothing else. Every view
+/// reserved those 6 rows at every moment, therefore a terminal of 18 rows gave
+/// the work of the view 7 rows and it held 6 empty ones (T-99).
+///
+/// **The decision of the maintainer of 2026-08-12: the rows go to the view while
+/// nothing plays.** Every line of the view therefore moves when a playback
+/// starts, and it moves back when the playback stops.
+///
+/// The row above the footer stays at every moment: `render_the_message` writes
+/// the message of the program there, and a view that takes that row loses its
+/// last line for the six seconds of a message (the trap 39).
+fn the_areas_of_a_view(area: Rect, a_media_plays: bool) -> [Rect; 3] {
+    let rows_of_the_player = if a_media_plays { PLAYER_HEIGHT } else { 0 };
+
+    let [header_area, main_area, _player_area, _message_area, footer_area] = Layout::vertical([
+        Constraint::Length(2),
+        Constraint::Fill(1),
+        Constraint::Length(rows_of_the_player),
+        Constraint::Length(1),
+        Constraint::Length(FOOTER_HEIGHT),
+    ])
+    .areas(area);
+
+    [header_area, main_area, footer_area]
+}
+
+/// Gives the three areas of the work of a view of a list: the lines, the row of
+/// the item, and the description. See T-99.
 ///
 /// **A terminal that holds few rows must show the list.** The measurement of
 /// 2026-08-11, in a terminal of 100 by 18: the area of these three parts held 7
@@ -93,11 +131,18 @@ impl Widget for &mut App {
 /// A terminal that holds enough rows keeps the split that it had: the row of the
 /// item takes 3 rows, and the list and the description take a half each of what
 /// stays.
-fn the_areas_of_a_list(main_area: Rect) -> [Rect; 3] {
+///
+/// **The rule is a rule of the screen, and not of this area.** The area takes the
+/// 6 rows of the player while nothing plays (T-104), therefore
+/// `rows_that_the_player_left` comes away before the comparison. One screen holds
+/// one split: a screen of 20 rows gives the list 6 lines, and the split of a
+/// large terminal would give it 5. A playback moves no line of the list into the
+/// description.
+fn the_areas_of_a_list(main_area: Rect, rows_that_the_player_left: u16) -> [Rect; 3] {
     // 13 rows give the list 5 lines with the split of a large terminal. Fewer
     // rows than that give every row to the list: the lines are the work of the
     // view, and a description of one row says almost nothing.
-    if main_area.height <= 12 {
+    if main_area.height.saturating_sub(rows_that_the_player_left) <= 12 {
         return Layout::vertical([
             Constraint::Fill(1),
             // The row of the item takes two rows, because its text wraps in a
@@ -1197,15 +1242,7 @@ impl App {
 
     /// AppView::Home rendering
     fn render_home(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, _player_area, _refresh_area, footer_area] =
-            Layout::vertical([
-                Constraint::Length(2),
-                Constraint::Fill(1),
-                Constraint::Length(6),
-                Constraint::Length(1),
-                Constraint::Length(2),
-            ])
-            .areas(area);
+        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -1213,7 +1250,8 @@ impl App {
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
-        let [list_area, item_area1, item_area2] = the_areas_of_a_list(main_area);
+        let [list_area, item_area1, item_area2] =
+            the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
 
         // Every line starts with a mark: the media that plays, a media that
         // the user finished, or the part that the user heard. See T-44.
@@ -1258,6 +1296,28 @@ impl App {
         self.render_desc_home(item_area2, buf);
     }
 
+    /// Says if a media plays now. See T-104.
+    ///
+    /// The panel of the player stands on the screen for a playback only, and the
+    /// areas of a view therefore hold its 6 rows for a playback only. A playback
+    /// that a pause holds is a playback: the panel stays, and the user reads the
+    /// place of that media.
+    fn a_media_plays(&self) -> bool {
+        self.player.state().status != PlaybackStatus::Stopped
+    }
+
+    /// The rows of the panel of the player that the view holds now. See T-104.
+    ///
+    /// The split of the work of a view is a rule of the screen (T-99), therefore
+    /// `the_areas_of_a_list` takes these rows away before it compares.
+    fn the_rows_that_the_player_left(&self) -> u16 {
+        if self.a_media_plays() {
+            return 0;
+        }
+
+        PLAYER_HEIGHT
+    }
+
     /// Draws the sentence of a view that holds no line. See T-103.
     ///
     /// Every view of the program that can hold no line says why, and this
@@ -1276,15 +1336,7 @@ impl App {
 
     /// AppView::Library rendering
     fn render_library(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, _player_area, _refresh_area, footer_area] =
-            Layout::vertical([
-                Constraint::Length(2),
-                Constraint::Fill(1),
-                Constraint::Length(6),
-                Constraint::Length(1),
-                Constraint::Length(2),
-            ])
-            .areas(area);
+        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -1292,7 +1344,8 @@ impl App {
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
-        let [list_area, item_area1, item_area2] = the_areas_of_a_list(main_area);
+        let [list_area, item_area1, item_area2] =
+            the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
 
         // Every book of a series gives one line. See T-22.
         let lines = self.library_lines();
@@ -1359,15 +1412,7 @@ impl App {
 
     /// AppView::Series rendering: the list of the series of the library.
     fn render_series(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, _player_area, _refresh_area, footer_area] =
-            Layout::vertical([
-                Constraint::Length(2),
-                Constraint::Fill(1),
-                Constraint::Length(6),
-                Constraint::Length(1),
-                Constraint::Length(2),
-            ])
-            .areas(area);
+        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -1375,7 +1420,8 @@ impl App {
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
-        let [list_area, item_area1, item_area2] = the_areas_of_a_list(main_area);
+        let [list_area, item_area1, item_area2] =
+            the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
 
         let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST;
 
@@ -1439,15 +1485,7 @@ impl App {
 
     /// AppView::SeriesBook rendering: the books of one series.
     fn render_series_book(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, _player_area, _refresh_area, footer_area] =
-            Layout::vertical([
-                Constraint::Length(2),
-                Constraint::Fill(1),
-                Constraint::Length(6),
-                Constraint::Length(1),
-                Constraint::Length(2),
-            ])
-            .areas(area);
+        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -1455,7 +1493,8 @@ impl App {
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
-        let [list_area, item_area1, item_area2] = the_areas_of_a_list(main_area);
+        let [list_area, item_area1, item_area2] =
+            the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
 
         let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA;
 
@@ -1503,15 +1542,7 @@ impl App {
 
     /// AppView::Lists rendering: the collections and the playlists.
     fn render_lists(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, _player_area, _refresh_area, footer_area] =
-            Layout::vertical([
-                Constraint::Length(2),
-                Constraint::Fill(1),
-                Constraint::Length(6),
-                Constraint::Length(1),
-                Constraint::Length(2),
-            ])
-            .areas(area);
+        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -1519,7 +1550,8 @@ impl App {
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
-        let [list_area, item_area1, item_area2] = the_areas_of_a_list(main_area);
+        let [list_area, item_area1, item_area2] =
+            the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
 
         // The keys `r` and `X` of this view need a footer of its own. See T-93.
         let text_render_footer = crate::ui::keys::FOOTER_OF_THE_LISTS;
@@ -1591,15 +1623,7 @@ impl App {
     /// AppView::ListEntries rendering: the media of one collection or of one
     /// playlist.
     fn render_list_entries(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, _player_area, _refresh_area, footer_area] =
-            Layout::vertical([
-                Constraint::Length(2),
-                Constraint::Fill(1),
-                Constraint::Length(6),
-                Constraint::Length(1),
-                Constraint::Length(2),
-            ])
-            .areas(area);
+        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -1607,7 +1631,8 @@ impl App {
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
-        let [list_area, item_area1, item_area2] = the_areas_of_a_list(main_area);
+        let [list_area, item_area1, item_area2] =
+            the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
 
         let text_render_footer = crate::ui::keys::FOOTER_OF_THE_MEDIA_OF_A_LIST;
 
@@ -1665,17 +1690,10 @@ impl App {
 
     /// AppView::Settings rendering
     fn render_settings(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, _player_area, _refresh_area, footer_area] =
-            Layout::vertical([
-                Constraint::Length(2),
-                Constraint::Fill(1),
-                Constraint::Length(6),
-                Constraint::Length(1),
-                Constraint::Length(2),
-            ])
-            .areas(area);
+        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
 
-        let [list_area, item_area1, item_area2] = the_areas_of_a_list(main_area);
+        let [list_area, item_area1, item_area2] =
+            the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
 
         let render_list_title = "Settings";
 
@@ -1697,15 +1715,7 @@ impl App {
 
     /// AppView::SettingsAccount rendering
     fn render_settings_account(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, _player_area, _refresh_area, footer_area] =
-            Layout::vertical([
-                Constraint::Length(2),
-                Constraint::Fill(1),
-                Constraint::Length(6),
-                Constraint::Length(1),
-                Constraint::Length(2),
-            ])
-            .areas(area);
+        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
 
         let [list_area, _item_area] =
             Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(main_area);
@@ -1766,15 +1776,7 @@ impl App {
 
     /// AppView::SettingsLibrary rendering
     fn render_settings_library(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, _player_area, _refresh_area, footer_area] =
-            Layout::vertical([
-                Constraint::Length(2),
-                Constraint::Fill(1),
-                Constraint::Length(6),
-                Constraint::Length(1),
-                Constraint::Length(2),
-            ])
-            .areas(area);
+        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
 
         let [list_area, item_area] =
             Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(main_area);
@@ -1806,15 +1808,7 @@ impl App {
 
     /// AppView::SearchBook rendering
     fn render_search_book(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, _player_area, _refresh_area, footer_area] =
-            Layout::vertical([
-                Constraint::Length(2),
-                Constraint::Fill(1),
-                Constraint::Length(6),
-                Constraint::Length(1),
-                Constraint::Length(2),
-            ])
-            .areas(area);
+        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -1822,7 +1816,8 @@ impl App {
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
-        let [list_area, item_area1, item_area2] = the_areas_of_a_list(main_area);
+        let [list_area, item_area1, item_area2] =
+            the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
 
         let from_the_server = crate::logic::search::from_the_server::answer_for(&self.search_query);
 
@@ -2043,15 +2038,7 @@ impl App {
 
     /// AppView::PodcastEpisode
     fn render_pod_ep(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, _player_area, _refresh_area, footer_area] =
-            Layout::vertical([
-                Constraint::Length(2),
-                Constraint::Fill(1),
-                Constraint::Length(6),
-                Constraint::Length(1),
-                Constraint::Length(2),
-            ])
-            .areas(area);
+        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -2059,7 +2046,8 @@ impl App {
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
-        let [list_area, item_area1, item_area2] = the_areas_of_a_list(main_area);
+        let [list_area, item_area1, item_area2] =
+            the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
 
         let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA;
 
@@ -2752,5 +2740,100 @@ mod tests {
             "the row holds the text of the view: \"{}\"",
             line
         );
+    }
+
+    /// **The 6 rows of the player go to the view while nothing plays.** They
+    /// stood empty at every moment before, and a terminal of 18 rows gave the
+    /// work of the view 7 rows of the 18. The decision of the maintainer of
+    /// 2026-08-12. See T-104 and T-99.
+    #[test]
+    fn the_view_takes_the_rows_of_the_player_while_nothing_plays() {
+        let screen = Rect {
+            x: 0,
+            y: 0,
+            width: 100,
+            height: 18,
+        };
+
+        let [header, main, footer] = the_areas_of_a_view(screen, true);
+        let [header_of_no_playback, main_of_no_playback, footer_of_no_playback] =
+            the_areas_of_a_view(screen, false);
+
+        assert_eq!(main.height, 7, "the areas of a playback do not change");
+        assert_eq!(
+            main_of_no_playback.height,
+            main.height + PLAYER_HEIGHT,
+            "the view must take the rows of the player"
+        );
+
+        // **The header and the footer stay where they stand.** The row of the
+        // message stands above the footer at every moment, therefore a message
+        // takes no line of the view away (the trap 39).
+        assert_eq!(header, header_of_no_playback);
+        assert_eq!(footer, footer_of_no_playback);
+        assert_eq!(footer.height, FOOTER_HEIGHT);
+        assert_eq!(
+            main_of_no_playback.y + main_of_no_playback.height,
+            footer.y - 1,
+            "the row of the message stands between the view and the footer"
+        );
+    }
+
+    /// **The reflow of the rows of the player must take no line of the list
+    /// away.** One screen holds one split of the work of a view: the split is a
+    /// rule of the screen (T-99), and the area of that work grows by 6 rows while
+    /// nothing plays (T-104).
+    ///
+    /// The first form of T-104 compared the area, and not the screen. A screen of
+    /// 20 rows then gave the list **5** lines while nothing played and **6** while
+    /// a media played: the reflow took one line of the work away, and it gave 6
+    /// rows to a description of "No description available".
+    #[test]
+    fn one_screen_holds_one_split_of_the_work_of_a_view() {
+        for height in 6..60 {
+            let screen = Rect {
+                x: 0,
+                y: 0,
+                width: 100,
+                height,
+            };
+
+            let [_, of_a_playback, _] = the_areas_of_a_view(screen, true);
+            let [_, of_no_playback, _] = the_areas_of_a_view(screen, false);
+
+            let [list_of_a_playback, ..] = the_areas_of_a_list(of_a_playback, 0);
+            let [list_of_no_playback, ..] = the_areas_of_a_list(of_no_playback, PLAYER_HEIGHT);
+
+            assert!(
+                list_of_no_playback.height >= list_of_a_playback.height,
+                "a screen of {} rows gives the list {} lines while nothing plays, \
+                 and {} while a media plays",
+                height,
+                list_of_no_playback.height,
+                list_of_a_playback.height
+            );
+        }
+    }
+
+    /// A terminal that holds fewer rows than the parts of a view must give an
+    /// answer, and it must not stop the program.
+    #[test]
+    fn a_terminal_of_five_rows_gives_the_areas_of_a_view() {
+        for height in 0..=6 {
+            let screen = Rect {
+                x: 0,
+                y: 0,
+                width: 40,
+                height,
+            };
+
+            for a_media_plays in [true, false] {
+                let [header, main, footer] = the_areas_of_a_view(screen, a_media_plays);
+
+                assert!(header.y + header.height <= screen.height.max(1) + 1);
+                assert!(main.y >= header.y);
+                assert!(footer.y + footer.height <= screen.y + screen.height + FOOTER_HEIGHT);
+            }
+        }
     }
 }
