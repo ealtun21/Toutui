@@ -32,7 +32,9 @@ use crate::logic::reader::pdf::{Page, Pdf, Picture};
 use log::{info, warn};
 use std::io::Read;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::OnceLock;
 
 /// The flag that makes the program read one PDF and stop.
 ///
@@ -55,6 +57,31 @@ const THE_LONGEST_WAIT: std::time::Duration = std::time::Duration::from_secs(300
 
 /// The time between two looks at the child.
 const LOOK_AGAIN: std::time::Duration = std::time::Duration::from_millis(50);
+
+/// Tells if the program that runs is the program of the user.
+///
+/// **`current_exe` gives the binary that runs, and that binary is the binary of
+/// a test inside a test.** A run of `cargo nextest` on 2026-08-12 opened a PDF
+/// of the sandbox and the child was the test binary: that process knows no flag
+/// of this module, therefore it gave a fault and the reader said "This PDF gives
+/// no page". The same holds for every program that takes this library.
+///
+/// `main` writes this value, therefore the child does the work for the user and
+/// the reader of a test reads the book in its own process. See T-62.
+fn the_program() -> &'static AtomicBool {
+    static THE_PROGRAM: OnceLock<AtomicBool> = OnceLock::new();
+    THE_PROGRAM.get_or_init(|| AtomicBool::new(false))
+}
+
+/// Says that the program of the user runs. `main` calls this one time.
+pub fn the_program_of_the_user_runs() {
+    the_program().store(true, Ordering::SeqCst);
+}
+
+/// Tells if a child can read a PDF.
+pub fn a_child_can_read() -> bool {
+    the_program().load(Ordering::SeqCst)
+}
 
 /// Gives the path of the parsed book of a PDF.
 ///
@@ -442,6 +469,16 @@ mod tests {
 
         // A file of a different program gives no book.
         assert!(the_book_of(b"a text that is not a book of this program").is_none());
+    }
+
+    /// **A child reads a PDF for the program of the user only.** A run of
+    /// `cargo nextest` of 2026-08-12 opened a PDF of the sandbox, and
+    /// `current_exe` gave the binary of that test: the child knew no flag of
+    /// this module, and the reader said "This PDF gives no page". See T-62.
+    #[test]
+    fn a_test_reads_the_book_in_its_own_process() {
+        // `main` never runs inside a test, therefore no child may start.
+        assert!(!a_child_can_read());
     }
 
     /// The parsed book stands beside the book, therefore the cache of the

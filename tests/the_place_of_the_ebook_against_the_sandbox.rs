@@ -41,13 +41,19 @@ async fn item_with_an_ebook(api: &Arc<ApiClient>) -> String {
             .await
             .expect("the server must give the items");
         for item in items["results"].as_array().unwrap_or(&Vec::new()) {
-            if item["media"]["ebookFormat"].as_str().is_some() {
+            // **An EPUBCFI belongs to an EPUB book.** The old rule took the
+            // first item with an ebook of any form, and a session of 2026-08-12
+            // put a PDF of 47 megabytes of a scan in the sandbox: that book
+            // stands first in the alphabet, it holds no chapter, and the test
+            // then measured a form of the place that a PDF never writes.
+            if item["media"]["ebookFormat"].as_str() == Some("epub") {
                 return item["id"].as_str().unwrap_or_default().to_string();
             }
         }
     }
     panic!(
-        "the sandbox must hold one item with an ebook. See docs/TEST-SERVER.md, section of T-10."
+        "the sandbox must hold one item with an EPUB book. See docs/TEST-SERVER.md, \
+         section of T-10."
     );
 }
 

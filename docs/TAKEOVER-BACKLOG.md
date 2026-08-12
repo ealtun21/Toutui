@@ -4538,6 +4538,32 @@ and the publishers: one request gives every line of the view of the key `f`.
 library is a line that gives the user no media. Section 6 holds that reason, and
 the row says `Yes`: the user filters by a tag today.
 
+### T-111: a child read a PDF inside a test, and that child was the test
+
+**The run of every test with the sandbox found this**, and no test of the fast
+suite did. `Pdf::open` of T-62 spawns `std::env::current_exe()`, and **that
+binary is the binary of a test inside a test**: that process knows no flag of
+`pdf_of_a_child`, therefore it gave a fault and
+`the_place_of_the_ebook_against_the_sandbox` said "the book must open:
+ThePdfGivesNoPage". Every program that takes this library as a crate meets the
+same condition.
+
+`main` writes `the_program_of_the_user_runs()` now, and `Pdf::open` reads
+`a_child_can_read()`: the child does the work for the user, and a test reads the
+book in its own process. `a_test_reads_the_book_in_its_own_process` holds that
+rule, and it is a test that can never pass by accident: `main` never runs inside
+a test.
+
+**The same run found a fault of the data of the sandbox**, and not of the
+program. `item_with_an_ebook` of that test took the first item of any form of
+ebook, and the PDF of 47 megabytes of T-62 stands first in the alphabet: the test
+of an EPUBCFI then measured a PDF, which writes no such place. The rule takes an
+item of the form `epub` now.
+
+**A run of every test with the sandbox belongs at the end of a session**, and not
+at the end of one item: it took 16 seconds, and it found two faults that 913
+tests of the fast suite did not.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

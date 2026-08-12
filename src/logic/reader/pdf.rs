@@ -115,6 +115,13 @@ impl Pdf {
     /// `Pdf::of_the_file`. The peak of the memory of `Document::load` and every
     /// fault of `lopdf` stay outside the program that the user reads.
     pub fn open(path: &Path) -> Result<Pdf, ReaderError> {
+        // A test and a program that takes this library both give a `current_exe`
+        // that knows no flag of that module, therefore they read the book in
+        // this process. See T-62.
+        if !crate::logic::reader::pdf_of_a_child::a_child_can_read() {
+            return Pdf::of_the_file(path);
+        }
+
         crate::logic::reader::pdf_of_a_child::the_book_that_a_child_reads(path)
     }
 

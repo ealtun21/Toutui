@@ -30,6 +30,11 @@ async fn main() -> Result<()> {
         std::process::exit(code);
     }
 
+    // The program of the user runs, therefore a child may read a PDF. A test
+    // and a program that takes this library never reach this line, and their
+    // `current_exe` knows no flag of that module. See T-62.
+    toutui::logic::reader::pdf_of_a_child::the_program_of_the_user_runs();
+
     // clap
     clap().await;
 

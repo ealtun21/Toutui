@@ -9,7 +9,7 @@ not done.
 | What | Value |
 |---|---|
 | The server | Audiobookshelf 2.36.0 |
-| The client | Toutui 0.7.54 (`Cargo.toml`) |
+| The client | Toutui 0.7.55 (`Cargo.toml`) |
 | The address of the server | `http://127.0.0.1:13399`, the sandbox of `docs/TEST-SERVER.md` |
 | The user | `toutuitest`, of the type `root` |
 

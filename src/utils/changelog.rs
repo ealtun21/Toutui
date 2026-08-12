@@ -41,6 +41,16 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.55",
+        date: "12/08/2026",
+        body: &[
+            "Fixed:",
+            "- A PDF book opens in a process of its own for the program only. A test and every \
+             other program that takes this code read the book in their own process, and the \
+             reader said \"This PDF gives no page\" for a book that it reads.",
+        ],
+    },
+    Entry {
         version: "0.7.54",
         date: "12/08/2026",
         body: &[
