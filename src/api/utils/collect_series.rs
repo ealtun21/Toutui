@@ -5,6 +5,7 @@
 
 use crate::api::libraries::get_all_series::SeriesRoot;
 use crate::utils::html_text::to_plain_text;
+use crate::utils::values_of_the_server::a_text_or_nothing;
 
 /// One book of a series.
 #[derive(Debug, Clone, PartialEq)]
@@ -125,12 +126,11 @@ pub fn collect_series(root: &SeriesRoot) -> Vec<SeriesView> {
 
                     SeriesBookView {
                         id: book.id.clone().unwrap_or_default(),
-                        title: metadata
-                            .and_then(|data| data.title.clone())
-                            .unwrap_or_else(|| "N/A".to_string()),
-                        author: metadata
-                            .and_then(|data| data.author_name.clone())
-                            .unwrap_or_else(|| "N/A".to_string()),
+                        // **A text of no letter is not a value.** See T-114.
+                        title: a_text_or_nothing(metadata.and_then(|data| data.title.as_deref())),
+                        author: a_text_or_nothing(
+                            metadata.and_then(|data| data.author_name.as_deref()),
+                        ),
                         sequence: sequence_from(
                             metadata
                                 .and_then(|data| data.series_name.as_deref())
@@ -153,7 +153,7 @@ pub fn collect_series(root: &SeriesRoot) -> Vec<SeriesView> {
 
             SeriesView {
                 id: series.id.clone().unwrap_or_default(),
-                name: series.name.clone().unwrap_or_else(|| "N/A".to_string()),
+                name: a_text_or_nothing(series.name.as_deref()),
                 description: series
                     .description
                     .as_deref()

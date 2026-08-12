@@ -32,8 +32,11 @@ pub fn episode_entities(shelves: &[Root]) -> impl Iterator<Item = (&Entity, &Rec
 }
 
 /// Reads one text, or gives `N/A`.
+///
+/// **A text of no letter is not a value**, and the server gives `""` for a value
+/// that a podcast does not hold. See T-114.
 fn or_not_available(value: Option<&String>) -> String {
-    value.cloned().unwrap_or_else(|| "N/A".to_string())
+    crate::utils::values_of_the_server::a_text_or_nothing(value.map(String::as_str))
 }
 
 /// Gives the media of an entity that `episode_entities` gave.
@@ -54,9 +57,10 @@ pub async fn collect_ids_pod_cnt_list(roots: &[Root]) -> Vec<String> {
 /// Collect subtitles from recent episodes
 pub async fn collect_subtitles_pod_cnt_list(roots: &[Root]) -> Vec<String> {
     episode_entities(roots)
-        .map(|(_, episode)| match &episode.subtitle {
-            Some(subtitle) => to_plain_text(subtitle),
-            None => "N/A".to_string(),
+        .map(|(_, episode)| {
+            let text = episode.subtitle.as_deref().map(to_plain_text);
+
+            crate::utils::values_of_the_server::a_text_or_nothing(text.as_deref())
         })
         .collect()
 }

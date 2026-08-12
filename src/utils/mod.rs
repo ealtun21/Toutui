@@ -8,3 +8,4 @@ pub mod html_text;
 pub mod logs;
 pub mod pop_up_message;
 pub mod startup;
+pub mod values_of_the_server;

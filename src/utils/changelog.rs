@@ -41,6 +41,17 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.57",
+        date: "12/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A media that holds no author, no year, or no description says so.** The \
+             server gives an empty text for a value that a media does not hold, and the \
+             screen wrote that empty text: the line of a book said \"Author:  - Year: N/A\". \
+             Every view says \"N/A\" now.",
+        ],
+    },
+    Entry {
         version: "0.7.56",
         date: "12/08/2026",
         body: &[

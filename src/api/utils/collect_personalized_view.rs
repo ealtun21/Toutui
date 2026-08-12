@@ -27,13 +27,13 @@ pub fn media_entities(shelves: &[Root]) -> impl Iterator<Item = (&Entity, &Media
 }
 
 /// Reads one value of the metadata of a media, or gives `N/A`.
+///
+/// **A text of no letter is not a value**, and the server gives `""` for a book
+/// that holds no tag of an author. See T-114.
 fn from_metadata(media: &Media, read: impl Fn(&Metadata) -> Option<&String>) -> String {
-    media
-        .metadata
-        .as_ref()
-        .and_then(read)
-        .cloned()
-        .unwrap_or_else(|| "N/A".to_string())
+    crate::utils::values_of_the_server::a_text_or_nothing(
+        media.metadata.as_ref().and_then(read).map(String::as_str),
+    )
 }
 
 /// collect titles

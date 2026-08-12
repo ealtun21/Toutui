@@ -4630,6 +4630,45 @@ items of 2056, and the key G asked for the end".
 **The offline mode asks for nothing.** The wait needs a server, therefore the key
 takes the last line that the program holds and it stops there.
 
+### T-114: a text of no letter is not a value
+
+**The line of the Library view said `Author:  - Year: N/A`.** The two values of
+that line are absent in the same way, and the screen said one of them with words
+and the other with nothing at all: **a user cannot tell an empty value from a
+fault of the program.**
+
+The measurement of 2026-08-12, of one item of the library of 2056 books:
+
+```json
+{"title": "Large Book 2056", "authorName": "", "narratorName": "",
+ "seriesName": "", "publishedYear": null}
+```
+
+**The server gives `""`, and the program read `null` only.** Every collector held
+the same shape: `if let Some(value) = … { push(value) } else { push("N/A") }`. A
+book that holds no tag of an author therefore gave an empty text to the screen,
+and a book with no tag at all is the shape of a book that a user takes from a
+disk of their own.
+
+`src/utils/values_of_the_server.rs` holds the rule now: **a text that holds no
+letter is not a value.** `a_text_or_nothing` gives "N/A", and `a_text_or` gives
+the words of a view ("No description available"). Six collectors take their text
+through it: the library, the episodes of a podcast, the two shelves of the Home
+view, the collections and the playlists, and the series. **One rule therefore
+holds for every view.**
+
+A description holds a web page in some libraries, and `to_plain_text` of a page
+of no text gives an empty text: such a page is no description, and the same rule
+answers it.
+
+The tests of `collect_get_all_books` hold the measurement of the sandbox, and
+they fail with the old code: `assert_eq!(collect_auth_names_library(&answer)
+.await, vec!["N/A"])` gave `[""]`.
+
+**The identity of an item keeps its own shape.** An identity of no letter is a
+fault of the server, and no view shows it: the rule of this item is a rule of the
+text that a user reads.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

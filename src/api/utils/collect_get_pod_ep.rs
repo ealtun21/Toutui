@@ -1,6 +1,7 @@
 use crate::api::library_items::get_pod_ep::Root;
 use crate::utils::convert_seconds::*;
 use crate::utils::html_text::to_plain_text;
+use crate::utils::values_of_the_server::a_text_or_nothing;
 
 /// collect title podact episode
 pub async fn collect_titles_pod_ep(item: &Root) -> Vec<String> {
@@ -9,11 +10,7 @@ pub async fn collect_titles_pod_ep(item: &Root) -> Vec<String> {
     if let Some(media) = &item.media {
         if let Some(episodes) = &media.episodes {
             for episode in episodes {
-                if let Some(title) = &episode.title {
-                    titles_pod_ep.push(title.clone());
-                } else {
-                    titles_pod_ep.push("N/A".to_string());
-                }
+                titles_pod_ep.push(a_text_or_nothing(episode.title.as_deref()));
             }
         }
     }
@@ -47,11 +44,9 @@ pub async fn collect_subtitles_pod_ep(item: &Root) -> Vec<String> {
     if let Some(media) = &item.media {
         if let Some(episodes) = &media.episodes {
             for episode in episodes {
-                if let Some(sub) = &episode.subtitle {
-                    subtitles_pod_ep.push(to_plain_text(sub));
-                } else {
-                    subtitles_pod_ep.push("N/A".to_string());
-                }
+                let text = episode.subtitle.as_deref().map(to_plain_text);
+
+                subtitles_pod_ep.push(a_text_or_nothing(text.as_deref()));
             }
         }
     }
@@ -66,11 +61,7 @@ pub async fn collect_seasons_pod_ep(item: &Root) -> Vec<String> {
     if let Some(media) = &item.media {
         if let Some(episodes) = &media.episodes {
             for episode in episodes {
-                if let Some(season) = &episode.season {
-                    seasons_pod_ep.push(season.clone());
-                } else {
-                    seasons_pod_ep.push("N/A".to_string());
-                }
+                seasons_pod_ep.push(a_text_or_nothing(episode.season.as_deref()));
             }
         }
     }
@@ -85,11 +76,7 @@ pub async fn collect_episodes_pod_ep(item: &Root) -> Vec<String> {
     if let Some(media) = &item.media {
         if let Some(episodes) = &media.episodes {
             for episode in episodes {
-                if let Some(episode) = &episode.episode {
-                    episodes_pod_ep.push(episode.clone());
-                } else {
-                    episodes_pod_ep.push("N/A".to_string());
-                }
+                episodes_pod_ep.push(a_text_or_nothing(episode.episode.as_deref()));
             }
         }
     }
@@ -103,11 +90,7 @@ pub async fn collect_authors_pod_ep(item: &Root) -> Vec<String> {
 
     if let Some(media) = &item.media {
         if let Some(metadata) = &media.metadata {
-            if let Some(author) = &metadata.author {
-                authors_pod_ep.push(author.clone());
-            } else {
-                authors_pod_ep.push("N/A".to_string());
-            }
+            authors_pod_ep.push(a_text_or_nothing(metadata.author.as_deref()));
         }
     }
 
@@ -120,11 +103,9 @@ pub async fn collect_descs_pod_ep(item: &Root) -> Vec<String> {
 
     if let Some(media) = &item.media {
         if let Some(metadata) = &media.metadata {
-            if let Some(desc) = &metadata.description {
-                descs_pod_ep.push(to_plain_text(desc));
-            } else {
-                descs_pod_ep.push("N/A".to_string());
-            }
+            let text = metadata.description.as_deref().map(to_plain_text);
+
+            descs_pod_ep.push(a_text_or_nothing(text.as_deref()));
         }
     }
 
@@ -137,11 +118,7 @@ pub async fn collect_titles_pod(item: &Root) -> Vec<String> {
 
     if let Some(media) = &item.media {
         if let Some(metadata) = &media.metadata {
-            if let Some(title) = &metadata.title {
-                titles_pod.push(title.clone());
-            } else {
-                titles_pod.push("N/A".to_string());
-            }
+            titles_pod.push(a_text_or_nothing(metadata.title.as_deref()));
         }
     }
 

@@ -7,6 +7,7 @@
 use crate::api::libraries::get_all_books::LibraryItem;
 use crate::api::libraries::get_lists::{CollectionRoot, PlaylistRoot};
 use crate::utils::html_text::to_plain_text;
+use crate::utils::values_of_the_server::{a_text_or, a_text_or_nothing};
 
 /// What the list is.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -86,23 +87,31 @@ fn from_item(item: &LibraryItem) -> ListEntry {
     ListEntry {
         id: item.id.clone().unwrap_or_default(),
         episode_id: None,
-        title: metadata
-            .and_then(|data| data.title.clone())
-            .unwrap_or_else(|| "N/A".to_string()),
+        // **A text of no letter is not a value.** See T-114.
+        title: a_text_or_nothing(metadata.and_then(|data| data.title.as_deref())),
         // A book gives `authorName`, and a podcast gives `author`.
-        author: metadata
-            .and_then(|data| data.author_name.clone().or_else(|| data.author.clone()))
-            .unwrap_or_else(|| "N/A".to_string()),
+        author: a_text_or_nothing(
+            metadata.and_then(|data| data.author_name.as_deref().or(data.author.as_deref())),
+        ),
         duration: item
             .media
             .as_ref()
             .and_then(|media| media.duration)
             .unwrap_or(0.0),
-        description: metadata
-            .and_then(|data| data.description.as_deref())
-            .map(to_plain_text)
-            .unwrap_or_else(|| "No description available".to_string()),
+        description: a_description_or_nothing(
+            metadata.and_then(|data| data.description.as_deref()),
+        ),
     }
+}
+
+/// Gives the description of a media, or the words for a media that has none.
+///
+/// The text of the server can hold a web page, and a page that holds no text is
+/// no description. See T-114.
+fn a_description_or_nothing(text: Option<&str>) -> String {
+    let plain = text.map(to_plain_text);
+
+    a_text_or(plain.as_deref(), "No description available")
 }
 
 /// Makes the display data of the collections.
@@ -113,12 +122,8 @@ pub fn collect_collections(root: &CollectionRoot) -> Vec<ListView> {
         .map(|collection| ListView {
             id: collection.id.clone().unwrap_or_default(),
             kind: ListKind::Collection,
-            name: collection.name.clone().unwrap_or_else(|| "N/A".to_string()),
-            description: collection
-                .description
-                .as_deref()
-                .map(to_plain_text)
-                .unwrap_or_else(|| "No description available".to_string()),
+            name: a_text_or_nothing(collection.name.as_deref()),
+            description: a_description_or_nothing(collection.description.as_deref()),
             entries: collection.books.iter().flatten().map(from_item).collect(),
         })
         .collect()
@@ -135,12 +140,8 @@ pub fn collect_playlists(root: &PlaylistRoot) -> Vec<ListView> {
         .map(|playlist| ListView {
             id: playlist.id.clone().unwrap_or_default(),
             kind: ListKind::Playlist,
-            name: playlist.name.clone().unwrap_or_else(|| "N/A".to_string()),
-            description: playlist
-                .description
-                .as_deref()
-                .map(to_plain_text)
-                .unwrap_or_else(|| "No description available".to_string()),
+            name: a_text_or_nothing(playlist.name.as_deref()),
+            description: a_description_or_nothing(playlist.description.as_deref()),
             entries: playlist
                 .items
                 .iter()
