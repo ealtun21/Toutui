@@ -5768,6 +5768,50 @@ removed: three of `tests/api_client.rs` (a request, a request of a pool of two
 addresses that are both down, and a download) and two of
 `src/api/client/endpoint.rs`.
 
+### T-129: the four requests of the start waited for the shelves of the Home view
+
+**T-127 took 29 requests of the start away, and it left the rounds.** The road of
+that session asked which requests of the start are in sequence, and it said that
+no measurement gives the answer. **A proxy of 70 lines of Python answers it with
+no line of code of the program**: the proxy holds a port, it gives every request a
+delay of 500 milliseconds, and it writes the path and the time of each request.
+The pool takes that address with a block `[[servers]]` of `config.toml` (the trap
+68).
+
+The three rounds of the start, of the measurement of 2026-08-12:
+
+| The time | The requests |
+|---|---|
+| 0.000 | `GET /api/libraries` |
+| 0.511 | `/personalized` (the shelves of the Home view), and `GET /api/me` |
+| 1.059 | the series, the collections, the playlists, and the items |
+| **2.03 s** | **the first frame** |
+
+**The four requests need the answer of the shelves for nothing.** They need the
+identity of the library, and that identity comes with the first round. The four
+went together already (T-40), and they waited for a request that says nothing to
+them: `App::new` asked for the shelves with `await`, and it made the four
+afterwards.
+
+**The four stand in a task now, and that task starts before the request of the
+shelves.** The start holds two rounds:
+
+| The time | The requests |
+|---|---|
+| 0.000 | `GET /api/libraries` |
+| 0.505 | the shelves, `GET /api/me`, the series, the collections, the playlists, and the items |
+| **1.56 s** | **the first frame** |
+
+**One round of the start is gone, and the first frame of a server of 500
+milliseconds takes 1.56 seconds of the 2.03 that it took.** The sandbox gives the
+first frame in 566 milliseconds. The first round stays: every request of the
+second round needs the identity of the library, and `GET /api/libraries` gives it.
+
+`the_four_requests_of_the_start_go_together` of T-86 holds the new rule.
+The mock of that test notes the **path** of each request now, and the measurement
+of the shelves against the items fails with the old code: 706 milliseconds apart,
+of a server of 700 milliseconds for each answer.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

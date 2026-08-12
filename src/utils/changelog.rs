@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.69",
+        date: "12/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The first screen comes faster with a server that answers slowly.** The program \
+             asked the server for the series, the collections, the playlists, and the items of \
+             the library after the answer of the shelves of the Home view, and those requests \
+             need that answer for nothing. They go beside it now: a start of 2.03 seconds with \
+             a server of 500 milliseconds takes 1.56 seconds.",
+        ],
+    },
+    Entry {
         version: "0.7.68",
         date: "12/08/2026",
         body: &[

@@ -62,6 +62,21 @@ impl wiremock::Match for NotesTheTime {
     }
 }
 
+/// Holds the path and the time of each request. The rule of T-129 names the
+/// request of the shelves, therefore the measurement must know the paths.
+#[derive(Clone, Default)]
+struct NotesThePath(Arc<Mutex<Vec<(String, Instant)>>>);
+
+impl wiremock::Match for NotesThePath {
+    fn matches(&self, request: &wiremock::Request) -> bool {
+        if let Ok(mut rows) = self.0.lock() {
+            rows.push((request.url.path().to_string(), Instant::now()));
+        }
+
+        true
+    }
+}
+
 fn a_user(address: &str) -> User {
     User {
         server_address: address.to_string(),
@@ -129,9 +144,11 @@ async fn the_four_requests_of_the_start_go_together() {
     // Every other answer is slow, and it holds no item. The program takes an
     // empty answer and it goes on; this test measures the sequence only.
     let times = NotesTheTime::default();
+    let paths = NotesThePath::default();
 
     Mock::given(method("GET"))
         .and(times.clone())
+        .and(paths.clone())
         .respond_with(
             ResponseTemplate::new(200)
                 .set_delay(DELAY)
@@ -202,6 +219,47 @@ async fn the_four_requests_of_the_start_go_together() {
         1,
         "the start asks the server for the account of the token one time. \
          The positions of the media come with that answer (T-127)."
+    );
+
+    // **The shelves of the Home view and the four requests go together.** The
+    // four need that answer for nothing, and the old code asked for them after
+    // it: a measurement of 2026-08-12 with a proxy of 500 milliseconds read
+    // three rounds of requests, and the first frame took 2.03 seconds. It takes
+    // 1.56 seconds with two rounds. See T-129.
+    let paths = paths.0.lock().expect("the paths of the requests").clone();
+
+    let of_the_shelves = paths
+        .iter()
+        .find(|(path, _)| path.ends_with("/personalized"))
+        .expect("the start asks the server for the shelves of the Home view");
+
+    let of_the_items = paths
+        .iter()
+        .find(|(path, _)| path.ends_with("/items"))
+        .expect("the start asks the server for the items of the library");
+
+    let between_the_two = if of_the_items.1 > of_the_shelves.1 {
+        of_the_items.1.duration_since(of_the_shelves.1)
+    } else {
+        of_the_shelves.1.duration_since(of_the_items.1)
+    };
+
+    println!(
+        "the shelves and the items arrived {:?} apart, of the paths {:?}",
+        between_the_two,
+        paths
+            .iter()
+            .map(|(path, time)| (path.clone(), time.duration_since(paths[0].1)))
+            .collect::<Vec<_>>()
+    );
+
+    assert!(
+        between_the_two < BETWEEN_THE_FIRST_AND_THE_LAST,
+        "the request of the shelves and the request of the items arrived {:?} \
+         apart. Each answer of the server takes {:?}, therefore the four \
+         requests wait for the shelves. See T-129.",
+        between_the_two,
+        DELAY
     );
 
     let between = last.duration_since(*first);

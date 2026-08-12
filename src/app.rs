@@ -624,6 +624,102 @@ impl App {
             })
         });
 
+        // **The series, the collections, the playlists, and the items need the
+        // shelves of the Home view for nothing**, therefore they do not wait for
+        // that answer. The four go together already (T-40), and a measurement of
+        // 2026-08-12 with a proxy of 500 milliseconds read three rounds of
+        // requests in the log of that proxy: the libraries, then the shelves and
+        // the account, then the four. **The four stand in the second round now**,
+        // and the first frame of that server takes 1.5 seconds of 2.0. See T-129.
+        crate::utils::startup::set("the shelves, the series, the lists, and every item");
+
+        let the_four_requests = {
+            let api = std::sync::Arc::clone(&api);
+            let id_selected_lib = id_selected_lib.clone();
+            let library_query = library_query.clone();
+
+            tokio::spawn(async move {
+                let ask_for_the_series = async {
+                    // A podcast library has no series, thus the application sends no
+                    // request for it. See T-22.
+                    if is_podcast || is_offline {
+                        return Vec::new();
+                    }
+
+                    match get_all_series(&api, &id_selected_lib).await {
+                        Ok(root) => collect_series(&root),
+                        Err(error) => {
+                            // A server that does not give the series must not stop the
+                            // application. The user then sees an empty list.
+                            log::warn!("[app] the server did not give the series: {}", error);
+                            Vec::new()
+                        }
+                    }
+                };
+
+                let ask_for_the_collections = async {
+                    // A podcast library has no collection, and it can have a playlist.
+                    // See T-9.
+                    if is_podcast || is_offline {
+                        return CollectionRoot::default();
+                    }
+
+                    get_all_collections(&api, &id_selected_lib)
+                        .await
+                        .unwrap_or_else(|error| {
+                            log::warn!("[app] the server did not give the collections: {}", error);
+                            CollectionRoot::default()
+                        })
+                };
+
+                let ask_for_the_playlists = async {
+                    if is_offline {
+                        return PlaylistRoot::default();
+                    }
+
+                    get_all_playlists(&api, &id_selected_lib)
+                        .await
+                        .unwrap_or_else(|error| {
+                            log::warn!("[app] the server did not give the playlists: {}", error);
+                            PlaylistRoot::default()
+                        })
+                };
+
+                let ask_for_the_items = async {
+                    // The offline mode makes this list from the media on the disk. A
+                    // media that the disk does not hold cannot play, thus the list
+                    // must not show it. See T-25.
+                    if is_offline {
+                        return crate::api::libraries::get_all_books::Root::default();
+                    }
+
+                    // **The first page, and not every page.** `get_all_books` read
+                    // every page of the library before the first frame: a library of
+                    // 2056 items made five requests, and a library of 250000 items made
+                    // 500 of them. The program asks for the page after this one when
+                    // the user comes near the end of the lines that it holds. See T-70.
+                    crate::api::libraries::get_all_books::get_one_page_of_books(
+                        &api,
+                        &id_selected_lib,
+                        &library_query,
+                        0,
+                    )
+                    .await
+                    .unwrap_or_else(|error| {
+                        log::warn!("[app] the server did not give the items: {}", error);
+                        crate::api::libraries::get_all_books::Root::default()
+                    })
+                };
+
+                tokio::join!(
+                    ask_for_the_series,
+                    ask_for_the_collections,
+                    ask_for_the_playlists,
+                    ask_for_the_items,
+                )
+            })
+        };
+
         // The shelves of the Home view. The lines of that view need the
         // shelves and the series together, therefore the program keeps the
         // answer here and it makes the lines when it holds the series. See
@@ -802,85 +898,6 @@ impl App {
             }
         }
 
-        // The series, the collections, the playlists, and the items do not
-        // need each other. The old code asked for them one after the other,
-        // therefore a slow server made the user wait for the sum of the four.
-        // They go together now, and the wait is the longest of the four. See
-        // T-40.
-        crate::utils::startup::set("the series, the lists, and every item");
-
-        let ask_for_the_series = async {
-            // A podcast library has no series, thus the application sends no
-            // request for it. See T-22.
-            if is_podcast || is_offline {
-                return Vec::new();
-            }
-
-            match get_all_series(&api, &id_selected_lib).await {
-                Ok(root) => collect_series(&root),
-                Err(error) => {
-                    // A server that does not give the series must not stop the
-                    // application. The user then sees an empty list.
-                    log::warn!("[app] the server did not give the series: {}", error);
-                    Vec::new()
-                }
-            }
-        };
-
-        let ask_for_the_collections = async {
-            // A podcast library has no collection, and it can have a playlist.
-            // See T-9.
-            if is_podcast || is_offline {
-                return CollectionRoot::default();
-            }
-
-            get_all_collections(&api, &id_selected_lib)
-                .await
-                .unwrap_or_else(|error| {
-                    log::warn!("[app] the server did not give the collections: {}", error);
-                    CollectionRoot::default()
-                })
-        };
-
-        let ask_for_the_playlists = async {
-            if is_offline {
-                return PlaylistRoot::default();
-            }
-
-            get_all_playlists(&api, &id_selected_lib)
-                .await
-                .unwrap_or_else(|error| {
-                    log::warn!("[app] the server did not give the playlists: {}", error);
-                    PlaylistRoot::default()
-                })
-        };
-
-        let ask_for_the_items = async {
-            // The offline mode makes this list from the media on the disk. A
-            // media that the disk does not hold cannot play, thus the list
-            // must not show it. See T-25.
-            if is_offline {
-                return crate::api::libraries::get_all_books::Root::default();
-            }
-
-            // **The first page, and not every page.** `get_all_books` read
-            // every page of the library before the first frame: a library of
-            // 2056 items made five requests, and a library of 250000 items made
-            // 500 of them. The program asks for the page after this one when
-            // the user comes near the end of the lines that it holds. See T-70.
-            crate::api::libraries::get_all_books::get_one_page_of_books(
-                &api,
-                &id_selected_lib,
-                &library_query,
-                0,
-            )
-            .await
-            .unwrap_or_else(|error| {
-                log::warn!("[app] the server did not give the items: {}", error);
-                crate::api::libraries::get_all_books::Root::default()
-            })
-        };
-
         // **The account of the token came with the shelves** (T-127). A branch
         // that did not read it takes it here, and that wait is the wait of a
         // request that ran already.
@@ -900,12 +917,22 @@ impl App {
 
         let account = the_account;
 
-        let (series, collections, playlists, all_books) = tokio::join!(
-            ask_for_the_series,
-            ask_for_the_collections,
-            ask_for_the_playlists,
-            ask_for_the_items,
-        );
+        // The answers of the four requests that started beside the shelves. A
+        // task that stopped gives the empty answer of each of them, and every
+        // view then says that the server gave nothing (T-91). See T-129.
+        let (series, collections, playlists, all_books) =
+            the_four_requests.await.unwrap_or_else(|error| {
+                log::warn!(
+                    "[app] the task of the series and of the lists stopped: {}",
+                    error
+                );
+                (
+                    Vec::new(),
+                    CollectionRoot::default(),
+                    PlaylistRoot::default(),
+                    crate::api::libraries::get_all_books::Root::default(),
+                )
+            });
 
         let lists = collect_lists(&collections, &playlists);
 
