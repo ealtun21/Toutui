@@ -5932,6 +5932,56 @@ server**: the box must hold a value that the message `init` never carried, and o
 `assert_ne!` holds that rule. The mark goes away in a request of its own. Three
 runs one after the other give the test each time.
 
+### T-133: a program that a user builds keeps no token, and it stops with a screen of no character
+
+**The maintainer met this**: the login took the address, the name, and the
+password of a server that answers, and then the program stood with an empty
+screen for ever. The kill and the start after it asked for the address, the name,
+and the password again.
+
+**The program had no secret key.** `install.sh` makes 32 bytes and it writes
+`TOUTUI_SECRET_KEY=…` in `.env`, and **no other way to the program does that
+work**: `cargo build`, `cargo install`, `nix`, and a package of a system all give
+a program with no key. The measurement of 2026-08-13, with a configuration
+directory of no file:
+
+```
+[INFO] - [auth_input] Login
+[ERROR] - No secret key is present. Do this: …
+```
+
+and no line after it. The table `users` held no row.
+
+Two faults stand behind that screen:
+
+1. **The program waited for itself.** `encrypt_token` gave its fault, and
+   `auth_process` wrote that fault with `println!`. That function runs on the
+   thread of the login, and the login screen holds the lock of the standard
+   output while it waits for that thread with `join`: the two threads then waited
+   for each other for ever. **A `println!` of a thread of the login stops the
+   program.** The user saw a screen of no character, and no key answered.
+2. **A login that keeps no token gave no word.** The old code kept `""` for the
+   token and it went on, therefore the row of the account would hold no token and
+   the next start would show the login screen with no reason.
+
+The three corrections:
+
+- **The program makes the key itself**, at the start, when the machine has none:
+  32 bytes of `/dev/urandom` in the form of the hexadecimal, in
+  `<config>/.env`, and the file belongs to the user alone (mode 600). The
+  function reads `.env` first, therefore **it never makes a second key**: a new
+  key makes every token of every account unreadable.
+- **No line of `auth_process` writes to the terminal.** The fault of the cipher
+  goes to the log, and the login screen says "The program has no secret key,
+  therefore it keeps no token. See the log." A login that keeps no token is a
+  login that failed, and it says so.
+- `App::new` wrote the fault of the decipher with `println!` too, on the cells of
+  a frame of ratatui. That line goes to the log now.
+
+The measurement after the correction, with a configuration directory of no file:
+the login gives the Home view in 5 seconds, `.env` holds the key with the mode
+600, and the start after it gives the Home view with no question.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

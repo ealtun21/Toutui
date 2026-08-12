@@ -17,9 +17,12 @@ git clone https://github.com/ealtun21/Toutui
 cd Toutui/
 mkdir -p ~/.config/toutui
 cp config.example.toml ~/.config/toutui/config.toml
-echo "TOUTUI_SECRET_KEY=$(head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n')" >> ~/.config/toutui/.env
 cargo run --release
 ```
+
+The program makes `~/.config/toutui/.env` with its secret key at the first start,
+when the machine has none. That key encrypts the token of each account, therefore
+a `.env` that goes away asks every account for its password again. See T-133.
 
 ## 🧪 Run the tests
 

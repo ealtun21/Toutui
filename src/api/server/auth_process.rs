@@ -107,17 +107,34 @@ pub async fn auth_process(username: &str, password: &str, server_address: &str) 
         let library_ids = collect_library_ids(&all_libraries).await;
 
         // Token encryption before insert it in the database
-        let _token_to_encrypt = login_response.user.token.as_str();
-        let mut token_encrypted = "".to_string();
-        match encrypt_token(_token_to_encrypt) {
+        //
+        // **A login that keeps no token is a login that failed.** The old code
+        // wrote the reason with `println!` and it kept an empty token: the row
+        // of the account then held no token, and the next start showed the
+        // login screen again with no word of the reason.
+        //
+        // `println!` also stopped the program. This function runs on the thread
+        // of the login, and the screen of the login holds the lock of the
+        // standard output while it waits for that thread: the two threads then
+        // waited for each other for ever, and the user read a screen of no
+        // character. **No line of this function writes to the terminal.** See
+        // T-133.
+        let token_encrypted = match encrypt_token(login_response.user.token.as_str()) {
             Ok(encrypted_token) => {
-                token_encrypted = encrypted_token;
-                info!("Token successfully encrypted")
+                info!("Token successfully encrypted");
+                encrypted_token
             }
-            Err(e) => {
-                println!("Error: {}", e);
+            Err(error) => {
+                error!("[auth_process] the token has no cipher: {}", error);
+
+                // The row of the message of the login holds one line. See the
+                // trap 11 of the harness.
+                return Err(Report::new(std::io::Error::other(
+                    "The program has no secret key, therefore it keeps no token. See the log."
+                        .to_string(),
+                )));
             }
-        }
+        };
 
         // Init for handle_l
         let is_loop_break = "0".to_string();

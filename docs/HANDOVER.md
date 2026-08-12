@@ -1540,8 +1540,11 @@ answers slowly while it writes. Two answers to measure:
     once: the password `claudetmp` went to the application as the keys `c`, `l`,
     `a`, `u`, `d`, `e`, and `e` opened the reader. **Log in one time, and then reuse
     the database of that isolated `XDG_CONFIG_HOME`.**
-7. **An isolated `XDG_CONFIG_HOME` needs two files before the program starts.**
-    `config.toml`, and `.env` with `TOUTUI_SECRET_KEY=<something>`.
+7. **An isolated `XDG_CONFIG_HOME` needs no file before the program starts.**
+    The program makes `config.toml`, and it makes `.env` with a key of its own
+    since T-133. A `.env` of the measurement keeps the tokens of that directory
+    readable between two builds, therefore a harness that gives
+    `TOUTUI_SECRET_KEY` still works.
 8. **A test that sets `XDG_CONFIG_HOME` or `XDG_DATA_HOME` must be alone in its
     binary**, and every test of a global slot must stand in one function.
     `logic::message` gave a fault of one run of three before its two tests became

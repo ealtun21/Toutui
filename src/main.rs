@@ -54,6 +54,24 @@ async fn main() -> Result<()> {
     let env_path = toutui::paths::env_file();
     toutui::utils::encrypt_token::load_env_file(&env_path);
 
+    // **A program that has no key keeps no token.** `install.sh` makes the key,
+    // and a user who builds the program with `cargo`, with `nix`, or with a
+    // package of their system gets no such file: the login of that user asked
+    // the server, took the token, and wrote nothing. The next start showed the
+    // login screen again. The program makes the key itself now. See T-133.
+    match toutui::utils::encrypt_token::the_program_makes_a_key_if_it_has_none(
+        &toutui::paths::config_dir(),
+    ) {
+        Ok(true) => info!(
+            "[main] the machine had no secret key. The program made one in {}.",
+            env_path.display()
+        ),
+        Ok(false) => {}
+        // The login says the same thing to the user, because it is the login
+        // that needs the key. This line holds the reason of the system.
+        Err(error) => log::error!("[main] the program made no secret key: {}", error),
+    }
+
     // **A token that the server refused opens the login screen**, and the
     // program then makes everything of the startup again with the new token.
     // Every turn of this loop is one account: the login screen, the client, the

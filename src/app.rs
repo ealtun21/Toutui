@@ -461,7 +461,12 @@ impl App {
                 //info!("Token successfully decrypted")
             }
             Err(e) => {
-                println!("Error: {}", e);
+                // **A view of ratatui writes no line to the terminal.** A
+                // `println!` here stood on the cells of the frame, and the
+                // program drew no cell of that row again. The first request
+                // with the empty token gives the login screen, and that screen
+                // says what the user must do. See T-133.
+                log::error!("[app] the token of the database has no plain form: {}", e);
             }
         }
 

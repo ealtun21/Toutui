@@ -461,6 +461,8 @@ and its own configuration file, and it does not touch the files of the user.
 ```bash
 TESTCFG=$HOME/.local/share/toutui-abs-test/toutui-config
 mkdir -p $TESTCFG/toutui
+# The program makes this file itself since T-133. A key of the measurement keeps
+# the tokens of this directory readable between two builds.
 echo 'TOUTUI_SECRET_KEY=testkey123' > $TESTCFG/toutui/.env
 cp config.example.toml $TESTCFG/toutui/config.toml
 

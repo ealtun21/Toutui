@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.72",
+        date: "13/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A program that you build yourself keeps your account.** The login took your \
+             address, your name, and your password, and then the screen stayed empty for ever: \
+             the start after it asked for all three again. This program needs a secret key for \
+             your token, only `install.sh` made that key, and a build with `cargo`, with `nix`, \
+             or with a package of your system gave you none. This program makes the key itself \
+             now, at the first start.",
+        ],
+    },
+    Entry {
         version: "0.7.71",
         date: "12/08/2026",
         body: &[
