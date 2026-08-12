@@ -73,6 +73,7 @@ impl Widget for &mut App {
             AppView::Ebooks => self.render_the_ebooks(area, buf),
             AppView::Downloads => self.render_the_downloads(area, buf),
             AppView::PutInAList => self.render_put_in_a_list(area, buf),
+            AppView::SendToEreader => self.render_the_devices_of_an_ereader(area, buf),
             AppView::Keys => self.render_keys(area, buf),
             AppView::Settings => self.render_settings(area, buf),
             AppView::SettingsAccount => self.render_settings_account(area, buf),
@@ -390,7 +391,8 @@ impl App {
             | AppView::Ebooks
             | AppView::SettingsReader
             | AppView::Downloads
-            | AppView::PutInAList => Vec::new(),
+            | AppView::PutInAList
+            | AppView::SendToEreader => Vec::new(),
             // A line of a series shows the cover of each of its books, in
             // the same way as the Library view. See T-22 and T-24.
             AppView::Home if self.selected_home_series().is_some() => self
@@ -861,6 +863,78 @@ impl App {
         );
 
         Paragraph::new(crate::ui::keys::THE_LISTS_THAT_TAKE_A_MEDIA)
+            .wrap(Wrap { trim: true })
+            .render(item_area, buf);
+    }
+}
+
+/// The devices of an e-reader that take a book. See T-119.
+impl App {
+    /// AppView::SendToEreader rendering
+    fn render_the_devices_of_an_ereader(&mut self, area: Rect, buf: &mut Buffer) {
+        let [header_area, main_area, item_area, footer_area] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Fill(1),
+            Constraint::Length(4),
+            Constraint::Length(2),
+        ])
+        .areas(area);
+
+        let book = self
+            .the_book_of_the_send
+            .as_ref()
+            .map(|(_, title)| title.clone())
+            .unwrap_or_default();
+
+        // **An empty list is an answer of the server**, and not a fault: the
+        // server holds no device. The view therefore says the reason, and it is
+        // a reason that the program has. See T-91.
+        let (title, lines) = match crate::logic::the_ereaders::state() {
+            crate::logic::the_ereaders::State::Nothing
+            | crate::logic::the_ereaders::State::Waiting => (
+                "The program asks the server for the devices of an e-reader…".to_string(),
+                Vec::new(),
+            ),
+            crate::logic::the_ereaders::State::Fault(reason) => {
+                (format!("The server gave no device: {}", reason), Vec::new())
+            }
+            crate::logic::the_ereaders::State::Ready(all) if all.is_empty() => (
+                "The server holds no device for an e-reader. An administrator of the server \
+                 adds one."
+                    .to_string(),
+                Vec::new(),
+            ),
+            crate::logic::the_ereaders::State::Ready(all) => (
+                match book.is_empty() {
+                    true => format!(
+                        "Send the ebook to a device [{}]",
+                        crate::ui::keys::items(all.len())
+                    ),
+                    false => format!(
+                        "Send \"{}\" to a device [{}]",
+                        book,
+                        crate::ui::keys::items(all.len())
+                    ),
+                },
+                all.iter().map(|device| device.line()).collect(),
+            ),
+        };
+
+        self.render_header(header_area, buf);
+        App::render_footer(
+            footer_area,
+            buf,
+            crate::ui::keys::FOOTER_OF_THE_DEVICES_OF_AN_EREADER,
+        );
+        self.render_list(
+            main_area,
+            buf,
+            &title,
+            &lines,
+            &mut self.list_state_send_to_ereader.clone(),
+        );
+
+        Paragraph::new(crate::ui::keys::THE_DEVICES_OF_AN_EREADER)
             .wrap(Wrap { trim: true })
             .render(item_area, buf);
     }

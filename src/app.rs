@@ -75,6 +75,9 @@ pub enum AppView {
     /// The collections and the playlists that can take the media of the line.
     /// See T-84.
     PutInAList,
+    /// The devices of an e-reader that can take the book of the line. See
+    /// T-119.
+    SendToEreader,
     /// Every key of the program. The key `?` opens it. See T-49.
     Keys,
     Settings,
@@ -209,6 +212,14 @@ pub struct App {
     /// The media that the key `m` puts in a list: its identity, its episode,
     /// and its title. See T-84.
     pub the_media_of_the_list: Option<(String, Option<String>, String)>,
+    /// The view that the key `@` came from. See T-119.
+    pub the_view_before_the_send: AppView,
+    /// The line of the devices of an e-reader. See T-119.
+    pub list_state_send_to_ereader: ListState,
+    /// The book that the key `@` sends: the identity of the item, and its
+    /// title. **An episode of a podcast holds no ebook**, therefore this holds
+    /// no episode. See T-119.
+    pub the_book_of_the_send: Option<(String, String)>,
     /// The podcast whose queue the key `X` empties, after the question. See
     /// T-81.
     pub confirm_the_empty_queue: Option<String>,
@@ -1187,6 +1198,9 @@ impl App {
             list_state_downloads: ListState::default(),
             list_state_put_in_a_list: ListState::default(),
             the_media_of_the_list: None,
+            the_view_before_the_send: AppView::Library,
+            list_state_send_to_ereader: ListState::default(),
+            the_book_of_the_send: None,
             confirm_the_empty_queue: None,
             confirm_the_removal_of_the_list: None,
             list_state_keys: ListState::default(),
@@ -1368,6 +1382,11 @@ impl App {
             // The key that puts the media of the line in a collection or in a
             // playlist. See T-84.
             KeyCode::Char('m') => self.show_the_lists_that_take_the_media(),
+
+            // The key that sends the book of the line to an e-reader. The
+            // letter of an address of e-mail is the mark of that work, and it
+            // takes no letter of the alphabet from a view. See T-119.
+            KeyCode::Char('@') => self.show_the_devices_of_an_ereader(),
 
             // The key that gives a collection or a playlist a new name. See
             // T-93. It works in the view of the lists only.
@@ -1745,6 +1764,7 @@ impl App {
                     AppView::Ebooks => self.view_state = AppView::Reader,
                     AppView::Downloads => self.view_state = AppView::Library,
                     AppView::PutInAList => self.view_state = self.the_view_before_the_list,
+                    AppView::SendToEreader => self.view_state = self.the_view_before_the_send,
                     AppView::PodcastEpisode => {
                         if self.is_from_search_pod {
                             self.view_state = AppView::SearchBook
@@ -1982,6 +2002,7 @@ impl App {
                     // view opens. The key `X` empties the queue. See T-81.
                     AppView::Downloads => {}
                     AppView::PutInAList => self.put_the_media_in_the_list(),
+                    AppView::SendToEreader => self.send_the_book_to_an_ereader(),
                     AppView::Library => {
                         // A line of a series opens the books of that series.
                         // See T-22.
@@ -2708,6 +2729,138 @@ impl App {
             // The lines of the screen come after the write. A question that
             // goes with the write gives the list of the moment before it.
             crate::logic::the_lists::ask(&api, &library).await;
+        });
+    }
+
+    /// Shows the devices of an e-reader that can take the book of the line.
+    /// See T-119.
+    ///
+    /// **The program asks the server at this key.** `POST /api/authorize` gives
+    /// the devices of this account, and the server filters that list itself:
+    /// `GET /api/emails/settings` answers `404` for an account that is not an
+    /// administrator, and it can therefore never give the list to a user.
+    pub fn show_the_devices_of_an_ereader(&mut self) {
+        if !matches!(
+            self.view_state,
+            AppView::Home
+                | AppView::Library
+                | AppView::SearchBook
+                | AppView::SeriesBook
+                | AppView::ListEntries
+                | AppView::PodcastEpisode
+        ) {
+            return;
+        }
+
+        let Some((target, title, _author)) = self.selected_download() else {
+            crate::logic::message::say("This line holds no book.");
+            return;
+        };
+
+        // **The server sends `media.ebookFile`, and a podcast holds none.** The
+        // endpoint answers `404` with "Ebook file not found" for an episode, and
+        // the program says the reason before the request.
+        let item_id = match &target {
+            crate::logic::download::DownloadTarget::Book { item_id, .. } => item_id.clone(),
+            crate::logic::download::DownloadTarget::Episode { .. } => {
+                crate::logic::message::say(
+                    "An episode of a podcast holds no ebook. The server sends a book.",
+                );
+                return;
+            }
+        };
+
+        // A device stands on the server, and the list comes from the server.
+        // A view must not give a reason that the program does not have (T-91),
+        // and this program has this one.
+        if self.is_offline {
+            crate::logic::message::say(
+                "The server does not answer. The devices of an e-reader stand on the server.",
+            );
+            return;
+        }
+
+        self.the_book_of_the_send = Some((item_id, title));
+        self.the_view_before_the_send = self.view_state;
+        self.list_state_send_to_ereader.select(Some(0));
+        self.view_state = AppView::SendToEreader;
+
+        self.ask_for_the_devices_of_an_ereader();
+    }
+
+    /// Asks the server for the devices of this account. See T-119.
+    pub fn ask_for_the_devices_of_an_ereader(&mut self) {
+        let api = std::sync::Arc::clone(&self.api);
+
+        crate::logic::the_ereaders::ask();
+
+        tokio::spawn(async move {
+            let state = match crate::api::ereaders::the_devices_of_the_account(&api).await {
+                Ok(all) => crate::logic::the_ereaders::State::Ready(all),
+                Err(error) => crate::logic::the_ereaders::State::Fault(error.to_string()),
+            };
+
+            crate::logic::the_ereaders::keep(state);
+        });
+    }
+
+    /// Sends the book to the device of the line. See T-119.
+    ///
+    /// **The whole work stands on the server**: it reads the file, it makes the
+    /// e-mail, and it gives the bytes to an SMTP server. A book of 480
+    /// megabytes took 36 seconds of the sandbox, therefore the request holds a
+    /// time limit of its own (`THE_TIME_OF_A_SEND`) and this program says that
+    /// a big book takes some minutes.
+    pub fn send_the_book_to_an_ereader(&mut self) {
+        let Some((item_id, title)) = self.the_book_of_the_send.clone() else {
+            return;
+        };
+
+        // **The footer names the key `l`, therefore that key must say
+        // something.** A key that does nothing is a fault of its own (T-79),
+        // and this view holds no line while the program waits for the server or
+        // while the server holds no device.
+        let Some(device) = self
+            .list_state_send_to_ereader
+            .selected()
+            .and_then(|line| crate::logic::the_ereaders::devices().get(line).cloned())
+        else {
+            let reason = match crate::logic::the_ereaders::state() {
+                crate::logic::the_ereaders::State::Nothing
+                | crate::logic::the_ereaders::State::Waiting => {
+                    "The program waits for the devices of the server.".to_string()
+                }
+                crate::logic::the_ereaders::State::Fault(reason) => {
+                    format!("The server gave no device: {}", reason)
+                }
+                crate::logic::the_ereaders::State::Ready(_) => {
+                    "The server holds no device for an e-reader. An administrator of the \
+                     server adds one."
+                        .to_string()
+                }
+            };
+
+            crate::logic::message::say(&reason);
+            return;
+        };
+
+        let api = std::sync::Arc::clone(&self.api);
+        let name = device.name.clone();
+
+        self.view_state = self.the_view_before_the_send;
+
+        crate::logic::message::say(&format!(
+            "The server sends \"{}\" to {}. A big book takes some minutes.",
+            title, name
+        ));
+
+        tokio::spawn(async move {
+            let text = match crate::api::ereaders::send_the_ebook(&api, &item_id, &name).await {
+                Ok(end) => crate::api::ereaders::the_sentence_of_the_send(&title, &name, &end),
+                Err(error) => format!("The server did not send \"{}\": {}", title, error),
+            };
+
+            crate::logic::message::say(&text);
         });
     }
 
@@ -5128,6 +5281,7 @@ impl App {
             AppView::Ebooks => AppView::Reader,
             AppView::Downloads => AppView::Library,
             AppView::PutInAList => AppView::Library,
+            AppView::SendToEreader => AppView::Library,
             AppView::Settings => AppView::Home,
             AppView::SettingsAccount => AppView::Home,
             AppView::SettingsLibrary => AppView::Home,
@@ -5380,6 +5534,16 @@ impl App {
                     self.list_state_put_in_a_list.select(Some(0));
                 }
             }
+            AppView::SendToEreader => {
+                let count = crate::logic::the_ereaders::devices().len();
+                let from = self.list_state_send_to_ereader.selected().unwrap_or(0);
+
+                if from + 1 < count {
+                    self.list_state_send_to_ereader.select(Some(from + 1));
+                } else {
+                    self.list_state_send_to_ereader.select(Some(0));
+                }
+            }
             AppView::Downloads => {
                 let count = crate::logic::the_downloads::downloads().len();
                 let from = self.list_state_downloads.selected().unwrap_or(0);
@@ -5474,6 +5638,7 @@ impl App {
             AppView::Ebooks => self.list_state_ebooks.select_previous(),
             AppView::Downloads => self.list_state_downloads.select_previous(),
             AppView::PutInAList => self.list_state_put_in_a_list.select_previous(),
+            AppView::SendToEreader => self.list_state_send_to_ereader.select_previous(),
             AppView::Keys => self.list_state_keys.select_previous(),
             AppView::Settings => self.list_state_settings.select_previous(),
             AppView::SettingsAccount => self.list_state_settings_account.select_previous(),
@@ -5518,6 +5683,7 @@ impl App {
             AppView::Ebooks => self.list_state_ebooks.select_first(),
             AppView::Downloads => self.list_state_downloads.select_first(),
             AppView::PutInAList => self.list_state_put_in_a_list.select_first(),
+            AppView::SendToEreader => self.list_state_send_to_ereader.select_first(),
             AppView::Keys => self.list_state_keys.select_first(),
             AppView::Settings => self.list_state_settings.select_first(),
             AppView::SettingsAccount => self.list_state_settings_account.select_first(),
@@ -5633,6 +5799,12 @@ impl App {
             AppView::PutInAList => {
                 let last = self.lists.len().saturating_sub(1);
                 self.list_state_put_in_a_list.select(Some(last));
+            }
+            AppView::SendToEreader => {
+                let last = crate::logic::the_ereaders::devices()
+                    .len()
+                    .saturating_sub(1);
+                self.list_state_send_to_ereader.select(Some(last));
             }
             AppView::SettingsReader => {
                 let last = crate::logic::reader::cache::THE_VALUES_OF_THE_SETTINGS

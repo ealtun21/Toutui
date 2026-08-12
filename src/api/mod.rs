@@ -1,4 +1,5 @@
 pub mod client;
+pub mod ereaders;
 pub mod libraries;
 pub mod library_items;
 pub mod lists;

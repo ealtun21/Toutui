@@ -41,6 +41,25 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.62",
+        date: "12/08/2026",
+        body: &[
+            "Added:",
+            "- **The key @ sends the ebook of the line to an e-reader.** The server holds the \
+             devices, and this program shows the devices that your account may use: press @ on \
+             a book, and l on the device. The server then sends the book of that item to the \
+             address of e-mail of the device.",
+            "- A screen that says why it holds no device. A server with no device says that an \
+             administrator of the server adds one, and a server with no settings of the e-mail \
+             says that the administrator gives those settings.",
+            "Fixed:",
+            "- **A big book now reaches the e-reader.** The send of a book of 480 megabytes \
+             takes about 36 seconds of the server, and every request of this program stopped \
+             after 15 seconds: the user then read a fault of a send that succeeded. The send \
+             holds a time limit of fifteen minutes of its own.",
+        ],
+    },
+    Entry {
         version: "0.7.61",
         date: "12/08/2026",
         body: &[

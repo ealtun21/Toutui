@@ -243,6 +243,68 @@ impl ApiClient {
         Ok(())
     }
 
+    /// Sends a `POST` request, and it gives the status and the body that the
+    /// server answered.
+    ///
+    /// Every other method of this client classifies the status before the
+    /// caller reads the answer, and the body of a fault then goes away.
+    /// **`POST /api/emails/send-ebook-to-device` answers `404` for three
+    /// different conditions**, and the body is the one place that tells them
+    /// apart: "Ereader device not found", "Library item not found", and "Ebook
+    /// file not found". See T-119.
+    ///
+    /// `time_limit` holds for this request only, and it replaces
+    /// `REQUEST_TIMEOUT`. The connect timeout does not change, therefore an
+    /// address that no machine takes still fails at once.
+    ///
+    /// A fault of the transport still gives an `ApiError`, and it still marks
+    /// the address down. The request is not idempotent: a second one sends a
+    /// second e-mail.
+    pub async fn post_and_read_the_answer<B: Serialize>(
+        &self,
+        path: &str,
+        body: &B,
+        time_limit: Duration,
+    ) -> Result<(u16, String), ApiError> {
+        let value =
+            serde_json::to_value(body).map_err(|error| ApiError::Decode(error.to_string()))?;
+
+        let base_url = self.pool.active().ok_or(ApiError::Unreachable)?;
+
+        let answer = self
+            .http
+            .post(format!("{}{}", base_url, path))
+            .bearer_auth(&self.token)
+            .timeout(time_limit)
+            .json(&value)
+            .send()
+            .await
+            .map_err(|error| classify_transport(&error));
+
+        let answer = match answer {
+            Ok(answer) => answer,
+            Err(error) => {
+                if error.is_endpoint_fault() && self.the_address_must_go_down(&base_url, &error) {
+                    self.pool.mark_down(&base_url);
+                }
+                return Err(error);
+            }
+        };
+
+        // The address answered. A status of the answer is a fault of the
+        // request, and never a fault of the address. See T-87.
+        self.pool.the_address_answered(&base_url);
+
+        let status = answer.status().as_u16();
+
+        let words = answer
+            .text()
+            .await
+            .map_err(|error| ApiError::Decode(error.to_string()))?;
+
+        Ok((status, words))
+    }
+
     /// Sends a `POST` request that has no answer body.
     pub async fn post_no_content<B: Serialize>(
         &self,

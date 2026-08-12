@@ -1,6 +1,11 @@
 # T-24: what Audiobookshelf gives, and what Toutui takes
 
-Date: 2026-08-11. The session of 2026-08-12 closed every row that said `Half`.
+Date: 2026-08-11. The session of 2026-08-12 closed every row that said `Half`,
+and the session of that evening closed the last row that said `No` for a function
+that a user of a terminal can use: the key `@` sends an ebook to an e-reader
+(T-119). **Every row of section 4 that says `No` now belongs to an administrator
+of the server, or to work that the client must not do**, and section 6 holds the
+reason of each.
 
 This document compares the functions of an Audiobookshelf server with the
 functions of this client. It gives the maintainer one list of the work that is
@@ -9,7 +14,7 @@ not done.
 | What | Value |
 |---|---|
 | The server | Audiobookshelf 2.36.0 |
-| The client | Toutui 0.7.55 (`Cargo.toml`) |
+| The client | Toutui 0.7.62 (`Cargo.toml`) |
 | The address of the server | `http://127.0.0.1:13399`, the sandbox of `docs/TEST-SERVER.md` |
 | The user | `toutuitest`, of the type `root` |
 
@@ -185,7 +190,7 @@ reader of a PDF.
 | **Read an EPUB book** | `GET /api/items/:id/ebook` gives `200` and the whole file, and it takes a `Range` | Yes | Nothing. The reader writes an EPUBCFI in `ebookLocation` and it reads one, therefore the user reads on the telephone and continues in the terminal at the same line (T-10). The path agrees with `epub.js`, the library of the web reader: a measurement with a real browser on 2026-08-11 compared 29315 texts of seven books, and every path agreed. The reader also reads the form of the specification, which the versions v0.7.8 to v0.7.11 wrote. See `src/logic/reader/cfi.rs` |
 | **The list of the ebooks of an item** | `media.ebookFile` names one book, and `libraryFiles` holds every file of the item. `GET /api/items/:id/ebook/:ino` gives one of them | Yes | Nothing. The key `e` opens the book of the server, and the key `e` inside the reader gives the list of every ebook of that media (T-76). **The server holds one place for each media**, therefore the place of a book that is not the book of the server stays on this machine |
 | **Read a PDF book** | The same endpoint gives the file | Yes | Nothing. T-54 gives the words of a page in the terminal, and it draws the pictures of that page beside them with the protocol of T-23. A book of a scan holds its text inside a picture, therefore such a book gives few words. `MAX_BOOK_BYTES` of 512 megabytes holds the memory of the read (T-62) |
-| **Send an ebook to an e-reader** | `GET /api/emails/settings` gives `200`. The reference names the devices of an e-reader | No | Everything. This needs the settings of the email of the server |
+| **Send an ebook to an e-reader** | **`POST /api/authorize` gives the devices of the account** in `ereaderDevices`, and the server filters that list itself. `POST /api/emails/send-ebook-to-device` with `{libraryItemId, deviceName}` sends the book of `media.ebookFile`. **`GET /api/emails/settings` cannot do this work**: every endpoint of `/api/emails/` holds an `adminMiddleware`, and it answers `404` for an account that is not an administrator | Yes | Nothing. The key `@` on a book gives the devices of this account, and `l` sends the book (T-119). The three answers of `404` of that endpoint say three different things, therefore the program reads the body: an item with no ebook, a device that went away, and an item that went away each hold their own sentence. **The send holds a time limit of 15 minutes**: the server took 36 seconds for a book of 479.5 megabytes, and the limit of a request is 15 seconds |
 | **List the podcasts** | The same endpoint as the books | Yes | Nothing |
 | **The episodes of a podcast** | `GET /api/items/:id` gives `media.episodes` | Yes | Nothing. `l` on a podcast gives the episodes |
 | **Play an episode** | `POST /api/items/:id/play/:episodeId` | Yes | Nothing |
@@ -344,7 +349,7 @@ place to change them adds a risk and no value.
 | The users and their permissions | `POST`, `PATCH`, `DELETE /api/users` |
 | The backups | `GET /api/backups`, and the requests that make one |
 | The settings of the sign in, and OpenID | `GET /api/auth-settings` |
-| The settings of the email | `GET /api/emails/settings` |
+| The settings of the email, and the devices of an e-reader that an administrator makes | `GET`/`PATCH /api/emails/settings`, `POST /api/emails/ereader-devices`. **A user sends a book with no one of them** (T-119) |
 | The notifications | `GET /api/notifications` |
 | The file system of the server | `GET /api/filesystem` |
 | Upload a file | The requests of upload |

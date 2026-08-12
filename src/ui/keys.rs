@@ -61,6 +61,7 @@ pub const GROUPS: &[Group] = &[
             key("h", "One view back"),
             key("n", "Put the media at the end of the queue"),
             key("m", "Put the media in a collection or in a playlist"),
+            key("@", "The server sends the ebook to an e-reader"),
             key("b", "Write a bookmark at the place of the playback"),
             key("D", "Make a copy on the disk"),
             key(
@@ -450,6 +451,18 @@ pub const THE_LISTS_THAT_TAKE_A_MEDIA: &str = "A collection holds books, and eve
     makes a new collection of this media, and the key p makes a new playlist of \
     it.";
 
+/// The text of the view that sends a book to an e-reader. See T-119.
+///
+/// **The server sends the book of `media.ebookFile`**, and an item can hold more
+/// than one ebook (T-76): the endpoint of the server takes the item, and never a
+/// file. The text says it, therefore a user who reads a second book of an item
+/// knows which book goes.
+pub const THE_DEVICES_OF_AN_EREADER: &str = "An administrator of the server makes \
+    every device, with a name and an address of e-mail. The server sends the book \
+    of this item to that address.\n\n\
+    An item can hold more than one ebook. The server sends the book that it holds \
+    for the item, and not the book that the reader of this program shows.";
+
 /// The footer of the view of the collections and of the playlists.
 ///
 /// The keys `r` and `X` of that view give a list a new name and remove it,
@@ -474,6 +487,10 @@ pub const FOOTER_OF_THE_LISTS: &str =
 pub const FOOTER_OF_THE_LISTS_THAT_TAKE_A_MEDIA: &str =
     "j/k: move  l: put it here  c: a collection  p: a playlist  h: back  \
      ?: every key  Q: quit";
+
+/// The footer of the view that sends a book to an e-reader. See T-119.
+pub const FOOTER_OF_THE_DEVICES_OF_AN_EREADER: &str =
+    "j/k: move  l: send the book  h: back  ?: every key  Q: quit";
 
 /// The text of the Home view that holds no shelf. See T-103.
 pub const THE_HOME_VIEW_WITH_NO_LINE: &str = "The server gave no shelf for this library.\n\

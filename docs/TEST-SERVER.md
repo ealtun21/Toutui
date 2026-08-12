@@ -618,3 +618,83 @@ Each file holds 136761 bytes. A run of the program with
 `TOUTUI_EBOOK_CACHE_BYTES=200000` therefore removes one book when the user opens the
 second one, and the row of the message says it. **A message lives six seconds**:
 capture the screen inside that time.
+
+## 13. The e-mail of the server, and the devices of an e-reader, for T-119
+
+**The server sends a book with SMTP**, therefore the measurement of T-119 needs an
+SMTP server. A server of the internet is not acceptable: the book of the
+measurement then goes to a real address.
+
+**The SMTP server of the measurement stands on the machine of the maintainer**, and
+the container reaches it at `host.containers.internal`. Any small SMTP server does
+the work: it must answer `220`, `250` for `EHLO`, `MAIL FROM`, and `RCPT TO`, `354`
+for `DATA`, and `250` after the body. A server of about 60 lines of Python holds
+that, and it writes the size of the body to a file.
+
+```bash
+# The port of the measurement, on the machine of the maintainer.
+python3 <the smtp server of the measurement> 1025
+podman exec abs-test sh -c 'nc -z -w2 host.containers.internal 1025' \
+  && echo "the container reaches it"
+```
+
+**The settings of the e-mail.** The port is not 465, therefore `secure` is false:
+`getTransportObject` of the server sets `secure` to false for every other port, and
+a `true` there gives a fault of TLS.
+
+```bash
+curl -s -X PATCH http://127.0.0.1:13399/api/emails/settings \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"host":"host.containers.internal","port":1025,"secure":false,
+       "rejectUnauthorized":false,"fromAddress":"toutui@example.invalid",
+       "testAddress":"kobo@example.invalid"}'
+```
+
+**The three devices of the sandbox.** One request writes the whole list: the
+endpoint takes an array, and it replaces every device. The measurement of T-119
+needs one device of each condition of `availabilityOption`.
+
+```bash
+curl -s -X POST http://127.0.0.1:13399/api/emails/ereader-devices \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"ereaderDevices":[
+        {"name":"Kobo of the measurement","email":"kobo@example.invalid",
+         "availabilityOption":"adminOrUp","users":[]},
+        {"name":"The Kindle of the plain user","email":"kindle@example.invalid",
+         "availabilityOption":"specificUsers","users":["<the identity of toutuiplain>"]},
+        {"name":"A device of every user","email":"all@example.invalid",
+         "availabilityOption":"guestOrUp","users":[]}]}'
+```
+
+**A second account, of the type `user`.** The measurement of T-119 needs an account
+that is not an administrator: every endpoint of `/api/emails/` answers `404` for
+such an account, and `POST /api/authorize` still gives its devices.
+
+```bash
+curl -s -X POST http://127.0.0.1:13399/api/users \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"username":"toutuiplain","password":"toutuiplain","type":"user"}'
+```
+
+**`POST /api/users` makes an account that is not active**, and the login of that
+account then answers `401` with "User is not active" in `podman logs abs-test`. One
+request more gives the account its work:
+
+```bash
+curl -s -X PATCH "http://127.0.0.1:13399/api/users/<the identity>" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"isActive":true}'
+```
+
+**The token of the list of the users is not a token of a request.** `GET /api/users`
+holds a field `token` for each account, and every request with it answers `401`.
+Take the token from `POST /login` of that account.
+
+**The books of the measurement.** The send needs a book with an ebook, and the time
+of the request comes from its size:
+
+| The item | The ebook | The time of one send |
+|---|---|---|
+| A Book That No Reader Reads | 0.1 MB | 0.007 s |
+| A Big Book Of A Scan | 45.2 MB | 3.6 s |
+| A Huge Book Of A Scan | 479.5 MB | 36.2 s |

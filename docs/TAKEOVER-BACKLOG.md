@@ -4897,6 +4897,18 @@ test can hold: a book of 96 megabytes comes to the disk complete, and
 in the same way as `every_key_of_the_handler_stands_in_the_list`. That second rule
 fails with the old code.
 
+### The words while a book of a scan opens: the answer of the maintainer
+
+**The question of T-116 is closed, and the text does not change.** The parse of a
+book of 502 megabytes takes 2 minutes, and the screen says "The program gets the
+book…" for every second of it. The child process knows the pages that it wrote, and
+no slot carries that number to the screen.
+
+The maintainer decided on 2026-08-12: **leave the text as it is.** A book of that
+size is rare, and the work would add a slot, a message of the child, and a rule of
+the render for one condition that few users meet. This row is a decision now, and
+not work that waits.
+
 ### T-117: the reader said the identity of the item as the title of the book
 
 The reader of a book that the user opened from the **view of the search** said
@@ -5017,6 +5029,127 @@ wanted it, and no session finished it. The work needs three keys and no new data
 **The cost of the work stands in the render**: every list of the program comes from
 one account, therefore the change of an account is the work of `App::new`. The key
 `R` does almost that work already.
+
+### The answer of the maintainer, of 2026-08-12
+
+**The question stays open.** The maintainer said "yes, and a later session does the
+work". The text of the view says what the program does today (above), therefore no
+user reads a promise that no key keeps. This row waits for that session.
+
+### T-119: the program sends a book to an e-reader
+
+This is the last row of section 4 of `docs/T-24-coverage.md` that said `No` for a
+function that a user of a terminal can use, and the issue #24 stayed open for it.
+
+**The measurement came before the screen** (T-88). Every number below comes from
+the sandbox of `docs/TEST-SERVER.md`, an Audiobookshelf 2.36.0, on 2026-08-12, with
+an SMTP server of the measurement on the machine of the maintainer.
+
+#### 1. The list of the devices does not come from the settings of the e-mail
+
+The road of the handover said that this work needs `GET /api/emails/settings`.
+**That endpoint cannot give the list to a user**, and the measurement of two
+accounts shows it:
+
+| The request | The account `root` | The account `user` |
+|---|---|---|
+| `GET /api/emails/settings` | `200`, and every device | **`404`** |
+| `POST /api/emails/ereader-devices` | `200` | `404` |
+| `POST /api/emails/send-ebook-to-device` | `200` | `200` |
+| `GET /api/me` | no device at all | no device at all |
+| The `init` of socket.io | `userId` and `username` only | the same |
+
+`ApiRouter.js` gives `/emails/*` an `adminMiddleware`, and every request of a user
+that is not an administrator therefore gives `404`. **The user can send a book, and
+no endpoint of the e-mail names the device that they may use.**
+
+**`POST /api/authorize` is the answer.** `Auth.js` gives one payload for the login
+and for that endpoint, and `getUserLoginResponsePayload` holds
+`ereaderDevices: Database.emailSettings.getEReaderDevices(user)`: **the server
+filters that list for the account itself.** The measurement:
+
+| The account | `ereaderDevices` of `POST /api/authorize` |
+|---|---|
+| `root` | the device of `adminOrUp`, and the device of `guestOrUp` |
+| `user` | its own device of `specificUsers`, and the device of `guestOrUp` |
+
+One request, a bearer token, and no permission of an administrator. The program
+therefore asks `POST /api/authorize` when the user presses the key, and it never
+reads the settings of the e-mail.
+
+**The four values of `availabilityOption`** are `adminOrUp`, `userOrUp`,
+`guestOrUp`, and `specificUsers`. The program reads none of them: the server gave
+the list of that account already, and a rule of the program would be a second
+authority that can disagree with the first one.
+
+#### 2. The answers of `POST /api/emails/send-ebook-to-device`
+
+Every body is plain text, and not JSON.
+
+| The condition | The status | The body |
+|---|---|---|
+| The server sent the book | `200` | `OK` |
+| The server has no settings of the e-mail | **`400`** | `Failed to verify SMTP connection configuration` |
+| The e-mail did not go | `400` | the words of nodemailer |
+| No device holds that name | `404` | `Ereader device not found` |
+| The account may not use that device | `403` | `Forbidden` |
+| The server does not hold that item | `404` | `Library item not found` |
+| The account may not read that item | `403` | `Forbidden` |
+| The item holds no ebook | `404` | `Ebook file not found` |
+
+**The three conditions of `404` say three different things**, therefore the status
+alone cannot make the sentence for the user. The program reads the body of the
+answer, and `the_sentence_of_the_send` of `api::ereaders` gives one sentence for
+each of them.
+
+#### 3. The fault of the program: the time limit of 15 seconds
+
+**`REQUEST_TIMEOUT` of `api::client` is 15 seconds, and the server needs more.**
+The measurement, with three books of the sandbox:
+
+| The book | The size | The time of `POST …/send-ebook-to-device` |
+|---|---|---|
+| A Book That No Reader Reads | 0.1 MB | **0.007 s** |
+| A Big Book Of A Scan | 45.2 MB | **3.6 s** |
+| A Huge Book Of A Scan | **479.5 MB** | **36.2 s** |
+
+That is about 13 megabytes each second, and the whole work stands on the server:
+it reads the file, it makes the e-mail, and it gives the bytes to the SMTP server.
+**A book of more than about 200 megabytes therefore stops at the time limit of the
+program while the server sends it**, and the user reads a fault of a work that
+succeeded. The rule of T-97 makes the second such request mark the address down.
+
+`MAX_BOOK_BYTES` of this program is 502 megabytes, therefore the condition is not
+a condition of an imagined book: the library of the sandbox holds one.
+
+**The send holds its own time limit of ten minutes.** `download_to_file` holds the
+same shape for the same reason, and its comment says it: a request that carries a
+file needs no limit of 15 seconds. Ten minutes carries 480 megabytes at 0.8
+megabytes each second, and that is sixteen times slower than the measurement above.
+The connect timeout of 3 seconds does not change, therefore an address that no
+machine takes still fails at once.
+
+#### 4. What the user sees
+
+The key `@` opens the view. It works where the key `m` works, and on a book only:
+an episode of a podcast holds no `ebookFile`, and the program says that before it
+makes a request.
+
+- The program asks the server at the key, and the view says "The program asks the
+  server for the devices…" while it waits. The answer comes in one request.
+- **A server with no device gives an empty list**, and the view then says why:
+  "The server holds no device for an e-reader. An administrator of the server adds
+  one." A view must not give a reason that the program does not have (T-91), and
+  the program does have this one: the server answered, and the list is empty.
+- A server that does not answer says the sentence of the offline mode.
+- The key `l` sends. The message says "The server sends "<the title>" to <the
+  device>. A big book takes some minutes." — the send stands on the server, and
+  the program cannot measure its progress.
+
+**The program sends the book of `media.ebookFile`, and not the book that the reader
+holds open.** An item can hold more than one ebook (T-76, and the trap 30), and the
+endpoint of the server takes the item and never a file. The text of the view says
+it.
 
 ## The upgrade of the dependencies, 2026-08-10
 
