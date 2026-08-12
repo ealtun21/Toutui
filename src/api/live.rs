@@ -379,7 +379,7 @@ pub fn spawn_the_live_task(pool: Arc<EndpointPool>, token: String) -> tokio::tas
                         // that no address reaches.** This task tries again every
                         // few seconds, therefore it knows first. The probe task
                         // gives the address back. See T-107.
-                        pool.mark_down(&base);
+                        pool.mark_down(&base, THE_PROGRAM_CANNOT_CONNECT);
                     }
 
                     if let Some(text) = attempt.fault {

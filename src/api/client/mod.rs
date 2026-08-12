@@ -93,7 +93,9 @@ impl ApiClient {
         body: Option<serde_json::Value>,
         idempotent: Idempotent,
     ) -> Result<Response, ApiError> {
-        let first = self.pool.active().ok_or(ApiError::Unreachable)?;
+        // **The request tries an address before the program says that no
+        // address answered.** See T-128 and `EndpointPool::an_address`.
+        let first = self.pool.an_address().ok_or(ApiError::Unreachable)?;
 
         let first_error = match self
             .attempt(&first, method.clone(), path, body.clone())
@@ -118,7 +120,7 @@ impl ApiClient {
         // user, and a pool of one address then has no address at all. See T-97
         // and T-87.
         if self.the_address_must_go_down(&first, &first_error) {
-            self.pool.mark_down(&first);
+            self.pool.mark_down(&first, &format!("{}", first_error));
         }
 
         if idempotent == Idempotent::No {
@@ -142,7 +144,7 @@ impl ApiClient {
             }
             Err(error) => {
                 if error.is_endpoint_fault() && self.the_address_must_go_down(&second, &error) {
-                    self.pool.mark_down(&second);
+                    self.pool.mark_down(&second, &format!("{}", error));
                 }
                 Err(error)
             }
@@ -269,7 +271,7 @@ impl ApiClient {
         let value =
             serde_json::to_value(body).map_err(|error| ApiError::Decode(error.to_string()))?;
 
-        let base_url = self.pool.active().ok_or(ApiError::Unreachable)?;
+        let base_url = self.pool.an_address().ok_or(ApiError::Unreachable)?;
 
         let answer = self
             .http
@@ -285,7 +287,7 @@ impl ApiClient {
             Ok(answer) => answer,
             Err(error) => {
                 if error.is_endpoint_fault() && self.the_address_must_go_down(&base_url, &error) {
-                    self.pool.mark_down(&base_url);
+                    self.pool.mark_down(&base_url, &format!("{}", error));
                 }
                 return Err(error);
             }
@@ -339,7 +341,7 @@ impl ApiClient {
         dest_dir: &Path,
         fallback_filename: &str,
     ) -> Result<PathBuf, ApiError> {
-        let base_url = self.pool.active().ok_or(ApiError::Unreachable)?;
+        let base_url = self.pool.an_address().ok_or(ApiError::Unreachable)?;
 
         let response = self
             .http
@@ -354,10 +356,15 @@ impl ApiClient {
                 // reaches it says no more of the address than a request does.
                 // See T-97.
                 if error.is_endpoint_fault() && self.the_address_must_go_down(&base_url, &error) {
-                    self.pool.mark_down(&base_url);
+                    self.pool.mark_down(&base_url, &format!("{}", error));
                 }
                 error
             })?;
+
+        // The address answered. A status of the answer is a fault of the
+        // request, and never a fault of the address (T-87), therefore this line
+        // stands before the status. See T-128.
+        self.pool.the_address_answered(&base_url);
 
         if let Some(error) = classify_status(response.status()) {
             return Err(error);

@@ -646,7 +646,10 @@ async fn play_the_stream_of_the_server(
         );
 
         let sources = vec![TrackSource::Stream {
-            base_url: api.pool().active().unwrap_or_default(),
+            // The stream comes from the address that answered the request of
+            // the stream. `an_address` gives an address in every condition,
+            // therefore this value is never an empty text. See T-128.
+            base_url: api.pool().an_address().unwrap_or_default(),
             playlist: stream.playlist.clone(),
             seconds: place,
         }];

@@ -166,6 +166,114 @@ async fn the_client_sends_the_token() {
     assert_eq!(body["ok"], true);
 }
 
+/// **A request tries the address before the program says that no address
+/// answered.**
+///
+/// The measurement of 2026-08-12: the live task marked the one address of the
+/// pool down for a connection that no machine took, the server answered `curl`
+/// 15 seconds later, and 16 presses of the key `e` in the 31.6 seconds after it
+/// said "The program did not get the book: No server address answered". The
+/// probe task examines that address every 60 seconds only. See T-128.
+#[tokio::test]
+async fn a_request_tries_an_address_that_holds_the_state_down() {
+    let server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path("/api/libraries"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({ "ok": true })))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let client = client(vec![&server.uri()]);
+    client.pool().mark_down(
+        server.uri().trim_end_matches('/'),
+        "a fault of the live task",
+    );
+
+    // No address holds the state `Up`, therefore the old code gave
+    // `ApiError::Unreachable` and it sent no request at all.
+    assert!(client.pool().active().is_none());
+
+    let body: serde_json::Value = client.get_json("/api/libraries").await.unwrap();
+    assert_eq!(body["ok"], true);
+
+    // **The address answered**, therefore the program uses it again, and the
+    // header of the program says its name (T-105).
+    assert!(client.pool().down_urls().is_empty());
+    assert_eq!(
+        client.pool().active().unwrap(),
+        server.uri().trim_end_matches('/')
+    );
+}
+
+/// A pool of two addresses that both hold the state `Down` gives the address of
+/// the most importance to the request, and the answer of that address is the
+/// answer of the request. See T-128.
+#[tokio::test]
+async fn a_request_of_a_pool_that_is_down_takes_the_address_of_the_most_importance() {
+    let first = MockServer::start().await;
+    let second = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path("/api/libraries"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({ "which": 1 })))
+        .expect(1)
+        .mount(&first)
+        .await;
+
+    Mock::given(method("GET"))
+        .and(path("/api/libraries"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({ "which": 2 })))
+        .expect(0)
+        .mount(&second)
+        .await;
+
+    let client = client(vec![&first.uri(), &second.uri()]);
+    client.pool().mark_down(
+        first.uri().trim_end_matches('/'),
+        "a fault of the live task",
+    );
+    client.pool().mark_down(
+        second.uri().trim_end_matches('/'),
+        "a fault of the live task",
+    );
+
+    let body: serde_json::Value = client.get_json("/api/libraries").await.unwrap();
+
+    assert_eq!(body["which"], 1);
+    drop(second);
+}
+
+/// The download of an ebook holds the same rule, and the book of the
+/// measurement of T-128 was an EPUB of 100 megabytes.
+#[tokio::test]
+async fn a_download_tries_an_address_that_holds_the_state_down() {
+    let server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path("/api/items/abc/ebook"))
+        .respond_with(ResponseTemplate::new(200).set_body_bytes(b"the book".to_vec()))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let dir = tempfile::tempdir().unwrap();
+    let client = client(vec![&server.uri()]);
+    client.pool().mark_down(
+        server.uri().trim_end_matches('/'),
+        "a fault of the live task",
+    );
+
+    let file = client
+        .download_to_file("/api/items/abc/ebook", dir.path(), "abc.epub")
+        .await
+        .unwrap();
+
+    assert_eq!(std::fs::read(file).unwrap(), b"the book");
+    assert!(client.pool().down_urls().is_empty());
+}
+
 /// The probe must make an address active again after the address answers.
 #[tokio::test]
 async fn the_probe_makes_a_down_endpoint_active_again() {
@@ -181,7 +289,10 @@ async fn the_probe_makes_a_down_endpoint_active_again() {
 
     let client = client(vec![&primary.uri(), "http://127.0.0.1:1"]);
 
-    client.pool().mark_down(primary.uri().trim_end_matches('/'));
+    client.pool().mark_down(
+        primary.uri().trim_end_matches('/'),
+        "the measurement of the test",
+    );
     assert_eq!(client.pool().active().unwrap(), "http://127.0.0.1:1");
 
     probe_once(client.http(), &client.pool()).await;
@@ -204,7 +315,9 @@ async fn the_probe_keeps_a_dead_endpoint_down() {
         .await;
 
     let client = client(vec!["http://127.0.0.1:1", &good.uri()]);
-    client.pool().mark_down("http://127.0.0.1:1");
+    client
+        .pool()
+        .mark_down("http://127.0.0.1:1", "the measurement of the test");
 
     probe_once(client.http(), &client.pool()).await;
 

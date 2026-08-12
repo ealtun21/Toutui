@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.68",
+        date: "12/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A key of yours works at the moment that the server answers again.** After a \
+             server that went away for some seconds, the program said \"No server address \
+             answered\" for up to 60 seconds while the server answered: it kept the answer of \
+             the attempt before, and it waited for its own examination of the address. Every \
+             request tries the address now, and the reason that you read is the answer of that \
+             attempt.",
+            "- **The log says the moment that the program stops to use an address of your \
+             server**, and it says why. The log held no line of it.",
+        ],
+    },
+    Entry {
         version: "0.7.67",
         date: "12/08/2026",
         body: &[

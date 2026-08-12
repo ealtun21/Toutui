@@ -6,6 +6,7 @@
 //!
 //! A low `priority` value gives more importance.
 
+use log::info;
 use std::sync::RwLock;
 
 /// One address of a server.
@@ -92,6 +93,26 @@ impl EndpointPool {
             .map(|(endpoint, _)| endpoint.url.clone())
     }
 
+    /// Gives the address for a request of the user.
+    ///
+    /// The function gives the address that has the most importance and the
+    /// state `Up`. **If no address has that state, it gives the address that
+    /// has the most importance**, and the request then tries that address.
+    ///
+    /// **A request must try an address before the program says that no address
+    /// answered.** The state `Down` is the answer of an attempt that came
+    /// before, and the probe task examines it every 60 seconds only: a
+    /// measurement of 2026-08-12 marked the one address of the pool down for a
+    /// connection that no machine took, and the program then said "No server
+    /// address answered" for **31.6 seconds** while the server answered `curl`
+    /// in 1.5 milliseconds. See T-128.
+    ///
+    /// The function gives `None` for a pool that holds no address.
+    pub fn an_address(&self) -> Option<String> {
+        self.active()
+            .or_else(|| self.endpoints.first().map(|endpoint| endpoint.url.clone()))
+    }
+
     /// Gives the next address that has the state `Up` after the given
     /// address.
     ///
@@ -109,7 +130,24 @@ impl EndpointPool {
     }
 
     /// Records that an address does not answer.
-    pub fn mark_down(&self, url: &str) {
+    ///
+    /// `reason` says what the program measured. **The log must hold the moment
+    /// that the program stopped to use an address**: the measurement of T-128
+    /// read the fault of the live task and it made a guess, because no line of
+    /// the log named the address. See T-128.
+    pub fn mark_down(&self, url: &str, reason: &str) {
+        if self.health_of(url) == Some(Health::Down) {
+            return;
+        }
+
+        info!(
+            "[api] The program does not use the address {} now: {}. It examines \
+             that address every {} seconds, and a request of the user tries it.",
+            url,
+            reason,
+            super::probe::PROBE_INTERVAL.as_secs()
+        );
+
         self.set_health(url, Health::Down);
     }
 
@@ -136,10 +174,12 @@ impl EndpointPool {
         *count >= TIMEOUTS_OF_ONE_ADDRESS
     }
 
-    /// Forgets the requests of this address that stopped at their time limit.
+    /// Forgets the requests of this address that stopped at their time limit,
+    /// and it gives the address the state `Up`.
     ///
     /// **The address answered**, therefore the requests before that answer say
-    /// nothing about it now. See T-97.
+    /// nothing about it now (T-97), and the state of that address is not `Down`
+    /// (T-128).
     pub fn the_address_answered(&self, url: &str) {
         let Some(position) = self.endpoints.iter().position(|e| e.url == url) else {
             return;
@@ -149,6 +189,14 @@ impl EndpointPool {
             if let Some(count) = timeouts.get_mut(position) {
                 *count = 0;
             }
+        }
+
+        if self.health_of(url) == Some(Health::Down) {
+            info!(
+                "[api] The address {} answers again, therefore the program uses it.",
+                url
+            );
+            self.set_health(url, Health::Up);
         }
     }
 
@@ -181,6 +229,15 @@ impl EndpointPool {
     /// Tells if the pool has no address.
     pub fn is_empty(&self) -> bool {
         self.endpoints.is_empty()
+    }
+
+    /// Gives the health of one address, and `None` for an address that the pool
+    /// does not hold.
+    fn health_of(&self, url: &str) -> Option<Health> {
+        let position = self.endpoints.iter().position(|e| e.url == url)?;
+        let health = self.health.read().ok()?;
+
+        health.get(position).copied()
     }
 
     /// Writes a new health state for one address.
@@ -232,6 +289,49 @@ mod tests {
         assert!(pool.a_request_stopped_at_its_time_limit("http://nothing"));
     }
 
+    /// **A request must try an address before the program says that no address
+    /// answered.** `active` gives nothing when every address holds the state
+    /// `Down`, and `an_address` then gives the address of the most importance.
+    /// See T-128.
+    #[test]
+    fn an_address_gives_an_address_that_holds_the_state_down() {
+        let pool = pool();
+        assert_eq!(pool.an_address().unwrap(), "http://lan");
+
+        pool.mark_down("http://lan", "the measurement of the test");
+        assert_eq!(pool.an_address().unwrap(), "https://wan");
+
+        pool.mark_down("https://wan", "the measurement of the test");
+        pool.mark_down("https://backup", "the measurement of the test");
+
+        assert!(pool.active().is_none());
+        assert_eq!(pool.an_address().unwrap(), "http://lan");
+    }
+
+    /// A pool with no address gives nothing, and the caller then reports
+    /// `ApiError::Unreachable`. See T-128.
+    #[test]
+    fn a_pool_with_no_address_gives_no_address_to_a_request() {
+        let pool = EndpointPool::new(Vec::new());
+
+        assert!(pool.an_address().is_none());
+    }
+
+    /// **An address that answered holds the state `Up`.** The request of the
+    /// user is the newest measurement of that address, and the probe task waits
+    /// 60 seconds. See T-128.
+    #[test]
+    fn an_address_that_answered_holds_the_state_up() {
+        let pool = pool();
+        pool.mark_down("http://lan", "the measurement of the test");
+        assert_eq!(pool.active().unwrap(), "https://wan");
+
+        pool.the_address_answered("http://lan");
+
+        assert_eq!(pool.active().unwrap(), "http://lan");
+        assert!(pool.down_urls().is_empty());
+    }
+
     #[test]
     fn the_pool_sorts_by_priority() {
         let pool = EndpointPool::new(vec![
@@ -249,7 +349,7 @@ mod tests {
     #[test]
     fn a_down_endpoint_is_not_active() {
         let pool = pool();
-        pool.mark_down("http://lan");
+        pool.mark_down("http://lan", "the measurement of the test");
         assert_eq!(pool.active().unwrap(), "https://wan");
     }
 
@@ -269,16 +369,16 @@ mod tests {
     #[test]
     fn next_after_does_not_give_a_down_endpoint() {
         let pool = pool();
-        pool.mark_down("https://wan");
+        pool.mark_down("https://wan", "the measurement of the test");
         assert_eq!(pool.next_after("http://lan").unwrap(), "https://backup");
     }
 
     #[test]
     fn the_active_endpoint_is_none_if_all_endpoints_are_down() {
         let pool = pool();
-        pool.mark_down("http://lan");
-        pool.mark_down("https://wan");
-        pool.mark_down("https://backup");
+        pool.mark_down("http://lan", "the measurement of the test");
+        pool.mark_down("https://wan", "the measurement of the test");
+        pool.mark_down("https://backup", "the measurement of the test");
         assert!(pool.active().is_none());
     }
 
@@ -288,7 +388,7 @@ mod tests {
     #[test]
     fn the_pool_returns_to_the_endpoint_with_more_importance() {
         let pool = pool();
-        pool.mark_down("http://lan");
+        pool.mark_down("http://lan", "the measurement of the test");
         assert_eq!(pool.active().unwrap(), "https://wan");
 
         pool.mark_up("http://lan");
@@ -298,8 +398,8 @@ mod tests {
     #[test]
     fn the_pool_gives_the_down_endpoints_for_the_probe() {
         let pool = pool();
-        pool.mark_down("http://lan");
-        pool.mark_down("https://backup");
+        pool.mark_down("http://lan", "the measurement of the test");
+        pool.mark_down("https://backup", "the measurement of the test");
 
         let mut down = pool.down_urls();
         down.sort();

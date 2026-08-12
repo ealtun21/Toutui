@@ -5696,6 +5696,78 @@ holds that rule with three tests.
 takes **207 milliseconds**, and every percentage of the Home view is the
 percentage of the server (92%, 42%, and the mark of a book that is finished).
 
+### T-128: the program said "No server address answered" for a server that answers
+
+**This is the measurement that did not repeat**, and the road of the session of
+T-124 to T-127 named it as the first work. The first attempt of the book of an
+EPUB of 100 megabytes said "The program did not get the book: **No server address
+answered**", four attempts after it gave the book, and `curl` sent that book in
+0.13 seconds. The session made a guess: a scan of the library, and the socket of
+the live messages (T-107).
+
+**The guess was right, and the condition repeats every time now.** The
+measurement of 2026-08-12, with the sandbox and tmux: the server goes away for 25
+seconds, and it then answers again.
+
+| The moment | What happened |
+|---|---|
+| 21:24:46.36 | the live connection ended: "the request failed" |
+| **21:24:56.36** | the live task tried again, no machine took the connection, and **the one address of the pool took the state `Down`** |
+| 21:25:12.05 | `curl` read the server again: **200 in 1.5 milliseconds** |
+| 21:25:13.55 → 21:25:43.69 | **16 presses of the key `e`, and each of them said "The program did not get the book: No server address answered"** |
+| 21:25:43.64 | the probe task gave the address the state `Up` again |
+| 21:25:45.70 | the next press of `e` gave the book |
+
+**31.6 seconds of a false reason, and the limit is 60 seconds**: the probe task
+sleeps `PROBE_INTERVAL` first, therefore the wait of a user is the rest of that
+minute. The address of the fault needs no scan of a library: **one connection
+that no machine takes** is enough (T-107), and two requests that stop at their
+time limit, one after the other, give the same state (T-97).
+
+**A request must try an address before the program says that no address
+answered.** The state `Down` is the answer of an attempt that came before, and a
+key of the user is a new question. `EndpointPool::an_address` gives the address
+that has the most importance and the state `Up`, and it gives the address that
+has the most importance when no address holds that state. Three places take it:
+`send`, `download_to_file`, and `post_and_read_the_answer`. `ApiError::Unreachable`
+now belongs to a pool that holds no address at all, and to an attempt that
+failed.
+
+**An address that answered holds the state `Up`.** `the_address_answered` forgot
+the requests of the time limit (T-97), and it left the state alone: the request
+of the user is the newest measurement of that address, therefore that function
+writes the state too. The header of the program reads `pool.active()` (T-105),
+and it says "Connected" again at the same moment.
+
+The same measurement with the correction:
+
+| The moment | What happened |
+|---|---|
+| 21:30:31.52 | the address took the state `Down`, and **the log says it now** |
+| 21:30:47.54 | `curl` read the server again |
+| 21:30:47.66 | **the first press of `e` gave the book**, and the log says "The address http://localhost:13399 answers again" |
+
+**The log holds the moment that the program stops to use an address.**
+`mark_down` wrote no line of the log at all, and the measurement above had to read
+the fault of the live task and make a guess. The function takes the reason now,
+and it writes one line for the first fault of an address:
+
+```
+[api] The program does not use the address http://localhost:13399 now: the
+program cannot connect to the server. It examines that address every 60 seconds,
+and a request of the user tries it.
+```
+
+**A server that is truly away says the truth.** With `podman stop abs-test` the
+header says "the server does not answer", and the key `e` says "No server address
+answered." after the program tried the address: the reason of the user is the
+answer of an attempt, and not the memory of one.
+
+Five tests hold the rules, and every one of them fails with the correction
+removed: three of `tests/api_client.rs` (a request, a request of a pool of two
+addresses that are both down, and a download) and two of
+`src/api/client/endpoint.rs`.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
