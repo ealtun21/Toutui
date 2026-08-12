@@ -4750,6 +4750,85 @@ they fail with the old code: `assert_eq!(collect_auth_names_library(&answer)
 fault of the server, and no view shows it: the rule of this item is a rule of the
 text that a user reads.
 
+### The sweep of a terminal that changes its size, 2026-08-12
+
+**The road of 2026-08-12 named this sweep, and it found two faults.** Every
+measurement before it started the program at one size: `tmux new-session -x 160
+-y 45`. A user changes the size of their terminal while the program runs, and
+`tmux resize-window -t check -x 80 -y 24` does that work in the harness.
+
+**What the sweep measured, and what was correct.**
+
+| The work | The measurement |
+|---|---|
+| Every size from 200x50 to **10x3** | the program stands, and it draws its header |
+| A resize inside 6 views (`T`, `S`, `a`, `c`, `d`, `?`) | every view draws again, and no log holds a panic |
+| A resize inside the reader | **the text reflows and the place stays**: chapter 5 of 14, 16%, the same paragraph |
+| 500 lines of a list, then a resize | the line of the user stays |
+| The footer of every size | it wraps, and it keeps the keys `?` and `Q` (T-90) |
+
+**The two faults: T-115 holds both**, because both come from a size that the
+program read one time.
+
+### T-115: a box that takes a text, and the header of a narrow screen
+
+**1. The box of a text did not answer a resize, and the screen then held
+nothing.** `search_active` and `ask_for_a_text` read `term.size()` **before** the
+loop of the events, and they made the rectangle of the box one time. The
+measurement of 2026-08-12:
+
+```
+The terminal is 160 by 45. The user presses `/`, and the box stands at the row 41.
+The terminal becomes 80 by 24.
+The screen holds 24 rows, and every one of them is empty.
+The user writes "alice" and they see nothing at all. Enter gives
+"Search result [1 item]", therefore the program read every letter.
+```
+
+**A box that draws outside the screen draws nothing**, and ratatui writes no cell
+of an area that stands outside its buffer. The user therefore lost the box, the
+letters, and the cursor.
+
+`logic::prompt::the_areas_of_the_box` gives the two rectangles of the box, and
+the loop of each box asks for them **at each turn**. The pure function
+`the_areas_of_a_box_of_this_size` holds the rule, and a test holds the two sizes
+of the measurement: a screen of 160 by 45 gives the row 40, and a screen of 80 by
+24 gives the row 19.
+
+**2. The three parts of the header wrote on each other below 68 columns.** The
+header holds three paragraphs over **one** area: the account at the left, the
+library in the middle, and the name of the program at the right. Every paragraph
+writes its own letters only (the trap 32), therefore a long part meets its
+neighbour and no letter of the two goes away:
+
+| The width | The header |
+|---|---|
+| 80 | `👋 Connected as toutuitest       📖 Books (book)       🦜 Toutui v0.7.58` |
+| 70 | the same, with fewer spaces |
+| **60** | **`👋 Connected as toutuitestBooks (book)     🦜 Toutui v0.7.58`** |
+
+The book of the library ate the mark `📖`, and the name of the account ran into
+the name of the library.
+
+**Every part takes a short form below `THE_WIDTH_OF_THE_LONG_HEADER` (68
+columns)**: `👋 toutuitest` and `🦜 v0.7.58`. **No value goes away**: the account,
+the library, the address, and the version all stay, and the words around them go.
+The measurement after the answer:
+
+| The width | The header |
+|---|---|
+| 60 | `👋 toutuitest          📖 Books (book)            🦜 v0.7.58` |
+| 45 | `👋 toutuitest  📖 Books (book)     🦜 v0.7.58` |
+| 40 | `👋 toutuitest📖 Books (book)  🦜 v0.7.58` |
+
+**41 columns is the honest limit** of the short form: the three parts hold 13, 16,
+and 10 cells. At 40 columns they touch, and no letter goes away. A terminal of
+fewer than 41 columns holds one word of a title, therefore no work of the header
+can help that user.
+
+`a_narrow_header_takes_the_short_form` of `ui::keys` holds the rule, and it counts
+the cells of the three parts.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

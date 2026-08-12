@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.59",
+        date: "12/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A box that asks you for a text follows the size of your terminal.** The box of \
+             the search and the box of a name stood at the place of the screen that came \
+             before: a terminal that became smaller while the box stood gave you an empty \
+             screen, and you could not see the letters that you wrote.",
+            "- **The header of a narrow terminal keeps every value.** The name of your account \
+             and the name of your library wrote on each other below 68 columns. The header \
+             holds the short form there: the account, the library, the address, and the \
+             version all stay.",
+        ],
+    },
+    Entry {
         version: "0.7.58",
         date: "12/08/2026",
         body: &[

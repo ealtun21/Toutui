@@ -4,12 +4,9 @@ use crate::config::rgb_parts;
 use crate::ui::text_field::field_view;
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::backend::CrosstermBackend;
+use ratatui::style::{Color, Style};
 use ratatui::widgets::{Block, Borders, Paragraph};
 use ratatui::Terminal;
-use ratatui::{
-    layout::Rect,
-    style::{Color, Style},
-};
 use std::io;
 use tui_input::backend::crossterm::EventHandler;
 use tui_input::Input;
@@ -33,17 +30,15 @@ impl App {
 
         let mut input = Input::default();
 
-        let size = term.size()?;
-        let search_area = Rect {
-            x: 1,
-            y: size.height - 5,
-            width: size.width - 2,
-            height: 3,
-        };
-        // The borders take one column at the left and one column at the right.
-        let inner_width = search_area.width.saturating_sub(2);
-
         loop {
+            // **The terminal can change its size while the box stands**,
+            // therefore the area comes at each turn of this loop. See T-115 and
+            // `logic::prompt`.
+            let (search_area, _) = crate::logic::prompt::the_areas_of_the_box(&term)?;
+
+            // The borders take one column at the left and one column at the
+            // right.
+            let inner_width = search_area.width.saturating_sub(2);
             let view = field_view(&input, inner_width, None);
             term.draw(|f| {
                 let bar = Paragraph::new(view.text.as_str())
@@ -94,6 +89,8 @@ impl App {
                 }
             }
         }
+        let (search_area, _) = crate::logic::prompt::the_areas_of_the_box(&term)?;
+
         term.draw(|f| {
             let empty_block =
                 Block::default().style(Style::default().bg(Color::Rgb(bg_r, bg_g, bg_b)));

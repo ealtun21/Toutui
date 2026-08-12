@@ -2140,6 +2140,7 @@ impl App {
             active.as_deref(),
             &self.server_address_pretty,
             self.is_offline,
+            area.width,
         );
 
         // The audio engine did not start. The user reads the library, and no
@@ -2176,9 +2177,13 @@ impl App {
             self.update_msg.clone()
         };
 
-        Paragraph::new(format!("🦜 Toutui v{}\n {}", VERSION, notice))
-            .right_aligned()
-            .render(area, buf);
+        Paragraph::new(format!(
+            "{}\n {}",
+            crate::ui::keys::the_name_of_the_program(VERSION, area.width),
+            notice
+        ))
+        .right_aligned()
+        .render(area, buf);
     }
 
     /// Draws the footer of a view.

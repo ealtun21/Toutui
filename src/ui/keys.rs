@@ -234,22 +234,68 @@ pub fn the_lines_of_the_connection(
     active: Option<&str>,
     stored: &str,
     is_offline: bool,
+    width: u16,
 ) -> String {
+    // **A narrow terminal takes the short form.** The three parts of the header
+    // stand on one row, and each of them writes its own letters only: a
+    // measurement of 2026-08-12 in 60 columns read
+    // "👋 Connected as toutuitestBooks (book)", because the part of the account
+    // and the part of the library met. See T-115.
+    let short = width < THE_WIDTH_OF_THE_LONG_HEADER;
+
     if is_offline {
+        if short {
+            return format!("📴 {}\n🔗 {} does not answer", username, stored);
+        }
+
         return format!("📴 Offline as {}\n🔗 {} does not answer", username, stored);
     }
 
     match active {
+        Some(url) if short => format!("👋 {}\n🔗 {}", username, without_the_scheme(url)),
         Some(url) => format!(
             "👋 Connected as {}\n🔗 {}",
             username,
             without_the_scheme(url)
         ),
+        None if short => format!("⚠ {}: no answer\n🔗 {} does not answer", username, stored),
         None => format!(
             "⚠ {}: the server does not answer\n🔗 {} does not answer",
             username, stored
         ),
     }
+}
+
+/// The width where the header holds its long form.
+///
+/// The header holds three parts on one row: the account at the left, the library
+/// in the middle, and the name of the program at the right. Every part is a
+/// paragraph of its own over the same area, therefore a part that is too long
+/// writes on the letters of its neighbour.
+///
+/// The measurement of 2026-08-12, of the account "toutuitest" and the library
+/// "Books (book)":
+///
+/// | The width | The header |
+/// |---|---|
+/// | 80 | `👋 Connected as toutuitest    📖 Books (book)    🦜 Toutui v0.7.58` |
+/// | 70 | the same, with fewer spaces |
+/// | 60 | `👋 Connected as toutuitestBooks (book)     🦜 Toutui v0.7.58` |
+///
+/// The long form needs 26 + 15 + 17 cells and two spaces: 60 columns hold it
+/// almost, and 68 hold it with room for a longer name of an account. See T-115.
+pub const THE_WIDTH_OF_THE_LONG_HEADER: u16 = 68;
+
+/// The name of the program for the right of the header.
+///
+/// A narrow terminal takes the short form, in the same way as the part of the
+/// account. See T-115 and `THE_WIDTH_OF_THE_LONG_HEADER`.
+pub fn the_name_of_the_program(version: &str, width: u16) -> String {
+    if width < THE_WIDTH_OF_THE_LONG_HEADER {
+        return format!("🦜 v{}", version);
+    }
+
+    format!("🦜 Toutui v{}", version)
 }
 
 /// The notice at the right of the header for a server that does not answer.
@@ -556,6 +602,7 @@ mod tests {
             Some("http://127.0.0.1:13456"),
             "localhost:13399",
             false,
+            160,
         );
 
         assert!(text.contains("👋 Connected as toutuitest"), "{}", text);
@@ -568,7 +615,7 @@ mod tests {
 
         // The address holds no scheme, and `https` goes away too.
         assert!(
-            the_lines_of_the_connection("u", Some("https://abs.example.com"), "x", false)
+            the_lines_of_the_connection("u", Some("https://abs.example.com"), "x", false, 160)
                 .contains("🔗 abs.example.com")
         );
     }
@@ -581,7 +628,7 @@ mod tests {
     /// user pressed `R`. See T-107.
     #[test]
     fn the_header_says_that_no_address_answers() {
-        let text = the_lines_of_the_connection("toutuitest", None, "localhost:13399", false);
+        let text = the_lines_of_the_connection("toutuitest", None, "localhost:13399", false, 160);
 
         assert!(
             !text.contains("Connected"),
@@ -596,8 +643,48 @@ mod tests {
         );
 
         // The offline mode keeps its own words: the lists come from the disk.
-        let offline = the_lines_of_the_connection("toutuitest", None, "localhost:13399", true);
+        let offline = the_lines_of_the_connection("toutuitest", None, "localhost:13399", true, 160);
         assert!(offline.contains("📴 Offline as toutuitest"), "{}", offline);
+    }
+
+    /// **The three parts of the header must not write on each other.**
+    ///
+    /// The sweep of a terminal that changes its size, 2026-08-12: 60 columns
+    /// gave "👋 Connected as toutuitestBooks (book)". Every part takes its short
+    /// form below `THE_WIDTH_OF_THE_LONG_HEADER`. See T-115.
+    #[test]
+    fn a_narrow_header_takes_the_short_form() {
+        let long = the_lines_of_the_connection("toutuitest", Some("http://one:1"), "x", false, 80);
+        let short = the_lines_of_the_connection("toutuitest", Some("http://one:1"), "x", false, 60);
+
+        assert!(long.contains("👋 Connected as toutuitest"), "{}", long);
+        assert!(short.contains("👋 toutuitest"), "{}", short);
+        assert!(!short.contains("Connected"), "{}", short);
+
+        // Every form names the account and the address: the short form holds
+        // fewer words, and no value goes away.
+        assert!(short.contains("🔗 one:1"), "{}", short);
+
+        // The offline mode and the server that does not answer keep the rule.
+        let offline = the_lines_of_the_connection("toutuitest", None, "one:1", true, 60);
+        assert!(offline.contains("📴 toutuitest"), "{}", offline);
+        assert!(offline.contains("🔗 one:1 does not answer"), "{}", offline);
+
+        let no_answer = the_lines_of_the_connection("toutuitest", None, "one:1", false, 60);
+        assert!(!no_answer.contains("Connected"), "{}", no_answer);
+        assert!(no_answer.contains("no answer"), "{}", no_answer);
+
+        // The name of the program takes the same rule.
+        assert_eq!(the_name_of_the_program("0.7.58", 80), "🦜 Toutui v0.7.58");
+        assert_eq!(the_name_of_the_program("0.7.58", 60), "🦜 v0.7.58");
+
+        // **The three parts fit in 60 columns now.** The account holds 13 cells,
+        // the library of the measurement holds 15, and the name of the program
+        // holds 11.
+        let of_the_account = "👋 toutuitest".chars().count();
+        let of_the_program = the_name_of_the_program("0.7.58", 60).chars().count();
+
+        assert!(of_the_account + 15 + of_the_program < 60);
     }
 
     /// A text of a view holds one space between two words.
