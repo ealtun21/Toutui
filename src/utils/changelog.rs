@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.60",
+        date: "12/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A book of a scan no longer takes the memory of this program.** The program \
+             held the whole file while it wrote it to the disk: a book of 502 megabytes gave \
+             the program a peak of 1007 megabytes, and it gives 44 now. Every part of the \
+             answer goes to the disk.",
+            "- **The reader names your book when you open it from the search.** It said the \
+             identity of the media for a PDF, because a PDF holds no title of its own.",
+        ],
+    },
+    Entry {
         version: "0.7.59",
         date: "12/08/2026",
         body: &[

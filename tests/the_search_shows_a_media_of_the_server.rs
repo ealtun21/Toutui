@@ -161,6 +161,18 @@ async fn the_view_holds_a_media_that_the_program_did_not_read() {
     );
     assert_eq!(app.published_year_library_search_book, vec!["2026"]);
 
+    // **The reader of a book needs the title of the line.** The view of the
+    // search held no list of the titles, therefore the reader of a PDF said the
+    // identity of the item: a measurement of 2026-08-12 read
+    // "27c55369-b048-4d68-9e70-17653b4d618f — page 1 of 150". See T-117 and
+    // T-54.
+    assert_eq!(app.titles_search_book, vec!["Large Book 0100".to_string()]);
+    assert_eq!(
+        app.selected_item_title(),
+        Some("Large Book 0100".to_string()),
+        "the reader takes the title of the line of the search"
+    );
+
     // A library of podcasts reads the episodes of a media with the place of that
     // media in the lists of the library. A podcast that the program did not read
     // therefore gives no line, and the view says that it found nothing.

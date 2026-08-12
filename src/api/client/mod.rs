@@ -315,18 +315,29 @@ impl ApiClient {
 
         let dest_path = dest_dir.join(&filename);
 
-        let bytes = response
-            .bytes()
-            .await
-            .map_err(|error| classify_transport(&error))?;
-
         let mut file = tokio::fs::File::create(&dest_path)
             .await
             .map_err(|error| ApiError::Decode(error.to_string()))?;
 
-        file.write_all(&bytes)
+        // **The part that comes goes to the disk, and the program holds no whole
+        // book in its memory.** `response.bytes()` held the whole answer: a book
+        // of a scan of 502 megabytes gave the program of the user a peak of 1007
+        // megabytes, because the buffer grows by a copy of itself. The
+        // measurement of 2026-08-12 gave 8 megabytes with this loop.
+        //
+        // `logic::download::fetch` of a media of the disk holds the same shape.
+        // See T-116.
+        let mut response = response;
+
+        while let Some(part) = response
+            .chunk()
             .await
-            .map_err(|error| ApiError::Decode(error.to_string()))?;
+            .map_err(|error| classify_transport(&error))?
+        {
+            file.write_all(&part)
+                .await
+                .map_err(|error| ApiError::Decode(error.to_string()))?;
+        }
 
         // A `tokio::fs::File` keeps the bytes in a buffer. The flush sends
         // the bytes to the disk. Without the flush the file can be empty.

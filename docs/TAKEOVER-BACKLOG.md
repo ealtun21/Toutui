@@ -4829,6 +4829,107 @@ can help that user.
 `a_narrow_header_takes_the_short_form` of `ui::keys` holds the rule, and it counts
 the cells of the three parts.
 
+### The sweep of a book of a scan of 502 megabytes, 2026-08-12
+
+**The road of 2026-08-12 named this sweep**, and it named the value to measure:
+"the child of T-62 holds the memory, and the time of the parse is the value to
+measure". The sweep found **two faults**, and the memory of the child was not one
+of them.
+
+**The data.** A PDF of **502745447 bytes** (479 megabytes, and 502 in the words of
+a maker of disks) stands in the sandbox as "A Huge Book Of A Scan": 150 pages of a
+picture of JPEG of 1200 by 1600 pixels of bytes that no algorithm makes smaller.
+`MAX_BOOK_BYTES` is 512 megabytes, therefore this book stands almost at that
+limit. `docs/TEST-SERVER.md` holds the commands.
+
+**The measurement of the first run:**
+
+| The work | The measurement |
+|---|---|
+| The download of the book, from the sandbox | under **800 ms** |
+| The parse of the 150 pages, in the child | **123809 ms** (2 minutes 4 seconds) |
+| The peak of the child | 974 megabytes |
+| **The peak of the program of the user** | **1007 megabytes** |
+| The screen while the user waits | "The program gets the book…" |
+| The cache of the ebooks | it removed 4 books of 56 megabytes, and it said so |
+| The reader, when the book came | `27c55369-b048-4d68-9e70-17653b4d618f — page 1 of 150 — 0%` |
+
+**The child of T-62 does its work**: 974 megabytes of the parse stand outside the
+program of the user, and that memory goes away with the process. **The program of
+the user held 1007 megabytes of its own**, and that is T-116.
+
+### T-116: the program held the whole book in its memory
+
+`ApiClient::download_to_file` read `response.bytes()`. **The whole answer therefore
+stood in the memory of the program that the user reads**, and the buffer of
+`reqwest` grows by a copy of itself: a file of 502 megabytes gave a peak of
+**1007**.
+
+T-62 moved the parse of a PDF into a child for exactly this reason, and **the
+download of the same book stayed in the program of the user**.
+
+`logic::download::fetch` of a media of the disk held the right shape already: it
+writes each part of the answer with `response.chunk()`. `download_to_file` holds
+that shape now.
+
+**The measurement of the answer, with the real program and the same book of 502
+megabytes** (a new `XDG_DATA_HOME` gives a cache that is empty, the trap 24 of the
+harness):
+
+```
+the peak before the key e:            41960 kB
+the child stands after 782 ms:        the book came to the disk
+the peak of the program of the user:  45708 kB (44 MB)
+the file of the book:                 502745447 bytes
+```
+
+**1007 megabytes became 44**, and the download of the book costs 3.7 megabytes of
+the program of the user.
+
+**A test of that memory needs a server outside the process of the test.** A
+measurement of 2026-08-12 read `VmHWM` around a download of 96 megabytes of a mock
+server of `wiremock`: the mock makes its answer inside the process, and the two
+forms of the code both gave 192 megabytes. **The memory of the answer of the
+server hides the memory of the client.**
+`tests/the_download_of_a_book_holds_no_book.rs` therefore holds two rules that a
+test can hold: a book of 96 megabytes comes to the disk complete, and
+**`download_to_file` holds no `response.bytes()`** — a rule that reads the source,
+in the same way as `every_key_of_the_handler_stands_in_the_list`. That second rule
+fails with the old code.
+
+### T-117: the reader said the identity of the item as the title of the book
+
+The reader of a book that the user opened from the **view of the search** said
+`27c55369-b048-4d68-9e70-17653b4d618f — page 1 of 150 — 0%`.
+
+**A PDF holds no title in most files**, therefore the reader takes the title of
+the server (T-54). `selected_item_title` gave `None` for the view of the search,
+and the comment of that line said "The view of the search holds no list of the
+titles. The reader then takes the title of the file, and that is not a fault." The
+name of the file on the disk is the identity of the item, therefore the user read
+a UUID.
+
+**T-113 made that comment wrong**: the answer of the server carries the title of
+every media now, and the view holds `App::titles_search_book`. The reader takes
+that title, and the screen says
+`A Big Book Of A Scan — page 1 of 60 — 0%`.
+
+`tests/the_search_shows_a_media_of_the_server.rs` holds the rule.
+
+### What this sweep leaves for a next session
+
+**The parse of 150 pages of a scan takes 2 minutes, and the screen says "The
+program gets the book…" for every second of it.** The words are wrong after the
+first second: the book stands on the disk, and the program reads its pages. The
+child knows the number of the pages that it wrote, and no message of the program
+carries it.
+
+**The value of the work**: a user of a book of a scan waits minutes with no sign
+of progress, and a user who waits with no sign presses the key again. A message
+that names the phase and the pages ("the program reads the page 84 of 150") needs
+a slot between the child and the render, and `logic::reader::opened_book` holds
+the shape of such a slot already.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

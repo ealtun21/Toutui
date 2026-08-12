@@ -1966,9 +1966,11 @@ impl App {
             }
         }
 
-        let titles_search_book_or_pod: Vec<String> =
-            found.iter().map(|one| one.title.clone()).collect();
-        let titles_search_book_or_pod: &[String] = &titles_search_book_or_pod;
+        // The reader of a book takes the title of the line (T-117), therefore the
+        // titles of the view stand in the application and not in this function.
+        self.titles_search_book = found.iter().map(|one| one.title.clone()).collect();
+
+        let titles_search_book_or_pod: &[String] = &self.titles_search_book.clone();
 
         let render_list_title = crate::logic::search::the_title_of_the_search(
             &self.search_query,

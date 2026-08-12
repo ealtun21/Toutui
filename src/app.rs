@@ -321,6 +321,12 @@ pub struct App {
     pub all_titles_pod_search: Vec<Vec<String>>,
     pub all_durations_pod_ep_search: Vec<Vec<String>>,
     pub auth_names_pod_search_book: Vec<String>,
+    /// The title of each line of the view of the search.
+    ///
+    /// The reader of a book needs the title of the media (T-54), and the view of
+    /// the search held no list of the titles: the reader of a PDF that the user
+    /// opened there said the identity of the item. See T-117.
+    pub titles_search_book: Vec<String>,
     pub auth_names_search_book: Vec<String>,
     pub published_year_library_search_book: Vec<String>,
     pub desc_library_search_book: Vec<String>,
@@ -1151,6 +1157,7 @@ impl App {
             ids_library,
             auth_names_library,
             ids_search_book,
+            titles_search_book: Vec::new(),
             series,
             library_rows,
             library_page: 0,
@@ -4114,8 +4121,17 @@ impl App {
                 .selected_library_item()
                 .and_then(|index| self.titles_library.get(index))
                 .cloned(),
-            // The view of the search holds no list of the titles. The reader
-            // then takes the title of the file, and that is not a fault.
+            // **The view of the search holds the titles of its lines now.** The
+            // answer of the server carries the title of every media (T-113), and
+            // the reader of a PDF said the identity of the item before: a
+            // measurement of 2026-08-12 read
+            // "27c55369-b048-4d68-9e70-17653b4d618f — page 1 of 150". See T-117
+            // and T-54.
+            AppView::SearchBook => self
+                .list_state_search_results
+                .selected()
+                .and_then(|line| self.titles_search_book.get(line))
+                .cloned(),
             AppView::SeriesBook => self.selected_series_book().map(|book| book.title.clone()),
             AppView::ListEntries => self.selected_list_entry().map(|entry| entry.title.clone()),
             _ => None,
