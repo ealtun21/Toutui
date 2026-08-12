@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.51",
+        date: "12/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The header names the address of the server that answers now.** A server can \
+             have more than one address in config.toml, and the program moved between them \
+             while the header kept the address that you gave at the login.",
+            "- **The header says when no address of the server answers.** The screen said \
+             \"Connected\" until you pressed R, and the program knew already. It says \"the \
+             server does not answer\" now, and it names the key R for the media of the disk.",
+            "- The statistics of a library of one media said \"1 items\". Every number of that \
+             screen names one thing in the singular now.",
+        ],
+    },
+    Entry {
         version: "0.7.50",
         date: "12/08/2026",
         body: &[

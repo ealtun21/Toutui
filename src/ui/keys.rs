@@ -158,6 +158,23 @@ pub const GROUPS: &[Group] = &[
     },
 ];
 
+/// Gives a number with the name of the thing that it counts.
+///
+/// **One thing is "1 track", and not "1 tracks".** The plural of every name of
+/// this program takes one letter `s`. A name that does not follow that rule
+/// needs its own function.
+///
+/// A sweep of a library of one media on 2026-08-12 read
+/// "1 items, 57 tracks, 0 authors, 0 genres" in the view of the statistics. See
+/// T-106.
+pub fn counted(count: usize, name: &str) -> String {
+    if count == 1 {
+        return format!("1 {}", name);
+    }
+
+    format!("{} {}s", count, name)
+}
+
 /// Gives the number of the lines of a view, for the title of that view.
 ///
 /// **One line is "1 item", and not "1 items".** A measurement of 2026-08-11 read
@@ -167,12 +184,61 @@ pub const GROUPS: &[Group] = &[
 ///
 /// The function is pure, therefore a test needs no screen.
 pub fn items(count: usize) -> String {
-    if count == 1 {
-        return "1 item".to_string();
+    counted(count, "item")
+}
+
+/// Removes `http://` or `https://` from an address.
+///
+/// The header of the screen holds no scheme: the user reads the machine and the
+/// port. See T-105.
+pub fn without_the_scheme(url: &str) -> &str {
+    url.strip_prefix("http://")
+        .or_else(|| url.strip_prefix("https://"))
+        .unwrap_or(url)
+}
+
+/// The two lines of the header that name the account and the address.
+///
+/// **The header names the address that the program uses now**, and not the
+/// address of the login. `config.toml` takes more than one address of one
+/// server, and a sweep of two addresses on 2026-08-12 read `localhost:13399` in
+/// the header while every request went to `127.0.0.1:13456`. See T-105.
+///
+/// **A program that no address answers must not say "Connected".** The same
+/// sweep stopped the server in the middle of a playback: the log said "the
+/// server does not answer" every six seconds, and the header said "Connected"
+/// until the user pressed `R`. See T-107.
+///
+/// `active` is the address of the pool, with its scheme. `stored` is the address
+/// of the login, with no scheme.
+pub fn the_lines_of_the_connection(
+    username: &str,
+    active: Option<&str>,
+    stored: &str,
+    is_offline: bool,
+) -> String {
+    if is_offline {
+        return format!("📴 Offline as {}\n🔗 {} does not answer", username, stored);
     }
 
-    format!("{} items", count)
+    match active {
+        Some(url) => format!(
+            "👋 Connected as {}\n🔗 {}",
+            username,
+            without_the_scheme(url)
+        ),
+        None => format!(
+            "⚠ {}: the server does not answer\n🔗 {} does not answer",
+            username, stored
+        ),
+    }
 }
+
+/// The notice at the right of the header for a server that does not answer.
+///
+/// The program still holds the lists of the server, therefore it is not in the
+/// offline mode. The key `R` gives the media of the disk. See T-107.
+pub const THE_SERVER_DOES_NOT_ANSWER: &str = "R: the media of the disk";
 
 /// The line of a name of a group, in the view of the keys.
 pub fn line_of_a_group(name: &str) -> String {
@@ -429,6 +495,72 @@ mod tests {
         assert_eq!(items(0), "0 items");
         assert_eq!(items(1), "1 item");
         assert_eq!(items(2), "2 items");
+    }
+
+    /// One thing of any name is "1 track", and not "1 tracks". See T-106.
+    #[test]
+    fn a_text_of_a_view_names_one_thing_in_the_singular() {
+        assert_eq!(counted(0, "track"), "0 tracks");
+        assert_eq!(counted(1, "track"), "1 track");
+        assert_eq!(counted(2, "track"), "2 tracks");
+        assert_eq!(counted(1, "item"), items(1));
+    }
+
+    /// **The header names the address that the program uses now.**
+    ///
+    /// A sweep of two addresses on 2026-08-12 gave the pool
+    /// `127.0.0.1:13456` and `localhost:13399`. Nine connections went to the
+    /// first address, and the header said `localhost:13399`: it named the
+    /// address of the login for ever. See T-105.
+    #[test]
+    fn the_header_names_the_address_that_answers() {
+        let text = the_lines_of_the_connection(
+            "toutuitest",
+            Some("http://127.0.0.1:13456"),
+            "localhost:13399",
+            false,
+        );
+
+        assert!(text.contains("👋 Connected as toutuitest"), "{}", text);
+        assert!(text.contains("🔗 127.0.0.1:13456"), "{}", text);
+        assert!(
+            !text.contains("localhost:13399"),
+            "the header names the address of the login: {}",
+            text
+        );
+
+        // The address holds no scheme, and `https` goes away too.
+        assert!(
+            the_lines_of_the_connection("u", Some("https://abs.example.com"), "x", false)
+                .contains("🔗 abs.example.com")
+        );
+    }
+
+    /// **A program that no address answers must not say "Connected".**
+    ///
+    /// A sweep of 2026-08-12 stopped the server in the middle of a playback.
+    /// The log of the program said "the server does not answer" every six
+    /// seconds, and the header said "👋 Connected" for 60 seconds, until the
+    /// user pressed `R`. See T-107.
+    #[test]
+    fn the_header_says_that_no_address_answers() {
+        let text = the_lines_of_the_connection("toutuitest", None, "localhost:13399", false);
+
+        assert!(
+            !text.contains("Connected"),
+            "the header says \"Connected\" for a server that does not answer: {}",
+            text
+        );
+        assert!(text.contains("the server does not answer"), "{}", text);
+        assert!(
+            text.contains("🔗 localhost:13399 does not answer"),
+            "{}",
+            text
+        );
+
+        // The offline mode keeps its own words: the lists come from the disk.
+        let offline = the_lines_of_the_connection("toutuitest", None, "localhost:13399", true);
+        assert!(offline.contains("📴 Offline as toutuitest"), "{}", offline);
     }
 
     /// A text of a view holds one space between two words.

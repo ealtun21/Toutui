@@ -374,6 +374,14 @@ pub fn spawn_the_live_task(pool: Arc<EndpointPool>, token: String) -> tokio::tas
                         faults = faults.saturating_add(1);
                     }
 
+                    if the_address_is_down(attempt.opened, attempt.fault.as_deref()) {
+                        // **The program must not say "Connected" for a server
+                        // that no address reaches.** This task tries again every
+                        // few seconds, therefore it knows first. The probe task
+                        // gives the address back. See T-107.
+                        pool.mark_down(&base);
+                    }
+
                     if let Some(text) = attempt.fault {
                         // The first fault of a server tells the user something.
                         // The tenth fault of the same server tells nothing, and
@@ -407,6 +415,25 @@ pub fn spawn_the_live_task(pool: Arc<EndpointPool>, token: String) -> tokio::tas
             tokio::time::sleep(wait).await;
         }
     })
+}
+
+/// The fault of a connection that no machine took.
+///
+/// **A connection that no machine takes is evidence that the address is down**,
+/// and a request that stops at its time limit is not (T-97). Therefore the live
+/// task compares with this text, and it marks the address down for this fault
+/// only. See T-107.
+pub const THE_PROGRAM_CANNOT_CONNECT: &str = "the program cannot connect to the server";
+
+/// Tells if this attempt of the live connection is evidence that the address is
+/// down.
+///
+/// A connection that opened says nothing: the server took the handshake, and a
+/// later fault belongs to that one connection. A time limit says nothing
+/// either: the server does slow work for some requests of a user (T-97). See
+/// T-107.
+pub fn the_address_is_down(opened: bool, fault: Option<&str>) -> bool {
+    !opened && fault == Some(THE_PROGRAM_CANNOT_CONNECT)
 }
 
 /// What one attempt of a connection gave. See T-61.
@@ -532,7 +559,7 @@ fn short_text(error: &reqwest::Error) -> String {
     if error.is_timeout() {
         "the server did not answer in time".to_string()
     } else if error.is_connect() {
-        "the program cannot connect to the server".to_string()
+        THE_PROGRAM_CANNOT_CONNECT.to_string()
     } else if let Some(status) = error.status() {
         format!("the server answered {}", status.as_u16())
     } else {
@@ -624,6 +651,29 @@ mod tests {
             }
             other => panic!("the second packet must be a message: {:?}", other),
         }
+    }
+
+    /// **The live task tells the pool that no machine takes the connection.**
+    ///
+    /// The pool learned nothing of a server that went away: no request of the
+    /// program failed while the user pressed no key, therefore `active()` still
+    /// gave an address and the header said "Connected". This task tries again
+    /// every few seconds, therefore it knows first. See T-107.
+    #[test]
+    fn a_connection_that_no_machine_takes_marks_the_address_down() {
+        assert!(the_address_is_down(false, Some(THE_PROGRAM_CANNOT_CONNECT)));
+
+        // A connection that opened says nothing of the address: the fault
+        // belongs to that one connection.
+        assert!(!the_address_is_down(true, Some(THE_PROGRAM_CANNOT_CONNECT)));
+
+        // A time limit is not evidence that an address is down. See T-97.
+        assert!(!the_address_is_down(
+            false,
+            Some("the server did not answer in time")
+        ));
+        assert!(!the_address_is_down(false, Some("the server answered 500")));
+        assert!(!the_address_is_down(false, None));
     }
 
     #[test]

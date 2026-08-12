@@ -2122,17 +2122,17 @@ impl App {
             .centered()
             .render(area, buf);
 
-        let connection = if self.is_offline {
-            format!(
-                "📴 Offline as {}\n🔗 {} does not answer",
-                self.username, self.server_address_pretty
-            )
-        } else {
-            format!(
-                "👋 Connected as {}\n🔗 {}",
-                self.username, self.server_address_pretty
-            )
-        };
+        // **The address of the pool, and not the address of the login.** A pool
+        // of two addresses moves between them, and the header named the address
+        // that the user gave at the login for ever. See T-105 and T-107.
+        let active = self.api.pool().active();
+
+        let connection = crate::ui::keys::the_lines_of_the_connection(
+            &self.username,
+            active.as_deref(),
+            &self.server_address_pretty,
+            self.is_offline,
+        );
 
         // The audio engine did not start. The user reads the library, and no
         // media plays. See T-46.
@@ -2155,6 +2155,10 @@ impl App {
             };
 
             format!("R: try the server again{}", waiting)
+        } else if active.is_none() {
+            // No address answers, and the lists still come from the server. The
+            // key `R` gives the media of the disk. See T-107.
+            crate::ui::keys::THE_SERVER_DOES_NOT_ANSWER.to_string()
         } else if crate::logic::live::the_lists_are_old() {
             // A different client changed the metadata of an item. That value
             // stands in many lists, therefore one line cannot hold the

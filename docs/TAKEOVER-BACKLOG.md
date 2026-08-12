@@ -4084,6 +4084,164 @@ they stand), `one_screen_holds_one_split_of_the_work_of_a_view` (60 heights of a
 screen, and the list of a screen with no playback never holds fewer lines than
 the list of the same screen with one), and `a_terminal_of_five_rows_gives_the_areas_of_a_view`.
 
+### T-105: the header named the address of the login, and not the address that answers
+
+**The sweep of a pool of two addresses, 2026-08-12.** `config.toml` takes more
+than one address of one server, and no session had ever driven the program with
+two. The measurement gave the isolated `XDG_CONFIG_HOME` this block:
+
+```toml
+[[servers]]
+name = "sandbox"
+endpoints = [
+  { url = "http://127.0.0.1:13456", priority = 0 },
+  { url = "http://localhost:13399", priority = 1 },
+]
+```
+
+`socat` held the first address, and it sent every byte to the sandbox:
+
+```bash
+socat -d -d TCP-LISTEN:13456,fork,reuseaddr,bind=127.0.0.1 TCP:127.0.0.1:13399
+```
+
+The second program of the measurement is the log of `socat`: it writes one line
+"starting data transfer" for each connection. **The start of the program made 9
+connections to `127.0.0.1:13456`, and the header said `🔗 localhost:13399`.**
+
+```
+👋 Connected as toutuitest        📖 Books (book)        🦜 Toutui v0.7.50
+🔗 localhost:13399
+```
+
+`server_address_pretty` of `src/app.rs` holds the address of the **login**, and
+`App::new` reads it one time from the database. The pool moves between the
+addresses at every request, and no line of the screen followed it. A user of two
+addresses therefore has no way to know which address carries their data, and a
+user who wants the fast local address cannot see that the program uses the slow
+public one.
+
+**Every view of the program works with a pool of two addresses.** The sweep drove
+the Library view, the series, the authors, the narrators, the lists, the sequence
+and the filter, the statistics, the sessions, and the settings: each of them drew
+its lines, and 11 connections went to the first address.
+
+**The change of the address needs no key.** The measurement stopped the first
+address in the middle of the work, pressed `R`, and every list came back from the
+second address. The probe task gave the first address back 70 seconds later (one
+connection of `GET /ping`), and the 8 connections of the next `R` went to it
+again.
+
+`ui::keys::the_lines_of_the_connection` holds the two lines of the header now,
+and `render_header` gives it `self.api.pool().active()`. The measurement with the
+correction:
+
+| The moment | The header |
+|---|---|
+| The two addresses answer | `🔗 127.0.0.1:13456` |
+| The first address goes away | `🔗 localhost:13399`, after 20 seconds and no key |
+| No address answers | `⚠ toutuitest: the server does not answer` |
+
+The 20 seconds are the rule of T-97: a connection of `socat` that no process
+takes stops at its time limit, and **two** such requests give the address the
+state `Down`.
+
+### T-106: the statistics of a library of one media said "1 items"
+
+**The sweep of every "1 item" that stays, 2026-08-12.** T-85, T-95, and T-100
+each found one of those texts in a different place, and `ui::keys::items` holds
+the rule for the title of a view. **The view of the statistics holds numbers, and
+not a title**, therefore no title carried that rule there.
+
+The sandbox holds a library `Podcasts` of one podcast. The measurement chose that
+library in the settings and it pressed `T`:
+
+```
+The library Podcasts
+1 items,  57 tracks,  0 authors,  0 genres
+```
+
+Three lines of `src/ui/stats_tui.rs` counted their own things: the line of the
+library, "{} of listening in {} sessions", and "{} books came, and {} authors".
+An account with one session and one book of the year reads three wrong words.
+
+`ui::keys::counted(count, name)` gives "1 track" and "2 tracks" now, and
+`items(count)` is `counted(count, "item")`. The same screen after the correction:
+
+```
+The library Podcasts
+1 item,  57 tracks,  0 authors,  0 genres
+```
+
+`the_statistics_name_one_thing_in_the_singular` holds the rule of a library of one
+media and of a library of many. A build with the correction removed fails with
+"1 items,  1 tracks,  1 authors,  1 genres".
+
+**The book of one chapter found no fault.** The sandbox holds a new book
+`One Chapter Book`: one MP3 file with one chapter of `ffmetadata`. The view of
+the chapters said `The chapters of "One Chapter Book" [1 item]`, and the view of
+the queue of one media said `The queue [1 item]`.
+
+### T-107: the program said "Connected" while it knew that the server does not answer
+
+**The sweep of a server that goes away in the middle of a playback, 2026-08-12.**
+The measurement opened no sound device: `TOUTUI_AUDIO_DEVICE=null` gives the null
+device of ALSA, and the log of the program says
+"[worker] the application uses the sound device alsa:null". **`ALSA_CONFIG_PATH`
+does not silence the real program** (the trap 11 of the harness), and this
+variable does.
+
+The measurement played `A Long Test Book`, a media that the server holds and the
+disk does not, and it then ran `podman stop abs-test`. The playback went on from
+the bytes that the program held, and it came to its end at 1800 seconds. Every
+part of the offline mode did its work:
+
+```
+[offline] the position 1800s of 9a671047-... waits for the server
+[play] the server does not answer: No server address answered.. The offline mode starts.
+[offline] 1 position(s) wait for the server                 # every six seconds
+[offline] the server does not answer: No server address answered.
+```
+
+`pending_progress` held the row, therefore no second of the user went away.
+
+**The header said "👋 Connected as toutuitest" for 60 seconds**, while the log of
+the same program said "the server does not answer" every six seconds. The screen
+became true at the key `R` only, and a user who watches the screen presses no
+key: the program that they read said that everything is well.
+
+`App::is_offline` comes from `App::new`, therefore the start of the program and
+the key `R` are the two moments that give it a value. **The pool knows more**, and
+it knows it earlier: `EndpointPool::active()` gives `None` when no address
+answers.
+
+Two corrections hold the screen to what the program knows:
+
+1. `render_header` reads `self.api.pool().active()`. No address gives
+   "⚠ <the user>: the server does not answer", and the notice at the right says
+   "R: the media of the disk". The offline mode keeps its own words, because the
+   lists come from the disk there.
+2. **The live task tells the pool.** No request of the program failed while the
+   user pressed no key, therefore the pool learned nothing. The task of the live
+   messages tries a connection every few seconds, and it marks the address down
+   for one fault only: a connection that no machine takes.
+   `the_address_is_down` holds that rule, and a connection that opened and a
+   request that stopped at its time limit are not evidence (T-97).
+
+The measurement with the correction, with no key of the user:
+
+| The time after `podman stop abs-test` | The header |
+|---|---|
+| 10 s | `👋 Connected as toutuitest` |
+| 30 s | `⚠ toutuitest: the server does not answer` |
+
+**One screen of this sweep stayed without a name.** One run of the measurement
+gave a screen with no header, no title, and two texts of two views on the same
+row, with the word "ink" alone on the last row. Two runs of the same sequence
+after it drew the correct screen, therefore this document holds the observation
+and no item: a fault that a session cannot make again is not a fault that a
+session can correct.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

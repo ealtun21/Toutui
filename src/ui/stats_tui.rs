@@ -14,6 +14,7 @@ use ratatui::widgets::{Block, Borders, Paragraph, Widget};
 use crate::api::me::listening_stats::{bar, human_time, largest, last_days, top_items, week};
 use crate::api::stats::{human_size, LibraryStats, TopName, YearStats};
 use crate::logic::stats::State;
+use crate::ui::keys::counted;
 
 /// The number of days of the first group.
 ///
@@ -244,9 +245,14 @@ fn lines_of_the_library(out: &mut Vec<Line<'static>>, stats: Option<&LibraryStat
         return;
     };
 
+    // **A library of one media said "1 items, 57 tracks, 0 authors, 0 genres".**
+    // A sweep of 2026-08-12 read that line. See T-106.
     out.push(Line::from(format!(
-        "{} items,  {} tracks,  {} authors,  {} genres",
-        stats.total_items, stats.num_audio_tracks, stats.total_authors, stats.total_genres
+        "{},  {},  {},  {}",
+        counted(stats.total_items as usize, "item"),
+        counted(stats.num_audio_tracks as usize, "track"),
+        counted(stats.total_authors as usize, "author"),
+        counted(stats.total_genres as usize, "genre")
     )));
     out.push(Line::from(format!(
         "{} on the disk,  {} of media",
@@ -293,14 +299,14 @@ fn lines_of_the_year(out: &mut Vec<Line<'static>>, stats: Option<&YearStats>, ye
     };
 
     out.push(Line::from(format!(
-        "{} of listening in {} sessions",
+        "{} of listening in {}",
         human_time(stats.total_listening_time),
-        stats.num_listening_sessions
+        counted(stats.num_listening_sessions as usize, "session")
     )));
     out.push(Line::from(format!(
-        "{} books came, and {} authors.  {} of them on the disk",
-        stats.num_books_added,
-        stats.num_authors_added,
+        "{} came, and {}.  {} of them on the disk",
+        counted(stats.num_books_added as usize, "book"),
+        counted(stats.num_authors_added as usize, "author"),
         human_size(stats.total_books_added_size)
     )));
 
@@ -410,6 +416,71 @@ mod tests {
         assert!(text.contains("A Long Test Book — Long Author"));
         assert!(text.contains("The last sessions"));
         assert!(text.contains("Multi File Test Book"));
+    }
+
+    /// **A library of one media said "1 items".** A sweep of 2026-08-12 chose
+    /// the library of one podcast and pressed `T`, and the screen said
+    /// "1 items,  57 tracks,  0 authors,  0 genres". The rule of `ui::keys`
+    /// stood in the titles of the views only. See T-106 and T-85.
+    #[test]
+    fn the_statistics_name_one_thing_in_the_singular() {
+        let one = State::Ready(Box::new(crate::logic::stats::Statistics {
+            listening: the_answer_of_the_server(),
+            library: Some(crate::api::stats::LibraryStats {
+                total_items: 1,
+                num_audio_tracks: 1,
+                total_authors: 1,
+                total_genres: 1,
+                ..Default::default()
+            }),
+            library_name: "Podcasts".to_string(),
+            year: Some(crate::api::stats::YearStats {
+                num_listening_sessions: 1,
+                num_books_added: 1,
+                num_authors_added: 1,
+                ..Default::default()
+            }),
+            year_number: 2026,
+        }));
+
+        let text = text_of(&lines(&one, 80));
+
+        assert!(
+            text.contains("1 item,  1 track,  1 author,  1 genre"),
+            "the statistics of a library of one media say: {}",
+            text
+        );
+        assert!(text.contains("in 1 session"), "{}", text);
+        assert!(text.contains("1 book came, and 1 author"), "{}", text);
+
+        // A number that is not one keeps the plural.
+        let many = State::Ready(Box::new(crate::logic::stats::Statistics {
+            listening: the_answer_of_the_server(),
+            library: Some(crate::api::stats::LibraryStats {
+                total_items: 2,
+                num_audio_tracks: 0,
+                total_authors: 3,
+                total_genres: 4,
+                ..Default::default()
+            }),
+            library_name: "Books".to_string(),
+            year: Some(crate::api::stats::YearStats {
+                num_listening_sessions: 6,
+                num_books_added: 9,
+                num_authors_added: 2,
+                ..Default::default()
+            }),
+            year_number: 2026,
+        }));
+
+        let text = text_of(&lines(&many, 80));
+        assert!(
+            text.contains("2 items,  0 tracks,  3 authors,  4 genres"),
+            "{}",
+            text
+        );
+        assert!(text.contains("in 6 sessions"), "{}", text);
+        assert!(text.contains("9 books came, and 2 authors"), "{}", text);
     }
 
     #[test]
