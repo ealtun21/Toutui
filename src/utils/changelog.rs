@@ -41,6 +41,17 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.74",
+        date: "13/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Your timer for sleep stays after the key `R`.** The key `R`, the key that takes \
+             the next library, and a change of the sequence of the library made a new screen, and \
+             your timer stayed with the screen that went away: the media that you set to stop \
+             played on, and the row of the player held no timer.",
+        ],
+    },
+    Entry {
         version: "0.7.73",
         date: "13/08/2026",
         body: &[

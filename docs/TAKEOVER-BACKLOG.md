@@ -6021,6 +6021,38 @@ stands at the column 26 of the row 14 with no message, at the column 33 after
 seven letters and a message, and at the column 36 after three more letters. The
 message goes away with the frame that no longer holds it.
 
+### T-135: a refresh of the screen took the timer for sleep of the user away
+
+**The road of the session before this one named it**, and the measurement of
+2026-08-13 gave it: the key `t` gave the row of the player `💤 4:58`, the key `R`
+took that text away, and the book played on. **The user set a media to stop after
+five minutes, and it would play for ever.**
+
+**Every key that refreshes the screen makes a new application** (T-131), and
+every field of a new application starts at its first value: `sleep` and
+`sleep_choice` are `None`. T-131 gave the engine of the playback to the new
+application, therefore the media plays on with the keys of the user — and with no
+timer.
+
+The new application takes the timer of the application before it now.
+`the_state_that_a_refresh_keeps` gives that state, and
+`keep_the_state_of_the_application_before` takes it: **one name holds the rule**,
+and a field that a later session adds stands in one place.
+
+**The identity of the playback needs no correction.** The engine belongs to the
+playback, therefore `playback_id` of the timer is the identity of the media that
+plays, and `sleep_timer::action_for` measures the same media after the refresh.
+
+**The queue of the media needs no such work.** The handover of the session before
+this one named it beside the timer, and a measurement of the source says
+otherwise: `crate::logic::queue` holds the queue in a slot of the module, and no
+line of `App::new` touches it. The line of the queue that the user selected
+starts again, and the view of the queue takes the first line of a list that
+changed anyway.
+
+The measurement after the correction: `💤 4:58` before the key `R`, and `💤 4:50`
+after it. The timer measures the same playback, therefore the time of it goes on.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

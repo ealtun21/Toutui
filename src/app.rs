@@ -406,8 +406,44 @@ pub struct App {
     pub stats_scroll_max: u16,
 }
 
+/// The state of the user that a refresh of the screen must keep. See T-135.
+///
+/// **A refresh makes a new application**, and every field of the new one starts
+/// at its first value. T-131 gave the engine of the playback to that new
+/// application, and the timer for sleep stayed behind: the timer of the user
+/// went away with no word, and the media that they set to stop played on.
+///
+/// The engine belongs to the playback, therefore the identity of the playback
+/// does not change with a refresh and the timer of the old application measures
+/// the same media.
+#[derive(Debug, Clone, PartialEq)]
+pub struct TheStateThatARefreshKeeps {
+    /// The timer for sleep, if the user set one.
+    pub sleep: Option<crate::logic::sleep_timer::Timer>,
+    /// The choice of the timer, in minutes.
+    pub sleep_choice: Option<u64>,
+}
+
 /// Init app
 impl App {
+    /// Gives the state of the user that a refresh must keep. See T-135.
+    pub fn the_state_that_a_refresh_keeps(&self) -> TheStateThatARefreshKeeps {
+        TheStateThatARefreshKeeps {
+            sleep: self.sleep,
+            sleep_choice: self.sleep_choice,
+        }
+    }
+
+    /// Takes the state of the user of the application before this one. See
+    /// T-135.
+    pub fn keep_the_state_of_the_application_before(
+        &mut self,
+        of_the_old: TheStateThatARefreshKeeps,
+    ) {
+        self.sleep = of_the_old.sleep;
+        self.sleep_choice = of_the_old.sleep_choice;
+    }
+
     /// Makes the application state.
     ///
     /// The caller gives the HTTP client. The client holds the addresses of the

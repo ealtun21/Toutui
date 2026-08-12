@@ -445,6 +445,14 @@ async fn main() -> Result<()> {
                                 let the_engine =
                                     Some((app.player.clone(), app.audio_fault.clone()));
 
+                                // **The timer for sleep stays too.** The engine
+                                // of T-131 kept the playback, and the timer of
+                                // the user stayed with the application that went
+                                // away: the media that they set to stop played
+                                // on, and the row of the player held no timer.
+                                // See T-135.
+                                let the_state_of_the_user = app.the_state_that_a_refresh_keeps();
+
                                 app = match App::new_with_the_engine(
                                     std::sync::Arc::clone(&api),
                                     the_engine,
@@ -469,6 +477,8 @@ async fn main() -> Result<()> {
                                     }
                                     Err(report) => return Err(report),
                                 };
+
+                                app.keep_the_state_of_the_application_before(the_state_of_the_user);
 
                                 if from_the_sequence {
                                     app.view_state = app::AppView::Library;

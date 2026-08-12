@@ -833,11 +833,11 @@ measurements of this session left.
    - **A library whose media the account may not read**, with an account of the
      type `user` (T-121 holds the commands of such an account, and the trap 65
      says why every session before 2026-08-12 missed a fault of a permission).
-2. **What a refresh of the screen still loses.** T-131 gave the engine of the
-   playback to the new application. **The timer for sleep (T-24) and the queue of
-   the media stand in the application**, and a refresh holds neither: the key `R`
-   therefore takes the timer of the user away. No measurement of a user names it,
-   and the shape of the answer is the shape of T-131.
+2. **What a refresh of the screen still loses: nothing that a measurement
+   names** (T-135, done). The key `R` took the timer for sleep of the user away,
+   and the new application takes it now. **The queue needs no such work**:
+   `crate::logic::queue` holds it in a slot of the module, and no line of
+   `App::new` touches it.
 3. **The rounds of the start that stay.** The start holds two rounds now, and the
    first is `GET /api/libraries`: every request of the second needs the identity
    of the library. **A start of one round needs the program to trust the identity
