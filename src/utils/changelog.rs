@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.70",
+        date: "12/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A book that plays keeps its percentage on the screen.** This program sent the \
+             position of a playback to the server as a text, and the server keeps what it takes: \
+             the answer of the server then held a value that this program could not read, and the \
+             line of that book showed no percentage while it played. The program sends a number \
+             now, and it reads a position that came as a text: the books of your server that hold \
+             such a value show their place again.",
+        ],
+    },
+    Entry {
         version: "0.7.69",
         date: "12/08/2026",
         body: &[

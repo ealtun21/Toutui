@@ -5812,6 +5812,56 @@ The mock of that test notes the **path** of each request now, and the measuremen
 of the shelves against the items fails with the old code: 706 milliseconds apart,
 of a server of 700 milliseconds for each answer.
 
+### T-130: the program wrote a position that it cannot read
+
+**The sweep of a media that plays with a slow server found this line in the log
+of the program:**
+
+```
+[app] a position of the account does not read: invalid type: string "714", expected f64
+```
+
+**The program writes that value itself.** `POST /api/session/:id/sync` goes every
+ten seconds while a media plays, and `sync_open_session` sent
+`{"currentTime": "714", "timeListened": "10"}`: **two numbers as a text.** The
+server keeps the form that a client gives it, and the row of `GET /api/me` then
+holds a text. The measurement of 2026-08-12 against Audiobookshelf 2.36.0:
+
+| The request | The row of `GET /api/me` after it |
+|---|---|
+| `{"currentTime":"714","timeListened":"10"}` | `{"currentTime": "714", "progress": 0.3966…}` |
+| `{"currentTime":714,"timeListened":10}` | `{"currentTime": 714, "progress": 0.3966…}` |
+
+**The row of a text does not read, and the media loses its position on the
+screen** (T-41 keeps every other row). The line of the Home view of a book at the
+minute 11 of 30, of the same server and the same account:
+
+| The program | The line | The log |
+|---|---|---|
+| with the correction | `➤ 40% A Long Test Book` | the answer holds the position of **21** media of 29 |
+| the correction removed | `➤     A Long Test Book` | **19** media, and one warning for each row of a text |
+
+**The rule of T-127 hides it.** A media that the answer of the account does not
+name played never, therefore the program asks no request for it: the position of
+that media is gone, and no view says a reason. The position comes back at the
+**close** of the session, because `update_media_progress_book` sends a number.
+The user therefore reads a line with no percentage while the media plays, and a
+line with a percentage after the playback ends — and a session that never closed
+(a program that stopped, or the offline mode) keeps the text for ever.
+
+**Two corrections, and each of them holds a test.**
+
+1. `the_body_of_a_sync` is a pure function, and the two values are numbers. Two
+   tests of `src/api/sessions/sync_open_session.rs` hold that rule, and two tests
+   of `tests/playback_ownership.rs` asked for the text `"100"` before this work:
+   the measurement of the fault stood in the tests of the program.
+2. **A number of the answer that comes as a text reads.** `a_number` of
+   `src/api/me/get_media_progress.rs` takes a number or a text for `duration`,
+   `progress`, `currentTime`, and `ebookProgress`. **The rows of a text stand in
+   the database of every server that this program wrote to**, therefore the
+   correction of the request alone gives those users nothing. A text of no number
+   gives 0, and the row still reads.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

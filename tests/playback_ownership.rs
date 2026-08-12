@@ -216,8 +216,11 @@ async fn the_loop_stops_when_a_different_playback_takes_the_engine() {
     // The loop must read the state of the book X before the book Y takes the
     // engine. The forced sync gives the evidence of that step.
     let position = the_loop_made_a_step(&server, PLAYBACK_X).await;
+    // **The body of the sync holds a number.** This program sent a text, and
+    // the server then answered a text for that media: the row of `GET /api/me`
+    // did not read at all. See T-130.
     assert_eq!(
-        position, "100",
+        position, 100,
         "the loop must hold the position of the book X after its first step"
     );
 
@@ -339,7 +342,8 @@ async fn the_loop_reports_its_own_playback() {
 
     // The loop must read the state one time before the playback stops.
     let position = the_loop_made_a_step(&server, PLAYBACK_Z).await;
-    assert_eq!(position, "100", "the loop must follow the book X");
+    // The position of the sync is a number, and not a text (T-130).
+    assert_eq!(position, 100, "the loop must follow the book X");
 
     // The user stops the playback. The engine keeps the identity and the
     // position of the book X.
