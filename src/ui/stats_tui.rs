@@ -138,7 +138,10 @@ pub fn lines(state: &State, width: u16) -> Vec<Line<'static>> {
 
     // The days.
     let days = last_days(stats, DAYS);
-    out.push(title(&format!("The last {} days that you played", DAYS)));
+    out.push(title(&format!(
+        "The last {} that you played",
+        counted(DAYS, "day")
+    )));
 
     if days.is_empty() {
         out.push(quiet("You played no media.".to_string()));

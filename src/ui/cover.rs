@@ -278,7 +278,11 @@ pub struct CoverArt {
 
 impl std::fmt::Debug for CoverArt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "CoverArt({} pictures)", self.pictures.len())
+        write!(
+            f,
+            "CoverArt({})",
+            crate::ui::keys::counted(self.pictures.len(), "picture")
+        )
     }
 }
 

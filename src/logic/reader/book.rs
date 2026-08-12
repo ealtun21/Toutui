@@ -77,7 +77,9 @@ impl fmt::Display for ReaderError {
             ),
             ReaderError::TooManyEntries(count) => write!(
                 f,
-                "This book holds too many files. It has {count} files, and the limit is {MAX_ENTRIES} files."
+                "This book holds too many files. It has {}, and the limit is {}.",
+                crate::ui::keys::counted(*count, "file"),
+                crate::ui::keys::counted(MAX_ENTRIES, "file")
             ),
             ReaderError::NoSuchChapter(index) => {
                 write!(f, "This book has no chapter {index}.")

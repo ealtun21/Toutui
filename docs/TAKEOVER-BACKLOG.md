@@ -4242,6 +4242,56 @@ after it drew the correct screen, therefore this document holds the observation
 and no item: a fault that a session cannot make again is not a fault that a
 session can correct.
 
+### T-108: the guard of "1 item" read one form of one text, in four files
+
+**The fault of the guard, and not of a view.**
+`no_title_of_a_view_counts_its_own_items` read the form `{} items` in four
+files. T-100 found `{} item(s)` of the view of the lists by hand, and this
+session found `{} sessions` of the view of the sessions and three other forms
+that no rule held: a guard that reads one form of one text finds one fault of
+many.
+
+`no_text_of_a_view_counts_its_own_items` reads **every file of `src/ui` and of
+`src/logic`** now. It looks for a value of `format!` (`{}`, `{count}`, or
+`{:>3}`), then one space, then a word that names a thing of this program:
+`{} items`, `{} item(s)`, and `{count} files` all break the rule.
+
+Two kinds of line stay outside, and each has its reason:
+
+- **A line of the log.** The maintainer reads it, and `[offline] 1 position(s)
+  wait for the server` is correct there. The rule reads the three lines before a
+  line too, because a macro of the log takes more than one line.
+- **The tests of a file.** They hold the words of an answer, and a test says
+  "1 item" with a number. Every test of this program stands at the end of its
+  file, therefore the rule stops at `mod tests {`.
+
+**A unit of measure stays outside too**: `human_size` and `human_time` make
+those texts, and no view writes a number of bytes beside a name.
+
+The guard found eight texts, and every one of them reaches a user:
+
+| The file | The text | What a user of one thing read |
+|---|---|---|
+| `src/ui/sessions_tui.rs` | `{} sessions of {}` | "1 sessions of 1" |
+| `src/ui/tui.rs` | `{} - {} book(s) - Duration: {}`, three views | "Depthless Hunger, Book - 1 book(s)" |
+| `src/ui/tui.rs` | `A new podcast [{} answers]` | "A new podcast [1 answers]" |
+| `src/ui/tui.rs` | ` - {} positions wait` | the line of one position held its own rule already |
+| `src/ui/stats_tui.rs` | `The last {} days that you played` | 14 days, therefore no user met it |
+| `src/logic/reader/book.rs` | `It has {count} files, and the limit is {MAX_ENTRIES} files.` | "It has 1 files" |
+| `src/logic/reader/cache.rs` | `The program removed {} book(s) of the disk` | "removed 1 book(s)" |
+| `src/ui/cover.rs` | `CoverArt({} pictures)` | the maintainer reads it, in the debug output |
+
+Each of them takes `ui::keys::counted(count, name)` now. That function gives
+"1 track" and "2 tracks", and `items(count)` is `counted(count, "item")`.
+
+`the_guard_finds_every_form_of_a_text_that_counts` holds the reader of the guard
+to each of the four forms, and to the texts that are not a fault: `🔗 {} does
+not answer` names no thing, `{} bytes of {}` names a unit of measure, and
+`format!("{} {}s", count, name)` is the answer itself.
+
+A build with one of those texts back gives the name of the file, the number of
+the line, and the whole line.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

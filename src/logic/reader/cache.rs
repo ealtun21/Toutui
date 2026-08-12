@@ -143,9 +143,9 @@ pub fn line_of_a_value(megabytes: u64, of_the_config: u64) -> String {
 /// The function is pure, therefore a test needs no file. See T-71.
 pub fn the_sentence_of_the_cache(books: usize, bytes: u64) -> String {
     format!(
-        "The cache of the ebooks was full. The program removed {} book(s) of the \
+        "The cache of the ebooks was full. The program removed {} of the \
          disk, and it gave {} back. Press e to get one again.",
-        books,
+        crate::ui::keys::counted(books, "book"),
         crate::logic::download::text_of_the_size(bytes)
     )
 }

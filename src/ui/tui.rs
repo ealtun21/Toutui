@@ -969,7 +969,10 @@ impl App {
                 Vec::new(),
             ),
             crate::logic::new_podcast::State::Ready(all) => (
-                format!("A new podcast [{} answers]", all.len()),
+                format!(
+                    "A new podcast [{}]",
+                    crate::ui::keys::counted(all.len(), "answer")
+                ),
                 crate::api::podcasts::lines(all),
             ),
             crate::logic::new_podcast::State::Waiting => {
@@ -1464,9 +1467,9 @@ impl App {
             let seconds: f64 = series.books.iter().map(|book| book.duration).sum();
 
             Paragraph::new(format!(
-                "{} - {} book(s) - Duration: {}",
+                "{} - {} - Duration: {}",
                 series.name,
-                books,
+                crate::ui::keys::counted(books, "book"),
                 convert_seconds(vec![seconds])
                     .first()
                     .cloned()
@@ -2151,7 +2154,7 @@ impl App {
             let waiting = match self.waiting_progress {
                 0 => String::new(),
                 1 => " - 1 position waits".to_string(),
-                count => format!(" - {} positions wait", count),
+                count => format!(" - {} wait", crate::ui::keys::counted(count, "position")),
             };
 
             format!("R: try the server again{}", waiting)
@@ -2257,9 +2260,9 @@ impl App {
             let seconds: f64 = series.books.iter().map(|book| book.duration).sum();
 
             Paragraph::new(format!(
-                "{} - {} book(s) - Duration: {}",
+                "{} - {} - Duration: {}",
                 series.name,
-                series.books.len(),
+                crate::ui::keys::counted(series.books.len(), "book"),
                 convert_seconds(vec![seconds])
                     .first()
                     .cloned()
@@ -2351,9 +2354,9 @@ impl App {
             let seconds: f64 = series.books.iter().map(|book| book.duration).sum();
 
             Paragraph::new(format!(
-                "{} - {} book(s) - Duration: {}",
+                "{} - {} - Duration: {}",
                 series.name,
-                series.books.len(),
+                crate::ui::keys::counted(series.books.len(), "book"),
                 convert_seconds(vec![seconds])
                     .first()
                     .cloned()

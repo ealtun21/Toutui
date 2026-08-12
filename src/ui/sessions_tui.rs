@@ -17,6 +17,7 @@ use ratatui::widgets::{Block, Borders, Paragraph, Widget};
 
 use crate::api::me::listening_stats::human_time;
 use crate::logic::sessions_view::State;
+use crate::ui::keys::counted;
 
 /// The smallest width where the view shows the part of the media.
 ///
@@ -75,9 +76,10 @@ pub fn lines(state: &State, width: u16) -> Vec<Line<'static>> {
 
     let mut out: Vec<Line<'static>> = Vec::new();
 
+    // **A user of one session read "1 sessions of 1".** See T-108.
     out.push(quiet(format!(
-        "{} sessions of {}",
-        loaded.sessions.len(),
+        "{} of {}",
+        counted(loaded.sessions.len(), "session"),
         loaded.total
     )));
 

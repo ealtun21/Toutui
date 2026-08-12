@@ -629,40 +629,223 @@ mod tests {
         );
     }
 
-    /// **One function holds the rule of "1 item".** A title that writes those
-    /// words itself holds a second copy of the rule, and the copy of the view
-    /// of the search said "1 items" for two years of releases. See T-95.
+    /// The names of the things that a text of this program counts.
     ///
-    /// The test reads the files that make a title of a list, and it finds every
-    /// text that counts its own items. A new file of that kind joins this list.
-    #[test]
-    fn no_title_of_a_view_counts_its_own_items() {
-        let sources: &[(&str, &str)] = &[
-            ("src/ui/tui.rs", include_str!("tui.rs")),
-            (
-                "src/logic/search/mod.rs",
-                include_str!("../logic/search/mod.rs"),
-            ),
-            ("src/logic/authors.rs", include_str!("../logic/authors.rs")),
-            (
-                "src/api/utils/collect_lists.rs",
-                include_str!("../api/utils/collect_lists.rs"),
-            ),
-        ];
+    /// A unit of measure (a byte, a second, a pixel) stays outside: `human_size`
+    /// and `human_time` make those texts, and no view writes a number of them
+    /// beside a name.
+    const THE_THINGS_THAT_A_TEXT_COUNTS: &[&str] = &[
+        "item",
+        "track",
+        "author",
+        "genre",
+        "session",
+        "book",
+        "episode",
+        "chapter",
+        "page",
+        "picture",
+        "file",
+        "position",
+        "bookmark",
+        "narrator",
+        "collection",
+        "playlist",
+        "line",
+        "answer",
+        "day",
+        "shelf",
+        "podcast",
+        "media",
+        "list",
+        "name",
+        "key",
+        "view",
+        "word",
+        "address",
+        "part",
+    ];
 
-        for (name, text) in sources {
-            for line in text.lines() {
-                // The tests of a file hold the words of the answer, and the
-                // answer of `items` is that text. A line of a test says
-                // "1 item" or "6 items" with a number, and never with a value.
-                assert!(
-                    !line.contains("{} items"),
-                    "{} counts its own items: {}. Use ui::keys::items.",
-                    name,
-                    line.trim()
-                );
+    /// The macros that write in the log. A line of the log is for the
+    /// maintainer, and `ui::keys::counted` is for the user.
+    const THE_MACROS_OF_THE_LOG: &[&str] = &["info!", "warn!", "error!", "debug!", "trace!"];
+
+    /// Gives the name of each thing that one line counts with a value.
+    ///
+    /// The function looks for a value of `format!` (`{}`, `{count}`, or
+    /// `{:>3}`), then one space, then a word. The word `books` and the word
+    /// `book(s)` both count books. **The rule holds every form**, and not the
+    /// one form `{} items` that the test before it read. See T-108.
+    fn the_things_that_a_line_counts(line: &str) -> Vec<String> {
+        let letters: Vec<char> = line.chars().collect();
+        let mut found: Vec<String> = Vec::new();
+        let mut place = 0;
+
+        while place < letters.len() {
+            if letters[place] != '{' {
+                place += 1;
+                continue;
+            }
+
+            let Some(end) = (place..letters.len()).find(|&step| letters[step] == '}') else {
+                break;
+            };
+
+            let mut after = end + 1;
+            place = after;
+
+            if after >= letters.len() || letters[after] != ' ' {
+                continue;
+            }
+
+            after += 1;
+            let start = after;
+
+            while after < letters.len() && letters[after].is_ascii_alphabetic() {
+                after += 1;
+            }
+
+            let word: String = letters[start..after].iter().collect();
+
+            // "book(s)" holds the name and the plural together.
+            let with_a_choice = letters[after..].starts_with(&['(', 's', ')']);
+
+            let name = if with_a_choice {
+                word.clone()
+            } else if let Some(one) = word.strip_suffix('s') {
+                one.to_string()
+            } else {
+                continue;
+            };
+
+            if THE_THINGS_THAT_A_TEXT_COUNTS.contains(&name.as_str()) {
+                found.push(word);
             }
         }
+
+        found
+    }
+
+    /// Gives the path and the text of every file of a directory of the source.
+    fn the_files_of(directory: &str) -> Vec<(String, String)> {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(directory);
+        let mut wait = vec![root];
+        let mut out: Vec<(String, String)> = Vec::new();
+
+        while let Some(place) = wait.pop() {
+            let Ok(entries) = std::fs::read_dir(&place) else {
+                continue;
+            };
+
+            for entry in entries.flatten() {
+                let path = entry.path();
+
+                if path.is_dir() {
+                    wait.push(path);
+                    continue;
+                }
+
+                if path.extension().and_then(|end| end.to_str()) != Some("rs") {
+                    continue;
+                }
+
+                if let Ok(text) = std::fs::read_to_string(&path) {
+                    out.push((path.display().to_string(), text));
+                }
+            }
+        }
+
+        assert!(!out.is_empty(), "the directory {} holds no file", directory);
+        out
+    }
+
+    /// **One function holds the rule of "1 item".** A text that writes those
+    /// words itself holds a second copy of the rule, and the copy of the view
+    /// of the search said "1 items" for two years of releases (T-95).
+    ///
+    /// **The test before this one read the form `{} items` of four files**, and
+    /// it did not find `{} item(s)` of the view of the lists (T-100 found that
+    /// text by hand) or `{} sessions` of the view of the sessions. This test
+    /// reads **every file of `src/ui` and of `src/logic`**, and it names every
+    /// text that counts a thing in any form. See T-108.
+    ///
+    /// Two kinds of line stay outside: a line of the log, which the maintainer
+    /// reads, and the tests of the file, which hold the words of an answer.
+    #[test]
+    fn no_text_of_a_view_counts_its_own_items() {
+        let mut faults: Vec<String> = Vec::new();
+
+        for (name, text) in the_files_of("src/ui")
+            .into_iter()
+            .chain(the_files_of("src/logic"))
+        {
+            // The tests of a file hold the words of an answer, and every test
+            // of this program stands at the end of its file.
+            let code = match text.find("mod tests {") {
+                Some(place) => &text[..place],
+                None => &text[..],
+            };
+
+            let lines: Vec<&str> = code.lines().collect();
+
+            for (number, line) in lines.iter().enumerate() {
+                // A macro of the log takes more than one line, therefore the
+                // rule reads the three lines before this one too.
+                let first = number.saturating_sub(3);
+                let around = lines[first..=number].join("\n");
+
+                if THE_MACROS_OF_THE_LOG
+                    .iter()
+                    .any(|macro_of_the_log| around.contains(macro_of_the_log))
+                {
+                    continue;
+                }
+
+                for thing in the_things_that_a_line_counts(line) {
+                    faults.push(format!(
+                        "{}:{} counts \"{}\" itself: {}",
+                        name,
+                        number + 1,
+                        thing,
+                        line.trim()
+                    ));
+                }
+            }
+        }
+
+        assert!(
+            faults.is_empty(),
+            "these texts count a thing themselves. Use ui::keys::counted:\n{}",
+            faults.join("\n")
+        );
+    }
+
+    /// The reader of the guard must find every form of such a text.
+    #[test]
+    fn the_guard_finds_every_form_of_a_text_that_counts() {
+        assert_eq!(
+            the_things_that_a_line_counts("format!(\"[{} items]\", n)"),
+            vec!["items"]
+        );
+        assert_eq!(
+            the_things_that_a_line_counts("\"{} - {} book(s) - Duration: {}\""),
+            vec!["book"]
+        );
+        assert_eq!(
+            the_things_that_a_line_counts("\"{count} files, and {MAX} files.\""),
+            vec!["files", "files"]
+        );
+        assert_eq!(
+            the_things_that_a_line_counts("\"{} sessions of {}\""),
+            vec!["sessions"]
+        );
+
+        // A word that names no thing of this program is not a fault, and
+        // `counted` itself is the answer and not the fault.
+        assert!(the_things_that_a_line_counts("\"🔗 {} does not answer\"").is_empty());
+        assert!(the_things_that_a_line_counts("\"{} bytes of {}\"").is_empty());
+        assert!(the_things_that_a_line_counts("format!(\"{} {}s\", count, name)").is_empty());
+        assert!(the_things_that_a_line_counts("\"1 item\"").is_empty());
     }
 
     /// **A view that holds no line says why**, and the reason of the Home view

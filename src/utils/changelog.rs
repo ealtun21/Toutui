@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.52",
+        date: "12/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Every text of the program that counts one thing says it in the singular.** \
+             The view of the sessions said \"1 sessions of 1\", a series of one book said \
+             \"1 book(s)\", the answer of one podcast said \"1 answers\", and the reader said \
+             \"1 files\" and \"removed 1 book(s)\". A test now reads every file of the views \
+             and of the work, therefore a new text of that kind cannot come back.",
+        ],
+    },
+    Entry {
         version: "0.7.51",
         date: "12/08/2026",
         body: &[
