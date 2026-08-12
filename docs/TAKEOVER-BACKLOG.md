@@ -5280,6 +5280,114 @@ download with `403`, as the real server does.
 right: the key `D` makes a copy on the disk, that work **is** a download, and the
 permission belongs to it.
 
+### T-122: a program with no configuration file stopped, and it said a line of its own source
+
+The user moved from the program before this fork to this fork, and the first
+start gave this:
+
+```text
+Error: configuration file "/home/…/.config/toutui/config.toml" not found
+
+Location:
+    src/config.rs:70:22
+```
+
+**`install.sh` copies `config.example.toml`, and no other way of installation
+copies it.** `cargo install`, a package of a distribution, a build of the
+repository, and a move from a different program give a user who has no file. The
+program held the sentence of the `config` crate and a line of its own source, and
+it drew no view.
+
+**The program holds the text of the example**, therefore it writes the file
+itself:
+
+- `THE_EXAMPLE_OF_THE_CONFIGURATION` is `config.example.toml`, and `include_str!`
+  puts it in the binary. The user receives every comment of that file, therefore
+  they find the line of each setting.
+- `make_the_configuration_if_it_is_absent` makes the directory and the file. A
+  disk that permits no write gives `false`, and `load_config_from` then gives the
+  values of the program: the program starts on a read-only system too.
+- A file that exists stays as it stands. No start writes over the file of the
+  user.
+
+**One key of a color that is absent lost every color of the file.** The block
+`colors` is one value for `serde`, therefore a file of an older version, which
+holds no `player_background_color`, stopped the program in the same way. The
+block takes `#[serde(default)]` now, and `Colors::default()` holds the values of
+`config.example.toml`: the key that is absent takes the value of the program, and
+every color of the file stays.
+
+Seven tests of `src/config.rs` hold the rules, and two of them compare the
+example of the repository with the values of the program: a color of the program
+that the example does not name would take its value in silence, and the user
+would find no line to change.
+
+**The measurement of 2026-08-12.** A directory of configuration with no file, and
+the real binary in tmux: the program made `config.toml`, the file agreed with
+`config.example.toml` byte for byte, and the login screen came.
+
+### T-123: a token that the server refused stopped the program, and no login screen came
+
+The same user met this after T-122, at the same start:
+
+```text
+Error: The token is not valid. Log in again.
+
+Location:
+    src/app.rs:494:44
+```
+
+**The sentence tells the user to log in again, and the program gave them no way
+to do it.** `App::new` asks the server for the libraries first, the server
+answers `401`, and the report left `main`. A user who moves from the program
+before this fork meets this at the first start, because the database of that
+program holds a token that this server no longer holds.
+
+**The program opens the login screen now.**
+`the_program_needs_a_new_token` of `src/logic/auth/auth_input.rs` does three
+things:
+
+1. the row of the account goes away. A row that stays would give the same fault
+   at the next start. **The rows of the downloads, of the queue, and of the
+   positions that wait hold the name of the account only**, and no key of the
+   database removes them with this row: a login with the same name finds all of
+   them again;
+2. the login screen takes the sentence "The token is not valid. Log in again."
+   through `update_login_err`, in the same way as a wrong password;
+3. the program starts again, and the login screen of a first start comes.
+
+**Why the program starts again, and does not make the login screen inside the
+same process.** A measurement of 2026-08-12 in tmux made the login screen after
+`restore_terminal` and a second `ratatui::init` of the same process: the screen
+drew the box of the address one time, the box then went away, and no key gave a
+character. The program that starts again meets the login screen of a first start,
+and that screen works. The new process also takes away the task of the live
+messages, the task of the probe, and the task of the positions that wait: each of
+them holds the token that the server refused, and two live tasks write one state
+of the program.
+
+`start_the_program_again` of `src/utils/exit_app.rs` uses `exec` of the system,
+therefore no process stays. The address of the server goes to the new program in
+the variable `TOUTUI_THE_ADDRESS_OF_THE_LOGIN`, because a value of the process
+before it goes away: the user reads their address in the first field, and one
+press of Enter takes it. A system that has no `exec` gives an answer, and `main`
+then makes the login screen inside the process: the loop `'the_session` of
+`src/main.rs` holds that way, and it aborts every task of the account first.
+
+**Both places that make an `App` read the category now**, therefore a server that
+takes the token away while the program runs sends the user to the login screen
+too: the startup, and the key `R`.
+`api::client::error::the_token_is_not_valid` reads the chain of the report, thus a
+sentence of a caller does not hide the category. **The words of a message are not
+the category**: a report of a string that holds the same words gives `false`, and
+three tests hold that rule.
+
+**The measurement of 2026-08-12, with the sandbox.** A real login wrote the row
+of `toutuitest`, and the token of that row then became a token that the server
+refuses. The next start: the row went away, the login screen came with the
+sentence and with `http://127.0.0.1:13399` in its field, and Enter, the username,
+and the password gave the Home view of the account again.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
