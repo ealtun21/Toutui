@@ -72,6 +72,15 @@ impl HttpFile {
     /// The function sends one range request. It reads the total size from the
     /// header `Content-Range`. It then starts the thread that fills the
     /// buffer.
+    ///
+    /// **The address is `/api/items/:id/file/:ino`, and not
+    /// `/api/items/:id/file/:ino/download`.** The second address asks the
+    /// server for a **download**, and the server refuses it with `403` for an
+    /// account whose permission `download` is false: no book of such an account
+    /// played at all, and the program then said that no decoder reads the file
+    /// (T-120). The first address is the value of `contentUrl` that the server
+    /// itself gives for each track, and a measurement of 2026-08-12 with an
+    /// account of the type `user` gave `206` for it and `403` for the other one.
     pub fn open(
         base_url: &str,
         token: &str,
@@ -79,7 +88,7 @@ impl HttpFile {
         ino: &str,
     ) -> Result<HttpFile, ApiError> {
         let url = format!(
-            "{}/api/items/{}/file/{}/download",
+            "{}/api/items/{}/file/{}",
             base_url.trim_end_matches('/'),
             item_id,
             ino

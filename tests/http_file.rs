@@ -44,7 +44,7 @@ async fn server_with(body: Vec<u8>) -> MockServer {
     let server = MockServer::start().await;
 
     Mock::given(method("GET"))
-        .and(path("/api/items/item1/file/ino1/download"))
+        .and(path("/api/items/item1/file/ino1"))
         .respond_with(move |request: &Request| range_answer(&body, request))
         .mount(&server)
         .await;
@@ -157,7 +157,7 @@ async fn a_short_movement_forward_sends_no_new_request() {
     let body = expected.clone();
 
     Mock::given(method("GET"))
-        .and(path("/api/items/item1/file/ino1/download"))
+        .and(path("/api/items/item1/file/ino1"))
         .respond_with(move |request: &Request| range_answer(&body, request))
         .expect(2)
         .mount(&server)
@@ -192,7 +192,7 @@ async fn the_reader_sends_the_token_in_the_authorization_header() {
     let body = content(1000);
 
     Mock::given(method("GET"))
-        .and(path("/api/items/item1/file/ino1/download"))
+        .and(path("/api/items/item1/file/ino1"))
         .and(header("authorization", "Bearer secret-token"))
         .respond_with(move |request: &Request| range_answer(&body, request))
         .mount(&server)
@@ -220,7 +220,7 @@ async fn the_address_holds_no_token() {
     let body = content(1000);
 
     Mock::given(method("GET"))
-        .and(path("/api/items/item1/file/ino1/download"))
+        .and(path("/api/items/item1/file/ino1"))
         .respond_with(move |request: &Request| {
             assert!(
                 request.url.query().is_none(),
@@ -246,7 +246,7 @@ async fn a_status_401_gives_an_error() {
     let server = MockServer::start().await;
 
     Mock::given(method("GET"))
-        .and(path("/api/items/item1/file/ino1/download"))
+        .and(path("/api/items/item1/file/ino1"))
         .respond_with(ResponseTemplate::new(401))
         .mount(&server)
         .await;
@@ -268,7 +268,7 @@ async fn an_answer_with_no_content_range_gives_an_error() {
     let server = MockServer::start().await;
 
     Mock::given(method("GET"))
-        .and(path("/api/items/item1/file/ino1/download"))
+        .and(path("/api/items/item1/file/ino1"))
         .respond_with(ResponseTemplate::new(200).set_body_bytes(content(100)))
         .mount(&server)
         .await;
@@ -281,4 +281,67 @@ async fn an_answer_with_no_content_range_gives_an_error() {
             .unwrap();
 
     assert!(matches!(result, Err(ApiError::Decode(_))));
+}
+
+/// **The engine must not ask the server for a download.** See T-120.
+///
+/// The old address was `/api/items/:id/file/:ino/download`, and the server
+/// refuses that address with `403` for an account whose permission `download`
+/// is false. **No book of such an account played at all**: the engine gave a
+/// fault at once, the program said that no decoder reads the file, and every
+/// media went to a stream of the server.
+///
+/// The address is the value of `contentUrl` that the server gives for each
+/// track. A measurement of 2026-08-12 against an Audiobookshelf 2.36.0 with an
+/// account of the type `user`: `206` for `/file/:ino`, and `403` for
+/// `/file/:ino/download`.
+///
+/// This test holds that rule: the mock server answers the address of a download
+/// with `403`, as the real server does.
+#[test]
+fn the_engine_reads_the_file_and_it_does_not_ask_for_a_download() {
+    let body = content(4096);
+
+    let server = tokio::runtime::Runtime::new()
+        .expect("a runtime")
+        .block_on(async {
+            let server = MockServer::start().await;
+
+            // The address of a download, as the server answers it for an
+            // account whose permission `download` is false.
+            Mock::given(method("GET"))
+                .and(path("/api/items/item1/file/ino1/download"))
+                .respond_with(ResponseTemplate::new(403))
+                .mount(&server)
+                .await;
+
+            let body = body.clone();
+
+            Mock::given(method("GET"))
+                .and(path("/api/items/item1/file/ino1"))
+                .respond_with(move |request: &Request| range_answer(&body, request))
+                .mount(&server)
+                .await;
+
+            server
+        });
+
+    let uri = server.uri();
+
+    // `reqwest::blocking` stops the program inside a task of tokio, therefore
+    // the reader runs in a thread of its own. See the trap 25.
+    let read = std::thread::spawn(move || {
+        let mut file = HttpFile::open(&uri, "test-token", "item1", "ino1")?;
+        let mut first = [0u8; 16];
+        file.read_exact(&mut first)
+            .map_err(|error| ApiError::Decode(error.to_string()))?;
+        Ok::<[u8; 16], ApiError>(first)
+    })
+    .join()
+    .expect("the thread of the reader");
+
+    let first = read.expect("the engine must read the file with no permission of a download");
+
+    assert_eq!(first[0], 0);
+    assert_eq!(first[15], 15);
 }

@@ -5151,6 +5151,135 @@ holds open.** An item can hold more than one ebook (T-76, and the trap 30), and 
 endpoint of the server takes the item and never a file. The text of the view says
 it.
 
+### T-120: a later file that no decoder reads ended a playback that played
+
+**The user reported this on 2026-08-12, and it is the fault of the highest value
+of that day.** "Depthless Hunger, Book 2" always started from the minute 0. The
+web page of the server and the client of Android both play it from the place of
+the user, and this program did not.
+
+**The book of the measurement holds the same 26 hours two times.** The server
+gives two tracks:
+
+| The track | The file | The place in the media | The length |
+|---|---|---|---|
+| 1 | `02_Depthless Hunger 2_[B0GGDKX4GP]_AAC-LC.m4b` | 0 s | 93285.2 s |
+| 2 | `02_Depthless Hunger 2_[B0GGDKX4GP]_xHE-AAC.m4b` | 93285.2 s | 93278.8 s |
+
+The media is therefore 186564 seconds (51 hours 49 minutes), and **the place of
+the user (2 percent, 3731 seconds) stands inside the first track**, which is
+AAC-LC and which this program plays itself. The second track is the form of
+xHE-AAC of T-68, and no decoder of this program reads it.
+
+#### The measurement, with the old code
+
+```text
+[play]   the item baedee53-… starts at 3731 seconds with 2 tracks
+[worker] stream is seekable with len=1481967364 bytes.
+[worker] the engine cannot open the track 2 of 2: … xHE-AAC.m4b: The format of
+         the data has not been recognized… The tracks before it play.
+[worker] the playback starts at 3731 seconds          <- the book plays
+[play]   no decoder of the program reads … xHE-AAC.m4b. The program asks the
+         server for a stream of the whole media.      <- and this ends it
+[worker] the playback starts at 0 seconds
+```
+
+**The engine did the right work, and `play_media` threw it away.** The engine
+opened the track of the place of the user, it started the playback at 3731
+seconds, and it said "The tracks before it play" for the track that it cannot
+read: that is the rule of T-48 and of T-55, and the book ends at the track before
+that file. `play_media` then read the flag of the fault and it went to a stream
+of the server, therefore the user lost a playback that worked. The screen said
+"One file needs the server" for a file that stands **26 hours** after their place.
+
+#### The cause: one flag for two conditions
+
+The engine writes `file_with_no_decoder` in two places of `worker.rs`, and the
+two conditions need two answers:
+
+1. **`fill_queue` failed.** The track that the playback needs **now** does not
+   open. The engine stops the player, and it never writes `playback_id` for this
+   playback. The playback is dead, therefore the stream of the server is the
+   answer. This is T-53.
+2. **The engine skipped a later track.** It plays the tracks before it. The
+   playback works, therefore the stream of the server is the wrong answer.
+
+`the_file_that_no_decoder_reads` read the flag of the fault **before** it read
+"the engine plays this playback", therefore the condition 2 gave the name of the
+file and the caller left a playback that played.
+
+**The state of the engine tells the two conditions apart.** `worker.rs` writes
+`value.playback_id` in the loop that follows a playback that plays (the line
+580), and a start that failed never reaches that loop: the state then holds the
+identity of the playback before it and the status `Stopped`.
+
+**The correction** puts the rule in a pure function,
+`the_stream_must_take_the_playback`, and that function reads "the playback plays"
+first. `tests/a_later_file_with_no_decoder_keeps_the_playback.rs` holds the six
+conditions, and **two of its tests fail with the old order of the two checks.**
+
+#### The measurement after the correction
+
+The local sessions of the program were removed and the server was set to 3731
+seconds:
+
+```text
+the server holds 3731 s
+[play]   the item baedee53-… starts at 3731 seconds with 2 tracks
+[worker] the engine cannot open the track 2 of 2: … The tracks before it play.
+[worker] the playback starts at 3731 seconds
+```
+
+**No stream comes, and no line of the log says 0 seconds.** The row of the player
+says "The program cannot read 02_…_xHE-AAC.m4b", which is true and which names
+the file.
+
+**T-53 does not change.** The book of the sandbox whose **only** file is xHE-AAC
+still goes to the stream of the server, and it resumed at the part 70 (423
+seconds) of that stream in the measurement of the same day.
+
+### T-121: the engine asked the server for a download, and an account without that permission played nothing
+
+This came out of the measurement of T-120, with an account of the type `user`.
+
+**`HttpFile::open` asked for `/api/items/:id/file/:ino/download`.** The server
+holds every route of a download behind the permission `download`, and it answers
+`403` for an account that does not have it. The engine then gave a fault at
+once, and the program said that no decoder reads the file:
+
+```text
+[worker] the engine cannot start the book: The server did not give the file:
+         Your account does not have this permission.
+[play]   no decoder of the program reads 01_…_AAC-LC.m4b. The program asks the
+         server for a stream of the whole media.
+```
+
+**No book of such an account played from its file at all.** Every media went to a
+stream of the server: the server transcoded 51 hours of audio for a file that the
+program reads itself, and the user read a sentence about a decoder for a fault of
+a permission.
+
+**The address of a track is the value of `contentUrl` that the server gives**, and
+it holds no `/download`. The measurement of 2026-08-12 against an Audiobookshelf
+2.36.0, with an account of the type `user` whose permission `download` is false:
+
+| The address | The answer |
+|---|---|
+| `GET /api/items/:id/file/:ino` with a `Range` | **`206`** |
+| `GET /api/items/:id/file/:ino/download` with a `Range` | **`403`** |
+
+The same two addresses both give `206` for an account of the type `root`,
+therefore no session before this one met the fault: every measurement used the
+account `toutuitest` of the sandbox, and that account is `root`.
+
+`the_engine_reads_the_file_and_it_does_not_ask_for_a_download` of
+`tests/http_file.rs` holds the rule: the mock server answers the address of a
+download with `403`, as the real server does.
+
+**`src/logic/download/fetch.rs` keeps the address of a download**, and that is
+right: the key `D` makes a copy on the disk, that work **is** a download, and the
+permission belongs to it.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

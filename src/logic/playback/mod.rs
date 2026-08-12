@@ -441,8 +441,40 @@ const WAIT_FOR_THE_STREAM: Duration = Duration::from_secs(35);
 /// The time between two looks at the state of the engine.
 const LOOK_AGAIN: Duration = Duration::from_millis(100);
 
-/// Gives the name of the file that no decoder of the program reads, if the
-/// engine met one in this playback. See T-53.
+/// Gives the name of the file that no decoder of the program reads, **and only
+/// when that file stops this playback**. See T-53 and T-120.
+///
+/// **The engine sets one flag for two conditions**, and they need two answers:
+///
+/// 1. The track that the playback needs **now** does not open. `fill_queue`
+///    fails, the engine stops the player, and it never writes `playback_id` for
+///    this playback. **The playback is dead**, therefore the stream of the
+///    server is the answer.
+/// 2. A **later** track does not open, and the engine plays the tracks before
+///    it. The engine says "The tracks before it play", and the book ends at that
+///    track (T-48 and T-55). **The playback works**, therefore the stream of the
+///    server is the wrong answer.
+///
+/// **The old code read the fault first**, therefore the condition 2 killed a
+/// playback that played. The measurement of 2026-08-12, with a book of the user
+/// that holds one file of AAC-LC and one file of xHE-AAC of the same 26 hours:
+///
+/// ```text
+/// [play]   the item ... starts at 5031 seconds with 2 tracks
+/// [worker] the engine cannot open the track 2 of 2: ... xHE-AAC ...
+///          The tracks before it play.
+/// [worker] the playback starts at 5031 seconds          <- the book plays
+/// [play]   no decoder of the program reads ... xHE-AAC.m4b. The program asks
+///          the server for a stream of the whole media.  <- and this ends it
+/// ```
+///
+/// The user then heard the book from the start of the stream and not from their
+/// place, and the screen said "One file needs the server" for a file that stands
+/// 26 hours after the place of the user.
+///
+/// **The state tells the two conditions apart.** The engine writes
+/// `playback_id` in the loop that follows a playback that plays, therefore a
+/// playback that never started holds the identity of the playback before it.
 async fn the_file_that_no_decoder_reads(
     player: &PlayerHandle,
     playback_id: u64,
@@ -453,18 +485,10 @@ async fn the_file_that_no_decoder_reads(
     loop {
         let state = player.state();
 
-        // The fault must belong to this playback. The fault of the playback
-        // before it belongs to a media that the user left. See T-53.
-        if state.playback_of_the_fault == playback_id {
-            if let Some(name) = state.file_with_no_decoder.clone() {
-                return Some(name);
-            }
-        }
-
-        // The engine plays this playback, and it opened every decoder that it
-        // needs now. A fault of a later file comes to the loop of the playback.
-        if state.playback_id == playback_id && state.status != PlaybackStatus::Stopped {
-            return None;
+        match the_stream_must_take_the_playback(&state, playback_id) {
+            TheStart::TheFileNeedsTheServer(name) => return Some(name),
+            TheStart::ThePlaybackPlays => return None,
+            TheStart::NoAnswerYet => {}
         }
 
         if std::time::Instant::now() >= end {
@@ -473,6 +497,49 @@ async fn the_file_that_no_decoder_reads(
 
         tokio::time::sleep(LOOK_AGAIN).await;
     }
+}
+
+/// What the state of the engine says about the start of one playback.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TheStart {
+    /// The engine did not answer for this playback yet.
+    NoAnswerYet,
+    /// The engine plays this playback.
+    ThePlaybackPlays,
+    /// The playback did not start, and this file is the reason.
+    TheFileNeedsTheServer(String),
+}
+
+/// Reads the state of the engine for one playback. See T-120.
+///
+/// **The rule of the loop stands here**, therefore a test holds it with no
+/// engine and no server. The engine sets one flag (`file_with_no_decoder`) for
+/// two conditions, and this function tells them apart: it reads "the engine
+/// plays this playback" **before** the flag.
+///
+/// The engine writes `playback_id` in the loop that follows a playback that
+/// plays. A start that failed never reaches that loop, therefore the state then
+/// holds the identity of the playback before it and the status `Stopped`.
+pub fn the_stream_must_take_the_playback(
+    state: &crate::player::engine::PlaybackState,
+    playback_id: u64,
+) -> TheStart {
+    // The engine plays this playback. A fault of a **later** file belongs to the
+    // loop of the playback, and the book ends at the track before it (T-48 and
+    // T-55). A stream of the server would end a playback that works.
+    if state.playback_id == playback_id && state.status != PlaybackStatus::Stopped {
+        return TheStart::ThePlaybackPlays;
+    }
+
+    // The fault must belong to this playback. The fault of the playback before
+    // it belongs to a media that the user left. See T-53.
+    if state.playback_of_the_fault == playback_id {
+        if let Some(name) = state.file_with_no_decoder.clone() {
+            return TheStart::TheFileNeedsTheServer(name);
+        }
+    }
+
+    TheStart::NoAnswerYet
 }
 
 /// Plays the stream of the server, for a media with a file that no decoder of

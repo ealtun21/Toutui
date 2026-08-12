@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.63",
+        date: "12/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A book that holds one file that this program cannot read now plays from your \
+             place.** A book of two files, where the second file is a form that no decoder of \
+             this program reads, started again from the beginning: the program left a playback \
+             that played and it asked the server for a stream. The book now plays its own \
+             files from your place, and it ends at the file that it cannot read.",
+            "- **An account without the permission to download now plays its books.** The \
+             engine asked the server for a download of each file, and the server refuses that \
+             for such an account: no book played from its file, and every media went to a \
+             stream of the server. The engine asks for the file of the track now.",
+        ],
+    },
+    Entry {
         version: "0.7.62",
         date: "12/08/2026",
         body: &[
