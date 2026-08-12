@@ -41,6 +41,17 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.73",
+        date: "13/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The cursor of the login screen stands in the field that you write in.** A \
+             message of the login moved the cursor of your terminal to the end of its own row, \
+             six rows below the field: your letters went to the field, and the cursor blinked far \
+             from them. The message of the login also goes away by itself now.",
+        ],
+    },
+    Entry {
         version: "0.7.72",
         date: "13/08/2026",
         body: &[

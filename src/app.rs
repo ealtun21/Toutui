@@ -2566,10 +2566,10 @@ impl App {
     pub fn show_the_chapters(&mut self) {
         let state = self.player.state();
 
-        // **The view opens for every answer.** A message of `pop_message` stands
-        // outside the buffer of ratatui, and the next frame of a view that draws
-        // that row takes it away. The user then presses a key and reads nothing.
-        // The view says why it holds no line. See T-42 and T-59.
+        // **The view opens for every answer.** A message that stands outside the
+        // buffer of ratatui goes away with the next frame of a view that draws
+        // that row. The user then presses a key and reads nothing. The view says
+        // why it holds no line. See T-42, T-59, and T-134.
         //
         // The selection starts at the chapter that plays.
         let now = crate::logic::chapters::chapter_at(&state.chapters, state.position);

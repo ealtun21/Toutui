@@ -5982,6 +5982,45 @@ The measurement after the correction, with a configuration directory of no file:
 the login gives the Home view in 5 seconds, `.env` holds the key with the mode
 600, and the start after it gives the Home view with no question.
 
+### T-134: the cursor of the terminal stood six rows below the field of the user
+
+**The maintainer met this**: "when I am typing something and an error or some
+prompt comes, the blinking cursor gets moved to the error area". The user writes
+in the field, and the cursor of the terminal blinks at the end of a message far
+from it.
+
+**The login screen wrote its message outside the buffer of ratatui.**
+`pop_message` moved the cursor of the terminal with `MoveTo(0, rows - 6)` and it
+wrote the message with `println!`, **after** the frame of ratatui set the cursor
+in the field. The last word wins: the terminal keeps the cursor at the end of the
+message. `clear_message` did the same work at each turn of the loop, therefore
+**the cursor was wrong at every moment of the login screen**, and not only when a
+message stood. A measurement of 2026-08-13 in a terminal of 100 by 30: the cursor
+stood at the column 69 of the row 24, and the field of the user stood at the row
+14.
+
+The message stands **inside the frame** now, as `crate::logic::message` does for
+every view of the application (T-59), and the cursor comes last: it stands in the
+field, always. The module `pop_up_message` had one user, and it has none:
+therefore it goes away, and no function of the program can move the cursor
+outside a frame again.
+
+Two rules of the screen come with it:
+
+- **The size comes at each frame.** The old code took it one time before the
+  loop, therefore a terminal that became small while the login screen stood held
+  a field outside the screen. The box of `crate::logic::prompt` learned that rule
+  in T-115.
+- **A frame with no message writes the cells of that row again**, therefore no
+  old message stays and `clear_message` is not needed. The old code needed that
+  function, and a message that was shorter than the message before it kept the
+  end of the old one.
+
+The measurement after the correction, in a terminal of 100 by 30: the cursor
+stands at the column 26 of the row 14 with no message, at the column 33 after
+seven letters and a message, and at the column 36 after three more letters. The
+message goes away with the frame that no longer holds it.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

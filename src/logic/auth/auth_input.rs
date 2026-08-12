@@ -3,7 +3,6 @@ use crate::config::rgb_parts;
 use crate::db::crud::*;
 use crate::login_app::AppLogin;
 use crate::utils::exit_app::*;
-use crate::utils::pop_up_message::*;
 use crossterm::event::{self, KeyCode, KeyEvent};
 use log::{error, info};
 use ratatui::backend::CrosstermBackend;
@@ -169,6 +168,111 @@ fn check_the_address(written: &str) -> Result<String, String> {
     }
 }
 
+/// The parts of the login screen that one frame holds.
+pub struct TheLoginScreen<'a> {
+    /// The name of the field that the user writes in.
+    pub title: &'a str,
+    /// The text of the field. A field with a mask holds the mask here.
+    pub text: &'a str,
+    /// An empty field shows the text that tells the user what to write, and
+    /// that text is dark: nobody must read it as an answer.
+    pub the_text_tells_what_to_write: bool,
+    /// The number of columns that the field hides at the left.
+    pub scroll: u16,
+    /// The column of the cursor inside the field.
+    pub cursor: u16,
+    /// The message of the login. An empty text is no message.
+    pub message: &'a str,
+    /// The colour of the border of the field.
+    pub of_the_border: (u8, u8, u8),
+    /// The colour of the screen behind the field.
+    pub of_the_background: (u8, u8, u8),
+    /// The colour behind the message.
+    pub of_the_message: (u8, u8, u8),
+}
+
+/// Gives the area of the field on a screen of one size.
+///
+/// The function is pure, therefore a test needs no terminal. **The size comes
+/// at each frame**, as the box of `crate::logic::prompt` takes it: a terminal
+/// that becomes small while the login screen stands would otherwise hold a
+/// field outside the screen. See T-115.
+pub fn the_area_of_the_field(size: ratatui::layout::Size) -> Rect {
+    let width = size.width / 2;
+
+    Rect {
+        x: (size.width.saturating_sub(width)) / 2,
+        y: size.height.saturating_sub(3) / 2,
+        width,
+        height: 3,
+    }
+}
+
+/// Gives the row of the message of the login.
+pub fn the_row_of_the_message(size: ratatui::layout::Size) -> u16 {
+    size.height.saturating_sub(6)
+}
+
+/// Draws one frame of the login screen.
+///
+/// **Every cell of this screen belongs to the frame of ratatui, and the cursor
+/// belongs to the field.** The old code wrote the message with
+/// `crossterm::cursor::MoveTo` and `println!` after the frame: the terminal then
+/// kept its cursor at the end of that row, and the user wrote their password in
+/// a field while the cursor of the terminal stood six rows below it. The message
+/// also stood outside the buffer, therefore it could stay after the work of it
+/// ended. See T-134, T-42, and T-59.
+pub fn draw_the_login(frame: &mut ratatui::Frame, screen: &TheLoginScreen) {
+    let whole = frame.area();
+    let area = the_area_of_the_field(ratatui::layout::Size::new(whole.width, whole.height));
+
+    let (r, g, b) = screen.of_the_border;
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .title(screen.title.to_string())
+        .title_bottom(Line::from(format!("🦜Toutui v{} - Esc to quit.", VERSION)).right_aligned())
+        .border_style(Style::default().fg(Color::Rgb(r, g, b)));
+
+    let style = if screen.the_text_tells_what_to_write {
+        Style::default().fg(Color::Rgb(128, 128, 128))
+    } else {
+        Style::default()
+    };
+
+    let line = Paragraph::new(screen.text)
+        .style(style)
+        .scroll((0, screen.scroll))
+        .block(block);
+
+    frame.render_widget(line, area);
+
+    let (r, g, b) = screen.of_the_background;
+    frame.render_widget(
+        Block::default().style(Style::default().bg(Color::Rgb(r, g, b))),
+        whole,
+    );
+
+    // The message stands inside the frame. A frame with no message writes the
+    // cells of that row again, therefore no old message stays.
+    if !screen.message.is_empty() {
+        let (r, g, b) = screen.of_the_message;
+        let row = Rect {
+            x: 0,
+            y: the_row_of_the_message(ratatui::layout::Size::new(whole.width, whole.height)),
+            width: whole.width,
+            height: 1,
+        };
+
+        frame.render_widget(
+            Paragraph::new(screen.message).style(Style::default().bg(Color::Rgb(r, g, b))),
+            row,
+        );
+    }
+
+    // The cursor comes last, and it stands in the field.
+    frame.set_cursor_position((area.x + 1 + screen.cursor, area.y + 1));
+}
+
 /// One field of the login screen.
 struct Field {
     title: &'static str,
@@ -220,59 +324,26 @@ impl AppLogin {
             },
         ];
 
-        // display
-        let size = term.size()?;
-        let input_area = Rect {
-            x: (size.width - size.width / 2) / 2,
-            y: (size.height - 3) / 2,
-            width: size.width / 2,
-            height: 3,
-        };
-        // The borders take one column at the left and one column at the right.
-        let inner_width = input_area.width.saturating_sub(2);
-
         // init variables
         let mut current_index = 0;
         let mut collected_data: Vec<String> = Vec::new();
         let (log_r, log_g, log_b) = rgb_parts(&self.config.colors.log_background_color);
+        let (bg_r, bg_g, bg_b) = rgb_parts(&self.config.colors.background_color);
 
         loop {
+            // **The size comes at each turn of this loop.** The old code took it
+            // one time, therefore a terminal that became small held a field
+            // outside the screen. See T-115.
+            let size = term.size()?;
+            // The borders take one column at the left and one column at the
+            // right.
+            let inner_width = the_area_of_the_field(size).width.saturating_sub(2);
+
             let field = &fields[current_index];
             let view = field_view(&field.input, inner_width, field.mask);
-            let block = Block::default()
-                .borders(Borders::ALL)
-                .title(field.title)
-                .title_bottom(
-                    Line::from(format!("🦜Toutui v{} - Esc to quit.", VERSION)).right_aligned(),
-                )
-                .border_style(Style::default().fg(Color::Rgb(fg_r, fg_g, fg_b)));
 
-            // An empty field shows the text that tells the user what to write.
-            // That text is dark, so that nobody reads it as an answer.
-            let (text, style) = if view.text.is_empty() && !field.placeholder.is_empty() {
-                (
-                    field.placeholder,
-                    Style::default().fg(Color::Rgb(128, 128, 128)),
-                )
-            } else {
-                (view.text.as_str(), Style::default())
-            };
-
-            term.draw(|f| {
-                let background =
-                    Block::default().style(Style::default().bg(Color::Rgb(log_r, log_g, log_b)));
-                let line = Paragraph::new(text)
-                    .style(style)
-                    .scroll((0, view.scroll))
-                    .block(block);
-                f.render_widget(line, input_area);
-                f.render_widget(background, f.area());
-                f.set_cursor_position((input_area.x + 1 + view.cursor, input_area.y + 1));
-            })?;
-
-            // display error message (in any)
-            let mut stdout = std::io::stdout();
-            let error_message_login = match get_others() {
+            // The message of the login stands inside the frame. See T-134.
+            let message = match get_others() {
                 Ok(Some(value)) => value.login_err,
                 Ok(None) => "".to_string(),
                 Err(e) => {
@@ -280,11 +351,28 @@ impl AppLogin {
                     "".to_string()
                 }
             };
-            // The line must be empty before the new message. A message that
-            // is shorter than the message before it would otherwise keep the
-            // end of the old one.
-            let _ = clear_message(&mut stdout, 6);
-            let _ = pop_message(&mut stdout, 6, error_message_login.as_str());
+
+            let the_text_tells_what_to_write =
+                view.text.is_empty() && !field.placeholder.is_empty();
+            let text = if the_text_tells_what_to_write {
+                field.placeholder
+            } else {
+                view.text.as_str()
+            };
+
+            let screen = TheLoginScreen {
+                title: field.title,
+                text,
+                the_text_tells_what_to_write,
+                scroll: view.scroll,
+                cursor: view.cursor,
+                message: message.as_str(),
+                of_the_border: (fg_r, fg_g, fg_b),
+                of_the_background: (log_r, log_g, log_b),
+                of_the_message: (bg_r, bg_g, bg_b),
+            };
+
+            term.draw(|frame| draw_the_login(frame, &screen))?;
 
             match crossterm::event::read()? {
                 event::Event::Key(KeyEvent {
@@ -370,7 +458,8 @@ impl AppLogin {
         // make disappear search_area (the input bar) after the break loop
         term.draw(|f| {
             let empty_block = Block::default();
-            f.render_widget(empty_block, input_area);
+            let area = the_area_of_the_field(f.area().as_size());
+            f.render_widget(empty_block, area);
         })?;
 
         // Fetch data from api and insert them in database
@@ -441,5 +530,111 @@ impl AppLogin {
         } else {
             Err(io::Error::other("Invalid textarea"))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ratatui::backend::TestBackend;
+    use ratatui::layout::{Position, Size};
+
+    fn a_screen<'a>(text: &'a str, message: &'a str) -> TheLoginScreen<'a> {
+        TheLoginScreen {
+            title: "Server address",
+            text,
+            the_text_tells_what_to_write: false,
+            scroll: 0,
+            cursor: text.chars().count() as u16,
+            message,
+            of_the_border: (255, 255, 255),
+            of_the_background: (0, 0, 0),
+            of_the_message: (0, 0, 0),
+        }
+    }
+
+    fn the_lines(terminal: &Terminal<TestBackend>) -> Vec<String> {
+        let buffer = terminal.backend().buffer();
+
+        (0..buffer.area.height)
+            .map(|row| {
+                (0..buffer.area.width)
+                    .map(|column| buffer[(column, row)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_string()
+            })
+            .collect()
+    }
+
+    /// **The cursor stands in the field, and the message takes it nowhere.**
+    ///
+    /// The old code wrote the message with `MoveTo` and `println!` after the
+    /// frame of ratatui: a measurement of 2026-08-13 in a terminal of 100 by 30
+    /// read the cursor of the terminal at the column 69 of the row 25, the end
+    /// of the message, while the field of the user stood at the row 15. The
+    /// user wrote their password with no cursor beside it. See T-134.
+    #[test]
+    fn the_cursor_stands_in_the_field_while_a_message_stands() {
+        let mut terminal = Terminal::new(TestBackend::new(100, 30)).unwrap();
+        let message = "The address must start with http:// or https://";
+
+        terminal
+            .draw(|frame| draw_the_login(frame, &a_screen("notaurl", message)))
+            .unwrap();
+
+        let area = the_area_of_the_field(Size::new(100, 30));
+        assert_eq!(
+            terminal.get_cursor_position().unwrap(),
+            Position::new(area.x + 1 + 7, area.y + 1)
+        );
+
+        // The message stands on its own row, inside the frame.
+        let lines = the_lines(&terminal);
+        assert_eq!(
+            lines[usize::from(the_row_of_the_message(Size::new(100, 30)))],
+            message
+        );
+        assert!(lines[usize::from(area.y) + 1].contains("notaurl"));
+    }
+
+    /// A frame with no message writes the cells of that row again, therefore no
+    /// old message stays. The old code needed `clear_message` for that work, and
+    /// a message that was shorter than the message before it kept the end of the
+    /// old one. See T-134.
+    #[test]
+    fn a_message_goes_away_with_the_frame_that_holds_it() {
+        let mut terminal = Terminal::new(TestBackend::new(100, 30)).unwrap();
+
+        terminal
+            .draw(|frame| draw_the_login(frame, &a_screen("", "The server took too many attempts")))
+            .unwrap();
+        terminal
+            .draw(|frame| draw_the_login(frame, &a_screen("", "Wait")))
+            .unwrap();
+
+        let row = usize::from(the_row_of_the_message(Size::new(100, 30)));
+        assert_eq!(the_lines(&terminal)[row], "Wait");
+
+        terminal
+            .draw(|frame| draw_the_login(frame, &a_screen("", "")))
+            .unwrap();
+
+        assert_eq!(the_lines(&terminal)[row], "");
+    }
+
+    /// The field stands on the screen of now. A terminal that becomes small
+    /// while the login screen stands holds no field outside it. See T-115.
+    #[test]
+    fn the_field_stands_inside_the_screen() {
+        for (width, height) in [(160u16, 45u16), (80, 24), (20, 4), (2, 1)] {
+            let area = the_area_of_the_field(Size::new(width, height));
+
+            assert!(area.x + area.width <= width, "{} by {}", width, height);
+            assert!(area.y <= height, "{} by {}", width, height);
+        }
+
+        let area = the_area_of_the_field(Size::new(100, 30));
+        assert_eq!(area, Rect::new(25, 13, 50, 3));
     }
 }

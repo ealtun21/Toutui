@@ -17,8 +17,11 @@
 //! the message, and the render takes it at the next frame. **The message stands
 //! inside the frame**, therefore no cell of it stays and no view takes it away.
 //!
-//! The screen of the login draws no frame of ratatui. That screen keeps
-//! `pop_message`.
+//! The screen of the login kept `pop_message` until T-134, and it draws its
+//! message inside its own frame now: the cursor of the terminal stood at the end
+//! of that message while the user wrote their password. **No function of the
+//! program writes outside a frame**, therefore the module `pop_up_message` went
+//! away.
 
 use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
