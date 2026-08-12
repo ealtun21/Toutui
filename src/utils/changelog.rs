@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.64",
+        date: "12/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The program makes `config.toml` for you.** A start with no configuration file \
+             stopped the program, and it said a line of its own source. The program writes the \
+             example file now, with every comment of it, and a file that exists stays as it \
+             stands. A key of a color that your file does not hold takes the value of the \
+             program, therefore a file of an older version starts too.",
+            "- **A token that your server refuses now opens the login screen.** The program \
+             stopped with \"The token is not valid. Log in again.\", and it gave you no way to \
+             log in. The login screen comes now, it says the reason, and it holds the address \
+             of your server already: your name and your password give a new token. The key `R` \
+             does the same when the server takes the token away while the program runs.",
+        ],
+    },
+    Entry {
         version: "0.7.63",
         date: "12/08/2026",
         body: &[
