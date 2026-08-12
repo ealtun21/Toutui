@@ -1733,7 +1733,7 @@ impl App {
     fn render_settings_account(&mut self, area: Rect, buf: &mut Buffer) {
         let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
 
-        let [list_area, _item_area] =
+        let [list_area, item_area] =
             Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(main_area);
 
         let render_list_title = "Accounts — l: log out of the account";
@@ -1749,7 +1749,28 @@ impl App {
             &self.all_usernames.clone(),
             &mut self.list_state_settings_account.clone(),
         );
-        //self.render_selected_item(item_area, buf, &self.titles_library.clone(), self.auth_names_library.clone());
+
+        // **The type of the account and its permissions.** `GET /api/me` gives
+        // them, and no screen of the program showed one of them: a user whose
+        // account may not download read the message of the key `D` and nothing
+        // else. See T-110.
+        //
+        // The offline mode says that the program knows nothing of the account:
+        // no request answered, therefore the values below are the values of a
+        // program that asked nothing (T-91).
+        let lines = if self.is_offline {
+            vec![
+                "The server does not answer, therefore this screen holds no \
+                 permission of your account."
+                    .to_string(),
+            ]
+        } else {
+            crate::api::me::permissions::the_lines_of_the_account(&self.username, &self.account)
+        };
+
+        Paragraph::new(lines.join("\n"))
+            .wrap(Wrap { trim: true })
+            .render(item_area, buf);
     }
 
     /// AppView::SettingsReader rendering. See T-77.

@@ -341,7 +341,10 @@ pub struct App {
     pub pictures_of_the_reader: std::collections::HashMap<String, Option<PictureOfThePage>>,
     /// What this account may do on the server. An absent answer gives every
     /// permission. See T-24.
-    pub permissions: crate::api::me::permissions::Permissions,
+    /// The account of the user: the type and the permissions. The settings
+    /// show them, and the key `D` reads the permission of the download. See
+    /// T-110.
+    pub account: crate::api::me::permissions::TheAccount,
     /// The account that waits for the second press of the key `l`. A log out
     /// forgets a token, therefore the program asks one time. See T-36.
     pub confirm_logout: Option<String>,
@@ -502,8 +505,29 @@ impl App {
             library_sort = String::new();
         }
 
-        let library_query =
-            crate::logic::sort_filter::query(&library_sort, library_desc, &library_filter);
+        // **The server groups the books of a series**, and the program showed one
+        // line for such a group already (T-22). A measurement of 2026-08-12
+        // against the sandbox compared the two answers: 14 items with no
+        // parameter, and **10 items with the parameter** — the same 10 lines
+        // that `group_library` makes, in the same sequence, and with the same
+        // series of one book.
+        //
+        // The parameter therefore takes work away and it changes no screen:
+        // one page of the answer holds 500 **lines** now, and `total` counts the
+        // lines that the user reads. The title of the view of T-70 is then
+        // exact.
+        //
+        // `group_library` stays: it gives the line of a series the place of that
+        // series in `App::series`, and the view reads the books, the
+        // description, and the cover there.
+        //
+        // A library of podcasts holds no series, therefore it takes no
+        // parameter.
+        let library_query = format!(
+            "{}{}",
+            crate::logic::sort_filter::query(&library_sort, library_desc, &library_filter),
+            if is_podcast { "" } else { "&collapseseries=1" }
+        );
 
         // init for `Home` (continue listening)
         let mut _titles_cnt_list: Vec<String> = Vec::new();
@@ -728,18 +752,18 @@ impl App {
 
         let ask_for_the_permissions = async {
             if is_offline {
-                return crate::api::me::permissions::Permissions::default();
+                return crate::api::me::permissions::TheAccount::default();
             }
 
             crate::api::me::permissions::get_permissions(&api)
                 .await
                 .unwrap_or_else(|error| {
                     log::warn!("[app] the server did not give the permissions: {}", error);
-                    crate::api::me::permissions::Permissions::default()
+                    crate::api::me::permissions::TheAccount::default()
                 })
         };
 
-        let (series, collections, playlists, all_books, permissions) = tokio::join!(
+        let (series, collections, playlists, all_books, account) = tokio::join!(
             ask_for_the_series,
             ask_for_the_collections,
             ask_for_the_playlists,
@@ -1242,7 +1266,7 @@ impl App {
             update_msg,
             covers: crate::ui::cover::CoverArt::new(),
             pictures_of_the_reader: std::collections::HashMap::new(),
-            permissions,
+            account,
             confirm_logout: None,
             reader: None,
             reader_message: None,
@@ -1446,7 +1470,7 @@ impl App {
                 // The server refuses a download for an account that may not
                 // download, and it gives an error of the protocol. The user
                 // reads a sentence instead. See T-24.
-                if !self.permissions.download {
+                if !self.account.permissions.download {
                     crate::logic::message::say(crate::api::me::permissions::no_download());
                     return;
                 }

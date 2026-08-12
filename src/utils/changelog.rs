@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.54",
+        date: "12/08/2026",
+        body: &[
+            "Added:",
+            "- **The settings say what your account may do.** Press S and take \"Accounts and \
+             log out\": the screen names the type of your account and every permission that \
+             changes the work of this program.",
+            "",
+            "Changed:",
+            "- **The server groups the books of a series now.** The screen holds the same \
+             lines, and the program asks the server for fewer items: the title of the Library \
+             view says how many lines the library holds.",
+        ],
+    },
+    Entry {
         version: "0.7.53",
         date: "12/08/2026",
         body: &[

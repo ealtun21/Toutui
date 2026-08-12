@@ -1,6 +1,6 @@
 # T-24: what Audiobookshelf gives, and what Toutui takes
 
-Date: 2026-08-11
+Date: 2026-08-11. The session of 2026-08-12 closed every row that said `Half`.
 
 This document compares the functions of an Audiobookshelf server with the
 functions of this client. It gives the maintainer one list of the work that is
@@ -9,7 +9,7 @@ not done.
 | What | Value |
 |---|---|
 | The server | Audiobookshelf 2.36.0 |
-| The client | Toutui 0.7.33 (`Cargo.toml`) |
+| The client | Toutui 0.7.54 (`Cargo.toml`) |
 | The address of the server | `http://127.0.0.1:13399`, the sandbox of `docs/TEST-SERVER.md` |
 | The user | `toutuitest`, of the type `root` |
 
@@ -20,8 +20,10 @@ not done.
 to a server of a user. A row that says "not tested" holds no measurement, and
 the reason is beside it.
 
-The sandbox holds three libraries: `Books` with 9 items, `Podcasts` with 1
-podcast of 3 episodes, and `Empty` with no item.
+The sandbox holds three libraries: `Books`, `Podcasts` with 1 podcast of 3
+episodes of a feed of 57, and `Empty` with no item. The session of 2026-08-12
+added four books to `Books`: a book of one chapter, a PDF of 47 megabytes of a
+scan of 60 pages, a PDF that no reader reads, and their audio.
 
 ## 1. Two errors of the official reference
 
@@ -53,7 +55,7 @@ This list comes from `src/api/` and from `src/logic/`. It is complete.
 |---|---|
 | `POST /login`, `GET /ping` | `src/api/server/auth_process.rs`, `src/api/client/probe.rs` |
 | `GET /api/libraries` | `src/api/libraries/get_all_libraries.rs` |
-| `GET /api/libraries/:id/items?limit=500&page=N&sort=&desc=&filter=` | `src/api/libraries/get_all_books.rs` |
+| `GET /api/libraries/:id/items?limit=500&page=N&sort=&desc=&filter=&collapseseries=1` | `src/api/libraries/get_all_books.rs`. **The program reads one page at a time** (T-70) |
 | `GET /api/libraries/:id/filterdata` | `src/api/libraries/get_filter_data.rs` |
 | `GET /api/libraries/:id/personalized` | `src/api/libraries/get_library_perso_view.rs` |
 | `GET /api/libraries/:id/series?limit=500&page=N&sort=name` | `src/api/libraries/get_all_series.rs` |
@@ -91,6 +93,7 @@ Toutui calls 32 paths. The server has more than 100.
 | `l`/`→`/`Enter` | Play the media, or open the list that the line names |
 | `h` | Go back one view |
 | `Tab` | Change between Home and Library |
+| `Shift+Tab` | The next library of the server (T-66) |
 | `/` | Search |
 | `s` | Show the series of the library (T-22) |
 | `c` | Show the collections and the playlists (T-9) |
@@ -153,7 +156,7 @@ reader of a PDF.
 | **The items of a library** | `GET /api/libraries/:id/items?limit=&page=` gives `results`, `total`, `limit`, `page` | Yes | Nothing. The client asks for pages of 500 (T-7) |
 | **Sort the items** | `?sort=media.metadata.title&desc=1` changes the sequence. Measured: `desc=1` gives `Volume 3, Volume 2, Volume 1`, and no `desc` gives `A Long Test Book, Alice in Wonderland, Multi File Test Book` | Yes | Nothing. The key `f` gives seven fields for a library of books and three for a library of podcasts, and a line that changes the direction. The choice belongs to the account, therefore it stays after the program stops |
 | **Filter the items** | `?filter=<type>.<base64>` gives `filterBy` in the answer. `GET /api/libraries/:id/filterdata` gives the values: 4 authors, 2 series, 0 genres, 0 tags, 0 narrators, 0 languages | Yes | Nothing. The key `f` gives the authors, the series, the genres, the tags, the narrators, the languages, the publishers, and the three values of the position |
-| **Group a series in the list** | `?collapseseries=1` gives `collapseseries` in the answer | Half | The client makes the group itself, in `group_library` of `src/logic/library_view.rs`. The result is correct, and the server can do the same work |
+| **Group a series in the list** | `?collapseseries=1` gives `collapseseries` in the answer, and **`total` then counts the lines**: the library of the sandbox gives 14 items with no parameter and **10 with it** | Yes | Nothing. The program sends the parameter for a library of books since 2026-08-12. A measurement of that day compared the two answers: the same 10 lines, in the same sequence, and the same series of one book. `group_library` stays, and it gives the line of a series the place of that series in `App::series`: the view reads the books, the description, and the cover there |
 | **The shelves of Home** | `GET /api/libraries/:id/personalized` gives 6 shelves for a book library: `continue-listening` (4), `recently-added` (9), `recent-series` (2), `discover` (2), `listen-again` (2), `newest-authors` (4). A podcast library gives `newest-episodes` (3), `recently-added` (1), `listen-again` (2) | Yes | The shelf `newest-authors` only. An author holds no media and no book, therefore a terminal can show nothing for that shelf. Every other shelf gives its name and its lines. A line of `recent-series` opens the books of the series |
 | **Search** | `GET /api/libraries/:id/search?q=` gives six groups: `book`, `authors`, `series`, `narrators`, `tags`, `genres`. Measured: `q=Volume` gives 5 books, `q=Carroll` gives the author "Lewis Carroll" and no book | Yes | Nothing. The key `/` shows the titles that the client holds at once, and it adds the answer of the server when that answer comes. `ask_the_server_to_search` of `src/app.rs` sends the request, and `src/logic/search/from_the_server.rs` keeps the answer. A measurement with the real program on 2026-08-11 typed `Carroll`, a name that no title holds, and the screen gave `Search result [the server also found: Lewis Carroll]` |
 | **The series of a library** | `GET /api/libraries/:id/series?limit=&page=` gives `results` and `total`. `limit=0` gives an empty list, and not every series | Yes | Nothing. The key `s`, and one line for each series in the Library view |
@@ -190,7 +193,7 @@ reader of a PDF.
 | **Read a feed** | `POST /api/podcasts/feed` with `{"rssFeed":"..."}` gives `200` and the key `podcast` | Yes | Nothing. The key `A`, after the user selects an answer |
 | **Make a podcast** | `POST /api/podcasts` gives `200` and the new item. A second add of one podcast gives `400`, because the directory exists | Yes | Nothing. The key `A` asks the user before it sends, because the request writes in the library |
 | **The server gets an episode** | `POST /api/podcasts/:id/download-episodes` with the episodes of the feed gives `200`, and the server holds the file a few seconds later. **`GET /api/podcasts/:id/episode-downloads` gives `404`** on 2.36.0; `GET /api/libraries/:id/episode-downloads` gives `{"queue":[]}` | Yes | Nothing. The key `E` |
-| **Look for a new episode** | `GET /api/podcasts/:id/checknew` gives `200` and the key `episodes`. **It gives an empty list for a podcast that came one second before**, and whose feed holds three episodes: it compares with the time of the last examination | Half | The program does not use it. It reads the feed and it compares with the episodes of the server itself, therefore it finds every episode that is missing and not the new ones only |
+| **Look for a new episode** | `GET /api/podcasts/:id/checknew` gives `200` and the key `episodes`. **It compares with the time of the last examination.** A measurement of 2026-08-12 against a podcast that holds 3 episodes of a feed of 57: the endpoint gives **0** episodes in 15 bytes, and `POST /api/podcasts/feed` gives **57** in 27598 bytes | Yes | Nothing. The key `E`. The program reads the feed and it compares with the episodes of the server itself, therefore it finds every one of the 54 episodes that are missing. **The endpoint stays outside**, and section 6 holds the reason: it is cheaper only where it is wrong |
 | **Empty the queue of the podcast** | `GET /api/podcasts/:id/clear-queue` gives `200`. It does **not** stop the episode that downloads now | Yes | Nothing. The key `d` shows the queue and the key `X` empties it (T-81) |
 | **A local copy** | `GET /api/items/:id/file/:ino/download` gives the one audio file | Yes | Nothing. `D` and `X`, for a book and for one episode (T-1, T-11) |
 | **Play with no server** | Not a function of the server | Yes | Nothing. The positions wait in `pending_progress`, and a task sends them (T-25) |
@@ -202,12 +205,12 @@ reader of a PDF.
 | **Scan a library** | `POST /api/libraries/:id/scan` gives `200` | Yes | Nothing. The key `L`. The examination runs on the server, therefore the program says that the work started and the user presses `R` after a moment |
 | **The authors of a library** | `GET /api/libraries/:id/authors` gives the key `authors`, with `name`, `description`, and `numBooks`. `GET /api/authors/:id` gives no `numBooks`, therefore the list is the whole answer | Yes | Nothing. The key `a` shows the authors in the sequence of the alphabet, and `l` shows the books of one author |
 | **The narrators of a library** | `GET /api/libraries/:id/narrators` gives the key `narrators` | Yes |Nothing. The key `v`, and one view with the authors. The filter of a narrator takes the name, and not an identity. See T-73 |
-| **The tags** | `GET /api/tags` gives the key `tags` | Half | The program does not use this endpoint, and it needs it not: `GET /api/libraries/:id/filterdata` gives the tags of the library, and the key `f` holds a line for each of them. This endpoint gives the tags of every library |
+| **The tags** | `GET /api/tags` gives the key `tags` of every library | Yes | Nothing. The key `f` holds a line for each tag of the library that the user reads, and `GET /api/libraries/:id/filterdata` gives those tags. **The endpoint stays outside**, and section 6 holds the reason |
 | **The statistics of the library** | `GET /api/libraries/:id/stats` gives `totalItems`, `totalSize`, `totalDuration`, `numAudioTracks`, `largestItems`, `longestItems`, `totalAuthors`, `totalGenres` | Yes | Nothing. The view of the key `T` holds the group "The library", with the five longest items and the five largest items |
 | **The statistics of the user** | `GET /api/me/listening-stats` gives `totalTime` 281, `today` 281, `days` `{"2026-08-10":281}`, `dayOfWeek` `{"Monday":281}`, `items` (a map of 2), and `recentSessions` (5) | Yes | Nothing. The key `T` shows the time of this day and the time in total, the last 14 days, the seven days of the week, the five media of the largest time, and the five last sessions |
 | **The statistics of a year** | `GET /api/stats/year/2026` gives `numListeningSessions`, `totalListeningTime`, `topAuthors`, `topNarrators`, `topGenres`, and 8 more fields. **`topGenres` names its value `genre`, and the two other lists name it `name`** | Yes | Nothing. The view of the key `T` holds the group "The year". The lists of the narrators and of the genres come from the copy of the metadata inside each session, therefore a session that came before the metadata gives an empty list |
-| **The account of the user** | `GET /api/me` gives `id`, `username`, `type` (`root`), `permissions`, `mediaProgress` (9 rows), `bookmarks`, `lastSeen` | Half | The client signs in and holds the token. It shows no permission and no type. The README says that `D` needs the permission `download`, and the client does not read that permission before it tries |
-| **The permissions** | `GET /api/me` gives 9 permissions: `download`, `update`, `delete`, `upload`, `createEreader`, `accessAllLibraries`, `accessAllTags`, `accessExplicitContent`, `selectedTagsNotAccessible` | Half | The client reads four of them, in `src/api/me/permissions.rs`. The key `D` gives a clear sentence for an account that may not download. An absent permission means "yes" |
+| **The account of the user** | `GET /api/me` gives `id`, `username`, `type` (`root`), `permissions`, `mediaProgress` (9 rows), `bookmarks`, `lastSeen` | Yes | Nothing. The settings, and then "Accounts and log out": the screen says the type of the account and every permission that changes the work of the program, in the words of a user. See T-110 |
+| **The permissions** | `GET /api/me` gives 9 permissions: `download`, `update`, `delete`, `upload`, `createEreader`, `accessAllLibraries`, `accessAllTags`, `accessExplicitContent`, `selectedTagsNotAccessible` | Yes | Nothing that a user of a terminal meets. The program reads `download`, `update`, and `delete`, and the settings say each of them before the user presses a key. `upload`, `createEreader`, and the three permissions of the libraries and of the tags belong to work that this program does not do. **An absent permission means "yes"**: a server that gives no permission must not stop the user |
 | **The users of the server** | `GET /api/users` gives the key `users`. `GET /api/users/online` gives `usersOnline` and `openSessions`. `POST`, `PATCH`, and `DELETE` of the reference are not tested: they change the accounts of the server | No | Everything. See section 6 |
 | **An RSS feed of an item** | `GET /api/feeds` gives `{"feeds":[],"minified":false}`. `POST /api/items/:id/open-feed` of the reference is not tested: it makes a public address | No | Everything. See section 6 |
 | **A share of an item** | `GET /api/share/xx` gives `404` for an identity that does not exist, therefore the group answers | No | Everything. See section 6 |
@@ -293,9 +296,10 @@ The sequence inside each group gives the value for the work.
     2026-08-11.** The line "The reader: the cache of the ebooks" of the settings
     writes `ebook_cache_mb` of the block `[reader]`, and the write keeps every
     comment of the file (T-77).
-18. **`GET /api/podcasts/:id/checknew` for the new episodes.** The program
-    compares the feed with the episodes of the server itself. That finds every
-    episode that is missing, and the endpoint finds the new ones only.
+18. ~~**`GET /api/podcasts/:id/checknew` for the new episodes.**~~ **Closed on
+    2026-08-12 with a measurement, and no code.** A podcast that holds 3
+    episodes of a feed of 57 gives **0** episodes with that endpoint. The work
+    of the program finds all 54 that are missing. See section 6.
 
 ## 6. What Toutui should not do
 
@@ -344,6 +348,17 @@ place to change them adds a risk and no value.
 | The notifications | `GET /api/notifications` |
 | The file system of the server | `GET /api/filesystem` |
 | Upload a file | The requests of upload |
+
+### The endpoints that give less than the work of the program
+
+A measurement of 2026-08-12 compared each of these endpoints with the work that
+the program does today. **The endpoint is cheaper only where it is wrong**,
+therefore the program keeps its own work.
+
+| Function | Endpoint | Why not |
+|---|---|---|
+| Look for a new episode of a podcast | `GET /api/podcasts/:id/checknew` | **It compares with the time of the last examination**, and not with the episodes that the server holds. A podcast of the sandbox holds 3 episodes of a feed of 57: the endpoint gives **0** episodes in 15 bytes, and the feed gives 57 in 27598 bytes. The program compares the feed with the episodes of the server, therefore the key `E` finds all 54 that are missing. An answer that loses 54 episodes is not a cheaper answer |
+| The tags of the server | `GET /api/tags` | It gives the tags of **every** library. The key `f` filters the library that the user reads, and `GET /api/libraries/:id/filterdata` gives the tags of that library with the authors, the series, the genres, the narrators, the languages, and the publishers: one request gives every line of that view. A tag of a different library is a line that gives the user no media |
 
 ### The functions that make a public address
 

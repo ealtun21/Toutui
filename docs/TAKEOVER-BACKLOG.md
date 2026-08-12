@@ -4447,6 +4447,97 @@ The real program with the three libraries of the sandbox: `Books` → `Empty` �
 `Podcasts` → `Books`. The header names the library at each press, and the message
 of the program says the name.
 
+### T-110: the four rows of `docs/T-24-coverage.md` that said Half
+
+**No row of the table says `Half` now.** The four rows are these, and two of them
+closed with a measurement and no code.
+
+**1. The account of the user, and its permissions.** `GET /api/me` gives the
+type of the account and nine permissions, and no screen of the program showed one
+of them: a user whose account may not download read the message of the key `D`
+and nothing else. The settings, and then "Accounts and log out", hold the account
+now:
+
+```
+Accounts — l: log out of the account
+➤ toutuitest
+The account toutuitest, of the type root.
+You may make a copy of a media on the disk (the key D).
+You may give a collection or a playlist a new name, a new description, and a new sequence.
+You may remove a collection or a playlist.
+```
+
+`the_lines_of_the_account` is pure, and it names the permissions that change the
+work of the program only: `download`, `update`, and `delete`. `upload`,
+`createEreader`, and the three permissions of the libraries and of the tags
+belong to work that this program does not do, and a line of them would tell the
+user nothing. **An absent permission means "yes"**, therefore a server that names
+none gives every line as "You may". The offline mode says that the program knows
+nothing of the account (T-91).
+
+**A key that a permission refuses keeps its own message**: the key `D` says "Your
+account cannot download a media. Ask the person who holds the server."
+
+**2. `?collapseseries=1`, and it came after the paging of T-70.** The measurement
+of 2026-08-12 against the sandbox, with the same library:
+
+| The request | `total` | The results |
+|---|---|---|
+| `?limit=500&page=0` | 14 | 14 items |
+| `?limit=500&page=0&collapseseries=1` | **10** | 10 lines, and three of them hold `collapsedSeries` |
+
+**The grouping of the server changes what one page holds, and it changes
+`total`**: `total` counts the lines that the user reads. That is why the
+measurement had to come after T-70, and the title of the Library view is exact
+now.
+
+**The two screens are the same screen.** The server gives the same 10 lines in
+the same sequence as `group_library`, and it collapses a series of one book
+("Depthless Hunger, Book") in the same way. The program sends the parameter for a
+library of books now, and a library of podcasts holds no series.
+
+**`group_library` stays**, and the maintainer said that it goes away only when
+the screen of the server is the same screen. It is: the function gives the line
+of a series the place of that series in `App::series`, and the view reads the
+books, the description, and the cover there. The server gives no such place. The
+work of that function is small now — one line of the answer gives one line of the
+view — and the mapping is the work that stays.
+
+The real program: "Library [10 items]", with "The Test Chronicles [3 books]", and
+the key `l` gives the three books in the sequence of the series.
+
+**3. `GET /api/podcasts/:id/checknew`: the measurement says no.** The maintainer
+asked for that endpoint **where it is cheaper than the work of the program**, and
+with the rule that **no episode that is missing may go away**. The measurement of
+2026-08-12 shows that the two conditions cannot both hold.
+
+The podcast of the sandbox holds **3 episodes of a feed of 57**:
+
+| The request | The answer | The bytes | The time |
+|---|---|---|---|
+| `GET /api/podcasts/:id/checknew` | **0 episodes** | 15 | 3.5 s |
+| `POST /api/podcasts/feed` | **57 episodes** | 27598 | 5.7 s |
+
+The endpoint compares with the **time of the last examination**, and not with the
+episodes that the server holds. It therefore says that nothing is new for a
+podcast that is missing **54** episodes. The key `E` reads the feed and it
+compares with the episodes of the server, and it finds all 54.
+
+**The endpoint is cheaper only where it is wrong**, therefore the program does
+not use it. The row of the table says `Yes` for the function, because the program
+does that work and it does it better, and section 6 of
+`docs/T-24-coverage.md` holds the endpoint with this measurement. "The decisions
+that this session made" of `docs/HANDOVER.md` holds the change of the answer of
+the maintainer.
+
+**4. `GET /api/tags` stays outside**, as the maintainer decided.
+`GET /api/libraries/:id/filterdata` gives the tags of the library that the user
+reads, with the authors, the series, the genres, the narrators, the languages,
+and the publishers: one request gives every line of the view of the key `f`.
+`GET /api/tags` gives the tags of **every** library, and a tag of a different
+library is a line that gives the user no media. Section 6 holds that reason, and
+the row says `Yes`: the user filters by a tag today.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
