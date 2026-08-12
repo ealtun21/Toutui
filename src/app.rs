@@ -411,8 +411,30 @@ impl App {
     /// Makes the application state.
     ///
     /// The caller gives the HTTP client. The client holds the addresses of the
-    /// server and the decrypted token.
+    /// server and the decrypted token. **A new application starts a new engine
+    /// of the sound**, therefore a refresh of the screen takes
+    /// `new_with_the_engine`. See T-131.
     pub async fn new(api: std::sync::Arc<crate::api::client::ApiClient>) -> Result<Self> {
+        Self::new_with_the_engine(api, None).await
+    }
+
+    /// Makes the application state, and it keeps the engine that plays.
+    ///
+    /// **The key `R` and every key that refreshes the screen make a new
+    /// application** (the sequence of the library, and the key that takes the
+    /// next library of T-66). `App::new` started a new engine of the sound for
+    /// each of them: the old engine kept the playback and no key of the user
+    /// reached it, therefore the row of the player went away while the media
+    /// played, and the key `Space` stopped nothing. A measurement of 2026-08-12
+    /// pressed `R` at the minute 2 of a book of 30 minutes, and the book played
+    /// to its end with no row on the screen. See T-131.
+    ///
+    /// `engine` holds the handle of the engine and the fault of the sound
+    /// device, when a program that runs already gives them.
+    pub async fn new_with_the_engine(
+        api: std::sync::Arc<crate::api::client::ApiClient>,
+        engine: Option<(PlayerHandle, Option<String>)>,
+    ) -> Result<Self> {
         // A new application reads the first page of the library again. A page
         // of the library before it belongs to a different filter, a different
         // library, or a different server. See T-70.
@@ -1180,32 +1202,47 @@ impl App {
         // sound. See T-46.
         const TIME_FOR_THE_SOUND_DEVICE: std::time::Duration = std::time::Duration::from_secs(5);
 
-        let token_of_the_engine = token.clone();
-        let start_of_the_engine =
-            tokio::task::spawn_blocking(move || PlayerHandle::start(token_of_the_engine));
+        // **The engine of a program that plays already stays.** A new engine
+        // takes the sound device a second time, and the playback of the user
+        // then belongs to no key of the program: the row of the player went
+        // away, and the key `Space` stopped nothing. See T-131.
+        let (player, audio_fault) = match engine {
+            Some((player, audio_fault)) => (player, audio_fault),
+            None => {
+                let token_of_the_engine = token.clone();
+                let start_of_the_engine =
+                    tokio::task::spawn_blocking(move || PlayerHandle::start(token_of_the_engine));
 
-        let outcome =
-            match tokio::time::timeout(TIME_FOR_THE_SOUND_DEVICE, start_of_the_engine).await {
-                Ok(Ok(outcome)) => outcome,
-                Ok(Err(error)) => Err(format!("the thread of the sound device stopped: {}", error)),
-                Err(_) => Err(format!(
-                    "the sound device did not answer in {} seconds",
-                    TIME_FOR_THE_SOUND_DEVICE.as_secs()
-                )),
-            };
+                let outcome = match tokio::time::timeout(
+                    TIME_FOR_THE_SOUND_DEVICE,
+                    start_of_the_engine,
+                )
+                .await
+                {
+                    Ok(Ok(outcome)) => outcome,
+                    Ok(Err(error)) => {
+                        Err(format!("the thread of the sound device stopped: {}", error))
+                    }
+                    Err(_) => Err(format!(
+                        "the sound device did not answer in {} seconds",
+                        TIME_FOR_THE_SOUND_DEVICE.as_secs()
+                    )),
+                };
 
-        let (player, audio_fault) = match outcome {
-            Ok(player) => (player, None),
-            Err(error) => {
-                log::error!("[app] the audio engine did not start: {}", error);
-                let (player, receiver) = PlayerHandle::without_engine();
+                match outcome {
+                    Ok(player) => (player, None),
+                    Err(error) => {
+                        log::error!("[app] the audio engine did not start: {}", error);
+                        let (player, receiver) = PlayerHandle::without_engine();
 
-                // Nothing reads the commands of a player with no engine. A
-                // thread takes them and drops them, so that a key of the
-                // playback does not fill the memory.
-                std::thread::spawn(move || while receiver.recv().is_ok() {});
+                        // Nothing reads the commands of a player with no engine.
+                        // A thread takes them and drops them, so that a key of
+                        // the playback does not fill the memory.
+                        std::thread::spawn(move || while receiver.recv().is_ok() {});
 
-                (player, Some(error.to_string()))
+                        (player, Some(error.to_string()))
+                    }
+                }
             }
         };
 

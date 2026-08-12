@@ -418,7 +418,21 @@ async fn main() -> Result<()> {
                                 // runs. The refresh then meets it, and the login
                                 // screen comes: the program must not stop with a
                                 // fault. See T-123.
-                                app = match App::new(std::sync::Arc::clone(&api)).await {
+                                // **The engine of the playback stays.** A new
+                                // application started a new engine of the sound,
+                                // and the old engine kept the playback: the row
+                                // of the player went away while the media played,
+                                // and no key of the user reached that playback.
+                                // See T-131.
+                                let the_engine =
+                                    Some((app.player.clone(), app.audio_fault.clone()));
+
+                                app = match App::new_with_the_engine(
+                                    std::sync::Arc::clone(&api),
+                                    the_engine,
+                                )
+                                .await
+                                {
                                     Ok(new) => new,
                                     Err(report)
                                         if api::client::error::the_token_is_not_valid(&report) =>

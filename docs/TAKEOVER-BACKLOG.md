@@ -5862,6 +5862,47 @@ line with a percentage after the playback ends — and a session that never clos
    correction of the request alone gives those users nothing. A text of no number
    gives 0, and the row still reads.
 
+### T-131: the key `R` took the playback of the user away from every key
+
+**The sweep of a library of more than 500 items with a media that plays found
+this**, and the key that found it is the key of T-66: the row of the player went
+away when the program took the next library of the server, and the media played
+on.
+
+**Every key that refreshes the screen makes a new application**: the key `R`, the
+key that takes the next library (T-66), and the keys of the sequence of the
+library. **`App::new` starts a new engine of the sound**, therefore the old engine
+kept the playback and the new application knew nothing of it:
+
+| What the user holds | Before | After |
+|---|---|---|
+| the row of the player | **it goes away**, and the media plays | it stays |
+| the key `Space`, `Y`, and every key of the player | they go to the engine of no playback | they go to the playback |
+| the lines "the application uses the sound device" of the log | **5** in 15 seconds | 1 |
+
+The measurement of 2026-08-12, with the sandbox and tmux: the key `R` at the
+minute 2 of a book of 30 minutes. Before the correction the row of the player
+went away, the key `Space` stopped nothing, and the log said "the playback
+stopped at 1800 seconds, finished=true" — **the book played to its end while the
+user held no key of it.** With the correction the row stays, and the same
+sequence gives "the playback stopped at 310 seconds, finished=false".
+
+**The engine of a program that plays already stays.**
+`App::new_with_the_engine` takes the handle of the engine and the fault of the
+sound device, and the loop of `src/main.rs` gives them at each refresh.
+`App::new` is that function with no engine, therefore the first start of the
+program does not change.
+
+Two tests of `tests/the_refresh_keeps_the_engine.rs` hold the rule, and both fail
+with the correction removed. The first needs **no sound device and no server**:
+`PlayerHandle::without_engine` gives a handle whose commands go to a channel of
+the test, and the test reads the command of a key. The second reads
+`src/main.rs`, because no unit test reaches the loop of the program.
+
+**What a refresh still loses**: the timer for sleep of T-24 and the queue of the
+media stand in the application, and a new application holds neither. No
+measurement of a user names them, therefore this item does not move them.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

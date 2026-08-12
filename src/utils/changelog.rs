@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.71",
+        date: "12/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The keys of the player keep your playback after the key `R`.** The key `R`, the \
+             key that takes the next library, and a change of the sequence of the library made a \
+             new engine of the sound: the row of the player went away while your media played, \
+             and the keys `Space` and `Y` acted on nothing. The book played to its end and no key \
+             reached it. The engine of your playback stays now.",
+        ],
+    },
+    Entry {
         version: "0.7.70",
         date: "12/08/2026",
         body: &[

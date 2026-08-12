@@ -1,6 +1,6 @@
 [package]
 name = "toutui"
-version = "0.7.70"
+version = "0.7.71"
 edition = "2021"
 description = "A TUI client of Audiobookshelf for Linux and macOS."
 license = "GPL-3.0-or-later"
