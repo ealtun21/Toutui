@@ -54,350 +54,417 @@ async fn main() -> Result<()> {
     let env_path = toutui::paths::env_file();
     toutui::utils::encrypt_token::load_env_file(&env_path);
 
-    // Init database
-    let mut _database = Database::new().await?;
-    let mut _database_ready = false;
+    // **A token that the server refused opens the login screen**, and the
+    // program then makes everything of the startup again with the new token.
+    // Every turn of this loop is one account: the login screen, the client, the
+    // tasks, and the views. See T-123.
+    'the_session: loop {
+        // Init database
+        let mut _database = Database::new().await?;
+        let mut _database_ready = false;
 
-    // Wait for the database to be ready, waiting for the user to enter their credentials
-    loop {
-        _database = Database::new().await?;
-        if _database.default_usr.is_empty() {
-            let app_login = AppLogin::new().await?;
-            let terminal = ratatui::init();
-            let _app_result = app_login.run(terminal);
-            // The wait stops a fast loop. If the screen of the login comes
-            // back at once, for example because the terminal gives an error,
-            // this loop would use a full processor without it.
-            //
-            // The wait is not for the database. The comment here said before
-            // that the program could read the database before the login wrote
-            // the user, and that the second attempt then worked. That race is
-            // closed: `auth_input.rs` waits for the thread of the login, and
-            // `auth_process` writes the user before it gives its answer. A
-            // test on 2026-08-10 read the database with no wait after a real
-            // login and found the user. See T-15 and
-            // `tests/login_against_the_sandbox.rs`.
-            tokio::time::sleep(Duration::from_secs(1)).await;
-        } else {
-            // If the database is ready, exit the loop
-            print!("\x1B[2J\x1B[1;1H"); // clear all stdout (avoid to sill have the previous print when the app is launched)
-            _database_ready = true;
-            info!("Database ready");
-            break;
-        }
-    }
-
-    // Once the database is ready, initialize the app
-    if _database_ready {
-        // init current username
-        let mut username: String = String::new();
-        if let Some(var_username) = _database.default_usr.first() {
-            username = var_username.clone();
-        }
-        // At the start no playback loop runs. Therefore a new playback must
-        // not wait for a loop before it.
-        let _ = update_has_played_before("1", username.as_str());
-
-        // Make the HTTP client. The client holds all the addresses of the
-        // server. If the address that has the most importance does not answer,
-        // the client changes to the next address automatically.
-        let server_address = _database.default_usr.get(1).cloned().unwrap_or_default();
-
-        // The database holds the token in an encrypted form. The client needs
-        // the plain token one time only.
-        let encrypted_token = _database.default_usr.get(2).cloned().unwrap_or_default();
-        let token = match decrypt_token(encrypted_token.as_str()) {
-            Ok(token) => token,
-            Err(e) => {
-                println!("Error: {}", e);
-                String::new()
+        // Wait for the database to be ready, waiting for the user to enter their credentials
+        loop {
+            _database = Database::new().await?;
+            if _database.default_usr.is_empty() {
+                let app_login = AppLogin::new().await?;
+                let terminal = ratatui::init();
+                let _app_result = app_login.run(terminal);
+                // The wait stops a fast loop. If the screen of the login comes
+                // back at once, for example because the terminal gives an error,
+                // this loop would use a full processor without it.
+                //
+                // The wait is not for the database. The comment here said before
+                // that the program could read the database before the login wrote
+                // the user, and that the second attempt then worked. That race is
+                // closed: `auth_input.rs` waits for the thread of the login, and
+                // `auth_process` writes the user before it gives its answer. A
+                // test on 2026-08-10 read the database with no wait after a real
+                // login and found the user. See T-15 and
+                // `tests/login_against_the_sandbox.rs`.
+                tokio::time::sleep(Duration::from_secs(1)).await;
+            } else {
+                // If the database is ready, exit the loop
+                print!("\x1B[2J\x1B[1;1H"); // clear all stdout (avoid to sill have the previous print when the app is launched)
+                _database_ready = true;
+                info!("Database ready");
+                break;
             }
-        };
+        }
 
-        let config_file = config::load_config()?;
+        // Once the database is ready, initialize the app
+        if _database_ready {
+            // init current username
+            let mut username: String = String::new();
+            if let Some(var_username) = _database.default_usr.first() {
+                username = var_username.clone();
+            }
+            // At the start no playback loop runs. Therefore a new playback must
+            // not wait for a loop before it.
+            let _ = update_has_played_before("1", username.as_str());
 
-        // The cache of the ebooks runs inside a task, and that task holds no
-        // `App`. Therefore the limit of the configuration file goes to its slot
-        // here, one time. See T-72.
-        logic::reader::cache::keep_the_limit_of_the_configuration(
-            config_file.reader.ebook_cache_mb,
-        );
+            // Make the HTTP client. The client holds all the addresses of the
+            // server. If the address that has the most importance does not answer,
+            // the client changes to the next address automatically.
+            let server_address = _database.default_usr.get(1).cloned().unwrap_or_default();
 
-        // The user must be able to see which of the three sources gave the
-        // limit: the variable of the environment, `config.toml`, or the program.
-        info!(
-            "[main][cache] the cache of the ebooks holds {} byte(s) at the most.",
-            logic::reader::cache::the_limit()
-        );
+            // The database holds the token in an encrypted form. The client needs
+            // the plain token one time only.
+            let encrypted_token = _database.default_usr.get(2).cloned().unwrap_or_default();
+            let token = match decrypt_token(encrypted_token.as_str()) {
+                Ok(token) => token,
+                Err(e) => {
+                    println!("Error: {}", e);
+                    String::new()
+                }
+            };
 
-        let pool = config::pool_for_address(&config_file.servers, &server_address);
-        info!("[main][api] The pool has {} address(es).", pool.len());
+            let config_file = config::load_config()?;
 
-        // The task of the live messages needs the plain token, and the client
-        // keeps its own token for itself. See T-47.
-        let token_of_the_live_task = token.clone();
+            // The cache of the ebooks runs inside a task, and that task holds no
+            // `App`. Therefore the limit of the configuration file goes to its slot
+            // here, one time. See T-72.
+            logic::reader::cache::keep_the_limit_of_the_configuration(
+                config_file.reader.ebook_cache_mb,
+            );
 
-        let api = std::sync::Arc::new(api::client::ApiClient::new(
-            std::sync::Arc::new(pool),
-            token,
-        )?);
+            // The user must be able to see which of the three sources gave the
+            // limit: the variable of the environment, `config.toml`, or the program.
+            info!(
+                "[main][cache] the cache of the ebooks holds {} byte(s) at the most.",
+                logic::reader::cache::the_limit()
+            );
 
-        // The probe task gives an address the state `Up` again when the
-        // address answers. Therefore the application returns to the local
-        // address without a restart.
-        api::client::probe::spawn_probe_task(std::sync::Arc::clone(&api));
+            let pool = config::pool_for_address(&config_file.servers, &server_address);
+            info!("[main][api] The pool has {} address(es).", pool.len());
 
-        // The live messages of the server. Audiobookshelf sends every change
-        // of every client over socket.io, and the transport `polling` of that
-        // protocol is plain HTTP. Therefore this task needs no new dependency.
-        // See T-47.
-        //
-        // The task takes the token here, because `ApiClient` keeps its token
-        // for itself.
-        api::live::spawn_the_live_task(api.pool(), token_of_the_live_task);
+            // The task of the live messages needs the plain token, and the client
+            // keeps its own token for itself. See T-47.
+            let token_of_the_live_task = token.clone();
 
-        // The application plays a local copy when the server does not answer.
-        // This task sends the positions when the server answers again, thus
-        // the user does not start the application again. See T-25.
-        //
-        // A user can have an account on more than one server. The task sends
-        // the positions of this server only.
-        let server_key = config::server_key(&config_file.servers, &server_address);
+            let api = std::sync::Arc::new(api::client::ApiClient::new(
+                std::sync::Arc::new(pool),
+                token,
+            )?);
 
-        // The queue of the media stands on the disk. The program reads the queue
-        // of this account and of this server before the first frame. See T-56.
-        toutui::logic::queue::read_the_queue_of_the_account(&username, &server_key);
+            // **Every task of this account holds its handle here.** A login that
+            // comes again makes new tasks with the new token, and a task of the
+            // token before it must stop: two live tasks write one state of the
+            // program, therefore the header would say the fault of the old token.
+            // See T-123.
+            let mut the_tasks_of_the_account: Vec<tokio::task::JoinHandle<()>> = Vec::new();
 
-        toutui::logic::offline::spawn_flush_task(
-            std::sync::Arc::clone(&api),
-            username.clone(),
-            server_key,
-        );
+            // The probe task gives an address the state `Up` again when the
+            // address answers. Therefore the application returns to the local
+            // address without a restart.
+            the_tasks_of_the_account.push(api::client::probe::spawn_probe_task(
+                std::sync::Arc::clone(&api),
+            ));
 
-        // The terminal comes first, and a screen comes before the requests.
-        //
-        // `App::new` asks the server many times: the libraries, the list
-        // Continue Listening, the position of each book of that list, the
-        // series, every item, and the lists. The old code drew nothing until
-        // all of that finished. A measurement on 2026-08-10 gave a server that
-        // accepts a connection and answers nothing: the screen stayed black
-        // for 15 seconds, the whole timeout of one request. A slow server with
-        // many books gives a black screen for much longer, and the user cannot
-        // tell a slow server from a program that stopped. See T-40.
-        let mut terminal = ratatui::init();
+            // The live messages of the server. Audiobookshelf sends every change
+            // of every client over socket.io, and the transport `polling` of that
+            // protocol is plain HTTP. Therefore this task needs no new dependency.
+            // See T-47.
+            //
+            // The task takes the token here, because `ApiClient` keeps its token
+            // for itself.
+            the_tasks_of_the_account.push(api::live::spawn_the_live_task(
+                api.pool(),
+                token_of_the_live_task,
+            ));
 
-        let started = std::time::Instant::now();
-        let server_name = _database
-            .default_usr
-            .get(1)
-            .cloned()
-            .unwrap_or_else(|| String::from("the server"));
+            // The application plays a local copy when the server does not answer.
+            // This task sends the positions when the server answers again, thus
+            // the user does not start the application again. See T-25.
+            //
+            // A user can have an account on more than one server. The task sends
+            // the positions of this server only.
+            let server_key = config::server_key(&config_file.servers, &server_address);
 
-        let mut app = {
-            let making = App::new(std::sync::Arc::clone(&api));
-            tokio::pin!(making);
-            let mut tick: usize = 0;
+            // The queue of the media stands on the disk. The program reads the queue
+            // of this account and of this server before the first frame. See T-56.
+            toutui::logic::queue::read_the_queue_of_the_account(&username, &server_key);
 
-            loop {
-                tokio::select! {
-                    biased;
-                    result = &mut making => break result?,
-                    _ = tokio::time::sleep(Duration::from_millis(120)) => {
-                        tick += 1;
-                        terminal.draw(|frame| {
-                            toutui::ui::loading::render(
-                                frame,
-                                &server_name,
-                                tick,
-                                started.elapsed().as_secs(),
-                            )
-                        })?;
+            the_tasks_of_the_account.push(toutui::logic::offline::spawn_flush_task(
+                std::sync::Arc::clone(&api),
+                username.clone(),
+                server_key,
+            ));
 
-                        // The user can stop the program while it waits.
-                        if crossterm::event::poll(Duration::from_millis(0))? {
-                            if let event::Event::Key(key) = crossterm::event::read()? {
-                                if key.kind == event::KeyEventKind::Press
-                                    && matches!(key.code, KeyCode::Char('Q') | KeyCode::Esc)
-                                {
-                                    ratatui::restore();
-                                    return Ok(());
+            // The terminal comes first, and a screen comes before the requests.
+            //
+            // `App::new` asks the server many times: the libraries, the list
+            // Continue Listening, the position of each book of that list, the
+            // series, every item, and the lists. The old code drew nothing until
+            // all of that finished. A measurement on 2026-08-10 gave a server that
+            // accepts a connection and answers nothing: the screen stayed black
+            // for 15 seconds, the whole timeout of one request. A slow server with
+            // many books gives a black screen for much longer, and the user cannot
+            // tell a slow server from a program that stopped. See T-40.
+            let mut terminal = ratatui::init();
+
+            let started = std::time::Instant::now();
+            let server_name = _database
+                .default_usr
+                .get(1)
+                .cloned()
+                .unwrap_or_else(|| String::from("the server"));
+
+            let made = {
+                let making = App::new(std::sync::Arc::clone(&api));
+                tokio::pin!(making);
+                let mut tick: usize = 0;
+
+                loop {
+                    tokio::select! {
+                        biased;
+                        result = &mut making => break result,
+                        _ = tokio::time::sleep(Duration::from_millis(120)) => {
+                            tick += 1;
+                            terminal.draw(|frame| {
+                                toutui::ui::loading::render(
+                                    frame,
+                                    &server_name,
+                                    tick,
+                                    started.elapsed().as_secs(),
+                                )
+                            })?;
+
+                            // The user can stop the program while it waits.
+                            if crossterm::event::poll(Duration::from_millis(0))? {
+                                if let event::Event::Key(key) = crossterm::event::read()? {
+                                    if key.kind == event::KeyEventKind::Press
+                                        && matches!(key.code, KeyCode::Char('Q') | KeyCode::Esc)
+                                    {
+                                        ratatui::restore();
+                                        return Ok(());
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
-        };
+            };
 
-        // The picker asks the terminal for the protocol of the pictures and
-        // for the size of the font. A terminal that does not answer gives
-        // blocks of Unicode. See T-23.
-        //
-        // The question must come AFTER `ratatui::init`, and this sequence is
-        // not free. `Picker::from_query_stdio` reads the answer on its own
-        // thread. That thread makes the terminal raw, and it gives the old
-        // condition back when it stops. A terminal that never answers stops
-        // that thread two seconds later. With the question before the
-        // application, the thread then gave the terminal the condition of the
-        // shell back, and the application read no key at all. A measurement on
-        // 2026-08-10 in a pseudo terminal showed the fault: `ICANON` and `ECHO`
-        // stayed on for ever, and every key went to a line buffer. With the
-        // question after `ratatui::init`, the thread reads a terminal that is
-        // already raw, therefore it gives a raw terminal back.
-        let picker = toutui::ui::cover::picker();
-        info!(
-            "[main][cover] the terminal uses {:?} with a font of {} by {} pixels",
-            picker.protocol_type(),
-            picker.font_size().width,
-            picker.font_size().height,
-        );
+            // **The first request of the program tells a token that is not valid.**
+            // The user goes to the login screen, and not to a line of the source of
+            // this program. See T-123.
+            let mut app = match made {
+                Ok(app) => app,
+                Err(report) if api::client::error::the_token_is_not_valid(&report) => {
+                    for task in &the_tasks_of_the_account {
+                        task.abort();
+                    }
 
-        // Running the app in a loop
-        loop {
-            // The engine gives the state. The panel is visible only when the
-            // engine holds a media.
-            // The timer for sleep works here, because the loop of the
-            // program runs at each frame and it holds the handle of the
-            // engine. See T-24.
-            app.tick_the_timer_for_sleep();
+                    logic::auth::auth_input::the_program_needs_a_new_token(
+                        &username,
+                        &server_address,
+                    )
+                    .map_err(color_eyre::eyre::Report::msg)?;
 
-            let playback = app.player.state();
-            let is_playing = playback.status != toutui::player::engine::PlaybackStatus::Stopped;
-            let player_notice = playback.notice.clone();
-            let player_info = player_info(app.username.as_str(), &playback);
-            let sleep = app.text_of_the_timer_for_sleep();
-
-            terminal.draw(|frame| {
-                let (bg_r, bg_g, bg_b) = rgb_parts(&app.config.colors.background_color);
-                let bg_color_player = app.config.colors.player_background_color.clone();
-                // global background
-                let background =
-                    Block::default().style(Style::default().bg(Color::Rgb(bg_r, bg_g, bg_b)));
-
-                frame.render_widget(background, frame.area());
-
-                if is_playing {
-                    let area = frame.area();
-                    // render for the player (automatically refreshed)
-                    render_player(
-                        area,
-                        frame.buffer_mut(),
-                        player_info,
-                        bg_color_player,
-                        app.username.as_str(),
-                        player_notice,
-                        sleep,
-                    );
+                    continue 'the_session;
                 }
+                Err(report) => return Err(report),
+            };
 
-                // render widget for general app :
-                // Will be manually refresh by pressing `R`
-                // If `app` variable is reinitialized below (`app = App::new().await?`), it will be taken into account and data will be refreshed
-                // Otherwise, the current `app` variable will still be used.
-                frame.render_widget(&mut app, frame.area());
-            })?;
-
-            // The loop waits for a key, and it then takes every key that
-            // waits.
+            // The picker asks the terminal for the protocol of the pictures and
+            // for the size of the font. A terminal that does not answer gives
+            // blocks of Unicode. See T-23.
             //
-            // The old code took one key for each turn of the loop, and the
-            // loop then drew the screen and waited 50 milliseconds. A key that
-            // repeats gives about 30 keys each second, therefore the keys made
-            // a queue. The list moved slowly, and it went on moving after the
-            // user let the key go. See T-39.
-            //
-            // The limit stops a very long queue from holding the screen.
-            const KEYS_FOR_ONE_FRAME: usize = 64;
-            let mut taken = 0;
+            // The question must come AFTER `ratatui::init`, and this sequence is
+            // not free. `Picker::from_query_stdio` reads the answer on its own
+            // thread. That thread makes the terminal raw, and it gives the old
+            // condition back when it stops. A terminal that never answers stops
+            // that thread two seconds later. With the question before the
+            // application, the thread then gave the terminal the condition of the
+            // shell back, and the application read no key at all. A measurement on
+            // 2026-08-10 in a pseudo terminal showed the fault: `ICANON` and `ECHO`
+            // stayed on for ever, and every key went to a line buffer. With the
+            // question after `ratatui::init`, the thread reads a terminal that is
+            // already raw, therefore it gives a raw terminal back.
+            let picker = toutui::ui::cover::picker();
+            info!(
+                "[main][cover] the terminal uses {:?} with a font of {} by {} pixels",
+                picker.protocol_type(),
+                picker.font_size().width,
+                picker.font_size().height,
+            );
 
-            if crossterm::event::poll(Duration::from_millis(200))? {
-                while taken < KEYS_FOR_ONE_FRAME
-                    && crossterm::event::poll(Duration::from_millis(0))?
-                {
-                    let event = crossterm::event::read()?;
-                    taken += 1;
+            // Running the app in a loop
+            loop {
+                // The engine gives the state. The panel is visible only when the
+                // engine holds a media.
+                // The timer for sleep works here, because the loop of the
+                // program runs at each frame and it holds the handle of the
+                // engine. See T-24.
+                app.tick_the_timer_for_sleep();
 
-                    if let event::Event::Key(key) = event {
-                        // A terminal that reports the release of a key sends
-                        // two events for one press. The application must act
-                        // one time.
-                        if key.kind != event::KeyEventKind::Press {
-                            continue;
-                        }
+                let playback = app.player.state();
+                let is_playing = playback.status != toutui::player::engine::PlaybackStatus::Stopped;
+                let player_notice = playback.notice.clone();
+                let player_info = player_info(app.username.as_str(), &playback);
+                let sleep = app.text_of_the_timer_for_sleep();
 
-                        app.handle_key(key);
+                terminal.draw(|frame| {
+                    let (bg_r, bg_g, bg_b) = rgb_parts(&app.config.colors.background_color);
+                    let bg_color_player = app.config.colors.player_background_color.clone();
+                    // global background
+                    let background =
+                        Block::default().style(Style::default().bg(Color::Rgb(bg_r, bg_g, bg_b)));
 
-                        // A box that took a text wrote on the cells of the
-                        // view below it. ratatui writes the cells that changed
-                        // only, therefore those cells need a clear: the next
-                        // draw then writes every one of them. See T-89.
-                        if app.the_screen_must_be_drawn_again {
-                            app.the_screen_must_be_drawn_again = false;
-                            terminal.clear()?;
-                        }
+                    frame.render_widget(background, frame.area());
 
-                        // The key `R` refreshes the application. A new
-                        // sequence or a new filter of the library needs the
-                        // same work, because every list of the library comes
-                        // from one request. See T-24.
-                        //
-                        // A change of the sequence keeps the user in the
-                        // Library view. A new application starts at the Home
-                        // view, therefore this line puts it back.
-                        let from_the_sequence = app.must_refresh;
+                    if is_playing {
+                        let area = frame.area();
+                        // render for the player (automatically refreshed)
+                        render_player(
+                            area,
+                            frame.buffer_mut(),
+                            player_info,
+                            bg_color_player,
+                            app.username.as_str(),
+                            player_notice,
+                            sleep,
+                        );
+                    }
 
-                        if matches!(key.code, KeyCode::Char('R')) || from_the_sequence {
-                            // The values of the filter come from the library.
-                            // A new request must ask for them again.
-                            logic::sort_filter::from_the_server::forget();
-                            logic::authors::forget();
+                    // render widget for general app :
+                    // Will be manually refresh by pressing `R`
+                    // If `app` variable is reinitialized below (`app = App::new().await?`), it will be taken into account and data will be refreshed
+                    // Otherwise, the current `app` variable will still be used.
+                    frame.render_widget(&mut app, frame.area());
+                })?;
 
-                            // This request asks for every list again, therefore
-                            // no list of the screen is old after it. See T-47.
-                            logic::live::the_lists_are_new_again();
+                // The loop waits for a key, and it then takes every key that
+                // waits.
+                //
+                // The old code took one key for each turn of the loop, and the
+                // loop then drew the screen and waited 50 milliseconds. A key that
+                // repeats gives about 30 keys each second, therefore the keys made
+                // a queue. The list moved slowly, and it went on moving after the
+                // user let the key go. See T-39.
+                //
+                // The limit stops a very long queue from holding the screen.
+                const KEYS_FOR_ONE_FRAME: usize = 64;
+                let mut taken = 0;
 
-                            // The refresh asks the server many times, and the
-                            // loop draws no frame while it waits. Therefore the
-                            // program says the message and it draws **one** frame
-                            // before the work. The message stands inside that
-                            // frame, therefore no byte of it stays on the screen.
-                            // See T-59 and T-42.
-                            logic::message::say("The program asks the server again…");
-                            terminal.draw(|frame| frame.render_widget(&mut app, frame.area()))?;
+                if crossterm::event::poll(Duration::from_millis(200))? {
+                    while taken < KEYS_FOR_ONE_FRAME
+                        && crossterm::event::poll(Duration::from_millis(0))?
+                    {
+                        let event = crossterm::event::read()?;
+                        taken += 1;
 
-                            // Reinitialize app to refresh
-                            app = App::new(std::sync::Arc::clone(&api)).await?;
-
-                            if from_the_sequence {
-                                app.view_state = app::AppView::Library;
+                        if let event::Event::Key(key) = event {
+                            // A terminal that reports the release of a key sends
+                            // two events for one press. The application must act
+                            // one time.
+                            if key.kind != event::KeyEventKind::Press {
+                                continue;
                             }
 
-                            logic::message::forget();
+                            app.handle_key(key);
 
-                            // A refresh makes a new application, therefore every
-                            // view can change. A clear makes the next draw write
-                            // every cell. See T-42.
-                            terminal.clear()?;
-                        }
+                            // A box that took a text wrote on the cells of the
+                            // view below it. ratatui writes the cells that changed
+                            // only, therefore those cells need a clear: the next
+                            // draw then writes every one of them. See T-89.
+                            if app.the_screen_must_be_drawn_again {
+                                app.the_screen_must_be_drawn_again = false;
+                                terminal.clear()?;
+                            }
 
-                        if app.should_exit {
-                            break;
+                            // The key `R` refreshes the application. A new
+                            // sequence or a new filter of the library needs the
+                            // same work, because every list of the library comes
+                            // from one request. See T-24.
+                            //
+                            // A change of the sequence keeps the user in the
+                            // Library view. A new application starts at the Home
+                            // view, therefore this line puts it back.
+                            let from_the_sequence = app.must_refresh;
+
+                            if matches!(key.code, KeyCode::Char('R')) || from_the_sequence {
+                                // The values of the filter come from the library.
+                                // A new request must ask for them again.
+                                logic::sort_filter::from_the_server::forget();
+                                logic::authors::forget();
+
+                                // This request asks for every list again, therefore
+                                // no list of the screen is old after it. See T-47.
+                                logic::live::the_lists_are_new_again();
+
+                                // The refresh asks the server many times, and the
+                                // loop draws no frame while it waits. Therefore the
+                                // program says the message and it draws **one** frame
+                                // before the work. The message stands inside that
+                                // frame, therefore no byte of it stays on the screen.
+                                // See T-59 and T-42.
+                                logic::message::say("The program asks the server again…");
+                                terminal
+                                    .draw(|frame| frame.render_widget(&mut app, frame.area()))?;
+
+                                // Reinitialize app to refresh
+                                //
+                                // A server can take the token away while the program
+                                // runs. The refresh then meets it, and the login
+                                // screen comes: the program must not stop with a
+                                // fault. See T-123.
+                                app = match App::new(std::sync::Arc::clone(&api)).await {
+                                    Ok(new) => new,
+                                    Err(report)
+                                        if api::client::error::the_token_is_not_valid(&report) =>
+                                    {
+                                        for task in &the_tasks_of_the_account {
+                                            task.abort();
+                                        }
+
+                                        logic::auth::auth_input::the_program_needs_a_new_token(
+                                            &username,
+                                            &server_address,
+                                        )
+                                        .map_err(color_eyre::eyre::Report::msg)?;
+
+                                        continue 'the_session;
+                                    }
+                                    Err(report) => return Err(report),
+                                };
+
+                                if from_the_sequence {
+                                    app.view_state = app::AppView::Library;
+                                }
+
+                                logic::message::forget();
+
+                                // A refresh makes a new application, therefore every
+                                // view can change. A clear makes the next draw write
+                                // every cell. See T-42.
+                                terminal.clear()?;
+                            }
+
+                            if app.should_exit {
+                                break;
+                            }
                         }
                     }
                 }
-            }
 
-            // The reader sends the place of the user to the server while
-            // they read. The rule of the time lives in the reader: it sends
-            // when the place changed and 30 seconds went by. See T-10.
-            app.send_the_place_of_the_reader_if_it_is_time();
+                // The reader sends the place of the user to the server while
+                // they read. The rule of the time lives in the reader: it sends
+                // when the place changed and 30 seconds went by. See T-10.
+                app.send_the_place_of_the_reader_if_it_is_time();
 
-            // Short pause between event checks. A turn that took keys draws at
-            // once, therefore the screen follows the user.
-            if taken == 0 {
-                tokio::time::sleep(Duration::from_millis(50)).await;
+                // Short pause between event checks. A turn that took keys draws at
+                // once, therefore the screen follows the user.
+                if taken == 0 {
+                    tokio::time::sleep(Duration::from_millis(50)).await;
+                }
             }
         }
+
+        // The loop of the views above ends when the user stops the program, and
+        // `continue 'the_session` is the one way back to the login screen.
+        break;
     }
 
     // Restore the terminal state before exiting the application

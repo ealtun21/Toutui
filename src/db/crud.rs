@@ -301,6 +301,25 @@ pub fn update_is_finished(value: &str, id_session: &str) -> Result<()> {
     Ok(())
 }
 
+/// Removes the row of an account, and it says nothing to the user.
+///
+/// Gives the number of rows that went away.
+///
+/// **The login screen says the sentence of a token that is not valid**, and
+/// `delete_user` says a sentence of its own. Therefore the two conditions need
+/// two functions, and the work of the database stands here one time. The rows of
+/// the downloads, of the queue, and of the positions that wait hold the name of
+/// the account, and no key of the database removes them with this row: a login
+/// with the same name finds all of them again. See T-123.
+pub fn remove_the_account(username: &str) -> Result<usize> {
+    let conn = crate::db::migrate::open_conn()?;
+
+    let rows_deleted = conn.execute("DELETE FROM users WHERE username = ?1", params![username])?;
+    info!("[remove_the_account] {} row(s) went away.", rows_deleted);
+
+    Ok(rows_deleted)
+}
+
 // Delete an user
 pub fn delete_user(username: &str) -> Result<()> {
     // The words of a user, and not the words of the code. See T-118.
@@ -309,19 +328,18 @@ pub fn delete_user(username: &str) -> Result<()> {
         username
     );
     let err_message = "Error connecting to the database.";
-    if let Ok(conn) = crate::db::migrate::open_conn() {
-        let rows_deleted =
-            conn.execute("DELETE FROM users WHERE username = ?1", params![username])?;
 
-        if rows_deleted > 0 {
-            crate::logic::message::say(message.as_str());
-            info!("[delete_user] User deleted.");
-        } else {
-            //println!("No user found with this username '{}'.", username);
+    match remove_the_account(username) {
+        Ok(rows_deleted) => {
+            if rows_deleted > 0 {
+                crate::logic::message::say(message.as_str());
+                info!("[delete_user] User deleted.");
+            }
         }
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[delete user] {}", err_message);
+        Err(error) => {
+            crate::logic::message::say(err_message);
+            error!("[delete user] {}: {}", err_message, error);
+        }
     }
 
     Ok(())

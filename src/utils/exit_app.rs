@@ -114,6 +114,60 @@ pub fn clean_exit() {
     process::exit(0);
 }
 
+/// Starts this program again, in the place of this process. See T-123.
+///
+/// **A login that comes again needs a terminal that no view holds.** The program
+/// takes the terminal one time at its start, and a second start of the terminal
+/// inside the same process gave a screen of no character: the login screen drew
+/// its box, and the box then went away. A measurement of 2026-08-12 in tmux
+/// showed it. The program that starts again meets the login screen of a first
+/// start, and that screen works.
+///
+/// The new process also takes the tasks away: the task of the live messages, the
+/// task of the probe, and the task of the positions that wait hold the token
+/// that the server refused, and every one of them stops with this process.
+///
+/// The function gives an error, and it gives nothing when it succeeds: the new
+/// program holds this process then. A system that has no `exec` gives the error
+/// of that system, and the caller then makes the login screen inside this
+/// process.
+///
+/// The new program takes the address of the server in a variable of the
+/// environment, because the value of a variable of this process goes away with
+/// it: the login screen of the new program then writes the address of the user
+/// in its first field.
+pub fn start_the_program_again(the_address_of_the_login: &str) -> io::Error {
+    restore_terminal();
+
+    let program = match std::env::current_exe() {
+        Ok(path) => path,
+        Err(error) => return error,
+    };
+
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+
+        // `exec` gives an answer only when it fails.
+        std::process::Command::new(program)
+            .args(std::env::args_os().skip(1))
+            .env(
+                crate::logic::auth::auth_input::THE_ADDRESS_OF_THE_LOGIN,
+                the_address_of_the_login,
+            )
+            .exec()
+    }
+
+    #[cfg(not(unix))]
+    {
+        let _ = (program, the_address_of_the_login);
+        io::Error::new(
+            io::ErrorKind::Unsupported,
+            "This system cannot start the program in the place of this process.",
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

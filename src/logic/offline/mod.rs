@@ -224,7 +224,14 @@ const FLUSH_PERIOD: u64 = 30;
 /// The user does not need to start the application again. The task tries every
 /// 30 seconds, and it does nothing when no position waits. Therefore it costs
 /// no request in the normal condition.
-pub fn spawn_flush_task(api: std::sync::Arc<ApiClient>, username: String, server: String) {
+///
+/// The caller keeps the handle, because a login that comes again holds a new
+/// token: the task of the token before it must stop. See T-123.
+pub fn spawn_flush_task(
+    api: std::sync::Arc<ApiClient>,
+    username: String,
+    server: String,
+) -> tokio::task::JoinHandle<()> {
     tokio::spawn(async move {
         loop {
             tokio::time::sleep(tokio::time::Duration::from_secs(FLUSH_PERIOD)).await;
@@ -255,7 +262,7 @@ pub fn spawn_flush_task(api: std::sync::Arc<ApiClient>, username: String, server
                 );
             }
         }
-    });
+    })
 }
 
 #[cfg(test)]

@@ -39,10 +39,101 @@ const ADDRESS_FIELD: usize = 0;
 ///
 /// The value belongs to the process, and the login screen runs one time at a
 /// time. A login that succeeds leaves this loop, therefore no old value stays.
+///
+/// The first value comes from the environment, because a token that the server
+/// refused starts the program again: that address belongs to the process before
+/// this one. See T-123.
 fn the_address_that_answered() -> &'static std::sync::Mutex<Option<String>> {
     static ADDRESS: std::sync::OnceLock<std::sync::Mutex<Option<String>>> =
         std::sync::OnceLock::new();
-    ADDRESS.get_or_init(|| std::sync::Mutex::new(None))
+    ADDRESS.get_or_init(|| {
+        std::sync::Mutex::new(
+            std::env::var(THE_ADDRESS_OF_THE_LOGIN)
+                .ok()
+                .filter(|address| !address.is_empty()),
+        )
+    })
+}
+
+/// The name of the variable of the environment that holds the address of the
+/// login screen. See T-123.
+///
+/// **A user does not write this variable.** The program writes it for itself,
+/// when a token that the server refused starts the program again.
+pub const THE_ADDRESS_OF_THE_LOGIN: &str = "TOUTUI_THE_ADDRESS_OF_THE_LOGIN";
+
+/// Writes the address that the login screen shows in its first field.
+///
+/// **A token that the server refused sends the user to the login screen**, and
+/// the address of that account is known: the user must not write it again. See
+/// T-123 and T-92.
+pub fn the_login_starts_with_this_address(address: &str) {
+    if address.is_empty() {
+        return;
+    }
+
+    if let Ok(mut place) = the_address_that_answered().lock() {
+        *place = Some(address.to_string());
+    }
+}
+
+/// Makes the program ready for the login screen, after the server refused the
+/// token. See T-123.
+///
+/// **The old code let the fault leave `main`.** The user then read
+/// `Error: The token is not valid. Log in again.`, a location inside the source
+/// of the program, and nothing else: no view of the program came, and no key
+/// gave a new token. A user who moves from the program before this fork meets
+/// this at the first start, because the token of that database is a token of a
+/// server that this account no longer holds.
+///
+/// The three steps:
+///
+/// - the row of the account goes away, because a row that stays sends the
+///   program to the same fault at once. The rows of the downloads, of the
+///   queue, and of the positions that wait hold the name of the account only,
+///   therefore a login with the same name finds all of them again;
+/// - the login screen shows the reason and the address of the server;
+/// - the program starts again, and the login screen of a first start comes.
+///
+/// **The program starts again, and it does not make the login screen inside
+/// this process.** A second start of the terminal inside one process gave a
+/// screen of no character, and the process also holds tasks of the token that
+/// the server refused. See `start_the_program_again`. A system that has no
+/// `exec` gives an answer here, and the caller then makes the login screen
+/// itself.
+pub fn the_program_needs_a_new_token(username: &str, server_address: &str) -> Result<(), String> {
+    if let Err(error) = crate::db::crud::remove_the_account(username) {
+        // The row stays, therefore the login screen would give the same fault
+        // for ever. The caller says the fault of the API instead.
+        return Err(format!(
+            "The account {} stays in the database: {}",
+            username, error
+        ));
+    }
+
+    let _ = update_login_err("The token is not valid. Log in again.");
+
+    info!(
+        "[auth] the server refused the token of {}. The login screen comes again.",
+        username
+    );
+
+    // The program starts again here, therefore no line after this one runs. The
+    // address of the server stands in the database of the login screen of the
+    // new process, and not in a value of this process.
+    let of_the_system = crate::utils::exit_app::start_the_program_again(server_address);
+
+    error!(
+        "[auth] the program does not start again: {}. The login screen comes inside this process.",
+        of_the_system
+    );
+
+    // The program stays, therefore the login screen of this process needs the
+    // address.
+    the_login_starts_with_this_address(server_address);
+
+    Ok(())
 }
 
 /// Examines the address of the server before the login asks for a password.

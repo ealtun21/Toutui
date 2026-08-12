@@ -80,6 +80,25 @@ impl fmt::Display for ApiError {
 
 impl std::error::Error for ApiError {}
 
+/// Tells if a report of a fault holds a token that the server refused.
+///
+/// **The startup makes many requests, and each of them can carry this fault.**
+/// The old code let the report leave `main`: the user then read
+/// `Error: The token is not valid. Log in again.` with a line of the source of
+/// the program, and no screen of the program came. The program reads the
+/// category here, and it opens the login screen. See T-123.
+///
+/// The function looks at every cause of the report, because a caller can put
+/// the fault of the API inside a report of its own.
+pub fn the_token_is_not_valid(report: &color_eyre::eyre::Report) -> bool {
+    report.chain().any(|cause| {
+        matches!(
+            cause.downcast_ref::<ApiError>(),
+            Some(ApiError::Unauthorized)
+        )
+    })
+}
+
 /// Puts an HTTP status into a category.
 ///
 /// Gives `None` if the status shows success.
@@ -178,5 +197,52 @@ mod tests {
         assert!(!ApiError::NotFound.is_offline());
         assert!(!ApiError::Server(500).is_offline());
         assert!(!ApiError::Decode("bad".to_string()).is_offline());
+    }
+
+    /// The startup gives one report, and the program must read the category of
+    /// the token inside it. See T-123.
+    #[test]
+    fn a_report_of_a_token_that_is_not_valid_says_so() {
+        let report = color_eyre::eyre::Report::new(ApiError::Unauthorized);
+
+        assert!(the_token_is_not_valid(&report));
+    }
+
+    /// A caller can put the fault inside a report of its own, and the sentence
+    /// of the caller must not hide the category.
+    #[test]
+    fn a_report_that_holds_the_fault_deeper_says_so() {
+        let report = color_eyre::eyre::Report::new(ApiError::Unauthorized)
+            .wrap_err("the libraries of the server");
+
+        assert!(the_token_is_not_valid(&report));
+    }
+
+    /// Every other fault must not send the user to the login screen. A server
+    /// that does not answer starts the offline mode.
+    #[test]
+    fn every_other_fault_keeps_the_user_out_of_the_login_screen() {
+        for fault in [
+            ApiError::Unreachable,
+            ApiError::Timeout,
+            ApiError::Forbidden,
+            ApiError::NotFound,
+            ApiError::Server(500),
+            ApiError::Decode("bad".to_string()),
+        ] {
+            let report = color_eyre::eyre::Report::new(fault.clone());
+
+            assert!(
+                !the_token_is_not_valid(&report),
+                "{:?} must not open the login screen",
+                fault
+            );
+        }
+
+        let of_a_string = color_eyre::eyre::eyre!("The token is not valid. Log in again.");
+        assert!(
+            !the_token_is_not_valid(&of_a_string),
+            "the words of a sentence are not the category"
+        );
     }
 }
