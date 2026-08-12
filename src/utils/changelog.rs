@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.75",
+        date: "13/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A library that your account may not read no longer stops the program.** An \
+             administrator can take a library away from your account while this program holds \
+             it. Every view then held no line, the header held no name, and no key gave you the \
+             library that you may read — a new start gave the same screen. This program takes a \
+             library of your account now, and it says so.",
+        ],
+    },
+    Entry {
         version: "0.7.74",
         date: "13/08/2026",
         body: &[

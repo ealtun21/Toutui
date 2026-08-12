@@ -75,6 +75,31 @@ pub fn the_next_library(ids: &[String], now: &str) -> Option<usize> {
     Some((place + 1) % ids.len())
 }
 
+/// Gives the place of the library that the program must take, when the library
+/// of its database is not a library of the account. See T-136.
+///
+/// **An account may lose a library while the program of that account holds it.**
+/// The server then answers `403` for every request of that library, and the
+/// program showed a view of no line with the words "This library holds no
+/// media": the name of the library and the kind of it went away from the header,
+/// the key Shift+Tab said "This server holds one library" and it moved to
+/// nothing, and **no key of the program gave the user the library that they may
+/// read**. A start after it gave the same screen.
+///
+/// The answer gives `None` when the library of the program is a library of the
+/// account, and it gives `None` for a list of no library: the offline mode holds
+/// such a list, and a program that writes a library there would forget the
+/// library of the user.
+///
+/// The function is pure, therefore a test needs no server.
+pub fn the_library_that_the_program_must_take(ids: &[String], now: &str) -> Option<usize> {
+    if ids.is_empty() || ids.iter().any(|id| id == now) {
+        return None;
+    }
+
+    Some(0)
+}
+
 fn the_page_that_waits() -> &'static Mutex<Option<Page>> {
     static PAGE: OnceLock<Mutex<Option<Page>>> = OnceLock::new();
     PAGE.get_or_init(|| Mutex::new(None))
@@ -169,6 +194,32 @@ mod tests {
         // A library that the list does not hold gives nothing: the program
         // must not take a library that the user cannot see.
         assert_eq!(the_next_library(&ids, "d"), None);
+    }
+
+    /// **A library that the account may not read gives the first library that
+    /// it may read.** A measurement of 2026-08-13 took the library of an account
+    /// away while the program of that account held it: every view held no line,
+    /// the header said "📖  ()", and no key gave the user the library that they
+    /// may read. See T-136.
+    #[test]
+    fn a_library_that_the_account_may_not_read_gives_the_first_one() {
+        let ids: Vec<String> = ["a", "b", "c"].iter().map(|id| id.to_string()).collect();
+
+        // The library of the program is a library of the account. Nothing
+        // changes.
+        assert_eq!(the_library_that_the_program_must_take(&ids, "a"), None);
+        assert_eq!(the_library_that_the_program_must_take(&ids, "c"), None);
+
+        // The account lost that library. The program takes the first library of
+        // the account.
+        assert_eq!(the_library_that_the_program_must_take(&ids, "d"), Some(0));
+
+        // **The offline mode holds no library**, and the program must keep the
+        // library of the user for the start that answers.
+        assert_eq!(the_library_that_the_program_must_take(&[], "a"), None);
+
+        // A database of no library takes the first library of the account.
+        assert_eq!(the_library_that_the_program_must_take(&ids, ""), Some(0));
     }
 
     /// The box holds one page, and the render takes it one time.

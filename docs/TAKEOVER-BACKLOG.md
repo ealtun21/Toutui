@@ -6053,6 +6053,71 @@ changed anyway.
 The measurement after the correction: `💤 4:58` before the key `R`, and `💤 4:50`
 after it. The timer measures the same playback, therefore the time of it goes on.
 
+### The sweep of a library that the account may not read, 2026-08-13
+
+**The road named this sweep in three sessions, and no session had made it.** The
+account `toutuilimited` of the sandbox is of the type `user`, its permission
+`download` is false, and it may read one library of the five. The sweep found
+**one fault, and it locks the account out of the program for ever** (T-136).
+
+What the measurement gave, before that fault:
+
+- **An account of one library of five works.** The Home view, the Library view,
+  and the key Shift+Tab all hold that one library, and the key says "This server
+  holds one library".
+- **`librariesAccessible` of an account with no library is every library.**
+  Audiobookshelf 2.36.0 reads an empty list as "every library", therefore an
+  account of no library at all does not exist and `library_ids[0]` of
+  `auth_process` finds a library for every account that can log in.
+- **A `PATCH /api/users/:id` takes `librariesAccessible` inside `permissions`
+  only.** The same name beside `permissions` gives `200` and it changes nothing.
+  A session that measures a permission must read the account again after the
+  request.
+
+### T-136: an account that loses a library cannot use the program again
+
+**A library of an account can go away while the program of that account holds
+it**: an administrator changes `librariesAccessible`, and the server then answers
+`403` for every request of that library. The database of the program holds
+`id_selected_lib`, and no line of the program looked at that answer.
+
+The measurement of 2026-08-13, with the account `toutuilimited` and the library
+`Books` taken away while the program ran:
+
+| The key | What the user saw |
+|---|---|
+| — (the key `R`) | `📖  ()` in the header, and "This library holds no media. Press L to tell the server to examine the library." |
+| `Tab` | "The server gave no shelf for this library." |
+| `S-Tab` | "This server holds one library", and the view did not change |
+| a new start | the same screen, for ever |
+
+Three faults of one cause:
+
+1. **The program said a reason that it does not have.** The library holds 15
+   media, and the account may not read them. The program named the library empty,
+   and it asked the user to press `L` for a scan of the server — a request that
+   the account may not make either. The rule of T-91 says that a view must never
+   say a reason of its own making.
+2. **The header lost the name and the kind of the library**, because the library
+   of the database stands in no list of the account.
+3. **No key gave the user the library that they may read.** `the_next_library`
+   gives nothing for a library that the list does not hold, and that rule is
+   right: the program must not guess. **The start is the place of the answer.**
+
+`the_library_that_the_program_must_take` gives the first library of the account
+when the library of the database is not one of them, and `App::new` writes it in
+the database before every request of the start. The user reads "Your account
+cannot read the library of this program. It shows "Books" now.", and the log
+holds the two identities.
+
+**The offline mode holds no library**, therefore a list of no library changes
+nothing: a program that wrote a library there would forget the library of the
+user.
+
+The measurement after the correction: the start gives the Home view of the
+library that the account may read, with the message, in one start and with no key
+of the user.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

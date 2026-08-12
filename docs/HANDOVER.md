@@ -830,9 +830,10 @@ measurements of this session left.
      `c` stops the playback and it starts the program again, therefore the
      position of that media must reach the server first. `docs/TEST-SERVER.md`
      holds the commands of the second server, on the port 13400.
-   - **A library whose media the account may not read**, with an account of the
-     type `user` (T-121 holds the commands of such an account, and the trap 65
-     says why every session before 2026-08-12 missed a fault of a permission).
+   - ~~**A library whose media the account may not read**~~, with an account of
+     the type `user`: **made on 2026-08-13, and it found T-136** — an account
+     that loses a library could not use the program again, in any view and after
+     every start.
 2. **What a refresh of the screen still loses: nothing that a measurement
    names** (T-135, done). The key `R` took the timer for sleep of the user away,
    and the new application takes it now. **The queue needs no such work**:

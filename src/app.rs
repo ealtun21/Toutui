@@ -584,6 +584,38 @@ impl App {
         let mut library_name = String::new(); // library name of the selected library
         let mut media_type = String::new(); // media type of the selected library
 
+        // **An account may lose a library while the program of that account
+        // holds it.** The server answers 403 for every request of that library,
+        // and the program then showed a view of no line with the words "This
+        // library holds no media": the header said "📖  ()", the key Shift+Tab
+        // said "This server holds one library" and it moved to nothing, and no
+        // key gave the user the library that they may read. A start after it
+        // gave the same screen, therefore the account was locked out of the
+        // program for ever. See T-136.
+        if let Some(place) = crate::logic::library_pages::the_library_that_the_program_must_take(
+            &libraries_ids,
+            &id_selected_lib,
+        ) {
+            let of_the_account = libraries_ids[place].clone();
+            let name = libraries_names.get(place).cloned().unwrap_or_default();
+
+            log::warn!(
+                "[app] the library {} is not a library of the account {}. The program takes {} ({}).",
+                id_selected_lib,
+                username,
+                name,
+                of_the_account
+            );
+
+            let _ = update_id_selected_lib(&of_the_account, &username);
+            id_selected_lib = of_the_account;
+
+            crate::logic::message::say(&format!(
+                "Your account cannot read the library of this program. It shows \"{}\" now.",
+                name
+            ));
+        }
+
         let target = id_selected_lib.clone();
 
         // retrieve name and mediatype of the current librarie
