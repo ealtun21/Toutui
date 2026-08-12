@@ -1,16 +1,73 @@
-# The handover of 2026-08-12 (the second session of that day)
+# The handover of 2026-08-12 (the third session of that day)
 
 This document is for the next session. It says what is done, what is open, and the
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.55**, and T-105 to T-111 belong to this session.
-The items T-101 to T-104 belong to the session before it, and T-88 to T-100 to the
-one before that.
+**The newest release is v0.7.61**, and T-112 to T-118 belong to this session.
+The items T-105 to T-111 belong to the session before it, T-101 to T-104 to the one
+before that, and T-88 to T-100 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
 ## What this session closed
+
+**This session made the four sweeps that the road of the session before it named.
+Every one of them found a fault, and one of them found three.**
+
+| Item | What | Keys |
+|---|---|---|
+| T-112 | **The key `G` goes to the end of the library**, and it went to the end of the page: a user of 2056 items pressed it six times | `G` |
+| T-113 | **The search shows the media that the server found.** A book of a page that the program did not read gave no line, and every search of a library of podcasts said that the server found nothing | `/` |
+| T-114 | **A text of no letter is not a value.** The line of a book said "Author:  - Year: N/A" | — |
+| T-115 | **A box that takes a text follows the size of the terminal**, and the header of a narrow screen keeps every value | `/`, `A`, `c`, `p` |
+| T-116 | **The program held a whole book of 502 megabytes in its memory.** The peak was 1007 megabytes, and it is 44 | `e` |
+| T-117 | The reader said the identity of the item as the title of a book of the search | `/`, then `e` |
+| T-118 | **The text of the accounts promised a function that no key reaches.** The program holds one account | `S` |
+
+**Six releases: v0.7.56 to v0.7.61.**
+
+### The four sweeps, and what each of them found
+
+**1. A library of the size that a user has (2056 items).** The library `Large` of
+the sandbox holds 2056 items, and every one of them holds **no tag at all**: that
+is a book that a user takes from a disk of their own.
+
+| The work | The measurement |
+|---|---|
+| The first frame | **609 ms**, with 2056 items in the library |
+| The start | **one** request, and the title says "500 items of 2056" |
+| 500 presses of `j`, over the end of the page | the page comes, and **no line of the user moves** |
+| The key `G` | **the item 500 of 2056**, and six presses for the end (T-112) |
+| The search of a book of the page 4 | **"The server found nothing"**, and the server found it (T-113) |
+| The line of a book with no tag | **`Author:  - Year: N/A`** (T-114) |
+| A page of 500 items, with `curl` | 2 ms and 470 kilobytes |
+
+**2. A terminal that changes its size while the program runs.** The program stands
+at **every size from 200x50 to 10x3**, the reader reflows and it keeps its place
+(chapter 5 of 14, 16%), and every view draws again. **Two faults of one shape:** a
+box of a text read the size one time and it then drew outside the screen (the user
+saw **nothing at all**), and the three parts of the header wrote on each other
+below 68 columns (T-115).
+
+**3. A book of a scan of 502 megabytes, at `MAX_BOOK_BYTES`.** The child of T-62
+does its work: 974 megabytes of the parse stand outside the program of the user,
+and that memory goes away with the process. **The program of the user held 1007
+megabytes of its own** (T-116), because `download_to_file` read
+`response.bytes()`. It holds **44** now. The parse of 150 pages takes **2 minutes
+4 seconds**, and the reader said the identity of the item as the title (T-117).
+
+**4. Two accounts of two servers, with a position of a media of each.** **The
+condition cannot exist**: the view of the login comes only when the database holds
+no account, therefore no key adds a second one. The view of the accounts lists the
+account of the start only, every login writes `is_default_usr = true`, and with two
+such rows the **rowid** decides. Every value of an account is right for the account
+that starts: the two servers gave 50% and 33% of their own media. The text of that
+view promised the function, and it says what the program does now (T-118). **The
+question of the function itself belongs to the maintainer**, and T-118 of the
+backlog holds it.
+
+## What the session before this one closed (T-105 to T-111)
 
 | Item | What | Keys |
 |---|---|---|
@@ -73,18 +130,23 @@ episodes for a podcast that is missing **54**, therefore it stays outside.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.55` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.61` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 913 tests pass in 2.3 s, 24 carry #[ignore], 43 binaries
-    # cargo nextest run --run-ignored all gives 937 of 937 with the sandbox up,
-    # in 16 s: one test of that run waits 15 s for the time limit of a request
+    # 927 tests pass in 2.3 s, 24 carry #[ignore], 45 binaries
+    # cargo nextest run --run-ignored all gives 951 of 951 with the sandbox up,
+    # in 18.5 s: one test of that run waits 15 s for the time limit of a request
 cargo tree -i openssl-sys                # finds nothing
 cargo tree -i cc                         # finds libsqlite3-sys and ring only
 ```
+
+**The sandbox holds more data now, and every test of the sandbox still passes.**
+The library `Large` of 2056 items and the PDF of 502 megabytes came with this
+session, and the run of 951 tests found no fault of them. `docs/TEST-SERVER.md`
+holds the commands of each.
 
 **`cargo nextest run` gives the same tests in 2.3 seconds**, and `cargo test` gives
 them in 8.7. Use nextest: `.config/nextest.toml` stands in the repository, and the
@@ -400,32 +462,49 @@ faults of the program that they found.
 
 ### 2. The road, and what stays of it
 
-**Every item of the road of the session before this one is closed.** The three
-sweeps that stayed (T-105, T-106, T-107), the guard of the texts (T-108), the
-three items that waited for a user (T-70, T-62, T-66), and the four rows of the
-table that said `Half` (T-110). **No item of that road stays.**
+**Every sweep of the road of the session before this one is made.** The four
+conditions that no session had measured are measured now (T-112 to T-118), and
+**every one of them found a fault**. That is six sessions in a row.
 
 #### What a next session can take
 
-1. **The sweeps that no session has made.** Every sweep of a condition that no
-   session had made found a fault, five sessions in a row. These conditions stay:
-   - **A library of a size that the user has**, with the paging of T-70: 2056
-     items in the sandbox, and a user who presses `G` at the first frame.
-   - **A terminal that changes its size while the program runs.**
-   - **Two accounts of two servers**, with a position of a media of each.
-   - **A book of a scan of 500 megabytes**, at `MAX_BOOK_BYTES`: the child of
-     T-62 holds the memory, and the time of the parse is the value to measure.
-2. **The row of the table that stays.** *Send an ebook to an e-reader*
+1. **The row of the table that stays.** *Send an ebook to an e-reader*
    (`GET /api/emails/settings`). It is the one row of section 4 that says `No`
    for a function that a user of a terminal can use, and it needs the settings
-   of the email of the server. **The issue #24 stays open for that row.**
-3. **The fast suite stays at about 2 seconds.** It holds 913 tests in 2.3 s. A
+   of the email of the server. **The issue #24 stays open for that row.** No
+   session has measured that endpoint against the sandbox: a server with no
+   settings of the email can give no such function, and the screen must then say
+   why.
+2. **The two questions that this session leaves.** Both stand in
+   `docs/TAKEOVER-BACKLOG.md`, and both need the maintainer.
+   - **T-118: must this program hold more than one account?** The rows of the
+     database, the column `is_default_usr`, and the view of the accounts all come
+     from a session that wanted it, and no key of the program reaches it. The work
+     needs three keys and no new data.
+   - **T-116: the words while the user waits.** The parse of a book of a scan of
+     502 megabytes takes **2 minutes**, and the screen says "The program gets the
+     book…" for every second of it. The book stands on the disk after the first
+     second. The child knows the number of the pages that it wrote, and no message
+     carries it.
+3. **The sweeps that no session has made.** Every sweep of a new condition found a
+   fault, six sessions in a row. These conditions stay:
+   - **A media that plays while the program does other work**: the sweep of a
+     playback with a search, a resize, and a book of the reader together.
+   - **A library of podcasts of more than 500 items**, for the paging of T-70:
+     the view of the search drops a podcast that the program did not read
+     (T-113), and no measurement of that condition exists.
+   - **A book of an EPUB of 100 megabytes**, and a book whose EPUB is not valid.
+   - **A server that answers slowly** (500 ms of every request), and not a server
+     that does not answer: every measurement of a fault used a server that is
+     down or a time limit.
+4. **The fast suite stays at about 2 seconds.** It holds 927 tests in 2.3 s. A
    new test that needs a wait belongs behind `#[ignore]`.
-4. **`cargo nextest run --run-ignored all` belongs at the end of a session**, and
-   not at the end of one item: it took 16 seconds on 2026-08-12, and it found two
-   faults that the 913 tests of the fast suite did not (T-111).
-5. **The words for the user.** Every text in ASD-STE100. A view says why it holds
-   no line, and it never says a reason that the program does not have (T-91). A
+5. **`cargo nextest run --run-ignored all` belongs at the end of a session**, and
+   not at the end of one item: it took 18.5 seconds on 2026-08-12, and it found
+   two faults of the session before this one that the fast suite did not (T-111).
+6. **The words for the user.** Every text in ASD-STE100. A view says why it holds
+   no line, and it never says a reason that the program does not have (T-91). **A
+   text must not promise a function that the program does not have** (T-118). A
    key that does nothing in one view is a fault of its own (T-79). A message
    lives six seconds.
 
@@ -480,7 +559,42 @@ measurement changed.
 
 ### 4. The decisions that this session made
 
-The maintainer answered seven questions before this session. **Two of those
+**The maintainer answered no question before this session**, because the road held
+sweeps and a sweep needs no decision. This session made four decisions of its own,
+and each of them follows a rule of this document.
+
+**1. The key `G` reads the pages that are left, and it does not stop at the page.**
+A page of 500 items costs 2 ms and 470 kilobytes of the sandbox, therefore one
+press of `G` in a library of 2056 items costs four requests and 2 seconds. **The
+user asked for the end**, therefore the cost is theirs; a move of the user ends the
+wait at once. A library of 250000 items would need 500 requests for that key, and
+that is the same cost that T-70 took away from the **start**. See T-112.
+
+**2. The view of the search shows a media that the program did not read, and a
+library of podcasts drops such a line.** The answer of the server carries the whole
+media, therefore a book of every page needs no request more. **The lists of the
+episodes of a podcast come from the place of the media in the lists of the
+library**, and a podcast that the program did not read has no episode at all: a
+view that opens with no episode would say a reason that the program does not have
+(T-91). One page holds 500 podcasts, therefore no user of the measurement meets
+that condition. See T-113.
+
+**3. The header of a narrow terminal takes a short form, and it keeps every
+value.** The three parts of the header stand on one row, and every part writes its
+own letters only (the trap 32): below 68 columns they met. `👋 toutuitest` and
+`🦜 v0.7.58` hold every value with fewer words. **41 columns is the honest limit**
+of that form, and a terminal of fewer columns holds one word of a title. See T-115.
+
+**4. The text of the accounts says what the program does, and the function stays
+for the maintainer.** The text promised more than one account, and no key of the
+program reaches that function. **A text must not promise a function that the
+program does not have**, therefore the words changed now. The function needs three
+keys, and that decision is not the decision of a session: T-118 of the backlog
+holds the question.
+
+### 5. The decisions of the session before this one
+
+The maintainer answered seven questions before that session. **Two of those
 answers could not hold as they stood**, and this section holds the change and the
 measurement that made it. Every other answer holds as the maintainer gave it.
 
@@ -927,6 +1041,60 @@ answers slowly while it writes. Two answers to measure:
     that a session forgets.** The view of the accounts held `_item_area` and it
     drew nothing there for a year of releases. Look for a name that starts with
     an underscore before you say that a view has no room. See T-110.
+71. **The end of the lines that the program holds is not the end of the
+    library.** The program reads one page of 500 items (T-70), therefore a key
+    that means "the end" must read the pages that are left. A user of a library
+    of 2056 items pressed `G` **six** times, and each press asked for one page.
+    See T-112.
+72. **A view that reads the lists of the library shows the media of the pages
+    that came, and no other media.** The view of the search mapped every
+    identity of the answer to a place in `ids_library`: the server found a book
+    of the page 4, and the screen said "The server found nothing". **The answer
+    of the server carries the whole media**, therefore such a view needs no
+    request more. See T-113.
+73. **A library of podcasts answers a search with the group `podcast`**, and a
+    library of books with `book`, `series`, `authors`, and `narrators`. A program
+    that reads the groups of the books only says that the server found nothing
+    for **every** search of a library of podcasts. The group `episodes` exists
+    too, and no measurement of the sandbox gave one hit of it. See T-113.
+74. **An answer that came stops the work that the program does itself.** The view
+    of the search shows the titles of the program while it waits, and it shows
+    the answer of the server when that answer comes: an answer of nothing
+    therefore takes the lines of the program away too. Measure both moments.
+    See T-113.
+75. **A text of no letter is not a value.** The server gives `authorName: ""` for
+    a book with no tag of an author, and `publishedYear: null` for the year of
+    the same book: the line of the Library view said `Author:  - Year: N/A`.
+    **`null` is not the only shape of a value that is absent**, and
+    `utils::values_of_the_server` holds the rule for every collector. See T-114.
+76. **A box that makes a `Terminal` of its own must read the size at each turn of
+    its loop.** `search_active` and `ask_for_a_text` read `term.size()` before
+    the loop: a terminal that became 80 by 24 while the box stood at the row 41
+    gave the user **an empty screen**, and every letter that they wrote went to a
+    box that they could not see. ratatui writes no cell of an area that stands
+    outside its buffer. See T-115.
+77. **Three paragraphs of one area write on each other.** The header holds the
+    account at the left, the library in the middle, and the name of the program
+    at the right, over **one** area: 60 columns gave
+    "👋 Connected as toutuitestBooks (book)". A part that is too long meets its
+    neighbour, and no letter of the two goes away. See T-115 and the trap 32.
+78. **`response.bytes()` holds the whole answer in the memory of the program.**
+    A book of a scan of 502 megabytes gave the program of the user a peak of
+    **1007** megabytes, because the buffer grows by a copy of itself. The loop of
+    `response.chunk()` gives 44 megabytes, and `logic::download::fetch` of a media
+    of the disk held that shape already. **T-62 moved the parse of a PDF into a
+    child for this reason, and the download stayed inside.** See T-116.
+79. **A PDF holds no title, therefore the reader takes the title of the view.**
+    `selected_item_title` gave nothing for the view of the search, and the reader
+    then said the identity of the item: `27c55369-… — page 1 of 150 — 0%`. A view
+    that gains a list of the titles must give it to that function. See T-117 and
+    T-54.
+80. **The program holds one account, and the words of three places said more.**
+    The view of the login comes only when the database holds no default account
+    (`main.rs`), the view of the accounts lists `database.default_usr` alone, and
+    every login writes `is_default_usr = true`: with two such rows the **rowid**
+    decides which account starts. **A text must not promise a function that no
+    key reaches.** See T-118.
 
 ### Of the harness and of the machine
 
@@ -1030,6 +1198,34 @@ answers slowly while it writes. Two answers to measure:
     1140 ms against 953 ms of the memory. **A `tmpfs` for `target` gives some
     seconds and it takes 11 gigabytes of the memory.** The processor makes the
     machine slow, and `nice -n 19 ionice -c 3` is the answer. See T-98.
+26. **`tmux resize-window` changes the size of the terminal of a program that
+    runs.** `tmux resize-window -t <the session> -x 80 -y 24` is the whole
+    measurement of a resize, and the program answers it with no key. See T-115.
+27. **A measurement of the memory of a client needs a server outside the
+    process.** A mock server of `wiremock` makes its answer in the memory of the
+    test: a download of 96 megabytes gave 192 megabytes of `VmHWM` with the loop
+    of the parts **and** with `response.bytes()`. The memory of the answer of the
+    server hides the memory of the client. **Read the real program**, and hold
+    the rule of the code with a test that reads the source. See T-116.
+28. **A library that a `POST` makes examines nothing.** `total` of the library of
+    2056 items stayed 0 for four minutes, and one
+    `POST /api/libraries/:id/scan` then read every item in 50 seconds. Poll
+    `total`, and give the scan yourself. See T-112.
+29. **`tar` through `podman exec` writes many files in one command.**
+    2056 directories of the library of the measurement:
+    `tar cf - . | podman exec -i abs-test tar xf - -C /largebooks`. A volume of
+    its own would need a new container. See T-112.
+30. **The view of the login of a fresh `XDG_CONFIG_HOME` draws its box at once**,
+    and the box stands at the row 22 of a screen of 45. The three fields come one
+    after the other, and each of them holds its own marker for a poll:
+    "Server address", "Username", "Password". **The login examines the address
+    with a request**, therefore a key that comes too early goes to the
+    application (the trap 6). See T-118.
+31. **A second account of a second server needs an editor of SQLite.** The
+    program shows the view of the login only when the database holds no default
+    account: `UPDATE users SET is_default_usr = 0` gives that view back, and the
+    login after it makes the second row. **No key of the program does this
+    work.** See T-118.
 
 ## The shapes that the next work should follow
 
@@ -1119,22 +1315,22 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**Every item of the road of 2026-08-12 is closed**, therefore this prompt asks for
-work of a different kind: the sweeps that no session has made, and the one row of
-the table that stays.
+**The four sweeps of the road of 2026-08-12 are made**, and every one of them found
+a fault. This prompt asks for the one row of the table that stays, the two questions
+that need the maintainer, and the sweeps that no session has made.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.7.55**; `Cargo.toml` is at 0.7.55. The
+> AlbanDAVID/Toutui. Newest release **v0.7.61**; `Cargo.toml` is at 0.7.61. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
 > `src/utils/changelog.rs`. The gate fails without that entry (T-101).
 >
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
-> the road, and 95 traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
-> evidence of every item; **T-87, T-97, T-105, and T-107 are the four to know**,
-> and T-105 to T-111 are the newest), and `docs/T-24-coverage.md` (**no row of
+> the road, and 111 traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
+> evidence of every item; **T-87, T-97, T-107, and T-113 are the four to know**,
+> and T-112 to T-118 are the newest), and `docs/T-24-coverage.md` (**no row of
 > section 4 says `Half`**, and **section 6 names what the program must not have,
 > with the reason**).
 >
@@ -1142,17 +1338,18 @@ the table that stays.
 > and let a test find it: a build with the correction removed must fail. Make the
 > data of the fault exist in the sandbox (`docs/TEST-SERVER.md`, podman on
 > `:13399`; `podman start abs-test` gives the server back with every book of the
-> sessions before). **Drive the real program inside tmux** with
+> sessions before, and it holds a library of 2056 items and a PDF of 502
+> megabytes now). **Drive the real program inside tmux** with
 > `docs/harness/drive.sh`; a screen of your own writing lies to you. Verify with a
 > second program: `curl`, `podman logs abs-test`, or a browser. Write the
-> measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-112 and up), and
+> measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-119 and up), and
 > name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a real null asound file.
-> Baseline: **913 tests in 2.3 seconds**, and `cargo nextest run --run-ignored all`
-> gives **937 of 937** with the sandbox up, in 16 seconds. **Run that second
+> Baseline: **927 tests in 2.3 seconds**, and `cargo nextest run --run-ignored all`
+> gives **951 of 951** with the sandbox up, in 18.5 seconds. **Run that second
 > command at the end of the session too**: it found two faults of 2026-08-12 that
 > the fast suite did not (T-111).
 >
@@ -1162,24 +1359,37 @@ the table that stays.
 >
 > ### The work, in the sequence of its value
 >
-> 1. **The sweeps that no session has made.** Every sweep of a new condition found
->    a fault, five sessions in a row.
->    - **A library of the size that a user has**, with the paging of T-70. Make
->      2056 items in the sandbox, press `G` at the first frame, and measure the
->      time of the start and every line of the screen.
->    - **A terminal that changes its size while the program runs.**
->    - **Two accounts of two servers**, with a position of a media of each.
->    - **A book of a scan of 500 megabytes**, at `MAX_BOOK_BYTES`: the child of
->      T-62 holds the memory, and the time of the parse is the value to measure.
-> 2. **Send an ebook to an e-reader.** It is the one row of section 4 of
+> 1. **Send an ebook to an e-reader.** It is the one row of section 4 of
 >    `docs/T-24-coverage.md` that says `No` for a function that a user of a
 >    terminal can use, and **the issue #24 stays open for it**. Measure
->    `GET /api/emails/settings` and the endpoints of the e-reader of the reference
->    against the sandbox first: a server with no settings of the email can give no
->    such function, and the screen must then say why.
-> 3. **The words for the user.** Every text in ASD-STE100. A view says why it
+>    `GET /api/emails/settings` and the endpoints of the e-reader against the
+>    sandbox **first**: a server with no settings of the email can give no such
+>    function, and the screen must then say why (T-91). **Measure the request
+>    before you draw the screen that sends it** (T-88).
+> 2. **The two questions that wait for the maintainer.** Ask them, and then do the
+>    work of the answer.
+>    - **T-118: must this program hold more than one account?** The program holds
+>      one today: the view of the login comes only when the database holds no
+>      account, the view of the accounts lists that one account, and no key
+>      chooses the account of the start. The work needs three keys and no new
+>      data, and `db/crud.rs` holds the SQL of the default account as a comment.
+>    - **T-116: the words while a book of a scan opens.** The parse of 150 pages
+>      takes **2 minutes**, and the screen says "The program gets the book…" for
+>      every second of it. The book stands on the disk after the first second.
+>      The child knows the pages that it wrote; no slot carries that number.
+> 3. **The sweeps that no session has made.** Six sessions in a row, every new
+>    condition found a fault:
+>    - **A media that plays while the program does other work** (a search, a
+>      resize, and a book of the reader together).
+>    - **A library of podcasts of more than 500 items**: the view of the search
+>      drops a podcast that the program did not read (T-113).
+>    - **A book of an EPUB of 100 megabytes**, and a book whose EPUB is not valid.
+>    - **A server that answers slowly**, 500 ms of every request. Every
+>      measurement of a fault used a server that is down or a time limit.
+> 4. **The words for the user.** Every text in ASD-STE100. A view says why it
 >    holds no line, and it never says a reason that the program does not have
->    (T-91). A key that does nothing in one view is a fault of its own (T-79).
+>    (T-91). **A text must not promise a function that the program does not have**
+>    (T-118). A key that does nothing in one view is a fault of its own (T-79).
 >
 > ### The two issues of the fork
 >
@@ -1193,8 +1403,10 @@ the table that stays.
 > **Do not open these again.** The book of xHE-AAC plays (T-68 and T-69). Toutui
 > stays GPL (T-51). `libsqlite3-sys` and `ring` stay (T-20).
 > `GET /api/podcasts/:id/checknew` and `GET /api/tags` stay outside, and section 6
-> of `docs/T-24-coverage.md` holds the measurement of each (T-110). The rows of
-> section 6 belong to an administrator, and the program must not hold them.
+> of `docs/T-24-coverage.md` holds the measurement of each (T-110). The group
+> `episodes` of the search stays outside until a measurement gives one hit of it
+> (T-113). The rows of section 6 belong to an administrator, and the program must
+> not hold them.
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

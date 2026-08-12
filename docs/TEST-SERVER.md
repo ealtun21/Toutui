@@ -40,9 +40,100 @@ stay. `podman start abs-test` gives them back.
 
 | The library | What it holds |
 |---|---|
-| `Books` | 14 items: a book of many files, two series of three books, a book of one chapter (T-106), a PDF of 47 megabytes of a scan of 60 pages (T-62), a PDF that no reader reads (T-62), the book of xHE-AAC of the user, a book with a WMA file, Alice in Wonderland with an EPUB, and a long book of 30 minutes |
-| `Podcasts` | 1 podcast of **3 episodes of a feed of 57** (T-110) |
+| `Books` | 15 items: a book of many files, two series of three books, a book of one chapter (T-106), a PDF of 47 megabytes of a scan of 60 pages (T-62), **a PDF of 502 megabytes of a scan of 150 pages (T-116)**, a PDF that no reader reads (T-62), the book of xHE-AAC of the user, a book with a WMA file, Alice in Wonderland with an EPUB, and a long book of 30 minutes |
+| `Podcasts` | 1 podcast of a feed of 57 episodes (T-110) |
 | `Empty` | no item (T-103) |
+| **`Large`** | **2056 items**, and every one of them holds no tag at all (T-112, T-114) |
+
+## 2c. The library of 2056 items, for the paging of T-70
+
+The sweep of a library of the size that a user has needs a library that no session
+made: the paging of T-70 came from a mock server only. The library `Large` stands
+in the sandbox now, and it holds 2056 items of one MP3 file of 4940 bytes.
+
+**The files stand inside the container**, and not in a volume: the library of the
+first sweep needed no volume, and `podman exec` with `tar` writes 2056 directories
+in one command.
+
+```bash
+cd $(mktemp -d)
+ffmpeg -loglevel error -y -f lavfi \
+  -i "sine=frequency=440:duration=1:sample_rate=8000" \
+  -ac 1 -c:a libmp3lame -b:a 32k seed.mp3
+
+mkdir largebooks && cd largebooks
+for i in $(seq -w 1 2056); do
+  mkdir -p "Large Book $i"
+  cp ../seed.mp3 "Large Book $i/book.mp3"
+done
+
+podman exec abs-test mkdir -p /largebooks
+tar cf - . | podman exec -i abs-test tar xf - -C /largebooks
+
+curl -X POST http://localhost:13399/api/libraries \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"name":"Large","folders":[{"fullPath":"/largebooks"}],"mediaType":"book"}'
+```
+
+**The library that a `POST` makes examines nothing**: `total` stayed 0 for 4
+minutes, and one `POST /api/libraries/:id/scan` then read 2056 items in **50
+seconds** (about 200 items of every 5 seconds).
+
+**Every item of that library holds no tag**, therefore the server gives
+`authorName: ""`, `narratorName: ""`, and `publishedYear: null`. That is the shape
+of a book that a user takes from a disk of their own, and it found T-114.
+
+A page of 500 items costs **2 ms** and 470 kilobytes of this server.
+
+## 2d. The book of a scan of 502 megabytes, for T-116
+
+`MAX_BOOK_BYTES` of `logic::reader::pdf` is 512 megabytes. The book "A Huge Book Of
+A Scan" holds **502745447 bytes**: 150 pages of a picture of JPEG of 1200 by 1600
+pixels of bytes that no algorithm makes smaller.
+
+**A large PDF needs samples that no algorithm makes smaller** (the trap 17 of the
+harness), and `img2pdf` takes the same picture more than one time:
+
+```bash
+head -c 5760000 /dev/urandom > raw.rgb
+magick -depth 8 -size 1200x1600 rgb:raw.rgb page.jpg      # 3.35 megabytes
+img2pdf $(for i in $(seq 1 150); do echo page.jpg; done) -o huge.pdf
+
+dir="$ABS/audiobooks/Huge Author/A Huge Book Of A Scan"
+mkdir -p "$dir"
+cp huge.pdf "$dir/huge.pdf"
+ffmpeg -loglevel error -y -f lavfi \
+  -i "sine=frequency=330:duration=3:sample_rate=22050" \
+  -metadata title="A Huge Book Of A Scan" -b:a 32k "$dir/huge.mp3"
+curl -X POST "http://localhost:13399/api/libraries/$BOOK_LIB_ID/scan" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**The parse of that book takes 2 minutes 4 seconds in the child of T-62**, and the
+child holds 974 megabytes at its peak. The program of the user holds 44
+megabytes. See T-116.
+
+## 2e. A second server, for the sweep of two accounts
+
+The sweep of two accounts of two servers needs a second Audiobookshelf. It stands
+on the port **13400**, and it holds one account and one book of 30 minutes:
+
+```bash
+ABS2=$HOME/.local/share/toutui-abs-test-2
+mkdir -p $ABS2/{config,metadata,audiobooks}
+
+podman run -d --name abs-test-2 -p 13400:80 \
+  -v $ABS2/config:/config:Z -v $ABS2/metadata:/metadata:Z \
+  -v $ABS2/audiobooks:/audiobooks:Z \
+  ghcr.io/advplyr/audiobookshelf:latest
+
+curl -X POST http://127.0.0.1:13400/init -H 'Content-Type: application/json' \
+  -d '{"newRoot":{"username":"secondtest","password":"secondtest"}}'
+```
+
+`podman start abs-test-2` gives it back, and `podman stop abs-test-2` takes it
+away. **No test needs it**: T-118 says that the program holds one account, and the
+sweep of that condition needs an editor of SQLite.
 
 **A test that needs an EPUB must ask for the form `epub`.** The PDF of 47
 megabytes stands first in the alphabet, and a rule that takes "the first item with
