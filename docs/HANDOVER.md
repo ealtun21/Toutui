@@ -1,18 +1,138 @@
-# The handover of 2026-08-12 (the third session of that day)
+# The handover of 2026-08-12 (the fourth session of that day)
 
 This document is for the next session. It says what is done, what is open, and the
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.61**, and T-112 to T-118 belong to this session.
-The items T-105 to T-111 belong to the session before it, T-101 to T-104 to the one
-before that, and T-88 to T-100 to the one before those.
+**The newest release is v0.7.63**, and T-119 to T-121 belong to this session.
+The items T-112 to T-118 belong to the session before it, T-105 to T-111 to the one
+before that, and T-101 to T-104 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
 ## What this session closed
 
-**This session made the four sweeps that the road of the session before it named.
+**This session closed the last row of the table, and it then took a fault of the
+user that is worth more than every row of it.**
+
+| Item | What | Keys |
+|---|---|---|
+| T-119 | **The key `@` sends the ebook of the line to an e-reader.** The devices come from `POST /api/authorize`, and not from the settings of the e-mail | `@` |
+| T-120 | **A later file that no decoder reads ended a playback that played.** The book of the user started again from the minute 0 | `l` |
+| T-121 | **An account with no permission of a download played no book from its file.** Every media went to a stream of the server | `l` |
+
+**Two releases: v0.7.62 and v0.7.63.**
+
+### T-119, and the measurement that changed the shape of the work
+
+**The road named `GET /api/emails/settings`, and that endpoint cannot do this
+work.** Every route of `/api/emails/` holds an `adminMiddleware` of the server,
+and it answers `404` for an account that is not an administrator — an account that
+**can** send a book. `POST /api/authorize` gives `ereaderDevices` filtered for the
+account of the token: one request, and no permission of an administrator.
+
+**One fault of this program came out of that measurement.** The server took
+**36.2 seconds** for a book of 479.5 megabytes, and `REQUEST_TIMEOUT` of the
+client is **15 seconds**: a book of more than about 200 megabytes stopped at that
+limit **while the server sent it**. The send holds a time limit of fifteen minutes
+of its own now, and `post_and_read_the_answer` of the client keeps the body of a
+refusal — the endpoint answers `404` for three different conditions, and the body
+is the one place that tells them apart.
+
+**Every row of section 4 of `docs/T-24-coverage.md` that still says `No` belongs
+to an administrator of the server, or to work that the client must not do.** The
+issue #24 holds that reading, and it waits for the maintainer to close it.
+
+### T-120, the fault of the user, and it is the one to know
+
+**The user said: "Depthless Hunger, Book 2 always starts from min 0", and the web
+page and the client of Android both play it from their place.**
+
+That book holds the same 26 hours **two times**: a file of AAC-LC of 93285
+seconds, and the file of xHE-AAC of T-68 of 93278 seconds after it. The place of
+the user (2 percent, 3731 seconds) stands inside the first file, and this program
+plays that form itself.
+
+**The engine did the right work, and `play_media` threw it away.** The engine
+opened the track of the place of the user, it started at 3731 seconds, and it said
+"The tracks before it play" for the file that it cannot read (T-48 and T-55).
+`play_media` then read the flag of the fault and it asked the server for a stream
+of the whole media: the user lost a playback that worked, and the audio began
+again.
+
+**The engine writes one flag for two conditions**, and they need two answers: a
+track that the playback needs **now** does not open (the playback is dead, and the
+stream of T-53 is the answer), or the engine skipped a **later** track (the
+playback works). The state tells them apart, because `worker.rs` writes
+`playback_id` in the loop that follows a playback that plays and a start that
+failed never reaches that loop. `the_stream_must_take_the_playback` is a pure
+function that reads "the playback plays" **first**, and two tests of
+`tests/a_later_file_with_no_decoder_keeps_the_playback.rs` fail with the old order.
+
+**T-53 does not change.** The book of the sandbox whose **only** file is xHE-AAC
+still goes to the stream, and it resumed at the part 70 of that stream.
+
+### T-121, and why no session before this one met it
+
+`HttpFile::open` asked for `/api/items/:id/file/:ino/download`. The server holds
+every route of a download behind the permission `download`, and it answers `403`
+for an account that does not have it: **no book of such an account played from its
+file at all.** The address of a track is the value of `contentUrl`, and it holds
+no `/download`.
+
+| The address, with a `Range` | An account `user` | An account `root` |
+|---|---|---|
+| `GET /api/items/:id/file/:ino` | **`206`** | `206` |
+| `GET /api/items/:id/file/:ino/download` | **`403`** | `206` |
+
+**Every measurement of every session before this one used `toutuitest` of the
+sandbox, and that account is `root`.** A measurement of a permission needs an
+account that does not hold it. `src/logic/download/fetch.rs` keeps the address of
+a download, and that is right: the key `D` makes a real download.
+
+### The two questions of the handover, and the answers of the maintainer
+
+- **T-118, more than one account: yes, and a later session does the work.** The
+  question stays open in `docs/TAKEOVER-BACKLOG.md`. The text of the view says
+  what the program does today, therefore no user reads a promise that no key
+  keeps.
+- **T-116, the words while a book of a scan opens: leave the text as it is.** A
+  book of 502 megabytes is rare, and the work would add a slot, a message of the
+  child, and a rule of the render for one condition that few users meet. That row
+  is a decision now, and not work that waits.
+
+### The sweep of a server that answers slowly, and what it gave before the fault of the user came
+
+**The sweep is not complete.** The fault of the user came first, and this section
+holds what the measurement gave.
+
+A proxy of 60 lines of Python held a port and it gave every request of the sandbox
+a delay. The pool of the program takes it with a block `[[servers]]` of
+`config.toml` whose endpoints hold the slow address first and the real address
+after it.
+
+| The measurement | 500 ms of every request | 2000 ms of every request |
+|---|---|---|
+| The first frame | (not measured) | **14.6 s**, and it is 0.4 s with the sandbox |
+| The header | it says the slow address, therefore `pool.active()` is the truth (T-105) | the same |
+| Every view of a sweep of eight keys | each of them drew, and no view said a false reason | — |
+
+**14.6 seconds of a server of 2 seconds means about seven rounds of requests, one
+after the other.** The start of the program holds four requests that go together
+(T-86), therefore the rest of that time belongs to the work after them. **The
+screen holds the box of the start for every second of it**, and that box says the
+address and nothing of the wait. No session has measured which requests of the
+start are in sequence.
+
+**The key `R` blocks the whole loop while it asks the server again**, and the code
+of `main.rs` says it: the program draws one frame with the message "The program
+asks the server again…" and then it waits. With a server of 2 seconds the keys of
+the user wait behind that work, and they all act when the answers come. The
+message is honest, and the length of the wait is not in it.
+
+## What the session before this one closed (T-112 to T-118)
+
+**That session made the four sweeps that the road of the session before it named.
 Every one of them found a fault, and one of them found three.**
 
 | Item | What | Keys |
@@ -130,15 +250,16 @@ episodes for a podcast that is missing **54**, therefore it stays outside.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.61` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.63` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 927 tests pass in 2.3 s, 24 carry #[ignore], 45 binaries
-    # cargo nextest run --run-ignored all gives 951 of 951 with the sandbox up,
-    # in 18.5 s: one test of that run waits 15 s for the time limit of a request
+    # 955 tests pass in 2.3 s, 25 carry #[ignore], 47 binaries
+    # cargo nextest run --run-ignored all gives 980 of 980 with the sandbox up,
+    # in 19.3 s: one test waits 15 s for the time limit of a request, and one
+    # waits 16 s for the time limit of the send of a book (T-119)
 cargo tree -i openssl-sys                # finds nothing
 cargo tree -i cc                         # finds libsqlite3-sys and ring only
 ```
@@ -1227,6 +1348,56 @@ answers slowly while it writes. Two answers to measure:
     login after it makes the second row. **No key of the program does this
     work.** See T-118.
 
+### The traps of this session
+
+60. **Every route of `/api/emails/` of the server holds an `adminMiddleware`.**
+    `GET /api/emails/settings` answers **`404`** for an account that is not an
+    administrator, and that account **can** send a book to an e-reader.
+    `POST /api/authorize` gives `ereaderDevices` filtered for the account of the
+    token, and the login gives the same payload. See T-119.
+61. **`POST /api/emails/send-ebook-to-device` answers `404` for three different
+    conditions**, and the body of the answer is the one place that tells them
+    apart: "Ereader device not found", "Library item not found", and "Ebook file
+    not found". Every body is plain text, and not JSON. See T-119.
+62. **The send of a book is slow work of the server, and `REQUEST_TIMEOUT` is 15
+    seconds.** The server took 36.2 seconds for a book of 479.5 megabytes, about
+    13 megabytes each second. A book of more than about 200 megabytes therefore
+    stopped at the time limit **while the server sent it**, and a second such
+    request marks the address down (T-97). See T-119.
+63. **The engine writes one flag for two conditions of a decoder.** A track that
+    the playback needs **now** does not open, and the playback is then dead; or
+    the engine skipped a **later** track, and the playback plays. **Read
+    `state.playback_id` before you read the flag**: `worker.rs` writes that
+    identity in the loop that follows a playback that plays, and a start that
+    failed never reaches that loop. See T-120.
+64. **`/api/items/:id/file/:ino/download` needs the permission `download`, and
+    `/api/items/:id/file/:ino` does not.** The second address is the value of
+    `contentUrl` that the server gives for each track. A measurement with an
+    account of the type `user`: `206` for the one, and `403` for the other. See
+    T-121.
+65. **A measurement of a permission needs an account that does not hold it.**
+    Every session before 2026-08-12 used `toutuitest` of the sandbox, and that
+    account is `root`: T-121 lived in the program for as long as the fork, and no
+    test of the sandbox met it. `docs/TEST-SERVER.md` holds the commands of an
+    account of the type `user`.
+66. **`POST /api/users` makes an account that is not active.** The login then
+    answers `401`, and `podman logs abs-test` says "User is not active". One
+    `PATCH /api/users/:id` with `{"isActive":true}` gives the account its work.
+    **The field `token` of `GET /api/users` is not a token of a request** either:
+    every request with it answers `401`. Take the token from `POST /login`.
+67. **A null device of audio plays about 60 seconds of a book in one second.** A
+    measurement of a position must read the log of the program, and not the row
+    of the player after a wait: the row raced from 1:02 to 1:43 in twelve
+    seconds. **The local sessions of the program carry that race to the server**
+    at the next start, therefore a clean measurement of a resume removes the rows
+    of `listening_session` and of `pending_progress` of the database of the
+    program first. See T-120.
+68. **The pool of the program takes a slow address with a block `[[servers]]` of
+    `config.toml`.** The block holds for a server whose endpoints hold the stored
+    address, therefore the slow address stands first and the real address after
+    it. A proxy of 60 lines of Python gives every request a delay, and the header
+    of the program then says the slow address.
+
 ## The shapes that the next work should follow
 
 - **A slot between the work and the screen.** The render is not asynchronous.
@@ -1329,10 +1500,11 @@ that need the maintainer, and the sweeps that no session has made.
 >
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and 111 traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
-> evidence of every item; **T-87, T-97, T-107, and T-113 are the four to know**,
-> and T-112 to T-118 are the newest), and `docs/T-24-coverage.md` (**no row of
-> section 4 says `Half`**, and **section 6 names what the program must not have,
-> with the reason**).
+> evidence of every item; **T-87, T-97, T-107, T-113, and T-120 are the five to
+> know**, and T-119 to T-121 are the newest), and `docs/T-24-coverage.md` (**no
+> row of section 4 says `Half`, and every row that says `No` belongs to an
+> administrator of the server**, and **section 6 names what the program must not
+> have, with the reason**).
 >
 > **The way of working, for every item.** Show the fault before you correct it,
 > and let a test find it: a build with the correction removed must fail. Make the
@@ -1348,8 +1520,8 @@ that need the maintainer, and the sweeps that no session has made.
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a real null asound file.
-> Baseline: **927 tests in 2.3 seconds**, and `cargo nextest run --run-ignored all`
-> gives **951 of 951** with the sandbox up, in 18.5 seconds. **Run that second
+> Baseline: **955 tests in 2.3 seconds**, and `cargo nextest run --run-ignored all`
+> gives **980 of 980** with the sandbox up, in 19.3 seconds. **Run that second
 > command at the end of the session too**: it found two faults of 2026-08-12 that
 > the fast suite did not (T-111).
 >
@@ -1406,7 +1578,11 @@ that need the maintainer, and the sweeps that no session has made.
 > of `docs/T-24-coverage.md` holds the measurement of each (T-110). The group
 > `episodes` of the search stays outside until a measurement gives one hit of it
 > (T-113). The rows of section 6 belong to an administrator, and the program must
-> not hold them.
+> not hold them. **The words of the accounts of T-118 stay as they are**, and the
+> words of a book of a scan of T-116 stay too: the maintainer decided each of them
+> on 2026-08-12. **The list of the devices of an e-reader comes from
+> `POST /api/authorize`**, and `GET /api/emails/settings` can never give it to a
+> user (T-119).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
