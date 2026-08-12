@@ -1,15 +1,105 @@
-# The handover of 2026-08-12 (the sixth session of that day)
+# The handover of 2026-08-12 (the seventh session of that day)
 
 This document is for the next session. It says what is done, what is open, and the
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.67**, and T-124 to T-127 belong to this session.
-The items T-122 and T-123 belong to the session before it, T-119 to T-121 to the one
-before that, T-112 to T-118 to the one before those, and T-105 to T-111 to the one
-before them.
+**The newest release is v0.7.71**, and T-128 to T-132 belong to this session.
+The items T-124 to T-127 belong to the session before it, T-122 and T-123 to the
+one before that, T-119 to T-121 to the one before those, and T-112 to T-118 to the
+one before them.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the seventh turn of that day: the address, the rounds of the start, and the playback
+
+**Four releases: v0.7.68 to v0.7.71.** The session took the first three items of
+the road, and **the sweep of the third one found the fault of this session**: a
+refresh of the screen took the playback of the user away from every key.
+
+| Item | What | Keys |
+|---|---|---|
+| T-128 | **The program said "No server address answered" for a server that answers.** One connection that no machine took kept the address away for up to 60 seconds | any |
+| T-129 | The four requests of the start waited for the shelves of the Home view, and they need that answer for nothing | — |
+| T-130 | **The program sent the position of a playback as a text.** The server kept that text, and the row of the answer then did not read at all | — |
+| T-131 | **The key `R` took the playback away from every key of the player.** The row of the player went away, and the book played to its end | `R`, `S-Tab` |
+| T-132 | The test of the live messages measured the data of the sandbox | — |
+
+### T-128, and the answer that a request must try
+
+**The road of the session before this one named this measurement first**, and it
+did not repeat for that session. **It repeats every time now**: the server goes
+away for 25 seconds, the live task cannot connect, and the one address of the
+pool takes the state `Down` (T-107). The server then answers `curl` in 1.5
+milliseconds, and **16 presses of the key `e` in the 31.6 seconds after it all
+said "No server address answered"**. The probe task sleeps 60 seconds, therefore
+the limit of that wait is a minute.
+
+**A request must try an address before the program says that no address
+answered**, and an address that answered holds the state `Up`. The first press of
+the key gives the book now, 120 milliseconds after the server answered.
+
+**`mark_down` wrote no line of the log at all**, therefore the measurement had to
+read the fault of the live task and make a guess. The log holds that moment now,
+with the reason.
+
+### T-131, and it is the one to know of this session
+
+**Every key that refreshes the screen makes a new application**: the key `R`, the
+key that takes the next library (T-66), and the keys of the sequence of the
+library. **`App::new` starts a new engine of the sound**, therefore the old engine
+kept the playback and the new application knew nothing of it: the row of the
+player went away while the media played, and **the keys `Space` and `Y` acted on
+an engine of no playback**. The measurement pressed `R` at the minute 2 of a book
+of 30 minutes, and the book played to its end while the user held no key of it.
+
+`App::new_with_the_engine` takes the engine of a program that plays already.
+**The rule of the loop of `src/main.rs` needs a test that reads the source**,
+because no unit test reaches that loop.
+
+### T-129, and the way to measure the rounds of the start
+
+**A proxy of 70 lines of Python answers a question that no session had answered.**
+It holds a port, it gives every request a delay of 500 milliseconds, and **it
+writes the path and the time of each request**: the rounds of the start then stand
+in a file, and no line of the program changes. The start held three rounds, and it
+holds two:
+
+| The round | Before | After |
+|---|---|---|
+| 1 | `GET /api/libraries` | `GET /api/libraries` |
+| 2 | the shelves, and `GET /api/me` | the shelves, the account, the series, the lists, and the items |
+| 3 | the series, the lists, and the items | — |
+| **the first frame** | **2.03 s** | **1.56 s** |
+
+**The first round stays**: every request of the second round needs the identity of
+the library, and the first round gives it.
+
+### T-130, and the fault that a sweep found in the log
+
+**The sweep of a media that plays with a slow server found one line of the log**,
+and that line named a fault of five sessions: `POST /api/session/:id/sync` sent
+`{"currentTime": "714"}`, **two numbers as a text**. The server keeps the form
+that a client gives it, therefore `GET /api/me` answered a text and the row did
+not read. The line of the Home view of a book at the minute 11 of 30:
+`➤ 40% A Long Test Book` with the correction, and `➤     A Long Test Book`
+without it.
+
+**The program reads a number that comes as a text now too.** The rows of a text
+stand in the database of every server that this program wrote to, therefore the
+correction of the request alone gives those users nothing.
+
+### The sweeps of this session, and what each of them gave
+
+| The sweep | The answer |
+|---|---|
+| **A server that answers slowly while a media plays** | **one fault** (T-130), and the playback itself held: the book played from the minute 20 to its end with a proxy of 500 ms |
+| **A library of more than 500 items, with a media that plays** | **one fault** (T-131). The paging of T-70 read the four pages of 2056 items while the media played, and the key `G` went to the last item |
+| **A server that goes away and answers again** | **one fault** (T-128) |
+
+**Two sweeps of the road stay**: a second account of a second server while a
+media plays (T-124), and a library whose media the account may not read, with an
+account of the type `user` (T-121 holds the commands of such an account).
 
 ## The session of the sixth turn of that day: the accounts, and three sweeps
 
@@ -385,15 +475,15 @@ episodes for a podcast that is missing **54**, therefore it stays outside.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.67` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.71` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 979 tests pass in 2.2 s, 25 carry #[ignore], 49 binaries
-    # cargo nextest run --run-ignored all gives 1004 of 1004 with the sandbox up,
-    # in 16.4 s: one test waits 16 s for the time limit of the send of a book
+    # 991 tests pass in 2.2 s, 25 carry #[ignore], 50 binaries
+    # cargo nextest run --run-ignored all gives 1016 of 1016 with the sandbox up,
+    # in 27.6 s: one test waits 16 s for the time limit of the send of a book
     # (T-119)
 cargo tree -i openssl-sys                # finds nothing
 cargo tree -i cc                         # finds libsqlite3-sys and ring only
@@ -730,46 +820,44 @@ and the sweep of a library of podcasts found three.
 
 #### What a next session can take
 
-**Every sweep of the road of 2026-08-12 is made now**, and T-118 is done (T-124).
-The road of the next session holds the work that those measurements left.
+**The first three items of the road of the session before this one are done**
+(T-128, T-129, and T-131 with T-130). The road holds the work that the
+measurements of this session left.
 
-1. **The one measurement that did not repeat, and it is the first work.** The
-   first attempt of a book of an EPUB of 100 megabytes said "The program did not
-   get the book: **No server address answered**", and the server sends that book
-   in 0.13 seconds with `curl`. Four attempts after it gave the book. That moment
-   came after a scan of the library: **the socket of the live messages marks an
-   address down for a connection that no machine takes** (T-107), and a server
-   that is busy can give that fault. A session must make the condition again with
-   the log of the program, and it must then read `the_address_is_down`.
-2. **The requests of the start that are left.** T-127 took 29 requests away, and
-   the start still holds four rounds with a server of 500 ms: the libraries, the
-   shelves, the four requests that go together, and the sound device. **The
-   shelves and the four do not need each other**, and no measurement says why
-   they wait. The first frame is 1.7 seconds with that server.
-3. **The row of the table that stays.** *Send an ebook to an e-reader*
+1. **The two sweeps that no session has made.** Every new condition found a fault
+   in seven sessions of eight, and the sweep of this session found T-131:
+   - **A second account of a second server while a media plays** (T-124): the key
+     `c` stops the playback and it starts the program again, therefore the
+     position of that media must reach the server first. `docs/TEST-SERVER.md`
+     holds the commands of the second server, on the port 13400.
+   - **A library whose media the account may not read**, with an account of the
+     type `user` (T-121 holds the commands of such an account, and the trap 65
+     says why every session before 2026-08-12 missed a fault of a permission).
+2. **What a refresh of the screen still loses.** T-131 gave the engine of the
+   playback to the new application. **The timer for sleep (T-24) and the queue of
+   the media stand in the application**, and a refresh holds neither: the key `R`
+   therefore takes the timer of the user away. No measurement of a user names it,
+   and the shape of the answer is the shape of T-131.
+3. **The rounds of the start that stay.** The start holds two rounds now, and the
+   first is `GET /api/libraries`: every request of the second needs the identity
+   of the library. **A start of one round needs the program to trust the identity
+   that its database holds**, and to correct itself when the answer of the
+   libraries comes. That is a design, and not a measurement.
+4. **The row of the table that stays.** *Send an ebook to an e-reader*
    (`GET /api/emails/settings`). It is the one row of section 4 that says `No`
    for a function that a user of a terminal can use. **The issue #24 stays open
    for that row**, and T-119 holds the measurement that says why the endpoint
    cannot give it to a user.
-4. **T-116: the words while the user waits.** The maintainer decided that the
+5. **T-116: the words while the user waits.** The maintainer decided that the
    text stays as it is (2026-08-12). The row is a decision, and not work that
    waits.
-5. **The sweeps that no session has made.** Every new condition found a fault in
-   six sessions of seven. These conditions stay:
-   - **A library of books of more than 500 items, with a media that plays**: the
-     paging of T-70 and the playback together.
-   - **A server that answers slowly while a media plays**: every measurement of a
-     slow server of 2026-08-12 played nothing.
-   - **A second server of a second account** (T-124): the key `c` while a media
-     plays, and the position of that media.
-   - **A library whose media the account may not read** (the permissions of
-     T-110), with an account of the type `user`.
-6. **The fast suite stays at about 2 seconds.** It holds 979 tests in 2.2 s. A
+6. **The fast suite stays at about 2 seconds.** It holds 991 tests in 2.2 s. A
    new test that needs a wait belongs behind `#[ignore]`.
-5. **`cargo nextest run --run-ignored all` belongs at the end of a session**, and
-   not at the end of one item: it took 18.5 seconds on 2026-08-12, and it found
-   two faults of the session before this one that the fast suite did not (T-111).
-6. **The words for the user.** Every text in ASD-STE100. A view says why it holds
+7. **`cargo nextest run --run-ignored all` belongs at the end of a session**, and
+   not at the end of one item: it took 27.6 seconds on 2026-08-12, and it found a
+   fault of a test of this session that the fast suite did not (T-132), as it
+   found T-111 before.
+8. **The words for the user.** Every text in ASD-STE100. A view says why it holds
    no line, and it never says a reason that the program does not have (T-91). **A
    text must not promise a function that the program does not have** (T-118). A
    key that does nothing in one view is a fault of its own (T-79). A message
@@ -827,8 +915,26 @@ measurement changed.
 ### 4. The decisions that this session made
 
 **The maintainer answered no question before this session**, because the road held
-sweeps and a sweep needs no decision. This session made four decisions of its own,
-and each of them follows a rule of this document.
+three measurements and two sweeps. This session made two decisions of its own.
+
+**1. A request tries an address that holds the state `Down` when no address holds
+the state `Up`.** The state `Down` is the answer of an attempt that came before,
+and a key of the user is a new question: a program that says "No server address
+answered" with no attempt says a reason that it does not have (T-91). The cost is
+one connect timeout of 3 seconds for a program that is truly offline, and the
+offline mode holds already. See T-128.
+
+**2. The engine of the sound belongs to the playback, and not to the
+application.** A refresh makes a new application, and T-131 gives it the engine
+that plays. **The timer for sleep and the queue stay with the application**, and a
+refresh loses them: that is the road of the next session, and it needs a
+measurement of a user first.
+
+### The decisions of the session before this one
+
+**The maintainer answered no question before that session** either, because the
+road held sweeps and a sweep needs no decision. That session made four decisions
+of its own, and each of them follows a rule of this document.
 
 **1. The key `G` reads the pages that are left, and it does not stop at the page.**
 A page of 500 items costs 2 ms and 470 kilobytes of the sandbox, therefore one
@@ -1585,6 +1691,43 @@ answers slowly while it writes. Two answers to measure:
     it. A proxy of 60 lines of Python gives every request a delay, and the header
     of the program then says the slow address.
 
+### The traps of the session of the address and of the playback (T-128 to T-132)
+
+69. **`Esc` stops the whole program.** The list of every key says "Q / Esc: Quit",
+    and no footer of a list names it: a measurement that presses `Esc` to leave a
+    view kills the program, and the tmux server goes with it ("no server running
+    on /tmp/tmux-1000/default"). **The key `h` goes back**, and `Esc` goes back
+    inside the reader (T-52) and inside the list of the keys only.
+70. **`tmux send-keys` takes `BTab` for Shift+Tab**, and not `S-Tab`. A
+    measurement with the wrong name pressed nothing at all, and the library of the
+    screen never changed.
+71. **`docs/harness/slow.py` stands in the repository now**, and it gives the
+    rounds of the start with no line of code of the program: it holds a port, it
+    forwards every byte to the sandbox, it sleeps before each request, and it
+    writes the path and the time of each request. Two sessions wrote that proxy
+    and neither kept it. See T-129.
+72. **The null device plays about 30 minutes of a book in 25 seconds** (the trap
+    14 says 50 seconds for 30 minutes; the machine of this session is faster). **A
+    measurement of a playback that must live longer than that needs a position of
+    0 first**: `PATCH /api/me/progress/:id` with `currentTime: 0` gives the whole
+    media, and a book that stands at the minute 20 comes to its end in 10 seconds.
+73. **A measurement that writes the data of the sandbox breaks a test of the
+    sandbox.** This session wrote the position of one book with `curl`, and
+    `a_change_of_a_different_client_comes_to_the_screen` then failed: the test
+    measured the data and not the program (T-132). **Put the data back**, and run
+    `cargo nextest run --run-ignored all` at the end of the session.
+74. **`PATCH /api/me/progress/:id` keeps the `progress` of the body**, and a body
+    that holds `isFinished` beside it gives the fraction of the position that
+    stood there before. **Send the mark in a request of its own.** See T-132.
+75. **The server keeps the form of a number that a client gives it.** One
+    `POST /api/session/:id/sync` with `"currentTime": "714"` makes `GET /api/me`
+    answer `"currentTime": "714"` for ever, until a client writes a number. **A
+    measurement of a JSON body must look at the type of every value.** See T-130.
+76. **`mark_down` of the pool writes a line of the log now**, therefore a report of
+    "No server address answered" has evidence: read
+    "[api] The program does not use the address" of the log of the user. See
+    T-128.
+
 ## The shapes that the next work should follow
 
 - **A slot between the work and the screen.** The render is not asynchronous.
@@ -1673,13 +1816,14 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**Every sweep of the road of 2026-08-12 is made**, and T-118 is done. This prompt
-asks for the measurement that did not repeat, the requests of the start that are
-left, and the sweeps that no session has made.
+**The first three items of the road of the session before this one are done**
+(T-128 to T-131), and the run of every test found a fault of a test (T-132). This
+prompt asks for the two sweeps that no session has made, and for the work that
+T-131 left.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.7.67**; `Cargo.toml` is at 0.7.67. The
+> AlbanDAVID/Toutui. Newest release **v0.7.71**; `Cargo.toml` is at 0.7.71. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -1687,61 +1831,53 @@ left, and the sweeps that no session has made.
 >
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
-> evidence of every item; **T-87, T-97, T-107, T-120, and T-126 are the five to
-> know**, and T-124 to T-127 are the newest), and `docs/T-24-coverage.md` (**no
-> row of section 4 says `Half`, and every row that says `No` belongs to an
-> administrator of the server**, and **section 6 names what the program must not
-> have, with the reason**).
+> evidence of every item; **T-87, T-97, T-107, T-126, T-128, and T-131 are the
+> six to know**, and T-128 to T-132 are the newest), and
+> `docs/T-24-coverage.md` (**no row of section 4 says `Half`, and every row that
+> says `No` belongs to an administrator of the server**, and **section 6 names
+> what the program must not have, with the reason**).
 >
 > **The way of working, for every item.** Show the fault before you correct it,
 > and let a test find it: a build with the correction removed must fail. Make the
 > data of the fault exist in the sandbox (`docs/TEST-SERVER.md`, podman on
-> `:13399`; `podman start abs-test` gives the server back with every book of the
-> sessions before, and it holds a library of 2056 items, a library of **520
-> podcasts**, a PDF of 502 megabytes, and an **EPUB of 100 megabytes** now).
-> **Drive the real program inside tmux** with `docs/harness/drive.sh`; a screen of
-> your own writing lies to you. Verify with a second program: `curl`,
-> `podman logs abs-test`, or a browser. Write the measurement in
-> `docs/TAKEOVER-BACKLOG.md` under a new item (T-128 and up), and name that item
+> `:13399`; `podman start abs-test` gives the server back with a library of 2056
+> items, a library of **520 podcasts**, a PDF of 502 megabytes, and an **EPUB of
+> 100 megabytes**). **Drive the real program inside tmux** with
+> `docs/harness/drive.sh`; a screen of your own writing lies to you. **The key
+> `h` goes back, and `Esc` stops the program** (the trap 69), and `tmux
+> send-keys` takes `BTab` for Shift+Tab (the trap 70). Verify with a second
+> program: `curl`, `podman logs abs-test`, or a browser. Write the measurement in
+> `docs/TAKEOVER-BACKLOG.md` under a new item (T-133 and up), and name that item
 > in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a real null asound file.
-> Baseline: **979 tests in 2.2 seconds**, and `cargo nextest run --run-ignored all`
-> gives **1004 of 1004** with the sandbox up, in 16.4 seconds. **Run that second
-> command at the end of the session too**: it found the fault of a test of
-> 2026-08-12 that the fast suite did not.
+> Baseline: **991 tests in 2.2 seconds**, and `cargo nextest run --run-ignored all`
+> gives **1016 of 1016** with the sandbox up, in 27.6 seconds. **Run that second
+> command at the end of the session too**: it found T-132 and T-111.
 >
 > **No run opens the real sound device.** `TOUTUI_AUDIO_DEVICE=null` gives the
 > null device of ALSA, and the log then says "the application uses the sound
 > device alsa:null". `ALSA_CONFIG_PATH` does **not** silence the real program.
+> **The null device plays 30 minutes of a book in 25 seconds** (the trap 72).
 >
 > ### The work, in the sequence of its value
 >
-> 1. **The measurement that did not repeat.** The first attempt of the book of an
->    EPUB of 100 megabytes said "The program did not get the book: **No server
->    address answered**", and `curl` sends that book in 0.13 seconds. Four
->    attempts after it gave the book. That moment came after a scan of the
->    library: the socket of the live messages marks an address down for a
->    connection that no machine takes (T-107). **Make the condition again with the
->    log of the program**, and read `the_address_is_down`. A user who meets it
->    reads a reason that is false.
-> 2. **The requests of the start that are left.** T-127 took 29 requests away and
->    the first frame with a server of 500 ms went from 3.8 s to 1.7 s. Four rounds
->    stay: the libraries, the shelves, the four requests that go together, and the
->    sound device. **The shelves and the four do not need each other.** The proxy
->    of `slow.py` and a poll of the box of the start give the sequence with no
->    line of code (the trap 88).
-> 3. **The sweeps that no session has made.**
->    - **A library of books of more than 500 items, with a media that plays.**
->    - **A server that answers slowly while a media plays**: every measurement of
->      a slow server played nothing.
->    - **A second account of a second server** (T-124): the key `c` while a media
->      plays, and the position of that media.
+> 1. **The two sweeps that no session has made.** Every new condition found a
+>    fault in seven sessions of eight, and the sweep of the session before this
+>    one found T-131.
+>    - **A second account of a second server while a media plays** (T-124). The
+>      key `c` starts the program again, therefore the position of the media must
+>      reach the server first. The second server stands on the port 13400.
 >    - **A library whose media the account may not read**, with an account of the
->      type `user` (T-121 holds the commands of such an account).
-> 4. **The words for the user.** Every text in ASD-STE100. A view says why it
+>      type `user`. T-121 holds the commands of such an account, and the trap 65
+>      says why every session before it missed a fault of a permission.
+> 2. **What a refresh of the screen still loses (T-131).** The engine of the
+>    playback stays now. **The timer for sleep of T-24 and the queue of the media
+>    stand in the application**, and the key `R` takes them away. Measure what the
+>    user loses first, and then give them the shape of T-131.
+> 3. **The words for the user.** Every text in ASD-STE100. A view says why it
 >    holds no line, and it never says a reason that the program does not have
 >    (T-91). **A text must not promise a function that the program does not
 >    have** (T-118). A key that does nothing in one view is a fault of its own
@@ -1761,11 +1897,12 @@ left, and the sweeps that no session has made.
 > `GET /api/podcasts/:id/checknew` and `GET /api/tags` stay outside, and section 6
 > of `docs/T-24-coverage.md` holds the measurement of each (T-110). The group
 > `episodes` of the search stays outside until a measurement gives one hit of it
-> (T-113). The words of a book of a scan of T-116 stay as they are: the maintainer
-> decided that on 2026-08-12. **The list of the devices of an e-reader comes from
-> `POST /api/authorize`**, and `GET /api/emails/settings` can never give it to a
-> user (T-119). **The program holds more than one account now** (T-124), and the
-> episodes of a podcast come when the user opens that podcast (T-126).
+> (T-113). The words of a book of a scan of T-116 stay as they are. **The list of
+> the devices of an e-reader comes from `POST /api/authorize`** (T-119). The
+> program holds more than one account (T-124), the episodes of a podcast come
+> when the user opens that podcast (T-126), **a request tries an address that
+> holds the state `Down`** (T-128), and **the refresh keeps the engine of the
+> playback** (T-131).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

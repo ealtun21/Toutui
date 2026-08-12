@@ -166,9 +166,15 @@ curl -X POST "http://localhost:13399/api/libraries/$LIB/scan" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-**A server that answers slowly needs no new container.** A proxy of Python gives
-every request a delay, and a block `[[servers]]` of `config.toml` puts that
-address first (the trap 68). The first frame of `ManyPods` took 11.9 seconds with
+**A server that answers slowly needs no new container.**
+`docs/harness/slow.py` gives every request a delay, and a block `[[servers]]` of
+`config.toml` puts that address first (the trap 68). That file also **writes the
+path and the time of each request**, therefore it gives the rounds of the start
+(T-129):
+
+```bash
+python3 docs/harness/slow.py 13500 13399 0.5 requests.log &
+``` The first frame of `ManyPods` took 11.9 seconds with
 20 milliseconds of every request before T-126, and it takes 0.409 seconds now.
 
 ## 2e. A second server, for the sweep of two accounts
