@@ -6031,7 +6031,13 @@ impl App {
     }
 
     /// Shows the media that wait in the queue. The key is `q`.
+    ///
+    /// **The view takes the queue of the disk first** (T-147). A second program
+    /// of the account writes the same rows, therefore the queue of this process
+    /// can be older than the queue of the user.
     pub fn show_the_queue(&mut self) {
+        crate::logic::queue::read_the_queue_again();
+
         let count = crate::logic::queue::len();
 
         // The selection must stand inside the list. An empty queue has no
@@ -6053,7 +6059,17 @@ impl App {
             return;
         };
 
-        let Some(entry) = crate::logic::queue::take_at(index) else {
+        // The identity of the line holds the media when a second program
+        // changed the queue under this view. See T-147.
+        let Some(key) = crate::logic::queue::snapshot()
+            .entries()
+            .get(index)
+            .map(|entry| entry.key())
+        else {
+            return;
+        };
+
+        let Some(entry) = crate::logic::queue::take_the_media(index, &key) else {
             return;
         };
 
@@ -6074,7 +6090,17 @@ impl App {
             return;
         };
 
-        let Some(entry) = crate::logic::queue::take_at(index) else {
+        // The identity of the line holds the media when a second program
+        // changed the queue under this view. See T-147.
+        let Some(key) = crate::logic::queue::snapshot()
+            .entries()
+            .get(index)
+            .map(|entry| entry.key())
+        else {
+            return;
+        };
+
+        let Some(entry) = crate::logic::queue::take_the_media(index, &key) else {
             return;
         };
 

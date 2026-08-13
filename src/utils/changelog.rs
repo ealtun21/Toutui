@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.82",
+        date: "13/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A second window of this program no longer takes the books out of your \
+             queue.** Each window held a queue of its own, and every change wrote the whole \
+             list: two windows each put one book in the queue, each screen said \"1 item\" \
+             with its own book, and the disk kept one of the two. Every window reads the \
+             queue of the disk now — before it changes the queue, and when you open the \
+             view with the key `q`.",
+        ],
+    },
+    Entry {
         version: "0.7.81",
         date: "13/08/2026",
         body: &[

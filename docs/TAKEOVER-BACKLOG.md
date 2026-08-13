@@ -6624,6 +6624,67 @@ therefore a second message about the queue would take the reason away. **The vie
 of the queue is the answer**: the media stands at its front, and the user reads
 it with the key `q`.
 
+### T-147: a second program of the account took the media out of the queue
+
+**The sweep of 2026-08-13: a state of the program that a second program cannot
+see.** The road of the session of T-142 named that condition, and it named the
+queue of the media as one of the three states. **The queue holds that fault, and
+it takes the media of the user away.**
+
+`write_the_queue` holds **every** row of the queue (T-56), and the queue of the
+process stood beside it: a program that changed its own memory therefore wrote
+that memory over the media of every other program of the account.
+
+The measurement, with the sandbox and two sessions of tmux of one
+`XDG_CONFIG_HOME` (the trap 89):
+
+| The moment | The window A | The window B | The table `queue` of the disk |
+|---|---|---|---|
+| A presses `n` on "One Chapter Book" | `The queue [1 item]`: One Chapter Book | — | One Chapter Book |
+| B presses `n` on "Multi File Test Book" | `The queue [1 item]`: One Chapter Book | `The queue [1 item]`: Multi File Test Book | **Multi File Test Book alone** |
+
+**The book of A is gone, and the screen of A still names it.** A key of A that
+changes the queue then takes the book of B away in the same manner, and a start
+of the program gives the user the media of the last write.
+
+**The correction is the rule of T-142 for the disk: the file is the truth, and
+the program reads it at the moment that it uses it.** `read_the_disk` takes the
+rows of the queue into the queue of the process, and every function that changes
+the queue calls it first: `add`, `take_next`, `put_at_the_front`, and
+`take_the_media`. `clear` needs no read, because it takes every media of the
+account away.
+
+**The view of the queue reads the disk when it opens** (the key `q`). The render
+reads the queue of the process at every frame, therefore a read of the database
+at each frame would pay for a change that comes some times in a day. A view that
+stands open while a second program changes the queue is older than the disk until
+the user leaves it and opens it again, and that is a decision of this item.
+
+**A key of a view that is older than the disk takes the media of its own line.**
+`the_place_of_the_media(entries, index, key)` gives the place when the media of
+that place is the media of the line, and it gives the first media of that
+identity otherwise; a media that stands in the queue no more gives nothing, and
+the key then does nothing. The keys `l` and `X` of the view of the queue read
+that rule. `queue::take_at` has no caller left, and it went away.
+
+The same measurement after the correction:
+
+| The moment | The window A | The window B | The disk |
+|---|---|---|---|
+| A presses `n`, and B presses `n` after it | `The queue [2 items]` | `The queue [2 items]` | **both media, in the sequence of the user** |
+| B presses `X` on the first line, and A opens the view again | `The queue [1 item]`: Multi File Test Book | the same | the same |
+
+`tests/the_queue_belongs_to_the_disk.rs` holds the rule. The test needs no
+server: it writes the queue of the second program with `save_the_queue`, which is
+the one function that every program of the account calls. A build with the
+correction removed says
+`left: ["The Book Of A", "The Second Book Of A"]` against
+`right: ["The Book Of B", "The Second Book Of A"]`.
+
+**The two states of the road that stay.** The cache of the ebooks holds the rule
+already (T-142), and **the downloads of the server** are the third state that no
+session has measured.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

@@ -33,8 +33,22 @@
 //! - Every change of the queue writes every row again. A queue holds some media,
 //!   therefore that write costs almost nothing and it needs no rule for a row
 //!   that changed.
+//!
 //! - **A media that the server does not hold now stays in the queue.** The row
 //!   holds the identity of the item, and the server answers the playback.
+//!
+//! # The disk is the truth of the queue (T-147)
+//!
+//! The queue of the process stood beside the queue of the disk, and the write
+//! above holds **every** row: a second program of the account therefore wrote
+//! its own memory over the media of the first one. Two windows each put one book
+//! in the queue, each screen said "the queue holds 1 item", and the disk held one
+//! book of the two.
+//!
+//! **Every change of the queue reads the disk first**, and the view of the queue
+//! reads it again when it opens. This is the rule of T-142 for a second state of
+//! the program: the file of the disk is the truth, and the program reads it at
+//! the moment that it uses it.
 //!
 //! # A playback that did not start keeps its media (T-146)
 //!
@@ -287,12 +301,29 @@ pub fn read_the_queue_of_the_account(username: &str, server: &str) {
         return;
     }
 
-    let entries: Vec<Entry> = rows.iter().map(entry_of_the_row).collect();
+    log::info!("[queue] the disk holds {} media of the queue", rows.len());
 
-    log::info!(
-        "[queue] the disk holds {} media of the queue",
-        entries.len()
-    );
+    read_the_disk();
+}
+
+/// Takes the queue of the disk into the queue of this program. See T-147.
+///
+/// **The disk is the truth of the queue.** Every program of the account writes
+/// every row of the queue again, therefore a program that changes the queue of
+/// its own memory alone takes the media of the other program away: two windows
+/// each put one book in the queue, and the disk held one of them.
+///
+/// A program that has no account named yet reads nothing: the queue then belongs
+/// to a test, and a test must not touch the database of a user.
+fn read_the_disk() {
+    let Some((username, server)) = the_account().lock().ok().and_then(|place| place.clone()) else {
+        return;
+    };
+
+    let entries: Vec<Entry> = crate::db::crud::read_the_queue(&username, &server)
+        .iter()
+        .map(entry_of_the_row)
+        .collect();
 
     with_the_queue(|queue| {
         queue.clear();
@@ -301,6 +332,33 @@ pub fn read_the_queue_of_the_account(username: &str, server: &str) {
             queue.add(entry);
         }
     });
+}
+
+/// Takes the queue of the disk, for a view that opens. See T-147.
+///
+/// The view of the queue reads the media of the process at every frame. A second
+/// program of the account can have changed the queue, therefore the view takes
+/// the queue of the disk at the moment that it opens.
+pub fn read_the_queue_again() {
+    read_the_disk();
+}
+
+/// Gives the place of the media that a view named.
+///
+/// The view of the queue holds the lines of a moment, and the disk can hold
+/// other media at the moment of the key (T-147). The place of the line is
+/// therefore not enough: the function takes the place when the media of that
+/// place is the media of the line, and it takes the first media of that identity
+/// otherwise.
+///
+/// A media that stands in the queue no more gives nothing, and the key then does
+/// nothing at all. The function is pure, therefore a test needs no database.
+pub fn the_place_of_the_media(entries: &[Entry], index: usize, key: &str) -> Option<usize> {
+    if entries.get(index).is_some_and(|entry| entry.key() == key) {
+        return Some(index);
+    }
+
+    entries.iter().position(|entry| entry.key() == key)
 }
 
 /// Makes an entry of the queue of one row of the database.
@@ -359,7 +417,12 @@ fn write_the_queue() {
 }
 
 /// Puts a media at the end of the queue of the process.
+///
+/// **The queue comes of the disk first** (T-147): a second program of the
+/// account can hold media that this program never saw, and the write below holds
+/// every row.
 pub fn add(entry: Entry) -> usize {
+    read_the_disk();
     let place = with_the_queue(|queue| queue.add(entry));
     write_the_queue();
     place
@@ -367,25 +430,41 @@ pub fn add(entry: Entry) -> usize {
 
 /// Puts a media at the front of the queue of the process. See T-146.
 pub fn put_at_the_front(entry: Entry) {
+    read_the_disk();
     with_the_queue(|queue| queue.put_at_the_front(entry));
     write_the_queue();
 }
 
 /// Takes the first media out of the queue of the process.
 pub fn take_next() -> Option<Entry> {
+    read_the_disk();
     let entry = with_the_queue(|queue| queue.take_next());
     write_the_queue();
     entry
 }
 
-/// Takes one media out of the queue of the process, by its place.
-pub fn take_at(index: usize) -> Option<Entry> {
-    let entry = with_the_queue(|queue| queue.take_at(index));
+/// Takes one media out of the queue of the process, by its place and by its
+/// identity.
+///
+/// A key of the view of the queue calls this: the place comes of the line that
+/// the user selected, and the identity holds that line when the disk moved under
+/// it. See `the_place_of_the_media` and T-147.
+pub fn take_the_media(index: usize, key: &str) -> Option<Entry> {
+    read_the_disk();
+
+    let entry = with_the_queue(|queue| {
+        let place = the_place_of_the_media(queue.entries(), index, key)?;
+        queue.take_at(place)
+    });
+
     write_the_queue();
     entry
 }
 
 /// Empties the queue of the process.
+///
+/// This takes every media of the account away, therefore it needs no read of the
+/// disk: the queue of every program of that account is empty after it.
 pub fn clear() {
     with_the_queue(|queue| queue.clear());
     write_the_queue();
@@ -593,6 +672,35 @@ mod tests {
 
         queue.clear();
         assert_eq!(queue.selection_after_a_remove(0), None);
+    }
+
+    /// The view holds the lines of a moment, and a second program can change
+    /// the queue under it. The identity of the line holds the media. See T-147.
+    #[test]
+    fn the_key_takes_the_media_of_its_own_line() {
+        let mut queue = Queue::default();
+        queue.add(book("a", "First"));
+        queue.add(book("b", "Second"));
+        queue.add(book("c", "Third"));
+
+        let entries = queue.entries();
+
+        // The place and the media agree: the place answers.
+        assert_eq!(the_place_of_the_media(entries, 1, "b"), Some(1));
+
+        // A second program put a media before it. The identity answers, and the
+        // place does not.
+        assert_eq!(the_place_of_the_media(entries, 0, "c"), Some(2));
+
+        // A place outside the queue gives the media of the identity.
+        assert_eq!(the_place_of_the_media(entries, 99, "a"), Some(0));
+
+        // A media that stands in the queue no more gives nothing.
+        assert_eq!(
+            the_place_of_the_media(entries, 0, "a-media-of-no-queue"),
+            None
+        );
+        assert_eq!(the_place_of_the_media(&[], 0, "a"), None);
     }
 
     /// The rule of the queue: an end starts the next media, and nothing else
