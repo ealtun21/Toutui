@@ -1,15 +1,80 @@
-# The handover of 2026-08-13 (the sixth session of that day)
+# The handover of 2026-08-14
 
 This document is for the next session. It says what is done, what is open, and the
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.84**, and T-148 and T-149 belong to this session. The
-items T-146 and T-147 belong to the session before it, T-145 to the one before
-that, T-142 to T-144 to the one before those, T-140 and T-141 to the one before
-them, and T-133 to T-139 to the one before those.
+**The newest release is v0.7.86**, and T-150 and T-151 belong to this session. The
+items T-148 and T-149 belong to the session before it, T-146 and T-147 to the one
+before that, T-145 to the one before those, T-142 to T-144 to the one before them,
+and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of 2026-08-14: the key `X`, the downloads, and the queue
+
+**Two releases: v0.7.85 and v0.7.86.** The road held three conditions that no
+session had measured, and this session took **two** of them.
+
+| Item | What | Keys |
+|---|---|---|
+| T-150 | **The key `X` said "holds no local copy" for 115 megabytes on their way, and it left the bytes of a download that stopped on the disk for ever.** No key of the program removed them | `D`, `X` |
+| T-151 | The key `X` of the view of the queue said nothing at all when a different program took the media of that line out first | `q`, `X` |
+
+### T-150, and it is the one to know of this session
+
+**The session of T-148 could not measure this condition**: a download of 115
+megabytes over the loopback ends in less than one second (the trap 111).
+`docs/harness/slow_body.py` gives the delay of the **body** of the answer, and the
+key `D` takes the address of the pool since T-149: a proxy of 0.05 seconds for
+each block of 64 kilobytes in the block `[[servers]]` of `config.toml` makes that
+download take about 90 seconds, and the two keys then meet.
+
+**`remove_download` read the database, and the database holds a row after the last
+byte of the last file.** A download that runs and a download that stopped
+therefore stand in no row at all:
+
+| The measurement | Before | After |
+|---|---|---|
+| The window B presses `X` while A downloads | `"…" holds no local copy and no ebook.`, and the 115200330 bytes came 60 seconds later | `A different program of this account downloads "…" now.`, and the `.part` file stays |
+| The window A presses `X` while A downloads | the same sentence of no copy | `This program downloads "…" now.` |
+| The key `X` on the 7713867 bytes of a program that died | **the bytes stay for ever**, and no key of the program removes them | `Removed 7 MB of a download of "…" that did not come to its end.` |
+
+**The rule is the rule of T-142, of T-147, and of T-148: the disk is the truth.**
+`remove_the_directory_of_the_download` takes every file of the directory of the
+download — the audio, the `.part` file, and the lock — whatever the database
+holds. **A download that runs holds its files, and the key takes none of them**: a
+removal under a writer gives that writer the `cannot rename` of T-148 from the
+other side. The lock of T-148 says that a program writes them, and the map of the
+progress of the process says which program that is.
+
+**No key of this program stops a download that runs, and that is a decision.** A
+key that stops it needs a map of the handles of the tasks of this process, and it
+reaches the download of the other window never. The sentence therefore promises no
+key that the program does not hold (T-118 and T-143).
+
+### T-151, and the first condition of the road that found no fault of the data
+
+**The queue holds.** The window B took the next media of the queue out with `X`
+while A played, and A then started the media that B left: `the queue starts "A
+Book Of Many Hours", and 0 media wait`. A key of a view that is older than the
+disk took the media of its own line, and not the media of that place (T-147).
+
+**One fault of the words stands beside it.** The key `X` of A on a line whose
+media B took out **returned with no message**, and the list of that view lost the
+line all the same: the user reads one media less and no word, and they cannot tell
+the key that worked from the key that did nothing (T-79). `text_of_the_key_that_takes`
+gives one sentence for both roads, and it names no program — this program cannot
+say which program took that media out (T-91).
+
+### The measurements of this session
+
+| The measurement | The answer |
+|---|---|
+| **The key `X` of one window while the other window downloads** | **two faults of one cause** (T-150), and one of them keeps the disk of the user for ever |
+| The key `X` after that download came to its end | **no fault**: the directory and the row both go away |
+| **A queue of media that a second program plays** | **no fault of the data**, and one fault of the words (T-151) |
+| The key `X` of a view of the queue that is older than the disk | **no fault**: the media of the line goes, and the media beside it stays |
 
 ## The session of the sixth turn of 2026-08-13: the downloads of two programs
 
@@ -952,19 +1017,19 @@ episodes for a podcast that is missing **54**, therefore it stays outside.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.84` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.86` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 1032 of 1032 in 2.3 s, and cargo nextest run --run-ignored all gives 1057
-    # of 1057 with the sandbox up, in 16.6 s of wall clock: one test waits 16 s
+    # 1037 of 1037 in 2.3 s, and cargo nextest run --run-ignored all gives 1062
+    # of 1062 with the sandbox up, in 16.6 s of wall clock: one test waits 16 s
     # for the time limit of the send of a book (T-119), and one waits 15 s for
     # the time limit of a request
 ALSA_CONFIG_PATH=<the same file> nice -n 19 ionice -c 3 cargo test -j 16 --no-fail-fast
-    # **CI runs this command**, and it is not the same run as nextest: 1032 of
-    # 1032. nextest gives each test a process of its own, therefore it
+    # **CI runs this command**, and it is not the same run as nextest: 1037 of
+    # 1037. nextest gives each test a process of its own, therefore it
     # hides a test that shares a database with another test of its binary. Six
     # tests of three binaries failed on CI while nextest passed (T-144), and
     # `--no-fail-fast` says every binary that fails.
@@ -1340,21 +1405,32 @@ measurements of this session left.
      windows wrote one file at one time, and the book of the user held audio
      that no decoder reads. The map of the progress is a map of the process,
      therefore no program saw the download of the other one.
+   - ~~**The key `X` of one window while the other window downloads**~~: **made
+     on 2026-08-14, and it found T-150.** `docs/harness/slow_body.py` gives the
+     delay of the body of the answer, and the key `D` takes the address of the
+     pool since T-149: the two keys then meet. The key `X` read the database,
+     and the database holds a row after the last byte of the last file.
+   - ~~**A queue of media that a second program plays**~~: **made on 2026-08-14,
+     and it found no fault of the data** — the first condition of the road that
+     found none. The rule of T-147 does the work. One fault of the words stands
+     beside it (T-151).
    - **The conditions that no session has measured**, and a next session may take
      one of them:
-     - **The key `X` of one window while the other window downloads.** The
-       session of T-148 could not measure it: a download of 115 megabytes over
-       the loopback ends in less than one second, and the two keys took their
-       sequence in every run. It needs a server that sends the **body** slowly,
-       and the proxy of `docs/harness/slow.py` gives a delay of the request
-       only.
      - **A program that dies while the server does not answer** (the sharp form
        of T-145): no sync reached the server at all, therefore the row of the
        disk is the one copy of the whole playback. The session of T-145 measured
-       the condition with a server that answers.
-     - **A queue of media that a second program plays** (the two conditions of
-       this session together): the window A plays the queue, and the window B
-       takes a media out of it with the key `X`.
+       the condition with a server that answers. `docs/harness/blackhole.py`
+       gives a port that accepts a connection and answers nothing (the trap
+       112), and the freezer of the cgroup or `podman stop -t 0 abs-test` takes
+       the server away.
+     - **Two programs of one account that read one ebook at one time.** The
+       cache of the ebooks holds the rule of the limit (T-142), and no session
+       has measured two readers of one file of the cache: the window A opens a
+       PDF of 502 megabytes with `e`, and the window B opens the same book while
+       the child of T-62 writes the pages of it.
+     - **A download of a podcast episode while the same podcast downloads on the
+       server** (the key `D` of the program and the key of the queue of the
+       server of T-81 together).
    - ~~**A second account of a second server while a media plays**~~ (T-124):
      **made on 2026-08-13, and it found T-138 and T-139** — the place of one
      account went to the server of another account, and no key sent the place of
@@ -1441,6 +1517,23 @@ measurement changed.
    while it runs, therefore the sweep of a server that dies in the middle of a
    playback measures the position, the message, the session of the server, and the
    parts of the stream. **No run of that session opens the real sound device.**
+
+### 3b. The decisions of the session of the key `X` (T-150 and T-151)
+
+- **No key of this program stops a download that runs.** The key `D` spawns a
+  task, and a key that stops it needs a map of the handles of the tasks of the
+  process — and it reaches the download of the other window never, because that
+  download belongs to a different process. The key `X` says which window
+  downloads the media, and the user presses it again when that download ends. The
+  sentence promises no key that the program does not hold (T-118 and T-143).
+- **The key `X` removes nothing at all while a download of that media runs**, and
+  that holds for the ebook of the reader too. The lock of T-148 guards the whole
+  key: a rule of two halves gives two sentences for one press, and the user reads
+  one message at a time.
+- **The sentence of the key `X` of the view of the queue names no program.** This
+  program cannot say which program took the media of that line out — its own
+  playback can take it too (T-146) — therefore the sentence says what happened to
+  the media and not who did it (T-91).
 
 ### 4. The decisions of the session of the queue (T-146 and T-147)
 
@@ -2282,6 +2375,25 @@ answers slowly while it writes. Two answers to measure:
     zero of the old length**, and `grep` then says nothing at all for a file that
     holds the lines. Give `grep -a`, or make a new file.
 
+### The traps of the session of the key `X` (T-150 and T-151)
+
+116. **A measurement inside a download needs `docs/harness/slow_body.py`**, and
+    not `slow.py`: the second one delays the **request**, therefore a download of
+    115 megabytes of the loopback still ends in less than one second (the trap
+    111). A delay of 0.05 seconds for each block of 64 kilobytes makes that
+    download take about 90 seconds, and every other request of the program stays
+    fast because a small answer holds one block. **The proxy stands in the block
+    `[[servers]]` of `config.toml`** with the slow address first: the key `D`
+    takes the address of the pool since T-149.
+117. **`start_the_program` of the harness truncates the log**, therefore the
+    second window of a measurement of two programs takes the log of the first one
+    away. Start the two windows first, and read the log after both of them stand.
+118. **The null device plays a book of 30 minutes in about 12 seconds when that
+    book is at its half.** A measurement that needs a window of some seconds must
+    set the place of that media to 0 first
+    (`PATCH /api/me/progress/:id` with `{"currentTime":0,"isFinished":false}`),
+    or the media comes to its end while the harness still presses its keys.
+
 ### Of the harness and of the machine
 
 1. **A fixed `sleep` is the largest waste of a session.** The first frame of the
@@ -2598,10 +2710,11 @@ answers slowly while it writes. Two answers to measure:
 ## The prompt for the next session
 
 **The road held three conditions that no session had measured, and this session
-took the first of them** (T-148 and T-149): the downloads, with two programs of
-one account. It found a fault that destroys a file of the user, and the harness
-of that measurement found a second one in the same key. This prompt names the
-conditions that stay, and the state of the program on 2026-08-13.
+took two of them** (T-150 and T-151): the key `X` of one window while the other
+window downloads, and a queue of media that a second program plays. The first of
+them kept the disk of the user for ever, and the second one gave the first
+condition of the road that found no fault of the data. This prompt names the
+conditions that stay, and the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
@@ -2636,17 +2749,20 @@ conditions that stay, and the state of the program on 2026-08-13.
 > the cgroup gives the sleep of the machine (the trap 101). **A port that no
 > program holds refuses a connection at once**, therefore a measurement of a
 > limit of time needs a port that accepts and answers nothing (the trap 112).
-> **`pkill -f` of a shell of this harness kills that shell** (the trap 114).
+> **`pkill -f` and `pgrep -f` of a shell of this harness kill that shell** (the
+> trap 114). **A download of the loopback ends in less than one second**,
+> therefore a measurement inside a download needs `docs/harness/slow_body.py`
+> (the trap 116).
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-150 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-152 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1032 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1057 of 1057** with the sandbox up, in 16.6 seconds. **Run that
+> Baseline: **1037 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1062 of 1062** with the sandbox up, in 16.6 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **`cargo test -j 16 --no-fail-fast` is the gate of CI, and it is a different
@@ -2664,22 +2780,24 @@ conditions that stay, and the state of the program on 2026-08-13.
 > ### The work, in the sequence of its value
 >
 > 1. **One condition of the road that no session has measured.** Every new
->    condition found a fault in thirteen sessions of fourteen, and the newest of
->    them found T-148: two windows wrote one file of a download at one time, and
->    the book of the user held seven minutes of audio that no decoder reads.
->    - **The key `X` of one window while the other window downloads.** The
->      session of T-148 could not measure it: a download of 115 megabytes over
->      the loopback ends in less than one second (the trap 111). It needs a
->      server that sends the **body** slowly, and `docs/harness/slow.py` gives a
->      delay of the request only. **The address of the download is the address of
->      the pool now** (T-149), therefore a proxy of that measurement stands in the
->      block `[[servers]]` of `config.toml`.
+>    condition found a fault in fourteen sessions of fifteen, and the newest of
+>    them found T-150: the key `X` said that a book holds no local copy while 115
+>    megabytes of it came, and it left the bytes of a download that stopped on
+>    the disk for ever.
 >    - **A program that dies while the server does not answer** (the sharp form
 >      of T-145): no sync reached the server at all, therefore the row of the
 >      disk is the one copy of the whole playback. The session of T-145 measured
->      the condition with a server that answers.
->    - **A queue of media that a second program plays**: the window A plays the
->      queue, and the window B takes a media out of it with the key `X`.
+>      the condition with a server that answers. `docs/harness/blackhole.py`
+>      gives a port that accepts a connection and answers nothing (the trap 112),
+>      and `podman stop -t 0 abs-test` takes the server away.
+>    - **Two programs of one account that read one ebook at one time.** The
+>      cache of the ebooks holds the rule of the limit (T-142), and no session
+>      has measured two readers of one file of that cache: the window A opens the
+>      PDF of 502 megabytes with `e`, and the window B opens the same book while
+>      the child of T-62 writes the pages of it.
+>    - **A download of a podcast episode while the same podcast downloads on the
+>      server**: the key `D` of this program and the queue of the server of T-81
+>      write in one library at one time.
 > 2. **The words for the user.** Every text in ASD-STE100. A view says why it
 >    holds no line, and it never says a reason that the program does not have
 >    (T-91). **A text must not promise a function that the program does not
@@ -2711,8 +2829,11 @@ conditions that stay, and the state of the program on 2026-08-13.
 > use** (T-142), **a close removes the row of that session alone** (T-145), **a
 > media of a playback that did not start goes back to the front of the queue and
 > the queue stops there** (T-146), **the disk is the truth of the queue**
-> (T-147), **one program writes the files of one download** (T-148), and **a
-> download takes the address of the pool and it holds a limit of time** (T-149).
+> (T-147), **one program writes the files of one download** (T-148), **a
+> download takes the address of the pool and it holds a limit of time** (T-149),
+> **the key `X` takes the disk of a download and it takes no file of a download
+> that runs** (T-150), and **the key `X` of the queue says one sentence on both
+> of its roads** (T-151).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
