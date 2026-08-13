@@ -59,6 +59,22 @@ pub fn keep_the_limit_of_the_configuration(megabytes: u64) {
     }
 }
 
+/// Reads `config.toml` again, and it writes the limit of that file in the slot.
+///
+/// **The program is about to remove a book of the user**, therefore the value of
+/// the file decides and not the value of a start that can stand hours behind.
+/// **One account can hold two programs** (T-140): a user who gives this program a
+/// cache of 4096 MB in one window must not lose a book to the value of 512 MB
+/// that the other window read at its start. The file is 2 kilobytes, and a
+/// removal comes one time for each book that the program gets. See T-142.
+///
+/// A file that the program cannot read changes nothing.
+pub fn read_the_limit_of_the_configuration_again() {
+    if let Ok(config) = crate::config::load_config() {
+        keep_the_limit_of_the_configuration(config.reader.ebook_cache_mb);
+    }
+}
+
 /// Forgets the limit of the configuration file. A test calls this.
 pub fn forget_the_limit_of_the_configuration() {
     if let Ok(mut place) = box_of_the_limit().lock() {

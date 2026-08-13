@@ -730,6 +730,11 @@ pub async fn get_the_ebook_of(
 /// looks at the limit here and at no other moment. The book that came now stays.
 /// See T-67.
 fn hold_the_limit_of_the_cache(username: &str, came: &std::path::Path) {
+    // The removal reads the file of the user again: a program of this account
+    // that stands in a second window wrote it, or the user wrote it with an
+    // editor. See T-142.
+    crate::logic::reader::cache::read_the_limit_of_the_configuration_again();
+
     let (books, bytes) = crate::logic::reader::cache::the_removal(
         username,
         came,

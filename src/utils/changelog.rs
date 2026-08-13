@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.79",
+        date: "13/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A second window of this program no longer removes the ebooks that you keep.** \
+             The limit of the cache of the ebooks came of the moment that the window started: \
+             a window that you gave four gigabytes in the settings said \"4096 MB now\" on its \
+             own screen and it removed your books at the old value. Every window reads \
+             `config.toml` again now — when it shows the limit, and before it removes a book.",
+            "- **The key `h` goes back from the view of the cache of the ebooks.** The footer \
+             of that view named the key, and the key did nothing.",
+        ],
+    },
+    Entry {
         version: "0.7.78",
         date: "13/08/2026",
         body: &[

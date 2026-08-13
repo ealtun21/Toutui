@@ -6341,6 +6341,84 @@ that row only (T-25).
 `tests/the_end_of_a_media_takes_its_row.rs` holds the two rules with the mock
 server of `tests/playback_ownership.rs`.
 
+### T-142: a second program removed the books of the user, and its own screen said the value that keeps them
+
+**The sweep of 2026-08-13: two programs of one account, and one of them changes a
+setting with the key `S`.** The road of the session of T-140 named that condition
+and no session had measured it. **The key `S` writes one value of `config.toml`**:
+the limit of the cache of the ebooks (T-77).
+
+`write_the_value` reads the file and it changes one line (T-77), therefore **no
+program loses the line of another program**: that is the fault that the road
+expected, and the measurement did not find it. It found a worse one. **The limit
+stands in three places of one program:**
+
+| The place | Who writes it | What it does |
+|---|---|---|
+| `config.toml` | the key `l` of the view, and every program of the account | the value of the user |
+| `self.config.reader.ebook_cache_mb` | `App::new`, therefore the start **and every refresh** (T-131) | the title and the mark `✓` of the view |
+| a slot of `logic::reader::cache` | `src/main.rs`, one time at the start (T-72) | **the removal of a book of the disk** |
+
+The task that removes a book holds no `App`, therefore that slot exists. **It
+stood still for the life of the program**, and the three places then held two
+different values.
+
+The measurement, with two programs of one account in tmux, the sandbox, and a
+cache of 447 megabytes of the disk:
+
+| The moment | Before | After |
+|---|---|---|
+| The window A takes 4096 MB with `S` | `config.toml` holds 4096 | the same |
+| The view of the settings of B, with no key of a refresh | **"The cache of the ebooks — 512 MB now"**, and the mark `✓` on 512 | "4096 MB now", and the mark on 4096 |
+| The same view of B, after the key `R` | "4096 MB now": `App::new` reads the file again | the same |
+| **B gets one book with the key `e`** | B **removed two books of 105386785 bytes**, and the log said "the cache of the ebooks holds 536870912 byte(s) at the most" | no book goes away |
+| The message of B | "The cache of the ebooks was full. The program removed 2 books…" | no message |
+
+**The screen of B promised 4096 MB at that moment, and B removed the books at 512
+MB.** A user who gives a window of their program a cache of four gigabytes for a
+journey loses the book that they downloaded for it.
+
+The rule: **the file is the truth of that limit, and the program reads it at
+every moment that it needs it.**
+
+- `App::new` writes the slot with the value that it just read, therefore the
+  start and every refresh give one value to the screen and to the task.
+- `show_the_settings_of_the_reader` reads the file again, therefore the title and
+  the mark say what the file holds and not what the program read hours before.
+- **The removal reads the file again too** (`read_the_limit_of_the_configuration_again`),
+  because the removal takes a book of the disk with no key of that window: a
+  program of 2 kilobytes of reading holds the books of the user.
+
+The value of the environment `TOUTUI_EBOOK_CACHE_BYTES` comes before the file, as
+it did (T-71), and the text of the view says so.
+
+`tests/the_limit_of_the_cache_follows_the_file.rs` holds the rule with no server
+and no sound device: the test writes the file as the other program does, it makes
+a new application, and it fails with `left: 536870912, right: 4294967296` when the
+correction goes away.
+
+### T-143: the key `h` did nothing in the view of the cache of the ebooks
+
+**The measurement of T-142 found it with the first key that it pressed.** The
+footer of that view says `h: back`, and three presses of `h` moved no line of the
+screen. The next key of the measurement was `Esc`, and **that key stops the
+program** (the trap 69): the measurement lost the program of the window B, and it
+began again.
+
+`AppView::SettingsReader` came with T-77 and it took an arm of `toggle_view` (the
+key `Tab`) and no arm of the handler of the key `h`: the match ends with `_ => {}`,
+therefore the key said nothing and did nothing. **A key that does nothing in one
+view is a fault of its own** (T-79), and a footer must not promise a key that the
+view does not have (T-118).
+
+The key goes back to the settings now, as the four other views of the settings
+do. **A view of a later session can forget that arm again**, therefore
+`tests/the_key_h_leaves_every_view.rs` reads the source of the program: it names
+every view of `AppView`, and it holds each of them to an arm of the handler of the
+key `h`. The Home view, the Library view, and the reader of an ebook stand outside
+that rule, because `h` is not a key that goes back in a list of media or in a
+book. The test named `SettingsReader` and no other view.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

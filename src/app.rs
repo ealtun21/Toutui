@@ -498,6 +498,16 @@ impl App {
         // init config
         let config = load_config()?;
 
+        // **The limit of the cache of the ebooks stands in a slot of a module**,
+        // because the task that removes a book holds no `App` (T-72). The start
+        // of the program writes that slot, and **a new application must write it
+        // again**: the key `R` reads `config.toml` again, and a second program of
+        // this account or an editor of the user can hold a different value in
+        // that file. See T-142.
+        crate::logic::reader::cache::keep_the_limit_of_the_configuration(
+            config.reader.ebook_cache_mb,
+        );
+
         // init database from Database struct
         crate::utils::startup::set("the database");
         let database = Database::new().await?;
@@ -2090,6 +2100,10 @@ impl App {
                     AppView::SettingsLibrary => self.view_state = AppView::Settings,
                     AppView::SettingsAbout => self.view_state = AppView::Settings,
                     AppView::SettingsUpdateUninstall => self.view_state = AppView::Settings,
+                    // The footer of this view says "h: back", and the key did
+                    // nothing: the user then pressed `Esc`, and that key stops
+                    // the program. See T-143.
+                    AppView::SettingsReader => self.view_state = AppView::Settings,
                     AppView::Settings => self.view_state = AppView::Home,
                     // The view of the statistics goes back to Home, as the
                     // settings do. See T-24.
@@ -5182,7 +5196,13 @@ impl App {
     ///
     /// The line of the value that the program uses now stands selected, and the
     /// user reads which value that is.
+    ///
+    /// **The view says the value of the file**, therefore it reads the file here:
+    /// a second program of this account writes that file too, and a title that
+    /// says "512 MB now" for a file of 4096 lies to the user. See T-142.
     pub fn show_the_settings_of_the_reader(&mut self) {
+        self.take_the_limit_of_the_cache_of_the_file();
+
         let now = self.megabytes_of_the_cache();
 
         let line = crate::logic::reader::cache::THE_VALUES_OF_THE_SETTINGS
@@ -5192,6 +5212,28 @@ impl App {
 
         self.list_state_settings_reader.select(Some(line));
         self.view_state = AppView::SettingsReader;
+    }
+
+    /// Reads the limit of the cache of the ebooks of `config.toml` again, and it
+    /// gives that value to the program. See T-142.
+    ///
+    /// **One account can hold two programs**, and both of them write this file
+    /// (T-140 holds the same rule for the row of a listening session). The value
+    /// goes to two places, therefore they cannot disagree: `self.config` for the
+    /// screen, and the slot of the module for the task that removes a book.
+    ///
+    /// A file that the program cannot read changes nothing: the program then
+    /// keeps the value that it holds.
+    fn take_the_limit_of_the_cache_of_the_file(&mut self) {
+        let Ok(of_the_file) = load_config() else {
+            return;
+        };
+
+        self.config.reader.ebook_cache_mb = of_the_file.reader.ebook_cache_mb;
+
+        crate::logic::reader::cache::keep_the_limit_of_the_configuration(
+            of_the_file.reader.ebook_cache_mb,
+        );
     }
 
     /// Gives the cache of the ebooks of `config.toml`, in megabytes.
