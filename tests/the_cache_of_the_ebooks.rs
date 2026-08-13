@@ -12,7 +12,9 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
-use toutui::logic::reader::cache::{hold_the_limit, the_book_is_in_use, the_cache_of, the_removal};
+use toutui::logic::reader::cache::{
+    hold_the_limit, the_book_is_in_use, the_cache_of, the_removal, THE_LIMIT_OF_THE_USE,
+};
 
 /// Makes a file of `bytes` bytes, and gives it a time of use of `ago` seconds
 /// before now.
@@ -98,8 +100,8 @@ fn the_cache_of_the_ebooks_holds_its_limit() {
     // holds that number. See T-71.
     assert_eq!(the_removal("a user", &now, 2500), (0, 0));
 
-    // The reader says that it uses the older book. That book then holds the
-    // newest time, therefore the other book goes away at the next limit.
+    // The reader says that it uses the older book, and that word is the time of
+    // the file.
     the_book_is_in_use(&newer);
 
     let of_the_use = fs::metadata(&newer)
@@ -110,11 +112,33 @@ fn the_cache_of_the_ebooks_holds_its_limit() {
         "the time of the file is the time of the use now"
     );
 
+    // **A book of a time inside `THE_LIMIT_OF_THE_USE` belongs to a reader that
+    // stands open**, and that reader can be the reader of a second window of
+    // this account: `keep` names the book of this program alone. The removal
+    // therefore keeps this book, although the cache stands above its limit. See
+    // T-153.
+    assert_eq!(hold_the_limit("a user", &now, 1000), 0);
+    assert!(
+        newer.exists(),
+        "a book that a program said it uses now must stay"
+    );
+
+    // The window of that reader goes away, therefore the book stands still. A
+    // mark of a reader is not for ever, in the same way as the lock of T-148.
+    let long_ago = SystemTime::now() - THE_LIMIT_OF_THE_USE - Duration::from_secs(5);
+    let times = fs::FileTimes::new()
+        .set_accessed(long_ago)
+        .set_modified(long_ago);
+    fs::OpenOptions::new()
+        .write(true)
+        .open(&newer)
+        .and_then(|file| file.set_times(times))
+        .expect("the test must give the file its time");
+
     // A limit of 1000 bytes needs 1000 bytes back of a cache of 2000. The book
-    // of the user never goes away, therefore the other book goes, and it goes
-    // although its time of use is the newest of the two.
+    // of the user never goes away, therefore the other book goes.
     assert_eq!(hold_the_limit("a user", &now, 1000), 1000);
-    assert!(!newer.exists(), "the book of the oldest use went away");
+    assert!(!newer.exists(), "the book of no reader went away");
     assert!(now.exists(), "the book of the user never goes away");
 
     // One book, and it is larger than the limit. The program removes nothing

@@ -7009,6 +7009,90 @@ of the playback — that is the death of the program — and it asks for the pos
 that waits. A build with the correction removed gives `left: 0, right: 1`. The
 test holds a clock of its own (`start_paused = true`), and it makes no request.
 
+### T-153: two programs of one account that read one ebook, and the book that went away under the reader
+
+**The sweep of 2026-08-14: two programs of one account and the cache of the
+ebooks.** The road named this condition in the session of T-150. The measurement
+took two forms, and the second one holds the fault.
+
+**The first form: the two windows open the same book.** The window A pressed `e`
+on "A Huge Book Of A Scan" of 502745447 bytes, and the window B pressed `e` on
+the same book 4 seconds later.
+
+| The measurement | The answer |
+|---|---|
+| The PDF of the disk after the two downloads | **502745447 bytes**, the size of the file of the server |
+| The two children of T-62 | `a child read 150 page(s) in 131214 ms` and `… in 131872 ms` |
+| The pages of the disk | one file of 43016313 bytes, and no `.part` file stayed |
+| The two screens | **page 1 of 150**, and the picture of the page on each of them |
+| The log | no line of a fault |
+
+**No fault of the data, and a cost of two.** The two children each hold about a
+gigabyte at their peak and each take 131 seconds, for one file that one child
+gives. `std::fs::write` of the child writes the whole file in one call after the
+parse, therefore the two writes of one `.part` path did not meet: the second
+child renamed its file over the file of the first one, and the bytes of the two
+are the bytes of one book. **A machine of less memory would meet the two peaks
+at one time**, and that is a cost and not a fault of the data.
+
+**The second form: the window B gets a book of its own, and it holds the fault.**
+The window A read the book of 502 megabytes, and the window B pressed `e` on a
+book of 105386785 bytes with a cache of 512 megabytes:
+
+| The measurement | Before | After |
+|---|---|---|
+| The log of the removal of B | `the cache of the ebooks gave 545898521 bytes of 2 book(s) back` | **no line: the removal took nothing** |
+| The PDF of 502745447 bytes that A reads | **gone** | stays |
+| The 43016313 bytes of its pages of T-62 | **gone** | stays |
+| The screen of A | page 1 of 150, and the book of the disk is gone under it | page 1 of 150 |
+
+**`keep` is a fact of the process.** `the_ebooks_that_must_go` keeps the book
+that **this** program reads, and one account holds more than one program
+(T-140): the removal of B named its own book in `keep`, and it knew nothing of
+the book of A. That is the shape of T-148 (`the map of the progress is a map of
+the process`) and of T-150, and **the module of the cache says the rule that it
+breaks**: "The book that the user reads now never goes away."
+
+**The user loses no line and no place** — the reader of A holds the book in the
+memory of its process, and the key `h` and the key `e` open it again from that
+memory. **The user loses the bytes of the disk**: the next start of A asks the
+server for 502 megabytes again and it waits 131 seconds for the child of T-62,
+and a user with no server has no book at all.
+
+**The correction is the rule of the fork: the disk is the truth.** The reader
+writes the time of its file every 15 seconds
+(`Reader::say_that_a_program_reads_this_book`, from the loop of `main.rs`), and
+`the_ebooks_that_must_go` keeps every book of a time inside `THE_LIMIT_OF_THE_USE`
+of 30 seconds. **The time of the file is the one word that two programs of one
+account share here**, and `the_book_is_in_use` wrote that word at the open of a
+book since T-67 already: the correction gives it a heartbeat, and that is the
+rule of T-140 and of the lock of T-148. **It needs no new file, no call of the
+system, and no dependency.**
+
+**A mark of a reader is not for ever.** A window that goes away writes no more
+marks, and its book is old 30 seconds later: the next removal takes it. Two
+measurements hold that half of the rule, one of the disk and one of the pure
+function.
+
+**The cache can stand above its limit while the user reads**, by one book for
+each program that holds a reader open. The module said the same of `keep`
+already — one book of 500 megabytes is a correct cache of one book — and this is
+that rule for an account of two windows. That is a decision of this session, and
+the head of the module says it.
+
+The measurement of the real program after the correction: the time of the PDF of
+A moved at 01:40:37, 01:40:52, and 01:41:07 — **every 15 seconds** — the window B
+took Alice in Wonderland from the server, the log holds no line of a removal, and
+the 545 megabytes of A stayed.
+
+Two tests hold the rule.
+`tests/the_cache_keeps_the_book_of_a_second_window.rs` makes three books of three
+times on the disk and it calls `the_removal`: a build with the correction removed
+fails with "the removal took the book that the window A reads".
+`tests/the_cache_of_the_ebooks.rs` held the rule of T-67 that this item changes —
+"it goes although its time of use is the newest of the two" — and it holds the
+new rule and the end of the mark now.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

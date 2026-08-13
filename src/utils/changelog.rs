@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.88",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A second window of your account keeps the ebook that you read.** The cache of \
+             the ebooks was full, and the window that got a new book took the book of the \
+             other window of the disk while you read it: a book of a scan of 502 megabytes \
+             and its pages went away in one key, and that window then needed the server and \
+             two minutes to give the book back. Each window says on the disk which book it \
+             reads now.",
+        ],
+    },
+    Entry {
         version: "0.7.87",
         date: "14/08/2026",
         body: &[

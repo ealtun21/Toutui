@@ -92,6 +92,12 @@ pub struct Reader {
     /// than one ebook. A book that is not the book of the server therefore
     /// keeps its place on this machine. See T-76.
     sends_the_place: bool,
+    /// The file of this book on the disk. The reader writes the time of that
+    /// file while the user reads, and the removal of the cache of a second
+    /// window then keeps the book. See T-153.
+    path: PathBuf,
+    /// The time of the last mark of the use.
+    said_the_use_at: std::time::Instant,
     sender: Sender<Rendered>,
     receiver: Receiver<Rendered>,
 }
@@ -160,6 +166,11 @@ impl Reader {
             sent: None,
             sent_at: std::time::Instant::now(),
             sends_the_place: true,
+            path: path.to_path_buf(),
+            // The open of the book wrote the time of the file already
+            // (`the_book_is_in_use` of `get_the_ebook_of`), therefore the first
+            // mark comes after the time between two marks.
+            said_the_use_at: std::time::Instant::now(),
             sender,
             receiver,
         })
@@ -433,6 +444,29 @@ impl Reader {
     pub fn the_place_went_to_the_server(&mut self) {
         self.sent = Some(self.position());
         self.sent_at = std::time::Instant::now();
+    }
+
+    /// Says on the disk that a program of this account reads this book now.
+    ///
+    /// **The removal of the cache of a second window cannot see the book that
+    /// this window reads**: `keep` is a fact of the process. The window B took
+    /// a book of 502 megabytes and its 43 megabytes of pages of the disk while
+    /// the window A read that book — 545898521 bytes in one key of the user.
+    ///
+    /// The function writes the time of the file, and that time is the one word
+    /// of this program that a different program reads. The removal keeps every
+    /// book of a time inside `THE_LIMIT_OF_THE_USE`. See T-153.
+    ///
+    /// The loop of the application calls this for each turn, and the function
+    /// writes the time every `THE_TIME_BETWEEN_THE_MARKS` seconds only.
+    pub fn say_that_a_program_reads_this_book(&mut self) {
+        if self.said_the_use_at.elapsed() < crate::logic::reader::cache::THE_TIME_BETWEEN_THE_MARKS
+        {
+            return;
+        }
+
+        self.said_the_use_at = std::time::Instant::now();
+        crate::logic::reader::cache::the_book_is_in_use(&self.path);
     }
 }
 

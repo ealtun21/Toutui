@@ -12,6 +12,11 @@
 //! - The program removes the book of the oldest use first.
 //! - **The book that the user reads now never goes away**, and the limit does
 //!   not hold for it: one book of 500 megabytes is a correct cache of one book.
+//! - **The book that a second program of this account reads now never goes away
+//!   either** (T-153). `keep` names the book of one process, and one account
+//!   holds more than one program: the reader writes the time of its file every
+//!   15 seconds, and a book of a time inside `THE_LIMIT_OF_THE_USE` belongs to
+//!   a reader that stands open.
 //! - The time of the file is the time of the **last use**, and not the time of
 //!   the download. `the_book_is_in_use` writes that time each time the reader
 //!   opens the book, therefore a book that the user reads every day stays.
@@ -175,6 +180,27 @@ pub struct InTheCache {
     pub used: SystemTime,
 }
 
+/// The time that a book of the cache may stand still before a program of this
+/// account may remove it.
+///
+/// **`keep` is a fact of the process, and one account holds more than one
+/// program** (T-140). The window A reads a book of 502 megabytes, the window B
+/// gets a book of its own, and the removal of B knew nothing of the book of A:
+/// B took that book of the disk while A read it. See T-153.
+///
+/// The reader says that its book is in use every `THE_TIME_BETWEEN_THE_MARKS`
+/// seconds, and it writes that word on the disk — the time of the file. The
+/// disk is therefore the truth here too, in the same way as T-142, T-147,
+/// T-148, and T-150. The rule is the heartbeat of T-140, and it needs no call
+/// of the system and no new file.
+pub const THE_LIMIT_OF_THE_USE: std::time::Duration = std::time::Duration::from_secs(30);
+
+/// The time between two marks of a book that a reader holds open.
+///
+/// The value is half of `THE_LIMIT_OF_THE_USE`: a mark that comes late by one
+/// turn of the loop must not make the book of a user look still.
+pub const THE_TIME_BETWEEN_THE_MARKS: std::time::Duration = std::time::Duration::from_secs(15);
+
 /// Gives the ebooks that must go away, so the cache stands at or below the
 /// limit.
 ///
@@ -182,16 +208,42 @@ pub struct InTheCache {
 /// book that the user reads now, and a cache that removes it would ask the
 /// server for it again at once.
 ///
-/// The function is pure, therefore a test needs no file.
-pub fn the_ebooks_that_must_go(books: &[InTheCache], keep: &Path, limit: u64) -> Vec<PathBuf> {
+/// **A book that a program of this account used inside `THE_LIMIT_OF_THE_USE`
+/// never goes away either.** `keep` names the book of this program alone, and a
+/// second window of the account reads a book that this program cannot see. The
+/// reader of that window writes the time of its file every 15 seconds, and that
+/// time is the one word of a program that this program can read. See T-153.
+///
+/// Therefore the cache can stand above the limit while the user reads: one book
+/// for each program that holds a reader open. The rule of this module says the
+/// same of `keep` already — one book of 500 megabytes is a correct cache of one
+/// book — and a book of a window that goes away is old 30 seconds later.
+///
+/// The function is pure, therefore a test needs no file and no clock.
+pub fn the_ebooks_that_must_go(
+    books: &[InTheCache],
+    keep: &Path,
+    limit: u64,
+    now: SystemTime,
+) -> Vec<PathBuf> {
     let mut total: u64 = books.iter().map(|book| book.bytes).sum();
 
     if total <= limit {
         return Vec::new();
     }
 
-    let mut of_the_oldest_use: Vec<&InTheCache> =
-        books.iter().filter(|book| book.path != keep).collect();
+    let a_program_reads_it = |book: &InTheCache| {
+        now.duration_since(book.used)
+            .map(|since| since < THE_LIMIT_OF_THE_USE)
+            // A file of a time that is after the clock of this machine is a
+            // file that a program wrote now.
+            .unwrap_or(true)
+    };
+
+    let mut of_the_oldest_use: Vec<&InTheCache> = books
+        .iter()
+        .filter(|book| book.path != keep && !a_program_reads_it(book))
+        .collect();
 
     of_the_oldest_use.sort_by_key(|book| book.used);
 
@@ -298,7 +350,7 @@ pub fn hold_the_limit(username: &str, keep: &Path, limit: u64) -> u64 {
 /// bytes that went away. See T-71.
 pub fn the_removal(username: &str, keep: &Path, limit: u64) -> (usize, u64) {
     let books = the_cache_of(username);
-    let must_go = the_ebooks_that_must_go(&books, keep, limit);
+    let must_go = the_ebooks_that_must_go(&books, keep, limit, SystemTime::now());
 
     if must_go.is_empty() {
         return (0, 0);
@@ -348,6 +400,13 @@ pub fn the_removal(username: &str, keep: &Path, limit: u64) -> (usize, u64) {
 mod tests {
     use super::*;
     use std::time::Duration;
+
+    /// The clock of these tests. Every book of `a_book` stands some seconds
+    /// after 1970, therefore no book of a test is a book that a program reads
+    /// now. See T-153.
+    fn now() -> SystemTime {
+        SystemTime::UNIX_EPOCH + Duration::from_secs(100_000)
+    }
 
     fn a_book(name: &str, bytes: u64, seconds: u64) -> InTheCache {
         InTheCache {
@@ -480,8 +539,8 @@ mod tests {
     fn a_cache_below_the_limit_loses_no_book() {
         let books = vec![a_book("a.epub", 10, 1), a_book("b.pdf", 20, 2)];
 
-        assert!(the_ebooks_that_must_go(&books, Path::new("b.pdf"), 30).is_empty());
-        assert!(the_ebooks_that_must_go(&[], Path::new("a.epub"), 30).is_empty());
+        assert!(the_ebooks_that_must_go(&books, Path::new("b.pdf"), 30, now()).is_empty());
+        assert!(the_ebooks_that_must_go(&[], Path::new("a.epub"), 30, now()).is_empty());
     }
 
     /// The book of the oldest use goes first, and the program stops at the
@@ -495,13 +554,13 @@ mod tests {
         ];
 
         assert_eq!(
-            the_ebooks_that_must_go(&books, Path::new("now.epub"), 250),
+            the_ebooks_that_must_go(&books, Path::new("now.epub"), 250, now()),
             vec![PathBuf::from("old.pdf")],
             "one book of 100 bytes makes 200 of a limit of 250"
         );
 
         assert_eq!(
-            the_ebooks_that_must_go(&books, Path::new("now.epub"), 100),
+            the_ebooks_that_must_go(&books, Path::new("now.epub"), 100, now()),
             vec![PathBuf::from("old.pdf"), PathBuf::from("newer.pdf")]
         );
     }
@@ -517,7 +576,7 @@ mod tests {
         ];
 
         assert_eq!(
-            the_ebooks_that_must_go(&books, Path::new("the book of the user.pdf"), 100),
+            the_ebooks_that_must_go(&books, Path::new("the book of the user.pdf"), 100, now()),
             vec![PathBuf::from("small.epub")],
             "the program removes every other book, and it stops"
         );
@@ -526,7 +585,8 @@ mod tests {
         let one = vec![a_book("the book of the user.pdf", 900, 2)];
 
         assert!(
-            the_ebooks_that_must_go(&one, Path::new("the book of the user.pdf"), 100).is_empty()
+            the_ebooks_that_must_go(&one, Path::new("the book of the user.pdf"), 100, now())
+                .is_empty()
         );
     }
 
@@ -559,7 +619,8 @@ mod tests {
             the_ebooks_that_must_go(
                 &books,
                 Path::new("/of/a/second user/the same book.epub"),
-                100
+                100,
+                now()
             ),
             vec![PathBuf::from("/of/a/user/the same book.epub")]
         );

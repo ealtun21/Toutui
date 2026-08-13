@@ -5429,6 +5429,19 @@ impl App {
         }
     }
 
+    /// Says on the disk that this program reads its book now.
+    ///
+    /// The loop of the application calls this for each turn. **A second window
+    /// of this account removes the books of the cache with no key of this
+    /// window**, and `keep` of that removal names the book of that window
+    /// alone: the time of the file is the one word that the two programs
+    /// share. See T-153.
+    pub fn say_that_this_program_reads_its_book(&mut self) {
+        if let Some(reader) = self.reader.as_mut() {
+            reader.say_that_a_program_reads_this_book();
+        }
+    }
+
     /// Takes the book that the task opened, if it is ready.
     pub fn take_the_book(&mut self) {
         let Some(outcome) = crate::logic::reader::take_the_opened_book() else {

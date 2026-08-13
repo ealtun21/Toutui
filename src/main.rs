@@ -557,6 +557,14 @@ async fn main() -> Result<()> {
                 // when the place changed and 30 seconds went by. See T-10.
                 app.send_the_place_of_the_reader_if_it_is_time();
 
+                // A second window of this account removes the books of the
+                // cache of the ebooks with no key of this window, and the
+                // removal of that window cannot see the book that this window
+                // reads. The reader writes the time of its file every 15
+                // seconds, and the removal keeps every book of a recent time.
+                // See T-153.
+                app.say_that_this_program_reads_its_book();
+
                 // Short pause between event checks. A turn that took keys draws at
                 // once, therefore the screen follows the user.
                 if taken == 0 {
