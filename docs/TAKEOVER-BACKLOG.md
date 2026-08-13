@@ -6118,6 +6118,60 @@ The measurement after the correction: the start gives the Home view of the
 library that the account may read, with the message, in one start and with no key
 of the user.
 
+### T-137: the covers of the graphics protocol, and the harness that reads them
+
+**The maintainer said on 2026-08-13: "when I press `R` and an image was
+rendering, it gets stuck; after three refreshes the new images render under it".**
+The measurement of that day did not repeat the fault, and the maintainer could
+not repeat it either. **The tool of the measurement is the answer of this item**,
+because no session could see a cover at all before it.
+
+**A screen of tmux holds no byte of a cover.** The program inside tmux asks the
+terminal nothing, therefore `drive.sh` measures the covers of blocks of Unicode
+only (`asks_the_terminal` of `src/ui/cover.rs`). The terminal of the maintainer
+answers `Kitty with a font of 9 by 20 pixels`, and that protocol draws a picture
+with **unicode placeholders**: every cell of the picture holds the character
+U+10EEEE, and **the colour of the letter of that cell holds the identity of the
+picture**.
+
+Therefore the letters of a screen of kitty say where every picture stands, and
+which picture it is. `docs/harness/kitty.sh` opens a window of kitty with the
+remote control of kitty and it runs the program under `script`;
+`docs/harness/covers.py` reads the screen and the bytes of the program together,
+and it names:
+
+- the row, the column, and the number of cells of each picture of the screen;
+- the identity of each picture of the screen;
+- **a placeholder of a picture that the program did not send**, and that is the
+  fault of a picture that the terminal cannot draw.
+
+The measurements of 2026-08-13, each of them in a real window of kitty:
+
+| The measurement | The answer |
+|---|---|
+| The start, and the cover of the first line | one picture, and the program sent one |
+| A key that moves the line, with a cover of the new line | one picture, and the picture of the line before it goes away |
+| The key `R` one time | one picture, of a new identity |
+| **The key `R` three times, one after the other** | **one picture**, and no placeholder of the three pictures before it |
+| The key `R` 150 milliseconds after a key that asks for a new cover | one picture |
+| A media that plays, with the cover of the media that plays | one picture of 72 by 32 cells |
+| **A line of a series while a media plays: four pictures at one time** | **four pictures**, each of them in the rectangle of `plan_covers` |
+| The key `R` in that state | one picture, and no placeholder of the four before it |
+| 27 pictures of one window | **the memory of kitty did not move** (94452 kB before and after) |
+
+**Every measurement gave the same answer**: the pictures of the screen are the
+pictures that the program sent, and a picture that no line of the screen holds
+goes away. **kitty takes a picture away with its placeholders**, therefore the
+program needs no request that deletes a picture: the comment of `transmit_virtual`
+of `ratatui-image` says so, and the memory of the terminal proves it.
+
+**What a next session must ask the maintainer, when the fault comes again:** the
+view, the state of the playback, and the size of the terminal at that moment, and
+then the report of `the_covers`. One line of that report tells the two faults
+apart: a placeholder of a picture that the program did not send is a fault of the
+program, and a picture of an old moment with its own identity is a fault of the
+terminal.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

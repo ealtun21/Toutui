@@ -23,6 +23,7 @@ the road that a measurement could reach.
 | T-134 | **The cursor of the terminal stood six rows below the field of the user.** The message of the login stood outside the frame of ratatui | the login |
 | T-135 | The key `R` took the timer for sleep of the user away, and the media played on | `R`, `S-Tab` |
 | T-136 | **An account that loses a library could not use the program again**, in any view and after every start | every key |
+| T-137 | **A harness that reads the covers of the graphics protocol.** The fault of the covers that the maintainer named did not repeat, and no session could see a cover before this tool | `R` |
 
 ### T-133, and it is the one to know of this session
 
@@ -58,6 +59,26 @@ key `S-Tab` keeps its rule, because a key must not guess.
 Two traps of the API came with the sweep, and `docs/TEST-SERVER.md` holds them: a
 `PATCH` of an account takes `librariesAccessible` **inside `permissions`** only,
 and an empty list of libraries is **every** library.
+
+### T-137, and the tool that a next session needs for a cover
+
+**The maintainer named a fault of the covers of a refresh, and neither the
+maintainer nor the measurement could repeat it.** The tool is what stays: **a
+screen of tmux holds no byte of a cover**, therefore every session before this
+one measured blocks of Unicode and never the protocol of the terminal of a user.
+
+`docs/harness/kitty.sh` drives the program in a real window of kitty, and
+`docs/harness/covers.py` reads the identity and the place of every picture of the
+screen out of the **unicode placeholders** of that protocol. It says the one
+thing that names the fault: **a placeholder of a picture that the program did not
+send**.
+
+Nine measurements of that day gave no fault: three refreshes one after the other,
+a refresh 150 milliseconds after a key that asks for a new cover, four pictures at
+one time with a media that plays, and a refresh in that state. **kitty takes a
+picture away with its placeholders**, and its memory did not move for 27 pictures.
+T-137 of `docs/TAKEOVER-BACKLOG.md` holds the table, and it holds the three
+questions for the maintainer when the fault comes again.
 
 ### The measurements of this session
 
