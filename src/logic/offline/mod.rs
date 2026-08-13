@@ -80,7 +80,11 @@ pub fn tracks_from_downloads(key: &str, username: &str) -> Option<TrackList> {
     Some(TrackList::new(tracks, Vec::new()))
 }
 
-/// Writes a position that waits for the server.
+/// Writes a position that waits for the server, and says one line of the log.
+///
+/// This is for the end of a playback. **The loop of an offline playback calls
+/// `keep_progress` at each second**, and that function says nothing: one line
+/// for each second gives 28800 lines of the log for a book of eight hours.
 pub fn remember_progress(
     username: &str,
     server: &str,
@@ -90,6 +94,46 @@ pub fn remember_progress(
     duration: f64,
     is_finished: bool,
 ) {
+    if keep_progress(
+        username,
+        server,
+        id_item,
+        id_pod,
+        current_time,
+        duration,
+        is_finished,
+    ) {
+        info!(
+            "[offline] the position {}s of {} waits for the server",
+            current_time.round(),
+            id_item
+        );
+    }
+}
+
+/// Writes a position that waits for the server, and says nothing.
+///
+/// Gives `true` when the row is on the disk.
+///
+/// **An offline playback reaches no server at all**, therefore the row of this
+/// table is the one copy of that playback: no row of `listening_session`
+/// stands beside it, and the next program of the account has nothing else to
+/// send. A program that dies writes nothing more, and a position that the loop
+/// keeps at its end only is a position that such a program never kept. The
+/// loop therefore calls this function at each second, in the same way that it
+/// writes the place of the user to the row of the download at each second.
+///
+/// A newer position replaces the older one, thus the table holds one row of a
+/// media whatever the number of the calls. See T-152.
+pub fn keep_progress(
+    username: &str,
+    server: &str,
+    id_item: &str,
+    id_pod: Option<&str>,
+    current_time: f64,
+    duration: f64,
+    is_finished: bool,
+) -> bool {
     let progress = PendingProgress {
         id_item: id_item.to_string(),
         id_pod: id_pod.unwrap_or_default().to_string(),
@@ -104,13 +148,10 @@ pub fn remember_progress(
             "[offline] the application did not keep the position: {}",
             error
         );
-    } else {
-        info!(
-            "[offline] the position {}s of {} waits for the server",
-            current_time.round(),
-            id_item
-        );
+        return false;
     }
+
+    true
 }
 
 /// Sends every position that waits, and removes each row that the server took.

@@ -6943,6 +6943,72 @@ key then does nothing at all" now holds the sentence of both roads, and the last
 part of it reads `src/app.rs`, because no unit test reaches a key handler. A
 build with the correction removed fails at that part.
 
+### T-152: a program that dies while the server does not answer, and the playback that went away
+
+**The sweep of 2026-08-14: the sharp form of T-145.** The road named this
+condition in the session of T-150: the session of T-145 measured a program that
+dies while the server **answers**, and the row of `listening_session` then holds
+the position for the next program of the account. **An offline playback has no
+such row at all.** `play_offline` opens no session on the server, and no request
+of that playback ever reaches the server: **the row of the disk is the one copy
+of the whole playback.**
+
+`follow_playback_offline` wrote the place of the user to the row of the download
+at each second, and it kept that place for the server — the table
+`pending_progress` — **at the end of the loop only**. A program that dies reaches
+no end.
+
+The measurement, with `podman stop -t 0 abs-test`, the book of eight hours on the
+disk, and `tmux kill-session` for the terminal that goes away (the trap 103):
+
+| The moment | The row of the download | `pending_progress` | The server |
+|---|---|---|---|
+| Before the playback | 100 s | no row | 100 s |
+| The offline playback runs | 1731 s | **no row** | 100 s |
+| The terminal goes away | 1731 s | **no row** | 100 s |
+| The server answers again, and the program starts again | 1731 s | no row | **100 s** |
+
+**27 minutes of the book went away, and the one copy went away with them.** The
+user then played that book with the server up: the program took the 100 seconds
+of the server, and the loop of that playback wrote 100 over the 1731 of the row
+of the download. The `Home` view held `37%` of a day before, the playback started
+at the second 100, and the row of the disk held 366 seconds ten seconds later.
+
+**The correction is the rule of the loop of the online playback**: "Write the
+position for each second. A crash must not lose it." The loop of the offline
+playback keeps the place of the user for the server at each second, in the same
+way that it writes that place to the row of the download at each second.
+`INSERT OR REPLACE` gives one row of a media whatever the number of the calls,
+therefore the cost is one row of the disk for each second — the cost of the loop
+of the online playback.
+
+**`remember_progress` says one line of the log, and the loop must say none**: one
+line for each second gives 28800 lines for a book of eight hours.
+`logic::offline::keep_progress` writes the row and it says nothing, and
+`remember_progress` calls it and says the line. The two callers of the end of the
+loop keep `remember_progress`, because they carry the value of `finished`.
+
+The same measurement after the correction:
+
+| The moment | The row of the download | `pending_progress` | The server |
+|---|---|---|---|
+| The offline playback runs | 1154 s | **1154 s** | 100 s |
+| The terminal goes away | 1154 s | **1154 s** | 100 s |
+| The server answers again, and the program starts again | 1154 s | no row | **1154 s** |
+
+The log of that start says `[offline] 1 position(s) wait for the server` and
+`[offline] the server took the position 1154s of 6ba57b9a…`, and `curl` of the
+endpoint `GET /api/me/progress/:id` gives `"currentTime": 1154`. The flush of
+`app.rs` runs **before** the program asks the server for anything more,
+therefore the place of the user is on the server before the user can press a key.
+
+`tests/the_position_of_an_offline_playback_survives_a_program_that_dies.rs` holds
+the rule: the test drives `follow_playback_offline` with the engine of
+`PlayerHandle::without_engine`, it takes the loop away with `abort` in the middle
+of the playback — that is the death of the program — and it asks for the position
+that waits. A build with the correction removed gives `left: 0, right: 1`. The
+test holds a clock of its own (`start_paused = true`), and it makes no request.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

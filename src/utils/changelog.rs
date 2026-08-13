@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.87",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A book that you hear offline keeps your place when the program stops by \
+             force.** The program sends your place to the server when it starts again. Before \
+             this work, an offline playback kept that place at its end only: a terminal that \
+             goes away, or a computer that stops, then took the whole playback away — the \
+             server kept the place of the day before, and your next playback wrote that old \
+             place over the place on your disk.",
+        ],
+    },
+    Entry {
         version: "0.7.86",
         date: "14/08/2026",
         body: &[

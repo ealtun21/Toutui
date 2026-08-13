@@ -1103,7 +1103,7 @@ async fn play_offline(
 /// The loop reads the state of the engine only while the engine plays this
 /// playback. See the head of `follow_playback`.
 #[allow(clippy::too_many_arguments)]
-async fn follow_playback_offline(
+pub async fn follow_playback_offline(
     player: &PlayerHandle,
     key: String,
     item_id: String,
@@ -1170,6 +1170,27 @@ async fn follow_playback_offline(
         own_position = position;
 
         let _ = update_download_current_time(key.as_str(), username.as_str(), position);
+
+        // **The position of an offline playback reaches the server at no other
+        // moment.** `play_offline` opens no session on the server, therefore
+        // no row of `listening_session` stands for this playback and the rule
+        // of T-145 gives the next program nothing to send. A program that dies
+        // here — the terminal that goes away, the kill of the machine — writes
+        // nothing more.
+        //
+        // The loop keeps the place of the user for the server at each second,
+        // in the same way that it writes that place to the row of the download
+        // at each second. A newer position replaces the older one, and the
+        // function says no line of the log. See T-152.
+        crate::logic::offline::keep_progress(
+            username.as_str(),
+            server.as_str(),
+            item_id.as_str(),
+            episode_id.as_deref(),
+            position as f64,
+            total_duration,
+            false,
+        );
 
         if state.status == PlaybackStatus::Stopped {
             let finished = state.finished;

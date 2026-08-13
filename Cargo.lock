@@ -4166,7 +4166,7 @@ dependencies = [
 
 [[package]]
 name = "toutui"
-version = "0.7.86"
+version = "0.7.87"
 dependencies = [
  "chrono",
  "clap",
