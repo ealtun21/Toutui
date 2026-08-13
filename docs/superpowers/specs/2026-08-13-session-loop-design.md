@@ -190,6 +190,29 @@ agent is theirs.
 A round that gives `blocked` stops the loop. The driver shows the lines of the pane
 with `herdr agent read`, and the maintainer decides.
 
+## The guards of a long run
+
+A run of three rounds does not reach the faults of a run of fifty. Each of these
+was measured with a false `herdr`, and each one holds now.
+
+| The condition | What the driver did | What it does |
+|---|---|---|
+| A session that does nothing | 12 rounds, and the status 0 | A round with no new commit **and** no change of the handover is a barren round. **Two of them in a row stop the loop.** One does not |
+| `agent prompt` fails | Four "clean" rounds, and no prompt sent at all | The status of both sends is tested. A send that fails names itself in the log, and the round gives 2 |
+| A second driver of a forgetful maintainer | `state_init` reset the marker of the run, therefore the first driver never saw its own `stop` or `complete`, and two drivers wrote prompts into one agent | A lock in `$STATE_DIR/lock` holds the process id, and it comes **before** `state_init`. `kill -0` says whether that process lives. A driver that loses dies and changes nothing |
+| `complete` of the last round | Lost. The log said "the loop made 1 rounds, and that is its limit" | The sentinels are read again after the loop, and in the branch of a round that did not settle |
+| `agent read` fails | The one path that explains a stop died before it explained | The pipeline is guarded, and a read that fails still leaves a line |
+| The session ends on another branch | Nothing saw it | The log holds the branch and the count of the lines of `git status --porcelain`. A branch that changed inside a round ends the loop |
+| "What did round 30 say?" | No answer. The handover is overwritten every round | The text of each round goes to `$STATE_DIR/prompt-<n>.txt` before the round |
+
+**The lock does not hold against two drivers that start in the same instant.**
+This is a tool of one person, and the lock is for the second start of a
+maintainer who thinks the loop is stuck.
+
+**A block of a prompt whose first line starts with `/` is refused.** The block
+comes from a program, and a line that starts with `/` goes to another program as
+a command and not as words.
+
 ## The faults, and what the driver does with each
 
 | The fault | What the driver does |
