@@ -11,8 +11,33 @@ use std::path::{Path, PathBuf};
 
 use tokio::io::AsyncWriteExt;
 
+use super::lock::take_the_lock;
 use super::plan::{resume_from, AudioFilePlan, DownloadPlan, Resume};
 use super::progress::{DownloadProgress, DownloadState, ProgressMap};
+
+/// What a download that did not work gives to the caller.
+#[derive(Debug, Clone, PartialEq)]
+pub enum TheFaultOfTheDownload {
+    /// A different program of this account writes these files now. The user
+    /// asked for nothing that is not on its way already. See T-148.
+    ADifferentProgramWritesTheFiles,
+    /// The download did not work, and this text says why.
+    Of(String),
+}
+
+impl std::fmt::Display for TheFaultOfTheDownload {
+    fn fmt(&self, form: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TheFaultOfTheDownload::ADifferentProgramWritesTheFiles => {
+                write!(
+                    form,
+                    "a different program of this account writes these files"
+                )
+            }
+            TheFaultOfTheDownload::Of(text) => write!(form, "{text}"),
+        }
+    }
+}
 
 /// Gets all the audio files of one book.
 ///
@@ -23,6 +48,11 @@ use super::progress::{DownloadProgress, DownloadState, ProgressMap};
 /// The function keeps the `.part` file when an error occurs. The next attempt
 /// continues from that point.
 ///
+/// **One program writes these files.** The function takes the lock of the
+/// download before the first byte, and it gives
+/// [`TheFaultOfTheDownload::ADifferentProgramWritesTheFiles`] to a second
+/// program of the same account. See T-148 and `super::lock`.
+///
 /// The function takes a `&reqwest::Client` now. Sub-project 1 gives the type
 /// `ApiClient`. Then this parameter becomes `&ApiClient`.
 pub async fn fetch_item(
@@ -32,7 +62,7 @@ pub async fn fetch_item(
     plan: &DownloadPlan,
     dest_dir: &Path,
     progress: ProgressMap,
-) -> Result<Vec<PathBuf>, String> {
+) -> Result<Vec<PathBuf>, TheFaultOfTheDownload> {
     let total_bytes = plan.total_bytes();
 
     write_progress(
@@ -54,6 +84,30 @@ pub async fn fetch_item(
             format!("cannot make the directory: {error}"),
         ));
     }
+
+    // Two programs of one account hold one directory of the downloads, and each
+    // of them can hold the key `D` of one media. **The second program writes no
+    // byte**: two writers of one file leave a file that is not the file of the
+    // server. The lock goes away with `_lock`, at every return of this
+    // function. See T-148.
+    let Some(_lock) = take_the_lock(dest_dir) else {
+        log::info!(
+            "[fetch_item] a different program writes the files of \"{}\" now",
+            plan.title
+        );
+
+        write_progress(
+            &progress,
+            |state| {
+                state.state = DownloadState::Failed(
+                    "a different program of this account writes these files".to_string(),
+                )
+            },
+            plan,
+        );
+
+        return Err(TheFaultOfTheDownload::ADifferentProgramWritesTheFiles);
+    };
 
     let mut paths = Vec::with_capacity(plan.files.len());
     let mut done_bytes: u64 = 0;
@@ -257,13 +311,13 @@ async fn rename(part: &Path, target: &Path) -> Result<(), String> {
 }
 
 /// Writes the cause of the error to the progress and gives the text back.
-fn fail(progress: &ProgressMap, plan: &DownloadPlan, message: String) -> String {
+fn fail(progress: &ProgressMap, plan: &DownloadPlan, message: String) -> TheFaultOfTheDownload {
     write_progress(
         progress,
         |state| state.state = DownloadState::Failed(message.clone()),
         plan,
     );
-    message
+    TheFaultOfTheDownload::Of(message)
 }
 
 /// Changes the progress of this item. The function holds the lock for a short
@@ -296,6 +350,7 @@ mod tests {
     use super::*;
     use std::collections::HashMap;
     use std::sync::{Arc, RwLock};
+    use std::time::Duration;
     use wiremock::matchers::{header, method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
@@ -627,6 +682,74 @@ mod tests {
             "the key must not be the podcast"
         );
         assert_eq!(map.get("ep-1").unwrap().state, DownloadState::Finished);
+    }
+
+    /// **Two programs of one account press the key `D` on one media**, and the
+    /// two of them hold one directory of the downloads. The measurement of
+    /// 2026-08-13 with the sandbox: the file of eight hours held 116576586
+    /// bytes, and the file of the server holds 115200330. See T-148.
+    ///
+    /// The second program must write no byte at all, and the file of the first
+    /// program must be the file of the server.
+    #[tokio::test]
+    async fn two_programs_of_one_account_do_not_write_one_file() {
+        let server = MockServer::start().await;
+        let dir = tempfile::tempdir().unwrap();
+        let download = dir.path().join("item-1");
+        let plan = plan_of(&[(1, "10", "one.mp3", 100)]);
+
+        // The download of the first program stopped, and it left 40 bytes on
+        // the disk. A second writer therefore asks for the bytes after them,
+        // and it adds its answer to the end of the file of the first writer.
+        std::fs::create_dir_all(&download).unwrap();
+        std::fs::write(download.join("001 - one.mp3.part"), vec![b'a'; 40]).unwrap();
+
+        Mock::given(method("GET"))
+            .and(header("range", "bytes=40-"))
+            .respond_with(
+                ResponseTemplate::new(206)
+                    .insert_header("content-range", "bytes 40-99/100")
+                    .set_body_bytes(vec![b'b'; 60])
+                    // The two programs then hold the file at one time.
+                    .set_delay(Duration::from_millis(300)),
+            )
+            .mount(&server)
+            .await;
+
+        let client = reqwest::Client::new();
+        let address = server.uri();
+
+        let first = fetch_item(&client, &address, "secret", &plan, &download, map());
+
+        let second = async {
+            // The user presses the key of the second program while the first
+            // program waits for the server.
+            tokio::time::sleep(Duration::from_millis(100)).await;
+            fetch_item(&client, &address, "secret", &plan, &download, map()).await
+        };
+
+        let (first, second) = tokio::join!(first, second);
+
+        let paths = first.expect("the first program writes the file");
+        assert_eq!(
+            second,
+            Err(TheFaultOfTheDownload::ADifferentProgramWritesTheFiles),
+            "the second program must write no byte"
+        );
+
+        let mut of_the_server = vec![b'a'; 40];
+        of_the_server.extend(vec![b'b'; 60]);
+
+        let content = std::fs::read(&paths[0]).unwrap();
+        assert_eq!(
+            content.len(),
+            100,
+            "the file of two writers holds more bytes than the file of the server"
+        );
+        assert_eq!(content, of_the_server);
+
+        // The lock of the download goes away with the last program.
+        assert!(!crate::logic::download::lock::the_path_of_the_lock(&download).exists());
     }
 
     /// An answer that is not a success gives an error.

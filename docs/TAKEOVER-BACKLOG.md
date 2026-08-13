@@ -6685,6 +6685,92 @@ correction removed says
 already (T-142), and **the downloads of the server** are the third state that no
 session has measured.
 
+### T-148: two programs of the account wrote one file of a download
+
+**The sweep of 2026-08-13: the downloads, with two programs of one account.**
+This is the third state of the shape of T-142 and of T-147, and the road named
+it in two sessions. **The two programs write the same file at the same time, and
+the file that stays is not the file of the server.**
+
+The key `D` spawns a task, and no line of the program asks if that media comes
+already: **the map of the progress is a map of the process** (`OnceLock` of
+`logic::download`), therefore it says nothing of a second program. The two
+writers then meet in the directory of the download:
+
+1. The first program finds no `.part` file. It opens that file with `truncate`,
+   and it writes the answer of the server from the byte 0.
+2. The second program finds a `.part` file of some megabytes. `resume_from`
+   gives that number, the request holds `Range: bytes=<the number>-`, and the
+   answer goes to the **end** of the same file with `append`.
+3. Each writer counts its own bytes, therefore the guard `written != file.size`
+   of `fetch_one` passes for both of them. The first `rename` gives the file its
+   name, and the second one says `cannot rename …: No such file or directory`.
+
+**The measurement, with the sandbox and two sessions of tmux of one
+`XDG_CONFIG_HOME` (the trap 89)**, on the book "A Book Of Many Hours" of eight
+hours and one file of 115200330 bytes:
+
+| The measurement | The answer |
+|---|---|
+| The bytes on the disk, four runs of the key `D` in two windows | **116576586, 115200330, 117316426, 117123402** |
+| The bytes of the server | 115200330 |
+| The first 115200330 bytes of the file of 116576586 | **the file of the server**, `ef133993…` |
+| The audio of that file, with `ffmpeg -f null -` | **8:07:24**, and `Header missing` with `Invalid data found when processing input` |
+| The audio of the file of the server | 8:00:00, and no line of a fault |
+| The screen of the two windows | **`[Downloaded]`**, and the message of one of them says `"A Book Of Many Hours" is now available offline.` |
+| The screen of the other window | `Download failed for "A Book Of Many Hours": cannot rename …` |
+
+**The user holds seven minutes of audio that no decoder reads, and the program
+says that the media is available offline.** The offline mode plays that file when
+the server is away, therefore this is the copy that the user has at the moment
+that they have nothing else.
+
+**Two presses of the key `D` of one program give the same shape.** The second
+press of the same window took the same road, and the log of that measurement
+holds the same `cannot rename` for a download that worked: **a message of a fault
+for the user, and no fault at all.**
+
+**The correction: one program writes the files of one download, and the disk
+says which one.** `logic::download::lock` makes the file
+`.the-program-of-the-download` inside the directory of that download with
+`create_new`, before the first byte. `fetch_item` takes that lock, and a second
+program gives `TheFaultOfTheDownload::ADifferentProgramWritesTheFiles` and writes
+nothing. The lock goes away with its value, therefore every return of the
+function and every task that stops remove it.
+
+**A program that died leaves its lock, and a lock is therefore not for ever.**
+The rule is the heartbeat of T-140: the time of the lock **and the time of every
+`.part` file of that directory** say when the program of that lock last worked,
+and the newest of them decides. A download that stood still for 30 seconds
+belongs to a program that is gone, and the next program takes the lock. **This
+needs no call of the system and no dependency**, and a download of an hour holds
+its lock for that hour because its file grows at each block.
+
+The same measurement after the correction, four runs:
+
+| The measurement | The answer |
+|---|---|
+| The bytes on the disk | **115200330**, four times of four |
+| The sum of the file, against the file of the server | **the same**, `ef13399303c5150cb61c5bea50403299` |
+| The window that came second | `A different program of this account downloads "A Book Of Many Hours" now.` |
+| The log of that window | `[download_item] a different program downloads "A Book Of Many Hours" now` |
+
+**The sentence of the second window must not say "failed".** The download of the
+user is on its way already, and the user did nothing wrong.
+
+`logic::download::fetch::tests::two_programs_of_one_account_do_not_write_one_file`
+holds the rule with no server of the sandbox: a `.part` file of 40 bytes stands
+on the disk, the answer of the mock server waits 300 milliseconds, and the second
+program starts 100 milliseconds after the first one. A build with the correction
+removed gives `left: Ok([…])` against `right: Err(ADifferentProgramWritesTheFiles)`.
+
+**What this item does not measure.** The key `X` of one window while the other
+window downloads: the two keys took their sequence in every run of the
+measurement, because the download of 115 megabytes over the loopback ends in less
+than one second. A removal **inside** a download needs a server that sends the
+body slowly, and the address of the download does not go through the proxy of the
+harness (T-149).
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

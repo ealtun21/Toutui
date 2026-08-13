@@ -1,11 +1,12 @@
 pub mod fetch;
+pub mod lock;
 pub mod plan;
 pub mod progress;
 
 use crate::db::crud::{
     delete_download, get_download, get_download_files, insert_download, insert_download_file,
 };
-use fetch::fetch_item;
+use fetch::{fetch_item, TheFaultOfTheDownload};
 use log::{error, info};
 use plan::{plan_from_episode, plan_from_item};
 use progress::ProgressMap;
@@ -178,6 +179,20 @@ pub async fn download_with_progress(
                 dest_dir.display()
             );
             crate::logic::message::say(&format!("\"{}\" is now available offline.", title));
+        }
+        // A second program of this account writes these files now, therefore
+        // this program writes nothing and it says why. The download of the user
+        // is on its way already: this is no fault of the user, and the sentence
+        // must not say "failed". See T-148.
+        Err(TheFaultOfTheDownload::ADifferentProgramWritesTheFiles) => {
+            info!(
+                "[download_item] a different program downloads \"{}\" now",
+                title
+            );
+            crate::logic::message::say(&format!(
+                "A different program of this account downloads \"{}\" now.",
+                title
+            ));
         }
         Err(message) => {
             error!(

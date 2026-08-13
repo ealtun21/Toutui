@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.83",
+        date: "13/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A book that two windows of this program download at one time is the book of \
+             the server now.** The two windows wrote the same file at the same time: the file \
+             on your disk held more bytes than the file of the server, the decoder found \
+             audio that it cannot read at its end, and one screen said that the book is \
+             available offline while the other one said that the download failed. One window \
+             gets the book now, and the other one says that a different program of your \
+             account downloads it.",
+        ],
+    },
+    Entry {
         version: "0.7.82",
         date: "13/08/2026",
         body: &[
