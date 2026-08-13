@@ -25,8 +25,8 @@
 
 use rusqlite::params;
 use toutui::db::crud::{
-    delete_listening_session, get_listening_session, insert_listening_session, update_current_time,
-    THE_LIMIT_OF_THE_HEARTBEAT,
+    delete_the_session_of_a_playback, get_listening_session, insert_listening_session,
+    update_current_time, THE_LIMIT_OF_THE_HEARTBEAT,
 };
 
 /// The database of one test: a configuration directory of its own, and the turn
@@ -151,8 +151,11 @@ fn the_close_of_a_session_leaves_the_session_of_a_program_that_lives() {
     let _dir = a_database_of_the_test();
 
     a_session_of_another_program("the-session-of-the-other", "the-book-of-the-other", 120, 1);
+    a_session_of_this_program("my-session", "my-book", 5);
 
-    delete_listening_session("the-account", "the-server").expect("the database");
+    // The program closes its own session, and it removes the row of that session
+    // alone (T-145).
+    delete_the_session_of_a_playback("my-session").expect("the database");
 
     assert_eq!(
         the_rows_of_the_table(),

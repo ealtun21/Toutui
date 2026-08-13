@@ -6460,6 +6460,95 @@ The two answers of this item, and the shape of the test decides which one:
 is the command of CI. `cargo test --no-fail-fast` says every binary that fails,
 and `cargo test` alone says the first one.
 
+### T-145: the terminal of the user went away, and the next program threw the place of that playback away
+
+**The sweep of 2026-08-13: a media that plays while the terminal goes away
+(`SIGHUP`), and while the machine sleeps.** The road of the session of T-142
+named that condition, and no session had measured it. **The sleep of the machine
+gives no fault, and the death of the terminal takes the place of the user away.**
+
+`tmux kill-session` gives the program the `SIGHUP` of a terminal that goes away.
+The program dies at once: no line of the exit runs, therefore no request carries
+the position. **The row of `listening_session` holds it**, and the loop of the
+playback writes that row every second for exactly this condition ("Write the
+position for each second. A crash must not lose it.").
+
+The measurement, with a book of eight hours and the device `null`:
+
+| The moment | The row of the disk | The server |
+|---|---|---|
+| The terminal goes away | **1026 s** | 872 s (the sync of ten seconds, T-3) |
+| The user starts the program again **at once**, and plays a second book | the row stays, and the log says "The database holds no session to close" | 872 s |
+| The key `Q` of that program | **the table holds no row at all** | **872 s**, for ever |
+
+**The two rules of `sync_session_from_database` did not agree.** It closes
+**one** session (`get_listening_session` gives one row, `LIMIT 1`), and it
+removed **every** row that this program may take
+(`delete_listening_session`). A user who starts the program again inside
+`THE_LIMIT_OF_THE_HEARTBEAT` seconds meets both:
+
+1. At the moment of the key `l`, the row of the program that died is **younger**
+   than 30 seconds, therefore the rule of T-140 hides it: the play does not close
+   it, and `insert_listening_session` leaves it beside the new row.
+2. At the moment of the key `Q`, that row is **older** than 30 seconds, therefore
+   the removal takes it. The close took the row of this program, and the removal
+   took both.
+
+**The place of the user of the first book was on the disk, and no request ever
+carried it.** 154 seconds of that measurement, and a user of a real device loses
+the listening of the ten seconds of the sync (T-3) — **and the whole playback
+when the server did not answer at all**, because the row is then the one copy.
+
+**The correction.** `get_the_sessions_to_close` gives **every** row that this
+program may take, and `sync_session_from_database` closes each of them: one
+`POST /api/session/:id/close`, one position, and then
+`delete_the_session_of_a_playback` of **that** session alone. **No row goes away
+without a request now.** `delete_listening_session` has no caller left, and it
+went away with this item: a removal of every row of an account is the fault
+itself.
+
+**The rows of a program that died go first, and the row of this program goes
+last** (`ORDER BY (owner = ?) ASC, heartbeat ASC`). Two rows of one media then
+leave the newest position on the server: the same book gave 1024 s and then
+3000 s, and the server holds 3000.
+
+The same measurement after the correction: the key `Q` says
+`Item 6ba57b9a… closed at 1026s` and `Item e2b76945… closed at 1771s`, and the
+server holds **1026** for the book of the program that died.
+
+`tests/a_program_that_died_keeps_the_place_of_the_user.rs` holds the two rules
+with a mock server. **The sequence of the two rows is the condition** (the trap
+94): the test writes the row of this program first, because
+`insert_listening_session` removes a row that stands still already.
+
+**What stays, and it is a decision of this item.** The row of a program that
+died stays hidden for 30 seconds (T-140), therefore a user who starts the
+program again at once and plays **the same book** hears the ten seconds of the
+sync a second time. The position is safe — the next close sends it, and the
+newest position wins — and the answer of that last ten seconds needs the program
+to know that the process of `owner` does not live. **That needs a call of the
+system for each program**, and the decision of T-140 keeps it outside.
+
+### The sleep of the machine, and it gives no fault
+
+The freezer of the cgroup holds every thread of the program, as a suspend of the
+machine does (`SIGSTOP` does not reach a program of tmux from a session of this
+harness). A book of eight hours played, and the program stood still for **120
+seconds**:
+
+| The measurement | The answer |
+|---|---|
+| The position of the row and of the server, while the program sleeps | 536 s, and it did not move: **no clock of the wall stands in the loop of the playback** |
+| The playback after the wake | it goes on, and the sync reaches the server (1292 s after 20 seconds) |
+| The connection of the live messages | "The connection ended: the server did not answer in time", and it is open again **10 seconds** later, with no key of the user |
+| The row of the database | the same row, the same owner: a program that sleeps keeps its own row |
+| The key `Q` after the wake | the session closes, and the server holds 1331 s |
+
+**The limit of that measurement:** the device `null` is not a real sound device,
+therefore it says nothing of an ALSA device that a suspend takes away. A
+measurement of that needs the sound of the machine of a user, and the rule of the
+handover keeps a run of a session silent.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

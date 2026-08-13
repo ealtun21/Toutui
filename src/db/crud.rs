@@ -220,6 +220,66 @@ pub fn get_listening_session(username: &str, server: &str) -> Result<Option<List
     Ok(None)
 }
 
+/// Gives **every** session that this program may close, and not one of them.
+/// See T-145.
+///
+/// `get_listening_session` gives one row, and the close of a session removed
+/// every row that this program may take: the row of a program that died then
+/// went away with no request, and the place of the user of that program went
+/// away with it. **The program closes each of these rows, and it removes a row
+/// after that row reached the server.**
+///
+/// The rows of a program that died come first, and the row of this program
+/// comes last. Two rows of one media therefore leave the newest position on the
+/// server.
+pub fn get_the_sessions_to_close(username: &str, server: &str) -> Result<Vec<ListeningSession>> {
+    let err_message = "Error connecting to the database.";
+    let mut sessions = Vec::new();
+
+    if let Ok(conn) = crate::db::migrate::open_conn() {
+        let mut stmt = conn.prepare(
+            "SELECT id_session, id_item, current_time_playback, duration, is_finished, id_pod, elapsed_time, title, author, is_playback, chapter
+             FROM listening_session
+             WHERE ((username = ?1 AND server = ?2) OR (username = '' AND server = ''))
+               AND (owner = ?3 OR heartbeat <= ?4)
+             ORDER BY (owner = ?3) ASC, heartbeat ASC",
+        )?;
+
+        let rows = stmt.query_map(
+            params![
+                username,
+                server,
+                the_owner_of_this_program(),
+                the_moment_of_a_program_that_died()
+            ],
+            |row| {
+                Ok(ListeningSession {
+                    id_session: row.get(0)?,
+                    id_item: row.get(1)?,
+                    current_time: row.get(2)?,
+                    duration: row.get(3)?,
+                    is_finished: row.get(4)?,
+                    id_pod: row.get(5)?,
+                    elapsed_time: row.get(6)?,
+                    title: row.get(7)?,
+                    author: row.get(8)?,
+                    is_playback: row.get(9)?,
+                    chapter: row.get(10)?,
+                })
+            },
+        )?;
+
+        for session in rows {
+            sessions.push(session?);
+        }
+    } else {
+        crate::logic::message::say(err_message);
+        error!("[get_the_sessions_to_close] {}", err_message);
+    }
+
+    Ok(sessions)
+}
+
 // insert data into `listening_session` table
 // The ApiClient refactor removes the token and the address parameters.
 // See docs/superpowers/plans/2026-08-09-api-client-endpoints.md, task 10.
@@ -291,38 +351,6 @@ pub fn delete_the_session_of_a_playback(id_session: &str) -> Result<()> {
     } else {
         crate::logic::message::say(err_message);
         error!("[delete_the_session_of_a_playback] {}", err_message);
-    }
-
-    Ok(())
-}
-
-/// Removes the listening session from the database.
-///
-/// The application calls this function after it closes a session and sends
-/// the last position to the server. A row that stays makes the application
-/// send that position again at the next start. Then a position that a
-/// different client wrote is lost. See T-4.
-///
-/// **The row of another account stays**, because the position of that row
-/// belongs to another server. See T-138.
-pub fn delete_listening_session(username: &str, server: &str) -> Result<()> {
-    let err_message = "Error connecting to the database.";
-
-    if let Ok(conn) = crate::db::migrate::open_conn() {
-        conn.execute(
-            "DELETE FROM listening_session
-             WHERE ((username = ?1 AND server = ?2) OR (username = '' AND server = ''))
-               AND (owner = ?3 OR heartbeat <= ?4)",
-            params![
-                username,
-                server,
-                the_owner_of_this_program(),
-                the_moment_of_a_program_that_died()
-            ],
-        )?;
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[delete_listening_session] {}", err_message);
     }
 
     Ok(())

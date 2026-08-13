@@ -13,7 +13,7 @@
 //! 2. **The next playback of the second account sent the position of the first
 //!    account to the second server.** One row stood for the whole program, and
 //!    that row held no account at all: the second server answered "The server
-//!    does not have this item", and `delete_listening_session` then removed the
+//!    does not have this item", and the close of that session then removed the
 //!    row. **The place of the user went away**, and no line of the screen said
 //!    it.
 //!
@@ -22,7 +22,9 @@
 //! hold the two rules.
 
 use rusqlite::Connection;
-use toutui::db::crud::{delete_listening_session, get_listening_session, insert_listening_session};
+use toutui::db::crud::{
+    delete_the_session_of_a_playback, get_listening_session, insert_listening_session,
+};
 
 /// The database of one test: a configuration directory of its own, and the turn
 /// of that test.
@@ -154,8 +156,9 @@ fn a_playback_of_another_account_keeps_the_session_that_waits() {
         .expect("the session of the second account");
     assert_eq!(of_the_second.id_item, "a-book-of-the-second-server");
 
-    // The close of one session leaves the other one.
-    delete_listening_session("second", "two").expect("the database");
+    // The close of one session leaves the other one. The close removes the row of
+    // that session alone (T-145).
+    delete_the_session_of_a_playback("another").expect("the database");
 
     assert!(
         get_listening_session("second", "two")

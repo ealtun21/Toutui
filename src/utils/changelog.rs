@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.80",
+        date: "13/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A terminal that goes away no longer takes the place of your book with it.** \
+             This program writes the second of your playback to its own disk, and the next \
+             program removed that line before it sent it: your place then stayed at the last \
+             message to the server, and the minutes after it were gone. The program sends \
+             every line that waits now, and it removes a line after the server holds it.",
+        ],
+    },
+    Entry {
         version: "0.7.79",
         date: "13/08/2026",
         body: &[
