@@ -1867,7 +1867,15 @@ impl App {
                 }
 
                 let token = self.token.clone();
-                let server_address = self.server_address.clone();
+                // **The download goes to the address that answers**, and not to
+                // the address of the login: a user away from home holds the
+                // address of the house in their row of the database, and every
+                // other request of the program takes the pool already. See
+                // T-149, and T-105 and T-128 for the rule of the pool.
+                let server_address = crate::logic::download::the_address_of_the_download(
+                    self.api.pool().an_address(),
+                    &self.server_address,
+                );
                 let username = self.username.clone();
                 let server_key = self.server_key.clone();
 

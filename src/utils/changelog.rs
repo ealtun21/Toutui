@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.84",
+        date: "13/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A download goes to the address of your server that answers.** Every other \
+             part of this program takes the address that answers, and the key `D` took the \
+             address that you gave at the login: a user away from home sent the download to \
+             the address of their house, and the program said nothing at all — no message, \
+             no line in the log, and no bar. A download that meets an address that does not \
+             answer says so now: 3 seconds for the connection, and 30 seconds with no byte \
+             of the answer. A download of a book of some gigabytes has no limit of its whole \
+             time.",
+        ],
+    },
+    Entry {
         version: "0.7.83",
         date: "13/08/2026",
         body: &[

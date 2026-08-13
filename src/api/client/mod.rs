@@ -23,10 +23,10 @@ use tokio::io::AsyncWriteExt;
 
 /// The time to wait for a connection. A short time makes the program detect
 /// an address that does not answer quickly.
-const CONNECT_TIMEOUT: Duration = Duration::from_secs(3);
+pub const CONNECT_TIMEOUT: Duration = Duration::from_secs(3);
 
 /// The time to wait for a full answer. Downloads do not use this value.
-const REQUEST_TIMEOUT: Duration = Duration::from_secs(15);
+pub const REQUEST_TIMEOUT: Duration = Duration::from_secs(15);
 
 /// The time to wait for a full download. An audiobook can be some
 /// gigabytes. Therefore the download needs much more time.

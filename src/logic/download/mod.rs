@@ -23,6 +23,36 @@ pub fn downloads_base_dir(username: &str) -> PathBuf {
     crate::paths::data_dir().join("downloads").join(username)
 }
 
+/// Gives the address of a download.
+///
+/// **The pool decides**, as it decides for every other request of the program
+/// (T-105 and T-128). The address of the login is the answer when the pool holds
+/// no address at all, and the request then says what that address says.
+///
+/// The function is pure, therefore a test needs no server. See T-149.
+pub fn the_address_of_the_download(of_the_pool: Option<String>, of_the_login: &str) -> String {
+    of_the_pool.unwrap_or_else(|| of_the_login.to_string())
+}
+
+/// Makes the client of a download.
+///
+/// **A download holds no limit of its whole time.** The send of a book of 479
+/// megabytes took 36 seconds in the measurement of T-119, and a book of some
+/// gigabytes takes much more. The two limits are therefore a limit of the
+/// connection and a limit of a wait with no byte at all: a user who presses the
+/// key `D` toward an address that no machine answers reads a sentence, and they
+/// do not wait for ever. See T-149.
+fn the_client_of_a_download() -> reqwest::Client {
+    reqwest::Client::builder()
+        .connect_timeout(crate::api::client::CONNECT_TIMEOUT)
+        .read_timeout(THE_TIME_WITH_NO_BYTE)
+        .build()
+        .unwrap_or_default()
+}
+
+/// The longest wait for a block of the answer of a download.
+const THE_TIME_WITH_NO_BYTE: std::time::Duration = std::time::Duration::from_secs(30);
+
 /// Makes an empty map of the progress of the downloads.
 pub fn new_progress_map() -> ProgressMap {
     Arc::new(RwLock::new(HashMap::new()))
@@ -106,7 +136,7 @@ pub async fn download_with_progress(
 
     let id_library_item = target.item_id().to_string();
 
-    let client = reqwest::Client::new();
+    let client = the_client_of_a_download();
     let base_url = server_address.trim_end_matches('/').to_string();
 
     // The list of the audio files comes from the item. The archive endpoint
@@ -369,6 +399,10 @@ async fn get_item(
     let response = client
         .get(format!("{}/api/items/{}", base_url, id_library_item))
         .header(reqwest::header::AUTHORIZATION, format!("Bearer {token}"))
+        // This answer holds the list of the audio files, and it is a small
+        // answer: it takes the limit of every request of the program. The
+        // transfer of the files takes no such limit. See T-149.
+        .timeout(crate::api::client::REQUEST_TIMEOUT)
         .send()
         .await
         .map_err(|error| format!("the request failed: {error}"))?;
@@ -457,6 +491,27 @@ mod tests {
     #[test]
     fn the_list_holds_no_empty_path() {
         assert!(paths_to_remove("", &[String::new()]).is_empty());
+    }
+
+    /// The pool decides the address of a download, as it decides the address of
+    /// every other request. See T-149.
+    #[test]
+    fn the_download_takes_the_address_that_answers() {
+        assert_eq!(
+            the_address_of_the_download(
+                Some("https://abs.example.com".to_string()),
+                "http://192.168.1.10:13378"
+            ),
+            "https://abs.example.com"
+        );
+
+        // A program with no block `[[servers]]` holds one address, and the pool
+        // gives it. A pool with no address at all gives the address of the
+        // login, and the request then says what that address says.
+        assert_eq!(
+            the_address_of_the_download(None, "http://192.168.1.10:13378"),
+            "http://192.168.1.10:13378"
+        );
     }
 
     /// A key of a book and a key of an episode are two different downloads.

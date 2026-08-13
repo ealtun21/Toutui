@@ -6771,6 +6771,57 @@ than one second. A removal **inside** a download needs a server that sends the
 body slowly, and the address of the download does not go through the proxy of the
 harness (T-149).
 
+### T-149: the download goes to the address of the login, and it waits for ever
+
+**The measurement of T-148 found it.** A proxy of the harness held the address of
+the login, and the header of the program said a different address: **`pool` holds
+every request of the program (T-105, T-107, and T-128), and the key `D` holds
+`self.server_address`**, which is the address of the row of the database.
+
+The measurement, with the block `[[servers]]` of `config.toml` of two addresses
+and the address of the login second:
+
+| The measurement | The answer |
+|---|---|
+| The header of the program | `🔗 localhost:13399`, the address that the pool holds |
+| The two requests of the key `D` | **`127.0.0.1:13500`**, the address of the login: `GET /api/items/:id` and `GET /api/items/:id/file/:ino/download` |
+| The same measurement with an address of the login that **does not answer** | **no message, no line of the log, and no bar of the progress**: the program said `Downloading "A Book Of Many Hours" for offline listening...` and then nothing at all |
+
+**The second row is the harm of this item, and it is the shape of a user away
+from home**: the address of the login is the address of the house, the public
+address answers every view, and the key `D` then gives the user a silence with no
+end. `reqwest::Client::new()` of `logic::download` holds **no limit of time at
+all**, therefore a connection that no machine answers waits for ever.
+
+**The correction.** The key `D` takes `api.pool().an_address()`, as the playback
+does (T-138), and the client of the download holds two limits: **3 seconds for
+the connection** (`api::client::CONNECT_TIMEOUT`) and **30 seconds with no byte**
+of the answer. The request of the list of the audio files takes
+`REQUEST_TIMEOUT`, the 15 seconds of every other request of the program, because
+that answer is small. **A limit of the whole download must not exist** — the send
+of a book of 479 megabytes took 36 seconds in the measurement of T-119, and a
+book of some gigabytes takes much more.
+
+The same measurements after the correction:
+
+| The measurement | The answer |
+|---|---|
+| The requests of the key `D`, with the proxy on the address of the login | **no request at all**: the download went to the address of the pool, and the file holds the 115200330 bytes of the server |
+| The key `D` while the address of the pool answers nothing | **`Download failed for "A Book Of Many Hours": the request failed: error sending request for url (http://127.0.0.1:13500/api/items/…)`**, at the second 15 |
+
+The second measurement takes a port that accepts the connection and that answers
+nothing at all (`blackhole.py` of the harness of the session), because a port
+that no program holds **refuses** a connection at once and it says nothing of a
+limit of time.
+
+**No unit test reaches a key handler of `src/app.rs`, and no test reads the
+limits of a client of `reqwest`.**
+`tests/the_download_takes_the_address_that_answers.rs` therefore reads the
+source, as the test of T-131 and the test of T-143 do: the handler of the key `D`
+must name `pool().an_address()`, the client of a download must hold
+`connect_timeout` and `read_timeout` and **no `timeout`**, and no line of
+`logic::download` may make a `reqwest::Client::new()`.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
