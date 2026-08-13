@@ -2588,6 +2588,12 @@ answers slowly while it writes. Two answers to measure:
   machine has 32 cores, and the user tests the program while the tests build.
 - The address of the server of the user must stay outside this repository, and the
   account of the user too.
+- **The sessions can run in a loop.** The driver is `~/.local/bin/toutui-loop`,
+  outside this repository, and its design is
+  `docs/superpowers/specs/2026-08-13-session-loop-design.md`. It reads the block of
+  the quote of `## The prompt for the next session`, therefore **that block must stay
+  the last part of this file, and every line of it must start with `> `**. A session
+  that writes a handover with no such block stops the loop.
 
 ## The prompt for the next session
 
