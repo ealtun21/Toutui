@@ -1,15 +1,78 @@
-# The handover of 2026-08-13 (the second session of that day)
+# The handover of 2026-08-13 (the third session of that day)
 
 This document is for the next session. It says what is done, what is open, and the
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.78**, and T-140 and T-141 belong to this session.
-The items T-133 to T-139 belong to the session before it, T-128 to T-132 to the
-one before that, T-124 to T-127 to the one before those, and T-122 and T-123 to
+**The newest release is v0.7.79**, and T-142 and T-143 belong to this session.
+The items T-140 and T-141 belong to the session before it, T-133 to T-139 to the
+one before that, T-128 to T-132 to the one before those, and T-124 to T-127 to
 the one before them.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the third turn of 2026-08-13: a setting of two programs
+
+**One release: v0.7.79.** The road held three conditions that no session had
+measured, and this session took the first of them: **two programs of one account,
+and one of them changes a setting with the key `S`**. The road expected a fault of
+the file, and the file holds every line. **The fault takes the books of the user
+of the disk.**
+
+| Item | What | Keys |
+|---|---|---|
+| T-142 | **A second window removed two books of 105 MB while its own screen said the value that keeps them.** The limit of the cache came of the moment of the start | `S`, `e` |
+| T-143 | The key `h` did nothing in the view of the cache of the ebooks, and the footer promised it | `S`, then `h` |
+
+### T-142, and it is the one to know of this session
+
+**The key `S` writes one value of `config.toml`**: the limit of the cache of the
+ebooks (T-77). `write_the_value` reads the file and it changes one line,
+therefore **no program loses the line of another program** — that is the fault
+that the road expected, and it does not exist.
+
+**The limit stood in three places of one program**, and the third one never moved:
+
+| The place | Who writes it | What it does |
+|---|---|---|
+| `config.toml` | every program of the account | the value of the user |
+| `self.config` | `App::new`, therefore the start **and every refresh** | the title and the mark `✓` of the view |
+| a slot of `logic::reader::cache` | `src/main.rs`, **one time** (T-72) | the removal of a book of the disk |
+
+The measurement, with a cache of 447 megabytes on the disk:
+
+| The moment | Before | After |
+|---|---|---|
+| A takes 4096 MB with `S`, and B reads its own view | B says **"512 MB now"**, and the file says 4096 | B says "4096 MB now" |
+| B gets one book with `e` | B **removed two books of 105386785 bytes** at 512 MB | no book goes away |
+
+**The screen of B promised 4096 MB at that moment, and B removed the books at
+512.** The rule: the file is the truth, and the program reads it at the three
+moments that it needs it — a new application, the view of the settings, and
+**before a removal takes a book of the disk**. A removal comes with no key of
+that window, therefore the two first moments are not enough.
+
+### T-143, and the first key of that measurement found it
+
+The footer of the view of the cache says `h: back`, and three presses of `h`
+moved nothing: `AppView::SettingsReader` came with T-77 with an arm of
+`toggle_view` and no arm of the key `h`. The next key of the measurement was
+`Esc`, and **that key stops the program** (the trap 69): the window of the
+measurement went away.
+
+`tests/the_key_h_leaves_every_view.rs` reads the source, it names every view of
+`AppView`, and it holds each of them to an arm of that handler. Three views stand
+outside the rule (Home, Library, and the reader of an ebook), and the test named
+`SettingsReader` and no other view.
+
+### The measurements of this session
+
+| The measurement | The answer |
+|---|---|
+| **Two programs of one account, and one of them changes a setting with `S`** | **two faults** (T-142 and T-143), and T-142 removes the books of the user |
+| The lines of `config.toml` after the two programs wrote it | **every line stays.** `write_the_value` reads the file, and it changes one line (T-77) |
+| The row of the account of the database, with two programs | **no fault of a lost value**: every write of `users` names its own column, and the speed rate is a relative write |
+| The two programs after the correction | one value of the limit, in the file, on the screen of both windows, and in the removal |
 
 ## The session of the second turn of 2026-08-13: two programs of one account
 
@@ -640,14 +703,14 @@ episodes for a podcast that is missing **54**, therefore it stays outside.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.78` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.79` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 1011 of 1011 in 2.3 s, and cargo nextest run --run-ignored all gives 1036
-    # of 1036 with the sandbox up, in 16.6 s of wall clock: one test waits 16 s
+    # 1014 of 1014 in 2.3 s, and cargo nextest run --run-ignored all gives 1039
+    # of 1039 with the sandbox up, in 16.6 s of wall clock: one test waits 16 s
     # for the time limit of the send of a book (T-119), and one waits 15 s for
     # the time limit of a request
 cargo tree -i openssl-sys                # finds nothing
@@ -994,18 +1057,24 @@ measurements of this session left.
    - ~~**Two programs of one account, on one database, while a media plays**~~:
      **made on 2026-08-13 (the second session), and it found T-140 and T-141.**
      The session named that condition itself, because the table held none.
+   - ~~**Two programs of one account, and one of them changes a setting with the
+     key `S`**~~: **made on 2026-08-13 (the third session), and it found T-142 and
+     T-143.** The file loses no line, and the second window removed the books of
+     the user with the limit of its own start.
    - **The conditions that no session has measured**, and a next session may take
      one of them:
-     - **Two programs of one account of two libraries**, where one of them
-       changes a setting of `config.toml` with the key `S`: the second program
-       holds the old value in its memory, and it writes the whole file at its own
-       next key. **No measurement says what the user then loses.**
      - **A media that plays while the machine sleeps**, or while the terminal
        goes away (`SIGHUP`): the session of the server stays open, and the row of
        the database holds a heartbeat that stops (T-140).
      - **A queue of media while the server goes away in the middle of it.** The
        queue of T-56 lives in the database, and the sweep of an offline server
        (T-91) held no queue.
+     - **A state of the program that a second program cannot see.** T-142 is one
+       of them, and no session has looked for the others: the queue of the media
+       on the disk (T-56), the cache of the ebooks, and the downloads of the
+       server. **A value that one window writes and the other window holds in its
+       memory is the shape of the fault**, and the answer of T-142 is the rule
+       (read the file at the moment of the use).
    - ~~**A second account of a second server while a media plays**~~ (T-124):
      **made on 2026-08-13, and it found T-138 and T-139** — the place of one
      account went to the server of another account, and no key sent the place of
@@ -1093,7 +1162,26 @@ measurement changed.
    playback measures the position, the message, the session of the server, and the
    parts of the stream. **No run of that session opens the real sound device.**
 
-### 4. The decisions of the session of two programs (T-140 and T-141)
+### 4. The decisions of the session of a setting of two programs (T-142 and T-143)
+
+**The maintainer answered no question before this session**, because the road
+asked for a condition. The session made two decisions of its own, and both of
+them follow the decision of T-140 (a second program is a condition of a user).
+
+**1. The file is the truth of a value that two programs write, and the program
+reads it at the moment of the use.** Two other answers exist, and each of them
+costs more than it gives: a **watch of the file** needs a dependency of the
+system (the rule of T-20), and a **lock of the file** would take a window of the
+user away for the value of a setting. `config.toml` is 2 kilobytes, and the
+program reads it at three moments only: a new application, the view that shows
+the value, and a removal of a book. See T-142.
+
+**2. A removal of a book reads the file, and a message of the program is not
+enough.** The program could say "the value changed, press R" instead. **The
+removal takes a file of the disk away**, and no message gives that book back:
+the moment of a removal is the moment that needs the truth. See T-142.
+
+### 5. The decisions of the session of two programs (T-140 and T-141)
 
 **The maintainer answered no question before this session**, because the road
 asked for a condition and a condition needs no decision. The session made two
@@ -1168,7 +1256,7 @@ program does not have**, therefore the words changed now. The function needs thr
 keys, and that decision is not the decision of a session: T-118 of the backlog
 holds the question.
 
-### 5. The decisions of the session before this one
+### 6. The decisions of the session before this one
 
 The maintainer answered seven questions before that session. **Two of those
 answers could not hold as they stood**, and this section holds the change and the
@@ -1743,6 +1831,35 @@ answers slowly while it writes. Two answers to measure:
     give those two columns, or the program takes that row for the row of a
     program that died.
 
+### The traps of the session of a setting of two programs (T-142 and T-143)
+
+94. **The sequence of the two programs decides the whole condition.** A program
+    reads `config.toml` at its start, therefore the second program must **stand
+    already** when the first one writes the value: write the value of the start in
+    the file, start the window B, and then press the keys of the window A. A
+    window that starts after the change holds the new value, and the measurement
+    then says nothing.
+95. **The removal of a book needs more books than the sandbox holds.** The cache
+    of the sandbox holds 146 megabytes, and the smallest value of the view is 256.
+    Five copies of the book of 100 megabytes in the directory of the downloads
+    make the condition (`copy-of-a-user-N.epub`), and the cache counts them: the
+    filesystem of this machine holds one copy of the bytes for all of them, and
+    `du` therefore says 164 megabytes for six files of 105. **`metadata.len()` is
+    what the program reads**, and it says 105386785 for each of them.
+96. **The removal comes after a download of a book, and at no other moment.** A
+    book that the cache holds already gives no removal, therefore a measurement of
+    the removal must take a book that the directory does not hold: move it away
+    first, and the key `e` gets it again.
+97. **A test that writes `XDG_CONFIG_HOME` and then reads the configuration makes
+    a file.** `load_config` writes `config.toml` when the file is absent (T-122),
+    therefore that test needs a `tempfile::tempdir` and it must never run with the
+    variable of the user. nextest gives each test its own process, and `cargo
+    test` does not (the trap 29).
+98. **`write_the_value` is the way to make the condition of a second program.** It
+    reads the file and it changes one line, therefore a test of two programs needs
+    no second process at all: the test writes the file as the other window does,
+    and it then makes a new application.
+
 ### Of the harness and of the machine
 
 1. **A fixed `sleep` is the largest waste of a session.** The first frame of the
@@ -2052,14 +2169,13 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**The first three items of the road of the session before this one are done**
-(T-128 to T-131), and the run of every test found a fault of a test (T-132). This
-prompt asks for the two sweeps that no session has made, and for the work that
-T-131 left.
+**The road holds three conditions that no session has measured, and this session
+took one of them** (T-142 and T-143). This prompt asks for one of the two that
+stay, and it names the state of the program on 2026-08-13.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.7.71**; `Cargo.toml` is at 0.7.71. The
+> AlbanDAVID/Toutui. Newest release **v0.7.79**; `Cargo.toml` is at 0.7.79. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -2067,56 +2183,60 @@ T-131 left.
 >
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
-> evidence of every item; **T-87, T-97, T-107, T-126, T-128, and T-131 are the
-> six to know**, and T-128 to T-132 are the newest), and
-> `docs/T-24-coverage.md` (**no row of section 4 says `Half`, and every row that
-> says `No` belongs to an administrator of the server**, and **section 6 names
-> what the program must not have, with the reason**).
+> evidence of every item; **T-87, T-107, T-128, T-131, T-140, and T-142 are the
+> six to know**, and T-140 to T-143 are the newest), and `docs/T-24-coverage.md`
+> (**no row of section 4 says `Half`, and every row that says `No` belongs to an
+> administrator of the server**, and **section 6 names what the program must not
+> have, with the reason**).
 >
 > **The way of working, for every item.** Show the fault before you correct it,
 > and let a test find it: a build with the correction removed must fail. Make the
 > data of the fault exist in the sandbox (`docs/TEST-SERVER.md`, podman on
 > `:13399`; `podman start abs-test` gives the server back with a library of 2056
-> items, a library of **520 podcasts**, a PDF of 502 megabytes, and an **EPUB of
-> 100 megabytes**). **Drive the real program inside tmux** with
-> `docs/harness/drive.sh`; a screen of your own writing lies to you. **The key
-> `h` goes back, and `Esc` stops the program** (the trap 69), and `tmux
-> send-keys` takes `BTab` for Shift+Tab (the trap 70). Verify with a second
-> program: `curl`, `podman logs abs-test`, or a browser. Write the measurement in
-> `docs/TAKEOVER-BACKLOG.md` under a new item (T-133 and up), and name that item
-> in the commit.
+> items, a library of **520 podcasts**, a PDF of 502 megabytes, an **EPUB of 100
+> megabytes**, and **two books of eight hours**). **Drive the real program inside
+> tmux** with `docs/harness/drive.sh`; a screen of your own writing lies to you.
+> **The key `h` goes back, and `Esc` stops the program** (the trap 69), and `tmux
+> send-keys` takes `BTab` for Shift+Tab (the trap 70). **A second program of one
+> account needs one `XDG_CONFIG_HOME` and a second `tmux new-session`** (the trap
+> 89), and the sequence of the two starts decides the condition (the trap 94).
+> Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-144 and
+> up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a real null asound file.
-> Baseline: **991 tests in 2.2 seconds**, and `cargo nextest run --run-ignored all`
-> gives **1016 of 1016** with the sandbox up, in 27.6 seconds. **Run that second
-> command at the end of the session too**: it found T-132 and T-111.
+> Baseline: **1014 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1039 of 1039** with the sandbox up, in 16.6 seconds. **Run that
+> second command at the end of the session too**: it found T-132 and T-111.
 >
 > **No run opens the real sound device.** `TOUTUI_AUDIO_DEVICE=null` gives the
 > null device of ALSA, and the log then says "the application uses the sound
 > device alsa:null". `ALSA_CONFIG_PATH` does **not** silence the real program.
-> **The null device plays 30 minutes of a book in 25 seconds** (the trap 72).
+> **The null device plays 30 minutes of a book in 25 seconds** (the trap 72), and
+> a sweep of some steps therefore needs a book of eight hours (the trap 90).
 >
 > ### The work, in the sequence of its value
 >
-> 1. **The two sweeps that no session has made.** Every new condition found a
->    fault in seven sessions of eight, and the sweep of the session before this
->    one found T-131.
->    - **A second account of a second server while a media plays** (T-124). The
->      key `c` starts the program again, therefore the position of the media must
->      reach the server first. The second server stands on the port 13400.
->    - **A library whose media the account may not read**, with an account of the
->      type `user`. T-121 holds the commands of such an account, and the trap 65
->      says why every session before it missed a fault of a permission.
-> 2. **What a refresh of the screen still loses (T-131).** The engine of the
->    playback stays now. **The timer for sleep of T-24 and the queue of the media
->    stand in the application**, and the key `R` takes them away. Measure what the
->    user loses first, and then give them the shape of T-131.
-> 3. **The words for the user.** Every text in ASD-STE100. A view says why it
+> 1. **One condition of the road that no session has measured.** Every new
+>    condition found a fault in ten sessions of eleven, and the newest of them
+>    found T-142: a second window removed the books of the user.
+>    - **A media that plays while the machine sleeps**, or while the terminal goes
+>      away (`SIGHUP`). The session of the server stays open, and the row of the
+>      database holds a heartbeat that stops (T-140): measure the position on the
+>      server, the row of the database, and the next start of the program.
+>    - **A queue of media while the server goes away in the middle of it.** The
+>      queue of T-56 lives on the disk, and the sweep of an offline server (T-91)
+>      held no queue.
+>    - **A state of the program that a second program cannot see** (the shape of
+>      T-142): the queue of the media, the cache of the ebooks, and the downloads
+>      of the server. The rule of the answer stands in section 4 of the decisions.
+> 2. **The words for the user.** Every text in ASD-STE100. A view says why it
 >    holds no line, and it never says a reason that the program does not have
 >    (T-91). **A text must not promise a function that the program does not
->    have** (T-118). A key that does nothing in one view is a fault of its own
+>    have** (T-118), and **a footer must not promise a key that the view does not
+>    hold** (T-143). A key that does nothing in one view is a fault of its own
 >    (T-79). A message lives six seconds.
 >
 > ### The two issues of the fork
@@ -2137,8 +2257,10 @@ T-131 left.
 > the devices of an e-reader comes from `POST /api/authorize`** (T-119). The
 > program holds more than one account (T-124), the episodes of a podcast come
 > when the user opens that podcast (T-126), **a request tries an address that
-> holds the state `Down`** (T-128), and **the refresh keeps the engine of the
-> playback** (T-131).
+> holds the state `Down`** (T-128), **the refresh keeps the engine of the
+> playback** (T-131), **a listening session belongs to one program** (T-140), and
+> **the limit of the cache of the ebooks comes of the file at the moment of the
+> use** (T-142).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
