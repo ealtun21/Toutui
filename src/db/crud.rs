@@ -1132,6 +1132,47 @@ pub fn get_pending_progress(username: &str, server: &str) -> Vec<PendingProgress
     }
 }
 
+/// Tells if a program of this account plays this media from the disk now. See
+/// T-156.
+///
+/// **An offline playback opens no session on the server** (T-152), therefore the
+/// table `listening_session` holds no row of it and a second program of the
+/// account can see nothing of that work. The loop of that playback keeps the
+/// place of the user in `pending_progress` **at each second** since T-152, and
+/// that moment is the heartbeat: a media whose place moved inside
+/// `THE_LIMIT_OF_THE_HEARTBEAT` seconds belongs to a playback that runs. It is
+/// the rule of T-140, of T-148, and of T-153, and it needs no new column and no
+/// call of the system.
+///
+/// `updated_at` holds milliseconds.
+pub fn a_program_keeps_the_place_of_this_media(
+    username: &str,
+    id_item: &str,
+    id_pod: &str,
+) -> bool {
+    let Ok(conn) = crate::db::migrate::open_conn() else {
+        return false;
+    };
+
+    let newest: Option<i64> = conn
+        .query_row(
+            "SELECT MAX(updated_at) FROM pending_progress \
+             WHERE username = ?1 AND id_item = ?2 AND id_pod = ?3",
+            params![username, id_item, id_pod],
+            |row| row.get(0),
+        )
+        .ok()
+        .flatten();
+
+    let Some(newest) = newest else {
+        return false;
+    };
+
+    let limit = the_moment_of_now().saturating_sub(THE_LIMIT_OF_THE_HEARTBEAT as i64) * 1000;
+
+    newest >= limit
+}
+
 /// Removes a position that the server has now.
 pub fn delete_pending_progress(username: &str, id_item: &str, id_pod: &str) -> Result<()> {
     if let Ok(conn) = crate::db::migrate::open_conn() {

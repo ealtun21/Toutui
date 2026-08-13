@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.91",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key `X` keeps the media that plays from the disk.** A window of your \
+             account played a book of the disk while the server was away, a second window \
+             removed the local copy of that book with the key `X`, and the program then had \
+             no copy of the book that you listened to: no key gave it back while the server \
+             stayed away. The key removes no file of such a media now, and it says why.",
+        ],
+    },
+    Entry {
         version: "0.7.90",
         date: "14/08/2026",
         body: &[

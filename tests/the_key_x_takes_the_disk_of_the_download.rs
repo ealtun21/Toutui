@@ -65,7 +65,7 @@ fn the_key_x_takes_the_disk_of_a_download_that_the_database_does_not_hold() {
     );
 
     assert_eq!(
-        the_work_of_the_key_that_removes(false, a_program_downloads(THE_KEY, THE_USER)),
+        the_work_of_the_key_that_removes(false, a_program_downloads(THE_KEY, THE_USER), false),
         TheWorkOfTheKeyThatRemoves::ADifferentProgramDownloads,
         "the key must take no file of a download that runs"
     );
@@ -86,7 +86,7 @@ fn the_key_x_takes_the_disk_of_a_download_that_the_database_does_not_hold() {
     );
 
     assert_eq!(
-        the_work_of_the_key_that_removes(false, a_program_downloads(THE_KEY, THE_USER)),
+        the_work_of_the_key_that_removes(false, a_program_downloads(THE_KEY, THE_USER), false),
         TheWorkOfTheKeyThatRemoves::TakeTheDisk
     );
 

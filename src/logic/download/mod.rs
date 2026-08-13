@@ -91,6 +91,17 @@ impl DownloadTarget {
         }
     }
 
+    /// Gives the identity of the episode. A book has no episode.
+    ///
+    /// The place of a media stands under the item and the episode, therefore a
+    /// key that asks for the place of a media gives both. See T-156.
+    pub fn episode_id(&self) -> Option<&str> {
+        match self {
+            DownloadTarget::Book { .. } => None,
+            DownloadTarget::Episode { episode_id, .. } => Some(episode_id),
+        }
+    }
+
     /// Gives the identity of the download.
     ///
     /// A book is one download. A podcast holds many episodes, and each episode
@@ -419,6 +430,24 @@ pub fn text_of_the_key_that_downloads(title: &str) -> String {
     format!("This program downloads \"{}\" now.", title)
 }
 
+/// Gives the sentence of the key `X` for a media that plays from the disk. See
+/// T-156.
+///
+/// **The sentence names no program.** The place of an offline playback stands in
+/// one table for the whole account, and no column of it holds a process: a
+/// sentence that named this program or a different program would say a thing
+/// that the program does not know (T-91 and T-154). It promises no key, because
+/// no key of this program stops the playback of a different window (T-118 and
+/// T-143).
+///
+/// The function is pure, therefore a test needs no server.
+pub fn text_of_the_media_that_plays_from_the_disk(title: &str) -> String {
+    format!(
+        "A program of this account plays \"{}\" from the disk now.",
+        title
+    )
+}
+
 /// What the key `X` must do with the files of one download. See T-150.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TheWorkOfTheKeyThatRemoves {
@@ -428,6 +457,8 @@ pub enum TheWorkOfTheKeyThatRemoves {
     ThisProgramDownloads,
     /// A different program of this account downloads the media now.
     ADifferentProgramDownloads,
+    /// A program of this account plays the media from the disk now. See T-156.
+    AProgramPlaysItFromTheDisk,
 }
 
 /// Says what the key `X` must do with a download. See T-150.
@@ -441,7 +472,17 @@ pub enum TheWorkOfTheKeyThatRemoves {
 pub fn the_work_of_the_key_that_removes(
     this_program_downloads: bool,
     a_program_writes_the_files: bool,
+    a_program_plays_it_from_the_disk: bool,
 ) -> TheWorkOfTheKeyThatRemoves {
+    // **The media that a program of this account plays from the disk keeps its
+    // files**, and that rule stands before every other rule of this key: the
+    // user hears that media at this second, and the server can be away. It is
+    // the rule of the cache of the ebooks — "the book that the user reads now
+    // never goes away" (T-65 and T-153) — for the audio. See T-156.
+    if a_program_plays_it_from_the_disk {
+        return TheWorkOfTheKeyThatRemoves::AProgramPlaysItFromTheDisk;
+    }
+
     if this_program_downloads {
         return TheWorkOfTheKeyThatRemoves::ThisProgramDownloads;
     }
@@ -681,18 +722,18 @@ mod tests {
     #[test]
     fn the_key_takes_no_file_of_a_download_that_runs() {
         assert_eq!(
-            the_work_of_the_key_that_removes(false, false),
+            the_work_of_the_key_that_removes(false, false, false),
             TheWorkOfTheKeyThatRemoves::TakeTheDisk
         );
         assert_eq!(
-            the_work_of_the_key_that_removes(true, true),
+            the_work_of_the_key_that_removes(true, true, false),
             TheWorkOfTheKeyThatRemoves::ThisProgramDownloads
         );
         // The lock of this program stands on the disk, therefore the two
         // answers agree. A lock that this program did not make gives the other
         // program.
         assert_eq!(
-            the_work_of_the_key_that_removes(false, true),
+            the_work_of_the_key_that_removes(false, true, false),
             TheWorkOfTheKeyThatRemoves::ADifferentProgramDownloads
         );
 
@@ -706,6 +747,34 @@ mod tests {
             "{}",
             of_the_other
         );
+    }
+
+    /// **The media that a program of this account plays from the disk keeps its
+    /// files**, and that rule stands before the rule of a download. See T-156.
+    #[test]
+    fn the_key_keeps_a_media_that_plays_from_the_disk() {
+        assert_eq!(
+            the_work_of_the_key_that_removes(false, false, true),
+            TheWorkOfTheKeyThatRemoves::AProgramPlaysItFromTheDisk
+        );
+
+        // A download of this program and a playback of the disk can stand at
+        // one moment. The playback decides: its files go away under the ear of
+        // the user, and the server can be away.
+        assert_eq!(
+            the_work_of_the_key_that_removes(true, true, true),
+            TheWorkOfTheKeyThatRemoves::AProgramPlaysItFromTheDisk
+        );
+
+        let text = text_of_the_media_that_plays_from_the_disk("A Book Of Many Hours");
+
+        assert!(text.contains("A Book Of Many Hours"), "{}", text);
+        assert!(text.contains("from the disk"), "{}", text);
+        // The table of the place holds no program, therefore the sentence names
+        // none: it must not say "a different program" for the window of the
+        // user (T-154), and it must promise no key (T-118).
+        assert!(!text.contains("different program"), "{}", text);
+        assert!(!text.contains("Press"), "{}", text);
     }
 
     #[test]

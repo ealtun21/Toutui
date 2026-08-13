@@ -246,13 +246,43 @@ mod tests {
         assert!(!Kind::Authors.filter_of(&author).contains("narrators"));
     }
 
-    /// A new list forgets the answer of the list that came before it. The view
-    /// must not show the authors under the title of the narrators.
+    /// A new list forgets the answer of the list that came before it, and the
+    /// state goes from the task to the screen. The view must not show the
+    /// authors under the title of the narrators.
     ///
-    /// **The two boxes belong to the process, therefore this test stays in one
-    /// function.** See the trap 29 of `docs/HANDOVER.md`.
+    /// **The two boxes belong to the process, therefore every part of this
+    /// measurement stays in one function.** See the trap 29 of
+    /// `docs/HANDOVER.md`. Two test functions of one binary broke that rule
+    /// between them: `cargo test` gives the tests of one binary a **thread** of
+    /// their own, therefore one of them found the boxes of the other one and
+    /// the gate of CI then failed for a run of six. `cargo nextest run` gives
+    /// each test a process, and it hides such a fault (T-144).
     #[test]
     fn a_new_list_forgets_the_answer_of_the_list_before_it() {
+        // The state goes from the task to the screen.
+        forget();
+        assert!(matches!(state(), State::Nothing));
+        assert!(authors().is_empty());
+
+        keep(State::Waiting);
+        assert!(authors().is_empty());
+
+        keep(State::Ready(vec![Author {
+            id: "a".to_string(),
+            name: "A Name".to_string(),
+            description: None,
+            num_books: 3,
+        }]));
+
+        assert_eq!(authors().len(), 1);
+        assert_eq!(authors()[0].num_books, 3);
+
+        keep(State::Fault("no answer".to_string()));
+        assert!(authors().is_empty());
+
+        forget();
+
+        // A new list forgets the answer of the list before it.
         keep_the_kind(Kind::Authors);
         keep(State::Ready(vec![Author {
             id: "a".to_string(),
@@ -281,33 +311,6 @@ mod tests {
         assert_eq!(authors().len(), 1, "the same list keeps its answer");
 
         keep_the_kind(Kind::Authors);
-        forget();
-    }
-
-    /// The state belongs to the process, therefore the parts of this test
-    /// must stay in one function.
-    #[test]
-    fn the_state_goes_from_the_task_to_the_screen() {
-        forget();
-        assert!(matches!(state(), State::Nothing));
-        assert!(authors().is_empty());
-
-        keep(State::Waiting);
-        assert!(authors().is_empty());
-
-        keep(State::Ready(vec![Author {
-            id: "a".to_string(),
-            name: "A Name".to_string(),
-            description: None,
-            num_books: 3,
-        }]));
-
-        assert_eq!(authors().len(), 1);
-        assert_eq!(authors()[0].num_books, 3);
-
-        keep(State::Fault("no answer".to_string()));
-        assert!(authors().is_empty());
-
         forget();
     }
 }

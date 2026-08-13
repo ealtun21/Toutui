@@ -7277,6 +7277,93 @@ and it draws the Home view.
 part reads `src/app.rs`: **no unit test reaches a key handler**. Without the
 rollback of the write, the test gives `left: None` for the account of the start.
 
+### T-156: the key `X` of a media that plays from the disk in the other window
+
+**The second sweep of 2026-08-14: the key `X` of a media that plays in the other
+window.** The prompt of the session named that part of the program as a part
+that no measurement had reached. **It holds a fault, and that fault takes the
+book of the user while they listen to it.**
+
+**The condition needs the server away.** `play` takes the stream of the server
+when the server answers, and it reads the files of the download only when no
+address answers (T-152). `podman stop -t 0 abs-test` makes that condition, and a
+book of eight hours gives the two keys a window of some minutes (the trap 90).
+
+The measurement, with two sessions of tmux of one `XDG_CONFIG_HOME` and the book
+of 115200330 bytes:
+
+| The moment | The window A | The window B | The disk |
+|---|---|---|---|
+| A plays the book of the disk | `▶ 34:01 / 8:00:00` | — | the file and its row |
+| **B presses `X` on that line** | the playback goes on | `Removed the local copy of "A Book Of Many Hours".` | **no file, and no row** |
+| A presses `l` on the same media | **`The server does not answer, and the disk has no copy of this media.`** | — | the same |
+
+**The playback of A went on**, because the engine holds the file open: the user
+hears the book, and the copy of that book is gone. **The user reads no word of
+it** until they stop that playback, and no key of the program gives the book
+back while the server is away.
+
+**The cause is the rule of T-150 with one condition too few.** The key asks two
+questions — does this program download the media, does a program of the account
+write its files — and **it asks nothing of a playback**. An offline playback
+opens no session on the server (T-152), therefore `listening_session` holds no
+row of it and a second program of the account can see nothing of that work: that
+is the shape of T-142, of T-147, of T-148, and of T-153.
+
+**The correction is the rule of the cache of the ebooks, for the audio**: "the
+book that the user reads now never goes away" (T-65 and T-153). The loop of the
+offline playback keeps the place of the user in `pending_progress` **at each
+second** since T-152, and that moment is the heartbeat that two programs of one
+account share. `a_program_keeps_the_place_of_this_media` reads it, and a media
+whose place moved inside `THE_LIMIT_OF_THE_HEARTBEAT` (30 seconds) belongs to a
+playback that runs. **It needs no new column, no call of the system, and no
+dependency**, and it is the rule of T-140 and of the lock of T-148.
+
+**A mark of a playback is not for ever** (T-153): a window that goes away writes
+no more places, and the key takes the disk 30 seconds later.
+
+**The sentence names no program**, and that is a decision: no column of
+`pending_progress` holds a process, therefore a sentence of "a different
+program" would name a program that this program does not know — the fault of
+T-154 — and this program cannot say which window plays that media (T-91). It
+promises no key (T-118 and T-143).
+
+The same measurement after the correction:
+
+| The measurement | The answer |
+|---|---|
+| The key `X` of B while A plays that book of the disk | `A program of this account plays "A Book Of Many Hours" from the disk now.`, and **the 115200330 bytes stay** |
+| The key `X` of B, 35 seconds after the window A went away | `Removed the local copy of "A Book Of Many Hours".`, and the directory goes away |
+
+`tests/the_key_x_keeps_the_media_that_plays.rs` holds the rule of the database
+and the rule of the key, and its last part reads `src/app.rs`: **no unit test
+reaches a key handler.** Without the condition of the playback, the two tests of
+this item fail.
+
+### T-157: two tests of one binary shared the boxes of the authors, and the gate of CI failed
+
+**The gate of CI of the session of T-156 failed one run of six**, and the gate
+of the machine passed every time: `cargo nextest run` gives each test a process
+of its own, and `cargo test` gives the tests of one binary a **thread** of its
+own. That is the shape of T-144, and the state here is a box of the process and
+not a database.
+
+`logic::authors` holds two boxes — the kind of the list and its answer — and the
+head of each of its two tests said the rule already: "the state belongs to the
+process, therefore the parts of this test must stay in one function". **The two
+functions broke that rule between them**: `the_state_goes_from_the_task_to_the_screen`
+called `forget()` while `a_new_list_forgets_the_answer_of_the_list_before_it`
+counted the answer of the list, and that test then read `authors().len() == 0`.
+
+```
+test logic::authors::tests::a_new_list_forgets_the_answer_of_the_list_before_it ... FAILED
+test result: FAILED. 860 passed; 1 failed
+```
+
+**The two tests are one test now**, and the measurement of the fault is the
+measurement of the correction: `cargo test --lib` failed one run of six before
+it, and it passed eight runs of eight after it.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

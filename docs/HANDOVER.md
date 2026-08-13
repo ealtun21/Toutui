@@ -4,7 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.90**, and T-155 belongs to this session. The item
+**The newest release is v0.7.91**, and T-155, T-156, and T-157 belong to this
+session.
+The item
 T-154 belongs to the session before it, T-152 and T-153 to the one before that,
 T-150 and T-151 to the one before those, T-148 and T-149 to the one before them,
 T-146 and T-147 to the one before those, T-145 to the one before that, T-142 to
@@ -12,17 +14,43 @@ T-144 to the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-## The session of the fourth turn of 2026-08-14: the accounts of two windows
+## The session of the fourth turn of 2026-08-14: the accounts of two windows, and the key `X` of a playback
 
-**One release: v0.7.90.** No condition of the road stayed, therefore this
-session named one of its own: **the view of the accounts (T-124), with two
-windows of one account**. The prompt of the session named that part of the
-program as a part that no measurement had reached. **It holds a fault, and that
-fault locks the user out of their own account.**
+**Two releases: v0.7.90 and v0.7.91.** No condition of the road stayed,
+therefore this session named two of its own, and **each of them held a fault**:
+**the view of the accounts (T-124) with two windows of one account**, and **the
+key `X` of a media that plays in the other window**. The prompt of the session
+named both as parts that no measurement had reached.
 
 | Item | What | Keys |
 |---|---|---|
 | T-155 | **One key took the start of the program from every account and gave it to nobody.** The login screen then came at every start, and the account of the user stood on the disk with its token | `S`, then `c` and `l` |
+| T-156 | **The key `X` of one window removed the book that the other window played of the disk**, and the server was away: no key gave that book back | `l`, then `X` |
+| T-157 | **The gate of CI failed one run of six**, and the gate of the machine passed: two tests of one binary shared the boxes of the authors | — |
+
+### T-156, and the second condition of this session
+
+**The condition needs the server away**: `play` reads the files of a download
+only when no address answers. The window A played the book of 115200330 bytes in
+the offline mode, and the key `X` of the window B removed the file and the row
+at the minute 34 of that playback. **The playback of A went on** — the engine
+holds the file open — and the key `l` of A on that media then said
+`The server does not answer, and the disk has no copy of this media.`
+
+**The key asked two questions and it asked nothing of a playback** (T-150). An
+offline playback opens no session on the server (T-152), therefore
+`listening_session` holds no row of it: that is the shape of T-142, of T-147, of
+T-148, and of T-153. **The correction is the rule of the cache of the ebooks for
+the audio** — "the book that the user reads now never goes away" (T-65 and
+T-153) — and the heartbeat of it exists already: the loop of the offline
+playback keeps the place of the user in `pending_progress` **at each second**
+since T-152. A place that moved inside 30 seconds belongs to a playback that
+runs, and **a mark of a playback is not for ever**: 35 seconds after the window
+A went away, the key took the disk.
+
+**The sentence names no program**, and that is a decision: no column of that
+table holds a process, therefore a sentence of "a different program" would name
+a program that this program does not know (T-154 and T-91).
 
 ### T-155, and it is the one to know of this session
 
@@ -76,6 +104,10 @@ sentence promises no key (T-118 and T-143).
 | The key `l` on such a line | **one fault of the words** before the correction: no row went away, and the program said nothing |
 | A window that opens the view after the key `a` of a second window | **the fault before the correction** (the account did not stand in the list), and both accounts and the right mark after it |
 | The start of a program whose database holds no account of a start | **the login screen** before the correction, and the Home view of `toutuitest` after it |
+| **The key `X` of one window while the other window plays that media of the disk** | **one fault** (T-156), and the book of the user goes away while they listen to it |
+| The same condition, after the correction | the key says `A program of this account plays "…" from the disk now.`, and the 115200330 bytes stay |
+| The key `X`, 35 seconds after that window went away | **no fault**: the mark of a playback is not for ever, and the key takes the disk |
+| **`cargo test`, the command of CI, eight runs** | **one fault** (T-157): one run of six failed, and `cargo nextest run` passed every time |
 
 ## The session of the third turn of 2026-08-14: the two downloads of one podcast
 
@@ -2994,15 +3026,16 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**No condition of the road stayed, therefore this session named one of its own**:
-the view of the accounts, with two windows of one account. It found T-155, and
-that fault takes the account of the user away. **The next session must name a
+**No condition of the road stayed, therefore this session named two of its
+own**: the view of the accounts with two windows, and the key `X` of a media
+that plays in the other window. **Each of them held a fault** (T-155 and T-156),
+and each fault takes a thing of the user away. **The next session must name a
 condition of its own too.** This prompt names the state of the program on
 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.7.90**; `Cargo.toml` is at 0.7.90. The
+> AlbanDAVID/Toutui. Newest release **v0.7.91**; `Cargo.toml` is at 0.7.91. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -3011,7 +3044,7 @@ condition of its own too.** This prompt names the state of the program on
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-155 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-157 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -3044,27 +3077,32 @@ condition of its own too.** This prompt names the state of the program on
 > downloads of the server needs
 > `DELETE /api/podcasts/:id/episode/:episode?hard=1` first, and the body of
 > `POST /api/podcasts/:id/download-episodes` is the bare array of the episodes of
-> the feed (T-154). **The sandbox holds a second account for the keys of the
+> the feed (T-154). **A playback reads the files of a download only when no
+> address answers**, therefore a measurement of the media of the disk needs the
+> server away (T-156). **The sandbox holds a second account for the keys of the
 > view of the accounts**: `toutuilimited` / `toutuilimited` (section 14 of
 > `docs/TEST-SERVER.md`), and the key `a` of that view takes it through the
 > login screen of a second window (T-155).
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-156 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-158 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1049 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1074 of 1074** with the sandbox up, in 16.6 seconds. **Run that
+> Baseline: **1050 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1075 of 1075** with the sandbox up, in 16.6 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **`cargo test -j 16 --no-fail-fast` is the gate of CI, and it is a different
 > run.** nextest gives each test a process of its own, therefore it hides a test
 > that shares a database or `XDG_CONFIG_HOME` with another test of its binary:
-> six such tests failed on CI while nextest passed (T-144). **Run it before the
-> last commit of the session.**
+> six such tests failed on CI while nextest passed (T-144), and **a box of the
+> process gave the same fault of one run of six** (T-157). **Run it before the
+> last commit of the session, and run it more than one time**: the tests of one
+> binary take a thread each, therefore a fault of that kind comes of the
+> sequence of the moment.
 >
 > **No run opens the real sound device.** `TOUTUI_AUDIO_DEVICE=null` gives the
 > null device of ALSA, and the log then says "the application uses the sound
@@ -3076,19 +3114,20 @@ condition of its own too.** This prompt names the state of the program on
 >
 > 1. **Name a condition of your own, and measure it.** Every new condition found
 >    a fault in eighteen sessions of nineteen. **No condition of the road
->    stays**: the newest session named one of its own — the view of the accounts
->    with two windows — and it found T-155, the fault that takes the account of
->    the user away.
+>    stays**: the newest session named two of its own — the view of the accounts
+>    with two windows (T-155) and the key `X` of a media that plays in the other
+>    window (T-156) — and each of them held a fault.
 >    - **The three shapes that found a fault before:** **a state of one process
 >      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153,
->      T-154, T-155), **a program that dies in the middle of work** (T-145,
->      T-152), and **a server that does not answer** (T-146, T-149, T-152).
->    - **The parts of the program that no such measurement has reached**: the key
->      `X` of a media that plays in the other window, the search of a library
->      that a second window changes, **the key `S` of the library of the start
->      with two windows**, the bookmarks and the lists of two windows, and **a
->      key of a view that the user presses two times** — that shape gave T-154,
->      and the key `D` is one key of many.
+>      T-154, T-155, T-156), **a program that dies in the middle of work**
+>      (T-145, T-152), and **a server that does not answer** (T-146, T-149,
+>      T-152, T-156).
+>    - **The parts of the program that no such measurement has reached**: the
+>      search of a library that a second window changes, **the key `S` of the
+>      library of the start with two windows**, the bookmarks and the lists of
+>      two windows, **the key `M` of a media that the other window plays**, and
+>      **a key of a view that the user presses two times** — that shape gave
+>      T-154, and the key `D` is one key of many.
 >    - **The shape of T-155 is worth a sweep of its own**: a write of a state
 >      that names a row of the database. A name that no row holds must change no
 >      other row, and the caller must read the number of the rows.
@@ -3133,7 +3172,8 @@ condition of its own too.** This prompt names the state of the program on
 > key `D` on a media that this program downloads already changes no byte of that
 > download and it names this program** (T-154), and **the view of the accounts
 > reads the disk at the moment of the use, and the mark of the account of the
-> start never stands on nobody** (T-155).
+> start never stands on nobody** (T-155), and **the key `X` removes no file of a
+> media that a program of this account plays from the disk** (T-156).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

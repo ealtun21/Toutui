@@ -1946,11 +1946,29 @@ impl App {
                     let work = crate::logic::download::the_work_of_the_key_that_removes(
                         crate::logic::download::this_program_downloads(target.key()),
                         crate::logic::download::a_program_downloads(target.key(), &username),
+                        // **A media that plays from the disk keeps its files.**
+                        // An offline playback stands in no session of the
+                        // server, and the place of that playback in
+                        // `pending_progress` moves at each second (T-152): that
+                        // moment is the one word of it that a second program of
+                        // this account reads. See T-156.
+                        crate::db::crud::a_program_keeps_the_place_of_this_media(
+                            &username,
+                            target.item_id(),
+                            target.episode_id().unwrap_or_default(),
+                        ),
                     );
 
                     use crate::logic::download::TheWorkOfTheKeyThatRemoves as TheWork;
 
                     match work {
+                        TheWork::AProgramPlaysItFromTheDisk => {
+                            crate::logic::message::say(
+                                &crate::logic::download::text_of_the_media_that_plays_from_the_disk(
+                                    &title_of_the_line,
+                                ),
+                            );
+                        }
                         TheWork::ThisProgramDownloads | TheWork::ADifferentProgramDownloads => {
                             crate::logic::message::say(
                                 &crate::logic::download::text_of_the_download_that_runs(
