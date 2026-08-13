@@ -4,18 +4,22 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.75**, and T-133 to T-136 belong to this session.
+**The newest release is v0.7.76**, and T-133 to T-139 belong to this session.
 The items T-128 to T-132 belong to the session before it, T-124 to T-127 to the
 one before that, T-122 and T-123 to the one before those, and T-119 to T-121 to
 the one before them.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-## The session of 2026-08-13: two faults of the maintainer, one of the road, and one sweep
+## The session of 2026-08-13: two faults of the maintainer, the road, and the last two sweeps
 
-**Four releases: v0.7.72 to v0.7.75.** The maintainer named two faults, and both
+**Five releases: v0.7.72 to v0.7.76.** The maintainer named two faults, and both
 of them stopped a user of a first start. The session then took the two items of
-the road that a measurement could reach.
+the road that a measurement could reach, and it made **the last two sweeps of the
+road**: a library that the account may not read (T-136), and two accounts of two
+servers while a media plays (T-138 and T-139). The maintainer also named a fault
+of the covers of a refresh; it did not repeat, and the tool that a next session
+needs for it stands in `docs/harness` now (T-137).
 
 | Item | What | Keys |
 |---|---|---|
@@ -24,6 +28,8 @@ the road that a measurement could reach.
 | T-135 | The key `R` took the timer for sleep of the user away, and the media played on | `R`, `S-Tab` |
 | T-136 | **An account that loses a library could not use the program again**, in any view and after every start | every key |
 | T-137 | **A harness that reads the covers of the graphics protocol.** The fault of the covers that the maintainer named did not repeat, and no session could see a cover before this tool | `R` |
+| T-138 | **The place of one account went to the server of another account, and the program then destroyed it** | `S`, then `c` |
+| T-139 | The place of a playback did not reach the server before a key started the program again | `S`, then `a` and `c` |
 
 ### T-133, and it is the one to know of this session
 
@@ -80,6 +86,28 @@ picture away with its placeholders**, and its memory did not move for 27 picture
 T-137 of `docs/TAKEOVER-BACKLOG.md` holds the table, and it holds the three
 questions for the maintainer when the fault comes again.
 
+### T-138 and T-139, and the last sweep of the road
+
+**The sweep of two accounts of two servers while a media plays is made now**, and
+it is the last sweep of the road of 2026-08-12. **It found two faults, and both
+of them take the place of a media away.**
+
+- **T-138 destroys the place of the user.** One row of `listening_session` stood
+  for the whole program, and it held no account: the next media of a second
+  account sent the place of the first account to **its own** server, the server
+  answered "The server does not have this item", and the program then removed the
+  row. The row holds the account and the server now (the version 8 of the
+  schema), as the queue of the version 7 does.
+- **T-139: a key of the accounts started the program again with no word to the
+  server.** The key `a` at the minute 13:31 of a book left the server at 13:23.
+  `exec` takes every task away, therefore **the loop of `src/main.rs` closes the
+  session before it starts the program again**, and a key handler only writes the
+  request in `the_program_starts_again`.
+
+The measurement after the correction: the key `a` at 13:43 gives the server 823
+seconds, the same second. A session that waits stays while another account plays,
+and it reaches its own server when its own account plays again.
+
 ### The measurements of this session
 
 | The measurement | The answer |
@@ -88,6 +116,8 @@ questions for the maintainer when the fault comes again.
 | The cursor of the terminal of the login screen | **one fault** (T-134), at every moment of that screen and not only with a message |
 | The key `t` and then the key `R` | **one fault** (T-135): `💤 4:58` before, and no timer after |
 | An account of the type `user` that reads one library of five | **one fault** (T-136), and it locks the account out for ever |
+| The covers of a refresh, in a real window of kitty | **no fault** in nine measurements (T-137), and the tool of that measurement stays |
+| **Two accounts of two servers while a media plays** | **two faults** (T-138 and T-139), and T-138 destroys the place of the user |
 
 ## The session of the seventh turn of that day: the address, the rounds of the start, and the playback
 
@@ -553,7 +583,7 @@ episodes for a podcast that is missing **54**, therefore it stays outside.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.75` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.76` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
@@ -901,12 +931,13 @@ and the sweep of a library of podcasts found three.
 (T-128, T-129, and T-131 with T-130). The road holds the work that the
 measurements of this session left.
 
-1. **The two sweeps that no session has made.** Every new condition found a fault
-   in seven sessions of eight, and the sweep of this session found T-131:
-   - **A second account of a second server while a media plays** (T-124): the key
-     `c` stops the playback and it starts the program again, therefore the
-     position of that media must reach the server first. `docs/TEST-SERVER.md`
-     holds the commands of the second server, on the port 13400.
+1. **Every sweep of the road is made now.** Every new condition found a fault in
+   eight sessions of nine:
+   - ~~**A second account of a second server while a media plays**~~ (T-124):
+     **made on 2026-08-13, and it found T-138 and T-139** — the place of one
+     account went to the server of another account, and no key sent the place of
+     a playback before the program started again. **A next session must name a
+     new condition of its own**, because the table of the road holds none.
    - ~~**A library whose media the account may not read**~~, with an account of
      the type `user`: **made on 2026-08-13, and it found T-136** — an account
      that loses a library could not use the program again, in any view and after

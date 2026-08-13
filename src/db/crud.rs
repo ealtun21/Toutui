@@ -129,18 +129,29 @@ pub fn get_speed_rate(username: &str) -> String {
     }
 }
 
-// get listening_session
-pub fn get_listening_session() -> Result<Option<ListeningSession>> {
+/// Gives the listening session of one account, and nothing for the session of
+/// another account. See T-138.
+///
+/// **A session belongs to one account of one server.** The program of a second
+/// account read the row of the first one before this rule, and it then sent the
+/// position of a media that its own server does not hold: the server refused it,
+/// and the program removed the row. The place of the user went away.
+///
+/// A row that an older program wrote holds no account, therefore the account
+/// that asks takes it: such a database holds the row of the one account that
+/// program had.
+pub fn get_listening_session(username: &str, server: &str) -> Result<Option<ListeningSession>> {
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
         let mut stmt = conn.prepare(
             "SELECT id_session, id_item, current_time_playback, duration, is_finished, id_pod, elapsed_time, title, author, is_playback, chapter
              FROM listening_session
+             WHERE (username = ?1 AND server = ?2) OR (username = '' AND server = '')
              LIMIT 1",
         )?;
 
-        let mut rows = stmt.query(params![])?;
+        let mut rows = stmt.query(params![username, server])?;
 
         if let Some(row) = rows.next()? {
             let session = ListeningSession {
@@ -181,15 +192,25 @@ pub fn insert_listening_session(
     author: String,
     is_playback: bool,
     chapter: String,
+    username: &str,
+    server: &str,
 ) -> Result<()> {
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
-        conn.execute("DELETE FROM listening_session", params![])?;
+        // The row of this account goes away, and the row of another account
+        // stays: that account sends its own position to its own server. A row
+        // of an older program holds no account, and it belongs to the account
+        // that writes here. See T-138.
         conn.execute(
-            "INSERT INTO listening_session (id_session, id_item, current_time_playback, duration, is_finished, id_pod, elapsed_time, title, author, is_playback, chapter) 
-             VALUES (?1, ?2, ?3, ?4, 0, ?5, ?6, ?7, ?8, ?9, ?10)",
-            params![id_session, id_item, current_time, duration, id_pod, elapsed_time, title, author, is_playback, chapter],
+            "DELETE FROM listening_session
+             WHERE (username = ?1 AND server = ?2) OR (username = '' AND server = '')",
+            params![username, server],
+        )?;
+        conn.execute(
+            "INSERT INTO listening_session (id_session, id_item, current_time_playback, duration, is_finished, id_pod, elapsed_time, title, author, is_playback, chapter, username, server)
+             VALUES (?1, ?2, ?3, ?4, 0, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+            params![id_session, id_item, current_time, duration, id_pod, elapsed_time, title, author, is_playback, chapter, username, server],
         )?;
     } else {
         crate::logic::message::say(err_message);
@@ -205,11 +226,18 @@ pub fn insert_listening_session(
 /// the last position to the server. A row that stays makes the application
 /// send that position again at the next start. Then a position that a
 /// different client wrote is lost. See T-4.
-pub fn delete_listening_session() -> Result<()> {
+///
+/// **The row of another account stays**, because the position of that row
+/// belongs to another server. See T-138.
+pub fn delete_listening_session(username: &str, server: &str) -> Result<()> {
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
-        conn.execute("DELETE FROM listening_session", params![])?;
+        conn.execute(
+            "DELETE FROM listening_session
+             WHERE (username = ?1 AND server = ?2) OR (username = '' AND server = '')",
+            params![username, server],
+        )?;
     } else {
         crate::logic::message::say(err_message);
         error!("[delete_listening_session] {}", err_message);

@@ -13,13 +13,13 @@ const JUMP: f64 = 10.0;
 const VOLUME_STEP: f32 = 0.1;
 
 /// Sends the command of a key to the engine.
-pub fn handle_key_player(key: &str, player: &PlayerHandle, username: &str) {
+pub fn handle_key_player(key: &str, player: &PlayerHandle, username: &str, server: &str) {
     let state = player.state();
 
     match key {
         // Change between the playback and the pause.
         " " => {
-            if let Ok(Some(session)) = get_listening_session() {
+            if let Ok(Some(session)) = get_listening_session(username, server) {
                 let value = if session.is_playback { "0" } else { "1" };
                 let _ = update_is_playback(value, session.id_session.as_str());
             }

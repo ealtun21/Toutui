@@ -25,7 +25,7 @@ pub async fn sync_session_from_database(
     app_quit: bool,
     handle_key: &str,
 ) {
-    match get_listening_session() {
+    match get_listening_session(username.as_str(), server.as_str()) {
         Ok(Some(session)) => {
             if let Err(error) =
                 close_session_without_send_prg_data(api, session.id_session.as_str()).await
@@ -39,6 +39,11 @@ pub async fn sync_session_from_database(
             match handle_key {
                 "Q" => info!("[handle_key (Q)][Quit] Session successfully closed"),
                 "l" => info!("[handle_key (l)] Session successfully closed"),
+                // A key of the view of the accounts. The program starts again
+                // after this work. See T-139.
+                "the accounts" => {
+                    info!("[the accounts] the session closes before the program starts again")
+                }
                 _ => {}
             }
 
@@ -128,6 +133,10 @@ pub async fn sync_session_from_database(
                     "[handle_key (l)][{}] Item {} closed at {:?}s ({})",
                     kind, session.id_item, session.current_time, state
                 ),
+                "the accounts" => info!(
+                    "[the accounts][{}] Item {} closed at {:?}s ({})",
+                    kind, session.id_item, session.current_time, state
+                ),
                 _ => {}
             }
 
@@ -136,7 +145,7 @@ pub async fn sync_session_from_database(
             // that the application does not send this position again at the
             // next start. A different client can write a newer position, and
             // that position must stay. See T-4.
-            let _ = delete_listening_session();
+            let _ = delete_listening_session(username.as_str(), server.as_str());
         }
 
         Ok(None) => {

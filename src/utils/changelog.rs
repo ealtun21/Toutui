@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.76",
+        date: "13/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Your place in a book stays when you change your account.** The key `a` and the \
+             key `c` of the view of the accounts start this program again, and the place of a \
+             media that played did not reach the server: a book at the minute 13:31 stood at \
+             13:23 on the server. This program sends that place first now.",
+            "- **The place of one account never goes to the server of another account.** This \
+             program held one listening session for every account. The next media of a second \
+             account therefore sent the place of the first account to its own server, the server \
+             refused it, and **your place went away**. Each account keeps its own session now, \
+             and a place that waits reaches its own server when that account plays again.",
+        ],
+    },
+    Entry {
         version: "0.7.75",
         date: "13/08/2026",
         body: &[

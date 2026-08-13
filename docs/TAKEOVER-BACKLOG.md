@@ -6172,6 +6172,92 @@ apart: a placeholder of a picture that the program did not send is a fault of th
 program, and a picture of an old moment with its own identity is a fault of the
 terminal.
 
+### The sweep of two accounts of two servers while a media plays, 2026-08-13
+
+**The road named this sweep in four sessions, and no session had made it.** It is
+the last sweep of the road, and it found **two faults of one shape**: both of
+them take the place of a media of the user away.
+
+The measurement: the account `toutuitest` of the server of the port 13399 played
+"A Long Test Book" (30 minutes, the speed 1.30), and the account `secondtest` of
+the port 13400 held one book of its own. `docs/harness/drive.sh` drove the
+program, and `curl` read `GET /api/me` of each server.
+
+| The measurement | The answer |
+|---|---|
+| The key `a` at the minute 13:31 of the book | **one fault** (T-139): the server held **13:23**, and the program held 13:31 |
+| The key `c` at the minute 10:25 of the book of the second account | the same fault: the server held 10:20 |
+| The next media of the second account, with a session of the first account in the database | **one fault** (T-138), and it destroys the place: `The server does not have this item`, and the row went away |
+| The login of a second account on a second server | **no fault.** The header holds the address and the library of that server, and every view holds its data |
+| The key `c` back to the first account | **no fault.** Every value of the screen belongs to the account that starts |
+
+### T-138: the place of one account went to the server of another account
+
+**One row of `listening_session` stood for the whole program, and that row held
+no account at all.** `insert_listening_session` began with
+`DELETE FROM listening_session`, therefore the program held the session of the
+account that played last.
+
+The sequence of the fault, with the two accounts of the sweep:
+
+1. `toutuitest` played a book of the server of the port 13399, and the row held
+   the item and the second 810.
+2. The key `c` gave the start to `secondtest`, and the program started again. The
+   row stayed: no line of the program closed the session (T-139).
+3. `secondtest` played its own book. The program closes the session of the
+   database before a new playback (`wait_prev_session_finished`), therefore it
+   sent the position of a book of **the other server**.
+4. The server of the port 13400 answered **"The server does not have this
+   item"**, for the close and for the position both.
+5. `delete_listening_session` removed the row, because that answer is not the
+   answer of a server that does not answer: `pending_progress` of T-25 keeps a
+   position of the offline mode only.
+
+**The place of the user went away**, and no line of the screen said it. The
+server of the first account kept the position of its last sync, and the minutes
+after it are lost.
+
+The row holds the account and the server now (the version 8 of the schema), and
+that is the rule of the queue of the version 7 already: **a user with an account
+on two servers keeps one session for each of them.** `get_listening_session` and
+`delete_listening_session` take the account, therefore:
+
+- The program of one account never reads the session of another account.
+- A session that waits **stays** while another account plays, and it reaches its
+  own server when its own account plays again. The measurement after the
+  correction: the row of 833 seconds stayed while `secondtest` played, and the
+  log of the next start of `toutuitest` says
+  `Item 9a671047… closed at 833s (not finished)` with no refusal.
+
+**A row that an older program wrote holds no account.** The two columns are empty
+for such a row, and the account that asks takes it: a database of an older
+version holds the row of the one account that program had.
+
+### T-139: the place of a playback did not reach the server before the program started again
+
+**Every key of the view of the accounts starts the program again with `exec`**
+(T-123 and T-124), and `exec` takes every task of this process away. No line of
+the program sent the position of the playback that it stops, therefore the server
+kept the position of the last sync of the loop.
+
+The measurement of 2026-08-13: the key `a` at the minute **13:31** of a book, and
+`GET /api/me` of that server then said **803 seconds (13:23)**. The loop of the
+playback writes the position of every second in the database, therefore the
+place of the user stood in the database and it went nowhere.
+
+**A key handler cannot wait for the server**: `handle_key` is not asynchronous,
+and a task that it starts dies with `exec`. Therefore the handler writes the
+request in `the_program_starts_again`, and **the loop of `src/main.rs` does the
+work**: it says a word to the user, it stops the engine, it closes the session
+with `sync_session_from_database`, and it then starts the program again. That is
+the shape of the key `Q` already.
+
+The measurement after the correction: the screen said **13:43** at the moment of
+the key `a`, and the server holds **823 seconds** — the same second. The three
+keys that start the program again (`a`, `c`, and a log out of the one account)
+take that path, and `tests/the_session_belongs_to_one_account.rs` holds the rule
+of the loop with a test that reads the source, as T-131 and T-135 do.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

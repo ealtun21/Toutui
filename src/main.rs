@@ -400,6 +400,59 @@ async fn main() -> Result<()> {
                                 terminal.clear()?;
                             }
 
+                            // A key of the view of the accounts starts the
+                            // program again, and **the position of a playback
+                            // that it stops must reach the server first**.
+                            //
+                            // `exec` takes every task of this process away,
+                            // therefore a task that sends the position never
+                            // finishes: the key `a` of a book at the minute 13
+                            // left the server at the minute 13:23, and the
+                            // program held 13:31. The loop is the place of that
+                            // work, because a key handler cannot wait for the
+                            // server. See T-139.
+                            if let Some(request) = app.the_program_starts_again.take() {
+                                logic::message::say(
+                                    "The program sends the place of the playback, and it starts \
+                                     again…",
+                                );
+                                terminal
+                                    .draw(|frame| frame.render_widget(&mut app, frame.area()))?;
+
+                                // The engine stops first: the loop of the
+                                // playback then writes no position after the
+                                // one that goes to the server.
+                                app.player.send(player::engine::PlayerCommand::Stop);
+
+                                logic::sync_session::sync_session_from_database::sync_session_from_database(
+                                    &api,
+                                    app.username.clone(),
+                                    app.server_key.clone(),
+                                    false,
+                                    "the accounts",
+                                )
+                                .await;
+
+                                let variables: Vec<(&str, &str)> = request
+                                    .variables
+                                    .iter()
+                                    .map(|(name, value)| (name.as_str(), value.as_str()))
+                                    .collect();
+
+                                let of_the_system =
+                                    utils::exit_app::start_the_program_again_with(&variables);
+
+                                // The program stays. A system that has no `exec`
+                                // says why, and the user reads the way that
+                                // works there.
+                                log::error!(
+                                    "[the accounts] the program does not start again: {}",
+                                    of_the_system
+                                );
+
+                                logic::message::say(request.message.as_str());
+                            }
+
                             // The key `R` refreshes the application. A new
                             // sequence or a new filter of the library needs the
                             // same work, because every list of the library comes

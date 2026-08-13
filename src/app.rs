@@ -404,6 +404,25 @@ pub struct App {
     /// writes it, because the render knows the height of the screen. The move
     /// then stops when the last line is visible.
     pub stats_scroll_max: u16,
+    /// The program must start again, and the loop must first send the position
+    /// of a playback that it stops. See T-139.
+    ///
+    /// A key of the view of the accounts starts the program again with `exec`,
+    /// and **a key handler cannot wait for the server**: the handler is not
+    /// asynchronous, and `exec` takes every task of this process away. Therefore
+    /// the handler writes the request here, and the loop of `src/main.rs` closes
+    /// the session, sends the position, and then starts the program again.
+    pub the_program_starts_again: Option<TheProgramStartsAgain>,
+}
+
+/// The request of a key that starts the program again. See T-139.
+///
+/// `variables` holds the variables of the environment that the new program
+/// needs, and `message` is the text for a system that has no `exec`.
+#[derive(Debug, Clone)]
+pub struct TheProgramStartsAgain {
+    pub variables: Vec<(String, String)>,
+    pub message: String,
 }
 
 /// The state of the user that a refresh of the screen must keep. See T-135.
@@ -1562,6 +1581,7 @@ impl App {
             sessions_scroll: 0,
             sessions_scroll_max: 0,
             stats_scroll_max: 0,
+            the_program_starts_again: None,
             audio_fault,
         })
     }
@@ -1717,51 +1737,101 @@ impl App {
             // PLAYER //
             // toggle playback/pause
             KeyCode::Char(' ') => {
-                handle_key_player(" ", &self.player, self.username.as_str());
+                handle_key_player(
+                    " ",
+                    &self.player,
+                    self.username.as_str(),
+                    self.server_key.as_str(),
+                );
             }
             // jump forward
             KeyCode::Char('p') => {
-                handle_key_player("p", &self.player, self.username.as_str());
+                handle_key_player(
+                    "p",
+                    &self.player,
+                    self.username.as_str(),
+                    self.server_key.as_str(),
+                );
             }
 
             // jump backward
             KeyCode::Char('u') => {
-                handle_key_player("u", &self.player, self.username.as_str());
+                handle_key_player(
+                    "u",
+                    &self.player,
+                    self.username.as_str(),
+                    self.server_key.as_str(),
+                );
             }
 
             // next chapter
             KeyCode::Char('P') => {
-                handle_key_player("P", &self.player, self.username.as_str());
+                handle_key_player(
+                    "P",
+                    &self.player,
+                    self.username.as_str(),
+                    self.server_key.as_str(),
+                );
             }
 
             // previous chapter
             KeyCode::Char('U') => {
-                handle_key_player("U", &self.player, self.username.as_str());
+                handle_key_player(
+                    "U",
+                    &self.player,
+                    self.username.as_str(),
+                    self.server_key.as_str(),
+                );
             }
 
             // speed rate up
             KeyCode::Char('O') => {
-                handle_key_player("O", &self.player, self.username.as_str());
+                handle_key_player(
+                    "O",
+                    &self.player,
+                    self.username.as_str(),
+                    self.server_key.as_str(),
+                );
             }
 
             // speed rate down
             KeyCode::Char('I') => {
-                handle_key_player("I", &self.player, self.username.as_str());
+                handle_key_player(
+                    "I",
+                    &self.player,
+                    self.username.as_str(),
+                    self.server_key.as_str(),
+                );
             }
 
             // volume up
             KeyCode::Char('o') => {
-                handle_key_player("o", &self.player, self.username.as_str());
+                handle_key_player(
+                    "o",
+                    &self.player,
+                    self.username.as_str(),
+                    self.server_key.as_str(),
+                );
             }
 
             // volume down
             KeyCode::Char('i') => {
-                handle_key_player("i", &self.player, self.username.as_str());
+                handle_key_player(
+                    "i",
+                    &self.player,
+                    self.username.as_str(),
+                    self.server_key.as_str(),
+                );
             }
 
             // stop the playback
             KeyCode::Char('Y') => {
-                handle_key_player("Y", &self.player, self.username.as_str());
+                handle_key_player(
+                    "Y",
+                    &self.player,
+                    self.username.as_str(),
+                    self.server_key.as_str(),
+                );
             }
 
             // show key bindings
@@ -4996,25 +5066,21 @@ impl App {
     pub fn add_an_account(&mut self) {
         log::info!("[the accounts] the user adds an account. The program starts again.");
 
-        let of_the_system = crate::utils::exit_app::start_the_program_again_with(&[
-            (crate::logic::the_accounts::THE_PROGRAM_ADDS_AN_ACCOUNT, "1"),
-            (
-                crate::logic::auth::auth_input::THE_ADDRESS_OF_THE_LOGIN,
-                self.server_address.as_str(),
-            ),
-        ]);
-
-        // The program stays. A system that has no `exec` says why, and the user
-        // reads the way that works there.
-        log::error!(
-            "[the accounts] the program does not start again: {}",
-            of_the_system
-        );
-
-        crate::logic::message::say(
-            "This system cannot start the program again. Stop the program, and start it again \
-             with the variable TOUTUI_ADD_AN_ACCOUNT=1.",
-        );
+        self.the_program_starts_again = Some(TheProgramStartsAgain {
+            variables: vec![
+                (
+                    crate::logic::the_accounts::THE_PROGRAM_ADDS_AN_ACCOUNT.to_string(),
+                    "1".to_string(),
+                ),
+                (
+                    crate::logic::auth::auth_input::THE_ADDRESS_OF_THE_LOGIN.to_string(),
+                    self.server_address.clone(),
+                ),
+            ],
+            message: "This system cannot start the program again. Stop the program, and start it \
+                      again with the variable TOUTUI_ADD_AN_ACCOUNT=1."
+                .to_string(),
+        });
     }
 
     /// The login screen comes, because the program holds no account. See T-124.
@@ -5027,20 +5093,15 @@ impl App {
             "[the accounts] no account stays. The program starts again, and the login screen comes."
         );
 
-        let of_the_system = crate::utils::exit_app::start_the_program_again_with(&[(
-            crate::logic::auth::auth_input::THE_ADDRESS_OF_THE_LOGIN,
-            self.server_address.as_str(),
-        )]);
-
-        log::error!(
-            "[the accounts] the program does not start again: {}",
-            of_the_system
-        );
-
-        crate::logic::message::say(
-            "The program removed the account. Stop the program, and start it again: it asks you \
-             for a server, a name, and a password then.",
-        );
+        self.the_program_starts_again = Some(TheProgramStartsAgain {
+            variables: vec![(
+                crate::logic::auth::auth_input::THE_ADDRESS_OF_THE_LOGIN.to_string(),
+                self.server_address.clone(),
+            )],
+            message: "The program removed the account. Stop the program, and start it again: it \
+                      asks you for a server, a name, and a password then."
+                .to_string(),
+        });
     }
 
     /// The key `c` of the view of the accounts: the account of the line starts
@@ -5109,17 +5170,12 @@ impl App {
             name
         );
 
-        let of_the_system = crate::utils::exit_app::start_the_program_again_with(&[]);
-
-        log::error!(
-            "[the accounts] the program does not start again: {}",
-            of_the_system
-        );
-
-        crate::logic::message::say(
-            "This system cannot start the program again. Stop the program, and start it again: \
-             it takes the account then.",
-        );
+        self.the_program_starts_again = Some(TheProgramStartsAgain {
+            variables: Vec::new(),
+            message: "This system cannot start the program again. Stop the program, and start it \
+                      again: it takes the account then."
+                .to_string(),
+        });
     }
 
     /// Shows the values of the block `[reader]` of `config.toml`. See T-77.

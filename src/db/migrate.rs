@@ -8,7 +8,7 @@ use rusqlite::{Connection, Result};
 use std::path::PathBuf;
 
 /// The schema version that this build of the program expects.
-pub const LATEST_VERSION: i64 = 7;
+pub const LATEST_VERSION: i64 = 8;
 
 /// Gives the full path of the database file.
 pub fn db_path() -> PathBuf {
@@ -73,7 +73,55 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
 
     if version < 7 {
         migrate_to_v7(conn)?;
+        version = 7;
         conn.execute_batch("PRAGMA user_version = 7")?;
+    }
+
+    if version < 8 {
+        migrate_to_v8(conn)?;
+        conn.execute_batch("PRAGMA user_version = 8")?;
+    }
+
+    Ok(())
+}
+
+/// Version 8 gives the listening session an account and a server. See T-138.
+///
+/// **The row of that table held no account at all**, and one row stands for the
+/// whole program. A user with two accounts therefore lost the place of a media:
+/// the program of the second account read the row of the first one, it sent that
+/// position to **its own** server, the server answered "The server does not have
+/// this item", and the program then removed the row. The place of the user went
+/// away, and no line of the screen said it.
+///
+/// The rule of the queue of version 7 holds here now: the account and the server
+/// keep the rows apart.
+///
+/// **A row that an older program wrote holds no account.** The two columns are
+/// empty for such a row, and the program gives that row to the account that
+/// asks: a database of an older version holds the row of the one account that
+/// program had.
+///
+/// **The migration must be safe to run two times**, as the rule of the head of
+/// this file says: a database that has the two columns already must not stop the
+/// runner.
+fn migrate_to_v8(conn: &Connection) -> Result<()> {
+    if !has_table(conn, "listening_session")? {
+        return Ok(());
+    }
+
+    for column in ["username", "server"] {
+        if has_column_in(conn, "listening_session", column)? {
+            continue;
+        }
+
+        conn.execute(
+            &format!(
+                "ALTER TABLE listening_session ADD COLUMN {} TEXT NOT NULL DEFAULT ''",
+                column
+            ),
+            [],
+        )?;
     }
 
     Ok(())
@@ -458,6 +506,45 @@ mod tests {
             )
             .unwrap();
         assert_eq!(sort, "");
+    }
+
+    /// The session of a database of an older version keeps its position, and it
+    /// gets the two columns of the account. See T-138.
+    #[test]
+    fn migration_v8_gives_the_session_an_account() {
+        let conn = Connection::open_in_memory().unwrap();
+        run_migrations(&conn).unwrap();
+
+        for column in ["username", "server"] {
+            assert!(
+                has_column_in(&conn, "listening_session", column).unwrap(),
+                "the column {} of the session must exist",
+                column
+            );
+        }
+
+        // A row of a program of an older version holds no account. The columns
+        // are empty for such a row, therefore the account that reads it takes
+        // it: a database of an older version holds the row of the one account
+        // that program had.
+        conn.execute(
+            "INSERT INTO listening_session (id_session, id_item, current_time_playback,
+                 duration, is_finished, id_pod, elapsed_time, title, author, is_playback, chapter)
+             VALUES ('a-session', 'a-book', 810, '1800', 0, '', 0, 'A Book', 'An Author', 1, '')",
+            [],
+        )
+        .unwrap();
+
+        let (username, server): (String, String) = conn
+            .query_row(
+                "SELECT username, server FROM listening_session WHERE id_session = 'a-session'",
+                [],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .unwrap();
+
+        assert_eq!(username, "");
+        assert_eq!(server, "");
     }
 
     /// The runner must not add a column two times.

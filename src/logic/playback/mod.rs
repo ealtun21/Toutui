@@ -365,6 +365,8 @@ async fn play_media(
         request.author.clone(),
         true,
         String::new(),
+        username.as_str(),
+        server_key.as_str(),
     );
 
     info!(
@@ -393,6 +395,7 @@ async fn play_media(
             player,
             &target,
             username,
+            server_key,
             session_id,
             start_position,
             speed,
@@ -554,6 +557,7 @@ async fn play_the_stream_of_the_server(
     player: &PlayerHandle,
     target: &PlaybackTarget,
     username: String,
+    server_key: String,
     session_of_the_file: String,
     start_position: f64,
     speed: f32,
@@ -682,6 +686,8 @@ async fn play_the_stream_of_the_server(
             request.author.clone(),
             true,
             String::new(),
+            username.as_str(),
+            server_key.as_str(),
         );
 
         info!(
