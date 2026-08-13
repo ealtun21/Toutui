@@ -21,9 +21,18 @@ use toutui::player::engine::{PlaybackStatus, PlayerHandle};
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
-/// The account and the server of every row of this test.
-const THE_ACCOUNT: &str = "the-account";
-const THE_SERVER: &str = "the-server";
+/// The account and the server of each test.
+///
+/// **The two tests of this binary share one database**, and `insert_listening_session`
+/// removes the row of the account of this program before it writes its own (the
+/// rule of T-138 and of T-140). One account for the two tests therefore takes the
+/// row of the test that inserted first, and `cargo test` runs the two tests in one
+/// process: nextest gives each test a process of its own, and it hides that fault.
+/// **Each test holds an account of its own.** See T-144.
+const THE_ACCOUNT_OF_THE_END: &str = "the-account-of-the-end";
+const THE_SERVER_OF_THE_END: &str = "the-server-of-the-end";
+const THE_ACCOUNT_THAT_WAITS: &str = "the-account-that-waits";
+const THE_SERVER_THAT_WAITS: &str = "the-server-that-waits";
 
 /// The identity of the playback of each test. The flag of the forced sync holds
 /// one identity for the whole process, therefore each test needs its own.
@@ -55,7 +64,7 @@ fn temporary_home() {
 }
 
 /// Writes the row of a playback, as `play_media` does.
-fn the_row_of_a_playback(id_session: &str, id_item: &str) {
+fn the_row_of_a_playback(id_session: &str, id_item: &str, username: &str, server: &str) {
     insert_listening_session(
         id_session.to_string(),
         id_item.to_string(),
@@ -67,8 +76,8 @@ fn the_row_of_a_playback(id_session: &str, id_item: &str) {
         "An Author".to_string(),
         true,
         String::new(),
-        THE_ACCOUNT,
-        THE_SERVER,
+        username,
+        server,
     )
     .expect("the row of the test");
 }
@@ -114,7 +123,12 @@ async fn a_media_that_came_to_its_end_leaves_no_row() {
         .mount(&server)
         .await;
 
-    the_row_of_a_playback("the-session-of-the-end", "the-book-of-the-end");
+    the_row_of_a_playback(
+        "the-session-of-the-end",
+        "the-book-of-the-end",
+        THE_ACCOUNT_OF_THE_END,
+        THE_SERVER_OF_THE_END,
+    );
 
     let (player, _receiver) = PlayerHandle::without_engine();
 
@@ -138,7 +152,7 @@ async fn a_media_that_came_to_its_end_leaves_no_row() {
             "the-session-of-the-end".to_string(),
             "the-book-of-the-end".to_string(),
             None,
-            THE_ACCOUNT.to_string(),
+            THE_ACCOUNT_OF_THE_END.to_string(),
             "1000".to_string(),
             PLAYBACK_OF_THE_END,
             1000.0,
@@ -156,7 +170,7 @@ async fn a_media_that_came_to_its_end_leaves_no_row() {
     );
 
     assert!(
-        get_listening_session(THE_ACCOUNT, THE_SERVER)
+        get_listening_session(THE_ACCOUNT_OF_THE_END, THE_SERVER_OF_THE_END)
             .expect("the database")
             .is_none(),
         "no session waits after a media that came to its end"
@@ -183,7 +197,12 @@ async fn a_server_that_refuses_the_position_keeps_the_row() {
         .mount(&server)
         .await;
 
-    the_row_of_a_playback("the-session-that-waits", "the-book-that-waits");
+    the_row_of_a_playback(
+        "the-session-that-waits",
+        "the-book-that-waits",
+        THE_ACCOUNT_THAT_WAITS,
+        THE_SERVER_THAT_WAITS,
+    );
 
     let (player, _receiver) = PlayerHandle::without_engine();
 
@@ -207,7 +226,7 @@ async fn a_server_that_refuses_the_position_keeps_the_row() {
             "the-session-that-waits".to_string(),
             "the-book-that-waits".to_string(),
             None,
-            THE_ACCOUNT.to_string(),
+            THE_ACCOUNT_THAT_WAITS.to_string(),
             "1000".to_string(),
             PLAYBACK_OF_THE_SERVER_THAT_REFUSES,
             640.0,

@@ -24,13 +24,43 @@
 use rusqlite::Connection;
 use toutui::db::crud::{delete_listening_session, get_listening_session, insert_listening_session};
 
-/// Gives the program a configuration directory of its own, therefore no line of
-/// this test touches the database of the user.
-fn a_database_of_the_test() -> tempfile::TempDir {
-    let dir = tempfile::tempdir().expect("a directory");
-    std::env::set_var("XDG_CONFIG_HOME", dir.path());
-    std::fs::create_dir_all(dir.path().join("toutui")).expect("the directory of the program");
-    dir
+/// The database of one test: a configuration directory of its own, and the turn
+/// of that test.
+///
+/// **`XDG_CONFIG_HOME` belongs to the process and not to the test**, and three
+/// tests of this binary write it. `cargo test` runs them in threads of one
+/// process, therefore a test read the database of another one: the row of the
+/// account "second" stood in the database while the first test held that account
+/// to no row, and a row with no account at all belongs to **every** account
+/// (T-138). nextest gives each test a process of its own, and it hides that
+/// fault. **One test of this binary runs at one time.** See T-144.
+struct TheDatabaseOfTheTest {
+    _turn: std::sync::MutexGuard<'static, ()>,
+    directory: tempfile::TempDir,
+}
+
+impl TheDatabaseOfTheTest {
+    fn path(&self) -> &std::path::Path {
+        self.directory.path()
+    }
+}
+
+fn a_database_of_the_test() -> TheDatabaseOfTheTest {
+    static THE_TURN: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+    // A test that stopped inside its turn must not stop every test after it.
+    let turn = THE_TURN
+        .lock()
+        .unwrap_or_else(|of_a_test| of_a_test.into_inner());
+
+    let directory = tempfile::tempdir().expect("a directory");
+    std::env::set_var("XDG_CONFIG_HOME", directory.path());
+    std::fs::create_dir_all(directory.path().join("toutui")).expect("the directory of the program");
+
+    TheDatabaseOfTheTest {
+        _turn: turn,
+        directory,
+    }
 }
 
 /// Writes one session of one account.

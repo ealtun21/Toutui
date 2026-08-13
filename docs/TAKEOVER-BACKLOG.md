@@ -6419,6 +6419,47 @@ key `h`. The Home view, the Library view, and the reader of an ebook stand outsi
 that rule, because `h` is not a key that goes back in a list of media or in a
 book. The test named `SettingsReader` and no other view.
 
+### T-144: the gate of the machine passed and the gate of CI failed, because nextest gives each test a process
+
+**The workflow of CI runs `cargo test --verbose`, and every session of this fork
+ran `cargo nextest run`.** The two tools do not run a test in the same way:
+**nextest gives each test a process of its own**, and `cargo test` runs the tests
+of one binary in threads of one process. Three binaries of the tests hold a
+database and a variable of the environment, and they therefore passed on the
+machine of the session and failed on CI.
+
+The run 31708670046 of CI, of the handover of the session of T-140 and T-141:
+`a_server_that_refuses_the_position_keeps_the_row` failed in `build-and-test` and
+in `nix`, and **the same test passes with nextest every time**. `cargo test`
+stops at the first binary that fails, therefore that run named one test of the
+six that this item corrects.
+
+| The binary | The state that the tests share | The fault |
+|---|---|---|
+| `tests/the_end_of_a_media_takes_its_row.rs` | one database, and **one account** | `insert_listening_session` removes the row of the account of this program before it writes its own (T-138 and T-140): the second test took the row of the first one |
+| `tests/the_session_belongs_to_one_account.rs` | `XDG_CONFIG_HOME`, and the accounts of the rows | a test held the account "second" to no row, and another test wrote that row. **A row with no account belongs to every account** (T-138), therefore that row crosses every test too |
+| `tests/the_session_belongs_to_one_program.rs` | `XDG_CONFIG_HOME`, and the count of every row of the table | four tests of six failed: `the_rows_of_the_table` counted the rows of another test |
+
+**`XDG_CONFIG_HOME` belongs to the process and not to the test**, and that is the
+trap 29 of `docs/HANDOVER.md` in a new place: a test that writes it must stand
+alone in its binary, **or the tests of that binary must run one at a time**.
+
+The two answers of this item, and the shape of the test decides which one:
+
+- **A test that reads one row takes an account of its own.** The two tests of
+  `the_end_of_a_media_takes_its_row.rs` hold one database and two accounts now,
+  and they run together.
+- **A test that reads every row of a table takes the turn of the binary.**
+  `a_database_of_the_test` gives a `MutexGuard` of the binary with the directory,
+  therefore one test of that binary runs at one time. The guard takes the fault of
+  a test that stopped inside its turn (`into_inner`), because a lock that is
+  poisoned would stop every test after it.
+
+**The gate of a session holds both commands now**: `cargo nextest run` for the
+2.3 seconds of the work, and **`cargo test` before the last commit**, because that
+is the command of CI. `cargo test --no-fail-fast` says every binary that fails,
+and `cargo test` alone says the first one.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

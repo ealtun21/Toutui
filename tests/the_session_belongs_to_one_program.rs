@@ -29,13 +29,36 @@ use toutui::db::crud::{
     THE_LIMIT_OF_THE_HEARTBEAT,
 };
 
-/// Gives the program a configuration directory of its own, therefore no line of
-/// this test touches the database of the user.
-fn a_database_of_the_test() -> tempfile::TempDir {
-    let dir = tempfile::tempdir().expect("a directory");
-    std::env::set_var("XDG_CONFIG_HOME", dir.path());
-    std::fs::create_dir_all(dir.path().join("toutui")).expect("the directory of the program");
-    dir
+/// The database of one test: a configuration directory of its own, and the turn
+/// of that test.
+///
+/// **`XDG_CONFIG_HOME` belongs to the process and not to the test**, and every
+/// test of this binary writes it. `cargo test` runs them in threads of one
+/// process: the tests then share one database, and a test that counts every row
+/// of `listening_session` counts the rows of another test. nextest gives each
+/// test a process of its own, and it hides that fault. **One test of this binary
+/// runs at one time.** See T-144.
+struct TheDatabaseOfTheTest {
+    _turn: std::sync::MutexGuard<'static, ()>,
+    _directory: tempfile::TempDir,
+}
+
+fn a_database_of_the_test() -> TheDatabaseOfTheTest {
+    static THE_TURN: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+    // A test that stopped inside its turn must not stop every test after it.
+    let turn = THE_TURN
+        .lock()
+        .unwrap_or_else(|of_a_test| of_a_test.into_inner());
+
+    let directory = tempfile::tempdir().expect("a directory");
+    std::env::set_var("XDG_CONFIG_HOME", directory.path());
+    std::fs::create_dir_all(directory.path().join("toutui")).expect("the directory of the program");
+
+    TheDatabaseOfTheTest {
+        _turn: turn,
+        _directory: directory,
+    }
 }
 
 /// Writes the session of this program, as a playback does.

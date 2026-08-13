@@ -4,7 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.79**, and T-142 and T-143 belong to this session.
+**The newest release is v0.7.79**, and T-142, T-143, and T-144 belong to this
+session. **T-144 is the item of the gate**: CI runs `cargo test`, and every
+session of this fork ran `cargo nextest run` alone.
 The items T-140 and T-141 belong to the session before it, T-133 to T-139 to the
 one before that, T-128 to T-132 to the one before those, and T-124 to T-127 to
 the one before them.
@@ -23,6 +25,7 @@ of the disk.**
 |---|---|---|
 | T-142 | **A second window removed two books of 105 MB while its own screen said the value that keeps them.** The limit of the cache came of the moment of the start | `S`, `e` |
 | T-143 | The key `h` did nothing in the view of the cache of the ebooks, and the footer promised it | `S`, then `h` |
+| T-144 | **The gate of the machine passed and the gate of CI failed.** Three binaries of the tests share a database, and nextest gives each test a process of its own | — |
 
 ### T-142, and it is the one to know of this session
 
@@ -73,6 +76,7 @@ outside the rule (Home, Library, and the reader of an ebook), and the test named
 | The lines of `config.toml` after the two programs wrote it | **every line stays.** `write_the_value` reads the file, and it changes one line (T-77) |
 | The row of the account of the database, with two programs | **no fault of a lost value**: every write of `users` names its own column, and the speed rate is a relative write |
 | The two programs after the correction | one value of the limit, in the file, on the screen of both windows, and in the removal |
+| **`cargo test`, the command of CI** | **six tests of three binaries failed** (T-144), and `cargo nextest run` gives every one of them |
 
 ## The session of the second turn of 2026-08-13: two programs of one account
 
@@ -713,6 +717,12 @@ ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest 
     # of 1039 with the sandbox up, in 16.6 s of wall clock: one test waits 16 s
     # for the time limit of the send of a book (T-119), and one waits 15 s for
     # the time limit of a request
+ALSA_CONFIG_PATH=<the same file> nice -n 19 ionice -c 3 cargo test -j 16
+    # **CI runs this command**, and it is not the same run as nextest: 1014 of
+    # 1014 in 12 s. nextest gives each test a process of its own, therefore it
+    # hides a test that shares a database with another test of its binary. Six
+    # tests of three binaries failed on CI while nextest passed (T-144), and
+    # `--no-fail-fast` says every binary that fails.
 cargo tree -i openssl-sys                # finds nothing
 cargo tree -i cc                         # finds libsqlite3-sys and ring only
 ```
@@ -1859,6 +1869,17 @@ answers slowly while it writes. Two answers to measure:
     reads the file and it changes one line, therefore a test of two programs needs
     no second process at all: the test writes the file as the other window does,
     and it then makes a new application.
+99. **`cargo nextest run` is not the gate of CI.** The workflow runs
+    `cargo test --verbose`: nextest gives each test a process of its own, and
+    `cargo test` runs the tests of one binary in threads of **one** process. A
+    test that writes `XDG_CONFIG_HOME` or that reads every row of a table
+    therefore passes with nextest and fails on CI (T-144). **Run `cargo test`
+    before the last commit of a session**, and `--no-fail-fast` for every binary
+    that fails: `cargo test` alone stops at the first one.
+100. **A test that stops the whole binary with a lock that is poisoned costs a
+    session more than the fault.** `THE_TURN.lock().unwrap_or_else(|of_a_test|
+    of_a_test.into_inner())` gives the turn to the test after a test that
+    panicked, and the report then names the one test of the fault.
 
 ### Of the harness and of the machine
 
@@ -2183,8 +2204,9 @@ stay, and it names the state of the program on 2026-08-13.
 >
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
-> evidence of every item; **T-87, T-107, T-128, T-131, T-140, and T-142 are the
-> six to know**, and T-140 to T-143 are the newest), and `docs/T-24-coverage.md`
+> evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, and T-144
+> are the seven to know**, and T-140 to T-144 are the newest), and
+> `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
 > have, with the reason**).
@@ -2201,7 +2223,7 @@ stay, and it names the state of the program on 2026-08-13.
 > account needs one `XDG_CONFIG_HOME` and a second `tmux new-session`** (the trap
 > 89), and the sequence of the two starts decides the condition (the trap 94).
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-144 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-145 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
@@ -2210,6 +2232,12 @@ stay, and it names the state of the program on 2026-08-13.
 > Baseline: **1014 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
 > all` gives **1039 of 1039** with the sandbox up, in 16.6 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
+>
+> **`cargo test -j 16` is the gate of CI, and it is a different run.** nextest
+> gives each test a process of its own, therefore it hides a test that shares a
+> database or `XDG_CONFIG_HOME` with another test of its binary: six such tests
+> failed on CI while nextest passed (T-144). **Run `cargo test --no-fail-fast`
+> before the last commit of the session.**
 >
 > **No run opens the real sound device.** `TOUTUI_AUDIO_DEVICE=null` gives the
 > null device of ALSA, and the log then says "the application uses the sound
