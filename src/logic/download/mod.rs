@@ -316,24 +316,166 @@ pub fn remove_the_ebook_of_the_item(item_id: &str, username: &str) -> u64 {
     bytes
 }
 
-/// Gives the sentence of the key `X` for the user. See T-65.
+/// What the audio of a media gave to the key `X`. See T-150.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TheAudioOfTheRemoval {
+    /// The disk held the whole download, and the database held its row.
+    TheWholeCopy,
+    /// The disk held the bytes of a download that did not come to its end. The
+    /// offline mode plays no such file, and no key removed it before T-150.
+    ThePartOfADownload(u64),
+    /// The disk held no audio of this media at all.
+    Nothing,
+}
+
+/// Gives the sentence of the key `X` for the user. See T-65 and T-150.
 ///
 /// The function is pure, therefore a test needs no file.
-pub fn text_of_the_removal(title: &str, the_audio_came: bool, bytes_of_the_ebook: u64) -> String {
-    match (the_audio_came, bytes_of_the_ebook > 0) {
-        (true, true) => format!(
-            "Removed the local copy of \"{}\", and its ebook of {}.",
-            title,
+pub fn text_of_the_removal(
+    title: &str,
+    of_the_audio: &TheAudioOfTheRemoval,
+    bytes_of_the_ebook: u64,
+) -> String {
+    let of_the_ebook = if bytes_of_the_ebook > 0 {
+        format!(
+            " Removed its ebook of {}.",
             text_of_the_size(bytes_of_the_ebook)
+        )
+    } else {
+        String::new()
+    };
+
+    match of_the_audio {
+        TheAudioOfTheRemoval::TheWholeCopy => {
+            format!("Removed the local copy of \"{}\".{}", title, of_the_ebook)
+        }
+        // **The sentence must not say "the local copy"**: the offline mode
+        // plays no part of a download, therefore the user had no copy at all.
+        TheAudioOfTheRemoval::ThePartOfADownload(bytes) => format!(
+            "Removed {} of a download of \"{}\" that did not come to its end.{}",
+            text_of_the_size(*bytes),
+            title,
+            of_the_ebook
         ),
-        (true, false) => format!("Removed the local copy of \"{}\".", title),
-        (false, true) => format!(
+        TheAudioOfTheRemoval::Nothing if bytes_of_the_ebook > 0 => format!(
             "Removed the ebook of \"{}\" of {}. It held no local copy of the audio.",
             title,
             text_of_the_size(bytes_of_the_ebook)
         ),
-        (false, false) => format!("\"{}\" holds no local copy and no ebook.", title),
+        TheAudioOfTheRemoval::Nothing => {
+            format!("\"{}\" holds no local copy and no ebook.", title)
+        }
     }
+}
+
+/// Gives the sentence of the key `X` for a download that runs now. See T-150.
+///
+/// The function is pure, therefore a test needs no file. **The sentence must
+/// not promise a key that the program does not hold** (T-143): no key of this
+/// program stops a download.
+pub fn text_of_the_download_that_runs(title: &str, of_this_program: bool) -> String {
+    if of_this_program {
+        return format!(
+            "This program downloads \"{}\" now. The key X removes it when that download ends.",
+            title
+        );
+    }
+
+    format!(
+        "A different program of this account downloads \"{}\" now. The key X removes it when that download ends.",
+        title
+    )
+}
+
+/// What the key `X` must do with the files of one download. See T-150.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TheWorkOfTheKeyThatRemoves {
+    /// No program writes these files. The key takes the disk.
+    TakeTheDisk,
+    /// This program downloads the media now.
+    ThisProgramDownloads,
+    /// A different program of this account downloads the media now.
+    ADifferentProgramDownloads,
+}
+
+/// Says what the key `X` must do with a download. See T-150.
+///
+/// **A removal that takes the files of a writer gives that writer a fault**, and
+/// it gives the user "Download failed" for a download that works: that is the
+/// shape of T-148 from the other side. The key therefore removes nothing while a
+/// program writes those files, and it says which program that is.
+///
+/// The function is pure, therefore a test needs no file and no server.
+pub fn the_work_of_the_key_that_removes(
+    this_program_downloads: bool,
+    a_program_writes_the_files: bool,
+) -> TheWorkOfTheKeyThatRemoves {
+    if this_program_downloads {
+        return TheWorkOfTheKeyThatRemoves::ThisProgramDownloads;
+    }
+
+    if a_program_writes_the_files {
+        return TheWorkOfTheKeyThatRemoves::ADifferentProgramDownloads;
+    }
+
+    TheWorkOfTheKeyThatRemoves::TakeTheDisk
+}
+
+/// Says that this program gets the files of this download now.
+///
+/// The map of the progress is a map of the process (T-148), therefore this
+/// answer holds for this program alone.
+pub fn this_program_downloads(key: &str) -> bool {
+    downloads()
+        .read()
+        .map(|all| {
+            all.get(key)
+                .is_some_and(|one| one.state == progress::DownloadState::Running)
+        })
+        .unwrap_or(false)
+}
+
+/// Says that a program of this account writes the files of this download now.
+pub fn a_program_downloads(key: &str, username: &str) -> bool {
+    lock::a_program_writes_the_files(&downloads_base_dir(username).join(key))
+}
+
+/// Removes the directory of one download from the disk, and gives its bytes.
+///
+/// **The disk is the truth** (T-142, T-147, and T-148): the database holds a row
+/// after the **last** byte of the last file, therefore the bytes of a download
+/// that stopped stand in no row at all. This function removes every file of the
+/// directory — the audio, the `.part` file of a download that did not end, and
+/// the lock of T-148 — and then the directory. See T-150.
+pub fn remove_the_directory_of_the_download(key: &str, username: &str) -> u64 {
+    let directory = downloads_base_dir(username).join(key);
+
+    let Ok(rows) = std::fs::read_dir(&directory) else {
+        return 0;
+    };
+
+    let mut bytes = 0u64;
+
+    for row in rows.flatten() {
+        let size = match row.metadata() {
+            Ok(data) if data.is_file() => data.len(),
+            _ => continue,
+        };
+
+        match std::fs::remove_file(row.path()) {
+            Ok(()) => bytes += size,
+            Err(error) => error!(
+                "[remove_the_directory] the file {} stays: {}",
+                row.path().display(),
+                error
+            ),
+        }
+    }
+
+    // A directory that is not empty stays. The error is not important.
+    let _ = std::fs::remove_dir(&directory);
+
+    bytes
 }
 
 /// Gives a number of bytes in the form that a person reads.
@@ -347,44 +489,66 @@ pub fn text_of_the_size(bytes: u64) -> String {
     format!("{} kB", (bytes / 1024).max(1))
 }
 
-pub fn remove_download(key: &str, username: &str) -> Option<String> {
-    let (first, _current_time, _duration, title, _author) = get_download(key, username)?;
+/// Removes the audio of one download of the disk, and the row of the database.
+///
+/// **The caller must first ask [`the_work_of_the_key_that_removes`]**: a
+/// removal that takes the files of a program that writes them gives that
+/// program a fault (T-150).
+///
+/// The function gives the title of the row of the database, and what the disk
+/// held. **A download that did not come to its end holds no row at all**, and
+/// its bytes stand on the disk: the disk is the truth here, and not the
+/// database.
+pub fn remove_download(key: &str, username: &str) -> (Option<String>, TheAudioOfTheRemoval) {
+    let row = get_download(key, username);
 
-    let files: Vec<String> = get_download_files(key, username)
-        .into_iter()
-        .map(|(_index, path, _duration)| path)
-        .collect();
+    // The row of an older version of the program holds a path of a directory
+    // that this program does not make. Those files go away first, and the
+    // directory of the download goes away after them.
+    if let Some((first, _current_time, _duration, _title, _author)) = &row {
+        let files: Vec<String> = get_download_files(key, username)
+            .into_iter()
+            .map(|(_index, path, _duration)| path)
+            .collect();
 
-    let paths = paths_to_remove(&first, &files);
+        for path in paths_to_remove(first, &files) {
+            let of_this_download = std::path::Path::new(&path)
+                .parent()
+                .map(PathBuf::from)
+                .is_some_and(|directory| directory == downloads_base_dir(username).join(key));
 
-    // The directory of the download holds the files only. Therefore the
-    // application removes it after the last file.
-    let directory = paths
-        .first()
-        .and_then(|path| std::path::Path::new(path).parent().map(PathBuf::from));
+            if of_this_download {
+                continue;
+            }
 
-    for path in &paths {
-        if let Err(error) = std::fs::remove_file(path) {
-            if error.kind() != std::io::ErrorKind::NotFound {
-                error!("[remove_download] the file {} stays: {}", path, error);
+            if let Err(error) = std::fs::remove_file(&path) {
+                if error.kind() != std::io::ErrorKind::NotFound {
+                    error!("[remove_download] the file {} stays: {}", path, error);
+                }
             }
         }
     }
 
-    if let Some(directory) = directory {
-        // A directory that is not empty stays. The error is not important.
-        let _ = std::fs::remove_dir(&directory);
+    let bytes = remove_the_directory_of_the_download(key, username);
+
+    let title = row.map(|(_first, _current_time, _duration, title, _author)| title);
+
+    let of_the_audio = match (&title, bytes) {
+        (Some(_), _) => TheAudioOfTheRemoval::TheWholeCopy,
+        (None, 0) => TheAudioOfTheRemoval::Nothing,
+        (None, bytes) => TheAudioOfTheRemoval::ThePartOfADownload(bytes),
+    };
+
+    if of_the_audio != TheAudioOfTheRemoval::Nothing {
+        let _ = delete_download(key, username);
+
+        info!(
+            "[remove_download] the application removed {} bytes of the download {}",
+            bytes, key
+        );
     }
 
-    let _ = delete_download(key, username);
-
-    info!(
-        "[remove_download] the application removed {} file(s) of \"{}\"",
-        paths.len(),
-        title
-    );
-
-    Some(title)
+    (title, of_the_audio)
 }
 
 /// Gets one library item from the server.
@@ -419,7 +583,10 @@ async fn get_item(
 
 #[cfg(test)]
 mod tests {
-    use super::{text_of_the_removal, text_of_the_size};
+    use super::{
+        text_of_the_download_that_runs, text_of_the_removal, text_of_the_size,
+        the_work_of_the_key_that_removes, TheAudioOfTheRemoval, TheWorkOfTheKeyThatRemoves,
+    };
 
     /// The key `X` removes the audio of the download and the ebook of the reader.
     /// The sentence must name what went away. See T-65.
@@ -427,28 +594,85 @@ mod tests {
     fn the_sentence_of_the_key_names_what_went_away() {
         // The title stands between the words and the size, therefore the test
         // reads the two parts and not one text of the two.
-        let both = text_of_the_removal("A Book", true, 5 * 1024 * 1024);
+        let both = text_of_the_removal(
+            "A Book",
+            &TheAudioOfTheRemoval::TheWholeCopy,
+            5 * 1024 * 1024,
+        );
         assert!(both.contains("A Book"), "{}", both);
         assert!(both.contains("local copy"), "{}", both);
         assert!(both.contains("ebook"), "{}", both);
         assert!(both.contains("5 MB"), "{}", both);
 
-        let audio = text_of_the_removal("A Book", true, 0);
+        let audio = text_of_the_removal("A Book", &TheAudioOfTheRemoval::TheWholeCopy, 0);
         assert!(audio.contains("local copy"), "{}", audio);
         assert!(!audio.contains("ebook"), "{}", audio);
 
         // A user who read an ebook and downloaded no audio must still remove that
         // ebook, and the sentence must say what happened.
-        let ebook = text_of_the_removal("A Book", false, 137 * 1024 * 1024);
+        let ebook =
+            text_of_the_removal("A Book", &TheAudioOfTheRemoval::Nothing, 137 * 1024 * 1024);
         assert!(ebook.contains("ebook"), "{}", ebook);
         assert!(ebook.contains("137 MB"), "{}", ebook);
         assert!(ebook.contains("no local copy of the audio"), "{}", ebook);
 
-        let nothing = text_of_the_removal("A Book", false, 0);
+        let nothing = text_of_the_removal("A Book", &TheAudioOfTheRemoval::Nothing, 0);
         assert!(
             nothing.contains("no local copy and no ebook"),
             "{}",
             nothing
+        );
+    }
+
+    /// The bytes of a download that did not come to its end are no local copy:
+    /// the offline mode plays no such file. See T-150.
+    #[test]
+    fn the_sentence_of_a_download_that_did_not_end_says_no_local_copy() {
+        let part = text_of_the_removal(
+            "A Book",
+            &TheAudioOfTheRemoval::ThePartOfADownload(7 * 1024 * 1024),
+            0,
+        );
+
+        assert!(part.contains("A Book"), "{}", part);
+        assert!(part.contains("7 MB"), "{}", part);
+        assert!(part.contains("did not come to its end"), "{}", part);
+        assert!(
+            !part.contains("the local copy"),
+            "a part of a download is no local copy: {}",
+            part
+        );
+    }
+
+    /// A download that runs holds its files, and the key `X` says which program
+    /// writes them. See T-150.
+    #[test]
+    fn the_key_takes_no_file_of_a_download_that_runs() {
+        assert_eq!(
+            the_work_of_the_key_that_removes(false, false),
+            TheWorkOfTheKeyThatRemoves::TakeTheDisk
+        );
+        assert_eq!(
+            the_work_of_the_key_that_removes(true, true),
+            TheWorkOfTheKeyThatRemoves::ThisProgramDownloads
+        );
+        // The lock of this program stands on the disk, therefore the two
+        // answers agree. A lock that this program did not make gives the other
+        // program.
+        assert_eq!(
+            the_work_of_the_key_that_removes(false, true),
+            TheWorkOfTheKeyThatRemoves::ADifferentProgramDownloads
+        );
+
+        let of_this = text_of_the_download_that_runs("A Book", true);
+        assert!(of_this.contains("This program downloads"), "{}", of_this);
+        assert!(of_this.contains("A Book"), "{}", of_this);
+
+        let of_the_other = text_of_the_download_that_runs("A Book", false);
+        assert!(
+            of_the_other.contains("A different program"),
+            "{}",
+            of_the_other
         );
     }
 

@@ -92,6 +92,24 @@ pub fn take_the_lock(dest_dir: &Path) -> Option<TheLockOfTheDownload> {
     None
 }
 
+/// Says that a program of this account writes these files now.
+///
+/// The key `X` needs this answer: **a removal that takes the file of a writer
+/// gives that writer a fault, and it gives the user a message of a download
+/// that works** (T-150). The rule is the rule of [`take_the_lock`]: a lock that
+/// stood still for [`THE_TIME_OF_A_LOCK_THAT_STOOD_STILL`] belongs to a program
+/// that is gone, and its files belong to no writer.
+pub fn a_program_writes_the_files(dest_dir: &Path) -> bool {
+    if !the_path_of_the_lock(dest_dir).exists() {
+        return false;
+    }
+
+    !the_lock_stood_still(
+        the_time_since_the_last_work(dest_dir),
+        THE_TIME_OF_A_LOCK_THAT_STOOD_STILL,
+    )
+}
+
 /// Makes the file of the lock. It gives `false` when the file stands already.
 fn make_the_file(path: &Path) -> bool {
     if let Some(directory) = path.parent() {
@@ -241,6 +259,41 @@ mod tests {
             take_the_lock(&download).is_some(),
             "the lock of a program that is gone must not stop the user"
         );
+    }
+
+    /// The key `X` must know if a program writes these files now. See T-150.
+    #[test]
+    fn a_directory_of_no_lock_holds_no_writer() {
+        let dir = tempfile::tempdir().unwrap();
+        let download = dir.path().join("item-1");
+
+        // A directory that no program ever wrote, and a directory of a
+        // download that ended: no writer stands in either of them.
+        assert!(!a_program_writes_the_files(&download));
+
+        let held = take_the_lock(&download).unwrap();
+        assert!(a_program_writes_the_files(&download));
+
+        drop(held);
+        assert!(!a_program_writes_the_files(&download));
+    }
+
+    /// The lock of a program that died must not keep the files of the user for
+    /// ever: the key `X` takes them.
+    #[test]
+    fn the_lock_of_a_program_that_died_holds_no_writer() {
+        let dir = tempfile::tempdir().unwrap();
+        let download = dir.path().join("item-1");
+
+        let died = take_the_lock(&download).unwrap();
+        std::mem::forget(died);
+
+        let old = SystemTime::now() - Duration::from_secs(600);
+        let file = std::fs::File::open(the_path_of_the_lock(&download)).unwrap();
+        file.set_modified(old).unwrap();
+        drop(file);
+
+        assert!(!a_program_writes_the_files(&download));
     }
 
     /// A download of an hour writes blocks the whole hour, and no second

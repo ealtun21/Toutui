@@ -1939,24 +1939,47 @@ impl App {
                 let username = self.username.clone();
 
                 if let Some((target, title_of_the_line, _author)) = self.selected_download() {
-                    // The audio of the download, and the ebook that the reader
-                    // keeps. **The reader kept its file for ever before T-65**, and
-                    // a PDF of a scan holds some hundred megabytes.
-                    let of_the_audio = remove_download(target.key(), &username);
-
-                    let of_the_ebook = crate::logic::download::remove_the_ebook_of_the_item(
-                        target.item_id(),
-                        &username,
+                    // **A download that runs holds its files** (T-150). A
+                    // removal of them gives that writer a fault, and it gives
+                    // the user "Download failed" for a download that works:
+                    // that is the shape of T-148 from the other side.
+                    let work = crate::logic::download::the_work_of_the_key_that_removes(
+                        crate::logic::download::this_program_downloads(target.key()),
+                        crate::logic::download::a_program_downloads(target.key(), &username),
                     );
 
-                    let of_the_audio_came = of_the_audio.is_some();
-                    let title = of_the_audio.unwrap_or(title_of_the_line);
+                    use crate::logic::download::TheWorkOfTheKeyThatRemoves as TheWork;
 
-                    crate::logic::message::say(&crate::logic::download::text_of_the_removal(
-                        &title,
-                        of_the_audio_came,
-                        of_the_ebook,
-                    ));
+                    match work {
+                        TheWork::ThisProgramDownloads | TheWork::ADifferentProgramDownloads => {
+                            crate::logic::message::say(
+                                &crate::logic::download::text_of_the_download_that_runs(
+                                    &title_of_the_line,
+                                    work == TheWork::ThisProgramDownloads,
+                                ),
+                            );
+                        }
+                        TheWork::TakeTheDisk => {
+                            // The audio of the download, and the ebook that the
+                            // reader keeps. **The reader kept its file for ever
+                            // before T-65**, and a PDF of a scan holds some
+                            // hundred megabytes.
+                            let (title, of_the_audio) = remove_download(target.key(), &username);
+
+                            let of_the_ebook = crate::logic::download::remove_the_ebook_of_the_item(
+                                target.item_id(),
+                                &username,
+                            );
+
+                            crate::logic::message::say(
+                                &crate::logic::download::text_of_the_removal(
+                                    &title.unwrap_or(title_of_the_line),
+                                    &of_the_audio,
+                                    of_the_ebook,
+                                ),
+                            );
+                        }
+                    }
                 }
             }
 

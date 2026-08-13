@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.85",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key `X` removes a download that stopped.** A download that does not come \
+             to its end holds no line in the list of your offline media, and the key `X` said \
+             that the book holds no local copy: some hundred megabytes of that book then \
+             stayed on your disk for ever, and no key of this program removed them. The key \
+             takes them now, and it says how many megabytes went away.",
+            "- **The key `X` takes no file of a download that runs.** The key removed the \
+             files under the window that writes them before this work, and that window then \
+             said that the download failed. The key says which window downloads the book now \
+             — this window, or a different window of your account — and you press it again \
+             when that download ends.",
+        ],
+    },
+    Entry {
         version: "0.7.84",
         date: "13/08/2026",
         body: &[

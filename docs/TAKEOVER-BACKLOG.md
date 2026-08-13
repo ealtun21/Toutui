@@ -6822,6 +6822,85 @@ must name `pool().an_address()`, the client of a download must hold
 `connect_timeout` and `read_timeout` and **no `timeout`**, and no line of
 `logic::download` may make a `reqwest::Client::new()`.
 
+### T-150: the key `X` read the database, and the disk held what the database did not
+
+**The sweep of 2026-08-14: the key `X` of one window while the other window
+downloads.** The road named that condition in the session of T-148, and that
+session could not measure it: a download of 115 megabytes over the loopback ends
+in less than one second (the trap 111). `docs/harness/slow_body.py` gives the
+delay of the **body** of the answer, and the key `D` takes the address of the
+pool since T-149: a proxy of 0.05 seconds for each block of 64 kilobytes in the
+block `[[servers]]` of `config.toml` makes the download of that book take about
+90 seconds, and the two keys then meet.
+
+**`remove_download` read the database, and the database holds a row after the
+last byte of the last file.** A download that runs and a download that stopped
+therefore stand in no row at all: the key `X` found nothing, it removed nothing,
+and it said that the media holds no local copy.
+
+The measurement, on "A Second Book Of Many Hours" of eight hours and one file of
+115200330 bytes, with two sessions of tmux of one `XDG_CONFIG_HOME` (the trap
+89):
+
+| The measurement | The answer |
+|---|---|
+| The window B presses `X` while the window A downloads | **`"A Second Book Of Many Hours" holds no local copy and no ebook.`** |
+| The disk, one second after that key | the `.part` file of 14941771 bytes, and it grows |
+| The disk, 60 seconds after that key | **115200330 bytes, and the row of the database**: the copy came, and the key of the user did nothing at all |
+| The program dies at the second 6 of a download (the trap 103) | the disk holds **7713867 bytes** of a `.part` file and the lock of T-148 |
+| The key `X` of the next program, on that media | **`"A Second Book Of Many Hours" holds no local copy and no ebook.`**, and the 7713867 bytes stay |
+| Every other key of the program, on that media | **no key removes those bytes**, and no view names them |
+
+**The second row of that table is the harm.** A book of some gigabytes that
+stopped at its half leaves that half on the disk of the user for ever: the
+program says that the media holds no local copy, the offline mode plays no part
+of a download, and the user must find the directory of the downloads themselves.
+
+**The correction is the rule of T-142, of T-147, and of T-148: the disk is the
+truth.** `remove_the_directory_of_the_download` removes every file of the
+directory of that download — the audio, the `.part` file, and the lock — and then
+the directory, whatever the database holds. `remove_download` gives
+`TheAudioOfTheRemoval` now, and the three values of it give three sentences: the
+whole copy, the bytes of a download that did not come to its end, and nothing.
+**The sentence of a part must not say "the local copy"**: the offline mode plays
+no such file, therefore the user never had a copy.
+
+**A download that runs holds its files, and the key must take none of them.**
+That is the shape of T-148 from the other side: a removal under a writer unlinks
+the file that the writer holds open, the writer then writes its bytes to an inode
+that no name holds, and the `rename` of `fetch_one` says `No such file or
+directory` — **a message of a fault for a download that the user wants**. The
+lock of T-148 is the answer, and it needs no new state:
+`lock::a_program_writes_the_files` says that a lock stands and that it did not
+stand still for 30 seconds. The map of the progress of the process says which
+program that is (T-148), therefore the two sentences name the program of this
+window and the program of the other window.
+
+The same measurements after the correction:
+
+| The measurement | The answer |
+|---|---|
+| The window B presses `X` while the window A downloads | **`A different program of this account downloads "A Second Book Of Many Hours" now. The key X removes it when that download ends.`**, and the `.part` file of 8388171 bytes stays |
+| The window A presses `X` while the window A downloads | **`This program downloads "A Second Book Of Many Hours" now. …`** |
+| The key `X` on the 7713867 bytes of a program that died | **`Removed 7 MB of a download of "A Second Book Of Many Hours" that did not come to its end.`**, and the directory is gone |
+| The key `X` after that download came to its end | the directory is gone, and the table `downloads` holds no row of that media |
+
+**No key of this program stops a download that runs, and that is a decision.**
+The key `D` spawns a task, and a key that stops it needs a map of the handles of
+the tasks of this process — and it reaches the download of this program alone,
+because the download of the other window belongs to a different process. The
+sentence therefore says the truth and it promises no key that the program does
+not hold (T-118 and T-143): the user presses `X` again when the download ends.
+
+`tests/the_key_x_takes_the_disk_of_the_download.rs` holds the rule with no
+server. It writes `XDG_DATA_HOME`, therefore it stands alone in its binary and
+every part of it stands in one function (the trap 8 of the harness). A build with
+the correction removed gives `left: Nothing` against
+`right: ThePartOfADownload(1000)`. **No unit test reaches a key handler of
+`src/app.rs`**, therefore the last part of that test reads the source, as the
+tests of T-131, T-143, and T-149 do: the handler of the key `X` must name
+`the_work_of_the_key_that_removes` **before** it names `remove_download`.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
