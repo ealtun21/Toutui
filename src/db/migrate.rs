@@ -8,7 +8,7 @@ use rusqlite::{Connection, Result};
 use std::path::PathBuf;
 
 /// The schema version that this build of the program expects.
-pub const LATEST_VERSION: i64 = 8;
+pub const LATEST_VERSION: i64 = 9;
 
 /// Gives the full path of the database file.
 pub fn db_path() -> PathBuf {
@@ -79,7 +79,55 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
 
     if version < 8 {
         migrate_to_v8(conn)?;
+        version = 8;
         conn.execute_batch("PRAGMA user_version = 8")?;
+    }
+
+    if version < 9 {
+        migrate_to_v9(conn)?;
+        conn.execute_batch("PRAGMA user_version = 9")?;
+    }
+
+    Ok(())
+}
+
+/// Version 9 gives the listening session the program that owns it. See T-140.
+///
+/// **One row stood for one account, and a user starts the program in two
+/// terminals.** The two programs of that account then shared one row: the
+/// playback of the second program closed the live session of the first one, the
+/// key `Q` of the first program sent the position of the book of the second one,
+/// and the key `Q` of the second program found no row at all. The place of that
+/// user reached no server.
+///
+/// `owner` holds the program, and `heartbeat` holds the moment of the last
+/// second of that playback. A program takes its own row, and a row that no
+/// program touched for `THE_LIMIT_OF_THE_HEARTBEAT` seconds: **that is the row of
+/// a program that stopped without a correct exit**, and the rule of T-4 keeps it.
+///
+/// **A row that an older program wrote holds no owner**, and its heartbeat is 0.
+/// Such a row is therefore old, and the program that asks takes it: that is the
+/// same answer that version 8 gives to a row with no account.
+///
+/// **The migration must be safe to run two times**, as the rule of the head of
+/// this file says.
+fn migrate_to_v9(conn: &Connection) -> Result<()> {
+    if !has_table(conn, "listening_session")? {
+        return Ok(());
+    }
+
+    if !has_column_in(conn, "listening_session", "owner")? {
+        conn.execute(
+            "ALTER TABLE listening_session ADD COLUMN owner TEXT NOT NULL DEFAULT ''",
+            [],
+        )?;
+    }
+
+    if !has_column_in(conn, "listening_session", "heartbeat")? {
+        conn.execute(
+            "ALTER TABLE listening_session ADD COLUMN heartbeat INTEGER NOT NULL DEFAULT 0",
+            [],
+        )?;
     }
 
     Ok(())

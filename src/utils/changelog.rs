@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.77",
+        date: "13/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Two windows of this program with one account keep their two places now.** A \
+             media that played in the first window lost every sync when the second window \
+             started a media: the second window closed the session of the first one on the \
+             server. The key `Q` of one window then sent the place of the book of the other \
+             window, and the window that stayed sent **nothing at all** — its book stood at \
+             0:00 on the server after two minutes of listening. Each window holds its own \
+             session now, and a session that a program left behind still reaches the server \
+             at the next start.",
+        ],
+    },
+    Entry {
         version: "0.7.76",
         date: "13/08/2026",
         body: &[

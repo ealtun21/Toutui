@@ -40,7 +40,7 @@ stay. `podman start abs-test` gives them back.
 
 | The library | What it holds |
 |---|---|
-| `Books` | 19 items: a book of many files, two series of three books, a book of one chapter (T-106), a PDF of 47 megabytes of a scan of 60 pages (T-62), **a PDF of 502 megabytes of a scan of 150 pages (T-116)**, a PDF that no reader reads (T-62), the book of xHE-AAC of the user, a book with a WMA file, Alice in Wonderland with an EPUB, and a long book of 30 minutes |
+| `Books` | 21 items: **two books of eight hours (T-140)**, a book of many files, two series of three books, a book of one chapter (T-106), a PDF of 47 megabytes of a scan of 60 pages (T-62), **a PDF of 502 megabytes of a scan of 150 pages (T-116)**, a PDF that no reader reads (T-62), the book of xHE-AAC of the user, a book with a WMA file, Alice in Wonderland with an EPUB, and a long book of 30 minutes |
 | `Podcasts` | 1 podcast of a feed of 57 episodes (T-110) |
 | `Empty` | no item (T-103) |
 | **`Large`** | **2056 items**, and every one of them holds no tag at all (T-112, T-114) |
@@ -113,6 +113,29 @@ curl -X POST "http://localhost:13399/api/libraries/$BOOK_LIB_ID/scan" \
 **The parse of that book takes 2 minutes 4 seconds in the child of T-62**, and the
 child holds 974 megabytes at its peak. The program of the user holds 44
 megabytes. See T-116.
+
+## 2h. The two books of eight hours, for the sweep of T-140
+
+**The device `null` plays a book of 30 minutes in about 40 seconds** (the trap
+14), therefore a sweep of two playbacks at one time needs a longer book: a
+measurement of some steps ends with a screen that holds no player at all. A book
+of eight hours gives about eight minutes of that speed.
+
+```bash
+ffmpeg -f lavfi -i "sine=frequency=200:duration=28800" -ac 1 -c:a libmp3lame \
+    -b:a 24k -y many-hours.mp3                      # 82 MB, about 4 minutes
+for name in "A Book Of Many Hours" "A Second Book Of Many Hours"; do
+    podman exec abs-test mkdir -p "/audiobooks/Many Hours Author/$name"
+    podman cp many-hours.mp3 \
+        abs-test:"/audiobooks/Many Hours Author/$name/01 - The Whole Book.mp3"
+done
+curl -X POST "http://localhost:13399/api/libraries/$BOOK_LIB_ID/scan" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Two books, because two programs must play a media of their own** at one
+moment. The sweep of T-140 gives one of them to each program, therefore the
+position of each program stands apart on the server.
 
 ## 2g. The books of an EPUB, for the sweep of T-127
 

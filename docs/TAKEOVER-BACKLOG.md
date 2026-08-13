@@ -6258,6 +6258,60 @@ keys that start the program again (`a`, `c`, and a log out of the one account)
 take that path, and `tests/the_session_belongs_to_one_account.rs` holds the rule
 of the loop with a test that reads the source, as T-131 and T-135 do.
 
+### T-140: two programs of one account destroyed the place of both users
+
+**The sweep of 2026-08-13: two programs of one account, on one database, while a
+media plays.** The table of the road held no new condition after T-138 and
+T-139, therefore this session named its own: a user starts the program in two
+terminals, with the same account and the same server. Every measurement of every
+session before this one ran **one** program.
+
+**One row of `listening_session` stood for one account** (the version 8 of the
+schema, T-138), therefore the two programs of that account shared it. The
+measurement gave three effects of that one cause, and each of them takes the
+place of a user away.
+
+The two books of the measurement hold eight hours each, because the device
+`null` plays a book of 30 minutes in about 40 seconds (the trap 14 of the
+harness). `docs/TEST-SERVER.md` holds the command that makes them.
+
+| The moment | Before | After |
+|---|---|---|
+| The program B plays its own book, while A plays | B closes the **live session of A** on the server, and it removes the row of A | B leaves the row of A, and the log says "The database holds no session to close" |
+| The key `Q` of A, while B plays | A sends the position of **the book of B**, and it removes the row of B | A closes its own session, and the row of B stays |
+| The key `Q` of B | "The database holds no session to close": **the place of B reaches no server at all** | B closes its own session |
+| The server, after the two keys | the book of A: **73 s** of 114, the book of B: **0 s** of 116 | the book of A: 107 s, the book of B: 108 s |
+
+**The first effect comes of the rule of T-4.** `play_media` closes the session
+that the database holds before it opens its own, because a program that stopped
+without a correct exit leaves a row. That rule cannot tell the row of a program
+that **died** from the row of a program that **lives**, and the answer is
+therefore the identity of the program:
+
+- `owner` holds the program of the row (the version 9 of the schema), and the
+  identity of the process is enough: two programs of one machine never hold one
+  number at one moment. **This needs no dependency**, and the rule of T-20 holds.
+- `heartbeat` holds the moment of the last second of that playback. The loop
+  writes the position of every second already, therefore `update_current_time`
+  writes that moment too.
+- A program takes a row of its own, **or** a row that stood still for
+  `THE_LIMIT_OF_THE_HEARTBEAT` (30 seconds): that is the row of a program that
+  stopped without a correct exit, and the rule of T-4 keeps it. The limit is
+  longer than one second, because the loop writes nothing while the engine seeks
+  to the place of the user (T-38).
+
+**A row of an older program holds no owner and the moment 0**, therefore it is
+old and the program that asks takes it. That is the same answer that the version
+8 gives to a row with no account.
+
+**The key `Space` shared that row too.** `handle_key_player` reads the session of
+the account to write the mark of the pause, and the key of one program therefore
+wrote the mark of the other one. The rule of the owner corrects that key with no
+line of its own.
+
+`tests/the_session_belongs_to_one_program.rs` holds the six rules, and the sweep
+after the correction gave the table above.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

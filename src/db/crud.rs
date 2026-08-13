@@ -4,6 +4,42 @@ use crate::db::database_struct::User;
 use log::{error, info};
 use rusqlite::{params, Connection, Result};
 
+/// Says which program owns a row of `listening_session`. See T-140.
+///
+/// The identity of the process is enough, and it needs no dependency: two
+/// programs of one machine never hold one number at one moment. A number that
+/// the system gives again after a program stopped belongs to a row that stands
+/// still already, and such a row goes to the program that asks.
+pub fn the_owner_of_this_program() -> String {
+    std::process::id().to_string()
+}
+
+/// Gives the moment of now, in seconds.
+fn the_moment_of_now() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|since| since.as_secs() as i64)
+        .unwrap_or(0)
+}
+
+/// Gives the moment before which a row belongs to a program that does not live
+/// any more.
+fn the_moment_of_a_program_that_died() -> i64 {
+    the_moment_of_now().saturating_sub(THE_LIMIT_OF_THE_HEARTBEAT as i64)
+}
+
+/// The time that a row of `listening_session` may stand still before another
+/// program of the same account takes it, in seconds. See T-140.
+///
+/// The loop of a playback writes the position of each second, therefore a
+/// program that lives touches its row every second. **A row that stands still
+/// belongs to a program that stopped without a correct exit**, and the rule of
+/// T-4 says that the next program sends that position one time.
+///
+/// The limit is longer than one second, because the loop writes nothing while
+/// the engine seeks to the place of the user (T-38).
+pub const THE_LIMIT_OF_THE_HEARTBEAT: u64 = 30;
+
 // Update is_show_key_bindings
 pub fn update_is_show_key_bindings(value: &str, username: &str) -> Result<()> {
     let err_message = "Error connecting to the database.";
@@ -147,11 +183,18 @@ pub fn get_listening_session(username: &str, server: &str) -> Result<Option<List
         let mut stmt = conn.prepare(
             "SELECT id_session, id_item, current_time_playback, duration, is_finished, id_pod, elapsed_time, title, author, is_playback, chapter
              FROM listening_session
-             WHERE (username = ?1 AND server = ?2) OR (username = '' AND server = '')
+             WHERE ((username = ?1 AND server = ?2) OR (username = '' AND server = ''))
+               AND (owner = ?3 OR heartbeat <= ?4)
+             ORDER BY (owner = ?3) DESC
              LIMIT 1",
         )?;
 
-        let mut rows = stmt.query(params![username, server])?;
+        let mut rows = stmt.query(params![
+            username,
+            server,
+            the_owner_of_this_program(),
+            the_moment_of_a_program_that_died()
+        ])?;
 
         if let Some(row) = rows.next()? {
             let session = ListeningSession {
@@ -204,13 +247,19 @@ pub fn insert_listening_session(
         // that writes here. See T-138.
         conn.execute(
             "DELETE FROM listening_session
-             WHERE (username = ?1 AND server = ?2) OR (username = '' AND server = '')",
-            params![username, server],
+             WHERE ((username = ?1 AND server = ?2) OR (username = '' AND server = ''))
+               AND (owner = ?3 OR heartbeat <= ?4)",
+            params![
+                username,
+                server,
+                the_owner_of_this_program(),
+                the_moment_of_a_program_that_died()
+            ],
         )?;
         conn.execute(
-            "INSERT INTO listening_session (id_session, id_item, current_time_playback, duration, is_finished, id_pod, elapsed_time, title, author, is_playback, chapter, username, server)
-             VALUES (?1, ?2, ?3, ?4, 0, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
-            params![id_session, id_item, current_time, duration, id_pod, elapsed_time, title, author, is_playback, chapter, username, server],
+            "INSERT INTO listening_session (id_session, id_item, current_time_playback, duration, is_finished, id_pod, elapsed_time, title, author, is_playback, chapter, username, server, owner, heartbeat)
+             VALUES (?1, ?2, ?3, ?4, 0, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
+            params![id_session, id_item, current_time, duration, id_pod, elapsed_time, title, author, is_playback, chapter, username, server, the_owner_of_this_program(), the_moment_of_now()],
         )?;
     } else {
         crate::logic::message::say(err_message);
@@ -235,8 +284,14 @@ pub fn delete_listening_session(username: &str, server: &str) -> Result<()> {
     if let Ok(conn) = crate::db::migrate::open_conn() {
         conn.execute(
             "DELETE FROM listening_session
-             WHERE (username = ?1 AND server = ?2) OR (username = '' AND server = '')",
-            params![username, server],
+             WHERE ((username = ?1 AND server = ?2) OR (username = '' AND server = ''))
+               AND (owner = ?3 OR heartbeat <= ?4)",
+            params![
+                username,
+                server,
+                the_owner_of_this_program(),
+                the_moment_of_a_program_that_died()
+            ],
         )?;
     } else {
         crate::logic::message::say(err_message);
@@ -278,14 +333,19 @@ pub fn update_is_playback(value: &str, id_session: &str) -> Result<()> {
 
     Ok(())
 }
-// Update current_time (for `listening_session` table)
+/// Writes the position of one second of a playback.
+///
+/// **The second says that the program lives too.** The loop of the playback
+/// calls this function every second, therefore the row of a program that stopped
+/// without a correct exit stands still: another program of the same account then
+/// takes that row, and it sends the position one time. See T-140 and T-4.
 pub fn update_current_time(value: u32, id_session: &str) -> Result<()> {
     let err_message = "Error connecting to the database.";
 
     if let Ok(conn) = crate::db::migrate::open_conn() {
         conn.execute(
-            "UPDATE listening_session SET current_time_playback = ?1 WHERE id_session = ?2",
-            params![value, id_session],
+            "UPDATE listening_session SET current_time_playback = ?1, heartbeat = ?3 WHERE id_session = ?2",
+            params![value, id_session, the_moment_of_now()],
         )?;
     } else {
         crate::logic::message::say(err_message);
