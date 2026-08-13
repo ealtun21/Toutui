@@ -407,8 +407,59 @@ agent_status() {
   "$HERDR" agent get "$AGENT_NAME" | jq -r '.result.agent.agent_status'
 }
 
+# send_and_wait <number> <text> — it sends one prompt and it waits for the TURN.
+#
+# `agent prompt --wait` is not enough, and a live measurement shows why: it waits
+# for the first settled state of the PANE, and the pane is settled at the moment
+# that a round starts. The wait then gives an answer at once, the round says that
+# it ended one second after it started, and the driver reads the handover of the
+# next round before the session of this round has written it. The handover is the
+# one memory of the loop.
+#
+# The answer: 0 for a turn that ended well, 1 for a prompt that the program never
+# took, 2 for a state that the driver cannot read.
+send_and_wait() {
+  local n=$1 text=$2 seq0 seq1 state
+
+  seq0=$("$HERDR" agent get "$AGENT_NAME" 2>/dev/null |
+         jq -r '.result.agent.state_change_seq // 0' 2>/dev/null)
+  [ -n "$seq0" ] || seq0=0
+
+  "$HERDR" agent prompt "$AGENT_NAME" "$text" > /dev/null 2>&1
+
+  # The proof that the turn began.
+  if ! "$HERDR" agent wait "$AGENT_NAME" --until working --timeout 30000 \
+       > /dev/null 2>&1; then
+    # A turn can begin and end inside those 30 seconds. `state_change_seq` tells
+    # that turn from a prompt that the program never took.
+    seq1=$("$HERDR" agent get "$AGENT_NAME" 2>/dev/null |
+           jq -r '.result.agent.state_change_seq // 0' 2>/dev/null)
+    [ -n "$seq1" ] || seq1=0
+    state=$(agent_status)
+    if [ "$seq1" -gt "$seq0" ]; then
+      case "$state" in idle|done) return 0 ;; esac
+    fi
+    return 1
+  fi
+
+  "$HERDR" agent wait "$AGENT_NAME" --timeout "$ROUND_TIMEOUT_MS" > /dev/null 2>&1 ||
+    return 2
+
+  state=$(agent_status)
+  case "$state" in
+    idle|done) return 0 ;;
+    *)         return 2 ;;
+  esac
+}
+
 # run_round <number> <text> — 0 for a round that ended, 1 for a round that did not
 # settle, 2 for a round that is blocked.
+#
+# It gives the words of the session to `send_and_wait`, and **the `/clear` keeps
+# the simple call with `--wait`**. A `/clear` is not a turn: it makes no state
+# `working`, and it does not move `state_change_seq`. A driver that asks for one
+# of those two signals there waits for nothing and then says that the program did
+# not take the command. A run of this design died in that way.
 run_round() {
   local n=$1 text=$2 before after state started elapsed
   started=$(date +%s)
