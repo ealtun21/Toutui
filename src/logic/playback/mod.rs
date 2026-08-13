@@ -1283,7 +1283,7 @@ pub async fn follow_playback(
             }
 
             // The media is not finished: this playback never came to an end.
-            close_and_report(
+            let the_server_holds_it = close_and_report(
                 api,
                 &session_id,
                 &item_id,
@@ -1293,6 +1293,10 @@ pub async fn follow_playback(
                 false,
             )
             .await;
+
+            if the_server_holds_it {
+                let _ = delete_the_session_of_a_playback(session_id.as_str());
+            }
 
             return Outcome::Stopped;
         }
@@ -1404,7 +1408,7 @@ pub async fn follow_playback(
 
                 let _ = update_is_finished(if finished { "1" } else { "0" }, session_id.as_str());
 
-                close_and_report(
+                let the_server_holds_it = close_and_report(
                     api,
                     &session_id,
                     &item_id,
@@ -1414,6 +1418,10 @@ pub async fn follow_playback(
                     finished,
                 )
                 .await;
+
+                if the_server_holds_it {
+                    let _ = delete_the_session_of_a_playback(session_id.as_str());
+                }
 
                 return outcome_of(finished);
             }
@@ -1429,6 +1437,12 @@ pub async fn follow_playback(
 ///
 /// If the media came to its end, the request also marks the item as finished.
 /// See T-16.
+///
+/// **The answer says if the server holds the position now**, and the caller
+/// removes the row of that playback when it does: a row that stays sends this
+/// position again at the next start, and it then destroys a place that a
+/// different client wrote. A server that refused it keeps the row, because the
+/// position of the user lives in that row only. See T-141, T-4, and T-25.
 #[allow(clippy::too_many_arguments)]
 async fn close_and_report(
     api: &ApiClient,
@@ -1438,7 +1452,7 @@ async fn close_and_report(
     position: u32,
     total_duration: &str,
     finished: bool,
-) {
+) -> bool {
     if let Err(error) = close_session_without_send_prg_data(api, session_id).await {
         warn!(
             "[follow_playback] the server did not close the session: {}",
@@ -1475,7 +1489,11 @@ async fn close_and_report(
             "[follow_playback] the server did not accept the position: {}",
             error
         );
+
+        return false;
     }
+
+    true
 }
 
 #[cfg(test)]

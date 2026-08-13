@@ -824,3 +824,21 @@ curl -X PATCH "http://localhost:13399/api/users/$ID" \
 **An empty `librariesAccessible` is every library**, and not no library:
 Audiobookshelf 2.36.0 reads it that way, therefore an account that reads nothing
 at all does not exist. Read the account again after each request.
+
+## 15. The place of a media, when a measurement writes it
+
+A sweep of the place of a user needs a "different client" that writes a new
+place. `PATCH /api/me/progress/:id` is that client, and it holds one trap:
+
+```bash
+curl -X PATCH "http://localhost:13399/api/me/progress/$ITEM" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"currentTime":500}'                       # t=500, and progress stays 0
+```
+
+**`isFinished: false` sets the position to 0.** The request
+`{"currentTime":500,"isFinished":false}` gives **0 seconds** and not 500: the
+server reads that name as the command "the user did not read this media", and
+that command takes the place away. Give `currentTime` alone, and give `progress`
+beside it when a view of the program must show a percent (a measurement of
+2026-08-13 for T-141).

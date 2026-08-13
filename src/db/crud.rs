@@ -269,6 +269,33 @@ pub fn insert_listening_session(
     Ok(())
 }
 
+/// Removes the row of **one playback**, and no other row of the table. See
+/// T-141.
+///
+/// The loop of a playback closes its session on the server itself, and it sends
+/// the position: the place of the user is then safe, therefore the row must go
+/// away. **A row that stays sends that position again at the next start or at
+/// the key `Q`**, and it destroys a place that a different client wrote — that
+/// is the fault of T-4, and a media that came to its end met it again.
+///
+/// The identity of the session is the key, because the loop knows its own
+/// playback and nothing else: another program of the same account keeps its row.
+pub fn delete_the_session_of_a_playback(id_session: &str) -> Result<()> {
+    let err_message = "Error connecting to the database.";
+
+    if let Ok(conn) = crate::db::migrate::open_conn() {
+        conn.execute(
+            "DELETE FROM listening_session WHERE id_session = ?1",
+            params![id_session],
+        )?;
+    } else {
+        crate::logic::message::say(err_message);
+        error!("[delete_the_session_of_a_playback] {}", err_message);
+    }
+
+    Ok(())
+}
+
 /// Removes the listening session from the database.
 ///
 /// The application calls this function after it closes a session and sends

@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.78",
+        date: "13/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A book that came to its end no longer takes back a place that you made \
+             later.** This program kept the end of that book, and the key `Q` sent it to the \
+             server again — hours later, and over the place that another client of yours \
+             wrote in the meantime. The end of a media goes away now when the server holds \
+             it, and a server that did not answer keeps it until this program can send it.",
+        ],
+    },
+    Entry {
         version: "0.7.77",
         date: "13/08/2026",
         body: &[

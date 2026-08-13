@@ -6312,6 +6312,35 @@ line of its own.
 `tests/the_session_belongs_to_one_program.rs` holds the six rules, and the sweep
 after the correction gave the table above.
 
+### T-141: a media that came to its end left its row, and a later key destroyed a newer place
+
+**The sweep of T-140 found this one beside it.** A book of eight hours played to
+its end, and the program stayed open: the row of `listening_session` then held
+`t=28800` and `finished=1`, and the server held the same values. **The position
+was safe on the server, and the row stayed.**
+
+The measurement of 2026-08-13, with the program open after the end of that book:
+
+| The moment | Before | After |
+|---|---|---|
+| The end of the media | the row stays, `t=28800 finished=1` | no row |
+| A different client marks the book "not finished" | the server holds 0 s | the same |
+| The key `Q` | the program sends **28800 s and "finished"** again, and the place of the other client goes away | "The database holds no session to close", and the place of the other client stays |
+
+**That is the fault of T-4 in a new place.** T-4 gave the answer for the start of
+the program: the row goes away when the server holds the position. The loop of
+the playback closes its own session and sends the position with
+`close_and_report`, and no line removed the row after it.
+
+`close_and_report` says now if the server took the position, and the loop removes
+the row of **that playback** (`delete_the_session_of_a_playback`, by the identity
+of the session, therefore the row of another program stays: T-140). **A server
+that refused it keeps the row**, because the position of the user then lives in
+that row only (T-25).
+
+`tests/the_end_of_a_media_takes_its_row.rs` holds the two rules with the mock
+server of `tests/playback_ownership.rs`.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
