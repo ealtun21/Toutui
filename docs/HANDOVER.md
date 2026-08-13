@@ -1,15 +1,97 @@
-# The handover of 2026-08-13 (the fourth session of that day)
+# The handover of 2026-08-13 (the fifth session of that day)
 
 This document is for the next session. It says what is done, what is open, and the
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.80**, and T-145 belongs to this session. The items
-T-142, T-143, and T-144 belong to the session before it, T-140 and T-141 to the
-one before that, T-133 to T-139 to the one before those, and T-128 to T-132 to
-the one before them.
+**The newest release is v0.7.82**, and T-146 and T-147 belong to this session. The
+item T-145 belongs to the session before it, T-142 to T-144 to the one before
+that, T-140 and T-141 to the one before those, and T-133 to T-139 to the one
+before them.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the fifth turn of 2026-08-13: the queue of the media
+
+**Two releases: v0.7.81 and v0.7.82.** The road held two conditions that no
+session had measured, and this session took **both of them**, and both of them
+hold the same list: **the queue of the media**. Each of them found a fault, and
+each fault takes a media of the user away for ever.
+
+| Item | What | Keys |
+|---|---|---|
+| T-146 | **A server that went away in the middle of a queue took one media of the queue with it.** The queue took the media out before the playback started, and the playback did not start | `n`, `l` |
+| T-147 | **A second window wrote its own queue over the media of the first window.** Each screen said "The queue [1 item]" with its own media, and the disk held one of the two | `n`, `q` |
+
+### T-146, and it is the one to know of this session
+
+The queue removes the media **before** the playback of that media starts, and a
+playback that did not start left nothing at all: the media stood in no list, and
+no key gave it back.
+
+The measurement, with a queue of two books and `podman stop -t 0 abs-test` in the
+middle of a book of 30 minutes:
+
+| The moment | The queue |
+|---|---|
+| Before the playback | **2 items**: One Chapter Book, Alice in Wonderland |
+| The book comes to its end | the log says `the queue starts "One Chapter Book", and 1 media wait` |
+| The server does not answer, and the disk holds no copy | the message says so, and the queue **stops** |
+| The view of the queue, and the disk after it | **1 item**. **One Chapter Book is gone** |
+
+**The media goes back to the front of the queue now**, and the queue stops there.
+`the_media_goes_back_to_the_queue` reads the outcome `Fault` — the outcome that
+says that no audio played at all.
+
+**The queue must not go on to the media after the fault, and that is a decision.**
+A server that does not answer gives the same fault to every media of the queue,
+therefore a queue that goes on empties itself in one second. The head of
+`crate::logic::queue` promised the opposite ("the queue then goes on to the media
+after it"), and no line of the code ever said it: the text is right now.
+
+**The key `l` of the view of the queue is the second door of the same rule**, and
+it took the media with `take_at` before it played it.
+`play_the_media_of_the_queue` takes the whole entry for that key, and `play`
+takes the target alone.
+
+**A media of the queue that the disk holds still plays while the server is
+down**, and the queue goes on to it: "the offline mode plays Multi File Test Book
+at 60 seconds with 3 track(s)", and the queue then stops at the media after it
+that the disk does not hold.
+
+### T-147, and the second state of the road
+
+**The road named three states that a second program cannot see** (the queue, the
+cache of the ebooks, and the downloads). The cache holds the rule of T-142
+already, and **the queue held the fault**.
+
+`write_the_queue` holds **every** row (T-56), and the queue of the process stood
+beside it: the write of one program took the media of the other program away.
+
+| The moment | The window A | The window B | The disk |
+|---|---|---|---|
+| A presses `n` on "One Chapter Book" | 1 item: One Chapter Book | — | One Chapter Book |
+| B presses `n` on "Multi File Test Book" | 1 item: One Chapter Book | 1 item: Multi File Test Book | **Multi File Test Book alone** |
+
+**The book of A is gone, and the screen of A still names it.** The correction is
+the rule of T-142: the disk is the truth, and the program reads it at the moment
+of the use. Every function that changes the queue reads the disk first, and the
+view of the queue reads it when it opens.
+
+**A key of a view that is older than the disk takes the media of its own line.**
+`the_place_of_the_media` gives the place of the line when the media of that place
+agrees, and the first media of that identity otherwise.
+
+### The measurements of this session
+
+| The measurement | The answer |
+|---|---|
+| **A queue of media while the server goes away in the middle of it** | **one fault** (T-146), and it takes one media of the queue away for ever |
+| A media of the queue that the disk holds, while the server is down | **no fault**: the offline mode plays it, and the queue goes on |
+| The key `n` while the server does not answer | **no fault**: the media goes in the queue, and the disk holds it |
+| **Two programs of one account, and each of them puts a media in the queue** | **one fault** (T-147), and the disk held one media of the two |
+| The two programs after the correction | both windows and the disk hold both media, in the sequence of the user |
+| The key `X` of one window, and the view of the other window after it | the two windows agree |
 
 ## The session of the fourth turn of 2026-08-13: the terminal that goes away, and the machine that sleeps
 
@@ -782,19 +864,19 @@ episodes for a podcast that is missing **54**, therefore it stays outside.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.80` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.82` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 1016 of 1016 in 2.3 s, and cargo nextest run --run-ignored all gives 1041
-    # of 1041 with the sandbox up, in 16.6 s of wall clock: one test waits 16 s
+    # 1023 of 1023 in 2.3 s, and cargo nextest run --run-ignored all gives 1048
+    # of 1048 with the sandbox up, in 16.6 s of wall clock: one test waits 16 s
     # for the time limit of the send of a book (T-119), and one waits 15 s for
     # the time limit of a request
 ALSA_CONFIG_PATH=<the same file> nice -n 19 ionice -c 3 cargo test -j 16
-    # **CI runs this command**, and it is not the same run as nextest: 1016 of
-    # 1016 in 12 s. nextest gives each test a process of its own, therefore it
+    # **CI runs this command**, and it is not the same run as nextest: 1023 of
+    # 1023 in 12 s. nextest gives each test a process of its own, therefore it
     # hides a test that shares a database with another test of its binary. Six
     # tests of three binaries failed on CI while nextest passed (T-144), and
     # `--no-fail-fast` says every binary that fails.
@@ -1138,7 +1220,8 @@ and the sweep of a library of podcasts found three.
 measurements of this session left.
 
 1. **Every sweep of the road is made now, and a session names its own
-   condition.** Every new condition found a fault in nine sessions of ten:
+   condition.** Every new condition found a fault in twelve sessions of
+   thirteen:
    - ~~**Two programs of one account, on one database, while a media plays**~~:
      **made on 2026-08-13 (the second session), and it found T-140 and T-141.**
      The session named that condition itself, because the table held none.
@@ -1151,17 +1234,28 @@ measurements of this session left.
      T-145.** The sleep of the machine gives no fault, and the death of the
      terminal took the place of that playback away: the disk held it, and the
      next program removed that row with no request.
+   - ~~**A queue of media while the server goes away in the middle of it**~~:
+     **made on 2026-08-13 (the fifth session), and it found T-146.** The queue
+     took the media out before the playback started, and the media of a playback
+     that did not start went away for ever.
+   - ~~**A state of the program that a second program cannot see**~~: **made on
+     2026-08-13 (the fifth session) for the queue, and it found T-147.** Two
+     windows each put one book in the queue, and the disk held one of them.
+     **The third state stays: the downloads of the server.** The cache of the
+     ebooks holds the rule of T-142 already, and the queue holds it now.
    - **The conditions that no session has measured**, and a next session may take
      one of them:
-     - **A queue of media while the server goes away in the middle of it.** The
-       queue of T-56 lives in the database, and the sweep of an offline server
-       (T-91) held no queue.
-     - **A state of the program that a second program cannot see.** T-142 is one
-       of them, and no session has looked for the others: the queue of the media
-       on the disk (T-56), the cache of the ebooks, and the downloads of the
-       server. **A value that one window writes and the other window holds in its
-       memory is the shape of the fault**, and the answer of T-142 is the rule
-       (read the file at the moment of the use).
+     - **The downloads of the server, with two programs of one account.** The
+       third state of the shape of T-142 and of T-147. `crate::logic::the_downloads`
+       holds the queue of that work, and no session has looked at it with two
+       windows.
+     - **A program that dies while the server does not answer** (the sharp form
+       of T-145): no sync reached the server at all, therefore the row of the
+       disk is the one copy of the whole playback. The session of T-145 measured
+       the condition with a server that answers.
+     - **A queue of media that a second program plays** (the two conditions of
+       this session together): the window A plays the queue, and the window B
+       takes a media out of it with the key `X`.
    - ~~**A second account of a second server while a media plays**~~ (T-124):
      **made on 2026-08-13, and it found T-138 and T-139** — the place of one
      account went to the server of another account, and no key sent the place of
@@ -1173,8 +1267,8 @@ measurements of this session left.
 2. **What a refresh of the screen still loses: nothing that a measurement
    names** (T-135, done). The key `R` took the timer for sleep of the user away,
    and the new application takes it now. **The queue needs no such work**:
-   `crate::logic::queue` holds it in a slot of the module, and no line of
-   `App::new` touches it.
+   `crate::logic::queue` holds it in a slot of the module, no line of `App::new`
+   touches it, and every change of it reads the disk first (T-147).
 3. **The rounds of the start that stay.** The start holds two rounds now, and the
    first is `GET /api/libraries`: every request of the second needs the identity
    of the library. **A start of one round needs the program to trust the identity
@@ -1249,7 +1343,32 @@ measurement changed.
    playback measures the position, the message, the session of the server, and the
    parts of the stream. **No run of that session opens the real sound device.**
 
-### 4. The decisions of the session of the terminal that goes away (T-145)
+### 4. The decisions of the session of the queue (T-146 and T-147)
+
+**The maintainer answered no question before this session**, because the road
+asked for a condition. The session made three decisions of its own.
+
+**1. The queue stops at a media that it cannot play, and it does not go on to the
+media after it.** A server that does not answer gives the same fault to every
+media of the queue, therefore a queue that goes on empties itself in one second
+and the user then has no list at all. The media stands at the front of the queue,
+and the key `l` of the view starts it again. See T-146.
+
+**2. The words for the user stay as they are.** The screen says the reason ("The
+server does not answer, and the disk has no copy of this media."), and the
+message before it named the media ("The queue starts \"One Chapter Book\"."). The
+row of the message holds one message, therefore a second message about the state
+of the queue would take the reason away. **The view of the queue is the answer**:
+the media stands at its front, and the key `q` shows it. See T-146.
+
+**3. The view of the queue reads the disk when it opens, and not at every
+frame.** The render reads the queue of the process at each frame, and a read of
+the database there would pay for a change that comes some times in a day. A view
+that stands open while a second program changes the queue is therefore older than
+the disk until the user leaves it and opens it again, and a key of that view takes
+the media of its own line (`the_place_of_the_media`). See T-147.
+
+### 5. The decisions of the session of the terminal that goes away (T-145)
 
 **The maintainer answered no question before this session**, because the road
 asked for a condition. The session made two decisions of its own.
@@ -1268,7 +1387,7 @@ that a user who plays the same book again inside 30 seconds hears the ten
 seconds of the sync a second time. **The position itself is never lost**, because
 the row stays until a request carries it. See T-145.
 
-### 5. The decisions of the session of a setting of two programs (T-142 and T-143)
+### 6. The decisions of the session of a setting of two programs (T-142 and T-143)
 
 **The maintainer answered no question before this session**, because the road
 asked for a condition. The session made two decisions of its own, and both of
@@ -1287,7 +1406,7 @@ enough.** The program could say "the value changed, press R" instead. **The
 removal takes a file of the disk away**, and no message gives that book back:
 the moment of a removal is the moment that needs the truth. See T-142.
 
-### 6. The decisions of the session of two programs (T-140 and T-141)
+### 7. The decisions of the session of two programs (T-140 and T-141)
 
 **The maintainer answered no question before this session**, because the road
 asked for a condition and a condition needs no decision. The session made two
@@ -1362,7 +1481,7 @@ program does not have**, therefore the words changed now. The function needs thr
 keys, and that decision is not the decision of a session: T-118 of the backlog
 holds the question.
 
-### 7. The decisions of the session of T-112 to T-118
+### 8. The decisions of the session of T-112 to T-118
 
 The maintainer answered seven questions before that session. **Two of those
 answers could not hold as they stood**, and this section holds the change and the
@@ -2012,6 +2131,31 @@ answers slowly while it writes. Two answers to measure:
     of them holds the other ("A Book Of Many Hours" stands inside "A Second Book
     Of Many Hours").
 
+### The traps of the session of the queue (T-146 and T-147)
+
+106. **`podman stop -t 0 abs-test` takes the server away in 50 milliseconds**,
+    and `podman stop` alone waits for the `SIGTERM` of the container. A
+    measurement that must take the server away **inside** a playback needs the
+    first form: the book of 30 minutes plays in about 25 seconds with the device
+    `null`, and 10 seconds of a stop is half of that.
+107. **The device `null` gives the measurement of the queue for free.** A book of
+    30 minutes at the speed 1.30 comes to its end in about 24 seconds of real
+    time, therefore one measurement of "the media comes to its end while the
+    server is down" costs half a minute and no wait of the wall.
+108. **The queue of the process crosses a test of a binary.** `crate::logic::queue`
+    holds a slot of the module, as the database does (T-144): two test functions
+    of one binary fight for it. The measurement of T-147 therefore stands in
+    **one** test function, and it ends with `queue::clear()` and
+    `queue::forget_the_account()`.
+109. **A book of the queue that the disk holds plays while the server is down**,
+    and that hides the fault of T-146. "Multi File Test Book" of the sandbox has
+    3 of 3 tracks on the disk, and "One Chapter Book" has none: **read the log
+    line "the download … gives N of M track(s) from the disk"** before you choose
+    the media of a measurement of the offline mode.
+110. **`sqlite3 $ABS/toutui-config/toutui/db.sqlite3 "select title from queue"`
+    is the truth of a measurement of two windows.** The two screens each say
+    their own list, and neither of them says which list the disk holds.
+
 ### Of the harness and of the machine
 
 1. **A fixed `sleep` is the largest waste of a session.** The first frame of the
@@ -2321,13 +2465,14 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**The road held three conditions that no session had measured, and this session
-took one of them** (T-145). This prompt asks for one of the two that stay, and it
-names the state of the program on 2026-08-13.
+**The road held two conditions that no session had measured, and this session
+took both of them** (T-146 and T-147). The two of them held one list — the queue
+of the media — and each of them found a fault. This prompt names a condition that
+no session has measured, and the state of the program on 2026-08-13.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.7.80**; `Cargo.toml` is at 0.7.80. The
+> AlbanDAVID/Toutui. Newest release **v0.7.82**; `Cargo.toml` is at 0.7.82. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -2335,8 +2480,8 @@ names the state of the program on 2026-08-13.
 >
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
-> evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, and T-145
-> are the seven to know**, and T-140 to T-145 are the newest), and
+> evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
+> T-146 are the eight to know**, and T-140 to T-147 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -2363,8 +2508,8 @@ names the state of the program on 2026-08-13.
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a real null asound file.
-> Baseline: **1016 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1041 of 1041** with the sandbox up, in 16.6 seconds. **Run that
+> Baseline: **1023 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1048 of 1048** with the sandbox up, in 16.6 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **`cargo test -j 16` is the gate of CI, and it is a different run.** nextest
@@ -2382,19 +2527,22 @@ names the state of the program on 2026-08-13.
 > ### The work, in the sequence of its value
 >
 > 1. **One condition of the road that no session has measured.** Every new
->    condition found a fault in eleven sessions of twelve, and the newest of them
->    found T-145: the terminal of the user went away, and the place of that
->    playback went with it.
->    - **A queue of media while the server goes away in the middle of it.** The
->      queue of T-56 lives on the disk, and the sweep of an offline server (T-91)
->      held no queue.
->    - **A state of the program that a second program cannot see** (the shape of
->      T-142): the queue of the media, the cache of the ebooks, and the downloads
->      of the server. The rule of the answer stands in section 5 of the decisions.
+>    condition found a fault in twelve sessions of thirteen, and the newest of
+>    them found T-146 and T-147: a media of the queue went away with a server that
+>    stopped answering, and a second window wrote its own queue over the media of
+>    the first one.
+>    - **The downloads of the server, with two programs of one account** (the
+>      third state of the shape of T-142 and of T-147). The cache of the ebooks
+>      holds that rule since T-142, and the queue holds it since T-147.
+>      `crate::logic::the_downloads` holds the queue of that work, and no session
+>      has looked at it with two windows.
 >    - **A program that dies while the server does not answer** (the sharp form of
 >      T-145): no sync reached the server at all, therefore the row of the disk is
->      the one copy of the whole playback. This session measured the condition with
->      a server that answers.
+>      the one copy of the whole playback. The session of T-145 measured the
+>      condition with a server that answers.
+>    - **A queue of media that a second program plays** (the two conditions of
+>      this session together): the window A plays the queue, and the window B
+>      takes a media out of it with the key `X`.
 > 2. **The words for the user.** Every text in ASD-STE100. A view says why it
 >    holds no line, and it never says a reason that the program does not have
 >    (T-91). **A text must not promise a function that the program does not
@@ -2423,7 +2571,10 @@ names the state of the program on 2026-08-13.
 > holds the state `Down`** (T-128), **the refresh keeps the engine of the
 > playback** (T-131), **a listening session belongs to one program** (T-140),
 > **the limit of the cache of the ebooks comes of the file at the moment of the
-> use** (T-142), and **a close removes the row of that session alone** (T-145).
+> use** (T-142), **a close removes the row of that session alone** (T-145), **a
+> media of a playback that did not start goes back to the front of the queue and
+> the queue stops there** (T-146), and **the disk is the truth of the queue**
+> (T-147).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
