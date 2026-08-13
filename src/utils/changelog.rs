@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.81",
+        date: "13/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A book of your queue no longer goes away when the server stops answering.** \
+             The queue took the book out before it played it: a server that went away in the \
+             middle of a queue therefore took one book of your list with it, and no key gave \
+             it back. A book that did not play stays at the front of your queue now, and the \
+             queue waits there for you. A book that this program holds on your disk still \
+             plays, and the queue goes on to it.",
+        ],
+    },
+    Entry {
         version: "0.7.80",
         date: "13/08/2026",
         body: &[

@@ -6549,6 +6549,81 @@ therefore it says nothing of an ALSA device that a suspend takes away. A
 measurement of that needs the sound of the machine of a user, and the rule of the
 handover keeps a run of a session silent.
 
+### T-146: a queue of media, and a server that goes away in the middle of it
+
+**The sweep of 2026-08-13: a queue of media while the server goes away.** The
+road of the session of T-145 named that condition, and no session had measured
+it: the queue of T-56 lives in the database, and the sweep of an offline server
+(T-91) held no queue. **The condition found one fault, and it takes a media of
+the user away for ever.**
+
+**The queue took the media out before the playback of that media started.** A
+playback that then did not start left nothing: the entry stood in no list, and
+no key gave it back.
+
+The measurement, with the sandbox and tmux. The queue held "One Chapter Book"
+and "Alice in Wonderland", the book of 30 minutes played, and
+`podman stop -t 0 abs-test` took the server away in the middle of it:
+
+| The moment | The queue |
+|---|---|
+| Before the playback | **2 items**: One Chapter Book, Alice in Wonderland |
+| The book comes to its end | the log says `the queue starts "One Chapter Book", and 1 media wait` |
+| The server does not answer, and the disk holds no copy of that media | the log says `the disk has no copy of d8f33299…`, and the message says so |
+| The view of the queue, and the queue of the disk after it | **1 item**: Alice in Wonderland. **One Chapter Book is gone** |
+
+**The queue stopped there too.** `the_queue_goes_on` gives `false` for
+`Outcome::Fault`, therefore the media after the fault never played and the user
+pressed a key for it. The head of `crate::logic::queue` promised the opposite
+("the queue then goes on to the media after it"), and no code said it.
+
+**Two keys met the same rule.** The loop of the playback takes the next media
+with `queue::take_next` at the end of a media, and the key `l` of the view of
+the queue takes the media with `queue::take_at` before it plays it. Each of them
+removed the media, and neither of them gave it back.
+
+**The correction: a playback that did not start gives its media back to the
+front of the queue.** `the_media_goes_back_to_the_queue(outcome)` is that rule,
+and it reads `Outcome::Fault` — the outcome that says that no audio played at
+all: the server did not answer, or it gave no stream, or the item holds no audio
+file, or the disk holds no copy. An end and a stop keep the queue as it is,
+because the user heard that media.
+
+**The queue must not go on after a fault, and that stays.** A server that does
+not answer gives the same fault to every media of the queue, therefore a queue
+that goes on empties itself in one second. The queue stops at the media that it
+cannot play, and it keeps every media that it holds.
+
+`play_the_media_of_the_queue` is the second door: the key `l` of the view of the
+queue gives the whole entry now, and `play` gives the target alone.
+`the_loop_of_the_playback` holds both, and it carries the entry of the media that
+came of the queue.
+
+The same measurements after the correction:
+
+| The measurement | The answer |
+|---|---|
+| The book of 30 minutes ends while the server is down | the log says "the playback of \"One Chapter Book\" did not start. The media goes back to the front of the queue, and the queue stops", and **the queue holds 2 items in the sequence of the user** |
+| The program starts again, and the server answers | the disk gives 2 media, the key `l` plays them both, and the queue is empty at their end |
+| **A media of the queue that the disk holds, while the server is down** | **the queue goes on**: "the offline mode plays Multi File Test Book at 60 seconds with 3 track(s)", and it stops at the media after it that the disk does not hold |
+| The key `n` while the server does not answer | the media goes in the queue, and the disk holds it |
+| The key `l` of the view of the queue while the server does not answer | the media stays at the front of the queue, and the queue holds both media |
+
+`tests/the_queue_keeps_a_media_that_did_not_play.rs` holds the rule. The test
+needs no server and no sound device: nothing listens on the port of `NO_SERVER`,
+therefore the playback goes to the offline mode (T-25), the disk holds no copy,
+and the outcome is `Fault`. A build with the correction removed says
+`the playback did not start, therefore the queue must hold both media. It holds
+["1. 📕 The Second Book — An Author  (1m)"]`.
+
+**The words for the user stay as they are, and it is a decision.** The screen
+says the reason ("The server does not answer, and the disk has no copy of this
+media."), and the message before it named the media ("The queue starts \"One
+Chapter Book\"."). The row of the message holds one message and one row,
+therefore a second message about the queue would take the reason away. **The view
+of the queue is the answer**: the media stands at its front, and the user reads
+it with the key `q`.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

@@ -6087,11 +6087,14 @@ impl App {
         let server_address = self.server_address.clone();
         let server_key = self.server_key.clone();
 
+        // The media stands outside the queue now. A playback that does not
+        // start gives it back to the queue, therefore this key gives the whole
+        // entry and not the target alone. See T-146.
         tokio::spawn(async move {
-            play(
+            crate::logic::playback::play_the_media_of_the_queue(
                 &api,
                 &player,
-                entry.target,
+                entry,
                 username,
                 server_address,
                 server_key,

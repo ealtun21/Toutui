@@ -34,9 +34,20 @@
 //!   therefore that write costs almost nothing and it needs no rule for a row
 //!   that changed.
 //! - **A media that the server does not hold now stays in the queue.** The row
-//!   holds the identity of the item, and the server answers the playback. A
-//!   media that went away gives the fault of that playback, and the queue then
-//!   goes on to the media after it.
+//!   holds the identity of the item, and the server answers the playback.
+//!
+//! # A playback that did not start keeps its media (T-146)
+//!
+//! The queue took a media out **before** the playback of that media started, and
+//! a playback that did not start therefore took the media of the user away for
+//! ever. A server that goes away in the middle of a queue met that rule at the
+//! end of every media.
+//!
+//! **The media goes back to the front of the queue, and the queue stops there.**
+//! The queue must not go on to the media after it: a server that does not answer
+//! gives the same fault to every media of the queue, therefore a queue that goes
+//! on empties itself in one second. `the_media_goes_back_to_the_queue` holds this
+//! rule, and `crate::logic::playback::play` reads it.
 
 use crate::logic::playback::PlaybackTarget;
 use crate::utils::convert_seconds::convert_seconds;
@@ -93,6 +104,18 @@ pub fn the_queue_goes_on(outcome: Outcome) -> bool {
     matches!(outcome, Outcome::Finished)
 }
 
+/// Tells if the media that the queue started must go back into the queue.
+///
+/// **A playback that did not start takes no media of the user away.** The
+/// outcome `Fault` says that no audio played at all: the server did not answer,
+/// or it gave no stream, or the disk holds no copy. The media of that playback
+/// therefore goes back to the front of the queue. See T-146.
+///
+/// An end and a stop keep the queue as it is: the user heard that media.
+pub fn the_media_goes_back_to_the_queue(outcome: Outcome) -> bool {
+    matches!(outcome, Outcome::Fault)
+}
+
 /// The media that wait.
 #[derive(Debug, Default, Clone)]
 pub struct Queue {
@@ -129,6 +152,15 @@ impl Queue {
     pub fn add(&mut self, entry: Entry) -> usize {
         self.entries.push(entry);
         self.entries.len()
+    }
+
+    /// Puts a media at the front of the queue.
+    ///
+    /// The queue gives this media to the next playback. A playback that did not
+    /// start calls this function with the media that it did not play, therefore
+    /// the media stands where it stood before that playback. See T-146.
+    pub fn put_at_the_front(&mut self, entry: Entry) {
+        self.entries.insert(0, entry);
     }
 
     /// Takes the first media out of the queue.
@@ -331,6 +363,12 @@ pub fn add(entry: Entry) -> usize {
     let place = with_the_queue(|queue| queue.add(entry));
     write_the_queue();
     place
+}
+
+/// Puts a media at the front of the queue of the process. See T-146.
+pub fn put_at_the_front(entry: Entry) {
+    with_the_queue(|queue| queue.put_at_the_front(entry));
+    write_the_queue();
 }
 
 /// Takes the first media out of the queue of the process.
@@ -559,6 +597,61 @@ mod tests {
 
     /// The rule of the queue: an end starts the next media, and nothing else
     /// does.
+    /// The media of a playback that did not start goes back to the front, and
+    /// the media after it does not move. See T-146.
+    #[test]
+    fn a_media_goes_back_to_the_front_of_the_queue() {
+        let mut queue = Queue::default();
+        queue.add(book("b", "Second"));
+
+        let first = book("a", "First");
+        queue.put_at_the_front(first);
+
+        assert_eq!(queue.len(), 2);
+        assert_eq!(queue.entries()[0].title, "First");
+        assert_eq!(queue.entries()[1].title, "Second");
+    }
+
+    /// A media that the queue gave, and that the playback took and gave back,
+    /// stands where it stood.
+    #[test]
+    fn the_queue_of_a_media_that_did_not_play_does_not_change() {
+        let mut queue = Queue::default();
+        queue.add(book("a", "First"));
+        queue.add(book("b", "Second"));
+
+        let entry = queue.take_next().unwrap();
+        queue.put_at_the_front(entry);
+
+        assert_eq!(
+            queue.lines(),
+            {
+                let mut same = Queue::default();
+                same.add(book("a", "First"));
+                same.add(book("b", "Second"));
+                same.lines()
+            },
+            "the queue must hold the same media in the same sequence"
+        );
+    }
+
+    /// **The rule of T-146.** A playback that gave no audio at all keeps the
+    /// media of the user, and an end and a stop do not.
+    #[test]
+    fn a_playback_that_did_not_start_keeps_its_media() {
+        assert!(the_media_goes_back_to_the_queue(Outcome::Fault));
+        assert!(!the_media_goes_back_to_the_queue(Outcome::Finished));
+        assert!(!the_media_goes_back_to_the_queue(Outcome::Stopped));
+    }
+
+    /// **The queue must not go on after a fault.** A server that does not answer
+    /// gives the same fault to every media of the queue, therefore a queue that
+    /// goes on empties itself in one second.
+    #[test]
+    fn a_fault_stops_the_queue() {
+        assert!(!the_queue_goes_on(Outcome::Fault));
+    }
+
     #[test]
     fn only_an_end_starts_the_next_media() {
         assert!(the_queue_goes_on(Outcome::Finished));

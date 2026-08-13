@@ -14,7 +14,7 @@ use crate::api::sessions::close_open_session::*;
 use crate::api::sessions::sync_open_session::*;
 use crate::db::crud::*;
 use crate::logic::offline::{remember_progress, tracks_from_downloads};
-use crate::logic::queue::{self, the_queue_goes_on, Outcome};
+use crate::logic::queue::{self, the_media_goes_back_to_the_queue, the_queue_goes_on, Outcome};
 use crate::logic::sync_session::force_sync;
 use crate::logic::sync_session::sync_session_from_database::*;
 use crate::logic::sync_session::wait_prev_session_finished::*;
@@ -187,6 +187,10 @@ pub fn tracks_from_episode(item: &serde_json::Value, episode_id: &str) -> Option
 ///
 /// A media that the user stopped, and a media that a different playback took
 /// away, leave the queue where it is. `the_queue_goes_on` holds that rule.
+///
+/// **A playback that did not start gives its media back to the queue** when that
+/// media came of the queue. `the_media_goes_back_to_the_queue` holds that rule.
+/// See T-146.
 pub async fn play(
     api: &ApiClient,
     player: &PlayerHandle,
@@ -195,7 +199,63 @@ pub async fn play(
     server_address: String,
     server_key: String,
 ) {
+    the_loop_of_the_playback(
+        api,
+        player,
+        target,
+        None,
+        username,
+        server_address,
+        server_key,
+    )
+    .await
+}
+
+/// Plays a media that the queue holds, and it follows the queue after it.
+///
+/// The key `l` of the view of the queue takes the media out of the queue before
+/// the playback, therefore a playback that does not start must give it back.
+/// This function takes the whole entry for that reason, and `play` takes the
+/// target alone. See T-146.
+pub async fn play_the_media_of_the_queue(
+    api: &ApiClient,
+    player: &PlayerHandle,
+    entry: queue::Entry,
+    username: String,
+    server_address: String,
+    server_key: String,
+) {
+    let target = entry.target.clone();
+
+    the_loop_of_the_playback(
+        api,
+        player,
+        target,
+        Some(entry),
+        username,
+        server_address,
+        server_key,
+    )
+    .await
+}
+
+/// The loop that plays one media and then every media of the queue after it.
+///
+/// `the_media_of_the_queue` holds the entry of the queue that the playback of
+/// now plays, and it holds nothing for a media that a key of a view started.
+/// **The entry goes back to the queue when the playback does not start.**
+#[allow(clippy::too_many_arguments)]
+async fn the_loop_of_the_playback(
+    api: &ApiClient,
+    player: &PlayerHandle,
+    target: PlaybackTarget,
+    the_media_of_the_queue: Option<queue::Entry>,
+    username: String,
+    server_address: String,
+    server_key: String,
+) {
     let mut target = target;
+    let mut the_media_of_the_queue = the_media_of_the_queue;
 
     loop {
         let outcome = play_media(
@@ -211,6 +271,21 @@ pub async fn play(
         // The next media of the queue opens its own session. Therefore this
         // playback must release the wait before that media starts.
         let _ = update_is_loop_break("1", username.as_str());
+
+        // The playback did not start, and the media came of the queue: the
+        // media goes back to the front of the queue. A media of the user must
+        // not go away with a server that does not answer. See T-146.
+        if the_media_goes_back_to_the_queue(outcome) {
+            if let Some(entry) = the_media_of_the_queue.take() {
+                warn!(
+                    "[play] the playback of \"{}\" did not start. The media goes \
+                     back to the front of the queue, and the queue stops.",
+                    entry.title
+                );
+
+                queue::put_at_the_front(entry);
+            }
+        }
 
         if !the_queue_goes_on(outcome) {
             return;
@@ -229,7 +304,8 @@ pub async fn play(
 
         crate::logic::message::say(&format!("The queue starts \"{}\".", entry.title));
 
-        target = entry.target;
+        target = entry.target.clone();
+        the_media_of_the_queue = Some(entry);
     }
 }
 
