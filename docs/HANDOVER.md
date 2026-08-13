@@ -1,17 +1,92 @@
-# The handover of 2026-08-13 (the third session of that day)
+# The handover of 2026-08-13 (the fourth session of that day)
 
 This document is for the next session. It says what is done, what is open, and the
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.79**, and T-142, T-143, and T-144 belong to this
-session. **T-144 is the item of the gate**: CI runs `cargo test`, and every
-session of this fork ran `cargo nextest run` alone.
-The items T-140 and T-141 belong to the session before it, T-133 to T-139 to the
-one before that, T-128 to T-132 to the one before those, and T-124 to T-127 to
+**The newest release is v0.7.80**, and T-145 belongs to this session. The items
+T-142, T-143, and T-144 belong to the session before it, T-140 and T-141 to the
+one before that, T-133 to T-139 to the one before those, and T-128 to T-132 to
 the one before them.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the fourth turn of 2026-08-13: the terminal that goes away, and the machine that sleeps
+
+**One release: v0.7.80.** The road held three conditions that no session had
+measured, and this session took the first of them: **a media that plays while
+the terminal goes away (`SIGHUP`), and while the machine sleeps**. The sleep of
+the machine gives no fault. **The death of the terminal takes the place of the
+user away, and the disk held that place the whole time.**
+
+| Item | What | Keys |
+|---|---|---|
+| T-145 | **The terminal went away with 1026 seconds of a book on the disk, and the next program removed that row with no request.** The server stayed at 872 seconds for ever | `l`, then `Q` |
+
+### T-145, and it is the one to know of this session
+
+The loop of the playback writes the row of `listening_session` **every second**,
+and the line of the source says why: "Write the position for each second. A
+crash must not lose it." **The crash loses it.**
+
+`sync_session_from_database` held two rules that do not agree: it closes **one**
+session (`LIMIT 1`), and it removed **every** row that this program may take. A
+user who starts the program again **inside 30 seconds** meets both, and that is
+what a user does when the terminal of their program went away:
+
+| The moment | The row of the disk | The server |
+|---|---|---|
+| The terminal goes away | **1026 s** | 872 s (the sync of ten seconds) |
+| The user starts the program again at once, and plays a second book | the row stays, and the log says "The database holds no session to close" | 872 s |
+| The key `Q` | **the table holds no row at all** | **872 s**, for ever |
+
+The row of the program that died is **too young** for the rule of T-140 at the
+moment of the key `l`, and it is **old enough** for the removal at the moment of
+the key `Q`.
+
+**The program closes every row that it may take now**, one after the other, and
+it removes a row **after** that row reached the server. The rows of a program
+that died go first, and the row of this program goes last: two rows of one media
+then leave the newest position on the server. `delete_listening_session` has no
+caller left, and it went away: **a removal of every row of an account is the
+fault itself**.
+
+The same measurement after the correction: `Item 6ba57b9a… closed at 1026s` and
+`Item e2b76945… closed at 1771s`, and the server holds 1026 for the book of the
+program that died.
+
+**What stays, and it is a decision.** The row of a program that died is hidden
+for 30 seconds (T-140), therefore a user who plays **the same book** again at
+once hears the ten seconds of the sync a second time. The position is safe, and
+the last ten seconds need the program to know that the process of `owner` does
+not live: **that needs a call of the system for each program**, and the decision
+of T-140 keeps it outside.
+
+### The machine that sleeps, and it gives no fault
+
+**`SIGSTOP` does not reach a program of tmux from a session of this harness**
+(the trap 101). The freezer of the cgroup does, and it is the better model of a
+suspend: `echo 1 > /sys/fs/cgroup<the scope of the program>/cgroup.freeze`.
+
+| The measurement, with 120 seconds of sleep | The answer |
+|---|---|
+| The position, while the program sleeps | 536 s, and it does not move: **no clock of the wall stands in the loop of the playback** |
+| The playback after the wake | it goes on, and the sync reaches the server |
+| The connection of the live messages | it ends, and it is open again **10 seconds** later with no key of the user |
+| The row of the database, and the key `Q` after the wake | the same row and the same owner, and the session closes at 1331 s |
+
+**The limit of that measurement:** the device `null` is not a real sound device.
+A suspend that takes an ALSA device away needs the sound of the machine of a
+user, and no run of a session plays sound.
+
+### The measurements of this session
+
+| The measurement | The answer |
+|---|---|
+| **A media that plays while the terminal goes away (`SIGHUP`)** | **one fault** (T-145), and the place of the user of that playback goes away for ever |
+| The same condition, after the correction | the place of the program that died reaches the server at the next close |
+| **A media that plays while the machine sleeps** (120 s of a freezer of the cgroup) | **no fault** of the position, of the playback, of the row, or of the live connection |
+| The open sessions of the server, after a program died | **the server keeps them**: seven sessions of one book stood open after the sweeps of this session. The correction closes the newest of them, and the sessions of the days before it stay |
 
 ## The session of the third turn of 2026-08-13: a setting of two programs
 
@@ -707,19 +782,19 @@ episodes for a podcast that is missing **54**, therefore it stays outside.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.79` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.80` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 1014 of 1014 in 2.3 s, and cargo nextest run --run-ignored all gives 1039
-    # of 1039 with the sandbox up, in 16.6 s of wall clock: one test waits 16 s
+    # 1016 of 1016 in 2.3 s, and cargo nextest run --run-ignored all gives 1041
+    # of 1041 with the sandbox up, in 16.6 s of wall clock: one test waits 16 s
     # for the time limit of the send of a book (T-119), and one waits 15 s for
     # the time limit of a request
 ALSA_CONFIG_PATH=<the same file> nice -n 19 ionice -c 3 cargo test -j 16
-    # **CI runs this command**, and it is not the same run as nextest: 1014 of
-    # 1014 in 12 s. nextest gives each test a process of its own, therefore it
+    # **CI runs this command**, and it is not the same run as nextest: 1016 of
+    # 1016 in 12 s. nextest gives each test a process of its own, therefore it
     # hides a test that shares a database with another test of its binary. Six
     # tests of three binaries failed on CI while nextest passed (T-144), and
     # `--no-fail-fast` says every binary that fails.
@@ -1071,11 +1146,13 @@ measurements of this session left.
      key `S`**~~: **made on 2026-08-13 (the third session), and it found T-142 and
      T-143.** The file loses no line, and the second window removed the books of
      the user with the limit of its own start.
+   - ~~**A media that plays while the machine sleeps, or while the terminal goes
+     away (`SIGHUP`)**~~: **made on 2026-08-13 (the fourth session), and it found
+     T-145.** The sleep of the machine gives no fault, and the death of the
+     terminal took the place of that playback away: the disk held it, and the
+     next program removed that row with no request.
    - **The conditions that no session has measured**, and a next session may take
      one of them:
-     - **A media that plays while the machine sleeps**, or while the terminal
-       goes away (`SIGHUP`): the session of the server stays open, and the row of
-       the database holds a heartbeat that stops (T-140).
      - **A queue of media while the server goes away in the middle of it.** The
        queue of T-56 lives in the database, and the sweep of an offline server
        (T-91) held no queue.
@@ -1172,7 +1249,26 @@ measurement changed.
    playback measures the position, the message, the session of the server, and the
    parts of the stream. **No run of that session opens the real sound device.**
 
-### 4. The decisions of the session of a setting of two programs (T-142 and T-143)
+### 4. The decisions of the session of the terminal that goes away (T-145)
+
+**The maintainer answered no question before this session**, because the road
+asked for a condition. The session made two decisions of its own.
+
+**1. A row that no request carried must not go away.** The close of a session
+removes the row of **that** session now, and not every row of the account. The
+other answer — one close that carries every row of the account together — needs
+one request of the server for each row anyway, and it hides the row of a program
+that died inside the work of another program. See T-145.
+
+**2. The 30 seconds of T-140 stay, and the last ten seconds of a playback that
+died come back at the next close and not at once.** A program could ask the
+system if the process of `owner` lives, and that answer needs a call of the
+system for each program: the decision of T-140 keeps it outside, and the cost is
+that a user who plays the same book again inside 30 seconds hears the ten
+seconds of the sync a second time. **The position itself is never lost**, because
+the row stays until a request carries it. See T-145.
+
+### 5. The decisions of the session of a setting of two programs (T-142 and T-143)
 
 **The maintainer answered no question before this session**, because the road
 asked for a condition. The session made two decisions of its own, and both of
@@ -1191,7 +1287,7 @@ enough.** The program could say "the value changed, press R" instead. **The
 removal takes a file of the disk away**, and no message gives that book back:
 the moment of a removal is the moment that needs the truth. See T-142.
 
-### 5. The decisions of the session of two programs (T-140 and T-141)
+### 6. The decisions of the session of two programs (T-140 and T-141)
 
 **The maintainer answered no question before this session**, because the road
 asked for a condition and a condition needs no decision. The session made two
@@ -1266,7 +1362,7 @@ program does not have**, therefore the words changed now. The function needs thr
 keys, and that decision is not the decision of a session: T-118 of the backlog
 holds the question.
 
-### 6. The decisions of the session before this one
+### 7. The decisions of the session of T-112 to T-118
 
 The maintainer answered seven questions before that session. **Two of those
 answers could not hold as they stood**, and this section holds the change and the
@@ -1881,6 +1977,41 @@ answers slowly while it writes. Two answers to measure:
     of_a_test.into_inner())` gives the turn to the test after a test that
     panicked, and the report then names the one test of the fault.
 
+### The traps of the session of the terminal that goes away (T-145)
+
+101. **`SIGSTOP` does not reach a program of tmux from a session of this
+    harness.** `kill -STOP` on the process of the program gave no fault and no
+    stop: the state stayed `S`, and the row of the database kept moving. A child
+    of the session itself stops with the same command. **The freezer of the
+    cgroup does the work**, and it is the better model of a suspend of the
+    machine:
+    ```bash
+    CG="/sys/fs/cgroup$(grep '^0::' /proc/$PID/cgroup | cut -d: -f3)"
+    echo 1 > "$CG/cgroup.freeze"   # the machine sleeps
+    echo 0 > "$CG/cgroup.freeze"   # the machine wakes up
+    ```
+    systemd gives the program of tmux a scope of its own, therefore that file
+    holds the program alone and not the server of tmux. `cgroup.events` says
+    `frozen 1`, and the state of `/proc/PID/status` stays `S`: **read the row of
+    the database to see that the program stands still**, and not the state.
+102. **`pgrep -f 'target/debug/toutui$'` gives two numbers**, and the second one
+    is the client of tmux (the trap 16 in a new place). A `kill` of that text
+    says "not a pid", and a measurement that reads the first number signals the
+    wrong process. **`pgrep -x toutui` gives the program alone.**
+103. **`tmux kill-session` is the `SIGHUP` of a terminal that goes away.** The
+    program dies at once, and no line of the exit runs: that is the condition of
+    T-145, and it needs no other tool.
+104. **The server keeps an open session of a program that died.** Seven sessions
+    of one book stood open in `GET /api/users/online` after the sweeps of one
+    session. A measurement of "the program closed its session" must read the
+    **new** identity of the session, and not the count of the open sessions.
+105. **A sweep of two books needs the sequence of the lines of Continue
+    Listening**, and that sequence follows the newest place: the book of the
+    measurement moves while the measurement runs. Poll the line of the selection
+    (`capture-pane | grep '^➤'`) and press `j`, and hold two titles apart when one
+    of them holds the other ("A Book Of Many Hours" stands inside "A Second Book
+    Of Many Hours").
+
 ### Of the harness and of the machine
 
 1. **A fixed `sleep` is the largest waste of a session.** The first frame of the
@@ -2190,13 +2321,13 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**The road holds three conditions that no session has measured, and this session
-took one of them** (T-142 and T-143). This prompt asks for one of the two that
-stay, and it names the state of the program on 2026-08-13.
+**The road held three conditions that no session had measured, and this session
+took one of them** (T-145). This prompt asks for one of the two that stay, and it
+names the state of the program on 2026-08-13.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.7.79**; `Cargo.toml` is at 0.7.79. The
+> AlbanDAVID/Toutui. Newest release **v0.7.80**; `Cargo.toml` is at 0.7.80. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -2204,8 +2335,8 @@ stay, and it names the state of the program on 2026-08-13.
 >
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
-> evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, and T-144
-> are the seven to know**, and T-140 to T-144 are the newest), and
+> evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, and T-145
+> are the seven to know**, and T-140 to T-145 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -2222,15 +2353,18 @@ stay, and it names the state of the program on 2026-08-13.
 > send-keys` takes `BTab` for Shift+Tab (the trap 70). **A second program of one
 > account needs one `XDG_CONFIG_HOME` and a second `tmux new-session`** (the trap
 > 89), and the sequence of the two starts decides the condition (the trap 94).
+> **`tmux kill-session` is the `SIGHUP` of a terminal that goes away** (the trap
+> 103), and a program of tmux takes no `SIGSTOP` of this harness: the freezer of
+> the cgroup gives the sleep of the machine (the trap 101).
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-145 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-146 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a real null asound file.
-> Baseline: **1014 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1039 of 1039** with the sandbox up, in 16.6 seconds. **Run that
+> Baseline: **1016 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1041 of 1041** with the sandbox up, in 16.6 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **`cargo test -j 16` is the gate of CI, and it is a different run.** nextest
@@ -2248,18 +2382,19 @@ stay, and it names the state of the program on 2026-08-13.
 > ### The work, in the sequence of its value
 >
 > 1. **One condition of the road that no session has measured.** Every new
->    condition found a fault in ten sessions of eleven, and the newest of them
->    found T-142: a second window removed the books of the user.
->    - **A media that plays while the machine sleeps**, or while the terminal goes
->      away (`SIGHUP`). The session of the server stays open, and the row of the
->      database holds a heartbeat that stops (T-140): measure the position on the
->      server, the row of the database, and the next start of the program.
+>    condition found a fault in eleven sessions of twelve, and the newest of them
+>    found T-145: the terminal of the user went away, and the place of that
+>    playback went with it.
 >    - **A queue of media while the server goes away in the middle of it.** The
 >      queue of T-56 lives on the disk, and the sweep of an offline server (T-91)
 >      held no queue.
 >    - **A state of the program that a second program cannot see** (the shape of
 >      T-142): the queue of the media, the cache of the ebooks, and the downloads
->      of the server. The rule of the answer stands in section 4 of the decisions.
+>      of the server. The rule of the answer stands in section 5 of the decisions.
+>    - **A program that dies while the server does not answer** (the sharp form of
+>      T-145): no sync reached the server at all, therefore the row of the disk is
+>      the one copy of the whole playback. This session measured the condition with
+>      a server that answers.
 > 2. **The words for the user.** Every text in ASD-STE100. A view says why it
 >    holds no line, and it never says a reason that the program does not have
 >    (T-91). **A text must not promise a function that the program does not
@@ -2286,9 +2421,9 @@ stay, and it names the state of the program on 2026-08-13.
 > program holds more than one account (T-124), the episodes of a podcast come
 > when the user opens that podcast (T-126), **a request tries an address that
 > holds the state `Down`** (T-128), **the refresh keeps the engine of the
-> playback** (T-131), **a listening session belongs to one program** (T-140), and
+> playback** (T-131), **a listening session belongs to one program** (T-140),
 > **the limit of the cache of the ebooks comes of the file at the moment of the
-> use** (T-142).
+> use** (T-142), and **a close removes the row of that session alone** (T-145).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
