@@ -121,9 +121,37 @@ fn a_second_program_of_the_account_keeps_every_media_of_the_queue() {
         vec!["The Book Of B".to_string()]
     );
 
-    // A media that stands in the queue no more gives nothing, and the key then
-    // does nothing at all.
+    // A media that stands in the queue no more gives nothing, and the key must
+    // still say what happened to the media of that line. **A key that does
+    // nothing says why** (T-79), and this key said nothing at all before T-151.
     assert!(queue::take_the_media(0, "a-media-of-no-queue").is_none());
+
+    let text = queue::text_of_the_key_that_takes(Some("The Book Of B"), None)
+        .expect("the key must say what happened to the media of its line");
+
+    assert!(text.contains("The Book Of B"), "{}", text);
+    assert!(text.contains("is not in the queue now"), "{}", text);
+
+    // **No unit test reaches a key handler of `src/app.rs`**, therefore this
+    // part reads the source, as the tests of T-131, T-143, T-149, and T-150 do:
+    // the key `X` of the view of the queue must say the sentence on both roads.
+    let source = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/src/app.rs"))
+        .expect("the test must read src/app.rs");
+
+    let of_the_key = source
+        .split_once("pub fn remove_from_the_queue(&mut self) {")
+        .expect("the handler of the key X of the queue must stand in src/app.rs")
+        .1;
+
+    let of_the_key = of_the_key
+        .split_once("\n    }\n")
+        .expect("the handler must end")
+        .0;
+
+    assert!(
+        of_the_key.contains("text_of_the_key_that_takes("),
+        "the key X of the view of the queue must say a sentence on both roads. See T-151."
+    );
 
     queue::clear();
     queue::forget_the_account();

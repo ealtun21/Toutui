@@ -6901,6 +6901,48 @@ the correction removed gives `left: Nothing` against
 tests of T-131, T-143, and T-149 do: the handler of the key `X` must name
 `the_work_of_the_key_that_removes` **before** it names `remove_download`.
 
+### T-151: a queue of media that a second program plays, and the key that said nothing
+
+**The sweep of 2026-08-14: a queue of media that a second program plays.** The
+road named that condition in the session of T-148: the window A plays the queue,
+and the window B takes a media out of it with the key `X`.
+
+**The queue itself holds, and that is the first measurement of a condition of the
+road that found no fault of the data.** The rule of T-147 does the work: every
+function that changes the queue reads the disk before it writes.
+
+| The measurement | The answer |
+|---|---|
+| The window B takes the next media of the queue out with `X`, while A plays | **no fault**: the log of A says `the media came to its end. The queue starts "A Book Of Many Hours", and 0 media wait`, and that is the media that B left |
+| The queue of the disk after it | empty, and the media that B removed came back never |
+| The key `X` of A on a line whose media B took out | **no fault of the data**: A took nothing, and the media of the other line stayed |
+| The view of A after that key | the disk, with 1 item |
+
+**One fault stands beside it, and it is a fault of the words.** The key `X` of A
+on a line whose media a different program took out **said nothing at all**:
+`remove_from_the_queue` returned on `None` of `take_the_media` with no message.
+The list of that view then lost the line all the same, because the render reads
+the queue that `take_the_media` read of the disk — **the user therefore reads a
+list of one media less and no word, and they cannot tell the key that worked from
+the key that did nothing**. That is the rule of T-79: a key that does nothing is a
+fault of its own.
+
+The correction: `queue::text_of_the_key_that_takes` is a pure function of the
+title of the line and of the media that went out, and the two roads give one
+sentence — `"<the title>" is not in the queue now.` **The sentence names no
+program**: this program cannot say which program took that media out, and a text
+must not say a reason that the program does not have (T-91).
+
+The measurement after the correction, with two windows of one `XDG_CONFIG_HOME`:
+the window B takes "A Second Book Of Many Hours" out, the key `X` of A on its
+line of that media says `"A Second Book Of Many Hours" is not in the queue now.`,
+and the disk keeps "Depthless Hunger, Book 2".
+
+`tests/the_queue_belongs_to_the_disk.rs` holds the rule: the line that said "the
+key then does nothing at all" now holds the sentence of both roads, and the last
+part of it reads `src/app.rs`, because no unit test reaches a key handler. A
+build with the correction removed fails at that part.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

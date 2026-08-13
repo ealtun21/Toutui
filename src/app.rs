@@ -6092,22 +6092,29 @@ impl App {
 
         // The identity of the line holds the media when a second program
         // changed the queue under this view. See T-147.
-        let Some(key) = crate::logic::queue::snapshot()
+        let of_the_line = crate::logic::queue::snapshot()
             .entries()
             .get(index)
-            .map(|entry| entry.key())
-        else {
+            .map(|entry| (entry.key(), entry.title.clone()));
+
+        let Some((key, title_of_the_line)) = of_the_line else {
             return;
         };
 
-        let Some(entry) = crate::logic::queue::take_the_media(index, &key) else {
-            return;
-        };
+        // **A different program of the account can take that media out first**,
+        // and this key then takes nothing. The key said nothing at all before
+        // T-151, therefore the user could not tell one road from the other.
+        let entry = crate::logic::queue::take_the_media(index, &key);
 
         self.list_state_queue
             .select(crate::logic::queue::snapshot().selection_after_a_remove(index));
 
-        crate::logic::message::say(&format!("\"{}\" is not in the queue now.", entry.title));
+        if let Some(text) = crate::logic::queue::text_of_the_key_that_takes(
+            Some(&title_of_the_line),
+            entry.as_ref().map(|entry| entry.title.as_str()),
+        ) {
+            crate::logic::message::say(&text);
+        }
     }
 
     /// Starts the selected media of the queue now. The key is `l` inside the

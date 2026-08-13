@@ -41,6 +41,17 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.86",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key `X` of the queue says what happened to the media of your line.** A \
+             second window of your account can take that media out of the queue first, and \
+             the key then said nothing at all: the line went away from your list all the \
+             same, and you could not tell the key that worked from the key that did nothing.",
+        ],
+    },
+    Entry {
         version: "0.7.85",
         date: "14/08/2026",
         body: &[

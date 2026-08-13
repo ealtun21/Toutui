@@ -461,6 +461,28 @@ pub fn take_the_media(index: usize, key: &str) -> Option<Entry> {
     entry
 }
 
+/// Gives the sentence of the key `X` of the view of the queue. See T-151.
+///
+/// `title_of_the_line` is the title that the view drew, and `what_went_out` is
+/// the title of the media that this key took out. **A different program of the
+/// account can take that media out before this key** (T-147), and the key then
+/// takes nothing at all: it said nothing at all before this work, and **a key
+/// that does nothing must say why** (T-79).
+///
+/// The two roads give one sentence, and that sentence says the truth of both:
+/// the media of that line waits no more. The program cannot say which program
+/// took it out, therefore the sentence names no program (T-91).
+///
+/// The function is pure, therefore a test needs no queue and no database.
+pub fn text_of_the_key_that_takes(
+    title_of_the_line: Option<&str>,
+    what_went_out: Option<&str>,
+) -> Option<String> {
+    let title = what_went_out.or(title_of_the_line)?;
+
+    Some(format!("\"{}\" is not in the queue now.", title))
+}
+
 /// Empties the queue of the process.
 ///
 /// This takes every media of the account away, therefore it needs no read of the
