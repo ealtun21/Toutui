@@ -1,15 +1,72 @@
-# The handover of 2026-08-13 (the first session of that day)
+# The handover of 2026-08-13 (the second session of that day)
 
 This document is for the next session. It says what is done, what is open, and the
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.76**, and T-133 to T-139 belong to this session.
-The items T-128 to T-132 belong to the session before it, T-124 to T-127 to the
-one before that, T-122 and T-123 to the one before those, and T-119 to T-121 to
+**The newest release is v0.7.78**, and T-140 and T-141 belong to this session.
+The items T-133 to T-139 belong to the session before it, T-128 to T-132 to the
+one before that, T-124 to T-127 to the one before those, and T-122 and T-123 to
 the one before them.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the second turn of 2026-08-13: two programs of one account
+
+**Two releases: v0.7.77 and v0.7.78.** The road held no new condition after
+T-138 and T-139 — it said that a next session must name one of its own. This
+session named **two programs of one account, on one database, while a media
+plays**: a user starts the program in two terminals, and every measurement of
+every session before this one ran one program.
+
+**The condition found two faults, and each of them takes the place of a user
+away.**
+
+| Item | What | Keys |
+|---|---|---|
+| T-140 | **Two programs of one account destroyed the place of both users.** One row of the database stood for one account, and the two programs shared it | `l`, `Q` |
+| T-141 | **A media that came to its end left its row**, and the key `Q` sent that end again over a place that a different client wrote later | `Q` |
+
+### T-140, and it is the one to know of this session
+
+The measurement, with a book of eight hours in each program:
+
+| The moment | Before | After |
+|---|---|---|
+| B plays its own book, while A plays | B closes the **live session of A** on the server, and it removes the row of A | B leaves the row of A |
+| The key `Q` of A, while B plays | A sends the position of **the book of B**, and it removes the row of B | A closes its own session |
+| The key `Q` of B | "The database holds no session to close" | B closes its own session |
+| The server | the book of A: **73 s** of 114, the book of B: **0 s** of 116 | 107 s and 108 s |
+
+**The cause is the rule of T-4.** `play_media` closes the session that the
+database holds before it opens its own, because a program that stopped without a
+correct exit leaves a row. **That rule cannot tell the row of a program that died
+from the row of a program that lives**, and the answer is therefore the identity
+of the program: `owner` holds the process, `heartbeat` holds the moment of the
+last second of that playback (the version 9 of the schema), and a program takes a
+row of its own or a row that stood still for 30 seconds. **This needs no
+dependency**, and the rule of T-20 holds.
+
+**The key `Space` shared that row too**: `handle_key_player` reads the session of
+the account, therefore the key of one program wrote the mark of the pause of the
+other one. The rule of the owner corrects that key with no line of its own.
+
+### T-141, and the fault that stood beside it
+
+A book played to its end and the program stayed open: the row held `t=28800` and
+`finished=1`, **and the server held the same values**. The position was safe, and
+the row stayed. A different client then marked that book "not finished", and the
+key `Q` sent 28800 seconds and "finished" again — **the newer place of the user
+went away.** The loop removes the row of its own playback now, and a server that
+refused the position keeps it (T-25).
+
+### The measurements of this session
+
+| The measurement | The answer |
+|---|---|
+| **Two programs of one account, one database, while a media plays** | **two faults** (T-140 and T-141), and each of them takes the place of a user away |
+| The two programs after the correction | each program holds its own session, and both places reach the server |
+| A media that comes to its end, and a place that a different client writes after it | the place of the other client stays |
 
 ## The session of 2026-08-13: two faults of the maintainer, the road, and the last two sweeps
 
@@ -583,15 +640,16 @@ episodes for a podcast that is missing **54**, therefore it stays outside.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.76` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.78` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # cargo nextest run --run-ignored all gives 1023 of 1023 with the sandbox up,
-    # in 16.4 s of wall clock: one test waits 16 s for the time limit of the send
-    # of a book (T-119), and one waits 15 s for the time limit of a request
+    # 1011 of 1011 in 2.3 s, and cargo nextest run --run-ignored all gives 1036
+    # of 1036 with the sandbox up, in 16.6 s of wall clock: one test waits 16 s
+    # for the time limit of the send of a book (T-119), and one waits 15 s for
+    # the time limit of a request
 cargo tree -i openssl-sys                # finds nothing
 cargo tree -i cc                         # finds libsqlite3-sys and ring only
 ```
@@ -931,13 +989,27 @@ and the sweep of a library of podcasts found three.
 (T-128, T-129, and T-131 with T-130). The road holds the work that the
 measurements of this session left.
 
-1. **Every sweep of the road is made now.** Every new condition found a fault in
-   eight sessions of nine:
+1. **Every sweep of the road is made now, and a session names its own
+   condition.** Every new condition found a fault in nine sessions of ten:
+   - ~~**Two programs of one account, on one database, while a media plays**~~:
+     **made on 2026-08-13 (the second session), and it found T-140 and T-141.**
+     The session named that condition itself, because the table held none.
+   - **The conditions that no session has measured**, and a next session may take
+     one of them:
+     - **Two programs of one account of two libraries**, where one of them
+       changes a setting of `config.toml` with the key `S`: the second program
+       holds the old value in its memory, and it writes the whole file at its own
+       next key. **No measurement says what the user then loses.**
+     - **A media that plays while the machine sleeps**, or while the terminal
+       goes away (`SIGHUP`): the session of the server stays open, and the row of
+       the database holds a heartbeat that stops (T-140).
+     - **A queue of media while the server goes away in the middle of it.** The
+       queue of T-56 lives in the database, and the sweep of an offline server
+       (T-91) held no queue.
    - ~~**A second account of a second server while a media plays**~~ (T-124):
      **made on 2026-08-13, and it found T-138 and T-139** — the place of one
      account went to the server of another account, and no key sent the place of
-     a playback before the program started again. **A next session must name a
-     new condition of its own**, because the table of the road holds none.
+     a playback before the program started again.
    - ~~**A library whose media the account may not read**~~, with an account of
      the type `user`: **made on 2026-08-13, and it found T-136** — an account
      that loses a library could not use the program again, in any view and after
@@ -1021,7 +1093,29 @@ measurement changed.
    playback measures the position, the message, the session of the server, and the
    parts of the stream. **No run of that session opens the real sound device.**
 
-### 4. The decisions that this session made
+### 4. The decisions of the session of two programs (T-140 and T-141)
+
+**The maintainer answered no question before this session**, because the road
+asked for a condition and a condition needs no decision. The session made two
+decisions of its own.
+
+**1. Two programs of one account are a condition of a user, and not a fault of
+the user.** The answer could refuse the second program with a lock of the
+database. **The server of Audiobookshelf holds a session for each client
+already** — the web page of two tabs does the same — therefore a lock would take
+a function away that the server gives. The program keeps every window, and the
+row of the database says which window owns it. See T-140.
+
+**2. A row of the database that stands still for 30 seconds belongs to a program
+that died.** The identity of the process alone cannot answer that question
+without a call of the system for each program, and the loop of the playback
+writes the position of every second already. **The limit is longer than one
+second**, because the loop writes nothing while the engine seeks to the place of
+the user (T-38). The cost: a program that stopped by force inside those 30
+seconds keeps its row until the next play or the next key `Q` of that account,
+and the position of the user then reaches the server later. See T-140.
+
+### The decisions of the session of the two faults of a first start
 
 **The maintainer answered no question before this session**, because the road held
 three measurements and two sweeps. This session made two decisions of its own.
@@ -1618,6 +1712,36 @@ answers slowly while it writes. Two answers to measure:
     (the trap 68). **The box of the start says the step of the start**, therefore
     a poll of the screen every 50 milliseconds gives the sequence of the requests
     with no line of code.
+
+### The traps of the session of two programs (T-140 and T-141)
+
+89. **A second program of one account needs no second configuration.** One
+    `XDG_CONFIG_HOME` and two sessions of tmux give the whole condition, and the
+    two programs then share one database, one `config.toml`, and **one file of
+    the log**: the lines of the two programs stand between each other, and the
+    time of the line is the only way to tell them apart. `start_the_program` of
+    `docs/harness/drive.sh` empties that file, therefore the second program needs
+    `tmux new-session` of its own.
+90. **A book of 30 minutes is too short for a sweep of some steps.** The device
+    `null` played it to its end in about 40 seconds (the trap 14), and the screen
+    then held no player row at all. **Two books of eight hours** stand in the
+    sandbox now, and section 2h of `docs/TEST-SERVER.md` holds the command that
+    makes them. One book for each program: the position of each program then
+    stands apart on the server.
+91. **`wait_for` of the harness reads the box of the search too.** A poll for the
+    title that the measurement typed comes back at once, because that text stands
+    in the field of the search, and the key `l` then acts on the line before the
+    answer of the server. **Poll for the line of the selection**
+    (`capture-pane | grep '^➤'`), and press `j` until that line holds the title.
+92. **`PATCH /api/me/progress/:id` with `isFinished: false` sets the position to
+    0.** A measurement that writes "the place of a different client" gives
+    `currentTime` alone, and `progress` beside it when a view must show a
+    percent. See section 15 of `docs/TEST-SERVER.md`.
+93. **The row of `listening_session` says which program wrote it** since T-140:
+    `owner` is the identity of the process and `heartbeat` is the moment of the
+    last second of the playback. A measurement that writes a row by hand must
+    give those two columns, or the program takes that row for the row of a
+    program that died.
 
 ### Of the harness and of the machine
 
