@@ -9,7 +9,7 @@ use crate::db::crud::{
 use fetch::{fetch_item, TheFaultOfTheDownload};
 use log::{error, info};
 use plan::{plan_from_episode, plan_from_item};
-use progress::ProgressMap;
+use progress::{claim_the_download, release_the_download, ProgressMap, TheClaimOfTheDownload};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, OnceLock, RwLock};
@@ -120,6 +120,19 @@ pub async fn download_with_progress(
     server_key: String,
     progress: ProgressMap,
 ) {
+    // **This program holds the map of its own downloads**, and the key of that
+    // map is the media. A second press of the key `D` on one media therefore
+    // wrote over the row of the download that runs, and the bar of that
+    // download went off the screen for the whole of it. The claim holds the
+    // place of the media, and it names this program with the truth. See T-154.
+    if claim_the_download(&progress, target.key(), &title)
+        == TheClaimOfTheDownload::ThisProgramDownloadsIt
+    {
+        info!("[download_item] this program downloads \"{}\" now", title);
+        crate::logic::message::say(&text_of_the_key_that_downloads(&title));
+        return;
+    }
+
     crate::logic::message::say(&format!(
         "Downloading \"{}\" for offline listening...",
         title
@@ -130,6 +143,7 @@ pub async fn download_with_progress(
             "[download_item] No token. The download of \"{}\" stopped.",
             title
         );
+        release_the_download(&progress, target.key(), "no authentication token");
         crate::logic::message::say("Download failed: no authentication token.");
         return;
     };
@@ -145,6 +159,7 @@ pub async fn download_with_progress(
         Ok(item) => item,
         Err(message) => {
             error!("[download_item] Failed to read \"{}\": {}", title, message);
+            release_the_download(&progress, target.key(), &message);
             crate::logic::message::say(&format!("Download failed for \"{}\": {}", title, message));
             return;
         }
@@ -158,6 +173,7 @@ pub async fn download_with_progress(
     let Some(plan) = plan else {
         let message = "the server gave no audio file";
         error!("[download_item] Failed to plan \"{}\": {}", title, message);
+        release_the_download(&progress, target.key(), message);
         crate::logic::message::say(&format!("Download failed for \"{}\": {}", title, message));
         return;
     };
@@ -385,6 +401,22 @@ pub fn text_of_the_download_that_runs(title: &str, of_this_program: bool) -> Str
         "A different program of this account downloads \"{}\" now. The key X removes it when that download ends.",
         title
     )
+}
+
+/// Gives the sentence of the key `D` for a download that this program runs
+/// already. See T-154.
+///
+/// The key `X` holds two sentences since T-150 — the program of this window and
+/// the program of the other window — and the key `D` held the sentence of the
+/// other window alone. **A user who presses the key two times then reads that a
+/// different program downloads their media**, and no different program exists.
+///
+/// The sentence promises no key that the program does not hold (T-118 and
+/// T-143): no key of this program stops a download.
+///
+/// The function is pure, therefore a test needs no server.
+pub fn text_of_the_key_that_downloads(title: &str) -> String {
+    format!("This program downloads \"{}\" now.", title)
 }
 
 /// What the key `X` must do with the files of one download. See T-150.

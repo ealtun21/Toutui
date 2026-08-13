@@ -56,6 +56,69 @@ impl DownloadProgress {
 /// progress.
 pub type ProgressMap = Arc<RwLock<HashMap<String, DownloadProgress>>>;
 
+/// What the key `D` found in the map of the progress of this program. See
+/// T-154.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TheClaimOfTheDownload {
+    /// No download of this media ran in this program, and this call holds the
+    /// place of that media now.
+    ThePlaceIsTaken,
+    /// This program downloads this media now. The caller must change no field
+    /// of that row.
+    ThisProgramDownloadsIt,
+}
+
+/// Holds the place of one media in the map of the progress of this program.
+///
+/// **The map is global and its key is the media** (see [`super::downloads`]),
+/// therefore a second task of this program writes over the row of the download
+/// that runs. The row then said `Failed`, `render_downloads` drew no bar, and
+/// the user read nothing of a download of some hundred megabytes. See T-154.
+///
+/// The function reads and writes under one lock, therefore two presses of one
+/// moment give one claim. A lock that fails must not stop a download of the
+/// user: the function gives [`TheClaimOfTheDownload::ThePlaceIsTaken`] then.
+pub fn claim_the_download(progress: &ProgressMap, key: &str, title: &str) -> TheClaimOfTheDownload {
+    let Ok(mut map) = progress.write() else {
+        return TheClaimOfTheDownload::ThePlaceIsTaken;
+    };
+
+    if let Some(row) = map.get(key) {
+        if row.state == DownloadState::Running {
+            return TheClaimOfTheDownload::ThisProgramDownloadsIt;
+        }
+    }
+
+    map.insert(
+        key.to_string(),
+        DownloadProgress {
+            key: key.to_string(),
+            title: title.to_string(),
+            file_index: 1,
+            file_count: 1,
+            bytes_done: 0,
+            bytes_total: 0,
+            state: DownloadState::Running,
+        },
+    );
+
+    TheClaimOfTheDownload::ThePlaceIsTaken
+}
+
+/// Gives the place of a media back when the download did not start. See T-154.
+///
+/// A claim that stays `Running` for ever holds the key `D` of that media for
+/// ever. Therefore every road out of the download gives the place back.
+pub fn release_the_download(progress: &ProgressMap, key: &str, why: &str) {
+    let Ok(mut map) = progress.write() else {
+        return;
+    };
+
+    if let Some(row) = map.get_mut(key) {
+        row.state = DownloadState::Failed(why.to_string());
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -4,13 +4,91 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.88**, and T-152 and T-153 belong to this session. The
-items T-150 and T-151 belong to the session before it, T-148 and T-149 to the one
-before that, T-146 and T-147 to the one before those, T-145 to the one before
-them, T-142 to T-144 to the one before that, and T-140 and T-141 to the one
-before those.
+**The newest release is v0.7.89**, and T-154 belongs to this session. The items
+T-152 and T-153 belong to the session before it, T-150 and T-151 to the one
+before that, T-148 and T-149 to the one before those, T-146 and T-147 to the one
+before them, T-145 to the one before that, T-142 to T-144 to the one before it,
+and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the third turn of 2026-08-14: the two downloads of one podcast
+
+**One release: v0.7.89.** The road held one condition that no session had
+measured — **the key `D` of this program and the queue of the downloads of the
+server (T-81), in one library at one time** — and this session took it. **That
+condition holds no fault of the data**, and a sweep of the keys inside it found
+one fault of a key.
+
+| Item | What | Keys |
+|---|---|---|
+| T-154 | **The second press of `D` on one media took the bar of that download off the screen**, and it said that a different program of the account downloads it. 58 seconds of a download with no sign of it | `D` |
+
+### The condition of the road, and its answer
+
+**The two sides write two files.** The server writes the audio of a new episode
+in the directory of the library, and the program writes
+`downloads/<user>/<episode>/`. The program downloaded "Letter 13" of 10050287
+bytes while the server downloaded Letters 51 to 57, and it downloaded "Letter
+15" of 10041092 bytes while the server downloaded Letters 40 to 49: **the file
+of the disk and the file of the server give one sum of MD5 in both
+measurements.**
+
+**A new episode of the server stands at the end of `media.episodes`**, therefore
+no line of the list of the program moves and the key `D` of a line takes the
+media of that line. The header of the program says `R: the server has newer
+data` while the episodes come, and the view of the key `d` shows the queue of
+the server beside the bar of the download of the program.
+
+**Two facts of the sandbox that the condition needs.** The server holds the 57
+episodes of the feed already, therefore
+`DELETE /api/podcasts/:id/episode/:episode?hard=1` on ten of them makes the work
+of the server exist again; and the body of
+`POST /api/podcasts/:id/download-episodes` is the **bare array** of the episodes
+of the feed — an object of one field gives `400`.
+
+### T-154, and it is the one to know of this session
+
+**The map of the progress is global and its key is the media.** It must be
+global: a refresh with the key `R` makes a new `App`, and a map inside `App`
+would lose a download that runs (T-131). **The second task of the key `D`
+therefore writes on the row of the first task.** `fetch_item` writes
+`bytes_done = 0` and `Running` at its head, it then finds the lock of T-148 in
+the hand of the first task, and it writes `Failed` on that row.
+`render_downloads` draws a bar for each row of the state `Running` alone.
+
+| The moment | The screen |
+|---|---|
+| the first press of `D` | `⬇ Letter 15  0.0 MB / 9.6 MB` |
+| **the second press** | **no bar at all**, and `A different program of this account downloads "Letter 15" now.` |
+| 58 seconds later | no bar, and no line of the screen names that work |
+
+**The bytes are safe, and the user cannot see them.** The lock of T-148 keeps
+one writer, and the file of the disk is the file of the server. A book of 700
+megabytes gives an hour of a download with no sign of it.
+
+**The words were wrong beside it.** The key `X` holds two sentences since T-150,
+one of this window and one of the other window, and the key `D` held the
+sentence of the other window alone: the program named a different program of the
+account, and no such program existed.
+
+**The correction is the rule of T-148 and of T-150: the map of the progress of
+this process says which download this program runs.** `claim_the_download` reads
+and writes that map under one lock, therefore two presses of one moment give one
+claim. A row of the state `Running` gives `ThisProgramDownloadsIt`, the key
+changes no field of that row, and the program says `This program downloads "…"
+now.` **The claim stands before the request of the item**, therefore the bar
+comes with the key and not with the first byte, and every road out of the
+download gives the place back with `release_the_download`.
+
+### The measurements of this session
+
+| The measurement | The answer |
+|---|---|
+| **A download of an episode while the same podcast downloads on the server** | **no fault of the data**, and one sum of MD5 on both sides in two runs |
+| The list of the episodes while the server adds eight of them | the lines stay, and the header asks for the key `R` |
+| **The key `D` two times on one media** | **one fault** (T-154): the bar of the download went away for 58 seconds, and the words named a program that did not exist |
+| The same condition, after the correction | the bar stays and it grows, and the sentence names this program |
 
 ## The session of the second turn of 2026-08-14: the playback with no server, and the ebook of two windows
 
@@ -1118,13 +1196,13 @@ episodes for a podcast that is missing **54**, therefore it stays outside.
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 1039 of 1039 in 2.3 s, and cargo nextest run --run-ignored all gives 1064
-    # of 1064 with the sandbox up, in 16.6 s of wall clock: one test waits 16 s
+    # 1045 of 1045 in 2.3 s, and cargo nextest run --run-ignored all gives 1070
+    # of 1070 with the sandbox up, in 16.6 s of wall clock: one test waits 16 s
     # for the time limit of the send of a book (T-119), and one waits 15 s for
     # the time limit of a request
 ALSA_CONFIG_PATH=<the same file> nice -n 19 ionice -c 3 cargo test -j 16 --no-fail-fast
-    # **CI runs this command**, and it is not the same run as nextest: 1039 of
-    # 1039. nextest gives each test a process of its own, therefore it
+    # **CI runs this command**, and it is not the same run as nextest: 1045 of
+    # 1045. nextest gives each test a process of its own, therefore it
     # hides a test that shares a database with another test of its binary. Six
     # tests of three binaries failed on CI while nextest passed (T-144), and
     # `--no-fail-fast` says every binary that fails.
@@ -1522,17 +1600,24 @@ measurements of this session left.
      children of T-62. The window that gets a **different** book took the book
      of the other window of the disk: 545898521 bytes of one key, because `keep`
      is a fact of the process.
-   - **The conditions that no session has measured**, and a next session may take
-     one of them:
-     - **A download of a podcast episode while the same podcast downloads on the
-       server** (the key `D` of the program and the key of the queue of the
-       server of T-81 together). **This is the last condition of the road that
-       a session named and no session measured.**
-     - A next session must name a condition of its own after that one. The
-       shapes that found faults before: a state of one process that a second
-       program cannot see (T-142, T-147, T-148, T-150, T-153), a program that
-       dies in the middle of work (T-145, T-152), and a server that does not
-       answer (T-146, T-149, T-152).
+   - ~~**A download of a podcast episode while the same podcast downloads on the
+     server**~~ (the key `D` of the program and the queue of the server of
+     T-81): **made on 2026-08-14 (the third session), and the condition holds no
+     fault of the data.** The two sides write two files, and a new episode of
+     the server stands at the end of `media.episodes`, therefore no line of the
+     list moves. **A sweep of the keys inside that condition found T-154**: the
+     second press of `D` on one media took the bar of that download off the
+     screen for the whole of it.
+   - **No condition of the road stays. A next session must name a condition of
+     its own.** The shapes that found faults before: a state of one process that
+     a second program cannot see (T-142, T-147, T-148, T-150, T-153, T-154), a
+     program that dies in the middle of work (T-145, T-152), and a server that
+     does not answer (T-146, T-149, T-152). **The parts of the program that no
+     such measurement has reached**: the view of the accounts with two windows,
+     the key `X` of a media that plays in the other window, the search of a
+     library that a second window changes, and **a key of a view that the user
+     presses two times** — the shape that gave T-154, and the key `D` is one key
+     of many.
    - ~~**A second account of a second server while a media plays**~~ (T-124):
      **made on 2026-08-13, and it found T-138 and T-139** — the place of one
      account went to the server of another account, and no key sent the place of
@@ -2514,6 +2599,17 @@ answers slowly while it writes. Two answers to measure:
     the disk does **not** hold: a book of the cache gives no request and no
     removal. `ls` of `<XDG_DATA_HOME>/toutui/downloads/<the user>` says which
     books the cache holds (T-153).
+122. **The server holds the 57 episodes of its feed already, therefore
+    `POST /api/podcasts/:id/download-episodes` gives it no work.** A measurement
+    of the queue of the downloads of the server needs
+    `DELETE /api/podcasts/:id/episode/:episode?hard=1` on some episodes first,
+    and `POST /api/podcasts/feed` with `https://librivox.org/rss/52` gives the
+    lines of the feed again. **The body of `download-episodes` is the bare array
+    of those lines**: an object of one field gives `400 Bad Request` and the
+    queue stays empty. A hard delete and a new download can leave the file
+    `Letter 49 (<uuid>).mp3` beside `Letter 49.mp3`, and the library then holds
+    58 episodes of a feed of 57: that is the work of Audiobookshelf, and a
+    second hard delete takes it away (T-154).
 
 ### Of the harness and of the machine
 
@@ -2833,16 +2929,16 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**The road held three conditions that no session had measured, and this session
-took two of them** (T-152 and T-153): a program that dies while the server does
-not answer, and two programs of one account that read one ebook at one time.
-Both held a fault, and each of them destroys work of the user. **One condition of
-the road stays**, and a next session must name a condition of its own after it.
-This prompt names the state of the program on 2026-08-14.
+**The road held one condition that no session had measured, and this session took
+it**: the key `D` of the program and the queue of the downloads of the server, in
+one library at one time. **That condition holds no fault of the data**, and a
+sweep of the keys inside it found T-154. **No condition of the road stays now**,
+and a next session must name a condition of its own. This prompt names the state
+of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.7.88**; `Cargo.toml` is at 0.7.88. The
+> AlbanDAVID/Toutui. Newest release **v0.7.89**; `Cargo.toml` is at 0.7.89. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -2851,7 +2947,7 @@ This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-153 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-154 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -2879,17 +2975,22 @@ This prompt names the state of the program on 2026-08-14.
 > (the trap 116). **`podman stop -t 0 abs-test` takes the server away**, and the
 > program then starts in the offline mode with the media of the disk (T-152).
 > **The child of T-62 reads the PDF of 502 megabytes in 131 seconds**, therefore
-> a measurement of two readers has a window of two minutes (T-153).
+> a measurement of two readers has a window of two minutes (T-153). **The server
+> holds the 57 episodes of its feed already**, therefore a measurement of the
+> downloads of the server needs
+> `DELETE /api/podcasts/:id/episode/:episode?hard=1` first, and the body of
+> `POST /api/podcasts/:id/download-episodes` is the bare array of the episodes of
+> the feed (T-154).
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-154 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-155 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1039 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1064 of 1064** with the sandbox up, in 16.6 seconds. **Run that
+> Baseline: **1045 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1070 of 1070** with the sandbox up, in 16.6 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **`cargo test -j 16 --no-fail-fast` is the gate of CI, and it is a different
@@ -2906,23 +3007,21 @@ This prompt names the state of the program on 2026-08-14.
 >
 > ### The work, in the sequence of its value
 >
-> 1. **One condition of the road that no session has measured.** Every new
->    condition found a fault in sixteen sessions of seventeen, and the newest of
->    them found T-152 and T-153: an offline playback that a program does not end
->    lost every second of itself, and the window that gets an ebook took the book
->    that the other window reads of the disk.
->    - **A download of a podcast episode while the same podcast downloads on the
->      server**: the key `D` of this program and the queue of the server of T-81
->      write in one library at one time. **This is the last condition that a
->      session named and no session measured.**
->    - **After it, name a condition of your own.** The three shapes that found a
->      fault before: **a state of one process that a second program cannot see**
->      (T-142, T-147, T-148, T-150, T-153), **a program that dies in the middle
->      of work** (T-145, T-152), and **a server that does not answer** (T-146,
->      T-149, T-152). The parts of the program that no such measurement has
->      reached: the view of the accounts with two windows, the key `X` of a
->      media that plays in the other window, and the search of a library that a
->      second window changes.
+> 1. **Name a condition of your own, and measure it.** Every new condition found
+>    a fault in seventeen sessions of eighteen. **No condition of the road
+>    stays**: the newest session took the last one — the key `D` of the program
+>    and the queue of the downloads of the server — and that condition holds no
+>    fault of the data. **A sweep of the keys inside it found T-154 all the
+>    same.**
+>    - **The three shapes that found a fault before:** **a state of one process
+>      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153,
+>      T-154), **a program that dies in the middle of work** (T-145, T-152), and
+>      **a server that does not answer** (T-146, T-149, T-152).
+>    - **The parts of the program that no such measurement has reached**: the
+>      view of the accounts with two windows, the key `X` of a media that plays
+>      in the other window, the search of a library that a second window changes,
+>      and **a key of a view that the user presses two times** — that shape gave
+>      T-154, and the key `D` is one key of many.
 > 2. **The words for the user.** Every text in ASD-STE100. A view says why it
 >    holds no line, and it never says a reason that the program does not have
 >    (T-91). **A text must not promise a function that the program does not
@@ -2959,8 +3058,10 @@ This prompt names the state of the program on 2026-08-14.
 > **the key `X` takes the disk of a download and it takes no file of a download
 > that runs** (T-150), **the key `X` of the queue says one sentence on both of
 > its roads** (T-151), **an offline playback keeps its place for the server at
-> each second** (T-152), and **the cache of the ebooks keeps the book that a
-> second window reads, and the cache may then stand above its limit** (T-153).
+> each second** (T-152), **the cache of the ebooks keeps the book that a second
+> window reads, and the cache may then stand above its limit** (T-153), and **the
+> key `D` on a media that this program downloads already changes no byte of that
+> download and it names this program** (T-154).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

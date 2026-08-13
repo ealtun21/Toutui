@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.89",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The bar of a download stays on the screen when you press D two times.** The \
+             second press stopped the bar of the download that runs, and the program then \
+             gave you no sign of it for the whole of that download. The program said that a \
+             different program of your account downloads that media, and no different \
+             program did: it says \"This program downloads …\" now.",
+        ],
+    },
+    Entry {
         version: "0.7.88",
         date: "14/08/2026",
         body: &[

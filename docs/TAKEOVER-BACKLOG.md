@@ -7093,6 +7093,108 @@ fails with "the removal took the book that the window A reads".
 "it goes although its time of use is the newest of the two" — and it holds the
 new rule and the end of the mark now.
 
+### T-154: a download of an episode while the server downloads that podcast, and the key `D` that lost its own bar
+
+**The sweep of 2026-08-14: the key `D` of the program and the queue of the
+downloads of the server (T-81), in one library at one time.** The road named
+this condition in the session of T-148, and it was the last condition of the
+road that a session named and no session measured.
+
+**The condition needs work on both sides.** The server holds the 57 episodes of
+the feed of `docs/TEST-SERVER.md` already, therefore
+`POST /api/podcasts/:id/download-episodes` gives it nothing to do:
+`DELETE /api/podcasts/:id/episode/:episode?hard=1` on ten of them makes the
+work of the server exist again. **The body of that request is the bare array of
+the episodes of the feed**, and an object of one field gives `400`. A download
+of the loopback ends in less than one second (the trap 116), therefore
+`docs/harness/slow_body.py` with 0.4 seconds for each block of 64 kilobytes
+gives the download of the program about 60 seconds, and the two sides then meet.
+
+**The named condition holds no fault of the data.**
+
+| The measurement | The answer |
+|---|---|
+| The program downloads "Letter 13" of 10050287 bytes while the server downloads Letters 51 to 57 | **the file of the disk and the file of the server give one sum of MD5** |
+| The same, with "Letter 15" of 10041092 bytes and Letters 40 to 49 | **one sum of MD5 again**, and every episode of the server holds its audio file |
+| The list of the episodes of the program, while the server adds eight of them | 49 lines, and the header says `R: the server has newer data` |
+| The key `D` on a line of that list | **the line of the program is the media of the program**: a new episode of the server stands at the end of `media.episodes`, therefore no line moves |
+| The view of the downloads of the server (the key `d`) while the program downloads | `The downloads of the server [8 items]`, with `▼ Letter 42` |
+
+**The two sides write two files.** The server writes the audio of a new episode
+in the directory of the library, and the program writes
+`downloads/<user>/<episode>/`: the one word that they share is the item of the
+podcast, and a new episode of the server changes no line of it.
+
+**A sweep of the keys inside that condition found a fault of one key**, and it
+is the fault of this item.
+
+#### The key `D` two times on one media
+
+The user pressed `D` on "Letter 15", and they pressed `D` again 5 seconds later.
+
+| The moment | The screen | The disk |
+|---|---|---|
+| the first press | `⬇ Letter 15  0.0 MB / 9.6 MB` | the `.part` file grows |
+| **the second press** | **no bar at all**, and `A different program of this account downloads "Letter 15" now.` | the `.part` file grows |
+| 58 seconds later | no bar, and no line of the screen names that work | `001 - Letter 15.mp3` of 10041092 bytes, and its sum is the sum of the server |
+
+**The map of the progress is global and its key is the media** (`downloads()`),
+because a refresh with the key `R` makes a new `App` and a map inside `App`
+would lose a download that runs (T-131). The second task of the key therefore
+writes on the row of the first task: `fetch_item` writes
+`bytes_done = 0` and `Running` at its head, it then finds the lock of T-148 in
+the hand of the first task, and it writes `Failed` on that row.
+`render_downloads` draws a bar for each row of the state `Running` alone.
+
+**The user reads nothing of a download that runs.** 58 seconds for an episode of
+10 megabytes, and a book of 700 megabytes gives an hour of it. The bytes are
+safe — the lock of T-148 keeps one writer, and the file of the disk is the file
+of the server — **and the user cannot see them**.
+
+**The words were wrong beside it.** The key `X` holds two sentences since T-150,
+one of this window and one of the other window, and the key `D` held the
+sentence of the other window alone: the program named a different program of the
+account, and no such program existed.
+
+**The correction is the rule of T-148 and of T-150: the map of the progress of
+this process says which download this program runs.** `claim_the_download` reads
+and writes that map under one lock, therefore two presses of one moment give one
+claim:
+
+- a row of the state `Running` gives `ThisProgramDownloadsIt`, and the key
+  **changes no field of that row**. The program says
+  `This program downloads "…" now.` and it asks the server nothing.
+- every other condition gives `ThePlaceIsTaken`, and the row of the media starts
+  at no byte.
+
+The claim stands **before** the request of the item, therefore the bar comes
+with the key and not with the first byte. Every road out of the download gives
+the place back with `release_the_download`: a claim that stays `Running` for
+ever would hold the key `D` of that media for ever.
+
+The same measurement after the correction:
+
+| The moment | The screen |
+|---|---|
+| the first press | `⬇ Letter 54  0.1 MB / 11.7 MB` |
+| **the second press** | `This program downloads "Letter 54" now.`, and `⬇ Letter 54  0.9 MB / 11.7 MB` |
+| 12 seconds later | `⬇ Letter 54  1.9 MB / 11.7 MB`, and the bar grows |
+| the end | the file of 12278636 bytes, and its sum is the sum of the server |
+
+`tests/the_key_d_of_a_download_that_runs.rs` holds the rule with no server and
+no file. A build with the correction removed gives `left: ThePlaceIsTaken`
+against `right: ThisProgramDownloadsIt`, and the row of the download that runs
+then loses its bar and its bytes. **No unit test reaches a key handler of
+`src/app.rs`**, therefore the last part of that test reads the source: the claim
+must stand before `get_item`, and three roads out of the download must give the
+place back.
+
+**A note of the sandbox.** A hard delete of an episode and a new download of it
+can leave the file `Letter 49 (<uuid>).mp3` beside `Letter 49.mp3`, and the
+library then holds 58 episodes of a feed of 57. That is the work of
+Audiobookshelf and not of the program. The session took the second row away, and
+the library holds 57 episodes and 57 files again.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed
