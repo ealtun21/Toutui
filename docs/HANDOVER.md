@@ -1190,7 +1190,7 @@ episodes for a podcast that is missing **54**, therefore it stays outside.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.88` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.89` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
