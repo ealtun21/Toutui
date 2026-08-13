@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.90",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The program keeps your account when a second window of it removes a different \
+             account.** The view of the accounts held the accounts of the moment of its start: \
+             the key `c` on a line of an account that the other window removed took the start \
+             of the program from every account, and the login screen then came at every start \
+             with your account and its token on the disk. The view reads the accounts of the \
+             disk now, the two keys say when a different program removed the account of your \
+             line, and a program that finds no account of a start gives that work to your \
+             first account.",
+        ],
+    },
+    Entry {
         version: "0.7.89",
         date: "14/08/2026",
         body: &[

@@ -2313,7 +2313,13 @@ impl App {
                         }
                     }
                     AppView::Settings => match self.list_state_settings.selected() {
-                        Some(0) => self.view_state = AppView::SettingsAccount,
+                        // The view reads the accounts of the disk when it opens:
+                        // a second program of this account adds and removes a
+                        // row while this window stands open. See T-155.
+                        Some(0) => {
+                            self.the_accounts_come_from_the_disk();
+                            self.view_state = AppView::SettingsAccount;
+                        }
                         Some(1) => self.view_state = AppView::SettingsLibrary,
                         Some(4) => self.show_the_settings_of_the_reader(),
                         _ => {}
@@ -2344,6 +2350,32 @@ impl App {
                             }
 
                             self.confirm_logout = None;
+
+                            // **The disk is the truth, and the key acts on the
+                            // account of its own line** (T-147). A second
+                            // program of this account can remove that account
+                            // while this view stands: the key then changed no
+                            // row and it said nothing at all (T-79), and the
+                            // rule of the log out read a list of a phantom.
+                            // See T-155.
+                            self.the_accounts_come_from_the_disk();
+
+                            if matches!(
+                                crate::logic::the_accounts::the_account_of_the_line(
+                                    &self.the_accounts,
+                                    &usr_to_delete
+                                ),
+                                crate::logic::the_accounts::TheAccountOfTheLine::ItIsGone
+                            ) {
+                                crate::logic::message::say(
+                                    &crate::logic::the_accounts::the_text_of_an_account_that_is_gone(
+                                        &usr_to_delete,
+                                    ),
+                                );
+
+                                return;
+                            }
+
                             let _ = delete_user(usr_to_delete.as_str());
 
                             // **A log out of the account that starts leaves the
@@ -5093,6 +5125,36 @@ impl App {
     /// One line for each account of the database. The account that starts the
     /// program holds the mark, and the address of the server stands beside the
     /// name: two accounts of one name on two servers are two accounts.
+    /// Reads the accounts of the database again. See T-155.
+    ///
+    /// **The list of the accounts came of `App::new` alone**, therefore the view
+    /// of a window that stands open showed an account that a second program of
+    /// this account removed, and it hid an account that a second program added.
+    /// The disk is the truth, and the program reads it at the moment of the use:
+    /// that is the rule of T-142, of T-147, and of T-148.
+    ///
+    /// The line of the user keeps its place when the list holds it still, and it
+    /// goes to the last line of the list when the list became shorter.
+    pub fn the_accounts_come_from_the_disk(&mut self) {
+        let of_the_disk = crate::db::crud::select_every_usr().unwrap_or_default();
+
+        if of_the_disk.is_empty() {
+            // A database of no account is the database of a login that runs. The
+            // list of this window then says more than the disk does, and no key
+            // of this view needs a list of no line.
+            return;
+        }
+
+        self.the_accounts = of_the_disk;
+
+        let last = self.the_accounts.len() - 1;
+        match self.list_state_settings_account.selected() {
+            Some(line) if line > last => self.list_state_settings_account.select(Some(last)),
+            Some(_) => {}
+            None => self.list_state_settings_account.select(Some(0)),
+        }
+    }
+
     pub fn the_lines_of_the_accounts(&self) -> Vec<String> {
         self.the_accounts
             .iter()
@@ -5165,6 +5227,24 @@ impl App {
             return;
         };
 
+        // **The disk is the truth**: a second program of this account can
+        // remove the account of this line while this view stands. The key then
+        // took the mark of the start from every account and it gave that mark
+        // to nobody, and the program showed the login screen at every start
+        // after it. See T-155.
+        self.the_accounts_come_from_the_disk();
+
+        if matches!(
+            crate::logic::the_accounts::the_account_of_the_line(&self.the_accounts, &name),
+            crate::logic::the_accounts::TheAccountOfTheLine::ItIsGone
+        ) {
+            crate::logic::message::say(
+                &crate::logic::the_accounts::the_text_of_an_account_that_is_gone(&name),
+            );
+
+            return;
+        }
+
         if self
             .the_accounts
             .iter()
@@ -5200,14 +5280,34 @@ impl App {
     /// process does that work, and no state of this process crosses it. The key
     /// `c` and a log out of the account that starts both come here. See T-124.
     pub fn start_the_program_with_this_account(&mut self, name: &str) {
-        if let Err(error) = crate::db::crud::make_this_account_the_default(name) {
-            log::error!(
-                "[the accounts] the account {} cannot start: {}",
-                name,
-                error
-            );
-            crate::logic::message::say("The program cannot write the account of the start.");
-            return;
+        match crate::db::crud::make_this_account_the_default(name) {
+            Err(error) => {
+                log::error!(
+                    "[the accounts] the account {} cannot start: {}",
+                    name,
+                    error
+                );
+                crate::logic::message::say("The program cannot write the account of the start.");
+                return;
+            }
+
+            // **The program must not start again for an account of no row.**
+            // The write gave the mark of the start to nobody before T-155, and
+            // the login screen then came at every start with a good account on
+            // the disk.
+            Ok(0) => {
+                log::warn!(
+                    "[the accounts] the database holds no account {}. The program stays.",
+                    name
+                );
+                crate::logic::message::say(
+                    &crate::logic::the_accounts::the_text_of_an_account_that_is_gone(name),
+                );
+                self.the_accounts_come_from_the_disk();
+                return;
+            }
+
+            Ok(_) => {}
         }
 
         log::info!(

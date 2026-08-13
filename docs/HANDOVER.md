@@ -4,13 +4,78 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.89**, and T-154 belongs to this session. The items
-T-152 and T-153 belong to the session before it, T-150 and T-151 to the one
-before that, T-148 and T-149 to the one before those, T-146 and T-147 to the one
-before them, T-145 to the one before that, T-142 to T-144 to the one before it,
-and T-140 and T-141 to the one before those.
+**The newest release is v0.7.90**, and T-155 belongs to this session. The item
+T-154 belongs to the session before it, T-152 and T-153 to the one before that,
+T-150 and T-151 to the one before those, T-148 and T-149 to the one before them,
+T-146 and T-147 to the one before those, T-145 to the one before that, T-142 to
+T-144 to the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the fourth turn of 2026-08-14: the accounts of two windows
+
+**One release: v0.7.90.** No condition of the road stayed, therefore this
+session named one of its own: **the view of the accounts (T-124), with two
+windows of one account**. The prompt of the session named that part of the
+program as a part that no measurement had reached. **It holds a fault, and that
+fault locks the user out of their own account.**
+
+| Item | What | Keys |
+|---|---|---|
+| T-155 | **One key took the start of the program from every account and gave it to nobody.** The login screen then came at every start, and the account of the user stood on the disk with its token | `S`, then `c` and `l` |
+
+### T-155, and it is the one to know of this session
+
+**The list of the accounts comes of `App::new` alone.** The view drew that list
+at every frame after it, therefore a window that stands open shows an account
+that a second window removed, and it hides an account that a second window
+added. That is the shape of T-142, of T-147, of T-148, and of T-153.
+
+| The moment | The window A | The disk |
+|---|---|---|
+| Before | `▶ toutuitest`, `  toutuilimited` | both, and `toutuitest` holds the mark |
+| B logs out of `toutuilimited` | **the two lines stay** | `toutuitest` alone |
+| The key `c` of A on that line | `Press c again to start with the account "toutuilimited"` | — |
+| **The second press** | **the login screen**: a server, a name, and a password | **`toutuitest`, and its `is_default_usr` is `0`** |
+| A new window after it | **the login screen** | the same |
+
+**One write of two lines is the cause.** `make_this_account_the_default` takes
+the mark from every account and it then gives that mark to the account of the
+name: a name of no row gives **0 rows** of the second write, and the transaction
+commits all the same. `select_default_usr` reads `WHERE is_default_usr = 1
+LIMIT 1`, therefore `src/main.rs` draws the login screen. The log said
+`the account toutuilimited starts the program`, and no such account existed.
+
+**The user needs the password of that server to come back**, and no key of the
+program gives the mark back: that is the shape of T-136. The rows of the queue,
+of the downloads, and of the positions hold the name of the account, therefore a
+login of the same name finds them again.
+
+**The correction is the rule of T-142: the disk is the truth, and the program
+reads it at the moment of the use.** The view reads `select_every_usr` when it
+opens, and the keys `c` and `l` read it before they act; **a key acts on the name
+of its own line** and not on the place of that line (T-147). The write gives the
+database back as it was when its name holds no row, and its caller starts the
+program again no more. **A database that met the fault already must find its
+account again**, and no key can do that work:
+`an_account_takes_the_start_when_none_holds_it` gives the start to the first
+account, and `src/main.rs` calls it before `Database::new`.
+
+**Two faults of the words stood beside it.** The key `l` on such a line removed
+0 rows and said **nothing at all** (T-79), and the view hid an account that a
+second window added with the key `a`. Both keys say
+`A different program of this account removed the account "…".` now, and that
+sentence promises no key (T-118 and T-143).
+
+### The measurements of this session
+
+| The measurement | The answer |
+|---|---|
+| **The key `c` of one window on an account that the other window removed** | **one fault** (T-155), and the program locks the user out of the account that stays |
+| The same condition, after the correction | the key says the reason, the view holds the account of the disk, and the account of the start stays |
+| The key `l` on such a line | **one fault of the words** before the correction: no row went away, and the program said nothing |
+| A window that opens the view after the key `a` of a second window | **the fault before the correction** (the account did not stand in the list), and both accounts and the right mark after it |
+| The start of a program whose database holds no account of a start | **the login screen** before the correction, and the Home view of `toutuitest` after it |
 
 ## The session of the third turn of 2026-08-14: the two downloads of one podcast
 
@@ -2929,16 +2994,15 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**The road held one condition that no session had measured, and this session took
-it**: the key `D` of the program and the queue of the downloads of the server, in
-one library at one time. **That condition holds no fault of the data**, and a
-sweep of the keys inside it found T-154. **No condition of the road stays now**,
-and a next session must name a condition of its own. This prompt names the state
-of the program on 2026-08-14.
+**No condition of the road stayed, therefore this session named one of its own**:
+the view of the accounts, with two windows of one account. It found T-155, and
+that fault takes the account of the user away. **The next session must name a
+condition of its own too.** This prompt names the state of the program on
+2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.7.89**; `Cargo.toml` is at 0.7.89. The
+> AlbanDAVID/Toutui. Newest release **v0.7.90**; `Cargo.toml` is at 0.7.90. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -2947,7 +3011,7 @@ of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-154 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-155 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -2980,17 +3044,20 @@ of the program on 2026-08-14.
 > downloads of the server needs
 > `DELETE /api/podcasts/:id/episode/:episode?hard=1` first, and the body of
 > `POST /api/podcasts/:id/download-episodes` is the bare array of the episodes of
-> the feed (T-154).
+> the feed (T-154). **The sandbox holds a second account for the keys of the
+> view of the accounts**: `toutuilimited` / `toutuilimited` (section 14 of
+> `docs/TEST-SERVER.md`), and the key `a` of that view takes it through the
+> login screen of a second window (T-155).
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-155 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-156 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1045 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1070 of 1070** with the sandbox up, in 16.6 seconds. **Run that
+> Baseline: **1049 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1074 of 1074** with the sandbox up, in 16.6 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **`cargo test -j 16 --no-fail-fast` is the gate of CI, and it is a different
@@ -3008,20 +3075,23 @@ of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **Name a condition of your own, and measure it.** Every new condition found
->    a fault in seventeen sessions of eighteen. **No condition of the road
->    stays**: the newest session took the last one — the key `D` of the program
->    and the queue of the downloads of the server — and that condition holds no
->    fault of the data. **A sweep of the keys inside it found T-154 all the
->    same.**
+>    a fault in eighteen sessions of nineteen. **No condition of the road
+>    stays**: the newest session named one of its own — the view of the accounts
+>    with two windows — and it found T-155, the fault that takes the account of
+>    the user away.
 >    - **The three shapes that found a fault before:** **a state of one process
 >      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153,
->      T-154), **a program that dies in the middle of work** (T-145, T-152), and
->      **a server that does not answer** (T-146, T-149, T-152).
->    - **The parts of the program that no such measurement has reached**: the
->      view of the accounts with two windows, the key `X` of a media that plays
->      in the other window, the search of a library that a second window changes,
->      and **a key of a view that the user presses two times** — that shape gave
->      T-154, and the key `D` is one key of many.
+>      T-154, T-155), **a program that dies in the middle of work** (T-145,
+>      T-152), and **a server that does not answer** (T-146, T-149, T-152).
+>    - **The parts of the program that no such measurement has reached**: the key
+>      `X` of a media that plays in the other window, the search of a library
+>      that a second window changes, **the key `S` of the library of the start
+>      with two windows**, the bookmarks and the lists of two windows, and **a
+>      key of a view that the user presses two times** — that shape gave T-154,
+>      and the key `D` is one key of many.
+>    - **The shape of T-155 is worth a sweep of its own**: a write of a state
+>      that names a row of the database. A name that no row holds must change no
+>      other row, and the caller must read the number of the rows.
 > 2. **The words for the user.** Every text in ASD-STE100. A view says why it
 >    holds no line, and it never says a reason that the program does not have
 >    (T-91). **A text must not promise a function that the program does not
@@ -3061,7 +3131,9 @@ of the program on 2026-08-14.
 > each second** (T-152), **the cache of the ebooks keeps the book that a second
 > window reads, and the cache may then stand above its limit** (T-153), and **the
 > key `D` on a media that this program downloads already changes no byte of that
-> download and it names this program** (T-154).
+> download and it names this program** (T-154), and **the view of the accounts
+> reads the disk at the moment of the use, and the mark of the account of the
+> start never stands on nobody** (T-155).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

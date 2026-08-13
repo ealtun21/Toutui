@@ -7195,6 +7195,88 @@ library then holds 58 episodes of a feed of 57. That is the work of
 Audiobookshelf and not of the program. The session took the second row away, and
 the library holds 57 episodes and 57 files again.
 
+### T-155: the view of the accounts of two windows, and the mark of the start that stood on nobody
+
+**The sweep of 2026-08-14: two windows of one account, and the view of the
+accounts (T-124).** The road named that part of the program, and no session had
+measured it. **The condition holds a fault, and that fault locks the user out of
+their account.**
+
+**The list of the accounts comes of `App::new` alone.** `self.the_accounts` holds
+the rows of `users` of the moment of the start, and the view of the accounts
+draws that list at every frame after it: a second program of the account adds a
+row with the key `a` and removes a row with the key `l`, and no line of the first
+window follows. That is the shape of T-142, of T-147, of T-148, and of T-153.
+
+The measurement, with the sandbox and two sessions of tmux of one
+`XDG_CONFIG_HOME`. The database held `toutuitest` (the account of the start) and
+`toutuilimited`, and the window A held the view of the accounts open:
+
+| The moment | The window A | The disk |
+|---|---|---|
+| Before | `▶ toutuitest`, `  toutuilimited` | both, and `toutuitest` holds the mark |
+| The window B logs out of `toutuilimited` with `l` | **the two lines stay** | `toutuitest` alone |
+| The user of A presses `c` on the line of `toutuilimited` | `Press c again to start with the account "toutuilimited"` | — |
+| The second press of `c` | **the login screen**, and it asks for a server, a name, and a password | **`toutuitest`, and its `is_default_usr` is `0`** |
+| A new window of the program after it | **the login screen** | the same |
+
+**The cause is one write of two lines.** `make_this_account_the_default` takes
+the mark from every account and it then gives that mark to the account of the
+name; a name that no row holds gives **0 rows** of the second write, and the
+transaction commits all the same. `select_default_usr` reads
+`WHERE is_default_usr = 1 LIMIT 1`, therefore `Database::new` gives no account,
+and `src/main.rs` draws the login screen. The log of that moment says
+`[the accounts] the account toutuilimited starts the program`, and no such
+account exists.
+
+**The user loses the account, and the token of that account stands on the disk.**
+No key of the program gives the mark back, in any view and after every start:
+that is the shape of T-136. The rows of the queue, of the downloads, and of the
+positions that wait hold the name of the account, therefore a login with the same
+name finds them again — **and the user needs the password of that server for it.**
+
+**The same list gave two faults beside it.** The key `l` on a line of an account
+that a second program removed called `delete_user`, which removes 0 rows and
+**says nothing** (T-79); and the view hid an account that a second program
+**added** with the key `a`.
+
+**The correction is the rule of T-142: the disk is the truth, and the program
+reads it at the moment of the use.**
+
+- `App::the_accounts_come_from_the_disk` reads `select_every_usr` again. The view
+  calls it when it opens, and the keys `c` and `l` call it before they act.
+- **A key acts on the name of its own line** (T-147), and not on the place of
+  that line: the key takes the name of the list that the user reads, and the
+  disk then says if that account stays.
+- `logic::the_accounts::the_account_of_the_line` gives that answer, and
+  `the_text_of_an_account_that_is_gone` gives the sentence
+  `A different program of this account removed the account "…".` The sentence
+  promises no key (T-118 and T-143): this program holds no key that gives such
+  an account back.
+- `make_this_account_the_default` gives the database back as it was when its
+  name holds no row (`rollback`), and it gives `0` to its caller.
+  `start_the_program_with_this_account` starts the program again no more on that
+  road.
+- **A database that met the fault already must find its account again**, and no
+  key of the program can do that work: `an_account_takes_the_start_when_none_holds_it`
+  gives the start to the first account of the table, and `src/main.rs` calls it
+  before `Database::new`. The start is the place of that answer (T-136).
+
+The same measurement after the correction: the key `c` says
+`A different program of this account removed the account "toutuilimited".`, the
+view of A holds one line, `toutuitest` keeps the mark, and the program stays. The
+key `l` says the same sentence and it removes no row. A window that opens the
+view after the key `a` of a second window reads **both** accounts, and the mark
+stands on the account of the newest login. The program of the database of the
+fault says
+`[an_account_takes_the_start] no account held the start. The account toutuitest takes it.`
+and it draws the Home view.
+
+`tests/the_accounts_belong_to_the_disk.rs` holds the whole rule. It writes
+`XDG_CONFIG_HOME`, therefore it stands alone in its binary (T-144), and its last
+part reads `src/app.rs`: **no unit test reaches a key handler**. Without the
+rollback of the write, the test gives `left: None` for the account of the start.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

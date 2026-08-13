@@ -89,6 +89,50 @@ pub fn the_account_after_a_log_out(
     }
 }
 
+/// What a key of the view of the accounts finds on the line of the user. See
+/// T-155.
+#[derive(Debug, PartialEq, Eq)]
+pub enum TheAccountOfTheLine {
+    /// The database holds that account. The key does its work.
+    ItStays,
+    /// A different program of this account removed it. The key changes no row,
+    /// and it says the reason.
+    ItIsGone,
+}
+
+/// Tells if the account of the line of the user stands in the database still.
+///
+/// **The list of the accounts is the list of one process**: `App::new` reads it
+/// one time, and a second program of the account adds and removes a row while
+/// that list stands. Every key of the view therefore reads the database before
+/// it acts, and it acts on the **name** of its own line — that is the rule of
+/// T-142 for the file of the settings, and the rule of T-147 for a line of the
+/// queue.
+pub fn the_account_of_the_line(
+    accounts: &[(String, String, bool)],
+    the_name_of_the_line: &str,
+) -> TheAccountOfTheLine {
+    if accounts
+        .iter()
+        .any(|(name, _, _)| name == the_name_of_the_line)
+    {
+        TheAccountOfTheLine::ItStays
+    } else {
+        TheAccountOfTheLine::ItIsGone
+    }
+}
+
+/// The sentence of a key that found no account on its line. See T-155.
+///
+/// The sentence names the account, and it names no key: this program holds no
+/// key that gives such an account back (T-118 and T-143).
+pub fn the_text_of_an_account_that_is_gone(name: &str) -> String {
+    format!(
+        "A different program of this account removed the account \"{}\".",
+        name
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -165,6 +209,46 @@ mod tests {
         assert_eq!(
             the_account_after_a_log_out(&accounts(), "toutuitest"),
             AfterALogOut::ThisAccountStarts("secondtest".to_string())
+        );
+    }
+
+    /// The account of the line stands in the database, therefore the key does
+    /// its work.
+    #[test]
+    fn an_account_of_the_database_stays() {
+        assert_eq!(
+            the_account_of_the_line(&accounts(), "secondtest"),
+            TheAccountOfTheLine::ItStays
+        );
+    }
+
+    /// A second program of the account removed the account of the line. The key
+    /// must find it gone: it wrote the mark of the start on nobody before
+    /// T-155, and the program then showed the login screen at every start.
+    #[test]
+    fn an_account_that_a_second_program_removed_is_gone() {
+        let of_the_disk = vec![(
+            "toutuitest".to_string(),
+            "127.0.0.1:13399".to_string(),
+            true,
+        )];
+
+        assert_eq!(
+            the_account_of_the_line(&of_the_disk, "secondtest"),
+            TheAccountOfTheLine::ItIsGone
+        );
+    }
+
+    /// The sentence names the account, and it promises no key.
+    #[test]
+    fn the_sentence_of_an_account_that_is_gone_names_it() {
+        let text = the_text_of_an_account_that_is_gone("secondtest");
+
+        assert!(text.contains("secondtest"), "{}", text);
+        assert!(
+            !text.contains("Press"),
+            "the sentence must promise no key: {}",
+            text
         );
     }
 

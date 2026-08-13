@@ -77,6 +77,21 @@ async fn main() -> Result<()> {
     // Every turn of this loop is one account: the login screen, the client, the
     // tasks, and the views. See T-123.
     'the_session: loop {
+        // **A database of accounts where no account holds the start gives the
+        // login screen**, and the token of every one of those accounts stands on
+        // the disk. No key of the program gave the mark back, in any view and
+        // after every start: that is the shape of T-136, and the start is the
+        // place of the answer. The first account takes the start then. See
+        // T-155.
+        match toutui::db::crud::an_account_takes_the_start_when_none_holds_it() {
+            Ok(Some(name)) => info!(
+                "[main] no account held the start of the program. The account {} takes it.",
+                name
+            ),
+            Ok(None) => {}
+            Err(error) => log::error!("[main] the account of the start: {}", error),
+        }
+
         // Init database
         let mut _database = Database::new().await?;
         let mut _database_ready = false;

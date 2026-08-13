@@ -1,8 +1,8 @@
 use crate::db::database_struct::ListeningSession;
 use crate::db::database_struct::Others;
 use crate::db::database_struct::User;
-use log::{error, info};
-use rusqlite::{params, Connection, Result};
+use log::{error, info, warn};
+use rusqlite::{params, Connection, OptionalExtension, Result};
 
 /// Says which program owns a row of `listening_session`. See T-140.
 ///
@@ -605,6 +605,12 @@ pub fn select_every_usr() -> Result<Vec<(String, String, bool)>> {
 /// rows with that value let the **rowid** decide. The two writes stand in one
 /// transaction: a program that stops between them would hold no account at all,
 /// and the login screen would then come at the next start.
+///
+/// **An account that the database does not hold takes the mark from every other
+/// account and it gives that mark to nobody.** The view of the accounts is the
+/// list of one process, therefore a second program of the account can remove an
+/// account that the line of the user still names (T-155). The function gives
+/// the database back as it was then, and it gives `0` to its caller.
 pub fn make_this_account_the_default(username: &str) -> Result<usize> {
     let mut conn = crate::db::migrate::open_conn()?;
     let work = conn.transaction()?;
@@ -615,9 +621,69 @@ pub fn make_this_account_the_default(username: &str) -> Result<usize> {
         params![username],
     )?;
 
+    if rows == 0 {
+        work.rollback()?;
+        warn!(
+            "[make_this_account_the_default] the database holds no account {}. \
+             The account of the start stays.",
+            username
+        );
+        return Ok(0);
+    }
+
     work.commit()?;
 
     Ok(rows)
+}
+
+/// Gives the start of the program to the first account when no account holds
+/// it. See T-155.
+///
+/// **The login screen comes when `select_default_usr` gives no row**, and the
+/// database can hold an account with a valid token at that moment: a write of
+/// the mark that named an account of no row left every row at `0` before
+/// T-155. A user of such a database has no key that gives the mark back, in any
+/// view and after every start — that is the shape of T-136, and the start is the
+/// place of the answer.
+///
+/// Gives the name of the account that takes the start, and `None` when an
+/// account holds the mark already or when the database holds no account.
+pub fn an_account_takes_the_start_when_none_holds_it() -> Result<Option<String>> {
+    let conn = crate::db::migrate::open_conn()?;
+
+    let with_the_mark: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM users WHERE is_default_usr = 1",
+        [],
+        |row| row.get(0),
+    )?;
+
+    if with_the_mark > 0 {
+        return Ok(None);
+    }
+
+    let first: Option<String> = conn
+        .query_row(
+            "SELECT username FROM users ORDER BY rowid LIMIT 1",
+            [],
+            |row| row.get(0),
+        )
+        .optional()?;
+
+    let Some(name) = first else {
+        return Ok(None);
+    };
+
+    conn.execute(
+        "UPDATE users SET is_default_usr = 1 WHERE username = ?1",
+        params![name],
+    )?;
+
+    info!(
+        "[an_account_takes_the_start] no account held the start. The account {} takes it.",
+        name
+    );
+
+    Ok(Some(name))
 }
 
 // Insert user in database
