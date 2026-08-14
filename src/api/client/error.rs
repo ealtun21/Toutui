@@ -130,6 +130,25 @@ pub fn the_words_of_a_program_that_stops(
     username: &str,
     server: &str,
 ) -> String {
+    // **A fault of the database is not a fault of the server.** The words below
+    // say that the program cannot read the lists of the server, and a program
+    // that did not read the accounts of its own database must not say that: a
+    // view never says a reason that the program does not have (T-91). See
+    // T-199.
+    if let Some(fault) = report
+        .chain()
+        .find_map(|cause| cause.downcast_ref::<crate::db::TheAccountsDidNotCome>())
+    {
+        return format!(
+            "Toutui stops: it cannot read the accounts of its database.\n\
+             {}\n\
+             The account is {}.\n\
+             Toutui changed nothing. Stop a second Toutui of this account, and start this one \
+             again.",
+            fault, username
+        );
+    }
+
     let what_the_server_said = report
         .chain()
         .find_map(|cause| cause.downcast_ref::<ApiError>())

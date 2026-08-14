@@ -5552,7 +5552,22 @@ impl App {
     /// The line of the user keeps its place when the list holds it still, and it
     /// goes to the last line of the list when the list became shorter.
     pub fn the_accounts_come_from_the_disk(&mut self) {
-        let of_the_disk = crate::db::crud::select_every_usr().unwrap_or_default();
+        // **A read that failed is not a database with no account** (T-199). The
+        // list of this window stays on both roads, and a fault takes a line of
+        // the log: the two conditions are not one, and the log of the
+        // maintainer must say which of them came.
+        let of_the_disk = match crate::db::crud::select_every_usr() {
+            Ok(rows) => rows,
+            Err(error) => {
+                log::error!(
+                    "[the accounts] the program did not read the accounts of the disk: {}. The \
+                     lines of this view stay.",
+                    error
+                );
+
+                return;
+            }
+        };
 
         if of_the_disk.is_empty() {
             // A database of no account is the database of a login that runs. The

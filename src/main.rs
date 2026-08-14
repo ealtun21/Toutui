@@ -493,17 +493,42 @@ async fn main() -> Result<()> {
                             // key is that moment, and the program that starts
                             // again takes the account of the disk. See T-159.
                             if app.the_program_starts_again.is_none() {
-                                let of_the_disk =
-                                    toutui::db::crud::select_every_usr().unwrap_or_default();
-
-                                if matches!(
-                                    logic::the_accounts::the_account_of_the_line(
-                                        &of_the_disk,
-                                        &app.username
-                                    ),
-                                    logic::the_accounts::TheAccountOfTheLine::ItIsGone
-                                ) {
-                                    app.the_account_of_this_program_is_gone();
+                                // **A read that failed is not a row that went
+                                // away.** The old line was
+                                // `select_every_usr().unwrap_or_default()`,
+                                // therefore a database that a second program of
+                                // this account held gave a list of no account:
+                                // the program said "the account … stands in no
+                                // row of the disk", it started itself again, and
+                                // it wrote the sentence of an account that is
+                                // gone in the row of the message of the login.
+                                // The row of that account stood on the disk all
+                                // the time.
+                                //
+                                // A fault of this read takes a line of the log
+                                // and no word for the user: the account of this
+                                // program stays, and the next key reads the disk
+                                // again. See T-199 and T-177.
+                                match toutui::db::crud::select_every_usr() {
+                                    Ok(of_the_disk) => {
+                                        if matches!(
+                                            logic::the_accounts::the_account_of_the_line(
+                                                &of_the_disk,
+                                                &app.username
+                                            ),
+                                            logic::the_accounts::TheAccountOfTheLine::ItIsGone
+                                        ) {
+                                            app.the_account_of_this_program_is_gone();
+                                        }
+                                    }
+                                    Err(error) => {
+                                        log::error!(
+                                            "[the accounts] the program did not read the accounts \
+                                             of the disk: {}. The account {} stays.",
+                                            error,
+                                            app.username
+                                        );
+                                    }
                                 }
                             }
 

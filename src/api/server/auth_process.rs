@@ -70,6 +70,21 @@ pub fn the_sentence_of_a_login_that_failed(status: u16) -> String {
 pub const THE_SENTENCE_OF_A_LOGIN_WITH_NO_LIBRARY: &str =
     "The server gave no library for this account. Ask an administrator of the server for a library.";
 
+/// The sentence of a login that wrote no row of the account. See T-199.
+///
+/// **A login that writes no row is a login that failed.** The old code wrote the
+/// row with `let _ = db_insert_usr(&users)`, therefore a database that a second
+/// program of this account held took the row away with no word at all: the log
+/// said `Login successful`, the program came back to the login screen of a first
+/// start, and the row of the message held no character. The user wrote the
+/// address, the name, and the password again, and the login gave the login
+/// screen back for ever.
+///
+/// The row of the message of the login holds one line, therefore the sentence
+/// holds one line. See the trap 11 of the harness.
+pub const THE_SENTENCE_OF_A_LOGIN_THAT_KEPT_NO_ACCOUNT: &str =
+    "The program did not write the account in its database. Stop a second Toutui, and try the login again.";
+
 /// Login
 /// https://api.audiobookshelf.org/#server
 ///
@@ -189,7 +204,19 @@ pub async fn auth_process(username: &str, password: &str, server_address: &str) 
         }];
 
         // insert the new user in database
-        let _ = db_insert_usr(&users);
+        //
+        // **A login that writes no row is a login that failed.** The old line
+        // was `let _ = db_insert_usr(&users)`. See T-199.
+        if let Err(error) = db_insert_usr(&users) {
+            error!(
+                "[auth_process] the program did not write the row of the account: {}",
+                error
+            );
+
+            return Err(Report::new(std::io::Error::other(
+                THE_SENTENCE_OF_A_LOGIN_THAT_KEPT_NO_ACCOUNT.to_string(),
+            )));
+        }
 
         // **One account starts the program, and the database must hold that
         // rule.** A second login writes a second row, and two rows with
@@ -197,11 +224,20 @@ pub async fn auth_process(username: &str, password: &str, server_address: &str) 
         // takes: the user who added an account would then meet the account of
         // the login before it. The account of the newest login starts. See
         // T-124.
+        // **This write holds the login too** (T-199). The old code wrote the
+        // fault in the log alone, and it gave the login its success: two rows
+        // with `is_default_usr = 1` then let the rowid decide, therefore the user
+        // who logged in met the account of the login before theirs, with no word
+        // at all.
         if let Err(error) = crate::db::crud::make_this_account_the_default(username) {
             error!(
                 "[auth_process] the account of the login must start: {}",
                 error
             );
+
+            return Err(Report::new(std::io::Error::other(
+                THE_SENTENCE_OF_A_LOGIN_THAT_KEPT_NO_ACCOUNT.to_string(),
+            )));
         }
 
         Ok(())

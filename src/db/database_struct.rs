@@ -54,11 +54,19 @@ impl Database {
         let users: Vec<User> = vec![];
 
         // retrieve default user
-        let mut default_usr: Vec<String> = Vec::new();
-
-        if let Ok(result) = select_default_usr() {
-            default_usr = result;
-        }
+        //
+        // **A read of the accounts that failed is not a database with no
+        // account.** The old line was `if let Ok(result) = ...`, therefore a
+        // database that a second program of this account held gave a list of no
+        // account: `src/main.rs` drew the login screen of a first start, the
+        // user wrote the address, the name, and the password again, and the row
+        // of their account stood on the disk all the time. **A table with no row
+        // and a database that says nothing are two conditions**, and this
+        // function keeps the two apart now: an empty table gives an empty list,
+        // and a fault of the database stops the program with words of its own.
+        // See T-199.
+        let default_usr = select_default_usr()
+            .map_err(|error| crate::db::TheAccountsDidNotCome(error.to_string()))?;
 
         // init listening_session
         let listening_session = ListeningSession {

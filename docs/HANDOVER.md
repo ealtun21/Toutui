@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.28.** The items T-196, T-197, and T-198 belong to
-this session. The
+**The newest release is v0.8.29.** The item T-199 belongs to
+this session. The items T-196, T-197, and T-198 belong to the session before it.
+The
 item T-195 belongs to the session before it, and the
 item T-194 belongs to the session before that one, and the
 item T-193 to the session before that one, and the
@@ -41,12 +42,66 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.28**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.29**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1176 of 1176** in 2.3 seconds with 25 skipped, `cargo nextest run
---run-ignored all` gives **1201 of 1201** in 23.2 seconds with the sandbox up,
+**1178 of 1178** in 2.3 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1204 of 1204** in 20.4 seconds with the sandbox up,
 and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in three
 runs.
+
+## The session of the thirty-fourth turn of 2026-08-14: a fault of the database became a program with no account
+
+**One release: v0.8.29.** The session before this one closed the sweep of a body
+that stopped, and it left no condition of the road: the road said that a session
+must name a condition of its own. **This session took the sweep that T-198
+called the cheapest one of a session** — one line of code over the whole of
+`src/` — and it read that line in the other direction: not a body of the server,
+but a call of the **database**.
+
+| Item | What | Where |
+|---|---|---|
+| T-199 | **A fault of the database became a program with no account.** Three lines read a fault of the disk as a fact of the user: `let _ = db_insert_usr(&users)` of the login, `if let Ok(result) = select_default_usr()` of `Database::new`, and `select_every_usr().unwrap_or_default()` of the read after every key. A second Toutui of one account that held the database for six seconds then gave: a login that wrote no row and said `Login successful`, with the login screen back and **no character** in the row of its message; a login screen of a first start while the row of the account stood on the disk; and `the account toutuitest stands in no row of the disk. The program starts again.` while `select count(*) from users` said 1 | `src/api/server/auth_process.rs`, `src/db/database_struct.rs`, `src/db/mod.rs`, `src/api/client/error.rs`, `src/main.rs`, `src/app.rs` |
+
+The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-199. Six things are
+worth the room here:
+
+1. **The sweep of one line of code has two directions, and T-198 walked one of
+   them.** T-198 asked which function reads a **body of the server**. The other
+   direction is the **disk**: `grep` of `let _ = `, of `if let Ok(`, and of
+   `.unwrap_or_default()` beside a call of the database gave six lines of `src/`,
+   and three of them held the account. **The question of that sweep is: which
+   fact of the user does the program read out of a fault of its own disk?**
+2. **A condition of the fork can need no harness at all.** Every session since
+   T-169 wrote a proxy of Python for its condition. This one needed six lines of
+   `sqlite3` with `BEGIN EXCLUSIVE` (`docs/harness/hold_the_lock.py`), because
+   **rusqlite holds a busy timeout of five seconds** and the fork holds the
+   condition of two programs of one account already (T-140). A lock that stands
+   longer than five seconds gives `database is locked` to every call.
+3. **A comment of the file said the rule, and the line under it did not hold
+   it.** `auth_process.rs` holds "**A login that keeps no token is a login that
+   failed**" in the paragraph above the write of the row, and the write of that
+   row was `let _ =`. **A comment that names a rule is a place to measure** (the
+   rule of T-185), and the neighbour of a corrected line is the next place to
+   read.
+4. **A word for the user that the database carries cannot name a fault of the
+   database.** `update_login_err` writes the row of the message of the login
+   **in the database**, therefore the one channel of a word for the user needed
+   the file that did not answer. The correction works because the lock goes away
+   before the next frame of that screen; **a lock that never goes away leaves the
+   login screen with no word**, and the log holds the fault.
+5. **The words of a program that stops belong to the thing that failed.** The
+   words of T-172 say that the program cannot read the lists of the **server**,
+   and a program that did not read its own database must not say that (T-91).
+   The fault of the database holds a type of its own now
+   (`crate::db::TheAccountsDidNotCome`), and
+   `the_words_of_a_program_that_stops` reads it: one function, two roads, and a
+   test of each.
+6. **A read of the disk that failed takes no word for the user, and a write that
+   failed takes one.** The read after every key runs with no key of the user
+   behind it and it has no view of its own, therefore it takes a line of the log
+   (T-177); the login is a key of the user, therefore its fault takes a sentence.
+   **The rule of T-177 divides the two, and the question is whether a key of the
+   user waits for the answer.**
 
 ## The session of the thirty-third turn of 2026-08-14: the book of the reader that came in part, the thread that died, and the cover of a part
 
@@ -3764,6 +3819,19 @@ measurements of this session left.
      `Loading the media...` and then nothing at all. The same key of the Home
      view gave the same silence, therefore the fault belongs to the playback and
      to no view.
+   - ~~**A fault of the database of the program**~~: **made on 2026-08-14 (the
+     thirty-fourth session), and it found T-199.** A second Toutui of one
+     account that held the database for six seconds gave a login that wrote no
+     row and said `Login successful`, a login screen of a first start while the
+     row of the account stood on the disk, and a program that said that the
+     account of the user is gone. **`docs/harness/hold_the_lock.py` is that
+     condition**, and rusqlite holds a busy timeout of five seconds.
+     **What that item leaves open**: a key of the program takes five seconds for
+     each call of the database while a second program holds it, and no row of
+     the screen says that the program waits; and the other writes of the disk of
+     that shape — the sequence, the speed, the key bindings, the rows of a
+     session, the queue, and the downloads — each take a line of the log at the
+     most.
    - **No condition of the road stays. A next session must name a condition of
      its own.** The shapes that found faults before: a state of one process that
      a second program cannot see (T-142, T-147, T-148, T-150, T-153, T-154,
@@ -4952,6 +5020,43 @@ answers slowly while it writes. Two answers to measure:
     not. **A measurement of two keys of one media needs the search of that media
     between them** (T-186).
 
+### The traps of the session of the database that a second program holds (T-199)
+
+156. **rusqlite holds a busy timeout of five seconds, and no line of this
+     program sets it.** A lock of a second program that stands **less** than five
+     seconds gives no fault at all: the call of the program waits and it then
+     works. A measurement of a fault of the database therefore needs a lock of
+     more than five seconds, and a first measurement with a lock of 12 seconds
+     found nothing, because the login of the sandbox took seven seconds and the
+     lock went away before the write.
+
+157. **Every key of the login screen reads the database.** That screen reads the
+     row of its message (`get_others`) at each turn of its loop, and
+     `crossterm::event::read()` gives one turn for one key: a lock that stands
+     therefore gives **five seconds for each character** of the password. A
+     measurement that takes the lock before the password needs a lock of more
+     than a minute for ten characters, and `tmux send-keys` of the whole word
+     shows a part of it on the screen while the rest waits.
+
+158. **The sequence of the lock and of the key decides which road the
+     measurement takes** (the trap 94 again). A lock that comes **after** the key
+     of the password reaches `Database::new` of the loop of `src/main.rs`, and the
+     row of the account then stands on the disk; a lock that stands **before**
+     that key reaches the write of the row, and the disk holds nothing. The two
+     are two items of the measurement, and one command line gives one of them.
+
+159. **A file that holds no database gives the same fault with no wait at all.**
+     `std::fs::write(db, b"this file holds no database")` gives
+     `file is not a database` to `open_conn`, therefore a test of the gate needs
+     no lock and no five seconds. **The lock belongs to the measurement of the
+     real program, and the file of no database belongs to the gate.**
+
+160. **A test of a decision of two writes needs the two corrections removed
+     together.** The login writes the row of the account and the mark of the
+     account that starts the program, and each of the two gives the same
+     sentence: a build with one correction removed still passes the test. The
+     build of the fault of the trap 147 therefore takes both of them.
+
 ### Of the harness and of the machine
 
 1. **A fixed `sleep` is the largest waste of a session.** The first frame of the
@@ -5270,29 +5375,25 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took the harness of T-193 to the one road of a body that no
-measurement had walked: the ebook of the key `e`.** A body with no
-`Content-Length` and no `Transfer-Encoding` ends at the close of the connection,
-therefore the client reads a clean end of a part of a book: the program kept
-20000 bytes of an EPUB of 136761 bytes under the name of the whole book, it said
-"This file is not an EPUB.", and it asked the server for nothing at every visit
-after it (T-196). **That is the fault of the user of T-186 again, by the road
-that the correction of T-186 does not hold.** The road below names the
-conditions that stay. **The second item of the session took the shape that
-T-174 named and that no session had reached: a panic of a thread while a view
-stands.** The hook of the panic gave the terminal back and it came back to a
-program that lives: the render wrote over the words of the fault, the key `Q`
-did nothing, the audio played on, and the place of the user stayed at 0 for
-eight hours (T-197). **The third item is the question that T-196 named**: which
-function of this program reads a body, and what does it do with a body that
-stopped? Four functions of `src/` read one, and the cover held
-`while let Ok(Some(chunk))` — a fault of the network then ends the loop with no
-word, and the bytes of a part of a picture go to the store as the whole picture
-(T-198). This prompt names the state of the program on 2026-08-14.
+**This session took the sweep that T-198 called the cheapest one of a session —
+one line of code over the whole of `src/` — and it read that line in the other
+direction: not a body of the server, but a call of the database.** Three lines
+read a fault of the disk as a fact of the user, and the account holds them all:
+`let _ = db_insert_usr(&users)` of the login, `if let Ok(result) =
+select_default_usr()` of `Database::new`, and
+`select_every_usr().unwrap_or_default()` of the read after every key. **A second
+Toutui of one account that holds the database for six seconds is the whole
+condition**, and the fork holds that condition since T-140: the login wrote no
+row and said `Login successful`, the login screen came back with no character in
+the row of its message, a key said that the account of the user is gone while
+`select count(*) from users` said 1, and the program started itself again
+(T-199). **The condition needed no proxy of Python at all**: six lines of
+`sqlite3` with `BEGIN EXCLUSIVE`, and the busy timeout of five seconds of
+rusqlite. This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.28**; `Cargo.toml` is at 0.8.28. The
+> AlbanDAVID/Toutui. Newest release **v0.8.29**; `Cargo.toml` is at 0.8.29. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -5301,7 +5402,7 @@ word, and the bytes of a part of a picture go to the store as the whole picture
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-198 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-199 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -5537,6 +5638,35 @@ word, and the bytes of a part of a picture go to the store as the whole picture
 > the account takes `http://127.0.0.1:13508` (the trap 129), and the cache of
 > the ebooks of that account gives its copy of the book back with a `mv`.
 >
+> **A second writer of the database of the program is
+> `docs/harness/hold_the_lock.py`** (T-199). **A fault of the database needs no
+> proxy and no change of the source**: the script takes the write lock of the file
+> with `BEGIN EXCLUSIVE` and it holds it, and **rusqlite holds a busy timeout of
+> five seconds**, therefore a lock of more than five seconds gives
+> `database is locked` to every call of the program. That is the condition of
+> T-140, and every write of the fork makes it: a download, a flush of the
+> positions, a close of a session, and a login.
+>
+> ```bash
+> python3 docs/harness/hold_the_lock.py \
+>     $XDG_CONFIG_HOME/toutui/db.sqlite3 70
+> ```
+>
+> **That road holds five traps** (156 to 160). A lock of less than five seconds
+> gives no fault at all. **Every key of the login screen reads the database**
+> (`get_others` of the row of its message), therefore a lock that stands gives
+> five seconds for each character of the password: ten characters need a lock of
+> more than a minute. **The sequence of the lock and of the key decides the
+> road** (the trap 94): a lock after the key of the password reaches
+> `Database::new`, and a lock before it reaches the write of the row. **A file
+> that holds no database gives the same fault with no wait at all**
+> (`std::fs::write(db, b"this file holds no database")` gives
+> `file is not a database`), therefore the lock belongs to the measurement of the
+> real program and the file of no database belongs to the gate. And **a test of a
+> decision of two writes needs the two corrections removed together**: the login
+> writes the row of the account and the mark of the account that starts the
+> program, and each of the two gives the same sentence.
+>
 > **A part of a stream that holds no audio is
 > `docs/harness/a_part_that_holds_no_audio.py`** (T-195). **A part of no audio is
 > not a part that stopped**: the two harnesses above cut a body, and the rule of
@@ -5634,8 +5764,8 @@ word, and the bytes of a part of a picture go to the store as the whole picture
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1176 tests in 2.4 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1201 of 1201** with the sandbox up, in about 19 seconds. **Run that
+> Baseline: **1178 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1204 of 1204** with the sandbox up, in about 20 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -5669,11 +5799,51 @@ word, and the bytes of a part of a picture go to the store as the whole picture
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in forty-six sessions of forty-seven. **The session
->    of the thirty-third turn took two: the harness of an old item on a new
->    reader of a body (the ebook of the key `e`, T-196), and the shape that T-174
->    named and that no session had reached (a panic of a thread, T-197).** Each
->    of them found one fault.
+>    this shape found a fault in forty-seven sessions of forty-eight. **The
+>    session of the thirty-fourth turn took the sweep of one line of code that
+>    T-198 named, and it read that line in the other direction: the disk, and not
+>    a body of the server** (T-199). It found one fault of three roads.
+>    - **The sweep of one line of code has two directions** (T-199). T-198 asked
+>      which function reads a **body of the server**; the other direction is the
+>      **disk**. `grep` of `let _ = `, of `if let Ok(`, and of
+>      `.unwrap_or_default()` beside a call of the database gave six lines of
+>      `src/`, and three of them held the account. **The question of that sweep
+>      is: which fact of the user does the program read out of a fault of its own
+>      disk?** The other writes of the disk of that shape stay open — the
+>      sequence, the speed, the key bindings, the rows of a session, the queue,
+>      and the downloads.
+>    - **A condition of the fork can need no harness of Python at all** (T-199).
+>      Every session since T-169 wrote a proxy for its condition. This one needed
+>      six lines of `sqlite3` with `BEGIN EXCLUSIVE`
+>      (`docs/harness/hold_the_lock.py`), because **rusqlite holds a busy timeout
+>      of five seconds** and the fork holds the condition of two programs of one
+>      account already (T-140). **Ask of a condition: does the program hold a
+>      resource that a second program of the machine can take?**
+>    - **A comment of a file can name the rule that the line under it does not
+>      hold** (T-199). `auth_process.rs` holds "**A login that keeps no token is a
+>      login that failed**" in the paragraph above the write of the row, and that
+>      write was `let _ =`. **The neighbour of a corrected line is the next place
+>      to read**, and that is the rule of T-185 for a comment that names a
+>      decision.
+>    - **A word for the user that the database carries cannot name a fault of the
+>      database** (T-199). `update_login_err` writes the row of the message of the
+>      login screen **in the database**. The correction works because the lock
+>      goes away before the next frame of that screen; a lock that never goes away
+>      leaves that screen with no word, and the log holds the fault. **Ask of
+>      every word for the user: which part of the program carries it, and can the
+>      fault take that part away?**
+>    - **The words of a program that stops belong to the thing that failed**
+>      (T-199). The words of T-172 name the lists of the **server**, and a program
+>      that did not read its own database must not say that (T-91). The fault of
+>      the database holds a type of its own now
+>      (`crate::db::TheAccountsDidNotCome`), and
+>      `the_words_of_a_program_that_stops` reads it.
+>    - **A read of the disk that failed takes no word for the user, and a write
+>      that failed takes one** (T-199). The read after every key runs with no key
+>      of the user behind it and it holds no view of its own, therefore it takes a
+>      line of the log (T-177); the login is a key of the user, therefore its
+>      fault takes a sentence. **The question is whether a key of the user waits
+>      for the answer.**
 >    - **A shape that an old item named and that no session reached is an item
 >      that waits** (T-197). T-174 wrote "a panic of a thread while a view of the
 >      application stands" in the road of eight sessions, and no one of them made
@@ -5804,6 +5974,14 @@ word, and the bytes of a part of a picture go to the store as the whole picture
 >      list of five, and that decision then stopped the whole program. **Read what
 >      the measurement of an old item held**, and not the words of its decision
 >      alone.
+>    - **The sweep of a fault of the disk is closed for the account** (T-199),
+>      and it is a different sweep from the one of T-186 to T-189: that one asked
+>      which **value** of the server a table keeps, and this one asks what the
+>      program does when the database itself says nothing. **A key of the program
+>      takes five seconds for each call of the database while a second program
+>      holds it, and no row of the screen says that the program waits**: that
+>      condition stays open, and the busy timeout of five seconds of rusqlite
+>      belongs to no measurement yet.
 >    - **The sweep of the values of the disk is closed** (T-186 to T-189). The
 >      five tables that keep a value of the server each hold their rule now:
 >      `download_files` (T-187), `downloads` (T-148, T-150), `queue` (T-147),
@@ -6119,7 +6297,12 @@ word, and the bytes of a part of a picture go to the store as the whole picture
 > user goes away with the next command of the shell, and a panic that a caller
 > expects stops nothing** (T-197), and **a body of a cover that stopped is not
 > the end of the picture: the store takes the fault and not the bytes of a part,
-> and the log names the fault and the key `R`** (T-198).
+> and the log names the fault and the key `R`** (T-198), and **a fault of the
+> database of the program is not a database with no account: a login that writes
+> no row of the account is a login that failed and it says so, a read of the
+> accounts that failed stops the program with words that name the database, and a
+> read that failed keeps the account of the program and takes a line of the log**
+> (T-199).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.29",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A fault of the database of the program became a program with \
+             no account.** A second Toutui of your account writes the same \
+             database, and a write of that program holds the file for a moment: \
+             the program then read a database of no account. A login wrote no \
+             row and it said that it was successful, therefore the login screen \
+             came back with no reason and it did that for ever; a key of the \
+             program said that your account is gone and it started the program \
+             again, and your account stood on the disk all the time. The login \
+             says now that it did not write the account, a key keeps your \
+             account and it writes the fault in the file of the log, and a \
+             program that cannot read its accounts stops and says so.",
+        ],
+    },
+    Entry {
         version: "0.8.28",
         date: "14/08/2026",
         body: &[

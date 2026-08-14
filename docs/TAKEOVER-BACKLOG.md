@@ -8632,6 +8632,182 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-199: a fault of the database became a program with no account
+
+**The road of T-198 said that a session must name a condition of its own, and
+the sweep of one line of code gave this one** (the rule of T-198: the cheapest
+sweep of a session is one line of code over the whole of `src/`). The line is
+`let _ =` and `if let Ok(...)` of a call of the database, and the question was:
+**which decision of the program reads a fault of its own database as a fact of
+the user?**
+
+The answer is the account. `src/api/server/auth_process.rs` wrote the row of the
+account with `let _ = db_insert_usr(&users)`, `Database::new` read that row with
+`if let Ok(result) = select_default_usr()`, and `src/main.rs` read the accounts
+after every key with `select_every_usr().unwrap_or_default()`. **The three lines
+hold one fault: a database that says nothing became a database with no account.**
+
+#### The condition, and why a second program of one account makes it
+
+The condition needs no proxy and no change of the source: **a second writer of
+the database of the program**. `docs/harness/hold_the_lock.py` of this session
+is six lines of `sqlite3` of Python with `BEGIN EXCLUSIVE`, and rusqlite holds a
+busy timeout of **five seconds** by default, therefore a lock that stands longer
+than five seconds gives `database is locked` to every call of the program.
+
+**That is the condition of T-140**, and the fork holds it already: two programs
+of one account write one database. A download, a flush of the positions, a
+close of a session, and a login each write, and a write inside a transaction
+that waits for the disk holds the lock of the whole file.
+
+```bash
+python3 docs/harness/hold_the_lock.py \
+    $XDG_CONFIG_HOME/toutui/db.sqlite3 70
+```
+
+#### The measurement of 2026-08-14, and the three roads
+
+**The first road is the login.** The measurement made a `XDG_CONFIG_HOME` of
+nothing (the trap 135), it wrote the address and the name of the sandbox, and it
+took the lock before the password. The program of v0.8.28:
+
+```text
+[INFO] - Token successfully encrypted
+[ERROR] - [auth_process] the account of the login must start: database is locked
+[INFO] - [auth_process] Login successful
+```
+
+| What | The program of v0.8.28 |
+|---|---|
+| The log | `Login successful`, and **no line at all of the write of the row** |
+| `select count(*) from users` | **0** |
+| The screen | the login screen of a first start, with **no character** in the row of the message |
+
+The user wrote a correct address, a correct name, and a correct password, and the
+login screen came back with no reason. **The next attempt gives the same screen,
+for ever**: the fault stands outside the user, and the program tells them
+nothing. That is the shape of T-174.
+
+`update_login_err` writes the row of the message of the login **in the database
+too**, therefore the one channel of a word for the user needed the database that
+did not answer. The log held `[ERROR] - [update_login_err] Error connecting to
+the database.` beside it.
+
+**The second road is `Database::new`.** A measurement of the same shape with a
+lock that came one second later gave the whole login and one row of the account,
+and the program then read that row with the lock up: `if let Ok(...)` gave a
+list of no account, and `src/main.rs` drew **the login screen of a first start
+while the row of the account stood on the disk**. The log:
+
+```text
+15:50:05 [INFO] - [auth_process] Login successful       (users: 1 row)
+15:50:16 [INFO] - [auth_input] Login                    (the login screen again)
+```
+
+The key `R` holds the same road, because a refresh makes a new application
+(T-131): `App::new` reads `Database::new`, and a program of no account then tells
+the server a token of no character. The first request answers 401, and
+`the_token_is_not_valid` of T-123 sends the user to the login screen.
+
+**The third road is the read of the accounts after every key** (T-159). The
+measurement started the program of an account of the sandbox, it took the lock,
+and it pressed the key `j`:
+
+```text
+[WARN] - [the accounts] the account toutuitest stands in no row of the disk. The program starts again.
+```
+
+`select count(*) from users` said **1** at that moment. The program started
+itself again, the state of the user went away, and `update_login_err` took the
+sentence of an account that is gone (T-155) — **a sentence that no row of the
+disk supports**. A lock that stands while the program starts again gives the
+login screen with that sentence: the program then says that the account of the
+user is gone, and it is not.
+
+#### The correction
+
+**A fault of the database is not a database with no account.** The three roads
+take three rules of one shape:
+
+1. **A login that writes no row is a login that failed** (the words of the
+   comment of the token, one paragraph above the fault). The two writes of the
+   login hold it: the row of the account, and the mark of the account that starts
+   the program (T-124). The sentence for the user is
+   `THE_SENTENCE_OF_A_LOGIN_THAT_KEPT_NO_ACCOUNT`, and it holds one line for the
+   row of the message (the trap 11).
+2. **A read of the accounts that failed stops the program with words of its
+   own.** `Database::new` gives the fault the type
+   `crate::db::TheAccountsDidNotCome`, and
+   `the_words_of_a_program_that_stops` reads that type: the words of T-172 say
+   that the program cannot read the lists of the **server**, and a program that
+   did not read its own database must not say that (T-91). A table with no row
+   and a database that says nothing are two conditions now.
+3. **A read that failed is not a row that went away.** The read after every key
+   and the read of the view of the accounts (T-155) each take a line of the log,
+   and the account of the program stays: the next key reads the disk again. **A
+   fault of that read has no view of its own**, therefore it takes no word for
+   the user (the rule of T-177).
+
+The program of v0.8.29 against the same lock:
+
+```text
+the login       [ERROR] - [auth_process] the program did not write the row of the account: database is locked
+                [ERROR] - [auth_process] Login failed: The program did not write the account in its
+                          database. Stop a second Toutui, and try the login again.
+                the login screen holds that sentence in the row of the message
+
+the key R       Toutui stops: it cannot read the accounts of its database.
+                The program did not read the accounts of its database: database is locked
+                The account is toutuitest.
+                Toutui changed nothing. Stop a second Toutui of this account, and start this one again.
+                (the status of the exit is 1, and the shell holds the terminal)
+
+the key j       [ERROR] - [the accounts] the program did not read the accounts of the disk:
+                          database is locked. The account toutuitest stays.
+                (the program stands, and the account stays)
+```
+
+#### The tests
+
+- `tests/the_accounts_of_the_disk_that_did_not_come_say_why.rs`: `Database::new`
+  gives the fault of the accounts, and the words of the program that stops name
+  the database and not the lists of the server. **The build of the fault** (the
+  trap 147): `select_default_usr().unwrap_or_default()` gives "a database that
+  says nothing must not give a list of no account", and a `.filter(|_| false)` on
+  the new branch of the words gives "the words must name the database".
+- `tests/a_login_that_wrote_no_account_says_why.rs` (`#[ignore]`, the sandbox):
+  the login gives the sentence of an account that the program did not keep.
+  **The build of the fault removes the two corrections of the login together**,
+  because each of the two writes gives the same sentence: `.or(Ok(...))` on both
+  of them gives "a login that wrote no row of the account must fail: ()".
+- `src/db/mod.rs`: the fault names the database and it holds what the database
+  said.
+
+**The condition of the two tests is a file that holds no database**, and not a
+lock: a lock of a second program needs the busy timeout of five seconds of
+rusqlite first, and `file is not a database` gives the same fault of `open_conn`
+with no wait at all. The lock is the measurement of the real program, and the
+file of no database is the gate.
+
+#### What this item leaves open
+
+**A key of the program takes five seconds for each call of the database while a
+second program holds it, and the program says nothing at all.** The measurement
+of the key `j` with a lock of 20 seconds: the cursor moved 20 seconds later, and
+no row of the screen said that the program waits. The login screen holds the
+same wait, and `get_others` of that screen writes one line of `ERROR` for each
+key. **That is a condition of its own**: a program that waits must say that it
+waits (T-116 holds the words of a wait of the server), and the busy timeout of
+five seconds of rusqlite belongs to no measurement yet.
+
+**The sweep of `let _ =` and of `if let Ok(...)` of a call of the database is
+not closed.** This item took the account, because the account holds the whole
+program. The other writes of that shape — the sequence, the speed, the key
+bindings, the rows of a session, and the rows of the queue and of the downloads
+— each take a line of the log at the most, and the question of each of them is
+the question of this item: **which fact of the user does the program read out of
+a fault of its own disk?**
+
 ### T-198: a cover that came in part became an item with no cover
 
 **T-196 named this condition, and the sweep of it found one line.** The question
