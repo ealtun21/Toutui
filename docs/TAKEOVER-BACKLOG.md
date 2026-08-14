@@ -7629,6 +7629,45 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-166: the queue of the downloads of the server moved under the cursor, and the key of the user emptied the queue of another podcast
+
+**The condition of this session, and the road named it**: "the view of the
+downloads while a download of a second window ends" stood in the parts of the
+program that no measurement had reached. **This view is the second list of the
+program that moves with no key of any user at all** (the queue of T-161 is the
+first): the server takes an episode out of the queue when it downloaded it, it
+sends a message of that change, and `render_the_downloads` then asks the server
+again and draws the new list at that frame. **The line of the user keeps its
+number**, therefore the episode below moves under the cursor with no word.
+
+**The key `X` of that view empties the queue of the podcast of the line**, and
+that queue holds the work of the server for **every** user of it.
+
+**The measurement of 2026-08-14.** The library `Podcasts` of the sandbox holds
+two podcasts since this session (the section 5b of `docs/TEST-SERVER.md`). Seven
+episodes of "Narrative of Arthur Gordon Pym" stood in the queue, and eight
+episodes of "Letters of Two Brides" after them. The server downloads one episode
+of that feed in **about four seconds**.
+
+| The moment | The view of the downloads of the user |
+|---|---|
+| The keys `d` and five times `j` | `The downloads of the server [14 items]`, and the cursor stands on `Chapter 10 — Narrative of Arthur Gordon Pym` |
+| **Two episodes come to their end** | `[12 items]`, and the cursor stands on the same line 5: **`Letter 12 — Letters of Two Brides`** |
+| The message row of that frame | **empty** |
+| **The key `X`** | `Press X again to empty the queue of "Letters of Two Brides by Honoré de Balzac (1799 - 1850)".` — **the podcast that the user never chose** |
+| The key `X` again | `The queue of "Letters of Two Brides…" is empty now.` **The eight episodes of that podcast went away, and the queue of the podcast of the user stayed.** |
+| The queue after it, of `curl` | two lines, and both of them belong to `Narrative of Arthur Gordon Pym` |
+
+**The second form needs no second podcast at all.** The queue emptied itself
+while the cursor stood on its last line, and the line of the user then stood
+past the end of the list: **the key `X` returned with no word at all** (T-79),
+and the footer promised `X: empty the queue of this podcast` (T-143).
+
+**The correction is not written.** It is the rule of T-147, of T-160, of T-161,
+of T-162, of T-163, and of T-165 for a **sixth** view: **the line holds an
+episode of a podcast, and not a number of a line.** The shape of it stands in
+the handover of this session.
+
 ### T-165: the collection of a second window went away, and the key of the user reached a list that they did not open
 
 **The condition of this session, and the road named it**: "the lists (the

@@ -4,7 +4,11 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.99**, and T-165 belongs to this session.
+**The newest release is v0.7.99.** T-166 belongs to this session, and **it holds
+a measurement and no correction**: the person of the loop stopped the session
+after the measurement. The next session writes the correction, and the shape of
+it stands below.
+The item T-165 belongs to the session before it.
 The items T-163 and T-164 belong to the session before it, the item
 T-162 to the one before that, the item
 T-161 to the one before that, the item
@@ -16,6 +20,100 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the eleventh turn of 2026-08-14: the downloads of the server that move under the cursor
+
+**No release.** This session took one of the parts of the program that the road
+named and that no measurement had reached — **the view of the downloads of the
+server (T-81) while a download ends** — and **it holds one fault of two forms**.
+**The session stopped after the measurement**, therefore the correction stands
+open. **No file of `src/` changed**, and the three documents hold the
+measurement.
+
+| Item | What | Keys |
+|---|---|---|
+| T-166 | **The key `X` emptied the queue of a podcast that the user never chose.** The user stood on an episode of one podcast, two episodes came to their end, and the two presses of `X` took eight episodes of the other podcast out of the queue of the server | `d`, then `X` |
+
+### The fault, and the measurement of it
+
+**This view is the second list of the program that moves with no key of any user
+at all.** The queue of the media (T-161) is the first. The server takes an
+episode out of the queue when it downloaded it, and it sends a message of that
+change: `logic::the_downloads::the_view_must_ask` then gives `true`,
+`render_the_downloads` asks the server again, and the new list stands on the
+screen at that frame. **The line of the user keeps its number of a line.**
+
+| The moment | The view of the downloads of the user |
+|---|---|
+| The keys `d` and five times `j` | `The downloads of the server [14 items]`, and the cursor stands on `Chapter 10 — Narrative of Arthur Gordon Pym` |
+| **Two episodes come to their end** | `[12 items]`, and the cursor stands on the same line 5: **`Letter 12 — Letters of Two Brides`** |
+| The message row of that frame | **empty** |
+| **The key `X`** | `Press X again to empty the queue of "Letters of Two Brides…"` — **the podcast that the user never chose** |
+| The key `X` again | `The queue of "Letters of Two Brides…" is empty now.` **Eight episodes went away, and the queue of the podcast of the user stayed** |
+
+**The queue of the downloads belongs to the library, and it holds the work of
+the server for every user of that server.** The cost of this key is therefore
+larger than a view of one user.
+
+**The second form needs no second podcast.** The queue emptied itself while the
+cursor stood on its last line: the line of the user then stands **past the end**
+of the list, `all.get(line)` gives `None`, and **the key `X` returns with no
+word at all** (T-79). The footer promises `X: empty the queue of this podcast`
+(T-143).
+
+**The confirmation of two presses does not close this**, and the measurement
+says why: the first press names the podcast of the **new** list, and not the
+podcast of the frame that the user read. A user who presses `X` and then presses
+`X` again — the sentence of the program tells them to — empties a queue that
+they never chose.
+
+### The correction that the next session writes
+
+**It is the rule of T-147, of T-160, of T-161, of T-162, of T-163, and of T-165
+for a sixth view: the line holds an episode of a podcast, and not a number of a
+line.** The shape of T-161 fits this view best, because the list moves with no
+key of the user:
+
+1. **`src/logic/the_downloads.rs` holds the rule, and it is pure.**
+   `what_the_line_of_the_downloads_holds(the_episode_of_the_line, all)` in the
+   shape of `what_the_line_of_the_lists_holds`. **The identity of a line is the
+   podcast and the title of the episode** (`item_id` and `title` of
+   `OneDownload`) — and **not the field `now`**: an episode that becomes the
+   download of this moment stays the same episode, and it moves from `queue` to
+   `currentDownload` of the answer of the server.
+2. **`App` holds the entry of the line of the frame before**, and the rule runs
+   in `render_the_downloads` after `ask_for_the_downloads`, in the shape of
+   `take_the_lists`. A line that the user moved with `j` or `k` gives the
+   episode of the new line (the rule of `what_the_line_of_the_user_holds` of
+   `src/logic/queue.rs`: the line of the user is the truth of the choice).
+3. **An episode that left the queue takes the line to nobody**, with a message
+   that names it. The program cannot say **why** it left — the server downloaded
+   it, or a different program emptied the queue — therefore the text says what
+   the program knows (T-91): `The episode "Chapter 10" of "…" is not in the
+   queue of the server now. No line is selected: the keys j and k select one.`
+4. **The message belongs to the view of the downloads** (T-164): the rule writes
+   it with no key of the user, therefore `say_in(AppView::Downloads, …)` and not
+   `say`.
+5. **The key `X` on a line of nobody says one sentence** (T-79):
+   `No episode is selected.` It returns with no word today.
+6. **The mark of the confirmation must go away with the line.**
+   `confirm_the_empty_queue` holds the identity of a podcast, and a line that
+   goes to nobody must take that mark with it.
+
+**One question that the next session must answer with a measurement**: the view
+opens with `select(Some(0))` on a queue that can be empty, therefore the line of
+nobody exists at the first frame already. The rule must give `None` for an empty
+list, and the key must say its sentence.
+
+### The measurements of this session
+
+| The measurement | The answer |
+|---|---|
+| **The key `X`, after two episodes of the queue came to their end** | **one fault** (T-166): the program named a podcast that the user never chose, and the two presses emptied its queue |
+| The queue after it, of `curl` | two lines, and both of them belong to the podcast of the line of the user |
+| **The key `X` on a line past the end of the list** | **one fault of the words**: no word at all, and the footer promises the key |
+| The time of one download of the server | **about four seconds** for an episode of LibriVox |
+| The correction, and the tests of it | **not written** |
 
 ## The session of the tenth turn of 2026-08-14: the lists of two windows
 

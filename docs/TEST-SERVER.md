@@ -41,7 +41,7 @@ stay. `podman start abs-test` gives them back.
 | The library | What it holds |
 |---|---|
 | `Books` | 21 items: **two books of eight hours (T-140)**, a book of many files, two series of three books, a book of one chapter (T-106), a PDF of 47 megabytes of a scan of 60 pages (T-62), **a PDF of 502 megabytes of a scan of 150 pages (T-116)**, a PDF that no reader reads (T-62), the book of xHE-AAC of the user, a book with a WMA file, Alice in Wonderland with an EPUB, and a long book of 30 minutes |
-| `Podcasts` | 1 podcast of a feed of 57 episodes (T-110) |
+| `Podcasts` | **2 podcasts**: a feed of 57 episodes (T-110), and a feed of 27 episodes (T-166) |
 | `Empty` | no item (T-103) |
 | **`Large`** | **2056 items**, and every one of them holds no tag at all (T-112, T-114) |
 | **`ManyPods`** | **520 podcasts** of one episode, for the paging of a library of podcasts (T-125, T-126) |
@@ -271,6 +271,41 @@ curl -X POST http://localhost:13399/api/podcasts/feed \
 The feed `https://librivox.org/rss/52` gives 57 episodes of "Letters of Two
 Brides" by Balzac. Then `POST /api/podcasts` makes the podcast, and
 `POST /api/podcasts/:id/download-episodes` gets the audio files.
+
+## 5b. A second podcast of the same library, for the queue of two podcasts
+
+**The queue of the downloads of the server belongs to the library, and not to
+one podcast** (`GET /api/libraries/:id/episode-downloads`). A measurement of the
+line of that view therefore needs **two** podcasts of one library: the episodes
+of the podcast that the user did not choose stand under the episodes of the
+podcast that they did choose, and they move up when the server downloads one.
+See T-166.
+
+The session of 2026-08-14 added `https://librivox.org/rss/100` — "Narrative of
+Arthur Gordon Pym of Nantucket" of 27 episodes — to the library `Podcasts`:
+
+```bash
+# The feed. **Not every number of that address answers**: the numbers 1, 5, 10,
+# 20, 60, and 61 give "Podcast RSS feed request failed", and 52, 100, and 200
+# give a feed.
+curl -s -X POST http://localhost:13399/api/podcasts/feed \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"rssFeed":"https://librivox.org/rss/100"}' > feed100.json
+
+# The podcast. `media.metadata` is the metadata of the feed, and `folderId` is
+# the folder of the library.
+curl -s -X POST http://localhost:13399/api/podcasts \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"path":"/podcasts/Arthur Gordon Pym","folderId":"<the folder>",
+       "libraryId":"<the library Podcasts>",
+       "media":{"metadata":<the metadata of the feed>,"autoDownloadEpisodes":false},
+       "autoDownloadEpisodes":false}'
+```
+
+**The server downloads one episode of that feed in about four seconds.** A
+measurement that needs a queue of a minute therefore needs about 15 episodes,
+and the body of `POST /api/podcasts/:id/download-episodes` is the bare array of
+the episodes of the feed (T-154).
 
 ## 6. Make a book that has many audio files
 
