@@ -73,7 +73,7 @@ This list comes from `src/api/` and from `src/logic/`. It is complete.
 | `GET /api/items/:id/ebook` | `src/logic/reader/book.rs` |
 | `GET /api/items/:id/file/:ino/download` | `src/logic/download/fetch.rs`, `src/player/engine/http_file.rs` |
 | `POST /api/items/:id/play`, `POST /api/items/:id/play/:episodeId` | `src/api/library_items/play_lib_item_or_pod.rs` |
-| `GET /api/me/progress/:id` | `src/api/me/get_media_progress.rs` |
+| `GET /api/me/progress/:id`, `GET /api/me/progress/:id/:episodeId` | `src/api/me/get_media_progress.rs` |
 | `GET /api/me/listening-stats` | `src/api/me/listening_stats.rs` |
 | `GET /api/me/listening-sessions?itemsPerPage=&page=` | `src/api/me/sessions.rs` |
 | `GET /api/libraries/:id/stats`, `GET /api/stats/year/:year` | `src/api/stats/mod.rs` |

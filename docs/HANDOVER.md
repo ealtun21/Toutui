@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.12.** The item T-181 belongs to this
-session. The item T-180 belongs to the session before it.
+**The newest release is v0.8.13.** The item T-182 belongs to this
+session. The item T-181 belongs to the session before it.
+The item T-180 belongs to the session before that one.
 The item T-179 belongs to the session before that one.
 The items T-177 and T-178 belong to the session before that one.
 The items T-175 and T-176 belong to the session before that one.
@@ -28,6 +29,57 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the twenty-third turn of 2026-08-14: the session of the playback that the server did not name
+
+**One release: v0.8.13.** The session before this one left no item open, and it
+named the one answer of a playback that no measurement of the shape of T-179, of
+T-180, and of T-181 had reached: `POST /api/items/:id/play`. This session took
+that answer, and **two fields of it each took a part of the user away with no
+word**.
+
+| Item | What | Where |
+|---|---|---|
+| T-182 | **A book started at its first second and it lost the place of the user on the server, and a playback of a session with no name sent the listening time of the user to nobody.** `collect_info_item` gave `currentTime` the default 0.0: the book of eight hours of the sandbox stood at 12000 seconds, it played from the start, and the loop of the playback wrote that start to the server — `GET /api/me/progress/:id` then answered 1096. `id` took the default of no character: every sync went to `/api/session//sync`, the close of the session did the same, the session of the server stayed open, and two programs of one account held one row of the database (`id_session` is the key of that table). A text of no character is a value that the server did not give now, and `the_start_of_a_playback` reads it | `src/api/library_items/play_lib_item_or_pod.rs`, `src/api/me/get_media_progress.rs`, `src/logic/the_playback.rs`, `src/logic/playback/mod.rs` |
+
+The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-182. Four things are
+worth the room here:
+
+1. **A default of 0 that the program gives to the server is worse than a default
+   of 0 that it keeps.** T-180 lost the place of the user on the disk alone,
+   because the rule of T-38 stopped every write of a playback that never reached
+   its place. **This one starts at 0**, therefore that rule holds nothing: the
+   program believes the 0, and it writes it to the server at the next sync.
+2. **The absence of a place needs a second question, and not a second guess.**
+   The correction asks the server: `GET /api/me/progress/:id`, and
+   `/api/me/progress/:id/:episode` for an episode. **The status 404 is the answer
+   of a media that never played**, and every other fault stops the playback —
+   the rule of T-175 and of T-178.
+3. **The sibling function of the same file held the rule already.**
+   `stream_session_of` refuses an answer with no `id` with the sentence "The
+   session of the server has no identity." (T-53), and the direct playback of the
+   same file said nothing at all. **A sweep of a shape must read every road of
+   one answer**, and not the road of the measurement alone.
+4. **A field that no line of the program reads holds no fault.**
+   `contentUrl` of `audioTracks[0]` stands in the list of `collect_info_item`
+   and in no other place: the address of every file comes of
+   `GET /api/items/:id`. The question of this shape is which field the program
+   **uses**.
+
+**The condition that this session leaves open.** None of its own. The road of
+the next session stands in the prompt at the end of this file.
+
+### The gates of this session
+
+| The gate | The answer |
+|---|---|
+| `cargo clippy --all-targets -- -D warnings` | no word |
+| `cargo fmt --check` | no word |
+| `cargo nextest run` | **1130 of 1130** in 2.3 seconds |
+| `cargo nextest run --run-ignored all` | **1155 of 1155**, with the sandbox up |
+| `cargo test -j 16 --no-fail-fast` | three runs, and every run passed |
+| `cargo tree -i openssl-sys` | no package |
+| `cargo tree -i cc` | `libsqlite3-sys` and `ring` only |
 
 ## The session of the twenty-second turn of 2026-08-14: the file that the server did not name
 
@@ -4413,16 +4465,16 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took the two fields that the session before it named**: `ino` and
-`index` of `media.audioFiles` of `GET /api/items/:id`. **A download left a file
-of the book on the server and it said "available offline", and a book of many
-files came to the disk in the wrong sequence** (T-181). The session left no item
-open. **The next session must name a condition of its own.** This prompt names
-the state of the program on 2026-08-14.
+**This session took the answer that the session before it named**:
+`POST /api/items/:id/play`. **A book started at its first second and it lost the
+place of the user on the server, and a playback of a session that the server did
+not name sent the listening time of the user to nobody** (T-182). The session
+left no item open. **The next session must name a condition of its own.** This
+prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.12**; `Cargo.toml` is at 0.8.12. The
+> AlbanDAVID/Toutui. Newest release **v0.8.13**; `Cargo.toml` is at 0.8.13. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -4431,7 +4483,7 @@ the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-181 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-182 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -4626,7 +4678,7 @@ the state of the program on 2026-08-14.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-181 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-182 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
@@ -4668,12 +4720,13 @@ the state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in thirty-four sessions of thirty-five. **No
->    condition of the road stays**: the session of the twenty-second turn took the
->    two fields that the session before it named, and it found a download that
->    leaves a file of the book on the server and that says "available offline",
->    and a book of many files that comes to the disk in the wrong sequence
->    (T-181). It wrote the correction, and it left no item open.
+>    this shape found a fault in thirty-five sessions of thirty-six. **No
+>    condition of the road stays**: the session of the twenty-third turn took the
+>    answer that the session before it named, and it found a book that starts at
+>    its first second and that loses the place of the user on the server, and a
+>    playback of a session that the server did not name which sends the listening
+>    time of the user to nobody (T-182). It wrote the correction, and it left no
+>    item open.
 >    - **The three shapes that found a fault before:** **a state of one process
 >      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153 to
 >      T-167), **a program that dies in the middle of work** (T-145, T-152), and
@@ -4693,9 +4746,15 @@ the state of the program on 2026-08-14.
 >      them held a fault of the user: a size of 0 threw a whole download away
 >      (T-179), a length of 0 threw the place of the user away (T-180), and the
 >      two fields that **name** a file and that put it in its place threw a file
->      of the book away (T-181). **A default of a field that names a thing is
->      worse than a default of a number**: the program then works on a file that
->      does not exist, and it reports success.
+>      of the book away (T-181). **The answer of the session held two more**
+>      (T-182): a place of 0 that the server did not give started the book at its
+>      first second and it wrote that start to the server, and a session of no
+>      name gave `/api/session//sync` to every request of that playback. **A
+>      default of a field that names a thing is worse than a default of a
+>      number**: the program then works on a thing that does not exist, and it
+>      reports success. **A default of 0 that the program gives back to the
+>      server is worse than a default of 0 that it keeps**: T-180 lost the place
+>      of the user on the disk alone, and T-182 lost it on the server too.
 >    - **The class of the views of `one_path_fails.py` is closed.** The bookmarks,
 >      the sessions, the statistics, the authors and the narrators, the devices of
 >      an e-reader, and the downloads of the server each hold a `State::Fault`,
@@ -4738,10 +4797,13 @@ the state of the program on 2026-08-14.
 >      an `index` of the default 1 gave two files of one book that number.
 >      **`mimeType` holds no fault**: `track_from` reads it as an `Option`, and
 >      `source.rs` gives the hint of the probe to symphonia for a value of one
->      character or more alone. **The parts that no measurement of that shape has
->      reached**: the answer of `POST /api/items/:id/play` (the chapters,
->      `currentTime`, `duration`, and the parts of the stream), and the answer of
->      the socket. The harnesses are
+>      character or more alone. **The answer of `POST /api/items/:id/play` is
+>      measured** (T-182): `currentTime` and `id` each held a fault of the user,
+>      `duration` of `audioTracks[0]` takes the road of T-180, the three names of
+>      the media take the word `N/A`, `contentUrl` holds no fault because no line
+>      of the program reads it, and the chapters of a playback come of
+>      `GET /api/items/:id`. **The part that no measurement of that shape has
+>      reached is the answer of the socket.** The harnesses are
 >      `docs/harness/a_field_of_the_answer_goes_away.py` and
 >      `docs/harness/a_field_of_one_row_goes_away.py`, and the question of
 >      every sweep of them is **which field does this program read, and what does
@@ -4778,7 +4840,10 @@ the state of the program on 2026-08-14.
 >      holds no row. **T-159 may have closed the road of a key to them**: a
 >      program whose account stands in no row starts again after every key,
 >      therefore a measurement of that sweep needs a write with no key — the
->      loop of a playback.
+>      loop of a playback. **T-182 took one road of that sweep away**: a session
+>      of no name reaches the database no more, therefore the writes of
+>      `id_session` that say nothing need a row that a playback removed while
+>      that playback goes on.
 > 2. **The words for the user.** Every text in ASD-STE100. A view says why it
 >    holds no line, and it never says a reason that the program does not have
 >    (T-91), **and the header of the screen holds that same rule** (T-171). **A
@@ -4879,7 +4944,13 @@ the state of the program on 2026-08-14.
 > (T-180), and **a file of `media.audioFiles` with no `ino` has no address,
 > therefore the program makes no plan of that download and it names that file;
 > and a book whose files do not each hold an `index` takes the sequence of the
-> answer of the server** (T-181).
+> answer of the server** (T-181), and **a `currentTime` that the answer of the
+> session does not hold is not the place 0: the program asks the server for the
+> place of that media, the status 404 is the answer of a media that never
+> played, and every other fault stops the playback; and a session that the
+> answer of the server does not name is no session, therefore that playback does
+> not start and the program says that the session of the server has no
+> identity** (T-182).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
