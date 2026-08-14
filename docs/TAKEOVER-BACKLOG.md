@@ -8032,7 +8032,346 @@ the lock and of the `.part` file, and each of them fails with the correction
 removed.
 
 **The value of the disk that stays open**: the row of the position of an offline
-playback (T-38, T-152).
+playback (T-38, T-152). **T-188 closes it.**
+
+### T-188: the place of an offline playback went over the newer place of the server, and the place of an episode went away
+
+**The road of T-187 named this sweep**: the one value of the disk that stayed was
+the row of the position of an offline playback (T-38, T-152). That row is the one
+copy of such a playback — `play_offline` opens no session on the server, and no
+row of `listening_session` stands beside it — and `flush_pending_progress` sends
+it when the server answers again.
+
+**That function reads a state of the server, and it then writes it.** That is the
+shape of T-175, and the road of a measurement of that shape is
+`docs/harness/one_method_fails.py`: a proxy that fails the whole path
+`/api/me/progress` hides the fault of the read, because the write of the same
+path says the fault itself.
+
+**The three faults.** Each of them takes a place of the user away, and no word of
+the program names one of them.
+
+| The road | The server before | The disk | The server after |
+|---|---|---|---|
+| the read gives the status 500 | 5000 s, the moment of now | 100 s, one hour old | **100 s** |
+| the answer of the read holds no `lastUpdate` | 5000 s | 100 s, one hour old | **100 s** |
+| the place of one episode of a podcast | 10 s of the episode 01 | 500 s of the episode 01 | **10 s** |
+
+#### The first road: a fault of the read is not "this media never played"
+
+The old code:
+
+```rust
+let server_last_update = match get_book_progress(api, &progress.id_item).await {
+    Ok(root) => Some(root.last_update),
+    Err(error) if error.is_offline() => { return sent; }
+    // A media that the user did not start gives 404. The application
+    // then sends its position.
+    Err(_) => None,
+};
+```
+
+The comment names the status 404, and the arm holds **every** fault: a status of
+500, a status of 403 of a library that the account lost, a token that is not
+valid, and a body that the program cannot read. `should_send(x, None)` is always
+`true`, therefore the program then wrote its own position over the position of
+the server.
+
+**The measurement of 2026-08-14**, with the sandbox, the book of eight hours
+`A Book Of Many Hours`, and one address of the pool (the trap 129):
+
+```bash
+python3 docs/harness/one_method_fails.py 13500 13399 requests.log \
+    GET:/api/me/progress
+```
+
+The server held 5000 seconds of that book with the moment of now, and the disk
+held a row of 100 seconds with a moment of one hour before it. **The control
+came first**: the same proxy with a rule that holds no path of the program gave
+
+```text
+[offline] the server has a newer position of 6ba57b9a-…. The local position goes away.
+```
+
+and the server kept 5000 seconds. The proxy of the rule then gave
+
+```text
+[offline] the server took the position 100s of 6ba57b9a-…
+```
+
+and `GET /api/me/progress/:id` of a second program held **100**. The log of the
+proxy holds the two requests of one road:
+
+```text
+500 GET   /api/me/progress/6ba57b9a-…
+--- PATCH /api/me/progress/6ba57b9a-…
+```
+
+The place of the user of the server went away, and the program said that the
+server **took** its position: the words of the program named a state that it did
+not read (the shape of T-175).
+
+#### The second road: a moment of 0 is a moment that the server did not give
+
+`last_update` of `Root` takes the default 0 (the rule of T-177), therefore an
+answer of a server that does not hold `lastUpdate` gave `Some(0)`, and
+`should_send` compared the moment of the disk with the moment of 1970: the
+program wrote its old position over **every** newer position of that server. This
+is the rule of T-180 for this field: a value of 0 that the program **uses** is
+the fault, and a default of 0 that goes back to the server is worse than a
+default of 0 that stays on the disk (T-182).
+
+**The measurement**, with the harness of T-177:
+
+```bash
+python3 docs/harness/a_field_of_the_answer_goes_away.py 13503 13399 \
+    requests.log /api/me/progress/6ba57b9a-acb5-44f9-b2b6-39ad9107b420 lastUpdate
+```
+
+The answer of the read then held `currentTime: 5000` and no moment at all, the
+log said "the server took the position 100s", and the server held 100 seconds.
+**A fault of a field is not a fault of a decode**: the answer read well, and the
+program used the default.
+
+#### The third road: the place of an episode stands at the path of that episode
+
+`flush_pending_progress` called `get_book_progress(api, &progress.id_item)` for
+**every** row, and a row of a podcast holds `id_pod` too. T-182 made
+`the_path_of_the_place` for that reason: the place of an episode stands at
+`/api/me/progress/:item/:episode`.
+
+**Audiobookshelf answers the path of the item alone with the place of one
+episode of that podcast.** A measurement of the sandbox of 2026-08-14:
+`GET /api/me/progress/b793354b-…` of the podcast `Arthur Gordon Pym` gave
+`"episodeId": "845f9d16-…"`, and that is the episode 00. The moment of **another**
+episode therefore decided for the episode of the row.
+
+**The measurement needs no proxy at all.** The episode 01 of the server held 10
+seconds with the oldest moment, the disk held 500 seconds of that same episode
+with a newer moment, and the episode 00 of the server held the newest moment of
+the account:
+
+```text
+the row of the disk: the episode 01, 500 s, the moment 1786697475657
+the server of 845f9d16-… (the episode 00): 999 s, 1786697477664
+the server of 482f0136-… (the episode 01):  10 s, 1786697475653
+the answer of the path of the item alone: 845f9d16-…, 999 s, 1786697477664
+```
+
+The log of the program said
+
+```text
+[offline] the server has a newer position of b793354b-…. The local position goes away.
+```
+
+the row of the disk went away, and the episode 01 of the server still held **10
+seconds**. **The offline listening of 500 seconds of the user went away with no
+word.** The place of the disk is the value that the program lost here, and the
+two roads above lost the place of the server: the three of them are one read.
+
+#### The correction
+
+`the_read_of_the_position` of `src/logic/offline/mod.rs` is a pure function of
+five answers, and `flush_pending_progress` holds no rule of its own:
+
+| The answer of the read | What the flush does |
+|---|---|
+| a position with a moment | it compares the two moments (`should_send`) |
+| the status 404 | the media never played, therefore the position of the disk goes |
+| the server does not answer | the flush stops, because every request after it fails in the same way |
+| every other fault | **the program writes nothing, and the row waits** |
+| a position with no moment | **the program writes nothing, and the row waits** |
+
+**The row waits, and it does not go away.** A fault of the read is a fault of the
+moment: the task of the flush tries again every 30 seconds (`FLUSH_PERIOD`), and
+the row of the disk is the one copy of an offline playback. **A row that goes
+away is a place of the user that no program can find again** (T-152), therefore
+the two new roads keep it. The row of a write that the server **refused** still
+goes away, and that decision of T-25 stays: the server answered, and a second
+attempt of the same request gives the same answer.
+
+The read takes the path of the media now: `get_the_place_of_a_media(api,
+&progress.id_item, episode)`, with the `episode` of the row (T-182).
+
+**The words for the user stay as they are.** No view of the program holds this
+work: the flush runs at the start (before the first frame, T-129) and in a task
+of every 30 seconds, and the number of the positions that wait stands in the
+header already. The two new roads take a line of the **log** for the maintainer,
+in the way of a row of `mediaProgress` that names no media (T-177):
+
+```text
+[offline] the program did not read the position of 6ba57b9a-… of the server:
+The server reported a fault. Status 500. The position of the disk waits.
+[offline] the server gave no moment of its position of 6ba57b9a-…. The position
+of the disk waits.
+```
+
+**The verification of the real program, after the correction.** The three roads
+of the measurement, each with the same condition of the start:
+
+| The road | The log | The server after | The row of the disk |
+|---|---|---|---|
+| the read gives 500 | "the program did not read the position … The position of the disk waits." | **5000 s** | it stays |
+| the answer holds no `lastUpdate` | "the server gave no moment of its position … The position of the disk waits." | **5000 s** | it stays |
+| the place of the episode 01 | "the server took the position 500s" | **500 s of the episode 01** | it goes |
+
+The third road holds the sharp condition: the moment of the episode 00 of the
+server (1786697761456) stood **after** the moment of the row of the disk
+(1786697759450), and the program sent the position of the episode 01 all the
+same.
+
+`tests/the_position_of_the_disk_waits_for_a_read_that_came_back.rs` holds the
+three roads and the road of the status 404, with a host of `wiremock` that
+answers the read and the write of one path apart. **It fails with each of the
+three corrections removed**, one at a time:
+
+```text
+a read that came back with the status 500 must send no position
+a position of the server with no moment gives no comparison, therefore the
+    program sends nothing
+the position of an episode stands at the path of that episode (T-182), and the
+    requests are ["GET /api/me/progress/b793354b-…", "PATCH …"]
+```
+
+**The parts of that test stay in one function**, because it writes
+`XDG_CONFIG_HOME` (the shape of T-144 and of T-157). Five tests of
+`src/logic/offline/mod.rs` hold the five answers of the pure function.
+
+**The five tables that keep a value of the server each hold their rule now**:
+`download_files` (T-187), `downloads` (T-148, T-150), `queue` (T-147),
+`listening_session` (T-140, T-145), and `pending_progress` (T-152, T-188).
+**The read of this item named the next one**: the write of the same place holds
+the same shape, and T-189 holds it.
+
+### T-189: a place that the server did not take went away for ever
+
+**T-188 read the source of the write while it corrected the read**, and the write
+held the same shape one level lower: **the two roads of the place of a playback
+that the server did not take.**
+
+**The rule of T-145** stands in the comment of `close_one_session`: "the row goes
+away after the position is safe: the server holds it, or the table
+`pending_progress` holds it". The old code held that rule for **one** fault:
+
+```rust
+if let Err(error) = result {
+    warn!("the server did not accept the position: {}", error);
+
+    // The server does not answer. The position waits in the
+    // database, and the application sends it later.
+    if error.is_offline() {
+        remember_progress(…);
+    }
+}
+
+…
+
+let _ = delete_the_session_of_a_playback(session.id_session.as_str());
+```
+
+`is_offline` is `Unreachable` and `Timeout` alone. **A server that answered with a
+fault therefore gave neither road**: no request carried the place, no row of
+`pending_progress` held it, and the row of the session went away four lines
+later.
+
+**The measurement of 2026-08-14**, with the sandbox and one address of the pool
+(the trap 129):
+
+```bash
+python3 docs/harness/one_path_fails.py 13500 13399 requests.log /api/me/progress
+```
+
+The disk held a row of a listening session of a program that **died**, of
+`A Book Of Many Hours` at 1234 seconds and with a heartbeat of one hour before
+(the rule of T-140 gives such a row to the next program). The place of the server
+was 0. The program started, the user pressed the key `Q`, and the log said
+
+```text
+[sync_session_from_database] the server did not accept the position: The server
+    reported a fault. Status 500.
+[handle_key (Q)][book][Quit] Item 6ba57b9a-… closed at 1234s (not finished)
+```
+
+`listening_session` held **no row**, `pending_progress` held **no row**, and
+`GET /api/me/progress/:id` of a second program held **0**. **1234 seconds of the
+user went away for ever, and the words of the log said the words of a success.**
+
+**The write of the flush held the same rule.** `flush_pending_progress` removed
+the row of a write that came back with a fault, and its comment said "a second
+attempt gives the same answer". That sentence is true of a request that the
+server **refused**, and it is not true of the status 500: T-128 says that a
+second address of the same server can answer such a request, and the task of the
+flush tries again every 30 seconds. A status of 500 of that write therefore threw
+the place of the disk away too.
+
+#### The correction
+
+`the_place_can_wait` of `src/logic/offline/mod.rs` is a pure function of one
+fault, and the two call sites hold no rule of their own:
+
+| The fault | The place |
+|---|---|
+| the status 404 | it waits for nothing: the server does not hold this media (T-187) |
+| the status 400 | it waits for nothing: the server refused the request itself (T-87) |
+| every other fault | **it waits on the disk** |
+
+**The three faults that the old code threw away are the faults of the moment**: a
+status of 500 or more is the fault of one machine and a second address of the same
+server can answer it (T-128), a token that is not valid holds until the user logs
+in again, and a permission of an account can come back (T-136). A body that the
+program did not read is the fault of one answer.
+
+**The words for the user stay as they are.** The header of the screen holds the
+number of the positions that wait already, and the message of the key `Q` names
+no place: the program stops after that key. The two roads take a line of the log.
+
+**The verification of the real program, after the correction.** The same
+condition, and the same key `Q`:
+
+```text
+[sync_session_from_database] the server did not accept the position: The server
+    reported a fault. Status 500.
+[offline] the position 1234s of 6ba57b9a-… waits for the server
+```
+
+`pending_progress` held `6ba57b9a-… | 1234.0`. The account then took the address
+of the sandbox, the program started, and the flush of the start said
+
+```text
+[offline] the server took the position 1234s of 6ba57b9a-…
+```
+
+The server holds 1234 seconds. **The whole road of the place of the user works
+now**: a fault of the server, a row of the disk, and a start that finds the
+server again.
+
+`tests/the_place_that_the_server_did_not_take_waits.rs` holds the four roads —
+the close of a session with the status 500 and with the status 404, the write of
+the flush with the status 500, and the rule of the pure function for nine faults
+— and it fails with each of the two corrections removed:
+
+```text
+the row of the session goes away, therefore a place that the server did not take
+    must wait on the disk: the place of the user is gone for ever without it
+a write that came back with the status 500 keeps the row: the task of the flush
+    tries again every 30 seconds
+```
+
+**The parts of that test stay in one function**, because it writes
+`XDG_CONFIG_HOME` (the shape of T-144 and of T-157).
+
+**The shape of this item is worth the room.** T-188 asked what the program does
+with an answer of the **read**, and this item asks what it does with an answer of
+the **write**. The two questions of a value of the user that stands between two
+machines are:
+
+1. **Which faults mean "never"?** A program that reads every fault as "never"
+   throws the value away, and a program that reads every fault as "later" keeps a
+   row for ever. The two faults of "never" are the fault of the request and the
+   media that went away.
+2. **Where does the value stand while it waits?** The row of the session went
+   away in the same function, therefore the place needed a second table. **A
+   value that leaves one table must reach another one before that removal.**
 
 ### T-183: one device with no name took every device of the e-reader away
 

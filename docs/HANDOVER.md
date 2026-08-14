@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.18.** The item T-187 belongs to this session. The
-item T-186 belongs to the session before it, and the
+**The newest release is v0.8.20.** The items T-188 and T-189 belong to this
+session. The item T-187 belongs to the session before it, and the
+item T-186 to the session before that one, and the
 item T-185 to the session before that one, and the
 items T-183 and T-184 to the session before that one.
 The item T-182 belongs to the session before that one.
@@ -33,6 +34,76 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the twenty-eighth turn of 2026-08-14: the place of the user between two machines
+
+**Two releases: v0.8.19 and v0.8.20.** The session before this one named the one
+value of the disk that stayed: the row of the position of an offline playback
+(T-38, T-152). That row holds the place of the user, and this session found
+**five** faults of it — three of the read that decides, and two of the write that
+sends.
+
+| Item | What | Where |
+|---|---|---|
+| T-188 | **The place of the disk went over the newer place of the server, and the place of an episode went away.** `flush_pending_progress` reads `GET /api/me/progress/:id` before it writes, and it held one arm for every fault of that read: a status of 500 gave "the server holds no position", therefore 5000 seconds of a book of eight hours became 100. A `lastUpdate` that the answer does not hold took the default 0, and the same 5000 seconds became 100. A row of an episode of a podcast asked for the path of the **item**, and Audiobookshelf answers that path with the place of **one** episode of it: the moment of another episode threw 500 seconds of the offline listening away | `src/logic/offline/mod.rs` |
+| T-189 | **A place that the server did not take went away for ever.** The rule of T-145 says that the row of a session goes away after the place is safe — the server holds it, or `pending_progress` holds it — and both roads asked `is_offline`: a server that **answered** with a fault gave neither. The key `Q` lost 1234 seconds, and the log said "closed at 1234s". The write of the flush of every 30 seconds held the same rule | `src/logic/sync_session/sync_session_from_database.rs`, `src/logic/offline/mod.rs` |
+
+The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-188 and T-189. Five
+things are worth the room here:
+
+1. **A read that decides a write is the shape of T-175, and it stands outside the
+   keys too.** T-178 closed that shape "for the keys" (`M`, `N`, and `e`), and the
+   flush of the positions is no key: it runs before the first frame (T-129) and in
+   a task of every 30 seconds. **The question of that shape is which faults of the
+   read the program reads as a state**, and the answer of T-175 holds here word
+   for word: the status 404 is the media that never played, and every other fault
+   stops the write.
+2. **A default that lies is the same fault of a moment as of a number.** T-179 and
+   T-180 read a size of 0 and a length of 0; this session read a **moment** of 0.
+   `should_send` then compared the moment of the disk with the moment of 1970, and
+   the program overwrote every newer place of that server. **`unwrap_or` is not the
+   one line to read: a field of `#[serde(default)]` of a number is the same line.**
+3. **A path that holds an id of a list needs the id of the row, and not the id of
+   the list.** T-182 made `the_path_of_the_place` for the place of an episode, and
+   the flush of the positions never took it. **Audiobookshelf answers
+   `GET /api/me/progress/:podcast` with the place of one episode of that podcast**
+   — the measurement of the sandbox holds that answer — therefore a program that
+   asks the wrong path gets an answer of the status 200 and of another media.
+   **A wrong path that answers is worse than a wrong path that fails.**
+4. **A value that leaves one table must reach another one before that removal.**
+   The place of the row of a session goes to the server or to `pending_progress`,
+   and the removal of that row stands in the same function. T-189 is the condition
+   between the two: the write failed, the second table took nothing, and the
+   removal ran all the same. **Read the removal, and then ask which road of the
+   value the removal trusts.**
+5. **The two questions of a value of the user that stands between two machines.**
+   Which faults mean "never"? and where does the value stand while it waits? A
+   program that reads every fault as "never" throws the value away, and a program
+   that reads every fault as "later" keeps a row for ever. **The two faults of
+   "never" are the fault of the request (400) and the media that went away (404).**
+
+**The condition that this session leaves open.** None of its own. **No table of
+the disk of this program keeps a value of the server with no rule now**:
+`download_files` (T-187), `downloads` (T-148, T-150), `queue` (T-147),
+`listening_session` (T-140, T-145, T-189), and `pending_progress` (T-152, T-188,
+T-189).
+
+### The gates of this session
+
+| The gate | The answer |
+|---|---|
+| `cargo clippy --all-targets -- -D warnings` | no word |
+| `cargo fmt --check` | no word |
+| `cargo nextest run` | **1151 of 1151** in 2.3 seconds |
+| `cargo nextest run --run-ignored all` | **1176 of 1176**, with the sandbox up |
+| `cargo test -j 16 --no-fail-fast` | three runs after the last correction, and every run passed; five runs of the first correction |
+| `cargo tree -i openssl-sys` | no package |
+| `cargo tree -i cc` | `libsqlite3-sys` and `ring` only |
+
+**The sandbox.** The account holds the address of the sandbox again (the trap
+129), `pending_progress` and `listening_session` hold no row, and the place of
+`A Book Of Many Hours` and of the two episodes of `Arthur Gordon Pym` is 0 with
+`isFinished: false`.
 
 ## The session of the twenty-seventh turn of 2026-08-14: the file that left the book and stayed on the disk
 
@@ -4777,18 +4848,19 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took the first of the two values of the disk that the session
-before it named**: the files of a download of a book that the server changed. The
-fault stood one level above the bytes of a file: **a book that lost a file kept
-that file on the disk and its row in the database**, the offline playback played
-a part that the book does not hold, and it wrote the place of that part for the
-server (T-187). The session left no item open, and the road below names the one
-value of the disk that stays: the row of the position. This prompt names the
-state of the program on 2026-08-14.
+**This session closed the one value of the disk that the session before it
+named**: the row of the position of an offline playback. It found five faults of
+one value — the place of the user — and each of them stood between the disk and
+the server: a fault of the **read** that decides the write (T-188), a moment of 0
+that the answer did not hold (T-188), a path of an item where the path of an
+episode belongs (T-188), and two roads of a **write** that the server did not take
+(T-189). No table of the disk keeps a value of the server with no rule now, and
+the road below names the conditions that stay. This prompt names the state of the
+program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.18**; `Cargo.toml` is at 0.8.18. The
+> AlbanDAVID/Toutui. Newest release **v0.8.20**; `Cargo.toml` is at 0.8.20. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -4797,7 +4869,7 @@ state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-186 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-189 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -4829,7 +4901,12 @@ state of the program on 2026-08-14.
 > at all**: a `mv` of one file of `$ABS/audiobooks/<the author>/<the book>/` and
 > `POST /api/items/:id/scan` give a book of one file fewer in some seconds, and a
 > `mv` back with a second scan gives the book of the start with the same `ino` of
-> each file (T-187).
+> each file (T-187). **A row of the database of the program is the condition
+> itself for the tables of the place of the user**: `sqlite3` of
+> `$ABS/toutui-config/toutui/db.sqlite3` writes a row of `pending_progress` or of
+> `listening_session` of a program that died (`owner`, and a `heartbeat` of one
+> hour before), and the key `Q` of the program then does the work of that row
+> (T-188 and T-189).
 >
 > **A server that answers some requests and that fails others is
 > `docs/harness/one_path_fails.py`** (T-169 and T-170). It answers the status
@@ -4870,7 +4947,12 @@ state of the program on 2026-08-14.
 > `toutuitest` (T-158). **`PATCH /api/me/progress/:id` with
 > `{"isFinished": false}` writes `currentTime: 0`**, therefore a measurement
 > that gives a media a place again needs that request first and the place after
-> it (section 15 of `docs/TEST-SERVER.md`, and T-160). **A media of the sandbox
+> it (section 15 of `docs/TEST-SERVER.md`, and T-160). **A `PATCH` of the same
+> value of `currentTime` writes no new `lastUpdate`**, therefore a measurement of
+> two moments of the server needs two different places (T-188). **The place of an
+> episode of a podcast stands at `PATCH /api/me/progress/:item/:episode`**, and
+> `GET /api/me/progress/:item` of a podcast answers with the place of **one**
+> episode of it (T-188). **A media of the sandbox
 > that ends while the user looks at a view** comes of `A Long Test Book` of 30
 > minutes: the null device plays it in 22 seconds, and the two books of eight
 > hours then hold the queue open (T-161). **A measurement of two lists of
@@ -4901,7 +4983,10 @@ state of the program on 2026-08-14.
 > that answers with no network and no sandbox (T-167, T-169, T-170, and the three
 > files `tests/a_playback_that_did_not_start_says_why.rs`,
 > `tests/the_lists_that_did_not_come_say_why.rs`, and
-> `tests/the_requests_of_the_start_that_failed_say_why.rs`).
+> `tests/the_requests_of_the_start_that_failed_say_why.rs`). **A host of
+> `wiremock` gives one status to one method of one path with no proxy at all**,
+> and `received_requests` then says which path the program asked for (T-188 and
+> T-189).
 > **A server that answers the login and that holds no library is
 > `docs/harness/no_library.py`** (T-173). It forwards every request to the
 > sandbox, and it answers `GET /api/libraries` with the status 200 and the body
@@ -5017,15 +5102,15 @@ state of the program on 2026-08-14.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-182 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-190 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1144 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1169 of 1169** with the sandbox up, in about 20 seconds. **Run that
+> Baseline: **1151 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1176 of 1176** with the sandbox up, in about 19 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -5059,145 +5144,77 @@ state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in forty sessions of forty-one. **The
->    session of the twenty-seventh turn took the first of the two values of the
->    disk that the session before it named**: a book of the server that lost a file
->    kept that file on the disk and its row in the database, the offline playback
->    played a part that the book does not hold, and the program wrote the place of
->    that part for the server (T-187). It wrote the correction, and it left no item
->    open.
->    - **The sweep of the boxes of the process is closed** (T-184 and T-185). The
->      eight boxes of `src/logic/` each hold **one** answer of the server and a key
->      of the view takes the place of it; the map of the positions of the live
->      messages and the store of the covers of `src/ui/cover.rs` each held a value
->      **for each item of the account**, and the key `R` empties both of them now.
->      **The question of a sweep of this shape is not "which box of this
->      directory": it is which value of the server this process keeps, and where.**
->    - **The road of the last two sessions was the values of the server that this
->      program keeps on the disk. The file of an ebook is closed** (T-186), **and
->      the files of a download are closed** (T-187). The question of T-187 stood
->      one level above the bytes of a file: `insert_download_file` writes over the
->      row of the file of the same number, and it says nothing about the rows that
->      the new answer does not name. A book of three files that became a book of
->      one file kept three files of the disk and three rows, and the offline
->      playback played the two parts that the book no longer holds. **A list of the
->      server that a table of the program keeps needs a rule for the rows that left
->      it**, and that question belongs to every such table. **One value of the disk
->      stays:**
->      - **The row of the position of the disk** (T-38, T-152). An offline
->        playback keeps its place for the server at each second, and **T-187 says
->        what such a row does**: a value of the disk that the server no longer
->        holds goes back to the server as the place of the user.
->      **The road of a measurement of that shape is the road of T-185**: change
->      the value on the server with a second program (`curl`), press every key of
->      that view and the key `R`, and read the screen and the log of the proxy —
->      **`grep -c` of a path before a key and after it says whether that key asked
->      the server again** (the trap 144). **A road of the same shape with no server
->      of another state is the fault of the network**: a body of an answer that
->      stops in the middle, of `docs/harness/a_body_that_stops_in_the_middle.py`,
->      and it found T-186 in one measurement.
->    - **A correction that makes a new file makes a new condition** (T-186). The
->      `.part` of a download that fails goes away with the fault, and the `.part`
->      of a program that **dies** stays. `the_file_is_an_ebook_of_the_item` holds
->      it now, therefore the key `X` reaches it, and the limit of the cache of the
->      ebooks counts the whole books alone: a `.part` of a download that runs must
->      not go away under the download that writes it. **Ask of every file that a
->      correction makes: which key of the user removes it, and which limit counts
->      it?**
->    - **Two roads of one work in one program are two rules until a measurement
->      makes them one** (T-186). `fetch.rs` of the download of the audio held the
->      rule of the `.part` since T-64 — "a file without `.part` is always
->      complete" — and `download_to_file` of the ebook took no part of it. **A
->      sweep of a class must ask whether the other road of the same work holds the
->      rule.**
->    - **The shape of T-177 found no fault of `src/api/live.rs`, and that file
->      still held one** (T-184). `Handshake` gives `pingInterval` and `pingTimeout`
->      the default 0 and no line of the program reads either of them beside one
->      line of the log; `ProgressRow` gives every field a default, and both
->      functions of the positions drop a row whose `libraryItemId` holds no
->      character (the rule of T-177). **The question of a sweep of an answer is not
->      the fields alone: it is what the program does with the answer.**
+>    this shape found a fault in forty-one sessions of forty-two. **The
+>    session of the twenty-eighth turn took the one value of the disk that the
+>    session before it named**: the row of the position of an offline playback. It
+>    found five faults of one value — the place of the user — and it left no item
+>    open (T-188 and T-189).
+>    - **The sweep of the values of the disk is closed** (T-186 to T-189). The
+>      five tables that keep a value of the server each hold their rule now:
+>      `download_files` (T-187), `downloads` (T-148, T-150), `queue` (T-147),
+>      `listening_session` (T-140, T-145, T-189), and `pending_progress` (T-152,
+>      T-188, T-189). **The question of a sweep of that shape was: which value of
+>      the server does this table keep, which rule takes a row of it away, and
+>      what does the program do with a row that the server no longer holds.**
+>    - **The place of the user stands between two machines, and T-188 and T-189
+>      hold the two questions of such a value.** A read that decides a write is
+>      the shape of T-175, and **it stands outside the keys too**: the flush of
+>      the positions is no key of the user. **Which faults mean "never"?** The
+>      fault of the request (400) and the media that went away (404); every other
+>      fault can pass, therefore the value waits. **Where does the value stand
+>      while it waits?** A value that leaves one table must reach another one
+>      **before** that removal: the removal of the row of a session stands in the
+>      same function as the write of it.
 >    - **The three shapes that found a fault before:** **a state of one process
 >      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153 to
 >      T-167), **a program that dies in the middle of work** (T-145, T-152), and
 >      **a server that does not answer, that answers with a fault, or that
->      answers with another body** (T-146, T-149, T-152, T-156, T-167 to T-178).
->      **A fourth shape came of T-175**: a key that **reads** a state of the
->      server and that then writes it. A proxy of one path hides that fault, and
->      `docs/harness/one_method_fails.py` gives it. **That shape is closed for
->      the keys** (T-178): the keys `M`, `N`, and `e` were the three of it, and
->      each of them held a fault. **A fifth shape came of T-177**: an answer of
->      a server of another version, which holds one field fewer, and
->      `docs/harness/a_field_of_the_answer_goes_away.py` gives it. **The
->      question of that shape is the question of T-179 and of T-180**: a field
->      that the program reads with a **default** gives no fault of a decode, and
->      the program then **uses** that default — `unwrap_or(0)` and
->      `unwrap_or(0.0)` are the two lines to read of every such answer. Three of
->      them held a fault of the user: a size of 0 threw a whole download away
->      (T-179), a length of 0 threw the place of the user away (T-180), and the
->      two fields that **name** a file and that put it in its place threw a file
->      of the book away (T-181). **The answer of the session held two more**
->      (T-182): a place of 0 that the server did not give started the book at its
->      first second and it wrote that start to the server, and a session of no
->      name gave `/api/session//sync` to every request of that playback. **A
->      default of a field that names a thing is worse than a default of a
->      number**: the program then works on a thing that does not exist, and it
->      reports success. **A default of 0 that the program gives back to the
->      server is worse than a default of 0 that it keeps**: T-180 lost the place
->      of the user on the disk alone, and T-182 lost it on the server too.
->    - **The class of the views of `one_path_fails.py` is closed.** The bookmarks,
->      the sessions, the statistics, the authors and the narrators, the devices of
->      an e-reader, and the downloads of the server each hold a `State::Fault`,
->      and each of them says what the server said: the measurement of T-171 read
->      the four of them that a key of the sandbox reaches. **The view of the
->      chapters holds no request of its own** — the chapters come of
->      `POST /api/items/:id/play`, and T-167 holds that road. **The fault of that
->      sweep stood in the header** (T-171): a sweep of a class must read the whole
->      screen, and not the panel of the view alone.
+>      answers with another body** (T-146, T-149, T-152, T-156, T-167 to T-178,
+>      T-188, T-189). **A fourth shape came of T-175**: a key that **reads** a
+>      state of the server and that then writes it. **That shape is closed for
+>      the keys** (T-178) and **for the flush of the positions** (T-188). **A
+>      fifth shape came of T-177**: an answer of a server of another version,
+>      which holds one field fewer. **The question of that shape is the question
+>      of T-179, of T-180, and of T-188**: a field that the program reads with a
+>      **default** gives no fault of a decode, and the program then **uses** that
+>      default — `unwrap_or(0)`, `unwrap_or(0.0)`, and **every field of
+>      `#[serde(default)]` of a number** are the lines to read of every such
+>      answer. Six of them held a fault of the user: a size of 0 threw a whole
+>      download away (T-179), a length of 0 threw the place of the user away
+>      (T-180), the two fields that **name** a file threw a file of the book away
+>      (T-181), a place of 0 that the server did not give started a book at its
+>      first second (T-182), and **a moment of 0 of `lastUpdate` threw the place
+>      of the user of the server away** (T-188). **A default of 0 that the program
+>      gives back to the server is worse than a default of 0 that it keeps.**
+>    - **A path of an answer that holds an id needs the id of the row** (T-188).
+>      The place of an episode of a podcast stands at
+>      `/api/me/progress/:item/:episode` (T-182), and the flush asked for the path
+>      of the item: **Audiobookshelf answers that path with the place of one
+>      episode of that podcast**, therefore the program read the status 200 and
+>      the moment of another media. **A wrong path that answers is worse than a
+>      wrong path that fails**, and no fault of a decode names it.
 >    - **The parts of the program that a server of a fault has not reached**: the
 >      keys `F`, `b`, `n`, `m`, `r`, `D`, and `X`, and the stream of the audio.
 >      **The keys `M`, `N`, and `e` are
 >      closed** (T-175 and T-178), **the first request of the program is closed**
->      (T-172), and **the login screen is closed for the status of `POST /login`
+>      (T-172), **the flush of the positions of the disk is closed** (T-188 and
+>      T-189), and **the login screen is closed for the status of `POST /login`
 >      (T-92), for a server that gives no library (T-173), and for a body of the
 >      libraries that the program cannot read (T-176)**. **The send of an ebook to
->      an e-reader is closed** (T-183): the list of the devices comes of
->      `POST /api/authorize`, one row of that list with no name took every device
->      away, and the sentence of a device that the server no longer holds names the
->      key `@` now. **The read of the source of that same file found no fault of
->      the words, and the measurement found two faults**: a road that looks safe in
->      the source can hold a value that no answer gave, and a read is not a
->      measurement.
+>      an e-reader is closed** (T-183). **The read of the source of that same file
+>      found no fault of the words, and the measurement found two faults**: a road
+>      that looks safe in the source can hold a value that no answer gave, and a
+>      read is not a measurement.
 >    - **The shape of T-177 is the answer of a server of another version**, and
 >      **no structure of `src/api/` asks for a field that the program does not
 >      read now**: `get_all_books.rs`, `sessions.rs`, `bookmarks.rs`,
 >      `get_authors.rs`, `stats/mod.rs`, `get_all_libraries.rs` (T-176), and
->      `get_media_progress.rs` (T-177) each give every such field a default.
->      **The answer of `GET /api/items/:id` is measured for the download**
->      (T-179): `metadata.size` of a file took the default 0, and a comparison of
->      that 0 threw the whole download away. **It is measured for the playback
->      too** (T-180): `duration` of a file took the default 0.0, and `locate`
->      then gave the last file of the book at the offset 0. **`ino` and `index` of
->      a file are measured too** (T-181), with
->      `docs/harness/a_field_of_one_row_goes_away.py` and one file of a book of
->      three: a file with no `ino` left the plan of the download with no word, and
->      an `index` of the default 1 gave two files of one book that number.
->      **`mimeType` holds no fault**: `track_from` reads it as an `Option`, and
->      `source.rs` gives the hint of the probe to symphonia for a value of one
->      character or more alone. **The answer of `POST /api/items/:id/play` is
->      measured** (T-182): `currentTime` and `id` each held a fault of the user,
->      `duration` of `audioTracks[0]` takes the road of T-180, the three names of
->      the media take the word `N/A`, `contentUrl` holds no fault because no line
->      of the program reads it, and the chapters of a playback come of
->      `GET /api/items/:id`. **The answer of `POST /api/authorize` is measured**
->      (T-183): `name` of a device of an e-reader held no default at all, therefore
->      one row of no name was a fault of the whole answer and every device of the
->      account went away; `email` holds no fault, and `availabilityOption` and
->      `users` reach no line of the program by the decision of T-119. **The answer
->      of the socket holds no fault of that shape** (T-184): every field of
->      `Handshake` and of `ProgressRow` takes a default, and no line of the program
->      uses one of them. The harnesses
->      are `docs/harness/a_field_of_the_answer_goes_away.py` and
+>      `get_media_progress.rs` (T-177 and T-188) each give every such field a
+>      default. The answers of `GET /api/items/:id` (T-179, T-180, T-181),
+>      of `POST /api/items/:id/play` (T-182), of `POST /api/authorize` (T-183),
+>      of the socket (T-184), and of `GET /api/me/progress/:id` (T-188) are
+>      measured. The harnesses are
+>      `docs/harness/a_field_of_the_answer_goes_away.py` and
 >      `docs/harness/a_field_of_one_row_goes_away.py`, and the question of
 >      every sweep of them is **which field does this program read, and what does
 >      it do with the default of that field**. **A structure with no default is
@@ -5241,11 +5258,6 @@ state of the program on 2026-08-14.
 >      `id_session` that say nothing need a row that a playback removed while
 >      that playback goes on.
 >    - **A value of the server that the program keeps must go away with that
->      value** (T-184). The list of a box that holds the whole account takes the
->      place of the list before it, and the key `R` empties every such list: a
->      value that stands above the value of a request and that no key corrects
->      makes the user stop the program.
->    - **A value of the server that the program keeps must go away with that
 >      value, and a box of a value for each item of the account is the shape to
 >      look for** (T-184 and T-185). The map of the positions of the live
 >      messages and the store of the covers of `src/ui/cover.rs` each held such a
@@ -5265,7 +5277,11 @@ state of the program on 2026-08-14.
 >    device that the server no longer holds said "Press the key again", and the
 >    view of the devices goes away before the request). A key that does nothing
 >    in one view is a fault of its own (T-79), **and a key that does nothing in
->    every view is T-167**. A message lives six seconds.
+>    every view is T-167**. A message lives six seconds. **A line of the log is
+>    the one word of a fault that no view of the user holds** (T-177, T-188, and
+>    T-189): the flush of the positions runs before the first frame and in a task
+>    of every 30 seconds, therefore its two new faults take a line of the log and
+>    no word for the user.
 >
 > ### The two issues of the fork
 >
@@ -5380,7 +5396,14 @@ state of the program on 2026-08-14.
 > a download is the book of the server: a file that left that book leaves the disk
 > and the database with the next press of the key `D`, and a program of this
 > account that plays that file from the disk keeps its bytes until the end of it**
-> (T-187).
+> (T-187), and **the flush of the positions of the disk writes no place that it
+> did not read: the status 404 of the read is the media that never played, a
+> moment of 0 is a moment that the server did not give, every other fault keeps
+> the row of the disk for the next attempt, and the read takes the path of the
+> media of that row** (T-188), and **a place that the server did not take waits on
+> the disk: the status 404 of a media that the server does not hold and the status
+> 400 of a request that the server refused are the two faults that mean "never",
+> and every other fault keeps that place for a later attempt** (T-189).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
