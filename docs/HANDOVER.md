@@ -4,7 +4,7 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.14.** The item T-183 belongs to this
+**The newest release is v0.8.15.** The items T-183 and T-184 belong to this
 session. The item T-182 belongs to the session before it.
 The item T-181 belongs to the session before that one.
 The item T-180 belongs to the session before that one.
@@ -31,9 +31,9 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-## The session of the twenty-fourth turn of 2026-08-14: the device of the e-reader that lost every other device
+## The session of the twenty-fourth turn of 2026-08-14: the device of the e-reader, and the position that no key could correct
 
-**One release: v0.8.14.** The session before this one left no item open, and it
+**Two releases: v0.8.14 and v0.8.15.** The session before this one left no item open, and it
 named the sweep of this one: "**the send of an ebook to an e-reader is the one to
 take** … the sweep must ask what the program does with a device that the server no
 longer holds", and it said that a read of the source found no fault of the words
@@ -42,6 +42,7 @@ it now, and it found two faults.
 
 | Item | What | Where |
 |---|---|---|
+| T-184 | **A media whose position went away on the server kept its old percent on the screen, and the key `R` could not correct it.** `note_the_progress` of `src/logic/live.rs` inserted each row of `user_updated` into a map and it took no row out, and the value of that map stands above the value of every request (`home_lines` reads `live::progress_of` first). A different client took the row of the position away with `DELETE /api/me/progress/:id`, and the mark of the line said 48% for a media of no position, after the message and after the key `R`. The map takes the place of the old map now, and the key `R` empties it. **The correction needed a third rule**: a message that holds no `mediaProgress` must reach neither list, because the message `init` of an Audiobookshelf 2.36.0 holds no such list at all | `src/api/live.rs`, `src/logic/live.rs` |
 | T-183 | **One device with no name took every device of the account away, and a device that the server no longer holds named no key.** `ereaderDevices` of `POST /api/authorize` was a `Vec<Device>` with a `name` of no default: one row of no name was a fault of the whole answer, the view of the key `@` said "The server gave no device: … missing field name at line 1 column 12538", and the device that the user can use stood in no line. The rows come one at a time now. The sentence of the status 404 with "Ereader device not found" said "Press the key again for the new list", and the view of the devices is away at that moment: it names the key `@` now (T-170) | `src/api/ereaders.rs` |
 
 The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-183. Four things are
@@ -68,11 +69,32 @@ worth the room here:
    in the view of the media and no key of the screen does the work. The rule of
    T-170 holds for every such sentence, and not for a view alone.
 
-**The condition that this session leaves open.** None of its own. It found one
-condition of the road that it did not take, and the road of the next session names
-it: **the answer of the socket** (`src/api/live.rs`), where
-`take_the_message` writes the two lists of `user_updated` behind
-`if !rows.is_empty()`.
+**Four things of T-184 are worth the room too:**
+
+1. **One box of the process held two rules, and the wrong one belonged to the
+   value that the screen draws.** `note_the_media_away_from_continue_listening`
+   of the same file says "This list takes the place of the list that came before
+   it, because a message carries the whole account" (T-66), and
+   `note_the_progress` beside it inserted alone. **A sweep of a box must read
+   every function that writes it**, and not the function of the measurement
+   alone.
+2. **A value that stands above a request needs a road of the key `R`.** The first
+   correction needs one message more, and a socket that is down sends none: the
+   key `R` therefore empties the positions too, for the same reason that it
+   empties the list of T-66.
+3. **A correction that empties a list needs the third rule.** The measurement
+   found it: the message `init` holds no `mediaProgress` at all, therefore
+   `note_the_progress` of that message would have taken every position of the
+   screen away at each connection that starts again. `progress_of_the_user(body)
+   .is_empty()` cannot tell that message from a message whose list holds no row of
+   a book, and `the_message_holds_the_positions` can.
+4. **The shape of T-177 found nothing in that file, and the file still held a
+   fault.** `Handshake` and `ProgressRow` give every field a default, and both
+   functions of the positions drop a row that names no media. **The question of a
+   sweep of an answer is not the fields alone: it is what the program does with
+   the answer.**
+
+**The condition that this session leaves open.** None of its own.
 
 ### The gates of this session
 
@@ -80,9 +102,9 @@ it: **the answer of the socket** (`src/api/live.rs`), where
 |---|---|
 | `cargo clippy --all-targets -- -D warnings` | no word |
 | `cargo fmt --check` | no word |
-| `cargo nextest run` | **1136 of 1136** in 2.3 seconds |
-| `cargo nextest run --run-ignored all` | **1161 of 1161**, with the sandbox up |
-| `cargo test -j 16 --no-fail-fast` | four runs, and every run passed |
+| `cargo nextest run` | **1137 of 1137** in 2.3 seconds |
+| `cargo nextest run --run-ignored all` | **1162 of 1162**, with the sandbox up |
+| `cargo test -j 16 --no-fail-fast` | six runs, and every run passed |
 | `cargo tree -i openssl-sys` | no package |
 | `cargo tree -i cc` | `libsqlite3-sys` and `ring` only |
 
@@ -4521,16 +4543,17 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took the sweep that the session before it named**: the send of
-an ebook to an e-reader. **One device with no name took every device of the
-account away, and the sentence of a device that the server no longer holds named
-no key** (T-183). The session left no item open, and it names one condition of
-the road that it did not take: **the answer of the socket**. This prompt names
-the state of the program on 2026-08-14.
+**This session took the sweep that the session before it named**, and then the
+condition that its own first item found. **One device with no name took every
+device of the account away, and the sentence of a device that the server no
+longer holds named no key** (T-183). **A media whose position went away on the
+server kept its old percent on the screen, and the key `R` could not correct it**
+(T-184). The session left no item open, and the road below names the sweep that
+comes of T-184. This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.14**; `Cargo.toml` is at 0.8.14. The
+> AlbanDAVID/Toutui. Newest release **v0.8.15**; `Cargo.toml` is at 0.8.15. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -4539,7 +4562,7 @@ the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-183 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-184 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -4778,33 +4801,37 @@ the state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in thirty-six sessions of thirty-seven. **The
+>    this shape found a fault in thirty-seven sessions of thirty-eight. **The
 >    session of the twenty-fourth turn took the sweep that the session before it
->    named**, and it found one device of an e-reader with no name that takes every
->    device of the account away, and a sentence of a device that the server no
->    longer holds which names no key (T-183). It wrote the correction, and it left
->    no item open. **It found one condition that it did not take, and that
->    condition is the road of this session**: see "the answer of the socket"
->    below.
->    - **The road of this session: the answer of the socket** (`src/api/live.rs`).
->      `take_the_message` writes the position of every media and the list of the
->      media away from Continue Listening behind `if !rows.is_empty()`, and T-66
->      says that the message `user_updated` holds **the whole account**: that list
->      therefore takes the place of the list before it. An account whose
->      `mediaProgress` holds no row of a book (every row names an episode, or the
->      server removed the last row) leaves both lists of the program at the values
->      of the message before it, and the mark of a line of the screen then says a
->      percent that the server does not hold. **No measurement stands behind that
->      read.** The handshake of the same file holds no such fault: `pingInterval`
->      and `pingTimeout` take the default 0, and no line of the program reads
->      either of them beside one line of the log — the poll of the transport
->      `polling` answers the packet `2` of the server and it holds no clock of its
->      own. `ProgressRow` gives every field a default already, and both functions
->      of that file drop a row whose `libraryItemId` holds no character (the rule
->      of T-177). **A server of a socket of a measurement is the work to make**:
->      the sandbox sends `user_updated` for every write of `PATCH
->      /api/me/progress/:id`, therefore a road of the sandbox may reach the
->      condition with no proxy at all.
+>    named, and then the condition that its own first item found**: one device of
+>    an e-reader with no name takes every device of the account away, and the
+>    sentence of a device that the server no longer holds names no key (T-183); and
+>    a media whose position went away on the server kept its old percent on the
+>    screen, and the key `R` could not correct it (T-184). It wrote both
+>    corrections, and it left no item open.
+>    - **The road of this session comes of T-184: a box of `src/logic/` that one
+>      function writes with one rule and a second function writes with another.**
+>      The box of the live messages held both rules at once:
+>      `note_the_media_away_from_continue_listening` took the place of its list
+>      (T-66), and `note_the_progress` beside it inserted alone — therefore a media
+>      whose position the server no longer holds kept the value of the box, and
+>      **that value stands above the value of every request**. The other boxes of
+>      that directory hold a value of the server too: `the_downloads`, `authors`,
+>      `sort_filter::from_the_server`, `stats`, `bookmarks`, `chapters`,
+>      `the_ereaders`, and `queue`. **The question of each of them**: does a value
+>      of the server that went away leave that box, and does a key of the user
+>      correct it? A value that no key corrects is the fault of T-184, and the user
+>      must then stop the program. **The road of a measurement of that shape is the
+>      road of T-184**: take the value away on the server with a second program
+>      (`curl`), and read the screen after the message and after the key of that
+>      view.
+>    - **The shape of T-177 found no fault of `src/api/live.rs`, and that file
+>      still held one** (T-184). `Handshake` gives `pingInterval` and `pingTimeout`
+>      the default 0 and no line of the program reads either of them beside one
+>      line of the log; `ProgressRow` gives every field a default, and both
+>      functions of the positions drop a row whose `libraryItemId` holds no
+>      character (the rule of T-177). **The question of a sweep of an answer is not
+>      the fields alone: it is what the program does with the answer.**
 >    - **The three shapes that found a fault before:** **a state of one process
 >      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153 to
 >      T-167), **a program that dies in the middle of work** (T-145, T-152), and
@@ -4881,9 +4908,10 @@ the state of the program on 2026-08-14.
 >      (T-183): `name` of a device of an e-reader held no default at all, therefore
 >      one row of no name was a fault of the whole answer and every device of the
 >      account went away; `email` holds no fault, and `availabilityOption` and
->      `users` reach no line of the program by the decision of T-119. **The part
->      that no measurement of that shape has reached is the answer of the socket**,
->      and the road of this session names the condition of it above. The harnesses
+>      `users` reach no line of the program by the decision of T-119. **The answer
+>      of the socket holds no fault of that shape** (T-184): every field of
+>      `Handshake` and of `ProgressRow` takes a default, and no line of the program
+>      uses one of them. The harnesses
 >      are `docs/harness/a_field_of_the_answer_goes_away.py` and
 >      `docs/harness/a_field_of_one_row_goes_away.py`, and the question of
 >      every sweep of them is **which field does this program read, and what does
@@ -4927,6 +4955,11 @@ the state of the program on 2026-08-14.
 >      of no name reaches the database no more, therefore the writes of
 >      `id_session` that say nothing need a row that a playback removed while
 >      that playback goes on.
+>    - **A value of the server that the program keeps must go away with that
+>      value** (T-184). The list of a box that holds the whole account takes the
+>      place of the list before it, and the key `R` empties every such list: a
+>      value that stands above the value of a request and that no key corrects
+>      makes the user stop the program.
 > 2. **The words for the user.** Every text in ASD-STE100. A view says why it
 >    holds no line, and it never says a reason that the program does not have
 >    (T-91), **and the header of the screen holds that same rule** (T-171). **A
@@ -5039,7 +5072,10 @@ the state of the program on 2026-08-14.
 > identity** (T-182), and **the program reads each device of an e-reader of
 > `POST /api/authorize` apart: a device with no name, or with a name of no
 > character, belongs to no line of the view and it takes a line of the log, and
-> every other device of the server stays** (T-183).
+> every other device of the server stays** (T-183), and **the position of a media
+> of a live message holds the whole account: that list takes the place of the list
+> before it, the key `R` empties it, and a message that holds no `mediaProgress`
+> reaches neither list of that box — the message `init` is that message** (T-184).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
