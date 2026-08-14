@@ -7457,6 +7457,61 @@ impl App {
     }
 }
 
+/// Gives the progress that the server holds for one media, or the fault that
+/// stops a write of it.
+///
+/// **The keys `M` and `N` read a state and they then write the opposite of
+/// it.** A read that did not come back leaves the program with no state, and
+/// the old code read every fault as "the server has no progress for this
+/// media": the two keys then wrote the same value at every press.
+///
+/// **A status of 404 is the answer of a media that never played**, and such a
+/// media is not finished and it is not away from the shelf Continue Listening.
+/// A measurement of 2026-08-14 against the sandbox: `GET /api/me/progress/:id`
+/// of a book that no reader read gives `404 Not Found`.
+///
+/// **Every other fault stops the write.** A measurement of 2026-08-14 with
+/// `docs/harness/one_method_fails.py`, which answered `500` to
+/// `GET /api/me/progress/:id` and which forwarded the `PATCH` of the same path:
+/// the user stood on a media that the server held as finished, they pressed
+/// `M`, the program wrote `isFinished: true` one more time, and it said
+/// `The media is finished now.` The key of the user did the opposite of its
+/// work, and the words of the program named a state that it did not read. The
+/// key `N` gave the same answer for a media that stood away from the shelf.
+/// See T-175.
+pub fn the_progress_that_the_server_gave(
+    answer: Result<serde_json::Value, crate::api::client::error::ApiError>,
+) -> Result<serde_json::Value, crate::api::client::error::ApiError> {
+    match answer {
+        Ok(answer) => Ok(answer),
+        // The server has no progress for this media, and it says so. Such a
+        // media is not finished, and it is not away from the shelf.
+        Err(crate::api::client::error::ApiError::NotFound) => Ok(serde_json::json!({})),
+        Err(error) => Err(error),
+    }
+}
+
+/// Gives the text of a mark that the program did not change. See T-175.
+///
+/// The sentence names what the server said (T-91), it says that the program
+/// changed nothing, and it names the key that does this work again (T-170).
+pub fn message_of_no_mark(error: &crate::api::client::error::ApiError) -> String {
+    format!(
+        "The server did not give the mark: {} The program changed nothing. \
+         Press M to ask the server again.",
+        error
+    )
+}
+
+/// Gives the text of a shelf that the program did not change. See T-175.
+pub fn message_of_no_shelf(error: &crate::api::client::error::ApiError) -> String {
+    format!(
+        "The server did not give the state of this media: {} The program \
+         changed nothing. Press N to ask the server again.",
+        error
+    )
+}
+
 /// Changes the mark "finished" of one media on the server.
 ///
 /// The function reads the condition of the media, and it then sends the
@@ -7470,13 +7525,12 @@ pub async fn mark_the_media(
     api: &std::sync::Arc<crate::api::client::ApiClient>,
     item_id: &str,
 ) -> String {
-    let answer: serde_json::Value =
-        match api.get_json(&format!("/api/me/progress/{}", item_id)).await {
-            Ok(answer) => answer,
-            // A media that never played has no progress, and the server gives an
-            // error. Such a media is not finished.
-            Err(_) => serde_json::json!({}),
-        };
+    let answer: serde_json::Value = match the_progress_that_the_server_gave(
+        api.get_json(&format!("/api/me/progress/{}", item_id)).await,
+    ) {
+        Ok(answer) => answer,
+        Err(error) => return message_of_no_mark(&error),
+    };
 
     let was_finished = answer
         .get("isFinished")
@@ -7613,11 +7667,12 @@ pub async fn hide_the_media(
     api: &std::sync::Arc<crate::api::client::ApiClient>,
     item_id: &str,
 ) -> String {
-    let answer: serde_json::Value =
-        match api.get_json(&format!("/api/me/progress/{}", item_id)).await {
-            Ok(answer) => answer,
-            Err(_) => serde_json::json!({}),
-        };
+    let answer: serde_json::Value = match the_progress_that_the_server_gave(
+        api.get_json(&format!("/api/me/progress/{}", item_id)).await,
+    ) {
+        Ok(answer) => answer,
+        Err(error) => return message_of_no_shelf(&error),
+    };
 
     let was_hidden = answer
         .get("hideFromContinueListening")
