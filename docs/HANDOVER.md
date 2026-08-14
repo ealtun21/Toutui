@@ -4,15 +4,105 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.91**, and T-155, T-156, and T-157 belong to this
-session.
-The item
-T-154 belongs to the session before it, T-152 and T-153 to the one before that,
+**The newest release is v0.7.93**, and T-158 and T-159 belong to this session.
+The items T-155, T-156, and T-157 belong to the session before it, and the item
+T-154 to the one before that, T-152 and T-153 to the one before that,
 T-150 and T-151 to the one before those, T-148 and T-149 to the one before them,
 T-146 and T-147 to the one before those, T-145 to the one before that, T-142 to
 T-144 to the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the fifth turn of 2026-08-14: the window that stays after a log out
+
+**Two releases: v0.7.92 and v0.7.93.** No condition of the road stayed for the
+account of two windows, therefore this session named one of its own: **a window
+of an account that stands open while a second window logs out of that account**.
+The road named the shape of T-155 as a sweep of its own — a write of a state
+that names a row of the database — and this condition is that shape from the
+side of the caller. **It held two faults, and the first of them stops the whole
+program.**
+
+| Item | What | Keys |
+|---|---|---|
+| T-158 | **The media never played, and the program then answered no key at all.** The key `Q` did not stop it | `S`, `l`, then `l` |
+| T-159 | **A log out left a program of that account, and that program named nobody.** It held the token of the account, and it said that it kept a choice that no row holds | `R`, or any key |
+
+### T-158, and it is the one to know of this session
+
+**The wait of a playback waits while `is_loop_break` is not `1`**, and the two
+reads of that wait gave the text `No db found` for an account that stands in no
+row. **No loop of a playback of a row that does not exist can ever write that
+value.**
+
+| The moment | The window A |
+|---|---|
+| The window B logs out with `l` | the screen of A does not change, and `users` holds **0 rows** |
+| The key `l` of A on a media | `Syncing your last listening session. Please wait...` |
+| **78 seconds later** | the same message, and **no media** |
+| 40 presses of `l` after it | **the key `j` moves no line**, and **the key `Q` leaves the program standing** |
+
+**The freeze comes of the shape of the wait.** The key gives its work to
+`tokio::spawn`, and the wait holds `std::thread::sleep`: each press takes one
+worker of the runtime for ever, and the machine of the measurement holds 32 of
+them. The user of that terminal must take the program away with a signal.
+
+**The correction is the rule of the fork for a read of the disk: a read must say
+when it found no row.** `get_is_loop_break` and `get_has_played_before` give
+`Option<String>` now, and `None` says that the account holds no row: **no loop
+stands before that playback**, therefore it starts at once. The podcast played
+at the second 0.07 after the correction.
+
+**No wait of a playback stands longer than 30 seconds, and that is a decision.**
+A program that dies inside the loop of its playback writes the end of that loop
+never, therefore a wait with no limit can come back with a cause that no session
+has met. 30 seconds is the time of this fork for a program that stood still
+(T-140, T-148, and T-153).
+
+**A test must not call a function that may never come back.** The first form of
+the test held the gate of the machine for ever. `tests/a_playback_waits_for_no_account_that_is_gone.rs`
+gives the wait a thread of its own and it reads the end of that thread with a
+limit of time: the two tests **fail** with the correction removed, and they do
+not hang.
+
+### T-159, and the second fault of the same condition
+
+**Every key that refreshes the screen makes a new application** (T-131), and
+that application read the disk of an account that the disk does not hold:
+
+| The measurement | The window A after the log out of B |
+|---|---|
+| The header | **`👋 Connected as `** — the program named nobody |
+| The token | `Failed to decrypt the token`, and **every request answered**: the client of the start holds the token (T-131) |
+| The key `S` on the line `Books` | `The library has been updated.` for a write of **0 rows**, and the header said `📖 Podcasts` after it |
+
+**A log out that leaves a program of that account is no log out.** The
+correction is the rule of T-142 and of T-155: the disk is the truth, and the
+program reads it at the moment of the use. **A key of the user is that moment**:
+the loop of `src/main.rs` reads `select_every_usr` after every key, and a
+program whose account stands in no row of that list starts again with the
+request of T-139 — the engine stops, the place of the playback reaches the
+server, and `exec` gives the new program the terminal. The key `j` at the minute
+14:44 of an episode gave `Item 9fa45bd1… closed at 884s`, and `GET /api/me` of
+`curl` holds **884**. **The login screen of the new program says which account
+went away**, and that sentence promises no key (T-118 and T-143).
+
+**A read of the database for each key is the cost, and that is a decision.** A
+key is an event of a person, and a view of this program reads `get_download` of
+the database at every **frame** already (T-148).
+
+### The measurements of this session
+
+| The measurement | The answer |
+|---|---|
+| **The key `l` of a media, after a second window logged out of the account** | **one fault** (T-158): no media for 78 seconds, and no key of the program worked after 40 presses |
+| The same condition, after the correction | the media plays at the second 0.07, and the log names the account of no row |
+| The wait of a playback whose loop wrote no end | **for ever** before, and the limit of 30 seconds after |
+| **The key `R` after that log out** | **one fault** (T-159): a program of no name that holds the token of the account |
+| The same condition, after the correction | the login screen, with the address of the server and the reason |
+| **A key while a media plays, after that log out** | the place of the playback reaches the server: 884 s of `curl`, the same second |
+| The rows of the queue and of the downloads of that account | **no fault**: they hold the name, and a login of that name finds them again (T-123) |
+| **`cargo test`, the command of CI, three runs** | **no fault** |
 
 ## The session of the fourth turn of 2026-08-14: the accounts of two windows, and the key `X` of a playback
 
@@ -3026,16 +3116,15 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**No condition of the road stayed, therefore this session named two of its
-own**: the view of the accounts with two windows, and the key `X` of a media
-that plays in the other window. **Each of them held a fault** (T-155 and T-156),
-and each fault takes a thing of the user away. **The next session must name a
-condition of its own too.** This prompt names the state of the program on
-2026-08-14.
+**No condition of the road stayed, therefore this session named one of its
+own**: a window of an account that stands open while a second window logs out of
+that account. **It held two faults** (T-158 and T-159), and the first of them
+stops the whole program. **The next session must name a condition of its own
+too.** This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.7.91**; `Cargo.toml` is at 0.7.91. The
+> AlbanDAVID/Toutui. Newest release **v0.7.93**; `Cargo.toml` is at 0.7.93. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -3044,7 +3133,7 @@ condition of its own too.** This prompt names the state of the program on
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-157 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-159 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -3082,18 +3171,26 @@ condition of its own too.** This prompt names the state of the program on
 > server away (T-156). **The sandbox holds a second account for the keys of the
 > view of the accounts**: `toutuilimited` / `toutuilimited` (section 14 of
 > `docs/TEST-SERVER.md`), and the key `a` of that view takes it through the
-> login screen of a second window (T-155).
+> login screen of a second window (T-155). **The key `l` of that view needs two
+> presses**, and a window whose account went away gives the login screen: the
+> account of the sandbox comes back with the address, `toutuitest`, and
+> `toutuitest` (T-158).
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-158 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-160 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1050 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1075 of 1075** with the sandbox up, in 16.6 seconds. **Run that
+> Baseline: **1056 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1081 of 1081** with the sandbox up, in 16.6 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
+>
+> **A test must not call a function that may never come back.** The wait of the
+> playback of T-158 held the gate of the machine for ever, and a test of that
+> shape says nothing at all: give such a function a thread of its own, and read
+> the end of that thread with a limit of time.
 >
 > **`cargo test -j 16 --no-fail-fast` is the gate of CI, and it is a different
 > run.** nextest gives each test a process of its own, therefore it hides a test
@@ -3113,24 +3210,27 @@ condition of its own too.** This prompt names the state of the program on
 > ### The work, in the sequence of its value
 >
 > 1. **Name a condition of your own, and measure it.** Every new condition found
->    a fault in eighteen sessions of nineteen. **No condition of the road
->    stays**: the newest session named two of its own — the view of the accounts
->    with two windows (T-155) and the key `X` of a media that plays in the other
->    window (T-156) — and each of them held a fault.
+>    a fault in nineteen sessions of twenty. **No condition of the road stays**:
+>    the newest session named one of its own — a window that stands open while a
+>    second window logs out of its account — and it held two faults (T-158 and
+>    T-159).
 >    - **The three shapes that found a fault before:** **a state of one process
 >      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153,
->      T-154, T-155, T-156), **a program that dies in the middle of work**
->      (T-145, T-152), and **a server that does not answer** (T-146, T-149,
->      T-152, T-156).
+>      T-154, T-155, T-156, T-158, T-159), **a program that dies in the middle of
+>      work** (T-145, T-152), and **a server that does not answer** (T-146,
+>      T-149, T-152, T-156).
 >    - **The parts of the program that no such measurement has reached**: the
 >      search of a library that a second window changes, **the key `S` of the
->      library of the start with two windows**, the bookmarks and the lists of
->      two windows, **the key `M` of a media that the other window plays**, and
->      **a key of a view that the user presses two times** — that shape gave
->      T-154, and the key `D` is one key of many.
->    - **The shape of T-155 is worth a sweep of its own**: a write of a state
->      that names a row of the database. A name that no row holds must change no
->      other row, and the caller must read the number of the rows.
+>      library of the start with two windows that both hold their account**, the
+>      bookmarks and the lists of two windows, **the key `M` of a media that the
+>      other window plays**, and **a key of a view that the user presses two
+>      times** — that shape gave T-154, and the key `D` is one key of many.
+>    - **The shape of T-155 is a sweep that this session began and did not
+>      finish**: a write of a state that names a row of the database. T-159 gave
+>      the number of the rows to the caller of the library of the account, and
+>      **the writes of the sequence, of the speed, of the key bindings, and of
+>      the rows of a session (`id_session`) still say nothing** when their name
+>      holds no row.
 > 2. **The words for the user.** Every text in ASD-STE100. A view says why it
 >    holds no line, and it never says a reason that the program does not have
 >    (T-91). **A text must not promise a function that the program does not
@@ -3173,7 +3273,11 @@ condition of its own too.** This prompt names the state of the program on
 > download and it names this program** (T-154), and **the view of the accounts
 > reads the disk at the moment of the use, and the mark of the account of the
 > start never stands on nobody** (T-155), and **the key `X` removes no file of a
-> media that a program of this account plays from the disk** (T-156).
+> media that a program of this account plays from the disk** (T-156), and **a
+> playback of an account that stands in no row of the disk starts at once, and no
+> wait of a playback stands longer than 30 seconds** (T-158), and **the program
+> reads the accounts of the disk after every key, and a program whose account
+> stands in no row starts again** (T-159).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
