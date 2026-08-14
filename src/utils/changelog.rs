@@ -41,6 +41,26 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.23",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A book whose audio stopped in the middle became a book that you \
+             listened to.** The program reads the file of a book from your \
+             server, and a connection that closes before the end of that file \
+             looked the same as the end of the file: the playback of a book of \
+             30 minutes stopped after five seconds, the program told your server \
+             that you finished the book, and it said nothing at all. The number \
+             of the bytes of the file is the truth of the length now. A body \
+             that stops before it is a connection that stopped, and the program \
+             asks your server again from the byte that it holds.",
+            "- **The same for a book that your server transcodes.** The list of \
+             the parts of such a book names its own end, and a list that stopped \
+             in the middle named fewer parts with no fault of its own. The \
+             program refuses such a list now, and it says so.",
+        ],
+    },
+    Entry {
         version: "0.8.22",
         date: "14/08/2026",
         body: &[
