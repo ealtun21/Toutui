@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.20.** The items T-188 and T-189 belong to this
-session. The item T-187 belongs to the session before it, and the
+**The newest release is v0.8.22.** The items T-190, T-191, and T-192 belong to
+this session. The items T-188 and T-189 belong to the session before it, and
+the item T-187 to the session before that one, and the
 item T-186 to the session before that one, and the
 item T-185 to the session before that one, and the
 items T-183 and T-184 to the session before that one.
@@ -34,6 +35,73 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the twenty-ninth turn of 2026-08-14: one row of a list took every row away
+
+**Two releases: v0.8.21 and v0.8.22.** The session before this one closed the
+values of the disk, and it named the shape that T-183 left open: "**A structure
+with no default is the same fault of the user as a default that lies**: serde
+gives the fault of one row to the whole answer, and a `Vec<T>` of a list of the
+server is therefore the shape to look for." A sweep of **every** structure of
+`src/` that serde reads found three faults of that shape and of its neighbour.
+
+| Item | What | Where |
+|---|---|---|
+| T-190 | **One shelf with no name took every shelf of the Home view away.** The answer of `GET /api/libraries/:id/personalized` is the list of the shelves itself, therefore the fault of one row is the fault of the whole view: Continue Listening and four other shelves of media went away with it, for a library of books and for a library of podcasts | `src/api/libraries/get_library_perso_view.rs`, `…_pod.rs`, `src/logic/home_view.rs` |
+| T-191 | **One library with no name stopped the whole program.** `Library` asked for `id`, `name`, and `media_type` with no default (T-176), and the libraries come in one list: one row of five with no name stopped the program at its first request, and the four other libraries were correct | `src/api/libraries/get_all_libraries.rs` |
+| T-192 | **A list with no identity said that the server does not hold your media.** `unwrap_or_default()` gave a collection, a playlist, and a media of one of them an **address** of no character: the key `l` of `PutInAList` sent `POST /api/collections//book`, the key `X` sent `DELETE /api/collections/`, and the key of a playback sent `POST /api/items//play`. Every one of those faults named the media of the user, and the media was correct | `src/api/utils/collect_lists.rs` |
+
+The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-190, T-191, and
+T-192. Five things are worth the room here:
+
+1. **The shape of T-183 is closed for the answers of the server.** A sweep of
+   every structure of `src/` that serde reads gives three fields of an answer
+   with no default and no `Option` now, and no one of them stands in a row of a
+   list: `live::Handshake.sid`, `auth_process::UserInfo.token`, and
+   `get_media_progress::Root.library_item_id`. The first two **are** addresses,
+   and the third is the decision of T-177 with a read of one row at a time. The
+   command that gives that list stands in the item T-191.
+2. **A default of an address is worse than a default of a number.** T-179 and
+   T-180 read a size of 0 and a length of 0, and T-188 a moment of 0: a wrong
+   line, or a wrong place. **An address of no character gives a request of no
+   address**, and the server then answers the true `404` of a path that the
+   program made: `/api/collections//book`. **No fault of a decode names it, and
+   no view can name it** — the sentence of the program said that the server does
+   not hold the media of the user, and the media was correct.
+3. **A name is not an address, and the two take different roads.** T-183 gave no
+   line to a device with no name, because the name **is** the address of that
+   device. A shelf, a library, and a collection each hold an id: **a name that
+   the server did not give therefore takes the id** (T-190 and T-191), and
+   **an id that the server did not give takes no line at all** (T-191 and
+   T-192). Ask of every value of a row: does a key of the program send this
+   value to the server?
+4. **A decision of an old item stands only for the measurement of that item.**
+   T-176 decided that "a body that holds no name is not the answer of this
+   endpoint", and it measured a body of **one** library. T-191 measured a list
+   of five, and the same decision then stopped the whole program. **Read what
+   the measurement of an old item held**, and not the words of the decision
+   alone.
+5. **The harness reaches a row inside a row now.** `a_field_of_one_row_goes_away.py`
+   takes the name `.` for a body that is a list itself (T-190), and a number
+   inside the dotted name for the row of a list (`results.0.books` of T-192).
+
+**The condition that this session leaves open.** None of its own.
+
+### The gates of this session
+
+| The gate | The answer |
+|---|---|
+| `cargo clippy --all-targets -- -D warnings` | no word |
+| `cargo fmt --check` | no word |
+| `cargo nextest run` | **1166 of 1166** in 2.3 seconds |
+| `cargo nextest run --run-ignored all` | **1191 of 1191**, with the sandbox up |
+| `cargo test -j 16 --no-fail-fast` | three runs after the last correction, and every run passed |
+| `cargo tree -i openssl-sys` | no package |
+| `cargo tree -i cc` | `libsqlite3-sys` and `ring` only |
+
+**The sandbox.** The account holds the address of the sandbox and the library
+`Books` again (the trap 129), and `pending_progress` and `listening_session`
+hold no row.
 
 ## The session of the twenty-eighth turn of 2026-08-14: the place of the user between two machines
 
@@ -4848,19 +4916,17 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session closed the one value of the disk that the session before it
-named**: the row of the position of an offline playback. It found five faults of
-one value — the place of the user — and each of them stood between the disk and
-the server: a fault of the **read** that decides the write (T-188), a moment of 0
-that the answer did not hold (T-188), a path of an item where the path of an
-episode belongs (T-188), and two roads of a **write** that the server did not take
-(T-189). No table of the disk keeps a value of the server with no rule now, and
-the road below names the conditions that stay. This prompt names the state of the
-program on 2026-08-14.
+**This session closed the shape that T-183 named**: a row of a list of the
+server that takes every other row of that list away. It swept every structure of
+`src/` that serde reads, and it found three faults — a shelf with no name that
+took the whole Home view (T-190), a library with no name that stopped the whole
+program (T-191), and a list with no identity whose every key said a fault of the
+media of the user (T-192). The road below names the conditions that stay. This
+prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.20**; `Cargo.toml` is at 0.8.20. The
+> AlbanDAVID/Toutui. Newest release **v0.8.22**; `Cargo.toml` is at 0.8.22. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -4869,7 +4935,7 @@ program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-189 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-192 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -5049,7 +5115,10 @@ program on 2026-08-14.
 > ```
 >
 > The arguments after the path: the dotted name of the list, the number of the
-> row (0 is the first row), and the fields. **The proxy reads the path and not the
+> row (0 is the first row), and the fields. **The name `.` says that the body
+> itself is the list** (T-190: the answer of the personalized view is the list of
+> the shelves itself), and **a name of numbers alone is the row of a list**
+> (T-192: `results.0.books` is the books of the first collection). **The proxy reads the path and not the
 > method**, therefore it holds a `POST` too:
 > `/api/authorize ereaderDevices 1 name` gave the fault of T-183. **A proxy of this harness answers one
 > request of one connection with `Connection: close`** (the trap 145): a
@@ -5109,8 +5178,8 @@ program on 2026-08-14.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1151 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1176 of 1176** with the sandbox up, in about 19 seconds. **Run that
+> Baseline: **1166 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1191 of 1191** with the sandbox up, in about 19 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -5144,11 +5213,37 @@ program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in forty-one sessions of forty-two. **The
->    session of the twenty-eighth turn took the one value of the disk that the
->    session before it named**: the row of the position of an offline playback. It
->    found five faults of one value — the place of the user — and it left no item
->    open (T-188 and T-189).
+>    this shape found a fault in forty-two sessions of forty-three. **The
+>    session of the twenty-ninth turn took the shape that T-183 named**: a row of a
+>    list of the server that takes every other row of that list away. It found
+>    three faults, and it left no item open (T-190, T-191, and T-192).
+>    - **The sweep of the rows of a list is closed for the answers of the server**
+>      (T-190, T-191, and T-192). A sweep of every structure of `src/` that serde
+>      reads gives three fields of an answer with no default and no `Option` now,
+>      and no one of them stands in a row of a list: `live::Handshake.sid`,
+>      `auth_process::UserInfo.token`, and
+>      `get_media_progress::Root.library_item_id`. **The question of that sweep
+>      was: which value of one row does the whole answer need, and what does a key
+>      of the program send to the server?**
+>    - **A default of an address is worse than a default of a number** (T-192). A
+>      size of 0, a length of 0, and a moment of 0 give a wrong line or a wrong
+>      place; **an address of no character gives a request of no address**, and the
+>      server answers the true `404` of a path that the program made
+>      (`/api/collections//book`). **No fault of a decode names it, and no view can
+>      name it**: the sentence of the program said that the server does not hold
+>      the media of the user, and the media was correct.
+>      **`unwrap_or_default()` of an `Option<String>` that a path holds is the
+>      line to read.**
+>    - **A name is not an address** (T-190, T-191, and T-192). A name that the
+>      server did not give takes the id of the row, and an id that the server did
+>      not give takes no line at all. Ask of every value of a row: **does a key of
+>      the program send this value to the server?**
+>    - **A decision of an old item stands only for the measurement of that item**
+>      (T-191). T-176 decided that "a body that holds no name is not the answer of
+>      this endpoint", and it measured a body of **one** library; T-191 measured a
+>      list of five, and that decision then stopped the whole program. **Read what
+>      the measurement of an old item held**, and not the words of its decision
+>      alone.
 >    - **The sweep of the values of the disk is closed** (T-186 to T-189). The
 >      five tables that keep a value of the server each hold their rule now:
 >      `download_files` (T-187), `downloads` (T-148, T-150), `queue` (T-147),
@@ -5174,7 +5269,9 @@ program on 2026-08-14.
 >      state of the server and that then writes it. **That shape is closed for
 >      the keys** (T-178) and **for the flush of the positions** (T-188). **A
 >      fifth shape came of T-177**: an answer of a server of another version,
->      which holds one field fewer. **The question of that shape is the question
+>      which holds one field fewer. **That shape is closed for the rows of a
+>      list** (T-190, T-191, and T-192). **The question of that shape is the
+>      question
 >      of T-179, of T-180, and of T-188**: a field that the program reads with a
 >      **default** gives no fault of a decode, and the program then **uses** that
 >      default — `unwrap_or(0)`, `unwrap_or(0.0)`, and **every field of
@@ -5220,11 +5317,21 @@ program on 2026-08-14.
 >      it do with the default of that field**. **A structure with no default is
 >      the same fault of the user as a default that lies** (T-183): serde gives
 >      the fault of one row to the whole answer, and a `Vec<T>` of a list of the
->      server is therefore the shape to look for.
->    - **A library whose name holds no character is measured** (T-176), and the
->      words of it stay open by a decision: the program starts, the header says
->      `📖  (book)`, and the view of the key `S` holds a line of no character. No
->      server of a measurement gives such a name.
+>      server is therefore the shape to look for. **That sweep ran over every
+>      structure of `src/` that serde reads, and it is closed** (T-190, T-191,
+>      and T-192): three fields of an answer hold no default and no `Option` now,
+>      and no one of them stands in a row of a list — `live::Handshake.sid`,
+>      `auth_process::UserInfo.token`, and
+>      `get_media_progress::Root.library_item_id`, which each **are** an address
+>      or hold the decision of T-177. **The neighbour of that shape is a row
+>      whose `Option` of an id takes `unwrap_or_default()`** (T-192): the program
+>      then sends a path of no address to the server, and the `404` of that path
+>      names the media of the user.
+>    - **A library whose name holds no character takes the id of that library**
+>      (T-191), and the words that T-176 left open are closed: the header said
+>      `📖  (book)`, and it says `📖 1b090ea8-… (book)` now. **A shelf of the
+>      Home view holds the same road** (T-190), and a media of a list with no id
+>      holds the other one: no line at all (T-192).
 >    - **A program that says nothing at all is the shape of T-174**, and no sweep
 >      of the words for the user finds it. **The parts of the program that no
 >      measurement of that shape has reached**: a panic of a thread while a view
@@ -5278,10 +5385,11 @@ program on 2026-08-14.
 >    view of the devices goes away before the request). A key that does nothing
 >    in one view is a fault of its own (T-79), **and a key that does nothing in
 >    every view is T-167**. A message lives six seconds. **A line of the log is
->    the one word of a fault that no view of the user holds** (T-177, T-188, and
->    T-189): the flush of the positions runs before the first frame and in a task
->    of every 30 seconds, therefore its two new faults take a line of the log and
->    no word for the user.
+>    the one word of a fault that no view of the user holds** (T-177, T-188,
+>    T-189, T-190, T-191, and T-192): the flush of the positions runs before the
+>    first frame and in a task of every 30 seconds, and a row of an answer of the
+>    server that belongs to no line has no view at all; each of them takes a line
+>    of the log and no word for the user.
 >
 > ### The two issues of the fork
 >
@@ -5403,7 +5511,16 @@ program on 2026-08-14.
 > media of that row** (T-188), and **a place that the server did not take waits on
 > the disk: the status 404 of a media that the server does not hold and the status
 > 400 of a request that the server refused are the two faults that mean "never",
-> and every other fault keeps that place for a later attempt** (T-189).
+> and every other fault keeps that place for a later attempt** (T-189), and **a
+> shelf of the Home view with no name keeps its media: the line of it holds the
+> identity of that shelf, and a shelf of neither takes a name of the program**
+> (T-190), and **the program reads each library of the answer apart: a library
+> with no name keeps its line and that line holds the id, and a library with no
+> id or with no media type belongs to no line, because the program cannot ask
+> the server for the media of it** (T-191), and **a collection, a playlist, and
+> a media of one of them with no identity belong to no line: that id is the
+> address of six keys, and a line of no address gives a request of no address**
+> (T-192).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

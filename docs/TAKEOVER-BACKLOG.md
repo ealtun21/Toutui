@@ -8373,6 +8373,200 @@ machines are:
    away in the same function, therefore the place needed a second table. **A
    value that leaves one table must reach another one before that removal.**
 
+### T-190: one shelf with no name took every shelf of the Home view away
+
+**The road of T-183 named this sweep**: "**A structure with no default is the
+same fault of the user as a default that lies**: serde gives the fault of one
+row to the whole answer, and a `Vec<T>` of a list of the server is therefore the
+shape to look for." A sweep of every structure of `src/` that serde reads found
+**one** field of a list of the server with no default and no `Option`:
+`label` of `get_library_perso_view::Root` and of
+`get_library_perso_view_pod::Root`.
+
+**The answer of `GET /api/libraries/:id/personalized` is the list of the shelves
+itself.** No field of an object holds it, therefore the fault of one row is the
+fault of the whole Home view.
+
+The proxy of T-181 asks for the dotted name of a list, and this answer has none:
+`a_field_of_one_row_goes_away.py` takes the name `.` now, and that name says
+that the body itself is the list.
+
+```bash
+python3 docs/harness/a_field_of_one_row_goes_away.py 13506 13399 \
+    /the/absolute/path/of/proxy.log \
+    /api/libraries/1b090ea8-91c5-4591-ac9d-716985e61faf/personalized . 1 label
+```
+
+The account of the sandbox held that one address (the trap 129).
+
+| The measurement | Before | After |
+|---|---|---|
+| The start with the library `Books`, and the row 1 of the shelves holds no `label` | The Home view says **The server did not give the shelves of this library: The answer of the server is not valid: missing field `label` at line 1 column 17264**, and the program opens the Library view | `Home [34 items]`, with `Continue Listening`, the shelf `▌ recently-added`, `Recent Series`, and the others |
+| The same with the library `Podcasts` | the same sentence, with the column 37817 | `Home [10 items]`, with `▌ Newest Episodes` |
+| The row 1 holds no `label` **and** no `id` | the same sentence | the shelf `▌ A shelf with no name`, and its ten media |
+| The log of the program | no line of a shelf | `[WARN] - [home] The answer of the server holds a shelf with no name. The line of that shelf takes the name "recently-added".` |
+
+**The four other shelves of that answer held their media, and the user saw none
+of them.** The shelf of Continue Listening is the shelf that the user looks for
+first (T-24), and one shelf of another version took it away.
+
+**The label of a shelf is a name for the user, and it is no address.** This is
+the difference from T-183: the name of a device of an e-reader **is** the
+address of that device for `POST /api/emails/send-ebook-to-device`, therefore a
+device with no name belongs to no line. Every media of a shelf holds its own id,
+and that id reaches every request of the program. **A shelf with no name
+therefore keeps its media**, and the line of that shelf needs a name.
+
+**The name of the line has two roads of the server, and one of this program**
+(`logic::home_view::the_name_of_the_shelf`):
+
+1. The label, when it holds a character.
+2. The identity of the shelf, which is the same on every server (T-24):
+   `continue-listening`, `recently-added`, and the others.
+3. `A shelf with no name`, for a shelf that holds neither. That name says what
+   the program has, and it promises nothing (T-91 and T-118).
+
+**The correction.** `label` takes `#[serde(default)]` in both structures, and
+`group_home` and `group_home_pod` call `the_name_of_the_shelf`. After that
+default **no field of a shelf, of an entity, of a media, of a book, or of an
+episode is required**: a server of another version cannot take the Home view
+away with one field again. `get_the_shelves` and `get_the_shelves_pod` call
+`the_shelves_with_no_name`, which writes one line of the log for each shelf of
+no name — the rule of T-177, because the view of the user holds its lines and
+says nothing of this fault.
+
+`src/logic/home_view.rs` holds three tests of the rule, and
+`src/api/libraries/get_library_perso_view.rs` two of the decode.
+`tests/a_shelf_of_no_name_keeps_the_home_view.rs` holds the same rule with a
+real HTTP answer of a host of a raw socket, for a library of books and for a
+library of podcasts. **A build with `#[serde(default)]` removed fails all five**
+with `Decode("missing field \`label\`")`.
+
+### T-191: one library with no name stopped the whole program
+
+**The same sweep, one endpoint higher.** `get_all_libraries::Root` holds
+`libraries: Vec<Library>`, and `Library` asked for `id`, `name`, and
+`media_type` with no default (the decision of T-176). **T-176 measured a body of
+one library**, and it never asked what one row of a list of five does.
+
+```bash
+python3 docs/harness/a_field_of_one_row_goes_away.py 13506 13399 \
+    /the/absolute/path/of/proxy.log /api/libraries libraries 1 name
+```
+
+| The measurement | Before | After |
+|---|---|---|
+| The row 1 of the five libraries of the sandbox holds no `name` | **The program did not start at all**: `[ERROR] - [app] the program stops: The answer of the server is not valid: missing field \`name\` at line 1 column 1542` | The program starts, the header says `📖 1b090ea8-9f45-… (book)`, and the view of the key `S` holds five lines of which one is that id |
+| The row 2 holds no `mediaType` | the program did not start | The program starts, and the view of the libraries holds **four** lines |
+| The log of the program | the one line of the stop | `[WARN] - [libraries] The answer of the server gives no name to the library 1b090ea8-…. The line of that library holds its identity.` and `[WARN] - [libraries] The answer of the server gives no media type to the library b4473d74-…. The program does not know the views of that library, therefore it belongs to no line of the view.` |
+
+**The cost of this fault is the whole program**, and not one view: the request of
+the libraries is the first request of the start (T-172), and the four other
+libraries of that server held every field.
+
+**A library needs two values of the server, and it needs them both.** The id is
+the address of every request of that library, and the media type decides the
+views of it (a library of books and a library of podcasts hold different
+views). A row with neither belongs to no line, and it takes a line of the log —
+the rule of T-183. **The name is a word for the user**: a library with no name
+keeps its line, and that line holds the id. **This closes the words that T-176
+left open**: "the program starts, the header says `📖  (book)`, and the view of
+the key `S` holds a line of no character".
+
+**A folder of one library must not take that library away.** `Folder` asked for
+`id` and `full_path` with no default, therefore one folder of another version
+took the whole library of it. Both take a default now, and a folder with no
+address is no folder: the program reads the first folder for a new podcast, and
+a library of no folder holds no new podcast already.
+
+**The correction.** `Root` reads the rows one at a time
+(`the_libraries_of_the_rows`), in the shape of T-183: `Option<Vec<Value>>` and
+`serde_json::from_value` of each row, therefore a row that this program cannot
+read at all takes a line of the log and every other library stays. **The
+`Option` is the answer of a field of the value `null`.** A body with no list of
+the libraries gives no library and no fault of a decode now, and the program
+then says that the server gave no library (T-173).
+
+`src/api/libraries/get_all_libraries.rs` holds five tests of the rule, and
+`tests/a_library_of_another_shape_reads.rs` holds the same rule with a real HTTP
+answer. **That test held the decision of T-176** — "a body that holds no name is
+not the answer of this endpoint" — and this item takes that decision away: the
+words of a fault are worth nothing to a user whose program does not start.
+
+**What this sweep says of the whole program.** A sweep of every structure of
+`src/` that serde reads gives **three** fields of an answer of the server with
+no default and no `Option` now, and no one of them stands in a row of a list:
+
+| The field | Why it stays |
+|---|---|
+| `live::Handshake.sid` | The id of the session **is** the address of every message of the socket. A handshake with no `sid` is no handshake. |
+| `server::auth_process::UserInfo.token` | The token is the address of every request of the account (T-92). |
+| `me::get_media_progress::Root.library_item_id` | The decision of T-177: a row of `mediaProgress` that names no media belongs to no line of any view. **The rows of that list read one at a time already** (`the_positions_of_the_answer`), therefore such a row takes a line of the log and every other row stays. |
+
+The structures of the disk and of the file of the configuration
+(`db::database_struct`, `config`, `logic::download::plan`) hold required fields
+too, and no server writes them. **The shape of T-183 is closed for the answers
+of the server.**
+
+### T-192: a list with no identity said that the server does not hold your media
+
+**The road of T-190 and of T-191 named this sweep**: the rows of a list of the
+server that hold an `Option` of an id, and a program that gives that id the
+default of `unwrap_or_default()`. **The default of an address is worse than the
+default of a number** (T-179 and T-180): a number of 0 gives a wrong line, and
+an address of no character gives a **request** of no address.
+
+`collect_lists.rs` held two of them:
+`id: collection.id.clone().unwrap_or_default()` and
+`id: item.id.clone().unwrap_or_default()`.
+
+The proxy of T-181 reaches one row of a list, and the media of a collection
+stand in a list **inside** a row of a list. It takes a number of a row inside
+the dotted name now: `results.0.books` is the list of the books of the first
+collection.
+
+```bash
+python3 docs/harness/a_field_of_one_row_goes_away.py 13506 13399 \
+    /the/absolute/path/of/proxy.log \
+    /api/libraries/<the id>/collections results 0 id name
+```
+
+| The measurement | Before | After |
+|---|---|---|
+| The key `c`, and the row 0 of the collections holds no `id` | the line `[Collection] N/A [2 items]` | The view holds the one line of the playlist, and the log says `[WARN] - [lists] The answer of the server holds a collection with no identity. …` |
+| The key `m` of a book, and the key `l` of the line of that collection | `POST /api/collections//book`, and **The server did not take the media: The server does not have this item** | The view `PutInAList` holds no line of that collection |
+| The key `X` of that line, two times | `DELETE /api/collections/`, and **The server did not remove the list: The server does not have this item** | the same |
+| The row 0 of `results.0.books` holds no `id`, and the key `l` of that line | `POST /api/items//play`, and **The server did not start the playback: The server does not have this item** | `A Test Collection [1 item]`, with the one book that holds an id, and the log names the book that went away |
+
+**The sentence of every one of those faults says that the server does not hold
+the media of the user, and the media of the user is correct.** The list is the
+value with no address, and no word of the program said so. **A fault of a path
+that a default of the program made is a fault that no view can name**: the
+status 404 of the server is the true answer of the path
+`/api/collections//book`.
+
+**The identity of a list is the address of six keys**: `l` of the view
+`PutInAList`, `r` and `D` of a name and of a description, `X` of the list, and
+`X` and `</>` of a media of that list. **A line that holds no one of them is a
+line that promises a function that the program does not have** (T-118),
+therefore a list with no identity belongs to no line — the rule of T-183. The
+one key of that view which needs no id is `l` of the media, and the media of a
+list of another version are worth less than six keys that name the wrong thing.
+
+**A media of a playlist holds two roads of its identity**: `libraryItemId` of
+the row, and `libraryItem.id` of the item of that row. **One road is enough**,
+and an entry of neither road belongs to no line.
+
+**A view that holds no line says why already**: `This library has no collection
+and no playlist.` The measurement of the library `Empty` of the sandbox gives
+that sentence, and a library whose lists all hold no identity gives it too. The
+log holds the one word of that fault, and no view of the user says it — the
+rule of T-177, and the same decision as T-183.
+
+`src/api/utils/collect_lists.rs` holds four tests of the rule. A build with
+`unwrap_or_default()` back gives a list of two lines and a media of no address
+in all four.
+
 ### T-183: one device with no name took every device of the e-reader away
 
 **The road of the session before this one named this sweep**: "the send of an
