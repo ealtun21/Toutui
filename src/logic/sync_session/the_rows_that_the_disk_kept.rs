@@ -20,35 +20,84 @@
 //! reads it. A program that stops takes the box with it, and the row of the disk
 //! is then the row of a program that died: the rule of T-140 and of T-145 holds
 //! it again, and that rule is correct for a program that this one did not see.
+//!
+//! **The box holds the machine that took the place, and not the fact alone**
+//! (T-212). The first form of it said "the server holds the place of that media
+//! already" for every row, and `close_one_session` called it for a place that no
+//! machine took: the log of a measurement of 2026-08-14 said that sentence one
+//! millisecond after the status 500 of the write of that place, and the program
+//! then removed the row with no request at all.
 
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::sync::{Mutex, OnceLock};
 
 use crate::db::crud::delete_the_session_of_a_playback;
 use log::error;
 
-/// The sessions of this program whose place the server holds and whose row the
-/// disk kept.
-fn the_box() -> &'static Mutex<HashSet<String>> {
-    static THE_BOX: OnceLock<Mutex<HashSet<String>>> = OnceLock::new();
+/// Where the place of a closed session stands.
+///
+/// **The row of a session goes away only after the place of the user stands
+/// somewhere else** (T-145 and T-212). A caller of
+/// `the_row_of_a_closed_session_goes_away` says which machine holds that place,
+/// and the words of the log then name it: the first form of this box said "the
+/// server holds the place of that media already" for **every** row, and a
+/// measurement of 2026-08-14 read that sentence for a place that the server
+/// refused with the status 500.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum ThePlaceOfTheSession {
+    /// The server took the place of the user.
+    TheServerHoldsIt,
 
-    THE_BOX.get_or_init(|| Mutex::new(HashSet::new()))
+    /// The row of `pending_progress` holds it, and the task of the flush sends
+    /// it to the server again. See T-189.
+    TheDiskHoldsIt,
+
+    /// The server refuses that place at every attempt: the status 404 of a media
+    /// that the server does not hold, and the status 400 of a request that the
+    /// server refused. No machine can carry it. See T-189.
+    NoServerTakesItEver,
 }
 
-/// Removes the row of a session whose place the server holds already.
+impl ThePlaceOfTheSession {
+    /// The words of the log for the machine that holds the place.
+    fn the_words(self) -> &'static str {
+        match self {
+            Self::TheServerHoldsIt => "the server holds the place of that media already",
+            Self::TheDiskHoldsIt => {
+                "the row of the places that wait holds the place of that media already"
+            }
+            Self::NoServerTakesItEver => "this server takes the place of that media never",
+        }
+    }
+}
+
+/// The sessions of this program whose place stands somewhere else and whose row
+/// the disk kept.
+fn the_box() -> &'static Mutex<HashMap<String, ThePlaceOfTheSession>> {
+    static THE_BOX: OnceLock<Mutex<HashMap<String, ThePlaceOfTheSession>>> = OnceLock::new();
+
+    THE_BOX.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+/// Removes the row of a session whose place stands somewhere else already.
 ///
 /// **The caller reads the answer of this removal** (T-200 and T-207): a removal
 /// that the disk refused leaves a row that the program sends again, therefore
 /// the box of this module holds the identity of that session and the log names
 /// the fault. The removal holds no key of the user and no view of its own
 /// (T-177), therefore it takes a line of the log and no word for the user: the
-/// place of the user is safe, because the server took it before this call.
+/// place of the user is safe, because `the_place` names the machine that holds
+/// it.
 /// **A disk that answers again takes the row away.** The condition of this box is
 /// the condition of a disk that is full and of a file system that a machine gave
 /// back as read-only, and each of them can go away while the program runs:
 /// `sync_session_from_database` calls this function again for a session of the
 /// box, and the row and the identity of it then go away together.
-pub fn the_row_of_a_closed_session_goes_away(id_session: &str) {
+///
+/// **A row whose place no machine holds does not reach this function** (T-212):
+/// the caller keeps that row, and the next program of the account sends that
+/// place.
+pub fn the_row_of_a_closed_session_goes_away(id_session: &str, the_place: ThePlaceOfTheSession) {
     match delete_the_session_of_a_playback(id_session) {
         Ok(()) => {
             if let Ok(mut the_sessions) = the_box().lock() {
@@ -58,25 +107,31 @@ pub fn the_row_of_a_closed_session_goes_away(id_session: &str) {
 
         Err(error) => {
             error!(
-                "[the row of a closed session] the disk kept the row of the session {}: {}. The \
-                 server holds the place of that media already, therefore this program sends it no \
-                 second time.",
-                id_session, error
+                "[the row of a closed session] the disk kept the row of the session {}: {}. {}, \
+                 therefore this program sends it no second time.",
+                id_session,
+                error,
+                the_place.the_words()
             );
 
             if let Ok(mut the_sessions) = the_box().lock() {
-                the_sessions.insert(id_session.to_string());
+                the_sessions.insert(id_session.to_string(), the_place);
             }
         }
     }
 }
 
-/// Says that this program gave the place of that session to the server already.
-pub fn the_server_holds_this_session_already(id_session: &str) -> bool {
+/// Gives the machine that holds the place of that session already, or nothing.
+///
+/// **A place that this program gave away goes away one time** (T-207), and the
+/// answer of this function says which machine took it (T-212).
+pub fn the_place_of_this_session_stands_somewhere(
+    id_session: &str,
+) -> Option<ThePlaceOfTheSession> {
     the_box()
         .lock()
-        .map(|the_sessions| the_sessions.contains(id_session))
-        .unwrap_or(false)
+        .ok()
+        .and_then(|the_sessions| the_sessions.get(id_session).copied())
 }
 
 /// Empties the box. A test of this box needs the box of the test alone.

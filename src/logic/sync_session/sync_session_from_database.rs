@@ -4,10 +4,11 @@ use crate::api::sessions::close_open_session::*;
 use crate::db::crud::*;
 use crate::logic::offline::{remember_progress, the_place_can_wait};
 use crate::logic::sync_session::the_rows_that_the_disk_kept::{
-    the_row_of_a_closed_session_goes_away, the_server_holds_this_session_already,
+    the_place_of_this_session_stands_somewhere, the_row_of_a_closed_session_goes_away,
+    ThePlaceOfTheSession,
 };
 use crate::utils::exit_app::*;
-use log::{info, warn};
+use log::{error, info, warn};
 
 /// Closes **every** listening session that the database holds for this program,
 /// and sends the last position of each of them to the server.
@@ -52,16 +53,18 @@ pub async fn sync_session_from_database(
                 // program sent 646 seconds over the 6000 seconds of a second
                 // client of the account, and the book of the user lost 89
                 // minutes.
-                if the_server_holds_this_session_already(session.id_session.as_str()) {
+                if let Some(the_place) =
+                    the_place_of_this_session_stands_somewhere(session.id_session.as_str())
+                {
                     info!(
-                        "[handle_key] the server holds the place of the session {} already. The \
-                         disk kept its row, and this program sends it no second time.",
-                        session.id_session
+                        "[handle_key] the place of the session {} stands somewhere already ({:?}). \
+                         The disk kept its row, and this program sends it no second time.",
+                        session.id_session, the_place
                     );
 
                     // A disk that answers again takes that row away, and the
                     // condition of the box goes away with it.
-                    the_row_of_a_closed_session_goes_away(session.id_session.as_str());
+                    the_row_of_a_closed_session_goes_away(session.id_session.as_str(), the_place);
 
                     continue;
                 }
@@ -111,6 +114,11 @@ pub async fn sync_session_from_database(
 /// the table `pending_progress` holds it. The function removes the row of this
 /// session alone, therefore a row that no request carried stays for the next
 /// program. See T-145.
+///
+/// **A row whose place reached neither machine stays too** (T-212). The old code
+/// read no answer of the write of `pending_progress`: a disk that took no row
+/// therefore left the place of the user on no machine at all, and the removal of
+/// this function took the last copy of it.
 async fn close_one_session(
     api: &ApiClient,
     username: &str,
@@ -186,6 +194,14 @@ async fn close_one_session(
         }
     };
 
+    // **The place of this session stands on one machine, and the row goes away
+    // after that** (T-145 and T-212).
+    let mut where_the_place_stands = if result.is_ok() {
+        Some(ThePlaceOfTheSession::TheServerHoldsIt)
+    } else {
+        None
+    };
+
     if let Err(error) = result {
         warn!(
             "[sync_session_from_database] the server did not accept the position: {}",
@@ -203,7 +219,13 @@ async fn close_one_session(
         // and the log said "closed at 1234s". `the_place_can_wait` names the two
         // faults that mean "this place reaches this server never". See T-189.
         if the_place_can_wait(&error) {
-            remember_progress(
+            // **A value that leaves one table reaches another one before that
+            // removal** (T-188 and T-212). The old code read no answer of this
+            // write: a disk that took no row of `pending_progress` therefore left
+            // the place of the user on **no** machine, and the removal under this
+            // block took the one row that held it. A measurement of 2026-08-14
+            // lost 757 seconds of a book of eight hours in that way.
+            if remember_progress(
                 username,
                 server,
                 session.id_item.as_str(),
@@ -211,7 +233,15 @@ async fn close_one_session(
                 session.current_time as f64,
                 session.duration.parse::<f64>().unwrap_or(0.0),
                 session.is_finished,
-            );
+            ) {
+                where_the_place_stands = Some(ThePlaceOfTheSession::TheDiskHoldsIt);
+            }
+        } else {
+            // The status 404 of a media that the server does not hold, and the
+            // status 400 of a request that the server refused: that place
+            // reaches this server at no attempt, therefore no machine keeps it
+            // and the row must not stay for ever. See T-189.
+            where_the_place_stands = Some(ThePlaceOfTheSession::NoServerTakesItEver);
         }
     }
 
@@ -251,5 +281,20 @@ async fn close_one_session(
     // **A removal that the disk refused is no removal** (T-207). The caller of
     // this line read no answer, therefore a disk that takes no write left a row
     // of a place that the server holds already.
-    the_row_of_a_closed_session_goes_away(session.id_session.as_str());
+    //
+    // **A row whose place no machine holds stays** (T-212). The row of
+    // `listening_session` is the last copy of that place, and the rule of T-140
+    // gives it to the next program of the account.
+    match where_the_place_stands {
+        Some(the_place) => {
+            the_row_of_a_closed_session_goes_away(session.id_session.as_str(), the_place)
+        }
+
+        None => error!(
+            "[sync_session_from_database] the row of the session {} stays: the server did not take \
+             the place {} s of {}, and the disk did not keep it. The next program of this account \
+             sends that place.",
+            session.id_session, session.current_time, session.id_item
+        ),
+    }
 }

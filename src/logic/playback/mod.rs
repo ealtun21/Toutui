@@ -20,7 +20,9 @@ use crate::logic::offline::{remember_progress, tracks_from_downloads};
 use crate::logic::queue::{self, the_media_goes_back_to_the_queue, the_queue_goes_on, Outcome};
 use crate::logic::sync_session::force_sync;
 use crate::logic::sync_session::sync_session_from_database::*;
-use crate::logic::sync_session::the_rows_that_the_disk_kept::the_row_of_a_closed_session_goes_away;
+use crate::logic::sync_session::the_rows_that_the_disk_kept::{
+    the_row_of_a_closed_session_goes_away, ThePlaceOfTheSession,
+};
 use crate::logic::sync_session::wait_prev_session_finished::*;
 use crate::logic::the_files_of_a_media::the_numbers_of_the_files;
 use crate::logic::the_playback::{
@@ -57,6 +59,18 @@ const START_TIME_LIMIT: u64 = 30;
 const THE_DATABASE_OF_THE_PROGRAM_SAID_NOTHING: &str =
     "The program did not read the copy of the disk in its database. \
      Stop a second Toutui, and press the key again.";
+
+/// What the program says for a playback of the disk whose last place reached no
+/// machine. See T-212.
+///
+/// **The place of an offline playback stands in the table of the places that
+/// wait, and in no other place** (T-152): a write of it that failed takes that
+/// place away for ever, therefore the user reads one word of it. The sentence
+/// names the thing that failed, the work that the program did not do, and the key
+/// of that work (T-91 and T-170).
+pub const THE_DISK_KEPT_NO_PLACE: &str =
+    "The program did not write the place of this media: the database did not answer. \
+     The server gets that place never. Play the media again to set your place.";
 
 /// The speed of the playback of an account, and 1.00x for a disk that did not
 /// answer. See T-209.
@@ -1489,7 +1503,12 @@ pub async fn follow_playback_offline(
                 item_id, own_position
             );
 
-            remember_progress(
+            // **The place of an offline playback reaches the server through this
+            // row alone** (T-152), therefore the caller reads the answer of it
+            // and the user reads one word of that fault (T-212). The playback
+            // belongs to no view, therefore the message stands above them all
+            // (T-164).
+            if !remember_progress(
                 &username,
                 &server,
                 &item_id,
@@ -1497,7 +1516,9 @@ pub async fn follow_playback_offline(
                 own_position as f64,
                 total_duration,
                 false,
-            );
+            ) {
+                crate::logic::message::say(THE_DISK_KEPT_NO_PLACE);
+            }
 
             return Outcome::Stopped;
         }
@@ -1599,7 +1620,10 @@ pub async fn follow_playback_offline(
                 position, finished
             );
 
-            remember_progress(
+            // The last place of this playback, and the mark of a media that came
+            // to its end: the loop wrote no such mark at any second before this
+            // one. See T-212.
+            if !remember_progress(
                 &username,
                 &server,
                 &item_id,
@@ -1607,7 +1631,9 @@ pub async fn follow_playback_offline(
                 position as f64,
                 total_duration,
                 finished,
-            );
+            ) {
+                crate::logic::message::say(THE_DISK_KEPT_NO_PLACE);
+            }
 
             return outcome_of(finished);
         }
@@ -1798,8 +1824,12 @@ pub async fn follow_playback(
             .await;
 
             if the_server_holds_it {
-                // **A removal that the disk refused is no removal** (T-207).
-                the_row_of_a_closed_session_goes_away(session_id.as_str());
+                // **A removal that the disk refused is no removal** (T-207), and
+                // the box of it names the machine that holds that place (T-212).
+                the_row_of_a_closed_session_goes_away(
+                    session_id.as_str(),
+                    ThePlaceOfTheSession::TheServerHoldsIt,
+                );
             }
 
             return Outcome::Stopped;
@@ -1970,8 +2000,13 @@ pub async fn follow_playback(
                 .await;
 
                 if the_server_holds_it {
-                    // **A removal that the disk refused is no removal** (T-207).
-                    the_row_of_a_closed_session_goes_away(session_id.as_str());
+                    // **A removal that the disk refused is no removal** (T-207),
+                    // and the box of it names the machine that holds that place
+                    // (T-212).
+                    the_row_of_a_closed_session_goes_away(
+                        session_id.as_str(),
+                        ThePlaceOfTheSession::TheServerHoldsIt,
+                    );
                 }
 
                 return outcome_of(finished);

@@ -55,8 +55,8 @@ use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
 use toutui::logic::sync_session::the_rows_that_the_disk_kept::{
-    the_box_of_the_sessions_goes_empty, the_row_of_a_closed_session_goes_away,
-    the_server_holds_this_session_already,
+    the_box_of_the_sessions_goes_empty, the_place_of_this_session_stands_somewhere,
+    the_row_of_a_closed_session_goes_away, ThePlaceOfTheSession,
 };
 use toutui::logic::sync_session::wait_prev_session_finished::{
     a_loop_of_this_program_wrote_its_end, the_loop_of_this_program_ended,
@@ -148,7 +148,7 @@ fn a_write_that_the_disk_did_not_take_is_no_fact_of_the_user() {
     // fails: the old shape was `let _ = delete_the_session_of_a_playback(...)`,
     // therefore the program read that row again and it sent 646 seconds over the
     // 6000 seconds of a second client of the account.
-    the_row_of_a_closed_session_goes_away(THE_SESSION);
+    the_row_of_a_closed_session_goes_away(THE_SESSION, ThePlaceOfTheSession::TheServerHoldsIt);
 
     assert_eq!(
         toutui::db::crud::get_the_sessions_to_close(USER, SERVER)
@@ -158,16 +158,17 @@ fn a_write_that_the_disk_did_not_take_is_no_fact_of_the_user() {
         "the disk that takes no write must keep the row of the session"
     );
 
-    assert!(
-        the_server_holds_this_session_already(THE_SESSION),
+    assert_eq!(
+        the_place_of_this_session_stands_somewhere(THE_SESSION),
+        Some(ThePlaceOfTheSession::TheServerHoldsIt),
         "a session whose place the server took, and whose row the disk kept, must go to that \
-         server no second time"
+         server no second time, and the box must name the machine that holds that place (T-212)"
     );
 
     // A session of another program of the account stands in no box of this
     // program: the rule of T-140 and of T-145 holds that row.
     assert!(
-        !the_server_holds_this_session_already("the-session-of-a-program-that-died"),
+        the_place_of_this_session_stands_somewhere("the-session-of-a-program-that-died").is_none(),
         "the box must hold the sessions of this program alone"
     );
 

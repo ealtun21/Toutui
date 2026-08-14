@@ -41,6 +41,31 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.42",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Toutui removed the last copy of your place in a book when the \
+             server and the disk each refused it.** The program closes the \
+             session of a playback, it sends your place to the server, and it \
+             then removes the row of that place from its database — the rule is \
+             that the row goes away after the server holds that place or the \
+             table of the places that wait holds it. Toutui read no answer of \
+             that second write: a server that reported a fault and a database \
+             that took no row therefore left your place on no machine at all, \
+             and the removal took the one row that held it. A measurement lost \
+             757 seconds of a book of eight hours in that way. The row stays \
+             now, and the next Toutui of your account sends that place.",
+            "- **Toutui said that the server holds a place that the server \
+             refused.** A removal of such a row that the disk refuses puts that \
+             session in a box, and Toutui sends the place of a session of that \
+             box to the server no second time: the words of the box named the \
+             server for every row, therefore a place that no machine held went \
+             away with the next key. The box names the machine that holds the \
+             place now.",
+        ],
+    },
+    Entry {
         version: "0.8.41",
         date: "14/08/2026",
         body: &[

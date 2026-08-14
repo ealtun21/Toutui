@@ -87,6 +87,10 @@ pub fn tracks_from_downloads(key: &str, username: &str) -> rusqlite::Result<Opti
 /// This is for the end of a playback. **The loop of an offline playback calls
 /// `keep_progress` at each second**, and that function says nothing: one line
 /// for each second gives 28800 lines of the log for a book of eight hours.
+///
+/// **The answer says whether the disk holds that place** (T-212): a caller that
+/// removes the last other copy of it reads this value, because a write of the
+/// disk that failed leaves the place of the user on no machine at all.
 pub fn remember_progress(
     username: &str,
     server: &str,
@@ -95,7 +99,7 @@ pub fn remember_progress(
     current_time: f64,
     duration: f64,
     is_finished: bool,
-) {
+) -> bool {
     match keep_progress(
         username,
         server,
@@ -105,19 +109,27 @@ pub fn remember_progress(
         duration,
         is_finished,
     ) {
-        Ok(()) => info!(
-            "[offline] the position {}s of {} waits for the server",
-            current_time.round(),
-            id_item
-        ),
+        Ok(()) => {
+            info!(
+                "[offline] the position {}s of {} waits for the server",
+                current_time.round(),
+                id_item
+            );
 
-        Err(error) => warn!(
-            "[offline] the application did not keep the position {}s of {}: {}. \
-             The place of that playback goes away.",
-            current_time.round(),
-            id_item,
-            error
-        ),
+            true
+        }
+
+        Err(error) => {
+            warn!(
+                "[offline] the application did not keep the position {}s of {}: {}. \
+                 The place of that playback goes away.",
+                current_time.round(),
+                id_item,
+                error
+            );
+
+            false
+        }
     }
 }
 
