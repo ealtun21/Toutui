@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.96**, and T-162 belongs to this session. The item
-T-161 belongs to the session before it, the item
+**The newest release is v0.7.98**, and T-163 and T-164 belong to this session.
+The item T-162 belongs to the session before it, the item
+T-161 to the one before that, the item
 T-160 to the one before that, and the items T-158 and T-159 to the one
 before that, the items T-155, T-156, and T-157 to the one before that, the item
 T-154 to the one before that, T-152 and T-153 to the one before that, T-150 and
@@ -14,6 +15,92 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the ninth turn of 2026-08-14: the bookmarks of another media, and the message of another view
+
+**Two releases: v0.7.97 and v0.7.98.** This session took the last part of the
+program that the road named — **the view of the bookmarks while the media that
+plays changes** — and then **the one condition that T-162 named and did not
+close**: a message belongs to the view of the user. **Each of them held a
+fault.**
+
+| Item | What | Keys |
+|---|---|---|
+| T-163 | **The key `b` wrote a bookmark of a book that the user did not choose.** The user read the bookmarks of a book of 30 minutes, and the key wrote a place of a book of eight hours at 5:25:30 | `V`, then `b` |
+| T-164 | **The user read the message of a view that they were not in, and the message of their own view never came.** Three rules of the loop wrote to one slot, and the rule of the Home view won every time | `q` |
+
+### T-163, and it is the first of this session
+
+**The list of this view is not the fault**: `bookmarks_of` holds the media of the
+user already, no line moves under the cursor, the key `X` names the media of its
+own bookmark, and the key `l` refuses a media that does not play. **The key `b`
+is the one door**: it read the media of the **engine**.
+
+| The moment | The view of the bookmarks of the user |
+|---|---|
+| The user plays `A Long Test Book` of 30 minutes, and the queue holds `A Book Of Many Hours` | — |
+| The key `V` | **`The bookmarks [1 item]`**, and the line is `A place of the long book (00:10)` |
+| **The book comes to its end, 22 seconds later** | **the same title, the same line**, and the message row is **empty** |
+| The key `b`, and a name | `The bookmark "…" is on the server.`, and **the list still holds one line** |
+| `GET /api/me` of `curl` | **the bookmark stands on `A Book Of Many Hours` at 19530 seconds** |
+
+**The view of the user contradicts the message of the program**, and no text of
+the screen names the media of either side: the title said `The bookmarks` alone.
+
+**The correction is the rule of T-160, of T-161, and of T-162 for a fourth
+view.** `what_the_media_of_the_bookmarks_is` of `src/logic/bookmarks.rs` compares
+the media of the view with the media of the engine: another media, or no
+playback at all, writes nothing and says
+`The media "A Long Test Book" does not play now, and this key writes a place of
+it. The key V shows the bookmarks of the media that plays.` **The title names the
+media now**, in the shape of the view of the chapters.
+
+**The rule stands in the key, and not in the loop of `src/main.rs`. That is a
+decision**, and it is the difference from the three views before it: **no line of
+this view moves under the cursor**, therefore the user reads the truth of their
+own view until they press `b`.
+
+### T-164, and it is the one to know of this session
+
+**The condition that T-162 named**: three rules of the loop write a message with
+**no key of the user** — the shelf Continue Listening (T-160), the line of the
+queue (T-161), and the media of the chapters (T-162) — and each of them wrote to
+**the one slot**. The rule of the Home view stands in the render of **every**
+view and it runs last: **it won every time.**
+
+| The moment | The view of the queue of the user |
+|---|---|
+| Before | `The queue [2 items]`, and the cursor stands on `A Book Of Many Hours` |
+| **The book comes to its end** | the cursor stands on **nobody** (T-161 works) |
+| The message row, every 0.2 seconds for 6.2 seconds | **`The media "A Long Test Book" is not on the shelf Continue Listening now.`** |
+| The sentence of T-161 | **it never reached the screen** |
+
+**The correction of T-161 is destroyed for the one user that it was written
+for.** The correction: `say_in(view, text)` writes a message that belongs to one
+view, `for_the_screen(self.view_state)` names the view of the user, and **the
+life of such a message starts at the frame that shows it**. The user of the queue
+reads `Loading the media…` and then the sentence of their own view, and the
+sentence of the Home view stands on the screen when they press `h` — 14 seconds
+later in the measurement. **Both sentences reach the user, and neither of them is
+lost.**
+
+**A message of a view waits with no limit of time, and that is a decision**: each
+of the three sentences names a state that stays until the user presses `j` or `k`
+in that view. **The answer of a key stands above them all**, and that is a
+decision too: the user pressed that key.
+
+### The measurements of this session
+
+| The measurement | The answer |
+|---|---|
+| **The key `b` after the queue started the media of its front** | **one fault** (T-163): a bookmark of a book of eight hours at 19530 s, and a second run gave 22806 s |
+| The same condition, after the correction | the key writes nothing and it names the media, and `curl` holds the one bookmark of the user |
+| The title of the view of the bookmarks | `The bookmarks [1 item]` before, and `The bookmarks of "A Long Test Book" [1 item]` after |
+| **The message of a user of the view of the queue, at the frame of the change** | **one fault** (T-164): six seconds of the sentence of the Home view, and no sentence of their own |
+| The same condition, after the correction | `Loading the media…` for six seconds, and the sentence of T-161 for the six after them |
+| The key `h` to the Home view, 14 seconds after the change | the sentence of T-160 stands there: the fault that T-160 closed stays closed |
+| **`cargo test`, the command of CI, nine runs** | **one fault of a test of this session**: two test functions of `src/logic/message.rs` fought for the slot of the process (the shape of T-144). They are one function now, and five runs after it gave no fault |
+| **`cargo nextest run --run-ignored all`** | **1107 of 1107**, with the sandbox up |
 
 ## The session of the eighth turn of 2026-08-14: the chapters of another media
 
@@ -1572,14 +1659,14 @@ episodes for a podcast that is missing **54**, therefore it stays outside.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.96` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.98` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 1072 of 1072 in 2.6 s, and cargo nextest run --run-ignored all gives 1097
-    # of 1097 with the sandbox up, in 16.7 s of wall clock: one test waits 16 s
+    # 1082 of 1082 in 2.3 s, and cargo nextest run --run-ignored all gives 1107
+    # of 1107 with the sandbox up, in 16.7 s of wall clock: one test waits 16 s
     # for the time limit of the send of a book (T-119), and one waits 15 s for
     # the time limit of a request
 ALSA_CONFIG_PATH=<the same file> nice -n 19 ionice -c 3 cargo test -j 16 --no-fail-fast
@@ -1587,8 +1674,11 @@ ALSA_CONFIG_PATH=<the same file> nice -n 19 ionice -c 3 cargo test -j 16 --no-fa
     # three times of three. nextest gives each test a process of its own, therefore it
     # hides a test that shares a database with another test of its binary. Six
     # tests of three binaries failed on CI while nextest passed (T-144), and
-    # `--no-fail-fast` says every binary that fails. Four runs of this session
-    # gave no fault.
+    # `--no-fail-fast` says every binary that fails. **It found a fault of this
+    # session at the run 1 of 4**: two test functions of `src/logic/message.rs`
+    # fought for the slot of the process of the message, and the module of that
+    # slot says the rule in its own comment — "the parts of this test stay in one
+    # function". They are one function now, and five runs after it gave no fault.
     # **The file of `ALSA_CONFIG_PATH` needs two lines only**: `pcm.!default {
     # type null }` and `ctl.!default { type null }`. No session before this one
     # said where that file stands, and each of them made it again.
@@ -1977,6 +2067,20 @@ measurements of this session left.
      place for the server at its end only: a program that dies reaches no end.
      27 minutes of a book went away, and the playback after it wrote the old
      place of the server over the place of the disk.
+   - ~~**The view of the chapters while the media that plays changes**~~: **made
+     on 2026-08-14 (the eighth session), and it found T-162.** The key `l` moved
+     a book of eight hours 43 minutes forward.
+   - ~~**The view of the bookmarks while the media that plays changes**~~:
+     **made on 2026-08-14 (the ninth session), and it found T-163.** The list of
+     that view holds the media of the user already, therefore no line moves under
+     the cursor: **the key `b` is the one door**, and it read the media of the
+     engine. The title of that view named no media at all.
+   - ~~**A message belongs to the view of the user**~~ (the condition that T-162
+     named and did not close): **made on 2026-08-14 (the ninth session), and it
+     found T-164.** Three rules of the loop wrote to one slot, and the rule of
+     the Home view runs last in the render of every view: a user of the view of
+     the queue read the sentence of the Home view for six seconds, and the
+     sentence of T-161 never came.
    - ~~**Two programs of one account that read one ebook at one time**~~: **made
      on 2026-08-14 (the second session), and it found T-153.** The two windows
      that open the **same** book give no fault of the data, and a cost of two
@@ -3011,6 +3115,27 @@ answers slowly while it writes. Two answers to measure:
     `Letter 49 (<uuid>).mp3` beside `Letter 49.mp3`, and the library then holds
     58 episodes of a feed of 57: that is the work of Audiobookshelf, and a
     second hard delete takes it away (T-154).
+123. **A media that came to its end stays away from the shelf Continue
+    Listening.** A second run of a measurement of the queue therefore needs
+    `PATCH /api/me/progress/:id` with `{"isFinished": false}` first, and the
+    place after it: `{"isFinished": false}` writes `currentTime: 0` (the section
+    15 of `docs/TEST-SERVER.md`). A measurement that gives no media back walks
+    a shelf that lost its lines, and the cursor of the harness then finds no
+    title at all (T-163).
+124. **The log of the queue says `The queue starts` with a capital T.** A poll
+    of `grep -q "the queue starts"` therefore never comes back, and the
+    measurement waits its whole timeout and reads the screen many seconds after
+    the frame that it wanted. Give `grep -i`, or name the text of the log
+    exactly (T-164).
+125. **The row of the message stands above the footer, and its number of the
+    row moves with the view.** A poll of a fixed row gives the footer of one
+    view and the message of another. `tmux capture-pane -p | grep -B1
+    "j/k: move" | head -1` gives that row in every view of a list (T-164).
+126. **A cursor of the harness that walks with `j` walks in one direction
+    only.** A helper that presses `j` until a title stands under `➤` must take
+    the cursor to the top of the view first, or the second call of it walks past
+    its title and off the end of the list. The measurement then presses no key
+    at all, and its `&&` hides that (T-164).
 
 ### Of the harness and of the machine
 
@@ -3330,16 +3455,16 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**No condition of the road stayed, therefore this session took the one part of
-the program that the road named and that no measurement had reached**: the view
-of the chapters while the media that plays changes. **It held one fault**
-(T-162), one window makes it, and the fault reaches the server. **The next
-session must name a condition of its own too.** This prompt names the state of
-the program on 2026-08-14.
+**This session took the last part of the program that the road named** — the
+view of the bookmarks while the media that plays changes — **and then the one
+condition that T-162 named and did not close**: a message belongs to the view of
+the user. **Each of them held one fault** (T-163 and T-164), and one window makes
+both. **The next session must name a condition of its own too.** This prompt
+names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.7.96**; `Cargo.toml` is at 0.7.96. The
+> AlbanDAVID/Toutui. Newest release **v0.7.98**; `Cargo.toml` is at 0.7.98. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -3348,7 +3473,7 @@ the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-162 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-164 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -3398,18 +3523,30 @@ the program on 2026-08-14.
 > hours then hold the queue open (T-161). **A measurement of two lists of
 > chapters needs the three chapters that this session gave the book of eight
 > hours** (the section 6i of `docs/TEST-SERVER.md`), because the queue takes 22
-> seconds to start that book (T-162).
+> seconds to start that book (T-162). **A media that came to its end stays away
+> from the shelf Continue Listening**, therefore a second run of such a
+> measurement needs `PATCH /api/me/progress/:id` with `{"isFinished": false}`
+> first and the place after it (T-163). **The log of the queue says `The queue
+> starts` with a capital T**, therefore a poll of `grep` for that line needs
+> `-i` (T-164). **The row of the message stands above the footer**, and a poll
+> of it reads the line above `j/k: move` and not a number of a row (T-164).
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-163 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-165 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1072 tests in 2.6 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1097 of 1097** with the sandbox up, in 16.7 seconds. **Run that
+> Baseline: **1082 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1107 of 1107** with the sandbox up, in 16.7 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
+>
+> **A box of the process needs one test function.** The two test functions that
+> this session gave `src/logic/message.rs` fought for the slot of that module,
+> and `cargo test` found it at the run 1 of 4 while nextest passed every time
+> (the shape of T-144 and of T-157). The head of such a test says the rule
+> already: "the parts of this test stay in one function".
 >
 > **A test must not call a function that may never come back.** The wait of the
 > playback of T-158 held the gate of the machine for ever, and a test of that
@@ -3433,33 +3570,32 @@ the program on 2026-08-14.
 >
 > ### The work, in the sequence of its value
 >
-> 1. **Name a condition of your own, and measure it.** Every new condition found
->    a fault in twenty-two sessions of twenty-three. **No condition of the road
->    stays**: the newest session took the last part that the road named — the
->    view of the chapters while the media that plays changes — and it held one
->    fault (T-162).
+>    a fault in twenty-three sessions of twenty-four. **No condition of the
+>    road stays**: the newest session took the last part that the road named —
+>    the view of the bookmarks while the media that plays changes — and it held
+>    one fault (T-163), and it then closed the condition that T-162 left open
+>    (T-164).
 >    - **The three shapes that found a fault before:** **a state of one process
 >      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153,
->      T-154, T-155, T-156, T-158, T-159, T-160, T-161, T-162), **a program
->      that dies
+>      T-154, T-155, T-156, T-158, T-159, T-160, T-161, T-162, T-163, T-164),
+>      **a program that dies
 >      in the middle of work** (T-145, T-152), and **a server that does not
 >      answer** (T-146, T-149, T-152, T-156).
->    - **The condition that T-162 named and did not close**: **a message
->      belongs to the view of the user**. The rule of T-160 says its text from
->      the render of any view, therefore the text of the Home view stood above
->      the text of the view of the chapters **0.8 seconds** after it, of a
->      message that lives six. Both sentences are true, and a change that holds
->      the text of T-160 for the moment of the Home view would take the reason
->      away from a user who comes back to that view later — the fault that T-160
->      closed. **Measure the messages of the other views too**: the reader, the
->      downloads, and the view of the accounts.
->    - **The parts of the program that no such measurement has reached**: the
->      search of a library that a second window changes, **the key `S` of the
->      library of the start with two windows that both hold their account**, the
->      bookmarks and the lists of two windows, and **the view of the bookmarks
->      while the media that plays changes** — the rule of T-160, of T-161, and
->      of T-162 reaches the Home view, the queue, and the chapters alone.
->    - **The shape of T-155 is a sweep that this session began and did not
+>    - **The rule of the media of the view is made for four views now** (T-160
+>      the Home view, T-161 the queue, T-162 the chapters, and T-163 the
+>      bookmarks), and **the message of each of them belongs to its own view**
+>      (T-164). **The parts of the program that no such measurement has
+>      reached**: the search of a library that a second window changes, **the key
+>      `S` of the library of the start with two windows that both hold their
+>      account**, the lists (the collections and the playlists) of two windows,
+>      **the view of the episodes of a podcast while a second window changes that
+>      podcast**, and **the view of the downloads while a download of a second
+>      window ends**.
+>    - **The messages of the other views are not measured**: the reader, the
+>      downloads, and the view of the accounts. T-164 gives them the road — a
+>      message that a rule writes with no key of the user must name its view with
+>      `say_in`, and a message of a key names no view.
+>    - **The shape of T-155 is a sweep that a session began and did not
 >      finish**: a write of a state that names a row of the database. T-159 gave
 >      the number of the rows to the caller of the library of the account, and
 >      **the writes of the sequence, of the speed, of the key bindings, and of
@@ -3517,7 +3653,12 @@ the program on 2026-08-14.
 > media and not a number of a line: a media that leaves the queue takes that
 > line to nobody** (T-161), and **the line of the view of the chapters holds
 > the playback that the user opened: a media that stops takes that line to
-> nobody, and the key `l` then seeks in no media at all** (T-162).
+> nobody, and the key `l` then seeks in no media at all** (T-162), and **the key
+> `b` of the view of the bookmarks writes a place of the media of that view
+> alone, and the title of that view names that media** (T-163), and **a message
+> that a rule of the loop writes belongs to its own view, its six seconds start
+> at the frame that shows it, and the answer of a key belongs to no view and it
+> stands above them all** (T-164).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
