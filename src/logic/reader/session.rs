@@ -704,14 +704,27 @@ pub fn the_name_of_the_book(item_id: &str, ino: Option<&str>) -> String {
 /// Says that a file of the directory of the downloads is an ebook of one item.
 ///
 /// The key `X` removes every such file. See T-65 and T-76.
+///
+/// **The part of a book that a download did not finish belongs to this list**
+/// (T-186). A download that fails takes its own `.part` file away, and a program
+/// that dies in the middle of a download takes nothing: that file then holds the
+/// name `<the item>.epub.part`, and the key `X` is the one road out of it. The
+/// limit of the cache of the ebooks counts the whole books alone.
 pub fn the_file_is_an_ebook_of_the_item(file_name: &str, item_id: &str) -> bool {
     let Some(rest) = file_name.strip_prefix(item_id) else {
         return false;
     };
 
-    matches!(rest, ".epub" | ".pdf") || {
+    let of_a_book = |name: &str| {
+        name.ends_with(".epub")
+            || name.ends_with(".pdf")
+            || name.ends_with(".epub.part")
+            || name.ends_with(".pdf.part")
+    };
+
+    matches!(rest, ".epub" | ".pdf" | ".epub.part" | ".pdf.part") || {
         // The name of a second ebook of the item: `<item>-<ino>.epub`.
-        rest.starts_with('-') && (rest.ends_with(".epub") || rest.ends_with(".pdf"))
+        rest.starts_with('-') && of_a_book(rest)
     }
 }
 
@@ -919,6 +932,26 @@ mod tests {
         assert!(
             !the_file_is_an_ebook_of_the_item("an-item", "an-item"),
             "a directory of the audio files is not an ebook"
+        );
+
+        // **A program that died in the middle of a download left the part of a
+        // book on the disk**, and the key `X` is the one road out of it. See
+        // T-186.
+        assert!(the_file_is_an_ebook_of_the_item(
+            "an-item.epub.part",
+            "an-item"
+        ));
+        assert!(the_file_is_an_ebook_of_the_item(
+            "an-item.pdf.part",
+            "an-item"
+        ));
+        assert!(the_file_is_an_ebook_of_the_item(
+            "an-item-94488.epub.part",
+            "an-item"
+        ));
+        assert!(
+            !the_file_is_an_ebook_of_the_item("an-item.mp3.part", "an-item"),
+            "the part of an audio file of the key D is not an ebook"
         );
     }
 

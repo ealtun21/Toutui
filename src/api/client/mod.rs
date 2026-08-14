@@ -11,6 +11,7 @@ pub mod probe;
 
 use endpoint::EndpointPool;
 use error::{classify_status, classify_transport, ApiError};
+use log::warn;
 use reqwest::header::CONTENT_DISPOSITION;
 use reqwest::{Method, Response};
 use serde::de::DeserializeOwned;
@@ -408,7 +409,17 @@ impl ApiClient {
 
         let dest_path = dest_dir.join(&filename);
 
-        let mut file = tokio::fs::File::create(&dest_path)
+        // **The name of the whole file belongs to a whole file.** The body of
+        // an answer stops in the middle when the connection goes away, and the
+        // bytes of that part stood under the name of the whole book before
+        // T-186: `get_the_ebook_of` of the reader then found a file of the
+        // disk, it asked the server for nothing, and every program of that
+        // account said "This file is not an EPUB." for a book that the server
+        // holds whole. `logic::download::fetch` of the audio holds this same
+        // rule since T-64 — "a file without `.part` is always complete".
+        let of_the_part = dest_dir.join(format!("{}.part", filename));
+
+        let mut file = tokio::fs::File::create(&of_the_part)
             .await
             .map_err(|error| ApiError::Decode(error.to_string()))?;
 
@@ -422,19 +433,43 @@ impl ApiClient {
         // See T-116.
         let mut response = response;
 
-        while let Some(part) = response
-            .chunk()
-            .await
-            .map_err(|error| classify_transport(&error))?
-        {
-            file.write_all(&part)
+        let outcome = async {
+            while let Some(part) = response
+                .chunk()
                 .await
-                .map_err(|error| ApiError::Decode(error.to_string()))?;
+                .map_err(|error| classify_transport(&error))?
+            {
+                file.write_all(&part)
+                    .await
+                    .map_err(|error| ApiError::Decode(error.to_string()))?;
+            }
+
+            // A `tokio::fs::File` keeps the bytes in a buffer. The flush sends
+            // the bytes to the disk. Without the flush the file can be empty.
+            file.flush()
+                .await
+                .map_err(|error| ApiError::Decode(error.to_string()))
+        }
+        .await;
+
+        if let Err(error) = outcome {
+            // **The part of a book goes away with the fault.** This download
+            // continues no file: the ebook of the reader holds no request of a
+            // range, therefore a `.part` file of it would stay on the disk for
+            // ever and the limit of the cache of the ebooks would not see it.
+            // See T-186.
+            if let Err(of_the_removal) = tokio::fs::remove_file(&of_the_part).await {
+                warn!(
+                    "[api] the program cannot remove the part of a download: {}",
+                    of_the_removal
+                );
+            }
+
+            return Err(error);
         }
 
-        // A `tokio::fs::File` keeps the bytes in a buffer. The flush sends
-        // the bytes to the disk. Without the flush the file can be empty.
-        file.flush()
+        // The name of the whole file comes at the end, and never before it.
+        tokio::fs::rename(&of_the_part, &dest_path)
             .await
             .map_err(|error| ApiError::Decode(error.to_string()))?;
 
