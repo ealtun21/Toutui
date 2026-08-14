@@ -4,8 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.3.** The item T-169 belongs to this session.
-The item T-168 belongs to the session before it, and the item
+**The newest release is v0.8.4.** The items T-169 and T-170 belong to this
+session. The item T-168 belongs to the session before it, and the item
 T-167 to the session before that one.
 The correction of T-166 belongs to the session before that one, and the
 measurement of T-166 to the session before that one.
@@ -24,17 +24,19 @@ the one before it, and T-140 and T-141 to the one before those.
 
 ## The session of the fifteenth turn of 2026-08-14: the server that fails one request
 
-**One release: v0.8.3.** The session before this one left one condition open,
-and it named it: **a server that answers some requests and that fails others**.
-No harness of this repository gave that condition, therefore this session wrote
-one — `docs/harness/one_path_fails.py` — and the condition held two faults.
+**Two releases: v0.8.3 and v0.8.4.** The session before this one left one
+condition open, and it named it: **a server that answers some requests and that
+fails others**. No harness of this repository gave that condition, therefore
+this session wrote one — `docs/harness/one_path_fails.py` — and **the four
+requests of the start of a library held five faults**.
 
 | Item | What | Where |
 |---|---|---|
 | T-169 | **The two views of the lists said a reason that the program does not have.** The server answered the libraries and it failed the collections and the playlists: the key `c` said `This library has no collection and no playlist.` for a library that holds both, and the key `m` asked the user to make a list of a server that the program did not read. Each of them says what the server said now | `src/logic/the_lists.rs`, `src/app.rs`, `src/ui/tui.rs` |
+| T-170 | **The three other requests of the start held the same fault.** The Library view said `This library holds no media. Press L to tell the server to examine the library.` for a library of 17 books, the view of the series said `This library has no series.` for a library of three, and the Home view said `The server gave no shelf for this library.` Each of them says what the server said now, and the key `R` asks the server again | `src/logic/the_requests_of_the_start.rs`, `src/ui/keys.rs`, `src/app.rs`, `src/ui/tui.rs` |
 
-The evidence and the seven measurements stand in `docs/TAKEOVER-BACKLOG.md`
-under T-169. Four things are worth the room here:
+The evidence and the fifteen measurements stand in `docs/TAKEOVER-BACKLOG.md`
+under T-169 and T-170. Five things are worth the room here:
 
 1. **The cause is the cause of T-168**: `is_offline` of `App` holds the offline
    mode of the start (T-25). Every text that reads that one value says the words
@@ -55,9 +57,19 @@ under T-169. Four things are worth the room here:
    measurement of the correction read `The server reported a fault. Status` and
    the number stood outside the panel of 95 columns: that paragraph takes `Wrap`
    now. **A view that names what the server said must wrap its text.**
+5. **A sentence of a fault must name a key that does the work of that fault.**
+   The Library view of T-170 said `Press L to tell the server to examine the
+   library.` for a request that came back with a fault, and the media of that
+   library stand on the server already (T-118). The three sentences of T-170
+   name the key `R` and the key `h`, and the sequence of the conditions of that
+   view holds a rule of its own: **a filter says nothing of a list that never
+   came**, therefore the fault stands above the filter and under the offline
+   mode of T-25.
 
-**The condition that this session leaves open.** None of its own. The road of
-the next session stands in the prompt at the end of this file.
+**The condition that this session leaves open.** None of its own. **The four
+requests of the start each say why now**, and no `unwrap_or_else` of `App::new`
+is left with no word for the user. The road of the next session stands in the
+prompt at the end of this file.
 
 ### The gates of this session
 
@@ -65,8 +77,8 @@ the next session stands in the prompt at the end of this file.
 |---|---|
 | `cargo clippy --all-targets -- -D warnings` | no word |
 | `cargo fmt --check` | no word |
-| `cargo nextest run` | **1092 of 1092** in 2.3 seconds |
-| `cargo nextest run --run-ignored all` | **1117 of 1117** in 19.8 seconds, with the sandbox up |
+| `cargo nextest run` | **1095 of 1095** in 2.3 seconds |
+| `cargo nextest run --run-ignored all` | **1120 of 1120** in 18.1 seconds, with the sandbox up |
 | `cargo test -j 16 --no-fail-fast` | six runs, and every run passed |
 
 ## The session of the fourteenth turn of 2026-08-14: the request that did not come back
@@ -3561,6 +3573,15 @@ answers slowly while it writes. Two answers to measure:
 131. **`pkill -f one_path_fails.py` killed the shell of this harness** (the trap
     114 again, and it cost this session a minute). Take the process of a port
     with `ss -lptnH 'sport = :13500'` instead.
+132. **A `cd` of one command and a `&` of that same command take the program of
+    the background to the new directory.** The proxy of this session then found
+    no file of `docs/harness`, and the port stood empty with no word: give the
+    absolute path of the file, and start the proxy in a command of its own
+    (T-170).
+133. **The four requests of the start come before the first frame** (T-129,
+    and `App::new` awaits the task of them). A view of the start therefore holds
+    no condition of "the request runs", and a proxy of a delay of 1.5 seconds
+    gave the collections at the first frame already (T-169).
 
 ### Of the harness and of the machine
 
@@ -3880,17 +3901,17 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took a part of the program that the road named and that no
-measurement had reached** — the view of the episodes of a podcast while a second
-window changes that podcast — and it found T-167. **The fault does not belong to
-that view**: it belongs to the playback, and the session wrote the correction
-and released it. **No item of the road holds a measurement with no correction
-now.** **The next session must name a condition of its own.** This prompt names
-the state of the program on 2026-08-14.
+**This session took the condition that the session before it named** — a server
+that answers some requests and that fails others — and it wrote the harness of
+that condition. **The four requests of the start of a library held five faults**
+(T-169 and T-170), and every one of them said that the library of the user holds
+nothing. The session left no item open. **The next session must name a condition
+of its own**, and the harness of this one opens a whole class of them. This
+prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.1**; `Cargo.toml` is at 0.8.1. The
+> AlbanDAVID/Toutui. Newest release **v0.8.4**; `Cargo.toml` is at 0.8.4. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -3899,7 +3920,7 @@ the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-167 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-170 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -3922,10 +3943,35 @@ the state of the program on 2026-08-14.
 > program holds refuses a connection at once**, therefore a measurement of a
 > limit of time needs a port that accepts and answers nothing (the trap 112).
 > **`pkill -f` and `pgrep -f` of a shell of this harness kill that shell** (the
-> trap 114). **A download of the loopback ends in less than one second**,
-> therefore a measurement inside a download needs `docs/harness/slow_body.py`
-> (the trap 116). **`podman stop -t 0 abs-test` takes the server away**, and the
-> program then starts in the offline mode with the media of the disk (T-152).
+> trap 114), and the process of a port comes of
+> `ss -lptnH 'sport = :13500'` (the trap 131). **A download of the loopback ends
+> in less than one second**, therefore a measurement inside a download needs
+> `docs/harness/slow_body.py` (the trap 116). **`podman stop -t 0 abs-test` takes
+> the server away**, and the program then starts in the offline mode with the
+> media of the disk (T-152).
+>
+> **A server that answers some requests and that fails others is
+> `docs/harness/one_path_fails.py`** (T-169 and T-170). It answers the status
+> `500` to every path that holds a part of its command line, and it forwards
+> every other request to the sandbox:
+>
+> ```bash
+> python3 docs/harness/one_path_fails.py 13500 13399 requests.log \
+>     <the library>/series <the library>/items
+> ```
+>
+> **That road holds four traps.** A pool of two addresses hides a fault of the
+> status 500: `send` tries the address after it (T-97), therefore the pool of
+> such a measurement needs **one** address — write `http://127.0.0.1:13500` in
+> `users.server_address` of `db.sqlite3` of the sandbox, keep a copy of that
+> file, and give the account its own address again at the end (the trap 129).
+> The answer `500` keeps the state `Up` (T-128), therefore every request stays
+> with the proxy (the trap 130). A `cd` of one command and a `&` of that same
+> command take the proxy to the new directory, and it then finds no file: give
+> the absolute path (the trap 132). **The four requests of the start come before
+> the first frame** (T-129), therefore no view of the start holds a condition of
+> "the request runs" (the trap 133).
+>
 > **The child of T-62 reads the PDF of 502 megabytes in 131 seconds**, therefore
 > a measurement of two readers has a window of two minutes (T-153). **The server
 > holds the 57 episodes of its feed already**, therefore a measurement of the
@@ -3958,35 +4004,33 @@ the state of the program on 2026-08-14.
 > of it reads the line above `j/k: move` and not a number of a row (T-164).
 > **A window reads the lists of the server at a key of its own alone**, therefore
 > a measurement of two windows needs one key of the first window after the key of
-> the second one; and a measurement of a line that moves needs a second playlist
-> of the library `Books`, because the sandbox holds one collection and one
-> playlist of it (the section 6d of `docs/TEST-SERVER.md`, and T-165).
-> **The queue of the downloads of the server belongs to the library**, therefore
-> a measurement of the line of that view needs the two podcasts of the library
-> `Podcasts` (the section 5b of `docs/TEST-SERVER.md`); the queue holds the
-> sequence of the requests, therefore the podcast of the second request stands
-> at the end; and 48 episodes give about three minutes of downloads at four
-> seconds each (T-166). **The message of a view lives six seconds, and a
-> download of the sandbox ends in four**: a poll of that message needs a step of
-> 0.25 seconds and a `grep` of its words, and not a number of a row (T-166).
-> **The program reads the episodes of a podcast one time**
-> (`the_episodes_that_came` of `App` never goes back to `false`), therefore a
-> measurement of an old list of that view needs one window and a second program
-> alone, and a fresh list needs the key `R` (T-167). **A test of a server that
-> holds nothing must not use the port that no program holds**: that road is the
-> offline mode of T-25, and it keeps the copy of the disk. A host of a raw socket
-> that answers `404` gives a server that answers with no network and no sandbox
-> (T-167, and `tests/a_playback_that_did_not_start_says_why.rs`).
+> the second one (T-165). **The queue of the downloads of the server belongs to
+> the library**, therefore a measurement of the line of that view needs the two
+> podcasts of the library `Podcasts` (the section 5b of `docs/TEST-SERVER.md`),
+> and 48 episodes give about three minutes of downloads at four seconds each
+> (T-166). **The message of a view lives six seconds, and a download of the
+> sandbox ends in four**: a poll of that message needs a step of 0.25 seconds and
+> a `grep` of its words, and not a number of a row (T-166). **The program reads
+> the episodes of a podcast one time** (`the_episodes_that_came` of `App` never
+> goes back to `false`), therefore a measurement of an old list of that view
+> needs one window and a second program alone, and a fresh list needs the key `R`
+> (T-167). **A test of a server that holds nothing must not use the port that no
+> program holds**: that road is the offline mode of T-25, and it keeps the copy
+> of the disk. A host of a raw socket that answers `404` or `500` gives a server
+> that answers with no network and no sandbox (T-167, T-169, T-170, and the three
+> files `tests/a_playback_that_did_not_start_says_why.rs`,
+> `tests/the_lists_that_did_not_come_say_why.rs`, and
+> `tests/the_requests_of_the_start_that_failed_say_why.rs`).
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-168 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-171 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1089 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1114 of 1114** with the sandbox up, in 24.4 seconds. **Run that
+> Baseline: **1095 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1120 of 1120** with the sandbox up, in 18.1 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -4020,34 +4064,38 @@ the state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in twenty-six sessions of twenty-seven. **No
->    condition of the road stays**: the session of the thirteenth turn took the
->    view of the episodes of a podcast while a second window changes that
->    podcast, and it found T-167 — a fault that belongs to the playback and to no
->    view. It wrote the correction of that fault, and it left no item open.
+>    this shape found a fault in twenty-eight sessions of twenty-nine. **No
+>    condition of the road stays**: the session of the fifteenth turn took the
+>    server that fails one request, and the four requests of the start of a
+>    library held five faults (T-169 and T-170). It wrote the correction of each
+>    of them, and it left no item open.
 >    - **The three shapes that found a fault before:** **a state of one process
->      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153,
->      T-154, T-155, T-156, T-158, T-159, T-160, T-161, T-162, T-163, T-164,
->      T-165, T-166, T-167), **a program that dies in the middle of work**
->      (T-145, T-152), and **a server that does not answer** (T-146, T-149,
->      T-152, T-156).
+>      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153 to
+>      T-167), **a program that dies in the middle of work** (T-145, T-152), and
+>      **a server that does not answer, or that answers with a fault** (T-146,
+>      T-149, T-152, T-156, T-167, T-168, T-169, T-170).
+>    - **The harness of T-169 opens a class of conditions that no measurement has
+>      reached.** `one_path_fails.py` fails one path of one library, and **every
+>      view of a request of its own holds the shape of T-170**: the bookmarks,
+>      the chapters, the sessions, the statistics, the authors and the narrators,
+>      the devices of an e-reader, the downloads of the server, and the search.
+>      Each of them says why it holds no line, and **the words of `is_offline`
+>      hold the offline mode of the start alone** (T-25). Read the text of each,
+>      fail its endpoint, and look at the screen.
 >    - **The rule of the line of the view is made for six views** (T-160 the Home
 >      view, T-161 the queue, T-162 the chapters, T-163 the bookmarks, T-165 the
 >      collections and the playlists, and T-166 the downloads of the server), and
 >      **the message of each of them belongs to its own view** (T-164). **The
 >      view of the episodes of a podcast needs no such rule** (T-167): its list
->      is a photograph of the moment of the open, therefore no line of it moves
->      under the cursor. **The parts of the program that no such measurement has
->      reached**: the search of a library that a second window changes, **the key
->      `S` of the library of the start with two windows that both hold their
->      account**, and **the view `PutInAList` of the key `m`, which keeps its
->      number of a line by the decision of T-165**.
+>      is a photograph of the moment of the open. **The parts of the program that
+>      no such measurement has reached**: the search of a library that a second
+>      window changes, **the key `S` of the library of the start with two windows
+>      that both hold their account**, and **the view `PutInAList` of the key
+>      `m`, which keeps its number of a line by the decision of T-165**.
 >    - **The messages of the other views are not measured**: the reader and the
 >      view of the accounts. T-164 gives them the road — a message that a rule
 >      writes with no key of the user must name its view with `say_in`, and a
->      message of a key names no view. **T-167 gives the same road to the keys
->      that say nothing**: `grep` for `Outcome::Fault`, for `return` after an
->      `error!`, and for a `warn!` with no `message::say` beside it.
+>      message of a key names no view.
 >    - **The shape of T-155 is a sweep that a session began and did not
 >      finish**: a write of a state that names a row of the database. T-159 gave
 >      the number of the rows to the caller of the library of the account, and
@@ -4061,9 +4109,11 @@ the state of the program on 2026-08-14.
 >    holds no line, and it never says a reason that the program does not have
 >    (T-91). **A text must not promise a function that the program does not
 >    have** (T-118), and **a footer must not promise a key that the view does not
->    hold** (T-143). A key that does nothing in one view is a fault of its own
->    (T-79), **and a key that does nothing in every view is T-167**. A message
->    lives six seconds.
+>    hold** (T-143). **A sentence of a fault must name a key that does the work
+>    of that fault** (T-170: the Library view named the key `L` of a scan of the
+>    server for a request that came back with a fault). A key that does nothing
+>    in one view is a fault of its own (T-79), **and a key that does nothing in
+>    every view is T-167**. A message lives six seconds.
 >
 > ### The two issues of the fork
 >
@@ -4107,24 +4157,23 @@ the state of the program on 2026-08-14.
 > stands in no row starts again** (T-159), and **a line of the Home view whose
 > media leaves the shelf Continue Listening goes to nobody, and the message
 > names that media** (T-160), and **the cursor of the view of the queue holds a
-> media and not a number of a line: a media that leaves the queue takes that
-> line to nobody** (T-161), and **the line of the view of the chapters holds
-> the playback that the user opened: a media that stops takes that line to
-> nobody, and the key `l` then seeks in no media at all** (T-162), and **the key
-> `b` of the view of the bookmarks writes a place of the media of that view
-> alone, and the title of that view names that media** (T-163), and **a message
-> that a rule of the loop writes belongs to its own view, its six seconds start
-> at the frame that shows it, and the answer of a key belongs to no view and it
-> stands above them all** (T-164), and **the line of the view of the lists holds
-> a collection or a playlist and not a number of a line: a list that goes away
-> takes that line to nobody, and the media of such a list shows the lists again**
-> (T-165), and **the line of the view of the downloads of the server holds an
-> episode of a podcast and not a number of a line: an episode that leaves the
-> queue takes that line to nobody, the keys `j` and `k` give a line again, and
-> the key `X` on a line of nobody says one sentence and it changes no queue**
-> (T-166), and **a playback that did not start says why: the three faults of
-> `play_media` each say one sentence, that sentence names what the server said,
-> it names no media, and it belongs to no view** (T-167).
+> media and not a number of a line** (T-161), and **the line of the view of the
+> chapters holds the playback that the user opened** (T-162), and **the key `b`
+> of the view of the bookmarks writes a place of the media of that view alone**
+> (T-163), and **a message that a rule of the loop writes belongs to its own
+> view, and the answer of a key belongs to no view and it stands above them all**
+> (T-164), and **the line of the view of the lists holds a collection or a
+> playlist and not a number of a line** (T-165), and **the line of the view of
+> the downloads of the server holds an episode of a podcast and not a number of a
+> line** (T-166), and **a playback that did not start says why: the three faults
+> of `play_media` each say one sentence, and that sentence names what the server
+> said** (T-167), and **a request of a key that did not come back says why: the
+> box of that fault belongs to the podcast or to the page of its own request**
+> (T-168), and **the two views of the collections and of the playlists say what
+> the server said, and the box of that fault belongs to one library** (T-169),
+> and **the Home view, the view of the series, and the Library view each say what
+> the server said of their own request of the start, and the sentence of a fault
+> names a key that does the work of that fault** (T-170).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
