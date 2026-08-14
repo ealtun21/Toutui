@@ -41,6 +41,25 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.16",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A cover that did not come one time stayed away for the whole \
+             life of the program.** A request of a cover that came back with a \
+             fault took the condition of a book with no cover, and the key R \
+             asked the server for every list again and for no cover at all: the \
+             book of your screen then held no picture, and no key could correct \
+             it. The key R asks the server for every cover again now. A cover \
+             that a different client of your account changes comes at that key \
+             too.",
+            "- **The log said that a book has no cover for a book whose cover \
+             the server holds.** A request that came back with a fault says the \
+             fault now, and the status 404 is the answer of a book with no \
+             cover.",
+        ],
+    },
+    Entry {
         version: "0.8.15",
         date: "14/08/2026",
         body: &[
