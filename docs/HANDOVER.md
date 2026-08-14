@@ -5152,16 +5152,17 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took the second road of the audio: the stream that the server
-makes.** T-193 corrected the file of a book, and the parts of a playlist kept the
-same fault with **no proxy at all**: a stream that stopped at the part 64 of 101
-told the server that the user finished the book, and the screen said nothing
-(T-194). The road below names the conditions that stay. This prompt names the
-state of the program on 2026-08-14.
+**This session took the condition that the session before it left open: a part
+of the stream that holds no audio.** T-194 wrote that such a part goes away with a
+line of the log and no word for the user, and that line was the whole fault again:
+the program held six seconds of a book of ten minutes, and it told the server that
+the user finished the book (T-195). **The reader of the stream of the server holds
+no condition that a measurement did not reach now.** The road below names the
+conditions that stay. This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.24**; `Cargo.toml` is at 0.8.24. The
+> AlbanDAVID/Toutui. Newest release **v0.8.25**; `Cargo.toml` is at 0.8.25. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -5170,7 +5171,7 @@ state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-194 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-195 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -5402,6 +5403,26 @@ state of the program on 2026-08-14.
 > length** (T-193): the two harnesses take the two roads of a body that stops,
 > and the program held one of them already.
 >
+> **A part of a stream that holds no audio is
+> `docs/harness/a_part_that_holds_no_audio.py`** (T-195). **A part of no audio is
+> not a part that stopped**: the two harnesses above cut a body, and the rule of
+> T-194 (a body of no whole number of packets of 188 bytes is a body that stopped)
+> holds such a body already. This one answers every part of the number of its
+> command line and after it with a **whole** body of a transport stream that holds
+> no packet of the audio: 32 packets of the padding of the container (the identity
+> 0x1FFF). Every other request goes to the sandbox:
+>
+> ```bash
+> python3 docs/harness/a_part_that_holds_no_audio.py 13509 13399 requests.log 1
+> ```
+>
+> **A body of padding alone holds no table of the container** (the trap 153):
+> `audio_stream_of` reads the table of the map of the programs, therefore a
+> measurement of `HlsFile::open` with such a part needs the three tables of a real
+> part before the padding. `tests/fixtures/audio/transport_stream.ts` holds them in
+> its first three packets, and
+> `tests/a_part_with_no_audio_is_not_the_end_of_the_media.rs` makes that body.
+>
 > **The two harnesses of a body reach a part of a stream of HLS too** (T-194).
 > The path of a part is `/hls/<the session>/output-N.ts`, therefore
 > `output-7.ts` is the part of the command line, and **the book of xHE-AAC of the
@@ -5437,7 +5458,8 @@ state of the program on 2026-08-14.
 > word `Playing` stands in it.
 >
 > **The loop of a measurement belongs in a file of `bash`**
-> (the trap 143): the shell of this harness reads no `for ... end`. **The log of
+> (the trap 143 and the trap 152): the shell of the `Bash` tool of this harness is
+> `zsh`, therefore it reads no `for ... end` of `fish` and no `==` of a test. **The log of
 > the proxy counts the requests** (the trap 144): `grep -c` of a path before a key
 > and after it says whether that key asked the server again.
 >
@@ -5462,7 +5484,7 @@ state of the program on 2026-08-14.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-190 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-195 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
@@ -5504,10 +5526,32 @@ state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in forty-four sessions of forty-five. **The session
->    of the thirty-first turn took the second road of the audio: the stream that
->    the server makes.** It found one fault, and that fault wrote the book of the
->    user as a book that the user finished (T-194).
+>    this shape found a fault in forty-five sessions of forty-six. **The session
+>    of the thirty-second turn took the condition that the session before it left
+>    open: a part of the stream that holds no audio.** It found one fault, and
+>    that fault wrote the book of the user as a book that the user finished
+>    (T-195).
+>    - **A condition that an item names as open is an item of its own** (T-195).
+>      T-194 wrote "a part that holds no audio still goes away with no word, and
+>      no measurement made such a part", and that sentence was the whole of the
+>      session after it: one harness, one measurement, and the same fault of the
+>      user. **Read the last paragraph of the newest item before anything else.**
+>    - **A line of the log that says a fault and goes on is the shape to look
+>      for** (T-195). `warn!` and `continue` stood in one arm of the loop of the
+>      parts. **A line of the log is the word of a fault that belongs to no line
+>      of a view** (T-177 and up), and that rule is not a rule for a condition
+>      that changes what the program tells the **server**. Ask of every
+>      `continue` of a loop of the audio: what does the program write when this
+>      loop ends?
+>    - **A road of a reader that no test walks is a road of a fault** (T-195).
+>      `HlsFile::open` reads the first part and the thread of the buffer reads the
+>      rest, therefore **one condition holds two roads** and the correction of one
+>      is not the correction of the other: the open gave a reader of no byte at
+>      all, and such a reader says `finished` at its first read.
+>    - **A harness of a fault must not hold a fault of another item** (T-195). The
+>      two harnesses of a body cut a body, and the rule of T-194 holds a body that
+>      stopped already: a measurement of a part with no audio therefore needs a
+>      **whole** body that holds no audio.
 >    - **A correction of one road of the audio is not a correction of the audio**
 >      (T-194). T-193 gave `HttpFile` the truth of its length (`Content-Range`)
 >      and `HlsFile` the truth of its playlist (`#EXT-X-ENDLIST`), and **the
@@ -5625,13 +5669,10 @@ state of the program on 2026-08-14.
 >      wrong path that fails**, and no fault of a decode names it.
 >    - **The parts of the program that a server of a fault has not reached**: the
 >      keys `F`, `b`, `n`, `m`, `r`, `D`, and `X`. **The stream of the audio is
->      closed**: the file of a book (T-193), the playlist of HLS (T-193), and the
->      parts of that playlist (T-194). **One condition of the stream stays**: a
->      part that holds no audio. `fill_buffer` says `the part N holds no audio`
->      in the log and it goes to the part after it, therefore a stream of such
->      parts gives a book of silence with no word for the user, and no
->      measurement made such a part. The road to one is a body of 188 bytes of a
->      packet of no payload.
+>      closed**: the file of a book (T-193), the playlist of HLS (T-193), the
+>      parts of that playlist (T-194), and a part that holds no audio (T-195).
+>      **The reader of the stream holds no condition that a measurement did not
+>      reach.**
 >      **The keys `M`, `N`, and `e` are
 >      closed** (T-175 and T-178), **the first request of the program is closed**
 >      (T-172), **the flush of the positions of the disk is closed** (T-188 and
@@ -5869,7 +5910,10 @@ state of the program on 2026-08-14.
 > that stream, a body of a part that is no whole number of packets of 188 bytes
 > is a body that stopped, a body that did not come takes the twenty attempts of
 > a part that did not come, and the program writes the place that it reached and
-> it says why the media stopped** (T-194).
+> it says why the media stopped** (T-194), and **a part of a stream that holds no
+> packet of the audio is not a part of silence: the stream stops at that part, the
+> program writes the place that the parts before it give, and a first part with no
+> audio stops the playback before it starts and it names that part** (T-195).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
