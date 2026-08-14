@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.14",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **One device of an e-reader with no name took every device of your \
+             account away.** A server that does not give the name of one device gave \
+             Toutui a fault of the whole answer: the view of the key @ said that the \
+             server gave no device, and the device that you can use stood in no line. \
+             Toutui reads each device apart now, a device with no name belongs to no \
+             line, and every other device of the server stays.",
+            "- **A device that the server no longer holds named no key.** Toutui said \
+             \"Press the key again for the new list\", and the view of the devices is \
+             away at that moment. Toutui names the key @ of that work now.",
+        ],
+    },
+    Entry {
         version: "0.8.13",
         date: "14/08/2026",
         body: &[

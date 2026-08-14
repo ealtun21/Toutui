@@ -47,6 +47,7 @@
 
 use crate::api::client::error::ApiError;
 use crate::api::client::ApiClient;
+use log::warn;
 use serde::Deserialize;
 use std::time::Duration;
 
@@ -64,8 +65,12 @@ pub const THE_TIME_OF_A_SEND: Duration = Duration::from_secs(60 * 15);
 /// The name is the value that `POST /api/emails/send-ebook-to-device` takes,
 /// and the address is for the user: two devices of one user can hold the same
 /// name of a make.
+///
+/// **Every field of this structure holds a default**, and the name of a device
+/// decides the line of that device: see `the_devices_of_the_rows`. See T-183.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct Device {
+    #[serde(default)]
     pub name: String,
     #[serde(default)]
     pub email: String,
@@ -83,8 +88,49 @@ impl Device {
 
 #[derive(Debug, Deserialize)]
 struct TheAnswerOfTheLogin {
+    /// **The rows of the list, and not a list of `Device`.** One row that this
+    /// program cannot read must take no other device away, and a list of
+    /// `Device` gives the fault of one row to the whole answer. See T-183.
+    ///
+    /// The type is an `Option`, because `#[serde(default)]` holds for a field
+    /// that is absent and not for a field of the value `null`.
     #[serde(default, rename = "ereaderDevices")]
-    ereader_devices: Vec<Device>,
+    ereader_devices: Option<Vec<serde_json::Value>>,
+}
+
+/// Gives the devices of the rows of `ereaderDevices`.
+///
+/// **The name of a device is the one value that names it to the server.**
+/// `POST /api/emails/send-ebook-to-device` takes `deviceName`, and no other
+/// field of that row reaches the send. Therefore:
+///
+/// - A row with no name, or with a name of no character, is a device that this
+///   program cannot use. A line of it on the screen would hold no word, and the
+///   key `l` of that line would send a text of no character to the server. Such
+///   a row takes a line of the log, and no word for the user.
+/// - A row that this program cannot read takes a line of the log too, and every
+///   other row keeps its device.
+///
+/// The function is pure, therefore a test needs no server. See T-183.
+pub fn the_devices_of_the_rows(rows: Vec<serde_json::Value>) -> Vec<Device> {
+    let mut devices = Vec::new();
+
+    for row in rows {
+        match serde_json::from_value::<Device>(row) {
+            Ok(device) if !device.name.trim().is_empty() => devices.push(device),
+            Ok(_) => warn!(
+                "[ereader] The answer of the server holds a device with no name. \
+                 That device belongs to no line of the view."
+            ),
+            Err(error) => warn!(
+                "[ereader] The program cannot read a device of the answer of the \
+                 server: {}. The other devices stay.",
+                error
+            ),
+        }
+    }
+
+    devices
 }
 
 /// Gives the devices that this account may use.
@@ -96,7 +142,9 @@ pub async fn the_devices_of_the_account(client: &ApiClient) -> Result<Vec<Device
         .post_json("/api/authorize", &serde_json::json!({}))
         .await?;
 
-    Ok(answer.ereader_devices)
+    Ok(the_devices_of_the_rows(
+        answer.ereader_devices.unwrap_or_default(),
+    ))
 }
 
 /// What the server did with the book.
@@ -162,7 +210,12 @@ pub fn the_end_of_the_send(status: u16, words: &str) -> TheEnd {
             "This item holds no ebook. The server sends a book, and not an audio file.".to_string()
         }
         (404, w) if w.eq_ignore_ascii_case("Ereader device not found") => {
-            "The server does not hold that device now. Press the key again for the new list."
+            // **The sentence names the key that does the work** (T-170). The
+            // view of the devices goes away at the send, therefore the user
+            // stands in the view of the media again and the key @ of that view
+            // asks the server for the list. See T-183.
+            "The server does not hold that device now. The key @ gives the list of the \
+             devices again."
                 .to_string()
         }
         (404, w) if w.eq_ignore_ascii_case("Library item not found") => {
@@ -315,8 +368,89 @@ mod tests {
         }))
         .expect("the payload of the login");
 
-        assert_eq!(answer.ereader_devices.len(), 1);
-        assert_eq!(answer.ereader_devices[0].name, "Kobo");
+        let devices = the_devices_of_the_rows(answer.ereader_devices.unwrap_or_default());
+
+        assert_eq!(devices.len(), 1);
+        assert_eq!(devices[0].name, "Kobo");
+    }
+
+    /// **One device with no name took every device of the account away.** The
+    /// list was a `Vec<Device>` with a `name` of no default, therefore the fault
+    /// of one row was the fault of the whole answer: the view said "The server
+    /// gave no device: The answer of the server is not valid: missing field
+    /// `name`", and the device that the user has stood in no line. See T-183.
+    #[test]
+    fn a_device_with_no_name_takes_no_other_device_away() {
+        let answer: TheAnswerOfTheLogin = serde_json::from_value(serde_json::json!({
+            "user": { "username": "toutuitest" },
+            "ereaderDevices": [
+                { "name": "Kobo of the measurement", "email": "kobo@example.invalid" },
+                { "email": "all@example.invalid", "availabilityOption": "guestOrUp" }
+            ]
+        }))
+        .expect("one row of no name is not a fault of the answer");
+
+        let devices = the_devices_of_the_rows(answer.ereader_devices.unwrap_or_default());
+
+        assert_eq!(devices.len(), 1, "{:?}", devices);
+        assert_eq!(devices[0].name, "Kobo of the measurement");
+    }
+
+    /// A name of no character is a name that the server did not give: the send
+    /// would carry a text of no character, and the line of the view would hold
+    /// no word. See T-183.
+    #[test]
+    fn a_name_of_no_character_belongs_to_no_line() {
+        let devices = the_devices_of_the_rows(vec![
+            serde_json::json!({ "name": "  ", "email": "a@example.invalid" }),
+            serde_json::json!({ "name": "Kobo" }),
+        ]);
+
+        assert_eq!(devices.len(), 1, "{:?}", devices);
+        assert_eq!(devices[0].name, "Kobo");
+    }
+
+    /// A row that this program cannot read at all keeps the other rows too.
+    #[test]
+    fn a_row_that_the_program_cannot_read_keeps_the_other_devices() {
+        let devices = the_devices_of_the_rows(vec![
+            serde_json::json!("a device of a newer server"),
+            serde_json::json!({ "name": "Kobo" }),
+        ]);
+
+        assert_eq!(devices.len(), 1, "{:?}", devices);
+        assert_eq!(devices[0].name, "Kobo");
+    }
+
+    /// `#[serde(default)]` holds for a field that is absent, and not for a field
+    /// of the value `null`. See T-183.
+    #[test]
+    fn a_list_of_the_value_null_gives_no_device() {
+        let answer: TheAnswerOfTheLogin = serde_json::from_value(serde_json::json!({
+            "user": { "username": "toutuitest" },
+            "ereaderDevices": serde_json::Value::Null
+        }))
+        .expect("a list of the value null is not a fault of the answer");
+
+        assert!(the_devices_of_the_rows(answer.ereader_devices.unwrap_or_default()).is_empty());
+    }
+
+    /// **A sentence of a fault names a key that does the work of that fault**
+    /// (T-170). The old sentence said "Press the key again", and the view of the
+    /// devices is away at that moment: the user stands in the view of the media,
+    /// and the key @ of that view asks the server for the list. See T-183.
+    #[test]
+    fn the_sentence_of_a_device_that_went_away_names_the_key() {
+        let TheEnd::TheServerRefused(words) = the_end_of_the_send(404, "Ereader device not found")
+        else {
+            panic!("the server refused the request");
+        };
+
+        assert!(
+            words.contains("The key @"),
+            "the sentence names the key that gives the list again: {}",
+            words
+        );
     }
 
     #[test]
@@ -324,7 +458,7 @@ mod tests {
         let answer: TheAnswerOfTheLogin =
             serde_json::from_value(serde_json::json!({ "user": {} })).expect("the payload");
 
-        assert!(answer.ereader_devices.is_empty());
+        assert!(answer.ereader_devices.unwrap_or_default().is_empty());
     }
 
     #[test]

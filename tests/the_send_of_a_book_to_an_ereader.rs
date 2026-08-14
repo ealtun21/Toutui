@@ -118,6 +118,45 @@ async fn a_server_with_no_device_gives_an_empty_list() {
     assert!(devices.is_empty());
 }
 
+/// **One device with no name took every device of the account away.** See T-183.
+///
+/// The measurement: `docs/harness/a_field_of_one_row_goes_away.py` took `name`
+/// out of the row 1 of `ereaderDevices` of `POST /api/authorize` of the sandbox,
+/// and the view of the key `@` said "The server gave no device: The answer of the
+/// server is not valid: missing field `name` at line 1 column 12538". The
+/// account holds two devices, and the row 0 of that answer holds every field.
+///
+/// A build with the old shape (`ereader_devices: Vec<Device>`, and a `name` of no
+/// default) gives `ApiError` here, and this test fails at `expect`.
+#[tokio::test]
+async fn a_device_with_no_name_takes_no_other_device_away() {
+    let server = MockServer::start().await;
+
+    Mock::given(method("POST"))
+        .and(path("/api/authorize"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+            "user": { "id": "u1", "username": "toutuitest" },
+            "ereaderDevices": [
+                { "name": "Kobo of the measurement", "email": "kobo@example.invalid",
+                  "availabilityOption": "adminOrUp", "users": [] },
+                { "email": "all@example.invalid",
+                  "availabilityOption": "guestOrUp", "users": [] }
+            ]
+        })))
+        .mount(&server)
+        .await;
+
+    let devices = the_devices_of_the_account(&client(&server.uri()))
+        .await
+        .expect("one row of no name is not a fault of the whole answer");
+
+    assert_eq!(devices.len(), 1, "{:?}", devices);
+    assert_eq!(
+        devices[0].name, "Kobo of the measurement",
+        "the device that the server named stays"
+    );
+}
+
 #[tokio::test]
 async fn the_send_names_the_item_and_the_device() {
     let server = MockServer::start().await;

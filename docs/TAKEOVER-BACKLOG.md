@@ -7629,6 +7629,96 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-183: one device with no name took every device of the e-reader away
+
+**The road of the session before this one named this sweep**: "the send of an
+ebook to an e-reader is the one to take — `POST /api/emails/send-ebook-to-device`
+writes, and the list of the devices comes of the payload of the login (T-119)…
+the sweep must ask what the program does with a device that the server no longer
+holds." That road also said that a read of the source of 2026-08-14 found no
+fault of the words, and that **no measurement stands behind that read**. A
+measurement stands behind it now, and it found two faults.
+
+**The fault stands in the shape of T-181, and not in the shape of T-177.** The
+proxy of T-177 takes a field out of every row of a list, therefore every device
+loses its name together and the list of the program is empty either way: the
+fault of the user hides. `docs/harness/a_field_of_one_row_goes_away.py` takes the
+field out of **one** row, and the fault came out at once.
+
+The sandbox holds three devices of an e-reader, and the server filters that list
+for the account: `POST /api/authorize` of `toutuitest` gives two of them (`Kobo of
+the measurement` and `A device of every user`).
+
+```bash
+python3 docs/harness/a_field_of_one_row_goes_away.py 13506 13399 \
+    /the/absolute/path/of/proxy.log /api/authorize ereaderDevices 1 name
+```
+
+The account of the sandbox held that one address (the trap 129), and the key `@`
+of the Home view opened the view of the devices.
+
+| The measurement | Before | After |
+|---|---|---|
+| The key `@`, and the row 1 of `ereaderDevices` holds no `name` | **The server gave no device: The answer of the server is not valid: missing field name at line 1 column 12538**, and no line at all | `Send "A Book Of Many Hours" to a device [1 item]`, and the line `Kobo of the measurement - kobo@example.invalid` |
+| The log of the program of that same key | no line of the devices | `[WARN] - [ereader] The answer of the server holds a device with no name. That device belongs to no line of the view.` |
+| The key `@` against the sandbox, with no proxy | two lines | two lines |
+
+**A device that the server no longer holds was the second fault, and it is a
+fault of the words.** The measurement: the key `@` gave the list, an
+administrator then took that device away with
+`POST /api/emails/ereader-devices`, and the key `l` of the line sent the book.
+The server answered `404` with `Ereader device not found`, and the program said:
+
+> The server did not send "A Book Of Many Hours": The server does not hold that
+> device now. **Press the key again for the new list.**
+
+**The view of the devices is away at that moment**: `send_the_book_to_an_ereader`
+goes back to the view of the media before the request, therefore "the key" of
+that sentence names nothing that the user can see. **A sentence of a fault must
+name a key that does the work of that fault** (T-170), and the key is `@`. The
+sentence says "The key @ gives the list of the devices again." now, and the
+measurement of the same road read it on the screen.
+
+**The correction.** `src/api/ereaders.rs`:
+
+1. `name` of `Device` takes a default, therefore no row of the answer is a fault
+   of the whole answer.
+2. `ereader_devices` holds `Option<Vec<serde_json::Value>>` and not
+   `Vec<Device>`: the rows come one at a time, and `the_devices_of_the_rows`
+   reads each of them. A row that this program cannot read at all takes a line of
+   the log, and every other row keeps its device. **The `Option` is the answer of
+   a field of the value `null`**: `#[serde(default)]` holds for a field that is
+   absent alone.
+3. **A device with no name belongs to no line**, and the same rule holds for a
+   name of no character: the name is the one value that
+   `POST /api/emails/send-ebook-to-device` takes, therefore the line of such a
+   device would hold no word and the key `l` of it would send a text of no
+   character to the server. Such a row takes a line of the log and no word for
+   the user — the rule of T-177.
+
+**A device with no name is not the shape of T-176.** A library whose name holds
+no character keeps its line by a decision, because the program has no other road:
+the id of that library still reaches every request. A device holds no id at all —
+the name **is** the address of that device for the server — therefore a device
+with no name is a device that the program cannot use, and a line of it would
+promise a function that the program does not have (T-118).
+
+`src/api/ereaders.rs` holds five tests of the rule (the row with no name, the name
+of no character, the row that the program cannot read, the list of the value
+`null`, and the sentence that names the key), and
+`tests/the_send_of_a_book_to_an_ereader.rs` holds the same rule with a real HTTP
+answer of a mock server. A build with the old shape of `Device` fails the two
+tests of the row with no name with the fault `Decode("missing field name")`, and a build
+with the old sentence fails the test of the key.
+
+**What this measurement says of the whole answer of `/api/authorize`.** The
+program reads two fields of a device: `name` and `email`. `email` holds no fault
+(`line` reads it as a text of no character and it then draws the name alone,
+T-119), and `availabilityOption` and `users` reach no line of this program by the
+decision of T-119. **The other roads of that answer belong to the login**
+(`user.token` of `src/api/server/auth_process.rs`), and that structure asks for
+`user` and `token` alone: a device with no name does not stop the login.
+
 ### T-182: the session of the playback, and the two fields that no answer must lose
 
 **The road of T-179, of T-180, and of T-181 named this answer.** A field that
