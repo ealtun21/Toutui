@@ -14413,3 +14413,97 @@ hide.** The runs of this session gave 1200 of 1200 in 2.5 seconds with no load,
 and 8 failures of 40 with it: **a gate that runs on a machine of nothing says less
 than a gate of a machine that works.** The question of the next session is whether
 every gate of this fork must run one time under the load of the machine.
+
+### T-221: a line that holds more than one media names the key that opens it
+
+**The road of this item is the last paragraph of T-219**, which the session
+before it left open: "a podcast of the Library view and of the view of the search
+takes no key `D` and no key `X`, and it says nothing at all". The measurement of
+that paragraph found a **second** line of the same shape, and it found that the
+correction of T-219 gave that second line the words of a podcast.
+
+**Two lines of the program hold more than one media, and one key opens each of
+them.** A podcast of the Library view and of the view of the search holds its
+episodes, and the key `l` gives them (T-126). A line of the Library view of a
+library of books holds every book of one series (T-22), and the key `l` gives
+them. `selected_download` and `selected_place` give nothing for the two of them,
+therefore every key of one media stands before a road of nothing.
+
+#### The measurement
+
+The sandbox, of v0.8.49, inside tmux. The line `Letters of Two Brides` of the
+Library view and of the view of the search of the library `Podcasts`, and the
+line `The Test Chronicles [3 books]` of the Library view of the library `Books`:
+
+| The line | The key | v0.8.49 | v0.8.50 |
+|---|---|---|---|
+| a podcast | `D` | **no word of the screen, and no line of the log** | `A podcast holds more than one media. Press l for its episodes.` |
+| a podcast | `X` | **no word, and no line** | the same |
+| a podcast | `n` | `This line holds no media.` | the same |
+| a podcast | `m` | `This line holds no book and no episode.` | the same |
+| a podcast | `M` and `N` | `A podcast holds no place. Press l for its episodes.` | the same |
+| a series | `D` | **no word, and no line** | `A series holds more than one book. Press l for its books.` |
+| a series | `X` | **no word, and no line** | the same |
+| a series | `n` | `This line holds no media.` | the same |
+| a series | `m` | `This line holds no book and no episode.` | the same |
+| a series | `M` and `N` | `A podcast holds no place. Press l for its episodes.` | `A series holds no place. Press l for its books.` |
+
+The control of the same run, of the line `A Book Of An Epub With No Container` of
+the same library: the key `n` said `"A Book Of An Epub With No Container" is
+number 1 of the queue. Press q to see the queue.`, and the key `M` said `The
+media is not finished now, and its position went back to the start.`
+
+**The keys `D` and `X` wrote no word of the screen and no line of the log.** That
+is T-79, and **no sweep of the words for the user finds such a key** (T-174 and
+T-218): the measurement of a key that does nothing at all is the key itself,
+inside tmux, on a line of the condition. The lines of the log stood at 9 before
+the key and at 9 after it.
+
+**The keys `M` and `N` of the line of a series said that a podcast holds no
+place**, and that library holds books alone. `words_of_a_line_with_no_place` of
+T-219 read `selected_item_id().is_some()`, and `selected_library_item` gives the
+**first book** of a line of a series (`LibraryRow::Series { first_item, .. }`):
+the words of the podcast therefore stood on every line of a series of every
+library of books. That is T-91 — the program said a reason that it does not have
+— and the sentence named the key `l` of episodes that no book of a series holds.
+**A correction of one session is a measurement of the next one.**
+
+#### The correction
+
+`App::the_line_of_no_media` gives `APodcast`, `ASeries`, or `Nothing`, and it
+reads the view and the row of the library and not the identity of an item.
+`words_of_a_line_with_no_place` (the keys `M` and `N`) and
+`words_of_a_line_with_no_media` (the keys `D`, `X`, `n`, `m`, and `@`) each read
+it. The second function takes the sentence of a line that holds no media at all
+from its caller, therefore each key keeps its own words for a view that holds no
+line of a media: "This line holds no media." for the key `n`, "This line holds no
+book and no episode." for the key `m`, and "This line holds no book." for the key
+`@`.
+
+The two arms of `handle_key` of the keys `D` and `X` held `if let Some(…)` with
+no `else`. They say the words now.
+
+`tests/the_line_of_a_podcast_and_of_a_series_says_what_it_holds.rs` holds the
+rule. **It needs no sandbox and no server**: `App::new` takes a port that nothing
+listens on, and the two keys stop before every request. A build with the first
+arm of `the_line_of_no_media` removed fails at the line of the podcast, and a
+build with the two `else` of the keys removed fails at the key `D`.
+
+#### What this item leaves open
+
+**The other keys of a line of a podcast and of a line of a series are not
+measured**: the key `b` of a bookmark, the key `e` of the reader, the key `s` of
+the series of a media, and the key `F` of the place of the playback. The rule of
+this item is the question of each of them: which list does the key read, and what
+does it say for a line that holds no one media?
+
+**A line of a shelf of the Home view can hold a series too.** The server gives a
+shelf of the type `series`, and `selected_download` of the Home view gives
+`DownloadTarget::Book` with the identity of the item of the line: the question is
+what the keys `D` and `X` of such a line download, and whether the media of that
+line is the whole series or one book of it.
+
+**The footer of the Library view of a library of podcasts names no key `D` and no
+key `X`**, and the view of every key (`?`) names the two of them. That is the
+rule of T-143 from the other side: a footer that names no key of the view is no
+fault, and the view of every key holds every key of the program.

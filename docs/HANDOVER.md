@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.49.** The items T-219 and T-220 belong to this
-session. The item T-218 belongs to the session before it. The
+**The newest release is v0.8.50.** The item T-221 belongs to this session. The
+items T-219 and T-220 belong to the session before it. The item T-218 belongs to
+the session before it. The
 items T-216 and T-217 belong to the session before it.
 The items T-214 and T-215 belong to the session before it. The
 item T-213 belongs to the session before it. The
@@ -57,13 +58,111 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.49**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.50**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1200 of 1200** in 2.5 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1226 of 1226** with the sandbox up in 17 seconds, and
-`cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in four runs.
-**Two runs of `cargo nextest run` under the load of 24 loops of a shell give
-1200 of 1200 too** (T-220).
+**1201 of 1201** in 2.5 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1227 of 1227** with the sandbox up in 17 seconds, and
+`cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in three
+runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
+gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the fiftieth turn of 2026-08-14: a line that holds more than one media
+
+**One release: v0.8.50**, and one item: T-221 of the keys of a line of a podcast
+and of a line of a series. **The road of it is the last paragraph of T-219**,
+which the session before it left open: "a podcast of the Library view and of the
+view of the search takes no key `D` and no key `X`, and it says nothing at all".
+The measurement of that paragraph found a **second** line of the same shape, and
+it found that the correction of T-219 gave that second line the words of a
+podcast. The measurement cost no harness of Python, no change of the source, and
+two libraries of the sandbox.
+
+### T-221: the keys of a line that holds more than one media
+
+**Two lines of the program hold more than one media, and one key opens each of
+them**: a podcast of the Library view and of the view of the search holds its
+episodes (T-126), and a line of the Library view holds every book of one series
+(T-22). `selected_download` and `selected_place` give nothing for the two of
+them.
+
+The real program of v0.8.49, inside tmux, of the line `Letters of Two Brides`
+of the library `Podcasts` and of the line `The Test Chronicles [3 books]` of the
+library `Books`:
+
+| The line | The key | v0.8.49 | v0.8.50 |
+|---|---|---|---|
+| a podcast | `D` and `X` | **no word, and no line of the log** | `A podcast holds more than one media. Press l for its episodes.` |
+| a podcast | `n` and `m` | `This line holds no media.` | the same words of the podcast |
+| a series | `D` and `X` | **no word, and no line of the log** | `A series holds more than one book. Press l for its books.` |
+| a series | `n` and `m` | `This line holds no media.` | the same words of the series |
+| a series | `M` and `N` | `A podcast holds no place. Press l for its episodes.` | `A series holds no place. Press l for its books.` |
+
+**The keys `D` and `X` wrote no word of the screen and no line of the log**: the
+log stood at 9 lines before the key and at 9 after it. That is T-79, and **no
+sweep of the words for the user finds such a key**.
+
+**The keys `M` and `N` of a line of a series said that a podcast holds no
+place**, and that library holds books alone.
+`words_of_a_line_with_no_place` of T-219 read `selected_item_id().is_some()`,
+and `selected_library_item` gives the **first book** of a line of a series: the
+words of the podcast therefore stood on every line of a series of every library
+of books. That is T-91, and **a correction of one session is a measurement of
+the next one**.
+
+**The correction.** `App::the_line_of_no_media` gives `APodcast`, `ASeries`, or
+`Nothing`, and it reads the view and the row of the library and not the identity
+of an item. `words_of_a_line_with_no_place` (the keys `M` and `N`) and
+`words_of_a_line_with_no_media` (the keys `D`, `X`, `n`, `m`, and `@`) each read
+it, and the second one takes the sentence of a line of no media from its caller:
+each key therefore keeps its own words for a view that holds no line of a media.
+The two arms of the keys `D` and `X` held `if let Some(…)` with no `else`.
+
+### The traps of this session
+
+**The trap 204: a `sqlite3` of `id_selected_lib` needs a start of the program
+after it.** The trap 203 gives the library with no key at all, and the program
+reads that row **at its start**: the write of the row belongs before
+`start_the_program`, and a write of it while the program stands changes nothing
+of the screen.
+
+**The trap 205: a measurement of a key that says nothing needs the number of the
+lines of the log before the key and after it.** A screen with no message and a
+log that grew are two different faults, and `wc -l` of
+`$ABS/toutui-config/toutui/toutui.log` says which one stands.
+
+**The trap 206: a key that says nothing needs a control of the same run.** The
+key `n` of the same line said "This line holds no media.", therefore the row of
+the message of that screen works and the silence of the key `D` is the program
+and not the harness. A key of a **book** of the same view then says that the
+keys do their work: `n` gave the queue, and `M` gave the mark.
+
+**The trap 207: the keys `k` of the end of a list are cheaper than the keys `j`
+of its start.** The line of a series of the library `Books` of the sandbox
+stands at the row 12 of 18: `press G` and six `press k` give it, and 11 presses
+of `j` give it too.
+
+### What this session leaves open
+
+**The other keys of a line of a podcast and of a line of a series are not
+measured** (T-221): the key `b` of a bookmark, the key `e` of the reader, the
+key `s` of the series of a media, and the key `F` of the place of the playback.
+The rule of this item is the question of each of them: which list does the key
+read, and what does it say for a line that holds no one media?
+
+**A line of a shelf of the Home view can hold a series** (T-221). The server
+gives a shelf of the type `series`, and `selected_download` of the Home view
+gives `DownloadTarget::Book` with the identity of the item of the line: the
+question is what the keys `D` and `X` of such a line download, and whether the
+media of that line is the whole series or one book of it.
+
+**No test of the fork holds a rule of a host of a raw socket** (T-220, and it
+stays open). Thirteen files hold thirteen copies of the same twenty lines.
+
+**The five items of the sessions before this one stay open**: the bytes of a file
+that keeps its size, the write of the rows of a download that is no transaction
+(the seventh session that names it), the offline playback of a media whose copy
+is not whole, the label of a media that a second program of the account downloads
+now, and the column `name_selected_lib` that the program writes and never reads.
 
 ## The session of the forty-ninth turn of 2026-08-14: the place of an episode of a podcast
 
@@ -7017,52 +7116,40 @@ answers slowly while it writes. Two answers to measure:
 - **The sessions can run in a loop.** The driver is `~/.local/bin/toutui-loop`,
   outside this repository, and its design is
   `docs/superpowers/specs/2026-08-13-session-loop-design.md`. It reads the block of
-  the quote of `## The prompt for the next session`, therefore **that block must stay
-  the last part of this file, and every line of it must start with `> `**. A session
-  that writes a handover with no such block stops the loop. **The name of that
-  heading stands in this bullet too**, therefore a tool that splits this file on
-  the first hit of that text cuts the bullet and not the heading: split on the
-  **last** hit of it.
+  the quote of `## The prompt for the next session
 
-## The prompt for the next session
+**This session took the last paragraph of the newest item** (the rule of T-216
+and of T-217, and the cheapest item of a session). T-219 left open "a podcast of
+the Library view and of the view of the search takes no key `D` and no key `X`,
+and it says nothing at all", and the measurement of that paragraph found a
+**second** line of the same shape and a fault of the correction of T-219. The
+item is **T-221**, and it holds one release, v0.8.50.
 
-**This session took a trap of the handover that four sessions carried with no
-item.** The trap 188 said "the key `X` and the key `D` of a book of a series of the
-view of a search do nothing at all", and it named one cause of two. The item is
-**T-218**, and it holds one release, v0.8.48.
+Four things are worth the room:
 
-**A trap of the handover is an item that waits** (the rule of T-197 for a shape of
-an old item). The measurement cost no harness of Python, no change of the source,
-and one search of the sandbox. Four things are worth the room:
-
-1. **A view that holds a list of its own must read that list** (T-218). The view of
-   the search holds the identity, the title, the author, the year, the description,
-   and the length of each line already (T-113 and T-117), and one arm of
-   `selected_download` asked the lists of the **library** for the title alone. The
-   `?` of that place gave the whole answer away, and four keys of the user then did
-   the work of a view that holds no media.
-2. **A trap can name one cause of two, and one correction closes both** (T-218).
-   The trap named the series of `&collapseseries=1`, and the page of 500 items of
-   T-70 is the other road: a library of 2056 items gives the second one with no
-   series at all, therefore the measurement of it needs one library and one search.
+1. **A correction of one session is a measurement of the next one** (T-221).
+   T-219 read `selected_item_id().is_some()` for "this line holds a podcast", and
+   `selected_library_item` gives the **first book** of a line of a series: the
+   keys `M` and `N` of every series of every library of books then said "A
+   podcast holds no place. Press l for its episodes." **Ask of a correction:
+   which other line of the program reaches the road that it made?**
+2. **A test of a state must name that state, and not a value that follows it**
+   (T-221). The predicate of a podcast is the view and the media type of the
+   library, and the identity of an item is a value that a book of a series holds
+   too.
 3. **A key that says nothing and a key that says a wrong reason are one fault**
-   (T-79 and T-91). The keys `D` and `X` wrote no word and no line of the log, and
-   the keys `n` and `m` said "This line holds no media." for a line whose key `l`
-   played the book.
-4. **The trap of a session is the item of a session after it.** The traps of this
-   file hold conditions of the program, and not of the harness alone: **read them
-   with the road, and not the road alone.**
+   (T-79 and T-91), and the measurement of the first one is the key itself inside
+   tmux: the keys `D` and `X` reached no line of the log.
+4. **A line that holds more than one media is a shape and not a case** (T-221).
+   A podcast holds its episodes, and a line of the Library view holds the books
+   of one series: the two of them give nothing to `selected_download`, therefore
+   every key of one media meets them.
 
-**A key of the user that does nothing at all reaches no line of the log** (T-218),
-therefore no sweep of the words for the user and no sweep of the log finds it: the
-measurement of such a key is the key itself, inside tmux, on a media of the
-condition.
-
-This prompt names the state of the program on 2026-08-14.
+This prompt names the state of the program on 2026-08-15.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.48**; `Cargo.toml` is at 0.8.48. The
+> AlbanDAVID/Toutui. Newest release **v0.8.50**; `Cargo.toml` is at 0.8.50. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -7071,7 +7158,7 @@ This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-218 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-221 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -7522,7 +7609,17 @@ This prompt names the state of the program on 2026-08-14.
 > therefore `TOUTUI_AUDIO_DEVICE=null` belongs in the first argument of
 > `start_the_program` of **every** measurement. **`start_the_program` waits for
 > `Continue Listening`, and the Home view of a library of many books gives
-> `Recently Added` and no such shelf** (the trap 197).
+> `Recently Added` and no such shelf** (the trap 197). **A `sqlite3` of
+> `name_selected_lib` and of `id_selected_lib` is cheaper than the key of the
+> next library** (the trap 203), **and the program reads that row at its start**
+> (the trap 204): the write of it belongs before `start_the_program`. **A
+> measurement of a key that says nothing needs the number of the lines of the log
+> before the key and after it** (the trap 205): a screen with no message and a
+> log that grew are two different faults. **A key that says nothing needs a
+> control of the same run** (the trap 206): a key of the same line that speaks
+> says that the row of the message works, and a key of a **book** of the same
+> view says that the keys do their work. **The keys `k` of the end of a list are
+> cheaper than the keys `j` of its start** (the trap 207).
 > **`gdb` and `eu-stack` say `Operation not permitted` for a program that they
 > did not start**, therefore a program that stands needs
 > `strace -f -tt -o <file>` inside tmux (the trap 136). **A mark of a hook of a
@@ -7579,8 +7676,43 @@ This prompt names the state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in sixty-one sessions of sixty-two. **The session of
->    the forty-eighth turn took a trap of this file that four sessions carried with
+>    this shape found a fault in sixty-three sessions of sixty-four. **The session
+>    of the fiftieth turn took the last paragraph of the newest item, and that
+>    paragraph gave two lines of the program and a fault of the correction before
+>    it** (T-221).
+>
+>    A podcast of the Library view and of the view of the search holds its
+>    episodes (T-126), and a line of the Library view holds every book of one
+>    series (T-22): `selected_download` and `selected_place` give nothing for the
+>    two of them. The keys `D` and `X` of such a line wrote **no word of the
+>    screen and no line of the log** (T-79), and the keys `M` and `N` of a line of
+>    a **series of a library of books** said "A podcast holds no place. Press l
+>    for its episodes." — the correction of T-219 read
+>    `selected_item_id().is_some()`, and `selected_library_item` gives the first
+>    book of a line of a series (T-91).
+>    - **A correction of one session is a measurement of the next one** (T-221).
+>      **Ask of a correction: which other line of the program reaches the road
+>      that it made?**
+>    - **A test of a state must name that state, and not a value that follows
+>      it** (T-221). The predicate of a podcast is the view and the media type of
+>      the library, and the identity of an item is a value that a book of a series
+>      holds too.
+>    - **The other keys of a line of a podcast and of a line of a series are not
+>      measured** (T-221, and it stays open): the key `b` of a bookmark, the key
+>      `e` of the reader, the key `s` of the series of a media, and the key `F` of
+>      the place of the playback.
+>    - **A line of a shelf of the Home view can hold a series** (T-221, and it
+>      stays open): the server gives a shelf of the type `series`, and
+>      `selected_download` of the Home view gives one identity of one item.
+>
+>    **The session of the forty-ninth turn took the same road**: the keys `M` and
+>    `N` of an episode of a podcast asked for the address of the place of the
+>    **podcast** (T-219), and a test of the gate of that session failed one run of
+>    thirteen because a host of a raw socket kept the body of a request in its
+>    socket (T-220). **No test of the fork holds a rule of a host of a raw
+>    socket**, and thirteen files hold thirteen copies of the same twenty lines.
+>
+>    **The session of the forty-eighth turn took a trap of this file that four sessions carried with
 >    no item** (T-218): the trap 188 said that the keys `X` and `D` of a book of a
 >    series of the view of a search do nothing at all, and it named one cause of
 >    two. **A trap of this file can be an item that waits**, and the traps hold
@@ -8476,7 +8608,13 @@ This prompt names the state of the program on 2026-08-14.
 > keys of a line of the view of the search read the lists of that view: a media of
 > a page of the library that the program did not read, and a book of a series that
 > the answer of the library groups, hold their keys `D`, `X`, `n`, and `m`**
-> (T-218).
+> (T-218), and **the place of an episode of a podcast names that episode: the
+> keys `M` and `N` read the item and the episode of the line, and a podcast holds
+> no place of its own** (T-219), and **a line that holds more than one media
+> names the key that opens it: a podcast of the Library view and of the view of
+> the search names the key of its episodes, a line of a series of the Library
+> view names the key of its books, and the keys `D`, `X`, `n`, `m`, `@`, `M`, and
+> `N` of such a line say it** (T-221).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
