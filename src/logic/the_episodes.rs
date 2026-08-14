@@ -54,6 +54,49 @@ fn the_flag() -> &'static AtomicBool {
     ASKING.get_or_init(|| AtomicBool::new(false))
 }
 
+/// The box of the request that did not come back. See T-168.
+///
+/// The box holds the place of the podcast and what the server said. **A request
+/// of a key belongs to one podcast**: a user who opens a second podcast must
+/// not read the fault of the first one.
+fn the_fault_that_waits() -> &'static Mutex<Option<(usize, String)>> {
+    static FAULT: OnceLock<Mutex<Option<(usize, String)>>> = OnceLock::new();
+    FAULT.get_or_init(|| Mutex::new(None))
+}
+
+/// Writes that the server did not give the episodes of one podcast. The task
+/// calls this. See T-168.
+pub fn keep_the_fault(place: usize, what_the_server_said: &str) {
+    if let Ok(mut slot) = the_fault_that_waits().lock() {
+        *slot = Some((place, what_the_server_said.to_string()));
+    }
+}
+
+/// Gives what the server said of the podcast of this place, and `None` for a
+/// podcast whose request holds no fault. See T-168.
+pub fn the_fault_of(place: usize) -> Option<String> {
+    match the_fault_that_waits().lock() {
+        Ok(slot) => slot
+            .as_ref()
+            .filter(|(of_the_podcast, _)| *of_the_podcast == place)
+            .map(|(_, text)| text.clone()),
+        Err(_) => None,
+    }
+}
+
+/// Takes the fault of one podcast away. A new request of that podcast calls
+/// this, and the answer that comes calls it too. See T-168.
+pub fn forget_the_fault_of(place: usize) {
+    if let Ok(mut slot) = the_fault_that_waits().lock() {
+        if slot
+            .as_ref()
+            .is_some_and(|(of_the_podcast, _)| *of_the_podcast == place)
+        {
+            *slot = None;
+        }
+    }
+}
+
 /// Tells if a task asks the server for the episodes of a podcast now.
 pub fn asks() -> bool {
     the_flag().load(Ordering::SeqCst)
@@ -66,6 +109,10 @@ pub fn keep_the_flag(asking: bool) {
 
 /// Puts the episodes in the box that the render reads. The task calls this.
 pub fn keep(episodes: Episodes) {
+    // The answer of that podcast came. A fault of a request before it is not
+    // the truth of this podcast now. See T-168.
+    forget_the_fault_of(episodes.place);
+
     if let Ok(mut place) = the_episodes_that_wait().lock() {
         *place = Some(episodes);
     }
@@ -89,6 +136,10 @@ pub fn forget() {
     if let Ok(mut place) = the_episodes_that_wait().lock() {
         *place = None;
     }
+
+    if let Ok(mut slot) = the_fault_that_waits().lock() {
+        *slot = None;
+    }
 }
 
 /// The sentence of the view of the episodes, while no episode stands there.
@@ -97,28 +148,57 @@ pub fn forget() {
 /// view said "This podcast has no episode" for every podcast whose episodes the
 /// program did not read, and a podcast of one episode met that sentence.
 ///
-/// The three conditions: the answer of the server came and it holds no episode;
-/// the program asks the server now; or the server does not answer at all.
+/// The four conditions: the answer of the server came and it holds no episode;
+/// **the request of the program did not come back**; the program asks the
+/// server now; or the server did not answer at the start of the program.
+///
+/// **The request that did not come back said nothing at all** (T-168). The
+/// server went away while the program stood, therefore `is_offline` of the
+/// start holds `false`: the view said "The program gets the episodes of this
+/// podcast…" for ever, and the program had stopped that work 28 seconds before.
+/// A text must not promise a function that the program does not have (T-118),
+/// and a view must not give a reason that the program does not have (T-91).
+///
+/// The sentence names what the server said, and it names no media: the title of
+/// the podcast stands in the header of the view already. It promises no key
+/// (T-118 and T-143).
 ///
 /// The function is pure, therefore a test needs no server.
-pub fn the_reason_of_no_episode(the_episodes_came: bool, is_offline: bool) -> &'static str {
+pub fn the_reason_of_no_episode(
+    the_episodes_came: bool,
+    is_offline: bool,
+    what_the_server_said: Option<&str>,
+) -> String {
     if the_episodes_came {
-        return "This podcast has no episode.";
+        return "This podcast has no episode.".to_string();
+    }
+
+    if let Some(fault) = what_the_server_said {
+        return format!(
+            "The server did not give the episodes of this podcast: {}",
+            fault
+        );
     }
 
     if is_offline {
         return "The server does not answer, therefore this program does not have the \
-                episodes of this podcast.";
+                episodes of this podcast."
+            .to_string();
     }
 
-    "The program gets the episodes of this podcast…"
+    "The program gets the episodes of this podcast…".to_string()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    /// The box holds one answer, and `take` leaves it empty.
+    /// The box holds one answer, and `take` leaves it empty. The box of the
+    /// fault holds the request that did not come back, and it holds it for one
+    /// podcast alone (T-168).
+    ///
+    /// **The parts of this test stay in one function**: two test functions of
+    /// one module fight for the boxes of the process (T-144 and T-157).
     #[test]
     fn the_box_gives_the_episodes_one_time() {
         forget();
@@ -136,6 +216,47 @@ mod tests {
         assert!(take().is_none(), "the box is empty now");
 
         forget();
+
+        // The request of the podcast of the place 3 did not come back. See
+        // T-168.
+        keep_the_fault(3, "No server address answered.");
+
+        assert_eq!(
+            the_fault_of(3).as_deref(),
+            Some("No server address answered."),
+            "the view of that podcast must read the fault of its own request"
+        );
+
+        // **A user who opens a second podcast must not read the fault of the
+        // first one.**
+        assert_eq!(the_fault_of(4), None);
+
+        // The answer of that podcast came. The fault of the request before it
+        // is not the truth of this moment.
+        keep(Episodes {
+            place: 3,
+            id: "a-podcast".to_string(),
+            ..Episodes::default()
+        });
+
+        assert_eq!(the_fault_of(3), None, "the answer takes the fault away");
+
+        let _ = take();
+
+        // A new request of that podcast takes the fault away too.
+        keep_the_fault(3, "No server address answered.");
+        forget_the_fault_of(4);
+        assert!(
+            the_fault_of(3).is_some(),
+            "a request of another podcast keeps this fault"
+        );
+        forget_the_fault_of(3);
+        assert_eq!(the_fault_of(3), None);
+
+        // A new library and the key `R` take every box away.
+        keep_the_fault(7, "No server address answered.");
+        forget();
+        assert_eq!(the_fault_of(7), None);
     }
 
     /// A view says why it holds no line, and it says a reason that the program
@@ -144,15 +265,44 @@ mod tests {
     fn the_view_says_why_it_holds_no_episode() {
         // The answer of the server came, and that podcast holds no episode.
         assert_eq!(
-            the_reason_of_no_episode(true, false),
+            the_reason_of_no_episode(true, false, None),
             "This podcast has no episode."
         );
 
         // The program did not read the episodes of that podcast yet.
-        assert!(the_reason_of_no_episode(false, false).contains("gets the episodes"));
+        assert!(the_reason_of_no_episode(false, false, None).contains("gets the episodes"));
 
         // The server does not answer. The program knows nothing of that
         // podcast, therefore it says so (T-91).
-        assert!(the_reason_of_no_episode(false, true).contains("does not answer"));
+        assert!(the_reason_of_no_episode(false, true, None).contains("does not answer"));
+
+        // **The request of the program did not come back** (T-168). The server
+        // went away while the program stood, therefore `is_offline` of the
+        // start holds `false`: the view said "The program gets the episodes of
+        // this podcast…" for ever, and no episode ever came.
+        let text = the_reason_of_no_episode(false, false, Some("No server address answered."));
+
+        assert_eq!(
+            text,
+            "The server did not give the episodes of this podcast: No server address answered."
+        );
+
+        assert!(
+            !text.contains("gets the episodes"),
+            "the view must not promise a work that the program stopped: {:?}",
+            text
+        );
+
+        // The fault of the request stands above the words of the offline mode
+        // of the start: the program made that request, therefore it knows more
+        // than the state of its start.
+        assert!(the_reason_of_no_episode(false, true, Some("a fault")).contains("a fault"));
+
+        // The answer that came stands above them all: a podcast of no episode
+        // is not a podcast of a fault.
+        assert_eq!(
+            the_reason_of_no_episode(true, false, Some("a fault")),
+            "This podcast has no episode."
+        );
     }
 }

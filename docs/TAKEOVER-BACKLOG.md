@@ -7629,6 +7629,99 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-168: the server went away, and the request of a key said nothing at all
+
+**The condition of this session**: no item of the road stayed open, therefore
+this session took the sweep that T-167 named — "grep for `Outcome::Fault`, for
+`return` after an `error!`, and for a `warn!` with no `message::say` beside it"
+— and it drove the real program against the sandbox for every hit of that sweep
+that a key of the user makes.
+
+**The five places of `Outcome::Fault` that are left all say one sentence**
+(T-167 closed three of them, and the two of `play_offline` said their words
+before it). **The sweep of the `warn!` with no word for the user gave 34 hits,
+and four of them belong to a request that a key of the user makes**: the
+episodes of a podcast (T-126), the next page of the library (T-70), the search
+of the server (T-24), and the collections and the playlists of the start (T-9).
+
+**Three of the four hold a fault, and the measurement found two of them.** The
+condition is the same for all of them: **`is_offline` of `App` holds the offline
+mode of the start** (T-25). A program that started with a server that answers
+holds `false` for ever, therefore every text that reads that value says the
+words of a server that answers — and the server went away.
+
+| The key | What the user read | What the program knew |
+|---|---|---|
+| `l` on a podcast | `The program gets the episodes of this podcast…`, **28 seconds later too** | `[podcast] the server gave no episode of the podcast 9fa45bd1…: No server address answered.` at the first second |
+| `G` of the library | `Library [500 items of 2056]`, and **an empty row of the message** | `[library] the server gave no page 1: No server address answered.` |
+| `/` and a word | `Search result [1 item of the titles of this program]` | **no fault of the words**: the title names what the list holds (T-95) |
+
+**The first of them is the sharp one.** The text is not a silence: it is a
+promise of a work that the program stopped. `the_reason_of_no_episode` of
+`logic::the_episodes` held the three conditions of T-91 — the answer came and it
+holds no episode; the program asks now; or the server did not answer at the
+start — and **a fourth condition exists**: the request went, and it did not come
+back. A user of that screen waits for a list that no second of waiting gives.
+
+**The second of them takes the state of the program with it.** The key `G`
+writes `reads_every_page_of_the_library = true` and the page that comes moves
+the line to the end and asks for the page after it (T-112). A page that did not
+come left that value `true` with no word: the key of the user did nothing, it
+said nothing, and the work of it stood open until the next move of a line.
+
+### The correction
+
+**The shape is the shape of the box of the page (T-70) and of the box of the
+episodes (T-126): the task writes, and the render reads at the next frame.**
+
+1. `logic::the_episodes` holds a box of the fault, and **that box holds the
+   place of the podcast**: a user who opens a second podcast must not read the
+   fault of the first one. The answer that comes takes the fault away, a new
+   request of that podcast takes it away, and `forget` takes it away with every
+   other box (a new library, a new filter, and the key `R`).
+2. `the_reason_of_no_episode` holds four conditions now, and the sentence names
+   what the server said:
+   `The server did not give the episodes of this podcast: No server address answered.`
+   It names no podcast — the header of that view names it already — and it
+   promises no key (T-118 and T-143).
+3. `logic::library_pages` holds a box of the fault of a page.
+   `take_the_next_page_of_the_library` takes it at the next frame, it says
+   `The server did not give more media of this library: …`, and **it stops the
+   work of the key `G` and of the pages of the search**.
+4. **The answer of a key belongs to no view** (T-164), therefore `say` writes
+   the sentence of the page and not `say_in`: the user pressed `G`, and they
+   read the answer of that key in the view where they stand.
+
+### The measurements of this session
+
+| The measurement | The answer |
+|---|---|
+| **The key `l` of a podcast, after `podman stop -t 0 abs-test`** | **one fault**: `The program gets the episodes of this podcast…`, and it stood 28 seconds later |
+| The same condition, after the correction | `The server did not give the episodes of this podcast: No server address answered.` |
+| A second podcast after that fault, with the server up | **the episodes of that podcast**: the box of the fault holds one place |
+| The podcast of the fault again, with the server up | **the episodes came**: a new request takes the fault away |
+| **The key `G` of the library `Large` of 2056 items, with no server** | **one fault**: an empty row of the message, and `Library [500 items of 2056]` |
+| The same condition, after the correction | `The server did not give more media of this library: No server address answered.` |
+| **The key `/` and a word, with no server** | **no fault of the words**: `Search result [1 item of the titles of this program]` |
+
+`src/logic/the_episodes.rs` and `src/logic/library_pages.rs` hold the rules, and
+`tests/the_episodes_that_did_not_come_say_why.rs` holds the road of the fault
+from a host of a raw socket to the sentence of the view. **The three tests fail
+with the correction removed.** No unit test reaches the two lines of `App` and
+the one line of the render: those need an application of a server, and the
+measurement of tmux above holds them.
+
+### The condition that this session leaves open
+
+**The fourth hit of the sweep is the collections and the playlists of the
+start** (`src/app.rs`, the two `unwrap_or_else` of `App::new`). A server that
+answers the libraries and that fails those two requests gives a view of the
+lists that says
+`This library holds no collection and no playlist. Press c or p to make one.` —
+**a reason that the program does not have** (T-91). The measurement of that
+condition needs a server that answers some requests and fails others, and
+`docs/harness/slow.py` is the shape of it. **No session has measured it.**
+
 ### T-167: a playback that did not start said nothing at all
 
 **The condition of this session, and the road named it**: "the view of the

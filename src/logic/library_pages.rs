@@ -135,6 +135,46 @@ pub fn take() -> Option<Page> {
     }
 }
 
+/// The box of the page that did not come. See T-168.
+fn the_fault_that_waits() -> &'static Mutex<Option<String>> {
+    static FAULT: OnceLock<Mutex<Option<String>>> = OnceLock::new();
+    FAULT.get_or_init(|| Mutex::new(None))
+}
+
+/// Writes what the server said of a page that did not come. The task calls
+/// this. See T-168.
+pub fn keep_the_fault(what_the_server_said: &str) {
+    if let Ok(mut slot) = the_fault_that_waits().lock() {
+        *slot = Some(what_the_server_said.to_string());
+    }
+}
+
+/// Takes the fault of a page that did not come, and it leaves the box empty.
+///
+/// **The key of the user must hear the answer of its own request** (T-168). The
+/// key `G` reads every page of the library, and a page that did not come left
+/// that key with no word at all: the render takes the fault at the next frame,
+/// it says one sentence, and it stops the work of that key.
+pub fn take_the_fault() -> Option<String> {
+    match the_fault_that_waits().lock() {
+        Ok(mut slot) => slot.take(),
+        Err(_) => None,
+    }
+}
+
+/// The sentence of a page that the server did not give. See T-168.
+///
+/// The sentence names what the server said, and it promises no key (T-118 and
+/// T-143): the key `G` and the move of the user both ask again.
+///
+/// The function is pure, therefore a test needs no server.
+pub fn the_words_of_a_page_that_did_not_come(what_the_server_said: &str) -> String {
+    format!(
+        "The server did not give more media of this library: {}",
+        what_the_server_said
+    )
+}
+
 /// Empties the box and the flag.
 ///
 /// A new library, a new filter, and the key `R` all make the pages of the
@@ -145,6 +185,10 @@ pub fn forget() {
 
     if let Ok(mut place) = the_page_that_waits().lock() {
         *place = None;
+    }
+
+    if let Ok(mut slot) = the_fault_that_waits().lock() {
+        *slot = None;
     }
 }
 
@@ -222,7 +266,12 @@ mod tests {
         assert_eq!(the_library_that_the_program_must_take(&ids, ""), Some(0));
     }
 
-    /// The box holds one page, and the render takes it one time.
+    /// The box holds one page, and the render takes it one time. The box of the
+    /// fault holds the page that did not come, and the render takes it one time
+    /// too (T-168).
+    ///
+    /// **The parts of this test stay in one function**: two test functions of
+    /// one module fight for the boxes of the process (T-144 and T-157).
     #[test]
     fn the_box_gives_the_page_one_time() {
         forget();
@@ -244,5 +293,39 @@ mod tests {
         assert!(asks());
         forget();
         assert!(!asks());
+
+        // **The page of the key `G` did not come, and the key said nothing at
+        // all** (T-168). The task writes the fault, and the render takes it one
+        // time: a second frame must not say the sentence again.
+        assert!(take_the_fault().is_none());
+
+        keep_the_fault("No server address answered.");
+
+        assert_eq!(
+            take_the_fault().as_deref(),
+            Some("No server address answered.")
+        );
+
+        assert!(take_the_fault().is_none(), "the box is empty now");
+
+        // A new library, a new filter, and the key `R` take the fault away: it
+        // belongs to the library before them.
+        keep_the_fault("No server address answered.");
+        forget();
+        assert!(take_the_fault().is_none());
+
+        // The sentence names what the server said, and it promises no key.
+        let text = the_words_of_a_page_that_did_not_come("No server address answered.");
+
+        assert_eq!(
+            text,
+            "The server did not give more media of this library: No server address answered."
+        );
+
+        assert!(!text.trim().is_empty());
+
+        for word in ["Press ", "key "] {
+            assert!(!text.contains(word), "{:?} names a key: {:?}", word, text);
+        }
     }
 }

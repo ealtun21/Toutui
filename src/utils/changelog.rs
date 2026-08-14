@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.2",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A request of the server that did not come back said nothing at all.** The \
+             server went away while the program stood, and two keys then held their \
+             silence. The view of the episodes of a podcast said \"The program gets the \
+             episodes of this podcast…\" for ever, and the program had stopped that work at \
+             the first second: the view says what the server said now. The key G of the \
+             library waited for the end of a library of 2056 items, 500 of them stood on \
+             the screen, and no word came: the program says one sentence now, and it stops \
+             the work of that key.",
+        ],
+    },
+    Entry {
         version: "0.8.1",
         date: "14/08/2026",
         body: &[

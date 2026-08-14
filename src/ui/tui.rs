@@ -2183,11 +2183,17 @@ impl App {
             .copied()
             .unwrap_or(false);
 
+        // The request of this podcast did not come back, and the view said that
+        // the program gets the episodes for ever. See T-168.
+        let what_the_server_said =
+            the_place_of_the_podcast.and_then(crate::logic::the_episodes::the_fault_of);
+
         let no_episodes_message = format!(
             "{}\nPress h to go back.",
             crate::logic::the_episodes::the_reason_of_no_episode(
                 the_episodes_came && !crate::logic::the_episodes::asks(),
-                self.is_offline
+                self.is_offline,
+                what_the_server_said.as_deref(),
             )
         );
         let no_episodes_message = no_episodes_message.as_str();

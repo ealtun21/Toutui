@@ -3071,6 +3071,10 @@ impl App {
                 Ok(root) => root,
                 Err(error) => {
                     log::warn!("[library] the server gave no page {}: {}", number, error);
+                    // **The key of the user said nothing at all**: the key `G`
+                    // waited for the end of a library of 2056 items, 500 of
+                    // them stood on the screen, and no word came. See T-168.
+                    crate::logic::library_pages::keep_the_fault(error.to_string().as_str());
                     crate::logic::library_pages::keep_the_flag(false);
                     return;
                 }
@@ -3104,6 +3108,20 @@ impl App {
     /// page after the page that came last goes away, because a new library or a
     /// new filter makes every page before it wrong.
     pub fn take_the_next_page_of_the_library(&mut self) {
+        // **A page that did not come is the answer of a key of the user**, and
+        // that key said nothing at all: the key `G` stopped inside a library of
+        // 2056 items with no word, and the work of that key stood open for
+        // ever. The answer of a key belongs to no view and it stands above them
+        // all, therefore `say` writes it and not `say_in` (T-164). See T-168.
+        if let Some(fault) = crate::logic::library_pages::take_the_fault() {
+            self.reads_every_page_of_the_library = false;
+            self.reads_the_pages_for_the_search = false;
+
+            crate::logic::message::say(
+                &crate::logic::library_pages::the_words_of_a_page_that_did_not_come(&fault),
+            );
+        }
+
         let Some(page) = crate::logic::library_pages::take() else {
             return;
         };
@@ -3251,6 +3269,10 @@ impl App {
 
         crate::logic::the_episodes::keep_the_flag(true);
 
+        // A request of this podcast runs now. The fault of a request before it
+        // is not the truth of this moment. See T-168.
+        crate::logic::the_episodes::forget_the_fault_of(place);
+
         let api = std::sync::Arc::clone(&self.api);
 
         tokio::spawn(async move {
@@ -3264,6 +3286,10 @@ impl App {
                         id,
                         error
                     );
+                    // **The view said nothing of this fault**: it told the user
+                    // that the program gets the episodes, and no episode ever
+                    // came. See T-168.
+                    crate::logic::the_episodes::keep_the_fault(place, error.to_string().as_str());
                     crate::logic::the_episodes::keep_the_flag(false);
                     return;
                 }

@@ -4,9 +4,10 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.1.** The item T-167 belongs to this session.
-The correction of T-166 belongs to the session before it, and the measurement of
-T-166 to the session before that one.
+**The newest release is v0.8.2.** The item T-168 belongs to this session.
+The item T-167 belongs to the session before it.
+The correction of T-166 belongs to the session before that one, and the
+measurement of T-166 to the session before that one.
 The item T-165 belongs to the session before that one.
 The items T-163 and T-164 belong to the session before it, the item
 T-162 to the one before that, the item
@@ -19,6 +20,56 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the fourteenth turn of 2026-08-14: the request that did not come back
+
+**One release: v0.8.2.** No item of the road stayed open, therefore this session
+took the sweep that T-167 named — **the keys that say nothing** — and it drove
+the real program against the sandbox for every hit of that sweep that a key of
+the user makes. **Two keys held a silence, and the first of them is not a
+silence at all: it is a promise of a work that the program stopped.**
+
+| Item | What | Where |
+|---|---|---|
+| T-168 | **A request of the server that did not come back said nothing at all.** The view of the episodes of a podcast said `The program gets the episodes of this podcast…` for ever, and the key `G` of a library of 2056 items said no word. Each of them says what the server said now | `src/logic/the_episodes.rs`, `src/logic/library_pages.rs`, `src/app.rs`, `src/ui/tui.rs` |
+
+The evidence and the three tables of the measurement stand in
+`docs/TAKEOVER-BACKLOG.md` under T-168. Four things are worth the room here:
+
+1. **`is_offline` of `App` holds the offline mode of the start** (T-25). A
+   program that started with a server that answers holds `false` for ever,
+   therefore every text that reads that value says the words of a server that
+   answers — and the server went away. **That one value is the cause of both
+   forms.** The header of the program knows the truth (T-128 gives it the state
+   `Down`), and the view of the user did not.
+2. **T-91 gave that view three conditions in 2026-08-12, and a fourth exists**:
+   the request went, and it did not come back. A text that promises a work that
+   the program stopped is the fault of T-118 from the other side.
+3. **A box of a fault belongs to the podcast of its own request.** A user who
+   opens a second podcast must not read the fault of the first one: the box
+   holds the place, the answer that comes takes the fault away, and a new
+   request takes it away too. The measurement holds all three.
+4. **The key `G` took a state of the program with it.** A page that did not come
+   left `reads_every_page_of_the_library` at `true`: the key did nothing, it
+   said nothing, and its work stood open until the next move of a line. The
+   render stops that work with the sentence now.
+
+**The condition that this session leaves open.** The fourth hit of the sweep is
+the collections and the playlists of the start (the two `unwrap_or_else` of
+`App::new`). A server that answers the libraries and that fails those two
+requests gives the view of the lists a reason that the program does not have
+(T-91), and **a measurement of it needs a server that answers some requests and
+fails others** — `docs/harness/slow.py` is the shape of it.
+
+### The gates of this session
+
+| The gate | The answer |
+|---|---|
+| `cargo clippy --all-targets -- -D warnings` | no word |
+| `cargo fmt --check` | no word |
+| `cargo nextest run` | **1090 of 1090** |
+| `cargo nextest run --run-ignored all` | **1115 of 1115**, with the sandbox up |
+| `cargo test -j 16 --no-fail-fast` | three runs, and every run passed |
 
 ## The session of the thirteenth turn of 2026-08-14: a playback that did not start
 
