@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.13.** The item T-182 belongs to this
-session. The item T-181 belongs to the session before it.
+**The newest release is v0.8.14.** The item T-183 belongs to this
+session. The item T-182 belongs to the session before it.
+The item T-181 belongs to the session before that one.
 The item T-180 belongs to the session before that one.
 The item T-179 belongs to the session before that one.
 The items T-177 and T-178 belong to the session before that one.
@@ -29,6 +30,61 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the twenty-fourth turn of 2026-08-14: the device of the e-reader that lost every other device
+
+**One release: v0.8.14.** The session before this one left no item open, and it
+named the sweep of this one: "**the send of an ebook to an e-reader is the one to
+take** … the sweep must ask what the program does with a device that the server no
+longer holds", and it said that a read of the source found no fault of the words
+and that **no measurement stands behind that read**. A measurement stands behind
+it now, and it found two faults.
+
+| Item | What | Where |
+|---|---|---|
+| T-183 | **One device with no name took every device of the account away, and a device that the server no longer holds named no key.** `ereaderDevices` of `POST /api/authorize` was a `Vec<Device>` with a `name` of no default: one row of no name was a fault of the whole answer, the view of the key `@` said "The server gave no device: … missing field name at line 1 column 12538", and the device that the user can use stood in no line. The rows come one at a time now. The sentence of the status 404 with "Ereader device not found" said "Press the key again for the new list", and the view of the devices is away at that moment: it names the key `@` now (T-170) | `src/api/ereaders.rs` |
+
+The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-183. Four things are
+worth the room here:
+
+1. **The fault of a list of one shape hides behind the harness of T-177.** A proxy
+   that takes a field out of every row gives an empty list either way, and the
+   fault of the user then looks like a server with no device.
+   `docs/harness/a_field_of_one_row_goes_away.py` takes the field out of **one**
+   row, and the fault came out at the first frame. **That harness is the one to
+   reach for whenever the program reads a list of the server.**
+2. **A structure with no default is the same fault as a default that lies.** T-179
+   to T-182 read fields that take a default and that then carry a wrong value.
+   This one takes no default at all, therefore serde gives the fault of one row to
+   the whole answer. **Both roads end in the same place**: the user loses
+   something that the server holds, with no word of their own.
+3. **A device holds no id, therefore a name of no character is not the decision of
+   T-176.** A library whose name holds no character keeps its line, because the id
+   of that library still reaches every request. The name of a device **is** its
+   address for `POST /api/emails/send-ebook-to-device`: a line of a device with no
+   name would promise a function that the program does not have (T-118).
+4. **A sentence that says "press the key again" must name that key.** The view of
+   the devices goes away before the request, therefore the user reads that sentence
+   in the view of the media and no key of the screen does the work. The rule of
+   T-170 holds for every such sentence, and not for a view alone.
+
+**The condition that this session leaves open.** None of its own. It found one
+condition of the road that it did not take, and the road of the next session names
+it: **the answer of the socket** (`src/api/live.rs`), where
+`take_the_message` writes the two lists of `user_updated` behind
+`if !rows.is_empty()`.
+
+### The gates of this session
+
+| The gate | The answer |
+|---|---|
+| `cargo clippy --all-targets -- -D warnings` | no word |
+| `cargo fmt --check` | no word |
+| `cargo nextest run` | **1136 of 1136** in 2.3 seconds |
+| `cargo nextest run --run-ignored all` | **1161 of 1161**, with the sandbox up |
+| `cargo test -j 16 --no-fail-fast` | four runs, and every run passed |
+| `cargo tree -i openssl-sys` | no package |
+| `cargo tree -i cc` | `libsqlite3-sys` and `ring` only |
 
 ## The session of the twenty-third turn of 2026-08-14: the session of the playback that the server did not name
 
@@ -4465,16 +4521,16 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took the answer that the session before it named**:
-`POST /api/items/:id/play`. **A book started at its first second and it lost the
-place of the user on the server, and a playback of a session that the server did
-not name sent the listening time of the user to nobody** (T-182). The session
-left no item open. **The next session must name a condition of its own.** This
-prompt names the state of the program on 2026-08-14.
+**This session took the sweep that the session before it named**: the send of
+an ebook to an e-reader. **One device with no name took every device of the
+account away, and the sentence of a device that the server no longer holds named
+no key** (T-183). The session left no item open, and it names one condition of
+the road that it did not take: **the answer of the socket**. This prompt names
+the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.13**; `Cargo.toml` is at 0.8.13. The
+> AlbanDAVID/Toutui. Newest release **v0.8.14**; `Cargo.toml` is at 0.8.14. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -4483,7 +4539,7 @@ prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-182 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-183 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -4646,7 +4702,9 @@ prompt names the state of the program on 2026-08-14.
 > ```
 >
 > The arguments after the path: the dotted name of the list, the number of the
-> row (0 is the first row), and the fields. **A proxy of this harness answers one
+> row (0 is the first row), and the fields. **The proxy reads the path and not the
+> method**, therefore it holds a `POST` too:
+> `/api/authorize ereaderDevices 1 name` gave the fault of T-183. **A proxy of this harness answers one
 > request of one connection with `Connection: close`** (the trap 145): a
 > passthrough that forwards byte by byte and that then closes leaves a connection
 > of the pool of `reqwest` that no program holds, and the next request of the
@@ -4720,13 +4778,33 @@ prompt names the state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in thirty-five sessions of thirty-six. **No
->    condition of the road stays**: the session of the twenty-third turn took the
->    answer that the session before it named, and it found a book that starts at
->    its first second and that loses the place of the user on the server, and a
->    playback of a session that the server did not name which sends the listening
->    time of the user to nobody (T-182). It wrote the correction, and it left no
->    item open.
+>    this shape found a fault in thirty-six sessions of thirty-seven. **The
+>    session of the twenty-fourth turn took the sweep that the session before it
+>    named**, and it found one device of an e-reader with no name that takes every
+>    device of the account away, and a sentence of a device that the server no
+>    longer holds which names no key (T-183). It wrote the correction, and it left
+>    no item open. **It found one condition that it did not take, and that
+>    condition is the road of this session**: see "the answer of the socket"
+>    below.
+>    - **The road of this session: the answer of the socket** (`src/api/live.rs`).
+>      `take_the_message` writes the position of every media and the list of the
+>      media away from Continue Listening behind `if !rows.is_empty()`, and T-66
+>      says that the message `user_updated` holds **the whole account**: that list
+>      therefore takes the place of the list before it. An account whose
+>      `mediaProgress` holds no row of a book (every row names an episode, or the
+>      server removed the last row) leaves both lists of the program at the values
+>      of the message before it, and the mark of a line of the screen then says a
+>      percent that the server does not hold. **No measurement stands behind that
+>      read.** The handshake of the same file holds no such fault: `pingInterval`
+>      and `pingTimeout` take the default 0, and no line of the program reads
+>      either of them beside one line of the log — the poll of the transport
+>      `polling` answers the packet `2` of the server and it holds no clock of its
+>      own. `ProgressRow` gives every field a default already, and both functions
+>      of that file drop a row whose `libraryItemId` holds no character (the rule
+>      of T-177). **A server of a socket of a measurement is the work to make**:
+>      the sandbox sends `user_updated` for every write of `PATCH
+>      /api/me/progress/:id`, therefore a road of the sandbox may reach the
+>      condition with no proxy at all.
 >    - **The three shapes that found a fault before:** **a state of one process
 >      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153 to
 >      T-167), **a program that dies in the middle of work** (T-145, T-152), and
@@ -4765,22 +4843,19 @@ prompt names the state of the program on 2026-08-14.
 >      sweep stood in the header** (T-171): a sweep of a class must read the whole
 >      screen, and not the panel of the view alone.
 >    - **The parts of the program that a server of a fault has not reached**: the
->      keys `F`, `b`, `n`, `m`, `r`, `D`, and `X`, the send of an ebook to an
->      e-reader, and the stream of the audio. **The keys `M`, `N`, and `e` are
+>      keys `F`, `b`, `n`, `m`, `r`, `D`, and `X`, and the stream of the audio.
+>      **The keys `M`, `N`, and `e` are
 >      closed** (T-175 and T-178), **the first request of the program is closed**
 >      (T-172), and **the login screen is closed for the status of `POST /login`
 >      (T-92), for a server that gives no library (T-173), and for a body of the
->      libraries that the program cannot read (T-176)**. **The send of an ebook
->      to an e-reader is the one to take**: `POST /api/emails/send-ebook-to-device`
->      writes, and the list of the devices comes of the payload of the login
->      (T-119) — the sweep must ask what the program does with a device that the
->      server no longer holds. **A read of that code of 2026-08-14 found no fault
->      of the words**: `the_end_of_the_send` names every status and every body of
->      the server, and the key `l` of that view says what the read of the devices
->      said. **No measurement stands behind that read**, therefore the sweep
->      stays open: the shape of T-179 and of T-180 says that a road which looks
->      safe in the
->      source can still hold a value that no answer gave.
+>      libraries that the program cannot read (T-176)**. **The send of an ebook to
+>      an e-reader is closed** (T-183): the list of the devices comes of
+>      `POST /api/authorize`, one row of that list with no name took every device
+>      away, and the sentence of a device that the server no longer holds names the
+>      key `@` now. **The read of the source of that same file found no fault of
+>      the words, and the measurement found two faults**: a road that looks safe in
+>      the source can hold a value that no answer gave, and a read is not a
+>      measurement.
 >    - **The shape of T-177 is the answer of a server of another version**, and
 >      **no structure of `src/api/` asks for a field that the program does not
 >      read now**: `get_all_books.rs`, `sessions.rs`, `bookmarks.rs`,
@@ -4802,12 +4877,20 @@ prompt names the state of the program on 2026-08-14.
 >      `duration` of `audioTracks[0]` takes the road of T-180, the three names of
 >      the media take the word `N/A`, `contentUrl` holds no fault because no line
 >      of the program reads it, and the chapters of a playback come of
->      `GET /api/items/:id`. **The part that no measurement of that shape has
->      reached is the answer of the socket.** The harnesses are
->      `docs/harness/a_field_of_the_answer_goes_away.py` and
+>      `GET /api/items/:id`. **The answer of `POST /api/authorize` is measured**
+>      (T-183): `name` of a device of an e-reader held no default at all, therefore
+>      one row of no name was a fault of the whole answer and every device of the
+>      account went away; `email` holds no fault, and `availabilityOption` and
+>      `users` reach no line of the program by the decision of T-119. **The part
+>      that no measurement of that shape has reached is the answer of the socket**,
+>      and the road of this session names the condition of it above. The harnesses
+>      are `docs/harness/a_field_of_the_answer_goes_away.py` and
 >      `docs/harness/a_field_of_one_row_goes_away.py`, and the question of
 >      every sweep of them is **which field does this program read, and what does
->      it do with the default of that field**.
+>      it do with the default of that field**. **A structure with no default is
+>      the same fault of the user as a default that lies** (T-183): serde gives
+>      the fault of one row to the whole answer, and a `Vec<T>` of a list of the
+>      server is therefore the shape to look for.
 >    - **A library whose name holds no character is measured** (T-176), and the
 >      words of it stay open by a decision: the program starts, the header says
 >      `📖  (book)`, and the view of the key `S` holds a line of no character. No
@@ -4851,7 +4934,10 @@ prompt names the state of the program on 2026-08-14.
 >    have** (T-118), and **a footer must not promise a key that the view does not
 >    hold** (T-143). **A sentence of a fault must name a key that does the work
 >    of that fault** (T-170: the Library view named the key `L` of a scan of the
->    server for a request that came back with a fault). A key that does nothing
+>    server for a request that came back with a fault), **and it must name a key
+>    of the view that the user sees at that moment** (T-183: the sentence of a
+>    device that the server no longer holds said "Press the key again", and the
+>    view of the devices goes away before the request). A key that does nothing
 >    in one view is a fault of its own (T-79), **and a key that does nothing in
 >    every view is T-167**. A message lives six seconds.
 >
@@ -4950,7 +5036,10 @@ prompt names the state of the program on 2026-08-14.
 > played, and every other fault stops the playback; and a session that the
 > answer of the server does not name is no session, therefore that playback does
 > not start and the program says that the session of the server has no
-> identity** (T-182).
+> identity** (T-182), and **the program reads each device of an e-reader of
+> `POST /api/authorize` apart: a device with no name, or with a name of no
+> character, belongs to no line of the view and it takes a line of the log, and
+> every other device of the server stays** (T-183).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

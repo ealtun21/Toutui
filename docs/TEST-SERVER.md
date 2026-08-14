@@ -860,6 +860,23 @@ of the request comes from its size:
 | A Big Book Of A Scan | 45.2 MB | 3.6 s |
 | A Huge Book Of A Scan | 479.5 MB | 36.2 s |
 
+**The account `toutuitest` reads two of the three devices.** The server filters
+`ereaderDevices` of `POST /api/authorize` for the account itself: `The Kindle of
+the plain user` holds `specificUsers`, and that list names `toutuiplain` alone.
+Therefore a measurement of one row of that answer names the row 0 (`Kobo of the
+measurement`) or the row 1 (`A device of every user`). See T-183.
+
+```bash
+curl -s -X POST http://127.0.0.1:13399/api/authorize \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{}' \
+  | python3 -c 'import sys,json;print(json.load(sys.stdin)["ereaderDevices"])'
+```
+
+**A measurement that takes a device away must give the three devices back**: the
+one request above writes the whole list, and the list of section 13 is the list of
+the sandbox. The identity of `toutuiplain` of that list is
+`fb6e019a-8be6-4b98-ab0f-c590c97ab431`.
+
 ## 14. An account that reads one library only, for T-136
 
 The sandbox holds `toutuilimited` / `toutuilimited`: an account of the type
