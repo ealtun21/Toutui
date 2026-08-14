@@ -5491,8 +5491,8 @@ conditions that stay. This prompt names the state of the program on 2026-08-14.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1172 tests in 2.4 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1197 of 1197** with the sandbox up, in about 19 seconds. **Run that
+> Baseline: **1173 tests in 2.4 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1198 of 1198** with the sandbox up, in about 19 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
