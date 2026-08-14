@@ -8744,13 +8744,20 @@ v0.8.47 at the first of the three.
 
 #### What this item leaves open
 
-**The row of the account can hold the name of one library and the id of another.**
-The measurement of this item pressed `BTab` until the header said `📖 Books
-(book)`, and `db.sqlite3` of the sandbox then held `name_selected_lib=Podcasts`
-with `id_selected_lib` of the library `Books`. The two values come of two writes,
-and the program stopped between them. **The question is which part of the program
-reads the name, and what a line of the screen says for a name that names no
-library of the server.**
+**The row of the account holds the name of one library and the id of another, and
+no line of `src/` reads that name.** The measurement of this item pressed `BTab`
+until the header said `📖 Books (book)`, and `db.sqlite3` of the sandbox then held
+`name_selected_lib=Podcasts` with the `id_selected_lib` of the library `Books`. The
+reason is one write: `update_id_selected_lib` of the key of the next library and of
+the view of the settings writes the **id** alone, and `name_selected_lib` takes its
+value at the login (`library_names[0]` of `auth_process.rs`) and never again.
+`select_default_usr` gives that name at the place 4 of its list, and **no line of
+`src/` reads that place**: the header of the screen reads the name of the answer of
+`GET /api/libraries` with the id of the row (T-136). **That column is the shape of
+`elapsed_time` of T-213**: the program writes it and it reads it never, therefore
+the disagreement of the two values reaches no user today. **The question of both of
+them is the question of T-201 in the other direction**: does a second program of
+the account need that value, and does the column belong to the database at all?
 
 **The other keys of the view of the search are not measured against a media of a
 page that the program did not read**: the key `b` of a bookmark, the key `e` of the

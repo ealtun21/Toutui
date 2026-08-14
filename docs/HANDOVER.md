@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.47.** The items T-216 and T-217 belong to this
-session. The items T-214 and T-215 belong to the session before it. The
+**The newest release is v0.8.48.** The item T-218 belongs to this session. The
+items T-216 and T-217 belong to the session before it.
+The items T-214 and T-215 belong to the session before it. The
 item T-213 belongs to the session before it. The
 item T-212 belongs to the session before it. The
 item T-211 belongs to the session before it. The
@@ -55,11 +56,114 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.47**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.48**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1198 of 1198** in 2.7 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1224 of 1224** with the sandbox up, and
-`cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in two runs.
+**1199 of 1199** in 2.5 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1225 of 1225** with the sandbox up in 17 seconds, and
+`cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in four runs.
+
+## The session of the forty-eighth turn of 2026-08-14: the four keys of a media of the search that the library did not read
+
+**One release: v0.8.48**, and one item: T-218. **The road of it is the trap 188 of
+the handover**, which four sessions carried with no item: "the key `X` and the key
+`D` of a book of a series of the view of a search do nothing at all". The
+measurement cost no harness of Python, no change of the source, and one search of
+the sandbox.
+
+### T-218: the keys `D`, `X`, `n`, and `m` of a media that stands in no row of the library
+
+**The lists of the library hold the rows of the answer of the library, and the
+server searches the whole library.** Two roads take a media of the view of the
+search outside those rows:
+
+- **the page**: `PAGE_SIZE` is 500 (T-70), and the library `Large` of the sandbox
+  holds 2056 items — the header says `Library [500 items of 2056]`;
+- **the series**: the program sends `&collapseseries=1` for a library of books, and
+  the library `Books` of 22 items therefore gives **18** rows — the volumes 2 and 3
+  of `The Test Chronicles` stand in no row at all. That is the trap 188.
+
+The measurement of v0.8.47, of the line `Large Book 1200` of the view of the
+search:
+
+| the key | v0.8.47 | v0.8.48 |
+|---|---|---|
+| `D` | no word, no line of the log | `"Large Book 1200" is now available offline.` |
+| `X` | no word, no line of the log | `Removed the local copy of "Large Book 1200".` |
+| `n` | `This line holds no media.` | `"Large Book 1200" is number 1 of the queue.` |
+| `m` | `This line holds no book and no episode.` | the view of the lists |
+
+**The key `l` of that same line played the book**, therefore the line held a media:
+that is T-79 for the two keys that said nothing, and T-91 for the two keys that
+said a reason that the program does not have. The control of the same run,
+`Large Book 2000` of the first page, downloaded and removed with no fault.
+
+**The fault of the source** stood in one arm of `selected_download`: it held the
+identity of the media and the name of the author of the lists of the **view**
+already, and it asked the lists of the **library** for the title alone —
+`self.ids_library.iter().position(|x| x == &id)?`. **The `?` of that place gave
+the whole answer away**, and `selected_media` of the keys `n` and `m` reads the
+same function.
+
+**The correction.** Every list of the view of the search holds one value for each
+line of it, and T-117 gave `titles_search_book` to the reader for this same reason:
+the arm reads the three lists of the line now, and it asks `ids_library` nothing.
+`tests/the_keys_of_a_media_of_the_search_that_the_library_did_not_read.rs` holds
+the roads in one function, and it needs no sandbox and no server.
+
+### The traps of this session
+
+**The trap 196: the key `l` of the Home view starts a playback of the media of the
+line.** A measurement that means to reach the Library view presses `Tab`. The first
+form of this measurement pressed `l`, and the real sound device of the machine then
+played `A Long Test Book`: **`TOUTUI_AUDIO_DEVICE=null` belongs in the first
+argument of `start_the_program` of every measurement**, and not in the ones that
+mean to play.
+
+**The trap 197: `start_the_program` waits for `Continue Listening`, and the Home
+view of a library with no such shelf never gives it.** The library of the row of
+the account stays after a measurement (the trap 198), therefore a second run of it
+waited 40 seconds for a marker that never comes. The marker of a library of many
+books is `Recently Added`.
+
+**The trap 198: the key of the next library writes the row of the account, and that
+row stays after the measurement.** The shape of the trap 179 for a `chmod`: the
+sandbox comes back with
+`sqlite3 "$DB" "update users set name_selected_lib='Books',
+id_selected_lib='1b090ea8-91c5-4591-ac9d-716985e61faf';"`. **The name and the id of
+that row can disagree**, and the reason is an item of its own (T-218).
+
+**The trap 199: `press S-Tab` of `docs/harness/drive.sh` does nothing at all.**
+`tmux send-keys` takes `BTab` for Shift+Tab (the trap 70), and it gives **no
+fault** for `S-Tab`: the loop of the measurement then pressed a key of nothing six
+times and the header never changed.
+
+**The trap 200: one test of the suite failed one run of thirteen.**
+`a_playback_that_keeps_no_place_does_not_start` failed at 0.007 seconds in the run
+that followed `cargo clippy` of the whole tree, and it passed alone and in twelve
+runs of the whole suite after it, and in four runs of `cargo test -j 16`. That test
+holds a host of a raw socket of a port of the machine and the box of the message of
+the process. **A failure of one run of thirteen is the shape of T-144 and of
+T-157**, and no session holds an item of it.
+
+### What this session leaves open
+
+**The row of the account holds the name of one library and the id of another, and
+no line of `src/` reads that name.** `update_id_selected_lib` writes the id alone,
+and `name_selected_lib` takes its value at the login and never again. That column
+is the shape of `elapsed_time` of T-213: the program writes it and it reads it
+never.
+
+**The other keys of the view of the search are not measured against a media of a
+row that the library does not hold**: the key `b` of a bookmark, the key `e` of the
+reader, and the key `s` of the series of that media. Each of them reads
+`selected_item_id` or `selected_item_title`, and the two of them hold the lists of
+the view already.
+
+**The four items of the session before this one stay open**: the bytes of a file
+that keeps its size, the write of the rows of a download that is no transaction
+(the fifth session that names it), the offline playback of a media whose copy is
+not whole, and the label of a media that a second program of the account downloads
+now.
 
 ## The session of the forty-seventh turn of 2026-08-14: the file of the disk that is not the file of the row
 
@@ -178,7 +282,8 @@ fewer bytes than the row. The question is whether that line belongs to the bar o
 the downloads.
 
 **The key `X` and the key `D` of a book of a series of the view of a search do
-nothing** (the trap 188), and no item holds it.
+nothing** (the trap 188). **T-218 of the session after this one closed it**, and the
+series is one cause of two.
 
 **The calls of the database of the loop of the playback stand on a thread of the
 runtime**, and the freeze of the loop of the screen stays: it is the twelfth
@@ -360,7 +465,8 @@ that stand: the question is whether a media of a part of the disk belongs to a
 playback of that part.
 
 **The key `X` of the view of a search of a book of a series does nothing** (the
-trap 188), and the key `D` of that same line does nothing too.
+trap 188), and the key `D` of that same line does nothing too. **T-218 closed the
+two of them**, and the keys `n` and `m` held the same fault.
 
 **The calls of the database of the loop of the playback stand on a thread of the
 runtime**, and the freeze of the loop of the screen stays: it is the eleventh
@@ -6817,47 +6923,43 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took the last paragraph of the newest item, and then the last
-paragraph of its own item**: T-215 named a file of a download that changed, and
-T-216 named the label of the line of such a media. The items are **T-216** and
-**T-217**, and they hold two releases, v0.8.46 and v0.8.47.
+**This session took a trap of the handover that four sessions carried with no
+item.** The trap 188 said "the key `X` and the key `D` of a book of a series of the
+view of a search do nothing at all", and it named one cause of two. The item is
+**T-218**, and it holds one release, v0.8.48.
 
-**A correction closes one road of a fault, and not the fault** (the rule of
-T-196). T-215 gave the callers of `download_files` the question "does the path
-stand?", and a file that lost its bytes stands: one `truncate` of one file of the
-sandbox therefore gave the same fault of the user again, and it gave a worse one —
-the program played 50 seconds of a book of 60 and it told the **server** that the
-user finished the book. Four things are worth the room:
+**A trap of the handover is an item that waits** (the rule of T-197 for a shape of
+an old item). The measurement cost no harness of Python, no change of the source,
+and one search of the sandbox. Four things are worth the room:
 
-1. **A row of the disk that names a thing of the disk holds more than one
-   question** (T-215 and T-216). "Does the path stand?" is the first one, and
-   "does that thing hold what the row says?" is the second. The row of a file
-   holds the size of the file of the server (T-181), and the program writes a
-   file of a download whole or it writes no file at all (T-186): those two rules
-   make the size of the row the truth of the file of the disk.
-2. **A correction of the work of the program is no correction of the words of
-   the screen** (T-217). The playback took the road of the server, and the line
-   of the user said `[Downloaded]` for that same media in the same second: **ask
-   of every correction which line of the screen reads the value that it
-   corrected.**
-3. **A default of a value that the server did not give must stay a default**
-   (T-179). A size of 0 is a size that the server did not give, therefore a row
-   of that size keeps its file: a check of a value that the program does not have
-   takes the disk of the user away.
-4. **A condition of one command is worth more than a harness of Python.** The
-   two items of this session cost one `truncate`, one `cp` back, and no proxy at
-   all (the rule of T-199 and of T-213).
+1. **A view that holds a list of its own must read that list** (T-218). The view of
+   the search holds the identity, the title, the author, the year, the description,
+   and the length of each line already (T-113 and T-117), and one arm of
+   `selected_download` asked the lists of the **library** for the title alone. The
+   `?` of that place gave the whole answer away, and four keys of the user then did
+   the work of a view that holds no media.
+2. **A trap can name one cause of two, and one correction closes both** (T-218).
+   The trap named the series of `&collapseseries=1`, and the page of 500 items of
+   T-70 is the other road: a library of 2056 items gives the second one with no
+   series at all, therefore the measurement of it needs one library and one search.
+3. **A key that says nothing and a key that says a wrong reason are one fault**
+   (T-79 and T-91). The keys `D` and `X` wrote no word and no line of the log, and
+   the keys `n` and `m` said "This line holds no media." for a line whose key `l`
+   played the book.
+4. **The trap of a session is the item of a session after it.** The traps of this
+   file hold conditions of the program, and not of the harness alone: **read them
+   with the road, and not the road alone.**
 
-**The measurement of a value that reaches the server is worth more than the
-measurement of a word of the screen** (T-193). The book of this session stands
-`isFinished` at the sandbox after 50 seconds of 60, and every client of that
-account then holds it as read.
+**A key of the user that does nothing at all reaches no line of the log** (T-218),
+therefore no sweep of the words for the user and no sweep of the log finds it: the
+measurement of such a key is the key itself, inside tmux, on a media of the
+condition.
 
 This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.47**; `Cargo.toml` is at 0.8.47. The
+> AlbanDAVID/Toutui. Newest release **v0.8.48**; `Cargo.toml` is at 0.8.48. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -6866,7 +6968,7 @@ This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-217 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-218 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -7307,9 +7409,17 @@ This prompt names the state of the program on 2026-08-14.
 > 194): a shorter sleep gives one field of the address, of the account, and of the
 > password together, and the program then says `The port "" is not a number.`
 > **The key of the next library starts at the library of the row of the account**
-> (the trap 195): read the header (`📖 Books (book)`) and press `S-Tab` until that
+> (the trap 195): read the header (`📖 Books (book)`) and press `BTab` until that
 > name comes, and press `h` first, because a view of a search takes no key of a
-> library.
+> library. **`press S-Tab` of `drive.sh` does nothing and it gives no fault** (the
+> trap 199), and **the key of that library stays in the row of the account after the
+> measurement** (the trap 198): a `sqlite3` of `name_selected_lib` and of
+> `id_selected_lib` gives the library of the start back. **The key `Tab` opens the
+> Library view, and the key `l` of the Home view starts a playback** (the trap 196),
+> therefore `TOUTUI_AUDIO_DEVICE=null` belongs in the first argument of
+> `start_the_program` of **every** measurement. **`start_the_program` waits for
+> `Continue Listening`, and the Home view of a library of many books gives
+> `Recently Added` and no such shelf** (the trap 197).
 > **`gdb` and `eu-stack` say `Operation not permitted` for a program that they
 > did not start**, therefore a program that stands needs
 > `strace -f -tt -o <file>` inside tmux (the trap 136). **A mark of a hook of a
@@ -7331,8 +7441,8 @@ This prompt names the state of the program on 2026-08-14.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1198 tests in 2.7 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1224 of 1224** with the sandbox up, in about 18 seconds. **Run that
+> Baseline: **1199 tests in 2.5 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1225 of 1225** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -7366,12 +7476,46 @@ This prompt names the state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in sixty sessions of sixty-one. **The session of the
->    forty-seventh turn took the last paragraph of the newest item, and then the
->    last paragraph of its own item** (T-216 and T-217): a correction closes one
->    road of a fault and not the fault (the rule of T-196), and a correction of the
->    work of the program is no correction of the line of the screen. **The cheapest
->    item of a session can come of the item of that same session.**
+>    this shape found a fault in sixty-one sessions of sixty-two. **The session of
+>    the forty-eighth turn took a trap of this file that four sessions carried with
+>    no item** (T-218): the trap 188 said that the keys `X` and `D` of a book of a
+>    series of the view of a search do nothing at all, and it named one cause of
+>    two. **A trap of this file can be an item that waits**, and the traps hold
+>    conditions of the program and not of the harness alone.
+>
+>    The view of the search holds the identity, the title, the author, and the
+>    length of each of its lines already (T-113 and T-117), and one arm of
+>    `selected_download` asked `ids_library` for the place of that media: a book of
+>    a page that the program did not read (500 items of 2056, T-70) and a book of a
+>    series that `&collapseseries=1` groups each stand in no row of it. The keys `D`
+>    and `X` of such a line wrote **no word and no line of the log**, the key `n`
+>    said "This line holds no media.", and the key `m` said "This line holds no book
+>    and no episode." **The key `l` of that same line played the book.**
+>    - **A view that holds a list of its own must read that list** (T-218). **Ask
+>      of every key of a view: which list does it read, and does that list belong
+>      to this view or to another one?**
+>    - **A key of the user that does nothing at all reaches no line of the log**
+>      (T-218), therefore no sweep of the words and no sweep of the log finds it:
+>      the measurement of such a key is the key itself, inside tmux, on a media of
+>      the condition.
+>    - **The `?` of one value of an arm gives the whole answer of that arm away**
+>      (T-218). `Option` and `?` are the road of "this view holds no media", and a
+>      value that the arm does not need must not stand on it.
+>    - **The other keys of the view of the search are not measured against a media
+>      of a row that the library does not hold** (T-218, and it stays open): the
+>      key `b` of a bookmark, the key `e` of the reader, and the key `s` of the
+>      series of that media.
+>    - **The row of the account holds the name of one library and the id of
+>      another** (T-218, and it stays open): `update_id_selected_lib` writes the id
+>      alone, and no line of `src/` reads `name_selected_lib`. That is the shape of
+>      `elapsed_time` of T-213.
+>
+>    **The session of the forty-seventh turn took the last paragraph of the newest
+>    item, and then the last paragraph of its own item** (T-216 and T-217): a
+>    correction closes one road of a fault and not the fault (the rule of T-196),
+>    and a correction of the work of the program is no correction of the line of the
+>    screen. **The cheapest item of a session can come of the item of that same
+>    session.**
 >
 >    `the_files_that_stand_on_the_disk` asked "does the path stand?" (T-215), and a
 >    file that lost its bytes stands: one `truncate` of one file of
@@ -7448,9 +7592,8 @@ This prompt names the state of the program on 2026-08-14.
 >      the question is whether a book of many files can leave a half state that the
 >      rollback does not reach.
 >    - **The key `X` and the key `D` of a book of a series of the view of a search
->      do nothing at all** (the trap 188, and it stays open).
->      `selected_download` asks `ids_library` for the row, and the Library view
->      holds a series as one row. That is the shape of T-79, and no item holds it.
+>      do nothing at all** (the trap 188). **T-218 closed it**, and the series is
+>      one cause of two: the page of the library is the other one.
 >    - **The session of the forty-fifth turn found that a column of one row of the
 >      disk is a condition of its own** (T-213): the loop of a playback wrote the mark of the end of a media with
 >    `let _ =`, and a disk that refused that one write gave the next program of the
@@ -8226,7 +8369,11 @@ This prompt names the state of the program on 2026-08-14.
 > (T-216), and **the label of a media whose copy of the disk is not whole says what
 > the disk holds: the box of the copies of the disk asks the file system at the
 > start, at the key `R`, at the end of a download, and at the key `X`, and a
-> download with no row of a file is a copy that is not whole** (T-217).
+> download with no row of a file is a copy that is not whole** (T-217), and **the
+> keys of a line of the view of the search read the lists of that view: a media of
+> a page of the library that the program did not read, and a book of a series that
+> the answer of the library groups, hold their keys `D`, `X`, `n`, and `m`**
+> (T-218).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
