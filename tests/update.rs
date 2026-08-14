@@ -403,6 +403,22 @@ async fn a_host_that_sends_without_end() -> String {
                     }
                 }
 
+                // **The body of the request must leave the socket** (T-220). A host
+                // that closes a connection which still holds bytes of the request
+                // gives that connection a `RST`, and the client then loses the answer
+                // that this host wrote already.
+                let of_the_head_of_the_request = String::from_utf8_lossy(&request).to_string();
+                let mut the_length_of_the_body = 0usize;
+                for line in of_the_head_of_the_request.lines() {
+                    if let Some(value) = line.to_lowercase().strip_prefix("content-length:") {
+                        the_length_of_the_body = value.trim().parse().unwrap_or(0);
+                    }
+                }
+                if the_length_of_the_body > 0 {
+                    let mut the_body_of_the_request = vec![0u8; the_length_of_the_body];
+                    let _ = socket.read_exact(&mut the_body_of_the_request).await;
+                }
+
                 let head = b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n";
                 if socket.write_all(head).await.is_err() {
                     return;
