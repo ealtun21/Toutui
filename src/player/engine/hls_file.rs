@@ -124,6 +124,15 @@ impl HlsFile {
 
         let address = address_of(&base, playlist_path);
         let text = ask_for_the_text(&client, &address, token)?;
+        // **A playlist that stops in the middle is not a short playlist.** The
+        // parts that the body does not hold belong to no playback, and the
+        // program then tells the server that the user listened to the whole
+        // book. See T-193.
+        if !hls::the_playlist_is_whole(&text) {
+            warn!("[HlsFile] the body of the playlist stopped in the middle.");
+            return Err(hls::the_sentence_of_a_playlist_that_stopped());
+        }
+
         let segments = hls::parse_playlist(&text);
 
         if segments.is_empty() {

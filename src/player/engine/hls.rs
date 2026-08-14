@@ -138,6 +138,48 @@ pub fn parse_playlist(text: &str) -> Vec<Segment> {
     segments
 }
 
+/// Tells if the body of the playlist is the whole playlist. See T-193.
+///
+/// **A playlist that stops in the middle names fewer parts, and it gives no
+/// fault of its own.** A body with no `Content-Length` ends at the close of the
+/// connection (RFC 9112, section 6.3), therefore a proxy in front of the server
+/// that loses its own connection gives a clean end of a body that holds a part
+/// of the playlist. The parts that the body does not hold then belong to no
+/// playback: the book of 30 minutes ends after five of them, and the program
+/// tells the server that the user listened to the whole book.
+///
+/// **A playlist of the type `VOD` names its own end**, with the line
+/// `#EXT-X-ENDLIST`. A measurement of an Audiobookshelf 2.36.0 of 2026-08-14:
+/// `GET /hls/:session/output.m3u8` gives `#EXT-X-PLAYLIST-TYPE:VOD` with the
+/// 300 parts of a book of 30 minutes and that line at its end, two seconds
+/// after the start of the session.
+///
+/// A playlist that names no type is not a playlist of this rule: a server that
+/// makes the parts while the client reads them holds no end yet, and this
+/// function gives `true` for it.
+pub fn the_playlist_is_whole(text: &str) -> bool {
+    let mut of_the_type_vod = false;
+
+    for line in text.lines() {
+        let line = line.trim();
+
+        if line == "#EXT-X-ENDLIST" {
+            return true;
+        }
+
+        if line.eq_ignore_ascii_case("#EXT-X-PLAYLIST-TYPE:VOD") {
+            of_the_type_vod = true;
+        }
+    }
+
+    !of_the_type_vod
+}
+
+/// The sentence of a playlist that stops in the middle.
+pub fn the_sentence_of_a_playlist_that_stopped() -> String {
+    "The playlist of the server stopped in the middle. Press the key again.".to_string()
+}
+
 /// Gives the time of every part before the part of the number `index`.
 ///
 /// The engine needs it to know the place of the playback inside the media when
@@ -404,6 +446,44 @@ mod tests {
         assert_eq!(parts[2].name, "output-2.ts");
         // The time of the last part is not a whole number of seconds.
         assert!((parts[2].seconds - 5.999).abs() < 0.001);
+    }
+
+    /// A body of a playlist that stops in the middle names fewer parts, and it
+    /// gives no fault of its own: the book of 30 minutes ends after five of
+    /// them, and the program tells the server that the user listened to the
+    /// whole book. See T-193.
+    #[test]
+    fn a_playlist_that_stops_in_the_middle_is_no_playlist() {
+        // The playlist of the measurement of the sandbox, whole.
+        assert!(the_playlist_is_whole(PLAYLIST));
+
+        // The same playlist, of which the body holds the first part alone. The
+        // parse gives one part of the three, and it gives no fault.
+        let stopped = "#EXTM3U\n\
+            #EXT-X-VERSION:3\n\
+            #EXT-X-ALLOW-CACHE:NO\n\
+            #EXT-X-TARGETDURATION:6\n\
+            #EXT-X-MEDIA-SEQUENCE:0\n\
+            #EXT-X-PLAYLIST-TYPE:VOD\n\
+            #EXTINF:6,\n\
+            output-0.ts\n";
+
+        assert_eq!(parse_playlist(stopped).len(), 1);
+        assert!(!the_playlist_is_whole(stopped));
+
+        // A body that stops inside the head of the playlist holds no part and
+        // no end.
+        assert!(!the_playlist_is_whole(
+            "#EXTM3U\n#EXT-X-PLAYLIST-TYPE:VOD\n#EXT-X-TARG"
+        ));
+
+        // **A playlist that names no type is not a playlist of this rule**: a
+        // server that makes the parts while the client reads them holds no end
+        // yet.
+        assert!(the_playlist_is_whole("#EXTM3U\n#EXTINF:6,\noutput-0.ts\n"));
+        assert!(the_playlist_is_whole(""));
+
+        assert!(the_sentence_of_a_playlist_that_stopped().contains("stopped in the middle"));
     }
 
     #[test]

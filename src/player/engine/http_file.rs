@@ -176,9 +176,11 @@ impl HttpFile {
         shared.stop.store(false, Ordering::SeqCst);
         shared.finished.store(false, Ordering::SeqCst);
 
+        let size = self.size;
+
         let handle = std::thread::Builder::new()
             .name("toutui-prefetch".to_string())
-            .spawn(move || fill_buffer(shared, url, token, from));
+            .spawn(move || fill_buffer(shared, url, token, from, size));
 
         self.handle = match handle {
             Ok(handle) => Some(handle),
@@ -312,7 +314,10 @@ fn blocking_client() -> Result<reqwest::blocking::Client, ApiError> {
 ///
 /// The function sends the request again after a failure. The delay doubles
 /// after each failure. The function stops when the reader asks it to stop.
-fn fill_buffer(shared: Arc<Shared>, url: String, token: String, from: u64) {
+///
+/// **`size` is the number of bytes of the whole file**, and the function needs
+/// it: a body that stops in the middle is not the end of the file. See T-193.
+fn fill_buffer(shared: Arc<Shared>, url: String, token: String, from: u64, size: u64) {
     let mut position = from;
     let mut backoff = FIRST_BACKOFF;
 
@@ -381,6 +386,28 @@ fn fill_buffer(shared: Arc<Shared>, url: String, token: String, from: u64) {
             }
 
             match response.read(&mut chunk) {
+                // **A read of zero bytes is the end of the file only at the
+                // end of the file.** A body with no `Content-Length` ends at
+                // the close of the connection, therefore a proxy in front of
+                // the server that loses its own connection gives a body of the
+                // status 206 that stops in the middle, and `reqwest` reads a
+                // clean end of it. The thread held that close as the end of
+                // the book: 100 bytes of a book of 1000 reached the decoder,
+                // the book ended after its first second with no word for the
+                // user, and the queue took the media after it. The size of the
+                // header `Content-Range` is the truth of the length here, and
+                // a body that stops before it is a connection that stopped.
+                // See T-193.
+                Ok(0) if position < size => {
+                    warn!(
+                        "[HttpFile] the body stopped at the byte {} of {}",
+                        position, size
+                    );
+                    shared.stalled.store(true, Ordering::Relaxed);
+                    std::thread::sleep(backoff);
+                    backoff = (backoff * 2).min(MAX_BACKOFF);
+                    break;
+                }
                 Ok(0) => {
                     shared.finished.store(true, Ordering::SeqCst);
                     shared.signal.notify_all();
