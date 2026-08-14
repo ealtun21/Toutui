@@ -9,6 +9,7 @@
 
 use crate::api::client::ApiClient;
 use crate::api::library_items::play_lib_item_or_pod::*;
+use crate::api::me::get_media_progress::get_the_place_of_a_media;
 use crate::api::me::update_media_progress::*;
 use crate::api::sessions::close_open_session::*;
 use crate::api::sessions::sync_open_session::*;
@@ -19,7 +20,10 @@ use crate::logic::sync_session::force_sync;
 use crate::logic::sync_session::sync_session_from_database::*;
 use crate::logic::sync_session::wait_prev_session_finished::*;
 use crate::logic::the_files_of_a_media::the_numbers_of_the_files;
-use crate::logic::the_playback::{the_words_of_a_playback_that_did_not_start, WhyNot};
+use crate::logic::the_playback::{
+    the_place_of_a_media_that_never_played, the_start_of_a_playback,
+    the_words_of_a_playback_that_did_not_start, TheStartOfAPlayback, WhyNot,
+};
 use crate::player::engine::source::{select_sources, TrackSource};
 use crate::player::engine::track::{Chapter, Track, TrackList};
 use crate::player::engine::{
@@ -416,8 +420,46 @@ async fn play_media(
         }
     };
 
-    let start_position = info_item[0].parse::<f64>().unwrap_or(0.0);
     let session_id = info_item[3].clone();
+
+    // **The answer of the session holds the identity of that session and the
+    // place of the user, and a server can give neither of them** (T-182).
+    // `stream_session_of` of `src/api/library_items/play_lib_item_or_pod.rs`
+    // holds the first rule for the stream of T-53 already.
+    let start_position = match the_start_of_a_playback(&info_item) {
+        TheStartOfAPlayback::ItStartsAt(place) => place,
+
+        TheStartOfAPlayback::TheSessionHasNoIdentity => {
+            error!("[play] the answer of the session names no session");
+            say_why_the_playback_did_not_start(WhyNot::TheSessionHasNoIdentity);
+            return Outcome::Fault;
+        }
+
+        // **A place that the server did not give is not the place 0.** The
+        // program asks the server for the place of this media, and the status
+        // 404 is the answer of a media that never played.
+        TheStartOfAPlayback::TheProgramAsksForThePlace => {
+            warn!(
+                "[play] the answer of the session gave no place of {}. \
+                 The program asks the server for it.",
+                item_id
+            );
+
+            match get_the_place_of_a_media(api, &item_id, target.episode_id()).await {
+                Ok(row) => row.current_time,
+                Err(error) => match the_place_of_a_media_that_never_played(&error) {
+                    Some(place) => place,
+                    None => {
+                        error!("[play] the server did not give the place: {}", error);
+                        say_why_the_playback_did_not_start(WhyNot::ThePlaceDidNotCome(
+                            error.to_string().as_str(),
+                        ));
+                        return Outcome::Fault;
+                    }
+                },
+            }
+        }
+    };
 
     // Read the audio files and the chapters.
     let item: serde_json::Value = match api.get_json(&format!("/api/items/{}", item_id)).await {

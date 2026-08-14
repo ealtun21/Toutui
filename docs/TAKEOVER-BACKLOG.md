@@ -7629,6 +7629,141 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-182: the session of the playback, and the two fields that no answer must lose
+
+**The road of T-179, of T-180, and of T-181 named this answer.** A field that
+the program reads with a **default** gives no fault of a decode, therefore the
+program **uses** that default. The three items before this one took
+`metadata.size`, `duration`, `ino`, and `index` of `GET /api/items/:id`. **This
+item takes the other answer of a playback: `POST /api/items/:id/play`**, and the
+road named it: "the parts that no measurement of that shape has reached: the
+answer of `POST /api/items/:id/play`".
+
+`collect_info_item` of `src/api/library_items/play_lib_item_or_pod.rs` reads
+seven values of that answer. **Two of them held a fault of the user**, and each
+of them is one of the two shapes that the road of T-181 named: a default of a
+number, and a default of a field that **names** a thing.
+
+**The harness of both measurements** is
+`docs/harness/a_field_of_the_answer_goes_away.py` on the port 13503, with the
+whole path of the play of the book of eight hours of the sandbox:
+
+```bash
+python3 docs/harness/a_field_of_the_answer_goes_away.py 13503 13399 \
+    /the/absolute/path/of/proxy.log \
+    /api/items/6ba57b9a-acb5-44f9-b2b6-39ad9107b420/play currentTime
+```
+
+The account of the sandbox held that one address (the trap 129), and
+`PATCH /api/me/progress/:id` gave the book the place of 12000 seconds (the
+section 15 of `docs/TEST-SERVER.md`).
+
+#### The first fault: a place of 0 that the server did not give
+
+`let start_position = info_item[0].parse::<f64>().unwrap_or(0.0);` of
+`play_media`, and `collect_info_item` gave `v["currentTime"].as_f64()` the
+default 0.0 before that line. **A server that does not hold `currentTime`
+therefore started the book of the user at its first second.**
+
+| The measurement of 2026-08-14 | Before | After |
+|---|---|---|
+| The Home view | `41% A Book Of Many Hours` | the same |
+| The log of the key `l` | **`[play] the item 6ba57b9a… starts at 0 seconds with 1 tracks`** | `starts at 12000 seconds` |
+| The log of the engine | **`[worker] the playback starts at 0 seconds`** | `starts at 12000 seconds` |
+| The row of the player, after six seconds | **`▶ 5:04 / 8:00:00 \| … (1%)`**, and the chapter `The hours of the start` | `▶ 3:37:12 / 8:00:00 \| … (45%)`, and the chapter `The hours of the middle` |
+| The place of the account, after twenty seconds | **`currentTime 1096`** | the place of the user, and it goes on from it |
+| The words of the program | **none** | none, and the place stays |
+
+**The place of the user went away on the server too.** The book stood at 12000
+seconds, the loop of the playback wrote the seconds of the start to the session,
+and `GET /api/me/progress/:id` then answered 1096. **No line of the program said
+it.** T-180 lost the place of the user on the disk alone, because the rule of
+T-38 stopped every write of a playback that never reached its place. **This one
+starts at 0, therefore that rule holds nothing**: the program measures the place
+0, it believes it, and it gives it to the server.
+
+**The value 0 of `currentTime` is not a place.** The correction gives the
+absence its own meaning in three steps:
+
+1. `collect_info_item` gives **a text of no character** for a place that the
+   answer does not hold, and no more `0`.
+2. `the_start_of_a_playback` of `src/logic/the_playback.rs` reads that text.
+   **A text of no character and a text of no number each say the same thing**:
+   the program does not have the place.
+3. `play_media` then asks the server: `GET /api/me/progress/:id`, and
+   `/api/me/progress/:id/:episode` for an episode of a podcast. **The status 404
+   is the answer of a media that never played**, and the place of such a media
+   is 0 — that 0 is a measurement, and it is not a default. **Every other fault
+   stops the playback**, because a playback that starts at 0 gives that 0 to the
+   server at the next sync. This is the rule of T-175 and of T-178 for the
+   playback.
+
+#### The second fault: a session that the server did not name
+
+`let id_session = v["id"].as_str().unwrap_or("");` **A session of no name is the
+name of no session**, and the program gave that name to every request and to the
+row of its database.
+
+| The measurement of 2026-08-14, with the field `id` | Before | After |
+|---|---|---|
+| The row of the database | **`''\|6ba57b9a…\|2565\|A Book Of Many Hours`** | no row at all |
+| The log, at each sync of ten seconds | **`[follow_playback] the server did not accept the sync: The server does not have this item.`** | no request of a session with no name |
+| The log, at the close | **`the server did not close the session: The server does not have this item.`** | the same |
+| The playback | it played, and the server measured nothing of it | it does not start |
+| The words of the program | **none** | `The session of the server has no identity.` |
+
+**The listening time of the user reached no server**, and the session of the
+server stayed open: `/api/session//sync` and `/api/session//close` name no
+session of any server. The place of the user survived by one road alone — the
+close of `sync_session_from_database` sends the position with the id of the
+**media** (`update_media_progress2`), and the measurement read `currentTime
+3304` at the end.
+
+**Two programs of one account then held one row.** `id_session` is the key of
+the table `listening_session`, therefore the second program wrote no row of its
+own: `insert_listening_session` came back with a fault that `let _ =` throws
+away, and the position of the second program stood in the row of the first one.
+The measurement: two programs of one `XDG_CONFIG_HOME` (the trap 89), each of
+them with a playback of that book, and one row —
+`''|6ba57b9a…|4596|A Book Of Many Hours`, of the owner of the **first** program,
+with the position of the program that wrote last.
+
+**`stream_session_of` of the same file holds this rule for the stream of T-53
+already**: "The session of the server has no identity." is its sentence, and the
+direct playback said nothing at all. The playback of a session with no name
+stops now, and it says that same sentence.
+
+#### The measurements of the corrected program
+
+| The condition | The answer of the program |
+|---|---|
+| The answer holds no `currentTime` | `[play] the answer of the session gave no place of 6ba57b9a…. The program asks the server for it.`, and `starts at 12000 seconds` |
+| The answer holds no `id` | `[play] the answer of the session names no session`, the screen says `The session of the server has no identity.`, and the database holds no row |
+| The sandbox, with no proxy | `starts at 13427 seconds`, one row of a real session, and no second request of the place |
+
+**The tests**: `tests/a_session_that_the_server_did_not_name.rs` holds the two
+answers of the two proxies of the measurement, and it drives `collect_info_item`
+and `the_start_of_a_playback` with them. It fails with each of the two
+corrections removed, one at a time. `src/logic/the_playback.rs` holds the words
+of the two faults in its one test function.
+
+**The parts of this answer that hold no fault of this shape.**
+`audioTracks[0].duration` takes the road of T-180 — a length of 0 says `N/A` and
+it takes no time of the row of the player. `mediaMetadata.title`,
+`displayTitle`, and `displayAuthor` each take the word `N/A`, and that word is a
+word of the program (T-91). **`contentUrl` of `audioTracks[0]` holds no fault
+because no line of the program reads it**: `info_item[1]` stands in the list of
+`collect_info_item` and in no other place, and the address of every file comes
+of `GET /api/items/:id`.
+
+**The chapters of a playback come of `GET /api/items/:id`** (`media.chapters`,
+and `chapters_from` of `src/logic/playback/mod.rs`), and no line of `play_media`
+reads the `chapters` of the answer of the session. The road of T-180 holds that
+field already: a chapter of no `end` gives `No chapter`, and that is a word of
+the program.
+
+**The part of this shape that stays open**: the answer of the socket.
+
 ### T-181: a download threw a file of the book away, and it said nothing
 
 **The road of T-179 and of T-180 named this shape**: a field that the program

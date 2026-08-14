@@ -129,8 +129,22 @@ pub async fn post_a_stream_session(
 ///
 /// The sequence of the values is important. The callers read the list by
 /// position.
-fn collect_info_item(v: &Value, subtitle: &Value) -> Vec<String> {
-    let current_time = v["currentTime"].as_f64().unwrap_or(0.0);
+///
+/// **A text of no character is a value that the server did not give** (T-182).
+/// The place of the user and the identity of the session each hold that rule:
+/// `currentTime` took the default 0.0 and the book of the user then started at
+/// its first second, and `id` took the default of no character and every sync
+/// and every close of that session went to `/api/session//sync`.
+///
+/// The function is pure, therefore a test examines it with the answer of a
+/// measurement and with no server.
+pub fn collect_info_item(v: &Value, subtitle: &Value) -> Vec<String> {
+    // A place that the answer does not hold gives a text of no character, and
+    // `the_place_of_the_session` of `src/logic/the_playback.rs` reads it.
+    let current_time = v["currentTime"]
+        .as_f64()
+        .map(|place| place.to_string())
+        .unwrap_or_default();
     let content_url = v["audioTracks"][0]["contentUrl"].as_str().unwrap_or("");
     let duration = v["audioTracks"][0]["duration"].as_f64().unwrap_or(0.0);
     let duration: u32 = duration as u32;
@@ -140,7 +154,7 @@ fn collect_info_item(v: &Value, subtitle: &Value) -> Vec<String> {
     let author = v["displayAuthor"].as_str().unwrap_or("N/A");
 
     vec![
-        current_time.to_string(),
+        current_time,
         content_url.to_string(),
         duration.to_string(),
         id_session.to_string(),

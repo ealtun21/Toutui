@@ -97,6 +97,35 @@ pub async fn get_book_progress(client: &ApiClient, book_id: &str) -> Result<Root
         .await
 }
 
+/// The path of the position of one media of the account.
+///
+/// An episode of a podcast holds its own position, and the path of that
+/// position names the episode after the item. See T-182.
+///
+/// The function is pure, therefore a test needs no server.
+pub fn the_path_of_the_place(item_id: &str, episode_id: Option<&str>) -> String {
+    match episode_id {
+        Some(episode) => format!("/api/me/progress/{}/{}", item_id, episode),
+        None => format!("/api/me/progress/{}", item_id),
+    }
+}
+
+/// Gets the position of one media of the account, and of one episode of a
+/// podcast.
+///
+/// **The playback asks for this position when the answer of the session gave
+/// no place** (T-182). The server gives `404` for a media that never played,
+/// and the caller reads that status as the place 0.
+pub async fn get_the_place_of_a_media(
+    client: &ApiClient,
+    item_id: &str,
+    episode_id: Option<&str>,
+) -> Result<Root, ApiError> {
+    client
+        .get_json(&the_path_of_the_place(item_id, episode_id))
+        .await
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

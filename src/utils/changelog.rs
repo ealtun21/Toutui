@@ -41,6 +41,26 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.13",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A book started at its first second and it lost your place, for a \
+             server that does not give your place with the session of the playback.** \
+             Toutui read that absence as the place 0: the book played from the start, \
+             the loop of the playback sent that start to the server, and your place \
+             went away on the server too. Toutui asks the server for the place of the \
+             media now, and a media that never played is the one media that starts at \
+             0.",
+            "- **A playback of a session that the server did not name sent your \
+             listening time to nobody.** Toutui names the session in each request of \
+             the position and in the request of the close, therefore every one of them \
+             came back with a fault, the session of the server stayed open, and no word \
+             said why. Such a playback does not start now, and Toutui says that the \
+             session of the server has no identity.",
+        ],
+    },
+    Entry {
         version: "0.8.12",
         date: "14/08/2026",
         body: &[
