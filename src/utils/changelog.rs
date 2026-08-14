@@ -41,6 +41,26 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.48",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The keys `D`, `X`, `n`, and `m` did nothing for a media of the \
+             view of the search that stands in no line of the list of the \
+             library.** Toutui reads one page of 500 items of a library and it \
+             groups the books of a series in one line, and the server searches the \
+             whole library: a book of a page that Toutui did not read, and a book \
+             of a series of more than one book, are such a media. A measurement of a library of \
+             2056 items and of the line \"Large Book 1200\" of the search: the key \
+             `D` and the key `X` wrote no word at all, the key `n` said \"This line \
+             holds no media.\", and the key `m` said \"This line holds no book and \
+             no episode.\" The key `l` of that same line played the book. Every \
+             list of the view of the search holds one value for each line of it, \
+             therefore those four keys take the media of the line now, and they \
+             need no page of the library.",
+        ],
+    },
+    Entry {
         version: "0.8.47",
         date: "14/08/2026",
         body: &[

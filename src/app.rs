@@ -6754,13 +6754,27 @@ impl App {
             }
             AppView::SearchBook if self.is_podcast => None,
             AppView::SearchBook => {
+                // **Every list of this view holds one value for each line of
+                // it** (T-113 and T-117), and the lists of the library hold the
+                // rows of the answer of the library alone: one page holds 500
+                // items (T-70) and the server searches the whole library, and a
+                // library of books takes `&collapseseries=1`, therefore a book of
+                // a series of more than one book stands in no row of them.
+                //
+                // This arm read `titles_library` with the place of the media in
+                // `ids_library`, therefore a media that stands in no row of the
+                // library gave nothing at all: the keys `D` and `X` said no
+                // word and wrote no line of the log, the key `n` said "This line
+                // holds no media.", and the key `m` said "This line holds no book
+                // and no episode." The key `l` of that same line played the book.
+                // See T-218, and T-79 for the rule of a key that does nothing.
                 let index = self.list_state_search_results.selected()?;
-                let id = self.ids_search_book.get(index)?.clone();
-                let in_library = self.ids_library.iter().position(|x| x == &id)?;
 
                 Some((
-                    DownloadTarget::Book { item_id: id },
-                    self.titles_library.get(in_library)?.clone(),
+                    DownloadTarget::Book {
+                        item_id: self.ids_search_book.get(index)?.clone(),
+                    },
+                    self.titles_search_book.get(index)?.clone(),
                     self.auth_names_search_book.get(index)?.clone(),
                 ))
             }

@@ -8632,6 +8632,138 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-218: the four keys of a media of the search that the library did not read
+
+**The road of this item is the trap 188 of the handover**, which said "the key `X`
+and the key `D` of a book of a series of the view of a search do nothing at all.
+`selected_download` asks `ids_library` for the row, and the Library view holds a
+series as one row. That is the shape of T-79, and no item holds it." **The trap
+named one cause of two, and the two of them are one fault**: `ids_library` holds
+the rows of the answer of the library, and a media of the answer of the **search**
+can stand outside them for two reasons.
+
+**The first one is the series** (the trap 188). The program sends
+`&collapseseries=1` for a library of books, therefore the library `Books` of the
+sandbox of 22 items gives **18** rows: `The Test Chronicles Volume 1` stands for
+its series, and the volumes 2 and 3 of it stand in no row of `ids_library` at all.
+
+**The second one is the page**: `PAGE_SIZE` is 500 (T-70), the server searches the
+**whole** library, and a media of the answer can stand on a page that the program
+did not read. T-113 and T-117 met that same rule in the render and in the reader.
+**The measurement of this item takes the second road**, because a library of 2056
+items gives it with no series at all, and the correction holds both: the arm reads
+no list of the library now.
+
+#### The condition of the fault
+
+The library `Large` of the sandbox holds 2056 items, and the header of the Library
+view says `Library [500 items of 2056]` at the start. The default sequence of the
+server gives `Large Book 2056` to `Large Book 1557` in the first page, therefore
+`Large Book 1200` is a media of the search that the lists of the library do not
+hold:
+
+```bash
+curl -s -G -H "Authorization: Bearer $T" --data-urlencode "q=Large Book 1200" \
+    "http://localhost:13399/api/libraries/8f8436ca-.../search"
+```
+
+The answer holds one book, `cb1e5b7f-f699-447f-bf06-f38fd06ac71c`. **The
+measurement needs no harness at all**: the sandbox, `docs/harness/drive.sh`, the
+key `Tab`, the key `BTab` until the header says `📖 Large (book)` (the trap 195),
+and the key `/`.
+
+#### The measurement of the real program, v0.8.47
+
+```text
+────────────────────────────────Search result [1 item]──────────────────────────
+➤ Large Book 1200
+Author: N/A - Year: N/A
+```
+
+| the key | the work of the key | v0.8.47 | v0.8.48 |
+|---|---|---|---|
+| `D` | the download of the media | no word, no line of the log | `"Large Book 1200" is now available offline.` |
+| `X` | the removal of the copy of the disk | no word, no line of the log | `Removed the local copy of "Large Book 1200".` |
+| `n` | the media at the end of the queue | `This line holds no media.` | `"Large Book 1200" is number 1 of the queue.` |
+| `m` | the media in a collection | `This line holds no book and no episode.` | the view of the lists |
+
+**The key `l` of that same line played the book**, because the road of a playback
+of this view reads `ids_search_book` and no list of the library. The line therefore
+held a media, and the four keys said the opposite: that is T-79 for the two keys
+that say nothing, and T-91 for the two keys that say a reason that the program does
+not have.
+
+**The control of the same run**: the line `Large Book 2000` of the first page of
+the library. The key `D` of it wrote the file of the download and the line of the
+log, and the key `X` removed it. **The fault stands on the row of the library of
+that media, and on nothing else.**
+
+**The road of the series of the trap 188, of v0.8.48**: the library `Books`, the
+search `Test Chronicles Volume 3`, and the key `n` said
+`"The Test Chronicles Volume 3" is number 1 of the queue.` The header of the
+Library view says `Library [18 items]` for a library of 22, therefore that book
+stands in no row of `ids_library`: **one correction closes the two roads.**
+
+#### The fault of the source
+
+`selected_download` of `src/app.rs`, the arm `AppView::SearchBook`:
+
+```rust
+let id = self.ids_search_book.get(index)?.clone();
+let in_library = self.ids_library.iter().position(|x| x == &id)?;
+
+Some((
+    DownloadTarget::Book { item_id: id },
+    self.titles_library.get(in_library)?.clone(),
+    self.auth_names_search_book.get(index)?.clone(),
+))
+```
+
+The arm holds the identity of the media and the name of its author of the lists of
+the **view** already, and it asked the lists of the **library** for the title
+alone. **The `?` of that place gave the whole answer away**, therefore the four
+keys of `selected_download` and of `selected_media` did the work of a view that
+holds no media.
+
+#### The correction
+
+**Every list of the view of the search holds one value for each line of it.**
+`src/ui/tui.rs` writes `titles_search_book`, `ids_search_book`,
+`auth_names_search_book`, and `duration_library_search_book` of the answer at each
+frame, and T-117 gave the first of them to the reader of a book for this same
+reason. The arm reads the three lists of the line now, and it asks `ids_library`
+nothing.
+
+`tests/the_keys_of_a_media_of_the_search_that_the_library_did_not_read.rs` holds
+the roads in one function (T-144 and T-157), and it needs no sandbox and no
+server: the address is a port that nothing listens on, the lists of the library
+hold three books of 2056, and the box of the answer of the search holds a book that
+they do not hold. The test reads `selected_download` and `selected_media` of that
+line, of a line of the first page, and of a library of podcasts. It fails on
+v0.8.47 at the first of the three.
+
+#### What this item leaves open
+
+**The row of the account can hold the name of one library and the id of another.**
+The measurement of this item pressed `BTab` until the header said `📖 Books
+(book)`, and `db.sqlite3` of the sandbox then held `name_selected_lib=Podcasts`
+with `id_selected_lib` of the library `Books`. The two values come of two writes,
+and the program stopped between them. **The question is which part of the program
+reads the name, and what a line of the screen says for a name that names no
+library of the server.**
+
+**The other keys of the view of the search are not measured against a media of a
+page that the program did not read**: the key `b` of a bookmark, the key `e` of the
+reader (T-117 gave it the title of the line), and the key `s` of the series of that
+media. **The question of each of them is the question of this item**: which list
+does the key read, and does that list hold the pages of the library or the lines of
+the view?
+
+**A media of the search of a library of podcasts still needs the page of the
+library** (T-113 and T-125): `found.retain(|one| one.place.is_some())` takes the
+line away, and the program then reads the pages that are left. That is the decision
+of T-125, and no item of the search of a book stands on it now.
+
 ### T-217: the label of a media whose copy of the disk is not whole
 
 **The item before this one named the road in its "leaves open"**, and this one
