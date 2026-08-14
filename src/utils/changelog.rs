@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.20",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A place that your server did not take went away for ever.** The \
+             program keeps such a place on your disk, and it sends it when your \
+             server answers again — but it did that work for a server that does \
+             not answer alone: a server that reported a fault took the place of \
+             your last playback away with the row of it, and the program said \
+             that it closed that media at that place. A place of your disk waits \
+             for your server now, and the program tries again every 30 seconds. \
+             Two answers of your server keep their road: the media that your \
+             server does not hold, and the request that your server refused.",
+        ],
+    },
+    Entry {
         version: "0.8.19",
         date: "14/08/2026",
         body: &[
