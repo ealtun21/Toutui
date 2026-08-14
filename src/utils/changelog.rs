@@ -41,6 +41,27 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.21",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **One shelf of your Home view took every shelf away.** Your server \
+             gives the shelves of the Home view in one answer, and a shelf that \
+             held no name made the whole answer not valid: the view then said \
+             that your server gave no shelf, and Continue Listening and every \
+             other shelf went away with it. A shelf with no name keeps its media \
+             now, and the line of it holds the identity of that shelf.",
+            "- **One library of your server stopped the whole program.** Your \
+             server gives its libraries in one answer, and a library that held \
+             no name made the whole answer not valid: the program stopped, and \
+             your other libraries were correct. The program reads each library \
+             apart now. A library with no name keeps its line, and that line \
+             holds the identity of the library; a library with no identity and a \
+             library with no media type belong to no line, because the program \
+             cannot ask your server for the media of them.",
+        ],
+    },
+    Entry {
         version: "0.8.20",
         date: "14/08/2026",
         body: &[
