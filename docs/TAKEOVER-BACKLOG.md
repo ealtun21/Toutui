@@ -7432,6 +7432,58 @@ back, and a test of that shape holds the gate for ever. The test gives the wait
 a thread of its own, and it reads the end of that thread with a limit of time:
 the two tests then **fail** with the correction removed, and they do not hang.
 
+### T-159: a log out that left a program of that account, and that program named nobody
+
+**The second half of the condition of T-158**, and it is the same shape: the
+window B logs out of the account, and the window A of that account stands open.
+The key `l` of the view of the accounts removes the row of `users` (T-124), and
+**every key that refreshes the screen makes a new application** (T-131). That
+application read the disk of an account that the disk does not hold:
+
+| The measurement | The window A after the log out of B |
+|---|---|
+| The header | **`👋 Connected as `** — the program named nobody |
+| The log of the token | `Failed to decrypt the token`, and the program went on |
+| The requests of the server | **they all answered**: the client of the start holds the token, and `App::new` takes that client (T-131) |
+| The key `S` on the line `Books` | `The library has been updated. Please refresh the app to apply the changes.`, and the header said `📖 Podcasts` after it |
+| The rows of `users` | **0**, before and after that key |
+
+**A logout that leaves a program of that account is no logout.** The user of the
+window B took the account of the program away, and the window A held its token
+and it wrote and read the disk of a name of no row: the write of the library
+changed 0 rows and it said that it kept the choice of the user (T-79 and
+T-118), and the writes of the sequence, of the speed, and of the key bindings
+went away with no word at all.
+
+**The correction is the rule of T-142 and of T-155: the disk is the truth, and
+the program reads it at the moment of the use.** A key of the user is that
+moment: the loop of `src/main.rs` reads `select_every_usr` after every key, and
+a program whose account stands in no row of that list starts again.
+**`the_account_of_this_program_is_gone` writes the request of T-139**, therefore
+the sequence of that restart is the sequence of the key `a` of the accounts: the
+engine stops, the place of the playback reaches the server, and `exec` gives the
+new program the terminal of this one. **The login screen of that program says
+which account went away**, with the sentence of T-155 that promises no key.
+
+**A read of the database for each key is the cost, and that is a decision.** A
+key is an event of a person, and a view of this program reads `get_download` of
+the database at **every frame** already (T-148). A read of a state that a second
+program can change belongs to the moment of the use, and no other moment can
+hold it: the account can go away at any second of the program.
+
+| The measurement | Before | After |
+|---|---|---|
+| The key `R` after the log out of B | a program of no name, and it holds the token | **the login screen**, with the address of the server and the reason |
+| **The key `j` at the minute 14:44 of an episode** | the key moves a line, and the place stays in this program | `Item 9fa45bd1… closed at 884s`, and `GET /api/me` of `curl` holds **884** |
+| The key `S` on a line of a library | `The library has been updated.` for 0 rows | the sentence of the account that a second program removed |
+| The rows of the queue and of the downloads | they hold the name of the account | the same: a login of that name finds them again (T-123) |
+
+`tests/the_account_of_this_program_belongs_to_the_disk.rs` holds the three
+rules. **No unit test reaches the loop of `src/main.rs`**, therefore the rule of
+that loop stands as a rule of the source, as the rule of T-131 does: the read of
+the accounts stands after the key of the user and before the block that starts
+the program again.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

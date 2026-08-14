@@ -415,6 +415,32 @@ async fn main() -> Result<()> {
                                 terminal.clear()?;
                             }
 
+                            // **The account of this program can go away while
+                            // the program runs.** A second program of one
+                            // account logs out with the key `l` of the view of
+                            // the accounts, and the row of `users` goes away
+                            // then (T-155). The program held the token of that
+                            // account in its client and it went on, and every
+                            // key that refreshes the screen gave a program of
+                            // no name at all. **The disk is the truth, and the
+                            // program reads it at the moment of the use**: a
+                            // key is that moment, and the program that starts
+                            // again takes the account of the disk. See T-159.
+                            if app.the_program_starts_again.is_none() {
+                                let of_the_disk =
+                                    toutui::db::crud::select_every_usr().unwrap_or_default();
+
+                                if matches!(
+                                    logic::the_accounts::the_account_of_the_line(
+                                        &of_the_disk,
+                                        &app.username
+                                    ),
+                                    logic::the_accounts::TheAccountOfTheLine::ItIsGone
+                                ) {
+                                    app.the_account_of_this_program_is_gone();
+                                }
+                            }
+
                             // A key of the view of the accounts starts the
                             // program again, and **the position of a playback
                             // that it stops must reach the server first**.

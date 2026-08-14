@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.93",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A log out reaches every window of that account.** A second window of your \
+             account stayed open after the log out: the key `R` gave it a program with no name \
+             at all — the header said \"Connected as\" and nothing more — every setting that you \
+             changed in it went away with no word, the key `S` said that it kept your library \
+             and it kept nothing, and the program went on with the token of the account that \
+             logged out. Such a window starts again now: it sends the place of the media that \
+             it plays to the server first, and its login screen says which account went away.",
+        ],
+    },
+    Entry {
         version: "0.7.92",
         date: "14/08/2026",
         body: &[

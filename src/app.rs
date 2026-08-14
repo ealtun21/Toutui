@@ -5208,6 +5208,46 @@ impl App {
         });
     }
 
+    /// The account of this program stands in no row of the disk, therefore the
+    /// program starts again. See T-159.
+    ///
+    /// **A second program of one account logs out with the key `l` of the view
+    /// of the accounts** (T-124), and the row of `users` then goes away while
+    /// this program runs (T-155). Every key that refreshes the screen makes a
+    /// new application (T-131), and that application took the account of the
+    /// disk: **the header said "👋 Connected as " with no name at all**, the
+    /// token had no plain form, every write of the account changed 0 rows — the
+    /// library of the key `S` among them — and the program went on with the
+    /// token of the account that logged out, because the client of the start
+    /// holds that token.
+    ///
+    /// **The rule of the start is the rule here** (T-136): the program that
+    /// starts again takes the account of the disk, and it draws the login
+    /// screen when no account stays. The login screen says why. `exec` gives
+    /// that program the terminal of this one, and the loop of `src/main.rs`
+    /// sends the place of the playback before it (T-139).
+    pub fn the_account_of_this_program_is_gone(&mut self) {
+        log::warn!(
+            "[the accounts] the account {} stands in no row of the disk. The program starts again.",
+            self.username
+        );
+
+        let _ = crate::db::crud::update_login_err(
+            crate::logic::the_accounts::the_text_of_an_account_that_is_gone(&self.username)
+                .as_str(),
+        );
+
+        self.the_program_starts_again = Some(TheProgramStartsAgain {
+            variables: vec![(
+                crate::logic::auth::auth_input::THE_ADDRESS_OF_THE_LOGIN.to_string(),
+                self.server_address.clone(),
+            )],
+            message: crate::logic::the_accounts::the_text_of_an_account_that_is_gone(
+                &self.username,
+            ),
+        });
+    }
+
     /// The login screen comes, because the program holds no account. See T-124.
     ///
     /// The user logged out of the one account of the program. The database

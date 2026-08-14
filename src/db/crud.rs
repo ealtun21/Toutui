@@ -554,23 +554,44 @@ pub fn get_has_played_before(username: &str) -> Option<String> {
     stmt.query_row(params![username], |row| row.get::<_, String>(0))
         .ok()
 }
-// Update id_selected_lib
-pub fn update_id_selected_lib(id_selected_lib: &str, username: &str) -> Result<()> {
+/// Writes the library of the account, and it gives the number of the rows that
+/// changed.
+///
+/// **A name that no row holds changes no row, and the user must not read that
+/// the program kept their choice.** A second program of one account logs out
+/// while this program runs (T-155): the write then changed 0 rows, and the
+/// program said "The library has been updated" all the same. See T-159.
+pub fn update_id_selected_lib(id_selected_lib: &str, username: &str) -> Result<usize> {
     let message = "The library has been updated. Please refresh the app to apply the changes.";
     let err_message = "Error connecting to the database.";
-    if let Ok(conn) = crate::db::migrate::open_conn() {
-        conn.execute(
-            "UPDATE users SET id_selected_lib = ?1 WHERE username = ?2",
-            params![id_selected_lib, username],
-        )?;
+
+    let Ok(conn) = crate::db::migrate::open_conn() else {
+        crate::logic::message::say(err_message);
+        error!("[update_id_selected_lib] {}", err_message);
+
+        return Ok(0);
+    };
+
+    let rows = conn.execute(
+        "UPDATE users SET id_selected_lib = ?1 WHERE username = ?2",
+        params![id_selected_lib, username],
+    )?;
+
+    if rows > 0 {
         crate::logic::message::say(message);
         info!("[update_id_selected_lib] The library has been updated");
     } else {
-        crate::logic::message::say(err_message);
-        error!("[update_id_selected_lib] {}", err_message);
+        crate::logic::message::say(
+            crate::logic::the_accounts::the_text_of_an_account_that_is_gone(username).as_str(),
+        );
+        log::warn!(
+            "[update_id_selected_lib] the account {} stands in no row of the disk. \
+             The library of that account did not change.",
+            username
+        );
     }
 
-    Ok(())
+    Ok(rows)
 }
 
 /// Gives every account of the database, in the sequence of its row. See T-124.
