@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.35.** The item T-205 belongs to this session. The
+**The newest release is v0.8.36.** The item T-206 belongs to this session. The
+item T-205 belongs to the session before it. The
 item T-204 belongs to the session before it. The
 item T-203 belongs to the session before it. The
 items T-199, T-200, T-201, and T-202
@@ -45,12 +46,101 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.35**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.36**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1186 of 1186** in 2.4 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1212 of 1212** in 20.9 seconds with the sandbox up,
-and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in three
-runs.
+**1187 of 1187** in 2.4 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1213 of 1213** with the sandbox up, and `cargo test
+-j 16 --no-fail-fast` (the gate of CI) gives no failure in two runs.
+
+## The session of the thirty-eighth turn of 2026-08-14: the disk that reads and takes no write
+
+**One release: v0.8.36.** The session before this one left the caller of
+`save_the_queue` open (T-205): `write_the_queue` writes a line of the log, and
+its five callers say to the user that the media reached the queue. T-205 named
+the window as "the moment between the read and the write" and it held no harness
+of that moment. **The condition needs no moment at all, and no script of Python
+either.**
+
+**The item is T-206**, and the condition is one command:
+
+```bash
+chmod 444 $XDG_CONFIG_HOME/toutui/db.sqlite3
+```
+
+Every measurement of a fault of the database since T-199 took the **whole** file
+away: the lock of `hold_the_lock.py` and a file that holds no database each stop
+the read and the write together, therefore each of them hides every road where
+the program **reads** the disk of the user and the disk then refuses the write
+alone. SQLite opens a file of `444` for a read, every `SELECT` answers, and every
+`INSERT` gives `attempt to write a readonly database`. **A disk that is full, a
+database with no permission of a write, and a file system that a machine gave
+back as read-only each give that condition of the user.**
+
+**Three roads of the real program, each of them a fault of the user:**
+
+1. **A media that came and did not come.** The key `n` said `"A Book Of An Epub
+   With No Container" is number 1 of the queue. Press q to see the queue.`,
+   `select count(*) from queue` said **0**, and the key `q` of that same sentence
+   then said `The queue is empty. Press n on a media to put it in the queue.`
+   **The program contradicted itself in two seconds.**
+2. **A media that left and did not leave.** The key `X` of the view of the queue
+   said `"…" is not in the queue now.`, the line went out of the view, the disk
+   held both media still, and the keys `h` and `q` brought the media back.
+3. **A key that says nothing at all.** The keys `O` and `I` of the speed gave the
+   answer of `update_speed_rate` to nobody and they read that same row after it:
+   the read answers with the speed of **before**. One press with the write
+   permitted gave `Speed: 1.00x` → `Speed: 1.10x` and the disk `1.0` → `1.1`; one
+   press with the write refused gave the same row, the same disk, **no word on
+   the screen, and no line of the log**. That is T-79 and T-174 together, and no
+   sweep of the words for the user finds it: the words of that key did not exist.
+
+**The correction.** `the_queue_changes` of `src/logic/queue.rs` holds the three
+parts of every change of the queue — the read of the disk (T-202), the work, and
+the write — and **a write that failed puts the queue of the process back the way
+it stood**. `TheDiskDidNotAnswer` holds `TheRead` and `TheWrite`, because a read
+and a write are two conditions (T-91), and each sentence names the key of the
+view that the user sees at that moment (T-183). The keys `O` and `I` read the
+answer of their write before they send anything to the engine. The two callers
+that are no key of the user (`put_at_the_front` of T-146 and `take_next`) take a
+line of the log (T-177), and a disk that did not answer stops the queue with
+every media of the user on the disk.
+
+| The condition | v0.8.35 | v0.8.36 |
+|---|---|---|
+| the key `n`, and the disk takes no write | the media is number 1 of a queue of 0 rows | `The program did not write the queue of this account: … Press n again.` |
+| the key `q` after it | `The queue is empty.` | the same view as before the key |
+| the key `X` of the view of the queue | the line went out, and the disk kept the media | the sentence of the write, and the media stay on the screen |
+| the key `O` of the speed | nothing at all | `The program did not write the speed of this account: … Press O again.` |
+
+`tests/a_change_that_the_disk_did_not_take_is_no_change.rs` holds the parts in one
+function (T-144 and T-157), and it holds that **the read answers still** before
+each part: the fault of every assertion after that line is the write alone.
+
+### The trap of this session
+
+**The trap 171: the file of the database must take a write at the start.** The
+migration of `Database::new` writes, therefore a file that stood at `444` before
+the program stops it with the words of T-199, and the measurement then holds the
+start and not the key. **The `chmod` belongs after the first frame**, and
+`chmod 644` belongs before every `sqlite3` of the measurement that writes.
+
+### What this session leaves open
+
+The last paragraphs of T-206 hold three things. **The other keys that write the
+disk are not measured against this condition**: `update_is_playback` of the key
+of the pause, `update_is_loop_break`, `update_has_played_before`,
+`delete_the_session_of_a_playback`, and `update_download_current_time`, and the
+question of each is the question of T-201 — which part of the screen reads that
+row, and which program of the account reads it after this one dies. **The reads
+whose default is a fact of the user stay open**, and this condition reaches none
+of them (a disk that takes no write answers every read): `get_speed_rate` gives
+the string `Error: unable open database`, and `.parse().unwrap_or(1.0)` of its
+five callers then gives the user the speed 1.00x with no word — **two of those
+five stand at the start of every playback**. The road to that condition is the
+statement that fails of T-203, because `hold_the_lock.py` reaches no read of the
+start since T-199 (the trap 161). **And the freeze of a key of the user stays**:
+this condition gives the fault of the words with no wait at all, therefore the
+words are correct now and the wait is not.
 
 ## The session of the thirty-seventh turn of 2026-08-14: the key that took the program away
 
@@ -5702,48 +5792,39 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took the question that the newest item named in its last
-paragraph** (the rule of T-195): T-203 asked which reads of the disk stand inside
-the render. The item is **T-204**, and it holds two measurements of the real
-program and one release, v0.8.34.
+**This session took the road that the newest item left open**: T-205 named the
+five callers of `write_the_queue` that do not read the fault of
+`save_the_queue`, and it called the window "the moment between the read and the
+write". The item is **T-206**, and it holds one release, v0.8.36.
 
-**The measurement found the fault of the render, and a second one under it.** The
-render of the row of the player read the disk at each frame, and that read gave
-the user a fact that they did not choose; and **the loop of the screen stopped for
-15 seconds at a time** while a second Toutui of the account held the database.
-Five things are worth the room:
+**The condition needs no moment, and no harness of Python.** Every measurement of
+a fault of the database since T-199 took the whole file away: the lock of
+`hold_the_lock.py` and a file that holds no database each stop the read and the
+write **together**. `chmod 444` of the file of the database takes one half alone:
+SQLite opens the file for a read, every `SELECT` answers, and every `INSERT`
+gives `attempt to write a readonly database`. Four things are worth the room:
 
-1. **A freeze of the screen that is longer than the busy timeout is not the
-   render** (T-204). rusqlite waits five seconds, and the freeze was 15: `strace
-   -f -tt` of the program inside tmux (the trap 136) says that the loop of the
-   screen waited 14.9 seconds on one futex, and that **the thread which held it is
-   the driver of the runtime of tokio** — it ran the three writes of one second of
-   the loop of the playback. **A call of the database that stands on a thread of
-   the runtime stops the screen and every key of the user.**
-2. **A read of the disk that stands inside the render is a fact of the user at
-   each frame** (T-204). The row of the keys of the player went away while the
-   user turned nothing off, and the label of a copy of the disk holds the same
-   shape. **A box of the process, and the disk at the moments that the program
-   needs it** (the rule of T-142), is the road: the label of a line is a word of
-   the screen, and no word of the screen is worth the thread of the screen.
-3. **A key that reads a state of the disk and that then writes it does nothing
-   when that read failed** (T-204, the shape of T-175 for the disk). The key `B`
-   compared the answer of the disk with `"0"` and with `"1"`, and a read that
-   failed matched neither: the disk kept its value, and no word and no line of the
-   log named the key.
-4. **A poll of the screen cannot tell a state that is old from a frame that did
-   not come** (the trap 166). The timer for sleep of the key `t` comes of the loop
-   of the screen alone, therefore it is the value that answers that question.
-5. **The work of the disk of a task belongs to a thread of its own**
-   (`crate::db::the_work_of_the_disk`), and the caller waits for it: the sequence
-   of two writes of one loop must stay, because a later place of the user must
-   never reach the disk before an earlier one.
+1. **A condition of two halves needs a harness that takes one half away**
+   (T-206). Ask of a resource of the program: which two things does my condition
+   take away at one time, and can I take one of them alone?
+2. **A caller that reads no answer of its write says the work that it did not
+   do** (T-206). The key `n` said that the media is number 1 of the queue and the
+   disk held 0 rows, and the key `q` of that same sentence then said that the
+   queue is empty: **the program contradicted itself in two seconds.**
+3. **A key that reads the row that it wrote gives the value of before** (T-206).
+   The keys `O` and `I` of the speed said nothing at all, changed nothing, and
+   wrote no line of the log. **No sweep of the words for the user finds such a
+   key**, because the words of it do not exist.
+4. **A change of the disk that the disk did not take is no change** (T-206). The
+   disk is the truth of the queue (T-147), therefore the queue of the process
+   goes back to the queue of the disk, and the sentence of the key names the read
+   or the write (T-91) and the key of the view that the user sees (T-183).
 
 This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.34**; `Cargo.toml` is at 0.8.34. The
+> AlbanDAVID/Toutui. Newest release **v0.8.36**; `Cargo.toml` is at 0.8.36. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -5752,7 +5833,7 @@ This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-204 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-206 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -6050,6 +6131,25 @@ This prompt names the state of the program on 2026-08-14.
 > writes the row of the account and the mark of the account that starts the
 > program, and each of the two gives the same sentence.
 >
+> **A database that the program reads and that takes no write needs no harness at
+> all** (T-206). The lock above and a file that holds no database each stop the
+> read and the write **together**, therefore each of them hides every road where
+> the program reads the disk of the user and the disk then refuses the write
+> alone. One command gives that condition, and one gives it back:
+>
+> ```bash
+> chmod 444 $XDG_CONFIG_HOME/toutui/db.sqlite3
+> chmod 644 $XDG_CONFIG_HOME/toutui/db.sqlite3
+> ```
+>
+> SQLite opens a file of `444` for a read, every `SELECT` of the program answers,
+> and every `INSERT` gives `attempt to write a readonly database`. **A disk that
+> is full, a database with no permission of a write, and a file system that a
+> machine gave back as read-only each give that condition of the user.** **The
+> file must take a write at the start** (the trap 171): the migration of
+> `Database::new` writes, therefore the `chmod 444` belongs after the first frame,
+> and a `chmod 644` belongs before every `sqlite3` of the measurement that writes.
+>
 > **A part of a stream that holds no audio is
 > `docs/harness/a_part_that_holds_no_audio.py`** (T-195). **A part of no audio is
 > not a part that stopped**: the two harnesses above cut a body, and the rule of
@@ -6147,8 +6247,8 @@ This prompt names the state of the program on 2026-08-14.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1182 tests in 2.4 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1208 of 1208** with the sandbox up, in about 21 seconds. **Run that
+> Baseline: **1187 tests in 2.4 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1213 of 1213** with the sandbox up, in about 21 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -6182,12 +6282,69 @@ This prompt names the state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in forty-nine sessions of fifty. **The session of the
->    thirty-sixth turn took the question that the newest item named, and it found
->    the fault of that question and a second one under it** (T-204): the render of
->    the row of the player read the disk at each frame, **and the loop of the
->    screen stopped for 15 seconds at a time** because a call of the database of a
->    task holds the driver of the runtime of tokio.
+>    this shape found a fault in fifty-one sessions of fifty-two. **The session of
+>    the thirty-eighth turn took the road that the newest item left open, and it
+>    found that the condition of that road needs no harness of its own** (T-206):
+>    a disk that the program **reads** and that takes **no write** made three keys
+>    of the user say the work that the program did not do.
+>    - **A condition of two halves needs a harness that takes one half away**
+>      (T-206). The lock of `hold_the_lock.py` and a file that holds no database
+>      each stop the read and the write **together**, therefore each of them hid
+>      every road where the read answers and the write alone fails. `chmod 444` of
+>      the file of the database is that harness, and it is one command. **Ask of a
+>      resource of the program: which two things does my condition take away at
+>      one time, and can I take one of them alone?**
+>    - **A caller that reads no answer of its write says the work that it did not
+>      do** (T-206). The key `n` said `"…" is number 1 of the queue. Press q to
+>      see the queue.` and the disk held **0** rows; the key `q` of that same
+>      sentence then said that the queue is empty. **The program contradicted
+>      itself in two seconds.** The key `X` of the view of the queue held the
+>      other direction: the line went out of the view, the disk kept the media,
+>      and the next read of the disk brought it back.
+>    - **A key that reads the row that it wrote gives the value of before**
+>      (T-206). The keys `O` and `I` of the speed gave the answer of
+>      `update_speed_rate` to nobody and they read that same row after it: the
+>      engine took the speed of before, the screen said **nothing at all**, and
+>      the log held **no line**. That is T-79 and T-174 together, and **no sweep
+>      of the words for the user finds it**: the words of that key did not exist.
+>      **Ask of every key: which value does it read after its write, and which
+>      part of the program holds the truth of that value?**
+>    - **The other keys that write the disk are not measured against that
+>      condition** (T-206, and it stays open): `update_is_playback` of the key of
+>      the pause, `update_is_loop_break`, `update_has_played_before`,
+>      `delete_the_session_of_a_playback`, and `update_download_current_time`.
+>      **The question of each of them is the question of T-201**: which part of
+>      the screen reads that row, and which program of the account reads it after
+>      this one dies.
+>    - **The reads of the disk whose default is a fact of the user stay open**,
+>      and the condition of T-206 reaches none of them: a disk that takes no write
+>      answers every read. `get_speed_rate` gives the string
+>      `Error: unable open database`, and `.parse().unwrap_or(1.0)` of its five
+>      callers then gives the user the speed 1.00x with no word — **two of those
+>      five stand at the start of every playback**. `get_library_sort` and
+>      `get_is_show_key_bindings` hold the same shape. **The road to that
+>      condition is the statement that fails of T-203**, because
+>      `hold_the_lock.py` reaches no read of the start since T-199 (the trap 161).
+>    - **The session of the thirty-seventh turn swept the first two questions of
+>      T-204 and it found that a key of the user took the whole program away**
+>      (T-205): the key `R` stands in the footer of every view, the refresh makes
+>      a new `App`, and the read of the accounts of that `App` met the database of
+>      a second Toutui of the account. **A refresh is not a start**, and the
+>      program said `Toutui changed nothing` while the account, the token, every
+>      list, the queue, and the playback of the user went away with it.
+>    - **A correction of a caller is no correction while the callee lies**
+>      (T-205, and T-200 before it). `update_library_sort` and `save_the_queue`
+>      answered `Ok(())` for a connection that they did not get, and no sentence
+>      of a key could reach that fault.
+>    - **A key of the user that touches the disk still stops the loop of the
+>      screen for five seconds under the lock**, and the row of the message says
+>      nothing while it waits (T-204, T-205, and T-206 each measured it and left
+>      it open). The answer of `handle_key` needs `&mut App` on the thread of the
+>      screen, therefore the work of the disk of a key belongs to a task of its
+>      own, as the key `D` holds one already. **The question is which keys can
+>      give their work to a task, and what the row of the message says at the
+>      moment of the press.** The keys that a measurement reached are `X`, `B`,
+>      `n`, Shift-Tab, and the key Enter of the sequence.
 >    - **A freeze that is longer than the busy timeout of five seconds is not the
 >      render** (T-204). `strace -f -tt` of the program inside tmux says which
 >      thread holds the lock, and **the answer was the driver of the runtime**: the
@@ -6811,7 +6968,15 @@ This prompt names the state of the program on 2026-08-14.
 > account and the `App` holds the row of the keys of the player, the key `B`
 > writes the value that the program holds and it says why a write failed, and the
 > loop of the program reads the accounts of a box that a task of one second
-> fills** (T-204).
+> fills** (T-204), and **a refresh is not a start: a read of the accounts that
+> failed keeps the application of the user and it says why the screen did not
+> change, the three keys that write the library and the sequence read the answer
+> of their write, and the last two functions of the shape of T-200 give a fault**
+> (T-205), and **a change of the queue that the disk did not take is no change:
+> the queue of the program goes back to the queue of the disk, the sentence of
+> the key names the read or the write and the key of the view that the user sees,
+> and the keys `O` and `I` of the speed read the answer of their write before
+> they send anything to the engine** (T-206).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

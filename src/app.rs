@@ -6896,13 +6896,21 @@ impl App {
         let title = entry.title.clone();
 
         // **The disk is the truth of the queue** (T-147), therefore a program that
-        // did not read the disk puts no media in it. See T-202.
-        let Some(place) = crate::logic::queue::add(entry) else {
-            crate::logic::message::say(
-                &crate::logic::queue::the_words_of_a_queue_that_the_disk_did_not_give(),
-            );
+        // did not read the disk puts no media in it (T-202), and a program whose
+        // disk did not take the write puts no media in it either (T-206): the
+        // sentence below said that the media is number 1 of the queue while the
+        // disk of the account held no row at all.
+        let place = match crate::logic::queue::add(entry) {
+            Ok(place) => place,
+            Err(fault) => {
+                crate::logic::message::say(
+                    &crate::logic::queue::the_words_of_a_queue_that_the_disk_did_not_hold(
+                        fault, "n",
+                    ),
+                );
 
-            return;
+                return;
+            }
         };
 
         crate::logic::message::say(&format!(
@@ -7051,9 +7059,11 @@ impl App {
         // still.
         let entry = match crate::logic::queue::take_the_media(index, &key) {
             Ok(entry) => entry,
-            Err(crate::logic::queue::TheDiskDidNotAnswer) => {
+            Err(fault) => {
                 crate::logic::message::say(
-                    &crate::logic::queue::the_words_of_a_queue_that_the_disk_did_not_give(),
+                    &crate::logic::queue::the_words_of_a_queue_that_the_disk_did_not_hold(
+                        fault, "X",
+                    ),
                 );
 
                 return;
@@ -7103,9 +7113,11 @@ impl App {
         let entry = match crate::logic::queue::take_the_media(index, &key) {
             Ok(Some(entry)) => entry,
             Ok(None) => return,
-            Err(crate::logic::queue::TheDiskDidNotAnswer) => {
+            Err(fault) => {
                 crate::logic::message::say(
-                    &crate::logic::queue::the_words_of_a_queue_that_the_disk_did_not_give(),
+                    &crate::logic::queue::the_words_of_a_queue_that_the_disk_did_not_hold(
+                        fault, "l",
+                    ),
                 );
 
                 return;

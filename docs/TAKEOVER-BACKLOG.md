@@ -8632,6 +8632,165 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-206: a disk that reads and takes no write made the program say the work that it did not do
+
+**T-205 left the caller of `save_the_queue` open**: `write_the_queue` writes a
+line of the log, and its five callers say to the user that the media reached the
+queue. T-205 named the window as "the moment between the read and the write",
+and it held no harness of that moment. **The condition needs no moment at all**:
+a disk that the program **reads** and that takes **no write** holds it for as
+long as the user looks at it.
+
+#### The condition, which needs no proxy and no script
+
+Every measurement of a fault of the database since T-199 took the whole file
+away: `docs/harness/hold_the_lock.py` holds the write lock with
+`BEGIN EXCLUSIVE`, and a file that holds no database gives the same fault with no
+wait. **Each of those two stops the read and the write together**, therefore each
+of them hides every road where the program reads the disk of the user and the
+disk then refuses the write alone.
+
+```bash
+chmod 444 $XDG_CONFIG_HOME/toutui/db.sqlite3      # the condition
+chmod 644 $XDG_CONFIG_HOME/toutui/db.sqlite3      # the condition goes away
+```
+
+SQLite opens such a file (it takes the road of a read for a file that it cannot
+open for a write), every `SELECT` of the program answers, and every `INSERT`
+gives `attempt to write a readonly database`. **A disk that is full, a file of a
+database with no permission of a write, and a file system that a machine gave
+back as read-only each give the same condition of the user**, and the program of
+a second Toutui gives it for the moment of one transaction.
+
+**The file of the database must take a write at the start** (the trap 171): the
+migration of `Database::new` writes, therefore the program stops with the words
+of T-199 for a file that stood at `444` before it. The `chmod` belongs after the
+first frame.
+
+#### The measurement of 2026-08-14
+
+The program stood in the Library view of the sandbox, with the account
+`toutuitest` of `docs/TEST-SERVER.md`.
+
+**The first road: a media that came and did not come.** The key `n`:
+
+```text
+"A Book Of An Epub With No Container" is number 1 of the queue. Press q to see the queue.
+```
+
+`select count(*) from queue` said **0**. The key `q`, which that same sentence
+names, then said
+
+```text
+─────── The queue is empty. Press n on a media to put it in the queue. ───────
+```
+
+**The program contradicted itself in two seconds**, and the one word of the fault
+stood in the log: `[queue] the program did not write the queue: attempt to write
+a readonly database`.
+
+**The second road: a media that left and did not leave.** Two media stood in the
+queue of the disk. The key `X` of the view of the queue said
+`"A Book Of An Epub With No Container" is not in the queue now.`, the line went
+out of the view, and `select title from queue` held **both** media still. The key
+`h` and the key `q` after it gave a view of **two** items again: the media of the
+user came back with the next read of the disk, and no word of the program named
+that road.
+
+**The third road: a key that says nothing at all.** The keys `O` and `I` of the
+player gave the answer of `update_speed_rate` to nobody, and they read the row of
+that same account after it: the read of a disk that takes no write answers, and
+it answers with the speed of **before**.
+
+| The key `O`, one press | The row of the player | The disk | The screen | The log |
+|---|---|---|---|---|
+| the disk takes the write | `Speed: 1.00x` → `Speed: 1.10x` | `1.0` → `1.1` | — | — |
+| the disk takes no write | `Speed: 1.10x` | `1.1` | **nothing at all** | **no line** |
+
+That is the shape of T-79 (a key that does nothing says why) and of T-174 (a
+program that says nothing at all), and no sweep of the words for the user finds
+it: the words of that key do not exist.
+
+#### The rule
+
+**A change of the queue that the disk did not take is no change.** The disk is
+the truth of the queue (T-147), therefore a change that stands in this program
+alone is a change that no program of the account reads — and the next read of the
+disk takes it away with no word. `the_queue_changes` of `src/logic/queue.rs` now
+holds the three parts of every change: the read of the disk (T-202), the work,
+and the write. **A write that failed puts the queue of the process back the way
+it stood**, and the caller reads the fault.
+
+**A read and a write are two conditions** (T-91), and the sentence of the key
+names the one that happened: `TheDiskDidNotAnswer` holds `TheRead` and
+`TheWrite`, and `the_words_of_a_queue_that_the_disk_did_not_hold` gives the words
+of each. Each sentence names the key of the view that the user sees at that
+moment (T-183): `n` in a view of the media, `X` and `l` in the view of the queue.
+
+**The row of the account is the truth of the speed**, therefore the keys `O` and
+`I` read the answer of the write before they send anything to the engine.
+
+**The two callers of the queue that are no key of the user take a line of the
+log** (T-177): `put_at_the_front` of a playback that did not start (T-146), and
+`take_next` of the queue that goes on. A disk that did not answer stops the
+queue, and every media of the user stays on the disk.
+
+#### The measurement of the corrected program
+
+| The condition | v0.8.35 | v0.8.36 |
+|---|---|---|
+| the key `n`, and the disk takes no write | `"…" is number 1 of the queue. Press q to see the queue.`, and 0 rows of the disk | `The program did not write the queue of this account: the database did not answer. The queue does not change. Press n again.` |
+| the key `q` after it | `The queue is empty.` | the same view as before the key |
+| the key `X` of the view of the queue | the line went out, and the disk kept the media | the sentence of the write, and the two media of the disk stay on the screen |
+| the key `O` of the speed | nothing at all | `The program did not write the speed of this account: the database did not answer. The speed does not change. Press O again.` |
+
+#### The test
+
+`tests/a_change_that_the_disk_did_not_take_is_no_change.rs` holds the parts in
+one function (T-144 and T-157): the test writes `XDG_CONFIG_HOME`, and that
+variable belongs to the process. It makes a real database, it writes one media of
+the disk in it, it takes the permission of the write away with `chmod 444`, and
+it then holds that **the read answers still** — therefore the fault of each part
+after it is the write alone.
+
+A build with the correction of the queue removed
+(`if !write_the_queue() && false`) gives `Ok(2)` for the key `n` of a disk that
+took nothing. A build with the old two lines of the key `O` fails the test of the
+source (T-135, T-143, T-204, and T-205 hold that shape): the engine takes the
+speed of the row of the account, therefore a test of the value needs a player and
+a database of a playback, and the sequence of the two lines is the correction.
+
+#### What this item leaves open
+
+**The other keys that write the disk are not measured against this condition.**
+The sweep of `let _ =` beside a write of the database holds these still, and each
+of them stands in a loop or in a task with no key of the user behind it:
+`update_is_playback` of the key of the pause (a program that dies then says that
+the media plays), `update_is_loop_break`, `update_has_played_before`,
+`delete_the_session_of_a_playback`, and `update_download_current_time`. **The
+question of each of them is the question of T-201**: which part of the screen
+reads the value of that row, and which program of the account reads it after
+this one dies.
+
+**The reads of the disk whose default is a fact of the user stay open**, and this
+condition does not reach them: a disk that takes no write answers every read.
+`get_speed_rate` gives the string `Error: unable open database` for a read that
+failed, and `.parse().unwrap_or(1.0)` of its five callers then gives the user the
+speed 1.00x with no word — **two of those five stand at the start of every
+playback**. `get_library_sort` and `get_is_show_key_bindings` hold the same shape.
+**The condition of that sweep is a read that fails while the program stands**,
+and `hold_the_lock.py` reaches no read of the start since T-199 (the trap 161):
+the road is the statement that fails of T-203, for a column that the migration
+does not repair.
+
+**A key of the user that touches the disk still stops the loop of the screen for
+five seconds under the lock**, and the row of the message says nothing while it
+waits. That is the first question of T-204, and T-205 and this item each measured
+it and did not correct it: the answer of `handle_key` needs `&mut App` on the
+thread of the screen. **This condition of the disk gives the fault of the words
+with no wait at all**, therefore the two questions stand apart: the words are
+correct now, and the wait is not.
+
 ### T-205: the key `R` of a database that a second program held took the program away
 
 **T-204 left three questions**, and the sweep of the first two of them found a

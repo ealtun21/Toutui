@@ -83,7 +83,7 @@ async fn a_playback_that_did_not_start_gives_its_media_back_to_the_queue() {
     // The user asked for two media. The key `l` of the view of the queue takes
     // the first one out, and it plays it.
     let first = a_book("the-first-item", "The First Book");
-    queue::add(a_book("the-second-item", "The Second Book"));
+    queue::add(a_book("the-second-item", "The Second Book")).unwrap();
 
     let pool = EndpointPool::new(vec![Endpoint::new(NO_SERVER, 0)]);
     let api = Arc::new(ApiClient::new(Arc::new(pool), "token".to_string()).unwrap());

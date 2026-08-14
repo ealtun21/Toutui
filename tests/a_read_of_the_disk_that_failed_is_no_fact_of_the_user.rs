@@ -80,13 +80,13 @@ fn a_read_of_the_disk_that_failed_is_not_a_fact_of_the_user() {
 
     assert_eq!(
         toutui::logic::queue::add(of_the_media),
-        None,
+        Err(toutui::logic::queue::TheDiskDidNotAnswer::TheRead),
         "a media of a queue that the program did not read reaches no disk"
     );
 
     assert_eq!(
         toutui::logic::queue::take_the_media(0, "the-book"),
-        Err(toutui::logic::queue::TheDiskDidNotAnswer),
+        Err(toutui::logic::queue::TheDiskDidNotAnswer::TheRead),
         "a key that did not read the queue of the disk takes no media of it"
     );
 

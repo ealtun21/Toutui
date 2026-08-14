@@ -63,7 +63,7 @@ fn a_second_program_of_the_account_keeps_every_media_of_the_queue() {
     queue::clear();
 
     // The window A puts one book in the queue with the key `n`.
-    queue::add(a_book("the-book-of-a", "The Book Of A"));
+    queue::add(a_book("the-book-of-a", "The Book Of A")).unwrap();
 
     // The window B does the same. It holds the queue of its own start, and that
     // queue is empty: its write therefore holds one row.
@@ -71,7 +71,7 @@ fn a_second_program_of_the_account_keeps_every_media_of_the_queue() {
 
     // The window A puts a second book in the queue. **The disk is the truth**:
     // the write of A must not take the book of B away.
-    queue::add(a_book("the-second-book-of-a", "The Second Book Of A"));
+    queue::add(a_book("the-second-book-of-a", "The Second Book Of A")).unwrap();
 
     let titles: Vec<String> = read_the_queue(USER, SERVER)
         .unwrap()

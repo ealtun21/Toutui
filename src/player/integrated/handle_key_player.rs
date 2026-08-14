@@ -58,22 +58,56 @@ pub fn handle_key_player(key: &str, player: &PlayerHandle, username: &str, serve
 
         // More speed. The engine changes the speed during the playback, thus
         // the user does not start the playback again. See T-8.
-        "O" => {
-            let _ = update_speed_rate(username, true);
-            let speed = get_speed_rate(username).parse::<f32>().unwrap_or(1.0);
-            player.send(PlayerCommand::SetSpeed(speed));
-        }
+        "O" => the_speed_changes(player, username, true, "O"),
 
         // Less speed.
-        "I" => {
-            let _ = update_speed_rate(username, false);
-            let speed = get_speed_rate(username).parse::<f32>().unwrap_or(1.0);
-            player.send(PlayerCommand::SetSpeed(speed));
-        }
+        "I" => the_speed_changes(player, username, false, "I"),
 
         // Stop the playback.
         "Y" => player.send(PlayerCommand::Stop),
 
         _ => {}
     }
+}
+
+/// Changes the speed of the playback. The keys are `O` and `I`. See T-8 and
+/// T-206.
+///
+/// **The row of the account is the truth of the speed.** The engine takes the
+/// speed of that row, therefore a write that failed changes no speed at all: the
+/// old shape gave the answer of `update_speed_rate` to nobody and it read the row
+/// after it, and the two lines then gave the engine the speed of before. **The
+/// key said nothing at all**, and it wrote no line of the log: a disk that the
+/// program reads and cannot write held the speed of the user at its value, and
+/// the user pressed the key again and again.
+///
+/// **A key of the user that writes the disk takes a sentence** (T-199), and that
+/// sentence names the key of the view that the user sees at that moment (T-183).
+fn the_speed_changes(player: &PlayerHandle, username: &str, faster: bool, key: &str) {
+    if let Err(error) = update_speed_rate(username, faster) {
+        log::warn!(
+            "[the speed of the player] the program did not write the speed of {}: {}",
+            username,
+            error
+        );
+
+        crate::logic::message::say(&the_words_of_a_speed_that_the_disk_did_not_hold(key));
+
+        return;
+    }
+
+    let speed = get_speed_rate(username).parse::<f32>().unwrap_or(1.0);
+    player.send(PlayerCommand::SetSpeed(speed));
+}
+
+/// What the keys `O` and `I` say when the disk did not take the speed. See
+/// T-206.
+///
+/// The function is pure, therefore a test needs no player and no database.
+pub fn the_words_of_a_speed_that_the_disk_did_not_hold(key: &str) -> String {
+    format!(
+        "The program did not write the speed of this account: the database did not answer. The \
+         speed does not change. Press {} again.",
+        key
+    )
 }

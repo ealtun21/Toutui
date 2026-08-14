@@ -41,6 +41,30 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.36",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key `n` said that your media is in the queue while the \
+             disk of your account took no media at all.** A disk that is full, \
+             a database with no permission of a write, and a file system that \
+             is read-only each give that condition: the key said `\"…\" is \
+             number 1 of the queue. Press q to see the queue.`, and the key `q` \
+             of that same sentence then said that the queue is empty. A change \
+             that the disk did not take is no change now: the queue of the \
+             program goes back to the queue of the disk, and the key says why.",
+            "- **The key `X` of the view of the queue took a media out of the \
+             screen while the disk kept it.** The media came back with the next \
+             read of the disk. The key now says why, and the media of your \
+             queue stays on the screen.",
+            "- **The keys `O` and `I` of the speed said nothing at all when the \
+             disk did not take the new speed.** The key read the row of the \
+             account after the write, therefore the engine took the speed of \
+             before, the screen said nothing, and the log held no line. Each of \
+             the two keys says why now.",
+        ],
+    },
+    Entry {
         version: "0.8.35",
         date: "14/08/2026",
         body: &[

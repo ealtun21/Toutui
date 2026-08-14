@@ -346,10 +346,14 @@ async fn the_loop_of_the_playback(
                 // disk that says nothing takes this media of the queue away for
                 // ever, therefore the log names it: the queue of the disk holds
                 // every media of the account, and no view holds this fault.
-                if !queue::put_at_the_front(entry) {
+                //
+                // **A read and a write are two conditions** (T-206), and the
+                // line names the one that happened.
+                if let Err(fault) = queue::put_at_the_front(entry) {
                     error!(
-                        "[play] the program did not read the queue of its disk, therefore \"{}\" \
+                        "[play] the program did not {} the queue of its disk, therefore \"{}\" \
                          went out of the queue.",
+                        queue::the_word_of_the_work_of_the_disk(fault),
                         of_the_media
                     );
                 }
@@ -360,8 +364,22 @@ async fn the_loop_of_the_playback(
             return;
         }
 
-        let Some(entry) = queue::take_next() else {
-            return;
+        // **A disk that did not answer stops the queue** (T-202 and T-206): the
+        // media of the user stays on the disk, and no media goes away. The line
+        // of the log names the road, because no view of the user holds this
+        // fault (T-177).
+        let entry = match queue::take_next() {
+            Ok(Some(entry)) => entry,
+            Ok(None) => return,
+            Err(fault) => {
+                error!(
+                    "[play] the program did not {} the queue of its disk, therefore the queue \
+                     stops. Every media of the queue stays on the disk.",
+                    queue::the_word_of_the_work_of_the_disk(fault)
+                );
+
+                return;
+            }
         };
 
         info!(
