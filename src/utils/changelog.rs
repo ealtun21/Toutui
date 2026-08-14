@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.99",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A key of yours reached a collection or a playlist that you did not open.** \
+             The line of the view of the lists held a number of a line, therefore a list that \
+             a second window of your account removed moved the list below it under your line \
+             with no word at all: a user who read the media of \"A Test Playlist\" pressed X \
+             one time, and the key took a media out of \"Z Second Playlist\". A list that went \
+             away left that view with no title, no line, and a footer of five keys that did \
+             nothing. **Your line holds a list now**, and it follows that list. A list that \
+             goes away takes the line to nobody with a message that names it, the keys j and k \
+             give a line again, and the media of a list that went away shows you the \
+             collections and the playlists again.",
+        ],
+    },
+    Entry {
         version: "0.7.98",
         date: "14/08/2026",
         body: &[

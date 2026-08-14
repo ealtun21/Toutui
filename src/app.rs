@@ -2647,16 +2647,15 @@ impl App {
                         }
                     }
                     // A collection or a playlist gives its media.
-                    AppView::Lists => {
-                        if self
-                            .selected_list()
-                            .is_some_and(|list| !list.entries.is_empty())
-                        {
+                    AppView::Lists => match self.selected_list() {
+                        None => crate::logic::message::say("No list is selected."),
+                        Some(list) if !list.entries.is_empty() => {
                             self.list_state_list_entries.select(Some(0));
                             self.scroll_offset = 0;
                             self.view_state = AppView::ListEntries;
                         }
-                    }
+                        Some(_) => {}
+                    },
                     // A medium of a list is a book or an episode.
                     AppView::ListEntries => {
                         if let Some(entry) = self.selected_list_entry() {
@@ -3817,6 +3816,7 @@ impl App {
     /// number of its media.
     pub fn remove_the_list_of_the_line(&mut self) {
         let Some(list) = self.selected_list().cloned() else {
+            crate::logic::message::say("No list is selected.");
             return;
         };
 
@@ -3848,15 +3848,22 @@ impl App {
         let name = list.name.clone();
         let library = self.id_selected_lib.clone();
 
-        // The line of the list goes away, therefore the selection must stay
-        // inside the list of the lists. `take_the_lists` holds that rule for
-        // the media of a list, and this holds it for the lists themselves.
+        // The line of the list goes away, therefore the line of the user must
+        // hold a list that stays: the list below it, or the list above it when
+        // this one is the last. `take_the_lists` then follows that list to its
+        // place in the answer of the server, and it says nothing at all — the
+        // user pressed the key that removed this list, and the answer of that
+        // key names it already. See T-165.
         let count = self.lists.len();
 
         if let Some(line) = self.list_state_lists.selected() {
-            if line + 1 >= count && line > 0 {
-                self.list_state_lists.select(Some(line - 1));
-            }
+            let next = if line + 1 < count {
+                Some(line + 1)
+            } else {
+                line.checked_sub(1)
+            };
+
+            self.list_state_lists.select(next);
         }
 
         tokio::spawn(async move {
@@ -3880,6 +3887,7 @@ impl App {
     /// the two rules of the name here, and they are the rules of T-88.
     pub fn give_the_list_of_the_line_a_new_name(&mut self) {
         let Some(list) = self.selected_list().cloned() else {
+            crate::logic::message::say("No list is selected.");
             return;
         };
 
@@ -3955,6 +3963,7 @@ impl App {
     /// a list with no description is a list that the user made that way.
     pub fn give_the_list_of_the_line_a_new_description(&mut self) {
         let Some(list) = self.selected_list().cloned() else {
+            crate::logic::message::say("No list is selected.");
             return;
         };
 
@@ -4010,10 +4019,12 @@ impl App {
     /// Takes the media of the line out of the list that holds it. See T-84.
     pub fn take_the_media_out_of_the_list(&mut self) {
         let Some(list) = self.selected_list().cloned() else {
+            crate::logic::message::say("No list is selected.");
             return;
         };
 
         let Some(entry) = self.selected_list_entry().cloned() else {
+            crate::logic::message::say("No media is selected.");
             return;
         };
 
@@ -4129,12 +4140,56 @@ impl App {
     /// Takes the lists that the task asked for, if they came. See T-84.
     ///
     /// The render calls this at each frame.
+    ///
+    /// **The line of the user holds a list, and not a number of a line**: this
+    /// function is the one door of a change of `self.lists`, and a list that a
+    /// second program of the account removed moved the list below it under
+    /// that line with no word at all. See T-165, and the same rule of T-160,
+    /// of T-161, of T-162, and of T-163.
     pub fn take_the_lists(&mut self) {
         let Some(lists) = crate::logic::the_lists::take() else {
             return;
         };
 
+        let the_list_of_the_line = self
+            .selected_list()
+            .map(|list| (list.id.clone(), list.kind, list.name.clone()));
+
         self.lists = lists;
+
+        match crate::logic::the_lists::what_the_line_of_the_lists_holds(
+            the_list_of_the_line.as_ref().map(|(id, _, _)| id.as_str()),
+            &self.lists,
+        ) {
+            crate::logic::the_lists::TheLineOfTheLists::TheSameList(place) => {
+                self.list_state_lists.select(Some(place));
+            }
+            crate::logic::the_lists::TheLineOfTheLists::NoLine => {}
+            crate::logic::the_lists::TheLineOfTheLists::ThatListWentAway => {
+                let Some((_, kind, name)) = the_list_of_the_line else {
+                    return;
+                };
+
+                self.list_state_lists.select(None);
+                self.list_state_list_entries.select(None);
+
+                // A rule of the loop writes this message with no key of the
+                // user, therefore it belongs to the view of the lists and to
+                // no other view. See T-164.
+                let text = if matches!(self.view_state, AppView::ListEntries) {
+                    self.view_state = AppView::Lists;
+                    crate::logic::the_lists::the_text_of_the_media_of_a_list_that_went_away(
+                        kind, &name,
+                    )
+                } else {
+                    crate::logic::the_lists::the_text_of_the_list_that_went_away(kind, &name)
+                };
+
+                crate::logic::message::say_in(AppView::Lists, &text);
+
+                return;
+            }
+        }
 
         // The list of the line can hold fewer media than it held before, and
         // the selection must stay inside it. See T-41.
@@ -6737,21 +6792,37 @@ impl App {
                     }
                 }
             }
-            AppView::Lists => {
-                if let Some(selected) = self.list_state_lists.selected() {
+            AppView::Lists => match self.list_state_lists.selected() {
+                // The line holds nobody: the list of that line went away, and
+                // the text of T-165 says that this key selects one.
+                None => {
+                    if !self.lists.is_empty() {
+                        self.list_state_lists.select_first();
+                    }
+                }
+                Some(selected) => {
                     if selected + 1 < self.lists.len() {
                         self.list_state_lists.select_next();
                     } else {
                         self.list_state_lists.select_first();
                     }
                 }
-            }
+            },
             AppView::ListEntries => {
-                if let Some(selected) = self.list_state_list_entries.selected() {
-                    if selected + 1 < self.selected_list().map_or(0, |l| l.entries.len()) {
-                        self.list_state_list_entries.select_next();
-                    } else {
-                        self.list_state_list_entries.select_first();
+                let count = self.selected_list().map_or(0, |l| l.entries.len());
+
+                match self.list_state_list_entries.selected() {
+                    None => {
+                        if count > 0 {
+                            self.list_state_list_entries.select_first();
+                        }
+                    }
+                    Some(selected) => {
+                        if selected + 1 < count {
+                            self.list_state_list_entries.select_next();
+                        } else {
+                            self.list_state_list_entries.select_first();
+                        }
                     }
                 }
             }

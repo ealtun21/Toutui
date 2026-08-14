@@ -7629,6 +7629,108 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-165: the collection of a second window went away, and the key of the user reached a list that they did not open
+
+**The condition of this session, and the road named it**: "the lists (the
+collections and the playlists) of two windows" stood in the parts of the
+program that no measurement had reached. It is the shape that found a fault in
+fourteen sessions — **a state of one process that a second program cannot
+see** — and it holds **two forms of one cause**. **The key `X` of the view of
+the lists removes a whole collection or a whole playlist**, and every user of
+the server loses a collection.
+
+**The one door is `take_the_lists` of `src/app.rs`.** It is the one function
+that changes `self.lists`, the render calls it at each frame, and it held the
+rule of T-41 for the media of a list alone: it clamped
+`list_state_list_entries` to the number of the media, and it never asked
+whether the **list** of the line stayed. `selected_list()` reads
+`self.lists.get(self.list_state_lists.selected()?)` — **a number of a line**.
+
+#### The first form: the view became another list, and the key took its media
+
+The sandbox held three lists of the library `Books`: the collection `A Test
+Collection`, and the playlists `A Test Playlist` and `Z Second Playlist`. Two
+windows of `toutuitest`, and one `XDG_CONFIG_HOME` (the trap 89).
+
+| The moment | The window A | The window B |
+|---|---|---|
+| A presses `c`, `j`, and `l` | `A Test Playlist [4 items]`, and the cursor stands on the first media | — |
+| B presses `c`, `X`, and `X` | the same screen | `The collection "A Test Collection" is not on the server now.` |
+| **A presses `X`** | **`Z Second Playlist [2 items]`**, and the message names the media of `A Test Playlist` | — |
+| A presses `X` again | **`"The Test Chronicles Volume 3" is not in the playlist "Z Second Playlist" now.`** | — |
+
+**The user never opened `Z Second Playlist`**, and no message of the program
+said that the view changed. The first key was right (the rule of T-147: a key
+acts on the media of its own line), and the refresh that came with it moved
+every list one place up: the line 1 of the user then held the playlist that
+stood at the line 2.
+
+#### The second form: the view held no title, no line, and a footer of five keys
+
+The same two windows, and the window A stood in the media of `Z Second
+Playlist` — **the last list**. The window B removed that playlist.
+
+| The measurement | The screen of A |
+|---|---|
+| Before the key | `Z Second Playlist [1 item]`, and one line |
+| **The key `X`** | **no title, no line, and no text at all** |
+| The footer of that screen | `j/k: move  l: play  </>: the sequence  X: take it out  h: back` — **five keys that do nothing** (T-143) |
+| The message | `The server did not take the media out: The server does not have this item.` — the words name the item, and the playlist is the thing that went away |
+
+**The user stands in a view of no name**, and the one key that takes them out
+of it is `h`.
+
+#### The correction: the line holds a list, and not a number of a line
+
+This is the rule of T-147, of T-160, of T-161, of T-162, and of T-163 for a
+fifth view. `what_the_line_of_the_lists_holds` of `src/logic/the_lists.rs`
+reads the identity of the list of the line before the write of `self.lists`:
+
+- **The same list**: the line goes to the place of that list in the answer of
+  the server. The user chose that list, and not that number.
+- **That list went away**: the line goes to nobody, and the text names the list.
+  The keys `j` and `k` give a line again, and the text promises no other key
+  (T-118 and T-143).
+- **A user who stands in the media of a list that went away** gets the view of
+  the lists again: that view holds nothing at all without its list.
+
+**The message belongs to the view of the lists, and `say_in` writes it**
+(T-164): the rule runs in the render with no key of the user, and that user can
+stand anywhere. The answer of their key stands above it, and the sentence of the
+view comes after those six seconds — both sentences reach the user.
+
+**The key of this window that removes a list says nothing of this rule, and
+that is a decision.** `remove_the_list_of_the_line` moves the line to the list
+below the one that goes away, or to the list above it when that one is the
+last: `take_the_lists` then follows a list that stays, and the answer of the
+key names the list that went away already. A second message of the same fact
+would say the same thing two times.
+
+**The keys of a line of nobody say one sentence now** (T-79). The keys `X`,
+`r`, `D`, and `l` of the view of the lists returned with no word at all, and
+they say `No list is selected.`; the key `X` of the media of a list says
+`No media is selected.` **The key `j` gave no line at all** for a line of
+nobody — `if let Some(selected)` — therefore the text of the correction
+promised a key that the program did not hold: the key gives the first line now.
+
+#### The measurements
+
+| The measurement | The answer |
+|---|---|
+| **The key `X` of A, after B removed the collection of the line above** | **one fault** (T-165): the view became `Z Second Playlist` with no word, and the next key took a media out of it |
+| The same condition, after the correction | `A Test Playlist [2 items]`, and the line stays on the media of the user |
+| **The key `X` of A, after B removed the list that A opened** | **one fault**: no title, no line, and a footer of five keys that do nothing |
+| The same condition, after the correction | the view of the lists, a line of nobody, and `The playlist "A Test Playlist" is not on the server now. This view shows the collections and the playlists again.` |
+| The sequence of the two sentences | the answer of the key for six seconds, and the sentence of the view after it (T-164) |
+| The key `j` after it | **one fault of the words** before the correction: the key gave no line, and the text promised it. The key gives the first line after it |
+| The key `X` of B on the list of its own line | **no fault**: the line goes to the list that follows, and B reads one sentence |
+| **`cargo test`, the command of CI** | see the handover |
+
+**The test of the caller needs an application of a server** — the rule of
+T-131, of T-159, of T-160, of T-161, of T-162, and of T-163 — therefore the
+test holds the rule:
+`what_the_line_of_the_lists_holds` **fails** with the identity taken out of it.
+
 ### T-164: the message of a view that the user was not in took the row of the message, and the sentence of their own view never came
 
 **The condition of this session, and T-162 named it and did not close it**: "a
