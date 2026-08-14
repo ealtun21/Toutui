@@ -4,8 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.45.** The items T-214 and T-215 belong to this
-session. The
+**The newest release is v0.8.47.** The items T-216 and T-217 belong to this
+session. The items T-214 and T-215 belong to the session before it. The
 item T-213 belongs to the session before it. The
 item T-212 belongs to the session before it. The
 item T-211 belongs to the session before it. The
@@ -55,11 +55,134 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.45**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.47**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1196 of 1196** in 2.5 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1222 of 1222** with the sandbox up, and
+**1198 of 1198** in 2.7 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1224 of 1224** with the sandbox up, and
 `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in two runs.
+
+## The session of the forty-seventh turn of 2026-08-14: the file of the disk that is not the file of the row
+
+**Two releases: v0.8.46 and v0.8.47**, and two items: T-216 of a file of a
+download that lost its bytes, and T-217 of the label of a media whose copy of the
+disk is not whole. **Each of them came of the "leaves open" of the item before
+it**, and the two of them cost one `truncate` and no harness at all.
+
+### T-216: a file that lost its bytes is no file of the download
+
+**T-215 asks one question of the file system: does the path stand?** A file that
+lost bytes stands. The condition is one command:
+
+```bash
+truncate -s 80000 "$ABS/toutui-data/toutui/downloads/toutuitest/<the id>/002 - 02 - Part 2.mp3"
+```
+
+`ffmpeg -i <that file> -f null -` says `time=00:00:09.95` for a row that says 20
+seconds. The key `l` of `Multi File Test Book` of the sandbox, with the server up:
+
+```text
+22:34:29 [INFO] [play] the download ac365248-… gives 3 of 3 track(s) from the disk
+22:34:30 [INFO] [follow_playback] the playback stopped at 60 seconds, finished=true
+```
+
+```text
+{'currentTime': 60, 'progress': 1, 'isFinished': True, 'duration': 60}
+```
+
+**The user heard 50 seconds of a book of 60, no word came, and the program told
+the server that the user finished it.** The offline mode wrote the same mark of
+the end in `pending_progress`. **A value that the program sends to the server
+outlives the program that sent it** (T-193).
+
+**The correction.** The row of a file holds the size of the file of the server
+(T-181), and the program writes a file of a download whole or it writes no file at
+all (T-186): `the_file_stands_on_the_disk` compares the two numbers now, and
+`get_download_files` gives the column. **A size of 0 is a size that the server did
+not give** (T-179), therefore a row of that size keeps its file. The measurement
+of v0.8.46 of the same book gave "0 of 3 track(s) from the disk" and 60 seconds of
+60 of the server.
+
+### T-217: the label of a media whose copy of the disk is not whole
+
+**The item T-216 named this road in its "leaves open"**, and the session took it
+in the same turn. The corrections of T-215 and of T-216 stand in the **playback**,
+and the line of the user kept the rows of the database:
+
+```text
+➤ Multi File Test Book
+Author: Test Author - Year: N/A - [Downloaded]
+```
+
+```text
+22:39:01 [INFO] [play] the download ac365248-… gives 0 of 3 track(s) from the disk
+```
+
+**The program said that the media stands on the disk, and it read the book of the
+server.** The offline mode of that media plays nothing at all.
+
+**The correction.** The box of the copies of the disk holds four states now
+(`TheCopyOfTheDisk`), and `read_the_disk` asks the file system for every file of
+every download of the account: one statement of the database and one `metadata` of
+each file. **That work stands outside the render** (T-204). The line says
+`[the disk does not hold every file]`, and the sandbox of nine downloads and
+eleven files wrote one line of the log and kept the eight other labels.
+
+### The traps of this session
+
+**The trap 192: the column `token` of the table `users` holds no plain text.** A
+`sqlite3 "UPDATE users SET token='…'"` of a token of a fresh login gives a program
+that says `Failed to decrypt the token.`, and `remove_the_account` then takes the
+row of that account away: the login screen comes, and the rows of the downloads
+stay. **A token of the sandbox that a session must renew belongs to the login
+screen of the program** (the trap 135 gives the road), and the address of that
+screen is `http://localhost:13399`.
+
+**The trap 193: a `Bearer` token of the row of the database answers 401 by
+itself.** The value is the encrypted form, therefore a `curl` of it says nothing
+of the account of the program: take a token of `POST /login` for the requests of
+`curl`, and leave the row of the database alone (the trap 192).
+
+**The trap 194: the login screen of `tmux` needs more than 300 milliseconds
+between the text and the `Enter`.** A sleep of 0.3 seconds gave a field that took
+the address, the username, and the password one after the other in **one** line,
+and the program then said `The port "" is not a number.` for a host of
+`localhost:13399http:`. A sleep of 0.6 seconds gives one field of each step.
+
+**The trap 195: the key of the next library starts at the library of the row of
+the account.** A measurement that needs the library `Books` therefore reads the
+header (`📖 Books (book)`) and it presses `S-Tab` until that name comes, and the
+key of the search reaches no library while a view of a search stands: the key `h`
+comes first.
+
+### What this session leaves open
+
+**The bytes of a file that keeps its size are not measured.** The rows hold the
+`ino` and the size, and T-216 reads the size alone: a file whose bytes changed and
+whose size stands gives the road of the disk. A sum of the bytes of every file at
+each playback is a read of the whole disk, therefore that question needs a
+measurement of the cost before a correction.
+
+**The write of the rows of a download is no transaction.**
+`the_rows_of_the_download` writes the row of the media, then one row of each file,
+then the removal of the rows of the files that the book no longer holds (T-187),
+and each of them stands on a connection of its own. **This is the fourth session
+that names it.**
+
+**The offline playback of a media whose copy of the disk is not whole plays
+nothing.** The sentence of it is true, and the user hears no second of the files
+that stand.
+
+**The label of a media that a second program of the account downloads now is the
+label of a copy that is not whole** (T-217): the `.part` of that download holds
+fewer bytes than the row. The question is whether that line belongs to the bar of
+the downloads.
+
+**The key `X` and the key `D` of a book of a series of the view of a search do
+nothing** (the trap 188), and no item holds it.
+
+**The calls of the database of the loop of the playback stand on a thread of the
+runtime**, and the freeze of the loop of the screen stays: it is the twelfth
+session that names it.
 
 ## The session of the forty-sixth turn of 2026-08-14: the rows of a download and the files of the disk
 
@@ -6695,55 +6818,46 @@ answers slowly while it writes. Two answers to measure:
 ## The prompt for the next session
 
 **This session took the last paragraph of the newest item, and then the last
-paragraph of its own item**: T-213 named the removals of the rows of a download,
-and T-214 named the row of a file that no file of the disk holds. The items are
-**T-214** and **T-215**, and they hold two releases, v0.8.44 and v0.8.45.
+paragraph of its own item**: T-215 named a file of a download that changed, and
+T-216 named the label of the line of such a media. The items are **T-216** and
+**T-217**, and they hold two releases, v0.8.46 and v0.8.47.
 
-**A row of the disk that names a thing of the disk is a value of two machines**
-(T-215). One `mv` of one file of a download of the sandbox gave the whole item: a
-book of three files played 20 seconds of 60 with no word at all, and the offline
-mode said that the media plays from the disk and played nothing. **The cheapest
-item of a session can come of the item of that same session.**
+**A correction closes one road of a fault, and not the fault** (the rule of
+T-196). T-215 gave the callers of `download_files` the question "does the path
+stand?", and a file that lost its bytes stands: one `truncate` of one file of the
+sandbox therefore gave the same fault of the user again, and it gave a worse one —
+the program played 50 seconds of a book of 60 and it told the **server** that the
+user finished the book. Four things are worth the room:
 
-**A function of two statements is a function of two halves.** T-213 asked which
-column of a row a condition can take away alone; this one asked it of a **table**:
-`delete_download` held two statements of `DELETE` of two tables and **no
-transaction**, therefore a disk that refused the second one kept the first one.
-Four things are worth the room:
+1. **A row of the disk that names a thing of the disk holds more than one
+   question** (T-215 and T-216). "Does the path stand?" is the first one, and
+   "does that thing hold what the row says?" is the second. The row of a file
+   holds the size of the file of the server (T-181), and the program writes a
+   file of a download whole or it writes no file at all (T-186): those two rules
+   make the size of the row the truth of the file of the disk.
+2. **A correction of the work of the program is no correction of the words of
+   the screen** (T-217). The playback took the road of the server, and the line
+   of the user said `[Downloaded]` for that same media in the same second: **ask
+   of every correction which line of the screen reads the value that it
+   corrected.**
+3. **A default of a value that the server did not give must stay a default**
+   (T-179). A size of 0 is a size that the server did not give, therefore a row
+   of that size keeps its file: a check of a value that the program does not have
+   takes the disk of the user away.
+4. **A condition of one command is worth more than a harness of Python.** The
+   two items of this session cost one `truncate`, one `cp` back, and no proxy at
+   all (the rule of T-199 and of T-213).
 
-1. **A trigger of SQLite fails one statement of one table** (T-214). The
-   `chmod 444` of T-206 and the lock of T-199 stop every statement of a function
-   together, and the `ALTER TABLE` of T-203 takes the table away from every
-   function of the program: a trigger of `BEFORE DELETE ON <a table>` fails one
-   statement of one function, and every other read and write answers. **Ask of
-   every function of the database: how many statements does it hold, and do they
-   stand in one transaction?**
-2. **A read that decides the work of a key reads one table of the two** (T-214).
-   `remove_download` reads the row of `downloads` to find its work, therefore a
-   half state made the key `X` say that the media holds no local copy while the
-   row of its file stood on the disk for ever. **The program contradicted itself
-   in two seconds** (the shape of T-206).
-3. **A row of the disk that names a file of the disk is a value of two
-   machines** (T-214). `select_sources` reads `download_files` and it asks no
-   file system, therefore a row that stayed took the road of the disk for a file
-   that went away, and the words of that road named a decoder that met no file
-   (T-91).
-4. **A rollback is a write, and a write that no caller reads said nothing**
-   (T-207 and T-214). The rollback of the rows of a download held `let _ =`: a
-   disk that refused it left a media of the offline mode with the label
-   `[Downloaded]` and no file at all.
-
-**The condition needs no proxy of Python, and no moment.** A trigger of SQLite
-gives the disk that refuses one statement of one table, and one command gives the
-disk of the start back. **The trigger stays after the measurement** (the trap 179
-and the trap 183), therefore the `DROP TRIGGER` belongs in the same command as the
-measurement.
+**The measurement of a value that reaches the server is worth more than the
+measurement of a word of the screen** (T-193). The book of this session stands
+`isFinished` at the sandbox after 50 seconds of 60, and every client of that
+account then holds it as read.
 
 This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.45**; `Cargo.toml` is at 0.8.45. The
+> AlbanDAVID/Toutui. Newest release **v0.8.47**; `Cargo.toml` is at 0.8.47. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -6752,7 +6866,7 @@ This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-215 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-217 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -7181,7 +7295,21 @@ This prompt names the state of the program on 2026-08-14.
 >
 > **The login screen needs a `XDG_CONFIG_HOME` that holds no account** (the trap
 > 135): make a directory of nothing, give it and a `XDG_DATA_HOME` of nothing to
-> the program, and write the address of the proxy in the first field.
+> the program, and write the address of the proxy in the first field. **The
+> column `token` of the table `users` holds no plain text** (the trap 192): a
+> `sqlite3` of a token of a fresh login gives `Failed to decrypt the token.`, and
+> the program then removes the row of that account — a token of the sandbox that a
+> session must renew belongs to the **login screen** of the program, with the
+> address `http://localhost:13399`, the account `toutuitest`, and the password
+> `toutuitest`. **A `Bearer` of the row of the database answers 401** (the trap
+> 193): take a token of `POST /login` for `curl`. **The login screen of `tmux`
+> needs more than 300 milliseconds between the text and the `Enter`** (the trap
+> 194): a shorter sleep gives one field of the address, of the account, and of the
+> password together, and the program then says `The port "" is not a number.`
+> **The key of the next library starts at the library of the row of the account**
+> (the trap 195): read the header (`📖 Books (book)`) and press `S-Tab` until that
+> name comes, and press `h` first, because a view of a search takes no key of a
+> library.
 > **`gdb` and `eu-stack` say `Operation not permitted` for a program that they
 > did not start**, therefore a program that stands needs
 > `strace -f -tt -o <file>` inside tmux (the trap 136). **A mark of a hook of a
@@ -7203,8 +7331,8 @@ This prompt names the state of the program on 2026-08-14.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1187 tests in 2.4 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1213 of 1213** with the sandbox up, in about 21 seconds. **Run that
+> Baseline: **1198 tests in 2.7 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1224 of 1224** with the sandbox up, in about 18 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -7238,12 +7366,48 @@ This prompt names the state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in fifty-nine sessions of sixty. **The session of the
->    forty-sixth turn took the last paragraph of the newest item, and then the last
->    paragraph of its own item** (T-214 and T-215): a function of two statements of
->    two tables is a function of two halves, and a row of the files of a download
->    names a file of the disk that goes away outside this program. **The cheapest
+>    this shape found a fault in sixty sessions of sixty-one. **The session of the
+>    forty-seventh turn took the last paragraph of the newest item, and then the
+>    last paragraph of its own item** (T-216 and T-217): a correction closes one
+>    road of a fault and not the fault (the rule of T-196), and a correction of the
+>    work of the program is no correction of the line of the screen. **The cheapest
 >    item of a session can come of the item of that same session.**
+>
+>    `the_files_that_stand_on_the_disk` asked "does the path stand?" (T-215), and a
+>    file that lost its bytes stands: one `truncate` of one file of
+>    `Multi File Test Book` of the sandbox gave a playback of 50 seconds of a book
+>    of 60 with no word at all, and the program then told the **server** that the
+>    user finished that book (T-216). The line of that same media said
+>    `[Downloaded]` while the log of the same second said "0 of 3 track(s) from the
+>    disk" (T-217).
+>    - **A row of the disk that names a thing of the disk holds more than one
+>      question** (T-216). "Does the path stand?" is the first one, and "does that
+>      thing hold what the row says?" is the second. The row of a file holds the
+>      size of the file of the server (T-181), and the program writes a file of a
+>      download whole or it writes no file at all (T-186). **Ask of every row of
+>      the disk: which value of the thing that it names can I compare?**
+>    - **A correction of the work of the program is no correction of the words of
+>      the screen** (T-217). **Ask of every correction: which line of the screen
+>      reads the value that this correction changed?**
+>    - **A default of a value that the server did not give must stay a default**
+>      (T-179 and T-216): a size of 0 keeps its file, because a check of a value
+>      that the program does not have takes the disk of the user away.
+>    - **The bytes of a file that keeps its size are not measured** (T-216, and it
+>      stays open). A sum of the bytes of every file at each playback is a read of
+>      the whole disk, therefore that question needs a measurement of the cost
+>      before a correction.
+>    - **The label of a media that a second program of the account downloads now
+>      is the label of a copy that is not whole** (T-217, and it stays open): the
+>      `.part` of that download holds fewer bytes than the row, and the question is
+>      whether that line belongs to the bar of the downloads.
+>    - **The offline playback of a media whose copy of the disk is not whole plays
+>      nothing** (T-215, and it stays open). The sentence of it is true, and the
+>      user hears no second of the files that stand.
+>
+>    **The session of the forty-sixth turn** took the same road before it (T-214
+>    and T-215): a function of two statements of two tables is a function of two
+>    halves, and a row of the files of a download names a file of the disk that
+>    goes away outside this program.
 >
 >    `delete_download` held no transaction (T-214), therefore a disk that refused
 >    the removal of the rows of the files of a download kept the row of its media
@@ -7269,14 +7433,10 @@ This prompt names the state of the program on 2026-08-14.
 >      whole condition. **Ask of every row of the disk: which thing of the machine
 >      does this row name, and does that thing still stand?**
 >    - **A file of a download that changed is not a file that went away** (T-215,
->      and it stays open). The rows hold the `ino` and the size of each file (T-181
->      and T-187), and T-215 asks one question of the file system: does the path
->      stand?
+>      and T-216 closed it for the size of the row).
 >    - **The label `[Downloaded]` of a media whose copy of the disk is not whole
->      says nothing of that** (T-215, and it stays open). The label comes of the row
->      of `downloads` and of the box of T-204, and a read of the file system at each
->      frame is no answer (T-203 and T-204): that question belongs to the box of the
->      copies of the disk.
+>      said nothing of that** (T-215, and T-217 closed it): the box of the copies
+>      of the disk asks the file system now, and it stands outside the render.
 >    - **A rollback is a write** (T-207 and T-214). The rollback of the rows of a
 >      download held `let _ =`: a disk that refused it left a media of the offline
 >      mode with the label `[Downloaded]` and no file of the disk at all, with no
@@ -8059,7 +8219,14 @@ This prompt names the state of the program on 2026-08-14.
 > download names a file that goes away outside this program, therefore the playback
 > asks the disk at the moment of the use, a media of a copy that is not whole takes
 > the road of the server, and the offline mode of it says that the disk does not
-> hold every file of that media** (T-215).
+> hold every file of that media** (T-215), and **a file of the disk that is not the
+> file of its row is no file of the download: the size of the row is the size of
+> the file of the server, a size of 0 is a size that the server did not give and
+> that file then stands, and a media of such a file takes the road of the server**
+> (T-216), and **the label of a media whose copy of the disk is not whole says what
+> the disk holds: the box of the copies of the disk asks the file system at the
+> start, at the key `R`, at the end of a download, and at the key `X`, and a
+> download with no row of a file is a copy that is not whole** (T-217).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
