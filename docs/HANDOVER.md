@@ -1442,19 +1442,19 @@ episodes for a podcast that is missing **54**, therefore it stays outside.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.89` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.94` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 1045 of 1045 in 2.3 s, and cargo nextest run --run-ignored all gives 1070
-    # of 1070 with the sandbox up, in 16.6 s of wall clock: one test waits 16 s
+    # 1059 of 1059 in 2.4 s, and cargo nextest run --run-ignored all gives 1084
+    # of 1084 with the sandbox up, in 16.6 s of wall clock: one test waits 16 s
     # for the time limit of the send of a book (T-119), and one waits 15 s for
     # the time limit of a request
 ALSA_CONFIG_PATH=<the same file> nice -n 19 ionice -c 3 cargo test -j 16 --no-fail-fast
-    # **CI runs this command**, and it is not the same run as nextest: 1045 of
-    # 1045. nextest gives each test a process of its own, therefore it
+    # **CI runs this command**, and it is not the same run as nextest: it passed
+    # three times of three. nextest gives each test a process of its own, therefore it
     # hides a test that shares a database with another test of its binary. Six
     # tests of three binaries failed on CI while nextest passed (T-144), and
     # `--no-fail-fast` says every binary that fails.
@@ -3190,14 +3190,14 @@ answers slowly while it writes. Two answers to measure:
 ## The prompt for the next session
 
 **No condition of the road stayed, therefore this session named one of its
-own**: a window of an account that stands open while a second window logs out of
-that account. **It held two faults** (T-158 and T-159), and the first of them
-stops the whole program. **The next session must name a condition of its own
-too.** This prompt names the state of the program on 2026-08-14.
+own**: a line of the shelf Continue Listening that goes away while the cursor of
+the user stands on it. **It held one fault** (T-160), and one window makes that
+fault as well as two. **The next session must name a condition of its own too.**
+This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.7.93**; `Cargo.toml` is at 0.7.93. The
+> AlbanDAVID/Toutui. Newest release **v0.7.94**; `Cargo.toml` is at 0.7.94. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -3206,7 +3206,7 @@ too.** This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-159 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-160 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -3247,17 +3247,20 @@ too.** This prompt names the state of the program on 2026-08-14.
 > login screen of a second window (T-155). **The key `l` of that view needs two
 > presses**, and a window whose account went away gives the login screen: the
 > account of the sandbox comes back with the address, `toutuitest`, and
-> `toutuitest` (T-158).
+> `toutuitest` (T-158). **`PATCH /api/me/progress/:id` with
+> `{"isFinished": false}` writes `currentTime: 0`**, therefore a measurement
+> that gives a media a place again needs that request first and the place after
+> it (section 15 of `docs/TEST-SERVER.md`, and T-160).
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-160 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-161 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1056 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1081 of 1081** with the sandbox up, in 16.6 seconds. **Run that
+> Baseline: **1059 tests in 2.4 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1084 of 1084** with the sandbox up, in 16.6 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A test must not call a function that may never come back.** The wait of the
@@ -3283,21 +3286,22 @@ too.** This prompt names the state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **Name a condition of your own, and measure it.** Every new condition found
->    a fault in nineteen sessions of twenty. **No condition of the road stays**:
->    the newest session named one of its own — a window that stands open while a
->    second window logs out of its account — and it held two faults (T-158 and
->    T-159).
+>    a fault in twenty sessions of twenty-one. **No condition of the road
+>    stays**: the newest session named one of its own — a line of the Home view
+>    that goes away while the cursor of the user stands on it — and it held one
+>    fault (T-160).
 >    - **The three shapes that found a fault before:** **a state of one process
 >      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153,
->      T-154, T-155, T-156, T-158, T-159), **a program that dies in the middle of
->      work** (T-145, T-152), and **a server that does not answer** (T-146,
->      T-149, T-152, T-156).
+>      T-154, T-155, T-156, T-158, T-159, T-160), **a program that dies in the
+>      middle of work** (T-145, T-152), and **a server that does not answer**
+>      (T-146, T-149, T-152, T-156).
 >    - **The parts of the program that no such measurement has reached**: the
 >      search of a library that a second window changes, **the key `S` of the
 >      library of the start with two windows that both hold their account**, the
->      bookmarks and the lists of two windows, **the key `M` of a media that the
->      other window plays**, and **a key of a view that the user presses two
->      times** — that shape gave T-154, and the key `D` is one key of many.
+>      bookmarks and the lists of two windows, and **a line of a view that is
+>      not the Home view and that goes away under the cursor** — the queue, the
+>      downloads, and the episodes of a podcast each hold a list that a second
+>      window changes, and the rule of T-160 reaches the Home view alone.
 >    - **The shape of T-155 is a sweep that this session began and did not
 >      finish**: a write of a state that names a row of the database. T-159 gave
 >      the number of the rows to the caller of the library of the account, and
@@ -3350,7 +3354,9 @@ too.** This prompt names the state of the program on 2026-08-14.
 > playback of an account that stands in no row of the disk starts at once, and no
 > wait of a playback stands longer than 30 seconds** (T-158), and **the program
 > reads the accounts of the disk after every key, and a program whose account
-> stands in no row starts again** (T-159).
+> stands in no row starts again** (T-159), and **a line of the Home view whose
+> media leaves the shelf Continue Listening goes to nobody, and the message
+> names that media** (T-160).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
