@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.26.** The item T-196 belongs to this session. The
+**The newest release is v0.8.27.** The items T-196 and T-197 belong to this
+session. The
 item T-195 belongs to the session before it, and the
 item T-194 belongs to the session before that one, and the
 item T-193 to the session before that one, and the
@@ -40,9 +41,9 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-## The session of the thirty-third turn of 2026-08-14: the book of the reader that came in part
+## The session of the thirty-third turn of 2026-08-14: the book of the reader that came in part, and the thread that died
 
-**One release: v0.8.26.** The session before this one closed the stream of the
+**Two releases: v0.8.26 and v0.8.27.** The session before this one closed the stream of the
 audio (T-195), and it named the panic of the thread of the playback and the keys
 `F`, `b`, `n`, `m`, `r`, `D`, and `X` against a server of a fault as the shapes
 that stay. **This session took a different road: the harness of T-193, on the
@@ -50,6 +51,7 @@ one road of a body that a measurement had not walked.**
 
 | Item | What | Where |
 |---|---|---|
+| T-197 | **A thread that died left the user with a terminal that takes no key.** The hook of a panic gives the terminal back and it then comes back to a program that lives: the render wrote over the words of the panic, the key `Q` did nothing because the raw mode was gone, the audio played on, and the place of the user stayed at 0 on the disk and on the server for the whole book. **The log held no line of the panic at all.** The program stops now, it says that it stopped, and the log holds the fault | `src/utils/exit_app.rs` |
 | T-196 | **A book of the reader that came in part became a book that no reader opens.** A body with no `Content-Length` and no `Transfer-Encoding` ends at the close of the connection, therefore `reqwest` reads a **clean** end of it: `download_to_file` counted no byte, and 20000 bytes of an EPUB of 136761 bytes took the name of the whole book. The screen said "This file is not an EPUB.", and the key `e` after it asked the server for nothing: **the book of the user is broken for every program of that account until the key `X`.** That is the fault of the user of T-186, word for word | `src/api/client/mod.rs`, `src/api/library_items/the_ebooks.rs`, `src/logic/reader/session.rs` |
 
 The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-196. Four things are
@@ -79,6 +81,28 @@ worth the room here:
    answer does not name, or a server of another version — gives the road of
    T-186 back, and the user still gets their book.
 
+**The second item of this session took the shape that T-174 named and that no
+session reached: a panic of a thread while a view of the application stands.**
+The condition needs a build of its own (the trap 147, from the other side): one
+`panic!` in the loop of the playback, the binary of that build in the
+scratchpad, and the source back at once. Three things are worth the room:
+
+1. **A hook of a panic is written for the thread that dies with the program.**
+   `restore()` and the hook before it are the correct work for the main thread,
+   and a thread of a task then leaves a program that lives with a terminal of a
+   shell. **Ask of every piece of the program that reacts to a fault: which
+   thread does this run on, and what stands after it?**
+2. **A program that lives with one thread fewer says that it does the work of
+   that thread.** The loop of the playback writes the place of the user, and the
+   screen of the player kept its count for eight hours of a book whose place
+   never left 0. **The decision is that the program stops**, and the user starts
+   it again: the row of the disk then holds the place of the last sync (T-140
+   and T-145).
+3. **A word for the user that a second writer covers is no word at all.** The
+   panic wrote to the terminal, and the render drew over it at the next frame.
+   The log holds the fault now, because the terminal of the user goes away with
+   the next command of their shell.
+
 **The condition that this session leaves open.** **The cover of a media takes
 the same road of a body.** `src/ui/cover.rs` holds a store of the answers of the
 server (T-185), and a picture that came in part is a picture that no decoder
@@ -87,6 +111,21 @@ reads: the store holds that fault until the key `R`. The cover has no
 must come from the head of its own answer. The other shapes that stay are the
 panic of the thread of the playback (the shape of T-174) and the keys `F`, `b`,
 `n`, `m`, `r`, `D`, and `X` against a server of a fault.
+
+### The traps of this session
+
+**The trap 154: the shell of a command of `tmux new-session` is the login shell
+of the user.** That shell is `fish` on this machine, therefore `$?` after the
+program is not the status of it: a measurement of the status of an exit read
+`THE_PROGRAM_STOPPED_WITH_0` for a program that stopped with 1. The command of
+such a measurement needs `/bin/bash -c '…'` around it.
+
+**The trap 155: a build of a condition needs the right loop.**
+`src/logic/playback/mod.rs` holds two loops that write `own_position = position`,
+and the first one is the loop of the offline playback. A `panic!` in that first
+loop gave a measurement of an online playback that ran to its end with no fault
+at all, and the string of the panic stood in the binary. **A `grep -n` of the
+line of an injection says how many of them the file holds.**
 
 ### The measurement that found no fault
 
@@ -5222,11 +5261,16 @@ therefore the client reads a clean end of a part of a book: the program kept
 "This file is not an EPUB.", and it asked the server for nothing at every visit
 after it (T-196). **That is the fault of the user of T-186 again, by the road
 that the correction of T-186 does not hold.** The road below names the
-conditions that stay. This prompt names the state of the program on 2026-08-14.
+conditions that stay. **The second item of the session took the shape that
+T-174 named and that no session had reached: a panic of a thread while a view
+stands.** The hook of the panic gave the terminal back and it came back to a
+program that lives: the render wrote over the words of the fault, the key `Q`
+did nothing, the audio played on, and the place of the user stayed at 0 for
+eight hours (T-197). This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.26**; `Cargo.toml` is at 0.8.26. The
+> AlbanDAVID/Toutui. Newest release **v0.8.27**; `Cargo.toml` is at 0.8.27. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -5235,7 +5279,7 @@ conditions that stay. This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-196 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-197 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -5516,7 +5560,12 @@ conditions that stay. This prompt names the state of the program on 2026-08-14.
 > `Ok(0) if position < size && false => unreachable!()`, and the corrected file
 > stands in the scratchpad for the road back. **No `git stash` and no
 > `git checkout` of a file**: the two binaries then stand side by side, and one
-> harness drives each of them. **A place of the sandbox that a measurement
+> harness drives each of them. **A condition that no server and no key can make
+> needs a build of the condition** (T-197): one `panic!` in the loop of the
+> playback, `cp target/debug/toutui` to the scratchpad, and the source back at
+> once. **A `grep -n` of the line of the injection says how many of them the file
+> holds** (the trap 155): `src/logic/playback/mod.rs` holds two loops of
+> `own_position = position`, and the first one is the offline playback. **A place of the sandbox that a measurement
 > changed is a measurement that lies the second time** (the trap 148): a book
 > that stands at 900 seconds gives the reader a range inside the file, and the
 > truncation then meets a different part of the book —
@@ -5527,7 +5576,11 @@ conditions that stay. This prompt names the state of the program on 2026-08-14.
 >
 > **The loop of a measurement belongs in a file of `bash`**
 > (the trap 143 and the trap 152): the shell of the `Bash` tool of this harness is
-> `zsh`, therefore it reads no `for ... end` of `fish` and no `==` of a test. **The log of
+> `zsh`, therefore it reads no `for ... end` of `fish` and no `==` of a test.
+> **The shell of a command of `tmux new-session` is the login shell of the user**
+> (the trap 154), and that shell is `fish`: `$?` there is not the status of the
+> program, therefore a measurement of the status of an exit needs
+> `/bin/bash -c '…'` around the command. **The log of
 > the proxy counts the requests** (the trap 144): `grep -c` of a path before a key
 > and after it says whether that key asked the server again.
 >
@@ -5559,8 +5612,8 @@ conditions that stay. This prompt names the state of the program on 2026-08-14.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1174 tests in 2.4 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1199 of 1199** with the sandbox up, in about 19 seconds. **Run that
+> Baseline: **1175 tests in 2.4 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1200 of 1200** with the sandbox up, in about 19 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -5595,9 +5648,26 @@ conditions that stay. This prompt names the state of the program on 2026-08-14.
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in forty-six sessions of forty-seven. **The session
->    of the thirty-third turn took the harness of an old item to a new reader of
->    a body: the ebook of the key `e`.** It found one fault, and that fault gave
->    the user a book that no reader opens, for ever (T-196).
+>    of the thirty-third turn took two: the harness of an old item on a new
+>    reader of a body (the ebook of the key `e`, T-196), and the shape that T-174
+>    named and that no session had reached (a panic of a thread, T-197).** Each
+>    of them found one fault.
+>    - **A shape that an old item named and that no session reached is an item
+>      that waits** (T-197). T-174 wrote "a panic of a thread while a view of the
+>      application stands" in the road of eight sessions, and no one of them made
+>      such a panic: **the condition needs a build of its own, and no server and
+>      no key can make it.** One `panic!` in the loop of the playback gave the
+>      whole fault in one run.
+>    - **A piece of the program that reacts to a fault is written for one
+>      thread** (T-197). The hook of the panic gives the terminal back and it
+>      calls the hook before it, and that is the work of the main thread; a
+>      thread of a task then leaves a program that lives with a terminal of a
+>      shell. **Ask of every such piece: which thread does this run on, and what
+>      stands after it?**
+>    - **A word for the user that a second writer covers is no word at all**
+>      (T-197). The panic wrote to the terminal, and the render drew over it at
+>      the next frame. **A word of a fault that must live longer than one frame
+>      belongs in the log too.**
 >    - **A harness that found a fault once is a question for every part of the
 >      program that reads the same kind of answer** (T-196).
 >      `a_body_that_ends_early_and_looks_whole.py` came of T-193 for the file of
@@ -5760,8 +5830,11 @@ conditions that stay. This prompt names the state of the program on 2026-08-14.
 >      reach.** **The ebook of the reader is closed for the three roads of a
 >      body**: a status of a fault (T-52), a body that stops with a head that
 >      names its length (T-186), and a body that ends early and that looks whole
->      (T-196). **The cover of a media holds that same road and no measurement
->      of it**: `src/ui/cover.rs` keeps the answer of the server in a store until
+>      (T-196). **The shape of T-174 is closed for a panic of a thread**
+>      (T-197): the program stops, and the user reads the fault. **A thread that
+>      comes to its end with no panic is another condition**, and no loop of the
+>      program holds such a road today. **The cover of a media holds that same
+>      road and no measurement of it**: `src/ui/cover.rs` keeps the answer of the server in a store until
 >      the key `R` (T-185), a picture that came in part is a picture that no
 >      decoder reads, and no answer of the server names the size of that file —
 >      the head of the answer of the cover is the one truth of its length.
@@ -6010,7 +6083,11 @@ conditions that stay. This prompt names the state of the program on 2026-08-14.
 > disk: the size of the file of the answer of the item is the truth of the length
 > of a body that names none, a size of 0 is a size that the server did not give
 > and the program then counts no byte, and the request of that size stands before
-> the download** (T-196).
+> the download** (T-196), and **a panic of a thread that is not the main thread
+> stops the program: a program that lost a thread says that it does the work of
+> that thread, the hook writes the fault in the log because the terminal of the
+> user goes away with the next command of the shell, and a panic that a caller
+> expects stops nothing** (T-197).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

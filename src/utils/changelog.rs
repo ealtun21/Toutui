@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.27",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A part of the program that had an internal fault left you with \
+             a terminal that takes no key.** The program gave the terminal back \
+             to your shell and it then continued: the screen wrote over the \
+             words of the fault, the keys did nothing, and the key `Q` did not \
+             stop the program. A measurement with a fault in the loop of a \
+             playback: the sound played on, and your place stayed at the start \
+             of the book on your server for the whole book. The program stops \
+             now, it says that it stopped, and the file of the log holds the \
+             words of the fault.",
+        ],
+    },
+    Entry {
         version: "0.8.26",
         date: "14/08/2026",
         body: &[

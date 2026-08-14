@@ -8632,6 +8632,105 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-197: a thread that died left the user with a terminal that takes no key
+
+**T-174 named this shape and it did not reach it**: a panic of a thread while a
+view of the application stands. The road of every session after it wrote "the
+screens of `src/ui/tui.rs` take no lock, therefore the words of that panic must
+come to the terminal". **They come to the terminal, and the render writes over
+them.**
+
+`install_panic_hook_with` of `src/utils/exit_app.rs` gives the terminal back and
+it then calls the hook that was present. That is the correct work for a panic of
+the **main** thread, and the program then dies. **A panic of any other thread
+came back to a program that lives.**
+
+#### The measurement of 2026-08-14
+
+The condition needs a thread that panics, therefore the measurement needs a
+build of the condition (the trap 147, from the other side): one arm of
+`follow_playback` of `src/logic/playback/mod.rs`, after the line
+`own_position = position;` of the **second** loop of that file (the first one is
+the loop of the offline playback):
+
+```rust
+if position >= 3 {
+    panic!("the measurement of the panic of the thread of the playback");
+}
+```
+
+The binary of that build stands in the scratchpad, the source goes back at once,
+and the harness drives that binary with `TOUTUI_HARNESS_BINARY`. The book is
+`A Book Of Many Hours` of eight hours, and the device is the null device of
+ALSA (the trap 90 and the trap 72).
+
+| What | The program of v0.8.26 |
+|---|---|
+| The pane of tmux | **alive**, and the render draws at each frame |
+| The screen | `thread 'tokio-rt-worker' panicked at src/logic/playback/mod.rs:1529` and, over those lines, `▶ 11 20 … Left: 7:48:40 (2%) \| Sp ed: 1. 0x` |
+| The key `Q`, and six seconds | the pane stays alive. **The terminal takes no key**, because the hook took the raw mode away |
+| The audio | it plays on |
+| `listening_session.current_time_playback` | **0**, for the whole book |
+| `GET /api/me/progress/:id` | `currentTime 0`, for the whole book |
+| The log | **no line of the panic at all** |
+
+**The three faults of the user stand together.** The program is alive and it
+takes no key of the user; the words of the fault go under the characters of a
+screen that no terminal reads; and the place of the user never leaves the
+moment of the panic, on the disk and on the server, while the sound plays for
+eight hours.
+
+#### The decision
+
+**A panic of a thread that is not the main thread stops the program.** A thread
+of this program holds a part of the work of the program: the loop of the
+playback writes the place of the user, the task of the live messages reads the
+server, and the render draws. A program that lost one of them says that it does
+that work, and it does not. The user reads the fault, and they start the
+program again: the row of `listening_session` of the disk then holds the place
+of the last sync, and the rule of T-140 and of T-145 gives it to the next
+program.
+
+**A panic that a caller expects stops nothing** (T-17): the Opus decoder catches
+it with `ExpectedPanic`, the hook writes a line of the log, and the application
+continues.
+
+The hook writes the fault in the log too. The terminal of the user goes away
+with the next command of their shell, and the maintainer reads the log.
+
+The program of v0.8.27, with the same build of the condition:
+
+```text
+thread 'tokio-rt-worker' (4077415) panicked at src/logic/playback/mod.rs:1529:13:
+the measurement of the panic of the thread of the playback
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+Toutui stopped: a part of the program had an internal fault. The lines above
+name that fault, and the file of the log holds them too. Start Toutui again to
+listen again.
+```
+
+The shell reads the status **1**, the pane holds the words with no character of
+a screen over them, and the log holds
+`[ERROR] - [panic] panicked at src/logic/playback/mod.rs:1529:13`.
+
+#### The test
+
+`install_panic_hook_with` takes the `stop` of the program as an argument now,
+beside the `restore` of the terminal: the `stop` of the program never comes
+back, therefore the test gives one of its own.
+`the_hook_gives_the_terminal_back_for_a_panic_that_no_caller_expects` counts the
+two of them, and it holds the two rules in one function because `set_hook`
+changes a value of the whole process. **The build of the fault** (the trap 147):
+the line `stop();` becomes `let _ = stop;`, and the test then says "the hook did
+not stop the program".
+
+#### What this item leaves open
+
+**The shape of T-174 is closed for a panic of a thread**: the program stops, and
+the user reads the fault. **A thread that stops with no panic is another
+condition**: a task that comes to its end with a `return` of a fault says
+nothing of that kind, and the loop of the playback holds no such road today.
+
 ### T-196: a book of the reader that came in part became a book that no reader opens
 
 **T-193 named the one condition where a program can hold a part of a file for

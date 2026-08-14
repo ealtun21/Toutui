@@ -82,13 +82,26 @@ pub fn panic_is_expected() -> bool {
 /// was present. Therefore the message of the panic arrives on the screen of
 /// the shell, where the user can read it and give it to a report.
 ///
-/// `restore` is an argument, so that a test can give a function of its own and
-/// confirm that the hook calls it.
+/// `restore` and `stop` are arguments, so that a test can give functions of its
+/// own and confirm that the hook calls them.
 ///
 /// A panic that the caller expects is different. The hook then writes a line in
 /// the log only: it keeps the terminal, and it keeps the screen, because the
 /// application continues. See `ExpectedPanic`.
-pub fn install_panic_hook_with(restore: fn()) {
+///
+/// **A panic of a thread that is not the main thread stops the program too**
+/// (T-197). The hook gave the terminal back and it then came back to a program
+/// that lives: the render of the application kept its work, it wrote to a
+/// terminal of the shell with no raw mode, and the message of the panic went
+/// under the characters of a screen that no terminal reads. A measurement of
+/// 2026-08-14 with a panic in the loop of the playback: the words of the panic
+/// stood under `▶ 11 20 … Left: 7:48:40`, **the key `Q` did nothing** because
+/// the terminal takes no key of a raw mode that no program holds, the audio
+/// played on, and the place of the user stayed at 0 on the disk and on the
+/// server for the whole book. A thread of this program that dies takes a part
+/// of the work of the program with it, therefore the program stops and the user
+/// starts it again.
+pub fn install_panic_hook_with(restore: fn(), stop: fn()) {
     let previous = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |info| {
         // The caller catches this panic, and the application continues. The
@@ -98,14 +111,35 @@ pub fn install_panic_hook_with(restore: fn()) {
             return;
         }
 
+        // **The log holds the fault too.** The terminal of the user goes away
+        // with the next command of the shell, and the maintainer reads the log.
+        // See T-197.
+        log::error!("[panic] {}", info);
+
         restore();
         previous(info);
+
+        let mut stderr = io::stderr();
+        let _ = writeln!(stderr, "{}", THE_SENTENCE_OF_A_PANIC);
+        let _ = stderr.flush();
+
+        stop();
     }));
 }
 
-/// Gives the terminal back to the shell when the program panics.
+/// The sentence of a panic, for the user. See T-197.
+///
+/// The lines of the panic name a file of the source, and those words belong to
+/// a report. This sentence says what happened to the program, and what the user
+/// does now.
+pub const THE_SENTENCE_OF_A_PANIC: &str = "Toutui stopped: a part of the program \
+     had an internal fault. The lines above name that fault, and the file of the \
+     log holds them too. Start Toutui again to listen again.";
+
+/// Gives the terminal back to the shell when the program panics, and it stops
+/// the program.
 pub fn install_panic_hook() {
-    install_panic_hook_with(restore_terminal);
+    install_panic_hook_with(restore_terminal, || process::exit(1));
 }
 
 /// Gives the terminal back and stops the program.
@@ -218,6 +252,14 @@ mod tests {
         RESTORED.fetch_add(1, Ordering::SeqCst);
     }
 
+    static STOPPED: AtomicUsize = AtomicUsize::new(0);
+
+    /// The `stop` of the program, for a test. The `stop` of the program itself
+    /// never comes back, therefore a test gives its own.
+    fn count_one_stop() {
+        STOPPED.fetch_add(1, Ordering::SeqCst);
+    }
+
     /// The hook gives the terminal back for a panic that no caller expects, and
     /// it keeps the terminal for a panic that a caller expects.
     ///
@@ -229,9 +271,10 @@ mod tests {
     /// touch the terminal of the test.
     #[test]
     fn the_hook_gives_the_terminal_back_for_a_panic_that_no_caller_expects() {
-        install_panic_hook_with(count_one_restore);
+        install_panic_hook_with(count_one_restore, count_one_stop);
 
         let before = RESTORED.load(Ordering::SeqCst);
+        let stops = STOPPED.load(Ordering::SeqCst);
 
         // A panic that a caller expects keeps the terminal.
         let result = {
@@ -246,6 +289,14 @@ mod tests {
             "the hook gave the terminal back for a panic that the caller expects"
         );
 
+        // **A panic that a caller expects stops no program.** The Opus decoder
+        // catches it, and the application continues. See T-17 and T-197.
+        assert_eq!(
+            STOPPED.load(Ordering::SeqCst),
+            stops,
+            "the hook stopped the program for a panic that the caller expects"
+        );
+
         // The guard is gone. A panic gives the terminal back again.
         let result = std::panic::catch_unwind(|| panic!("a panic of the test"));
 
@@ -254,6 +305,28 @@ mod tests {
             RESTORED.load(Ordering::SeqCst),
             before + 1,
             "the hook did not give the terminal back"
+        );
+
+        // **A panic that no caller expects stops the program.** The hook gave
+        // the terminal back and it then came back to a program that lives: the
+        // render wrote to a terminal of the shell, the words of the panic went
+        // under those characters, and the key `Q` did nothing. See T-197.
+        assert_eq!(
+            STOPPED.load(Ordering::SeqCst),
+            stops + 1,
+            "the hook did not stop the program"
+        );
+    }
+
+    /// The sentence of a panic says what happened and what the user does now.
+    #[test]
+    fn the_sentence_of_a_panic_names_the_program_and_the_log() {
+        assert!(
+            THE_SENTENCE_OF_A_PANIC.contains("Toutui stopped")
+                && THE_SENTENCE_OF_A_PANIC.contains("log"),
+            "the sentence says that the program stopped, and where the fault \
+             stands: {}",
+            THE_SENTENCE_OF_A_PANIC
         );
     }
 }
