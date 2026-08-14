@@ -2,7 +2,7 @@ use crate::api::client::ApiClient;
 use crate::api::me::update_media_progress::*;
 use crate::api::sessions::close_open_session::*;
 use crate::db::crud::*;
-use crate::logic::offline::remember_progress;
+use crate::logic::offline::{remember_progress, the_place_can_wait};
 use crate::utils::exit_app::*;
 use log::{info, warn};
 
@@ -158,9 +158,17 @@ async fn close_one_session(
             error
         );
 
-        // The server does not answer. The position waits in the
-        // database, and the application sends it later.
-        if error.is_offline() {
+        // **The server did not take the place of the user. That place waits in
+        // the database, and the application sends it later.**
+        //
+        // The old code asked `is_offline`, therefore a server that **answered**
+        // with a fault threw the place away: the row of the session goes away
+        // after this block, and no row of `pending_progress` held it. A
+        // measurement of 2026-08-14 with `docs/harness/one_path_fails.py` of the
+        // path `/api/me/progress` lost 1234 seconds of a book of eight hours,
+        // and the log said "closed at 1234s". `the_place_can_wait` names the two
+        // faults that mean "this place reaches this server never". See T-189.
+        if the_place_can_wait(&error) {
             remember_progress(
                 username,
                 server,

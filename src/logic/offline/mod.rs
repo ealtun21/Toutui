@@ -214,6 +214,41 @@ pub fn the_read_of_the_position(
     }
 }
 
+/// Tells if a place that the server did not take can reach that server later.
+///
+/// **The place of the user is the value to keep.** A write of a place that came
+/// back with a fault leaves the program with one question: does this place wait,
+/// or does it go away? The old code of the two places of this work asked
+/// `is_offline`, therefore **every** answer of the server threw the place away.
+///
+/// A measurement of 2026-08-14 with `docs/harness/one_path_fails.py` of the path
+/// `/api/me/progress`, and a row of a listening session of a program that died at
+/// 1234 seconds: `close_one_session` of the key `Q` read the status 500, it wrote
+/// no row of `pending_progress`, and it then removed the row of that session. The
+/// place of the server stayed 0, and the log said
+/// "Item 6ba57b9a-… closed at 1234s". **The place of the user went away for
+/// ever, and the words of the program said the words of a success.** See T-189.
+///
+/// **Two faults say that this place reaches this server never**:
+///
+/// - the status 404: the server does not hold this media, therefore the place of
+///   it belongs to nothing (the rule of T-187), and
+/// - the status 400: the server refused the request itself, and a second attempt
+///   of the same request gives the same answer (the rule of T-87).
+///
+/// **Every other fault can pass**: a status of 500 or more is the fault of one
+/// machine and a second address of the same server can answer it (T-128), a
+/// token that is not valid holds until the user logs in again, a permission of
+/// an account can come back (T-136), and a body that the program did not read is
+/// the fault of one answer.
+pub fn the_place_can_wait(fault: &crate::api::client::error::ApiError) -> bool {
+    !matches!(
+        fault,
+        crate::api::client::error::ApiError::NotFound
+            | crate::api::client::error::ApiError::Server(400)
+    )
+}
+
 /// Sends every position that waits, and removes each row that the server took.
 ///
 /// The function gives the number of positions that the server took. It stops
@@ -325,9 +360,19 @@ pub async fn flush_pending_progress(api: &ApiClient, username: &str, server: &st
                 warn!("[offline] the server does not answer: {}", error);
                 return sent;
             }
+            Err(error) if the_place_can_wait(&error) => {
+                // The fault belongs to this attempt, and not to this position:
+                // the task tries again every 30 seconds. See T-189.
+                warn!(
+                    "[offline] the server did not take the position of {}: {} \
+                     The position of the disk waits.",
+                    progress.id_item, error
+                );
+            }
             Err(error) => {
-                // The server answered with a fault of the request. A second
-                // attempt gives the same answer, thus the row goes away.
+                // The server refused the request itself, or it does not hold
+                // this media. A second attempt gives the same answer, thus the
+                // row goes away. See T-189.
                 warn!(
                     "[offline] the server refused the position of {}: {}",
                     progress.id_item, error
