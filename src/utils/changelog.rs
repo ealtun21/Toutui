@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.1",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A playback that did not start said nothing at all.** You pressed l, you \
+             read \"Loading the media...\", and then you read an empty row: the media did \
+             not play, and the program never said why. A second program took one episode \
+             out of a podcast, and the key l of the view of the episodes and the key l of \
+             the Home view both gave that silence. The program says one sentence for each \
+             of the three faults now — the server did not start the playback, the server \
+             did not give the media, and this media has no audio file — and that sentence \
+             names what the server said.",
+        ],
+    },
+    Entry {
         version: "0.8.0",
         date: "14/08/2026",
         body: &[

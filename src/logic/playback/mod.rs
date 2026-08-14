@@ -18,6 +18,7 @@ use crate::logic::queue::{self, the_media_goes_back_to_the_queue, the_queue_goes
 use crate::logic::sync_session::force_sync;
 use crate::logic::sync_session::sync_session_from_database::*;
 use crate::logic::sync_session::wait_prev_session_finished::*;
+use crate::logic::the_playback::{the_words_of_a_playback_that_did_not_start, WhyNot};
 use crate::player::engine::source::{select_sources, TrackSource};
 use crate::player::engine::track::{Chapter, Track, TrackList};
 use crate::player::engine::{
@@ -309,6 +310,17 @@ async fn the_loop_of_the_playback(
     }
 }
 
+/// Says why a playback did not start. See T-167.
+///
+/// **The answer of a key belongs to no view** (T-164): the user pressed `l` in
+/// the Home view, in the view of the episodes, in the view of the queue, or in
+/// a different view, and they must read the answer at once. The media of the
+/// queue that a rule of the loop starts writes `The queue starts "…"` to the
+/// same slot, therefore this text keeps that shape.
+fn say_why_the_playback_did_not_start(why: WhyNot<'_>) {
+    crate::logic::message::say(the_words_of_a_playback_that_did_not_start(why).as_str());
+}
+
 /// Starts a media, and follows the playback to the end. `play` calls this
 /// function.
 async fn play_media(
@@ -352,6 +364,13 @@ async fn play_media(
         }
         Err(error) => {
             error!("[play] the server did not start the session: {}", error);
+            // **The user pressed a key, and the program must answer it.** The
+            // message "Loading the media..." above went away after its six
+            // seconds, and no media played: the user read nothing at all. See
+            // T-167.
+            say_why_the_playback_did_not_start(WhyNot::TheSessionDidNotOpen(
+                error.to_string().as_str(),
+            ));
             return Outcome::Fault;
         }
     };
@@ -364,6 +383,9 @@ async fn play_media(
         Ok(value) => value,
         Err(error) => {
             error!("[play] the server did not give the item: {}", error);
+            say_why_the_playback_did_not_start(WhyNot::TheMediaDidNotCome(
+                error.to_string().as_str(),
+            ));
             return Outcome::Fault;
         }
     };
@@ -377,6 +399,7 @@ async fn play_media(
         Some(tracks) => tracks,
         None => {
             error!("[play] the item has no audio file");
+            say_why_the_playback_did_not_start(WhyNot::NoAudioFile);
             return Outcome::Fault;
         }
     };

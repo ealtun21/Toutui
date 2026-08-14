@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.0.** The correction of T-166 belongs to this
-session, and the measurement of T-166 to the session before it.
+**The newest release is v0.8.1.** The item T-167 belongs to this session.
+The correction of T-166 belongs to the session before it, and the measurement of
+T-166 to the session before that one.
 The item T-165 belongs to the session before that one.
 The items T-163 and T-164 belong to the session before it, the item
 T-162 to the one before that, the item
@@ -18,6 +19,57 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the thirteenth turn of 2026-08-14: a playback that did not start
+
+**One release: v0.8.1.** No item of the road stayed open, therefore this session
+took one of the parts of the program that the road named and that no measurement
+had reached: **the view of the episodes of a podcast while a second window
+changes that podcast**. The measurement found one fault, and **that fault does
+not belong to that view**: it belongs to the playback, and every view that plays
+a media meets it.
+
+| Item | What | Where |
+|---|---|---|
+| T-167 | **A playback that did not start said nothing at all.** The user read `Loading the media...`, the six seconds of it went by, the row of the message became empty, and no media played. The program says one sentence for each of the three faults of `play_media` now | `src/logic/the_playback.rs`, `src/logic/playback/mod.rs` |
+
+The evidence and the two tables of the measurement stand in
+`docs/TAKEOVER-BACKLOG.md` under T-167. Four things are worth the room here:
+
+1. **The program reads the episodes of a podcast one time.**
+   `the_episodes_that_came` of `App` goes to `true` and it never goes back to
+   `false`: the list of that view is a photograph of the moment of the open, and
+   an episode that a second program takes away stays on the screen until the key
+   `R`. **T-47 says this well** — the row 2 of the header held
+   `R: the server has newer data` at the frame of the change — therefore the
+   fault is not the old list. The fault is the key that acts on it.
+2. **The fault belongs to the playback, and to no view.** The key `l` of the
+   view of the episodes and the key `l` of the Home view gave the same silence
+   for the same episode. Therefore the correction stands in `play_media`, and
+   the message uses `say` and not `say_in` (T-164: the answer of a key stands
+   above every view).
+3. **These are three of the five places of T-35.** That item gave the value
+   `is_loop_break` to all five of them in 2026-08-10, and it left the words
+   outside. The two places that are left go to the offline mode of T-25, and
+   that road says its own words already.
+4. **The text names no media.** The title comes from the answer of the session,
+   and that answer is the thing that did not come (T-91).
+
+**The trap that this measurement adds.** A test of this fault must **not** use
+the port that no program holds (`NO_SERVER` of T-146): that road is the offline
+mode of T-25, and it keeps the copy of the disk. A server that **answers** and
+that holds nothing is a different road, and a host of a raw socket that answers
+`404` gives it with no network and no sandbox.
+
+### The gates of this session
+
+| The gate | The answer |
+|---|---|
+| `cargo clippy --all-targets -- -D warnings` | no word |
+| `cargo fmt --check` | no word |
+| `cargo nextest run` | **1089 of 1089** in 2.3 seconds |
+| `cargo nextest run --run-ignored all` | **1114 of 1114** in 24.4 seconds, with the sandbox up |
+| `cargo test -j 16 --no-fail-fast` | three runs, and every run passed |
 
 ## The session of the twelfth turn of 2026-08-14: the correction of the line of the downloads
 
@@ -2332,10 +2384,18 @@ measurements of this session left.
      choose out, and the key `l` played it and stopped the media that the queue
      had started. **One window makes that fault, and the user presses no key
      while it happens.**
+   - ~~**The view of the episodes of a podcast while a second window changes
+     that podcast**~~: **made on 2026-08-14 (the thirteenth session), and it
+     found T-167.** The old list of that view is not the fault — T-47 says
+     `R: the server has newer data` at the frame of the change — and **the key
+     that acts on it is**: the key `l` on an episode that the server lost said
+     `Loading the media...` and then nothing at all. The same key of the Home
+     view gave the same silence, therefore the fault belongs to the playback and
+     to no view.
    - **No condition of the road stays. A next session must name a condition of
      its own.** The shapes that found faults before: a state of one process that
      a second program cannot see (T-142, T-147, T-148, T-150, T-153, T-154,
-     T-155, T-156, T-158, T-159, T-160, T-161), a program that dies in the
+     T-155, T-156, T-158, T-159, T-160, T-161, T-167), a program that dies in the
      middle of work (T-145, T-152), and a server that does not answer (T-146,
      T-149, T-152, T-156). **The parts of the program that no such measurement
      has reached**: the search of a library that a second window changes, the

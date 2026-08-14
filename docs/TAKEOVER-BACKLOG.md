@@ -7629,6 +7629,106 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-167: a playback that did not start said nothing at all
+
+**The condition of this session, and the road named it**: "the view of the
+episodes of a podcast while a second window changes that podcast" stood in the
+parts of the program that no measurement had reached. The measurement found the
+fault, and **the fault does not belong to that view**: it belongs to the
+playback, and every view of the program that plays a media meets it.
+
+**The shape is the shape of fifteen sessions before this one**: a state of one
+process that a second program cannot see. The program reads the episodes of a
+podcast **one time** — `the_episodes_that_came` of `App` never goes back to
+`false` — therefore the list of that view is a photograph of the moment of the
+open, and an episode that a second program takes away stays on the screen.
+
+#### The measurement of 2026-08-14
+
+The sandbox of `docs/TEST-SERVER.md`, the library `Podcasts`, and the podcast
+"Letters of Two Brides" of nine episodes. The program ran inside tmux with
+`docs/harness/drive.sh`.
+
+| The moment | The screen of the user |
+|---|---|
+| `Tab`, `l`, and four times `j` | `Episodes [9 items]`, and the cursor stands on `Letter 5` |
+| A second program takes `Letter 5` out of the podcast (`DELETE /api/podcasts/:id/episode/:episode?hard=1`) | the same screen, and the row 2 says **`R: the server has newer data`** (T-47 says this, and it says it well) |
+| **The key `l` on `Letter 5`** | `Loading the media...` |
+| The six seconds after it | **the row of the message is empty**, no media plays, and the program says nothing at all |
+| The log of that moment | `[play] the server did not start the session: The server does not have this item.` |
+| The same key of the **Home view**, on the same episode of the shelf `Newest Episodes` | `Loading the media...`, and then **the same silence** |
+
+**This is T-79 and T-91 together**: the user pressed a key, the key did nothing,
+and the view gave no reason. The message of the wait made it worse than a key
+that says nothing at all — the user reads "Loading the media...", they wait for
+a playback, and the row becomes empty.
+
+#### The three places
+
+`play_media` of `src/logic/playback/mod.rs` gives `Outcome::Fault` in three
+places before the engine holds the media, and each of them wrote to the log
+alone:
+
+1. the server did not open the session of the playback,
+2. the server opened the session and it did not give the media after it,
+3. the media of the server holds no audio file.
+
+**These are three of the five places of T-35.** The two that are left go to the
+offline mode of T-25, and that road says its own words already.
+
+**The queue meets the same silence**: a media of the queue that gives `Fault`
+goes back to the front of the queue and the queue stops there (T-146), and the
+user read nothing about it.
+
+#### The correction, in v0.8.1
+
+`src/logic/the_playback.rs` holds the words, and it is pure:
+`the_words_of_a_playback_that_did_not_start(WhyNot)` gives one sentence for each
+of the three faults. **The text names no media**: the title of the media comes
+from the answer of the session, and that answer is the thing that did not come
+(T-91).
+
+**The message belongs to no view** (T-164). The user pressed `l`, and the answer
+of a key stands above every view: they can press it in the Home view, in the
+view of the episodes, in the view of the queue, or in the view of the media of a
+list. The media of the queue that a rule of the loop starts writes
+`The queue starts "…"` to the same slot with `say`, therefore this text keeps
+that shape.
+
+| The fault | The sentence |
+|---|---|
+| The server did not open the session | `The server did not start the playback: <what the server said>` |
+| The server did not give the media | `The server did not give the media: <what the server said>` |
+| The media holds no audio file | `This media has no audio file.` |
+
+#### The measurement of the correction
+
+The same sandbox, the same podcast, and `Letter 6` after `Letter 5`:
+
+| The moment | The screen of the user |
+|---|---|
+| **The key `l` on an episode that the server lost** | `Loading the media...`, and then **`The server did not start the playback: The server does not have this item.`** |
+| The six seconds after it | the row of the message is empty again |
+| The same key of the **Home view** | the same sentence |
+
+#### The tests
+
+`the_words_of_a_playback_that_did_not_start` holds one test of its own in
+`src/logic/the_playback.rs`, and it is pure.
+`tests/a_playback_that_did_not_start_says_why.rs` holds the wiring: a host of a
+raw socket answers `404` to every request — **the offline mode of T-25 is a
+different road**, and a server that answers is what this test needs — and the
+test reads the message of the screen after `play`.
+
+**The playback takes a thread of its own in that test.**
+`wait_prev_session_finished` blocks the thread that calls it (T-158), therefore
+a limit of time on the future alone says nothing. The test reads the end of that
+thread with `recv_timeout` of 20 seconds.
+
+**The build with the correction removed fails**, and it fails with the words of
+the measurement: `the sentence must say that the server did not start the
+playback, and it says "Loading the media..."`.
+
 ### T-166: the queue of the downloads of the server moved under the cursor, and the key of the user emptied the queue of another podcast
 
 **The condition of this session, and the road named it**: "the view of the
