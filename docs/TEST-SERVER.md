@@ -461,6 +461,60 @@ curl -s -X POST "http://127.0.0.1:13399/api/items/$ITEM/chapters" \
 15 gives the book its place 0 again: `PATCH /api/me/progress/:id` with
 `{"isFinished": false}`.
 
+## 6j. A book whose audio ends before the length that the server holds, for T-213
+
+**The server marks a media finished by its own arithmetic when the place stands
+in the last ten seconds of the length that it holds.** Its log says the rule:
+
+```text
+[MediaProgress] Marking media progress as finished because time remaining (5) is
+    less than 10 seconds
+```
+
+Therefore a measurement of the **mark** of the end of a media that this program
+sends needs a media that the engine finishes **more** than ten seconds before that
+length. This book holds an audio of ten minutes, and the server holds the length
+of thirty: the engine comes to the end of the file, and the place of the user then
+stands 20 minutes before the length of the server.
+
+```bash
+ABS=$HOME/.local/share/toutui-abs-test
+TOKEN=<the token of the login>
+LIB=1b090ea8-91c5-4591-ac9d-716985e61faf         # Books
+
+# The directory of the author belongs to the user, and the directory of the
+# library belongs to the user of the container: a new book therefore stands
+# inside a directory of an author that stands already.
+D="$ABS/audiobooks/Long Author/A Book That Ends Before Its Length"
+mkdir -p "$D"
+cp "$ABS/audiobooks/Long Author/A Long Test Book/long.mp3" "$D/whole.mp3"
+curl -s -X POST "http://127.0.0.1:13399/api/libraries/$LIB/scan" \
+  -H "Authorization: Bearer $TOKEN"
+
+ITEM=70a3cade-63a7-4e72-add8-4a3e9bb6b02a
+# The file of the mp3 holds the title of the book of thirty minutes, therefore
+# the item takes a name of its own.
+curl -s -X PATCH "http://127.0.0.1:13399/api/items/$ITEM/media" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"metadata":{"title":"A Book That Ends Before Its Length",
+                   "authorName":"Long Author"}}'
+
+# The audio ends at 600 seconds, and no scan follows: the server keeps the
+# length of the scan before it.
+ffmpeg -y -loglevel error -i "$D/whole.mp3" -t 600 -c copy "$D/short.mp3"
+mv "$D/short.mp3" "$D/whole.mp3"
+```
+
+**A scan of the library takes this condition away**: the server then reads the
+file of ten minutes and it holds that length. The three commands above give the
+condition again, and `GET /api/items/$ITEM` says whether it stands — the file
+`whole.mp3` of the answer must hold `duration 1800`.
+
+**The progress record of this item holds `duration 0`** after the `PATCH` of the
+metadata, therefore the server marks it finished by no arithmetic at all: it is
+the shape of T-180 (a duration of 0 that the server did not give), and it is the
+sharpest form of the condition of T-213.
+
 ## 6f. Give each book its own cover
 
 The test of the cover art (T-23) needs a cover that a test can name. One colour

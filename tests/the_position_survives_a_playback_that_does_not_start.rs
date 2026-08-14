@@ -102,6 +102,7 @@ async fn an_engine_that_stays_at_zero_does_not_move_the_position() {
             ITEM.to_string(),
             None,
             USER.to_string(),
+            "the-server-of-the-place".to_string(),
             "3600".to_string(),
             PLAYBACK,
             START,

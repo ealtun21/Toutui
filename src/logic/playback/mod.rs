@@ -56,6 +56,21 @@ const START_TIME_LIMIT: u64 = 30;
 /// the offline playback said "the disk has no copy of this media" and "the disk
 /// does not hold every file of this media" for a media of the disk that the program
 /// did not read, and a second Toutui of this account makes that condition (T-140).
+/// The words of a mark of the end that stands on no machine. See T-213.
+///
+/// **The playback came to its end, therefore this fault belongs to no view**
+/// (T-164): the message of a playback stands above every view of the program.
+/// The words name the two machines that refused the mark, and they promise no
+/// key (T-118): no key of the program writes the mark of a media that the user
+/// finished.
+///
+/// A line of the log is the word of a fault that no view holds (T-177), and the
+/// weight of this one is greater: the server of the user then holds a book that
+/// the user finished as a book of the shelf `Continue Listening`, and the program
+/// of the next start reads no row that says the end.
+const THE_MARK_OF_THE_END_STANDS_NOWHERE: &str =
+    "The disk and the server did not take the mark of the end of this media.";
+
 const THE_DATABASE_OF_THE_PROGRAM_SAID_NOTHING: &str =
     "The program did not read the copy of the disk in its database. \
      Stop a second Toutui, and press the key again.";
@@ -775,6 +790,7 @@ async fn play_media(
         item_id,
         target.episode_id().map(|value| value.to_string()),
         username,
+        server_key,
         total_duration,
         playback_id,
         start_position,
@@ -1121,6 +1137,7 @@ async fn play_the_stream_of_the_server(
             item_id,
             target.episode_id().map(|value| value.to_string()),
             username,
+            server_key,
             total_duration,
             playback_id,
             // The engine gives the position inside the stream, and the stream starts
@@ -1748,6 +1765,9 @@ pub fn position_is_at_the_start(reported: f64, start: f64) -> bool {
 /// `{"currentTime":"4","timeListened":"0"}` to the session of X while the
 /// engine played Y at 4 seconds, and X was at 100 seconds. The loop did not
 /// stop. See `9bacac`, `86384e`, and `dd9a649` in `known_bugs.md`.
+/// `server` is the key of the server of the account. The table of the places
+/// that wait holds that key beside the account, therefore the mark of the end of
+/// a media that no machine took needs it. See T-213.
 #[allow(clippy::too_many_arguments)]
 pub async fn follow_playback(
     api: &ApiClient,
@@ -1756,6 +1776,7 @@ pub async fn follow_playback(
     item_id: String,
     episode_id: Option<String>,
     username: String,
+    server: String,
     total_duration: String,
     playback_id: u64,
     start_position: f64,
@@ -1986,7 +2007,28 @@ pub async fn follow_playback(
                     crate::logic::message::say(why);
                 }
 
-                let _ = update_is_finished(if finished { "1" } else { "0" }, session_id.as_str());
+                // **A caller that reads no answer of its write says the work
+                // that it did not do** (T-206 and T-210). The mark of the end
+                // of a media stands in the row of its session, and that row is
+                // the one copy of it for a program that dies (T-140): a disk
+                // that took no write of this one column therefore gave the next
+                // program of the account a media that the user finished and
+                // that the row of it says is not finished. See T-213.
+                let the_disk_took_the_mark =
+                    match update_is_finished(if finished { "1" } else { "0" }, session_id.as_str())
+                    {
+                        Ok(()) => true,
+
+                        Err(error) => {
+                            warn!(
+                                "[follow_playback] the disk did not take the mark of the end \
+                             of {}: {}.",
+                                item_id, error
+                            );
+
+                            false
+                        }
+                    };
 
                 let the_server_holds_it = close_and_report(
                     api,
@@ -2007,6 +2049,42 @@ pub async fn follow_playback(
                         session_id.as_str(),
                         ThePlaceOfTheSession::TheServerHoldsIt,
                     );
+                } else if finished && !the_disk_took_the_mark {
+                    // **A value that leaves one table reaches another one
+                    // before the removal of it** (T-188 and T-212). The server
+                    // did not take the place of this media, therefore the row
+                    // of the session stays and the next program of the account
+                    // reads the mark of that row: that mark says "not finished"
+                    // of a media that came to its end, and the program then
+                    // sends the place of the user with no mark at all. **The
+                    // mark of the end lives in this program**, and the table of
+                    // the places that wait takes the place and the mark
+                    // together. See T-213.
+                    if remember_progress(
+                        username.as_str(),
+                        server.as_str(),
+                        item_id.as_str(),
+                        episode_id.as_deref(),
+                        f64::from(position),
+                        total_duration.parse::<f64>().unwrap_or(0.0),
+                        true,
+                    ) {
+                        the_row_of_a_closed_session_goes_away(
+                            session_id.as_str(),
+                            ThePlaceOfTheSession::TheDiskHoldsIt,
+                        );
+                    } else {
+                        // **The row of the session stays**: it holds the place
+                        // of the user, and that place is worth more than the
+                        // mark that went away with it (T-201).
+                        warn!(
+                            "[follow_playback] the mark of the end of {} stands on no \
+                             machine. The row of its session keeps the place of the user.",
+                            item_id
+                        );
+
+                        crate::logic::message::say(THE_MARK_OF_THE_END_STANDS_NOWHERE);
+                    }
                 }
 
                 return outcome_of(finished);

@@ -111,6 +111,7 @@ async fn outcome_of_a_state(status: PlaybackStatus, finished: bool, playback_id:
         "item-A".to_string(),
         None,
         "user".to_string(),
+        "the-server-of-the-queue".to_string(),
         "3".to_string(),
         PLAYBACK,
         0.0,

@@ -8632,6 +8632,164 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-213: the mark of the end of a media that the disk refused went away with no word
+
+**The item before this one named the road in its last paragraph**, and this one
+took it (the rule of T-195 and of T-209): "the loop of a playback writes the
+place of each second, and it writes `is_finished` at the end of the playback
+alone (`update_is_finished` of `follow_playback`, with `let _ =`): a fault of
+that one write takes the mark and not the place".
+
+**The shape of this item is a value of one column.** T-206 asked which two
+things a condition takes away at one time; this one asks it of a **column**: the
+row of a listening session holds the place of the user, the length of the media,
+and the mark of its end, and the three of them come of three different writes.
+The `chmod 444` of T-206 and the lock of T-199 each stop every write of that row
+together, and the `ALTER TABLE` of T-203 and of T-212 takes a whole **table**
+away: each of them therefore hid the road where the place of each second reaches
+the disk and the mark of the end alone fails.
+
+#### The condition
+
+**A trigger of SQLite is the statement that fails of T-203 for one column** (the
+trap 183). It needs no proxy of Python, no change of the source, and no second
+program:
+
+```bash
+python3 docs/harness/one_method_fails.py 13500 13399 requests.log \
+    PATCH:/api/me/progress
+sqlite3 "$DB" "CREATE TRIGGER the_disk_takes_no_mark \
+    BEFORE UPDATE OF is_finished ON listening_session \
+    BEGIN SELECT RAISE(ABORT, 'the disk takes no mark of the end'); END;"
+```
+
+**The two halves each belong to the condition.** The mark of the row reaches the
+next program of the account only while that row stays, and the row stays only
+while the server refuses the place (T-141 and T-4): `close_and_report` reads the
+mark of the **memory** of this program, therefore a server that took the place
+took the correct mark with it and the row went away with the fault inside it.
+**`PATCH:/api/me/progress` and not the whole path** (the harness of T-175): the
+start of a playback **reads** that path for the place of a media (T-182), and a
+proxy that fails the read stops the playback before it begins.
+
+**The address of the account stays at the proxy for the two halves** (the trap
+184): `get_the_sessions_to_close` reads the rows of one account **and of one
+server**, therefore an account that goes back to the sandbox hides the row that
+the measurement made. The rule of the proxy goes away, and the address stays.
+
+#### The measurement of the real program of the sandbox, of v0.8.42
+
+The book of 30 minutes came to its end on the null device in 25 seconds:
+
+```text
+20:09:34 [INFO] [follow_playback] the playback stopped at 1800 seconds, finished=true
+20:09:34 [WARN] [follow_playback] the server did not accept the position: The server reported a fault. Status 500.
+```
+
+**Two lines, and no word of the mark at all.** The row of `listening_session`
+then held `current_time_playback=1800` and `is_finished=0`: the place of the user
+stood on the disk, and the mark of a media that the program itself logged as
+`finished=true` did not.
+
+The next program of the account read that row, and the key `Q` of it said:
+
+```text
+20:09:39 [INFO] [handle_key (Q)][book][Quit] Item 70a3cade-… closed at 1800s (not finished)
+```
+
+`grep -c "PATCH /api/me/progress"` of the log of the proxy said **1**: the second
+request of `update_media_progress2_book`, which holds the body
+`{"isFinished": true}`, never left the program. The sandbox then held
+`currentTime 1800` and `isFinished false` of a book that the user finished, and
+the same request by hand gave `isFinished true` with a `finishedAt`.
+
+#### The server forgives the last ten seconds of a media, and no more
+
+**A fault of the user needs the rule of the machine that the value reaches.** The
+first form of this measurement used `A Long Test Book`, and the sandbox marked
+that book finished with no mark of the program at all. The log of the server names
+its rule:
+
+```text
+[MediaProgress] Marking media progress as finished because time remaining (5) is
+    less than 10 seconds
+```
+
+A place of 1795 seconds of 1800 therefore gives `isFinished true`, and a place of
+1790 gives `false`. **The arithmetic of the server covers a media that ends at its
+length, and the mark of this program is the one carrier of every media that ends
+earlier**: a book whose progress record holds the duration 0 (the shape of T-180)
+lost the mark at 1800 seconds of 1800, and every media that the engine finishes
+more than ten seconds before the length of the server holds the same road.
+
+The measurement of that condition needs a media whose audio ends before the
+length that the server holds:
+`A Book That Ends Before Its Length` of the section 6j of `docs/TEST-SERVER.md`.
+
+#### The correction
+
+`follow_playback` reads the answer of the write of the mark, and it says the
+fault (a line of the log: the end of a media is no key of the user, T-177). The
+decision after the close of the playback:
+
+| the server took the place | the disk took the mark | v0.8.42 | v0.8.43 |
+|---|---|---|---|
+| yes | either | the row goes away | the row goes away |
+| no | yes | the row stays with the mark | the row stays with the mark |
+| no | no | the row stays with **no** mark, and no word | the place and the mark reach `pending_progress`, and the row goes away |
+| no | no, and the disk takes no row either | the row stays with **no** mark, and no word | the row stays, and the program says it on the screen |
+
+**A value that leaves one table reaches another one before the removal of it**
+(T-188 and T-212): `remember_progress` takes the place and the mark together, and
+the mark of it comes of **this program** and not of the row that lied. The flush
+of the positions then sends the two of them, and the measurement of v0.8.43 gave
+the sandbox `currentTime 1800` and `isFinished True` with two requests of
+`PATCH /api/me/progress`.
+
+**The row of the session stays when no machine takes the mark**, because it holds
+the place of the user and that place is worth more than the mark that went away
+with it (T-201). The word of the screen of that road, of the real program with
+`chmod 444` of the database after the first frame:
+
+```text
+   The disk and the server did not take the mark of the end of this media.
+```
+
+```text
+20:16:35 [WARN] [follow_playback] the disk did not take the mark of the end of 70a3cade-…: attempt to write a readonly database.
+20:16:35 [WARN] [follow_playback] the mark of the end of 70a3cade-… stands on no machine. The row of its session keeps the place of the user.
+```
+
+**The message of a playback belongs to no view** (T-164), therefore it stands
+above them all, and the words promise no key (T-118): no key of the program
+writes the mark of the end of a media.
+
+`tests/the_mark_of_the_end_that_the_disk_refused.rs` holds the two roads in one
+function (T-144 and T-157), and it needs no sandbox: `wiremock` refuses the place,
+the trigger refuses the one column, and `std::fs::set_permissions` of `0o444`
+gives the disk of T-206.
+
+#### What this item leaves open
+
+**The mark of the end of an offline playback is not measured.** The loop of
+`follow_playback_offline` writes `pending_progress` at each second with the mark
+of that second, and no line of it writes the mark of the end: the question is
+whether a media of the disk that comes to its end ever reaches the server as a
+media that the user finished.
+
+**`update_elapsed_time` stays open.** It writes `elapsed_time` of
+`listening_session` at each sync, and no line of `src/` outside the module of the
+database reads that column. That is the rule of T-201 in the other direction, and
+the question of it is whether such a write belongs to the program at all.
+
+**The removals of the rows of a download stand after the files of the user are
+whole**, and the shape of T-211, of T-212, and of this item does not measure them
+yet.
+
+**The calls of the database of the loop of the playback stand on a thread of the
+runtime**, and the freeze of the loop of the screen stays: it is the tenth session
+that names it.
+
 ### T-212: a place that reached no machine went away with the row that held it
 
 **The item before this one named the road, and it left it open**: "a call of the

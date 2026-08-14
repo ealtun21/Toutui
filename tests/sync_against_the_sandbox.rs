@@ -165,6 +165,7 @@ async fn the_session_of_x_closes_and_keeps_the_position_of_x() {
             item_of_the_loop,
             None,
             USER.to_string(),
+            "the-server-of-the-sync".to_string(),
             "60".to_string(),
             PLAYBACK_X,
             POSITION_X,

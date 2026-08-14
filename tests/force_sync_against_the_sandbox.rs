@@ -155,6 +155,7 @@ async fn the_forced_sync_sends_the_position_and_keeps_the_session() {
             item_of_the_loop,
             None,
             USER.to_string(),
+            "the-server-of-the-forced-sync".to_string(),
             "60".to_string(),
             PLAYBACK,
             POSITION,

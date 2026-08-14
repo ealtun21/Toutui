@@ -41,6 +41,32 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.43",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Toutui forgot that you finished a book when its database \
+             refused one write.** The mark of the end of a media stands in the \
+             row of its playback, and that row is the one copy of that mark for \
+             a Toutui that dies. Toutui read no answer of that write: a \
+             database that refused it therefore gave the next Toutui of your \
+             account a book that you finished and that the row says is not \
+             finished, and the next Toutui then sent your place to the server \
+             with no mark at all. The server keeps the mark of a media that \
+             ends in its last ten seconds by its own arithmetic, and it loses \
+             the mark of every media that ends earlier: a measurement lost the \
+             end of a book of 30 minutes in that way. Toutui puts the place and \
+             the mark in the table of the places that wait now, and the mark \
+             reaches the server with that place.",
+            "- **Toutui says when the mark of the end of a media stands on no \
+             machine.** A database and a server that each refuse that mark take \
+             it away, and Toutui said nothing at all: no word of the screen, and \
+             no line of the log. Toutui says it on the screen now, and it keeps \
+             the row of that playback, because the place of the user in that row \
+             is worth more than the mark that went away with it.",
+        ],
+    },
+    Entry {
         version: "0.8.42",
         date: "14/08/2026",
         body: &[

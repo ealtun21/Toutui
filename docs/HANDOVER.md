@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.42.** The item T-212 belongs to this session. The
+**The newest release is v0.8.43.** The item T-213 belongs to this session. The
+item T-212 belongs to the session before it. The
 item T-211 belongs to the session before it. The
 item T-210 belongs to the session before it. The
 item T-209 belongs to the session before it. The
@@ -52,11 +53,143 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.42**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.43**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1193 of 1193** in 2.4 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1219 of 1219** with the sandbox up, and
+**1194 of 1194** in 2.5 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1220 of 1220** with the sandbox up, and
 `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in two runs.
+
+## The session of the forty-fifth turn of 2026-08-14: the mark of the end of a media that the disk refused
+
+**One release: v0.8.43.** The session before this one named the road in its last
+paragraph — "the loop of a playback writes the place of each second, and it writes
+`is_finished` at the end of the playback alone (`update_is_finished` of
+`follow_playback`, with `let _ =`)" — and this one took it. **The last paragraph
+of the newest item is the cheapest item of a session** (the rule of T-195, of
+T-209, and of T-211).
+
+**The item is T-213**, and its condition holds one proxy and one trigger:
+
+```bash
+python3 docs/harness/one_method_fails.py 13500 13399 requests.log \
+    PATCH:/api/me/progress
+sqlite3 "$DB" "CREATE TRIGGER the_disk_takes_no_mark \
+    BEFORE UPDATE OF is_finished ON listening_session \
+    BEGIN SELECT RAISE(ABORT, 'the disk takes no mark of the end'); END;"
+```
+
+**A row of the disk holds more than two halves.** The rule of T-206 asks which
+two things a condition takes away at one time; a row of `listening_session` holds
+the place of the user, the length of the media, and the mark of its end, and the
+three of them come of three different writes. The `chmod 444` of T-206 and the
+lock of T-199 each stop **every** write of that row together, and the
+`ALTER TABLE` of T-203 and of T-212 takes a whole **table** away: a trigger
+`BEFORE UPDATE OF <the column>` fails one write of one row, and every other read
+and write of the program answers.
+
+**The measurement of the real program of the sandbox**, of a book of 30 minutes
+that came to its end on the null device in 25 seconds:
+
+```text
+20:09:34 [INFO] [follow_playback] the playback stopped at 1800 seconds, finished=true
+20:09:34 [WARN] [follow_playback] the server did not accept the position: The server reported a fault. Status 500.
+```
+
+**Two lines, and no word of the mark at all.** The row of `listening_session` then
+held `current_time_playback=1800` and `is_finished=0`, and the next program of the
+account read that row:
+
+```text
+20:09:39 [INFO] [handle_key (Q)][book][Quit] Item 70a3cade-… closed at 1800s (not finished)
+```
+
+`grep -c "PATCH /api/me/progress"` of the log of the proxy said **1**: the second
+request of `update_media_progress2_book`, which holds the body
+`{"isFinished": true}`, never left the program. The sandbox held `currentTime
+1800` and `isFinished false` of a book that the user finished, and the same
+request by hand gave `isFinished true` with a `finishedAt`.
+
+**The correction.** `follow_playback` reads the answer of the write of the mark,
+and it says the fault. A media that came to its end, whose mark the disk refused
+and whose place the server refused, gives its place **and** its mark to
+`pending_progress` — the mark of this program, and not the mark of the row that
+lied (T-188 and T-212) — and the row of the session goes away. The flush of the
+positions then sends the two of them: the measurement of v0.8.43 gave the sandbox
+`currentTime 1800` and `isFinished True` with two requests. **A row whose mark no
+machine took stays**, because it holds the place of the user and that place is
+worth more than the mark that went away with it (T-201), and the program says it
+on the screen:
+
+```text
+   The disk and the server did not take the mark of the end of this media.
+```
+
+`tests/the_mark_of_the_end_that_the_disk_refused.rs` holds the two roads in one
+function (T-144 and T-157), and it needs no sandbox: `wiremock` refuses the place,
+the trigger refuses the one column, and `std::fs::set_permissions` of `0o444`
+gives the disk of T-206.
+
+### The traps of this session
+
+**The trap 183: a column of the disk that takes no write is a trigger of SQLite.**
+`CREATE TRIGGER … BEFORE UPDATE OF <the column> ON <the table> BEGIN SELECT
+RAISE(ABORT, '…'); END;` fails the statement that names that column in its `SET`,
+and nothing else. **The trigger stays after the measurement** (the trap 179 for a
+`chmod`), therefore the `DROP TRIGGER` belongs in the same command as the
+measurement, and the migration of the program does not take it away.
+
+**The trap 184: the row of a listening session holds the address of its server,
+therefore the address of the account must not move between the two halves of a
+measurement.** `get_the_sessions_to_close` reads the rows of one account **and of
+one server**: the first form of this measurement gave the account the sandbox
+again for the second program, and that program then said "The database holds no
+session to close" of a row that stood on the disk. **The rule of the proxy goes
+away, and the address stays** (the trap 129).
+
+**The trap 185: the token of the account of the sandbox is encrypted.** A
+plaintext token of `curl` in `users.token` gives `Failed to decrypt the token`,
+and the program **removes the row of that account** and it shows the login screen.
+A copy of `db.sqlite3` before every write of that table, and the login screen of
+T-158 for a token that the server refused.
+
+**The trap 186: the server marks a media finished by its own arithmetic, and a
+measurement that it forgives is no measurement.** The log of Audiobookshelf says
+the rule — `Marking media progress as finished because time remaining (5) is less
+than 10 seconds` — therefore a place of 1795 seconds of 1800 gives `isFinished
+true` with no mark of the program at all. **A measurement of the mark needs a
+media that the engine finishes more than ten seconds before the length of the
+server**, and the section 6j of `docs/TEST-SERVER.md` holds that book.
+
+**The trap 187: the directory of the library of the sandbox belongs to the user of
+the container.** A new book of the disk therefore stands inside a directory of an
+author that stands already (`$ABS/audiobooks/Long Author/…`), and `mkdir` of a new
+author gives `Permission denied`.
+
+### What this session leaves open
+
+**The mark of the end of an offline playback is not measured.** The loop of
+`follow_playback_offline` writes `pending_progress` at each second with the mark of
+that second, and no line of it writes the mark of the end: the question is whether
+a media of the disk that comes to its end ever reaches the server as a media that
+the user finished.
+
+**A value of the disk that this program holds in its memory too is a value of two
+roads.** `close_and_report` reads the mark of the memory, therefore the fault of
+the row reached the user through the **next** program of the account alone. **Ask
+of a value of the disk: which program reads it, and does this program need the
+disk to read it at all?** The row of the download, the row of the queue, and the
+speed of the account each hold that shape.
+
+**`update_elapsed_time` writes a column that no line of `src/` outside the module
+of the database reads.** That is the rule of T-201 in the other direction, and the
+question of it is whether such a write belongs to the program at all.
+
+**The removals of the rows of a download stand after the files of the user are
+whole**, and the shape of T-211, of T-212, and of T-213 does not measure them yet.
+
+**The calls of the database of the loop of the playback stand on a thread of the
+runtime**, and the freeze of the loop of the screen stays: it is the tenth session
+that names it.
 
 ## The session of the forty-fourth turn of 2026-08-14: a place that reached no machine went away with the row that held it
 
@@ -6377,10 +6510,30 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took the road that the newest item left open**: T-205 named the
-five callers of `write_the_queue` that do not read the fault of
-`save_the_queue`, and it called the window "the moment between the read and the
-write". The item is **T-206**, and it holds one release, v0.8.36.
+**This session took the last paragraph of the newest item**: T-212 named the write
+of the mark of the end of a media (`update_is_finished` of `follow_playback`, with
+`let _ =`), and no measurement had reached it. The item is **T-213**, and it holds
+one release, v0.8.43.
+
+**A row of the disk holds more than two halves.** T-206 asked which two things a
+condition takes away at one time; a row of `listening_session` holds the place of
+the user, the length of the media, and the mark of its end, and the three of them
+come of three different writes. A trigger `BEFORE UPDATE OF <the column>` fails one
+of those writes and nothing else. Four things are worth the room:
+
+1. **A column of the disk that takes no write is a trigger of SQLite** (T-213).
+   Ask of a row of the disk: which writes fill it, and can I take one of them
+   alone?
+2. **A fault of the user needs the rule of the machine that the value reaches**
+   (T-213). The server marks a media finished by its own arithmetic inside the last
+   ten seconds of it, therefore the first form of that measurement measured nothing
+   at all.
+3. **A value of the disk that this program holds in its memory too is a value of
+   two roads** (T-213). The fault of the row reached the user through the **next**
+   program of the account alone.
+4. **The words of a fault of that weight belong to the screen and to the log**
+   (T-213). A book that the user finished and that no machine holds as finished is
+   a fact of the user, and a line of the log alone is not enough for it.
 
 **The condition needs no moment, and no harness of Python.** Every measurement of
 a fault of the database since T-199 took the whole file away: the lock of
@@ -6409,7 +6562,7 @@ This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.36**; `Cargo.toml` is at 0.8.36. The
+> AlbanDAVID/Toutui. Newest release **v0.8.43**; `Cargo.toml` is at 0.8.43. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -6418,7 +6571,7 @@ This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-206 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-213 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -6728,7 +6881,31 @@ This prompt names the state of the program on 2026-08-14.
 > ```
 >
 > SQLite opens a file of `444` for a read, every `SELECT` of the program answers,
-> and every `INSERT` gives `attempt to write a readonly database`. **A disk that
+> and every `INSERT` gives `attempt to write a readonly database`.
+>
+> **A column of the disk that takes no write is a trigger of SQLite** (T-213). The
+> `chmod 444` above and the lock of T-199 each stop every write of a row together,
+> and the `ALTER TABLE` of T-203 takes a whole table away: each of them therefore
+> hides a road where one write of a row reaches the disk and a second write of that
+> same row alone fails. A row of a listening session holds the place of the user,
+> the length of the media, and the mark of its end, and the three of them come of
+> three different writes:
+>
+> ```bash
+> sqlite3 "$DB" "CREATE TRIGGER the_disk_takes_no_mark \
+>     BEFORE UPDATE OF is_finished ON listening_session \
+>     BEGIN SELECT RAISE(ABORT, 'the disk takes no mark of the end'); END;"
+> sqlite3 "$DB" "DROP TRIGGER the_disk_takes_no_mark;"
+> ```
+>
+> `BEFORE UPDATE OF <the column>` fails the statement that names that column in its
+> `SET`, and every other read and every other write of the program answers. **The
+> trigger stays after the measurement** (the trap 179 for a `chmod`), therefore the
+> `DROP TRIGGER` belongs in the same command as the measurement. **The address of
+> the account must stay at the proxy for a measurement of two programs**:
+> `get_the_sessions_to_close` reads the rows of one account **and of one server**,
+> therefore an account that goes back to the sandbox hides the row that the first
+> program wrote (the trap 184). **A disk that
 > is full, a database with no permission of a write, and a file system that a
 > machine gave back as read-only each give that condition of the user.** **The
 > file must take a write at the start** (the trap 171): the migration of
@@ -6867,9 +7044,57 @@ This prompt names the state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in fifty-one sessions of fifty-two. **The session of
->    the thirty-eighth turn took the road that the newest item left open, and it
->    found that the condition of that road needs no harness of its own** (T-206):
+>    this shape found a fault in fifty-eight sessions of fifty-nine. **The session
+>    of the forty-fifth turn took the last paragraph of the newest item, and it
+>    found that a column of one row of the disk is a condition of its own**
+>    (T-213): the loop of a playback wrote the mark of the end of a media with
+>    `let _ =`, and a disk that refused that one write gave the next program of the
+>    account a book that the user finished and that the row of it says is not
+>    finished.
+>    - **A condition of two halves needs a harness that takes one half away, and a
+>      row of the disk holds more than two** (T-213). The `chmod 444` of T-206 and
+>      the lock of T-199 each stop **every** write of a row together, and the
+>      `ALTER TABLE` of T-203 and of T-212 takes a whole **table** away: a trigger
+>      `BEFORE UPDATE OF <the column>` fails one write of one row, and every other
+>      read and write of the program answers. **Ask of a row of the disk: which
+>      writes fill it, and can I take one of them alone?**
+>    - **A fault of the user needs the rule of the machine that the value reaches**
+>      (T-213). The first form of that measurement lost the mark of the end of a
+>      book, and the sandbox marked that book finished by its own arithmetic: the
+>      log of the server says the rule — `Marking media progress as finished
+>      because time remaining (5) is less than 10 seconds` — therefore the
+>      measurement needed a media that the engine finishes **more** than ten
+>      seconds before the length of the server (the section 6j of
+>      `docs/TEST-SERVER.md`). **A measurement that the other machine forgives is
+>      no measurement of the fault.**
+>    - **A value of the disk that this program holds in its memory too is a value
+>      of two roads** (T-213). `close_and_report` reads the mark of the **memory**,
+>      therefore a server that took the place took the correct mark with it and the
+>      row went away with the fault inside it: the fault of the row reaches the
+>      user only through the **next** program of the account. **Ask of a value of
+>      the disk: which program reads it, and does this program need the disk to
+>      read it at all?**
+>    - **The mark of the end of an offline playback is not measured** (T-213, and
+>      it stays open). The loop of `follow_playback_offline` writes
+>      `pending_progress` at each second with the mark of that second, and no line
+>      of it writes the mark of the end: the question is whether a media of the disk
+>      that comes to its end ever reaches the server as a media that the user
+>      finished.
+>    - **A column that the program writes and that no line of `src/` reads is a
+>      question of its own** (T-213, and it stays open). `update_elapsed_time`
+>      writes `elapsed_time` of `listening_session` at each sync, and no line
+>      outside the module of the database reads it. That is the rule of T-201 in the
+>      other direction.
+>    - **The removals of the rows of a download stand after the files of the user
+>      are whole**, and the shape of T-211, of T-212, and of T-213 does not measure
+>      them yet.
+>    - The session before it took the other half of the shape of T-211: **a call of
+>      the database that stands after a request of the server that failed** (T-212).
+>      A place that reached no machine went away with the row that held it, and the
+>      box of T-207 said that the server holds a place that the server refused.
+>    - **The session of the thirty-eighth turn took the road that the newest item
+>      left open, and it found that the condition of that road needs no harness of
+>      its own** (T-206):
 >    a disk that the program **reads** and that takes **no write** made three keys
 >    of the user say the work that the program did not do.
 >    - **A condition of two halves needs a harness that takes one half away**
@@ -7561,7 +7786,25 @@ This prompt names the state of the program on 2026-08-14.
 > the queue of the program goes back to the queue of the disk, the sentence of
 > the key names the read or the write and the key of the view that the user sees,
 > and the keys `O` and `I` of the speed read the answer of their write before
-> they send anything to the engine** (T-206).
+> they send anything to the engine** (T-206), and **a write of the disk that no
+> caller reads is a write that said nothing: the loop of a playback reads the
+> answer of the place of each second, and a removal that the disk refused is no
+> removal** (T-207), and **a key of the user pays the wait of the disk one time,
+> and not one time for each call of its road** (T-208), and **a read of the row of
+> the account that failed is no setting of the user: the default of such a read is
+> a fact that the disk did not give, and the program says the fault** (T-209), and
+> **the place of every second of a playback that the disk did not take is no place
+> at all: the loop reads the answer of that write, it says the fault one time, and
+> the row of the player of the screen says it while the condition stands** (T-210),
+> and **a place that the server took must leave the disk: a removal that the disk
+> refused is no removal, the pass of the flush stops at that fault, and the words
+> of the log name the disk and the media** (T-211), and **a place that reached no
+> machine keeps the row that holds it: the write of the table of the places that
+> wait gives its answer, and the box of the sessions names the machine that holds
+> the place** (T-212), and **the mark of the end of a media that the disk refused
+> reaches the table of the places that wait with the place of the user: the loop
+> reads the answer of that write, the row of the session stays when no machine took
+> the mark, and the program says it on the screen** (T-213).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
