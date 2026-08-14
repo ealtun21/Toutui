@@ -8632,6 +8632,127 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-212: a place that reached no machine went away with the row that held it
+
+**The item before this one named the road, and it left it open**: "a call of the
+database that stands **after** a request of the server that succeeded is the line
+to look for", and "the close of a session" holds it. The measurement took the
+other half of that shape: a call of the database that stands after a request of
+the server that **failed**.
+
+**The shape.** A value of the user stands on two machines, and the program removes
+the copy of one of them after the copy of the other one is safe. The rule of T-188
+says that such a value must reach the second table **before** the removal of the
+first one. `close_one_session` holds that rule in its comment — "the position is
+safe: the server has it, or the table `pending_progress` holds it" — and it read
+**no answer** of the write of that second table: `remember_progress` gave the fault
+of the disk to nobody.
+
+**The condition holds one command of the disk and one proxy**, and it needs the
+harness of T-203 for one table alone: a `chmod 444` of the file (T-206) stops the
+write of `pending_progress` **and** the removal of the row of the session
+together, therefore it hides this road.
+
+```bash
+sqlite3 "$DB" "ALTER TABLE pending_progress \
+    RENAME COLUMN position_s TO position_s_of_an_old_version;"
+python3 docs/harness/one_path_fails.py 13500 13399 requests.log \
+    /api/me/progress /api/session
+```
+
+**The measurement of the real program of the sandbox**, of `A Book Of Many Hours`
+of eight hours, after 757 seconds of the null device and the key `Q`:
+
+```text
+19:41:22 [WARN] [sync_session_from_database] the server did not accept the position: The server reported a fault. Status 500.
+19:41:22 [WARN] [offline] the application did not keep the position 757s of 6ba57b9a-…: table pending_progress has no column named position_s. The place of that playback goes away.
+19:41:22 [INFO] [handle_key (Q)][book][Quit] Item 6ba57b9a-… closed at 757s (not finished)
+```
+
+`SELECT COUNT(*) FROM listening_session` said **0**,
+`SELECT COUNT(*) FROM pending_progress` said **0**, and
+`GET /api/me/progress/6ba57b9a-…` of the sandbox said `currentTime 0`: **the place
+of the user stood on no machine at all**, and the program removed the one row that
+held it in the same millisecond as the two faults above.
+
+**The second road is the box of T-207.** That box holds the sessions whose row the
+disk kept, and `sync_session_from_database` sends the place of such a session to
+the server no second time. `chmod 444` of the file of the database and the same
+proxy gave this line, one millisecond after the status 500 of the write of that
+place:
+
+```text
+19:42:23 [ERROR] [the row of a closed session] the disk kept the row of the session fae44ca0-…: attempt to write a readonly database. The server holds the place of that media already, therefore this program sends it no second time.
+```
+
+**The server held nothing of that place.** A `chmod 644`, a proxy that forwards
+every request, and the key `l` then said:
+
+```text
+19:42:44 [INFO] [handle_key] the server holds the place of the session fae44ca0-… already. The disk kept its row, and this program sends it no second time.
+```
+
+`grep -c "PATCH /api/me/progress"` of the log of that proxy said **0**: the row of
+599 seconds went away with **no request at all**, and the server of the account
+answered at that moment.
+
+**The correction.** `ThePlaceOfTheSession` names the machine that holds the place
+of a closed session: the server, the table of the places that wait, or no server
+ever (the status 404 of a media that the server does not hold and the status 400
+of a request that it refused, the two faults of T-189). `remember_progress` gives
+the answer of its write, and `close_one_session` reads it:
+
+| the condition | v0.8.41 | v0.8.42 |
+|---|---|---|
+| the server takes the place | the row goes away | the row goes away |
+| the server refuses it, the disk keeps it | the row goes away | the row goes away |
+| the server takes it never (400, 404) | the row goes away | the row goes away |
+| **the server refuses it and the disk keeps nothing** | **the row goes away, and the place of the user is gone** | the row stays, and the log names the two machines |
+| the removal fails | the box says "the server holds it" | the box says which machine holds it |
+
+**The whole road of the correction, of the real program**: the key `Q` of the same
+condition kept the row of 691 seconds and it said
+
+```text
+19:49:06 [ERROR] [sync_session_from_database] the row of the session 17355e5a-… stays: the server did not take the place 691 s of 6ba57b9a-…, and the disk did not keep it. The next program of this account sends that place.
+```
+
+and the key `l` of the next program of the account, with the disk and the server
+back, gave that place to the server: `currentTime 691`.
+
+**The words for the user.** The two calls of `remember_progress` of the offline
+playback read their answer too, and `THE_DISK_KEPT_NO_PLACE` says one sentence of
+six seconds: the place of an offline playback reaches the server through that row
+alone (T-152), therefore a write of it that failed at the end of a playback is a
+fault that the user must read. The removal of `close_one_session` runs with no key
+of the user behind it and it holds no view of its own, therefore it takes a line
+of the log alone (T-177).
+
+`tests/a_place_that_no_machine_holds_keeps_its_row.rs` holds the five roads in one
+function (T-144 and T-157), and it needs no sandbox: `wiremock` gives the fault of
+the server, one `ALTER TABLE` gives a table of the disk that takes no write, and
+`std::fs::set_permissions` of `0o444` gives the disk of T-206.
+
+#### What this item leaves open
+
+**The mark of a media that came to its end has one road of its own.** The loop of
+a playback writes the place of each second, and it writes the mark `is_finished`
+at the end of the playback alone: a fault of that one write therefore takes the
+mark and not the place. `update_is_finished` of `follow_playback` reads no answer
+of its write, and the row of `listening_session` then says that a book that the
+user finished is not finished.
+
+**The column `elapsed_time` of `listening_session` reaches no reader of the
+program.** `update_elapsed_time` writes it at each sync, and no line of `src/`
+outside the module of the database reads that value: a fault of that write says
+nothing because the value says nothing. **A value of the disk that no part of the
+program reads is the question of the next session** (the rule of T-201 in the
+other direction).
+
+**The removals of the rows of a download after the files reach the disk are not
+measured** against the shape of this item: `delete_download` of the road of a
+fault of `download_item` stands after the files of the user are whole.
+
 ### T-211: a place that the server took stayed on the disk, and it went to the server again every 30 seconds
 
 **The item before this one named the road, and it left it open**: "the flush of

@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.41.** The item T-211 belongs to this session. The
+**The newest release is v0.8.42.** The item T-212 belongs to this session. The
+item T-211 belongs to the session before it. The
 item T-210 belongs to the session before it. The
 item T-209 belongs to the session before it. The
 item T-208 belongs to the session before it. The
@@ -51,11 +52,115 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.41**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.42**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1192 of 1192** in 2.5 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1218 of 1218** with the sandbox up, and
+**1193 of 1193** in 2.4 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1219 of 1219** with the sandbox up, and
 `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in two runs.
+
+## The session of the forty-fourth turn of 2026-08-14: a place that reached no machine went away with the row that held it
+
+**One release: v0.8.42.** The session before this one named the road in its last
+paragraph — "a call of the database that stands **after** a request of the server
+that succeeded is the line to look for", and "the close of a session" holds it —
+and this one took the other half of that shape: **a call of the database that
+stands after a request of the server that failed.**
+
+**The item is T-212**, and the condition holds one proxy and one command of the
+disk:
+
+```bash
+python3 docs/harness/one_path_fails.py 13500 13399 requests.log \
+    /api/me/progress /api/session
+sqlite3 "$DB" "ALTER TABLE pending_progress \
+    RENAME COLUMN position_s TO position_s_of_an_old_version;"
+```
+
+**A condition of two halves needs a harness that takes one half away** (the rule
+of T-206). The `chmod 444` of that item stops the write of `pending_progress`
+**and** the removal of the row of the session together, therefore it hid this
+road: the statement that fails of T-203, for **one table** of the disk, is the
+harness that takes one half away.
+
+**The measurement of the real program of the sandbox**, of `A Book Of Many Hours`
+after 757 seconds and the key `Q`:
+
+```text
+19:41:22 [WARN] [sync_session_from_database] the server did not accept the position: The server reported a fault. Status 500.
+19:41:22 [WARN] [offline] the application did not keep the position 757s of 6ba57b9a-…: table pending_progress has no column named position_s. The place of that playback goes away.
+19:41:22 [INFO] [handle_key (Q)][book][Quit] Item 6ba57b9a-… closed at 757s (not finished)
+```
+
+`listening_session` held **0** rows, `pending_progress` held **0** rows, and the
+sandbox said `currentTime 0`: the place of the user stood on **no** machine, and
+the program removed the one row that held it.
+
+**The second road is the box of T-207**, and it is the neighbour of the line that
+that item corrected (the rule of T-185). The box holds the sessions whose row the
+disk kept, and the program sends the place of such a session no second time: the
+words of it named the **server** for every row, and the log said "The server holds
+the place of that media already" one millisecond after the status 500 of the write
+of that place. The next key `l`, with the server back, then removed that row with
+**no request at all** — `grep -c "PATCH /api/me/progress"` of the proxy said 0.
+
+**The correction.** `ThePlaceOfTheSession` names the machine that holds the place
+of a closed session, `remember_progress` gives the answer of its write, and
+`close_one_session` reads it: a row whose place reached no machine **stays**, and
+the next program of the account sends it. The key `Q` of the same condition kept
+the row of 691 seconds, and the key `l` of the program after it gave that place to
+the server (`currentTime 691`).
+
+`tests/a_place_that_no_machine_holds_keeps_its_row.rs` holds the five roads in one
+function, and it needs no sandbox: `wiremock`, one `ALTER TABLE`, and
+`std::fs::set_permissions` of `0o444`.
+
+### The traps of this session
+
+**The trap 180: a table of the disk that takes no write is the statement of T-203
+for one table.** The `chmod 444` of T-206 and the lock of T-199 each stop **every**
+table together, therefore each of them hides a road where one write of a function
+fails and the next write of that same function answers.
+`ALTER TABLE <the table> RENAME COLUMN <a column> TO <a name of an old version>`
+gives that condition, and the `ALTER TABLE` back belongs to the same command (the
+trap 178). **The migration does not correct it**: `CREATE TABLE IF NOT EXISTS`
+finds the table, and `PRAGMA user_version` holds the newest version already.
+
+**The trap 181: a sync of a session writes the place of the user, therefore a
+proxy of the write of the place must hold `/api/session` too.** The first form of
+this measurement failed `PATCH /api/me/progress` alone, and the sandbox then held
+`currentTime 1089` of a place that "went away": the loop of the playback sends
+that place to `/api/session/:id/sync` every ten seconds (`SYNC_PERIOD`). **A
+measurement of a place that reaches no machine needs the two paths.**
+
+**The trap 182: the close of a session comes of a key, and not of the start of the
+program.** `sync_session_from_database` runs before a new playback and before the
+program stops, therefore a row of the disk that waits for the server stays after a
+start with no key at all: the key `l` or the key `Q` is the measurement. **A row of
+another program needs a heartbeat of an hour before**
+(`UPDATE listening_session SET heartbeat = heartbeat - 3600`), because the rule of
+T-145 keeps a row that is too young.
+
+### What this session leaves open
+
+**The mark of a media that came to its end has one road of its own.** The loop of
+a playback writes the place of each second, and it writes `is_finished` at the end
+of the playback alone (`update_is_finished` of `follow_playback`, with `let _ =`):
+a fault of that one write takes the mark and not the place, therefore a book that
+the user finished stands in the row as a book that is not finished. **No
+measurement has reached it.**
+
+**A value of the disk that no part of the program reads.** `update_elapsed_time`
+writes `elapsed_time` of `listening_session` at each sync, and no line of `src/`
+outside the module of the database reads that column. That is the rule of T-201 in
+the other direction, and the question of it is whether such a write belongs to the
+program at all.
+
+**The removals of the rows of a download stand after the files of the user are
+whole**, and the shape of T-211 and of T-212 does not measure them yet.
+
+**The calls of the database of the flush and of the close stand on a thread of the
+runtime**, and the freeze of the loop of the screen stays: it is the ninth session
+that names it.
 
 ## The session of the forty-third turn of 2026-08-14: the place that the server took and that stayed on the disk
 
