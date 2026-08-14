@@ -7629,6 +7629,90 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-169: a server that answers some requests and that fails others, and the two views of the lists that said a reason of their own
+
+**The condition of this session**: T-168 left one condition open, and it named
+it — the collections and the playlists of the start, the two `unwrap_or_else` of
+`App::new`. **No harness of this repository gave that condition**: `slow.py`
+gives a delay to every request, and `blackhole.py` takes the whole server away.
+Each of them puts the program in the offline mode of T-25, and the words of that
+mode are right there.
+
+`docs/harness/one_path_fails.py` is the harness of this session. It reads one
+request, it answers the status `500` to a path that holds a part of the command
+line, and it forwards every other request to the sandbox. **The answer `500` is
+an answer**, therefore the address keeps the state `Up` (T-128) and every
+request of the program stays with that proxy. The account of the sandbox took
+the address of the proxy for the measurement, and it took its own address again
+after it.
+
+**Two views said a reason that the program does not have** (T-91). The library
+`Books` of the sandbox holds one collection and one playlist.
+
+| The key | What the user read | What the program knew |
+|---|---|---|
+| `c` of the library `Books` | `This library has no collection and no playlist.` | `[app] the server did not give the collections: The server reported a fault. Status 500.` |
+| `m` on a media of that library | `This library holds no collection and no playlist. Press c or p to make one.` | the same fault, of the same second |
+
+**The second of them is the sharp one**: it asks the user to make a list of a
+server that the program did not read. A text must not promise a function that
+the program does not have (T-118).
+
+**The cause is the cause of T-168**: `is_offline` of `App` holds the offline
+mode of the **start** (T-25). The server answered the libraries, the shelves,
+the series, and the items, therefore that value holds `false` and the two
+sentences of a server that does not answer never came.
+
+### The correction
+
+1. `logic::the_lists` holds a box of the fault, and **that box holds the
+   library** of the request: a user who takes the key `S` to another library
+   must not read the fault of the library before it.
+2. The two `unwrap_or_else` of `App::new` write that box, and the task of the
+   start takes the fault of the request before it away at its first line: the
+   key `S` comes back to the library of a fault later.
+3. `logic::the_lists::ask` writes that box too. That function said the fault to
+   the log alone before, and every caller of it comes after a write of the user:
+   **the message row says nothing there**, because that write says its own
+   sentence already (T-164).
+4. `the_reason_of_no_list` and `the_title_of_no_list` are pure, and each holds
+   three conditions: the answer came and the library holds no list; the request
+   came back with a fault; or the server did not answer at the start. The
+   sentence of the fault names what the server said, it names no library — the
+   header of the program names it already — and it promises no key that the view
+   does not hold (T-118 and T-143).
+5. The paragraph of that view takes `Wrap` now. **The sentence of the fault is
+   longer than the two sentences before it**, and the first measurement of the
+   correction read `The server reported a fault. Status` with the number outside
+   the panel of 95 columns.
+
+### The measurements of this session
+
+| The measurement | The answer |
+|---|---|
+| **The key `c` of the library `Books`, with the proxy of the fault** | **one fault**: `This library has no collection and no playlist.` |
+| The same condition, after the correction | `The server did not give the collections and the playlists: The server reported a fault. Status 500.` |
+| **The key `m` of a media of that library** | **one fault**: `This library holds no collection and no playlist. Press c or p to make one.` |
+| The same condition, after the correction | the same sentence of the fault, and no promise of the keys `c` and `p` |
+| The key `S` to the library `Empty` while that fault stands | `This library has no collection and no playlist.` — **the truth of that library**, and the box holds the fault of `Books` alone |
+| The library `Books` again, with a proxy that fails nothing | `Collections and playlists [2 items]` |
+| The library `ManyPods` of the sandbox, with no proxy at all | `This library has no collection and no playlist.` |
+
+**The condition of the request that runs does not exist for this view.**
+`App::new` waits for the four requests before the first frame (T-129), therefore
+no frame of the program stands between the key of the user and the answer of the
+server. This is the difference from the view of the episodes of T-168, and it is
+the reason that `the_reason_of_no_list` holds three conditions and
+`the_reason_of_no_episode` holds four.
+
+`src/logic/the_lists.rs` holds the rules,
+`tests/the_lists_that_did_not_come_say_why.rs` holds the road of the fault from
+a host of a raw socket to the two sentences, and **that test fails with the
+correction removed** ("the request came back with a fault, therefore the view
+must know it. It knew nothing at all"). No unit test reaches the two lines of
+`App::new` and the two lines of the render: those need an application of a
+server, and the measurement of tmux above holds them.
+
 ### T-168: the server went away, and the request of a key said nothing at all
 
 **The condition of this session**: no item of the road stayed open, therefore

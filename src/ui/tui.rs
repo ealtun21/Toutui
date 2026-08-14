@@ -830,15 +830,12 @@ impl App {
         // an empty box says nothing. See T-88.
         let title = match (self.the_media_of_the_list.as_ref(), self.lists.is_empty()) {
             // A server that does not answer takes no new list, and it gave no
-            // list either. See T-91.
-            (_, true) if self.is_offline => {
-                "The server does not answer. A collection and a playlist stand on the server."
-                    .to_string()
-            }
-            (_, true) => {
-                "This library holds no collection and no playlist. Press c or p to make one."
-                    .to_string()
-            }
+            // list either. See T-91. **A request that came back with a fault is
+            // a third condition**, and this title says it too (T-169).
+            (_, true) => crate::logic::the_lists::the_title_of_no_list(
+                self.is_offline,
+                crate::logic::the_lists::the_fault_of(&self.id_selected_lib).as_deref(),
+            ),
             (Some((_, _, name)), false) => {
                 format!(
                     "Put \"{}\" in a list [{}]",
@@ -1690,15 +1687,25 @@ impl App {
             // has no collection and no playlist" with the server stopped, and
             // that sentence is not true: no request gave an answer. The view of
             // the authors held this rule already. See T-91.
-            let text = if self.is_offline {
-                "The server gave no collection and no playlist: the server does not answer.\n\
-                 Press h to go back."
-            } else {
-                "This library has no collection and no playlist.\nPress h to go back."
-            };
+            //
+            // **A request that came back with a fault is a fourth condition**,
+            // and `is_offline` does not hold it: the server answers, and the
+            // program has no list of it. See T-169.
+            let what_the_server_said = crate::logic::the_lists::the_fault_of(&self.id_selected_lib);
 
+            let text = crate::logic::the_lists::the_reason_of_no_list(
+                self.is_offline,
+                what_the_server_said.as_deref(),
+            );
+
+            // **The sentence of the fault names what the server said**,
+            // therefore it is longer than the two sentences before it. A
+            // paragraph with no wrap cuts the words at the edge of the panel:
+            // the measurement of T-169 read "The server reported a fault.
+            // Status" with the number outside the screen.
             Paragraph::new(text)
                 .centered()
+                .wrap(Wrap { trim: true })
                 .block(
                     Block::new()
                         .borders(Borders::TOP)

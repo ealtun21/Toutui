@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.3",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The view of the collections and of the playlists said that your library \
+             holds none.** The server answered, and it gave a fault for those two lists \
+             alone: the key c then said \"This library has no collection and no playlist.\" \
+             for a library that holds both, and the key m asked you to make a list of a \
+             server that the program did not read. The two views say what the server said \
+             now.",
+        ],
+    },
+    Entry {
         version: "0.8.2",
         date: "14/08/2026",
         body: &[

@@ -806,6 +806,12 @@ impl App {
             let library_query = library_query.clone();
 
             tokio::spawn(async move {
+                // **A new request of this library takes the fault of the
+                // request before it away.** The key `S` gives the program a new
+                // library, and it comes back to the library of a fault later.
+                // See T-169, and the same rule of T-168.
+                crate::logic::the_lists::forget_the_fault_of(&id_selected_lib);
+
                 let ask_for_the_series = async {
                     // A podcast library has no series, thus the application sends no
                     // request for it. See T-22.
@@ -835,6 +841,16 @@ impl App {
                         .await
                         .unwrap_or_else(|error| {
                             log::warn!("[app] the server did not give the collections: {}", error);
+                            // **The view must say why it holds no line** (T-91).
+                            // The server answers, therefore `is_offline` holds
+                            // `false` and the words of the offline mode never
+                            // come: the view said "This library has no
+                            // collection and no playlist" for a library of one
+                            // collection and of one playlist. See T-169.
+                            crate::logic::the_lists::keep_the_fault(
+                                &id_selected_lib,
+                                &error.to_string(),
+                            );
                             CollectionRoot::default()
                         })
                 };
@@ -848,6 +864,11 @@ impl App {
                         .await
                         .unwrap_or_else(|error| {
                             log::warn!("[app] the server did not give the playlists: {}", error);
+                            // See the collections above, and T-169.
+                            crate::logic::the_lists::keep_the_fault(
+                                &id_selected_lib,
+                                &error.to_string(),
+                            );
                             PlaylistRoot::default()
                         })
                 };
