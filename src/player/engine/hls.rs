@@ -206,6 +206,26 @@ pub fn the_sentence_of_a_part_that_stopped(name: &str) -> String {
     )
 }
 
+/// The sentence of a part of the stream that holds no packet of the audio.
+///
+/// **A part with no audio is not a part of silence** (T-195). The tables of such
+/// a part name an audio, and the body of it holds no byte of that audio: a
+/// reader that goes to the part after it gives a book of silence, and the
+/// program then tells the server that the user finished the media. The first
+/// part of a stream gives this sentence to the user, because the playback of it
+/// does not start.
+///
+/// **The caller of the open adds what the user can do**
+/// (`the_message_of_a_stream_that_did_not_play`), therefore this sentence names
+/// the fault alone and it stays short: the message stands in one row of the
+/// screen (the trap of the message of T-68).
+pub fn the_sentence_of_a_part_with_no_audio(name: &str) -> String {
+    format!(
+        "The part {} of the stream of the server holds no audio.",
+        name
+    )
+}
+
 /// The sentence for the user, for a stream that did not reach its last part.
 ///
 /// **A stream that stops is not the end of the media** (T-194). The engine held

@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.24.** The item T-194 belongs to this session. The
-item T-193 belongs to the session before it, and the
+**The newest release is v0.8.25.** The item T-195 belongs to this session. The
+item T-194 belongs to the session before it, and the
+item T-193 to the session before that one, and the
 items T-190, T-191, and T-192 to the session before that one. The items T-188
 and T-189 belong to the session before that one, and
 the item T-187 to the session before that one, and the
@@ -37,6 +38,64 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the thirty-second turn of 2026-08-14: a part of the stream with no sound
+
+**One release: v0.8.25.** The session before this one closed the body of a part of
+the stream (T-194), and it left one condition open: a part that holds no packet of
+the audio. **That condition held the whole fault of T-194 again.**
+
+| Item | What | Where |
+|---|---|---|
+| T-195 | **A part of the stream with no audio became a book that you listened to.** `fill_buffer` said `the part N holds no audio` in the log and it went to the part after it: the thread then reached the last part of the playlist, it said that it read every byte, and the engine gave the end of the **whole** media. The book of ten minutes of the sandbox held six seconds of audio, and the server then held `currentTime: 600`, `progress: 1`, and `isFinished: true`. **The screen said nothing at all.** The open of a stream at such a part gave a reader of no byte at all, and that is the same fault with no line of the log | `src/player/engine/hls.rs`, `src/player/engine/hls_file.rs` |
+
+The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-195. Four things are
+worth the room here:
+
+1. **A condition that an item names as open is an item of its own.** T-194 wrote
+   the words "a part that holds no audio still goes away with no word, and no
+   measurement made such a part", and that sentence was the whole of this
+   session: one harness, one measurement, and the same fault of the user.
+   **Read the last paragraph of the newest item before anything else.**
+2. **A line of the log that says a fault and goes on is the shape to look for.**
+   `warn!` and `continue` stood in one arm of the loop of the parts. A line of the
+   log is the one word of a fault that no view holds (T-177 and up), and **that
+   rule is for a row that belongs to no line of a view**; it is not a rule for a
+   condition that changes what the program tells the **server**. Ask of every
+   `continue` of a loop of the audio: what does the program write when this loop
+   ends?
+3. **A road of a reader that no test walks is a road of a fault.** The open of
+   `HlsFile` reads the first part, and the thread of the buffer reads the rest:
+   **the same condition therefore holds two roads**, and the correction of one is
+   not the correction of the other. The open gave a reader of no byte, and that
+   reader says `finished` at its first read.
+4. **A harness of a fault must not hold a fault of another item.** The two
+   harnesses of a body (T-193 and T-194) cut a body, and the rule of T-194 holds
+   such a body already: a measurement of this condition therefore needs a **whole**
+   body that holds no audio. 32 packets of the padding of the container (the
+   identity 0x1FFF) give it, and the tables of a real part give the identity that
+   the reader looks for.
+
+**The condition that this session leaves open.** **The reader of the stream of the
+server holds no condition that a measurement did not reach**: the playlist
+(T-193), the body of a part (T-194), and a part with no audio (T-195). The shapes
+that stay are the panic of the thread of the playback (the shape of T-174) and the
+keys `F`, `b`, `n`, `m`, `r`, `D`, and `X` against a server of a fault.
+
+### The traps of this session
+
+**The trap 152: the shell of the harness of a session is not `fish`.** The `Bash`
+tool of this harness reads `zsh`, therefore a `for ... end` of `fish` and a `==`
+of a test give a parse error. **The loop of a measurement belongs in a file of
+`bash`** (the trap 143), and every command of a sequence belongs there too.
+
+**The trap 153: a part of padding alone holds no table of the container.**
+`audio_stream_of` reads the table of the map of the programs, and a body of
+packets of the identity 0x1FFF holds none: `HlsFile::open` then gives its old
+fault ("The stream of the server holds no audio") and the road of the new
+correction never runs. A measurement of the open of such a part therefore needs
+the three tables of a real part before the padding, and
+`tests/fixtures/audio/transport_stream.ts` holds them in its first three packets.
 
 ## The session of the thirty-first turn of 2026-08-14: the stream of the server that stopped
 

@@ -223,6 +223,20 @@ impl HlsFile {
 
         let audio = hls::audio_payload(&bytes, stream.pid);
 
+        // **A part that holds no packet of the audio is not a part of silence.**
+        // The tables of such a part name an audio, and the body of it holds no
+        // byte of that audio: the buffer then starts empty, the decoder reads
+        // the end of the book at its first read, and the program writes the
+        // whole place of the media to the server. The playback does not start,
+        // and the user reads why. See T-195.
+        if audio.is_empty() {
+            warn!(
+                "[HlsFile] the first part {} of the stream holds no audio.",
+                name
+            );
+            return Err(hls::the_sentence_of_a_part_with_no_audio(&name));
+        }
+
         let shared = Arc::new(Shared {
             buffer: Mutex::new(VecDeque::from(audio)),
             signal: Condvar::new(),
@@ -771,9 +785,30 @@ fn fill_buffer(
 
         let audio = hls::audio_payload(&bytes, pid);
 
+        // **A part that holds no audio is not a part of silence of the media**,
+        // and the reader went to the part after it with no word for the user:
+        // the thread then reached the last part of the playlist, it said that it
+        // read every byte, and the engine gave the end of the **whole** media.
+        // A measurement of 2026-08-14 with
+        // `docs/harness/a_part_that_holds_no_audio.py`: the book of ten minutes
+        // of the sandbox held six seconds of audio, and the server then held
+        // `currentTime: 600`, `progress: 1`, and `isFinished: true`.
+        //
+        // **A part of a new ffmpeg of the server is such a part.** The server
+        // starts its ffmpeg again when the first try dies (T-68), and the
+        // identity of the audio of the new parts belongs to the new ffmpeg. This
+        // reader holds the identity of the first part alone, therefore every part
+        // after that moment holds no audio for it. A second request gives the
+        // same body, therefore the stream stops here. See T-195.
         if audio.is_empty() {
-            warn!("[HlsFile] the part {} holds no audio.", part.name);
-            continue;
+            warn!(
+                "[HlsFile] the part {} holds no audio. The stream stops at \
+                 {:.0} seconds of the media, and that is not its end.",
+                part.name,
+                hls::seconds_before(&segments, index)
+            );
+            report.say(the_stream_stopped(index));
+            break;
         }
 
         if let Ok(mut buffer) = shared.buffer.lock() {

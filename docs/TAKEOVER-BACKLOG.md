@@ -8632,6 +8632,135 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-195: a part of the stream with no audio became a book that you listened to
+
+**T-194 gave the reader of the stream the truth of the length of its playlist,
+and one road of a part kept the whole fault.** That item left one condition open:
+a part that holds no packet of the audio. `fill_buffer` said `the part N holds no
+audio` in the log, and it went to the part after it. The thread then reached the
+last part of the playlist, it said that it read every byte, and the engine gave
+the end of the **whole** media: the program wrote that place to the server with
+`isFinished`, and the screen said nothing at all.
+
+**Such a part comes of a server that started its ffmpeg again.** ffmpeg of
+Audiobookshelf writes the parts while the client reads them, and the server
+starts it again with `-c:a aac` when the first try dies (T-68). The identity of
+the audio of the new parts belongs to the new ffmpeg, and this reader holds the
+identity of the first part alone: every part after that moment then holds no
+audio for it.
+
+#### The harness of the measurement
+
+**A part of no audio is not a part that stopped.** The two harnesses of T-193
+and of T-194 cut a body, and the rule of T-194 (a body of no whole number of
+packets of 188 bytes is a body that stopped) then holds that body already.
+`docs/harness/a_part_that_holds_no_audio.py` gives a **whole** body of a
+transport stream that holds no packet of the audio: 32 packets of 188 bytes of
+the identity 0x1FFF, which is the padding of the container.
+
+```bash
+python3 docs/harness/a_part_that_holds_no_audio.py 13509 13399 requests.log 1
+```
+
+The last argument is the number of the first part that holds no audio. Every
+other request goes to the sandbox. The address of the proxy goes in
+`users.server_address` of `db.sqlite3` of the sandbox, and the pool holds **one**
+address (T-97, and the trap 129).
+
+#### The measurement of 2026-08-14
+
+The book "Depthless Hunger, Book 2" of the sandbox (the section 11 of
+`docs/TEST-SERVER.md`) is a file of xHE-AAC of ten minutes: no decoder of the
+program reads it, therefore the program asks the server for a stream of the whole
+media (T-53). `podman restart abs-test` (the trap of T-68),
+`PATCH /api/me/progress/:id` with `{"isFinished": false}` and
+`{"currentTime": 0}` (the trap 148), and the key `l` of the search result:
+
+```
+[HlsFile] the stream holds 101 part(s). The reader starts at the part 0
+[HlsFile] the part output-1.ts holds no audio.
+...
+[HlsFile] the part output-100.ts holds no audio.
+[follow_playback] the playback stopped at 600 seconds, finished=true
+```
+
+The 100 lines of the log came in 34 milliseconds, and `GET
+/api/me/progress/bb9c73c7-…` of a second program then said:
+
+```json
+{"currentTime": 600, "progress": 1, "isFinished": true}
+```
+
+**Six seconds of audio reached the user, and the server holds the whole book of
+ten minutes as read.** The book left Continue Listening, and every client of that
+account then held it as read. **The screen said nothing at all.**
+
+#### The two roads of a part with no audio
+
+The thread of the buffer is the first road. **The open is the second one**: a
+playback that starts at such a part gave a reader of **no byte at all**, the
+decoder read the end of the book at its first read, and the log held no line of a
+part. The measurement of that road stands in the test: the reader of a stream of
+four parts that opens at the part 1 gave the audio of the parts 2 and 3 (48066
+bytes) and no report of a stop.
+
+#### The correction
+
+**A part that holds no audio is not a part of silence of the media**, and the
+program cannot know what the server put in it. The rule is the rule of a part
+that did not come (T-194): the stream stops there, the report of the reader
+holds the place of the media that the parts before it give, and the engine writes
+that place. A second request gives the same body, therefore the reader asks one
+time only.
+
+- `fill_buffer` of `src/player/engine/hls_file.rs` says the place in the log, it
+  writes `report.say(the_stream_stopped(index))`, and it stops the walk of the
+  parts.
+- `HlsFile::open` gives a fault for a first part with no audio, therefore the
+  playback does not start and the user reads why.
+  `hls::the_sentence_of_a_part_with_no_audio` names the part, and the caller adds
+  what the user can do (`the_message_of_a_stream_that_did_not_play`).
+
+The measurement again, with the same harness and the same steps:
+
+```
+[HlsFile] the part output-1.ts holds no audio. The stream stops at 6 seconds of
+          the media, and that is not its end.
+[follow_playback] the playback stopped at 6 seconds, finished=false
+```
+
+`{"currentTime": 6, "progress": 0.01, "isFinished": false}` of the server, one
+request of `output-1.ts` in the log of the proxy, and the row of the message of
+the screen: "The stream of the server stopped before the end of this media. Press
+the key of the media again to go on."
+
+#### The test
+
+`tests/a_part_with_no_audio_is_not_the_end_of_the_media.rs` holds a host of a raw
+socket with a playlist of four parts. The part 1 holds the three tables of the
+head of the part of the fixture (the table of the service, the table of the
+programs, and the table of the map) and 32 packets of padding: **the tables name
+the audio of the identity 0x100, and no packet of that identity stands in the
+body**. The body holds 35 packets of 188 bytes, therefore the rule of T-194 says
+nothing of it and the client reads a clean end of it.
+
+The test holds the two roads in one function (the shape of T-144 and of T-157):
+the open at 0.0 seconds gives the audio of the part 0 alone and a report of a
+stop at 6 seconds, and the open at 6.0 seconds gives the fault of the open.
+**The build of the fault** (the trap 147): `if audio.is_empty() && false` of one
+of the two arms keeps every other line, and each of them fails one assertion of
+that test — the first gives 72099 bytes of three parts and no report, and the
+second gives 48066 bytes and no report.
+
+#### What this item leaves open
+
+**The stream of the server is measured now**, for the playlist (T-193), for the
+body of a part (T-194), and for a part with no audio. **The reader of the stream
+holds no condition that a measurement did not reach.** The next shape of the
+audio is the file of the disk of a download (T-187 measured the bytes of it) and
+the panic of the thread of the playback (the shape of T-174).
+
+
 ### T-194: a stream of the server that stopped in the middle became a book that you listened to
 
 **T-193 corrected the file of a book, and the stream of the server kept the same
@@ -8792,7 +8921,8 @@ tests.
 (T-193) and for the parts. **A part that holds no audio still goes away with no
 word**: `fill_buffer` says `the part N holds no audio` in the log and it goes to
 the part after it, therefore a stream of parts of no audio gives a book of
-silence. No measurement made such a part.
+silence. No measurement made such a part. **T-195 made one, and it held the
+whole fault of this item.**
 
 ### T-192: a list with no identity said that the server does not hold your media
 

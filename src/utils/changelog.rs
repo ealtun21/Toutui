@@ -41,6 +41,26 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.25",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A book that your server transcodes and that gave a part with no \
+             sound became a book that you listened to.** Such a book comes in \
+             parts, and a part of your server can hold no sound at all: the \
+             program went to the part after it with no word for you, it then \
+             wrote the end of the whole book to your server, and it said that \
+             you finished the book. A measurement gave a book of ten minutes \
+             that held six seconds of sound. The program writes the place that \
+             it really reached now, the book stays in Continue Listening, and \
+             you read why the book stopped.",
+            "- **A book whose first part of such a stream holds no sound says \
+             so.** The playback of that book gave no sound and no word before, \
+             and the program then said that you finished the book. It does not \
+             start now, and it names the part of your server.",
+        ],
+    },
+    Entry {
         version: "0.8.24",
         date: "14/08/2026",
         body: &[
