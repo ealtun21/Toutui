@@ -32,6 +32,24 @@ use ratatui::{
     widgets::ListState,
 };
 
+/// What a line of a view holds when it holds no one media. See T-221.
+///
+/// A key of one media (`D`, `X`, `n`, `m`, `@`, `M`, and `N`) needs the
+/// identity of one book or of one episode. Two lines of the program hold more
+/// than one media, and one key opens each of them: a podcast holds its
+/// episodes, and a line of the Library view holds the books of one series.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum TheLineOfNoMedia {
+    /// A podcast of the Library view or of the view of the search. The key `l`
+    /// gives its episodes.
+    APodcast,
+    /// A series of the Library view. The key `l` gives its books.
+    ASeries,
+    /// A line that holds no media at all, and a view that holds no line of a
+    /// media.
+    Nothing,
+}
+
 /// The views of the application. The type has no field, therefore a copy
 /// costs nothing, and a test can name a view in a list.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -2094,24 +2112,34 @@ impl App {
                 let username = self.username.clone();
                 let server_key = self.server_key.clone();
 
-                if let Some((target, title, author)) = self.selected_download() {
-                    // The map is global. Therefore the bar stays correct when the
-                    // user refreshes the screen with the key `R`.
-                    let progress = crate::logic::download::downloads();
-                    tokio::spawn(async move {
-                        download_with_progress(
-                            token,
-                            target,
-                            server_address,
-                            username,
-                            title,
-                            author,
-                            server_key,
-                            progress,
-                        )
-                        .await;
-                    });
-                }
+                // **A key of the user that does nothing at all says why**
+                // (T-79 and T-221). This arm held `if let Some(…)` alone: a
+                // podcast of the Library view and of the view of the search,
+                // and a series of the Library view, gave no word of the screen
+                // and no line of the log.
+                let Some((target, title, author)) = self.selected_download() else {
+                    crate::logic::message::say(
+                        self.words_of_a_line_with_no_media("This line holds no media."),
+                    );
+                    return;
+                };
+
+                // The map is global. Therefore the bar stays correct when the
+                // user refreshes the screen with the key `R`.
+                let progress = crate::logic::download::downloads();
+                tokio::spawn(async move {
+                    download_with_progress(
+                        token,
+                        target,
+                        server_address,
+                        username,
+                        title,
+                        author,
+                        server_key,
+                        progress,
+                    )
+                    .await;
+                });
             }
 
             // The key `X` removes a bookmark inside the view of the
@@ -2248,6 +2276,15 @@ impl App {
                             }
                         }
                     }
+                } else {
+                    // **A key of the user that does nothing at all says why**
+                    // (T-79 and T-221). This arm held `if let Some(…)` with no
+                    // `else`: a podcast of the Library view and of the view of
+                    // the search, and a series of the Library view, gave no
+                    // word of the screen and no line of the log.
+                    crate::logic::message::say(
+                        self.words_of_a_line_with_no_media("This line holds no media."),
+                    );
                 }
             }
 
@@ -3843,7 +3880,9 @@ impl App {
         // it names the episode of a podcast. A line of a podcast itself holds no
         // media for this work: a list of the server takes a book or an episode.
         let Some((target, title, _author)) = self.selected_download() else {
-            crate::logic::message::say("This line holds no book and no episode.");
+            crate::logic::message::say(
+                self.words_of_a_line_with_no_media("This line holds no book and no episode."),
+            );
             return;
         };
 
@@ -3948,7 +3987,9 @@ impl App {
         }
 
         let Some((target, title, _author)) = self.selected_download() else {
-            crate::logic::message::say("This line holds no book.");
+            crate::logic::message::say(
+                self.words_of_a_line_with_no_media("This line holds no book."),
+            );
             return;
         };
 
@@ -6896,18 +6937,81 @@ impl App {
         }
     }
 
-    /// Gives the words of a line that holds no place of the user. See T-219.
+    /// Says what a line that holds no one media holds. See T-221.
+    ///
+    /// **Two lines of the program hold more than one media, and one key opens
+    /// each of them**: a podcast holds its episodes, and a line of a series
+    /// holds the books of that series (T-22). `selected_download` and
+    /// `selected_place` give nothing for the two of them, therefore every key
+    /// that needs one media names the key that opens the line.
+    pub fn the_line_of_no_media(&self) -> TheLineOfNoMedia {
+        match self.view_state {
+            // A library of podcasts holds one podcast in each line of the
+            // Library view and of the view of the search. The episodes come
+            // with the key `l` (T-126).
+            AppView::Library | AppView::SearchBook if self.is_podcast => {
+                if self.selected_item_id().is_some() {
+                    TheLineOfNoMedia::APodcast
+                } else {
+                    TheLineOfNoMedia::Nothing
+                }
+            }
+            // The Library view of a library of books groups the books of a
+            // series in one line (T-22).
+            AppView::Library => match self.selected_library_row() {
+                Some(LibraryRow::Series { .. }) => TheLineOfNoMedia::ASeries,
+                _ => TheLineOfNoMedia::Nothing,
+            },
+            _ => TheLineOfNoMedia::Nothing,
+        }
+    }
+
+    /// Gives the words of a line that holds no place of the user. See T-219 and
+    /// T-221.
     ///
     /// **A podcast holds no place, and its episodes hold one each.** The line
     /// of a podcast of the Library view and of the view of the search
     /// therefore names the key that opens its episodes (T-83 for the rule, and
     /// T-170 for the key of the sentence). Every other line with no media says
     /// that it holds none.
+    ///
+    /// **A line of a series is no podcast** (T-221): T-219 read
+    /// `selected_item_id`, and that function gives the first book of a series
+    /// of the Library view, therefore the keys `M` and `N` of the line
+    /// `The Test Chronicles [3 books]` of the sandbox said "A podcast holds no
+    /// place. Press l for its episodes." for a series of three books of a
+    /// library of books. That is T-91: the program said a reason that it does
+    /// not have.
     pub fn words_of_a_line_with_no_place(&self) -> &'static str {
-        if self.selected_item_id().is_some() {
-            "A podcast holds no place. Press l for its episodes."
-        } else {
-            "No media is selected."
+        match self.the_line_of_no_media() {
+            TheLineOfNoMedia::APodcast => "A podcast holds no place. Press l for its episodes.",
+            TheLineOfNoMedia::ASeries => "A series holds no place. Press l for its books.",
+            TheLineOfNoMedia::Nothing => "No media is selected.",
+        }
+    }
+
+    /// Gives the words of a line that holds no one media. See T-221.
+    ///
+    /// The keys `D`, `X`, `n`, `m`, and `@` each need one media. A line of a
+    /// podcast and a line of a series hold more than one, therefore the words
+    /// of those two lines name the key that opens them. `of_nothing` is the
+    /// sentence of a line that holds no media at all, and each key has its own.
+    ///
+    /// **The keys `D` and `X` said nothing at all before** (T-79). A
+    /// measurement of v0.8.49 against the sandbox, of the line
+    /// `Letters of Two Brides` of the Library view and of the view of the
+    /// search of the library `Podcasts`, and of the line
+    /// `The Test Chronicles [3 books]` of the library `Books`: the two keys
+    /// wrote no word of the screen and no line of the log.
+    pub fn words_of_a_line_with_no_media(&self, of_nothing: &'static str) -> &'static str {
+        match self.the_line_of_no_media() {
+            TheLineOfNoMedia::APodcast => {
+                "A podcast holds more than one media. Press l for its episodes."
+            }
+            TheLineOfNoMedia::ASeries => {
+                "A series holds more than one book. Press l for its books."
+            }
+            TheLineOfNoMedia::Nothing => of_nothing,
         }
     }
 
@@ -6953,7 +7057,9 @@ impl App {
     /// queue, and `l` in that view starts a media now.
     pub fn add_to_the_queue(&mut self) {
         let Some(entry) = self.selected_media() else {
-            crate::logic::message::say("This line holds no media.");
+            crate::logic::message::say(
+                self.words_of_a_line_with_no_media("This line holds no media."),
+            );
             return;
         };
 

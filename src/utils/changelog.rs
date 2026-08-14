@@ -41,6 +41,25 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.50",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key `D` and the key `X` did nothing for a line that holds \
+             more than one media.** A podcast of the Library view and of the \
+             view of the search holds its episodes, and a line of a series of \
+             the Library view holds the books of that series: the two keys need \
+             one media, and they gave no word of the screen and no line of the \
+             log. The two keys say what the line holds now, and they name the \
+             key `l` that opens it. The keys `n`, `m`, and `@` of those lines \
+             say the same.",
+            "- **The keys `M` and `N` of a line of a series said that a podcast \
+             holds no place.** A series of a library of books is no podcast, and \
+             the key `l` of that line gives its books. The words of the line \
+             name the books now.",
+        ],
+    },
+    Entry {
         version: "0.8.49",
         date: "14/08/2026",
         body: &[
