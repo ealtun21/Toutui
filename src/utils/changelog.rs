@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.11",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A book started at the first second, and it lost your place, for a \
+             server that does not give the length of an audio file.** Toutui looks for \
+             the file that holds your place, and a file with no length has no end that \
+             Toutui can find: it took the last file of the book and it made no movement \
+             to your place. A book of one file therefore played from the start, the row \
+             of the player said `0:0` for the length of the book, and no word said why. \
+             The session of the playback holds the length of the media now, and a book \
+             of one file takes it: your place comes back. A book of many files keeps \
+             your place in the first file of no length, and the row of the player says \
+             `N/A` for a length that Toutui does not have.",
+        ],
+    },
+    Entry {
         version: "0.8.10",
         date: "14/08/2026",
         body: &[

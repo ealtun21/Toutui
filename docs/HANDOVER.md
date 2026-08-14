@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.10.** The item T-179 belongs to this
-session. The items T-177 and T-178 belong to the session before it.
+**The newest release is v0.8.11.** The item T-180 belongs to this
+session. The item T-179 belongs to the session before it.
+The items T-177 and T-178 belong to the session before that one.
 The items T-175 and T-176 belong to the session before that one.
 The items T-173 and T-174 belong to the session before that one.
 The items T-171 and T-172 belong to the session before that one. The
@@ -26,6 +27,57 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the twenty-first turn of 2026-08-14: the length that the server did not give
+
+**One release: v0.8.11.** The session before this one left no item open, and it
+named the question of its own road: **a field that the program reads with a
+default gives no fault of a decode, and the program then uses that default**.
+`unwrap_or(0)` and `unwrap_or(0.0)` are the two lines of every such answer. This
+session read those lines of `GET /api/items/:id` again, for the **playback**,
+and **it held a fault that takes the place of the user away**.
+
+| Item | What | Where |
+|---|---|---|
+| T-180 | **A book of a server that gives no length of an audio file started at its first second.** `duration` of `media.audioFiles` takes the value 0.0 of `unwrap_or(0.0)`, and `TrackList::locate` looked for the file whose end stands after the place of the user: **a file of the length 0 has no such end**, therefore every file went by and the function gave the **last** file of the book at the offset 0. A book of one file of eight hours, with the place of 12000 seconds, played from `0:00`, the row said `0:0` for the length of the book, and **no word said why**. A length of 0 is "the server did not measure this file" now: `locate` stops at the first file of no length, a book of one file takes the length of the media of the session of its playback, and the row says `N/A` for a length that the program does not have | `src/player/engine/track.rs`, `src/logic/playback/mod.rs`, `src/player/integrated/player_info.rs` |
+
+The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-180. Four things are
+worth the room here:
+
+1. **The two logs of the program said the truth, and the playback did not.**
+   `[play] the item … starts at 12000 seconds` and `[worker] the playback starts
+   at 12000 seconds` both stood in the log while the book played its first
+   second: the program measured the place, it gave that place to the engine, and
+   the seek of `offset` 0 did nothing. **A log of an intention is not a
+   measurement of a result.**
+2. **One rule of T-38 hid the fault, and it took more with it.**
+   `position_is_at_the_start(0, 12000)` is false for ever, therefore the loop of
+   the playback wrote no position at all: the place of the user survived on the
+   server, and the percent, the chapter, and every write of the disk of that
+   playback went away. A rule that protects the place of the user also makes a
+   playback that reports nothing.
+3. **A length of 0 comes of a server of this version too.** A file that the
+   server did not probe holds `duration: 0`, therefore this road is not the road
+   of an old server alone.
+4. **The row of the player said `0:0 / 0:0` and `(0%)`.** That is the absence of
+   a measurement in the form of one, and the rule of T-91 holds for a row of a
+   player as much as for a view. **The time that is left keeps its 0** for a book
+   that came to its end, because that 0 **is** a measurement.
+
+**The condition that this session leaves open.** None of its own. The road of
+the next session stands in the prompt at the end of this file.
+
+### The gates of this session
+
+| The gate | The answer |
+|---|---|
+| `cargo clippy --all-targets -- -D warnings` | no word |
+| `cargo fmt --check` | no word |
+| `cargo nextest run` | **1119 of 1119** in 2.3 seconds |
+| `cargo nextest run --run-ignored all` | **1144 of 1144** in 18.4 seconds, with the sandbox up |
+| `cargo test -j 16 --no-fail-fast` | two runs, and every run passed |
+| `cargo tree -i openssl-sys` | no package |
+| `cargo tree -i cc` | `libsqlite3-sys` and `ring` only |
 
 ## The session of the twentieth turn of 2026-08-14: the size that the server did not give
 
@@ -4298,18 +4350,17 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took one road that the session before it named**: an answer of a
-server of another version, at `GET /api/items/:id`. **A download of a book of a
-server that gives no size of a file wrote every byte, it called that work a
-fault, and the next press of the key `D` asked for every byte again** (T-179).
-The session left no item open, and it names the next question of that road: a
-field of an answer that the program reads with a **default** is not safe, because
-the program then uses that default. **The next session must name a condition of
-its own.** This prompt names the state of the program on 2026-08-14.
+**This session took the question that the session before it named**: a field of
+an answer that the program reads with a **default** is not safe, because the
+program then uses that default. **A book of a server that gives no length of an
+audio file started at its first second, and the place of the user went away with
+no word** (T-180). The session left no item open. **The next session must name a
+condition of its own.** This prompt names the state of the program on
+2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.10**; `Cargo.toml` is at 0.8.10. The
+> AlbanDAVID/Toutui. Newest release **v0.8.11**; `Cargo.toml` is at 0.8.11. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -4318,7 +4369,7 @@ its own.** This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-179 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-180 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -4493,15 +4544,15 @@ its own.** This prompt names the state of the program on 2026-08-14.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-179 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-180 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1107 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1132 of 1132** with the sandbox up, in about 24 seconds. **Run that
+> Baseline: **1119 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1144 of 1144** with the sandbox up, in about 19 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -4535,11 +4586,12 @@ its own.** This prompt names the state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in thirty-two sessions of thirty-three. **No
->    condition of the road stays**: the session of the twentieth turn took one
->    road of the session before it, and it found a download that writes every
->    byte of a book and that then calls that work a fault (T-179). It wrote the
->    correction, and it left no item open.
+>    this shape found a fault in thirty-three sessions of thirty-four. **No
+>    condition of the road stays**: the session of the twenty-first turn took the
+>    question that the session before it named, and it found a book that starts
+>    at its first second and that loses the place of the user, for a server that
+>    gives no length of an audio file (T-180). It wrote the correction, and it
+>    left no item open.
 >    - **The three shapes that found a fault before:** **a state of one process
 >      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153 to
 >      T-167), **a program that dies in the middle of work** (T-145, T-152), and
@@ -4551,11 +4603,13 @@ its own.** This prompt names the state of the program on 2026-08-14.
 >      the keys** (T-178): the keys `M`, `N`, and `e` were the three of it, and
 >      each of them held a fault. **A fifth shape came of T-177**: an answer of
 >      a server of another version, which holds one field fewer, and
->      `docs/harness/a_field_of_the_answer_goes_away.py` gives it. **T-179 names
->      the next question of that shape**: a field that the program reads with a
->      **default** gives no fault of a decode, and the program then **uses** that
->      default — `unwrap_or(0)` and `unwrap_or(0.0)` are the two lines to read of
->      every such answer.
+>      `docs/harness/a_field_of_the_answer_goes_away.py` gives it. **The
+>      question of that shape is the question of T-179 and of T-180**: a field
+>      that the program reads with a **default** gives no fault of a decode, and
+>      the program then **uses** that default — `unwrap_or(0)` and
+>      `unwrap_or(0.0)` are the two lines to read of every such answer. Two of
+>      them held a fault of the user: a size of 0 threw a whole download away
+>      (T-179), and a length of 0 threw the place of the user away (T-180).
 >    - **The class of the views of `one_path_fails.py` is closed.** The bookmarks,
 >      the sessions, the statistics, the authors and the narrators, the devices of
 >      an e-reader, and the downloads of the server each hold a `State::Fault`,
@@ -4579,7 +4633,8 @@ its own.** This prompt names the state of the program on 2026-08-14.
 >      of the words**: `the_end_of_the_send` names every status and every body of
 >      the server, and the key `l` of that view says what the read of the devices
 >      said. **No measurement stands behind that read**, therefore the sweep
->      stays open: the shape of T-179 says that a road which looks safe in the
+>      stays open: the shape of T-179 and of T-180 says that a road which looks
+>      safe in the
 >      source can still hold a value that no answer gave.
 >    - **The shape of T-177 is the answer of a server of another version**, and
 >      **no structure of `src/api/` asks for a field that the program does not
@@ -4588,12 +4643,17 @@ its own.** This prompt names the state of the program on 2026-08-14.
 >      `get_media_progress.rs` (T-177) each give every such field a default.
 >      **The answer of `GET /api/items/:id` is measured for the download**
 >      (T-179): `metadata.size` of a file took the default 0, and a comparison of
->      that 0 threw the whole download away. **The parts that no measurement of
->      that shape has reached**: the answer of `POST /api/items/:id/play` (the
->      chapters, `currentTime`, `duration`, and the parts of the stream), the
->      other defaults of `GET /api/items/:id` (`ino`, `duration`, `index`, and
->      `mimeType` of a file, which `tracks_from_item` and `plan_from_item` read),
->      and the answer of the socket. The harness is
+>      that 0 threw the whole download away. **It is measured for the playback
+>      too** (T-180): `duration` of a file took the default 0.0, and `locate`
+>      then gave the last file of the book at the offset 0. **The parts that no
+>      measurement of that shape has reached**: the answer of
+>      `POST /api/items/:id/play` (the chapters, `currentTime`, `duration`, and
+>      the parts of the stream), the other defaults of `GET /api/items/:id`
+>      (`ino`, `index`, and `mimeType` of a file, which `tracks_from_item` and
+>      `plan_from_item` read — an `ino` of no character names no file of the
+>      server, and an `index` of the default 1 of every file of a book of many
+>      files gives one sequence of the sort), and the answer of the socket. The
+>      harness is
 >      `docs/harness/a_field_of_the_answer_goes_away.py`, and the question of
 >      every sweep of it is **which field does this program read, and what does it
 >      do with the default of that field**.
@@ -4722,7 +4782,12 @@ its own.** This prompt names the state of the program on 2026-08-14.
 > other fault stops the send and says so** (T-178), and **a size of 0 of
 > `metadata.size` is a size that the server did not give: the end of the answer is
 > then the end of the file, a file of the disk with no `.part` needs no second
-> request, and the bar of that download names no total** (T-179).
+> request, and the bar of that download names no total** (T-179), and **a length of 0 of
+> `duration` of an audio file is a length that the server did not give: the
+> position of the user belongs to the first file of no length, a book of one
+> file takes the length of the media of the session of its playback, and the row
+> of the player says `N/A` for a length that the program does not have**
+> (T-180).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
