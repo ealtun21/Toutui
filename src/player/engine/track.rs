@@ -74,6 +74,34 @@ impl TrackList {
         }
     }
 
+    /// Gives the length of the media to a book of one file that holds no
+    /// length.
+    ///
+    /// **A length of 0 of an audio file is a length that the server did not
+    /// give.** `GET /api/items/:id` of a server of another version, and a file
+    /// that the server did not probe, both give that 0. A book of one file
+    /// holds the whole media in that file, therefore the length of the media
+    /// is the length of that file, and the seek of a resume then goes to the
+    /// place of the user. See T-180.
+    ///
+    /// A book of many files keeps its 0: the length of the media says nothing
+    /// about the length of one file of that media. `locate` holds the position
+    /// in the first file of no length for that book.
+    pub fn the_length_of_the_media(self, seconds: f64) -> Self {
+        if seconds <= 0.0 || !seconds.is_finite() {
+            return self;
+        }
+
+        if self.tracks.len() != 1 || self.tracks[0].duration > 0.0 {
+            return self;
+        }
+
+        let mut tracks = self.tracks;
+        tracks[0].duration = seconds;
+
+        TrackList::new(tracks, self.chapters)
+    }
+
     /// Makes tracks from a list of lengths. The tests use this function.
     pub fn from_durations(durations: &[f64]) -> Vec<Track> {
         durations
@@ -129,6 +157,16 @@ impl TrackList {
         }
 
         for (number, track) in self.tracks.iter().enumerate() {
+            // **A length of 0 is a length that the server did not give**, and a
+            // file of no length has no end that this function can find. The
+            // position therefore belongs to this file. The old code walked past
+            // every such file and it gave the last file of the book: a book of
+            // one file started at the first second, and the place of the user
+            // went away with no word. See T-180.
+            if track.duration <= 0.0 {
+                return Some((number, (position - track.start_offset).max(0.0)));
+            }
+
             let end = track.start_offset + track.duration;
 
             if position < end {
@@ -308,6 +346,54 @@ mod tests {
         let list = list();
         assert_eq!(list.locate(60.0).unwrap().0, 2);
         assert_eq!(list.locate(1000.0).unwrap().0, 2);
+    }
+
+    /// A length of 0 is a length that the server did not give, and a position
+    /// belongs to that file. The old code walked past every such file: a book
+    /// of one file then started at the first second, and the place of the user
+    /// went away with no word. See T-180.
+    #[test]
+    fn a_file_whose_length_the_server_did_not_give_holds_the_position() {
+        let one = TrackList::new(TrackList::from_durations(&[0.0]), Vec::new());
+        assert_eq!(one.locate(12000.0).unwrap(), (0, 12000.0));
+
+        // A book of three files with no length: the position belongs to the
+        // first file of no length, and not to the last file of the book.
+        let three = TrackList::new(TrackList::from_durations(&[0.0, 0.0, 0.0]), Vec::new());
+        assert_eq!(three.locate(50.0).unwrap(), (0, 50.0));
+
+        // The files before it keep their work.
+        let some = TrackList::new(TrackList::from_durations(&[10.0, 0.0, 30.0]), Vec::new());
+        assert_eq!(some.locate(5.0).unwrap(), (0, 5.0));
+        assert_eq!(some.locate(15.0).unwrap(), (1, 5.0));
+    }
+
+    /// The session of the playback holds the length of the media. A book of one
+    /// file whose length the server did not give takes that length. See T-180.
+    #[test]
+    fn the_length_of_the_media_goes_to_the_one_file_of_no_length() {
+        let list = TrackList::new(TrackList::from_durations(&[0.0]), Vec::new())
+            .the_length_of_the_media(28800.0);
+
+        assert_eq!(list.total_duration(), 28800.0);
+        assert_eq!(list.locate(12000.0).unwrap(), (0, 12000.0));
+        assert_eq!(list.get(0).unwrap().duration, 28800.0);
+
+        // A length that the session did not give changes nothing.
+        let none = TrackList::new(TrackList::from_durations(&[0.0]), Vec::new())
+            .the_length_of_the_media(0.0);
+        assert_eq!(none.total_duration(), 0.0);
+
+        // A file that holds its length keeps it.
+        let known = TrackList::new(TrackList::from_durations(&[1800.0]), Vec::new())
+            .the_length_of_the_media(28800.0);
+        assert_eq!(known.total_duration(), 1800.0);
+
+        // The rule belongs to a book of one file. The session gives no length
+        // to one file of many.
+        let many = TrackList::new(TrackList::from_durations(&[0.0, 0.0]), Vec::new())
+            .the_length_of_the_media(28800.0);
+        assert_eq!(many.total_duration(), 0.0);
     }
 
     #[test]

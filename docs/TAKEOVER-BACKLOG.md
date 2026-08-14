@@ -7629,6 +7629,115 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-180: a book of a server that gave no length started at the first second
+
+**The road of T-179 named this shape**: a field that the program reads with a
+**default** gives no fault of a decode, therefore the program **uses** that
+default. T-179 took `metadata.size` of `GET /api/items/:id` and the download.
+**This item takes `duration` of the same answer and the playback.**
+
+`track_from` of `src/logic/playback/mod.rs` reads `duration` of every element of
+`media.audioFiles` with `unwrap_or(0.0)`, and `TrackList::new` makes the
+`start_offset` of each file from the lengths of the files before it.
+**`TrackList::locate` then looked for the file whose end stands after the place
+of the user**:
+
+```rust
+for (number, track) in self.tracks.iter().enumerate() {
+    let end = track.start_offset + track.duration;
+
+    if position < end {
+        return Some((number, position - track.start_offset));
+    }
+}
+
+let last = self.tracks.len() - 1;
+let offset = (position - self.tracks[last].start_offset).min(self.tracks[last].duration);
+
+Some((last, offset))
+```
+
+**A file of the length 0 has no end that this loop can find.** Every file of the
+book therefore went by, and the function gave the last file of the book at the
+offset 0. `offset` of 0 makes no seek in `src/player/engine/worker.rs`, and the
+book of one file started at its first second.
+
+The measurement of 2026-08-14, with
+`docs/harness/a_field_of_the_answer_goes_away.py` on the port 13503, the path of
+`A Book Of Many Hours` — one file, eight hours — and the field `duration`:
+
+```bash
+python3 docs/harness/a_field_of_the_answer_goes_away.py 13503 13399 \
+    /the/absolute/path/of/proxy.log \
+    /api/items/6ba57b9a-acb5-44f9-b2b6-39ad9107b420 duration
+```
+
+The account of the sandbox held that one address (the trap 129), and
+`PATCH /api/me/progress/:id` gave the book the place of 12000 seconds (the
+section 15 of `docs/TEST-SERVER.md`).
+
+| The measurement | Before | After |
+|---|---|---|
+| The log of the key `l` | `[play] the item 6ba57b9a… starts at 12000 seconds with 1 tracks` | the same |
+| The log of the engine | `[worker] the playback starts at 12000 seconds` | the same |
+| The row of the player, after five seconds | **`▶ 4:55 / 0:0 \| Elapsed: 4:55 \| Left: 0:0 (0%)`** | `▶ 3:31:10 / 8:00:00 \| Elapsed: 3:31:10 \| Left: 4:28:50 (44%)` |
+| The row of the player, after fifteen seconds | **`▶ 26:30 / 0:0`** | the position of the user, and it goes on |
+| The chapter of the row | **`The hours of the start`** | `The hours of the middle` |
+| The words of the program | **none** | none, and the row holds the truth |
+
+**The two logs say 12000 seconds, and the book played its first second.** The
+program measured the place of the user, it gave that place to the engine, and no
+part of the program said that the seek did not happen: the shape of T-174.
+
+**The place of the user did not go to the server**, and one rule of T-38 did
+that work: `position_is_at_the_start(0, 12000)` is false for ever, therefore the
+loop of the playback wrote no position at all. That rule also took the percent,
+the chapter, and every write of the disk of that playback away.
+
+**The value 0 of `duration` is not a length.** It is "the server did not measure
+this file", and a file that the server did not probe gives the same 0 to a
+server of this version. The correction gives that meaning to three places:
+
+1. **`locate` never walks past a file of no length.** The position belongs to
+   the first such file, at the offset of the start of that file. A book of one
+   file therefore keeps the place of the user, and a book of many files keeps it
+   in the first file that the server did not measure — and not in the last file
+   of the book.
+2. **The session of the playback holds the length of the media.**
+   `POST /api/items/:id/play` gives `audioTracks[0].duration`, and the target of
+   the Library view holds `media.duration` of the list. **A book of one file
+   holds the whole media in that file**, therefore that length is the length of
+   the file: `the_length_of_the_media` gives it, and `the_tracks_of_the_playback`
+   is the one road of `play_media` to the tracks now. **A book of many files
+   keeps its 0**: the length of the media says nothing about the length of one
+   file of that media.
+3. **A length of 0 takes no time in the row of the player.** `0:0 / 0:0` and
+   `(0%)` are the absence of a measurement, and the rule of T-91 holds for such a
+   row: it says `N/A` now. **The time that is left keeps its 0** for a book that
+   came to its end, because that 0 is a measurement.
+
+**Four tests hold the rule**, and each of them fails with its correction
+removed: two of `src/player/engine/track.rs` (the file of no length that holds
+the position, and the length of the media of a book of one file), one of
+`src/player/integrated/player_info.rs` (the words of a length that the program
+does not have), and `tests/a_file_of_no_length_keeps_the_place.rs`, which drives
+`the_tracks_of_the_playback` with the answer of the proxy of the measurement.
+
+**A second measurement of a book of many files** used the port 13504 and
+`Multi File Test Book` — three files, 60 seconds, every file of the disk of a
+download. The place of 40 seconds now goes to the first file, and the old road
+gave the third file. **The seek of 40 seconds in a file of 20 seconds reaches
+the end of that file**, and the engine then plays the file after it: with no
+length of any file, no road of the program can do better, and this one stays in
+the sequence of the book.
+
+**The parts of this road that stay open.** `chapters_from` reads `start` and
+`end` of every chapter with `unwrap_or(0.0)`: a chapter of no `end` holds no
+position, therefore `chapter_at` gives no chapter and the row of the player says
+`No chapter`. That is a word of the program and not a wrong measurement,
+therefore it stays. The answer of the socket holds no measurement of this shape
+yet.
+
 ### T-179: the download of a server that gave no size threw every byte away
 
 **The road of T-177 named this shape**: an answer of a server of another

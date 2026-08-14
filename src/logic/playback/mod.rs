@@ -154,6 +154,42 @@ pub fn tracks_from_episode(item: &serde_json::Value, episode_id: &str) -> Option
     Some(TrackList::new(vec![track], Vec::new()))
 }
 
+/// Makes the tracks of a playback from the answer of `GET /api/items/:id`.
+///
+/// **A length of 0 of an audio file is a length that the server did not give.**
+/// The session of the playback holds the length of the media, and the target of
+/// the library holds it too. A book of one file holds the whole media in that
+/// file, therefore that length is the length of the file. See T-180.
+///
+/// The function is pure, therefore a test examines it with the answer of the
+/// measurement and with no server.
+pub fn the_tracks_of_the_playback(
+    item: &serde_json::Value,
+    target: &PlaybackTarget,
+    the_length_of_the_session: &str,
+) -> Option<TrackList> {
+    let tracks = match target.episode_id() {
+        Some(episode_id) => tracks_from_episode(item, episode_id),
+        None => tracks_from_item(item),
+    }?;
+
+    let of_the_session = the_length_of_the_session.parse::<f64>().unwrap_or(0.0);
+
+    let of_the_media = if of_the_session > 0.0 {
+        of_the_session
+    } else {
+        match target {
+            PlaybackTarget::Book {
+                whole_book_duration: Some(duration),
+                ..
+            } => *duration,
+            _ => 0.0,
+        }
+    };
+
+    Some(tracks.the_length_of_the_media(of_the_media))
+}
+
 /// Starts a book or an episode, and follows the playback to the end.
 ///
 /// The function does this sequence:
@@ -390,10 +426,7 @@ async fn play_media(
         }
     };
 
-    let tracks = match target.episode_id() {
-        Some(episode_id) => tracks_from_episode(&item, episode_id),
-        None => tracks_from_item(&item),
-    };
+    let tracks = the_tracks_of_the_playback(&item, &target, &info_item[2]);
 
     let tracks = match tracks {
         Some(tracks) => tracks,

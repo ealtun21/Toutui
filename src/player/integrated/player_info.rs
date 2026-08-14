@@ -36,13 +36,49 @@ pub fn player_info(username: &str, state: &PlaybackState) -> Vec<String> {
         chapter,
         is_playing.to_string(),
         format_time(position),
-        format_time(duration),
+        the_length_of_the_row(duration),
         format_time(position),
-        format_time(duration.saturating_sub(position)),
-        format!("{}", progress_percent(position, duration)),
+        the_left_of_the_row(position, duration),
+        the_percent_of_the_row(position, duration),
         format!("{:.2}", speed),
         the_volume_of_the_row(state.volume),
     ]
+}
+
+/// Gives a length of the row of the player.
+///
+/// **A length of 0 is a length that the program does not have.** The audio
+/// files of a book of a server of another version hold no length, and the row
+/// then said `0:0 / 0:0` while the book played: that is a measurement that no
+/// program made, and the rule of T-91 holds for it. See T-180.
+pub fn the_length_of_the_row(seconds: u32) -> String {
+    if seconds == 0 {
+        return "N/A".to_string();
+    }
+
+    format_time(seconds)
+}
+
+/// Gives the time that is left of the row of the player.
+///
+/// A book that came to its end has 0 seconds left, and that 0 is a
+/// measurement. A book of no length has no time that is left. See T-180.
+pub fn the_left_of_the_row(position: u32, duration: u32) -> String {
+    if duration == 0 {
+        return "N/A".to_string();
+    }
+
+    format_time(duration.saturating_sub(position))
+}
+
+/// Gives the percent of the row of the player. A length that the program does
+/// not have gives no percent. See T-180.
+pub fn the_percent_of_the_row(position: u32, duration: u32) -> String {
+    if duration == 0 {
+        return "N/A".to_string();
+    }
+
+    format!("{}", progress_percent(position, duration))
 }
 
 /// Gives the volume for the row of the player.
@@ -103,6 +139,27 @@ mod tests {
         assert_eq!(the_volume_of_the_row(0.8), " | Vol: 80%");
         assert_eq!(the_volume_of_the_row(0.0), " | Vol: 0%");
         assert_eq!(the_volume_of_the_row(1.5), " | Vol: 150%");
+    }
+
+    /// The row said `4:55 / 0:0 | Elapsed: 4:55 | Left: 0:0 (0%)` for a book of
+    /// eight hours whose audio file held no length. The length of 0 is the
+    /// absence of a measurement, and the row must not report it as one. See
+    /// T-180 and T-91.
+    #[test]
+    fn a_length_that_the_program_does_not_have_says_nothing() {
+        use super::{the_left_of_the_row, the_length_of_the_row, the_percent_of_the_row};
+
+        assert_eq!(the_length_of_the_row(0), "N/A");
+        assert_eq!(the_percent_of_the_row(295, 0), "N/A");
+        assert_eq!(the_left_of_the_row(295, 0), "N/A");
+
+        // A length that the program has stays a time.
+        assert_eq!(the_length_of_the_row(28800), "8:00:00");
+        assert_eq!(the_percent_of_the_row(14400, 28800), "50");
+
+        // A book that came to its end has 0 seconds left, and that 0 is a
+        // measurement.
+        assert_eq!(the_left_of_the_row(28800, 28800), "0:0");
     }
 
     // Real values from upstream issue #33. The book has a total duration of
