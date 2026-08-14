@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.18",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A book that loses a file on your server kept that file on your \
+             disk.** The offline playback then played a part that the book does \
+             not hold, and it sent the place of that part to your server: a book \
+             of three parts that became a book of one part played for 60 seconds, \
+             and the server holds 20 seconds of it. The key D makes the copy of \
+             your disk the book of the server now, and it removes the file that \
+             left that book.",
+        ],
+    },
+    Entry {
         version: "0.8.17",
         date: "14/08/2026",
         body: &[
