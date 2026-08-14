@@ -3752,15 +3752,17 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session wrote the correction that the session before it named** — the
-line of the view of the downloads of the server (T-166) — and it measured every
-part of that correction against the sandbox. **No item of the road holds a
-measurement with no correction now.** **The next session must name a condition
-of its own.** This prompt names the state of the program on 2026-08-14.
+**This session took a part of the program that the road named and that no
+measurement had reached** — the view of the episodes of a podcast while a second
+window changes that podcast — and it found T-167. **The fault does not belong to
+that view**: it belongs to the playback, and the session wrote the correction
+and released it. **No item of the road holds a measurement with no correction
+now.** **The next session must name a condition of its own.** This prompt names
+the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.0**; `Cargo.toml` is at 0.8.0. The
+> AlbanDAVID/Toutui. Newest release **v0.8.1**; `Cargo.toml` is at 0.8.1. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -3769,7 +3771,7 @@ of its own.** This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-166 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-167 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -3817,7 +3819,7 @@ of its own.** This prompt names the state of the program on 2026-08-14.
 > that ends while the user looks at a view** comes of `A Long Test Book` of 30
 > minutes: the null device plays it in 22 seconds, and the two books of eight
 > hours then hold the queue open (T-161). **A measurement of two lists of
-> chapters needs the three chapters that this session gave the book of eight
+> chapters needs the three chapters that a session gave the book of eight
 > hours** (the section 6i of `docs/TEST-SERVER.md`), because the queue takes 22
 > seconds to start that book (T-162). **A media that came to its end stays away
 > from the shelf Continue Listening**, therefore a second run of such a
@@ -3839,28 +3841,38 @@ of its own.** This prompt names the state of the program on 2026-08-14.
 > seconds each (T-166). **The message of a view lives six seconds, and a
 > download of the sandbox ends in four**: a poll of that message needs a step of
 > 0.25 seconds and a `grep` of its words, and not a number of a row (T-166).
+> **The program reads the episodes of a podcast one time**
+> (`the_episodes_that_came` of `App` never goes back to `false`), therefore a
+> measurement of an old list of that view needs one window and a second program
+> alone, and a fresh list needs the key `R` (T-167). **A test of a server that
+> holds nothing must not use the port that no program holds**: that road is the
+> offline mode of T-25, and it keeps the copy of the disk. A host of a raw socket
+> that answers `404` gives a server that answers with no network and no sandbox
+> (T-167, and `tests/a_playback_that_did_not_start_says_why.rs`).
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-167 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-168 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1087 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1112 of 1112** with the sandbox up, in 18.1 seconds. **Run that
+> Baseline: **1089 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1114 of 1114** with the sandbox up, in 24.4 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
-> **A box of the process needs one test function.** The two test functions that
-> this session gave `src/logic/message.rs` fought for the slot of that module,
-> and `cargo test` found it at the run 1 of 4 while nextest passed every time
-> (the shape of T-144 and of T-157). The head of such a test says the rule
-> already: "the parts of this test stay in one function".
+> **A box of the process needs one test function.** Two test functions of one
+> module fight for the slot of that module, and `cargo test` found such a fault
+> at the run 1 of 4 while nextest passed every time (the shape of T-144 and of
+> T-157). The head of such a test says the rule already: "the parts of this test
+> stay in one function".
 >
 > **A test must not call a function that may never come back.** The wait of the
 > playback of T-158 held the gate of the machine for ever, and a test of that
 > shape says nothing at all: give such a function a thread of its own, and read
-> the end of that thread with a limit of time.
+> the end of that thread with a limit of time. **`wait_prev_session_finished`
+> blocks the thread that calls it**, therefore a limit of time on the future
+> alone says nothing (T-167).
 >
 > **`cargo test -j 16 --no-fail-fast` is the gate of CI, and it is a different
 > run.** nextest gives each test a process of its own, therefore it hides a test
@@ -3879,33 +3891,35 @@ of its own.** This prompt names the state of the program on 2026-08-14.
 >
 > ### The work, in the sequence of its value
 >
->    a fault in twenty-five sessions of twenty-six. **No condition of the
->    road stays**: the session of the eleventh turn took one of the parts that
->    the road named — the view of the downloads of the server while a download
->    ends — and it held one fault of two forms (T-166); the session after it
->    wrote the correction of that fault, and it left no item open.
+> 1. **A condition of the program that no measurement has reached.** A sweep of
+>    this shape found a fault in twenty-six sessions of twenty-seven. **No
+>    condition of the road stays**: the session of the thirteenth turn took the
+>    view of the episodes of a podcast while a second window changes that
+>    podcast, and it found T-167 — a fault that belongs to the playback and to no
+>    view. It wrote the correction of that fault, and it left no item open.
 >    - **The three shapes that found a fault before:** **a state of one process
 >      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153,
 >      T-154, T-155, T-156, T-158, T-159, T-160, T-161, T-162, T-163, T-164,
->      T-165, T-166),
->      **a program that dies
->      in the middle of work** (T-145, T-152), and **a server that does not
->      answer** (T-146, T-149, T-152, T-156).
->    - **The rule of the line of the view is made for six views now** (T-160
->      the Home view, T-161 the queue, T-162 the chapters, T-163 the bookmarks,
->      T-165 the collections and the playlists, and T-166 the downloads of the
->      server), and **the message of each of
->      them belongs to its own view** (T-164). **The parts of the program that no
->      such measurement has reached**: the search of a library that a second
->      window changes, **the key `S` of the library of the start with two windows
->      that both hold their account**, **the view of the episodes of a podcast
->      while a second window changes that podcast**, and **the view `PutInAList`
->      of the key `m`, which keeps its number of a line by the decision of
->      T-165**.
+>      T-165, T-166, T-167), **a program that dies in the middle of work**
+>      (T-145, T-152), and **a server that does not answer** (T-146, T-149,
+>      T-152, T-156).
+>    - **The rule of the line of the view is made for six views** (T-160 the Home
+>      view, T-161 the queue, T-162 the chapters, T-163 the bookmarks, T-165 the
+>      collections and the playlists, and T-166 the downloads of the server), and
+>      **the message of each of them belongs to its own view** (T-164). **The
+>      view of the episodes of a podcast needs no such rule** (T-167): its list
+>      is a photograph of the moment of the open, therefore no line of it moves
+>      under the cursor. **The parts of the program that no such measurement has
+>      reached**: the search of a library that a second window changes, **the key
+>      `S` of the library of the start with two windows that both hold their
+>      account**, and **the view `PutInAList` of the key `m`, which keeps its
+>      number of a line by the decision of T-165**.
 >    - **The messages of the other views are not measured**: the reader and the
->      view of the accounts. T-164 gives them the road — a
->      message that a rule writes with no key of the user must name its view with
->      `say_in`, and a message of a key names no view.
+>      view of the accounts. T-164 gives them the road — a message that a rule
+>      writes with no key of the user must name its view with `say_in`, and a
+>      message of a key names no view. **T-167 gives the same road to the keys
+>      that say nothing**: `grep` for `Outcome::Fault`, for `return` after an
+>      `error!`, and for a `warn!` with no `message::say` beside it.
 >    - **The shape of T-155 is a sweep that a session began and did not
 >      finish**: a write of a state that names a row of the database. T-159 gave
 >      the number of the rows to the caller of the library of the account, and
@@ -3920,7 +3934,8 @@ of its own.** This prompt names the state of the program on 2026-08-14.
 >    (T-91). **A text must not promise a function that the program does not
 >    have** (T-118), and **a footer must not promise a key that the view does not
 >    hold** (T-143). A key that does nothing in one view is a fault of its own
->    (T-79). A message lives six seconds.
+>    (T-79), **and a key that does nothing in every view is T-167**. A message
+>    lives six seconds.
 >
 > ### The two issues of the fork
 >
@@ -3979,7 +3994,9 @@ of its own.** This prompt names the state of the program on 2026-08-14.
 > episode of a podcast and not a number of a line: an episode that leaves the
 > queue takes that line to nobody, the keys `j` and `k` give a line again, and
 > the key `X` on a line of nobody says one sentence and it changes no queue**
-> (T-166).
+> (T-166), and **a playback that did not start says why: the three faults of
+> `play_media` each say one sentence, that sentence names what the server said,
+> it names no media, and it belongs to no view** (T-167).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
