@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.44.** The item T-214 belongs to this session. The
+**The newest release is v0.8.45.** The items T-214 and T-215 belong to this
+session. The
 item T-213 belongs to the session before it. The
 item T-212 belongs to the session before it. The
 item T-211 belongs to the session before it. The
@@ -54,13 +55,59 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.44**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.45**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1195 of 1195** in 2.5 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1221 of 1221** with the sandbox up, and
+**1196 of 1196** in 2.5 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1222 of 1222** with the sandbox up, and
 `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in two runs.
 
-## The session of the forty-sixth turn of 2026-08-14: the removal of a download that the disk took by half
+## The session of the forty-sixth turn of 2026-08-14: the rows of a download and the files of the disk
+
+**Two releases: v0.8.44 and v0.8.45**, and two items: T-214 of the rows of a
+download that go away by half, and T-215 of a row that names a file of the disk
+that no longer stands there. **The second item came of the "leaves open" of the
+first one**, and it cost one `mv` of one file.
+
+### T-215: a copy of the disk that is not whole is no copy of the disk
+
+**The item T-214 named this road in its last paragraph**: "`select_sources` asks
+no file system. A row of `download_files` whose file went away gives
+`TrackSource::Local` of a path that no file holds". The condition is one `mv` of
+one file of `Multi File Test Book` of the sandbox (three files of 20 seconds), and
+it needs no harness at all.
+
+**The road of the server**, of the key `l` with the server up:
+
+```text
+20:47:24 [INFO] [play] the download ac365248-… gives 3 of 3 track(s) from the disk
+20:47:24 [WARN] [worker] the engine cannot open the track 2 of 3: … No such file or directory (os error 2). The tracks before it play.
+20:47:25 [INFO] [follow_playback] the playback stopped at 20 seconds, finished=false
+```
+
+**The program played 20 seconds of a book of 60 and it said nothing at all**, and
+the whole book stood on the server. The rule of the engine says that the copy of
+the disk holds every file of the book or the book takes the server, and the program
+asked the **database** that question.
+
+**The road of the disk**, with the server away and the place of the user at 20
+seconds: the key `l` said `Offline: "Multi File Test Book" plays from the disk.`,
+the engine could not start the book, and **no sound and no word came**.
+`play_offline` holds the sentence of that condition already — "The disk does not
+hold every file of this media." — and it compared the files of the book with the
+files of the **same table**.
+
+**The correction.** `the_files_that_stand_on_the_disk` gives the rows whose file
+stands on the disk now, and it says one line of the log of each file that went
+away: `select_sources` gives the road of the server for every track of a copy that
+is not whole, and the check of `play_offline` then reaches the user. The
+measurement of v0.8.45 of the same book played **60 seconds of 60** from the
+server, and the offline mode said the sentence.
+
+`tests/a_copy_of_the_disk_that_is_not_whole_is_no_copy.rs` holds the roads in one
+function, and it needs no sandbox: a directory of the machine holds the files, and
+one `remove_file` takes one of them away.
+
+### T-214: the removal of a download that the disk took by half
 
 **One release: v0.8.44.** The session before this one named the road in its last
 paragraph — "the removals of the rows of a download stand after the files of the
@@ -148,6 +195,20 @@ write of a row of a file fails it. A condition of the write of the rows of a
 download therefore needs one trigger, and the rollback of that write needs a
 second one of `BEFORE DELETE` on the other table.
 
+**The trap 190: the engine of the playback says the fault of one file in the log,
+and the loop of the playback says nothing of it.** "the engine cannot open the
+track 2 of 3 … The tracks before it play" stands in the log of the worker, and the
+playback then stopped at that track with the words of a playback that the user
+stopped. **A fault of the engine that the loop reads as the end of a media is the
+line to look for** (the rule of T-194), and the place of the user decides which
+file the engine opens first: a place inside the second file gave "the engine cannot
+start the book" and no sound at all.
+
+**The trap 191: a book of three files of 20 seconds plays in one second on the null
+device.** A measurement of the words of a playback of that book therefore reads the
+log, and not the row of the player: the row of the player of that book stood empty
+by the time of the first look at the screen (the trap 72 and the trap 149).
+
 ### What this session leaves open
 
 **The write of the rows of a download is no transaction.**
@@ -157,12 +218,23 @@ each of them stands on a connection of its own, and the rollback is the answer o
 the fork today. **The question is whether a book of many files can leave a half
 state that the rollback does not reach.**
 
-**`select_sources` asks no file system.** A row of `download_files` whose file went
-away gives `TrackSource::Local` of a path that no file holds. A user who removes a
-file of the directory of the downloads by hand makes that condition with no fault
-of the database at all, and no measurement has reached it: the question is whether
-the program reads the disk at the moment of the use (T-142) or says the fault of
-the file that went away.
+**`select_sources` asked no file system, and T-215 of this session corrected it.**
+What stays of that road: **a file of a download that changed is not a file that
+went away.** The rows hold the `ino` and the size of each file (T-181 and T-187),
+and T-215 asks one question of the file system: does the path stand? A file whose
+bytes changed still gives the road of the disk.
+
+**The label `[Downloaded]` of a media whose copy of the disk is not whole says
+nothing of that.** The label comes of the row of `downloads` and of the box of
+T-204, and no read of the file system stands behind it: the line of the user says
+that the media stands on the disk while the playback of it takes the server. **A
+read of the file system at each frame is no answer** (T-203 and T-204), therefore
+that question belongs to the box of the copies of the disk.
+
+**The offline playback of a media whose copy of the disk is not whole plays
+nothing.** The sentence of it is true, and the user hears no second of the files
+that stand: the question is whether a media of a part of the disk belongs to a
+playback of that part.
 
 **The key `X` of the view of a search of a book of a series does nothing** (the
 trap 188), and the key `D` of that same line does nothing too.
@@ -6615,10 +6687,16 @@ answers slowly while it writes. Two answers to measure:
   `docs/superpowers/specs/2026-08-13-session-loop-design.md`. It reads the block of
   the quote of `## The prompt for the next session
 
-**This session took the last paragraph of the newest item**: T-213 named the
-removals of the rows of a download, and the shape of T-211, of T-212, and of
-T-213 had not measured them. The item is **T-214**, and it holds one release,
-v0.8.44.
+**This session took the last paragraph of the newest item, and then the last
+paragraph of its own item**: T-213 named the removals of the rows of a download,
+and T-214 named the row of a file that no file of the disk holds. The items are
+**T-214** and **T-215**, and they hold two releases, v0.8.44 and v0.8.45.
+
+**A row of the disk that names a thing of the disk is a value of two machines**
+(T-215). One `mv` of one file of a download of the sandbox gave the whole item: a
+book of three files played 20 seconds of 60 with no word at all, and the offline
+mode said that the media plays from the disk and played nothing. **The cheapest
+item of a session can come of the item of that same session.**
 
 **A function of two statements is a function of two halves.** T-213 asked which
 column of a row a condition can take away alone; this one asked it of a **table**:
@@ -6658,7 +6736,7 @@ This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.44**; `Cargo.toml` is at 0.8.44. The
+> AlbanDAVID/Toutui. Newest release **v0.8.45**; `Cargo.toml` is at 0.8.45. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -6667,7 +6745,7 @@ This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-214 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-215 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -7154,9 +7232,13 @@ This prompt names the state of the program on 2026-08-14.
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in fifty-nine sessions of sixty. **The session of the
->    forty-sixth turn took the last paragraph of the newest item, and it found that
->    a function of two statements of two tables is a function of two halves**
->    (T-214): `delete_download` held no transaction, therefore a disk that refused
+>    forty-sixth turn took the last paragraph of the newest item, and then the last
+>    paragraph of its own item** (T-214 and T-215): a function of two statements of
+>    two tables is a function of two halves, and a row of the files of a download
+>    names a file of the disk that goes away outside this program. **The cheapest
+>    item of a session can come of the item of that same session.**
+>
+>    `delete_download` held no transaction (T-214), therefore a disk that refused
 >    the removal of the rows of the files of a download kept the row of its media
 >    away and the rows of its files on the disk. The key `X` again then said that
 >    the media holds no local copy, and every playback of it took the road of the
@@ -7170,11 +7252,24 @@ This prompt names the state of the program on 2026-08-14.
 >      (T-214). `remove_download` reads the row of `downloads` to find its work,
 >      therefore a half state of the two tables made the key `X` say that the media
 >      holds nothing while the row of its file stood on the disk for ever.
->    - **A row of the disk that names a file of the disk is a value of two
->      machines** (T-214). `select_sources` reads `download_files` and it asks no
->      file system: a row that stayed gave `TrackSource::Local` of a path that no
->      file holds, and the words of that road named a decoder that met no file
->      (T-91). **That road stays open for a file that the user removes by hand.**
+>    - **A row of the disk that names a thing of the disk is a value of two
+>      machines** (T-214 and T-215). `select_sources` read `download_files` and it
+>      asked no file system, and `play_offline` compared the files of the book with
+>      the rows of that same table: a book of three files whose second file went
+>      away played 20 seconds of 60 with no word at all, and the offline mode of it
+>      played nothing and said that the media plays from the disk. **The disk
+>      answers at the moment of the use** (T-142), and one `mv` of one file is the
+>      whole condition. **Ask of every row of the disk: which thing of the machine
+>      does this row name, and does that thing still stand?**
+>    - **A file of a download that changed is not a file that went away** (T-215,
+>      and it stays open). The rows hold the `ino` and the size of each file (T-181
+>      and T-187), and T-215 asks one question of the file system: does the path
+>      stand?
+>    - **The label `[Downloaded]` of a media whose copy of the disk is not whole
+>      says nothing of that** (T-215, and it stays open). The label comes of the row
+>      of `downloads` and of the box of T-204, and a read of the file system at each
+>      frame is no answer (T-203 and T-204): that question belongs to the box of the
+>      copies of the disk.
 >    - **A rollback is a write** (T-207 and T-214). The rollback of the rows of a
 >      download held `let _ =`: a disk that refused it left a media of the offline
 >      mode with the label `[Downloaded]` and no file of the disk at all, with no
@@ -7952,7 +8047,12 @@ This prompt names the state of the program on 2026-08-14.
 > the mark, and the program says it on the screen** (T-213), and **the rows of a
 > download go away together or they stay together: the two removals of
 > `delete_download` stand in one transaction, and a rollback that the disk refused
-> says that the database keeps a part of that download** (T-214).
+> says that the database keeps a part of that download** (T-214), and **a copy of
+> the disk that is not whole is no copy of the disk: a row of the files of a
+> download names a file that goes away outside this program, therefore the playback
+> asks the disk at the moment of the use, a media of a copy that is not whole takes
+> the road of the server, and the offline mode of it says that the disk does not
+> hold every file of that media** (T-215).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

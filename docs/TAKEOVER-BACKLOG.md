@@ -8632,6 +8632,122 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-215: a copy of the disk that is not whole is no copy of the disk
+
+**The item before this one named the road in its "leaves open"**, and this one
+took it (the rule of T-195, of T-209, of T-211, and of T-213):
+"`select_sources` asks no file system. A row of `download_files` whose file went
+away gives `TrackSource::Local` of a path that no file holds".
+
+**The shape of this item is a row of the disk that names a thing of the disk.**
+The program writes one row of each file of a download, and it then reads those
+rows as the copy of the disk. **A row is no file**: a file goes away outside this
+program — the user removes it, a directory of the machine goes away, or a removal
+of a download takes the files and leaves the rows (T-214) — and the row of it
+stays. This is the rule of T-142 for the files of a download: **the disk at the
+moment of the use**.
+
+#### The condition
+
+**A `mv` of one file of the directory of the downloads, and no harness at all.**
+The book is `Multi File Test Book` of the sandbox (the section 6 of
+`docs/TEST-SERVER.md`), of three files of 20 seconds:
+
+```bash
+mv "$ABS/toutui-data/toutui/downloads/toutuitest/<the id>/002 - 02 - Part 2.mp3" /somewhere
+```
+
+#### The measurement of 2026-08-14, of the real program of the sandbox
+
+**The road of the server.** The key `l` of that book, with the server up:
+
+```text
+20:47:24 [INFO] [play] the download ac365248-… gives 3 of 3 track(s) from the disk
+20:47:24 [WARN] [worker] the engine cannot open the track 2 of 3: The application cannot open the file: No such file or directory (os error 2). The tracks before it play.
+20:47:24 [INFO] [worker] the playback starts at 0 seconds
+20:47:25 [INFO] [follow_playback] the playback stopped at 20 seconds, finished=false
+```
+
+**The program played 20 seconds of a book of 60, and it said nothing at all.** The
+words of the log say "3 of 3 track(s) from the disk" for a disk that holds two of
+them, no message came to the screen, and the whole book stood on the server: the
+engine takes the copy of the disk only when the disk holds every file of the book,
+and the program asked the **database** that question.
+
+**The road of the disk.** With `podman stop -t 0 abs-test`, the place of the user
+at 20 seconds, and the same file away, the key `l` of the Library view of the
+offline mode said:
+
+```text
+   Offline: "Multi File Test Book" plays from the disk.
+```
+
+```text
+20:48:13 [INFO] [play] the offline mode plays Multi File Test Book at 20 seconds with 3 track(s)
+20:48:13 [ERROR] [worker] the engine cannot start the book: The application cannot open the file: No such file or directory (os error 2)
+```
+
+**No sound came, and no word of the fault came.** The place of the user stood at
+the second file, therefore the engine opened that file first and it started
+nothing at all. `play_offline` holds the sentence of that condition already — "The
+disk does not hold every file of this media." — and its check compared the files
+of the book with the files of the **same table**: a file that went away passed
+that check every time.
+
+#### The correction
+
+`the_files_that_stand_on_the_disk` of `src/logic/offline/mod.rs` gives the rows
+whose file stands on the disk now, and it says one line of the log of each file
+that went away. The two callers of the table read it:
+
+- `select_sources` gives the road of the server for every track of a copy that is
+  not whole, because the engine mixes no sources in one book, and
+- `play_offline` compares the files of the book with the files of the disk, and its
+  sentence then reaches the user.
+
+**No word of that fault belongs to the user of the road of the server**: the whole
+book plays, therefore the fault takes a line of the log (T-177).
+
+| the condition | v0.8.44 | v0.8.45 |
+|---|---|---|
+| the key `l`, the server up, one file away | "3 of 3 track(s) from the disk", and 20 seconds of 60 | "0 of 3 track(s) from the disk", and 60 seconds of 60 |
+| the key `l` of the offline mode, one file away | "plays from the disk", and no sound at all | "The disk does not hold every file of this media." |
+| the file comes back | — | the whole book plays from the disk again |
+
+The measurement of v0.8.45 of the same book and the same file away:
+
+```text
+20:51:04 [WARN] [offline] the file …/002 - 02 - Part 2.mp3 of the number 2 of a download went away. That copy of the disk is not whole.
+20:51:04 [INFO] [play] the download ac365248-… gives 0 of 3 track(s) from the disk
+20:51:05 [INFO] [follow_playback] the playback stopped at 60 seconds, finished=true
+```
+
+`tests/a_copy_of_the_disk_that_is_not_whole_is_no_copy.rs` holds the roads in one
+function (T-144 and T-157), and it needs no sandbox and no server: a directory of
+the machine holds the files of the book, and one `remove_file` takes one of them
+away.
+
+#### What this item leaves open
+
+**A file of a download that changed is not a file that went away.** The rows hold
+the `ino` and the size of each file (T-181 and T-187), and this item asks one
+question of the file system: does the path stand? A file whose bytes changed, or
+whose size is not the size of the row, still gives the road of the disk. **The
+question is whether the program must read more than the name of a file**, and the
+answer of T-142 for the ebooks was the file at the moment of the use.
+
+**The label `[Downloaded]` of a media whose copy is not whole says nothing of
+that.** The label comes of the row of `downloads` and of the box of T-204, and no
+read of the file system stands behind it: the line of the user therefore says that
+the media stands on the disk while the playback of it takes the server. **A read of
+the file system at each frame is no answer** (T-203 and T-204), therefore that
+question belongs to the box of the copies of the disk.
+
+**The offline playback of a media whose copy is not whole plays nothing.** The
+sentence of it is true, and the user hears no second of the files that stand. The
+question of a next session is whether a media of a part of the disk belongs to a
+playback of that part.
+
 ### T-214: the removal of a download that the disk took by half
 
 **The item before this one named the road in its last paragraph**, and this one

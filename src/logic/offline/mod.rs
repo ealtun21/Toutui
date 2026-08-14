@@ -45,6 +45,46 @@ pub fn should_send(local_updated_at: i64, server_last_update: Option<i64>) -> bo
     }
 }
 
+/// Gives the rows of the files of a download that stand on the disk now.
+///
+/// **A row of `download_files` is no file of the disk** (T-215). The row holds the
+/// path of a file that the program wrote, and a file goes away outside this
+/// program: the user removes it, a directory of the machine goes away, or a
+/// removal of a download takes the files and leaves the rows (T-214). Every
+/// caller of that table read the rows and called them the copy of the disk.
+///
+/// A measurement of 2026-08-14 of the real program of the sandbox, of
+/// `Multi File Test Book` of three files of 20 seconds, with the second file away:
+///
+/// ```text
+/// [INFO] [play] the download ac365248-… gives 3 of 3 track(s) from the disk
+/// [WARN] [worker] the engine cannot open the track 2 of 3: The application cannot
+///     open the file: No such file or directory (os error 2). The tracks before it play.
+/// [INFO] [follow_playback] the playback stopped at 20 seconds, finished=false
+/// ```
+///
+/// **The program played 20 seconds of a book of 60, and it said nothing at all**
+/// while the whole book stood on the server. This is the rule of T-142 for the
+/// files of a download: **the disk at the moment of the use**.
+pub fn the_files_that_stand_on_the_disk(files: Vec<(u32, String, f64)>) -> Vec<(u32, String, f64)> {
+    files
+        .into_iter()
+        .filter(|(index, path, _)| {
+            let stands = std::fs::metadata(path).is_ok();
+
+            if !stands {
+                warn!(
+                    "[offline] the file {} of the number {} of a download went away. \
+                     That copy of the disk is not whole.",
+                    path, index
+                );
+            }
+
+            stands
+        })
+        .collect()
+}
+
 /// Makes the track list of a local copy.
 ///
 /// The rows of `download_files` give the sequence, the path, and the length of

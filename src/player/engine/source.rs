@@ -83,7 +83,13 @@ pub fn select_sources(
     // user hears that book, and no key of the user waits for this read, therefore
     // the fault takes a line of the log (T-177).
     let on_disk: Vec<(u32, String)> = match get_download_files(download_key, username) {
-        Ok(files) => files
+        // **A row of that table is no file of the disk** (T-215). The rows hold the
+        // paths that the program wrote, and a file goes away outside this program:
+        // the engine then stopped at that file, and the playback of a book of 60
+        // seconds stopped at 20 with no word for the user. The disk answers at the
+        // moment of the use (T-142), and a copy that is not whole takes the road of
+        // the server, because the engine mixes no sources in one book.
+        Ok(files) => crate::logic::offline::the_files_that_stand_on_the_disk(files)
             .into_iter()
             .map(|(index, path, _duration)| (index, path))
             .collect(),

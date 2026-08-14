@@ -41,6 +41,28 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.45",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A book of the disk that lost one file stopped at that file.** \
+             Toutui reads the rows of its database to find the copy of a media on \
+             the disk, and a row is no file: a file that goes away outside Toutui \
+             — you remove it, or a directory of the machine goes away — left the \
+             row of it. A measurement of a book of three files of 20 seconds, with \
+             the second file away, played 20 seconds of 60 and it said nothing at \
+             all, and the whole book stood on the server. Toutui asks the disk at \
+             the moment of the playback now: a copy that is not whole takes the \
+             road of the server, and the log names the file that went away.",
+            "- **The offline mode said that a media plays from the disk and it \
+             played nothing.** The check of that mode compared the files of the \
+             book with the rows of the same table, therefore a file that went away \
+             passed it every time: the engine then stopped at that file with no \
+             word for you. The offline mode says \"The disk does not hold every \
+             file of this media.\" now.",
+        ],
+    },
+    Entry {
         version: "0.8.44",
         date: "14/08/2026",
         body: &[

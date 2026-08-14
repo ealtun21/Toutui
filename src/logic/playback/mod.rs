@@ -1373,7 +1373,14 @@ async fn play_offline(
     // the disk for each track, and a read that failed then said that the disk does
     // not hold every file of the media (T-203).
     let files = match get_download_files(&key, &username) {
-        Ok(files) => files,
+        // **A row of that table is no file of the disk** (T-215). The check below
+        // compares the files of the book with the files of the disk, and both of
+        // them came of the same table: a file that went away therefore passed that
+        // check, and the engine of the offline mode stopped at it. A measurement of
+        // 2026-08-14 of a book of three files, with the second file away and the
+        // place of the user at 20 seconds, said `Offline: "Multi File Test Book"
+        // plays from the disk.` and it played nothing at all.
+        Ok(files) => crate::logic::offline::the_files_that_stand_on_the_disk(files),
         Err(error) => {
             error!(
                 "[play] the program did not read the files of the download {}: {}",
