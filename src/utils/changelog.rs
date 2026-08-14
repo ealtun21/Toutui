@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.41",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A place of a playback that the server took stayed on your disk, \
+             and Toutui sent it to the server again every 30 seconds.** The task \
+             that sends the places of an offline playback removes the row of each \
+             place that the server takes, and a disk that is full or a database \
+             with no permission of a write keeps that row: the same place of the \
+             same media then went to the server for the whole life of the \
+             program, and the header of the offline mode said that a place of \
+             yours waits for a server that holds it already. Toutui names that \
+             disk in the log now, and it stops the attempt: every row of one \
+             attempt stands on one disk.",
+        ],
+    },
+    Entry {
         version: "0.8.40",
         date: "14/08/2026",
         body: &[

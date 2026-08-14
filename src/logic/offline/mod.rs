@@ -255,11 +255,46 @@ pub fn the_place_can_wait(fault: &crate::api::client::error::ApiError) -> bool {
     )
 }
 
+/// Removes the row of a position that the flush finished with, and says when
+/// the disk did not take that removal.
+///
+/// **A row that the disk did not remove is a position that goes to the server
+/// again** (T-211). The task runs every 30 seconds, therefore a removal that
+/// failed sends the same position of the same media to the server for the whole
+/// life of the program, and `count_pending_progress` of the header of the offline
+/// mode then says that a place of the user waits for a server that holds it
+/// already.
+///
+/// The function gives `false` for a removal that the disk did not take. The task
+/// holds no key of the user and no view of its own, therefore that fault takes a
+/// line of the log and no word for the user (T-177).
+fn the_row_of_the_disk_goes_away(username: &str, progress: &PendingProgress) -> bool {
+    match delete_pending_progress(username, &progress.id_item, &progress.id_pod) {
+        Ok(()) => true,
+        Err(fault) => {
+            error!(
+                "[offline] the disk keeps the position of {} that the flush finished with: {}. \
+                 The program sends that position to the server again at each attempt. \
+                 The disk of the account takes no write.",
+                progress.id_item, fault
+            );
+
+            false
+        }
+    }
+}
+
 /// Sends every position that waits, and removes each row that the server took.
 ///
 /// The function gives the number of positions that the server took. It stops
 /// at the first address that does not answer, because every other request then
 /// fails in the same way.
+///
+/// **It stops at a disk that takes no write too** (T-211): the rows of one
+/// attempt stand on one disk, therefore a removal that failed says that every
+/// other row of this attempt stays on the disk as well. A pass that goes on then
+/// costs the server one request of each waiting media, and it changes nothing at
+/// all.
 pub async fn flush_pending_progress(api: &ApiClient, username: &str, server: &str) -> usize {
     // **A read of the disk that failed is not a disk with no place that waits**
     // (T-203). Every place of that disk waits for the next attempt (T-189), and
@@ -332,11 +367,15 @@ pub async fn flush_pending_progress(api: &ApiClient, username: &str, server: &st
         };
 
         if !should_send(progress.updated_at, server_last_update) {
+            if !the_row_of_the_disk_goes_away(username, &progress) {
+                return sent;
+            }
+
             info!(
                 "[offline] the server has a newer position of {}. The local position goes away.",
                 progress.id_item
             );
-            let _ = delete_pending_progress(username, &progress.id_item, &progress.id_pod);
+
             continue;
         }
 
@@ -369,7 +408,6 @@ pub async fn flush_pending_progress(api: &ApiClient, username: &str, server: &st
 
         match result {
             Ok(()) => {
-                let _ = delete_pending_progress(username, &progress.id_item, &progress.id_pod);
                 sent += 1;
 
                 info!(
@@ -377,6 +415,13 @@ pub async fn flush_pending_progress(api: &ApiClient, username: &str, server: &st
                     progress.current_time.round(),
                     progress.id_item
                 );
+
+                // The server holds this place now. A row that stays therefore
+                // says a thing that is not true, and the next attempt sends the
+                // same place again. See T-211.
+                if !the_row_of_the_disk_goes_away(username, &progress) {
+                    return sent;
+                }
             }
             Err(error) if error.is_offline() => {
                 warn!("[offline] the server does not answer: {}", error);
@@ -399,7 +444,10 @@ pub async fn flush_pending_progress(api: &ApiClient, username: &str, server: &st
                     "[offline] the server refused the position of {}: {}",
                     progress.id_item, error
                 );
-                let _ = delete_pending_progress(username, &progress.id_item, &progress.id_pod);
+
+                if !the_row_of_the_disk_goes_away(username, &progress) {
+                    return sent;
+                }
             }
         }
     }
