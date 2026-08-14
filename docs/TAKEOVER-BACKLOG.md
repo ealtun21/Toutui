@@ -7629,6 +7629,151 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-174: a fault of one thread stopped the program with a screen of no character
+
+**This item comes of the measurement of T-173, and it is the larger of the
+two.** The program did not say the words of a panic, it did not give the
+terminal back, and it did not stop: it stood, with a screen of no character,
+until a signal took it away.
+
+| The measurement | Before | After |
+|---|---|---|
+| The login of an account of no library (T-173, with the correction of T-173 taken away) | **the screen holds no character, and the program stands** | the login screen says `The login stopped. Try it again.`, and the field of the address keeps `http://127.0.0.1:13501` |
+| The keys after it | nothing at all | the field takes the characters, and the screen draws them |
+| The standard error of that program (`2> a file`) | **no byte** | the words of the panic |
+| The log of that program | the line before the panic, and no line after it | the same |
+| The threads of that program (`/proc/:pid/task/:tid/wchan`) | the main thread and the thread of the login both in `__futex_wait` | the program stands with no such thread |
+
+**Three roads of evidence found the cause, and the first two of them lied.**
+
+1. **A mark of the log inside the hook of the panic said nothing**, therefore
+   the hook did not run. A mark of `std::fs::write` said the same. A mark
+   before the line of the panic wrote its file, therefore the mark itself works.
+2. `gdb` and `eu-stack` give `Operation not permitted` for a process of this
+   machine that they did not start (`ptrace_scope`). **A stack of a program that
+   stands needs a program that starts it.**
+3. **`strace -f -tt -o` of the whole program gave the answer in one line.** The
+   thread of the login wrote its mark, and it then did
+   `ioctl(0, TIOCGWINSZ)`, `ioctl(0, TCSETS2, ...ICANON|ECHO...)`, and
+   `futex(0x5..., FUTEX_WAIT_BITSET_PRIVATE)`. The two `ioctl` are
+   `crossterm::disable_raw_mode`, and no function of this repository called it:
+   the mark of `restore_terminal` never wrote its file. **The hook that ran
+   belongs to `ratatui::init`** (`main.rs` calls it for the login screen), and
+   that hook calls `ratatui::restore`, which writes `LeaveAlternateScreen` to
+   `io::stdout()`.
+
+**The cause is one lock, and `src/logic/auth/auth_input.rs` held it:**
+
+```rust
+let stdout = io::stdout();
+let stdout = stdout.lock();          // <- the whole life of the screen
+let backend = CrosstermBackend::new(stdout);
+```
+
+The lock of the standard output of Rust is a `ReentrantLock`: the thread that
+holds it takes it again, and **a second thread waits**. The screen of the login
+holds that lock while it waits for the thread of the login (the `join` of
+T-15), therefore the hook of `ratatui::init` waited for the screen, and the
+screen waited for the thread that panicked. The address of the futex of the
+thread of the login (`0x5...`) stands in the memory of the program, and the
+address of the futex of the main thread (`0x7f...`) is the park of the `join`:
+two locks, and one circle.
+
+**The trap 11 and T-133 named one half of this road already.** T-133 says that
+`println!` of `auth_process` holds the program for ever, and the comment of that
+function says "No line of this function writes to the terminal". **A panic is
+such a line, and no function can promise that it holds none.** The correction
+takes the cause away instead: **a screen of this program takes no lock of the
+standard output.**
+
+`src/ui/text_field.rs` holds `the_backend_of_a_field`, and the three screens of
+a field take it: the login (`src/logic/auth/auth_input.rs`), the search
+(`src/logic/search/search_active.rs`), and the box that asks for a text
+(`src/logic/prompt.rs`). `io::stdout()` takes the lock at each write and it
+gives it back, therefore a frame of a field costs a few locks of a mutex more.
+
+**Three measurements of the real program say that the three screens work.** The
+key `/` of the Home view took the word `carroll` and it gave
+`Search result [1 item, with the books of Lewis Carroll]`; the key `r` of the
+view of the lists gave the box
+`The new name of the collection "A Test Collection"` and it took the
+characters; and the login screen of the sandbox logged the account in.
+
+`tests/a_screen_of_a_field_takes_no_lock.rs` holds the rule: a second thread
+writes to the standard output while the backend of a field stands. **With the
+lock the test stands 10 seconds and it fails**, and the parts of that test stay
+in one function, because the lock of the standard output belongs to the process.
+
+**The hook of `restore_terminal` keeps the standard output**, and that is a
+decision. A copy of the descriptor of the standard output writes the same bytes
+and it waits for nobody, and a first correction of this item took that road.
+**It saves nobody**: the hook of `ratatui::init` stands before the hook of this
+program, and it holds the standard output. The cause is the lock of the screen,
+and one correction of the cause is enough.
+
+**The parts of the program that no measurement of this shape has reached**: a
+panic of a thread while a view of the application stands (the screens of
+`src/ui/tui.rs` take no lock, therefore the words of that panic must come), and
+a panic of the thread of the playback.
+
+### T-173: a login of an account that reaches no library took the program away
+
+**The road of T-172 named the login screen**: a server of a fault has not
+reached it. `POST /login` holds five sentences already (T-92), therefore this
+measurement took the answer after it — `GET /api/libraries` — and it found a
+larger fault than a word.
+
+**`docs/harness/no_library.py` gives the condition.** The proxy forwards every
+request to the sandbox, and it answers `GET /api/libraries` with the status 200
+and the body `{"libraries": []}`:
+
+```bash
+python3 docs/harness/no_library.py 13501 13399 requests.log
+```
+
+**That answer is the answer of a real server.** A new Audiobookshelf server
+before its first library holds no library, and an account whose administrator
+gave it no library reaches none.
+
+| The measurement | Before | After |
+|---|---|---|
+| The login of the sandbox through the proxy | the log says `Token successfully encrypted`, and **the screen then holds no character for ever** | the login screen says `The server gave no library for this account. Ask an administrator of the server for a library.` |
+| The field of the address after it | — | it keeps `http://127.0.0.1:13501`, and the user can write a new address |
+| The row of the account of the database | — | no row: the program keeps no token of a server that it cannot read |
+
+**The cause stands in `src/api/server/auth_process.rs`:**
+
+```rust
+name_selected_lib: library_names[0].clone(),
+id_selected_lib: library_ids[0].clone(),
+```
+
+The row of the account holds the name and the id of the library of the start,
+and the code took the first name of a list that can hold nothing. `cargo test`
+of `tests/a_login_of_no_library_says_why.rs` with the correction taken away says
+it in one line: `index out of bounds: the len is 0 but the index is 0` at
+`src/api/server/auth_process.rs:183:45`.
+
+**The login stops before the token.** The function makes no cipher of a token
+that it keeps in no row, and it writes no row of an account: the user of the
+login screen writes a new address, and the program of the next start meets the
+login screen again.
+
+**The sentence names the work of the user** (T-91 and T-170): the media of that
+server stand behind an administrator, and no key of this program makes a library.
+The sentence is 94 characters, and the row of the message of the login holds one
+line (the trap 11).
+
+`tests/a_login_of_no_library_says_why.rs` holds the rule. A host of a raw socket
+answers the login with a token and the libraries with the empty list, therefore
+**the test needs no sandbox and no network**. The configuration of that test
+belongs to a directory of its own, and the secret key stands in the environment:
+without those two the login of the test stops at the line of the key, and the
+line of the library never comes.
+
+**The screen of no character belongs to T-174.** A panic of the thread of the
+login is one fault, and a program that says nothing at all of it is another.
+
 ### T-172: the program stopped with a line of its own source
 
 **The condition came of the road of T-171.** A server that answers `500` to the

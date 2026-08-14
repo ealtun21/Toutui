@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.7",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A login of an account that reaches no library took Toutui away.** The \
+             screen went black and no key did anything: a new server before its first \
+             library, and an account that an administrator gave no library, each gave that \
+             answer. The login says that the server gave no library now, and it asks you to \
+             speak to an administrator of the server.",
+            "- **A fault of one thread stopped Toutui with a screen of no character.** The \
+             screen of the login, the screen of the search, and the box that asks you for a \
+             name each held the standard output, therefore Toutui could not tell you what \
+             happened. Those three screens hold it no more.",
+        ],
+    },
+    Entry {
         version: "0.8.6",
         date: "14/08/2026",
         body: &[

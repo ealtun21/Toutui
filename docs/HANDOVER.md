@@ -4,9 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.6.** The items T-171 and T-172 belong to this
-session. The
-items T-169 and T-170 belong to the session before it. The item T-168 belongs to
+**The newest release is v0.8.7.** The items T-173 and T-174 belong to this
+session. The items T-171 and T-172 belong to the session before it. The
+items T-169 and T-170 belong to the session before that one. The item T-168 belongs to
 the session before that one, and the item
 T-167 to the session before that one.
 The correction of T-166 belongs to the session before that one, and the
@@ -23,6 +23,64 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the seventeenth turn of 2026-08-14: the login of no library
+
+**One release: v0.8.7.** The session before this one left no item open, and it
+named the parts that a server of a fault has not reached. **The login screen is
+the first of them.** `POST /login` holds five sentences already (T-92),
+therefore this session took the request after it — `GET /api/libraries` — and
+`docs/harness/no_library.py` gave a server that answers the login and that
+holds no library. **The program did not say a wrong word: it said nothing at
+all, and it stood for ever with a screen of no character.**
+
+| Item | What | Where |
+|---|---|---|
+| T-173 | **A login of an account that reaches no library took the program away.** The row of the account holds the name and the id of the library of the start, and `library_names[0]` of a list of nothing stopped the thread of the login. The login says `The server gave no library for this account. Ask an administrator of the server for a library.` now, and it writes no row | `src/api/server/auth_process.rs` |
+| T-174 | **A fault of one thread stopped the program with a screen of no character.** The screen of the login, the screen of the search, and the box that asks for a text each held `io::stdout().lock()` for their whole life, and the hook of a panic of `ratatui::init` waited for that lock. The three screens take `the_backend_of_a_field` now, and it holds no lock | `src/ui/text_field.rs`, `src/logic/auth/auth_input.rs`, `src/logic/search/search_active.rs`, `src/logic/prompt.rs` |
+
+The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-173 and T-174. Five
+things are worth the room here:
+
+1. **The larger of the two items is the second one.** T-173 is one line of an
+   index, and every user of a new server meets it; T-174 is the reason that the
+   user of T-173 read no word of it. **A program that says nothing at all is
+   worse than a program that says the wrong thing**, and no sweep of the words
+   for the user finds it.
+2. **`strace` found the cause, and two other roads lied.** A mark of the log
+   inside the hook said nothing, and a mark of `std::fs::write` said the same:
+   the hook did not run. `gdb` and `eu-stack` give `Operation not permitted` for
+   a process that they did not start. **`strace -f -tt -o` of the whole program
+   gave the answer in one line**: the thread of the login gave the raw mode back
+   and it then waited for a mutex, and no function of this repository called
+   `disable_raw_mode`. The hook of `ratatui::init` did.
+3. **T-133 named one half of this road in 2026-08-12, and it took the smaller
+   half.** That item took a `println!` out of `auth_process`, and the comment of
+   that function says "No line of this function writes to the terminal". **A
+   panic is such a line, and no function can promise that it holds none.** This
+   session took the cause away instead.
+4. **The first correction of T-174 saved nobody.** A copy of the descriptor of
+   the standard output gives the hook of this program a road that waits for no
+   lock — and the hook of `ratatui::init` stands before it. A measurement of the
+   real program said so, and that correction went away.
+5. **The three screens of a field are one function now.** `the_backend_of_a_field`
+   of `src/ui/text_field.rs` holds the decision, therefore a fourth screen of a
+   field takes it too.
+
+**The condition that this session leaves open.** None of its own. The road of
+the next session stands in the prompt at the end of this file.
+
+### The gates of this session
+
+| The gate | The answer |
+|---|---|
+| `cargo clippy --all-targets -- -D warnings` | no word |
+| `cargo fmt --check` | no word |
+| `cargo nextest run` | **1100 of 1100** in 2.4 seconds |
+| `cargo nextest run --run-ignored all` | **1125 of 1125** in 18.3 seconds, with the sandbox up |
+| `cargo test -j 16 --no-fail-fast` | six runs, and every run passed |
+| `cargo tree -i openssl-sys` | no package |
+| `cargo tree -i cc` | `libsqlite3-sys` and `ring` only |
 
 ## The session of the sixteenth turn of 2026-08-14: the header of a server that answers
 
@@ -3654,6 +3712,39 @@ answers slowly while it writes. Two answers to measure:
     no condition of "the request runs", and a proxy of a delay of 1.5 seconds
     gave the collections at the first frame already (T-169).
 
+### The traps of the session of the login of no library (T-173 and T-174)
+
+134. **A server that answers the login and that gives no library is
+    `docs/harness/no_library.py`.** It forwards every request to the sandbox,
+    and it answers `GET /api/libraries` with the status 200 and the body
+    `{"libraries": []}`:
+    ```bash
+    python3 docs/harness/no_library.py 13501 13399 requests.log
+    ```
+    The login of the sandbox works through it, therefore the token is a real
+    token (T-173).
+135. **The login screen needs a `XDG_CONFIG_HOME` that holds no account.** Make
+    a directory of nothing, and give it to the program with `XDG_DATA_HOME`
+    beside it: the program then makes its key, its `config.toml`, and its
+    database, and the first screen is the login screen. **The address of the
+    login goes in the first field**, and the pool takes that address alone when
+    `config.toml` holds no block of it (T-173).
+136. **`gdb` and `eu-stack` say `Operation not permitted` for a program that
+    they did not start.** `ptrace_scope` of this machine permits a child alone.
+    **`strace -f -tt -o <file> <the program>` inside `tmux` gives the answer**,
+    and it gave the cause of T-174 in one line: the last three system calls of
+    the thread that stopped.
+137. **A mark of the log inside a hook of a panic says nothing at all when the
+    hook does not run.** A mark of `std::fs::write` says the same, and a mark
+    before the line of the panic says that the mark works. **Three marks that
+    say nothing are the measurement**: the hook that ran belongs to another
+    crate (T-174).
+138. **A screen of this program must take no lock of the standard output.** The
+    login screen, the search, and the box of a text held
+    `io::stdout().lock()` for their whole life, and a panic of another thread
+    then held the program for ever. `the_backend_of_a_field` of
+    `src/ui/text_field.rs` is the one place of that decision now (T-174).
+
 ### Of the harness and of the machine
 
 1. **A fixed `sleep` is the largest waste of a session.** The first frame of the
@@ -3972,22 +4063,19 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session closed that class, and it then took the first request of the
-program.** A server that answers `500` to `GET /api/libraries` stopped the
-program with a line of its own source (T-172). **This session took the class that
-the session before it named** — every view of
-a request of its own — and it drove `one_path_fails.py` at the bookmarks, the
-chapters, the sessions, the statistics, the authors and the narrators, the
-devices of an e-reader, and the downloads of the server. **Six of those views
-hold the rule of T-170 already**, and the fault stood two rows above every one of
-them: the header said that the server is away for a server that answered `curl`
-in 1.4 milliseconds (T-171). The session left no item open. **The next session
-must name a condition of its own.** This prompt names the state of the program on
+**This session took the login screen, the first part that the session before it
+named.** A server that answers the login and that holds no library stopped the
+thread of the login with an index of a list of nothing (T-173), and **the
+program then said nothing at all: it stood for ever with a screen of no
+character** (T-174). The cause of the silence is one lock of the standard
+output that three screens of this program held, and `strace` found it after two
+other roads lied. The session left no item open. **The next session must name a
+condition of its own.** This prompt names the state of the program on
 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.6**; `Cargo.toml` is at 0.8.6. The
+> AlbanDAVID/Toutui. Newest release **v0.8.7**; `Cargo.toml` is at 0.8.7. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -3996,7 +4084,7 @@ must name a condition of its own.** This prompt names the state of the program o
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-172 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-174 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -4097,6 +4185,25 @@ must name a condition of its own.** This prompt names the state of the program o
 > files `tests/a_playback_that_did_not_start_says_why.rs`,
 > `tests/the_lists_that_did_not_come_say_why.rs`, and
 > `tests/the_requests_of_the_start_that_failed_say_why.rs`).
+> **A server that answers the login and that holds no library is
+> `docs/harness/no_library.py`** (T-173). It forwards every request to the
+> sandbox, and it answers `GET /api/libraries` with the status 200 and the body
+> `{"libraries": []}`:
+>
+> ```bash
+> python3 docs/harness/no_library.py 13501 13399 requests.log
+> ```
+>
+> **The login screen needs a `XDG_CONFIG_HOME` that holds no account** (the trap
+> 135): make a directory of nothing, give it and a `XDG_DATA_HOME` of nothing to
+> the program, and write the address of the proxy in the first field.
+> **`gdb` and `eu-stack` say `Operation not permitted` for a program that they
+> did not start**, therefore a program that stands needs
+> `strace -f -tt -o <file>` inside tmux (the trap 136). **A mark of a hook of a
+> panic that says nothing at all is the measurement** (the trap 137), and **a
+> screen of this program must take no lock of the standard output** (the trap
+> 138).
+>
 > **A sweep of a class must read the whole screen, and not the panel of the view
 > alone**: the six views of T-171 each said what the server said, and the header
 > two rows above them said that the server is away (T-171). **The header says
@@ -4111,8 +4218,8 @@ must name a condition of its own.** This prompt names the state of the program o
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1098 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1123 of 1123** with the sandbox up, in about 18 seconds. **Run that
+> Baseline: **1100 tests in 2.4 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1125 of 1125** with the sandbox up, in about 18 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -4146,16 +4253,16 @@ must name a condition of its own.** This prompt names the state of the program o
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in twenty-nine sessions of thirty. **No condition of
->    the road stays**: the session of the sixteenth turn took the class of views
->    that the session before it named, and the fault stood in the header above
->    every one of them (T-171) and in the first request of the program (T-172).
->    It wrote the correction of each, and it left no item open.
+>    this shape found a fault in thirty sessions of thirty-one. **No condition of
+>    the road stays**: the session of the seventeenth turn took the login screen
+>    that the session before it named, and it found a login that stops the
+>    program (T-173) and a program that says nothing at all of a fault of one
+>    thread (T-174). It wrote the correction of each, and it left no item open.
 >    - **The three shapes that found a fault before:** **a state of one process
 >      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153 to
 >      T-167), **a program that dies in the middle of work** (T-145, T-152), and
 >      **a server that does not answer, or that answers with a fault** (T-146,
->      T-149, T-152, T-156, T-167, T-168, T-169, T-170, T-171).
+>      T-149, T-152, T-156, T-167, T-168, T-169, T-170, T-171, T-173).
 >    - **The class of the views of `one_path_fails.py` is closed.** The bookmarks,
 >      the sessions, the statistics, the authors and the narrators, the devices of
 >      an e-reader, and the downloads of the server each hold a `State::Fault`,
@@ -4166,11 +4273,20 @@ must name a condition of its own.** This prompt names the state of the program o
 >      sweep stood in the header** (T-171): a sweep of a class must read the whole
 >      screen, and not the panel of the view alone.
 >    - **The parts of the program that a server of a fault has not reached**: the
->      login screen (a server that answers `500` to `POST /api/authorize`), the
 >      keys that write to the server (`M`, `N`, `F`, `b`, `n`, `m`, `r`, `D`, and
 >      `X`), the send of an ebook to an e-reader, and the stream of the audio.
->      **The first request of the program is closed** (T-172): the program says
->      what the server said, and it stops.
+>      **The first request of the program is closed** (T-172), and **the login
+>      screen is closed for the status of `POST /login` (T-92) and for a server
+>      that gives no library (T-173)**. The answer of `GET /api/libraries` after
+>      the login holds more shapes that no measurement has reached: a library
+>      that holds no name, a body that is not the JSON of that endpoint, and the
+>      status `500` of that one request.
+>    - **A program that says nothing at all is the shape of T-174**, and no sweep
+>      of the words for the user finds it. **The parts of the program that no
+>      measurement of that shape has reached**: a panic of a thread while a view
+>      of the application stands (the screens of `src/ui/tui.rs` take no lock,
+>      therefore the words of that panic must come to the terminal), and a panic
+>      of the thread of the playback.
 >    - **The rule of the line of the view is made for six views** (T-160 the Home
 >      view, T-161 the queue, T-162 the chapters, T-163 the bookmarks, T-165 the
 >      collections and the playlists, and T-166 the downloads of the server), and
@@ -4269,7 +4385,11 @@ must name a condition of its own.** This prompt names the state of the program o
 > the server reports a fault and not that it does not answer** (T-171), and **a
 > server that reports a fault at the first request of the program does not start
 > the offline mode of T-25: the program says what the server said, and it stops
-> with no line of its own source** (T-172).
+> with no line of its own source** (T-172), and **a login of an account that
+> reaches no library writes no row of the database and it says that the server
+> gave no library** (T-173), and **no screen of a field holds the lock of the
+> standard output, because a hook of a panic of another thread writes to it**
+> (T-174).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
