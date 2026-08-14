@@ -19,6 +19,36 @@ use ratatui::{
 };
 use std::time::Duration;
 
+/// Gives the terminal back, says why the program stops, and it stops.
+///
+/// **A user must not read a line of the source of this program.** The report
+/// that left `main` gave `Error: The server reported a fault. Status 500.` with
+/// `Location: src/app.rs:644:44`, and that text names no road at all. T-123
+/// closed this for a token that the server refused, and every other fault of the
+/// first request kept it. See T-172.
+///
+/// The whole report goes to the log, therefore no evidence goes away.
+///
+/// The function never comes back.
+fn the_program_stops_with_words(
+    report: color_eyre::eyre::Report,
+    username: &str,
+    server: &str,
+) -> ! {
+    log::error!("[app] the program stops: {:?}", report);
+
+    // The application stands on the alternate screen. The words of the user
+    // must stand on the screen of their shell.
+    ratatui::restore();
+
+    eprintln!(
+        "{}",
+        api::client::error::the_words_of_a_program_that_stops(&report, username, server)
+    );
+
+    std::process::exit(1);
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     // **The child that reads a PDF comes first.** The program spawns itself
@@ -305,7 +335,18 @@ async fn main() -> Result<()> {
 
                     continue 'the_session;
                 }
-                Err(report) => return Err(report),
+                // **Every other fault of the first request kept the road that
+                // T-123 closed.** A server that answers 500 to
+                // `GET /api/libraries` gave the user `Error: The server reported
+                // a fault. Status 500.` with `Location: src/app.rs:644:44`, and
+                // no screen of the program came. See T-172.
+                Err(report) => {
+                    for task in &the_tasks_of_the_account {
+                        task.abort();
+                    }
+
+                    the_program_stops_with_words(report, &username, &server_address);
+                }
             };
 
             // The picker asks the terminal for the protocol of the pictures and
@@ -594,7 +635,20 @@ async fn main() -> Result<()> {
 
                                         continue 'the_session;
                                     }
-                                    Err(report) => return Err(report),
+                                    // The key `R` makes the same requests as the
+                                    // start, therefore it holds the same road.
+                                    // See T-172.
+                                    Err(report) => {
+                                        for task in &the_tasks_of_the_account {
+                                            task.abort();
+                                        }
+
+                                        the_program_stops_with_words(
+                                            report,
+                                            &username,
+                                            &server_address,
+                                        );
+                                    }
                                 };
 
                                 app.keep_the_state_of_the_application_before(the_state_of_the_user);

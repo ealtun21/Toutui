@@ -99,6 +99,53 @@ pub fn the_token_is_not_valid(report: &color_eyre::eyre::Report) -> bool {
     })
 }
 
+/// The words for a user whose program cannot read the lists of the server.
+///
+/// **T-123 closed this road for a token that the server refused, and every
+/// other fault of the first request kept it.** A measurement of 2026-08-14 with
+/// `docs/harness/one_path_fails.py`, which answered `500` to
+/// `GET /api/libraries`: the program stopped, and the terminal of the user held
+///
+/// ```text
+/// Error: The server reported a fault. Status 500.
+///
+/// Location:
+///     src/app.rs:644:44
+/// ```
+///
+/// A line of the source of this program says nothing to a user, and it names no
+/// road. See T-172.
+///
+/// **The offline mode of T-25 is not the road of this fault.** That mode is made
+/// for a server that gives no answer, and its words say that the server does not
+/// answer: a server that reports a fault answers, and those words are a reason
+/// that the program does not have (T-91 and T-171). The program says what the
+/// server said, and it stops.
+///
+/// The function looks at every cause of the report, because a caller can put the
+/// fault of the API inside a report of its own. A report with no fault of the
+/// API gives its own text.
+pub fn the_words_of_a_program_that_stops(
+    report: &color_eyre::eyre::Report,
+    username: &str,
+    server: &str,
+) -> String {
+    let what_the_server_said = report
+        .chain()
+        .find_map(|cause| cause.downcast_ref::<ApiError>())
+        .map(|error| error.to_string())
+        .unwrap_or_else(|| report.to_string());
+
+    format!(
+        "Toutui stops: it cannot read the lists of the server.\n\
+         {}\n\
+         The account is {}, and the server is {}.\n\
+         Toutui changed nothing. Try again later, or speak to an administrator \
+         of the server.",
+        what_the_server_said, username, server
+    )
+}
+
 /// Puts an HTTP status into a category.
 ///
 /// Gives `None` if the status shows success.
@@ -244,5 +291,44 @@ mod tests {
             !the_token_is_not_valid(&of_a_string),
             "the words of a sentence are not the category"
         );
+    }
+
+    /// **A user must not read a line of the source of this program.** The
+    /// measurement of T-172 gave `Error: The server reported a fault. Status
+    /// 500.` with `Location: src/app.rs:644:44`, and no screen of the program
+    /// came.
+    #[test]
+    fn the_words_of_a_program_that_stops_name_the_server_and_no_line_of_the_source() {
+        let report = color_eyre::eyre::Report::new(ApiError::Server(500));
+
+        let words = the_words_of_a_program_that_stops(&report, "toutuitest", "127.0.0.1:13500");
+
+        assert!(
+            words.contains("The server reported a fault. Status 500."),
+            "the words must say what the server said: {}",
+            words
+        );
+        assert!(words.contains("toutuitest"), "{}", words);
+        assert!(words.contains("127.0.0.1:13500"), "{}", words);
+        assert!(
+            words.contains("Toutui changed nothing"),
+            "the user must know that the program wrote nothing: {}",
+            words
+        );
+
+        // **No line of the source, and no name of a file of this program.**
+        assert!(!words.contains("Location"), "{}", words);
+        assert!(!words.contains("src/"), "{}", words);
+        assert!(!words.contains(".rs"), "{}", words);
+
+        // The offline mode of T-25 is not the road of this fault: the server
+        // answers. See T-171.
+        assert!(!words.contains("does not answer"), "{}", words);
+
+        // A report that holds no fault of the API gives its own text.
+        let other = color_eyre::eyre::Report::msg("the disk is full");
+        let words = the_words_of_a_program_that_stops(&other, "toutuitest", "one:1");
+
+        assert!(words.contains("the disk is full"), "{}", words);
     }
 }

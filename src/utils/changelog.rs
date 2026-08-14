@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.6",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A server that reports a fault stopped Toutui with a line of its own \
+             source.** The terminal held \"Error: The server reported a fault. Status \
+             500.\" with \"Location: src/app.rs\", and that text names no road. Toutui \
+             says what the server said now, it names your account and your server, and it \
+             tells you that it changed nothing.",
+        ],
+    },
+    Entry {
         version: "0.8.5",
         date: "14/08/2026",
         body: &[

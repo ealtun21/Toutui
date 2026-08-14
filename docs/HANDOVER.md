@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.5.** The item T-171 belongs to this session. The
+**The newest release is v0.8.6.** The items T-171 and T-172 belong to this
+session. The
 items T-169 and T-170 belong to the session before it. The item T-168 belongs to
 the session before that one, and the item
 T-167 to the session before that one.
@@ -25,8 +26,8 @@ the one before it, and T-140 and T-141 to the one before those.
 
 ## The session of the sixteenth turn of 2026-08-14: the header of a server that answers
 
-**One release: v0.8.5.** The session before this one left no item open, and it
-named a class of conditions: **every view of a request of its own holds the
+**Two releases: v0.8.5 and v0.8.6.** The session before this one left no item
+open, and it named a class of conditions: **every view of a request of its own holds the
 shape of T-170**. This session took `docs/harness/one_path_fails.py` to the
 bookmarks, the chapters, the sessions, the statistics, the authors and the
 narrators, the devices of an e-reader, and the downloads of the server. **Six of
@@ -37,6 +38,7 @@ one of them.**
 | Item | What | Where |
 |---|---|---|
 | T-171 | **The header said that the server does not answer, for a server that answers.** One request that came back with the status 500 took the one address of the pool away, therefore `active()` gave nothing and the two lines at the top said `⚠ toutuitest: the server does not answer` and `🔗 127.0.0.1:13500 does not answer`, with the notice `R: the media of the disk`. The state `Down` holds a reason now, and the header says `the server reports a fault` with the notice `R: ask the server again` | `src/api/client/endpoint.rs`, `src/api/client/mod.rs`, `src/api/live.rs`, `src/ui/keys.rs`, `src/ui/tui.rs` |
+| T-172 | **The program stopped with a line of its own source.** A server that answers 500 to `GET /api/libraries` gave the user `Error: The server reported a fault. Status 500.` with `Location: src/app.rs:644:44`, and no screen of the program came. T-123 closed that road for a token that the server refused, and every other fault of the first request kept it. The program says what the server said now, it names the account and the server, and it says that it changed nothing | `src/api/client/error.rs`, `src/main.rs` |
 
 The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-171. Five things are
 worth the room here:
@@ -66,6 +68,16 @@ worth the room here:
    forgets it — therefore the header of that moment names the request before it.
    The measurement of the two roads needed a key of a fresh request (`W`).
 
+**The decision of T-172, with its reason.** The offline mode of T-25 is **not**
+the road of a server that reports a fault at the start. That mode is made for a
+server that gives no answer, and its words say that the server does not answer:
+a server that answers `500` answers, and those words are a reason that the
+program does not have (T-91 and T-171). `is_offline` of `App` reaches more than
+thirty texts of the views, therefore that road would put the words of T-25 in
+every one of them — the sweep of T-168, of T-169, and of T-170 again. **The
+program must not promise a function that it does not have** (T-118): it cannot
+read the lists of that server, and it says so.
+
 **The condition that this session leaves open.** None of its own. The road of
 the next session stands in the prompt at the end of this file.
 
@@ -75,8 +87,8 @@ the next session stands in the prompt at the end of this file.
 |---|---|
 | `cargo clippy --all-targets -- -D warnings` | no word |
 | `cargo fmt --check` | no word |
-| `cargo nextest run` | **1097 of 1097** in 2.3 seconds |
-| `cargo nextest run --run-ignored all` | **1122 of 1122** in 18.3 seconds, with the sandbox up |
+| `cargo nextest run` | **1098 of 1098** in 2.3 seconds |
+| `cargo nextest run --run-ignored all` | **1123 of 1123** with the sandbox up |
 | `cargo test -j 16 --no-fail-fast` | six runs, and every run passed |
 | `cargo tree -i openssl-sys` | no package |
 | `cargo tree -i cc` | `libsqlite3-sys` and `ring` only |
@@ -3960,7 +3972,10 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took the class that the session before it named** — every view of
+**This session closed that class, and it then took the first request of the
+program.** A server that answers `500` to `GET /api/libraries` stopped the
+program with a line of its own source (T-172). **This session took the class that
+the session before it named** — every view of
 a request of its own — and it drove `one_path_fails.py` at the bookmarks, the
 chapters, the sessions, the statistics, the authors and the narrators, the
 devices of an e-reader, and the downloads of the server. **Six of those views
@@ -3972,7 +3987,7 @@ must name a condition of its own.** This prompt names the state of the program o
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.5**; `Cargo.toml` is at 0.8.5. The
+> AlbanDAVID/Toutui. Newest release **v0.8.6**; `Cargo.toml` is at 0.8.6. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -3981,7 +3996,7 @@ must name a condition of its own.** This prompt names the state of the program o
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-171 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-172 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -4089,15 +4104,15 @@ must name a condition of its own.** This prompt names the state of the program o
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-172 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-173 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1097 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1122 of 1122** with the sandbox up, in 18.3 seconds. **Run that
+> Baseline: **1098 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1123 of 1123** with the sandbox up, in about 18 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -4134,7 +4149,8 @@ must name a condition of its own.** This prompt names the state of the program o
 >    this shape found a fault in twenty-nine sessions of thirty. **No condition of
 >    the road stays**: the session of the sixteenth turn took the class of views
 >    that the session before it named, and the fault stood in the header above
->    every one of them (T-171). It wrote the correction, and it left no item open.
+>    every one of them (T-171) and in the first request of the program (T-172).
+>    It wrote the correction of each, and it left no item open.
 >    - **The three shapes that found a fault before:** **a state of one process
 >      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153 to
 >      T-167), **a program that dies in the middle of work** (T-145, T-152), and
@@ -4152,9 +4168,9 @@ must name a condition of its own.** This prompt names the state of the program o
 >    - **The parts of the program that a server of a fault has not reached**: the
 >      login screen (a server that answers `500` to `POST /api/authorize`), the
 >      keys that write to the server (`M`, `N`, `F`, `b`, `n`, `m`, `r`, `D`, and
->      `X`), the send of an ebook to an e-reader, and **the offline mode itself**
->      — a server that answers `500` to the four requests of the start is not the
->      offline mode of T-25, and `App::new` may take it for one.
+>      `X`), the send of an ebook to an e-reader, and the stream of the audio.
+>      **The first request of the program is closed** (T-172): the program says
+>      what the server said, and it stops.
 >    - **The rule of the line of the view is made for six views** (T-160 the Home
 >      view, T-161 the queue, T-162 the chapters, T-163 the bookmarks, T-165 the
 >      collections and the playlists, and T-166 the downloads of the server), and
@@ -4250,7 +4266,10 @@ must name a condition of its own.** This prompt names the state of the program o
 > names a key that does the work of that fault** (T-170), and **an address that
 > answers with a fault keeps the state `Down`, because a second address of the
 > same server can answer that request, and the header of the program says that
-> the server reports a fault and not that it does not answer** (T-171).
+> the server reports a fault and not that it does not answer** (T-171), and **a
+> server that reports a fault at the first request of the program does not start
+> the offline mode of T-25: the program says what the server said, and it stops
+> with no line of its own source** (T-172).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

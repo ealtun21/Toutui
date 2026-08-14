@@ -7629,6 +7629,97 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-172: the program stopped with a line of its own source
+
+**The condition came of the road of T-171.** A server that answers `500` to the
+requests of a view is one thing, and **a server that answers `500` to the first
+request of the program** is another. `docs/harness/one_path_fails.py` gave that
+condition:
+
+```bash
+python3 docs/harness/one_path_fails.py 13500 13399 requests.log /api/libraries
+```
+
+The program of the sandbox then stopped, and the terminal of the user held this
+and nothing else:
+
+```text
+Error: The server reported a fault. Status 500.
+
+Location:
+    src/app.rs:644:44
+```
+
+**A line of the source of this program says nothing to a user, and it names no
+road.** T-123 measured this shape in 2026-08-12 for a token that the server
+refused, and it closed that one road: `main` reads the category, and the login
+screen comes. **Every other fault of the first request kept the road**, because
+`App::new` holds three arms:
+
+| The answer of the server | What `App::new` does |
+|---|---|
+| the libraries came | the program starts |
+| `Unreachable` or `Timeout` | the offline mode of T-25 starts, with the media of the disk |
+| every other fault | `return Err(error.into())`, and the report leaves `main` |
+
+#### The decision: the program says why, and it stops
+
+**The offline mode of T-25 is not the road of this fault**, and this session
+took that decision with its reason:
+
+1. That mode is made for a server that gives no answer, and **its words say that
+   the server does not answer**. A server that reports a fault answers: those
+   words are a reason that the program does not have (T-91), and T-171 closed
+   that same fault in the header one hour before this item.
+2. `is_offline` of `App` reaches more than thirty texts of the views. To start
+   that mode for a server that answers would put the words of T-25 in every one
+   of them, and the correction of that would be the sweep of T-168, of T-169,
+   and of T-170 again.
+3. **The program must not promise a function that it does not have** (T-118). It
+   cannot read the lists of that server, and it says so.
+
+`the_words_of_a_program_that_stops` of `src/api/client/error.rs` makes the text,
+and `the_program_stops_with_words` of `src/main.rs` gives the terminal back, says
+it, and leaves with the status 1. The whole report goes to the log, therefore no
+evidence goes away.
+
+The measurement of the correction, in the real program:
+
+```text
+Toutui stops: it cannot read the lists of the server.
+The server reported a fault. Status 500.
+The account is toutuitest, and the server is http://127.0.0.1:13500.
+Toutui changed nothing. Try again later, or speak to an administrator of the server.
+EXIT=1
+```
+
+**The key `R` holds the same road**, because it makes the same requests
+(`App::new_with_the_engine`), and it takes the same words now.
+
+#### What this item does not change
+
+**A server that gives no answer keeps the offline mode of T-25.** The
+measurement, with the proxy stopped and the port of no program:
+
+```text
+📴 Offline as toutuitest        📴 Offline: the media on the disk       🦜 Toutui v0.8.6
+🔗 127.0.0.1:13500 does not answer                            R: try the server again
+──────────────────────────Library [3 items]──────────────────────────
+```
+
+**A token that the server refused keeps the login screen of T-123.** That arm
+stands before this one.
+
+#### The test
+
+`src/api/client/error.rs` holds it: the words name what the server said, the
+account, and the server; they say that the program changed nothing; and they
+hold **no** `Location`, no `src/`, and no `.rs`. A report that holds no fault of
+the API gives its own text.
+
+**No test reaches `the_program_stops_with_words`**, because that function never
+comes back: it is three lines of wiring over the function that the test holds.
+
 ### T-171: the header said that the server does not answer, for a server that answers
 
 **The condition of this session.** T-169 gave the repository a server that
