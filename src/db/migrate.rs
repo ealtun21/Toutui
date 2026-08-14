@@ -16,8 +16,24 @@ pub fn db_path() -> PathBuf {
 }
 
 /// Opens the database file and applies the migrations.
+///
+/// **The road of one key of the user pays the wait of the disk one time**
+/// (T-208). Every call of the database of this program stands on this function,
+/// therefore the box of `the_wait_of_the_disk` reads its answer here and it
+/// gives the wait of the call after it.
 pub fn open_conn() -> Result<Connection> {
+    crate::db::the_wait_of_the_disk::the_answer_of_an_open(the_work_of_an_open())
+}
+
+/// The work of `open_conn`, with no word for the box of the wait.
+fn the_work_of_an_open() -> Result<Connection> {
     let conn = Connection::open(db_path())?;
+
+    // rusqlite gives every connection the wait of five seconds. A lock that
+    // stands already takes a shorter wait, therefore the key of the user reads
+    // the fault of the disk and does not wait for it again. See T-208.
+    conn.busy_timeout(crate::db::the_wait_of_the_disk::the_wait_of_the_next_call())?;
+
     run_migrations(&conn)?;
     Ok(conn)
 }

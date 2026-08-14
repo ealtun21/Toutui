@@ -810,8 +810,10 @@ pub fn select_default_usr() -> Result<Vec<String>> {
 
 /// Opens the database and applies the migrations.
 pub fn init_db() -> Result<()> {
-    let conn = Connection::open(crate::db::migrate::db_path())?;
-    crate::db::migrate::run_migrations(&conn)?;
+    // **One road holds the box of the wait of the disk** (T-208). This function
+    // opened the file itself, therefore its fault reached no box and its
+    // connection took the wait of five seconds of rusqlite.
+    crate::db::migrate::open_conn()?;
     Ok(())
 }
 

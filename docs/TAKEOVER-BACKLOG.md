@@ -8632,6 +8632,115 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-208: a key of the user paid the wait of the disk one time for each call of its road
+
+**Four sessions named this condition and no one of them measured it.** T-204
+wrote "a key of the user that touches the disk still stops the loop of the screen
+for five seconds under the lock", T-205 and T-206 each left it open, and T-207
+gave it a number: "six calls of the database of the key `l` gave 30 seconds of a
+screen that said nothing". **The number was the whole item**, and no session
+asked why one key holds six waits.
+
+**The condition.** rusqlite waits five seconds for the lock of the file (T-199),
+and every call of the database of this program opens its own connection. A second
+program of the account that holds that lock (T-140, and
+`docs/harness/hold_the_lock.py`) therefore gives **each** call of a key the whole
+five seconds, one after the other.
+
+#### The measurement of 2026-08-14
+
+The real program of the sandbox, the Home view, the book of eight hours
+`A Second Book Of Many Hours`, the null device of ALSA, and a lock of 40 seconds:
+
+```bash
+python3 docs/harness/hold_the_lock.py \
+    $XDG_CONFIG_HOME/toutui/db.sqlite3 40
+# and then the key `l` of the Home view
+```
+
+The row of the message of the program, with the moment of the key at 0:
+
+```text
+ 15370 ms: Loading the media...
+ 23671 ms:
+ 35812 ms: The program did not keep the session on its disk: database is locked.
+```
+
+**The user waited 35 seconds for a playback that never started, and the row of
+the message said nothing for 20 of them.** The log holds the seven calls, and
+each of them stands five seconds after the one before it:
+
+```text
+18:45:48.765 [get_has_played_before]      database is locked
+18:45:53.769 [update_is_loop_break]       database is locked
+18:45:58.77  [update_has_played_before]   database is locked
+18:46:03.77  [get_the_sessions_to_close]  database is locked
+18:46:08.77  [get_download_files]         database is locked
+18:46:14.5   [insert_listening_session]   database is locked
+18:46:19.5   [update_is_loop_break]       database is locked
+```
+
+**The program asked a disk that had already said `database is locked` six more
+times, and it paid the whole wait for each question.**
+
+#### The rule
+
+**The road of one key pays the wait of the disk one time.**
+`src/db/the_wait_of_the_disk.rs` holds the moment at which a call did not reach
+the disk, and `open_conn` gives every connection after it the wait of 200
+milliseconds while that moment stands inside the five seconds of
+`THE_TIME_OF_A_FAULT`. A call that reached the disk takes the moment away,
+therefore a lock that goes away gives the whole wait back to the program at once.
+
+**The box arms after a wait of five seconds and not before it.** Two programs of
+one account write the database in some milliseconds, and a call that meets such a
+write answers inside its own wait: no fault of that condition reaches the box at
+all. A lock that stands longer than the whole wait is a second program that
+stopped inside a write, a disk that does not answer, and the harness of T-199 —
+and there the program must say why, and it must say it at once.
+
+**The decision.** A call inside the window can now fail where the old code waited
+and answered: a lock that goes away between 200 milliseconds and five seconds
+gives a fault of the database now. That is the trade of this item, and the fork
+holds the words of every such fault already (T-199 to T-207) — a key of the user
+says why, and a work with no key of the user takes a line of the log (T-177).
+**Thirty seconds of a screen that says nothing is worse than a fault that the
+program names.**
+
+**A database with no permission of a write (T-206) and a file that holds no
+database (T-199) arm no box**: each of them answers at once, therefore a shorter
+wait of the call after them helps nobody. `the_fault_is_a_lock_of_the_file` reads
+`DatabaseBusy` and `DatabaseLocked` alone.
+
+`init_db` of `src/db/crud.rs` opened the file itself, therefore its fault reached
+no box: it calls `open_conn` now, and **one road holds the box of the wait**.
+
+| the condition | v0.8.37 | v0.8.38 |
+|---|---|---|
+| the key `l`, and a second program holds the database | `Loading the media...` at 15370 ms, and the fault at **35812 ms** | `Loading the media...` at 5462 ms, and the fault at **6473 ms** |
+| the seven calls of that key in the log | 35 seconds | **1.4 seconds after the first one** |
+
+`tests/a_key_pays_the_wait_of_the_disk_one_time.rs` holds the parts in one
+function (T-144 and T-157): the box and `XDG_CONFIG_HOME` each belong to the
+process. The test writes the moment of the first call instead of waiting for it,
+because **a test that waits for the whole of five seconds holds the gate of the
+machine** (T-158); the measurement of the real program above holds those seconds.
+
+#### What this item leaves open
+
+**The freeze of the loop of the screen stays.** The correction takes the wait of
+a key from 35 seconds to six, and the first call of that key still holds its five
+seconds: the screen of the measurement gave the row of the message at 5462 ms and
+not at 258 ms. **The question of T-204 stands**: which keys can give their work of
+the disk to a task, and what the row of the message says at the moment of the
+press.
+
+**The message of a key whose work is longer than a message.** A message lives six
+seconds, and the key `l` of the measurement of the fault said
+`Loading the media...` at 15370 ms and nothing at all at 23671 ms. **A word that
+names work that stands must live while that work stands**, and no rule of the
+fork says it today.
+
 ### T-207: a write of the disk that no caller reads took the place of the user backward
 
 **T-206 left the sweep of `let _ =` beside a write of the database open**, and it

@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.38",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A key of yours took 35 seconds while a second Toutui of your \
+             account wrote the database, and the screen said nothing for 20 of \
+             them.** Toutui waits five seconds for a database that another \
+             program holds, and one key of yours makes more than one call of \
+             that database: the key `l` of a media made seven calls, and it paid \
+             those five seconds seven times. Toutui pays that wait one time for \
+             each key now, and the same key says why in six seconds.",
+        ],
+    },
+    Entry {
         version: "0.8.37",
         date: "14/08/2026",
         body: &[

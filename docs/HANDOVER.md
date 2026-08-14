@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.37.** The item T-207 belongs to this session. The
+**The newest release is v0.8.38.** The item T-208 belongs to this session. The
+item T-207 belongs to the session before it. The
 item T-206 belongs to the session before it. The
 item T-205 belongs to the session before it. The
 item T-204 belongs to the session before it. The
@@ -47,11 +48,121 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.37**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.38**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1188 of 1188** in 2.3 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1214 of 1214** with the sandbox up, and `cargo test
--j 16 --no-fail-fast` (the gate of CI) gives no failure in two runs.
+**1189 of 1189** in 2.4 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1215 of 1215** with the sandbox up in 17 seconds, and
+`cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in two runs.
+
+## The session of the fortieth turn of 2026-08-14: the wait of the disk that one key paid seven times
+
+**One release: v0.8.38.** Four sessions named one condition and no one of them
+measured it. T-204 wrote "a key of the user that touches the disk still stops the
+loop of the screen for five seconds under the lock"; T-205 and T-206 each left it
+open; T-207 gave it a number — "six calls of the database of the key `l` gave 30
+seconds of a screen that said nothing". **The number was the whole item, and no
+session asked why one key holds six waits.**
+
+**The item is T-208**, and the condition is the harness of T-199 with no change of
+the source at all:
+
+```bash
+python3 docs/harness/hold_the_lock.py \
+    $XDG_CONFIG_HOME/toutui/db.sqlite3 40
+# and then the key `l` of the Home view, on the book of eight hours
+```
+
+**The measurement of the real program of the sandbox**, with the moment of the
+key at 0:
+
+```text
+ 15370 ms: Loading the media...
+ 23671 ms:
+ 35812 ms: The program did not keep the session on its disk: database is locked.
+```
+
+**The user waited 35 seconds for a playback that never started, and the row of the
+message said nothing for 20 of them.** The log holds seven calls of the database,
+and each of them stands five seconds after the one before it: the read of the
+account of the wait, the two writes of that wait, the read of the sessions to
+close, the read of the files of the download, the write of the row of the session,
+and the write of the end of the loop. **The program asked a disk that had already
+said `database is locked` six more times, and it paid the whole wait for each
+question.**
+
+**The correction.** `src/db/the_wait_of_the_disk.rs` is a box of the process that
+holds the moment at which a call did not reach the disk, and `open_conn` gives
+every connection after it the wait of 200 milliseconds while that moment stands
+inside the five seconds of `THE_TIME_OF_A_FAULT`. **A call that reached the disk
+takes the moment away**, therefore a lock that goes away gives the whole wait back
+at once. `init_db` opened the file itself and its fault reached no box; it calls
+`open_conn` now, and **one road holds the box**.
+
+**The box arms after a wait of five seconds and not before it.** Two programs of
+one account write in some milliseconds, and a call that meets such a write answers
+inside its own wait: no fault of the ordinary condition of T-140 reaches the box.
+**A database with no permission of a write (T-206) and a file that holds no
+database (T-199) arm no box either**: each of them answers at once.
+
+**The decision of this item.** A call inside the window can fail where the old
+code waited and answered — a lock that goes away between 200 milliseconds and five
+seconds gives a fault now. The fork holds the words of every such fault already
+(T-199 to T-207): **thirty seconds of a screen that says nothing is worse than a
+fault that the program names.**
+
+| The condition | v0.8.37 | v0.8.38 |
+|---|---|---|
+| the key `l`, and a second program holds the database | the fault at **35812 ms** | the fault at **6473 ms** |
+| the seven calls of that key in the log | 35 seconds | **1.4 seconds after the first one** |
+
+`tests/a_key_pays_the_wait_of_the_disk_one_time.rs` holds the parts in one
+function (T-144 and T-157): the box and `XDG_CONFIG_HOME` each belong to the
+process.
+
+### The traps of this session
+
+**The trap 175: a test of the wait of the disk must not wait for it.** The first
+form of this test let the first call pay its whole five seconds, and the gate then
+took 5.2 seconds for one test while the whole suite takes 2.4. The test writes the
+moment of that call with `the_disk_did_not_answer()` instead, and it reads the
+answer of `the_answer_of_an_open` of a synthetic fault of rusqlite for the arming:
+`rusqlite::ffi::Error::new(5)` is the lock of the file, and `new(8)` is the disk
+that takes no write. **The measurement of the real program holds the five
+seconds**, and the gate holds none of them (T-158).
+
+**The trap 176: `git checkout` of one file takes the whole correction of that
+file.** The measurement of the build of the fault removed one line of
+`src/db/migrate.rs`, and `git checkout src/db/migrate.rs` then gave the file of
+the last commit — the correction of this session went away with the injection. The
+rule of the road says it already (**no `git stash` and no `git checkout` of a
+file**), and the road back is the copy of the corrected file in the scratchpad.
+
+### What this session leaves open
+
+**The freeze of the loop of the screen stays**, and it is the fifth session that
+names it. The correction takes the wait of a key from 35 seconds to six, and the
+first call of that key still holds its five seconds: the row of the message came
+at 5462 ms and not at 258 ms. **The question of T-204 stands** — which keys can
+give their work of the disk to a task, and what the row of the message says at the
+moment of the press. `handle_key` needs `&mut App` on the thread of the screen,
+and the key `D` holds a task of its own already.
+
+**A word that names work that stands must live while that work stands.** A message
+lives six seconds, and the key `l` of the measurement of the fault said `Loading
+the media...` and then nothing at all for the twelve seconds before its answer. No
+rule of the fork says this today, and the shape reaches every key whose work is
+longer than a message.
+
+**The reads of the disk whose default is a fact of the user stay open** (T-206 and
+T-207 each left them). `get_library_sort` took the sequence and the filter of the
+library of the user away with no word of the screen and no line of the log, and
+`get_speed_rate` and `get_is_show_key_bindings` hold the same shape. **The
+question is whether a read of the disk that failed may give a default at all.**
+
+**The rows of `pending_progress` are not measured against the condition of T-206.**
+The flush of the positions of T-188 and of T-189 writes that table in a task of
+every 30 seconds, and a write that the disk refused takes the place of the user of
+that row away: the task holds no key of the user and no view of its own.
 
 ## The session of the thirty-ninth turn of 2026-08-14: the place of the user that went backward
 

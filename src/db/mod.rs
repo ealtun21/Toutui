@@ -1,6 +1,7 @@
 pub mod crud;
 pub mod database_struct;
 pub mod migrate;
+pub mod the_wait_of_the_disk;
 
 /// Does the work of the disk on a thread of the pool of the blocking work, and
 /// it waits for the answer. See T-204.
