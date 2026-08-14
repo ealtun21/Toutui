@@ -7717,6 +7717,97 @@ and the list of T-66 does not name it. **The disk of the screen is a photograph 
 the request** (T-44), and a read of the server at each frame would change the
 decision of T-66 for a condition that one key corrects.
 
+### T-185: the cover of a book that no key could bring back
+
+**The road of T-184 named this sweep**: a box of the program that holds a value
+of the server, and the question of each such box — does a value of the server
+that went away leave that box, and does a key of the user correct it? T-184
+answered that question for the positions of the live messages. The boxes of
+`src/logic/` each hold **one** answer of the server and a key of the view takes
+the place of it (`the_downloads`, `authors`, `sort_filter::from_the_server`,
+`stats`, `bookmarks`, `the_ereaders`, and the two lists of `the_lists`), and
+`chapters` holds no state at all. **One box of the program holds a value of the
+server for each item of the account, and it is not in that directory**: the store
+of the covers of `src/ui/cover.rs`.
+
+That store said its own fault in its first paragraph: "The store lives outside
+the state of the application, therefore the key `R` does not start the requests
+again."
+
+**The measurement of 2026-08-14.** The account of the sandbox took the one
+address `http://127.0.0.1:13500` (the trap 129), and the proxy of T-169 gave the
+status 500 to every path that holds `/cover`:
+
+```bash
+python3 docs/harness/one_path_fails.py 13500 13399 requests.log /cover
+```
+
+The program started in the Home view with a screen of 160 columns, and the line
+`A Long Test Book` — a book whose cover the server holds, 420 bytes of a JPEG.
+
+| The moment | The blocks of a cover on the screen | The log of the program |
+|---|---|---|
+| the server fails every cover | 0 | `the item 9a671047-… has no cover` |
+| the server answers again, and the key `R` | **0** | no line at all |
+
+The log of the proxy after the key `R` held **seven** paths of the lists of the
+program (`/api/libraries`, the personalized shelves, `/api/me`, the series, the
+collections, the playlists, and the items) and **no** path of a cover. A second
+program said that the server holds that cover:
+`curl -o /dev/null -w '%{http_code} %{size_download}'` gave `200 420`.
+
+**Two faults stood in that one road.**
+
+1. **A request that came back with a fault took the condition of an item with no
+   cover.** `fetch` gave `Option<Vec<u8>>`, therefore the status 500 and an item
+   of no picture came to the same `None`, and the log then said that an item has
+   no cover for an item whose cover the server holds. The status 404 **is** the
+   answer of an item with no cover (the sandbox gives it), and every other fault
+   is a fault of the request — the rule of T-175, of T-178, and of T-182.
+2. **No key of the user emptied the store.** The value of the store stands above
+   every request, exactly as the map of the positions of T-184 did: the key `R`
+   makes a new `App` and the pictures of `CoverArt` go away with it, and the
+   render then reads the same store and it asks the server for nothing. **A
+   fault of one moment took the cover of a book away for the whole life of the
+   program**, and the user could correct it in one way alone: stop the program.
+
+**The second road of the same store.** A cover that goes away **on the server**
+holds the same fault, and the store of the old shape held no road out of a
+`Ready` either. The measurement: the program showed the cover of
+`A Long Test Book`, a second program took that cover away
+(`DELETE /api/items/:id/cover`, and `GET` of the same path then gave 404), and
+the key `R` took the picture off the screen — one block before the key, and none
+after it. The cover went back to the sandbox with
+`POST /api/items/:id/cover` at the end.
+
+**The correction.** `CoverBytes` holds `NoCover` and `Fault` apart now, and
+`fetch` gives a `TheAnswer` of three conditions. `cover::forget()` empties the
+store, and the key `R` of `src/main.rs` calls it beside
+`sort_filter::from_the_server::forget()` and `logic::authors::forget()`. The
+same measurement after the correction: the log said `came back with a fault. The
+server reported a fault. Status 500. The key R asks the server again.`, the key
+`R` asked the server for two covers, the log said `gives 420 bytes` for the book
+of the cover and `has no cover` for the book of the 404, and the block of the
+picture came back to the screen.
+
+**A fault stays in the store until that key**, and the program asks no second
+time before it. The render calls `picture` at each frame: a second request of a
+fault would be one request of each frame for each item of the panel.
+
+**The words for the user stay as they are.** No view says that a cover did not
+come, and no view promises one. A cover is a picture beside the text, the panel
+of it goes away on a narrow screen already, and a message of six seconds for
+each item of a shelf would take the screen. The log holds the reason.
+
+Two tests of `src/ui/cover.rs` hold the rule, and each of them fails with its
+own part of the correction removed:
+`the_key_r_empties_the_store_of_the_covers` writes the three conditions in the
+store and it reads the store after `forget`, and
+`the_status_404_is_an_item_with_no_cover_and_a_fault_is_a_fault` gives `fetch` a
+socket of this machine that answers one status. **The store belongs to the
+process**, therefore the tests that touch it take a lock of the module, and the
+test of the deadlock of T-23 takes that lock too.
+
 ### T-183: one device with no name took every device of the e-reader away
 
 **The road of the session before this one named this sweep**: "the send of an

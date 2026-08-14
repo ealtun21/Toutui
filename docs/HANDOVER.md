@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.15.** The items T-183 and T-184 belong to this
-session. The item T-182 belongs to the session before it.
+**The newest release is v0.8.16.** The item T-185 belongs to this session. The
+items T-183 and T-184 belong to the session before it.
+The item T-182 belongs to the session before that one.
 The item T-181 belongs to the session before that one.
 The item T-180 belongs to the session before that one.
 The item T-179 belongs to the session before that one.
@@ -30,6 +31,74 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the twenty-fifth turn of 2026-08-14: the cover that no key could bring back
+
+**One release: v0.8.16.** The session before this one left no item open, and it
+named the sweep of this one: **a box of the program that holds a value of the
+server**, and the question of each such box — does a value of the server that
+went away leave that box, and does a key of the user correct it? The road named
+eight boxes of `src/logic/`. **Each of those eight holds one answer of the
+server, and a key takes the place of it.** The box of the fault was in another
+directory.
+
+| Item | What | Where |
+|---|---|---|
+| T-185 | **A cover that did not come one time stayed away for the whole life of the program.** The store of the covers of `src/ui/cover.rs` holds a value of the server for each item of the account, and it lives outside `App`: no key of the user emptied it. A proxy gave the status 500 to `GET /api/items/:id/cover`, the server answered every request again, and the key `R` then asked the server for **seven lists and for no cover at all**. `fetch` gave `Option<Vec<u8>>` too, therefore a fault of the request and an item with no cover came to the same value and the log said that an item has no cover for an item whose cover the server holds. `cover::forget()` empties the store now, the key `R` calls it, and the status 404 is the answer of an item with no cover | `src/ui/cover.rs`, `src/main.rs` |
+
+The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-185. Five things are
+worth the room here:
+
+1. **The file said its own fault in its first paragraph.** "The store lives
+   outside the state of the application, therefore the key `R` does not start
+   the requests again." That sentence was a decision of T-23 for the cost of the
+   requests, and it became the fault of T-184 for a value that a fault of one
+   moment wrote. **A comment that names a decision is a place to measure**, and
+   not a place to trust.
+2. **The sweep of a class must leave its own directory.** The road named the
+   boxes of `src/logic/`, and the eight of them each hold one answer that a key
+   replaces. The box of the fault holds a value **for each item of the
+   account** — the shape of the map of T-184 — and it stands in `src/ui/`. The
+   question to ask of a program is not "which box of this directory", it is
+   "which value of the server does this process keep, and where".
+3. **A default that lies has a brother: one condition for two answers.** T-179
+   to T-183 each read a field that takes a wrong default. This one holds no
+   field at all: `Option<Vec<u8>>` gave the status 500 and an item of no picture
+   the same value, therefore the program could say nothing true about either.
+   **The status 404 is the answer of an item with no cover** — the rule of
+   T-175, of T-178, and of T-182 — and every other fault is a fault.
+4. **A fault that the key `R` corrects needs no message.** No view of the
+   program says that a cover did not come. A cover is a picture beside the text,
+   the panel of it goes away on a narrow screen already, and a message of six
+   seconds for each item of a shelf would take the screen. The log holds the
+   reason for the maintainer. **The user-facing fault of T-185 is that no key
+   corrected it**, and that is what the correction gives.
+5. **The store keeps a fault until that key by a decision.** The render calls
+   `picture` at each frame: a store that forgets a fault at once would make one
+   request of each frame for each item of the panel. The rule is the rule of
+   T-184 — the key `R` is the road out.
+
+**The condition that this session leaves open.** None of its own.
+
+### The gates of this session
+
+| The gate | The answer |
+|---|---|
+| `cargo clippy --all-targets -- -D warnings` | no word |
+| `cargo fmt --check` | no word |
+| `cargo nextest run` | **1139 of 1139** in 2.3 seconds |
+| `cargo nextest run --run-ignored all` | **1164 of 1164**, with the sandbox up |
+| `cargo test -j 16 --no-fail-fast` | six runs, and every run passed |
+| `cargo tree -i openssl-sys` | no package |
+| `cargo tree -i cc` | `libsqlite3-sys` and `ring` only |
+
+**The sandbox.** The account `toutuitest` took the address of the proxy for the
+measurement, and it holds `http://localhost:13399` again. Its library of the
+start says `Books` with the id of `Books` now: the row of the disk held the name
+`Podcasts` beside the id of `Books`, and no view of the program can show that
+pair. The cover of `A Long Test Book` went away for the second measurement
+(`DELETE /api/items/:id/cover`) and it came back with
+`POST /api/items/:id/cover`; `GET` of that path gives `200` and 420 bytes.
 
 ## The session of the twenty-fourth turn of 2026-08-14: the device of the e-reader, and the position that no key could correct
 
@@ -4543,17 +4612,19 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took the sweep that the session before it named**, and then the
-condition that its own first item found. **One device with no name took every
-device of the account away, and the sentence of a device that the server no
-longer holds named no key** (T-183). **A media whose position went away on the
-server kept its old percent on the screen, and the key `R` could not correct it**
-(T-184). The session left no item open, and the road below names the sweep that
-comes of T-184. This prompt names the state of the program on 2026-08-14.
+**This session took the sweep that the session before it named**: a box of the
+program that holds a value of the server. The eight boxes of `src/logic/` that
+the road named each hold one answer that a key replaces, and **the box of the
+fault stood in another directory**. **A cover that did not come one time stayed
+away for the whole life of the program, and the key `R` asked the server for
+seven lists and for no cover at all** (T-185). The session left no item open, and
+the road below names the sweep that comes of T-185: the values of the server that
+this program keeps **on the disk**. This prompt names the state of the program on
+2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.15**; `Cargo.toml` is at 0.8.15. The
+> AlbanDAVID/Toutui. Newest release **v0.8.16**; `Cargo.toml` is at 0.8.16. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -4562,7 +4633,7 @@ comes of T-184. This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-184 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-185 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -4766,8 +4837,8 @@ comes of T-184. This prompt names the state of the program on 2026-08-14.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1129 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1154 of 1154** with the sandbox up, in about 20 seconds. **Run that
+> Baseline: **1139 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1164 of 1164** with the sandbox up, in about 20 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -4801,30 +4872,48 @@ comes of T-184. This prompt names the state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in thirty-seven sessions of thirty-eight. **The
->    session of the twenty-fourth turn took the sweep that the session before it
->    named, and then the condition that its own first item found**: one device of
->    an e-reader with no name takes every device of the account away, and the
->    sentence of a device that the server no longer holds names no key (T-183); and
->    a media whose position went away on the server kept its old percent on the
->    screen, and the key `R` could not correct it (T-184). It wrote both
->    corrections, and it left no item open.
->    - **The road of this session comes of T-184: a box of `src/logic/` that one
->      function writes with one rule and a second function writes with another.**
->      The box of the live messages held both rules at once:
->      `note_the_media_away_from_continue_listening` took the place of its list
->      (T-66), and `note_the_progress` beside it inserted alone — therefore a media
->      whose position the server no longer holds kept the value of the box, and
->      **that value stands above the value of every request**. The other boxes of
->      that directory hold a value of the server too: `the_downloads`, `authors`,
->      `sort_filter::from_the_server`, `stats`, `bookmarks`, `chapters`,
->      `the_ereaders`, and `queue`. **The question of each of them**: does a value
->      of the server that went away leave that box, and does a key of the user
->      correct it? A value that no key corrects is the fault of T-184, and the user
->      must then stop the program. **The road of a measurement of that shape is the
->      road of T-184**: take the value away on the server with a second program
->      (`curl`), and read the screen after the message and after the key of that
->      view.
+>    this shape found a fault in thirty-eight sessions of thirty-nine. **The
+>    session of the twenty-fifth turn took the sweep that the session before it
+>    named**: a cover that did not come one time stayed away for the whole life
+>    of the program, and the key `R` asked the server for seven lists and for no
+>    cover at all (T-185). It wrote the correction, and it left no item open.
+>    - **The sweep of T-184 is closed for the boxes of the process.** The eight
+>      boxes of `src/logic/` that the road named each hold **one** answer of the
+>      server, and a key of the view takes the place of it: `the_downloads`
+>      (`forget` at the open), `authors`, `sort_filter::from_the_server`, `stats`,
+>      `bookmarks`, `the_ereaders` (`ask`), `the_ebooks` (`ask_for`, and the box
+>      holds the media of its answer), and `the_lists` (the requests of the start,
+>      which the key `R` makes again). `chapters` holds no state at all, and the
+>      disk is the truth of `queue` (T-147). **The box of the fault stood in
+>      another directory**: the store of the covers of `src/ui/cover.rs` holds a
+>      value of the server **for each item of the account** — the shape of the map
+>      of T-184 — and it lives outside `App`. **The question of a sweep of this
+>      shape is not "which box of this directory": it is which value of the
+>      server this process keeps, and where.**
+>    - **The road of this session comes of T-185: the values of the server that
+>      this program keeps on the disk.** The store of the covers lives in the
+>      memory of the process, and the key `R` empties it now. The disk holds three
+>      values of the server that no such key reaches:
+>      - **The file of an ebook** (T-67, T-142, T-153). `get_the_ebook_of` of
+>        `src/logic/reader/session.rs` says `if path.exists() { return Ok(path) }`:
+>        a book of the cache asks the server for nothing, at any key. The `ino` of
+>        the file stands in the name of that file, therefore a **new** file of the
+>        same item takes a new name — **the question is the file of the same
+>        `ino` whose bytes the server changed, and the book that the server no
+>        longer holds.** The key `X` of T-65 and of T-150 is the one key of that
+>        disk: does it reach the file of the reader?
+>      - **The files of a download** (T-148, T-150, T-179, T-181). The key `X`
+>        takes that disk, and the plan of the download reads `ino`, `index`, and
+>        `metadata.size` of the answer. **The question is a file of the disk whose
+>        bytes the server changed**, and the road of T-179 (a file with no `.part`
+>        needs no second request) is the line to read.
+>      - **The row of the position of the disk** (T-38, T-152). An offline
+>        playback keeps its place for the server at each second.
+>      **The road of a measurement of that shape is the road of T-185**: change
+>      the value on the server with a second program (`curl`), press every key of
+>      that view and the key `R`, and read the screen and the log of the proxy —
+>      **`grep -c` of a path before a key and after it says whether that key asked
+>      the server again** (the trap 144).
 >    - **The shape of T-177 found no fault of `src/api/live.rs`, and that file
 >      still held one** (T-184). `Handshake` gives `pingInterval` and `pingTimeout`
 >      the default 0 and no line of the program reads either of them beside one
@@ -4960,6 +5049,14 @@ comes of T-184. This prompt names the state of the program on 2026-08-14.
 >      place of the list before it, and the key `R` empties every such list: a
 >      value that stands above the value of a request and that no key corrects
 >      makes the user stop the program.
+>    - **A value of the server that the program keeps must go away with that
+>      value, and a box of a value for each item of the account is the shape to
+>      look for** (T-184 and T-185). The map of the positions of the live
+>      messages and the store of the covers of `src/ui/cover.rs` each held such a
+>      value, and each of them stood above the value of every request: the key
+>      `R` empties both of them now. **A comment that names a decision is a place
+>      to measure**: the store of the covers said "the key `R` does not start the
+>      requests again" in its first paragraph, and that sentence was the fault.
 > 2. **The words for the user.** Every text in ASD-STE100. A view says why it
 >    holds no line, and it never says a reason that the program does not have
 >    (T-91), **and the header of the screen holds that same rule** (T-171). **A
@@ -5075,7 +5172,12 @@ comes of T-184. This prompt names the state of the program on 2026-08-14.
 > every other device of the server stays** (T-183), and **the position of a media
 > of a live message holds the whole account: that list takes the place of the list
 > before it, the key `R` empties it, and a message that holds no `mediaProgress`
-> reaches neither list of that box — the message `init` is that message** (T-184).
+> reaches neither list of that box — the message `init` is that message** (T-184),
+> and **the store of the covers holds a value of the server for each item of the
+> account, therefore the key `R` empties it: a request of a cover that came back
+> with a fault is not an item with no cover, the status 404 is that item, and a
+> fault stays in the store until that key because the render asks for a cover at
+> each frame** (T-185).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
