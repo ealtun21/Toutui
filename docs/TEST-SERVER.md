@@ -333,6 +333,13 @@ for i in 1 2 3; do
 done
 ```
 
+**The disk of the account holds a download of that book** (T-215). The key `D` of
+the view of a search writes it, and the three files then stand in
+`$ABS/toutui-data/toutui/downloads/toutuitest/<the id>/`: **a `mv` of one of them
+is the condition of a copy of the disk that is not whole**, and a `mv` back gives
+the whole copy again. A measurement of that condition needs no proxy and no
+trigger.
+
 ## 6b. Make books that are in a series
 
 The test of the series (T-22) needs books with a series. `ffmpeg` writes the
