@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.23.** The item T-193 belongs to this session. The
-items T-190, T-191, and T-192 belong to the session before it. The items T-188
+**The newest release is v0.8.24.** The item T-194 belongs to this session. The
+item T-193 belongs to the session before it, and the
+items T-190, T-191, and T-192 to the session before that one. The items T-188
 and T-189 belong to the session before that one, and
 the item T-187 to the session before that one, and the
 item T-186 to the session before that one, and the
@@ -36,6 +37,77 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the thirty-first turn of 2026-08-14: the stream of the server that stopped
+
+**One release: v0.8.24.** The session before this one corrected the file of a
+book that stops in the middle (T-193), and it left one question open: what does
+the program do with a part of a transport stream that stops in the middle. **The
+answer is worse than the question.** The stream of the server held the whole
+fault of T-193 with no proxy at all: the sandbox itself gave it at the first
+measurement.
+
+| Item | What | Where |
+|---|---|---|
+| T-194 | **A stream of the server that stopped in the middle became a book that you listened to.** The book of xHE-AAC of the sandbox played 64 parts of 101, ffmpeg of the server then ended the stream, and the log said `the playback stopped at 600 seconds, finished=true`. The server held `currentTime: 600`, `progress: 1`, and `isFinished: true` for 384 seconds of audio, and **the screen said nothing at all**. A body of a part that did not come took **no** second attempt, while every other fault of a part takes twenty | `src/player/engine/hls.rs`, `src/player/engine/hls_file.rs`, `src/player/engine/source.rs`, `src/player/engine/worker.rs`, `src/player/engine/mod.rs`, `src/logic/playback/mod.rs` |
+
+The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-194. Five things are
+worth the room here:
+
+1. **A correction of one road of the audio is not a correction of the audio.**
+   T-193 gave `HttpFile` the truth of its length (`Content-Range`), and it gave
+   `HlsFile` the truth of the playlist (`#EXT-X-ENDLIST`). **The parts of that
+   playlist kept the fault**, and the fault of the parts needs no proxy at all:
+   ffmpeg of the server ends a stream by itself (T-68). **A shape that a
+   measurement found in one reader belongs to every reader of the same shape**,
+   and the sweep is finished only when each of them holds the rule.
+2. **The truth of a length can stand in the container.** `Content-Range` names
+   the length of a file, and a part of a stream names a **time** and no number
+   of bytes. The container gives the rest: a transport stream holds packets of
+   188 bytes and nothing else, therefore a body whose length is no multiple of
+   188 is a body that stopped. **A body of a form that frames itself holds its
+   own truth of the length**, and `chunks_exact` of such a form is the line to
+   read: it drops the piece that a body cut, and it gives no fault of its own.
+3. **A fault that returns inside a loop of attempts takes no attempt at all.**
+   `ask_for_the_bytes_with_a_limit` holds twenty attempts, and the read of the
+   body stood in a `return` of the last line of that loop: a body that did not
+   come therefore took one request, and a part that answered 404 took twenty.
+   **A `return` of a fault inside a loop of attempts is the shape to look for.**
+4. **The end of a reader is not the end of the media**, and the engine held no
+   way to tell them apart. `position_now` gives `end_of_the_first` when the
+   tracks end, and that rule comes of T-2, T-16, T-48, and T-55 — **each of
+   those items measured a file**. A stream of the server is one track of the
+   whole media, therefore the end of that one track was the end of the book.
+   `StreamReport` is the box where the reader says what it really reached, and
+   `the_place_of_the_end` reads it.
+5. **A value that the program sends to the server outlives the program that
+   sent it** (T-193 said it, and this item is the second half of the same
+   sentence). The book left Continue Listening, and every client of that account
+   then held it as read.
+
+**The condition that this session leaves open.** **A part that holds no audio.**
+`fill_buffer` says `the part N holds no audio` in the log, and it goes to the
+part after it: a stream whose parts hold no audio therefore gives a book of
+silence with no word for the user. No measurement made such a part, and the road
+to one is a proxy that gives a body of 188 bytes of a packet of no payload.
+
+### The traps of this session
+
+**The trap 150: the disk of this machine can fill while a session runs.**
+`cargo clippy` gave `No space left on device` in the middle of this session:
+`target/debug/incremental` held 78 gigabytes and `target/debug/deps` held 117.
+The removal of `target/debug/incremental` alone gave the room back and it kept
+every artefact of the dependencies, and `CARGO_INCREMENTAL=0` keeps it away. **A
+session that meets that fault must not run `cargo clean`**: the rebuild of the
+dependencies costs more than the room.
+
+**The trap 151: a book of the sandbox that reaches the stream of the server
+needs a file that no decoder reads and no file beside it.** The book "One File
+With No Decoder" holds an MP3 file **and** a WMA file, and the rule of T-48 then
+plays the MP3 and it ends the book at the file after it:
+`the_stream_must_take_the_playback` gives `ThePlaybackPlays`, and the stream
+never starts. **The book "Depthless Hunger, Book 2" is the one road to the
+stream**, and `podman restart abs-test` before each run of it (the trap of T-68).
 
 ## The session of the thirtieth turn of 2026-08-14: the body of the audio that stopped and looked whole
 
@@ -5021,18 +5093,16 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took the one part of the program that no server of a fault had
-reached: the stream of the audio.** A body with no `Content-Length` ends at the
-close of the connection, therefore the client reads a **clean** end of a body
-that stops in the middle: the program held that close as the end of the file, a
-book of 30 minutes played for one second, and the program told the server that
-the user **finished** the book with no word on the screen (T-193). The road
-below names the conditions that stay. This prompt names the state of the program
-on 2026-08-14.
+**This session took the second road of the audio: the stream that the server
+makes.** T-193 corrected the file of a book, and the parts of a playlist kept the
+same fault with **no proxy at all**: a stream that stopped at the part 64 of 101
+told the server that the user finished the book, and the screen said nothing
+(T-194). The road below names the conditions that stay. This prompt names the
+state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.23**; `Cargo.toml` is at 0.8.23. The
+> AlbanDAVID/Toutui. Newest release **v0.8.24**; `Cargo.toml` is at 0.8.24. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -5041,7 +5111,7 @@ on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-192 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-194 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -5273,6 +5343,25 @@ on 2026-08-14.
 > length** (T-193): the two harnesses take the two roads of a body that stops,
 > and the program held one of them already.
 >
+> **The two harnesses of a body reach a part of a stream of HLS too** (T-194).
+> The path of a part is `/hls/<the session>/output-N.ts`, therefore
+> `output-7.ts` is the part of the command line, and **the book of xHE-AAC of the
+> sandbox is the one road to that stream**: "Depthless Hunger, Book 2" holds one
+> file that no decoder reads, and a book with a file that plays beside it takes
+> the rule of T-48 and it never asks the server for a stream (the trap 151).
+> `podman restart abs-test` before each run of that book (the trap of T-68), and
+> `PATCH /api/me/progress/:id` with `{"isFinished": false}` and
+> `{"currentTime": 0}` before each of them (the trap 148). **The stream of that
+> book ends by itself at a part of the middle**, therefore a measurement of a
+> stream that stopped needs no proxy at all.
+>
+>
+> **The disk of this machine can fill while a session runs** (the trap 150):
+> `target/debug/incremental` held 78 gigabytes and `target/debug/deps` held 117,
+> and `cargo clippy` then said `No space left on device`. The removal of
+> `target/debug/incremental` alone gives the room back and it keeps every
+> artefact of the dependencies, and `CARGO_INCREMENTAL=0` keeps it away. **Do not
+> run `cargo clean`**: the rebuild of the dependencies costs more than the room.
 >
 > **A build of the fault needs one edit that keeps every other line** (the trap
 > 147): a correction that is one arm of a `match` goes away with
@@ -5321,8 +5410,8 @@ on 2026-08-14.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1168 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1193 of 1193** with the sandbox up, in about 19 seconds. **Run that
+> Baseline: **1172 tests in 2.4 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1197 of 1197** with the sandbox up, in about 19 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -5356,11 +5445,34 @@ on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in forty-three sessions of forty-four. **The
->    session of the thirtieth turn took the one part of the program that no
->    server of a fault had reached: the stream of the audio.** It found one
->    fault, and that fault wrote the book of the user as a book that the user
->    finished (T-193).
+>    this shape found a fault in forty-four sessions of forty-five. **The session
+>    of the thirty-first turn took the second road of the audio: the stream that
+>    the server makes.** It found one fault, and that fault wrote the book of the
+>    user as a book that the user finished (T-194).
+>    - **A correction of one road of the audio is not a correction of the audio**
+>      (T-194). T-193 gave `HttpFile` the truth of its length (`Content-Range`)
+>      and `HlsFile` the truth of its playlist (`#EXT-X-ENDLIST`), and **the
+>      parts of that playlist kept the fault**: a part that did not come stopped
+>      the thread of the buffer, that thread said `finished`, and `position_now`
+>      then gave the end of the **whole** media. **A shape that a measurement
+>      found in one reader belongs to every reader of the same shape.**
+>    - **The truth of a length can stand in the container** (T-194). A part of a
+>      stream names a **time** and no number of bytes, therefore the playlist
+>      gives no length of it; a transport stream holds packets of 188 bytes and
+>      nothing else, therefore a body whose length is no multiple of 188 is a
+>      body that stopped. **`chunks_exact` of a form that frames itself is the
+>      line to read**: it drops the piece that a body cut, and it gives no fault.
+>    - **A `return` of a fault inside a loop of attempts takes no attempt at
+>      all** (T-194). `ask_for_the_bytes_with_a_limit` holds twenty attempts, and
+>      the read of the body stood in the `return` of the last line of that loop:
+>      a part that answered 404 took twenty requests, and a part whose body
+>      stopped took one.
+>    - **The end of a reader is not the end of the media** (T-194).
+>      `position_now` gives `end_of_the_first` at the end of the tracks, and that
+>      rule comes of T-2, T-16, T-48, and T-55 — **each of those items measured a
+>      file**. A stream of the server is one track of the whole media. **A rule
+>      that a measurement of a file made is a rule to measure again for a media
+>      of one track.**
 >    - **A fault of a body has two roads, and one harness held one of them**
 >      (T-193). `a_body_that_stops_in_the_middle.py` keeps `Content-Length`, and
 >      `reqwest` then gives the fault of an incomplete message: the program reads
@@ -5453,17 +5565,14 @@ on 2026-08-14.
 >      the moment of another media. **A wrong path that answers is worse than a
 >      wrong path that fails**, and no fault of a decode names it.
 >    - **The parts of the program that a server of a fault has not reached**: the
->      keys `F`, `b`, `n`, `m`, `r`, `D`, and `X`, and **the parts of a stream of
->      HLS** (T-193). The file of a book is closed (T-193), and the playlist of
->      HLS with it: a playlist of the type `VOD` that holds no `#EXT-X-ENDLIST`
->      is a body that stopped. **A part of that stream comes of `.bytes()`, and a
->      part that stops in the middle gives fewer bytes of a transport stream with
->      no fault of its own**; a part holds a time and no number of bytes,
->      therefore the program has no truth of its length and the rule of T-193
->      does not reach it. **The question is what the decoder does with a part
->      that stops in the middle**, and whether the playback then names the fault
->      or goes on with a gap in the sound. The road to that stream is a book of a
->      form that no decoder of the program reads (T-68).
+>      keys `F`, `b`, `n`, `m`, `r`, `D`, and `X`. **The stream of the audio is
+>      closed**: the file of a book (T-193), the playlist of HLS (T-193), and the
+>      parts of that playlist (T-194). **One condition of the stream stays**: a
+>      part that holds no audio. `fill_buffer` says `the part N holds no audio`
+>      in the log and it goes to the part after it, therefore a stream of such
+>      parts gives a book of silence with no word for the user, and no
+>      measurement made such a part. The road to one is a body of 188 bytes of a
+>      packet of no payload.
 >      **The keys `M`, `N`, and `e` are
 >      closed** (T-175 and T-178), **the first request of the program is closed**
 >      (T-172), **the flush of the positions of the disk is closed** (T-188 and
@@ -5696,7 +5805,12 @@ on 2026-08-14.
 > the file: the size of the header `Content-Range` is the truth of the length,
 > a body that stops before it takes the road of a connection that stopped, and a
 > playlist of the type `VOD` that holds no `#EXT-X-ENDLIST` is a playlist that
-> stopped** (T-193).
+> stopped** (T-193), and **a stream of the server that stopped before its last
+> part is not the end of the media: the playlist is the truth of the length of
+> that stream, a body of a part that is no whole number of packets of 188 bytes
+> is a body that stopped, a body that did not come takes the twenty attempts of
+> a part that did not come, and the program writes the place that it reached and
+> it says why the media stopped** (T-194).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

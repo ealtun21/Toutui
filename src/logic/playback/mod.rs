@@ -1606,6 +1606,17 @@ pub async fn follow_playback(
                     position, finished
                 );
 
+                // **A stream of the server that stopped before its last part is
+                // not the end of the media**, and the user read nothing at all:
+                // the book stopped in the middle, and the program told the
+                // server that the user finished it. The playback belongs to no
+                // view, therefore the message of it stands above them all
+                // (T-164). See T-194.
+                if let Some(why) = &state.why_the_stream_stopped {
+                    warn!("[follow_playback] {}", why);
+                    crate::logic::message::say(why);
+                }
+
                 let _ = update_is_finished(if finished { "1" } else { "0" }, session_id.as_str());
 
                 let the_server_holds_it = close_and_report(

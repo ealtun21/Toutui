@@ -98,6 +98,26 @@ pub fn is_complete(queue_empty: bool, playing: usize, track_count: usize) -> boo
     queue_empty && playing >= track_count
 }
 
+/// Gives the place of the media at the end of the tracks that play.
+///
+/// **A stream of the server that stopped before its last part did not reach the
+/// end of the media** (T-194). The reader of the stream has no more bytes, the
+/// decoder reads that as the end of the book, and `position_now` then gives the
+/// end of the whole media: the program wrote that place to the server, it said
+/// `isFinished`, and the book left Continue Listening. A measurement of
+/// 2026-08-14 with the sandbox: the stream of a book of ten minutes ended at the
+/// part 64 of 101, and the server held `currentTime: 600` and
+/// `isFinished: true` for 384 seconds of audio.
+///
+/// The playlist names every part of the media, therefore the reader knows the
+/// place that it reached and it says that place here.
+pub fn the_place_of_the_end(the_stream_stopped: Option<f64>, the_end_of_the_tracks: f64) -> f64 {
+    match the_stream_stopped {
+        Some(seconds) => seconds,
+        None => the_end_of_the_tracks,
+    }
+}
+
 /// Tells if the media came to its end.
 ///
 /// The engine marks a book as finished only when the queue is empty and the
@@ -175,6 +195,14 @@ pub struct PlaybackState {
     /// a loop that reads it asks the server for a stream that it does not need.
     /// See T-53.
     pub playback_of_the_fault: u64,
+    /// Why the stream of the server stopped before the end of the media, in a
+    /// sentence for the user.
+    ///
+    /// **A stream that stops is not the end of the media.** The loop of the
+    /// playback reads this, and it says the sentence: the old program said
+    /// nothing at all, and it told the server that the user finished the book.
+    /// See T-194.
+    pub why_the_stream_stopped: Option<String>,
 }
 
 impl Default for PlaybackState {
@@ -189,6 +217,7 @@ impl Default for PlaybackState {
             chapter_title: None,
             file_with_no_decoder: None,
             why_the_start_did_not_work: None,
+            why_the_stream_stopped: None,
             playback_of_the_fault: 0,
             chapters: Vec::new(),
             speed: 1.0,
@@ -387,7 +416,7 @@ pub fn the_sentence_of_the_volume(volume: f32) -> String {
 #[cfg(test)]
 mod tests {
     use super::the_sentence_of_the_volume;
-    use super::{is_complete, media_position, reached_the_end, seek_target};
+    use super::{is_complete, media_position, reached_the_end, seek_target, the_place_of_the_end};
 
     /// The message of the volume says the value, and it says what 0% and 100%
     /// mean. A media that plays and gives no sound looks like a fault of the
@@ -493,6 +522,50 @@ mod tests {
     fn a_negative_position_gives_zero() {
         assert_eq!(seek_target(-5.0, 1.0).as_secs_f64(), 0.0);
     }
+    /// **A stream of the server that stopped before its last part is not the
+    /// end of the media.** A measurement of 2026-08-14 against the sandbox: the
+    /// stream of a book of ten minutes stopped at the part 64 of 101, and the
+    /// program wrote `currentTime: 600` and `isFinished: true` to the server
+    /// for 384 seconds of audio. The book then left Continue Listening, and
+    /// every client of that account held it as read. See T-194.
+    #[test]
+    fn a_stream_that_stopped_before_its_last_part_is_not_the_end_of_the_media() {
+        // The measurement: 64 parts of six seconds of a media of 600 seconds.
+        let the_end_of_the_tracks = 600.0;
+        let place = the_place_of_the_end(Some(384.0), the_end_of_the_tracks);
+
+        assert_eq!(place, 384.0);
+        assert!(
+            !reached_the_end(place, 600.0, true),
+            "a stream that stopped at 384 seconds of 600 did not finish the book"
+        );
+
+        // A part that did not come at the second attempt of the reader, and the
+        // truncation of the harness of the measurement: the same rule.
+        assert!(!reached_the_end(
+            the_place_of_the_end(Some(42.0), the_end_of_the_tracks),
+            600.0,
+            true
+        ));
+
+        // A media whose stream came whole keeps the end of its tracks, and it
+        // is finished.
+        assert_eq!(the_place_of_the_end(None, the_end_of_the_tracks), 600.0);
+        assert!(reached_the_end(
+            the_place_of_the_end(None, the_end_of_the_tracks),
+            600.0,
+            true
+        ));
+
+        // A stream that stopped inside the tolerance of the end is the end of
+        // the media: the decoder does not always give the last fraction.
+        assert!(reached_the_end(
+            the_place_of_the_end(Some(599.0), the_end_of_the_tracks),
+            600.0,
+            true
+        ));
+    }
+
     #[test]
     fn a_media_at_its_end_with_an_empty_queue_is_finished() {
         assert!(reached_the_end(3600.0, 3600.0, true));

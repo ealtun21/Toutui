@@ -91,6 +91,47 @@ struct Shared {
     stalled: AtomicBool,
 }
 
+/// A stream of the server that did not reach its last part. See T-194.
+#[derive(Debug, Clone, PartialEq)]
+pub struct TheStreamStopped {
+    /// The place of the media that the reader reached, in seconds.
+    ///
+    /// **The playlist is the truth of the length of a stream**: it names every
+    /// part of the media, and the time of each of them. A reader that stops at
+    /// the part N therefore holds the media to the sum of the times of the
+    /// parts before N, and no second more.
+    pub seconds: f64,
+    /// What the user reads.
+    pub why: String,
+}
+
+/// What the reader of a stream tells the engine. See T-194.
+///
+/// **The end of a reader is not the end of the media.** The thread of the
+/// buffer meets a part that does not come, and it then has no more bytes: the
+/// decoder reads that as the end of the book, the engine writes the whole place
+/// of the media, and the program tells the server that the user finished the
+/// book. The reader writes here what it really reached, and the engine reads
+/// it.
+#[derive(Debug, Default)]
+pub struct StreamReport {
+    stopped: Mutex<Option<TheStreamStopped>>,
+}
+
+impl StreamReport {
+    /// Gives the report of a stream that did not reach its last part.
+    pub fn the_stream_stopped(&self) -> Option<TheStreamStopped> {
+        self.stopped.lock().ok().and_then(|value| value.clone())
+    }
+
+    /// Says that the stream stopped at a place of the media.
+    fn say(&self, value: TheStreamStopped) {
+        if let Ok(mut place) = self.stopped.lock() {
+            *place = Some(value);
+        }
+    }
+}
+
 /// The stream of one media of the server.
 pub struct HlsFile {
     shared: Arc<Shared>,
@@ -103,6 +144,8 @@ pub struct HlsFile {
     /// The reader starts at a part of the playlist, and that part starts inside
     /// the media. The engine adds this value to the position of the decoder.
     offset: f64,
+    /// What the thread of the buffer tells the engine. See T-194.
+    report: Arc<StreamReport>,
     handle: Option<std::thread::JoinHandle<()>>,
 }
 
@@ -202,6 +245,7 @@ impl HlsFile {
             cursor: 0,
             form: stream.form,
             offset: hls::seconds_before(&segments, first),
+            report: Arc::new(StreamReport::default()),
             handle: None,
         };
 
@@ -213,6 +257,15 @@ impl HlsFile {
     /// Gives the form of the audio. The decoder takes it as a hint.
     pub fn form(&self) -> Form {
         self.form
+    }
+
+    /// Gives the box where the thread of the buffer says what it reached.
+    ///
+    /// The engine keeps this box, and it reads that box when the decoder has no
+    /// more bytes: a stream that stopped before its last part is not the end of
+    /// the media. See T-194.
+    pub fn report(&self) -> Arc<StreamReport> {
+        Arc::clone(&self.report)
     }
 
     /// Gives the place of the media at the first byte of the reader.
@@ -235,17 +288,27 @@ impl HlsFile {
         pid: u16,
     ) {
         let shared = Arc::clone(&self.shared);
+        let report = Arc::clone(&self.report);
         let address = address.to_string();
         let token = token.to_string();
+        let place_of_the_start = self.offset;
 
         let handle = std::thread::Builder::new()
             .name("toutui-stream".to_string())
-            .spawn(move || fill_buffer(shared, address, token, segments, from, pid));
+            .spawn(move || fill_buffer(shared, report, address, token, segments, from, pid));
 
         self.handle = match handle {
             Ok(handle) => Some(handle),
             Err(error) => {
                 warn!("[HlsFile] the program cannot start the thread: {}", error);
+
+                // The reader holds the first part alone, therefore the media
+                // stops at the end of that part and it is not finished. See
+                // T-194.
+                self.report.say(TheStreamStopped {
+                    seconds: place_of_the_start,
+                    why: hls::the_sentence_of_a_stream_that_stopped(),
+                });
                 self.shared.finished.store(true, Ordering::SeqCst);
                 None
             }
@@ -399,6 +462,14 @@ fn address_of_the_part(playlist: &str, name: &str) -> String {
     match playlist.rfind('/') {
         Some(place) => format!("{}/{}", &playlist[..place], name),
         None => name.to_string(),
+    }
+}
+
+/// Gives the name of the file of an address.
+fn name_of(address: &str) -> &str {
+    match address.rfind('/') {
+        Some(place) => &address[place + 1..],
+        None => address,
     }
 }
 
@@ -574,10 +645,37 @@ fn ask_for_the_bytes_with_a_limit(
             continue;
         }
 
-        return answer
-            .bytes()
-            .map(|bytes| bytes.to_vec())
-            .map_err(|_| "The part of the stream did not come.".to_string());
+        // **A body that did not come is not a part that did not come, and both
+        // need the same road.** The old code gave the answer of `bytes()` back
+        // at once: a body that stopped in the middle therefore took **no**
+        // second attempt, while every other fault of a part takes twenty of
+        // them. A measurement of 2026-08-14 with
+        // `docs/harness/a_body_that_stops_in_the_middle.py`: one request of
+        // `output-7.ts`, and the book of ten minutes stopped after 42 seconds
+        // of it. See T-194.
+        every_answer_was_404 = false;
+
+        match answer.bytes() {
+            Ok(bytes) if hls::the_part_is_whole(&bytes) => return Ok(bytes.to_vec()),
+            Ok(bytes) => {
+                // A body with no `Content-Length` ends at the close of the
+                // connection, therefore this body holds no fault of its own:
+                // the packets of 188 bytes are the truth of its length. See
+                // T-194.
+                warn!(
+                    "[HlsFile] the part of the stream holds {} bytes, and that \
+                     is no whole number of packets. The reader asks again.",
+                    bytes.len()
+                );
+                last = hls::the_sentence_of_a_part_that_stopped(name_of(address));
+            }
+            Err(error) => {
+                warn!("[HlsFile] the body of a part did not come: {}", error);
+                last = "The part of the stream did not come.".to_string();
+            }
+        }
+
+        wait(&mut backoff, attempt, patience.longest);
     }
 
     if every_answer_was_404 {
@@ -603,25 +701,35 @@ fn text_of(error: &ApiError) -> String {
 }
 
 /// Reads the parts of the playlist, and it fills the buffer.
+/// **A part that does not come is not the end of the media.** The thread says in
+/// `report` which place of the media it reached, therefore the engine never
+/// holds the end of this reader for the end of the book. See T-194.
 fn fill_buffer(
     shared: Arc<Shared>,
+    report: Arc<StreamReport>,
     address: String,
     token: String,
     segments: Vec<Segment>,
     from: usize,
     pid: u16,
 ) {
+    let the_stream_stopped = |index: usize| TheStreamStopped {
+        seconds: hls::seconds_before(&segments, index),
+        why: hls::the_sentence_of_a_stream_that_stopped(),
+    };
+
     let client = match client() {
         Ok(client) => client,
         Err(error) => {
             warn!("[HlsFile] {}", error);
+            report.say(the_stream_stopped(from));
             shared.finished.store(true, Ordering::SeqCst);
             shared.signal.notify_all();
             return;
         }
     };
 
-    for part in segments.iter().skip(from) {
+    for (index, part) in segments.iter().enumerate().skip(from) {
         // The buffer must not hold the whole book. The thread waits while the
         // reader is far behind.
         loop {
@@ -650,10 +758,13 @@ fn fill_buffer(
             Ok(bytes) => bytes,
             Err(error) => {
                 warn!(
-                    "[HlsFile] the part {} did not come: {}. The playback stops \
-                     there.",
-                    part.name, error
+                    "[HlsFile] the part {} did not come: {}. The stream stops at \
+                     {:.0} seconds of the media, and that is not its end.",
+                    part.name,
+                    error,
+                    hls::seconds_before(&segments, index)
                 );
+                report.say(the_stream_stopped(index));
                 break;
             }
         };

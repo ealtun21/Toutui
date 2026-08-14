@@ -5,7 +5,7 @@
 //! mode needs no separate code.
 
 use crate::db::crud::get_download_files;
-use crate::player::engine::hls_file::HlsFile;
+use crate::player::engine::hls_file::{HlsFile, StreamReport};
 use crate::player::engine::http_file::HttpFile;
 use crate::player::engine::opus::OpusSource;
 use crate::player::engine::track::Track;
@@ -14,6 +14,7 @@ use rodio::source::SeekError;
 use rodio::{ChannelCount, Decoder, SampleRate, Source};
 use std::io::{Read, Seek};
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::time::Duration;
 
 /// A source of bytes that `rodio::Decoder` accepts.
@@ -239,15 +240,19 @@ pub struct Opened {
     pub source: EngineSource,
     /// The place of the media where the bytes of the decoder start, in seconds.
     pub offset: f64,
+    /// The box where the reader of a stream of the server says what it reached.
+    /// A file gives nothing here. See T-194.
+    pub the_stream: Option<Arc<StreamReport>>,
 }
 
 pub fn open_decoder(source: &TrackSource, token: &str, track: &Track) -> Result<Opened, String> {
     // The stream of the server holds MP3 or ADTS. Therefore it never goes to
     // the reader of Opus. See T-53.
     if matches!(source, TrackSource::Stream { .. }) {
-        return open_rodio(source, token, track).map(|(decoder, offset)| Opened {
+        return open_rodio(source, token, track).map(|(decoder, offset, the_stream)| Opened {
             source: EngineSource::Rodio(Box::new(decoder)),
             offset,
+            the_stream,
         });
     }
 
@@ -270,6 +275,7 @@ pub fn open_decoder(source: &TrackSource, token: &str, track: &Track) -> Result<
                 return Ok(Opened {
                     source: EngineSource::Opus(Box::new(opus)),
                     offset: 0.0,
+                    the_stream: None,
                 });
             }
             Err(error) => {
@@ -284,9 +290,10 @@ pub fn open_decoder(source: &TrackSource, token: &str, track: &Track) -> Result<
     }
 
     match open_rodio(source, token, track) {
-        Ok((decoder, offset)) => Ok(Opened {
+        Ok((decoder, offset, the_stream)) => Ok(Opened {
             source: EngineSource::Rodio(Box::new(decoder)),
             offset,
+            the_stream,
         }),
         Err(error) if opus_first => Err(error),
         Err(error) => {
@@ -300,6 +307,7 @@ pub fn open_decoder(source: &TrackSource, token: &str, track: &Track) -> Result<
                     Ok(Opened {
                         source: EngineSource::Opus(Box::new(opus)),
                         offset: 0.0,
+                        the_stream: None,
                     })
                 }
                 Err(opus_error) => {
@@ -339,6 +347,9 @@ struct Bytes {
     /// decoder, therefore the position of the playback is the position of the
     /// media and not the position of the stream. See T-63.
     offset: f64,
+    /// The box where the reader of a stream says what it reached. A file gives
+    /// nothing here. See T-194.
+    the_stream: Option<Arc<StreamReport>>,
 }
 
 fn open_bytes(source: &TrackSource, token: &str) -> Result<Bytes, String> {
@@ -353,6 +364,7 @@ fn open_bytes(source: &TrackSource, token: &str) -> Result<Bytes, String> {
                 size,
                 hint: None,
                 offset: 0.0,
+                the_stream: None,
             })
         }
         TrackSource::Remote {
@@ -370,6 +382,7 @@ fn open_bytes(source: &TrackSource, token: &str) -> Result<Bytes, String> {
                 size,
                 hint: None,
                 offset: 0.0,
+                the_stream: None,
             })
         }
         // The stream of the server has no size in bytes, and it moves forward
@@ -391,12 +404,14 @@ fn open_bytes(source: &TrackSource, token: &str) -> Result<Bytes, String> {
             };
 
             let offset = file.offset();
+            let the_stream = Some(file.report());
 
             Ok(Bytes {
                 data: Box::new(file),
                 size: None,
                 hint: Some(hint),
                 offset,
+                the_stream,
             })
         }
     }
@@ -414,17 +429,22 @@ fn open_opus(source: &TrackSource, token: &str, track: &Track) -> Result<OpusSou
     )
 }
 
+/// The decoder of rodio, the place of the media where its bytes start, and the
+/// box where a reader of a stream of the server says what it reached.
+type TheDecoderOfRodio = (Decoder<Box<dyn MediaRead>>, f64, Option<Arc<StreamReport>>);
+
 /// Opens the decoder of rodio. That decoder plays 16 formats.
 fn open_rodio(
     source: &TrackSource,
     token: &str,
     track: &Track,
-) -> Result<(Decoder<Box<dyn MediaRead>>, f64), String> {
+) -> Result<TheDecoderOfRodio, String> {
     let Bytes {
         data,
         size,
         hint: hint_of_the_stream,
         offset,
+        the_stream,
     } = open_bytes(source, token)?;
 
     // A file obeys `Seek`, therefore symphonia can move in it. An M4B file
@@ -469,7 +489,7 @@ fn open_rodio(
         )
     })?;
 
-    Ok((decoder, offset))
+    Ok((decoder, offset, the_stream))
 }
 
 #[cfg(test)]

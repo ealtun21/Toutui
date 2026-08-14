@@ -8632,6 +8632,168 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-194: a stream of the server that stopped in the middle became a book that you listened to
+
+**T-193 corrected the file of a book, and the stream of the server kept the same
+fault.** That item left one question open: what does the program do with a part
+of a transport stream that stops in the middle. The answer of this session is
+worse than the question, because **the fault stands with no proxy at all**: the
+sandbox itself gave it at the first measurement.
+
+`HlsFile` walks the parts of a playlist. A part that does not come stopped the
+thread of the buffer, and that thread then said `finished`: the decoder read
+that as the end of the book, `position_now` gave the end of the **whole** media,
+and the program told the server that the user finished a book that stopped in
+the middle.
+
+#### The measurement of the fault, 2026-08-14
+
+The book "Depthless Hunger, Book 2" of the sandbox (the section 11 of
+`docs/TEST-SERVER.md`) is a file of xHE-AAC of ten minutes: no decoder of the
+program reads it, therefore the program asks the server for a stream of the
+whole media (T-53). ffmpeg of the server reads 77 percent of the frames of that
+form and it stops at some place of the file (T-68), therefore the stream of that
+book **ends by itself**.
+
+**The first run held no proxy of a fault at all.** `podman restart abs-test`,
+`PATCH /api/me/progress/:id` with `{"isFinished": false}` and `{"currentTime":
+0}`, and the key `l` of the Library view:
+
+```
+[HlsFile] the stream holds 101 part(s). The reader starts at the part 0
+[HlsFile] the server ended the stream of this media.
+[HlsFile] the part output-64.ts did not come: ... The playback stops there.
+[follow_playback] the playback stopped at 600 seconds, finished=true
+```
+
+And `GET /api/me/progress/bb9c73c7-…` of a second program:
+
+```json
+{"currentTime": 600, "progress": 1, "isFinished": true,
+ "finishedAt": 1786702700199}
+```
+
+**64 parts of 101 played, and the server holds the whole book as read.** The
+book left Continue Listening, and every client of that account then held it as
+read. **The screen said nothing at all**: the view went back to the search
+result, and no message stood anywhere.
+
+`position_now` of `src/player/engine/worker.rs` holds the cause. A stream of the
+server is **one** track of the whole media, therefore
+`item.playing >= item.tracks_that_play` at the end of that one track, and the
+function then gives `end_of_the_first(1)`: the end of the media. That rule
+belongs to T-2, T-16, T-48, and T-55, and each of those items measured a **file**
+of a book.
+
+#### The two roads of a body of a part, and the second fault
+
+`docs/harness/a_body_that_stops_in_the_middle.py 13500 13399 requests.log 20000
+output-7.ts` (T-186), with `users.server_address` at the proxy (the trap 129):
+
+```
+[HlsFile] the stream holds 101 part(s). The reader starts at the part 0
+[HlsFile] the part output-7.ts did not come: The part of the stream did not
+          come.. The playback stops there.                     <- 9 ms later
+[follow_playback] the playback stopped at 600 seconds, finished=true
+```
+
+`grep -c output-7.ts requests.log` gave **1**. **A body that did not come took
+no second attempt at all**, and every other fault of a part takes twenty of
+them (`ATTEMPTS`): `ask_for_the_bytes_with_a_limit` gave the answer of
+`bytes()` back with `return`, inside the loop of the attempts. The book of ten
+minutes stopped after 42 seconds of it, and the server again held 600 seconds
+and `isFinished`.
+
+`docs/harness/a_body_that_ends_early_and_looks_whole.py` (T-193) on the same
+part gives the other road: the head holds no `Content-Length`, therefore
+`reqwest` reads a **clean** end of a body of 20000 bytes of 77000. That body
+holds no fault at all, `packets` of `hls.rs` drops the packet that the body cut
+(`chunks_exact(188)`), and **the playback goes on with a hole of about four
+seconds in the sound**. The place of the media then stands behind the true place
+for the rest of the book. The screen said nothing of that either.
+
+#### The truth of the length of a part, and of a stream
+
+**A part names a time and no number of bytes**, therefore the playlist gives no
+length of a part. **The container gives it**: a part of a transport stream holds
+packets of 188 bytes and nothing else, therefore a body whose length is no
+multiple of 188 is a body that stopped in the middle.
+`hls::the_part_is_whole` holds that rule.
+
+**The playlist is the truth of the length of the stream**: it names every part
+of the media and the time of each of them. A reader that stops at the part N
+therefore holds the media to `seconds_before(&segments, N)`, and no second more.
+
+#### The correction
+
+1. **A body that did not come takes the road of a part that did not come.**
+   `ask_for_the_bytes_with_a_limit` reads the body inside the loop now: a fault
+   of `bytes()` and a body that is no whole number of packets each give a new
+   attempt, with the same backoff. A part of the sandbox whose body stops
+   therefore takes the twenty attempts of `ATTEMPTS`, and a body that stopped
+   one time makes no hole in the sound.
+2. **A stream that stopped before its last part says the place that it
+   reached.** `StreamReport` of `src/player/engine/hls_file.rs` is a box of one
+   `TheStreamStopped { seconds, why }`. The thread of the buffer writes it
+   before it stops, and `HlsFile::report` gives that box to
+   `source::Bytes`, to `source::Opened`, and to `worker::Current`.
+3. **The engine reads that box at the end of the tracks.**
+   `engine::the_place_of_the_end` gives the place of the stream that stopped
+   instead of the end of the media, therefore `reached_the_end` gives `false`
+   and `close_and_report` writes the true place of the user.
+4. **The user reads why.** `PlaybackState::why_the_stream_stopped` carries the
+   sentence, and `follow_playback` says it at the arm `Stopped`: the playback
+   belongs to no view, therefore the message stands above them all (T-164).
+
+#### The measurement of the correction, 2026-08-14
+
+The same book, the same steps, with no proxy at all:
+
+```
+[HlsFile] the part output-61.ts did not come: The server ended the stream of
+          this media. ... The stream stops at 366 seconds of the media, and
+          that is not its end.
+[follow_playback] the playback stopped at 366 seconds, finished=false
+```
+
+```json
+{"currentTime": 366, "progress": 0.61, "isFinished": false}
+```
+
+And the row of the message of the screen:
+
+```
+The stream of the server stopped before the end of this media. Press the key of
+the media again to go on.
+```
+
+The proxy of T-186 on `output-7.ts`, with the same steps: 20 requests of that
+part in `requests.log`, `the playback stopped at 42 seconds, finished=false`,
+and the same sentence on the screen. The proxy of T-193 on the same part:
+`the part of the stream holds 20000 bytes, and that is no whole number of
+packets. The reader asks again.`
+
+#### The test
+
+`tests/a_stream_that_stopped_is_not_the_end_of_the_media.rs` holds a host of a
+raw socket with a playlist of four parts: `output-2.ts` gives 20000 bytes of the
+part of the fixture with no `Content-Length` at its first request and the whole
+part after it, `output-3.ts` answers 404, and the playlist answers 404 at its
+second request (T-68), therefore the reader stops at the third attempt and the
+test takes two seconds. **The build of the fault** (the trap 147): the guard
+`|| true` of the arm of `the_part_is_whole` gives the first fault, and one line
+of `report.say` gives the second one. Each of them fails one assertion of that
+test. `engine::the_place_of_the_end` and `hls::the_part_is_whole` hold their own
+tests.
+
+#### What this item leaves open
+
+**The whole of the stream of the server is measured now**, for the playlist
+(T-193) and for the parts. **A part that holds no audio still goes away with no
+word**: `fill_buffer` says `the part N holds no audio` in the log and it goes to
+the part after it, therefore a stream of parts of no audio gives a book of
+silence. No measurement made such a part.
+
 ### T-192: a list with no identity said that the server does not hold your media
 
 **The road of T-190 and of T-191 named this sweep**: the rows of a list of the

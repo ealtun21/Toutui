@@ -136,9 +136,27 @@ struct Current {
     /// decoder is the position inside that part and not the position of the media.
     /// See T-63.
     offset_of_the_bytes: f64,
+    /// The box where the reader of the stream of the server says what it
+    /// reached.
+    ///
+    /// **A stream that stopped before its last part is not the end of the
+    /// media.** The engine reads this box at the end of the tracks, therefore
+    /// it never gives the end of the whole media for a stream that stopped. See
+    /// T-194.
+    the_stream: Option<std::sync::Arc<crate::player::engine::hls_file::StreamReport>>,
     /// The speed that every track of this book reads. WSOLA stretches the
     /// time, thus the pitch does not change.
     speed: SharedSpeed,
+}
+
+impl Current {
+    /// Gives the report of a stream of the server that did not reach its last
+    /// part. See T-194.
+    fn the_stream_stopped(&self) -> Option<crate::player::engine::hls_file::TheStreamStopped> {
+        self.the_stream
+            .as_ref()
+            .and_then(|report| report.the_stream_stopped())
+    }
 }
 
 fn run(
@@ -282,6 +300,7 @@ fn start(
         the_file_that_no_decoder_reads: None,
         plays_the_stream_of_the_server,
         offset_of_the_bytes: 0.0,
+        the_stream: None,
     };
 
     if let Err(error) = fill_queue(player, &mut item, token) {
@@ -351,7 +370,10 @@ fn position_now(player: &Player, current: &Option<Current>) -> f64 {
     //    the user never heard, and the position would reach the end of the
     //    **whole** book. See T-48 and T-55.
     if item.playing >= item.tracks_that_play {
-        return item.request.tracks.end_of_the_first(item.tracks_that_play);
+        return crate::player::engine::the_place_of_the_end(
+            item.the_stream_stopped().map(|stop| stop.seconds),
+            item.request.tracks.end_of_the_first(item.tracks_that_play),
+        );
     }
 
     let inside = media_position(player.get_pos(), item.speed.get());
@@ -502,6 +524,7 @@ fn fill_queue(player: &mut Player, item: &mut Current, token: &str) -> Result<()
         // T-63.
         if item.queued == 0 {
             item.offset_of_the_bytes = opened.offset;
+            item.the_stream = opened.the_stream.clone();
         }
 
         player.append(SpeedSource::new(opened.source, item.speed.clone()));
@@ -574,6 +597,7 @@ fn publish(
         // of the playback before it. See T-53.
         value.file_with_no_decoder = None;
         value.why_the_start_did_not_work = None;
+        value.why_the_stream_stopped = None;
         value.notice = None;
     }
 
@@ -626,6 +650,15 @@ fn publish(
     // The user must know why, therefore the panel says it. See T-53.
     if item.plays_the_stream_of_the_server {
         value.notice = Some("The server makes the stream of this media".to_string());
+    }
+
+    // **A stream that stopped before its last part is not the end of the
+    // media.** The old program said nothing at all: the book of the user
+    // stopped in the middle, the program wrote the whole place of the media,
+    // and it told the server that the user finished the book. See T-194.
+    if let Some(stop) = item.the_stream_stopped() {
+        value.notice = Some(stop.why.clone());
+        value.why_the_stream_stopped = Some(stop.why);
     }
 
     if was_stalled && value.status == PlaybackStatus::Playing {

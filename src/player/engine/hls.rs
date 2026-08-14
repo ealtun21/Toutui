@@ -180,6 +180,47 @@ pub fn the_sentence_of_a_playlist_that_stopped() -> String {
     "The playlist of the server stopped in the middle. Press the key again.".to_string()
 }
 
+/// Tells if the body of one part is the whole part. See T-194.
+///
+/// **A part of a transport stream holds packets of 188 bytes, and nothing
+/// else.** ffmpeg of the server writes a whole number of them, therefore a body
+/// whose length is not a multiple of 188 is a body that stopped in the middle.
+/// A body with no `Content-Length` ends at the close of the connection (RFC
+/// 9112, section 6.3), therefore `reqwest` reads a **clean** end of such a body
+/// and the client sees no fault at all: `packets` then drops the packet that
+/// the body cut, and the sound of the user holds a hole of some seconds with no
+/// word of it.
+///
+/// **This is the truth of the length of a part.** A part names a time and no
+/// number of bytes, therefore the playlist gives no length; the container gives
+/// it. A body of no byte is no part either.
+pub fn the_part_is_whole(bytes: &[u8]) -> bool {
+    !bytes.is_empty() && bytes.len().is_multiple_of(PACKET)
+}
+
+/// The sentence of a part whose body stops in the middle.
+pub fn the_sentence_of_a_part_that_stopped(name: &str) -> String {
+    format!(
+        "The body of the part {} of the stream stopped in the middle.",
+        name
+    )
+}
+
+/// The sentence for the user, for a stream that did not reach its last part.
+///
+/// **A stream that stops is not the end of the media** (T-194). The engine held
+/// the end of the reader for the end of the book: the program then wrote the
+/// whole place of the media, it told the server that the user finished the
+/// book, and the screen said nothing at all.
+///
+/// The message lives on one line of the screen, therefore it stays under 150
+/// letters (the trap of the message of T-68).
+pub fn the_sentence_of_a_stream_that_stopped() -> String {
+    "The stream of the server stopped before the end of this media. Press the \
+     key of the media again to go on."
+        .to_string()
+}
+
 /// Gives the time of every part before the part of the number `index`.
 ///
 /// The engine needs it to know the place of the playback inside the media when
@@ -484,6 +525,53 @@ mod tests {
         assert!(the_playlist_is_whole(""));
 
         assert!(the_sentence_of_a_playlist_that_stopped().contains("stopped in the middle"));
+    }
+
+    /// A part of a transport stream holds packets of 188 bytes, and nothing
+    /// else. A body that stops in the middle of a packet gives no fault of its
+    /// own, therefore the length of the container is the one truth of it. See
+    /// T-194.
+    #[test]
+    fn a_part_that_stops_in_the_middle_is_no_whole_part() {
+        // The part of the measurement of the sandbox, whole.
+        assert!(the_part_is_whole(SEGMENT));
+        assert_eq!(SEGMENT.len() % PACKET, 0);
+
+        // The same part, of which the body holds 20000 bytes: the harness
+        // `a_body_that_ends_early_and_looks_whole.py` of the measurement of
+        // 2026-08-14 gives that body, and it holds no fault at all.
+        assert!(!the_part_is_whole(&SEGMENT[..20000]));
+
+        // A body of no byte is no part.
+        assert!(!the_part_is_whole(&[]));
+
+        // A body that stops at the end of a packet keeps the rule of the
+        // packets, and the program then reads it as a whole part. The playlist
+        // holds the number of the parts, and `TheStreamStopped` holds the rest
+        // of the answer.
+        assert!(the_part_is_whole(&SEGMENT[..PACKET * 3]));
+
+        assert!(the_sentence_of_a_part_that_stopped("output-7.ts").contains("output-7.ts"));
+        assert!(
+            the_sentence_of_a_part_that_stopped("output-7.ts").contains("stopped in the middle")
+        );
+    }
+
+    /// The sentence of a stream that stopped must name the media and a key that
+    /// does the work of that fault (T-91 and T-170), and it must stand on one
+    /// line of the screen (the trap of the message of T-68). See T-194.
+    #[test]
+    fn the_sentence_of_a_stream_that_stopped_names_a_key_of_the_user() {
+        let sentence = the_sentence_of_a_stream_that_stopped();
+
+        assert!(sentence.contains("stopped"), "{}", sentence);
+        assert!(sentence.contains("Press the key"), "{}", sentence);
+        assert!(
+            !sentence.contains("finished"),
+            "the media did not come to its end: {}",
+            sentence
+        );
+        assert!(sentence.len() <= 150, "{} letters", sentence.len());
     }
 
     #[test]

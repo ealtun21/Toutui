@@ -41,6 +41,28 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.24",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A book that your server transcodes and that stopped in the \
+             middle became a book that you listened to.** Such a book comes in \
+             parts, and a part that did not come stopped the playback: the \
+             program then wrote the end of the whole book to your server, it \
+             said that you finished the book, and the screen said nothing at \
+             all. A measurement gave a book of ten minutes that stopped after \
+             six of them. The list of the parts is the truth of the length now: \
+             the program writes the place that it really reached, the book \
+             stays in Continue Listening, and you read why the book stopped.",
+            "- **A part of such a book that came in the middle takes a second \
+             attempt.** A part holds packets of one size, and a part of a \
+             different length is a part that stopped. The program asked for \
+             such a part one time only, and every other fault of a part takes \
+             twenty attempts. It now takes the same road, therefore a body that \
+             stopped makes no hole in the sound.",
+        ],
+    },
+    Entry {
         version: "0.8.23",
         date: "14/08/2026",
         body: &[
