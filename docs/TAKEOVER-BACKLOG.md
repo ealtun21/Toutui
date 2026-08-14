@@ -8632,6 +8632,139 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-200: a function of the database that got no connection said `Ok`
+
+**T-199 left the sweep of a fault of the disk open for every table that is not
+the account, and the first line of that sweep closed the whole module.** The
+question was which write of the disk swallows a fault, and the answer stood one
+level lower: **21 functions of `src/db/crud.rs` held one shape**, and that shape
+gives `Ok` for a connection that the function did not get.
+
+```rust
+pub fn insert_download(...) -> Result<()> {
+    let err_message = "Error connecting to the database.";
+
+    if let Ok(conn) = crate::db::migrate::open_conn() {
+        conn.execute("INSERT OR REPLACE INTO downloads ...", params![...])?;
+    } else {
+        crate::logic::message::say(err_message);
+        error!("[insert_download] {}", err_message);
+    }
+
+    Ok(())
+}
+```
+
+**A caller that reads the answer of that write gets the answer of a write that
+never happened**, therefore the correction of T-199 does not reach any of them: a
+`?` and a `match` of the caller each see success. And **the module of the
+database writes a word for the user**: "Error connecting to the database." goes
+to the row of the message of every view, it names no key and no work, and it
+belongs to no view (T-164 and T-91).
+
+The 21 functions: `update_is_show_key_bindings`, `update_speed_rate`,
+`get_listening_session`, `get_the_sessions_to_close`, `insert_listening_session`,
+`delete_the_session_of_a_playback`, `update_chapter`, `update_is_playback`,
+`update_current_time`, `update_elapsed_time`, `update_is_finished`,
+`update_is_loop_break`, `update_has_played_before`, `get_others`,
+`update_login_err`, `insert_download`, `update_download_current_time`,
+`insert_download_file`, `delete_download`, `insert_pending_progress`, and
+`delete_pending_progress`. `delete_user`, `update_id_selected_lib`, and
+`keep_the_files_of_the_download` held the same shape in another form.
+
+#### The measurement of 2026-08-14
+
+The condition is the harness of T-199 (`docs/harness/hold_the_lock.py`), and the
+key is `D` of an episode of the podcast of the sandbox. The lock stands before
+that key, therefore the three writes of the download meet a database that says
+nothing. The program of v0.8.29:
+
+```text
+[ERROR] - [insert_download] Error connecting to the database.
+[ERROR] - [insert_download_file] Error connecting to the database.
+[ERROR] - [keep_the_files_of_the_download] Error connecting to the database.
+[INFO]  - [download_item] Downloaded "Letter 45": 1 file(s) in …/b1c07c4b-…
+```
+
+| What | The program of v0.8.29 |
+|---|---|
+| The disk | `toutuitest/b1c07c4b-…/001 - Letter 45.mp3`, the whole file |
+| `select * from downloads` | the row of `Letter 46` alone: **no row of Letter 45** |
+| `select * from download_files` | the row of `Letter 46` alone |
+| The log | `Downloaded "Letter 45": 1 file(s)` |
+| The row of the message | `Error connecting to the database.` |
+| The line of the media | **no mark `[Downloaded]`** |
+
+**The fault of the user**: the media of the user stands on the disk and the
+program holds no row of it. The offline mode of T-25 reads the rows, therefore a
+user who goes away from their server has that book on the disk and the program
+says that it holds none; the mark of the line says that the media is not
+downloaded, therefore the next press of the key `D` takes every byte of the
+server a second time. **The word for the user was a sentence of the internals of
+the program**, and it named neither the download nor a key.
+
+#### The correction
+
+1. **A function of the database that got no connection gives a fault.** The 21
+   functions take `let conn = the_connection("<the work>")?;`, and that helper
+   writes the fault in the log with the name of the work.
+2. **No function of the database writes a word for the user.** The row of the
+   message belongs to the view that acted (T-164), and a fault that holds no view
+   takes a line of the log (T-177): the caller decides the word.
+3. **The rows of a download come together, or the download is no download of this
+   program.** `the_rows_of_the_download` writes the row of `downloads`, one row of
+   each file, and the removal of the rows of the files that the book no longer
+   holds (T-187); the caller removes the rows of that download at the first
+   fault, and it says the words of it. **The files of the disk stay**, because
+   each of them is whole and the key `X` reaches them (T-186 and the road
+   `ThePartOfADownload` of `remove_download`).
+4. **A log out that removed no row is no log out.** The key of the view of the
+   accounts read the answer of `delete_user` with `let _ =`, and the module of the
+   database said the words: the key says now that the program did not remove the
+   account, and it names the key again.
+
+The program of v0.8.30 against the same lock:
+
+```text
+[ERROR] - [insert_download] the program did not open its database: database is locked
+[ERROR] - [download_item] the database did not take the download "Letter 45":
+          the row of the download: database is locked
+the row of the message:
+    The database of the program did not take the download of "Letter 45". Stop a
+    second Toutui, and press the key D again.
+```
+
+#### The test
+
+`tests/a_function_of_the_database_that_got_no_connection_gives_a_fault.rs` holds
+one function, and the condition is a file that holds no database. It reads the
+answer of ten functions of the module and of `the_rows_of_the_download`, and it
+reads the words of the fault of the download. **The build of the fault** (the trap
+147): the old shape of one function alone —
+`if let Ok(conn) = crate::db::migrate::open_conn() {` in the place of
+`let conn = the_connection("insert_download")?;` — gives "the row of a download of
+a database that says nothing is no row".
+
+#### What this item leaves open
+
+**The callers of those 21 functions are not measured, one by one.** The fault
+reaches every one of them now, and most of them still read it with `let _ =`: the
+sequence and the filter, the speed of the playback, the key bindings, the rows of
+a session of a playback, the place of an offline playback
+(`update_download_current_time`), and the removal of a place that waits
+(`delete_pending_progress`). **Each of them is the question of T-199 again**:
+which fact of the user does the program hold when this write did not happen? The
+place of a playback of `update_current_time` and the row of
+`insert_pending_progress` are the two of the greatest weight, because the place of
+the user is the value that the program holds for the server (T-152, T-188, and
+T-189).
+
+**A read of the database that gives a default is the other half of the sweep.**
+`get_is_show_key_bindings` gives the string `Error: unable open database` for a
+database that says nothing, and other reads of the module give `None` or an empty
+list of a fault. **The question of that half is the question of T-179 and of
+T-180**: which value does the program use when the read gave a default?
+
 ### T-199: a fault of the database became a program with no account
 
 **The road of T-198 said that a session must name a condition of its own, and

@@ -2502,7 +2502,27 @@ impl App {
                                 return;
                             }
 
-                            let _ = delete_user(usr_to_delete.as_str());
+                            // **A log out that removed no row is no log out**
+                            // (T-200). The old code read the answer of that
+                            // work with `let _ =`, and the words of the fault
+                            // came from the module of the database: the user
+                            // read "Error connecting to the database.", and the
+                            // program then took the account of the line for an
+                            // account that went away.
+                            if let Err(error) = delete_user(usr_to_delete.as_str()) {
+                                log::error!(
+                                    "[the accounts] the program did not remove the account {}: {}",
+                                    usr_to_delete,
+                                    error
+                                );
+
+                                crate::logic::message::say(
+                                    "The program did not remove the account. Stop a second \
+                                     Toutui, and press the key again.",
+                                );
+
+                                return;
+                            }
 
                             // **A log out of the account that starts leaves the
                             // program with no account of a start.** The first

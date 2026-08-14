@@ -4,6 +4,30 @@ use crate::db::database_struct::User;
 use log::{error, info, warn};
 use rusqlite::{params, Connection, OptionalExtension, Result};
 
+/// Gives the connection of the database, and it names the work in the log.
+///
+/// **A function of this module that got no connection said `Ok`** (T-200). The
+/// old shape was `if let Ok(conn) = open_conn() { ... } else { say(...) }` with
+/// `Ok(...)` after it, therefore a caller that read the answer of the write got
+/// the answer of a write that never happened: a download that reached the disk
+/// held no row of the database, and the program said that the media is available
+/// offline. 21 functions of this module held that shape.
+///
+/// **No function of this module writes a word for the user.** The old shape
+/// said "Error connecting to the database." in the row of the message of every
+/// view, and that sentence names no key and no work of the user: a message
+/// belongs to the view that acted (T-164), and a fault that holds no view takes
+/// a line of the log (T-177). The caller decides the word of the user.
+fn the_connection(of_the_work: &str) -> Result<Connection> {
+    crate::db::migrate::open_conn().map_err(|error| {
+        error!(
+            "[{}] the program did not open its database: {}",
+            of_the_work, error
+        );
+        error
+    })
+}
+
 /// Says which program owns a row of `listening_session`. See T-140.
 ///
 /// The identity of the process is enough, and it needs no dependency: two
@@ -42,16 +66,13 @@ pub const THE_LIMIT_OF_THE_HEARTBEAT: u64 = 30;
 
 // Update is_show_key_bindings
 pub fn update_is_show_key_bindings(value: &str, username: &str) -> Result<()> {
-    let err_message = "Error connecting to the database.";
+    {
+        let conn = the_connection("update_is_show_key_bindings")?;
 
-    if let Ok(conn) = crate::db::migrate::open_conn() {
         conn.execute(
             "UPDATE users SET is_show_key_bindings = ?1 WHERE username = ?2",
             params![value, username],
         )?;
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[update_is_show_key_bindings] {}", err_message);
     }
 
     Ok(())
@@ -125,9 +146,9 @@ pub fn update_library_sort(username: &str, field: &str, desc: bool, filter: &str
 
 // Update speed_rate
 pub fn update_speed_rate(username: &str, is_speed_rate_up: bool) -> Result<()> {
-    let err_message = "Error connecting to the database.";
+    {
+        let conn = the_connection("update_speed_rate")?;
 
-    if let Ok(conn) = crate::db::migrate::open_conn() {
         if is_speed_rate_up {
             conn.execute(
                 "UPDATE users SET speed_rate = speed_rate + 0.10 WHERE username = ?1",
@@ -139,9 +160,6 @@ pub fn update_speed_rate(username: &str, is_speed_rate_up: bool) -> Result<()> {
                 params![username],
             )?;
         }
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[update_speed_rate] {}", err_message);
     }
 
     Ok(())
@@ -177,9 +195,9 @@ pub fn get_speed_rate(username: &str) -> String {
 /// that asks takes it: such a database holds the row of the one account that
 /// program had.
 pub fn get_listening_session(username: &str, server: &str) -> Result<Option<ListeningSession>> {
-    let err_message = "Error connecting to the database.";
+    {
+        let conn = the_connection("get_listening_session")?;
 
-    if let Ok(conn) = crate::db::migrate::open_conn() {
         let mut stmt = conn.prepare(
             "SELECT id_session, id_item, current_time_playback, duration, is_finished, id_pod, elapsed_time, title, author, is_playback, chapter
              FROM listening_session
@@ -212,9 +230,6 @@ pub fn get_listening_session(username: &str, server: &str) -> Result<Option<List
             };
             return Ok(Some(session));
         }
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[get_listening_session] {}", err_message);
     }
 
     Ok(None)
@@ -233,10 +248,11 @@ pub fn get_listening_session(username: &str, server: &str) -> Result<Option<List
 /// comes last. Two rows of one media therefore leave the newest position on the
 /// server.
 pub fn get_the_sessions_to_close(username: &str, server: &str) -> Result<Vec<ListeningSession>> {
-    let err_message = "Error connecting to the database.";
     let mut sessions = Vec::new();
 
-    if let Ok(conn) = crate::db::migrate::open_conn() {
+    {
+        let conn = the_connection("get_the_sessions_to_close")?;
+
         let mut stmt = conn.prepare(
             "SELECT id_session, id_item, current_time_playback, duration, is_finished, id_pod, elapsed_time, title, author, is_playback, chapter
              FROM listening_session
@@ -272,9 +288,6 @@ pub fn get_the_sessions_to_close(username: &str, server: &str) -> Result<Vec<Lis
         for session in rows {
             sessions.push(session?);
         }
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[get_the_sessions_to_close] {}", err_message);
     }
 
     Ok(sessions)
@@ -298,9 +311,9 @@ pub fn insert_listening_session(
     username: &str,
     server: &str,
 ) -> Result<()> {
-    let err_message = "Error connecting to the database.";
+    {
+        let conn = the_connection("insert_listening_session")?;
 
-    if let Ok(conn) = crate::db::migrate::open_conn() {
         // The row of this account goes away, and the row of another account
         // stays: that account sends its own position to its own server. A row
         // of an older program holds no account, and it belongs to the account
@@ -321,9 +334,6 @@ pub fn insert_listening_session(
              VALUES (?1, ?2, ?3, ?4, 0, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
             params![id_session, id_item, current_time, duration, id_pod, elapsed_time, title, author, is_playback, chapter, username, server, the_owner_of_this_program(), the_moment_of_now()],
         )?;
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[insert_listening_session] {}", err_message);
     }
 
     Ok(())
@@ -341,16 +351,13 @@ pub fn insert_listening_session(
 /// The identity of the session is the key, because the loop knows its own
 /// playback and nothing else: another program of the same account keeps its row.
 pub fn delete_the_session_of_a_playback(id_session: &str) -> Result<()> {
-    let err_message = "Error connecting to the database.";
+    {
+        let conn = the_connection("delete_the_session_of_a_playback")?;
 
-    if let Ok(conn) = crate::db::migrate::open_conn() {
         conn.execute(
             "DELETE FROM listening_session WHERE id_session = ?1",
             params![id_session],
         )?;
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[delete_the_session_of_a_playback] {}", err_message);
     }
 
     Ok(())
@@ -358,32 +365,26 @@ pub fn delete_the_session_of_a_playback(id_session: &str) -> Result<()> {
 
 // Update chapter (for `listening_session` table)
 pub fn update_chapter(value: &str, id_session: &str) -> Result<()> {
-    let err_message = "Error connecting to the database.";
+    {
+        let conn = the_connection("update_chapter")?;
 
-    if let Ok(conn) = crate::db::migrate::open_conn() {
         conn.execute(
             "UPDATE listening_session SET chapter = ?1 WHERE id_session = ?2",
             params![value, id_session],
         )?;
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[update_chapter] {}", err_message);
     }
 
     Ok(())
 }
 // Update is_playback (for `listening_session` table)
 pub fn update_is_playback(value: &str, id_session: &str) -> Result<()> {
-    let err_message = "Error connecting to the database.";
+    {
+        let conn = the_connection("update_is_playback")?;
 
-    if let Ok(conn) = crate::db::migrate::open_conn() {
         conn.execute(
             "UPDATE listening_session SET is_playback = ?1 WHERE id_session = ?2",
             params![value, id_session],
         )?;
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[update_is_playback] {}", err_message);
     }
 
     Ok(())
@@ -395,16 +396,13 @@ pub fn update_is_playback(value: &str, id_session: &str) -> Result<()> {
 /// without a correct exit stands still: another program of the same account then
 /// takes that row, and it sends the position one time. See T-140 and T-4.
 pub fn update_current_time(value: u32, id_session: &str) -> Result<()> {
-    let err_message = "Error connecting to the database.";
+    {
+        let conn = the_connection("update_current_time")?;
 
-    if let Ok(conn) = crate::db::migrate::open_conn() {
         conn.execute(
             "UPDATE listening_session SET current_time_playback = ?1, heartbeat = ?3 WHERE id_session = ?2",
             params![value, id_session, the_moment_of_now()],
         )?;
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[update_current_time] {}", err_message);
     }
 
     Ok(())
@@ -412,16 +410,13 @@ pub fn update_current_time(value: u32, id_session: &str) -> Result<()> {
 
 // Update elapsed_time (for `listening_session` table)
 pub fn update_elapsed_time(value: u32, id_session: &str) -> Result<()> {
-    let err_message = "Error connecting to the database.";
+    {
+        let conn = the_connection("update_elapsed_time")?;
 
-    if let Ok(conn) = crate::db::migrate::open_conn() {
         conn.execute(
             "UPDATE listening_session SET elapsed_time = elapsed_time + ?1 WHERE id_session = ?2",
             params![value, id_session],
         )?;
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[update_elapsed_time] {}", err_message);
     }
 
     Ok(())
@@ -429,16 +424,13 @@ pub fn update_elapsed_time(value: u32, id_session: &str) -> Result<()> {
 
 // Update is_finished (for `listening_session` table)
 pub fn update_is_finished(value: &str, id_session: &str) -> Result<()> {
-    let err_message = "Error connecting to the database.";
+    {
+        let conn = the_connection("update_is_finished")?;
 
-    if let Ok(conn) = crate::db::migrate::open_conn() {
         conn.execute(
             "UPDATE listening_session SET is_finished = ?1 WHERE id_session = ?2",
             params![value, id_session],
         )?;
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[update_is_finished] {}", err_message);
     }
 
     Ok(())
@@ -470,7 +462,6 @@ pub fn delete_user(username: &str) -> Result<()> {
         "The program removed the account {}. Start the program again.",
         username
     );
-    let err_message = "Error connecting to the database.";
 
     match remove_the_account(username) {
         Ok(rows_deleted) => {
@@ -479,9 +470,17 @@ pub fn delete_user(username: &str) -> Result<()> {
                 info!("[delete_user] User deleted.");
             }
         }
+        // **The fault of the removal belongs to the caller** (T-200). The old
+        // code said "Error connecting to the database." in the row of the
+        // message, and it gave `Ok(())` to the key of the user: the key then
+        // said that the program removed the account.
         Err(error) => {
-            crate::logic::message::say(err_message);
-            error!("[delete user] {}: {}", err_message, error);
+            error!(
+                "[delete_user] the program did not remove the account: {}",
+                error
+            );
+
+            return Err(error);
         }
     }
 
@@ -490,16 +489,13 @@ pub fn delete_user(username: &str) -> Result<()> {
 
 // Update is_loop_break
 pub fn update_is_loop_break(value: &str, username: &str) -> Result<()> {
-    let err_message = "Error connecting to the database.";
+    {
+        let conn = the_connection("update_is_loop_break")?;
 
-    if let Ok(conn) = crate::db::migrate::open_conn() {
         conn.execute(
             "UPDATE users SET is_loop_break = ?1 WHERE username = ?2",
             params![value, username],
         )?;
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[update_is_loop_break] {}", err_message);
     }
 
     Ok(())
@@ -525,16 +521,13 @@ pub fn get_is_loop_break(username: &str) -> Option<String> {
 
 // Update is_vlv_launched_first_time
 pub fn update_has_played_before(value: &str, username: &str) -> Result<()> {
-    let err_message = "Error connecting to the database.";
+    {
+        let conn = the_connection("update_has_played_before")?;
 
-    if let Ok(conn) = crate::db::migrate::open_conn() {
         conn.execute(
             "UPDATE users SET has_played_before = ?1 WHERE username = ?2",
             params![value, username],
         )?;
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[update_has_played_before] {}", err_message);
     }
 
     Ok(())
@@ -563,14 +556,8 @@ pub fn get_has_played_before(username: &str) -> Option<String> {
 /// program said "The library has been updated" all the same. See T-159.
 pub fn update_id_selected_lib(id_selected_lib: &str, username: &str) -> Result<usize> {
     let message = "The library has been updated. Please refresh the app to apply the changes.";
-    let err_message = "Error connecting to the database.";
 
-    let Ok(conn) = crate::db::migrate::open_conn() else {
-        crate::logic::message::say(err_message);
-        error!("[update_id_selected_lib] {}", err_message);
-
-        return Ok(0);
-    };
+    let conn = the_connection("update_id_selected_lib")?;
 
     let rows = conn.execute(
         "UPDATE users SET id_selected_lib = ?1 WHERE username = ?2",
@@ -730,9 +717,9 @@ pub fn db_insert_usr(users: &Vec<User>) -> Result<()> {
 
 // get others
 pub fn get_others() -> Result<Option<Others>> {
-    let err_message = "Error connecting to the database.";
+    {
+        let conn = the_connection("get_others")?;
 
-    if let Ok(conn) = crate::db::migrate::open_conn() {
         let mut stmt = conn.prepare(
             "SELECT login_err
              FROM others
@@ -747,18 +734,15 @@ pub fn get_others() -> Result<Option<Others>> {
             };
             return Ok(Some(others));
         }
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[get_others] {}", err_message);
     }
 
     Ok(None)
 }
 // Update login_err (for `others` table)
 pub fn update_login_err(value: &str) -> Result<()> {
-    let err_message = "Error connecting to the database.";
+    {
+        let conn = the_connection("update_login_err")?;
 
-    if let Ok(conn) = crate::db::migrate::open_conn() {
         conn.execute(
             "INSERT INTO others (login_err) SELECT '' WHERE NOT EXISTS (SELECT 1 FROM others LIMIT 1)",
             [],
@@ -767,9 +751,6 @@ pub fn update_login_err(value: &str) -> Result<()> {
             "UPDATE others SET login_err = ?1 WHERE rowid = 1",
             params![value],
         )?;
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[update_login_err] {}", err_message);
     }
 
     Ok(())
@@ -851,17 +832,14 @@ pub fn insert_download(
     item_id: &str,
     server: &str,
 ) -> Result<()> {
-    let err_message = "Error connecting to the database.";
+    {
+        let conn = the_connection("insert_download")?;
 
-    if let Ok(conn) = crate::db::migrate::open_conn() {
         conn.execute(
             "INSERT OR REPLACE INTO downloads (id_item, username, title, author, file_path, duration, current_time_offline, downloaded_at, item_id, server)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0, datetime('now'), ?7, ?8)",
             params![id_item, username, title, author, file_path, duration, item_id, server],
         )?;
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[insert_download] {}", err_message);
     }
 
     Ok(())
@@ -889,16 +867,13 @@ pub fn get_download(id_item: &str, username: &str) -> Option<(String, u32, f64, 
 
 // Update current_time_offline (for `downloads` table)
 pub fn update_download_current_time(id_item: &str, username: &str, value: u32) -> Result<()> {
-    let err_message = "Error connecting to the database.";
+    {
+        let conn = the_connection("update_download_current_time")?;
 
-    if let Ok(conn) = crate::db::migrate::open_conn() {
         conn.execute(
             "UPDATE downloads SET current_time_offline = ?1 WHERE id_item = ?2 AND username = ?3",
             params![value, id_item, username],
         )?;
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[update_download_current_time] {}", err_message);
     }
 
     Ok(())
@@ -914,17 +889,14 @@ pub fn insert_download_file(
     size: u64,
     duration: f64,
 ) -> Result<()> {
-    let err_message = "Error connecting to the database.";
+    {
+        let conn = the_connection("insert_download_file")?;
 
-    if let Ok(conn) = crate::db::migrate::open_conn() {
         conn.execute(
             "INSERT OR REPLACE INTO download_files (id_item, username, idx, ino, file_path, size, duration)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
             params![id_item, username, idx, ino, file_path, size as i64, duration],
         )?;
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[insert_download_file] {}", err_message);
     }
 
     Ok(())
@@ -944,13 +916,7 @@ pub fn keep_the_files_of_the_download(
     username: &str,
     the_numbers: &[u32],
 ) -> Result<()> {
-    let err_message = "Error connecting to the database.";
-
-    let Ok(conn) = crate::db::migrate::open_conn() else {
-        crate::logic::message::say(err_message);
-        error!("[keep_the_files_of_the_download] {}", err_message);
-        return Ok(());
-    };
+    let conn = the_connection("keep_the_files_of_the_download")?;
 
     // The numbers come from the plan of the download, and each of them is a
     // number of the program. Therefore the statement holds them, and no value
@@ -1004,9 +970,9 @@ pub fn get_download_files(id_item: &str, username: &str) -> Vec<(u32, String, f6
 
 // Delete a downloaded item (for `downloads` and `download_files` tables)
 pub fn delete_download(id_item: &str, username: &str) -> Result<()> {
-    let err_message = "Error connecting to the database.";
+    {
+        let conn = the_connection("delete_download")?;
 
-    if let Ok(conn) = crate::db::migrate::open_conn() {
         conn.execute(
             "DELETE FROM downloads WHERE id_item = ?1 AND username = ?2",
             params![id_item, username],
@@ -1016,9 +982,6 @@ pub fn delete_download(id_item: &str, username: &str) -> Result<()> {
             "DELETE FROM download_files WHERE id_item = ?1 AND username = ?2",
             params![id_item, username],
         )?;
-    } else {
-        crate::logic::message::say(err_message);
-        error!("[delete_download] {}", err_message);
     }
 
     Ok(())
@@ -1145,7 +1108,9 @@ pub fn insert_pending_progress(
     server: &str,
     progress: &PendingProgress,
 ) -> Result<()> {
-    if let Ok(conn) = crate::db::migrate::open_conn() {
+    {
+        let conn = the_connection("insert_pending_progress")?;
+
         conn.execute(
             INSERT_PENDING,
             params![
@@ -1159,8 +1124,6 @@ pub fn insert_pending_progress(
                 progress.updated_at,
             ],
         )?;
-    } else {
-        error!("[insert_pending_progress] Error connecting to the database.");
     }
 
     Ok(())
@@ -1237,13 +1200,13 @@ pub fn a_program_keeps_the_place_of_this_media(
 
 /// Removes a position that the server has now.
 pub fn delete_pending_progress(username: &str, id_item: &str, id_pod: &str) -> Result<()> {
-    if let Ok(conn) = crate::db::migrate::open_conn() {
+    {
+        let conn = the_connection("delete_pending_progress")?;
+
         conn.execute(
             "DELETE FROM pending_progress WHERE username = ?1 AND id_item = ?2 AND id_pod = ?3",
             params![username, id_item, id_pod],
         )?;
-    } else {
-        error!("[delete_pending_progress] Error connecting to the database.");
     }
 
     Ok(())

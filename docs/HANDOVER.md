@@ -4,7 +4,7 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.29.** The item T-199 belongs to
+**The newest release is v0.8.30.** The items T-199 and T-200 belong to
 this session. The items T-196, T-197, and T-198 belong to the session before it.
 The
 item T-195 belongs to the session before it, and the
@@ -42,16 +42,16 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.29**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.30**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1178 of 1178** in 2.3 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1204 of 1204** in 20.4 seconds with the sandbox up,
+**1179 of 1179** in 2.3 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1205 of 1205** in 19.4 seconds with the sandbox up,
 and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in three
 runs.
 
 ## The session of the thirty-fourth turn of 2026-08-14: a fault of the database became a program with no account
 
-**One release: v0.8.29.** The session before this one closed the sweep of a body
+**Two releases: v0.8.29 and v0.8.30.** The session before this one closed the sweep of a body
 that stopped, and it left no condition of the road: the road said that a session
 must name a condition of its own. **This session took the sweep that T-198
 called the cheapest one of a session** — one line of code over the whole of
@@ -60,6 +60,7 @@ but a call of the **database**.
 
 | Item | What | Where |
 |---|---|---|
+| T-200 | **A function of the database that got no connection said `Ok`.** 21 functions of `src/db/crud.rs` held the shape `if let Ok(conn) = open_conn() { … } else { say("Error connecting to the database."); error!(…) }` with `Ok(…)` after it, therefore **the correction of T-199 reached none of them**: a caller that read the answer of a write got the answer of a write that never happened, and the module of the database wrote a word for the user in the row of the message of every view. The key `D` of an episode with a lock of the database: the whole file stood on the disk, the log said `Downloaded "Letter 45"`, and no row of `downloads` or of `download_files` held it — the line held no mark `[Downloaded]`, and the offline mode of T-25 did not find that book | `src/db/crud.rs`, `src/logic/download/mod.rs`, `src/app.rs` |
 | T-199 | **A fault of the database became a program with no account.** Three lines read a fault of the disk as a fact of the user: `let _ = db_insert_usr(&users)` of the login, `if let Ok(result) = select_default_usr()` of `Database::new`, and `select_every_usr().unwrap_or_default()` of the read after every key. A second Toutui of one account that held the database for six seconds then gave: a login that wrote no row and said `Login successful`, with the login screen back and **no character** in the row of its message; a login screen of a first start while the row of the account stood on the disk; and `the account toutuitest stands in no row of the disk. The program starts again.` while `select count(*) from users` said 1 | `src/api/server/auth_process.rs`, `src/db/database_struct.rs`, `src/db/mod.rs`, `src/api/client/error.rs`, `src/main.rs`, `src/app.rs` |
 
 The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-199. Six things are
@@ -102,6 +103,37 @@ worth the room here:
    (T-177); the login is a key of the user, therefore its fault takes a sentence.
    **The rule of T-177 divides the two, and the question is whether a key of the
    user waits for the answer.**
+
+**The second item of the session is the line under the line of the first one.**
+T-199 corrected three callers of the database, and the sweep that it left open
+went one level lower: **21 functions of `src/db/crud.rs` said `Ok` for a
+connection that they did not get**, therefore no correction of a caller can reach
+them. Four things are worth the room:
+
+1. **A correction of a caller is no correction while the callee lies** (T-200).
+   T-199 gave `Database::new` a `?` and it gave the login a `return Err`, and
+   both of those work; every other write of the disk kept the fault, because
+   `insert_download` and 20 functions beside it hold `Ok(())` after an `else`
+   that says nothing. **Ask of every correction: does the function that this
+   caller reads tell the truth?**
+2. **A module of the disk must write no word for the user** (T-200). "Error
+   connecting to the database." stood in the row of the message of **every** view
+   of the program, and it names no key and no work: the rule of T-164 says that a
+   message belongs to the view that acted, and the rule of T-177 says that a
+   fault with no view takes a line of the log. The caller decides the word now,
+   and the log holds the name of the work.
+3. **Rows that hold one thing come together** (T-200). A download holds three
+   writes: the row of `downloads`, one row of each file (T-181), and the removal
+   of the rows of the files that the book of the server no longer holds (T-187).
+   A row of `downloads` with no row of a file gives an offline playback of a book
+   of one file. **The rows of that download go away at the first fault**, and the
+   key `D` writes each of them again; the files of the disk stay, because each of
+   them is whole and the key `X` reaches them (T-186).
+4. **The item of the greatest value of a session can be the line under the item
+   before it** (T-200). The measurement of this item took one key of the harness
+   of T-199 and one command line, and it found a fault of the user of the offline
+   mode: the book of the user on the disk, and a program that says that it holds
+   none.
 
 ## The session of the thirty-third turn of 2026-08-14: the book of the reader that came in part, the thread that died, and the cover of a part
 
@@ -3826,12 +3858,19 @@ measurements of this session left.
      row of the account stood on the disk, and a program that said that the
      account of the user is gone. **`docs/harness/hold_the_lock.py` is that
      condition**, and rusqlite holds a busy timeout of five seconds.
-     **What that item leaves open**: a key of the program takes five seconds for
-     each call of the database while a second program holds it, and no row of
-     the screen says that the program waits; and the other writes of the disk of
-     that shape — the sequence, the speed, the key bindings, the rows of a
-     session, the queue, and the downloads — each take a line of the log at the
-     most.
+     **The sweep that T-199 left open gave T-200 in the same session**: 21
+     functions of `src/db/crud.rs` said `Ok` for a connection that they did not
+     get, therefore no correction of a caller reached them, and the key `D` of an
+     episode left the whole file on the disk with no row of the database at all.
+     **What the two items leave open**: a key of the program takes five seconds
+     for each call of the database while a second program holds it and no row of
+     the screen says that the program waits; **the callers of those 21 functions
+     are not measured one by one** (the place of a playback of
+     `update_current_time` and the row of `insert_pending_progress` hold the
+     greatest weight, because the place of the user is the value that the program
+     holds for the server); and **a read of the database that gives a default is
+     the other half of that sweep** (`get_is_show_key_bindings` gives the string
+     `Error: unable open database` for a database that says nothing).
    - **No condition of the road stays. A next session must name a condition of
      its own.** The shapes that found faults before: a state of one process that
      a second program cannot see (T-142, T-147, T-148, T-150, T-153, T-154,
@@ -5375,6 +5414,14 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
+**The second item of this session is the line under the line of the first one**:
+21 functions of `src/db/crud.rs` said `Ok` for a connection that they did not
+get, therefore no correction of a caller could reach them, and the key `D` of an
+episode with a lock of the database left the whole file on the disk with no row at
+all — the log said `Downloaded "Letter 45"`, the line held no mark
+`[Downloaded]`, and the offline mode of T-25 did not find that book (T-200). **A
+correction of a caller is no correction while the callee lies.**
+
 **This session took the sweep that T-198 called the cheapest one of a session —
 one line of code over the whole of `src/` — and it read that line in the other
 direction: not a body of the server, but a call of the database.** Three lines
@@ -5393,7 +5440,7 @@ rusqlite. This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.29**; `Cargo.toml` is at 0.8.29. The
+> AlbanDAVID/Toutui. Newest release **v0.8.30**; `Cargo.toml` is at 0.8.30. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -5402,7 +5449,7 @@ rusqlite. This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-199 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-200 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -5764,8 +5811,8 @@ rusqlite. This prompt names the state of the program on 2026-08-14.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1178 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1204 of 1204** with the sandbox up, in about 20 seconds. **Run that
+> Baseline: **1179 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1205 of 1205** with the sandbox up, in about 19 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -5974,6 +6021,26 @@ rusqlite. This prompt names the state of the program on 2026-08-14.
 >      list of five, and that decision then stopped the whole program. **Read what
 >      the measurement of an old item held**, and not the words of its decision
 >      alone.
+>    - **A correction of a caller is no correction while the callee lies**
+>      (T-200). T-199 corrected three callers of the database, and the sweep that
+>      it left open went one level lower: 21 functions of `src/db/crud.rs` held
+>      `Ok(...)` after an `else` that said nothing, therefore no correction of a
+>      caller can reach them. **Ask of every correction: does the function that
+>      this caller reads tell the truth?** The callers of those 21 functions are
+>      not measured one by one, and **the place of a playback
+>      (`update_current_time`) and the row that waits
+>      (`insert_pending_progress`) hold the greatest weight**. **A read of the
+>      database that gives a default is the other half of that sweep**:
+>      `get_is_show_key_bindings` gives the string `Error: unable open database`.
+>    - **A module of the disk must write no word for the user** (T-200). "Error
+>      connecting to the database." stood in the row of the message of **every**
+>      view, and it named no key and no work: a message belongs to the view that
+>      acted (T-164), and a fault with no view takes a line of the log (T-177).
+>    - **Rows that hold one thing come together** (T-200). A download holds three
+>      writes, and a row of `downloads` with no row of a file gives an offline
+>      playback of a book of one file (T-181 and T-187): the rows go away at the
+>      first fault, the key `D` writes each of them again, and the files of the
+>      disk stay because the key `X` reaches them (T-186).
 >    - **The sweep of a fault of the disk is closed for the account** (T-199),
 >      and it is a different sweep from the one of T-186 to T-189: that one asked
 >      which **value** of the server a table keeps, and this one asks what the
@@ -6302,7 +6369,10 @@ rusqlite. This prompt names the state of the program on 2026-08-14.
 > no row of the account is a login that failed and it says so, a read of the
 > accounts that failed stops the program with words that name the database, and a
 > read that failed keeps the account of the program and takes a line of the log**
-> (T-199).
+> (T-199), and **a function of the database that got no connection gives a fault
+> and it writes no word for the user: the rows of a download come together or the
+> download is no download of this program, and a log out that removed no row is no
+> log out** (T-200).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

@@ -209,46 +209,46 @@ pub async fn download_with_progress(
                 .map(|path| path.to_string_lossy().to_string())
                 .unwrap_or_default();
 
-            let _ = insert_download(
-                &plan.key,
+            // **The rows of the database hold the whole download** (T-200).
+            // The old code wrote each of them with `let _ =`, and the module of
+            // the database gave `Ok(())` for a connection that it did not get:
+            // the files then stood on the disk with no row at all, the media of
+            // the screen held no mark of a download, the offline mode of T-25
+            // did not find it, and the program said that the media is available
+            // offline.
+            //
+            // **The rows come together, or the download is no download of this
+            // program.** A row of `downloads` with no row of a file gives an
+            // offline playback of a book of one file (T-181), and a row of a
+            // file that the book no longer holds gives a playback of a file that
+            // went away (T-187): the rows of that download go away here, and the
+            // key `D` of the user writes each of them again. The files of the
+            // disk stay, because each of them is whole and the key `X` reaches
+            // them (T-186).
+            let of_the_database = the_rows_of_the_download(
+                &plan,
                 &username,
                 &title,
                 &author,
                 &first,
-                plan.total_duration(),
-                // The offline mode needs the identity of the item, because the
-                // key of an episode is the identity of the episode. See T-25.
-                &plan.item_id,
-                // A user can have an account on more than one server. The
-                // offline list shows the media of one server only.
                 &server_key,
+                &paths,
             );
 
-            for (file, path) in plan.files.iter().zip(paths.iter()) {
-                let _ = insert_download_file(
-                    &plan.key,
-                    &username,
-                    file.index,
-                    &file.ino,
-                    &path.to_string_lossy(),
-                    file.size,
-                    file.duration,
+            if let Err(why) = of_the_database {
+                error!(
+                    "[download_item] the database did not take the download \"{}\": {}",
+                    title, why
                 );
-            }
 
-            // **A book of the server that lost a file keeps the row of that
-            // file**, and the offline playback then plays a file that the book
-            // does not hold. `fetch_item` took that file of the disk away
-            // already. See T-187.
-            let _ = keep_the_files_of_the_download(
-                &plan.key,
-                &username,
-                &plan
-                    .files
-                    .iter()
-                    .map(|file| file.index)
-                    .collect::<Vec<u32>>(),
-            );
+                let _ = delete_download(&plan.key, &username);
+
+                crate::logic::message::say(
+                    &the_words_of_a_download_that_the_database_did_not_take(&title),
+                );
+
+                return;
+            }
 
             info!(
                 "[download_item] Downloaded \"{}\": {} file(s) in {}",
@@ -593,6 +593,87 @@ pub fn text_of_the_size(bytes: u64) -> String {
 /// held. **A download that did not come to its end holds no row at all**, and
 /// its bytes stand on the disk: the disk is the truth here, and not the
 /// database.
+/// Writes the rows of the database of a download that came to the disk. See
+/// T-200.
+///
+/// **The three writes hold one download**: the row of `downloads`, one row of
+/// `download_files` for each file of the plan, and the removal of the rows of the
+/// files that the book of the server no longer holds (T-187). The function stops
+/// at the first fault, therefore the caller removes the rows of that download and
+/// the key `D` of the user writes each of them again.
+/// The function is public, because
+/// `tests/a_function_of_the_database_that_got_no_connection_gives_a_fault.rs`
+/// reads its answer for a database that says nothing.
+#[allow(clippy::too_many_arguments)]
+pub fn the_rows_of_the_download(
+    plan: &plan::DownloadPlan,
+    username: &str,
+    title: &str,
+    author: &str,
+    first: &str,
+    server_key: &str,
+    paths: &[PathBuf],
+) -> Result<(), String> {
+    insert_download(
+        &plan.key,
+        username,
+        title,
+        author,
+        first,
+        plan.total_duration(),
+        // The offline mode needs the identity of the item, because the key of an
+        // episode is the identity of the episode. See T-25.
+        &plan.item_id,
+        // A user can have an account on more than one server. The offline list
+        // shows the media of one server only.
+        server_key,
+    )
+    .map_err(|error| format!("the row of the download: {}", error))?;
+
+    for (file, path) in plan.files.iter().zip(paths.iter()) {
+        insert_download_file(
+            &plan.key,
+            username,
+            file.index,
+            &file.ino,
+            &path.to_string_lossy(),
+            file.size,
+            file.duration,
+        )
+        .map_err(|error| format!("the row of the file {}: {}", file.index, error))?;
+    }
+
+    // **A book of the server that lost a file keeps the row of that file**, and
+    // the offline playback then plays a file that the book does not hold.
+    // `fetch_item` took that file of the disk away already. See T-187.
+    keep_the_files_of_the_download(
+        &plan.key,
+        username,
+        &plan
+            .files
+            .iter()
+            .map(|file| file.index)
+            .collect::<Vec<u32>>(),
+    )
+    .map_err(|error| format!("the rows of the files of the book: {}", error))?;
+
+    Ok(())
+}
+
+/// The words of a download that reached the disk and no row of the database. See
+/// T-200.
+///
+/// **The sentence names the key that does the work of the fault** (T-170 and
+/// T-183): the key `D` writes the rows again, and the files of the disk stay,
+/// therefore that key needs no byte of the server a second time.
+pub fn the_words_of_a_download_that_the_database_did_not_take(title: &str) -> String {
+    format!(
+        "The database of the program did not take the download of \"{}\". Stop a second Toutui, \
+         and press the key D again.",
+        title
+    )
+}
+
 pub fn remove_download(key: &str, username: &str) -> (Option<String>, TheAudioOfTheRemoval) {
     let row = get_download(key, username);
 

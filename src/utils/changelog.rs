@@ -41,6 +41,26 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.30",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A download that reached the disk held no row of the database, \
+             and the program said that the media is available offline.** 21 \
+             functions of the database of the program said that their work was \
+             successful when they got no connection at all, and the words of \
+             that fault were \"Error connecting to the database.\" in the row of \
+             the message of every view. A measurement with a second Toutui of \
+             one account on the database: the file of an episode stood on the \
+             disk, the line of that media held no mark of a download, and the \
+             offline mode did not find it. The program now says that its \
+             database did not take the download, and it names the key `D`; a log \
+             out that removed no row of an account says so too; and no function \
+             of the database writes a word for you, because a word of a fault \
+             belongs to the view that you see.",
+        ],
+    },
+    Entry {
         version: "0.8.29",
         date: "14/08/2026",
         body: &[
