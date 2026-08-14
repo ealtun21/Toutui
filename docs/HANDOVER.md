@@ -1883,14 +1883,14 @@ episodes for a podcast that is missing **54**, therefore it stays outside.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.99` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.8.0` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 1084 of 1084 in 2.3 s, and cargo nextest run --run-ignored all gives 1109
-    # of 1109 with the sandbox up, in 16.7 s of wall clock: one test waits 16 s
+    # 1087 of 1087 in 2.3 s, and cargo nextest run --run-ignored all gives 1112
+    # of 1112 with the sandbox up, in 18.1 s of wall clock: one test waits 16 s
     # for the time limit of the send of a book (T-119), and one waits 15 s for
     # the time limit of a request
 ALSA_CONFIG_PATH=<the same file> nice -n 19 ionice -c 3 cargo test -j 16 --no-fail-fast
