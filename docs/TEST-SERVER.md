@@ -307,6 +307,17 @@ measurement that needs a queue of a minute therefore needs about 15 episodes,
 and the body of `POST /api/podcasts/:id/download-episodes` is the bare array of
 the episodes of the feed (T-154).
 
+**The queue holds the sequence of the requests**, therefore the podcast of the
+second request stands at the end of it: a measurement of the line that crosses
+the two podcasts asks for the episodes of one podcast, it waits for that block
+to go away, and it asks for the episodes of the other one after that. **The
+server holds every episode that it downloaded already**, therefore each run
+begins with the hard delete of T-154 for both podcasts:
+`DELETE /api/podcasts/:id/episode/:episode?hard=1` for every entry of
+`media.episodes`. The measurement of T-166 used 48 episodes — 37 of "Letters of
+Two Brides" and the 11 of "Narrative of Arthur Gordon Pym" after them — and that
+queue held about three minutes.
+
 ## 6. Make a book that has many audio files
 
 `ffmpeg` makes the files. The book is short, thus a test is quick.

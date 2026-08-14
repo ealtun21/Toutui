@@ -356,6 +356,15 @@ async fn main() -> Result<()> {
                 // did not choose. See T-162.
                 app.the_view_of_the_chapters_holds_its_media();
 
+                // **The queue of the downloads of the server changes while its
+                // view stands open, and no key of any user does it**: the
+                // server takes an episode out when it downloaded it, and a
+                // second program of the library empties that queue. The cursor
+                // of the user goes with the episode of its line, and it goes to
+                // nobody when that episode leaves the queue: the key `X` then
+                // names no podcast that the user did not choose. See T-166.
+                app.the_line_of_the_downloads_holds_its_episode();
+
                 let playback = app.player.state();
                 let is_playing = playback.status != toutui::player::engine::PlaybackStatus::Stopped;
                 let player_notice = playback.notice.clone();

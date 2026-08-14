@@ -236,6 +236,24 @@ pub struct App {
     pub the_view_before_the_list: AppView,
     /// The line of the queue of the downloads of the server. See T-81.
     pub list_state_downloads: ListState,
+    /// The episode of the line of the view of the downloads: its number of a
+    /// line, its name of `OneDownload::key`, its title, and its podcast.
+    ///
+    /// **That queue changes while its view stands open, and no key of any user
+    /// does it**: the server takes an episode out when it downloaded it, and a
+    /// second program of the library empties that queue. The program holds the
+    /// episode of the line of the user here, therefore the cursor goes with
+    /// that episode, and it goes to nobody when that episode leaves the queue.
+    /// See T-166.
+    pub the_episode_of_the_line_of_the_downloads: Option<(usize, String, String, String)>,
+    /// The first list of the server gave a line to the view of the downloads.
+    ///
+    /// **The view opens before the answer of the server comes.** A line of the
+    /// open therefore stands on nothing at all, and the first list that comes
+    /// gives the line 0. A line that went to nobody after that list stays with
+    /// nobody: the user chooses the next episode with the keys j and k. See
+    /// T-166.
+    pub the_downloads_gave_the_first_line: bool,
     /// The line of the lists that can take a media. See T-84.
     pub list_state_put_in_a_list: ListState,
     /// The media that the key `m` puts in a list: its identity, its episode,
@@ -1510,6 +1528,8 @@ impl App {
             the_view_before_the_search: AppView::Library,
             the_view_before_the_list: AppView::Library,
             list_state_downloads: ListState::default(),
+            the_episode_of_the_line_of_the_downloads: None,
+            the_downloads_gave_the_first_line: false,
             list_state_put_in_a_list: ListState::default(),
             the_media_of_the_list: None,
             the_view_before_the_send: AppView::Library,
@@ -4227,7 +4247,14 @@ impl App {
         }
 
         crate::logic::the_downloads::forget();
-        self.list_state_downloads.select(Some(0));
+
+        // **The view opens before the answer of the server comes**, therefore
+        // it opens with no line at all: a line of the open stands on nothing,
+        // and the queue of the server can be empty. The first list that comes
+        // gives the line. See T-166.
+        self.list_state_downloads.select(None);
+        self.the_episode_of_the_line_of_the_downloads = None;
+        self.the_downloads_gave_the_first_line = false;
         self.confirm_the_empty_queue = None;
         self.view_state = AppView::Downloads;
     }
@@ -4261,6 +4288,101 @@ impl App {
         });
     }
 
+    /// Holds the episode that the user chose in the view of the downloads, and
+    /// it takes the line away when that episode leaves the queue of the server.
+    ///
+    /// **The loop of the program calls this at each frame**, because that queue
+    /// changes with no key of any user: the server takes an episode out when it
+    /// downloaded it, and a second program of the library empties the queue.
+    /// The lines kept the number of the line, therefore an episode that the
+    /// user did not choose moved under the cursor with no word at all — the key
+    /// `X` then named the podcast of that episode, and the two presses emptied
+    /// a queue that the user never chose. See T-166, and the same rule of
+    /// T-161 for the queue of the media.
+    pub fn the_line_of_the_downloads_holds_its_episode(&mut self) {
+        if !matches!(self.view_state, AppView::Downloads) {
+            self.the_episode_of_the_line_of_the_downloads = None;
+            return;
+        }
+
+        let all = crate::logic::the_downloads::downloads();
+
+        let of_the_user = self.list_state_downloads.selected();
+        let of_the_program = self
+            .the_episode_of_the_line_of_the_downloads
+            .as_ref()
+            .map(|(line, key, _, _)| (*line, key.as_str()));
+
+        match crate::logic::the_downloads::what_the_line_of_the_downloads_holds(
+            &all,
+            of_the_program,
+            of_the_user,
+        ) {
+            // The episode of the user stands in the queue, and the cursor goes
+            // with it.
+            crate::logic::the_downloads::TheLineOfTheDownloads::ItStandsAt(place) => {
+                self.list_state_downloads.select(Some(place));
+
+                if let Some(held) = self.the_episode_of_the_line_of_the_downloads.as_mut() {
+                    held.0 = place;
+                }
+            }
+            // **No key may reach an episode that the user did not choose**,
+            // therefore the line goes to nobody and the program says which
+            // episode went away.
+            crate::logic::the_downloads::TheLineOfTheDownloads::ItWentAway => {
+                let (_, _, title, podcast) = self
+                    .the_episode_of_the_line_of_the_downloads
+                    .take()
+                    .unwrap_or_default();
+
+                self.list_state_downloads.select(None);
+
+                // The mark of the confirmation goes away with the line: the
+                // second press of the key `X` must reach no podcast at all.
+                self.confirm_the_empty_queue = None;
+
+                // A rule of the loop writes this message with no key of the
+                // user, therefore it belongs to the view of the downloads and
+                // to no other view. See T-164.
+                crate::logic::message::say_in(
+                    AppView::Downloads,
+                    crate::logic::the_downloads::the_text_of_the_episode_that_went_away(
+                        &title, &podcast,
+                    )
+                    .as_str(),
+                );
+            }
+            // The user moved the cursor, and that key is their choice.
+            crate::logic::the_downloads::TheLineOfTheDownloads::TheUserChoseAnother => {
+                // The first list of the server gives the line 0. A line that
+                // went to nobody after it stays with nobody.
+                let of_the_user = match of_the_user {
+                    Some(line) => Some(line),
+                    None if !all.is_empty() && !self.the_downloads_gave_the_first_line => Some(0),
+                    None => None,
+                };
+
+                if !all.is_empty() {
+                    self.the_downloads_gave_the_first_line = true;
+                }
+
+                self.the_episode_of_the_line_of_the_downloads = of_the_user.and_then(|line| {
+                    all.get(line)
+                        .map(|one| (line, one.key(), one.title.clone(), one.podcast.clone()))
+                });
+
+                // The queue of the server can be empty, and a line that reaches
+                // no episode is a line of nobody.
+                self.list_state_downloads.select(
+                    self.the_episode_of_the_line_of_the_downloads
+                        .as_ref()
+                        .map(|(line, _, _, _)| *line),
+                );
+            }
+        }
+    }
+
     /// Empties the queue of the podcast of the line. See T-81.
     ///
     /// **The program asks one time.** The queue holds the work of the server,
@@ -4275,6 +4397,11 @@ impl App {
             .and_then(|line| all.get(line))
             .cloned()
         else {
+            // **The episode of the line can leave the queue with no key of any
+            // user** (T-166), and the queue of the server can be empty. The
+            // line then stands on nobody, and a key that does nothing must say
+            // why (T-79). The footer promises this key (T-143).
+            crate::logic::message::say("No episode is selected.");
             return;
         };
 
@@ -6947,14 +7074,16 @@ impl App {
                 }
             }
             AppView::Downloads => {
+                // The line of this view can stand on nobody: the episode of it
+                // left the queue of the server. See T-166.
                 let count = crate::logic::the_downloads::downloads().len();
-                let from = self.list_state_downloads.selected().unwrap_or(0);
+                let line = crate::logic::the_downloads::the_line_of_the_move(
+                    self.list_state_downloads.selected(),
+                    count,
+                    true,
+                );
 
-                if from + 1 < count {
-                    self.list_state_downloads.select(Some(from + 1));
-                } else {
-                    self.list_state_downloads.select(Some(0));
-                }
+                self.list_state_downloads.select(line);
             }
             AppView::SettingsReader => {
                 let count = crate::logic::reader::cache::THE_VALUES_OF_THE_SETTINGS.len();
@@ -7038,7 +7167,18 @@ impl App {
             AppView::NewPodcast => self.list_state_new_podcast.select_previous(),
             AppView::Authors => self.list_state_authors.select_previous(),
             AppView::Ebooks => self.list_state_ebooks.select_previous(),
-            AppView::Downloads => self.list_state_downloads.select_previous(),
+            // The line of this view can stand on nobody: the episode of it left
+            // the queue of the server. See T-166.
+            AppView::Downloads => {
+                let count = crate::logic::the_downloads::downloads().len();
+                let line = crate::logic::the_downloads::the_line_of_the_move(
+                    self.list_state_downloads.selected(),
+                    count,
+                    false,
+                );
+
+                self.list_state_downloads.select(line);
+            }
             AppView::PutInAList => self.list_state_put_in_a_list.select_previous(),
             AppView::SendToEreader => self.list_state_send_to_ereader.select_previous(),
             AppView::Keys => self.list_state_keys.select_previous(),

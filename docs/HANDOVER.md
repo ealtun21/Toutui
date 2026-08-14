@@ -4,11 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.99.** T-166 belongs to this session, and **it holds
-a measurement and no correction**: the person of the loop stopped the session
-after the measurement. The next session writes the correction, and the shape of
-it stands below.
-The item T-165 belongs to the session before it.
+**The newest release is v0.8.0.** The correction of T-166 belongs to this
+session, and the measurement of T-166 to the session before it.
+The item T-165 belongs to the session before that one.
 The items T-163 and T-164 belong to the session before it, the item
 T-162 to the one before that, the item
 T-161 to the one before that, the item
@@ -20,6 +18,52 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the twelfth turn of 2026-08-14: the correction of the line of the downloads
+
+**One release: v0.8.0.** This session wrote the correction that the session
+before it named, and it measured every part of it against the sandbox. **The
+rule of the line of the view is made for six views now.**
+
+| Item | What | Where |
+|---|---|---|
+| T-166 | **The line of the view of the downloads holds an episode of a podcast, and not a number of a line.** An episode that leaves the queue of the server takes the line to nobody with a message that names it, the keys `j` and `k` give a line again, and the key `X` on a line of nobody says one sentence and it changes no queue | `src/logic/the_downloads.rs`, `src/api/podcasts/the_downloads.rs`, `src/app.rs`, `src/main.rs` |
+
+The evidence, the table of the correction, and the ten measurements of it stand
+in `docs/TAKEOVER-BACKLOG.md` under T-166. Three things are worth the room here:
+
+1. **The name of an episode leaves the field `now` outside.** An episode that
+   becomes the download of this moment is the same episode: it moves from
+   `queue` to `currentDownload` of the answer of the server, and the cursor of
+   the measurement went with `Letter 27` into the row `▼ Letter 27`.
+2. **The two keys that a message names must give a line again.**
+   `ListState::select_previous` of ratatui gives `usize::MAX` to a line of
+   nobody, and the rule of the line then takes that line to nobody one more
+   time: the view would hold no line for ever, and the message would name two
+   keys that do nothing (T-143). `the_line_of_the_move` is the rule of the keys
+   `j` and `k` of that view now, and it is pure.
+3. **The view opens with no line, and the first list of the server gives it.**
+   This is the answer to the open question of the session before this one: the
+   answer of the server does not stand at the frame of the open, therefore a
+   line of the open stands on nothing at all. `the_downloads_gave_the_first_line`
+   of `App` holds that one difference. A line that went to nobody after the
+   first list stays with nobody.
+
+**The decision of the version.** The series 0.7.x came to `.99`. `0.7.100` is
+right for cargo and wrong for a person who reads the releases, therefore the
+next release is **v0.8.0**. No function of the program changed its shape with
+that number: it is the release of one correction, as every release of this fork
+before it.
+
+### The gates of this session
+
+| The gate | The answer |
+|---|---|
+| `cargo clippy --all-targets -- -D warnings` | no word |
+| `cargo fmt --check` | no word |
+| `cargo nextest run` | **1087 of 1087** in 2.3 seconds |
+| `cargo nextest run --run-ignored all` | **1112 of 1112** in 18.1 seconds, with the sandbox up |
+| `cargo test -j 16 --no-fail-fast` | four runs, and every run passed |
 
 ## The session of the eleventh turn of 2026-08-14: the downloads of the server that move under the cursor
 
@@ -67,7 +111,7 @@ podcast of the frame that the user read. A user who presses `X` and then presses
 `X` again — the sentence of the program tells them to — empties a queue that
 they never chose.
 
-### The correction that the next session writes
+### The correction that the next session writes — **it is written, in v0.8.0**
 
 **It is the rule of T-147, of T-160, of T-161, of T-162, of T-163, and of T-165
 for a sixth view: the line holds an episode of a podcast, and not a number of a
@@ -113,7 +157,7 @@ list, and the key must say its sentence.
 | The queue after it, of `curl` | two lines, and both of them belong to the podcast of the line of the user |
 | **The key `X` on a line past the end of the list** | **one fault of the words**: no word at all, and the footer promises the key |
 | The time of one download of the server | **about four seconds** for an episode of LibriVox |
-| The correction, and the tests of it | **not written** |
+| The correction, and the tests of it | **the session of the twelfth turn wrote them, in v0.8.0** |
 
 ## The session of the tenth turn of 2026-08-14: the lists of two windows
 
@@ -3648,16 +3692,15 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took the last part of the program that the road named** — the
-view of the bookmarks while the media that plays changes — **and then the one
-condition that T-162 named and did not close**: a message belongs to the view of
-the user. **Each of them held one fault** (T-163 and T-164), and one window makes
-both. **The next session must name a condition of its own too.** This prompt
-names the state of the program on 2026-08-14.
+**This session wrote the correction that the session before it named** — the
+line of the view of the downloads of the server (T-166) — and it measured every
+part of that correction against the sandbox. **No item of the road holds a
+measurement with no correction now.** **The next session must name a condition
+of its own.** This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.7.99**; `Cargo.toml` is at 0.7.99. The
+> AlbanDAVID/Toutui. Newest release **v0.8.0**; `Cargo.toml` is at 0.8.0. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -3666,7 +3709,7 @@ names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-164 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-166 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -3728,16 +3771,24 @@ names the state of the program on 2026-08-14.
 > the second one; and a measurement of a line that moves needs a second playlist
 > of the library `Books`, because the sandbox holds one collection and one
 > playlist of it (the section 6d of `docs/TEST-SERVER.md`, and T-165).
+> **The queue of the downloads of the server belongs to the library**, therefore
+> a measurement of the line of that view needs the two podcasts of the library
+> `Podcasts` (the section 5b of `docs/TEST-SERVER.md`); the queue holds the
+> sequence of the requests, therefore the podcast of the second request stands
+> at the end; and 48 episodes give about three minutes of downloads at four
+> seconds each (T-166). **The message of a view lives six seconds, and a
+> download of the sandbox ends in four**: a poll of that message needs a step of
+> 0.25 seconds and a `grep` of its words, and not a number of a row (T-166).
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-166 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-167 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1084 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1109 of 1109** with the sandbox up, in 16.7 seconds. **Run that
+> Baseline: **1087 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1112 of 1112** with the sandbox up, in 18.1 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** The two test functions that
@@ -3768,29 +3819,31 @@ names the state of the program on 2026-08-14.
 >
 > ### The work, in the sequence of its value
 >
->    a fault in twenty-four sessions of twenty-five. **No condition of the
->    road stays**: the newest session took one of the parts that the road named
->    — the lists (the collections and the playlists) of two windows — and it
->    held one fault of two forms (T-165).
+>    a fault in twenty-five sessions of twenty-six. **No condition of the
+>    road stays**: the session of the eleventh turn took one of the parts that
+>    the road named — the view of the downloads of the server while a download
+>    ends — and it held one fault of two forms (T-166); the session after it
+>    wrote the correction of that fault, and it left no item open.
 >    - **The three shapes that found a fault before:** **a state of one process
 >      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153,
 >      T-154, T-155, T-156, T-158, T-159, T-160, T-161, T-162, T-163, T-164,
->      T-165),
+>      T-165, T-166),
 >      **a program that dies
 >      in the middle of work** (T-145, T-152), and **a server that does not
 >      answer** (T-146, T-149, T-152, T-156).
->    - **The rule of the line of the view is made for five views now** (T-160
+>    - **The rule of the line of the view is made for six views now** (T-160
 >      the Home view, T-161 the queue, T-162 the chapters, T-163 the bookmarks,
->      and T-165 the collections and the playlists), and **the message of each of
+>      T-165 the collections and the playlists, and T-166 the downloads of the
+>      server), and **the message of each of
 >      them belongs to its own view** (T-164). **The parts of the program that no
 >      such measurement has reached**: the search of a library that a second
 >      window changes, **the key `S` of the library of the start with two windows
 >      that both hold their account**, **the view of the episodes of a podcast
->      while a second window changes that podcast**, **the view of the downloads
->      while a download of a second window ends**, and **the view `PutInAList` of
->      the key `m`, which keeps its number of a line by the decision of T-165**.
->    - **The messages of the other views are not measured**: the reader, the
->      downloads, and the view of the accounts. T-164 gives them the road — a
+>      while a second window changes that podcast**, and **the view `PutInAList`
+>      of the key `m`, which keeps its number of a line by the decision of
+>      T-165**.
+>    - **The messages of the other views are not measured**: the reader and the
+>      view of the accounts. T-164 gives them the road — a
 >      message that a rule writes with no key of the user must name its view with
 >      `say_in`, and a message of a key names no view.
 >    - **The shape of T-155 is a sweep that a session began and did not
@@ -3862,7 +3915,11 @@ names the state of the program on 2026-08-14.
 > stands above them all** (T-164), and **the line of the view of the lists holds
 > a collection or a playlist and not a number of a line: a list that goes away
 > takes that line to nobody, and the media of such a list shows the lists again**
-> (T-165).
+> (T-165), and **the line of the view of the downloads of the server holds an
+> episode of a podcast and not a number of a line: an episode that leaves the
+> queue takes that line to nobody, the keys `j` and `k` give a line again, and
+> the key `X` on a line of nobody says one sentence and it changes no queue**
+> (T-166).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

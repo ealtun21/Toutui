@@ -121,6 +121,106 @@ pub fn the_view_must_ask_now(
     }
 }
 
+/// What the line of the view of the downloads holds now. See T-166.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TheLineOfTheDownloads {
+    /// The episode of the line stands in the queue of the server, at this
+    /// place. The line goes to that place: the user chose that episode, and not
+    /// that number of a line.
+    ItStandsAt(usize),
+    /// The episode of the line is not in the queue of the server now.
+    ItWentAway,
+    /// The user moved the cursor after the frame that the program holds. The
+    /// line of the user is the truth of the choice, therefore the program reads
+    /// the episode of that line again.
+    TheUserChoseAnother,
+}
+
+/// Tells what the line of the view of the downloads must hold now.
+///
+/// **The line of the user holds an episode, and not a number of a line.** This
+/// view is the second list of the program that moves with no key of any user
+/// at all (the queue of the media of T-161 is the first): the server takes an
+/// episode out of the queue when it downloaded it, it sends a message of that
+/// change, and the view then asks the server again and draws the new list at
+/// that frame.
+///
+/// A measurement of 2026-08-14 held a user on the line 5, `Chapter 10` of
+/// `Narrative of Arthur Gordon Pym`. Two episodes came to their end, and the
+/// line 5 then held `Letter 12` of `Letters of Two Brides` with no word at all:
+/// the two presses of the key `X` emptied the queue of a podcast that the user
+/// never chose, and eight episodes went away. **The queue of the downloads
+/// belongs to the library**, therefore the cost of that key is larger than a
+/// view of one user. See T-166, and the same rule of T-160, of T-161, of T-162,
+/// of T-163, and of T-165.
+///
+/// The function is pure, therefore a test needs no server.
+pub fn what_the_line_of_the_downloads_holds(
+    all: &[OneDownload],
+    of_the_program: Option<(usize, &str)>,
+    of_the_user: Option<usize>,
+) -> TheLineOfTheDownloads {
+    let Some((line, key)) = of_the_program else {
+        return TheLineOfTheDownloads::TheUserChoseAnother;
+    };
+
+    if of_the_user != Some(line) {
+        return TheLineOfTheDownloads::TheUserChoseAnother;
+    }
+
+    match all.iter().position(|one| one.key() == key) {
+        Some(place) => TheLineOfTheDownloads::ItStandsAt(place),
+        None => TheLineOfTheDownloads::ItWentAway,
+    }
+}
+
+/// The text for the user when the episode of their line leaves the queue of the
+/// server.
+///
+/// **The program cannot say why that episode left**: the server downloaded it,
+/// or a second program of the library emptied that queue. Therefore the text
+/// says what the program knows (T-91). It names the two keys that give a line
+/// again, and it promises no other key (T-118 and T-143). See T-166.
+pub fn the_text_of_the_episode_that_went_away(title: &str, podcast: &str) -> String {
+    format!(
+        "The episode \"{}\" of \"{}\" is not in the queue of the server now. \
+         No line is selected: the keys j and k select one.",
+        title, podcast
+    )
+}
+
+/// The line of the key `j` and of the key `k` in the view of the downloads.
+///
+/// **A view that holds no line gives its first line.** The text of the episode
+/// that went away names these two keys, therefore these two keys must give a
+/// line again: `ListState::select_previous` of ratatui gives `usize::MAX` to a
+/// line of nobody, and the rule of the line then takes that line to nobody one
+/// more time. See T-166.
+///
+/// The key `j` goes in a ring, and the key `k` stops at the first line. This is
+/// the shape of the two keys of this view before T-166.
+///
+/// The function is pure, therefore a test needs no server.
+pub fn the_line_of_the_move(of_the_user: Option<usize>, count: usize, down: bool) -> Option<usize> {
+    if count == 0 {
+        return None;
+    }
+
+    let Some(line) = of_the_user.filter(|line| *line < count) else {
+        return Some(0);
+    };
+
+    Some(if down {
+        if line + 1 < count {
+            line + 1
+        } else {
+            0
+        }
+    } else {
+        line.saturating_sub(1)
+    })
+}
+
 /// Forgets the answer and the mark of the change.
 pub fn forget() {
     if let Ok(mut place) = box_of_the_queue().lock() {
@@ -207,6 +307,121 @@ mod tests {
             Some(Duration::from_secs(3)),
             period
         ));
+    }
+
+    fn of(podcast: &str, title: &str) -> OneDownload {
+        OneDownload {
+            title: title.to_string(),
+            item_id: podcast.to_string(),
+            podcast: podcast.to_string(),
+            now: false,
+        }
+    }
+
+    /// **The line of the user holds an episode, and not a number of a line.**
+    /// The server took two episodes out of the queue when it downloaded them,
+    /// and the user of the line 5 then stood on an episode of a podcast that
+    /// they never chose: the key `X` named that podcast, and the two presses
+    /// emptied its queue. See T-166.
+    #[test]
+    fn the_line_of_the_downloads_holds_an_episode_and_not_a_number() {
+        let before = vec![
+            of("pym", "Chapter 8"),
+            of("pym", "Chapter 9"),
+            of("pym", "Chapter 10"),
+            of("brides", "Letter 12"),
+        ];
+
+        // The server downloaded the two episodes of the front.
+        let after = vec![before[2].clone(), before[3].clone()];
+
+        // The episode of the line stays: the line follows it to its new place.
+        assert_eq!(
+            what_the_line_of_the_downloads_holds(&after, Some((2, &before[2].key())), Some(2)),
+            TheLineOfTheDownloads::ItStandsAt(0),
+            "the episode of the line stands two lines higher now"
+        );
+
+        // Nothing changed: the line stays where it stands.
+        assert_eq!(
+            what_the_line_of_the_downloads_holds(&before, Some((3, &before[3].key())), Some(3)),
+            TheLineOfTheDownloads::ItStandsAt(3),
+            "a queue that did not move keeps the line of the user"
+        );
+
+        // The episode of the line went away, and the line of that number holds
+        // an episode of another podcast now. **This is the fault of T-166.**
+        assert_eq!(
+            what_the_line_of_the_downloads_holds(&after, Some((0, &before[0].key())), Some(0)),
+            TheLineOfTheDownloads::ItWentAway
+        );
+
+        // Every episode went away.
+        assert_eq!(
+            what_the_line_of_the_downloads_holds(&[], Some((0, &before[0].key())), Some(0)),
+            TheLineOfTheDownloads::ItWentAway
+        );
+
+        // The user moved the cursor after that frame.
+        assert_eq!(
+            what_the_line_of_the_downloads_holds(&before, Some((3, &before[3].key())), Some(1)),
+            TheLineOfTheDownloads::TheUserChoseAnother
+        );
+        assert_eq!(
+            what_the_line_of_the_downloads_holds(&before, None, Some(1)),
+            TheLineOfTheDownloads::TheUserChoseAnother
+        );
+
+        // **The episode that the server downloads now is the same episode.**
+        // It moves from `queue` to `currentDownload` of the answer, and the
+        // field `now` therefore stands outside the name of the line.
+        let now = OneDownload {
+            now: true,
+            ..before[2].clone()
+        };
+        assert_eq!(now.key(), before[2].key());
+        assert_eq!(
+            what_the_line_of_the_downloads_holds(&[now], Some((2, &before[2].key())), Some(2)),
+            TheLineOfTheDownloads::ItStandsAt(0)
+        );
+
+        // Two episodes of one podcast are two episodes.
+        assert_ne!(before[0].key(), before[1].key());
+    }
+
+    /// **The two keys that the text of the episode names must give a line
+    /// again.** The key `k` of ratatui gives `usize::MAX` to a line of nobody,
+    /// and the rule of the line then takes that line to nobody one more time:
+    /// the view would hold no line for ever. See T-166.
+    #[test]
+    fn the_keys_j_and_k_give_a_line_to_a_view_that_holds_none() {
+        assert_eq!(the_line_of_the_move(None, 4, true), Some(0));
+        assert_eq!(the_line_of_the_move(None, 4, false), Some(0));
+
+        // The line of ratatui after the key `k` of a line of nobody.
+        assert_eq!(the_line_of_the_move(Some(usize::MAX), 4, false), Some(0));
+
+        // The key `j` goes in a ring, and the key `k` stops at the first line.
+        assert_eq!(the_line_of_the_move(Some(2), 4, true), Some(3));
+        assert_eq!(the_line_of_the_move(Some(3), 4, true), Some(0));
+        assert_eq!(the_line_of_the_move(Some(2), 4, false), Some(1));
+        assert_eq!(the_line_of_the_move(Some(0), 4, false), Some(0));
+
+        // The queue of the server can be empty, and no key gives a line then.
+        assert_eq!(the_line_of_the_move(None, 0, true), None);
+        assert_eq!(the_line_of_the_move(Some(0), 0, false), None);
+    }
+
+    /// The text names the episode and its podcast, and it promises no key that
+    /// the view does not hold (T-118 and T-143). See T-166.
+    #[test]
+    fn the_text_names_the_episode_that_went_away() {
+        let text =
+            the_text_of_the_episode_that_went_away("Chapter 10", "Narrative of Arthur Gordon Pym");
+
+        assert!(text.contains("Chapter 10"), "{}", text);
+        assert!(text.contains("Narrative of Arthur Gordon Pym"), "{}", text);
+        assert!(text.contains("j and k"), "{}", text);
     }
 
     #[test]

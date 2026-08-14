@@ -50,6 +50,19 @@ impl OneDownload {
 
         format!("{} {} — {}", mark, self.title, self.podcast)
     }
+
+    /// The name of this episode for the line of the user. See T-166.
+    ///
+    /// **The field `now` stands outside this name.** An episode that becomes
+    /// the download of this moment is the same episode: it moves from `queue`
+    /// to `currentDownload` of the answer of the server, and the line of the
+    /// user must follow it there.
+    ///
+    /// The podcast alone is not enough: a queue holds many episodes of one
+    /// podcast.
+    pub fn key(&self) -> String {
+        format!("{}\u{1f}{}", self.item_id, self.title)
+    }
 }
 
 /// Gives one download of the answer of the server.

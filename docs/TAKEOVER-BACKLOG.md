@@ -7663,10 +7663,58 @@ while the cursor stood on its last line, and the line of the user then stood
 past the end of the list: **the key `X` returned with no word at all** (T-79),
 and the footer promised `X: empty the queue of this podcast` (T-143).
 
-**The correction is not written.** It is the rule of T-147, of T-160, of T-161,
-of T-162, of T-163, and of T-165 for a **sixth** view: **the line holds an
-episode of a podcast, and not a number of a line.** The shape of it stands in
-the handover of this session.
+#### The correction, of the session of the twelfth turn of 2026-08-14
+
+It is the rule of T-147, of T-160, of T-161, of T-162, of T-163, and of T-165
+for a **sixth** view: **the line holds an episode of a podcast, and not a
+number of a line.** The shape of T-161 fits this view, because the list moves
+with no key of the user.
+
+| The place | The rule |
+|---|---|
+| `OneDownload::key` of `src/api/podcasts/the_downloads.rs` | The name of an episode is its podcast and its title. **The field `now` stands outside it**: an episode that becomes the download of this moment is the same episode, and it moves from `queue` to `currentDownload` of the answer of the server |
+| `what_the_line_of_the_downloads_holds` of `src/logic/the_downloads.rs` | `ItStandsAt`, `ItWentAway`, and `TheUserChoseAnother`, in the shape of `logic::queue::what_the_line_of_the_user_holds`. **The line of the user is the truth of the choice**: a line that the user moved gives the episode of the new line |
+| `the_text_of_the_episode_that_went_away` | The program cannot say **why** the episode left — the server downloaded it, or a second program of the library emptied that queue — therefore the text says what the program knows (T-91) and it names the two keys of the view alone (T-118 and T-143) |
+| `the_line_of_the_move` | **The two keys that the text names must give a line again.** `ListState::select_previous` of ratatui gives `usize::MAX` to a line of nobody, and the rule of the line then takes that line to nobody one more time: the view would hold no line for ever |
+| `App::the_line_of_the_downloads_holds_its_episode` | The one door. The loop of `src/main.rs` calls it at each frame, beside the rule of T-161 and of T-162. It writes its message with `say_in(AppView::Downloads, …)` (T-164), and **it takes the mark of the confirmation away with the line** |
+| `App::empty_the_queue_of_the_downloads` | `No episode is selected.` on a line of nobody (T-79) |
+
+**The open question of the handover, and its answer.** The view opened with
+`select(Some(0))` on a queue that can be empty, therefore the line of nobody
+stood at the first frame already. **The view opens with no line now**: the
+answer of the server did not come at that frame, and the first list that comes
+gives the line 0. A line that went to nobody after that list stays with nobody
+— the field `the_downloads_gave_the_first_line` of `App` holds that difference,
+and the keys `j` and `k` give the line again.
+
+#### The measurement of the correction, of 2026-08-14
+
+The sandbox held 48 episodes in the queue of the library `Podcasts`: 37 of
+"Letters of Two Brides", and the 11 of "Narrative of Arthur Gordon Pym" after
+them (the section 5b of `docs/TEST-SERVER.md`, and the hard delete of T-154).
+One window of `toutuitest` in tmux, and `curl` for the second program.
+
+| The measurement | The answer |
+|---|---|
+| The key `d` | `The downloads of the server [30 items]`, and the cursor stands on the line 0. **The first list of the server gives the line** |
+| Five times `j`, and then 30 seconds | The cursor holds `Letter 27` and it goes with it, from the row 8 of the screen to the row 4. The last frame says `▼ Letter 27`: **the episode that the server downloads now is the same episode** |
+| The frame after it | **no line at all**, and the message `The episode "Letter 27" of "Letters of Two Brides" is not in the queue of the server now. No line is selected: the keys j and k select one.` |
+| **The key `X` on that line of nobody** | `No episode is selected.` It returned with no word before this session |
+| **The line 0 on the last episode of "Letters of Two Brides"** | The line goes to nobody when that episode leaves, and the list below it is `Chapter 05 — Arthur Gordon Pym` with **no cursor**. The cursor stood on the podcast that the user never chose before this session |
+| The key `k` on a line of nobody | The line 0. `select_previous` of ratatui gives `usize::MAX` |
+| The key `h` while the message stands | `Library [2 items]`, and **the message does not follow the user** (T-164) |
+| The key `X`, and then the line goes to nobody, and the key `X` again | `No episode is selected.` **The mark of the confirmation went away with the line** |
+| The queue after it, of `curl` | `Letter 5` and three lines after it. **No episode went away** |
+| The key `d` on a queue that is empty | `The server downloads no episode. Press E on a podcast to get its new episodes.`, **no line**, and the key `X` says `No episode is selected.` |
+
+Three tests of `src/logic/the_downloads.rs` hold the rules, and they are pure:
+`the_line_of_the_downloads_holds_an_episode_and_not_a_number`,
+`the_keys_j_and_k_give_a_line_to_a_view_that_holds_none`, and
+`the_text_names_the_episode_that_went_away`.
+
+**The release is v0.8.0.** The series 0.7.x came to `.99`, and `0.7.100` reads
+as a smaller number to a person: cargo puts it above `0.7.99`, and a user of the
+releases does not.
 
 ### T-165: the collection of a second window went away, and the key of the user reached a list that they did not open
 

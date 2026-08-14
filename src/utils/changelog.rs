@@ -41,6 +41,25 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.0",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key X emptied the queue of a podcast that you did not choose.** The \
+             view of the downloads of the server moves with no key of any user: the server \
+             takes an episode out of the queue when it downloaded it. The line of that view \
+             held a number of a line, therefore an episode of another podcast moved under \
+             your line with no word at all — a user who stood on \"Chapter 10\" of \
+             \"Narrative of Arthur Gordon Pym\" pressed X two times, and the key emptied the \
+             queue of \"Letters of Two Brides\" and took eight episodes away. **That queue \
+             holds the work of the server for every user of it. Your line holds an episode \
+             now**, and it follows that episode. An episode that leaves the queue takes the \
+             line to nobody with a message that names it, the keys j and k give a line \
+             again, and the key X on a line of nobody says one sentence and it changes no \
+             queue at all.",
+        ],
+    },
+    Entry {
         version: "0.7.99",
         date: "14/08/2026",
         body: &[
