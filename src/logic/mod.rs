@@ -27,6 +27,7 @@ pub mod the_downloads;
 pub mod the_ebooks;
 pub mod the_episodes;
 pub mod the_ereaders;
+pub mod the_files_of_a_media;
 pub mod the_lists;
 pub mod the_playback;
 pub mod the_positions;

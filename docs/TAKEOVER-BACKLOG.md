@@ -7629,6 +7629,101 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-181: a download threw a file of the book away, and it said nothing
+
+**The road of T-179 and of T-180 named this shape**: a field that the program
+reads with a **default** gives no fault of a decode, therefore the program
+**uses** that default. T-179 took `metadata.size` of `GET /api/items/:id`, T-180
+took `duration` of the same answer, and **this item takes the two fields of that
+answer that name a file and that put it in its place: `ino` and `index`.**
+
+**A new harness gives one row of less information.**
+`docs/harness/a_field_of_the_answer_goes_away.py` takes a field out at every
+depth of the body, therefore every file of the book loses it together. The
+faults of this item need **one** file of less information, and
+`docs/harness/a_field_of_one_row_goes_away.py` gives it:
+
+```bash
+python3 docs/harness/a_field_of_one_row_goes_away.py 13506 13399 \
+    /the/absolute/path/of/proxy.log \
+    /api/items/ac365248-ba42-47ec-a92b-0e5818abc00d media.audioFiles 1 ino
+```
+
+The arguments after the path: the dotted name of the list, the number of the row
+(0 is the first row), and the fields. The proxy stands on the proven road of
+`a_field_of_the_answer_goes_away.py`, and **a passthrough of its own kept no
+connection alive**: the first shape of this file forwarded the other paths byte
+by byte and it then closed, therefore `reqwest` took a connection of its pool
+that no program held any more and a download of a file said
+`error sending request`. **The trap 145**: a proxy of this harness sends one
+request to the sandbox and it answers with `Connection: close`.
+
+The measurement of 2026-08-14, with `Multi File Test Book` of the sandbox —
+three files of 20 seconds — and the account of the sandbox on that one address
+(the trap 129):
+
+| The measurement | Before | After |
+|---|---|---|
+| The key `D`, with no `ino` of the second file | **`"Multi File Test Book" is now available offline.`** | `Download failed for "Multi File Test Book": the server gave no identity of the file "02 - Part 2.mp3", therefore the program cannot ask for it` |
+| The disk after that key | **`001 - 01 - Part 1.mp3` and `003 - 03 - Part 3.mp3`** | no directory of that download |
+| The row of the download | **`duration` of 40 seconds of a book of 60** | no row |
+| The log | **`[INFO] Downloaded "Multi File Test Book": 2 file(s)`** | `[ERROR] Failed to plan …: the server gave no identity of the file "02 - Part 2.mp3"` |
+| The key `D`, with no `index` of the third file | `"Multi File Test Book" is now available offline.`, and the log says `3 file(s)` | the same sentence, and the same 3 files |
+| The disk after that key | **`001 - 01 - Part 1.mp3`, `001 - 03 - Part 3.mp3`, and `002 - 02 - Part 2.mp3`** | `001 - 01 - Part 1.mp3`, `002 - 02 - Part 2.mp3`, and `003 - 03 - Part 3.mp3` |
+| The rows of `download_files` | **the number 1 named `Part 3`, and no row named `Part 1`** | 1 `Part 1`, 2 `Part 2`, 3 `Part 3` |
+
+**The user lost a part of the book, and the program said "available offline".**
+Two lines did that work.
+
+1. **`plan_from_item` dropped a file with no `ino`**: the `?` of a `filter_map`
+   took that file out of the plan, and every other file went to the disk. The
+   program has no address of such a file — every request of a file stands on
+   `/api/items/:id/file/:ino` — therefore **the plan of that book does not
+   exist**. A download that leaves one file out is a book that stops in the
+   middle, and the offline mode then plays 40 seconds of a book of 60 with no
+   word. `plan_from_item` and `plan_from_episode` give a `Result` now, and
+   `WhyNoPlan::AFileWithNoIdentity` names the file that the program cannot ask
+   for.
+2. **`index` took the value 1 of `unwrap_or(1)`**: two files of one book then
+   held the number 1. `sort_by_key` is stable, therefore the last file of the
+   book stood in the middle of it; `disk_name` gave two files the name `001 - …`;
+   and the primary key of `download_files` is `(id_item, username, idx)`,
+   therefore the row of `Part 3` **replaced** the row of `Part 1`. The rule of
+   `the_numbers_of_the_files`: a book whose files each hold an `index` keeps that
+   sequence (T-2), and **a book of one file or more with no `index` takes the
+   sequence of the answer**. The server gave that sequence, and no other
+   information about the sequence exists.
+
+**The words of the fault name what the server did not give** (T-91): the old
+sentence said `the server gave no audio file` for a server that gave three of
+them.
+
+**The playback of a file with no `ino` keeps its road.** The measurement of
+`Alice in Wonderland` with no `ino` at all: `HttpFile::open` asked for
+`/api/items/:id/file/`, the server answered that it does not have that item, and
+the program then asked for the stream of the whole media and played the book to
+its end. That road is the road of T-53, and it needs no correction. **The
+sequence of the playback took the correction of the point 2**: `tracks_from_item`
+read the same field with the same default, and `sources_from` finds the file of
+the disk of a track by that number.
+
+**The third default of that answer stays open with no fault**: `mimeType`.
+`track_from` reads it as an `Option`, and `source.rs` gives the hint of the probe
+to symphonia only for a value of one character or more. The plan of the download
+does not read it.
+
+Five tests hold the rules, and each of them fails with its correction removed:
+five of `src/logic/the_files_of_a_media.rs` (the identity of a string and of a
+number, a file of no identity, and the two roads of the numbers), and
+`tests/every_file_of_a_book_belongs_to_the_download.rs`, which drives
+`plan_from_item` and `tracks_from_item` with the answers of the proxy of the
+measurement.
+
+**The parts of this road that stay open.** Two files of **one given** `index`
+give the same collision of the disk and of the row: that is a value that the
+server gave, and no measurement of a server of that shape stands behind it. The
+answer of `POST /api/items/:id/play` holds no measurement of this shape yet.
+
 ### T-180: a book of a server that gave no length started at the first second
 
 **The road of T-179 named this shape**: a field that the program reads with a

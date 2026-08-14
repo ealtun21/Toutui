@@ -3,6 +3,7 @@
 //! This module has no network code and no disk code, except the size of a
 //! file. Therefore the tests do not need a server.
 
+use crate::logic::the_files_of_a_media::{the_identity_of_a_file, the_numbers_of_the_files};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
@@ -135,12 +136,58 @@ pub fn resume_from(part_path: &Path, expected_size: u64) -> std::io::Result<Resu
     Ok(Resume::From(have))
 }
 
+/// Says why the program made no plan of a download. See T-181.
+#[derive(Debug, Clone, PartialEq)]
+pub enum WhyNoPlan {
+    /// The answer of the server holds no audio file of this media.
+    NoAudioFile,
+    /// A file of the answer holds no `ino`, therefore the program has no
+    /// address of that file. The value is the name of that file.
+    ///
+    /// **The program must not take the other files alone.** A book of three
+    /// files whose second file has no address is not a book on the disk, and a
+    /// download that leaves that file out is a book that stops in the middle.
+    AFileWithNoIdentity(String),
+}
+
+/// Gives the words of a plan that the program did not make.
+///
+/// The sentence stands after `Download failed for "…": `, therefore it starts
+/// with a small letter and it holds no full stop.
+pub fn the_words_of_a_plan_that_did_not_come(why: &WhyNoPlan) -> String {
+    match why {
+        WhyNoPlan::NoAudioFile => "the server gave no audio file".to_string(),
+        WhyNoPlan::AFileWithNoIdentity(name) => format!(
+            "the server gave no identity of the file \"{}\", therefore the \
+             program cannot ask for it",
+            name
+        ),
+    }
+}
+
+/// Gives the name of a file of the answer, for the words of a fault.
+fn the_name_of_a_file(file: &serde_json::Value) -> String {
+    file.get("metadata")
+        .and_then(|m| m.get("filename"))
+        .and_then(|f| f.as_str())
+        .unwrap_or("audio")
+        .to_string()
+}
+
 /// Makes a plan from the answer of `GET /api/items/:id`.
 ///
 /// The function reads `media.audioFiles`. It puts the files in the sequence of
-/// the field `index`.
-pub fn plan_from_item(item: &serde_json::Value) -> Option<DownloadPlan> {
-    let media = item.get("media")?;
+/// the field `index`, and `the_numbers_of_the_files` gives that sequence to a
+/// book of a server that did not give every `index` (T-181).
+///
+/// **A file with no `ino` stops the plan.** The program has no address of such a
+/// file, and a download that leaves it out gives the user a book with a hole in
+/// it. See T-181.
+pub fn plan_from_item(item: &serde_json::Value) -> Result<DownloadPlan, WhyNoPlan> {
+    let Some(media) = item.get("media") else {
+        return Err(WhyNoPlan::NoAudioFile);
+    };
+
     let metadata = media.get("metadata");
 
     let title = metadata
@@ -155,47 +202,44 @@ pub fn plan_from_item(item: &serde_json::Value) -> Option<DownloadPlan> {
         .unwrap_or("Unknown author")
         .to_string();
 
-    let mut files: Vec<AudioFilePlan> = media
-        .get("audioFiles")?
-        .as_array()?
-        .iter()
-        .filter_map(|file| {
-            let file_metadata = file.get("metadata");
+    let of_the_answer = media
+        .get("audioFiles")
+        .and_then(|files| files.as_array())
+        .filter(|files| !files.is_empty())
+        .ok_or(WhyNoPlan::NoAudioFile)?;
 
-            Some(AudioFilePlan {
-                index: file.get("index").and_then(|i| i.as_u64()).unwrap_or(1) as u32,
-                ino: file
-                    .get("ino")?
-                    .as_str()
-                    .map(|s| s.to_string())
-                    .or_else(|| {
-                        file.get("ino")
-                            .and_then(|i| i.as_u64())
-                            .map(|i| i.to_string())
-                    })?,
-                filename: file_metadata
-                    .and_then(|m| m.get("filename"))
-                    .and_then(|f| f.as_str())
-                    .unwrap_or("audio")
-                    .to_string(),
-                size: file_metadata
-                    .and_then(|m| m.get("size"))
-                    .and_then(|s| s.as_u64())
-                    .unwrap_or(0),
-                duration: file.get("duration").and_then(|d| d.as_f64()).unwrap_or(0.0),
-            })
-        })
-        .collect();
+    let numbers = the_numbers_of_the_files(of_the_answer);
 
-    if files.is_empty() {
-        return None;
+    let mut files: Vec<AudioFilePlan> = Vec::with_capacity(of_the_answer.len());
+
+    for (file, index) in of_the_answer.iter().zip(numbers) {
+        let file_metadata = file.get("metadata");
+
+        let Some(ino) = the_identity_of_a_file(file) else {
+            return Err(WhyNoPlan::AFileWithNoIdentity(the_name_of_a_file(file)));
+        };
+
+        files.push(AudioFilePlan {
+            index,
+            ino,
+            filename: the_name_of_a_file(file),
+            size: file_metadata
+                .and_then(|m| m.get("size"))
+                .and_then(|s| s.as_u64())
+                .unwrap_or(0),
+            duration: file.get("duration").and_then(|d| d.as_f64()).unwrap_or(0.0),
+        });
     }
 
     files.sort_by_key(|file| file.index);
 
-    let item_id = item.get("id")?.as_str()?.to_string();
+    let item_id = item
+        .get("id")
+        .and_then(|id| id.as_str())
+        .ok_or(WhyNoPlan::NoAudioFile)?
+        .to_string();
 
-    Some(DownloadPlan {
+    Ok(DownloadPlan {
         key: item_id.clone(),
         item_id,
         title,
@@ -212,20 +256,27 @@ pub fn plan_from_item(item: &serde_json::Value) -> Option<DownloadPlan> {
 /// The title of the plan is the title of the episode, and the author is the
 /// title of the podcast. The user then reads the name of the episode in the
 /// bar of the progress and in the list of the downloads.
-pub fn plan_from_episode(item: &serde_json::Value, episode_id: &str) -> Option<DownloadPlan> {
-    let media = item.get("media")?;
+pub fn plan_from_episode(
+    item: &serde_json::Value,
+    episode_id: &str,
+) -> Result<DownloadPlan, WhyNoPlan> {
+    let file_of_the_episode = item
+        .get("media")
+        .and_then(|media| media.get("episodes"))
+        .and_then(|episodes| episodes.as_array())
+        .and_then(|episodes| {
+            episodes
+                .iter()
+                .find(|episode| episode.get("id").and_then(|id| id.as_str()) == Some(episode_id))
+        })
+        .and_then(|episode| episode.get("audioFile").map(|file| (episode, file)))
+        .filter(|(_, file)| !file.is_null());
 
-    let episode = media
-        .get("episodes")?
-        .as_array()?
-        .iter()
-        .find(|episode| episode.get("id").and_then(|id| id.as_str()) == Some(episode_id))?;
+    let Some((episode, file)) = file_of_the_episode else {
+        return Err(WhyNoPlan::NoAudioFile);
+    };
 
-    let file = episode.get("audioFile")?;
-
-    if file.is_null() {
-        return None;
-    }
+    let media = item.get("media").ok_or(WhyNoPlan::NoAudioFile)?;
 
     let file_metadata = file.get("metadata");
 
@@ -238,23 +289,15 @@ pub fn plan_from_episode(item: &serde_json::Value, episode_id: &str) -> Option<D
             .unwrap_or(0.0),
     };
 
+    let Some(ino) = the_identity_of_a_file(file) else {
+        return Err(WhyNoPlan::AFileWithNoIdentity(the_name_of_a_file(file)));
+    };
+
     let plan_file = AudioFilePlan {
         // The episode is one file, thus the file is always the first file.
         index: 1,
-        ino: file
-            .get("ino")?
-            .as_str()
-            .map(|s| s.to_string())
-            .or_else(|| {
-                file.get("ino")
-                    .and_then(|i| i.as_u64())
-                    .map(|i| i.to_string())
-            })?,
-        filename: file_metadata
-            .and_then(|m| m.get("filename"))
-            .and_then(|f| f.as_str())
-            .unwrap_or("audio")
-            .to_string(),
+        ino,
+        filename: the_name_of_a_file(file),
         size: file_metadata
             .and_then(|m| m.get("size"))
             .and_then(|s| s.as_u64())
@@ -275,8 +318,12 @@ pub fn plan_from_episode(item: &serde_json::Value, episode_id: &str) -> Option<D
         .unwrap_or("Unknown podcast")
         .to_string();
 
-    Some(DownloadPlan {
-        item_id: item.get("id")?.as_str()?.to_string(),
+    Ok(DownloadPlan {
+        item_id: item
+            .get("id")
+            .and_then(|id| id.as_str())
+            .ok_or(WhyNoPlan::NoAudioFile)?
+            .to_string(),
         key: episode_id.to_string(),
         title,
         author,
@@ -338,7 +385,7 @@ mod tests {
     #[test]
     fn a_book_without_audio_files_has_no_plan() {
         let empty = json!({ "id": "x", "media": { "audioFiles": [] } });
-        assert!(plan_from_item(&empty).is_none());
+        assert_eq!(plan_from_item(&empty), Err(WhyNoPlan::NoAudioFile));
     }
 
     /// The server sends `ino` as a string in some answers and as a number in
@@ -502,7 +549,10 @@ mod tests {
 
     #[test]
     fn an_episode_that_is_absent_has_no_plan() {
-        assert!(plan_from_episode(&podcast(), "ep9").is_none());
+        assert_eq!(
+            plan_from_episode(&podcast(), "ep9"),
+            Err(WhyNoPlan::NoAudioFile)
+        );
     }
 
     /// The server gives no audio file before the download of the episode.
@@ -512,13 +562,16 @@ mod tests {
             "id": "pod-1",
             "media": { "episodes": [ { "id": "ep1", "title": "New", "audioFile": null } ] }
         });
-        assert!(plan_from_episode(&value, "ep1").is_none());
+        assert_eq!(
+            plan_from_episode(&value, "ep1"),
+            Err(WhyNoPlan::NoAudioFile)
+        );
     }
 
     /// A book has no episode, and a podcast has no `audioFiles`.
     #[test]
     fn a_podcast_has_no_plan_for_a_book() {
-        assert!(plan_from_item(&podcast()).is_none());
+        assert_eq!(plan_from_item(&podcast()), Err(WhyNoPlan::NoAudioFile));
     }
 
     /// This answer comes from a real Audiobookshelf 2.36.0 server.

@@ -18,6 +18,7 @@ use crate::logic::queue::{self, the_media_goes_back_to_the_queue, the_queue_goes
 use crate::logic::sync_session::force_sync;
 use crate::logic::sync_session::sync_session_from_database::*;
 use crate::logic::sync_session::wait_prev_session_finished::*;
+use crate::logic::the_files_of_a_media::the_numbers_of_the_files;
 use crate::logic::the_playback::{the_words_of_a_playback_that_did_not_start, WhyNot};
 use crate::player::engine::source::{select_sources, TrackSource};
 use crate::player::engine::track::{Chapter, Track, TrackList};
@@ -107,6 +108,12 @@ fn track_from(file: &serde_json::Value, index: u32) -> Track {
 /// The function puts the files in the sequence of the field `index`. A book
 /// with many audio files then plays in the correct sequence. See T-2.
 ///
+/// **A book of a server that gave no `index` of every file takes the sequence of
+/// the answer** (T-181). The old rule gave such a file the number 1, and two
+/// files of one book then held the same number: the sequence of the book
+/// changed, and the sources of the disk of `sources_from` took one file for two
+/// tracks.
+///
 /// Gives `None` if the book has no audio file.
 pub fn tracks_from_item(item: &serde_json::Value) -> Option<TrackList> {
     let files = item["media"]["audioFiles"].as_array()?;
@@ -117,10 +124,8 @@ pub fn tracks_from_item(item: &serde_json::Value) -> Option<TrackList> {
 
     let mut tracks: Vec<Track> = files
         .iter()
-        .map(|file| {
-            let index = file["index"].as_u64().unwrap_or(1) as u32;
-            track_from(file, index)
-        })
+        .zip(the_numbers_of_the_files(files))
+        .map(|(file, index)| track_from(file, index))
         .collect();
 
     tracks.sort_by_key(|track| track.index);

@@ -8,7 +8,7 @@ use crate::db::crud::{
 };
 use fetch::{fetch_item, TheFaultOfTheDownload};
 use log::{error, info};
-use plan::{plan_from_episode, plan_from_item};
+use plan::{plan_from_episode, plan_from_item, the_words_of_a_plan_that_did_not_come};
 use progress::{claim_the_download, release_the_download, ProgressMap, TheClaimOfTheDownload};
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -181,12 +181,18 @@ pub async fn download_with_progress(
         DownloadTarget::Episode { episode_id, .. } => plan_from_episode(&item, episode_id),
     };
 
-    let Some(plan) = plan else {
-        let message = "the server gave no audio file";
-        error!("[download_item] Failed to plan \"{}\": {}", title, message);
-        release_the_download(&progress, target.key(), message);
-        crate::logic::message::say(&format!("Download failed for \"{}\": {}", title, message));
-        return;
+    // **The words of the fault name what the server did not give** (T-181): a
+    // file with no `ino` is not "no audio file", and the program must not take
+    // the other files of that book alone.
+    let plan = match plan {
+        Ok(plan) => plan,
+        Err(why) => {
+            let message = the_words_of_a_plan_that_did_not_come(&why);
+            error!("[download_item] Failed to plan \"{}\": {}", title, message);
+            release_the_download(&progress, target.key(), &message);
+            crate::logic::message::say(&format!("Download failed for \"{}\": {}", title, message));
+            return;
+        }
     };
 
     // Each download has its own directory. An episode of a podcast then does
