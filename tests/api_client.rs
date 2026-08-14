@@ -2,7 +2,7 @@
 //! behaviour depends on real HTTP answers.
 
 use std::sync::Arc;
-use toutui::api::client::endpoint::{Endpoint, EndpointPool};
+use toutui::api::client::endpoint::{Endpoint, EndpointPool, WhyDown};
 use toutui::api::client::error::ApiError;
 use toutui::api::client::probe::probe_once;
 use toutui::api::client::ApiClient;
@@ -189,6 +189,7 @@ async fn a_request_tries_an_address_that_holds_the_state_down() {
     client.pool().mark_down(
         server.uri().trim_end_matches('/'),
         "a fault of the live task",
+        WhyDown::ItGaveNoAnswer,
     );
 
     // No address holds the state `Up`, therefore the old code gave
@@ -233,10 +234,12 @@ async fn a_request_of_a_pool_that_is_down_takes_the_address_of_the_most_importan
     client.pool().mark_down(
         first.uri().trim_end_matches('/'),
         "a fault of the live task",
+        WhyDown::ItGaveNoAnswer,
     );
     client.pool().mark_down(
         second.uri().trim_end_matches('/'),
         "a fault of the live task",
+        WhyDown::ItGaveNoAnswer,
     );
 
     let body: serde_json::Value = client.get_json("/api/libraries").await.unwrap();
@@ -263,6 +266,7 @@ async fn a_download_tries_an_address_that_holds_the_state_down() {
     client.pool().mark_down(
         server.uri().trim_end_matches('/'),
         "a fault of the live task",
+        WhyDown::ItGaveNoAnswer,
     );
 
     let file = client
@@ -292,6 +296,7 @@ async fn the_probe_makes_a_down_endpoint_active_again() {
     client.pool().mark_down(
         primary.uri().trim_end_matches('/'),
         "the measurement of the test",
+        WhyDown::ItGaveNoAnswer,
     );
     assert_eq!(client.pool().active().unwrap(), "http://127.0.0.1:1");
 
@@ -315,9 +320,11 @@ async fn the_probe_keeps_a_dead_endpoint_down() {
         .await;
 
     let client = client(vec!["http://127.0.0.1:1", &good.uri()]);
-    client
-        .pool()
-        .mark_down("http://127.0.0.1:1", "the measurement of the test");
+    client.pool().mark_down(
+        "http://127.0.0.1:1",
+        "the measurement of the test",
+        WhyDown::ItGaveNoAnswer,
+    );
 
     probe_once(client.http(), &client.pool()).await;
 

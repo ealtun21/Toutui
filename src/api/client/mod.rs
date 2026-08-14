@@ -41,6 +41,20 @@ pub enum Idempotent {
     No,
 }
 
+/// Tells why an address goes to the state `Down`. See T-171.
+///
+/// **A server that answers `500` is not a server that is away.** The pool marks
+/// that address down, because a different address of the same server can answer
+/// it (T-87), and the words for the user are not the words of a server that
+/// gives no answer at all: the header of the program said "the server does not
+/// answer" for a server that answered `curl` in 1.4 milliseconds.
+fn why_the_address_goes_down(error: &ApiError) -> endpoint::WhyDown {
+    match error {
+        ApiError::Server(_) => endpoint::WhyDown::ItAnsweredWithAFault,
+        _ => endpoint::WhyDown::ItGaveNoAnswer,
+    }
+}
+
 /// The HTTP client of the application.
 pub struct ApiClient {
     http: reqwest::Client,
@@ -120,7 +134,11 @@ impl ApiClient {
         // user, and a pool of one address then has no address at all. See T-97
         // and T-87.
         if self.the_address_must_go_down(&first, &first_error) {
-            self.pool.mark_down(&first, &format!("{}", first_error));
+            self.pool.mark_down(
+                &first,
+                &format!("{}", first_error),
+                why_the_address_goes_down(&first_error),
+            );
         }
 
         if idempotent == Idempotent::No {
@@ -144,7 +162,11 @@ impl ApiClient {
             }
             Err(error) => {
                 if error.is_endpoint_fault() && self.the_address_must_go_down(&second, &error) {
-                    self.pool.mark_down(&second, &format!("{}", error));
+                    self.pool.mark_down(
+                        &second,
+                        &format!("{}", error),
+                        why_the_address_goes_down(&error),
+                    );
                 }
                 Err(error)
             }
@@ -287,7 +309,11 @@ impl ApiClient {
             Ok(answer) => answer,
             Err(error) => {
                 if error.is_endpoint_fault() && self.the_address_must_go_down(&base_url, &error) {
-                    self.pool.mark_down(&base_url, &format!("{}", error));
+                    self.pool.mark_down(
+                        &base_url,
+                        &format!("{}", error),
+                        why_the_address_goes_down(&error),
+                    );
                 }
                 return Err(error);
             }
@@ -356,7 +382,11 @@ impl ApiClient {
                 // reaches it says no more of the address than a request does.
                 // See T-97.
                 if error.is_endpoint_fault() && self.the_address_must_go_down(&base_url, &error) {
-                    self.pool.mark_down(&base_url, &format!("{}", error));
+                    self.pool.mark_down(
+                        &base_url,
+                        &format!("{}", error),
+                        why_the_address_goes_down(&error),
+                    );
                 }
                 error
             })?;

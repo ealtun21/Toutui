@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.5",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The header said that your server does not answer, for a server that \
+             answers.** One request that came back with a fault took the address away, and \
+             the two lines at the top then said \"the server does not answer\" and they \
+             offered you the media of the disk. The server holds every list, and the header \
+             says \"the server reports a fault\" now: the key R asks the server again.",
+        ],
+    },
+    Entry {
         version: "0.8.4",
         date: "14/08/2026",
         body: &[

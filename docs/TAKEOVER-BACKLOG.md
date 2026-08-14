@@ -7629,6 +7629,153 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-171: the header said that the server does not answer, for a server that answers
+
+**The condition of this session.** T-169 gave the repository a server that
+answers some requests and that fails others, and T-170 took that harness to the
+four requests of the start. The road of this session named the next class:
+**every view of a request of its own holds the shape of T-170** — the bookmarks,
+the chapters, the sessions, the statistics, the authors and the narrators, the
+devices of an e-reader, the downloads of the server, and the search.
+
+**Six of those views hold the rule already.** `src/logic/bookmarks.rs`,
+`src/logic/sessions_view.rs`, `src/logic/stats.rs`, `src/logic/authors.rs`,
+`src/logic/the_ereaders.rs`, and `src/logic/the_downloads.rs` each hold a
+`State::Fault(String)`, and `App` writes `error.to_string()` in it. The
+measurement of the real program with `docs/harness/one_path_fails.py` says the
+same thing:
+
+| The key | The view | What the screen said |
+|---|---|---|
+| `a` | the authors | `The server gave no author: The server reported a fault. Status 500.` |
+| `v` | the narrators | `The server gave no narrator: The server reported a fault. Status 500.` |
+| `T` | the statistics | `The server gave no statistics.` and `The server reported a fault. Status 500.` |
+| `d` | the downloads of the server | `The server gave no queue of the downloads: The server reported a fault. Status 500.` |
+
+**The fault stood two rows above every one of them.** The header of the program
+said this, for the whole time of each of those four views:
+
+```text
+⚠ toutuitest: the server does not answer      📖 Books (book)     🦜 Toutui v0.8.4
+🔗 127.0.0.1:13500 does not answer                      R: the media of the disk
+```
+
+**The server answers.** The proxy of the measurement gave the status 500 to
+`GET /api/libraries/:id/authors`, to `/narrators`, to `/episode-downloads`, and
+to every path that holds `stats`, and it forwarded every other request to the
+sandbox. In the middle of that header:
+
+- `curl http://127.0.0.1:13500/api/libraries` came back in **1.4 milliseconds**;
+- the key `W` of that same program gave the **114 sessions** of the account, and
+  the header then said `👋 Connected as toutuitest` again.
+
+**The header stood false for 10.5 seconds**, until the probe task ran. The probe
+runs every 60 seconds (`PROBE_INTERVAL`), therefore that header can stand for a
+whole minute while every request of the user comes back.
+
+#### The cause
+
+`EndpointPool::active()` gives the address that holds the state `Up`, and
+`ApiClient::send` marks an address down for a fault of the endpoint. **A status
+of 500 or more is a fault of the endpoint** (`ApiError::is_endpoint_fault`), and
+that decision is right: a different address of the same server can answer it
+(T-87 and T-97). The pool held **one** address, therefore `active()` gave
+nothing at all, and `render_header` read that one value:
+
+- `the_lines_of_the_connection` wrote `⚠ ...: the server does not answer` and
+  `🔗 ... does not answer`;
+- the notice wrote `THE_SERVER_DOES_NOT_ANSWER`, which is `R: the media of the
+  disk`.
+
+**The state `Down` held no reason.** An address that no machine reaches and an
+address that answers `500` gave the same value, and the words of the first one
+are a reason that the program does not have for the second one (T-91). The
+notice is the fault of T-170 from the other side: **a sentence of a fault must
+name a key that does the work of that fault**, and the media of the disk are the
+road of a user whose server is away (T-107). The server of this user holds every
+list, and the key `R` gives them.
+
+#### The correction
+
+`Health::Down` holds a `WhyDown` now:
+
+| The value | What it is |
+|---|---|
+| `ItGaveNoAnswer` | no machine took the connection, or the answer did not come in the permitted time |
+| `ItAnsweredWithAFault` | the address answered, and the answer holds a fault of the server |
+
+`why_the_address_goes_down` of `src/api/client/mod.rs` gives the second value for
+`ApiError::Server(_)` and the first one for every other fault of an endpoint.
+The socket of the live task gives the first one too: that socket did not open.
+
+`EndpointPool::every_address_answers_with_a_fault` says that the pool holds no
+address of the state `Up` **and** that every address of it answered with a
+fault. A pool with no address gives `false`, and **one** address that gave no
+answer takes the rule away: the program cannot say that the server answers when
+one address of it does not.
+
+`the_lines_of_the_connection` takes that value, and the header says:
+
+```text
+⚠ toutuitest: the server reports a fault      📖 Books (book)     🦜 Toutui v0.8.5
+🔗 127.0.0.1:13500 reports a fault                       R: ask the server again
+```
+
+A narrow terminal says `⚠ toutuitest: a fault` (T-115), and the notice is
+`THE_SERVER_REPORTS_A_FAULT`.
+
+**The words of a server that is away stay as they are.** The offline mode of the
+start keeps `📴 Offline as ...` (T-25), and a pool that no machine reaches keeps
+`the server does not answer` and `R: the media of the disk` (T-107).
+
+#### The trap that the correction held
+
+**`mark_down` gave up its work for an address that stands down already**, and
+that guard keeps the log of a program of some days short. The first build of
+this correction therefore kept `ItAnsweredWithAFault` when the server went away:
+the header would say `reports a fault` for a port that no program holds.
+`mark_down` writes the new cause now, and it writes no line of the log for it.
+The test of `src/api/client/endpoint.rs` holds that road.
+
+#### The measurement of the two roads, in the real program
+
+| The moment | The header |
+|---|---|
+| the proxy answers 500 for `/authors`, and the key `a` | `⚠ toutuitest: the server reports a fault` / `🔗 127.0.0.1:13500 reports a fault` / `R: ask the server again` |
+| the proxy stops, and the key `W` makes a request | `⚠ toutuitest: the server does not answer` / `🔗 127.0.0.1:13500 does not answer` / `R: the media of the disk` |
+
+**The header says what the program measured last, and a view that holds its
+answer already makes no request.** The second press of the key `a` said the
+words of the fault before it, because `logic::authors` keeps its state and the
+key `R` alone forgets it. The header of that moment names the last request of
+the program, and no request of that key went to the server.
+
+#### The tests
+
+`tests/a_server_that_answers_with_a_fault_says_so.rs` holds the whole road: a
+host of a raw socket answers `500` to every request, one request of `ApiClient`
+goes to it, and the test reads `active()`,
+`every_address_answers_with_a_fault()`, and the two lines of the header. **A test
+of a server that holds nothing must not use a port that no program holds**: that
+road is the offline mode of T-25 (T-167), therefore the second half of the rule
+stands in the test of `src/api/client/endpoint.rs`.
+
+With the words of the correction removed, that test says:
+
+```text
+the server answered, therefore the header must not say that it does not answer.
+It says "⚠ toutuitest: the server does not answer\n🔗 127.0.0.1:13500 does not answer"
+```
+
+With `WhyDown` removed from `mark_down`, both tests fail.
+
+#### What this item does not change
+
+**The address goes down for a status of 500, and it stays that way.** T-87 holds
+the evidence of that decision: a second address of the same server can answer a
+request that the first one failed, and `send` tries it (T-97). This item changes
+the words for the user alone.
+
 ### T-170: the three other requests of the start, and the three views that said that the library holds nothing
 
 **The condition of this session, again.** T-169 gave the repository a server

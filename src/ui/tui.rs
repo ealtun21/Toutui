@@ -2285,11 +2285,18 @@ impl App {
         // that the user gave at the login for ever. See T-105 and T-107.
         let active = self.api.pool().active();
 
+        // **A server that answers `500` is not a server that is away.** The
+        // header said "does not answer" for a server that answered `curl` in
+        // 1.4 milliseconds, and it offered the media of the disk to that user.
+        // See T-171.
+        let the_server_reports_a_fault = self.api.pool().every_address_answers_with_a_fault();
+
         let connection = crate::ui::keys::the_lines_of_the_connection(
             &self.username,
             active.as_deref(),
             &self.server_address_pretty,
             self.is_offline,
+            the_server_reports_a_fault,
             area.width,
         );
 
@@ -2314,6 +2321,12 @@ impl App {
             };
 
             format!("R: try the server again{}", waiting)
+        } else if active.is_none() && the_server_reports_a_fault {
+            // The server answers, and its answer holds a fault. The media of
+            // the disk are not the road of this user: the key `R` asks the
+            // server again, and it gives the lists of the server. See T-171 and
+            // T-170.
+            crate::ui::keys::THE_SERVER_REPORTS_A_FAULT.to_string()
         } else if active.is_none() {
             // No address answers, and the lists still come from the server. The
             // key `R` gives the media of the disk. See T-107.

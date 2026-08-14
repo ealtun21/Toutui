@@ -236,13 +236,24 @@ pub fn without_the_scheme(url: &str) -> &str {
 /// server does not answer" every six seconds, and the header said "Connected"
 /// until the user pressed `R`. See T-107.
 ///
+/// **A server that answers with a fault is not a server that does not answer.**
+/// A measurement of 2026-08-14 with `docs/harness/one_path_fails.py` gave the
+/// status 500 to `GET /api/libraries/:id/authors` alone. The pool marks that
+/// address down, because a second address of the same server can answer it
+/// (T-87), and the header then said `⚠ toutuitest: the server does not answer`
+/// for 10.5 seconds while `curl` got an answer of that same address in 1.4
+/// milliseconds. That sentence is a reason that the program does not have
+/// (T-91). See T-171.
+///
 /// `active` is the address of the pool, with its scheme. `stored` is the address
-/// of the login, with no scheme.
+/// of the login, with no scheme. `the_server_reports_a_fault` says that every
+/// address of the pool answered, and that the answer holds a fault.
 pub fn the_lines_of_the_connection(
     username: &str,
     active: Option<&str>,
     stored: &str,
     is_offline: bool,
+    the_server_reports_a_fault: bool,
     width: u16,
 ) -> String {
     // **A narrow terminal takes the short form.** The three parts of the header
@@ -266,6 +277,15 @@ pub fn the_lines_of_the_connection(
             "👋 Connected as {}\n🔗 {}",
             username,
             without_the_scheme(url)
+        ),
+        // The server answered every request, and the answers hold a fault. The
+        // program must not say that the server is away. See T-171.
+        None if the_server_reports_a_fault && short => {
+            format!("⚠ {}: a fault\n🔗 {} reports a fault", username, stored)
+        }
+        None if the_server_reports_a_fault => format!(
+            "⚠ {}: the server reports a fault\n🔗 {} reports a fault",
+            username, stored
         ),
         None if short => format!("⚠ {}: no answer\n🔗 {} does not answer", username, stored),
         None => format!(
@@ -312,6 +332,15 @@ pub fn the_name_of_the_program(version: &str, width: u16) -> String {
 /// The program still holds the lists of the server, therefore it is not in the
 /// offline mode. The key `R` gives the media of the disk. See T-107.
 pub const THE_SERVER_DOES_NOT_ANSWER: &str = "R: the media of the disk";
+
+/// The notice at the right of the header for a server that answers with a
+/// fault.
+///
+/// **The media of the disk are not the road of this user.** The server stands,
+/// and it answers every other request: the key `R` asks it again, and it gives
+/// the lists of the server. A sentence of a fault must name a key that does the
+/// work of that fault (T-170). See T-171.
+pub const THE_SERVER_REPORTS_A_FAULT: &str = "R: ask the server again";
 
 /// The line of a name of a group, in the view of the keys.
 pub fn line_of_a_group(name: &str) -> String {
@@ -662,6 +691,7 @@ mod tests {
             Some("http://127.0.0.1:13456"),
             "localhost:13399",
             false,
+            false,
             160,
         );
 
@@ -674,10 +704,15 @@ mod tests {
         );
 
         // The address holds no scheme, and `https` goes away too.
-        assert!(
-            the_lines_of_the_connection("u", Some("https://abs.example.com"), "x", false, 160)
-                .contains("🔗 abs.example.com")
-        );
+        assert!(the_lines_of_the_connection(
+            "u",
+            Some("https://abs.example.com"),
+            "x",
+            false,
+            false,
+            160
+        )
+        .contains("🔗 abs.example.com"));
     }
 
     /// **A program that no address answers must not say "Connected".**
@@ -688,7 +723,8 @@ mod tests {
     /// user pressed `R`. See T-107.
     #[test]
     fn the_header_says_that_no_address_answers() {
-        let text = the_lines_of_the_connection("toutuitest", None, "localhost:13399", false, 160);
+        let text =
+            the_lines_of_the_connection("toutuitest", None, "localhost:13399", false, false, 160);
 
         assert!(
             !text.contains("Connected"),
@@ -703,7 +739,8 @@ mod tests {
         );
 
         // The offline mode keeps its own words: the lists come from the disk.
-        let offline = the_lines_of_the_connection("toutuitest", None, "localhost:13399", true, 160);
+        let offline =
+            the_lines_of_the_connection("toutuitest", None, "localhost:13399", true, false, 160);
         assert!(offline.contains("📴 Offline as toutuitest"), "{}", offline);
     }
 
@@ -714,8 +751,10 @@ mod tests {
     /// form below `THE_WIDTH_OF_THE_LONG_HEADER`. See T-115.
     #[test]
     fn a_narrow_header_takes_the_short_form() {
-        let long = the_lines_of_the_connection("toutuitest", Some("http://one:1"), "x", false, 80);
-        let short = the_lines_of_the_connection("toutuitest", Some("http://one:1"), "x", false, 60);
+        let long =
+            the_lines_of_the_connection("toutuitest", Some("http://one:1"), "x", false, false, 80);
+        let short =
+            the_lines_of_the_connection("toutuitest", Some("http://one:1"), "x", false, false, 60);
 
         assert!(long.contains("👋 Connected as toutuitest"), "{}", long);
         assert!(short.contains("👋 toutuitest"), "{}", short);
@@ -726,11 +765,11 @@ mod tests {
         assert!(short.contains("🔗 one:1"), "{}", short);
 
         // The offline mode and the server that does not answer keep the rule.
-        let offline = the_lines_of_the_connection("toutuitest", None, "one:1", true, 60);
+        let offline = the_lines_of_the_connection("toutuitest", None, "one:1", true, false, 60);
         assert!(offline.contains("📴 toutuitest"), "{}", offline);
         assert!(offline.contains("🔗 one:1 does not answer"), "{}", offline);
 
-        let no_answer = the_lines_of_the_connection("toutuitest", None, "one:1", false, 60);
+        let no_answer = the_lines_of_the_connection("toutuitest", None, "one:1", false, false, 60);
         assert!(!no_answer.contains("Connected"), "{}", no_answer);
         assert!(no_answer.contains("no answer"), "{}", no_answer);
 
