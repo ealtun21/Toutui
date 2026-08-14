@@ -1394,7 +1394,14 @@ impl App {
             App::render_the_reason(
                 main_area,
                 buf,
-                crate::ui::keys::the_text_of_the_home_view_with_no_line(self.is_offline),
+                &crate::ui::keys::the_text_of_the_home_view_with_no_line(
+                    self.is_offline,
+                    crate::logic::the_requests_of_the_start::the_fault_of(
+                        &self.id_selected_lib,
+                        crate::logic::the_requests_of_the_start::TheRequest::Shelves,
+                    )
+                    .as_deref(),
+                ),
             );
             return;
         }
@@ -1512,10 +1519,15 @@ impl App {
             App::render_the_reason(
                 main_area,
                 buf,
-                crate::ui::keys::the_text_of_the_library_view_with_no_line(
+                &crate::ui::keys::the_text_of_the_library_view_with_no_line(
                     self.is_offline,
                     !self.library_filter.is_empty(),
                     self.is_podcast,
+                    crate::logic::the_requests_of_the_start::the_fault_of(
+                        &self.id_selected_lib,
+                        crate::logic::the_requests_of_the_start::TheRequest::Items,
+                    )
+                    .as_deref(),
                 ),
             );
             return;
@@ -1552,21 +1564,19 @@ impl App {
 
         if self.series.is_empty() {
             // A server that does not answer gives no series, and that is not a
-            // library with no series. See T-91.
-            let text = if self.is_offline {
-                "The server gave no series: the server does not answer.\nPress h to go back."
-            } else {
-                "This library has no series.\nPress h to go back."
-            };
-
-            Paragraph::new(text)
-                .centered()
-                .block(
-                    Block::new()
-                        .borders(Borders::TOP)
-                        .border_style(Style::new().fg(Color::DarkGray)),
+            // library with no series. See T-91. **A request that came back with
+            // a fault is a third condition**, and `is_offline` does not hold it
+            // (T-170).
+            let text = crate::logic::the_requests_of_the_start::the_reason_of_no_series(
+                self.is_offline,
+                crate::logic::the_requests_of_the_start::the_fault_of(
+                    &self.id_selected_lib,
+                    crate::logic::the_requests_of_the_start::TheRequest::Series,
                 )
-                .render(main_area, buf);
+                .as_deref(),
+            );
+
+            App::render_the_reason(main_area, buf, &text);
             return;
         }
 

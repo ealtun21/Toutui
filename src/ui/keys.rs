@@ -533,38 +533,66 @@ pub const THE_LIBRARY_WITH_NO_ANSWER: &str =
      A media of the disk plays in this mode. Press R when the server answers again.";
 
 /// Gives the text of the Home view that holds no line. See T-103.
-pub fn the_text_of_the_home_view_with_no_line(is_offline: bool) -> &'static str {
+///
+/// **The request of the shelves that came back with a fault is a condition of
+/// its own** (T-170). The server answers, therefore `is_offline` holds `false`
+/// (T-25), and the view said "The server gave no shelf for this library." for a
+/// request that gave no answer at all. The sentence names what the server said,
+/// and it names the key that asks the server again.
+pub fn the_text_of_the_home_view_with_no_line(
+    is_offline: bool,
+    what_the_server_said: Option<&str>,
+) -> String {
     if is_offline {
-        return THE_HOME_VIEW_WITH_NO_ANSWER;
+        return THE_HOME_VIEW_WITH_NO_ANSWER.to_string();
     }
 
-    THE_HOME_VIEW_WITH_NO_LINE
+    if let Some(fault) = what_the_server_said {
+        return format!(
+            "The server did not give the shelves of this library: {}\n\
+             Press R to ask the server again.",
+            fault
+        );
+    }
+
+    THE_HOME_VIEW_WITH_NO_LINE.to_string()
 }
 
 /// Gives the text of the Library view that holds no line. See T-103.
 ///
-/// **The sequence of the three conditions holds a rule of its own.** A server
+/// **The sequence of the four conditions holds a rule of its own.** A server
 /// that does not answer comes first, because the program then knows nothing of
-/// the library. A filter comes before the library itself, because the library
-/// holds media in that condition.
+/// the library. **The request that came back with a fault comes after it**: the
+/// program knows nothing of the library in that condition too, and a filter
+/// says nothing of a list that never came (T-170). A filter comes before the
+/// library itself, because the library holds media in that condition.
 pub fn the_text_of_the_library_view_with_no_line(
     is_offline: bool,
     a_filter_is_on: bool,
     is_podcast: bool,
-) -> &'static str {
+    what_the_server_said: Option<&str>,
+) -> String {
     if is_offline {
-        return THE_LIBRARY_WITH_NO_ANSWER;
+        return THE_LIBRARY_WITH_NO_ANSWER.to_string();
+    }
+
+    if let Some(fault) = what_the_server_said {
+        return format!(
+            "The server did not give the media of this library: {}\n\
+             Press R to ask the server again.",
+            fault
+        );
     }
 
     if a_filter_is_on {
-        return THE_LIBRARY_WITH_A_FILTER;
+        return THE_LIBRARY_WITH_A_FILTER.to_string();
     }
 
     if is_podcast {
-        return THE_LIBRARY_OF_PODCASTS_WITH_NO_MEDIA;
+        return THE_LIBRARY_OF_PODCASTS_WITH_NO_MEDIA.to_string();
     }
 
-    THE_LIBRARY_WITH_NO_MEDIA
+    THE_LIBRARY_WITH_NO_MEDIA.to_string()
 }
 
 pub const THE_TEXTS_OF_THE_VIEWS: &[&str] = &[
@@ -1056,34 +1084,73 @@ mod tests {
     #[test]
     fn a_view_with_no_line_says_why() {
         assert_eq!(
-            the_text_of_the_home_view_with_no_line(false),
+            the_text_of_the_home_view_with_no_line(false, None),
             THE_HOME_VIEW_WITH_NO_LINE
         );
         assert_eq!(
-            the_text_of_the_home_view_with_no_line(true),
+            the_text_of_the_home_view_with_no_line(true, None),
             THE_HOME_VIEW_WITH_NO_ANSWER
         );
 
         // A server that does not answer comes before every other reason, and
         // before the filter too.
         assert_eq!(
-            the_text_of_the_library_view_with_no_line(true, true, true),
+            the_text_of_the_library_view_with_no_line(true, true, true, None),
             THE_LIBRARY_WITH_NO_ANSWER
         );
 
         // The filter comes before the library, because the library holds media.
         assert_eq!(
-            the_text_of_the_library_view_with_no_line(false, true, false),
+            the_text_of_the_library_view_with_no_line(false, true, false, None),
             THE_LIBRARY_WITH_A_FILTER
         );
 
         assert_eq!(
-            the_text_of_the_library_view_with_no_line(false, false, true),
+            the_text_of_the_library_view_with_no_line(false, false, true, None),
             THE_LIBRARY_OF_PODCASTS_WITH_NO_MEDIA
         );
         assert_eq!(
-            the_text_of_the_library_view_with_no_line(false, false, false),
+            the_text_of_the_library_view_with_no_line(false, false, false, None),
             THE_LIBRARY_WITH_NO_MEDIA
+        );
+
+        // **The request that came back with a fault is a condition of its
+        // own**, and it stands above the filter and the library: the program
+        // knows nothing of that library (T-170).
+        let text = the_text_of_the_home_view_with_no_line(false, Some("Status 500."));
+
+        assert!(
+            text.starts_with("The server did not give the shelves of this library:"),
+            "{}",
+            text
+        );
+        assert!(text.contains("Status 500."), "{}", text);
+
+        let text =
+            the_text_of_the_library_view_with_no_line(false, true, false, Some("Status 500."));
+
+        assert!(
+            text.starts_with("The server did not give the media of this library:"),
+            "{}",
+            text
+        );
+        assert!(
+            !text.contains("agrees with the filter"),
+            "a filter says nothing of a list that never came: {}",
+            text
+        );
+        assert!(
+            !text.contains("Press L"),
+            "a text must not promise a key that does no work of this fault \
+             (T-118): {}",
+            text
+        );
+
+        // The server that does not answer stands above them all: no request
+        // went at all in that mode (T-25).
+        assert_eq!(
+            the_text_of_the_library_view_with_no_line(true, false, false, Some("Status 500.")),
+            THE_LIBRARY_WITH_NO_ANSWER
         );
 
         // Every one of those texts names a key of the program, and it says one

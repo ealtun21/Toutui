@@ -7629,6 +7629,78 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-170: the three other requests of the start, and the three views that said that the library holds nothing
+
+**The condition of this session, again.** T-169 gave the repository a server
+that answers some requests and that fails others, and **the start of a library
+makes four requests**: the shelves of the Home view, the series, the collections
+and the playlists, and the first page of the items. T-169 closed the third of
+them. This item took the harness of that hour to the other three, and **each of
+them held the same fault**.
+
+The proxy gave the status 500 to `/personalized`, to `/series`, and to `/items`
+of the library `Books` of the sandbox, and it forwarded every other request.
+**That library holds 17 books and three series.**
+
+| The view | What the user read | What the program knew |
+|---|---|---|
+| The Library view of the start | `This library holds no media.` and `Press L to tell the server to examine the library.` | `[app] the server did not give the items: The server reported a fault. Status 500.` |
+| The view of the series, of the key `s` | `This library has no series.` | `[app] the server did not give the series: …` of the same second |
+| The Home view, of the key `Tab` | `The server gave no shelf for this library.` | `[app] the server did not give the shelves: …` of the same second |
+
+**The first of them promises a key that does no work of this fault.** The key
+`L` tells the server to examine the files of the library, and the media of that
+library stand on the server already: the request of the program came back with a
+fault (T-118).
+
+**The third of them is the weakest of the three, and it is still wrong.** The
+server gave no shelf because the program could not read the answer, and the
+sentence gives the reason of a server that holds no shelf for this user.
+
+### The correction
+
+`src/logic/the_requests_of_the_start.rs` holds a box of the faults of **one**
+library: the key `S` gives the program a new library, and the fault of the
+library before it is not the truth of this one. The three `unwrap_or_else` of
+`App::new` write it, and **the first line of `App::new` takes the faults of that
+library away**: the key `R`, the key `S`, and a new sequence of the library all
+make the application again (`App::new_with_the_engine`), therefore a request
+that answers now takes no sentence of the request before it.
+
+The three sentences name what the server said, and each names one key that does
+the work of that fault:
+
+- `The server did not give the media of this library: … Press R to ask the
+  server again.`
+- `The server did not give the series of this library: … Press h to go back.`
+- `The server did not give the shelves of this library: … Press R to ask the
+  server again.`
+
+**The sequence of the conditions of the Library view holds a rule.** The server
+that does not answer comes first (T-25: no request went at all), the fault comes
+after it, and the filter comes after the fault: **a filter says nothing of a
+list that never came.**
+
+### The measurements of this session
+
+| The measurement | The answer |
+|---|---|
+| **The Library view of the start, with the proxy of the fault** | **one fault**: `This library holds no media. Press L to tell the server to examine the library.` |
+| The same condition, after the correction | `The server did not give the media of this library: The server reported a fault. Status 500.` |
+| **The key `s` in the same condition** | **one fault**: `This library has no series.` |
+| The same condition, after the correction | `The server did not give the series of this library: …` |
+| **The key `Tab` in the same condition** | **one fault**: `The server gave no shelf for this library.` |
+| The same condition, after the correction | `The server did not give the shelves of this library: …` |
+| The key `R` with a proxy that fails nothing | `Home [34 items]`, `Library [17 items]`, and `Series [3 items]`: the three faults go away together |
+| The key `S` to the library `Empty` while the fault of `Books` stands | `This library holds no media. Press L to tell the server to examine the library.` — **the truth of that library** |
+
+`src/logic/the_requests_of_the_start.rs` and `src/ui/keys.rs` hold the rules,
+and `tests/the_requests_of_the_start_that_failed_say_why.rs` holds the road of
+the fault from a host of a raw socket to the three sentences. **The test fails
+with each of the two corrections removed.** No unit test reaches the four lines
+of `App::new` and the three lines of the render: those need an application of a
+server, and the measurement of tmux above holds them.
+
 ### T-169: a server that answers some requests and that fails others, and the two views of the lists that said a reason of their own
 
 **The condition of this session**: T-168 left one condition open, and it named

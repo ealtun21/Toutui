@@ -800,6 +800,13 @@ impl App {
         // and the first frame of that server takes 1.5 seconds of 2.0. See T-129.
         crate::utils::startup::set("the shelves, the series, the lists, and every item");
 
+        // **A new start of this library takes the faults of the start before it
+        // away.** The key `R`, the key `S`, and a new sequence of the library
+        // all make this application again, and a request that answers now must
+        // take no sentence of the request before it. See T-170, and the same
+        // rule of T-168 and of T-169.
+        crate::logic::the_requests_of_the_start::forget_the_faults_of(&id_selected_lib);
+
         let the_four_requests = {
             let api = std::sync::Arc::clone(&api);
             let id_selected_lib = id_selected_lib.clone();
@@ -823,8 +830,16 @@ impl App {
                         Ok(root) => collect_series(&root),
                         Err(error) => {
                             // A server that does not give the series must not stop the
-                            // application. The user then sees an empty list.
+                            // application. **The view of the series says why it
+                            // holds no line** (T-91 and T-170): it said "This
+                            // library has no series." for a library of series
+                            // before that item.
                             log::warn!("[app] the server did not give the series: {}", error);
+                            crate::logic::the_requests_of_the_start::keep_the_fault(
+                                &id_selected_lib,
+                                crate::logic::the_requests_of_the_start::TheRequest::Series,
+                                &error.to_string(),
+                            );
                             Vec::new()
                         }
                     }
@@ -895,6 +910,16 @@ impl App {
                     .await
                     .unwrap_or_else(|error| {
                         log::warn!("[app] the server did not give the items: {}", error);
+                        // **The Library view says why it holds no line** (T-91
+                        // and T-170): it said "This library holds no media.
+                        // Press L to tell the server to examine the library."
+                        // for a library of 17 books, and that key does no work
+                        // of this fault (T-118).
+                        crate::logic::the_requests_of_the_start::keep_the_fault(
+                            &id_selected_lib,
+                            crate::logic::the_requests_of_the_start::TheRequest::Items,
+                            &error.to_string(),
+                        );
                         crate::api::libraries::get_all_books::Root::default()
                     })
                 };
@@ -930,6 +955,13 @@ impl App {
                 .await
                 .unwrap_or_else(|error| {
                     log::warn!("[app] the server did not give the shelves: {}", error);
+                    // **The Home view says why it holds no shelf** (T-91 and
+                    // T-170).
+                    crate::logic::the_requests_of_the_start::keep_the_fault(
+                        &id_selected_lib,
+                        crate::logic::the_requests_of_the_start::TheRequest::Shelves,
+                        &error.to_string(),
+                    );
                     Default::default()
                 });
             _ids_cnt_list = collect_ids_pod_cnt_list(&shelves_pod).await; // id of a podcast
@@ -951,6 +983,13 @@ impl App {
                 .await
                 .unwrap_or_else(|error| {
                     log::warn!("[app] the server did not give the shelves: {}", error);
+                    // **The Home view says why it holds no shelf** (T-91 and
+                    // T-170).
+                    crate::logic::the_requests_of_the_start::keep_the_fault(
+                        &id_selected_lib,
+                        crate::logic::the_requests_of_the_start::TheRequest::Shelves,
+                        &error.to_string(),
+                    );
                     Default::default()
                 });
             _titles_cnt_list = collect_titles_cnt_list(&shelves).await;

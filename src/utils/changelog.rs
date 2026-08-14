@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.4",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Three more views said that your library holds nothing.** The server \
+             answered, and it gave a fault for the shelves, for the series, or for the \
+             media of the library: the Library view then said \"This library holds no \
+             media.\" for a library of 17 books, and the view of the series said \"This \
+             library has no series.\" for a library of three. The three views say what the \
+             server said now, and the key R asks the server again.",
+        ],
+    },
+    Entry {
         version: "0.8.3",
         date: "14/08/2026",
         body: &[

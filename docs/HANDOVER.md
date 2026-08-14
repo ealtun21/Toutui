@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.2.** The item T-168 belongs to this session.
-The item T-167 belongs to the session before it.
+**The newest release is v0.8.3.** The item T-169 belongs to this session.
+The item T-168 belongs to the session before it, and the item
+T-167 to the session before that one.
 The correction of T-166 belongs to the session before that one, and the
 measurement of T-166 to the session before that one.
 The item T-165 belongs to the session before that one.
@@ -20,6 +21,53 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the fifteenth turn of 2026-08-14: the server that fails one request
+
+**One release: v0.8.3.** The session before this one left one condition open,
+and it named it: **a server that answers some requests and that fails others**.
+No harness of this repository gave that condition, therefore this session wrote
+one — `docs/harness/one_path_fails.py` — and the condition held two faults.
+
+| Item | What | Where |
+|---|---|---|
+| T-169 | **The two views of the lists said a reason that the program does not have.** The server answered the libraries and it failed the collections and the playlists: the key `c` said `This library has no collection and no playlist.` for a library that holds both, and the key `m` asked the user to make a list of a server that the program did not read. Each of them says what the server said now | `src/logic/the_lists.rs`, `src/app.rs`, `src/ui/tui.rs` |
+
+The evidence and the seven measurements stand in `docs/TAKEOVER-BACKLOG.md`
+under T-169. Four things are worth the room here:
+
+1. **The cause is the cause of T-168**: `is_offline` of `App` holds the offline
+   mode of the start (T-25). Every text that reads that one value says the words
+   of a server that answers, and the server can fail one request of that user.
+   **T-168 and T-169 close the four hits of that sweep**: the episodes of a
+   podcast, the pages of the library, the search, and the lists.
+2. **The box holds the library of the request.** The key `S` gives the program a
+   new library, and the fault of the library before it is not the truth of this
+   one: the measurement took the key `S` to the library `Empty` while the fault
+   of `Books` stood, and that view said the truth of `Empty`.
+3. **The condition of the request that runs does not exist for this view.**
+   `App::new` waits for the four requests before the first frame (T-129),
+   therefore no frame stands between the key of the user and the answer of the
+   server. `the_reason_of_no_list` holds three conditions, and
+   `the_reason_of_no_episode` of T-168 holds four. **A measurement said this**:
+   a proxy of a delay of 1.5 seconds gave the lists at the first frame already.
+4. **The sentence of a fault is longer than the sentence before it.** The first
+   measurement of the correction read `The server reported a fault. Status` and
+   the number stood outside the panel of 95 columns: that paragraph takes `Wrap`
+   now. **A view that names what the server said must wrap its text.**
+
+**The condition that this session leaves open.** None of its own. The road of
+the next session stands in the prompt at the end of this file.
+
+### The gates of this session
+
+| The gate | The answer |
+|---|---|
+| `cargo clippy --all-targets -- -D warnings` | no word |
+| `cargo fmt --check` | no word |
+| `cargo nextest run` | **1092 of 1092** in 2.3 seconds |
+| `cargo nextest run --run-ignored all` | **1117 of 1117** in 19.8 seconds, with the sandbox up |
+| `cargo test -j 16 --no-fail-fast` | six runs, and every run passed |
 
 ## The session of the fourteenth turn of 2026-08-14: the request that did not come back
 
@@ -59,7 +107,9 @@ the collections and the playlists of the start (the two `unwrap_or_else` of
 `App::new`). A server that answers the libraries and that fails those two
 requests gives the view of the lists a reason that the program does not have
 (T-91), and **a measurement of it needs a server that answers some requests and
-fails others** — `docs/harness/slow.py` is the shape of it.
+fails others** — `docs/harness/slow.py` is the shape of it. **The session after
+this one closed that condition with T-169**, and the harness of it is
+`docs/harness/one_path_fails.py`.
 
 ### The gates of this session
 
@@ -3484,6 +3534,33 @@ answers slowly while it writes. Two answers to measure:
     the cursor to the top of the view first, or the second call of it walks past
     its title and off the end of the list. The measurement then presses no key
     at all, and its `&&` hides that (T-164).
+
+### The traps of the session of the server that fails one request (T-169)
+
+128. **A server that answers some requests and that fails others is
+    `docs/harness/one_path_fails.py`.** It answers the status `500` to every
+    path that holds a part of its command line, and it forwards every other
+    request to the sandbox:
+    ```bash
+    python3 docs/harness/one_path_fails.py 13500 13399 requests.log \
+        <the library>/collections <the library>/playlists
+    ```
+    A part that holds the library gives the fault to one library alone, and the
+    key `S` then measures the other libraries beside it (T-169).
+129. **A pool of two addresses hides a fault of the status 500.** That status is
+    the fault of one machine, therefore `send` tries the address after it
+    (T-97), and the second address of a block `[[servers]]` is the sandbox
+    itself: the request comes back with the answer of the sandbox, and the
+    measurement says nothing. **The pool of such a measurement needs one
+    address**: write the address of the proxy in `users.server_address` of
+    `db.sqlite3`, keep a copy of that file, and give the account its own address
+    again at the end (T-169).
+130. **The answer `500` keeps the state `Up`** (T-128), therefore every request
+    of the program stays with the proxy. This is the difference from a port that
+    no program holds: that road is the offline mode of T-25 (T-167).
+131. **`pkill -f one_path_fails.py` killed the shell of this harness** (the trap
+    114 again, and it cost this session a minute). Take the process of a port
+    with `ss -lptnH 'sport = :13500'` instead.
 
 ### Of the harness and of the machine
 
