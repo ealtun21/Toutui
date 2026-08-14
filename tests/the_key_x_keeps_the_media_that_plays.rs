@@ -68,14 +68,14 @@ fn the_key_x_keeps_the_book_that_a_program_of_this_account_plays() {
 
     // No playback of this account wrote a place of this media. The key takes
     // the disk, and that is the rule of T-150.
-    assert!(!a_program_keeps_the_place_of_this_media(USER, THE_BOOK, ""));
+    assert!(!a_program_keeps_the_place_of_this_media(USER, THE_BOOK, "").unwrap());
 
     // The loop of the offline playback of the window A writes the place at each
     // second (T-152).
     insert_pending_progress(USER, SERVER, &a_place(THE_BOOK, now_ms())).unwrap();
 
     assert!(
-        a_program_keeps_the_place_of_this_media(USER, THE_BOOK, ""),
+        a_program_keeps_the_place_of_this_media(USER, THE_BOOK, "").unwrap(),
         "a place of this second belongs to a playback that runs"
     );
 
@@ -86,24 +86,20 @@ fn the_key_x_keeps_the_book_that_a_program_of_this_account_plays() {
     insert_pending_progress(USER, SERVER, &a_place(THE_BOOK, old)).unwrap();
 
     assert!(
-        !a_program_keeps_the_place_of_this_media(USER, THE_BOOK, ""),
+        !a_program_keeps_the_place_of_this_media(USER, THE_BOOK, "").unwrap(),
         "a place of a playback that ended must not keep the copy for ever"
     );
 
     // The place of one media says nothing of a different media.
     insert_pending_progress(USER, SERVER, &a_place(THE_BOOK, now_ms())).unwrap();
-    assert!(!a_program_keeps_the_place_of_this_media(
-        USER,
-        "a-different-media",
-        ""
-    ));
+    assert!(!a_program_keeps_the_place_of_this_media(USER, "a-different-media", "").unwrap());
 
     // The rule of the key, and the sentence that it says.
     assert_eq!(
         the_work_of_the_key_that_removes(
             false,
             false,
-            a_program_keeps_the_place_of_this_media(USER, THE_BOOK, "")
+            a_program_keeps_the_place_of_this_media(USER, THE_BOOK, "").map_err(|_| ())
         ),
         TheWorkOfTheKeyThatRemoves::AProgramPlaysItFromTheDisk
     );

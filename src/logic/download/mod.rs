@@ -469,6 +469,39 @@ pub fn text_of_the_media_that_plays_from_the_disk(title: &str) -> String {
     )
 }
 
+/// Gives the sentence of the key `X` for a database that said nothing. See
+/// T-203.
+///
+/// **The sentence names the database, the files of the disk, and the key of the
+/// work.** A key of the user waits for the answer of the disk, therefore its fault
+/// takes a sentence and not a line of the log alone (T-199). The program removed no
+/// file, because it does not know which program holds them (T-156).
+///
+/// The function is pure, therefore a test needs no database.
+pub fn text_of_the_database_that_did_not_answer(title: &str) -> String {
+    format!(
+        "The program did not read its database for \"{}\". It removed no file. Press X again.",
+        title
+    )
+}
+
+/// Gives the sentence of the key `X` for a removal that kept the rows of the
+/// database. See T-203.
+///
+/// **The rows and the files of a download come together** (T-200), and this
+/// sentence is the one road where they do not: the files went away, and the write
+/// of the database failed after them. The row of the disk then names a media with
+/// no file, therefore the sentence names the key that removes that row.
+///
+/// The function is pure, therefore a test needs no database.
+pub fn text_of_the_rows_that_stay(title: &str) -> String {
+    format!(
+        "The program removed the files of \"{}\". Its database keeps the rows of that download. \
+         Press X again.",
+        title
+    )
+}
+
 /// What the key `X` must do with the files of one download. See T-150.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TheWorkOfTheKeyThatRemoves {
@@ -480,6 +513,9 @@ pub enum TheWorkOfTheKeyThatRemoves {
     ADifferentProgramDownloads,
     /// A program of this account plays the media from the disk now. See T-156.
     AProgramPlaysItFromTheDisk,
+    /// The program did not read its own database, therefore it does not know
+    /// which program holds these files. See T-203.
+    TheDatabaseDidNotAnswer,
 }
 
 /// Says what the key `X` must do with a download. See T-150.
@@ -493,8 +529,17 @@ pub enum TheWorkOfTheKeyThatRemoves {
 pub fn the_work_of_the_key_that_removes(
     this_program_downloads: bool,
     a_program_writes_the_files: bool,
-    a_program_plays_it_from_the_disk: bool,
+    a_program_plays_it_from_the_disk: Result<bool, ()>,
 ) -> TheWorkOfTheKeyThatRemoves {
+    // **A read of the disk that failed is not a media that no program plays**
+    // (T-203). The old shape read `false` of a database that says nothing, and the
+    // key then took the three files of a book away from the playback of a second
+    // program of this account: the rule of T-156 needs the answer of the disk, and
+    // this key removes nothing without it.
+    let Ok(a_program_plays_it_from_the_disk) = a_program_plays_it_from_the_disk else {
+        return TheWorkOfTheKeyThatRemoves::TheDatabaseDidNotAnswer;
+    };
+
     // **The media that a program of this account plays from the disk keeps its
     // files**, and that rule stands before every other rule of this key: the
     // user hears that media at this second, and the server can be away. It is
@@ -674,17 +719,60 @@ pub fn the_words_of_a_download_that_the_database_did_not_take(title: &str) -> St
     )
 }
 
-pub fn remove_download(key: &str, username: &str) -> (Option<String>, TheAudioOfTheRemoval) {
-    let row = get_download(key, username);
+/// What the removal of one download did. See T-203.
+#[derive(Debug, Clone, PartialEq)]
+pub enum TheRemovalOfADownload {
+    /// The files of the disk and the rows of the database went away together.
+    TheDiskAndTheDatabase(Option<String>, TheAudioOfTheRemoval),
+    /// The program did not read its database, therefore no file of the disk went
+    /// away.
+    TheDatabaseSaidNothing,
+    /// The files of the disk went away, and the write of the database failed after
+    /// them. The rows of that download stay.
+    TheRowsOfTheDatabaseStay,
+}
+
+/// Takes the copy of the disk of one download away. See T-150 and T-186.
+///
+/// **A read of the disk that failed is not a media with no row** (T-203). The old
+/// shape read `None` of a database that says nothing, and it then removed the
+/// directory of the download: the files of the user went away, the rows stayed, and
+/// the message named a part of a download. **The rows and the files of a download
+/// come together** (T-200), therefore this function removes nothing while the
+/// database says nothing.
+pub fn remove_download(key: &str, username: &str) -> TheRemovalOfADownload {
+    let row = match get_download(key, username) {
+        Ok(row) => row,
+        Err(error) => {
+            error!(
+                "[remove_download] the program did not read the row of {}: {}. \
+                 No file of the disk went away.",
+                key, error
+            );
+
+            return TheRemovalOfADownload::TheDatabaseSaidNothing;
+        }
+    };
 
     // The row of an older version of the program holds a path of a directory
     // that this program does not make. Those files go away first, and the
     // directory of the download goes away after them.
     if let Some((first, _current_time, _duration, _title, _author)) = &row {
-        let files: Vec<String> = get_download_files(key, username)
-            .into_iter()
-            .map(|(_index, path, _duration)| path)
-            .collect();
+        let files: Vec<String> = match get_download_files(key, username) {
+            Ok(files) => files
+                .into_iter()
+                .map(|(_index, path, _duration)| path)
+                .collect(),
+            Err(error) => {
+                error!(
+                    "[remove_download] the program did not read the files of {}: {}. \
+                     No file of the disk went away.",
+                    key, error
+                );
+
+                return TheRemovalOfADownload::TheDatabaseSaidNothing;
+            }
+        };
 
         for path in paths_to_remove(first, &files) {
             let of_this_download = std::path::Path::new(&path)
@@ -715,7 +803,19 @@ pub fn remove_download(key: &str, username: &str) -> (Option<String>, TheAudioOf
     };
 
     if of_the_audio != TheAudioOfTheRemoval::Nothing {
-        let _ = delete_download(key, username);
+        // **A write of the database that failed is no removal of a download**
+        // (T-200 and T-203). The files of the disk went away already, therefore the
+        // row of this download names a media with no file: the key `X` of that line
+        // removes the row, and the user reads that work.
+        if let Err(error) = delete_download(key, username) {
+            error!(
+                "[remove_download] the {} bytes of the download {} went away, \
+                 and its rows of the database stay: {}",
+                bytes, key, error
+            );
+
+            return TheRemovalOfADownload::TheRowsOfTheDatabaseStay;
+        }
 
         info!(
             "[remove_download] the application removed {} bytes of the download {}",
@@ -723,7 +823,7 @@ pub fn remove_download(key: &str, username: &str) -> (Option<String>, TheAudioOf
         );
     }
 
-    (title, of_the_audio)
+    TheRemovalOfADownload::TheDiskAndTheDatabase(title, of_the_audio)
 }
 
 /// Gets one library item from the server.
@@ -824,18 +924,18 @@ mod tests {
     #[test]
     fn the_key_takes_no_file_of_a_download_that_runs() {
         assert_eq!(
-            the_work_of_the_key_that_removes(false, false, false),
+            the_work_of_the_key_that_removes(false, false, Ok(false)),
             TheWorkOfTheKeyThatRemoves::TakeTheDisk
         );
         assert_eq!(
-            the_work_of_the_key_that_removes(true, true, false),
+            the_work_of_the_key_that_removes(true, true, Ok(false)),
             TheWorkOfTheKeyThatRemoves::ThisProgramDownloads
         );
         // The lock of this program stands on the disk, therefore the two
         // answers agree. A lock that this program did not make gives the other
         // program.
         assert_eq!(
-            the_work_of_the_key_that_removes(false, true, false),
+            the_work_of_the_key_that_removes(false, true, Ok(false)),
             TheWorkOfTheKeyThatRemoves::ADifferentProgramDownloads
         );
 
@@ -856,7 +956,7 @@ mod tests {
     #[test]
     fn the_key_keeps_a_media_that_plays_from_the_disk() {
         assert_eq!(
-            the_work_of_the_key_that_removes(false, false, true),
+            the_work_of_the_key_that_removes(false, false, Ok(true)),
             TheWorkOfTheKeyThatRemoves::AProgramPlaysItFromTheDisk
         );
 
@@ -864,7 +964,7 @@ mod tests {
         // one moment. The playback decides: its files go away under the ear of
         // the user, and the server can be away.
         assert_eq!(
-            the_work_of_the_key_that_removes(true, true, true),
+            the_work_of_the_key_that_removes(true, true, Ok(true)),
             TheWorkOfTheKeyThatRemoves::AProgramPlaysItFromTheDisk
         );
 

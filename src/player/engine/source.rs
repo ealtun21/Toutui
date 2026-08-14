@@ -78,10 +78,26 @@ pub fn select_sources(
     base_url: &str,
     tracks: &[Track],
 ) -> Vec<TrackSource> {
-    let on_disk: Vec<(u32, String)> = get_download_files(download_key, username)
-        .into_iter()
-        .map(|(index, path, _duration)| (index, path))
-        .collect();
+    // **A read of the disk that failed is not a download with no file** (T-203).
+    // The engine then takes the stream of the server for a book of the disk: the
+    // user hears that book, and no key of the user waits for this read, therefore
+    // the fault takes a line of the log (T-177).
+    let on_disk: Vec<(u32, String)> = match get_download_files(download_key, username) {
+        Ok(files) => files
+            .into_iter()
+            .map(|(index, path, _duration)| (index, path))
+            .collect(),
+        Err(error) => {
+            log::error!(
+                "[source] the program did not read the files of the download {}: {}. \
+                 The engine asks the server for this media.",
+                download_key,
+                error
+            );
+
+            Vec::new()
+        }
+    };
 
     sources_from(&on_disk, base_url, item_id, tracks)
 }

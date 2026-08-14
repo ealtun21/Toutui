@@ -307,8 +307,16 @@ pub struct App {
     /// The server did not answer at the start. The application then shows the
     /// media of the disk only. See T-25.
     pub is_offline: bool,
+    /// The program did not read the media of the disk of this account in its
+    /// database. The offline mode then holds no line, and the view names the disk
+    /// and not the server. See T-203.
+    pub the_media_of_the_disk_did_not_come: bool,
     /// The number of positions that wait for the server. See T-25.
-    pub waiting_progress: usize,
+    ///
+    /// `None` is a read of the disk that failed: the header then names no number
+    /// at all, because a count of 0 says that every place reached the server
+    /// (T-203).
+    pub waiting_progress: Option<usize>,
     /// The identity of the server of this account. A user can have an account
     /// on more than one server, and a position must go to the correct server.
     pub server_key: String,
@@ -1163,10 +1171,26 @@ impl App {
 
         let lists = collect_lists(&collections, &playlists);
 
-        let downloads = if is_offline {
-            get_all_downloads(&username, &server_key)
+        // **A read of the disk that failed is not an account with no download**
+        // (T-203). The offline mode of T-25 holds the media of the disk alone: a
+        // read that gave nothing therefore takes every line of every view away,
+        // and the Library view said that the **server** gave no media. The line
+        // of the log holds the fault, and the view names the disk.
+        let (downloads, the_media_of_the_disk_did_not_come) = if is_offline {
+            match get_all_downloads(&username, &server_key) {
+                Ok(rows) => (rows, false),
+                Err(error) => {
+                    log::error!(
+                        "[app] the program did not read the downloads of the disk: {}. \
+                         The offline mode holds no media of this account.",
+                        error
+                    );
+
+                    (Vec::new(), true)
+                }
+            }
         } else {
-            Vec::new()
+            (Vec::new(), false)
         };
 
         let titles_library = if is_offline {
@@ -1451,7 +1475,22 @@ impl App {
             }
         };
 
-        let waiting_progress = count_pending_progress(&username, &server_key);
+        // **A read of the disk that failed is not a count of 0** (T-203). The
+        // header of the offline mode says "N positions wait", and a count of 0
+        // takes those words away: the user then reads that every place of the
+        // playback reached the server.
+        let waiting_progress = match count_pending_progress(&username, &server_key) {
+            Ok(count) => Some(count),
+            Err(error) => {
+                log::error!(
+                    "[app] the program did not count the positions that wait: {}. \
+                     The header of the screen names no number of them.",
+                    error
+                );
+
+                None
+            }
+        };
 
         // Init for check_update
         //
@@ -1605,6 +1644,7 @@ impl App {
             series_from: AppView::Series,
             lists,
             is_offline,
+            the_media_of_the_disk_did_not_come,
             waiting_progress,
             server_key,
             search_mode,
@@ -2060,11 +2100,14 @@ impl App {
                         // `pending_progress` moves at each second (T-152): that
                         // moment is the one word of it that a second program of
                         // this account reads. See T-156.
+                        // **A read of the disk that failed is not a media that no
+                        // program plays** (T-203): this key then removes nothing.
                         crate::db::crud::a_program_keeps_the_place_of_this_media(
                             &username,
                             target.item_id(),
                             target.episode_id().unwrap_or_default(),
-                        ),
+                        )
+                        .map_err(|_| ()),
                     );
 
                     use crate::logic::download::TheWorkOfTheKeyThatRemoves as TheWork;
@@ -2085,25 +2128,57 @@ impl App {
                                 ),
                             );
                         }
+                        // **The program does not know which program holds these
+                        // files**, therefore it removes none of them. See T-203.
+                        TheWork::TheDatabaseDidNotAnswer => {
+                            crate::logic::message::say(
+                                &crate::logic::download::text_of_the_database_that_did_not_answer(
+                                    &title_of_the_line,
+                                ),
+                            );
+                        }
                         TheWork::TakeTheDisk => {
                             // The audio of the download, and the ebook that the
                             // reader keeps. **The reader kept its file for ever
                             // before T-65**, and a PDF of a scan holds some
                             // hundred megabytes.
-                            let (title, of_the_audio) = remove_download(target.key(), &username);
+                            use crate::logic::download::TheRemovalOfADownload as TheRemoval;
 
-                            let of_the_ebook = crate::logic::download::remove_the_ebook_of_the_item(
-                                target.item_id(),
-                                &username,
-                            );
+                            match remove_download(target.key(), &username) {
+                                TheRemoval::TheDiskAndTheDatabase(title, of_the_audio) => {
+                                    let of_the_ebook =
+                                        crate::logic::download::remove_the_ebook_of_the_item(
+                                            target.item_id(),
+                                            &username,
+                                        );
 
-                            crate::logic::message::say(
-                                &crate::logic::download::text_of_the_removal(
-                                    &title.unwrap_or(title_of_the_line),
-                                    &of_the_audio,
-                                    of_the_ebook,
-                                ),
-                            );
+                                    crate::logic::message::say(
+                                        &crate::logic::download::text_of_the_removal(
+                                            &title.unwrap_or(title_of_the_line),
+                                            &of_the_audio,
+                                            of_the_ebook,
+                                        ),
+                                    );
+                                }
+                                // The database says nothing, therefore the ebook of
+                                // the cache stays too: the two copies of one media
+                                // go away together, and the key `X` again does that
+                                // work.
+                                TheRemoval::TheDatabaseSaidNothing => {
+                                    crate::logic::message::say(
+                                        &crate::logic::download::text_of_the_database_that_did_not_answer(
+                                            &title_of_the_line,
+                                        ),
+                                    );
+                                }
+                                TheRemoval::TheRowsOfTheDatabaseStay => {
+                                    crate::logic::message::say(
+                                        &crate::logic::download::text_of_the_rows_that_stay(
+                                            &title_of_the_line,
+                                        ),
+                                    );
+                                }
+                            }
                         }
                     }
                 }

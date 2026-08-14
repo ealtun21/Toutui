@@ -15,7 +15,7 @@ use crate::api::me::get_media_progress::{get_the_place_of_a_media, Root};
 use crate::api::me::update_media_progress::*;
 use crate::db::crud::*;
 use crate::player::engine::track::{Track, TrackList};
-use log::{info, warn};
+use log::{error, info, warn};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Gives the time of the local computer in milliseconds.
@@ -51,12 +51,14 @@ pub fn should_send(local_updated_at: i64, server_last_update: Option<i64>) -> bo
 /// each file. The engine needs a file name for the hint of the format, and the
 /// path holds that name.
 ///
-/// Gives `None` when the disk holds no file of this media.
-pub fn tracks_from_downloads(key: &str, username: &str) -> Option<TrackList> {
-    let files = get_download_files(key, username);
+/// Gives `Ok(None)` when the disk holds no file of this media, and a fault when
+/// the program did not read its database: **a read that failed is not a media with
+/// no file of the disk** (T-203).
+pub fn tracks_from_downloads(key: &str, username: &str) -> rusqlite::Result<Option<TrackList>> {
+    let files = get_download_files(key, username)?;
 
     if files.is_empty() {
-        return None;
+        return Ok(None);
     }
 
     let tracks: Vec<Track> = files
@@ -77,7 +79,7 @@ pub fn tracks_from_downloads(key: &str, username: &str) -> Option<TrackList> {
         })
         .collect();
 
-    Some(TrackList::new(tracks, Vec::new()))
+    Ok(Some(TrackList::new(tracks, Vec::new())))
 }
 
 /// Writes a position that waits for the server, and says one line of the log.
@@ -255,7 +257,23 @@ pub fn the_place_can_wait(fault: &crate::api::client::error::ApiError) -> bool {
 /// at the first address that does not answer, because every other request then
 /// fails in the same way.
 pub async fn flush_pending_progress(api: &ApiClient, username: &str, server: &str) -> usize {
-    let waiting = get_pending_progress(username, server);
+    // **A read of the disk that failed is not a disk with no place that waits**
+    // (T-203). Every place of that disk waits for the next attempt (T-189), and
+    // this function runs before the first frame and in a task of every 30 seconds:
+    // it holds no key of the user, therefore the fault takes a line of the log
+    // (T-177 and T-188).
+    let waiting = match get_pending_progress(username, server) {
+        Ok(waiting) => waiting,
+        Err(error) => {
+            error!(
+                "[offline] the program did not read the positions that wait: {}. \
+                 Each of them waits for the next attempt.",
+                error
+            );
+
+            return 0;
+        }
+    };
 
     if waiting.is_empty() {
         return 0;
@@ -407,8 +425,22 @@ pub fn spawn_flush_task(
 
             // The count comes from the database. A playback that ends offline
             // writes a row, thus the task finds it without a message.
-            if count_pending_progress(&username, &server) == 0 {
-                continue;
+            //
+            // **A read that failed is not a disk with no place that waits**
+            // (T-203): the flush of this attempt reads the rows again, and it names
+            // the fault in the log.
+            match count_pending_progress(&username, &server) {
+                Ok(0) => continue,
+                Ok(_) => {}
+                Err(error) => {
+                    warn!(
+                        "[offline] the program did not count the positions that wait: {}. \
+                         The task asks the disk again.",
+                        error
+                    );
+
+                    continue;
+                }
             }
 
             // Every address has the state `Down` after the offline mode, and

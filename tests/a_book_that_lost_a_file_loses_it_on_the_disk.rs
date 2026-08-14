@@ -143,6 +143,7 @@ async fn a_book_that_lost_a_file_loses_it_on_the_disk() {
     );
 
     let tracks = toutui::logic::offline::tracks_from_downloads(ITEM, WHO)
+        .expect("the program reads its database")
         .expect("the offline mode holds the book");
     assert_eq!(tracks.len(), 3, "the book of the server holds three files");
     assert_eq!(tracks.total_duration(), 60.0);
@@ -174,6 +175,7 @@ async fn a_book_that_lost_a_file_loses_it_on_the_disk() {
     );
 
     let tracks = toutui::logic::offline::tracks_from_downloads(ITEM, WHO)
+        .expect("the program reads its database")
         .expect("the offline mode holds the book");
     assert_eq!(
         tracks.len(),

@@ -347,6 +347,20 @@ fn at_number_part(list: &[Vec<f64>], index: usize, part: usize) -> f64 {
         .unwrap_or(0.0)
 }
 
+/// Gives the label of the copy of the disk of one media. See T-203.
+///
+/// **A read of the disk that failed is not a media with no copy on the disk.**
+/// The row of the detail of six views held `get_download(...).is_some()`, and a
+/// database that says nothing then took the label `[Downloaded]` away from every
+/// media of the account.
+fn the_copy_of_the_disk(key: &str, username: &str) -> &'static str {
+    crate::ui::keys::the_label_of_the_copy_of_the_disk(
+        crate::db::crud::get_download_of_a_frame(key, username)
+            .map(|row| row.is_some())
+            .ok(),
+    )
+}
+
 /// The words of the bar of one download.
 ///
 /// **A total of 0 is a total that the server did not give** (T-179): every file
@@ -1533,6 +1547,7 @@ impl App {
                 buf,
                 &crate::ui::keys::the_text_of_the_library_view_with_no_line(
                     self.is_offline,
+                    self.the_media_of_the_disk_did_not_come,
                     !self.library_filter.is_empty(),
                     self.is_podcast,
                     crate::logic::the_requests_of_the_start::the_fault_of(
@@ -1662,7 +1677,7 @@ impl App {
         );
 
         if let Some(book) = self.selected_series_book() {
-            let is_offline = crate::db::crud::get_download(&book.id, &self.username).is_some();
+            let of_the_disk = the_copy_of_the_disk(&book.id, &self.username);
 
             Paragraph::new(format!(
                 "Author: {} - Duration: {}{}",
@@ -1671,7 +1686,7 @@ impl App {
                     .first()
                     .cloned()
                     .unwrap_or_default(),
-                if is_offline { " - [Downloaded]" } else { "" },
+                of_the_disk,
             ))
             .wrap(Wrap { trim: true })
             .left_aligned()
@@ -1815,7 +1830,7 @@ impl App {
         if let Some(entry) = self.selected_list_entry() {
             // The download of an episode has the identity of the episode.
             let key = entry.episode_id.clone().unwrap_or_else(|| entry.id.clone());
-            let is_offline = crate::db::crud::get_download(&key, &self.username).is_some();
+            let of_the_disk = the_copy_of_the_disk(&key, &self.username);
 
             Paragraph::new(format!(
                 "{} - Author: {} - Duration: {}{}",
@@ -1829,7 +1844,7 @@ impl App {
                     .first()
                     .cloned()
                     .unwrap_or_default(),
-                if is_offline { " - [Downloaded]" } else { "" },
+                of_the_disk,
             ))
             .wrap(Wrap { trim: true })
             .left_aligned()
@@ -2326,10 +2341,12 @@ impl App {
             .render(area, buf);
 
         let notice = if self.is_offline {
+            // **A read of the disk that failed names no number** (T-203): a count
+            // of 0 says that every place of the user reached the server already.
             let waiting = match self.waiting_progress {
-                0 => String::new(),
-                1 => " - 1 position waits".to_string(),
-                count => format!(" - {} wait", crate::ui::keys::counted(count, "position")),
+                None | Some(0) => String::new(),
+                Some(1) => " - 1 position waits".to_string(),
+                Some(count) => format!(" - {} wait", crate::ui::keys::counted(count, "position")),
             };
 
             format!("R: try the server again{}", waiting)
@@ -2461,11 +2478,11 @@ impl App {
 
         if let Some(selected) = self.selected_home_item() {
             if self.is_podcast {
-                let is_offline = self
+                let of_the_disk = self
                     .ids_ep_cnt_list
                     .get(selected)
-                    .map(|id| crate::db::crud::get_download(id, &self.username).is_some())
-                    .unwrap_or(false);
+                    .map(|id| the_copy_of_the_disk(id, &self.username))
+                    .unwrap_or("");
 
                 Paragraph::new(format!(
                     "[{}] - Author: {} - Episode: {} - Duration: {}{}",
@@ -2473,23 +2490,20 @@ impl App {
                     at(&self.authors_pod_cnt_list, selected),
                     at(&self.nums_ep_pod_cnt_list, selected),
                     at(&self.durations_pod_cnt_list, selected),
-                    if is_offline { " - [Downloaded]" } else { "" },
+                    of_the_disk,
                 ))
                 .wrap(Wrap { trim: true })
                 .left_aligned()
                 .render(area, buf);
             } else {
-                let is_offline = crate::db::crud::get_download(
-                    at(&self._ids_cnt_list, selected),
-                    &self.username,
-                )
-                .is_some();
+                let of_the_disk =
+                    the_copy_of_the_disk(at(&self._ids_cnt_list, selected), &self.username);
                 Paragraph::new(format!(
                     "Author: {} - Year: {} - Duration: {}{}\nProgress: {}%, {} {}",
                     at(&self.auth_names_cnt_list, selected),
                     at(&self.pub_year_cnt_list, selected),
                     at(&duration_cnt_list_conv, selected),
-                    if is_offline { " - [Downloaded]" } else { "" },
+                    of_the_disk,
                     at_part(&self.book_progress_cnt_list, selected, 0), // percentage progression
                     convert_seconds_for_prg(
                         at_number(&self.duration_cnt_list, selected),
@@ -2563,14 +2577,13 @@ impl App {
                 .left_aligned()
                 .render(area, buf);
             } else {
-                let is_offline =
-                    crate::db::crud::get_download(at(&self.ids_library, selected), &self.username)
-                        .is_some();
+                let of_the_disk =
+                    the_copy_of_the_disk(at(&self.ids_library, selected), &self.username);
                 Paragraph::new(format!(
                     "Author: {} - Year: {}{}", //- Duration: {}\nProgress:{} {}{}",
                     at(&self.auth_names_library, selected),
                     at(&self.published_year_library, selected),
-                    if is_offline { " - [Downloaded]" } else { "" },
+                    of_the_disk,
                     //duration_library_conv[selected],
                     //self.book_progress_library[selected][0], // percentage progression
                     //format!("{}",convert_seconds_for_prg(self.duration_library[selected], self.book_progress_library_cur_time[selected][0])), // time left
@@ -2634,19 +2647,19 @@ impl App {
             if selected < self.episodes_pod_ep.len() && selected < self.durations_pod_ep.len() {
                 // Also check duplicated vectors, though their length depends on n (durations_pod_ep.len())
                 if selected < duplicated_titles.len() && selected < duplicated_authors.len() {
-                    let is_offline = self
+                    let of_the_disk = self
                         .ids_pod_ep
                         .get(selected)
-                        .map(|id| crate::db::crud::get_download(id, &self.username).is_some())
-                        .unwrap_or(false);
+                        .map(|id| the_copy_of_the_disk(id, &self.username))
+                        .unwrap_or("");
 
                     Paragraph::new(format!(
-                        "[{}] - Author: {} - Episode: {} - Duration: {} {}",
+                        "[{}] - Author: {} - Episode: {} - Duration: {}{}",
                         at(&duplicated_titles, selected).trim(),
                         at(&duplicated_authors, selected).trim(),
                         at(&self.episodes_pod_ep, selected).trim(),
                         at(&self.durations_pod_ep, selected).trim(),
-                        if is_offline { "- [Downloaded]" } else { "" },
+                        of_the_disk,
                     ))
                     .wrap(Wrap { trim: true })
                     .left_aligned()
@@ -2673,19 +2686,19 @@ impl App {
         let duplicated_titles_search = vec![at(&self.titles_pod_search, 0).to_string(); n];
         let duplicated_authors_search = vec![at(&self.authors_pod_ep_search, 0).to_string(); n];
         if let Some(selected) = list_state.selected() {
-            let is_offline = self
+            let of_the_disk = self
                 .ids_pod_ep_search
                 .get(selected)
-                .map(|id| crate::db::crud::get_download(id, &self.username).is_some())
-                .unwrap_or(false);
+                .map(|id| the_copy_of_the_disk(id, &self.username))
+                .unwrap_or("");
 
             Paragraph::new(format!(
-                "[{}] - Author: {} - Episode: {} - Duration: {} {}",
+                "[{}] - Author: {} - Episode: {} - Duration: {}{}",
                 at(&duplicated_titles_search, selected).trim(),
                 at(&duplicated_authors_search, selected).trim(),
                 at(&self.episodes_pod_ep_search, selected).trim(),
                 at(&self.durations_pod_ep_search, selected).trim(),
-                if is_offline { "- [Downloaded]" } else { "" },
+                of_the_disk,
             ))
             .wrap(Wrap { trim: true })
             .left_aligned()
@@ -2747,16 +2760,16 @@ impl App {
                 .left_aligned()
                 .render(area, buf);
             } else {
-                let is_offline = self
+                let of_the_disk = self
                     .ids_search_book
                     .get(selected)
-                    .map(|id| crate::db::crud::get_download(id, &self.username).is_some())
-                    .unwrap_or(false);
+                    .map(|id| the_copy_of_the_disk(id, &self.username))
+                    .unwrap_or("");
                 Paragraph::new(format!(
                     "Author: {} - Year: {}{}", //- Duration: {}\nProgress:{} {}{}",
                     at(&self.auth_names_search_book, selected),
                     at(&self.published_year_library_search_book, selected),
-                    if is_offline { " - [Downloaded]" } else { "" },
+                    of_the_disk,
                     //  duration_library_search_book_conv[selected],
                     //  self.book_progress_search_book[selected][0], // percentage progression
                     //  format!("{}",convert_seconds_for_prg(self.duration_library_search_book[selected], self.book_progress_search_book_cur_time[selected][0])), // time left

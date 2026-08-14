@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.32.** The items T-199, T-200, T-201, and T-202
-belong to this session. The items T-196, T-197, and T-198 belong to the session before it.
+**The newest release is v0.8.33.** The item T-203 belongs to this session. The
+items T-199, T-200, T-201, and T-202
+belong to the session before it. The items T-196, T-197, and T-198 belong to the session before it.
 The
 item T-195 belongs to the session before it, and the
 item T-194 belongs to the session before that one, and the
@@ -42,12 +43,94 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.32**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.33**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1181 of 1181** in 2.4 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1207 of 1207** in 21.7 seconds with the sandbox up,
+**1182 of 1182** in 2.4 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1208 of 1208** in 20.8 seconds with the sandbox up,
 and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in three
 runs.
+
+## The session of the thirty-fifth turn of 2026-08-14: the downloads of a disk that said nothing
+
+**One release: v0.8.33.** The session before this one closed the sweep of the
+**writes** of the database and it began the sweep of the **reads**: T-202
+corrected the queue and the account, and it named the reads of the **downloads**
+as the question of this session. **The last paragraph of the newest item was the
+whole of the work** (the rule of T-195), and it held a list of seven reads.
+
+**The item is T-203**, and it holds two measurements of the real program:
+
+1. **The key `X` removed the files of a book that a second program of the account
+   plays from the disk.** `docs/harness/hold_the_lock.py` and one row of
+   `pending_progress` of this second (T-188 and T-156) gave that condition, and the
+   program of v0.8.32 removed the three files of `Multi File Test Book` while the
+   heartbeat of that media stood on the disk. **The rows of the database stayed**,
+   because the write of `delete_download` failed after the files went away.
+2. **The offline mode of T-25 said that the server gave no media while nine
+   downloads stood on the disk**, and no line of the log named that fault.
+
+**The two measurements needed two different conditions**, and that is the finding
+of this session: **the correction of T-199 closed the road of the lock to every
+read of the start.** The read of the accounts of `main` stands first, and a lock
+stops the program there. A read of the start therefore needs a **statement** that
+fails, and `ALTER TABLE downloads RENAME COLUMN downloaded_at ...` gives one with
+no wait at all: the migration adds `item_id` and `server` alone, therefore a
+database of that shape keeps its fault.
+
+**The correction gives seven reads of `src/db/crud.rs` a fault**, and each caller
+takes the road of its own condition — the key `X` removes nothing, the removal
+stands before the first `remove_file`, the Library view names the disk, the label
+of a line says `[the disk did not answer]`, the offline playback names the
+database, the engine of an online playback takes the stream of the server with a
+line of the log, every place of the disk waits for the next attempt, and the
+header names no number of the places that wait.
+
+**The render holds the next shape.** The row of the detail of six views reads the
+table `downloads` at **each frame**, therefore the label of the disk needed a read
+of its own (`get_download_of_a_frame`): **a render must write no line of the log**
+(T-185), and a first form of this correction wrote one line of the log for every
+frame of the lock. That read holds the thread of the screen too, and the
+measurement of this session says what that costs: **the sentence of the key `X`
+never came to the screen.** A message lives six seconds, the key waits five
+seconds for its read, and the render then waits five seconds for the label: no
+frame comes inside the life of the message. The log holds every fault of this item.
+
+**The condition that this session leaves open.** **Which reads of the disk stand
+inside the render, and what does a state of the `App` hold in their place?** That
+is the shape of T-185 (a value that the render asks for at each frame) for the
+**disk**, and it is the one road to a word of a key that reaches the user while a
+second program holds the database. The reads of the disk whose default is a fact
+of the user and that no measurement has reached: `get_library_sort`,
+`get_is_show_key_bindings`, `get_speed_rate`, and the reads of the account that
+give an empty text (the other half of the sweep of T-200).
+
+### The traps of this session
+
+**The trap 156 to the trap 160 belong to T-199.** These four are of this session.
+
+**The trap 161: a lock of the database reaches no read of the start.** The
+correction of T-199 stops the program at `[main] the account of the start:
+database is locked`, therefore `hold_the_lock.py` measures the keys and the tasks
+alone. A read of the start needs a **statement** that fails: rename a column that
+the migration does not add (`downloaded_at` of the table `downloads`), and the
+program then meets a database of a shape that it does not hold.
+
+**The trap 162: the flush of the positions of the start removes a row of
+`pending_progress` that a measurement wrote.** The first measurement of this
+session wrote the row of the heartbeat **before** the program started, the flush
+sent that place to the sandbox, and the key `X` then read a media that no program
+plays: the baseline of the measurement said nothing at all. **A row of the
+heartbeat belongs in the disk after the first frame.**
+
+**The trap 163: `set -u` and `docs/harness/drive.sh` do not agree.**
+`start_the_program` reads `$1` with no default, therefore a script of `set -uo
+pipefail` stops with `$1: unbound variable` before the first frame.
+
+**The trap 164: a poll of the disk after a key of the lock is a poll of the wrong
+moment.** The key `X` holds two reads of the database at five seconds each,
+therefore `ls` of the directory of the download eight seconds after the press read
+the files that the program removed one second later. **A measurement of a key that
+meets the lock waits for the whole of the lock.**
 
 ## The session of the thirty-fourth turn of 2026-08-14: a fault of the database became a program with no account
 
@@ -5460,72 +5543,46 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took one condition and it found four items of it: a fault of the
-database of the program.** The items stand below in the sequence of the session,
-the newest first — T-202, T-201, T-200, and T-199. **One rule holds the four of
-them**: a fault of the disk is not a fact of the user, and every road of that
-fault was a road that a second Toutui of one account makes (T-140).
+**This session took the last paragraph of the newest item and it made one item of
+it** (the rule of T-195): T-202 named the reads of the **downloads** of the
+database, and every one of them gave a fact of the user. The item is **T-203**, and
+it holds two measurements of the real program and one release, v0.8.33.
 
-**The fourth item is the other half of the sweep of T-200**: the **reads** of the
-module of the database. **The default of a read of the disk is a fact of the
-user**, and three of them held a fault: the view of the queue said "The queue is
-empty. Press n on a media to put it in the queue." while two media of the user
-stood on the disk, and the wait of a playback said that the account of the user is
-gone while the row of that account stood there (T-202). Three things are worth the
-room:
+**The first measurement is the worst fault of the user of this road.** The key `X`
+asks the database which media of the account plays from the disk now (T-156), a
+second Toutui that holds the database takes the answer of that read away, and the
+program of v0.8.32 then removed the three files of a book **under the ear of the
+user**. The rows of that download stayed, because the write that follows failed
+after the files went away. Four things are worth the room:
 
-1. **A default of a read of the disk is a fact of the user, and a default of a
-   read of the server is a value** (T-202). The sweep of T-177 to T-192 asked
-   which **value** a default gives (a size of 0, a place of 0, an address of no
-   character); the sweep of the disk asks which **fact** it gives: an empty list is
-   "the user holds none of these", and `None` is "the account stands in no row".
-   **A fact is worse than a value**, because a view says it in words.
-2. **A read that failed and that a write follows is the shape to look for**
-   (T-202). Every change of the queue reads the disk and writes it again (T-147):
-   a read that gave no media therefore writes no media over the media of every
-   program of the account. **Ask of every read of the disk: does a write of this
-   program follow it, and does that write hold the answer of the read?**
-3. **A value of a wait that stands in the database cannot end a wait that the
-   database refused** (T-202). The wait of a playback reads `is_loop_break` of the
-   disk, and a database that says nothing can never give the value `1`: a wait of
-   that shape holds the user for its whole limit of time and it says "Please
-   wait..." for it. **The road of no wait is the correct one**, because a playback
-   whose row reaches no disk stops with a word of its own (T-201).
+1. **A read of the disk that decides a removal must fail toward the disk of the
+   user** (T-203). The old shape read `false` — "no program plays it" — and every
+   other road of that key holds the same shape: `false` of a lock, `None` of a row,
+   an empty list of the files. **Ask of a read of the disk: which road does the
+   default of it take, and does that road destroy a thing of the user?**
+2. **A correction of a session closes a road of a measurement too** (T-203). The
+   correction of T-199 stops the program at the read of the accounts of the start,
+   therefore `hold_the_lock.py` reaches no read of the start any more: the offline
+   mode needed a **statement** that fails, and `ALTER TABLE downloads RENAME COLUMN
+   downloaded_at ...` gives one with no wait at all. **A harness of a session can
+   go away with the correction of the session before it.**
+3. **A read of the disk that stands inside the render is a read of every frame**
+   (T-203). The row of the detail of six views asks the table `downloads` for the
+   label `[Downloaded]`, therefore a fault of that read wrote a line of the log 60
+   times a second in the first form of this correction, and the read holds the
+   thread of the screen: **the sentence of the key `X` never came to the user**,
+   because no frame comes inside the six seconds of a message while two reads of
+   five seconds stand before it. That is the shape of T-185 for the disk, and it is
+   the question of the next session.
+4. **A word of the log is the word of a fault that the user cannot read** (T-177).
+   Every road of this item holds a line of the log now, and the two roads of the
+   measurement held none at all.
 
-**The third item of this session is the first caller that the road of T-200
-named**: `insert_listening_session` stood behind `let _ =`, and that row is the one
-copy of the place of the user for a program that dies **and** the row that the
-line of the player of the screen reads. The key `l` with a lock of the database:
-the audio played, the row of the player said `N/A`, and the place of the whole
-playback reached no disk (T-201).
-
-**The second item of this session is the line under the line of the first one**:
-21 functions of `src/db/crud.rs` said `Ok` for a connection that they did not
-get, therefore no correction of a caller could reach them, and the key `D` of an
-episode with a lock of the database left the whole file on the disk with no row at
-all — the log said `Downloaded "Letter 45"`, the line held no mark
-`[Downloaded]`, and the offline mode of T-25 did not find that book (T-200). **A
-correction of a caller is no correction while the callee lies.**
-
-**This session took the sweep that T-198 called the cheapest one of a session —
-one line of code over the whole of `src/` — and it read that line in the other
-direction: not a body of the server, but a call of the database.** Three lines
-read a fault of the disk as a fact of the user, and the account holds them all:
-`let _ = db_insert_usr(&users)` of the login, `if let Ok(result) =
-select_default_usr()` of `Database::new`, and
-`select_every_usr().unwrap_or_default()` of the read after every key. **A second
-Toutui of one account that holds the database for six seconds is the whole
-condition**, and the fork holds that condition since T-140: the login wrote no
-row and said `Login successful`, the login screen came back with no character in
-the row of its message, a key said that the account of the user is gone while
-`select count(*) from users` said 1, and the program started itself again
-(T-199). **The condition needed no proxy of Python at all**: six lines of
-`sqlite3` with `BEGIN EXCLUSIVE`, and the busy timeout of five seconds of
-rusqlite. This prompt names the state of the program on 2026-08-14.
+This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.32**; `Cargo.toml` is at 0.8.32. The
+> AlbanDAVID/Toutui. Newest release **v0.8.33**; `Cargo.toml` is at 0.8.33. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -5534,7 +5591,7 @@ rusqlite. This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-202 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-203 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -5770,6 +5827,21 @@ rusqlite. This prompt names the state of the program on 2026-08-14.
 > the account takes `http://127.0.0.1:13508` (the trap 129), and the cache of
 > the ebooks of that account gives its copy of the book back with a `mv`.
 >
+> **A lock of the database reaches no read of the start** (the trap 161): the
+> correction of T-199 stops the program at `[main] the account of the start:
+> database is locked`, therefore a measurement of a read of the start needs a
+> **statement** that fails — `sqlite3 "$DB" "ALTER TABLE downloads RENAME COLUMN
+> downloaded_at TO downloaded_at_of_an_old_version;"` gives a database of a shape
+> that the migration does not reach, and `get_all_downloads` then fails with no
+> wait at all (T-203). **The flush of the positions of the start removes a row of
+> `pending_progress` that a measurement wrote** (the trap 162): a row of the
+> heartbeat of T-156 belongs in the disk **after** the first frame. **`set -u` and
+> `docs/harness/drive.sh` do not agree** (the trap 163): `start_the_program` reads
+> `$1` with no default. **A key that meets the lock holds two reads of five
+> seconds** (the trap 164): a poll of the disk eight seconds after that key reads
+> the files that the program removes one second later, therefore such a
+> measurement waits for the whole of the lock.
+>
 > **A second writer of the database of the program is
 > `docs/harness/hold_the_lock.py`** (T-199). **A fault of the database needs no
 > proxy and no change of the source**: the script takes the write lock of the file
@@ -5896,8 +5968,8 @@ rusqlite. This prompt names the state of the program on 2026-08-14.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1181 tests in 2.4 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1207 of 1207** with the sandbox up, in about 22 seconds. **Run that
+> Baseline: **1182 tests in 2.4 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1208 of 1208** with the sandbox up, in about 21 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -5931,7 +6003,35 @@ rusqlite. This prompt names the state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in forty-seven sessions of forty-eight. **The
+>    this shape found a fault in forty-eight sessions of forty-nine. **The session
+>    of the thirty-fifth turn took the last paragraph of the newest item and it
+>    made one item of it** (T-203): T-202 named the reads of the downloads, and the
+>    key `X` of a program that could not read its database removed the files of a
+>    book that a second program of the account played from the disk.
+>    - **A read of the disk that decides a removal must fail toward the disk of the
+>      user** (T-203). `false` of `a_program_keeps_the_place_of_this_media`, `None`
+>      of a row, and an empty list of the files each said "the user holds nothing
+>      here", and the key then took the files of the user. **Ask of a read of the
+>      disk: which road does the default of it take, and does that road destroy a
+>      thing of the user?**
+>    - **A correction of a session closes a road of a measurement too** (T-203).
+>      `hold_the_lock.py` reaches no read of the start now, because the correction
+>      of T-199 stops the program there: a read of the start needs a statement that
+>      fails. **A harness of a session can go away with the correction of the
+>      session before it.**
+>    - **A read of the disk that stands inside the render is a read of every
+>      frame** (T-203). The label `[Downloaded]` of six views comes of
+>      `get_download`, therefore a fault of it wrote a line of the log at every
+>      frame in the first form of the correction, and the read holds the thread of
+>      the screen: the sentence of the key `X` never reached the user. **That is the
+>      shape of T-185 for the disk, and it is the question of the next session:
+>      which reads of the disk stand inside the render, and what does a state of the
+>      `App` hold in their place?**
+>    - **The reads of the disk whose default is a fact of the user and that no
+>      measurement has reached**: `get_library_sort` (the sequence and the filter of
+>      the library of the user), `get_is_show_key_bindings`, `get_speed_rate` (each
+>      of them gives the string `Error: unable open database`, the other half of the
+>      sweep of T-200), and the reads of the account that give an empty text. **The
 >    session of the thirty-fourth turn took the sweep of one line of code that
 >    T-198 named, and it read that line in the other direction: the disk, and not
 >    a body of the server** (T-199). It found one fault of three roads.
@@ -6492,7 +6592,12 @@ rusqlite. This prompt names the state of the program on 2026-08-14.
 > **a read of the disk that failed is not a fact of the user: the queue of the
 > process stays and a caller that did not read the disk changes nothing, and the
 > wait of a playback waits for no loop and it says nothing when it did not read
-> the account** (T-202).
+> the account** (T-202), and **the downloads of a disk that said nothing are no
+> fact of the user: the key `X` removes no file while the program does not know
+> which program of the account holds it, a removal that did not read its database
+> is no removal, the Library view of the offline mode names the disk and not the
+> server, the label of a line says that the disk did not answer, and the render
+> reads the row of that label with no word of the log** (T-203).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

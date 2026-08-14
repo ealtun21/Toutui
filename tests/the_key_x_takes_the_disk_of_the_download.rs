@@ -21,7 +21,8 @@ use std::time::{Duration, SystemTime};
 
 use toutui::logic::download::{
     a_program_downloads, remove_download, remove_the_directory_of_the_download,
-    the_work_of_the_key_that_removes, TheAudioOfTheRemoval, TheWorkOfTheKeyThatRemoves,
+    the_work_of_the_key_that_removes, TheAudioOfTheRemoval, TheRemovalOfADownload,
+    TheWorkOfTheKeyThatRemoves,
 };
 
 const THE_USER: &str = "a user";
@@ -65,7 +66,7 @@ fn the_key_x_takes_the_disk_of_a_download_that_the_database_does_not_hold() {
     );
 
     assert_eq!(
-        the_work_of_the_key_that_removes(false, a_program_downloads(THE_KEY, THE_USER), false),
+        the_work_of_the_key_that_removes(false, a_program_downloads(THE_KEY, THE_USER), Ok(false)),
         TheWorkOfTheKeyThatRemoves::ADifferentProgramDownloads,
         "the key must take no file of a download that runs"
     );
@@ -86,13 +87,17 @@ fn the_key_x_takes_the_disk_of_a_download_that_the_database_does_not_hold() {
     );
 
     assert_eq!(
-        the_work_of_the_key_that_removes(false, a_program_downloads(THE_KEY, THE_USER), false),
+        the_work_of_the_key_that_removes(false, a_program_downloads(THE_KEY, THE_USER), Ok(false)),
         TheWorkOfTheKeyThatRemoves::TakeTheDisk
     );
 
     // 3. The key takes the disk. The database holds no row of this download,
     //    and the bytes must go away all the same.
-    let (title, of_the_audio) = remove_download(THE_KEY, THE_USER);
+    let TheRemovalOfADownload::TheDiskAndTheDatabase(title, of_the_audio) =
+        remove_download(THE_KEY, THE_USER)
+    else {
+        panic!("the database of this test answers, therefore the removal reaches the disk");
+    };
 
     assert_eq!(title, None, "the database holds no row of this download");
     assert_eq!(
@@ -107,7 +112,11 @@ fn the_key_x_takes_the_disk_of_a_download_that_the_database_does_not_hold() {
 
     // 4. A media that the disk does not hold at all gives no fault, and it
     //    gives no false sentence.
-    let (title, of_the_audio) = remove_download(THE_KEY, THE_USER);
+    let TheRemovalOfADownload::TheDiskAndTheDatabase(title, of_the_audio) =
+        remove_download(THE_KEY, THE_USER)
+    else {
+        panic!("the database of this test answers, therefore the removal reaches the disk");
+    };
     assert_eq!(title, None);
     assert_eq!(of_the_audio, TheAudioOfTheRemoval::Nothing);
     assert_eq!(remove_the_directory_of_the_download(THE_KEY, THE_USER), 0);

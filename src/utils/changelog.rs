@@ -41,6 +41,29 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.33",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key `X` removed the files of a book that a second Toutui of \
+             your account played from the disk.** That key asks the database \
+             which media of your account plays now, and a second Toutui that \
+             held the database took the answer away: the program then read \
+             \"no program plays it\", and the three files of the book went \
+             away under the ear of the user. The rows of that download stayed, \
+             and no word of the screen named the fault. The key removes no file \
+             now while the database says nothing, and it says so.",
+            "- **The offline mode said that the server gave no media while your \
+             downloads stood on the disk.** A database that did not answer the \
+             read of the downloads gave a list with no media, and the Library \
+             view named the server. The view names the database now, the log \
+             holds the fault, and the line of a media says \"the disk did not \
+             answer\" in place of nothing at all. The offline playback, the \
+             engine of the audio, the places that wait for the server, and the \
+             number of them in the header each hold the same rule.",
+        ],
+    },
+    Entry {
         version: "0.8.32",
         date: "14/08/2026",
         body: &[

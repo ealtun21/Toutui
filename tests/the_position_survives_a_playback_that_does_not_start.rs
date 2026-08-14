@@ -114,6 +114,7 @@ async fn an_engine_that_stays_at_zero_does_not_move_the_position() {
     tokio::time::sleep(tokio::time::Duration::from_millis(3500)).await;
 
     let position = get_download(ITEM, USER)
+        .expect("the program reads its database")
         .expect("the row of the download must stay")
         .1 as f64;
 
@@ -141,6 +142,7 @@ async fn an_engine_that_stays_at_zero_does_not_move_the_position() {
     tokio::time::sleep(tokio::time::Duration::from_millis(1500)).await;
 
     let position = get_download(ITEM, USER)
+        .expect("the program reads its database")
         .expect("the row of the download must stay")
         .1 as f64;
     assert!(
@@ -158,6 +160,7 @@ async fn an_engine_that_stays_at_zero_does_not_move_the_position() {
     tokio::time::sleep(tokio::time::Duration::from_millis(1500)).await;
 
     let position = get_download(ITEM, USER)
+        .expect("the program reads its database")
         .expect("the row of the download must stay")
         .1 as f64;
     assert!(

@@ -844,13 +844,40 @@ pub fn insert_download(
     Ok(())
 }
 
-// Get a downloaded item: (file_path, current_time_offline, duration, title, author) (for `downloads` table)
-pub fn get_download(id_item: &str, username: &str) -> Option<(String, u32, f64, String, String)> {
-    let conn = crate::db::migrate::open_conn().ok()?;
+/// One row of the table `downloads`, in the sequence that `get_download` gives:
+/// the path of the first file, the place of the offline playback, the length, the
+/// title, and the author.
+pub type TheRowOfADownload = (String, u32, f64, String, String);
 
+// Get a downloaded item: (file_path, current_time_offline, duration, title, author) (for `downloads` table)
+//
+/// **A read that failed is not a media with no download** (T-203). `None` of the
+/// old shape said "this account holds no copy of that media on the disk", and the
+/// key `X` then took the files of the disk with no row of the database behind
+/// them.
+pub fn get_download(id_item: &str, username: &str) -> Result<Option<TheRowOfADownload>> {
+    the_row_of_a_download(&the_connection("get_download")?, id_item, username)
+}
+
+/// Gives the row of one download for the render of a frame. See T-203.
+///
+/// **A render must write no line of the log** (T-185). The row of the detail of six
+/// views asks for this row at each frame, therefore a database that says nothing
+/// would write a line of every one of them: the keys of the disk name that fault,
+/// and this read gives it to the label of the line alone.
+pub fn get_download_of_a_frame(id_item: &str, username: &str) -> Result<Option<TheRowOfADownload>> {
+    the_row_of_a_download(&crate::db::migrate::open_conn()?, id_item, username)
+}
+
+/// The statement of the row of one download.
+fn the_row_of_a_download(
+    conn: &Connection,
+    id_item: &str,
+    username: &str,
+) -> Result<Option<TheRowOfADownload>> {
     let mut stmt = conn.prepare(
         "SELECT file_path, current_time_offline, duration, title, author FROM downloads WHERE id_item = ?1 AND username = ?2"
-    ).ok()?;
+    )?;
 
     stmt.query_row(params![id_item, username], |row| {
         Ok((
@@ -861,7 +888,7 @@ pub fn get_download(id_item: &str, username: &str) -> Option<(String, u32, f64, 
             row.get::<_, String>(4)?,
         ))
     })
-    .ok()
+    .optional()
 }
 
 // Update current_time_offline (for `downloads` table)
@@ -940,18 +967,17 @@ pub fn keep_the_files_of_the_download(
 }
 
 // Get the audio files of a downloaded item: (idx, file_path, duration) (for `download_files` table)
-// The offline player reads this list. No caller exists yet.
-#[allow(dead_code)]
-pub fn get_download_files(id_item: &str, username: &str) -> Vec<(u32, String, f64)> {
-    let Ok(conn) = crate::db::migrate::open_conn() else {
-        return Vec::new();
-    };
+//
+/// **A read that failed is not a download with no file** (T-203). An empty list
+/// said "the disk holds no file of this media": the offline playback then told the
+/// user that the disk has no copy of a book that stands on the disk, and the
+/// playback of the server took the road of the network for a book of the disk.
+pub fn get_download_files(id_item: &str, username: &str) -> Result<Vec<(u32, String, f64)>> {
+    let conn = the_connection("get_download_files")?;
 
-    let Ok(mut stmt) = conn.prepare(
+    let mut stmt = conn.prepare(
         "SELECT idx, file_path, duration FROM download_files WHERE id_item = ?1 AND username = ?2 ORDER BY idx"
-    ) else {
-        return Vec::new();
-    };
+    )?;
 
     let rows = stmt.query_map(params![id_item, username], |row| {
         Ok((
@@ -959,12 +985,9 @@ pub fn get_download_files(id_item: &str, username: &str) -> Vec<(u32, String, f6
             row.get::<_, String>(1)?,
             row.get::<_, f64>(2)?,
         ))
-    });
+    })?;
 
-    match rows {
-        Ok(rows) => rows.filter_map(|row| row.ok()).collect(),
-        Err(_) => Vec::new(),
-    }
+    Ok(rows.filter_map(|row| row.ok()).collect())
 }
 
 // Delete a downloaded item (for `downloads` and `download_files` tables)
@@ -1009,19 +1032,19 @@ pub struct DownloadRow {
 ///
 /// A row of an older version has no server, and it belongs to the server that
 /// the user has now.
-pub fn get_all_downloads(username: &str, server: &str) -> Vec<DownloadRow> {
-    let Ok(conn) = crate::db::migrate::open_conn() else {
-        return Vec::new();
-    };
+/// **A read that failed is not an account with no download** (T-203). An empty
+/// list said "this account holds no media on the disk", and the Library view of
+/// the offline mode of T-25 then said "The server gave no media: the server does
+/// not answer." for the nine downloads of the disk.
+pub fn get_all_downloads(username: &str, server: &str) -> Result<Vec<DownloadRow>> {
+    let conn = the_connection("get_all_downloads")?;
 
-    let Ok(mut stmt) = conn.prepare(
+    let mut stmt = conn.prepare(
         "SELECT id_item, title, author, file_path, duration, current_time_offline, item_id
          FROM downloads
          WHERE username = ?1 AND (server = ?2 OR server = '')
          ORDER BY downloaded_at DESC, title",
-    ) else {
-        return Vec::new();
-    };
+    )?;
 
     let rows = stmt.query_map(params![username, server], |row| {
         Ok(DownloadRow {
@@ -1033,24 +1056,21 @@ pub fn get_all_downloads(username: &str, server: &str) -> Vec<DownloadRow> {
             current_time: row.get::<_, u32>(5)?,
             item_id: row.get::<_, String>(6)?,
         })
-    });
+    })?;
 
-    match rows {
-        Ok(rows) => rows.filter_map(|row| row.ok()).collect(),
-        Err(_) => Vec::new(),
-    }
+    Ok(rows.filter_map(|row| row.ok()).collect())
 }
 
 /// Gives one download by its key.
-pub fn get_download_row(key: &str, username: &str) -> Option<DownloadRow> {
-    let conn = crate::db::migrate::open_conn().ok()?;
+///
+/// **A read that failed is not a media with no copy on the disk** (T-203).
+pub fn get_download_row(key: &str, username: &str) -> Result<Option<DownloadRow>> {
+    let conn = the_connection("get_download_row")?;
 
-    let mut stmt = conn
-        .prepare(
-            "SELECT id_item, title, author, file_path, duration, current_time_offline, item_id
+    let mut stmt = conn.prepare(
+        "SELECT id_item, title, author, file_path, duration, current_time_offline, item_id
              FROM downloads WHERE id_item = ?1 AND username = ?2",
-        )
-        .ok()?;
+    )?;
 
     stmt.query_row(params![key, username], |row| {
         Ok(DownloadRow {
@@ -1063,7 +1083,7 @@ pub fn get_download_row(key: &str, username: &str) -> Option<DownloadRow> {
             item_id: row.get::<_, String>(6)?,
         })
     })
-    .ok()
+    .optional()
 }
 
 /// One position that waits for the server.
@@ -1130,14 +1150,15 @@ pub fn insert_pending_progress(
 
 /// Gives every position that waits for the given server, with the oldest
 /// first.
-pub fn get_pending_progress(username: &str, server: &str) -> Vec<PendingProgress> {
-    let Ok(conn) = crate::db::migrate::open_conn() else {
-        return Vec::new();
-    };
+///
+/// **A read that failed is not a disk with no place that waits** (T-203). An
+/// empty list said "every place of this account reached the server already", and
+/// the flush of the positions holds the one copy of a place of a program that
+/// died (T-152 and T-188).
+pub fn get_pending_progress(username: &str, server: &str) -> Result<Vec<PendingProgress>> {
+    let conn = the_connection("get_pending_progress")?;
 
-    let Ok(mut stmt) = conn.prepare(SELECT_PENDING) else {
-        return Vec::new();
-    };
+    let mut stmt = conn.prepare(SELECT_PENDING)?;
 
     let rows = stmt.query_map(params![username, server], |row| {
         Ok(PendingProgress {
@@ -1148,12 +1169,9 @@ pub fn get_pending_progress(username: &str, server: &str) -> Vec<PendingProgress
             is_finished: row.get::<_, i64>(4)? != 0,
             updated_at: row.get::<_, i64>(5)?,
         })
-    });
+    })?;
 
-    match rows {
-        Ok(rows) => rows.filter_map(|row| row.ok()).collect(),
-        Err(_) => Vec::new(),
-    }
+    Ok(rows.filter_map(|row| row.ok()).collect())
 }
 
 /// Tells if a program of this account plays this media from the disk now. See
@@ -1169,14 +1187,19 @@ pub fn get_pending_progress(username: &str, server: &str) -> Vec<PendingProgress
 /// call of the system.
 ///
 /// `updated_at` holds milliseconds.
+///
+/// **A read that failed is not a media that no program plays** (T-203). `false`
+/// said "no program of this account holds that media", and the key `X` then took
+/// the files of the disk away from the playback of a second program: the
+/// measurement of 2026-08-14 with `docs/harness/hold_the_lock.py` removed the
+/// three files of `Multi File Test Book` while the row of the heartbeat of that
+/// media stood on the disk.
 pub fn a_program_keeps_the_place_of_this_media(
     username: &str,
     id_item: &str,
     id_pod: &str,
-) -> bool {
-    let Ok(conn) = crate::db::migrate::open_conn() else {
-        return false;
-    };
+) -> Result<bool> {
+    let conn = the_connection("a_program_keeps_the_place_of_this_media")?;
 
     let newest: Option<i64> = conn
         .query_row(
@@ -1185,16 +1208,16 @@ pub fn a_program_keeps_the_place_of_this_media(
             params![username, id_item, id_pod],
             |row| row.get(0),
         )
-        .ok()
+        .optional()?
         .flatten();
 
     let Some(newest) = newest else {
-        return false;
+        return Ok(false);
     };
 
     let limit = the_moment_of_now().saturating_sub(THE_LIMIT_OF_THE_HEARTBEAT as i64) * 1000;
 
-    newest >= limit
+    Ok(newest >= limit)
 }
 
 /// Removes a position that the server has now.
@@ -1212,18 +1235,21 @@ pub fn delete_pending_progress(username: &str, id_item: &str, id_pod: &str) -> R
 }
 
 /// Gives the number of positions that wait for the given server.
-pub fn count_pending_progress(username: &str, server: &str) -> usize {
-    let Ok(conn) = crate::db::migrate::open_conn() else {
-        return 0;
-    };
+///
+/// **A read that failed is not a count of 0** (T-203). The header of the offline
+/// mode says "N positions wait", and a count of 0 takes those words away: the
+/// user then reads that every place reached the server.
+pub fn count_pending_progress(username: &str, server: &str) -> Result<usize> {
+    let conn = the_connection("count_pending_progress")?;
 
-    conn.query_row(
+    let count = conn.query_row(
         "SELECT COUNT(*) FROM pending_progress
          WHERE username = ?1 AND (server = ?2 OR server = '')",
         params![username, server],
         |row| row.get::<_, i64>(0),
-    )
-    .unwrap_or(0) as usize
+    )?;
+
+    Ok(count as usize)
 }
 
 #[cfg(test)]

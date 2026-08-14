@@ -117,7 +117,8 @@ async fn the_three_views_of_the_start_say_that_the_request_came_back_with_a_faul
     let of_the_items =
         the_fault_of(the_library, TheRequest::Items).expect("the box holds the fault of the items");
 
-    let text = the_text_of_the_library_view_with_no_line(false, false, false, Some(&of_the_items));
+    let text =
+        the_text_of_the_library_view_with_no_line(false, false, false, false, Some(&of_the_items));
 
     assert!(
         text.starts_with("The server did not give the media of this library:"),

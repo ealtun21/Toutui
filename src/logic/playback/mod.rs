@@ -44,6 +44,17 @@ const SYNC_PERIOD: u64 = 10;
 /// report `dd9a649`.
 const START_TIME_LIMIT: u64 = 30;
 
+/// The sentence of a playback of the disk that the database of the program
+/// stopped. See T-203.
+///
+/// **The words name the thing that failed** (T-91 and T-199). The three faults of
+/// the offline playback said "the disk has no copy of this media" and "the disk
+/// does not hold every file of this media" for a media of the disk that the program
+/// did not read, and a second Toutui of this account makes that condition (T-140).
+const THE_DATABASE_OF_THE_PROGRAM_SAID_NOTHING: &str =
+    "The program did not read the copy of the disk in its database. \
+     Stop a second Toutui, and press the key again.";
+
 /// What the user selected.
 #[derive(Debug, Clone, PartialEq)]
 pub enum PlaybackTarget {
@@ -1168,7 +1179,22 @@ async fn play_offline(
     // The download of an episode has the identity of the episode.
     let key = target.episode_id().unwrap_or(&selected).to_string();
 
-    let Some(row) = get_download_row(&key, &username) else {
+    // **A read of the disk that failed is not a media with no copy on the disk**
+    // (T-203). The words of a program that did not read its own database name the
+    // database, and not the disk of the user (T-91 and T-199).
+    let row = match get_download_row(&key, &username) {
+        Ok(row) => row,
+        Err(error) => {
+            error!(
+                "[play] the program did not read the row of the download {}: {}",
+                key, error
+            );
+            crate::logic::message::say(THE_DATABASE_OF_THE_PROGRAM_SAID_NOTHING);
+            return Outcome::Fault;
+        }
+    };
+
+    let Some(row) = row else {
         error!("[play] the disk has no copy of {}", key);
         crate::logic::message::say(
             "The server does not answer, and the disk has no copy of this media.",
@@ -1176,7 +1202,19 @@ async fn play_offline(
         return Outcome::Fault;
     };
 
-    let Some(tracks) = tracks_from_downloads(&key, &username) else {
+    let tracks = match tracks_from_downloads(&key, &username) {
+        Ok(tracks) => tracks,
+        Err(error) => {
+            error!(
+                "[play] the program did not read the files of the download {}: {}",
+                key, error
+            );
+            crate::logic::message::say(THE_DATABASE_OF_THE_PROGRAM_SAID_NOTHING);
+            return Outcome::Fault;
+        }
+    };
+
+    let Some(tracks) = tracks else {
         error!("[play] the disk has no audio file of {}", key);
         crate::logic::message::say(
             "The server does not answer, and the disk has no audio file of this media.",
@@ -1188,11 +1226,26 @@ async fn play_offline(
         .filter_map(|index| tracks.get(index).cloned())
         .collect();
 
+    // **The program reads the files of the download one time.** The old shape read
+    // the disk for each track, and a read that failed then said that the disk does
+    // not hold every file of the media (T-203).
+    let files = match get_download_files(&key, &username) {
+        Ok(files) => files,
+        Err(error) => {
+            error!(
+                "[play] the program did not read the files of the download {}: {}",
+                key, error
+            );
+            crate::logic::message::say(THE_DATABASE_OF_THE_PROGRAM_SAID_NOTHING);
+            return Outcome::Fault;
+        }
+    };
+
     let sources: Vec<TrackSource> = track_list
         .iter()
         .filter_map(|track| {
-            get_download_files(&key, &username)
-                .into_iter()
+            files
+                .iter()
                 .find(|(index, _, _)| *index == track.index)
                 .map(|(_, path, _)| TrackSource::Local(std::path::PathBuf::from(path)))
         })

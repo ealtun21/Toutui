@@ -153,7 +153,7 @@ async fn the_flush_writes_no_position_that_it_did_not_read() {
     );
 
     assert_eq!(
-        get_pending_progress(THE_ACCOUNT, THE_SERVER).len(),
+        get_pending_progress(THE_ACCOUNT, THE_SERVER).unwrap().len(),
         1,
         "the row of the disk is the one copy of an offline playback (T-152), \
          therefore a fault of the read must keep it"
@@ -207,7 +207,7 @@ async fn the_flush_writes_no_position_that_it_did_not_read() {
     );
 
     assert_eq!(
-        get_pending_progress(THE_ACCOUNT, THE_SERVER).len(),
+        get_pending_progress(THE_ACCOUNT, THE_SERVER).unwrap().len(),
         1,
         "the row of the disk waits for a moment that the program can compare"
     );
@@ -284,7 +284,9 @@ async fn the_flush_writes_no_position_that_it_did_not_read() {
     );
 
     assert!(
-        get_pending_progress(THE_ACCOUNT, THE_SERVER).is_empty(),
+        get_pending_progress(THE_ACCOUNT, THE_SERVER)
+            .unwrap()
+            .is_empty(),
         "a position that the server took leaves the disk"
     );
 
@@ -316,7 +318,9 @@ async fn the_flush_writes_no_position_that_it_did_not_read() {
     );
 
     assert!(
-        get_pending_progress(THE_ACCOUNT, THE_SERVER).is_empty(),
+        get_pending_progress(THE_ACCOUNT, THE_SERVER)
+            .unwrap()
+            .is_empty(),
         "a position that the server took leaves the disk"
     );
 }

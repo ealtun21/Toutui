@@ -8632,6 +8632,138 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-203: the downloads of a disk that said nothing became a fact of the user
+
+**T-202 gave the fault of the disk to three reads of the queue and of the
+account, and it named the reads of the downloads as the question of the next
+session.** Seven reads of `src/db/crud.rs` held that shape, and each of them gave
+a **fact of the user**: `get_all_downloads`, `get_download`, `get_download_row`,
+`get_download_files`, `get_pending_progress`, `count_pending_progress`, and
+`a_program_keeps_the_place_of_this_media`.
+
+#### The measurement of 2026-08-14, the first road: the key `X`
+
+The condition is `docs/harness/hold_the_lock.py` and one row of the database
+(T-188): a row of `pending_progress` of this second is the heartbeat of an offline
+playback of a second program of this account (T-152 and T-156).
+
+```bash
+sqlite3 "$DB" "INSERT OR REPLACE INTO pending_progress (...) VALUES
+    ('ac365248-...','toutuitest','http://localhost:13399','',12.0,600.0,0,$now_ms);"
+python3 docs/harness/hold_the_lock.py "$DB" 70 &
+```
+
+| The key `X` on `Multi File Test Book` | The program of v0.8.32 |
+|---|---|
+| With no lock | `A program of this account plays "Multi File Test Book" from the disk now.` |
+| With the lock | **the three files of the book went away** |
+
+```text
+[ERROR] - [delete_download] the program did not open its database: database is locked
+[INFO]  - [remove_download] the application removed 481839 bytes of the download ac365248-...
+```
+
+**The rows of that download stayed on the disk**, because the write of
+`delete_download` failed after the files went away (T-200): the offline mode then
+names a media that holds no file. **No word of the screen named the fault**, and
+the row of the detail said no `[Downloaded]` for every media of the account,
+because the render reads `get_download` at each frame.
+
+#### The measurement of 2026-08-14, the second road: the offline mode
+
+**The lock reaches no read of the start** (the trap 161): the read of the accounts
+of `main` stands before them, and the correction of T-199 stops the program there
+with `[main] the account of the start: database is locked`. A read of the start
+therefore needs a **statement** that fails, and a database of a shape that the
+migration does not reach gives one with no wait:
+
+```bash
+sqlite3 "$CONF/toutui/db.sqlite3" \
+    "ALTER TABLE downloads RENAME COLUMN downloaded_at TO downloaded_at_of_an_old_version;"
+```
+
+The nine downloads of the disk stood in the database, the server was away
+(`podman stop -t 0 abs-test`), and the Library view of the offline mode of T-25
+said
+
+```text
+The server gave no media: the server does not answer.
+A media of the disk plays in this mode. Press R when the server answers again.
+```
+
+**The view said a reason that the program does not have** (T-91 and T-172), and
+**no line of the log named the fault at all** (the shape of T-174).
+
+#### The correction
+
+**A read of the disk that failed is not a fact of the user.** The seven reads give
+a fault now, and each caller takes the road of its own condition:
+
+1. **The key `X` removes nothing.** `the_work_of_the_key_that_removes` takes
+   `Result<bool, ()>`, and a read that failed gives
+   `TheWorkOfTheKeyThatRemoves::TheDatabaseDidNotAnswer`: the program does not know
+   which program of this account holds those files, therefore the rule of T-156
+   keeps every one of them. The sentence names the database, the disk, and the key
+   of the work: `The program did not read its database for "...". It removed no
+   file. Press X again.`
+2. **A removal that did not read its database is no removal.**
+   `remove_download` gives `TheRemovalOfADownload`, and the road
+   `TheDatabaseSaidNothing` stands before the first `remove_file`. The road
+   `TheRowsOfTheDatabaseStay` is the one condition where the files and the rows part
+   (T-200): the files went away and the write failed after them, therefore the
+   sentence names the row of that download and the key that removes it.
+3. **The Library view of the offline mode names the disk**, and not the server:
+   `THE_LIBRARY_WITH_NO_MEDIA_OF_THE_DISK` stands before every other condition of
+   `the_text_of_the_library_view_with_no_line`, and the log holds the fault.
+4. **The label of the copy of the disk holds three roads** (T-203):
+   `the_label_of_the_copy_of_the_disk` gives `[Downloaded]`, nothing, or
+   `[the disk did not answer]`. The eight calls of the render of `src/ui/tui.rs`
+   take one function now, and that function reads `get_download_of_a_frame`:
+   **a render must write no line of the log at each frame** (T-185).
+5. **The offline playback says that the program did not read its database**, and
+   not that the disk holds no copy: the three faults of `play_offline` name the
+   thing that failed (T-91 and T-199), and the program reads the files of the
+   download one time and not one time for each track.
+6. **The engine of an online playback takes the stream of the server** when the
+   read of the files failed, and it names that read in the log: the user hears the
+   book, and no key of the user waits for that read (T-177).
+7. **Every place of the disk waits for the next attempt** (T-189) when the flush
+   did not read the rows, and the task of every 30 seconds asks the disk again.
+8. **The header of the offline mode names no number of the positions that wait**
+   when the count failed: `waiting_progress` is an `Option<usize>` now, because a
+   count of 0 says that every place of the user reached the server.
+
+#### The test
+
+`tests/the_downloads_of_a_disk_that_said_nothing.rs` holds one function, and the
+condition is a file that holds no database (T-200). **The build of the fault** (the
+trap 147): `.unwrap_or(false)` on the read of the key `X` gives `TakeTheDisk` for a
+database that says nothing, and `Err(_) => None` in `remove_download` takes the
+file of the disk away — the test says both.
+
+#### What this item leaves open
+
+**A word of a key that meets the database cannot reach the user while a second
+program holds that database** (T-202, and the measurement of this item). The
+sentence of the key `X` never came to the screen: the key waits five seconds for
+its read, the message lives six seconds, and **the render itself waits five seconds
+for the row of the label of the disk**, therefore no frame comes inside the life of
+that message. The log holds every fault of this item.
+
+**The next shape is a read of the disk that the render asks for at each frame.**
+The row of the detail of six views reads the table `downloads` 60 times a second,
+and that read holds the thread of the screen: the shape of T-185 (a value of the
+server that the render asks for at each frame) stands for the **disk** too. The
+question of the next session: **which reads of the disk stand inside the render,
+and what does a state of the `App` hold in their place?**
+
+**The reads of the disk whose default is a fact of the user, and that no
+measurement has reached**: `get_library_sort` (three empty texts are "this account
+wrote no sequence and no filter", therefore the Library view of the user takes the
+sequence of the server), `get_is_show_key_bindings` and `get_speed_rate` (the
+string `Error: unable open database` of T-200), and the reads of the account of
+`src/db/crud.rs` that give `String::new()`.
+
 ### T-202: a read of the disk that failed became a fact of the user
 
 **T-200 gave the fault of the disk to the writes of the module of the database,

@@ -147,7 +147,7 @@ async fn the_place_of_a_session_that_the_server_refused_stays_on_the_disk() {
     )
     .await;
 
-    let waiting = get_pending_progress(THE_ACCOUNT, THE_SERVER);
+    let waiting = get_pending_progress(THE_ACCOUNT, THE_SERVER).unwrap();
 
     assert_eq!(
         waiting.len(),
@@ -185,7 +185,9 @@ async fn the_place_of_a_session_that_the_server_refused_stays_on_the_disk() {
     .await;
 
     assert!(
-        get_pending_progress(THE_ACCOUNT, THE_SERVER).is_empty(),
+        get_pending_progress(THE_ACCOUNT, THE_SERVER)
+            .unwrap()
+            .is_empty(),
         "the server does not hold this media, therefore its place waits for \
          nothing"
     );
@@ -227,7 +229,7 @@ async fn the_place_of_a_session_that_the_server_refused_stays_on_the_disk() {
     assert_eq!(sent, 0, "the server did not take the position");
 
     assert_eq!(
-        get_pending_progress(THE_ACCOUNT, THE_SERVER).len(),
+        get_pending_progress(THE_ACCOUNT, THE_SERVER).unwrap().len(),
         1,
         "a write that came back with the status 500 keeps the row: the task of \
          the flush tries again every 30 seconds"

@@ -556,10 +556,42 @@ pub const THE_LIBRARY_OF_PODCASTS_WITH_NO_MEDIA: &str = "This library holds no p
 pub const THE_LIBRARY_WITH_A_FILTER: &str = "No media of this library agrees with the filter.\n\
      Press f for the sequence and the filter.";
 
+/// The text of the Library view of the offline mode with a database that gave no
+/// media of the disk. See T-203.
+pub const THE_LIBRARY_WITH_NO_MEDIA_OF_THE_DISK: &str =
+    "The program did not read the media of the disk in its database.\n\
+     Press R to try again.";
+
 /// The text of the Library view with a server that does not answer. See T-103.
 pub const THE_LIBRARY_WITH_NO_ANSWER: &str =
     "The server gave no media: the server does not answer.\n\
      A media of the disk plays in this mode. Press R when the server answers again.";
+
+/// The label of a media that stands on the disk of this account.
+pub const THE_COPY_OF_THE_DISK: &str = " - [Downloaded]";
+
+/// The label of a media whose copy on the disk the program did not read. See
+/// T-203.
+pub const THE_DISK_DID_NOT_ANSWER: &str = " - [the disk did not answer]";
+
+/// Gives the label of the copy of the disk of one media. See T-203.
+///
+/// **A read of the disk that failed is not a media with no copy on the disk.**
+/// The row of the detail of six views reads the table `downloads` at each frame,
+/// and it held `is_some()` of that read: a database that says nothing then took
+/// the label of every copy of the disk away, and the user read the line of a media
+/// that the program did not measure.
+///
+/// `None` is a read that gave no answer. That row holds no key of the user,
+/// therefore it takes no line of the log at each frame: the keys of the disk say
+/// the fault (T-177 and T-185).
+pub fn the_label_of_the_copy_of_the_disk(a_copy_stands_on_the_disk: Option<bool>) -> &'static str {
+    match a_copy_stands_on_the_disk {
+        Some(true) => THE_COPY_OF_THE_DISK,
+        Some(false) => "",
+        None => THE_DISK_DID_NOT_ANSWER,
+    }
+}
 
 /// Gives the text of the Home view that holds no line. See T-103.
 ///
@@ -597,10 +629,20 @@ pub fn the_text_of_the_home_view_with_no_line(
 /// library itself, because the library holds media in that condition.
 pub fn the_text_of_the_library_view_with_no_line(
     is_offline: bool,
+    the_disk_did_not_answer: bool,
     a_filter_is_on: bool,
     is_podcast: bool,
     what_the_server_said: Option<&str>,
 ) -> String {
+    // **A read of the disk that failed comes before every other condition**
+    // (T-203). The offline mode of T-25 holds the media of the disk alone, and
+    // this view said "The server gave no media: the server does not answer." for
+    // the nine downloads that stood on the disk of the measurement: the program
+    // names the thing that failed (T-91 and T-172).
+    if the_disk_did_not_answer {
+        return THE_LIBRARY_WITH_NO_MEDIA_OF_THE_DISK.to_string();
+    }
+
     if is_offline {
         return THE_LIBRARY_WITH_NO_ANSWER.to_string();
     }
@@ -631,6 +673,7 @@ pub const THE_TEXTS_OF_THE_VIEWS: &[&str] = &[
     THE_LIBRARY_OF_PODCASTS_WITH_NO_MEDIA,
     THE_LIBRARY_WITH_A_FILTER,
     THE_LIBRARY_WITH_NO_ANSWER,
+    THE_LIBRARY_WITH_NO_MEDIA_OF_THE_DISK,
     THE_ACCOUNTS,
     THE_LIBRARIES,
     THE_CACHE_OF_THE_EBOOKS,
@@ -1134,22 +1177,22 @@ mod tests {
         // A server that does not answer comes before every other reason, and
         // before the filter too.
         assert_eq!(
-            the_text_of_the_library_view_with_no_line(true, true, true, None),
+            the_text_of_the_library_view_with_no_line(true, false, true, true, None),
             THE_LIBRARY_WITH_NO_ANSWER
         );
 
         // The filter comes before the library, because the library holds media.
         assert_eq!(
-            the_text_of_the_library_view_with_no_line(false, true, false, None),
+            the_text_of_the_library_view_with_no_line(false, false, true, false, None),
             THE_LIBRARY_WITH_A_FILTER
         );
 
         assert_eq!(
-            the_text_of_the_library_view_with_no_line(false, false, true, None),
+            the_text_of_the_library_view_with_no_line(false, false, false, true, None),
             THE_LIBRARY_OF_PODCASTS_WITH_NO_MEDIA
         );
         assert_eq!(
-            the_text_of_the_library_view_with_no_line(false, false, false, None),
+            the_text_of_the_library_view_with_no_line(false, false, false, false, None),
             THE_LIBRARY_WITH_NO_MEDIA
         );
 
@@ -1165,8 +1208,13 @@ mod tests {
         );
         assert!(text.contains("Status 500."), "{}", text);
 
-        let text =
-            the_text_of_the_library_view_with_no_line(false, true, false, Some("Status 500."));
+        let text = the_text_of_the_library_view_with_no_line(
+            false,
+            false,
+            true,
+            false,
+            Some("Status 500."),
+        );
 
         assert!(
             text.starts_with("The server did not give the media of this library:"),
@@ -1188,7 +1236,13 @@ mod tests {
         // The server that does not answer stands above them all: no request
         // went at all in that mode (T-25).
         assert_eq!(
-            the_text_of_the_library_view_with_no_line(true, false, false, Some("Status 500.")),
+            the_text_of_the_library_view_with_no_line(
+                true,
+                false,
+                false,
+                false,
+                Some("Status 500.")
+            ),
             THE_LIBRARY_WITH_NO_ANSWER
         );
 

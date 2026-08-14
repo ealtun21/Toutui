@@ -75,7 +75,7 @@ async fn a_program_that_dies_offline_keeps_the_position_for_the_server() {
 
     // No position waits before the playback.
     assert!(
-        get_pending_progress(USER, SERVER).is_empty(),
+        get_pending_progress(USER, SERVER).unwrap().is_empty(),
         "the test must start with no position that waits"
     );
 
@@ -118,7 +118,7 @@ async fn a_program_that_dies_offline_keeps_the_position_for_the_server() {
     loop_of_the_book.abort();
     tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
 
-    let waiting = get_pending_progress(USER, SERVER);
+    let waiting = get_pending_progress(USER, SERVER).unwrap();
 
     assert_eq!(
         waiting.len(),
