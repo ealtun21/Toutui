@@ -81,35 +81,45 @@ pub fn the_files_that_stand_on_the_disk(
     files
         .into_iter()
         .filter_map(|(index, path, duration, size)| {
-            let Ok(data) = std::fs::metadata(&path) else {
-                warn!(
-                    "[offline] the file {} of the number {} of a download went away. \
-                     That copy of the disk is not whole.",
-                    path, index
-                );
-
-                return None;
-            };
-
-            // **A size of 0 is a size that the server did not give** (T-179), and a
-            // row of an older version of the program holds that value too. The
-            // program has no length of that file, therefore the file stands.
-            if size != 0 && data.len() != size {
-                warn!(
-                    "[offline] the file {} of the number {} of a download holds {} byte(s), \
-                     and its row says {}. That copy of the disk is not whole.",
-                    path,
-                    index,
-                    data.len(),
-                    size
-                );
-
-                return None;
-            }
-
-            Some((index, path, duration))
+            the_file_stands_on_the_disk(index, &path, size).then_some((index, path, duration))
         })
         .collect()
+}
+
+/// Says whether one file of a download stands on the disk with the bytes of its
+/// row. See T-215 and T-216.
+///
+/// **A size of 0 is a size that the server did not give** (T-179), and a row of an
+/// older version of the program holds that value too. The program has no length of
+/// such a file, therefore that file stands.
+///
+/// The line of the log names the file, because no view of the user holds that
+/// fault (T-177): the media plays, and it plays from the server.
+pub fn the_file_stands_on_the_disk(index: u32, path: &str, size: u64) -> bool {
+    let Ok(data) = std::fs::metadata(path) else {
+        warn!(
+            "[offline] the file {} of the number {} of a download went away. \
+             That copy of the disk is not whole.",
+            path, index
+        );
+
+        return false;
+    };
+
+    if size != 0 && data.len() != size {
+        warn!(
+            "[offline] the file {} of the number {} of a download holds {} byte(s), \
+             and its row says {}. That copy of the disk is not whole.",
+            path,
+            index,
+            data.len(),
+            size
+        );
+
+        return false;
+    }
+
+    true
 }
 
 /// Makes the track list of a local copy.

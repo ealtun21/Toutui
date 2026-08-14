@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.47",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The label `[Downloaded]` stayed on a media whose copy on the disk \
+             is not whole.** Toutui reads the rows of its database to find the \
+             copies of the disk, and a row is no file: a book that lost one of its \
+             files, or one whose file lost some of its bytes, kept that label while \
+             every playback of it took the road of the server. The line of such a \
+             media says \"the disk does not hold every file\" now. Toutui asks the \
+             file system at the start, at the key `R`, at the end of a download, \
+             and at the key `X`, therefore the screen reads no disk.",
+        ],
+    },
+    Entry {
         version: "0.8.46",
         date: "14/08/2026",
         body: &[

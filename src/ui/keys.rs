@@ -623,6 +623,14 @@ pub const THE_SEQUENCE_DID_NOT_REACH_THE_DISK: &str =
 /// T-203.
 pub const THE_DISK_DID_NOT_ANSWER: &str = " - [the disk did not answer]";
 
+/// The label of a media whose copy of the disk is not whole. See T-217.
+///
+/// **The label `[Downloaded]` of such a media said a copy that no playback of it
+/// takes** (T-215 and T-216): the disk holds the rows of that download and not
+/// every file of it, therefore the media plays from the server and the offline
+/// mode of it plays nothing. The key `D` writes the files that went away again.
+pub const THE_COPY_THAT_IS_NOT_WHOLE: &str = " - [the disk does not hold every file]";
+
 /// Gives the label of the copy of the disk of one media. See T-203.
 ///
 /// **A read of the disk that failed is not a media with no copy on the disk.**
@@ -634,11 +642,19 @@ pub const THE_DISK_DID_NOT_ANSWER: &str = " - [the disk did not answer]";
 /// `None` is a read that gave no answer. That row holds no key of the user,
 /// therefore it takes no line of the log at each frame: the keys of the disk say
 /// the fault (T-177 and T-185).
-pub fn the_label_of_the_copy_of_the_disk(a_copy_stands_on_the_disk: Option<bool>) -> &'static str {
-    match a_copy_stands_on_the_disk {
-        Some(true) => THE_COPY_OF_THE_DISK,
-        Some(false) => "",
-        None => THE_DISK_DID_NOT_ANSWER,
+pub fn the_label_of_the_copy_of_the_disk(
+    the_copy_of_the_disk: crate::logic::the_copies_of_the_disk::TheCopyOfTheDisk,
+) -> &'static str {
+    use crate::logic::the_copies_of_the_disk::TheCopyOfTheDisk;
+
+    match the_copy_of_the_disk {
+        TheCopyOfTheDisk::AWholeCopy => THE_COPY_OF_THE_DISK,
+        // **A copy of the disk that is not whole is no copy of the disk**
+        // (T-215, T-216, and T-217). The playback of that media takes the road
+        // of the server, therefore the line says what the disk holds.
+        TheCopyOfTheDisk::ACopyThatIsNotWhole => THE_COPY_THAT_IS_NOT_WHOLE,
+        TheCopyOfTheDisk::NoCopy => "",
+        TheCopyOfTheDisk::TheDiskDidNotAnswer => THE_DISK_DID_NOT_ANSWER,
     }
 }
 

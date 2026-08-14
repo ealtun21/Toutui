@@ -166,17 +166,24 @@ fn the_downloads_of_a_disk_that_said_nothing_are_no_fact_of_the_user() {
     // The row of the detail of the views reads the table `downloads` at each
     // frame, and the label of a read that failed says nothing of a media with no
     // copy on the disk.
+    use toutui::logic::the_copies_of_the_disk::TheCopyOfTheDisk;
+
     assert_eq!(
-        toutui::ui::keys::the_label_of_the_copy_of_the_disk(None),
+        toutui::ui::keys::the_label_of_the_copy_of_the_disk(TheCopyOfTheDisk::TheDiskDidNotAnswer),
         toutui::ui::keys::THE_DISK_DID_NOT_ANSWER
     );
     assert_eq!(
-        toutui::ui::keys::the_label_of_the_copy_of_the_disk(Some(true)),
+        toutui::ui::keys::the_label_of_the_copy_of_the_disk(TheCopyOfTheDisk::AWholeCopy),
         toutui::ui::keys::THE_COPY_OF_THE_DISK
     );
     assert_eq!(
-        toutui::ui::keys::the_label_of_the_copy_of_the_disk(Some(false)),
+        toutui::ui::keys::the_label_of_the_copy_of_the_disk(TheCopyOfTheDisk::NoCopy),
         ""
+    );
+    // **A copy of the disk that is not whole is no copy of the disk** (T-217).
+    assert_eq!(
+        toutui::ui::keys::the_label_of_the_copy_of_the_disk(TheCopyOfTheDisk::ACopyThatIsNotWhole),
+        toutui::ui::keys::THE_COPY_THAT_IS_NOT_WHOLE
     );
 
     // **No unit test reaches a key handler of `src/app.rs`**, therefore this part

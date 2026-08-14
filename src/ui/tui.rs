@@ -359,7 +359,7 @@ fn at_number_part(list: &[Vec<f64>], index: usize, part: usize) -> f64 {
 /// disk, and the program reads the disk at the moments that it needs it.
 fn the_copy_of_the_disk(key: &str) -> &'static str {
     crate::ui::keys::the_label_of_the_copy_of_the_disk(
-        crate::logic::the_copies_of_the_disk::a_copy_stands_on_the_disk(key),
+        crate::logic::the_copies_of_the_disk::the_copy_of_this_media(key),
     )
 }
 

@@ -8632,6 +8632,102 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-217: the label of a media whose copy of the disk is not whole
+
+**The item before this one named the road in its "leaves open"**, and this one
+took it (the rule of T-195, of T-209, of T-211, of T-213, of T-215, and of
+T-216): "the label `[Downloaded]` of a media whose copy is not whole says nothing
+of that. The box of the copies of the disk of T-204 is the place of that read."
+
+**The shape of this item is a correction of the playback that no line of the
+screen followed.** T-215 and T-216 gave the two callers of `download_files` the
+question of the disk, and the label of the line kept the rows: the program then
+played a book from the **server** and it said that the book stands on the disk.
+
+#### The condition
+
+**The condition of T-216, and the key of a view that holds a line of that media.**
+The book is `Multi File Test Book` of the sandbox, and the second of its three
+files goes to half of its bytes:
+
+```bash
+truncate -s 80000 "$ABS/toutui-data/toutui/downloads/toutuitest/<the id>/002 - 02 - Part 2.mp3"
+```
+
+#### The measurement of 2026-08-14, of the real program of the sandbox
+
+**v0.8.46**, the view of a search of the Library view:
+
+```text
+➤ Multi File Test Book
+Author: Test Author - Year: N/A - [Downloaded]
+```
+
+```text
+22:39:01 [INFO] [play] the download ac365248-… gives 0 of 3 track(s) from the disk
+```
+
+**The line said that the disk holds the book, and the program read the book of the
+server.** The offline mode of that same media says "The disk does not hold every
+file of this media." and it plays nothing at all: the label therefore stood
+against the two roads of the playback.
+
+**v0.8.47**, the same view and the same file:
+
+```text
+➤ Multi File Test Book
+Author: Test Author - Year: N/A - [the disk does not hold every file]
+```
+
+The bytes came back, the key `R` read the disk again, and the line said
+`[Downloaded]`.
+
+#### The correction
+
+The box of `crate::logic::the_copies_of_the_disk` holds four states of a media
+now (`TheCopyOfTheDisk`), and `read_the_disk` asks the file system for every file
+of every download of the account: one statement of the database
+(`the_files_of_the_downloads`) and one `metadata` of each file. **That work stands
+outside the render** (T-204): the program calls it at the start, at the key `R`,
+at the end of a download, and at the key `X`.
+
+**A download with no row of a file is a copy that is not whole** (T-214): no
+second of that media plays from the disk.
+
+The measurement of the sandbox of nine downloads and eleven files wrote **one**
+line of the log, and the eight other downloads kept the label `[Downloaded]`.
+
+| the condition | v0.8.46 | v0.8.47 |
+|---|---|---|
+| a file of the book at half of its bytes | `[Downloaded]` | `[the disk does not hold every file]` |
+| a file of the book that went away | `[Downloaded]` | `[the disk does not hold every file]` |
+| the bytes come back, and the key `R` | `[Downloaded]` | `[Downloaded]` |
+| a download with no row of a file | `[Downloaded]` | `[the disk does not hold every file]` |
+| the database said nothing | `[the disk did not answer]` | `[the disk did not answer]` |
+
+`tests/the_label_of_a_copy_of_the_disk_that_is_not_whole.rs` holds the roads in
+one function (T-144 and T-157), and it needs no sandbox and no server.
+
+#### What this item leaves open
+
+**The label of a media whose copy of the disk a second program of the account
+writes now** is the label of a copy that is not whole for the time of that
+download: the `.part` of it holds fewer bytes than the row, and the rows of the
+files stand already. The key `D` of T-154 names that program, and the line of the
+media says the disk of this moment. **The question is whether the label of a
+download that runs belongs to the bar of that download**, which the view of the
+downloads holds already.
+
+**The label reads the file system at four moments, and the playback reads it at
+the moment of the use.** A file that goes away between two of those moments
+therefore gives a line that says `[Downloaded]` and a playback of the server, and
+that is the decision of T-204: no word of the screen is worth the thread of the
+screen.
+
+**The offline playback of a media whose copy is not whole plays nothing** (T-215
+left it open, and it stays open). The sentence of it is true, and the user hears
+no second of the files that stand.
+
 ### T-216: a file of the disk that is not the file of its row is no file of the download
 
 **The item before this one named the road in its "leaves open"**, and this one

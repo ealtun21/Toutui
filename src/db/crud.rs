@@ -891,6 +891,36 @@ pub fn the_keys_of_the_downloads(username: &str) -> Result<Vec<String>> {
     Ok(rows.filter_map(|row| row.ok()).collect())
 }
 
+/// Gives the file of each download of one account: the key, the path, and the
+/// size of the row. See T-217.
+///
+/// **The box of the copies of the disk needs the files of every download, and not
+/// the key of each download alone** (T-215 and T-216): a copy of the disk that
+/// lost a file is no copy of the disk, and the label of the line said
+/// `[Downloaded]` for it. One statement holds every row of the account, therefore
+/// the box asks the database one time and it then asks the file system.
+pub fn the_files_of_the_downloads(username: &str) -> Result<Vec<(String, u32, String, u64)>> {
+    let conn = the_connection("the_files_of_the_downloads")?;
+
+    let mut stmt = conn.prepare(
+        "SELECT id_item, idx, file_path, size FROM download_files WHERE username = ?1 ORDER BY id_item, idx"
+    )?;
+
+    let rows = stmt.query_map(params![username], |row| {
+        Ok((
+            row.get::<_, String>(0)?,
+            row.get::<_, u32>(1)?,
+            row.get::<_, String>(2)?,
+            // A size of the server is no negative number, and a row of an older
+            // version holds 0: that value says "the program has no size of this
+            // file" (T-179 and T-216).
+            row.get::<_, i64>(3)?.max(0) as u64,
+        ))
+    })?;
+
+    Ok(rows.filter_map(|row| row.ok()).collect())
+}
+
 /// The statement of the row of one download.
 fn the_row_of_a_download(
     conn: &Connection,
