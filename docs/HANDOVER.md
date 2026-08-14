@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.16.** The item T-185 belongs to this session. The
-items T-183 and T-184 belong to the session before it.
+**The newest release is v0.8.17.** The item T-186 belongs to this session. The
+item T-185 belongs to the session before it, and the
+items T-183 and T-184 to the session before that one.
 The item T-182 belongs to the session before that one.
 The item T-181 belongs to the session before that one.
 The item T-180 belongs to the session before that one.
@@ -31,6 +32,95 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the twenty-sixth turn of 2026-08-14: the part of a book that held the name of a whole book
+
+**One release: v0.8.17.** The session before this one left no item open, and it
+named the sweep of this one: **the values of the server that this program keeps
+on the disk**. The store of the covers of T-185 lives in the memory of the
+process and the key `R` empties it; the disk holds three values that no such key
+reaches — the file of an ebook, the files of a download, and the row of the
+position. This session took the first of them, and it found a shorter road to the
+same fault than the road that the handover named.
+
+| Item | What | Where |
+|---|---|---|
+| T-186 | **A part of a book held the name of a whole book, for ever.** `download_to_file` made the file with the name of the whole book at the first byte. A body of an answer that stopped in the middle left 60000 bytes of an EPUB of 136761 under `<the item>.epub`, and `get_the_ebook_of` says `if path.exists() { return Ok(path) }`: the key `e` after it made **no request of the server** and the program said "This file is not an EPUB." for a book that the server holds whole. **A new program of the whole server said the same words.** The name of the whole file comes after the flush now, and a download that fails leaves no part behind it. The key `X` holds a `.part` of a program that died in the middle | `src/api/client/mod.rs`, `src/logic/reader/session.rs` |
+
+The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-186. Five things are
+worth the room here:
+
+1. **The road named the file of the same `ino` whose bytes the server changed, and
+   the measurement found the bytes that the program itself wrote.** The question
+   of a value of the disk is not the value of the server alone: it is **who wrote
+   that file, and whether the write finished**. A road of the sweep that needs a
+   server of another state is a longer road than a road of the fault of the
+   network.
+2. **A fault of a status is not a fault of a body.** `one_path_fails.py` of T-169
+   gives the status 500 before the first byte, and a program that writes the
+   answer to a file then writes nothing at all: that harness cannot reach this
+   class of fault. `docs/harness/a_body_that_stops_in_the_middle.py` gives the
+   head of the answer, the first bytes of the body, and a connection that goes
+   away.
+3. **The program held the rule of the correction already, in the other download.**
+   `fetch.rs` of the audio says "a file without `.part` is always complete" (T-64
+   and T-179), and the download of the ebook took no part of it. **Two roads of
+   one work in one program are two rules until a measurement makes them one**: a
+   sweep of a class must ask whether the other road of the same work holds the
+   rule.
+4. **A correction that makes a new file makes a new condition.** The `.part` of a
+   download that fails goes away with the fault, and the `.part` of a program
+   that **dies** stays: no key saw such a file, therefore
+   `the_file_is_an_ebook_of_the_item` holds it now and the key `X` is the road
+   out. The limit of the cache counts the whole books alone, because a `.part` of
+   a download that runs must not go away under the download that writes it (the
+   shape of T-148 and of T-153).
+5. **The sentence of the fault stays as it is, by a decision.** After the
+   correction, "This file is not an EPUB." belongs to a book whose bytes on the
+   **server** are not an EPUB (`A Book Of A Broken Epub` of the sandbox), and a
+   removal of the copy of the disk changes nothing of it. A sentence that named
+   the key `X` there would promise a function that the program does not have
+   (T-118 and T-170).
+
+**The condition that this session leaves open.** None of its own. **The two
+values of the disk that the road of T-185 named and that no measurement has
+reached**: the files of a download whose bytes the server changed (T-148, T-150,
+T-179, T-181), and the row of the position of an offline playback (T-38, T-152).
+
+### The trap of this session
+
+**The trap 146: a proxy of a body that stops must not wait for the end of the
+stream of the client.** The first form of
+`docs/harness/a_body_that_stops_in_the_middle.py` held a `gather` of the two
+roads of the connection, and a client that waits for the rest of a body sends no
+end: `curl` of the measurement stood for two minutes. The road of the client
+stays a task now, and the answer decides the end of the connection.
+
+**A second trap of the same measurement: the key `h` of the reader gives the view
+before it, and the cursor of that view moved.** A press of `h` and of `e` after a
+fault of the reader gave the ebook of **a different media**, and the screen of
+that fault holds the same words: the log of the proxy named the item, and the
+screen did not. A measurement of two keys of one media needs the search of that
+media between them.
+
+### The gates of this session
+
+| The gate | The answer |
+|---|---|
+| `cargo clippy --all-targets -- -D warnings` | no word |
+| `cargo fmt --check` | no word |
+| `cargo nextest run` | **1140 of 1140** in 2.3 seconds |
+| `cargo nextest run --run-ignored all` | **1165 of 1165**, with the sandbox up |
+| `cargo test -j 16 --no-fail-fast` | six runs, and every run passed |
+| `cargo tree -i openssl-sys` | no package |
+| `cargo tree -i cc` | `libsqlite3-sys` and `ring` only |
+
+**The sandbox.** The account `toutuitest` took the address of the proxy for the
+measurement, and it holds `http://localhost:13399` again. The copy of the
+database before the measurement stands in
+`db.sqlite3.before-T186`. The truncated books of the measurement went to
+`$ABS/gone/T-186/`, and the EPUB of `Alice in Wonderland` of 136761 bytes stands
+in the cache of the reader again.
 
 ## The session of the twenty-fifth turn of 2026-08-14: the cover that no key could bring back
 
@@ -4293,6 +4383,20 @@ answers slowly while it writes. Two answers to measure:
     harness looks like a fault of the program.** Copy the road of
     `a_field_of_the_answer_goes_away.py`: one request, one answer of the sandbox
     with `Connection: close`, and the connection goes away (T-181).
+146. **A proxy that stops the body of an answer must not wait for the end of the
+    stream of the client.** The first shape of
+    `a_body_that_stops_in_the_middle.py` held a `gather` of the two roads of the
+    connection. A client that waits for the rest of a body sends no end of its
+    own stream, therefore that `gather` never came back and `curl` of the
+    measurement stood for two minutes. **The answer decides the end of a
+    connection**: the road of the client stays a task, and the proxy cancels it
+    after the answer (T-186).
+147. **The key `h` of the reader gives the view before it, and the cursor of that
+    view moved.** A press of `h` and of `e` after a fault of the reader opened the
+    ebook of **a different media**, and the screen of that fault holds the same
+    words for every media: the log of the proxy named the item, and the screen did
+    not. **A measurement of two keys of one media needs the search of that media
+    between them** (T-186).
 
 ### Of the harness and of the machine
 
@@ -4612,19 +4716,19 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took the sweep that the session before it named**: a box of the
-program that holds a value of the server. The eight boxes of `src/logic/` that
-the road named each hold one answer that a key replaces, and **the box of the
-fault stood in another directory**. **A cover that did not come one time stayed
-away for the whole life of the program, and the key `R` asked the server for
-seven lists and for no cover at all** (T-185). The session left no item open, and
-the road below names the sweep that comes of T-185: the values of the server that
-this program keeps **on the disk**. This prompt names the state of the program on
-2026-08-14.
+**This session took the sweep that the session before it named**: the values of
+the server that this program keeps on the disk. The road named the file of an
+ebook whose bytes the server changed, and **the measurement found a shorter road
+to the same fault: the bytes that the program itself wrote**. **A part of a book
+held the name of a whole book, for ever, and the reader of every program of that
+account after it opened that part** (T-186). The session left no item open, and
+the road below names the two values of the disk that stay: the files of a
+download, and the row of the position. This prompt names the state of the program
+on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.16**; `Cargo.toml` is at 0.8.16. The
+> AlbanDAVID/Toutui. Newest release **v0.8.17**; `Cargo.toml` is at 0.8.17. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -4804,6 +4908,25 @@ this program keeps **on the disk**. This prompt names the state of the program o
 > of the pool of `reqwest` that no program holds, and the next request of the
 > program says `error sending request` for a path that the server holds.
 >
+> **A body of an answer that stops in the middle is
+> `docs/harness/a_body_that_stops_in_the_middle.py`** (T-186). **A fault of a
+> status is not a fault of a body**: `one_path_fails.py` answers before the first
+> byte, and a program that writes the answer to a file then writes nothing at all.
+> This proxy forwards every request to the sandbox, and for a path that holds a
+> part of its command line it sends the head of the answer and the first bytes of
+> the body, and it then closes the connection:
+>
+> ```bash
+> python3 docs/harness/a_body_that_stops_in_the_middle.py 13507 13399 \
+>     requests.log 60000 /ebook
+> ```
+>
+> It writes `Connection: close` in the head of every request, therefore one
+> connection holds one request (the trap 145). **A proxy that stops a body must
+> not wait for the end of the stream of the client** (the trap 146): a client that
+> waits for the rest of a body sends no end, and the first form of this harness
+> held `curl` for two minutes.
+>
 > **The loop of a measurement belongs in a file of `bash`**
 > (the trap 143): the shell of this harness reads no `for ... end`. **The log of
 > the proxy counts the requests** (the trap 144): `grep -c` of a path before a key
@@ -4837,8 +4960,8 @@ this program keeps **on the disk**. This prompt names the state of the program o
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1139 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1164 of 1164** with the sandbox up, in about 20 seconds. **Run that
+> Baseline: **1140 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1165 of 1165** with the sandbox up, in about 20 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -4872,48 +4995,58 @@ this program keeps **on the disk**. This prompt names the state of the program o
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in thirty-eight sessions of thirty-nine. **The
->    session of the twenty-fifth turn took the sweep that the session before it
->    named**: a cover that did not come one time stayed away for the whole life
->    of the program, and the key `R` asked the server for seven lists and for no
->    cover at all (T-185). It wrote the correction, and it left no item open.
->    - **The sweep of T-184 is closed for the boxes of the process.** The eight
->      boxes of `src/logic/` that the road named each hold **one** answer of the
->      server, and a key of the view takes the place of it: `the_downloads`
->      (`forget` at the open), `authors`, `sort_filter::from_the_server`, `stats`,
->      `bookmarks`, `the_ereaders` (`ask`), `the_ebooks` (`ask_for`, and the box
->      holds the media of its answer), and `the_lists` (the requests of the start,
->      which the key `R` makes again). `chapters` holds no state at all, and the
->      disk is the truth of `queue` (T-147). **The box of the fault stood in
->      another directory**: the store of the covers of `src/ui/cover.rs` holds a
->      value of the server **for each item of the account** — the shape of the map
->      of T-184 — and it lives outside `App`. **The question of a sweep of this
->      shape is not "which box of this directory": it is which value of the
->      server this process keeps, and where.**
->    - **The road of this session comes of T-185: the values of the server that
->      this program keeps on the disk.** The store of the covers lives in the
->      memory of the process, and the key `R` empties it now. The disk holds three
->      values of the server that no such key reaches:
->      - **The file of an ebook** (T-67, T-142, T-153). `get_the_ebook_of` of
->        `src/logic/reader/session.rs` says `if path.exists() { return Ok(path) }`:
->        a book of the cache asks the server for nothing, at any key. The `ino` of
->        the file stands in the name of that file, therefore a **new** file of the
->        same item takes a new name — **the question is the file of the same
->        `ino` whose bytes the server changed, and the book that the server no
->        longer holds.** The key `X` of T-65 and of T-150 is the one key of that
->        disk: does it reach the file of the reader?
+>    this shape found a fault in thirty-nine sessions of forty. **The
+>    session of the twenty-sixth turn took the sweep that the session before it
+>    named**: a part of a book held the name of a whole book, for ever, and the
+>    reader of every program of that account after it opened that part (T-186). It
+>    wrote the correction, and it left no item open.
+>    - **The sweep of the boxes of the process is closed** (T-184 and T-185). The
+>      eight boxes of `src/logic/` each hold **one** answer of the server and a key
+>      of the view takes the place of it; the map of the positions of the live
+>      messages and the store of the covers of `src/ui/cover.rs` each held a value
+>      **for each item of the account**, and the key `R` empties both of them now.
+>      **The question of a sweep of this shape is not "which box of this
+>      directory": it is which value of the server this process keeps, and where.**
+>    - **The road of this session was the values of the server that this program
+>      keeps on the disk**, and **the file of an ebook is closed** (T-186). The road
+>      named the file of the same `ino` whose bytes the server changed, and the
+>      measurement found a shorter road to the same fault: **the bytes that the
+>      program itself wrote.** `download_to_file` gave the file the name of the
+>      whole book at the first byte, a body that stopped in the middle left a part
+>      of a book under that name, and `get_the_ebook_of` says
+>      `if path.exists() { return Ok(path) }`. **Two values of the disk stay:**
 >      - **The files of a download** (T-148, T-150, T-179, T-181). The key `X`
 >        takes that disk, and the plan of the download reads `ino`, `index`, and
 >        `metadata.size` of the answer. **The question is a file of the disk whose
 >        bytes the server changed**, and the road of T-179 (a file with no `.part`
->        needs no second request) is the line to read.
+>        needs no second request) is the line to read. **The audio holds the rule
+>        of the `.part` since T-64**, therefore a body that stops leaves no whole
+>        file of that road: the question there is the file that came **whole** and
+>        that the server changed after it.
 >      - **The row of the position of the disk** (T-38, T-152). An offline
 >        playback keeps its place for the server at each second.
 >      **The road of a measurement of that shape is the road of T-185**: change
 >      the value on the server with a second program (`curl`), press every key of
 >      that view and the key `R`, and read the screen and the log of the proxy —
 >      **`grep -c` of a path before a key and after it says whether that key asked
->      the server again** (the trap 144).
+>      the server again** (the trap 144). **A road of the same shape with no server
+>      of another state is the fault of the network**: a body of an answer that
+>      stops in the middle, of `docs/harness/a_body_that_stops_in_the_middle.py`,
+>      and it found T-186 in one measurement.
+>    - **A correction that makes a new file makes a new condition** (T-186). The
+>      `.part` of a download that fails goes away with the fault, and the `.part`
+>      of a program that **dies** stays. `the_file_is_an_ebook_of_the_item` holds
+>      it now, therefore the key `X` reaches it, and the limit of the cache of the
+>      ebooks counts the whole books alone: a `.part` of a download that runs must
+>      not go away under the download that writes it. **Ask of every file that a
+>      correction makes: which key of the user removes it, and which limit counts
+>      it?**
+>    - **Two roads of one work in one program are two rules until a measurement
+>      makes them one** (T-186). `fetch.rs` of the download of the audio held the
+>      rule of the `.part` since T-64 — "a file without `.part` is always
+>      complete" — and `download_to_file` of the ebook took no part of it. **A
+>      sweep of a class must ask whether the other road of the same work holds the
+>      rule.**
 >    - **The shape of T-177 found no fault of `src/api/live.rs`, and that file
 >      still held one** (T-184). `Handshake` gives `pingInterval` and `pingTimeout`
 >      the default 0 and no line of the program reads either of them beside one
@@ -5177,7 +5310,10 @@ this program keeps **on the disk**. This prompt names the state of the program o
 > account, therefore the key `R` empties it: a request of a cover that came back
 > with a fault is not an item with no cover, the status 404 is that item, and a
 > fault stays in the store until that key because the render asks for a cover at
-> each frame** (T-185).
+> each frame** (T-185), and **the name of a whole book belongs to a whole book: a
+> download that fails leaves no part of a book on the disk, the key `X` reaches
+> the `.part` of a program that died in the middle, and the limit of the cache of
+> the ebooks counts the whole books alone** (T-186).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

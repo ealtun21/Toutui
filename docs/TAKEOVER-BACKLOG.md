@@ -7808,6 +7808,137 @@ socket of this machine that answers one status. **The store belongs to the
 process**, therefore the tests that touch it take a lock of the module, and the
 test of the deadlock of T-23 takes that lock too.
 
+### T-186: a part of a book held the name of a whole book, for ever
+
+**The road of T-185 named this sweep**: the values of the server that this
+program keeps **on the disk**. The store of the covers lives in the memory of the
+process and the key `R` empties it, and the disk holds three values that no such
+key reaches — the file of an ebook, the files of a download, and the row of the
+position. This item takes the first of them.
+
+`get_the_ebook_of` of `src/logic/reader/session.rs` says
+`if path.exists() { return Ok(path) }`: **a book of the cache asks the server for
+nothing, at any key**. The question of the road was the file of the same `ino`
+whose bytes the server changed. **The measurement found a shorter road to the
+same fault: the bytes that the program itself wrote.**
+
+`download_to_file` of `src/api/client/mod.rs` made the file with the name of the
+whole book at the first byte, and it wrote the parts of the answer into it. A
+body of an answer that stops in the middle then left a part of a book under that
+name, and the reader of every program of that account after it opened that part.
+**`fetch.rs` of the download of the audio holds the rule already** (T-64 and
+T-179): "the function gives the file the name `.part` first … therefore a file
+without `.part` is always complete". The download of the ebook took no part of
+that rule.
+
+**The harness.** `one_path_fails.py` of T-169 gives a status before the first
+byte, and a program that writes the answer to a file then writes nothing at all:
+**a fault of a status is not a fault of a body**.
+`docs/harness/a_body_that_stops_in_the_middle.py` gives the second one. It
+forwards every request to the sandbox, and for a path that holds a part of its
+command line it sends the head of the answer and the first bytes of the body, and
+it then closes the connection:
+
+```bash
+python3 docs/harness/a_body_that_stops_in_the_middle.py 13507 13399 \
+    requests.log 60000 /ebook
+```
+
+The proxy writes `Connection: close` in the head of every request, therefore the
+sandbox closes after each answer and **one connection holds one request**: the
+decision of the truncation belongs to that request alone, and no connection of
+the pool of `reqwest` carries the fault of a truncation to the request after it
+(the trap 145). **The road of the client of that proxy stays a task, and the
+answer decides the end**: a `gather` of the two roads waits for the end of the
+stream of the client, and a client that waits for the rest of a body sends no
+end — the first form of this harness held `curl` for two minutes (the trap 146).
+
+**The measurement of 2026-08-14.** The account of the sandbox took the one
+address `http://127.0.0.1:13507` (the trap 129), and the proxy stopped the body
+of `GET /api/items/:id/ebook` after 60000 bytes of the EPUB of
+`Alice in Wonderland` of 136761 bytes. The key `e` of that media:
+
+```text
+The reader of the ebook
+The program did not get the book: The answer of the server is not valid: error
+decoding response body
+```
+
+and the disk held
+
+```text
+-rw-r--r-- 1 60000 8fda6e43-0728-46ad-98bc-4c8634e299ad.epub
+```
+
+**60000 bytes with the name of a whole book.** The key `e` of the same media
+after it made **no request of the server** (`grep -c` of the log of the proxy: 3
+before the key and 3 after it, the trap 144), and the program said:
+
+```text
+This file is not an EPUB.
+```
+
+**A program of the whole server said the same words.** The account took the
+address of the sandbox again and a new program started: the key `e` gave that
+same sentence for a book that the server holds whole. The file of the disk is the
+truth of the reader, and no key of the reader asks the server again. **The one
+road out was the key `X` of the list**, and the sentence of the fault named no
+key at all: after that key the book came whole (136761 bytes) and the reader
+opened it at its chapter 3 and 4%.
+
+**The correction.** `download_to_file` writes the file `<the name>.part`, and the
+name of the whole file comes after the flush and never before it. A fault of the
+body or of the write takes that `.part` file away and it gives the fault back:
+this download continues no file — the ebook of the reader holds no request of a
+range — therefore a `.part` file of it would stay on the disk for ever and the
+limit of the cache of the ebooks would not see it.
+
+**A program that dies in the middle of a download leaves that `.part` file**, and
+the removal of the fault reaches it no more.
+`the_file_is_an_ebook_of_the_item` therefore holds `<the item>.epub.part` and
+`<the item>.pdf.part` now, and the key `X` is the one road out of such a file.
+The limit of the cache counts the whole books alone: the scan of
+`src/logic/reader/cache.rs` reads the extension `epub` and `pdf`, and a `.part`
+of a download that **runs** must not go away under the download that writes it
+(the shape of T-148 and of T-153).
+
+**The words for the user stay as they are.** The sentence of the fault of the
+body names what the server said already, and the correction takes the fault of
+the file away at its source. The sentence "This file is not an EPUB." names no
+key: after this correction that sentence belongs to a book whose bytes on the
+**server** are not an EPUB — `A Book Of A Broken Epub` of the sandbox is that
+book — and a removal of the copy of the disk changes nothing of it. **A key that
+does no work of the fault must not stand in the sentence of that fault** (T-118
+and T-170).
+
+**The verification of the real program, after the correction.** The proxy stopped
+the same body:
+
+```text
+The program did not get the book: The answer of the server is not valid: error
+decoding response body
+```
+
+and `ls` of the directory of the downloads found **no file of that item**, of the
+name of a whole book and of the name of a part. The key `e` a second time asked
+the server again (4 → 5 of the log of the proxy). The account took the address of
+the sandbox, and the key `e` then gave the reader of the whole book of 136761
+bytes.
+
+`tests/a_book_that_did_not_come_whole_is_no_book.rs` holds the rule, and it fails
+with the correction removed: `a part of a book must not hold the name of a whole
+book: …/an-item.epub of 100 byte(s)`. Its server is a raw socket of this machine
+that sends the head with the length of the whole book, that sends 100 bytes, and
+that then goes away — **a server of a fault of this shape needs no network and no
+sandbox** (T-167). The test counts the requests of the ebook: the second call
+gives 2, therefore the reader asked the server again. **The parts of that test
+stay in one function**, because it writes `XDG_DATA_HOME` and `XDG_CONFIG_HOME`
+(the shape of T-144 and of T-157).
+
+**The two values of the disk that stay open**: the files of a download whose
+bytes the server changed (T-148, T-150, T-179, T-181), and the row of the
+position of an offline playback (T-38, T-152).
+
 ### T-183: one device with no name took every device of the e-reader away
 
 **The road of the session before this one named this sweep**: "the send of an
