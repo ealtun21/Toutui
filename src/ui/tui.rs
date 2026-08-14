@@ -1178,14 +1178,22 @@ impl App {
         // user, and a title of "The bookmarks" alone leaves the user with no
         // way to tell whose places they read. See T-163.
         let name = self.bookmarks_of_name.clone();
+        // **A bookmark of Audiobookshelf names an item and no episode**
+        // (T-223), therefore the list of a podcast holds the places of every
+        // episode of it and the title names the podcast.
+        let of_a_podcast = self.bookmarks_of_a_podcast;
 
         let (title, lines) = match &state {
             crate::logic::bookmarks::State::Ready(all) if all.is_empty() => (
-                crate::logic::bookmarks::the_title_of_no_bookmark(&name),
+                crate::logic::bookmarks::the_title_of_no_bookmark(&name, of_a_podcast),
                 Vec::new(),
             ),
             crate::logic::bookmarks::State::Ready(all) => (
-                crate::logic::bookmarks::the_title(&name, &crate::ui::keys::items(all.len())),
+                crate::logic::bookmarks::the_title(
+                    &name,
+                    &crate::ui::keys::items(all.len()),
+                    of_a_podcast,
+                ),
                 crate::api::me::bookmarks::lines(all),
             ),
             crate::logic::bookmarks::State::Waiting => {

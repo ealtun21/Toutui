@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.51.** The item T-222 belongs to this session. The
+**The newest release is v0.8.52.** The item T-223 belongs to this session. The
+item T-222 belongs to the session before it. The
 item T-221 belongs to the session before it. The
 items T-219 and T-220 belong to the session before it. The item T-218 belongs to
 the session before it. The
@@ -59,12 +60,84 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.51**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.52**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1202 of 1202** in 2.5 seconds with 26 skipped, and
+**1203 of 1203** in 2.5 seconds with 26 skipped, and
 `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in two
 runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the fifty-second turn of 2026-08-15: the bookmarks of an episode of a podcast
+
+**One release: v0.8.52**, and one item: T-223 of the bookmarks of an episode of
+a podcast. **The road of it is the last paragraph of T-222**, and T-219 wrote
+the same sentence before it: "the bookmarks of an episode of a podcast are not
+measured, and the question is whether the answer of the bookmarks names an
+episode at all". **One request of `curl` answered that question**, and the
+measurement of the real program then found three faults of one cause.
+
+**`POST /api/me/item/<the id of an episode>/bookmark` answers 404**, and a
+bookmark of Audiobookshelf holds `libraryItemId`, `time`, `title`, and
+`createdAt` alone. Therefore the places of every episode of one podcast stand
+in one list, and no field of them names an episode. The program said the
+opposite of that in three views:
+
+- the key `V` of a line of the view of the episodes said "No media plays, and
+  no media is selected." while the podcast held two places of the user;
+- the key `V` of a line of the Home view of a library of podcasts opened
+  `The bookmarks of "Chapter 02" [2 items]` above a place of `Chapter 05`;
+- the key of the place moved the playback of `Chapter 01` from 21:59 to the
+  second 778 of `Chapter 02`, and it said `The playback goes to "A place of
+  Chapter 02".`
+
+**The decision of this session, and the reason for it**: the key of the place
+keeps its work for a podcast, and it says what the program cannot know. A
+refusal would take the bookmarks of every podcast away from the user, and this
+program can never name the episode of a bookmark, because the server holds no
+such field. The user chooses the line, and the words name the doubt. That is
+the difference from T-163, where the queue changed the media with **no key of
+the user**.
+
+**The state of the player holds the episode now** (`PlaybackState.episode_id`).
+That field is the exact answer to "which media plays", and the identity of the
+item is not: every episode of one podcast holds one identity. **Ask of every
+part of the program that compares `state.item_id`: does a podcast pass that
+comparison for the wrong episode?**
+
+### The traps of this session
+
+**The trap 211: the key `p` of the player is +10 seconds, and the key of the
+pause is `Space`.** The footer of the player says
+`Spc: pause/play | p/u: +/−10s`. A measurement that must hold a position needs
+`press Space` at the first frame of the row of the player.
+
+**The trap 212: the null device plays an episode of 22 minutes in about 18
+seconds.** That is the trap 72 for a book of 30 minutes. An episode of
+`Arthur Gordon Pym` came to its end while `wait_for "/ 22:00"` waited for the
+length of it: a measurement of a place inside such a media needs the pause at the
+first frame, and a media of more than 30 minutes gives more room.
+
+**The trap 213: the key `V` reads the media that plays before the line of the
+user** (T-163). A measurement of the line of a view therefore needs the key `Y`
+of the stop of the playback first: a program that plays gives the view of the
+media of the engine for every line of every view.
+
+### What this session leaves open
+
+**The key `b` of the view of the bookmarks of a podcast** (T-223). The guard of
+T-163 compares the identity of the item, and the queue can start another episode
+of that same podcast with no key of the user: the key then writes the place of
+the episode that plays now under the view that the user opened.
+`state.episode_id` gives the road to the correction.
+
+**The two roads of `state.episode_id` hold no test of `tests/`** (T-223): the
+view of the bookmarks of a playback of an episode, and the words of the key of
+the place. They need an engine that plays, and the measurement of them stands in
+tmux alone.
+
+**A line of a bookmark names no episode** (T-223), and **the key `X` of a place
+of another episode says the same words as the key `X` of a place of this
+episode**.
 
 ## The session of the fifty-first turn of 2026-08-15: the keys of a line of more than one media
 
@@ -7230,39 +7303,38 @@ answers slowly while it writes. Two answers to measure:
 ## The prompt for the next session
 
 **This session took the last paragraph of the newest item** (the rule of T-216
-and of T-217, and the cheapest item of a session). T-221 left open "the other
-keys of a line of a podcast and of a line of a series are not measured" and "a
-line of a shelf of the Home view can hold a series", and the measurement of those
-two sentences found one fault of three roads. The item is **T-222**, and it holds
-one release, v0.8.51.
+and of T-217, and the cheapest item of a session). T-219 and T-222 each left open
+"the bookmarks of an episode of a podcast are not measured, and the question is
+whether the answer of the bookmarks names an episode at all". One request of
+`curl` answered that question, and the measurement of the real program then found
+three faults of one cause. The item is **T-223**, and it holds one release,
+v0.8.52.
 
 Four things are worth the room:
 
-1. **A correction of one session is a measurement of the next one** (T-221 and
-   T-222). T-221 gave the words of a line of more than one media to the Library
-   view, and the Home view holds that same line: the shelf `recent-series` of the
-   server makes a `HomeRow::Series`, and one line of one program then said two
-   different things in two views. **Ask of a correction: which other view of the
-   program holds the line that it names?**
-2. **A selector of a line is a sweep of its callers** (T-222). `selected_item_id`
-   gives the **first book** of a line of a series, and `grep` of it gave four
-   callers: two of them did the work of one media for a line that holds many, one
-   of them wants the podcast that it gets, and one of them is the predicate
-   itself.
-3. **A key that does the wrong work with no word is worse than a key that says
-   nothing** (T-79, T-91, and T-222). The key `e` of the line `The Test
-   Chronicles [3 books]` opened the reader of `The Test Chronicles Volume 1`, and
-   the log named that book: the user reads a book that they did not choose.
-4. **A test that reads the source with a window of characters is a test of the
-   comments** (T-222). The words of this correction took one line out of a window
-   of 1500 characters, and the gate said that the view of the bookmarks holds no
-   name. Ten windows of that shape stand in eight files of `tests/`.
+1. **A question of an old item can hold its answer in one request** (T-223).
+   `POST /api/me/item/<the id of an episode>/bookmark` answers 404, therefore the
+   bookmarks of every episode of one podcast stand in one list. No read of `src/`
+   could give that decision. **Ask of a value of the server: which path holds it,
+   and what does the server answer for the other path?**
+2. **One identity can name more than one media** (T-223). Every episode of one
+   podcast holds the identity of that podcast, therefore the comparison of
+   `state.item_id` passed for the wrong episode and the key of the place moved
+   the playback of `Chapter 01` to a place of `Chapter 02`. The state of the
+   player holds `episode_id` now.
+3. **A function that the program cannot do must keep its work and name the
+   doubt** (T-223). A refusal of that key would take the bookmarks of every
+   podcast away from the user. The user chooses the line, and the words say what
+   the program cannot know.
+4. **A view that names one media above the values of another one is the shape of
+   T-91** (T-163 and T-223). The title said `The bookmarks of "Chapter 02"` above
+   a place of `Chapter 05`, and no word of the screen named the second episode.
 
 This prompt names the state of the program on 2026-08-16.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.51**; `Cargo.toml` is at 0.8.51. The
+> AlbanDAVID/Toutui. Newest release **v0.8.52**; `Cargo.toml` is at 0.8.52. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -7271,7 +7343,7 @@ This prompt names the state of the program on 2026-08-16.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-222 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-223 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -7742,7 +7814,14 @@ This prompt names the state of the program on 2026-08-16.
 > control of the same run** (the trap 206): a key of the same line that speaks
 > says that the row of the message works, and a key of a **book** of the same
 > view says that the keys do their work. **The keys `k` of the end of a list are
-> cheaper than the keys `j` of its start** (the trap 207). **A test that reads
+> cheaper than the keys `j` of its start** (the trap 207). **The key of the pause
+> is `Space`, and the key `p` of the player is +10 seconds** (the trap 211).
+> **The null device plays an episode of 22 minutes in about 18 seconds** (the
+> trap 212), therefore a measurement of a place inside such a media presses
+> `Space` at the first frame of the row of the player. **The key `V` reads the
+> media that plays before the line of the user** (the trap 213 and T-163),
+> therefore a measurement of the line of a view needs the key `Y` first. **A test
+> that reads
 > the source with a window of a number of characters is a test of the comments of
 > that function** (the trap 209): the words of a correction take a line out of the
 > window, and the gate then says that the program lost a rule that it holds —
@@ -7772,8 +7851,8 @@ This prompt names the state of the program on 2026-08-16.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1199 tests in 2.5 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1225 of 1225** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1203 tests in 2.5 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1229 of 1229** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -7881,9 +7960,47 @@ This prompt names the state of the program on 2026-08-16.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in sixty-four sessions of sixty-five. **The session
->    of the fifty-first turn took the last paragraph of the newest item, and that
->    paragraph named two keys and one view** (T-222).
+>    this shape found a fault in sixty-five sessions of sixty-six. **The session
+>    of the fifty-second turn took the last paragraph of the newest item, and one
+>    request of `curl` answered the question of that paragraph** (T-223).
+>
+>    **`POST /api/me/item/<the id of an episode>/bookmark` answers 404**, and a
+>    bookmark of Audiobookshelf holds `libraryItemId`, `time`, `title`, and
+>    `createdAt` alone: the places of every episode of one podcast stand in one
+>    list, and no field of them names an episode. The program said the opposite of
+>    that in three views. The key `V` of a line of the view of the episodes said
+>    "No media plays, and no media is selected." while the podcast held two places
+>    of the user; the key `V` of a line of the Home view of a library of podcasts
+>    opened `The bookmarks of "Chapter 02" [2 items]` above a place of
+>    `Chapter 05`; and the key of the place moved the playback of `Chapter 01`
+>    from 21:59 to the second 778 of `Chapter 02`.
+>    - **One identity can name more than one media** (T-223). Every episode of
+>      one podcast holds the identity of that podcast, therefore
+>      `state.item_id != bookmark.library_item_id` passed for the wrong episode.
+>      The state of the player holds `episode_id` now. **Ask of every comparison
+>      of `state.item_id`: does a podcast pass it for the wrong episode?**
+>    - **A rule of the server decides the rule of the program** (T-223). One
+>      request of `curl` (the 404 of the path of an episode) gave the whole
+>      decision, and no read of `src/` could give it. **Ask of a value of the
+>      server: which path holds it, and what does the server answer for the other
+>      path?**
+>    - **A function that the program cannot do must keep its work and name the
+>      doubt** (T-223). A refusal of the key of the place would take the
+>      bookmarks of every podcast away from the user. The user chooses the line,
+>      and the words say what the program cannot know: that is the difference
+>      from T-163, where the queue changed the media with **no key of the user**.
+>    - **The key `b` of the view of the bookmarks of a podcast is not measured**
+>      (T-223, and it stays open): the guard of T-163 compares the identity of
+>      the item, and the queue can start another episode of that same podcast
+>      with no key of the user. `state.episode_id` gives the road to the
+>      correction.
+>    - **The key `X` of a bookmark of a podcast removes a place of another
+>      episode with the same words** (T-223, and it stays open), and **a line of
+>      a bookmark names no episode at all**: the list holds the time and the name
+>      of each place.
+>
+>    **The session of the fifty-first turn took the same road, and that paragraph
+>    named two keys and one view** (T-222).
 >
 >    The keys `e` of the reader and `V` of the bookmarks read `selected_item_id`,
 >    and that function gives the **first book** of a line of a series (T-91 and
@@ -7916,10 +8033,9 @@ This prompt names the state of the program on 2026-08-16.
 >      `tests/the_view_of_the_bookmarks_holds_its_media.rs`, and the gate then
 >      said that the view holds no name. **Ten windows of that shape stand in eight files of
 >      `tests/`**, and each of them can fail for a comment.
->    - **The bookmarks of an episode of a podcast are not measured** (T-219 and
->      T-222, and it stays open): the key `V` of an episode says "No media plays,
->      and no media is selected." while that episode holds a place of its own,
->      and `GET /api/me/item/:id/bookmarks` names no episode.
+>    - **The bookmarks of an episode of a podcast were not measured** (T-219 and
+>      T-222). **T-223 closed that road**: the bookmarks of an episode are the
+>      bookmarks of its podcast.
 >    - **A line of a shelf of the Home view can hold an author** (T-222, and it
 >      stays open): the shelf `newest-authors` gives an entity with no media and
 >      no book, and `group_home` drops it. A session that gives the authors a
@@ -8850,7 +8966,11 @@ This prompt names the state of the program on 2026-08-16.
 > `N` of such a line say it** (T-221), and **the keys `e` and `V` of such a line
 > read that line: the reader and the bookmarks take no first book of a series and
 > no podcast of its episodes, and the Home view of a library of books holds a
-> line of a series too** (T-222).
+> line of a series too** (T-222), and **the bookmarks of an episode of a podcast
+> are the bookmarks of that podcast: the server names no episode in a bookmark,
+> therefore the view names the podcast, the key `V` of an episode opens it, and
+> the key of the place moves the playback of the episode that plays and it says
+> that a bookmark of a podcast names no episode** (T-223).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

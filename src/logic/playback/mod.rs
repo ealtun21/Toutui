@@ -688,6 +688,7 @@ async fn play_media(
     let request = PlaybackRequest {
         playback_id,
         item_id: item_id.clone(),
+        episode_id: target.episode_id().map(|value| value.to_string()),
         title: info_item[4].clone(),
         author: info_item[6].clone(),
         username: username.clone(),
@@ -1043,6 +1044,7 @@ async fn play_the_stream_of_the_server(
         let request = PlaybackRequest {
             playback_id,
             item_id: item_id.clone(),
+            episode_id: target.episode_id().map(|value| value.to_string()),
             title: info_item[4].clone(),
             author: info_item[6].clone(),
             username: username.clone(),
@@ -1437,6 +1439,7 @@ async fn play_offline(
     let request = PlaybackRequest {
         playback_id,
         item_id: item_id.clone(),
+        episode_id: episode_id.clone(),
         title: row.title.clone(),
         author: row.author.clone(),
         username: username.clone(),

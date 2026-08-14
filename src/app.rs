@@ -248,6 +248,13 @@ pub struct App {
     /// title of the view names this media, and the key `b` writes a place of
     /// this media alone. See T-163.
     pub bookmarks_of_name: String,
+    /// The media of the view of the bookmarks is a podcast.
+    ///
+    /// **A bookmark of Audiobookshelf names an item and no episode** (T-223),
+    /// therefore the list of a podcast holds the places of every episode of it.
+    /// The title of the view and the key of the place read this. See T-221 for
+    /// the rule of a line that holds more than one media.
+    pub bookmarks_of_a_podcast: bool,
     /// The timer for sleep, if the user set one. See T-24.
     pub sleep: Option<crate::logic::sleep_timer::Timer>,
     /// The choice of the timer, in minutes. `Some(0)` is the end of the
@@ -1686,6 +1693,7 @@ impl App {
             the_media_of_the_line_of_the_queue: None,
             bookmarks_of: String::new(),
             bookmarks_of_name: String::new(),
+            bookmarks_of_a_podcast: false,
             sleep: None,
             sleep_choice: None,
             list_state_new_podcast: ListState::default(),
@@ -5161,38 +5169,67 @@ impl App {
     pub fn show_the_bookmarks(&mut self) {
         let state = self.player.state();
 
-        let (item_id, name) = if state.status != crate::player::engine::PlaybackStatus::Stopped {
-            (state.item_id.clone(), state.title.clone())
-        } else {
-            // **A line that holds more than one media holds no bookmark of its
-            // own** (T-222). `selected_item_id` gives the first book of a line
-            // of a series (T-91 and T-221), therefore the key `V` of the line
-            // `The Test Chronicles [3 books]` of the sandbox opened the
-            // bookmarks of `The Test Chronicles Volume 1` with no word at all.
-            // The key of a line of a podcast opened the bookmarks of the
-            // podcast, and the words of that view named the key `b` of a
-            // playback that a podcast never has.
-            let of_this_line = match self.the_line_of_no_media() {
-                TheLineOfNoMedia::Nothing => self.selected_item_id(),
-                _ => None,
-            };
-
-            match of_this_line {
-                Some(id) => (id, self.selected_item_title().unwrap_or_default()),
-                None => {
-                    crate::logic::message::say(self.words_of_a_line_with_no_media(
-                        "No media plays, and no media is selected.",
-                    ));
-                    return;
-                }
-            }
+        // **The bookmarks of an episode of a podcast are the bookmarks of that
+        // podcast** (T-223). `POST /api/me/item/<an episode>/bookmark` of
+        // Audiobookshelf 2.36.0 answers 404, therefore the server holds one list
+        // for the whole podcast and no field of a bookmark names an episode.
+        //
+        // The view of the episodes gave `selected_item_id` nothing at all, and
+        // the key said "No media plays, and no media is selected." while the
+        // podcast held two places of the user (T-219 left that road open). The
+        // Home view of a library of podcasts gave the identity of the **podcast**
+        // with the title of the **episode**: the title of the view said
+        // `The bookmarks of "Chapter 02" [2 items]` above a place of `Chapter 05`.
+        //
+        // `selected_download` holds the item, the episode, and the name of the
+        // podcast of every view that shows an episode (T-219).
+        let of_an_episode = match self.selected_download() {
+            Some((DownloadTarget::Episode { item_id, .. }, _, podcast)) => Some((item_id, podcast)),
+            _ => None,
         };
+
+        let (item_id, name, of_a_podcast) =
+            if state.status != crate::player::engine::PlaybackStatus::Stopped {
+                // The title of a playback of an episode is the title of the podcast
+                // already, because the session of the server names the item.
+                (
+                    state.item_id.clone(),
+                    state.title.clone(),
+                    state.episode_id.is_some(),
+                )
+            } else if let Some((item_id, podcast)) = of_an_episode {
+                (item_id, podcast, true)
+            } else {
+                // **A line that holds more than one media holds no bookmark of its
+                // own** (T-222). `selected_item_id` gives the first book of a line
+                // of a series (T-91 and T-221), therefore the key `V` of the line
+                // `The Test Chronicles [3 books]` of the sandbox opened the
+                // bookmarks of `The Test Chronicles Volume 1` with no word at all.
+                // The key of a line of a podcast opened the bookmarks of the
+                // podcast, and the words of that view named the key `b` of a
+                // playback that a podcast never has.
+                let of_this_line = match self.the_line_of_no_media() {
+                    TheLineOfNoMedia::Nothing => self.selected_item_id(),
+                    _ => None,
+                };
+
+                match of_this_line {
+                    Some(id) => (id, self.selected_item_title().unwrap_or_default(), false),
+                    None => {
+                        crate::logic::message::say(self.words_of_a_line_with_no_media(
+                            "No media plays, and no media is selected.",
+                        ));
+                        return;
+                    }
+                }
+            };
 
         self.bookmarks_of = item_id.clone();
         // The title of the view names this media, and the key `b` of this view
         // writes a place of this media alone: the media that plays changes with
         // no key of the user. See T-163.
         self.bookmarks_of_name = name;
+        self.bookmarks_of_a_podcast = of_a_podcast;
         self.list_state_bookmarks.select(Some(0));
         self.scroll_offset = 0;
         self.view_state = AppView::Bookmarks;
@@ -5247,16 +5284,33 @@ impl App {
         if state.status == crate::player::engine::PlaybackStatus::Stopped
             || state.item_id != bookmark.library_item_id
         {
-            crate::logic::message::say(
-                "Play this media first, and the bookmark then gives its place.",
-            );
+            // **A podcast plays no media of its own** (T-221 and T-223): an
+            // episode of it plays, therefore the sentence names an episode.
+            crate::logic::message::say(if self.bookmarks_of_a_podcast {
+                "Play an episode of this podcast first, and the bookmark then gives its place."
+            } else {
+                "Play this media first, and the bookmark then gives its place."
+            });
             return;
         }
 
         self.player
             .send(crate::player::engine::PlayerCommand::SeekTo(bookmark.time));
 
-        crate::logic::message::say(&format!("The playback goes to \"{}\".", bookmark.title));
+        // **The identity of a bookmark of a podcast is the identity of that
+        // podcast** (T-223), therefore this key moves the playback of the
+        // episode that plays to a place of an episode that the program cannot
+        // name: a measurement of 2026-08-15 moved the playback of `Chapter 01`
+        // from 21:59 to the second 778 of `Chapter 05`, and the program said
+        // `The playback goes to "A place of Chapter 05".` The key does the work
+        // of the user, and the words say what the program does not know (T-91).
+        let text = if state.episode_id.is_some() {
+            crate::logic::bookmarks::the_text_of_a_place_of_a_podcast(&bookmark.title)
+        } else {
+            format!("The playback goes to \"{}\".", bookmark.title)
+        };
+
+        crate::logic::message::say(&text);
     }
 
     /// Removes the bookmark that the user selected. See T-24.

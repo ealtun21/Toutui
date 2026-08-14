@@ -157,6 +157,15 @@ pub struct PlaybackState {
     pub playback_id: u64,
     /// The identity of the book.
     pub item_id: String,
+    /// The identity of the episode, for a media of a podcast.
+    ///
+    /// **The identity of the item is the identity of the podcast**, and every
+    /// episode of one podcast holds it. A part of the program that reads
+    /// `item_id` alone therefore cannot tell one episode from another one: the
+    /// key of the view of the bookmarks moved the playback of `Chapter 01` to a
+    /// place of `Chapter 05` of the same podcast. See T-223, and T-219 for the
+    /// same shape in the place of the user.
+    pub episode_id: Option<String>,
     pub title: String,
     pub author: String,
     /// The position in the whole book, in seconds.
@@ -210,6 +219,7 @@ impl Default for PlaybackState {
         PlaybackState {
             playback_id: 0,
             item_id: String::new(),
+            episode_id: None,
             title: String::new(),
             author: String::new(),
             position: 0.0,
@@ -235,6 +245,8 @@ pub struct PlaybackRequest {
     /// The identity of this playback. `next_playback_id` gives it.
     pub playback_id: u64,
     pub item_id: String,
+    /// The identity of the episode, for a media of a podcast. See T-223.
+    pub episode_id: Option<String>,
     pub title: String,
     pub author: String,
     pub username: String,

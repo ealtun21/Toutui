@@ -114,16 +114,50 @@ pub fn the_text_of_the_media_that_does_not_play(name: &str) -> String {
 /// key of the user: a title of "The bookmarks" alone leaves the user with no
 /// way to tell whose places they read. The view of the chapters names its media
 /// in the same way. See T-163.
-pub fn the_title(name: &str, items: &str) -> String {
-    format!("The bookmarks of \"{}\" [{}]", name, items)
+///
+/// **A bookmark of Audiobookshelf names an item, and a podcast is one item**
+/// (T-223): `POST /api/me/item/<an episode>/bookmark` answers 404, therefore
+/// the places of every episode of one podcast stand in one list and no field of
+/// them names an episode. The title of such a list names the **podcast**: it
+/// said `The bookmarks of "Chapter 02" [2 items]` above a place of `Chapter 05`
+/// before, and the user could tell neither line from the other.
+pub fn the_title(name: &str, items: &str, of_a_podcast: bool) -> String {
+    if of_a_podcast {
+        format!("The bookmarks of the podcast \"{}\" [{}]", name, items)
+    } else {
+        format!("The bookmarks of \"{}\" [{}]", name, items)
+    }
 }
 
 /// The title of the view of the bookmarks when the media holds no bookmark.
 ///
 /// The text names the key `b`, and the key `b` of this view writes a place of
-/// this media alone. See T-118 and T-163.
-pub fn the_title_of_no_bookmark(name: &str) -> String {
-    format!("\"{}\" has no bookmark. Press b while it plays.", name)
+/// this media alone. See T-118 and T-163. **A podcast plays no media of its
+/// own**, therefore the text of a podcast names an episode of it (T-221 and
+/// T-223).
+pub fn the_title_of_no_bookmark(name: &str, of_a_podcast: bool) -> String {
+    if of_a_podcast {
+        format!(
+            "The podcast \"{}\" has no bookmark. Press b while an episode plays.",
+            name
+        )
+    } else {
+        format!("\"{}\" has no bookmark. Press b while it plays.", name)
+    }
+}
+
+/// The words of the key that goes to the place of a bookmark of a podcast.
+///
+/// **The program cannot say which episode holds this place** (T-223): the
+/// bookmark names the podcast alone, therefore the key moves the playback of the
+/// episode that plays, and the sentence says what the program does not know. The
+/// old sentence said `The playback goes to "A place of Chapter 02".` while the
+/// playback of `Chapter 01` went to the second 778 of that other episode.
+pub fn the_text_of_a_place_of_a_podcast(name: &str) -> String {
+    format!(
+        "The playback goes to \"{}\". A bookmark of a podcast names no episode.",
+        name
+    )
 }
 
 #[cfg(test)]
@@ -197,14 +231,36 @@ mod tests {
     /// read. See T-163.
     #[test]
     fn the_title_names_the_media() {
-        let title = the_title("A Long Test Book", "1 item");
+        let title = the_title("A Long Test Book", "1 item", false);
 
         assert!(title.contains("A Long Test Book"), "{}", title);
         assert!(title.contains("1 item"), "{}", title);
 
-        let empty = the_title_of_no_bookmark("A Long Test Book");
+        let empty = the_title_of_no_bookmark("A Long Test Book", false);
 
         assert!(empty.contains("A Long Test Book"), "{}", empty);
         assert!(empty.contains("Press b"), "{}", empty);
+
+        // **The list of a podcast holds the places of every episode of it**
+        // (T-223), therefore the two titles of a podcast name the podcast and
+        // they promise no place of one episode.
+        let of_a_podcast = the_title("Arthur Gordon Pym", "2 items", true);
+
+        assert!(of_a_podcast.contains("podcast"), "{}", of_a_podcast);
+        assert!(
+            of_a_podcast.contains("Arthur Gordon Pym"),
+            "{}",
+            of_a_podcast
+        );
+
+        let no_bookmark = the_title_of_no_bookmark("Arthur Gordon Pym", true);
+
+        assert!(no_bookmark.contains("podcast"), "{}", no_bookmark);
+        assert!(no_bookmark.contains("an episode plays"), "{}", no_bookmark);
+
+        let place = the_text_of_a_place_of_a_podcast("A place of Chapter 02");
+
+        assert!(place.contains("A place of Chapter 02"), "{}", place);
+        assert!(place.contains("names no episode"), "{}", place);
     }
 }

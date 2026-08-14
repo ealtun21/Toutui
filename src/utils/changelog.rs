@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.52",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key `V` of an episode of a podcast said that no media is \
+             selected.** Audiobookshelf holds the bookmarks of a podcast, and \
+             it names no episode in them: the view of the episodes gave no \
+             bookmark at all, and the Home view of a library of podcasts named \
+             the episode of the line above the places of the whole podcast. \
+             The view names the podcast now, and the key `V` of an episode \
+             opens it.",
+            "- **The key that goes to the place of a bookmark moved the \
+             playback of one episode to a place of a different episode.** The \
+             key does the work of the user, and it says that a bookmark of a \
+             podcast names no episode.",
+        ],
+    },
+    Entry {
         version: "0.8.51",
         date: "15/08/2026",
         body: &[

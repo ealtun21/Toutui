@@ -14631,3 +14631,107 @@ line is the whole series or one book of it.
 key `X`**, and the view of every key (`?`) names the two of them. That is the
 rule of T-143 from the other side: a footer that names no key of the view is no
 fault, and the view of every key holds every key of the program.
+
+### T-223: the bookmarks of an episode of a podcast are the bookmarks of that podcast
+
+**This item closes the question that T-219 and T-222 each left open.** T-222
+gave the key `V` its guard against a line of more than one media, and it left
+one question standing: does the answer of the bookmarks of Audiobookshelf name
+an episode at all? The answer is no. The server holds the bookmarks of a
+podcast under the identity of the podcast, and no field of a bookmark names an
+episode.
+
+**The facts of the server** (Audiobookshelf 2.36.0 of the sandbox, with curl):
+
+- `POST /api/me/item/<the id of an episode>/bookmark` answers **404**.
+- `POST /api/me/item/<the id of the podcast>/bookmark` answers 200, and
+  `GET /api/me` then holds
+  `{"libraryItemId":"b793354b-…","time":778,"title":"A place of Chapter 02"}`.
+- A bookmark holds `libraryItemId`, `time`, `title`, and `createdAt`. **No
+  field of it names an episode.**
+
+Therefore the rule of this program follows the rule of the server: **the
+bookmarks of an episode of a podcast are the bookmarks of that podcast.**
+
+#### The measurement
+
+The real program v0.8.51 inside tmux, of the podcast `Arthur Gordon Pym` of 11
+episodes of the library `Podcasts` of the sandbox:
+
+| The view | The line or the playback | The key | v0.8.51 | v0.8.52 |
+|---|---|---|---|---|
+| The episodes of the podcast | The line `Chapter 00`, no playback | `V` | The message "No media plays, and no media is selected.", and no new line of the log (10 lines before the key and 10 after it) | The view "The bookmarks of the podcast \"Arthur Gordon Pym\" [2 items]" |
+| Home of the library of podcasts | The line `Chapter 02` of the shelf Continue Listening | `V` | The title "The bookmarks of \"Chapter 02\" [2 items]", and one line of the list is "A place of Chapter 05  (01:35)" | The title "The bookmarks of the podcast \"Arthur Gordon Pym\" [2 items]" |
+| The playback of `Chapter 02`, paused at 12:58 | — | `b` | The bookmark stands on the podcast `b793354b-…` with the time 778 | The same |
+| The playback of `Chapter 01` at 21:59 | The line "A place of Chapter 02" | `l` (go to the place) | "The playback goes to \"A place of Chapter 02\".", and the playback of `Chapter 01` went to 12:58 | (measured again with "A place of Chapter 05") "The playback goes to \"A place of Chapter 05\". A bookmark of a podcast names no episode." |
+| The view of the bookmarks of a podcast, no playback | The line of a place | `l` | "Play this media first, and the bookmark then gives its place." | "Play an episode of this podcast first, and the bookmark then gives its place." |
+| The view of the bookmarks of a podcast with no place | — | `V` | — | The title "The podcast \"Letters of Two Brides\" has no bookmark. Press b while an episode plays." |
+
+**The second row names the fault in one measurement**: a line of the shelf
+Continue Listening named the episode `Chapter 02` alone, and the view that it
+opened held a place of `Chapter 05`. The user asked for the bookmarks of one
+episode, and the program gave the bookmarks of the whole podcast with the name
+of that one episode above them.
+
+The control of the same run: the book `A Long Test Book` of the library `Books`
+keeps the title "The bookmarks of \"A Long Test Book\" [1 item]" and the
+sentence "Play this media first, and the bookmark then gives its place." A book
+holds one media, and the correction of this item changes no word of it.
+
+#### The fault of the source
+
+`show_the_bookmarks` read `selected_item_id`, and that function holds no arm of
+the view of the episodes of a podcast: it gave nothing there, and it gave the
+identity of the **podcast** with the title of the **episode** in the Home view.
+`selected_download` holds the item, the episode, and the name of the podcast of
+every view that shows an episode (T-219).
+
+`go_to_the_bookmark` compared `state.item_id` with `bookmark.library_item_id`,
+and every episode of one podcast holds that same identity: **the comparison
+passed for another episode**, and the playback of the user went to a place of a
+media that the user did not choose.
+
+#### The correction
+
+- `src/player/engine/mod.rs` and `src/player/engine/worker.rs` give the state of
+  the player the field `episode_id`. The three sites of `PlaybackRequest` of
+  `src/logic/playback/mod.rs` fill it, and the offline playback holds that value
+  already.
+- `src/app.rs` holds the new field `bookmarks_of_a_podcast`.
+  `show_the_bookmarks` reads `selected_download` for a line of an episode, and
+  `go_to_the_bookmark` reads `state.episode_id`.
+- `src/logic/bookmarks.rs` holds `the_title` and `the_title_of_no_bookmark`
+  (both take `of_a_podcast`), and the new function
+  `the_text_of_a_place_of_a_podcast`.
+- `src/ui/tui.rs` gives the flag to the two titles.
+
+`tests/the_bookmarks_of_an_episode_of_a_podcast_hold_that_podcast.rs` holds the
+rule, and the parts of it stay in one function (T-144 and T-157). **It needs no
+server** (the port 1 of T-25). Three builds of the fault each fail it: the arm
+of the episode of `show_the_bookmarks`, the words of the key of the place, and
+the title of a podcast.
+
+**The decision, and the reason for it: the program keeps the key of the place
+for a podcast, and it says what it cannot know.** A refusal would take the
+bookmarks of every podcast away from the user, and this program can never name
+the episode of a bookmark, because the server holds no such field. The user
+chooses the line, and the words name the doubt. That is the difference from
+T-163, where the queue changed the media with **no key of the user**.
+
+#### What this item leaves open
+
+- **The key `b` of the view of the bookmarks of a podcast, while the queue
+  starts another episode of that same podcast.** The guard of T-163 compares the
+  identity of the item, and two episodes of one podcast hold one identity: the
+  key writes the place of the episode that plays now. No measurement reached it,
+  and `state.episode_id` gives the road to the correction.
+- **The two roads of `state.episode_id` hold no test of `tests/`**: the view of
+  the bookmarks of a playback of an episode, and the words of the key of the
+  place. They need an engine that plays, and the measurement of them stands in
+  tmux alone.
+- **A line of a bookmark holds the time and the name alone.** A user of more
+  than one episode reads the lines of one podcast, and no word names the episode
+  of each of them. The name of a bookmark is the choice of the user, and
+  `default_title` gives the clock of the place.
+- **The key `X` of the view of the bookmarks of a podcast** removes a place of
+  another episode with the same words as a place of the episode that plays.
