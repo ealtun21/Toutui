@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.22",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A collection or a playlist that your server gave with no identity \
+             made every key of it say a fault of your media.** The program \
+             cannot ask your server for such a list — it has no address — and \
+             the key that puts a media in it said \"The server did not take the \
+             media: The server does not have this item\", of a media that your \
+             server holds. Such a list belongs to no line now, and the log says \
+             which list went away.",
+            "- **The same for one media of a collection or of a playlist.** A \
+             media of a list with no identity took a line, and the key of the \
+             playback of that line said that your server does not have the \
+             item. That media belongs to no line of the list now.",
+        ],
+    },
+    Entry {
         version: "0.8.21",
         date: "14/08/2026",
         body: &[
