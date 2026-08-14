@@ -7364,6 +7364,74 @@ test result: FAILED. 860 passed; 1 failed
 measurement of the correction: `cargo test --lib` failed one run of six before
 it, and it passed eight runs of eight after it.
 
+### T-158: the playback of an account that a second window logged out waited for ever
+
+**The condition of this session, and no session had measured it.** One account
+holds more than one program (T-140), and the key `l` of the view of the accounts
+removes the row of an account (T-124). **A program of that account stands open
+while its row goes away**: that is the shape of T-142, of T-147, of T-148, of
+T-153, and of T-155 — a state of one process that a second program cannot see —
+and the road named the write of a state that names a row of the database as a
+sweep of its own.
+
+**The window A then plays nothing at all, and no key of it works.**
+
+| The moment | The window A |
+|---|---|
+| Before | the Home view of `toutuitest`, and the account holds its row |
+| The window B logs out with `l` | the screen of A does not change, and `users` holds **0 rows** |
+| The key `l` of A on a media | `Syncing your last listening session. Please wait...` |
+| **78 seconds later** | **the same message, and no media plays** |
+| 40 presses of `l` after it | **the key `j` moves no line**, and **the key `Q` does not stop the program** |
+
+**The two reads of the wait gave a text of a fault for a row that does not
+exist.** `get_has_played_before` and `get_is_loop_break` gave `No db found`, and
+`wait_prev_session_finished` waits while `is_loop_break` is not `1`:
+
+```
+[wait_prev_session_finished][has_played_before] No db found
+[wait_prev_session_finished][is_loop_break] No db found
+```
+
+**No loop of a playback of a row that does not exist can ever write that
+value**, therefore the wait had no end. That is the fault of T-35 again, and it
+comes of a different cause: the caller could not tell a value of the database
+from a row that no account holds.
+
+**The program froze after that.** The key `l` gives its work to `tokio::spawn`,
+and the wait holds `std::thread::sleep`: each press takes one worker of the
+runtime for ever. The machine of the measurement holds 32 processors, and 40
+presses took every worker. The program held 33 threads before and after, every
+one of them in the state `S`, and **the key `Q` left it standing**: the user of
+that terminal must take the program away with a signal.
+
+**The correction says the two rules of the fork.** The disk is the truth, and a
+read of the disk must say when it found no row: the two functions give
+`Option<String>` now, and `None` says that the account stands in no row. **A row
+that no account holds means that no loop stands before this playback**,
+therefore the playback starts at once, and the program says
+`A different program of this account removed the account "…".` — the sentence of
+T-155, and it promises no key (T-118 and T-143).
+
+**No wait of a playback stands longer than 30 seconds.** A program that dies
+inside the loop of its playback writes `is_loop_break` never, therefore a wait
+with no limit can come back with a cause that no session has met. 30 seconds is
+the time of this fork for a program that stood still: the row of a session
+(T-140), the lock of a download (T-148), and the book of a reader (T-153).
+
+| The measurement | Before | After |
+|---|---|---|
+| The key `l` of A, after the log out of B | **no media, and the message for ever** | the podcast plays at the second **0.07** |
+| The log of that key | `is_loop_break No db found` | `the account toutuitest stands in no row of the disk` |
+| The playback 18 seconds later | — | 21:51 of 23:39 (the device `null` of the trap 72) |
+| The wait of a playback whose loop wrote no end | for ever | the limit of 30 seconds |
+
+`tests/a_playback_waits_for_no_account_that_is_gone.rs` holds the three rules.
+**A test must not call the wait itself**: the wait of the old code never comes
+back, and a test of that shape holds the gate for ever. The test gives the wait
+a thread of its own, and it reads the end of that thread with a limit of time:
+the two tests then **fail** with the correction removed, and they do not hang.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

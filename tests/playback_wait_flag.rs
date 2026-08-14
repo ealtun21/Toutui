@@ -103,8 +103,8 @@ async fn a_server_that_gives_an_error_releases_the_wait() {
     .await;
 
     assert_eq!(
-        get_is_loop_break(USER),
-        "1",
+        get_is_loop_break(USER).as_deref(),
+        Some("1"),
         "a playback that does not start must release the wait of the next \
          playback"
     );

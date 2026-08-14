@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.92",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A media plays when a second window of your account logs out.** The program \
+             waited for a listening session of an account that stands on the disk no more: the \
+             message \"Syncing your last listening session. Please wait...\" then stayed for \
+             ever, the media never played, and every key of the player after it took a part of \
+             the program — the program answered no key at all, and the key `Q` did not stop it. \
+             A playback of such an account starts at once now, and no wait of a playback stands \
+             longer than 30 seconds.",
+        ],
+    },
+    Entry {
         version: "0.7.91",
         date: "14/08/2026",
         body: &[

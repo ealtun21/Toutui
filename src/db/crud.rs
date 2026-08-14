@@ -505,22 +505,22 @@ pub fn update_is_loop_break(value: &str, username: &str) -> Result<()> {
     Ok(())
 }
 
-// get is_loop_break
-pub fn get_is_loop_break(username: &str) -> String {
-    let conn = match crate::db::migrate::open_conn() {
-        Ok(c) => c,
-        Err(_) => return String::from("Error: unable open database"),
-    };
+/// Tells if the loop of the playback before this one came to its end.
+///
+/// **`None` says that the account holds no row of the disk.** A second program
+/// of one account logs out while this program runs, and the row of `users` then
+/// goes away (T-155). The old form of this function gave the text "No db found"
+/// for that condition, and its one caller waited for that text to become `1`:
+/// **the program then waited for ever** (T-158).
+pub fn get_is_loop_break(username: &str) -> Option<String> {
+    let conn = crate::db::migrate::open_conn().ok()?;
 
-    let mut stmt = match conn.prepare("SELECT is_loop_break FROM users WHERE username = ?1") {
-        Ok(s) => s,
-        Err(_) => return String::from("Error to prepare reqwest"),
-    };
+    let mut stmt = conn
+        .prepare("SELECT is_loop_break FROM users WHERE username = ?1")
+        .ok()?;
 
-    match stmt.query_row(params![username], |row| row.get::<_, String>(0)) {
-        Ok(id) => id,
-        Err(_) => String::from("No db found"),
-    }
+    stmt.query_row(params![username], |row| row.get::<_, String>(0))
+        .ok()
 }
 
 // Update is_vlv_launched_first_time
@@ -541,21 +541,18 @@ pub fn update_has_played_before(value: &str, username: &str) -> Result<()> {
 }
 /// Tells if the user played a media before. The application uses this value
 /// to know that it can stop with no session.
-pub fn get_has_played_before(username: &str) -> String {
-    let conn = match crate::db::migrate::open_conn() {
-        Ok(c) => c,
-        Err(_) => return String::from("Error: unable open database"),
-    };
+///
+/// **`None` says that the account holds no row of the disk**, as
+/// `get_is_loop_break` does. See T-158.
+pub fn get_has_played_before(username: &str) -> Option<String> {
+    let conn = crate::db::migrate::open_conn().ok()?;
 
-    let mut stmt = match conn.prepare("SELECT has_played_before FROM users WHERE username = ?1") {
-        Ok(s) => s,
-        Err(_) => return String::from("Error to prepare reqwest"),
-    };
+    let mut stmt = conn
+        .prepare("SELECT has_played_before FROM users WHERE username = ?1")
+        .ok()?;
 
-    match stmt.query_row(params![username], |row| row.get::<_, String>(0)) {
-        Ok(id) => id,
-        Err(_) => String::from("No db found"),
-    }
+    stmt.query_row(params![username], |row| row.get::<_, String>(0))
+        .ok()
 }
 // Update id_selected_lib
 pub fn update_id_selected_lib(id_selected_lib: &str, username: &str) -> Result<()> {

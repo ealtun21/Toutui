@@ -1,5 +1,15 @@
 use crate::db::crud::*;
-use log::info;
+use log::{info, warn};
+
+/// The longest time that a playback waits for the playback before it.
+///
+/// **A wait with no end is the fault of T-35, and it came back with T-158.**
+/// The loop of a playback writes `is_loop_break` at its end, therefore a
+/// program that dies inside that loop writes it never. 30 seconds is the time
+/// of this fork for a program that stood still: the row of a session (T-140),
+/// the lock of a download (T-148), and the book of a reader (T-153) all hold
+/// it.
+const THE_LONGEST_WAIT: std::time::Duration = std::time::Duration::from_secs(30);
 
 /// Waits until the playback before this playback is complete.
 ///
@@ -9,23 +19,63 @@ use log::info;
 ///
 /// The first playback of a user has no loop before it. Therefore the function
 /// does not wait in that condition.
+///
+/// **The account of this program can stand in no row of the disk.** A second
+/// program of one account logs out with the key `l` of the view of the
+/// accounts, and the row of `users` then goes away while this program runs
+/// (T-155). The two reads gave a text of a fault for such an account, and that
+/// text is not `1`: the wait therefore had no end, because no loop of a
+/// playback of a row that does not exist can ever write `is_loop_break`. **A
+/// row that no account holds means that no loop stands before this playback.**
+/// See T-158.
 pub fn wait_prev_session_finished(username: String) {
+    the_wait_of_a_playback(username, THE_LONGEST_WAIT)
+}
+
+/// The work of `wait_prev_session_finished`, with the longest wait of its
+/// caller. A test gives a shorter time here: a test of 30 seconds holds a
+/// session of continuous integration for nothing.
+pub fn the_wait_of_a_playback(username: String, longest_wait: std::time::Duration) {
     let message = "Syncing your last listening session. Please wait...";
 
     let has_played_before = get_has_played_before(&username);
     info!(
-        "[wait_prev_session_finished][has_played_before] {}",
+        "[wait_prev_session_finished][has_played_before] {:?}",
         has_played_before
     );
+
+    let Some(has_played_before) = has_played_before else {
+        warn!(
+            "[wait_prev_session_finished] the account {} stands in no row of the disk. \
+             No loop of a playback holds this one, therefore it does not wait.",
+            username
+        );
+        crate::logic::message::say(
+            crate::logic::the_accounts::the_text_of_an_account_that_is_gone(&username).as_str(),
+        );
+
+        return;
+    };
 
     if has_played_before != "1" {
         let mut is_loop_break = get_is_loop_break(&username);
         info!(
-            "[wait_prev_session_finished][is_loop_break] {}",
+            "[wait_prev_session_finished][is_loop_break] {:?}",
             is_loop_break
         );
 
-        while is_loop_break != "1" {
+        let start = std::time::Instant::now();
+
+        while is_loop_break.as_deref() != Some("1") {
+            if start.elapsed() >= longest_wait {
+                warn!(
+                    "[wait_prev_session_finished] the playback before this one wrote no end in \
+                     {} s. This playback starts.",
+                    longest_wait.as_secs()
+                );
+                break;
+            }
+
             std::thread::sleep(std::time::Duration::from_secs(1));
             is_loop_break = get_is_loop_break(&username);
             crate::logic::message::say(message);
