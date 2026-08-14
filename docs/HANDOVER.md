@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.54.** The item T-225 belongs to this session. The
+**The newest release is v0.8.55.** The item T-226 belongs to this session. The
+item T-225 belongs to the session before it. The
 item T-224 belongs to the session before it. The
 item T-223 belongs to the session before it. The
 item T-222 belongs to the session before it. The
@@ -68,6 +69,54 @@ warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
 `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in three
 runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the fifty-fifth turn of 2026-08-15: an episode that left Continue Listening leaves the Home view
+
+**One release: v0.8.55**, and one item: T-226 of the shelf Continue Listening of
+the Home view of a library of podcasts. **The road of it is the second paragraph
+of "What this item leaves open" of T-225**, which named the Home view of T-160,
+the view of the queue of T-161, and the view of the chapters of T-162, and which
+said that each of them compares the identity of the item.
+
+**The Home view held a fault that needs no queue at all.** The measurement of the
+real program v0.8.54 inside tmux: `Chapter 00` and `Chapter 01` of
+`Arthur Gordon Pym` stood together on the shelf, the user pressed the key `N` on
+`Chapter 01`, and the program said `The media is away from Continue Listening
+now.` The server took the value, its shelf then held `Chapter 00` alone, the live
+message came, and **the screen kept `Home [13 items]` with both lines**. The same
+key on a book of the same run gave `Home [34 items]` and then `Home [33 items]`:
+**the key works, and the media type alone decides.** The whole rule of T-66 was
+dead for a library of podcasts.
+
+The fault stood in **two** places, and each of them alone gives a fault of the
+user. `the_media_away_from_continue_listening` of `src/api/live.rs` dropped every
+row of an episode, and `take_the_media_that_left_away` of `src/app.rs` compared
+the identity of the item — `_ids_cnt_list` holds the identity of the **podcast**
+for every line of such a library (T-223 and T-219). A correction of the first one
+alone would have taken **every** episode of that podcast off the shelf with one
+press of the key. `the_key_of_the_media` of `src/logic/live.rs` gives the key of
+one media now, and it is the shape of `Entry::key` of `src/logic/queue.rs`, which
+held this rule since T-126.
+
+Three things are worth the room:
+
+1. **A filter that a neighbour holds with a reason can travel to a function that
+   has no such reason.** `progress_of_the_user` keeps the rows of the books alone
+   because the mark of a line of an episode comes from a different list, and its
+   doc says it; `the_media_away_from_continue_listening`, two functions below it,
+   held the same line and said nothing. **Ask of every filter: does the doc of it
+   hold the reason, or does the doc of a neighbour hold it?** That is the rule of
+   T-185 and of T-199 for a comment that names a decision.
+2. **A road that an item names as "measured for a book alone" is a road, and not
+   a fault.** T-225 named three views. The view of the queue holds no such fault
+   (`Entry::key` names the episode already), the view of the chapters holds a
+   fault of its **words** alone, and the Home view held the fault of the work.
+   **The value of such a paragraph is the sweep, and not the first candidate.**
+3. **A correction of one half is worse than no correction at all.** The filter of
+   `src/api/live.rs` and the reader of `src/app.rs` had to move together: one of
+   them would have taken every episode of the podcast off the shelf. **Ask of a
+   correction of a list: which reader compares a value of that list, and does
+   that reader name one line?**
 
 ## The session of the fifty-fourth turn of 2026-08-15: the row of the player names the episode
 
@@ -7394,32 +7443,39 @@ answers slowly while it writes. Two answers to measure:
   before the commit: the answer is 1**.
 
 ## The prompt for the next session
-**This session took the first paragraph of "What this item leaves open" of the
+**This session took the second paragraph of "What this item leaves open" of the
 newest item** (the rule of T-216 and of T-217, and the cheapest item of a
-session). T-224 wrote "the row of the player of an episode names the podcast
-alone", and that paragraph named the row, the two episodes, and the reason. The
-item is **T-225**, and it holds one release, v0.8.54.
+session). T-225 wrote that the other views of a media that the queue changes are
+measured for a book alone, and it named three of them: the Home view of T-160,
+the view of the queue of T-161, and the view of the chapters of T-162. **The
+sweep of those three found the fault in the first one, and it found no queue
+behind it at all.** The item is **T-226**, and it holds one release, v0.8.55.
 
 Three things are worth the room:
 
-1. **A value that the server gives and that no line of `src/` reads is a fault
-   that waits** (T-225). `collect_info_item` held the name of the episode
-   (`displayTitle`) at its position 5, and no caller took it. **Ask of every
-   value that a function of `src/api/` collects: which line reads this position,
-   and what does the screen say without it?**
-2. **A correction of the work of the program is no correction of the row that
-   shows it** (T-217, and T-225 again). T-224 stopped the key `b` of a second
-   episode of a podcast, and the screen still said nothing of that episode.
-3. **The one part of the screen that follows a media that the queue changes is
-   the row of the player** (T-225). Every list of the program holds the line that
-   the user chose, and the queue moves the media under it with no key. **Ask of
-   every value that the queue changes: which row of the screen follows it?**
+1. **A filter that a neighbour holds with a reason can travel to a function that
+   has no such reason** (T-226). `progress_of_the_user` of `src/api/live.rs`
+   keeps the rows of the books alone, and its doc says why;
+   `the_media_away_from_continue_listening`, two functions below it, held the
+   same line and its doc said nothing. **Ask of every filter: does the doc of it
+   hold the reason, or does the doc of a neighbour hold it?**
+2. **A road that an item names as "measured for a book alone" is a road, and not
+   a fault** (T-226). Of the three views, the queue held no fault at all, the
+   chapters hold a fault of the **words**, and the Home view held the fault of
+   the work. **The value of such a paragraph is the sweep, and not the first
+   candidate.**
+3. **A correction of one half is worse than no correction at all** (T-226). The
+   filter of `src/api/live.rs` and the reader of `src/app.rs` had to move
+   together: a correction of the filter alone would have taken **every** episode
+   of the podcast off the shelf with one press of the key. **Ask of a correction
+   of a list: which reader compares a value of that list, and does that reader
+   name one line?**
 
 This prompt names the state of the program on 2026-08-16.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.54**; `Cargo.toml` is at 0.8.54. The
+> AlbanDAVID/Toutui. Newest release **v0.8.55**; `Cargo.toml` is at 0.8.55. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -7428,7 +7484,7 @@ This prompt names the state of the program on 2026-08-16.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-225 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-226 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -7936,8 +7992,8 @@ This prompt names the state of the program on 2026-08-16.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1206 tests in 2.5 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1232 of 1232** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1207 tests in 2.5 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1233 of 1233** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -8045,10 +8101,60 @@ This prompt names the state of the program on 2026-08-16.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in sixty-seven sessions of sixty-eight. **The
->    session of the fifty-fourth turn took the first paragraph of "What this item
->    leaves open" of the newest item, and that paragraph named the row of the
->    screen, the two episodes, and the reason** (T-225).
+>    this shape found a fault in sixty-eight sessions of sixty-nine. **The
+>    session of the fifty-fifth turn took the second paragraph of "What this item
+>    leaves open" of the newest item: that paragraph named three views, and the
+>    sweep of the three found the fault in the first one** (T-226).
+>
+>    The rule of T-66 was **dead** for a library of podcasts. `Chapter 00` and
+>    `Chapter 01` of `Arthur Gordon Pym` stood together on the shelf Continue
+>    Listening, the user pressed the key `N` on `Chapter 01`, and the program said
+>    `The media is away from Continue Listening now.` The server took the value,
+>    its shelf then held `Chapter 00` alone, the live message came, and **the
+>    screen kept `Home [13 items]` with both lines**. The same key on a book of
+>    the same run gave `Home [34 items]` and then `Home [33 items]`.
+>    - **A filter that a neighbour holds with a reason can travel to a function
+>      that has no such reason** (T-226). `progress_of_the_user` of
+>      `src/api/live.rs` keeps the rows of the books alone and its doc says why;
+>      `the_media_away_from_continue_listening`, two functions below it, held the
+>      same line and its doc said nothing. **Ask of every filter: does the doc of
+>      it hold the reason, or does the doc of a neighbour hold it?**
+>    - **A road that an item names as "measured for a book alone" is a road, and
+>      not a fault** (T-226). Of the three views of T-225, the queue held no
+>      fault at all (`Entry::key` names the episode already), the chapters hold a
+>      fault of the **words**, and the Home view held the fault of the work.
+>      **The value of such a paragraph is the sweep, and not the first
+>      candidate.**
+>    - **A correction of one half is worse than no correction at all** (T-226).
+>      The filter of `src/api/live.rs` and the reader of `src/app.rs` had to move
+>      together: a correction of the filter alone would have taken **every**
+>      episode of the podcast off the shelf with one press. **Ask of a correction
+>      of a list: which reader compares a value of that list, and does that
+>      reader name one line?**
+>    - **The view of the chapters names the podcast alone** (T-226, and it stays
+>      open). The header says `The chapters of "Arthur Gordon Pym"`, and the
+>      sentence of T-162 says `The media "Arthur Gordon Pym" does not play now.`
+>      **while the row of the player of that same second says
+>      `Arthur Gordon Pym — Chapter 02` plays** (T-225). `the_title_of_the_row` of
+>      `src/player/integrated/player_info.rs` holds the name that those sentences
+>      need. **The episodes of the sandbox give 0 chapters**
+>      (`POST /api/items/:id/play/:episode` answers `chapters: []`), therefore the
+>      sentence of T-162 needs a podcast whose episodes hold chapters.
+>    - **`selected_item_id` of the Home view reads `_ids_cnt_list` alone**
+>      (T-226, and it stays open): it gives the identity of the **podcast** for a
+>      line that is one episode, and the keys `e` and `V` read it (T-222 and
+>      T-223).
+>    - **The mark of a line of an episode comes from a different list** (T-226,
+>      and it stays open): `progress_of_the_user` keeps the rows of the books
+>      alone, and no measurement asked which list gives the percent of a line of
+>      a library of podcasts and whether a live message reaches it.
+>    - **The key `X` of the view of the bookmarks of a podcast** removes a place
+>      of another episode with the same words (T-223, T-224, T-225, and T-226
+>      each left it open).
+>
+>    **The session of the fifty-fourth turn took the first paragraph of the same
+>    section, and that paragraph named the row of the screen, the two episodes,
+>    and the reason** (T-225).
 >
 >    The title of a playback of a podcast is the name of the **podcast**, and
 >    every episode of that podcast holds it. `Chapter 02` of `Arthur Gordon Pym`
@@ -8073,13 +8179,15 @@ This prompt names the state of the program on 2026-08-16.
 >    - **The key `X` of the view of the bookmarks of a podcast** removes a place
 >      of another episode with the same words (T-223, T-224, and T-225 each left
 >      it open).
->    - **The other views of a media that the queue changes are measured for a book
->      alone** (T-225, and it stays open): the view of the chapters (T-162), the
->      view of the queue (T-161), and the Home view (T-160) each compare the
->      identity of the item.
+>    - **The other views of a media that the queue changes** (T-225). **T-226
+>      closed the Home view of T-160 and the view of the queue of T-161**, and
+>      the view of the chapters of T-162 stays open for its words.
 >    - **The row of the player of an episode of a download is not measured**
 >      (T-225, and it stays open): the offline mode gives no name of an episode,
->      and the row then holds the name of the row of the disk alone.
+>      and the row then holds the name of the row of the disk alone. **The row of
+>      a download of an episode holds the name of that episode already**
+>      (`the_plan_of_an_episode` of `src/logic/download/plan.rs`), therefore the
+>      question is the name of the **podcast** of that row.
 >    - **A row of 80 columns holds little** (T-80 and T-225, and it stays open):
 >      the name of the podcast and the name of the episode together can pass the
 >      width of a narrow terminal, and the paragraph of that row holds no wrap.
@@ -9132,7 +9240,11 @@ This prompt names the state of the program on 2026-08-16.
 > of the player names the episode of a podcast: the answer of the session holds
 > the name of the podcast in its title and the name of the episode in
 > `displayTitle`, the row says both, and an episode whose name the server did
-> not give keeps the name of the podcast alone** (T-225).
+> not give keeps the name of the podcast alone** (T-225), and **an episode that
+> left the shelf Continue Listening leaves the Home view: a row of an episode of
+> the live message names that episode, the line of the Home view of a library of
+> podcasts reads the identity of the podcast and of the episode together, and an
+> episode whose identity the server did not give keeps its line** (T-226).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

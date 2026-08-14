@@ -342,6 +342,12 @@ pub fn progress_of_the_user(body: &serde_json::Value) -> Vec<(String, Progress)>
 ///
 /// The message carries the whole account, therefore this list is complete: a
 /// media that is absent from it belongs on the shelf again.
+///
+/// **A row of a podcast names an episode, and this function keeps it** (T-226).
+/// A line of the Home view of a library of podcasts is one episode, therefore a
+/// row of an episode that the user finished or hid must take that line away.
+/// The value is the key of `crate::logic::live::the_key_of_the_media`, because
+/// the identity of the item names every episode of one podcast (T-223).
 pub fn the_media_away_from_continue_listening(body: &serde_json::Value) -> Vec<String> {
     let Some(rows) = body.get("mediaProgress").and_then(|value| value.as_array()) else {
         return Vec::new();
@@ -349,9 +355,14 @@ pub fn the_media_away_from_continue_listening(body: &serde_json::Value) -> Vec<S
 
     rows.iter()
         .filter_map(|row| serde_json::from_value::<ProgressRow>(row.clone()).ok())
-        .filter(|row| row.episode_id.is_none() && !row.library_item_id.is_empty())
+        .filter(|row| !row.library_item_id.is_empty())
         .filter(|row| row.is_finished || row.hide_from_continue_listening)
-        .map(|row| row.library_item_id)
+        .map(|row| {
+            crate::logic::live::the_key_of_the_media(
+                &row.library_item_id,
+                row.episode_id.as_deref(),
+            )
+        })
         .collect()
 }
 
@@ -856,13 +867,17 @@ mod tests {
             ]
         });
 
+        // **The row of an episode comes with the key of that episode** (T-226).
+        // A line of the Home view of a library of podcasts is one episode, and
+        // the identity of the item names every episode of one podcast (T-223).
         assert_eq!(
             the_media_away_from_continue_listening(&body),
             vec![
                 "a book that ended".to_string(),
-                "a book that the user hid".to_string()
+                "a book that the user hid".to_string(),
+                "a podcast/an episode".to_string()
             ],
-            "the episode of a podcast does not come, and the book that plays stays"
+            "the book that plays stays, and the episode names itself"
         );
     }
 

@@ -6631,19 +6631,12 @@ impl App {
         // 2026-08-11 showed a book on Continue Listening and on Recently Added
         // together. A list of the identities took both lines away, and the
         // server gives the second one. Each shelf gives its own number.
-        let mut that_left: std::collections::BTreeSet<usize> = std::collections::BTreeSet::new();
-
-        for (item, on_the_shelf) in self.of_continue_listening.iter().enumerate() {
-            if !on_the_shelf {
-                continue;
-            }
-
-            if let Some(id) = self._ids_cnt_list.get(item) {
-                if away.contains(id) {
-                    that_left.insert(item);
-                }
-            }
-        }
+        let that_left = crate::logic::home_view::the_media_that_left_the_shelf(
+            &self._ids_cnt_list,
+            &self.ids_ep_cnt_list,
+            &self.of_continue_listening,
+            &away,
+        );
 
         if that_left == self.the_media_that_left {
             return;

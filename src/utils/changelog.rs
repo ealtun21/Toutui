@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.55",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **An episode that left the shelf Continue Listening stayed on \
+             the Home view.** The key `N` said that the media is away from that \
+             shelf, and the line of it stayed. Every episode of one podcast \
+             holds the identity of that podcast, therefore the program read the \
+             identity of the episode now: the line of that episode goes away, \
+             and every other episode of the podcast keeps its line.",
+        ],
+    },
+    Entry {
         version: "0.8.54",
         date: "15/08/2026",
         body: &[

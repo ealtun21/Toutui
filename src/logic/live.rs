@@ -109,11 +109,31 @@ pub fn progress_of(item_id: &str) -> Option<Progress> {
     }
 }
 
+/// Gives the identity of one media of the shelf of Continue Listening.
+///
+/// **Two episodes of one podcast hold the identity of that podcast** (T-223).
+/// A line of the Home view of a library of podcasts is one episode, therefore
+/// the identity of the item names every line of that podcast, and it names no
+/// one of them alone. The key of an episode holds the two values, and the key
+/// of a book holds the identity of the item.
+///
+/// The shape is the shape of `crate::logic::queue::Entry::key`. The function is
+/// pure, therefore a test needs no server and no screen. See T-226.
+pub fn the_key_of_the_media(item_id: &str, episode_id: Option<&str>) -> String {
+    match episode_id.filter(|one| !one.is_empty()) {
+        Some(episode_id) => format!("{}/{}", item_id, episode_id),
+        None => item_id.to_string(),
+    }
+}
+
 /// Writes the media that must not stand on the shelf of Continue Listening.
 ///
 /// This list **takes the place** of the list that came before it, because a
 /// message carries the whole account. A media that a different client made
 /// unfinished comes back on the shelf in that way. See T-66.
+///
+/// The values are the keys of `the_key_of_the_media`, and not the identities of
+/// the items. See T-226.
 pub fn note_the_media_away_from_continue_listening(ids: Vec<String>) {
     if let Ok(mut place) = box_of_the_live().lock() {
         place.away_from_continue_listening = ids.into_iter().collect();

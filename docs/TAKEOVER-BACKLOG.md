@@ -14929,3 +14929,124 @@ its author, because the author of the podcast is the author of the episode.
   name of the episode together can pass the width of a narrow terminal, and no
   measurement of that width was made. The paragraph of the row holds no wrap,
   therefore a name that is too long goes away at the edge.
+
+### T-226: an episode that left Continue Listening leaves the Home view
+
+**This item closes one of the two roads that T-225 left open.** T-225 wrote that
+"the other views of a media that the queue changes are measured for a book
+alone", and it named the Home view of T-160 first. The measurement of that view
+found a fault that stands with no queue at all: **the whole rule of T-66 was
+dead for a library of podcasts.**
+
+#### The measurement
+
+The real program v0.8.54 inside tmux, against the sandbox (podman on :13399),
+of the podcast `Arthur Gordon Pym` of the library `Podcasts`:
+
+- `PATCH /api/me/progress/<the podcast>/<the episode>` gave `Chapter 00` and
+  `Chapter 01` a place of 60 seconds, therefore the shelf of the server held the
+  two episodes: `Home [13 items]` with the two lines under `Continue Listening`.
+- The user pressed the key `N` on `Chapter 01`. The program said
+  `The media is away from Continue Listening now.`
+- The server took the value: `hideFromContinueListening` of that row is `True`,
+  and `GET /api/libraries/:id/personalized` then held `Chapter 00` alone.
+- The live message came — the log says `[live] user_updated: the position of 20
+  media` and `[live] 11 media of the account stay away from Continue Listening`.
+- **The screen kept `Home [13 items]` with the two lines**, at 2 seconds and at
+  8 seconds. The program said that the media is away, and it showed the media on
+  that shelf.
+
+**The control of the same run** (the trap 206): the same key on the book
+`A Long Test Book` of the library `Books` gave `Home [34 items]`, then
+`Home [33 items]` in 3 seconds, and the line went away. **The key works, and the
+media type alone decides.**
+
+The same measurement of the corrected program (v0.8.55) gave `Home [13 items]`,
+then `Home [12 items]` with `Chapter 00` alone. A second measurement, of a
+second client of the account that hid `Chapter 01` with `curl` and with no key
+of the user, gave the sentence of T-160 with the name of the **episode**:
+`The media "Chapter 01" is not on the shelf Continue Listening now. No line is
+selected: the keys j and k select one.` The book of the control kept its road.
+
+#### The fault of the source
+
+The fault stood in **two** places, and a correction of one of them alone gives
+another fault of the user:
+
+- `the_media_away_from_continue_listening` of `src/api/live.rs` held the filter
+  `row.episode_id.is_none()`, therefore **every** row of an episode went away.
+  The doc of that function said nothing of episodes; the same filter of
+  `progress_of_the_user`, two functions above it, holds its reason (the mark of
+  the line of an episode comes from a different list), and this one carried the
+  line and not the reason.
+- `take_the_media_that_left_away` of `src/app.rs` read `_ids_cnt_list` for the
+  identity of each line. `collect_ids_pod_cnt_list` fills that list with
+  `recentEpisode.libraryItemId` — **the identity of the podcast** — therefore
+  two episodes of one podcast hold one value there (the shape of T-223 and of
+  T-219). A correction of `src/api/live.rs` alone would have taken **every**
+  episode of that podcast off the shelf with one press of the key.
+
+#### The correction
+
+- `src/logic/live.rs`: the new pure function
+  `the_key_of_the_media(item_id, episode_id)`. It gives `{item}/{episode}` for
+  an episode and the identity of the item for a book and for an episode of no
+  identity. The shape is the shape of `crate::logic::queue::Entry::key`, which
+  held this rule since T-126.
+- `src/api/live.rs`: the function keeps the rows of the episodes, and it gives
+  the key of each row.
+- `src/logic/home_view.rs`: the new pure function
+  `the_media_that_left_the_shelf(ids, episode_ids, on_the_shelf, away)`. The
+  loop of `src/app.rs` was the body of it, and a pure function of `src/logic/`
+  takes a test. `ids_ep_cnt_list` is empty for a library of books, therefore the
+  key of a book is the identity of its item.
+- `src/app.rs`: the loop of `take_the_media_that_left_away` calls that function.
+- `tests/an_episode_that_left_continue_listening_goes_away.rs` holds the rule,
+  and the parts of it stay in one function (T-144 and T-157). **It needs no
+  server and no screen**, because the three functions are pure. **Three builds
+  of the fault each fail it**: the filter of the episodes of `src/api/live.rs`,
+  a key that forgets the episode, and a reader of the Home view that gives
+  `None` for the episode of a line.
+- The unit test `the_finished_media_and_the_hidden_media_leave_continue_listening`
+  of `src/api/live.rs` held the old rule, and it holds the new one now.
+
+**The decision, and the reason for it: an episode of no identity keeps its
+line.** `collect_ids_ep_pod_cnt_list` gives `N/A` for an episode whose id the
+server did not give (T-114), and no message of the server can name such a line.
+A line that stays is the safe road: a line that goes away takes a media of the
+user off the screen with no reason at all, and that is the rule of T-203 for a
+default of a read.
+
+#### What this item leaves open
+
+- **The view of the chapters names the podcast alone.** The header says
+  `The chapters of "Arthur Gordon Pym"` and, for an episode of no chapter,
+  `"Arthur Gordon Pym" holds no chapter.`; the sentence of T-162 says
+  `The media "Arthur Gordon Pym" does not play now.` **while the row of the
+  player of this same second says `Arthur Gordon Pym — Chapter 02` plays**
+  (T-225). The program contradicts itself, and `the_title_of_the_row` of
+  `src/player/integrated/player_info.rs` holds the name that those three
+  sentences need. The episodes of the sandbox give **0** chapters
+  (`POST /api/items/:id/play/:episode` answers `chapters: []`), therefore a
+  measurement of the sentence of T-162 for an episode needs a podcast whose
+  episodes hold chapters, and the sandbox holds none.
+- **The view of the queue holds no such fault** (T-161): `Entry::key` of
+  `src/logic/queue.rs` names the episode already, and `Entry::title` holds the
+  name of the episode. The road of T-225 is closed for that view **by a read of
+  the source alone**, and no measurement stands behind it.
+- **The mark of a line of an episode comes from a different list** than the mark
+  of a book (`progress_of_the_user` keeps the rows of the books alone). Which
+  list gives the percent of a line of a library of podcasts, and does a live
+  message reach it? No measurement of this item asked.
+- **The key `X` of the view of the bookmarks of a podcast** removes a place of
+  another episode with the same words (T-223, T-224, and T-225 each left it
+  open, and this item did not close it).
+- **The other lists of the Home view of a library of podcasts hold the identity
+  of the podcast too**: `selected_download` of `src/app.rs` reads
+  `_ids_cnt_list` and `ids_ep_cnt_list` together and it is correct, and
+  `selected_item_id` of `src/app.rs:5844` reads `_ids_cnt_list` **alone** for the
+  Home view: it gives the identity of the podcast for a line that is one
+  episode. The keys `e` and `V` read it (T-222 and T-223), and no measurement of
+  those two keys on a line of the Home view of a library of podcasts was made.
+  **Ask of every list of a view: does one value of it name one line?**
+- **A row of 80 columns holds little** (T-80 and T-225, and it stays open).

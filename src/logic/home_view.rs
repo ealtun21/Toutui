@@ -250,6 +250,58 @@ pub fn without_the_media_that_left(
     answer
 }
 
+/// Gives the number of each media of the Home view that left the shelf of
+/// Continue Listening.
+///
+/// **The list holds the number of the line, and not the identity of the
+/// media.** One media stands on two shelves: a measurement of 2026-08-11 showed
+/// a book on Continue Listening and on Recently Added together. A list of the
+/// identities took both lines away, and the server gives the second one.
+/// Therefore each shelf gives its own number, and `on_the_shelf` says which
+/// number belongs to Continue Listening. See T-66.
+///
+/// **A line of a library of podcasts is one episode** (T-226). `ids` holds the
+/// identity of the **podcast** for each of those lines, therefore two episodes
+/// of one podcast hold one value there and the identity of the item names no
+/// line alone (T-223). `episode_ids` gives the second half of the key, and it
+/// holds no value at all for a library of books: the key of a book is the
+/// identity of its item.
+///
+/// `away` holds the keys of `crate::logic::live::the_key_of_the_media`. An
+/// episode whose identity the server did not give takes a key that no message
+/// carries, therefore its line stays: a line that stays is the safe road, and a
+/// line that goes away with no reason takes the media of the user with it
+/// (T-203).
+///
+/// The function is pure, therefore a test needs no server and no screen.
+pub fn the_media_that_left_the_shelf(
+    ids: &[String],
+    episode_ids: &[String],
+    on_the_shelf: &[bool],
+    away: &std::collections::BTreeSet<String>,
+) -> std::collections::BTreeSet<usize> {
+    let mut answer = std::collections::BTreeSet::new();
+
+    for (item, stands) in on_the_shelf.iter().enumerate() {
+        if !stands {
+            continue;
+        }
+
+        let Some(id) = ids.get(item) else {
+            continue;
+        };
+
+        let key =
+            crate::logic::live::the_key_of_the_media(id, episode_ids.get(item).map(String::as_str));
+
+        if away.contains(&key) {
+            answer.insert(item);
+        }
+    }
+
+    answer
+}
+
 /// Tells which media went away from under the line of the user, if one did.
 ///
 /// `rows` and `selected` are the lines and the line of the user **before** the
