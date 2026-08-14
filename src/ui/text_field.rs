@@ -10,6 +10,28 @@
 
 use tui_input::Input;
 
+/// The backend of a screen that asks the user for a text. See T-174.
+///
+/// **A screen of this program must take no lock of the standard output.** The
+/// three screens of a field — the login, the search, and the prompt of a text —
+/// made their backend of `io::stdout().lock()`, and each of them held that lock
+/// while it waited for another thread. A panic of that other thread then took
+/// the whole program away for ever: the hook of the panic gives the terminal
+/// back on the standard output, and it waited for a lock that the screen holds
+/// until the thread that it waits for comes back.
+///
+/// A measurement of 2026-08-14 with `docs/harness/no_library.py`: the thread of
+/// the login of T-173 panicked, and the program stood with a screen of no
+/// character. No word came to the terminal, no word came to the standard error,
+/// and the log stopped at the line before the panic.
+///
+/// `io::stdout()` takes the lock at each write and it gives it back. The cost
+/// is one lock of a mutex for each block of the frame, and a frame of a field
+/// holds a few blocks.
+pub fn the_backend_of_a_field() -> ratatui::backend::CrosstermBackend<std::io::Stdout> {
+    ratatui::backend::CrosstermBackend::new(std::io::stdout())
+}
+
 /// The three values that the caller gives to a `Paragraph` and to
 /// `Frame::set_cursor_position`.
 #[derive(Debug, Clone, PartialEq, Eq)]

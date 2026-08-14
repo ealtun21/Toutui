@@ -2,10 +2,10 @@ use crate::api::server::auth_process::*;
 use crate::config::rgb_parts;
 use crate::db::crud::*;
 use crate::login_app::AppLogin;
+use crate::ui::text_field::the_backend_of_a_field;
 use crate::utils::exit_app::*;
 use crossterm::event::{self, KeyCode, KeyEvent};
 use log::{error, info};
-use ratatui::backend::CrosstermBackend;
 use ratatui::text::Line;
 use ratatui::widgets::Paragraph;
 use ratatui::widgets::{Block, Borders};
@@ -288,11 +288,10 @@ impl AppLogin {
         info!("[auth_input] Login");
 
         // init input area
-        let stdout = io::stdout();
-        let stdout = stdout.lock();
-
-        let backend = CrosstermBackend::new(stdout);
-        let mut term = Terminal::new(backend)?;
+        // **The screen of a field takes no lock of the standard output.** A
+        // panic of another thread would then wait for this screen for ever.
+        // See T-174.
+        let mut term = Terminal::new(the_backend_of_a_field())?;
 
         let (fg_r, fg_g, fg_b) = rgb_parts(&self.config.colors.login_foreground_color);
 

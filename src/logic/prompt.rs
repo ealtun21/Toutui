@@ -11,7 +11,7 @@
 
 use crate::app::App;
 use crate::config::rgb_parts;
-use crate::ui::text_field::field_view;
+use crate::ui::text_field::{field_view, the_backend_of_a_field};
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::backend::CrosstermBackend;
 use ratatui::layout::Rect;
@@ -65,11 +65,10 @@ impl App {
     /// Esc, and it gives the text when the user presses Enter. An empty text
     /// is a text, therefore the caller decides what an empty answer means.
     pub fn ask_for_a_text(&mut self, title: &str) -> io::Result<Option<String>> {
-        let stdout = io::stdout();
-        let stdout = stdout.lock();
-
-        let backend = CrosstermBackend::new(stdout);
-        let mut term = Terminal::new(backend)?;
+        // **The screen of a field takes no lock of the standard output.** A
+        // panic of another thread would then wait for this screen for ever.
+        // See T-174.
+        let mut term = Terminal::new(the_backend_of_a_field())?;
 
         let (bg_r, bg_g, bg_b) = rgb_parts(&self.config.colors.background_color);
         let (fg_r, fg_g, fg_b) = rgb_parts(&self.config.colors.search_bar_foreground_color);
