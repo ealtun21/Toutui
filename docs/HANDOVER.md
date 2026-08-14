@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.34.** The item T-204 belongs to this session. The
+**The newest release is v0.8.35.** The item T-205 belongs to this session. The
+item T-204 belongs to the session before it. The
 item T-203 belongs to the session before it. The
 items T-199, T-200, T-201, and T-202
 belong to the session before it. The items T-196, T-197, and T-198 belong to the session before it.
@@ -44,12 +45,96 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.34**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.35**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1185 of 1185** in 2.4 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1211 of 1211** in 19.3 seconds with the sandbox up,
+**1186 of 1186** in 2.4 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1212 of 1212** in 20.9 seconds with the sandbox up,
 and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in three
 runs.
+
+## The session of the thirty-seventh turn of 2026-08-14: the key that took the program away
+
+**One release: v0.8.35.** The session before this one left three questions
+(T-204): a key of the user that waits for the disk on the thread of the screen,
+the calls of the database of an async function, and a read of `config.toml` of
+every frame. The sweep of the first two of them found a fault that no item of the
+road named, and it is the worst kind: **a key of the user took the whole program
+away.**
+
+**The item is T-205**, and it holds four measurements of the real program, each
+with `docs/harness/hold_the_lock.py` (T-199):
+
+1. **The key `R` and the key of the next library ended the program.** The
+   refresh makes a new `App`, `Database::new` reads the accounts of the disk, and
+   the correction of T-199 stops the program with the words of a start that has
+   no account. The terminal of the user held `Toutui stops: it cannot read the
+   accounts of its database.` and **`Toutui changed nothing`** — while the
+   account, the token, every list, the queue, the timer for sleep, and the
+   playback of that program went away. The key `R` stands in the footer of every
+   view, and two Toutui of one account is a condition of this fork (T-140).
+2. **The key of the next library said `The program shows the library "Podcasts"
+   now.`** while the row of the account held the library of before:
+   `let _ = update_id_selected_lib(...)`.
+3. **The key Enter of the view of the sequence changed the header of that view
+   and no word came.** The caller could not read the fault: **`update_library_sort`
+   answered `Ok(())` for a connection that it did not get**, and the sweep of
+   T-200 over the 21 functions of that shape did not reach it. `save_the_queue`
+   held the same shape, and **the disk is the truth of the queue** (T-147).
+4. **The freeze of the screen after a key of the user**, which this item measured
+   and did not correct:
+
+| The key, with the lock | The screen of v0.8.34 stood still |
+|---|---|
+| no key at all | 1 ms |
+| `X`, `B`, `n` | **about 4870 ms each** |
+| Shift-Tab | **15013 ms** |
+
+**The correction holds three parts**: `the_accounts_did_not_come` of
+`src/api/client/error.rs` and the refresh of `src/main.rs` that keeps the
+application of the user, the three keys of the library and of the sequence that
+read the answer of their write, and the two functions of `src/db/crud.rs` that
+give a fault. **The road of T-172 stays for a fault of the server**, and the
+start of `main` keeps the road of T-199.
+
+| The condition | v0.8.34 | v0.8.35 |
+|---|---|---|
+| The key `R` with the lock | the program went away | **the program stays, and it says why the screen did not change** |
+| The key Shift-Tab with the lock | the program went away, after a word that lies | the sentence of a write that failed |
+| The key Enter of the sequence, with the lock | the header changed, and no word came | the sentence, and the sequence of the row |
+
+**The four things that this session leaves open** stand in the last paragraphs of
+T-205: the freeze of a key of the user (the first question of T-204, measured and
+open), the five callers of `write_the_queue` that do not read the fault of
+`save_the_queue`, the three reads of `App::new` whose default is a fact of the
+user (`get_library_sort`, `get_speed_rate`, `get_is_show_key_bindings` — the
+correction of this item **hides** them, because a refresh that meets the lock
+stops at `Database::new` before them), and the login and the sync of a session of
+the sweep of the async calls.
+
+### The traps of this session
+
+**The trap 168: a caller that says nothing can hold a callee that lies.** The
+first form of the correction of the key of the sequence gave the caller a
+sentence, and the measurement of the real program then said nothing at all: the
+log held `[update_library_sort] database is locked` and no line of the caller.
+**A sweep of a shape is not closed while one function of that shape stands**, and
+the sweep of T-200 named 21 functions of `src/db/crud.rs` — two more held it.
+`grep -n "open_conn()" -A 6 src/db/crud.rs` and a look for `return Ok(` gives
+them.
+
+**The trap 169: a measurement of a key of a list needs room to move.** The first
+measurement of this session pressed `k` 30 times from the thirteenth line, and
+the cursor stood still after the eleventh press: the top of the list looks the
+same as a screen that does not draw. **A poll of the cursor holds a list that is
+longer than the number of the keys**, or it presses `j` from the top.
+
+**The trap 170: a task of a download does not stop the loop of the screen.** The
+three writes of a download each waited five seconds under the lock, and the five
+presses of `j` of those 15 seconds each moved the cursor at once. The driver of
+the runtime of T-204 stood with another worker of tokio. **A blocking call of one
+worker is not the fault of T-204**, and the fault of T-204 needs the worker that
+holds the driver: the loop of the playback holds it because it writes three rows
+each second, and a task of one download does not.
 
 ## The session of the thirty-sixth turn of 2026-08-14: the disk of every frame, and the disk of every key
 
