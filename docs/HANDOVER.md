@@ -4,14 +4,79 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.93**, and T-158 and T-159 belong to this session.
-The items T-155, T-156, and T-157 belong to the session before it, and the item
-T-154 to the one before that, T-152 and T-153 to the one before that,
-T-150 and T-151 to the one before those, T-148 and T-149 to the one before them,
-T-146 and T-147 to the one before those, T-145 to the one before that, T-142 to
-T-144 to the one before it, and T-140 and T-141 to the one before those.
+**The newest release is v0.7.94**, and T-160 belongs to this session. The items
+T-158 and T-159 belong to the session before it, and the items T-155, T-156, and
+T-157 to the one before that, the item T-154 to the one before that, T-152 and
+T-153 to the one before that, T-150 and T-151 to the one before those, T-148 and
+T-149 to the one before them, T-146 and T-147 to the one before those, T-145 to
+the one before that, T-142 to T-144 to the one before it, and T-140 and T-141 to
+the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the sixth turn of 2026-08-14: the line that goes away under the cursor
+
+**One release: v0.7.94.** No condition of the road stayed, therefore this
+session named one of its own: **a line of the shelf Continue Listening that goes
+away while the cursor of the user stands on it**. The road named two shapes of a
+fault, and this condition holds both of them at one time — "a key of a view that
+the user presses two times" (the shape of T-154) and "a state of one process
+that a second program cannot see". **It held one fault, and one window makes it
+as well as two.**
+
+| Item | What | Keys |
+|---|---|---|
+| T-160 | **The key of the user reached a media that the user did not choose.** Three presses of `M` marked three books, and a second window did the same to the line of the first one | `M`, and `M` again |
+
+### T-160, and it is the one to know of this session
+
+**A media that the user marks as finished goes away from the shelf Continue
+Listening** (T-66), and the lines of the Home view come again. **The lines keep
+the number of the line**, therefore the media below moves under the cursor with
+no word at all:
+
+| The press of the key `M` | The line of the user | The media that the server marked |
+|---|---|---|
+| before | `A Long Test Book` | — |
+| the first press | `A Book Of Many Hours` | `A Long Test Book` |
+| the second press | `A Second Book Of Many Hours` | **`A Book Of Many Hours`** |
+| the third press | `Depthless Hunger, Book 2` | **`A Second Book Of Many Hours`** |
+
+**The message of each press is the same text, and it names no media**: "The
+media is finished now." A user who marks a book by mistake presses the key again
+to take the mark back, and that press marks the next book of the shelf. **The
+mark that goes back costs more than a mark**: `{"isFinished": false}` writes
+`currentTime: 0` on the server (the section 15 of `docs/TEST-SERVER.md`).
+
+**The second form needs no key of this user at all.** Two windows of one
+account: the window B pressed `M` on the media of the line of the window A, the
+line of A went away, the cursor of A stood on the next media, and **the message
+row of A was empty**. The next `M` of A then marked that media.
+
+**The correction: the program cannot know which media the user wants now,
+therefore it takes the line away and it says what happened.** No key of the
+selection can then reach a media that the user did not choose — the next press
+of `M` says "No media is selected." — and the keys `j` and `k` give a line
+again. The text names the media that went away, and it promises no other key
+(T-118 and T-143).
+
+**Why not the line above, and why not the line below.** Both of them put a
+media of the shelf under the cursor of a user who chose no media, therefore both
+of them keep the fault. A line of nobody is the one answer that changes no byte
+of the server.
+
+### The measurements of this session
+
+| The measurement | The answer |
+|---|---|
+| **Two presses of the key `M` on the shelf Continue Listening** | **one fault** (T-160): two media of `isFinished: true`, and one message |
+| Three presses of it | three media, and the user read one message |
+| The same, after the correction | the second press says "No media is selected.", and `curl` holds `isFinished: false` |
+| **The key `M` of a second window on the media of the line of this window** | the line of this window went away with no word, and its next key marked another media |
+| The same, after the correction | the message names `A Long Test Book`, and the key `M` changes no media |
+| The key `j` after the line went away | the cursor stands on the first media again |
+| `PATCH /api/me/progress/:id` with `{"isFinished": false}` of `curl` | `currentTime` went from **500 to 0** |
+| **`cargo test`, the command of CI** | **no fault** |
 
 ## The session of the fifth turn of 2026-08-14: the window that stays after a log out
 
@@ -1795,16 +1860,24 @@ measurements of this session left.
      list moves. **A sweep of the keys inside that condition found T-154**: the
      second press of `D` on one media took the bar of that download off the
      screen for the whole of it.
+   - ~~**A line of the Home view that goes away while the cursor of the user
+     stands on it**~~: **made on 2026-08-14 (the sixth session), and it found
+     T-160.** The condition holds the two shapes at one time: the key `M` of two
+     presses marked two media of one window, and a second window took the line
+     of the first one with no word. The line goes to nobody now.
    - **No condition of the road stays. A next session must name a condition of
      its own.** The shapes that found faults before: a state of one process that
-     a second program cannot see (T-142, T-147, T-148, T-150, T-153, T-154), a
-     program that dies in the middle of work (T-145, T-152), and a server that
-     does not answer (T-146, T-149, T-152). **The parts of the program that no
-     such measurement has reached**: the view of the accounts with two windows,
-     the key `X` of a media that plays in the other window, the search of a
-     library that a second window changes, and **a key of a view that the user
-     presses two times** — the shape that gave T-154, and the key `D` is one key
-     of many.
+     a second program cannot see (T-142, T-147, T-148, T-150, T-153, T-154,
+     T-155, T-156, T-158, T-159, T-160), a program that dies in the middle of
+     work (T-145, T-152), and a server that does not answer (T-146, T-149,
+     T-152, T-156). **The parts of the program that no such measurement has
+     reached**: the search of a library that a second window changes, the
+     bookmarks and the lists of two windows, **the writes of the sequence, of
+     the speed, of the key bindings, and of the rows of a session
+     (`id_session`), which say nothing when their name holds no row** (the
+     sweep of T-155 and of T-159), and **a line of a view that is not the Home
+     view and that goes away under the cursor** — the queue, the downloads, and
+     the episodes of a podcast each hold a list that a second window changes.
    - ~~**A second account of a second server while a media plays**~~ (T-124):
      **made on 2026-08-13, and it found T-138 and T-139** — the place of one
      account went to the server of another account, and no key sent the place of
