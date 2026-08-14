@@ -7629,6 +7629,144 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-178: the reader wrote a place of a book that it did not read
+
+**The road of T-175 named this shape**: a key that reads a state of the server
+and that then writes it. The keys `M` and `N` were the first two, and the sweep
+of that shape must ask, for every key that writes, what the program read before
+that write. **The key `e` holds the same shape, and its fault takes the work of
+the user away.**
+
+`place_of_the_server` of `src/logic/reader/session.rs` reads `ebookLocation`
+and `ebookProgress` of `GET /api/me/progress/:id`, and the loop of the program
+then sends the place of the reader to `PATCH /api/me/progress/:id` — every 30
+seconds while the user reads, at the key `s`, and at the key `h` that leaves the
+book. The old code held one word for every fault of that read:
+
+```rust
+let answer: serde_json::Value = api
+    .get_json(&format!("/api/me/progress/{}", item_id))
+    .await
+    .ok()?;
+```
+
+**`.ok()?` is the `Err(_)` of T-175.** A read that did not come back gave the
+reader the first page of the book, and the send after it wrote that first page
+to the server.
+
+The measurement of 2026-08-14 used `docs/harness/one_method_fails.py` on the
+port 13500, with the rule `GET:/api/me/progress`: the proxy answered `500` to
+the read and it forwarded the `PATCH` of that same path to the sandbox. The
+account of the sandbox held that one address (the trap 129). The server held
+`Alice in Wonderland` at `ebookLocation toutui:12:300` and
+`ebookProgress 0.6`, and a start with no proxy showed that the reader opens at
+`chapter 13 of 14 — 83%`.
+
+| The moment | Before | After |
+|---|---|---|
+| The reader of the key `e`, while the read gives 500 | **`chapter 2 of 14 — 0%`** | `chapter 2 of 14 — 0%` |
+| The words of the reader at that moment | **none** | `The server did not give your place: The server reported a fault. Status 500. The program writes no place. Press h and then e to ask again.` |
+| The key `s` of the reader | `The place of the book goes to the server…` | `The server did not give your place in this book. The program writes no place. Press h and then e to ask again.` |
+| The key `h`, and the send that comes with it | **`PATCH /api/me/progress/:id` in the log of the proxy** | no request of the proxy |
+| The server after it | **`ebookLocation epubcfi(/6/4!/4/2/4/2/1:0)`, `ebookProgress 0.0041284304384330275`** | `ebookLocation toutui:12:300`, `ebookProgress 0.6` |
+
+**The user lost their place in a book of 14 chapters, on every machine of that
+account**, and one request of the status 500 did that work. The header of the
+program said `⚠ toutuitest: the server reports a fault` (T-171) — that is the
+whole of what the user read, and it names no book.
+
+**The correction is the correction of T-175.** `place_of_the_server` gives
+`Result<Option<(String, f64)>, ApiError>` now, and it uses
+`the_progress_that_the_server_gave` of T-175: **the status 404 is the answer of
+a book that the user never opened**, therefore such a book has no place, the
+reader starts at the first page, and the send of that place is the truth. Every
+other fault gives `Err`, and the reader then takes
+`the_server_did_not_give_the_place`.
+
+**The reader holds a reason now, and not a boolean.** `sends_the_place: bool`
+became `ThePlaceOfTheBook`, of three values: `GoesToTheServer`,
+`AnotherBookOfTheItem` (T-76), and `TheServerDidNotGiveIt` (this item). The two
+roads that send no place say two different things, because they are two
+different things (T-91): one is a book of this machine, and the other is a place
+of the server that the program did not read.
+
+`tests/the_reader_writes_no_place_that_the_server_did_not_give.rs` holds the
+rule, and it fails with the correction removed. **It needs no sandbox**: a host
+of a raw socket gives the fault to the read alone (T-167), and the reader of
+`tests/data/alice.epub` gives the rule of the send.
+
+**The parts of the program that this shape has not reached.** The sweep of a
+key that reads and that then writes asked every key that writes to the server:
+the key `b` of a bookmark writes the place of the playback of this program and
+it reads no state, the keys `<` and `>` of a list read the list of this program
+(T-165), and the key `X` and the key `r` of a list write with no read. **The
+sweep found no other key of this shape.** The loop of the playback writes the
+position at each second, and it reads nothing before that write.
+
+### T-177: every position of the account went away for two fields that the program does not read
+
+**The road of T-176 named this condition**, and it named it as a decision that
+holds: "a field of a position that the program does not read is a **state**, and
+a default of that state is the fault of T-175. A row of that answer that does
+not read takes a line of the log and no more, therefore it stops no program."
+**The measurement of this session says that the decision was wrong.** A row that
+does not read stops no program, and it takes the position of that media away
+with no word at all.
+
+`Root` of `src/api/me/get_media_progress.rs` asked for every field of the answer
+of Audiobookshelf 2.36.0. `mediaItemId` and `mediaItemType` came to
+`mediaProgress` with the version 2.5.0 of the server, and **this program reads
+neither of them**.
+
+**A new harness gives a server of another version.**
+`docs/harness/a_field_of_the_answer_goes_away.py` forwards every request to the
+sandbox, and it takes the named fields out of the answer of one path at every
+depth of the body. `another_body_of_the_libraries.py` of T-176 cannot do this
+work: `GET /api/me` holds the id of the account, the id of every media, and the
+position of each of them, and a body of a file holds no value that the sandbox
+made at the moment of the request.
+
+```bash
+python3 docs/harness/a_field_of_the_answer_goes_away.py 13503 13399 \
+    requests.log /api/me mediaItemId mediaItemType
+```
+
+The measurement of 2026-08-14, with the account of the sandbox on that one
+address (the trap 129):
+
+| The measurement | Before | After |
+|---|---|---|
+| The shelf Continue Listening of the Home view | **`A Long Test Book`, `A Big Book Of A Scan`, `A Book Of Many Hours`, and two more, each with no percent** | `50%`, `42%`, `65%`, `11%`, `92%` |
+| The mark of a media that is finished | **none of the 34 lines** | `✓` on three lines of the shelf Recently Added |
+| The line of the media of the cursor | **`Progress:  N/A%,   N/A`** | `Progress: 50%, 15m left, Not finished` |
+| The log of the program | **20 lines of `a position of the account does not read: missing field `mediaItemId``** | no such line |
+
+**The user saw a Home view of no position at all, and no word said why.** The
+server answered every request, the header said nothing of a fault, and two
+fields that the program never reads did that work.
+
+**The correction is the rule of T-176 for this answer.** `libraryItemId` stays,
+and every other field of `Root` takes a default. **The one field that stays is
+the field that names the media**: a row that names no media belongs to no line
+of any view, therefore the program can say nothing of it, and
+`the_positions_of_the_answer` keeps no such row. That function is new — the loop
+of the rows stood inside the async `the_account_of_the_token`, and no test could
+reach it.
+
+**The words for the user stay a line of the log, and that is a decision.** After
+this correction, every row that names a media reads: a row that does not read
+names no media, therefore no line of any view holds it and no view can say a
+word of it. A message of the start for a row of that shape would name a media
+that the user cannot see.
+
+**`Root` of `GET /api/me/progress/:id` is the same structure**, therefore the
+read of one media of a server of another version reads too. The rows of the
+message `user_updated` of the socket held this rule already: `ProgressRow` of
+`src/api/live.rs` gives every field a default.
+
+**The four tests of the rule fail with the correction removed**: three in
+`src/api/me/get_media_progress.rs` and one in `src/api/me/permissions.rs`.
+
 ### T-176: one field of a library that the program does not read stopped the program
 
 **The road of T-173 named this condition**: the answer of `GET /api/libraries`
@@ -7718,6 +7856,14 @@ position that the program does not read is a **state**, and a default of that
 state is the fault of T-175. A row of that answer that does not read takes a
 line of the log and no more (`the_account_of_the_token` of
 `src/api/me/permissions.rs`), therefore it stops no program.
+
+**The measurement of T-177 says that this decision was wrong.** A row that does
+not read stops no program, and it takes the position of that media away with no
+word at all: two fields that the program never reads took every position of the
+account away, and the Home view then held no percent and no mark of a media that
+is finished. **A default of a field that the program does not read is not the
+fault of T-175** — that item is a **read that came back with a fault**, and a
+field that the answer does not hold is a server of another version. See T-177.
 
 ### T-175: the keys `M` and `N` wrote a state that the program did not read
 

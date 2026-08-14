@@ -41,6 +41,25 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.9",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The reader wrote the first page of a book to the server when it could \
+             not read your place.** Toutui asks the server where you stopped reading, and \
+             it sends your place back while you read. A request that came back with a \
+             fault gave the reader the first page of the book, and the send after it took \
+             your place away on every machine of your account. Toutui writes no place \
+             now, and the reader says what the server said.",
+            "- **Every position of your media went away for a server of another \
+             version.** The answer of the server holds the position of each of your media, \
+             and a server of an older version holds two fields fewer in it. Toutui then \
+             read no position at all: the Home view held no percent, no mark of a book \
+             that you finished, and no word said why. Toutui reads the media of a \
+             position now, and every other field of that answer changes nothing.",
+        ],
+    },
+    Entry {
         version: "0.8.8",
         date: "14/08/2026",
         body: &[
