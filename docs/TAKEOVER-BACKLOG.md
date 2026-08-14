@@ -8632,6 +8632,132 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-211: a place that the server took stayed on the disk, and it went to the server again every 30 seconds
+
+**The item before this one named the road, and it left it open**: "the flush of
+the positions holds three calls of `let _ = delete_pending_progress(...)`". The
+condition is the two commands of T-206 and of T-152, and it needs no harness of
+Python at all.
+
+**The shape.** A caller that gives a value to the server, and that then removes
+the row of that value from the disk, holds **two** machines: the write of the
+server succeeded, and the write of the disk failed. The program then holds a row
+of a place that the server holds already, and the task of every 30 seconds reads
+that row for the whole life of the program.
+
+The old shape, of the three roads of the loop of the flush:
+
+```rust
+let _ = delete_pending_progress(username, &progress.id_item, &progress.id_pod);
+```
+
+- the server took the place (the road of `Ok(())`),
+- the server holds a newer place, therefore the place of the disk goes away, and
+- the server refused the request itself (the status 400 or 404 of T-189).
+
+#### The condition
+
+One row of `pending_progress` and one `chmod`:
+
+```bash
+podman start abs-test
+# after the first frame (the trap 171 of T-206):
+sqlite3 "$DB" "INSERT INTO pending_progress (id_item, username, server, id_pod,
+    position_s, duration, is_finished, updated_at)
+    VALUES ('9a671047-…', 'toutuitest', 'http://localhost:13399', '',
+            900.0, 1800.0, 0, $(( $(date +%s%3N) + 5000 )));"
+chmod 444 "$DB"
+```
+
+**The row belongs to the disk after the first frame** (the trap 162 of T-203):
+the flush of the start removes it. **The moment of the row stands after the
+moment of the server**, or `should_send` of T-152 takes the road of the place
+that goes away.
+
+#### The measurement of the real program of the sandbox, of v0.8.40
+
+Four attempts of the task in 128 seconds, and
+`SELECT COUNT(*) FROM pending_progress` said **1** at each of them:
+
+```text
+19:24:26 [INFO] [offline] 1 position(s) wait for the server
+19:24:26 [INFO] [offline] the server took the position 900s of 9a671047-…
+19:24:26 [INFO] [offline] the server answers again. 1 position(s) went to it.
+19:24:56 [INFO] [offline] 1 position(s) wait for the server
+19:24:56 [INFO] [offline] the server has a newer position of 9a671047-…. The local position goes away.
+19:25:26 [INFO] [offline] 1 position(s) wait for the server
+19:25:26 [INFO] [offline] the server has a newer position of 9a671047-…. The local position goes away.
+19:25:56 [INFO] [offline] 1 position(s) wait for the server
+19:25:56 [INFO] [offline] the server has a newer position of 9a671047-…. The local position goes away.
+```
+
+**The words "The local position goes away" named a removal that never
+happened**, and the row of the disk stood still: `900.0` of the same media at
+each of the four attempts. Two requests of the server for each attempt of one
+media — a read of the place and, at the first of them, a write of it — for the
+whole life of the program.
+
+**The header of the offline mode reads that row too**: `count_pending_progress`
+says "N positions wait", and the place of that N reached the server already.
+
+#### The correction
+
+`the_row_of_the_disk_goes_away` of `src/logic/offline/mod.rs` holds the three
+roads. It gives `false` for a removal that the disk did not take, and it says one
+line of the log: the task holds no key of the user and no view of its own,
+therefore the fault takes a line of the log and no word for the user (T-177).
+
+**The pass of the flush stops at that fault.** The rows of one attempt stand on
+one disk, therefore a removal that failed says that every other row of the
+attempt stays as well: a pass that goes on costs the server one request of each
+waiting media, and it changes nothing at all. The number that the function gives
+stays the number of the places that the server took.
+
+| the condition | v0.8.40 | v0.8.41 |
+|---|---|---|
+| the log of an attempt, the disk takes no write | the words of a removal that happened | the fault of the disk and the name of the media |
+| the places that go to the server, of N rows | N of each attempt, for ever | one of the first row, and the pass stops |
+| the disk takes the write again | the row stands still | the row goes away, and no place waits |
+
+The measurement of v0.8.41 of the same condition:
+
+```text
+19:29:08 [INFO]  [offline] the server took the position 900s of 9a671047-…
+19:29:08 [ERROR] [offline] the disk keeps the position of 9a671047-… that the
+    flush finished with: attempt to write a readonly database. The program sends
+    that position to the server again at each attempt. The disk of the account
+    takes no write.
+```
+
+`tests/a_place_that_the_disk_kept_goes_to_the_server_one_time.rs` holds the parts
+in one function (T-144 and T-157). It needs no sandbox: a host of `wiremock`
+takes the places, `received_requests` counts the writes of them, and one
+`std::fs::set_permissions` of `0o444` gives the disk that answers a read and that
+refuses a write. **A build with the correction removed fails it**: the flush of a
+disk of no write sent **2** places of 2 rows, and it removed no row of them.
+
+#### What this item leaves open
+
+**The other writes of a task that no key of the user waits for stay open**: the
+sync of a session, the tasks of the downloads, and the close of a session. The
+question of each of them is the question of this item: **which machine holds the
+value after the write that failed, and does a later attempt of the same task then
+do that work again?**
+
+**The shape of this item is a caller of two machines**, and the sweep of it is
+open: `grep` of a call of the database that stands **after** a request of the
+server that succeeded gives the places of that shape. The removal of the row of a
+download after the files reach the disk, and the removal of the row of a session
+after the close of it, hold it too.
+
+**The freeze of the loop of the screen stays** (T-204 to T-210). This task stands
+on a thread of the runtime, and its calls of the database hold the driver of that
+runtime: the read of `count_pending_progress` goes through
+`crate::db::the_work_of_the_disk` already, and the three calls of
+`flush_pending_progress` do not. A second program of the account that holds the
+lock therefore gives five seconds of the loop of the screen to each row of the
+flush, and no measurement of this session reached it.
+
 ### T-210: the place of every second of a playback went to a disk that took no write, and the screen said nothing
 
 **Four sessions named this condition and no one of them measured it.** T-206 gave

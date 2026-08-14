@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.40.** The item T-210 belongs to this session. The
+**The newest release is v0.8.41.** The item T-211 belongs to this session. The
+item T-210 belongs to the session before it. The
 item T-209 belongs to the session before it. The
 item T-208 belongs to the session before it. The
 item T-207 belongs to the session before it. The
@@ -50,11 +51,80 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.40**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.41**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1191 of 1191** in 2.3 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1217 of 1217** with the sandbox up, and
+**1192 of 1192** in 2.5 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1218 of 1218** with the sandbox up, and
 `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in two runs.
+
+## The session of the forty-third turn of 2026-08-14: the place that the server took and that stayed on the disk
+
+**One release: v0.8.41.** The session before this one named the road in its last
+paragraph, and this one took it: **the last paragraph of the newest item is the
+cheapest item of a session** (the rule of T-195 and of T-209).
+
+**The item is T-211**, and the condition holds two commands and no harness of
+Python: one row of `pending_progress` after the first frame (the trap 162), and
+`chmod 444` of the database of the account (T-206).
+
+**The shape of this item is a caller of two machines.** The flush gives a place to
+the **server**, and it then removes the row of that place from the **disk**: the
+write of the server succeeded, the write of the disk failed, and the three roads
+of that loop each read the answer of the removal with `let _ =`.
+
+**The measurement of the real program of the sandbox**, of `A Long Test Book` at
+900 seconds, four attempts of the task in 128 seconds:
+
+```text
+19:24:26 [INFO] [offline] the server took the position 900s of 9a671047-…
+19:24:56 [INFO] [offline] the server has a newer position of 9a671047-…. The local position goes away.
+19:25:26 [INFO] [offline] the server has a newer position of 9a671047-…. The local position goes away.
+19:25:56 [INFO] [offline] the server has a newer position of 9a671047-…. The local position goes away.
+```
+
+`SELECT COUNT(*) FROM pending_progress` said **1** at each of the four attempts,
+and the row held `900.0` of the same media at each of them. **The words "The local
+position goes away" named a removal that never happened**, and the header of the
+offline mode says with that row that a place of the user waits for a server that
+holds it already.
+
+**The correction.** `the_row_of_the_disk_goes_away` holds the three roads; it
+gives `false` for a removal that the disk did not take and it says one line of the
+log (T-177: the task holds no key of the user and no view of its own). **The pass
+of the flush stops at that fault**: the rows of one attempt stand on one disk,
+therefore a pass that goes on costs the server one request of each waiting media
+and it changes nothing.
+
+| the condition | v0.8.40 | v0.8.41 |
+|---|---|---|
+| the log of an attempt, the disk takes no write | the words of a removal that happened | the fault of the disk and the name of the media |
+| the places that go to the server, of N rows | N of each attempt, for ever | one of the first row, and the pass stops |
+| the disk takes the write again | the row stands still | the row goes away, and no place waits |
+
+`tests/a_place_that_the_disk_kept_goes_to_the_server_one_time.rs` holds the parts
+in one function (T-144 and T-157), and it needs no sandbox: `wiremock` takes the
+places, `received_requests` counts the writes of them, and
+`std::fs::set_permissions` of `0o444` gives the disk of T-206.
+
+### What this session leaves open
+
+**The other writes of a task that no key of the user waits for stay open**: the
+sync of a session, the tasks of the downloads, and the close of a session. **The
+question of each of them is the question of this item**: which machine holds the
+value after the write that failed, and does a later attempt of the same task do
+that work again?
+
+**The sweep of the shape of this item is open.** A call of the database that
+stands **after** a request of the server that succeeded is the line to look for:
+the removal of the row of a download after the files reach the disk, and the
+removal of the row of a session after the close of it, each hold it.
+
+**The calls of the database of the flush stand on a thread of the runtime.** The
+read of `count_pending_progress` of the task goes through
+`crate::db::the_work_of_the_disk`, and the three calls of `flush_pending_progress`
+do not: a second program of the account that holds the lock therefore gives five
+seconds of the loop of the screen to each row of the flush. **The freeze of the
+loop of the screen stays**, and it is the eighth session that names it.
 
 ## The session of the forty-second turn of 2026-08-14: the place of every second that went to a disk that took no write
 
