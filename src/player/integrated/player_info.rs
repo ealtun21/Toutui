@@ -34,7 +34,7 @@ pub fn player_info(the_speed_of_the_account: f32, state: &PlaybackState) -> Vec<
     };
 
     vec![
-        state.title.clone(),
+        the_title_of_the_row(&state.title, state.episode_title.as_deref()),
         state.author.clone(),
         chapter,
         is_playing.to_string(),
@@ -46,6 +46,29 @@ pub fn player_info(the_speed_of_the_account: f32, state: &PlaybackState) -> Vec<
         format!("{:.2}", speed),
         the_volume_of_the_row(state.volume),
     ]
+}
+
+/// Gives the name of the media of the row of the player.
+///
+/// **The title of a playback of a podcast is the name of the podcast**, and
+/// every episode of that podcast holds it (T-223). The row therefore said
+/// `Arthur Gordon Pym by LibriVox` for `Chapter 00` and, after the queue
+/// started a second episode with no key of the user, `Arthur Gordon Pym by
+/// LibriVox` again: the length of the row was the one value that moved, and a
+/// length names no episode. The user could not tell which episode plays, and
+/// the row of the player is the one part of the screen that follows the media
+/// that the queue changes. See T-225, and T-224 for the key `b` of that same
+/// condition.
+///
+/// A media with no name of an episode keeps its own name alone: a book, and an
+/// episode whose name the server did not give (T-91).
+///
+/// The function is pure, therefore a test needs no engine.
+pub fn the_title_of_the_row(title: &str, episode_title: Option<&str>) -> String {
+    match episode_title {
+        Some(episode) => format!("{} — {}", title, episode),
+        None => title.to_string(),
+    }
 }
 
 /// Gives a length of the row of the player.

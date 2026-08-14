@@ -14828,3 +14828,104 @@ another episode.
   test of `tests/`** (T-223 left the same sentence): the view that a playback of
   an episode opens, and the guard of the key `b`. They need an engine that
   plays, and the measurement of them stands in tmux alone.
+
+### T-225: the row of the player names the episode of a podcast
+
+**This item closes the first question that T-224 left open.** T-224 stopped a
+second episode of a podcast from taking the place of the episode that the user
+opened, and it named the fault that stood behind that danger: **the row of the
+player names the podcast and no episode.** This item is that measurement.
+
+#### The measurement
+
+The real program v0.8.53 inside tmux, against the sandbox (podman on :13399),
+of the podcast `Arthur Gordon Pym` of 11 episodes of the library `Podcasts`:
+
+- The user put `Chapter 02` (38:56 long) in the queue with the key `n`, and the
+  user played `Chapter 00` (5:05 long) with the key `l`.
+- The row of the player of `Chapter 00` said
+  `Arthur Gordon Pym by LibriVox | No chapter` and
+  `▶ 1:28 / 5:05 | Elapsed: 1:28 | Left: 3:37 (29%) | Speed: 1.00x`.
+- The log then said: `[play] the media came to its end. The queue starts
+  "Chapter 02", and 0 media wait.` **No key of the user did it.**
+- The row of the player of `Chapter 02` said
+  `Arthur Gordon Pym by LibriVox | No chapter` and `⏸ 0:9 / 38:56`.
+- **The two rows hold the same name.** The length of the media is the one value
+  that moved, and a length names no episode.
+
+The same measurement of the corrected program (v0.8.54) gave
+`Arthur Gordon Pym — Chapter 00 by LibriVox | No chapter` and then
+`Arthur Gordon Pym — Chapter 02 by LibriVox | No chapter`. A book of the same
+run kept its row of before:
+`A Long Test Book by Long Author | The second part`.
+
+#### The fault of the source
+
+- `post_start_playback_session_pod` of
+  `src/api/library_items/play_lib_item_or_pod.rs` reads `mediaMetadata.title`
+  of the answer of the session for the title of the row, and **that value is the
+  name of the podcast for every episode of it** (the same shape as T-223 and
+  T-219 for the identity).
+- The name of the episode stands in `displayTitle` of that same answer.
+  `collect_info_item` held it at the position 5 already, and **no part of the
+  program read that position**.
+- `PlaybackRequest.title` and `PlaybackState.title` therefore held the name of
+  the podcast, and `player_info` of `src/player/integrated/player_info.rs` gave
+  that name to the row.
+
+#### The correction
+
+- `src/api/library_items/play_lib_item_or_pod.rs`: the new pure function
+  `the_name_of_the_episode(info_item, it_is_an_episode)`. It gives `None` for a
+  book (the position 5 of a book holds the title of the book again), for the
+  default `N/A` of a field that the server did not give, and for a name of no
+  character (T-91 and T-182).
+- `src/player/engine/mod.rs`: `PlaybackState` and `PlaybackRequest` hold the new
+  field `episode_title: Option<String>`.
+- `src/player/engine/worker.rs`: the worker copies that field into the state at
+  each tick.
+- `src/logic/playback/mod.rs`: the two constructions of `PlaybackRequest` of a
+  playback of the server fill it with `the_name_of_the_episode`. The third
+  construction is the offline playback, and it gives `None`: the row of a
+  download of an episode holds the name of that episode already, and the name of
+  the podcast stands in its author (`src/logic/download/plan.rs`).
+- `src/player/integrated/player_info.rs`: the new pure function
+  `the_title_of_the_row(title, episode_title)` gives `{podcast} — {episode}` for
+  an episode and the name alone for every other media. The position 0 of
+  `player_info` reads it.
+- `tests/the_row_of_the_player_names_the_episode.rs` holds the rule, and the
+  parts of it stay in one function (T-144 and T-157). **It needs no server and
+  no engine**, because the two functions are pure. **Three builds of the fault
+  each fail it**: `the_title_of_the_row` that forgets the episode,
+  `the_name_of_the_episode` that forgets that a book is no episode, and
+  `player_info` that reads the title alone.
+
+**The decision, and the reason for it: the name of the podcast stays first.**
+Every other view of the program names the podcast first — the panel of the Home
+view says `[Arthur Gordon Pym] - Author: LibriVox - Episode: 2`. The row keeps
+its author, because the author of the podcast is the author of the episode.
+**The program says nothing that the server did not say**: an episode whose
+`displayTitle` the server did not give keeps the name of the podcast alone.
+
+#### What this item leaves open
+
+- **The key `X` of the view of the bookmarks of a podcast** removes a place of
+  another episode with the same words (T-223 and T-224 left it open, and this
+  item did not close it).
+- **The other views of a media that the queue changes are measured for a book
+  alone** (T-160 to T-166): the view of the chapters (T-162), the view of the
+  queue (T-161), and the Home view (T-160) each compare the identity of the
+  item, therefore two episodes of one podcast in the queue are a condition of
+  each of them that no measurement reached.
+- **A line of a bookmark of a podcast names no episode** (T-223), and the row of
+  the player names its episode now: the question is whether the view of the
+  bookmarks can say which episode a place belongs to. The server names no
+  episode in a bookmark, therefore the program cannot; a place and the row of
+  the player hold one moment of one media, and no other value joins them.
+- **The row of the player of an episode of a download is not measured.** The
+  offline mode gives `None` for the name of the episode, and the row then holds
+  the name of the row of the disk alone.
+- **A row of 80 columns holds little** (T-80): the name of the podcast and the
+  name of the episode together can pass the width of a narrow terminal, and no
+  measurement of that width was made. The paragraph of the row holds no wrap,
+  therefore a name that is too long goes away at the edge.

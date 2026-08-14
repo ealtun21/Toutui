@@ -690,6 +690,9 @@ async fn play_media(
         item_id: item_id.clone(),
         episode_id: target.episode_id().map(|value| value.to_string()),
         title: info_item[4].clone(),
+        // The row of the player names the episode of a podcast. The title of
+        // the answer is the name of the podcast alone. See T-225.
+        episode_title: the_name_of_the_episode(&info_item, target.episode_id().is_some()),
         author: info_item[6].clone(),
         username: username.clone(),
         tracks,
@@ -1046,6 +1049,8 @@ async fn play_the_stream_of_the_server(
             item_id: item_id.clone(),
             episode_id: target.episode_id().map(|value| value.to_string()),
             title: info_item[4].clone(),
+            // The row of the player names the episode of a podcast. See T-225.
+            episode_title: the_name_of_the_episode(info_item, target.episode_id().is_some()),
             author: info_item[6].clone(),
             username: username.clone(),
             tracks,
@@ -1441,6 +1446,11 @@ async fn play_offline(
         item_id: item_id.clone(),
         episode_id: episode_id.clone(),
         title: row.title.clone(),
+        // The row of a download of an episode holds the name of that episode
+        // already, and the name of the podcast stands in its author (see
+        // `the_plan_of_an_episode` of `src/logic/download/plan.rs`). The row of
+        // the player therefore needs no second name here. See T-225.
+        episode_title: None,
         author: row.author.clone(),
         username: username.clone(),
         tracks,

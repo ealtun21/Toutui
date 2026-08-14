@@ -164,6 +164,38 @@ pub fn collect_info_item(v: &Value, subtitle: &Value) -> Vec<String> {
     ]
 }
 
+/// Gives the name of the episode that a playback of a podcast plays.
+///
+/// `collect_info_item` holds that name at the position 5, of `displayTitle` of
+/// the answer of the server. **The position 4 holds `mediaMetadata.title`, and
+/// that is the name of the podcast for every episode of it**: the row of the
+/// player therefore said `Arthur Gordon Pym by LibriVox` for `Chapter 00` and
+/// for `Chapter 02` of one podcast. See T-225.
+///
+/// **A book has no such name**, therefore the caller gives
+/// `it_is_an_episode` of the target of the playback: the position 5 of a book
+/// holds the title of that book again (`post_start_playback_session_book`), and
+/// the row would then say the name of the book two times.
+///
+/// **A name that the server did not give is no name** (T-91 and T-182). The
+/// answer of a server that holds no `displayTitle` gives the default `N/A` of
+/// `collect_info_item`, and an answer that holds a name of no character gives
+/// a text of no character: the row of the player then names the podcast alone,
+/// and it says nothing that the server did not say.
+pub fn the_name_of_the_episode(info_item: &[String], it_is_an_episode: bool) -> Option<String> {
+    if !it_is_an_episode {
+        return None;
+    }
+
+    let name = info_item.get(5)?.trim();
+
+    if name.is_empty() || name == "N/A" {
+        return None;
+    }
+
+    Some(name.to_string())
+}
+
 /// Starts a playback session for a book.
 ///
 /// See <https://api.audiobookshelf.org/#play-a-library-item-or-podcast-episode>.

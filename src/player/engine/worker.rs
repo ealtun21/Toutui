@@ -605,6 +605,7 @@ fn publish(
     value.item_id = item.request.item_id.clone();
     value.episode_id = item.request.episode_id.clone();
     value.title = item.request.title.clone();
+    value.episode_title = item.request.episode_title.clone();
     value.author = item.request.author.clone();
     value.position = position;
     value.duration = item.request.tracks.total_duration();

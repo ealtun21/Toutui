@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.54",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The row of the player said the name of the podcast and no \
+             name of the episode.** Two episodes of one podcast gave one row, \
+             and the queue changes the episode with no key of the user: the \
+             length of the media was the one value that moved, and a length \
+             names no episode. The row says the podcast and the episode now.",
+        ],
+    },
+    Entry {
         version: "0.8.53",
         date: "15/08/2026",
         body: &[

@@ -167,6 +167,19 @@ pub struct PlaybackState {
     /// same shape in the place of the user.
     pub episode_id: Option<String>,
     pub title: String,
+    /// The name of the episode, for a media of a podcast.
+    ///
+    /// **`title` holds the name of the podcast and not the name of the
+    /// episode**: the answer of the session gives `mediaMetadata.title` for
+    /// every episode of one podcast. The row of the player therefore said
+    /// `Arthur Gordon Pym by LibriVox` for `Chapter 00` and for `Chapter 02`,
+    /// and a user whose queue changed the episode with no key of their own
+    /// could not tell which episode plays. See T-225, and T-224 for the key
+    /// that wrote a place of that other episode.
+    ///
+    /// A book holds no such name, and a name that the server did not give is
+    /// no name: the row then names the media alone.
+    pub episode_title: Option<String>,
     pub author: String,
     /// The position in the whole book, in seconds.
     pub position: f64,
@@ -221,6 +234,7 @@ impl Default for PlaybackState {
             item_id: String::new(),
             episode_id: None,
             title: String::new(),
+            episode_title: None,
             author: String::new(),
             position: 0.0,
             duration: 0.0,
@@ -248,6 +262,8 @@ pub struct PlaybackRequest {
     /// The identity of the episode, for a media of a podcast. See T-223.
     pub episode_id: Option<String>,
     pub title: String,
+    /// The name of the episode, for a media of a podcast. See T-225.
+    pub episode_title: Option<String>,
     pub author: String,
     pub username: String,
     /// The tracks and the chapters of the book.

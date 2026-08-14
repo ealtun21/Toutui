@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.53.** The item T-224 belongs to this session. The
+**The newest release is v0.8.54.** The item T-225 belongs to this session. The
+item T-224 belongs to the session before it. The
 item T-223 belongs to the session before it. The
 item T-222 belongs to the session before it. The
 item T-221 belongs to the session before it. The
@@ -61,12 +62,59 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.53**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.54**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1205 of 1205** in 2.6 seconds with 26 skipped, and
-`cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in two
+**1206 of 1206** in 2.5 seconds with 26 skipped, and
+`cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in three
 runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the fifty-fourth turn of 2026-08-15: the row of the player names the episode
+
+**One release: v0.8.54**, and one item: T-225 of the row of the player of an
+episode of a podcast. **The road of it is the first paragraph of "What this item
+leaves open" of T-224**, and that paragraph named the row, the two episodes, and
+the reason.
+
+**The title of a playback of a podcast is the name of the podcast**, and every
+episode of that podcast holds it. The measurement of the real program v0.8.53
+inside tmux: `Chapter 02` of `Arthur Gordon Pym` stood in the queue, and the
+user played `Chapter 00`. The row of the player said
+`Arthur Gordon Pym by LibriVox | No chapter` with `▶ 1:28 / 5:05`; the queue then
+started `Chapter 02` **with no key of the user**, and the row said
+`Arthur Gordon Pym by LibriVox | No chapter` with `⏸ 0:9 / 38:56`. **The two rows
+hold the same name.** The length of the media was the one value that moved, and a
+length names no episode.
+
+The answer of the session holds the name of the episode already:
+`collect_info_item` keeps `displayTitle` at the position 5, and **no part of the
+program read that position**. The row says
+`Arthur Gordon Pym — Chapter 02 by LibriVox | No chapter` now, and a book keeps
+its row of before (`A Long Test Book by Long Author | The second part`).
+
+**The decision, and the reason for it: the name of the podcast stays first**, and
+the row keeps its author. Every other view of the program names the podcast
+first, and the author of a podcast is the author of its episodes. An episode
+whose `displayTitle` the server did not give keeps the name of the podcast alone
+(T-91 and T-182).
+
+Three things are worth the room:
+
+1. **A value that the server gives and that no line of `src/` reads is a fault
+   that waits.** `collect_info_item` collected `displayTitle` for a podcast and
+   `mediaMetadata.title` for a book at one position, and no caller took it. **Ask
+   of every value that a function of `src/api/` collects: which line reads this
+   position, and what does the screen say without it?** That is the shape of
+   `elapsed_time` of T-213 and of `name_selected_lib` of T-218, in the other
+   direction.
+2. **A correction of the work of the program is no correction of the row that
+   shows it** (T-217, and T-225 again). T-224 stopped the key `b` of a second
+   episode; the row of the screen still said nothing of that episode, and the
+   user still could not tell which media plays.
+3. **The one part of the screen that follows a media that the queue changes is
+   the row of the player.** Every list of the program holds the line that the
+   user chose, and the queue moves the media under it with no key. **Ask of every
+   value that the queue changes: which row of the screen follows it?**
 
 ## The session of the fifty-third turn of 2026-08-15: a second episode of a podcast takes no place
 
@@ -7348,31 +7396,30 @@ answers slowly while it writes. Two answers to measure:
 ## The prompt for the next session
 **This session took the first paragraph of "What this item leaves open" of the
 newest item** (the rule of T-216 and of T-217, and the cheapest item of a
-session). T-223 wrote "the key `b` of the view of the bookmarks of a podcast is
-not measured", and that paragraph named the condition, the guard, and the field
-of the correction. The item is **T-224**, and it holds one release, v0.8.53.
+session). T-224 wrote "the row of the player of an episode names the podcast
+alone", and that paragraph named the row, the two episodes, and the reason. The
+item is **T-225**, and it holds one release, v0.8.54.
 
 Three things are worth the room:
 
-1. **A correction of one session is the measurement of the next one** (T-223 and
-   T-224). T-223 gave the state of the player the field `episode_id` for the key
-   of the place, and the key `b` of that same view held the same fault and it
-   needed that same field. **Ask of every field that a correction adds: which
-   other key reads the value that this field replaces?**
-2. **A guard of a state is a guard of the identity that it compares** (T-224).
-   T-163 asked "does the media of this view play now?", and the answer of it was
-   true for a media that the user did not open, because one identity names every
-   episode of one podcast (T-223).
-3. **A refusal costs nothing when a key of the user gives the road back**
-   (T-224). The key `b` refuses and it names the key `V`; the key of the place of
-   T-223 keeps its work, because no key of the user can give the program the
-   episode of a bookmark.
+1. **A value that the server gives and that no line of `src/` reads is a fault
+   that waits** (T-225). `collect_info_item` held the name of the episode
+   (`displayTitle`) at its position 5, and no caller took it. **Ask of every
+   value that a function of `src/api/` collects: which line reads this position,
+   and what does the screen say without it?**
+2. **A correction of the work of the program is no correction of the row that
+   shows it** (T-217, and T-225 again). T-224 stopped the key `b` of a second
+   episode of a podcast, and the screen still said nothing of that episode.
+3. **The one part of the screen that follows a media that the queue changes is
+   the row of the player** (T-225). Every list of the program holds the line that
+   the user chose, and the queue moves the media under it with no key. **Ask of
+   every value that the queue changes: which row of the screen follows it?**
 
 This prompt names the state of the program on 2026-08-16.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.53**; `Cargo.toml` is at 0.8.53. The
+> AlbanDAVID/Toutui. Newest release **v0.8.54**; `Cargo.toml` is at 0.8.54. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -7381,7 +7428,7 @@ This prompt names the state of the program on 2026-08-16.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-224 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-225 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -7889,8 +7936,8 @@ This prompt names the state of the program on 2026-08-16.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1205 tests in 2.6 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1231 of 1231** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1206 tests in 2.5 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1232 of 1232** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -7998,10 +8045,47 @@ This prompt names the state of the program on 2026-08-16.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in sixty-six sessions of sixty-seven. **The session
->    of the fifty-third turn took the first paragraph of "What this item leaves
->    open" of the newest item, and that paragraph named the condition, the guard,
->    and the field of the correction** (T-224).
+>    this shape found a fault in sixty-seven sessions of sixty-eight. **The
+>    session of the fifty-fourth turn took the first paragraph of "What this item
+>    leaves open" of the newest item, and that paragraph named the row of the
+>    screen, the two episodes, and the reason** (T-225).
+>
+>    The title of a playback of a podcast is the name of the **podcast**, and
+>    every episode of that podcast holds it. `Chapter 02` of `Arthur Gordon Pym`
+>    stood in the queue and the user played `Chapter 00`: the row of the player
+>    said `Arthur Gordon Pym by LibriVox | No chapter` with `▶ 1:28 / 5:05`, the
+>    queue then started `Chapter 02` **with no key of the user**, and the row said
+>    `Arthur Gordon Pym by LibriVox | No chapter` with `⏸ 0:9 / 38:56`. **The two
+>    rows hold the same name**, and the length was the one value that moved.
+>    - **A value that the server gives and that no line of `src/` reads is a
+>      fault that waits** (T-225). `collect_info_item` held `displayTitle` at its
+>      position 5, and no caller took it. **Ask of every value that a function of
+>      `src/api/` collects: which line reads this position, and what does the
+>      screen say without it?** That is the shape of `elapsed_time` of T-213 and
+>      of `name_selected_lib` of T-218, in the other direction.
+>    - **A correction of the work of the program is no correction of the row that
+>      shows it** (T-217, and T-225 again). T-224 stopped the key `b` of a second
+>      episode, and the screen still said nothing of that episode.
+>    - **The one part of the screen that follows a media that the queue changes is
+>      the row of the player** (T-225). Every list holds the line that the user
+>      chose, and the queue moves the media under it with no key. **Ask of every
+>      value that the queue changes: which row of the screen follows it?**
+>    - **The key `X` of the view of the bookmarks of a podcast** removes a place
+>      of another episode with the same words (T-223, T-224, and T-225 each left
+>      it open).
+>    - **The other views of a media that the queue changes are measured for a book
+>      alone** (T-225, and it stays open): the view of the chapters (T-162), the
+>      view of the queue (T-161), and the Home view (T-160) each compare the
+>      identity of the item.
+>    - **The row of the player of an episode of a download is not measured**
+>      (T-225, and it stays open): the offline mode gives no name of an episode,
+>      and the row then holds the name of the row of the disk alone.
+>    - **A row of 80 columns holds little** (T-80 and T-225, and it stays open):
+>      the name of the podcast and the name of the episode together can pass the
+>      width of a narrow terminal, and the paragraph of that row holds no wrap.
+>
+>    **The session of the fifty-third turn took the same road, and that paragraph
+>    named the condition, the guard, and the field of the correction** (T-224).
 >
 >    The guard of T-163 asked "does the media of this view play now?" with the
 >    identity of the **item**, and every episode of one podcast holds the identity
@@ -8025,13 +8109,9 @@ This prompt names the state of the program on 2026-08-16.
 >      of T-223 keeps its work, because no key of the user can give the program
 >      the episode of a bookmark. **Ask of a refusal: which key of the user makes
 >      the condition go away?**
->    - **The row of the player of an episode names the podcast alone** (T-224, and
->      it stays open): that row is the one place of the screen that could say that
->      the queue changed the episode.
->    - **The other views of a media that the queue changes are measured for a book
->      alone** (T-224, and it stays open): the view of the chapters (T-162), the
->      view of the queue (T-161), and the Home view (T-160) each compare the
->      identity of the item.
+>    - **The row of the player of an episode named the podcast alone** (T-224).
+>      **T-225 closed it**: that row is the one place of the screen that could say
+>      that the queue changed the episode, and it says the episode now.
 >    - **The key `X` of the view of the bookmarks of a podcast** removes a place of
 >      another episode with the same words (T-223 and T-224, and it stays open).
 >
@@ -9048,7 +9128,11 @@ This prompt names the state of the program on 2026-08-16.
 > the view of the bookmarks of a podcast writes a place of the episode that the
 > user opened: the queue starts a second episode of that same podcast with no key
 > of the user, the identity of the item passes for it, and the key then says that
-> a different episode plays and it names the key `V`** (T-224).
+> a different episode plays and it names the key `V`** (T-224), and **the row
+> of the player names the episode of a podcast: the answer of the session holds
+> the name of the podcast in its title and the name of the episode in
+> `displayTitle`, the row says both, and an episode whose name the server did
+> not give keeps the name of the podcast alone** (T-225).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
