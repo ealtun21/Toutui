@@ -56,6 +56,20 @@ pub fn the_sentence_of_a_login_that_failed(status: u16) -> String {
     }
 }
 
+/// The sentence of a login of an account that reaches no library. See T-173.
+///
+/// **A server can answer the login and then give no library.** A new
+/// Audiobookshelf server before its first library gives that answer, and an
+/// account whose administrator gave it no library gives it too:
+/// `GET /api/libraries` comes back with the status 200 and the body
+/// `{"libraries": []}`.
+///
+/// The program takes the first library of that answer for the account of the
+/// database, therefore an account of no library has no start. The login stops
+/// here with this sentence, and the row of the account never comes.
+pub const THE_SENTENCE_OF_A_LOGIN_WITH_NO_LIBRARY: &str =
+    "The server gave no library for this account. Ask an administrator of the server for a library.";
+
 /// Login
 /// https://api.audiobookshelf.org/#server
 ///
@@ -105,6 +119,22 @@ pub async fn auth_process(username: &str, password: &str, server_address: &str) 
         let library_names = collect_library_names(&all_libraries).await;
         let _media_types = collect_media_types(&all_libraries).await;
         let library_ids = collect_library_ids(&all_libraries).await;
+
+        // **An account of no library has no start.** The row of the account
+        // holds the name and the id of the library of the start, and the old
+        // code took the first name and the first id of a list that can hold
+        // nothing: `library_names[0]` then stopped the thread of the login with
+        // a panic. The screen of the login holds the lock of the standard
+        // output, and the hook of that panic writes to it: the two threads
+        // waited for each other, and the user read a screen of no character for
+        // ever. See T-173, T-174, and T-133.
+        if library_names.is_empty() || library_ids.is_empty() {
+            error!("[auth_process] the account reaches no library of this server");
+
+            return Err(Report::new(std::io::Error::other(
+                THE_SENTENCE_OF_A_LOGIN_WITH_NO_LIBRARY.to_string(),
+            )));
+        }
 
         // Token encryption before insert it in the database
         //
