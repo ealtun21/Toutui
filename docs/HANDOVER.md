@@ -68,8 +68,8 @@ fails others** — `docs/harness/slow.py` is the shape of it.
 | `cargo clippy --all-targets -- -D warnings` | no word |
 | `cargo fmt --check` | no word |
 | `cargo nextest run` | **1090 of 1090** |
-| `cargo nextest run --run-ignored all` | **1115 of 1115**, with the sandbox up |
-| `cargo test -j 16 --no-fail-fast` | three runs, and every run passed |
+| `cargo nextest run --run-ignored all` | **1115 of 1115** in 19.8 seconds, with the sandbox up |
+| `cargo test -j 16 --no-fail-fast` | six runs, and every run passed |
 
 ## The session of the thirteenth turn of 2026-08-14: a playback that did not start
 
