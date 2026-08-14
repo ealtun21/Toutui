@@ -340,6 +340,14 @@ async fn main() -> Result<()> {
                 // engine. See T-24.
                 app.tick_the_timer_for_sleep();
 
+                // **The queue changes while its view stands open, and no key of
+                // the user does it**: a media that comes to its end takes the
+                // media of the front of the queue away, and a second program of
+                // the account takes a media out with the key `X`. The cursor of
+                // the user goes with the media of its line, and it goes to
+                // nobody when that media leaves the queue. See T-161.
+                app.the_line_of_the_queue_holds_its_media();
+
                 let playback = app.player.state();
                 let is_playing = playback.status != toutui::player::engine::PlaybackStatus::Stopped;
                 let player_notice = playback.notice.clone();

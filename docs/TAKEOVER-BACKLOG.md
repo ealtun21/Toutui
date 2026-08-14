@@ -7548,6 +7548,87 @@ because that method needs an application of a server: the rule of the wiring
 stands as a rule of the source, as the rules of T-131 and of T-159 do, and the
 measurement of the two windows above is the evidence of it.
 
+### T-161: the queue moved under the cursor, and the key of the user took the wrong media
+
+**The condition of this session, and the session named it**: a line of a view
+that is **not** the Home view and that goes away under the cursor. The road
+named three such lists — the queue, the downloads, and the episodes of a
+podcast — and the queue is the one of the three that moves **with no key of any
+user at all**: the media that plays comes to its end, and the queue then takes
+the media of the front away (T-24). The rule of T-160 reached the Home view
+alone.
+
+**One window makes this condition, and the user presses no key while it
+happens.**
+
+| The moment | The view of the queue of the user |
+|---|---|
+| The user plays `A Long Test Book`, and the queue holds three media | `The queue [3 items]` |
+| The user presses `q` and `j` | the cursor stands on the line 2, `A Second Book Of Many Hours` |
+| **The book comes to its end, 22 seconds later** | `The queue [2 items]`, and the cursor stands on the line 2: **`Multi File Test Book`** |
+| The message row of that frame | **empty** |
+| The key `X` of the user | **`Multi File Test Book` went out of the queue**, and the media that the user chose stays |
+
+**The key `l` is the sharp form of it, and it destroys the playback too.** The
+same measurement with `l`: the user chose `Multi File Test Book`, the queue
+started `A Second Book Of Many Hours`, and the key played **`One Chapter
+Book`** — it stopped the media that the queue had started one second before,
+and it took `One Chapter Book` out of the queue. **Two media of the user go the
+wrong way with one key**: the media that plays, and the media of the queue.
+
+**The rule of T-147 does not reach this.** `take_the_media` reads the disk and
+it takes the media **of the line** (T-147), and the sentence of T-151 names it:
+both of them read the line of the user, and the fault is that the media of that
+line is not the media that the user chose. The queue that moved is the queue of
+**this** process, therefore no read of the disk sees it.
+
+**The correction: the cursor of the user goes with the media that they chose,
+and it goes to nobody when that media leaves the queue.**
+`what_the_line_of_the_user_holds` of `src/logic/queue.rs` reads the line of the
+frame before and the media of that line:
+
+- the media stands in the queue → the cursor goes to its place. The user chose
+  a media, and not a number of a line;
+- the media is not in the queue now → **no line is selected**, and the message
+  names it: `The media "A Book Of Many Hours" is not in the queue now. No line
+  is selected: the keys j and k select one.` The sentence names no cause: this
+  program cannot tell a media that came to the front of the queue from a media
+  that a second program took out (T-91), and it promises no key that the view
+  does not hold (T-118 and T-143);
+- the line of the user is not the line of that frame → the user moved the
+  cursor, and that key is their choice: the program reads the media of the new
+  line.
+
+**The loop of `src/main.rs` is the one place of that work**, beside the timer
+for sleep and before the draw of the frame: the queue moves with no key of this
+user, therefore no key handler can hold the rule.
+
+**The keys `X` and `l` say "No media is selected." now** (T-79). They returned
+with no word for a line of nobody, and a line of nobody comes with no key of the
+user since this correction.
+
+| The measurement | Before | After |
+|---|---|---|
+| The key `X` after the media of the queue moved under the cursor | **`Multi File Test Book` went out**, and the media of the user stayed | the cursor stands on `A Second Book Of Many Hours`, and that media goes out |
+| The key `l` in the same condition | **`One Chapter Book` played**, and it stopped the media that the queue started | the cursor holds the media of the user |
+| The media of the line of the user comes to the front and plays | the cursor stands on the media below it, and **the message row is empty** | no line is selected, and the message names `A Book Of Many Hours` |
+| The key `X` on a line of nobody | — | `No media is selected.`, and the queue keeps its media |
+| The key `j` after it | — | the cursor stands on the first media again |
+
+**A second window that takes a media out gives no such fault, and that is a
+decision.** The queue of this process holds the lines of the view, and the disk
+is the truth of the queue at the moment of a key (T-147): a key of this window
+therefore reads the disk, it finds the media of its line in no row, and it says
+the sentence of T-151. **The view of this window keeps the old line until that
+key**, and a read of the disk at each frame would change the decision of T-147
+for no measured fault.
+
+`src/logic/queue.rs` holds four tests of the rule, and
+`tests/the_line_of_the_queue_holds_its_media.rs` holds the wiring of the loop
+and of the two keys: three of them fail with the correction removed. **No unit
+test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
+needs an application of a server — the rule of T-131, of T-159, and of T-160.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

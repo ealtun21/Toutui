@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.95",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A key of the view of the queue changed a media that you did not choose.** The \
+             queue moves while you look at it and you press no key: the media that plays comes \
+             to its end, and the queue then takes the media of the front away. The lines kept \
+             the number of the line, therefore the media below moved under your cursor with no \
+             word at all — the key `X` took that media out of your queue, and the key `l` \
+             played it and stopped the media that the queue had started. Your cursor goes with \
+             the media that you chose now. A media that leaves the queue takes your line to \
+             nobody, the message names that media, and the keys `j` and `k` give you a line \
+             again.",
+        ],
+    },
+    Entry {
         version: "0.7.94",
         date: "14/08/2026",
         body: &[

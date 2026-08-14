@@ -190,6 +190,16 @@ pub struct App {
     pub list_state_bookmarks: ListState,
     /// The list of the media that wait in the queue. See T-24.
     pub list_state_queue: ListState,
+    /// The line of the view of the queue, and the identity and the title of the
+    /// media of that line.
+    ///
+    /// **The queue changes while that view stands open, and no key of the user
+    /// does it**: a media that comes to its end takes the media of the front
+    /// away, and a second program of the account takes a media out. The program
+    /// holds the media of the line of the user here, therefore the cursor goes
+    /// with that media, and it goes to nobody when that media leaves the queue.
+    /// See T-161.
+    pub the_media_of_the_line_of_the_queue: Option<(usize, String, String)>,
     /// The media whose bookmarks the view shows. See T-24.
     pub bookmarks_of: String,
     /// The timer for sleep, if the user set one. See T-24.
@@ -1472,6 +1482,7 @@ impl App {
             list_state_chapters: ListState::default(),
             list_state_bookmarks: ListState::default(),
             list_state_queue: ListState::default(),
+            the_media_of_the_line_of_the_queue: None,
             bookmarks_of: String::new(),
             sleep: None,
             sleep_choice: None,
@@ -6281,14 +6292,89 @@ impl App {
             Some(self.list_state_queue.selected().unwrap_or(0).min(count - 1))
         });
 
+        // The view opens with the queue of this moment, therefore the program
+        // reads the media of the line of the user again. See T-161.
+        self.the_media_of_the_line_of_the_queue = None;
+
         self.scroll_offset = 0;
         self.view_state = AppView::Queue;
+    }
+
+    /// Holds the media that the user chose in the view of the queue, and it
+    /// takes the line away when that media leaves the queue.
+    ///
+    /// **The loop of the program calls this at each frame**, because the queue
+    /// changes with no key of this user: the media that plays comes to its end
+    /// and the queue takes the media of the front away, and a second program of
+    /// the account takes a media out with the key `X`. The lines keep the number
+    /// of the line, therefore a media that the user did not choose moved under
+    /// the cursor with no word at all — the key `X` then took that media out of
+    /// the queue, and the key `l` played it and stopped the media that plays.
+    /// See T-161, and T-160 for the same rule of the Home view.
+    pub fn the_line_of_the_queue_holds_its_media(&mut self) {
+        if !matches!(self.view_state, AppView::Queue) {
+            self.the_media_of_the_line_of_the_queue = None;
+            return;
+        }
+
+        let queue = crate::logic::queue::snapshot();
+        let entries = queue.entries();
+        let of_the_user = self.list_state_queue.selected();
+
+        let of_the_program = self
+            .the_media_of_the_line_of_the_queue
+            .as_ref()
+            .map(|(line, key, _)| (*line, key.as_str()));
+
+        match crate::logic::queue::what_the_line_of_the_user_holds(
+            entries,
+            of_the_program,
+            of_the_user,
+        ) {
+            // The media of the user stands in the queue, and the cursor goes
+            // with it.
+            crate::logic::queue::TheLineOfTheUser::ItStandsAt(place) => {
+                self.list_state_queue.select(Some(place));
+
+                if let Some(held) = self.the_media_of_the_line_of_the_queue.as_mut() {
+                    held.0 = place;
+                }
+            }
+            // **No key of the selection may reach a media that the user did not
+            // choose**, therefore the line goes to nobody and the program says
+            // which media went away.
+            crate::logic::queue::TheLineOfTheUser::ItWentAway => {
+                let title = self
+                    .the_media_of_the_line_of_the_queue
+                    .take()
+                    .map(|(_, _, title)| title)
+                    .unwrap_or_default();
+
+                self.list_state_queue.select(None);
+
+                crate::logic::message::say(
+                    crate::logic::queue::the_text_of_the_media_that_went_away(&title).as_str(),
+                );
+            }
+            // The user moved the cursor, and that key is their choice.
+            crate::logic::queue::TheLineOfTheUser::TheUserChoseAnother => {
+                self.the_media_of_the_line_of_the_queue = of_the_user.and_then(|line| {
+                    entries
+                        .get(line)
+                        .map(|entry| (line, entry.key(), entry.title.clone()))
+                });
+            }
+        }
     }
 
     /// Takes the selected media out of the queue. The key is `X` inside the
     /// view of the queue.
     pub fn remove_from_the_queue(&mut self) {
         let Some(index) = self.list_state_queue.selected() else {
+            // **The media of the line can leave the queue with no key of this
+            // user** (T-161), and the line then stands on nobody. A key that
+            // does nothing must say why (T-79).
+            crate::logic::message::say("No media is selected.");
             return;
         };
 
@@ -6311,6 +6397,11 @@ impl App {
         self.list_state_queue
             .select(crate::logic::queue::snapshot().selection_after_a_remove(index));
 
+        // The media of the line went out with this key of the user, therefore
+        // the program reads the media of the new line at the next frame. See
+        // T-161.
+        self.the_media_of_the_line_of_the_queue = None;
+
         if let Some(text) = crate::logic::queue::text_of_the_key_that_takes(
             Some(&title_of_the_line),
             entry.as_ref().map(|entry| entry.title.as_str()),
@@ -6327,6 +6418,9 @@ impl App {
     /// other view.
     pub fn start_the_media_of_the_queue(&mut self) {
         let Some(index) = self.list_state_queue.selected() else {
+            // The rule of the key `X` above, and the same reason. See T-79 and
+            // T-161.
+            crate::logic::message::say("No media is selected.");
             return;
         };
 
@@ -6346,6 +6440,11 @@ impl App {
 
         self.list_state_queue
             .select(crate::logic::queue::snapshot().selection_after_a_remove(index));
+
+        // The media of the line went out with this key of the user, therefore
+        // the program reads the media of the new line at the next frame. See
+        // T-161.
+        self.the_media_of_the_line_of_the_queue = None;
 
         let api = std::sync::Arc::clone(&self.api);
         let player = self.player.clone();

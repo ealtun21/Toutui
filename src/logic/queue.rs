@@ -361,6 +361,72 @@ pub fn the_place_of_the_media(entries: &[Entry], index: usize, key: &str) -> Opt
     entries.iter().position(|entry| entry.key() == key)
 }
 
+/// What the line of the view of the queue holds now. See T-161.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TheLineOfTheUser {
+    /// The media that the user chose stands in the queue, at this place.
+    ItStandsAt(usize),
+    /// The media that the user chose is not in the queue now.
+    ItWentAway,
+    /// The line of the user is not the line that the program holds. The
+    /// program reads the media of the line of the user again.
+    TheUserChoseAnother,
+}
+
+/// Tells what happened to the media that the user chose in the view of the
+/// queue.
+///
+/// **The queue changes while the view stands open, and no key of the user does
+/// it.** A media that comes to its end takes the media of the front of the
+/// queue away, and a second program of the account takes a media out with the
+/// key `X`. The lines keep the number of the line, therefore a media that the
+/// user did not choose moves under the cursor with no word at all: the key `X`
+/// then took that media out, and the key `l` played it and stopped the media
+/// that plays. See T-161, and T-160 for the same rule of the Home view.
+///
+/// `of_the_program` is the line and the media of that line at the frame before,
+/// and `of_the_user` is the line of the user now.
+///
+/// The function is pure, therefore a test needs no queue and no database.
+pub fn what_the_line_of_the_user_holds(
+    entries: &[Entry],
+    of_the_program: Option<(usize, &str)>,
+    of_the_user: Option<usize>,
+) -> TheLineOfTheUser {
+    let Some((line, key)) = of_the_program else {
+        return TheLineOfTheUser::TheUserChoseAnother;
+    };
+
+    // The user moved the cursor after that frame. The line of the user is the
+    // truth of the choice, therefore the program reads the media of it again.
+    if of_the_user != Some(line) {
+        return TheLineOfTheUser::TheUserChoseAnother;
+    }
+
+    match entries.iter().position(|entry| entry.key() == key) {
+        Some(place) => TheLineOfTheUser::ItStandsAt(place),
+        None => TheLineOfTheUser::ItWentAway,
+    }
+}
+
+/// The text for the user when the media of their line leaves the queue.
+///
+/// **The program cannot know which media the user wants now**, therefore it
+/// takes the line away and it says what happened. A key of the selection then
+/// changes no media at all, and the user chooses the next one.
+///
+/// The sentence names no cause: this program cannot tell a media that came to
+/// the front of the queue from a media that a second program took out (T-91).
+/// It names the two keys of the view that give a line again, and it promises no
+/// other key (T-118 and T-143). See T-161.
+pub fn the_text_of_the_media_that_went_away(title: &str) -> String {
+    format!(
+        "The media \"{}\" is not in the queue now. \
+         No line is selected: the keys j and k select one.",
+        title
+    )
+}
+
 /// Makes an entry of the queue of one row of the database.
 ///
 /// A row with an episode gives an episode, and a row with no episode gives a
@@ -538,6 +604,101 @@ mod tests {
             title: "An Episode".to_string(),
             author: String::new(),
             duration: None,
+        }
+    }
+
+    /// **The media that plays comes to its end, and the queue takes the media
+    /// of the front away.** The media that the user chose then stands one line
+    /// higher, and the cursor of the user must go with it: the key `X` took a
+    /// media that the user did not choose out before this rule, and the key `l`
+    /// played it. See T-161.
+    #[test]
+    fn the_cursor_of_the_user_goes_with_the_media_of_its_line() {
+        let entries = vec![book("b", "Second"), book("c", "Third")];
+
+        assert_eq!(
+            what_the_line_of_the_user_holds(&entries, Some((1, "b")), Some(1)),
+            TheLineOfTheUser::ItStandsAt(0),
+            "the media of the line of the user stands one line higher now"
+        );
+
+        assert_eq!(
+            what_the_line_of_the_user_holds(&entries, Some((1, "c")), Some(1)),
+            TheLineOfTheUser::ItStandsAt(1),
+            "a queue that did not move keeps the line of the user"
+        );
+    }
+
+    /// The media of the line of the user leaves the queue: it came to the front
+    /// and it plays now, or a second program of the account took it out. **No
+    /// key of the selection may then reach a media that the user did not
+    /// choose.** See T-161.
+    #[test]
+    fn the_media_of_the_line_of_the_user_can_go_away() {
+        let entries = vec![book("b", "Second"), book("c", "Third")];
+
+        assert_eq!(
+            what_the_line_of_the_user_holds(&entries, Some((0, "a")), Some(0)),
+            TheLineOfTheUser::ItWentAway,
+            "the media that the user chose is not in the queue now"
+        );
+
+        assert_eq!(
+            what_the_line_of_the_user_holds(&[], Some((0, "b")), Some(0)),
+            TheLineOfTheUser::ItWentAway,
+            "an empty queue holds no media of any line"
+        );
+    }
+
+    /// The user moves the cursor, and that key is a choice: the program reads
+    /// the media of the new line, and it says nothing at all. See T-161.
+    #[test]
+    fn a_key_of_the_user_gives_the_media_of_the_new_line() {
+        let entries = vec![book("a", "First"), book("b", "Second")];
+
+        assert_eq!(
+            what_the_line_of_the_user_holds(&entries, Some((0, "a")), Some(1)),
+            TheLineOfTheUser::TheUserChoseAnother,
+            "the user pressed j after that frame"
+        );
+
+        assert_eq!(
+            what_the_line_of_the_user_holds(&entries, Some((0, "a")), None),
+            TheLineOfTheUser::TheUserChoseAnother,
+            "no line of the user, therefore no media of a line"
+        );
+
+        assert_eq!(
+            what_the_line_of_the_user_holds(&entries, None, Some(0)),
+            TheLineOfTheUser::TheUserChoseAnother,
+            "the program holds no media of a line yet"
+        );
+    }
+
+    /// The text names the media, and it promises the two keys of the view
+    /// only. See T-118, T-143, and T-161.
+    #[test]
+    fn the_text_names_the_media_that_left_the_queue() {
+        let text = the_text_of_the_media_that_went_away("A Second Book Of Many Hours");
+
+        assert!(
+            text.contains("A Second Book Of Many Hours"),
+            "the user must read which media went away: {}",
+            text
+        );
+
+        assert!(
+            text.contains("the keys j and k"),
+            "the text must say how the user selects a media again: {}",
+            text
+        );
+
+        for key in ["l:", "X:", "press Enter"] {
+            assert!(
+                !text.contains(key),
+                "the text must promise no other key: {}",
+                text
+            );
         }
     }
 
