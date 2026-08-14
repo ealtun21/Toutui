@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.36.** The item T-206 belongs to this session. The
+**The newest release is v0.8.37.** The item T-207 belongs to this session. The
+item T-206 belongs to the session before it. The
 item T-205 belongs to the session before it. The
 item T-204 belongs to the session before it. The
 item T-203 belongs to the session before it. The
@@ -46,11 +47,121 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.36**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.37**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1187 of 1187** in 2.4 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1213 of 1213** with the sandbox up, and `cargo test
+**1188 of 1188** in 2.3 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1214 of 1214** with the sandbox up, and `cargo test
 -j 16 --no-fail-fast` (the gate of CI) gives no failure in two runs.
+
+## The session of the thirty-ninth turn of 2026-08-14: the place of the user that went backward
+
+**One release: v0.8.37.** The session before this one left the sweep of `let _ =`
+beside a write of the database open (T-206), and it named five functions of it.
+**Two of them held a fault of the user that no item of the road named.**
+
+**The item is T-207**, and the condition is the harness of T-206 — one command,
+after the first frame:
+
+```bash
+chmod 444 $XDG_CONFIG_HOME/toutui/db.sqlite3
+```
+
+**The two measurements of the real program of the sandbox**, of a book of eight
+hours with the null device of ALSA:
+
+1. **The place of the user of the server went backward by 89 minutes.** The key
+   `l` of a second media closed the session of the book and the server took the
+   place 646 seconds; `let _ = delete_the_session_of_a_playback(...)` then left
+   the row of that session with no word of the screen and no line of the log. A
+   second client of the account wrote 6000 seconds, and the next key `l` read
+   that same row again and sent 646 seconds over it. **Every client of the
+   account then held that place.**
+2. **The key `l` held the user for 30 seconds.**
+   `let _ = update_is_loop_break("1", …)` of the end of the loop failed in the
+   same way, therefore the row of the disk stayed at `0` and
+   `wait_prev_session_finished` waited the whole `THE_LONGEST_WAIT` with the
+   sentence "Syncing your last listening session. Please wait...". **That is the
+   fault of T-35 and of T-158 with another condition.**
+
+**The correction gives each of the two facts a box of the process**, because the
+disk cannot hold either of them while it takes no write:
+`src/logic/sync_session/the_rows_that_the_disk_kept.rs` holds the sessions whose
+place the server took and whose row the disk kept, and
+`THE_LOOP_OF_THIS_PROGRAM_ENDED` of `wait_prev_session_finished.rs` holds the end
+of the loop of a playback of this program. **A program that stops takes both with
+it**, and the row of the disk is then the row of a program that died: T-140 and
+T-145 hold it, and those rules are correct for a program that this one did not
+see. **A disk that answers again takes the row away**, therefore the skip of a
+session of the box calls the removal one more time.
+
+**Every other write of the sweep reads its answer now** and takes a line of the
+log (T-177): `update_is_playback` of the pause, `update_has_played_before` of the
+start and of the key `Q`, the two marks of the end of `the_wait_of_a_playback`,
+and `update_current_time`, `update_download_current_time`, and `update_chapter`
+of the two loops of the playback. `the_line_of_a_write_of_the_loop` writes **one**
+line while the fault stands, because a loop of a playback writes the disk each
+second.
+
+| The condition | v0.8.36 | v0.8.37 |
+|---|---|---|
+| the key `l`, and a second client wrote a newer place | the program sent 646 s over 6000 s | **the server holds 6000 s** |
+| the key `l` after a loop whose end the disk refused | 30 seconds of "Syncing your last listening session" | **the playback starts at once** |
+| the place of the playback of each second | nothing at all | one line of the log while the fault stands |
+
+`tests/a_write_that_the_disk_did_not_take_is_no_fact_of_the_user.rs` holds the two
+rules in one function (T-144 and T-157), and the **read** of the sessions answers
+before each of them: the fault of every assertion after that line is the write
+alone.
+
+### The traps of this session
+
+**The trap 172: a rename of a column of `users` can stop the program.**
+`Database::new` selects `speed_rate` and `is_show_key_bindings` of the row of the
+account, therefore the road of T-203 (a statement that the migration does not
+repair) reaches `get_library_sort` and no other read of `App::new`: a rename of
+the two other columns gives
+`Error: The program did not read the accounts of its database: no such column`
+at the first line of the program. **`sqlite3 "$DB" "ALTER TABLE users RENAME
+COLUMN library_sort TO library_sort_of_an_old_version;"` is the one road of that
+sweep**, and the migration does not repair it because it adds those three columns
+for a database below version 6 alone.
+
+**The trap 173: a key of a list of the sandbox can write a row that a later run
+reads.** The key Shift-Tab of a measurement wrote `id_selected_lib` of the library
+`Empty` and it left `name_selected_lib` at `Books`: the run after it started in a
+library of no media, and the row of the database said `Books`. **The program
+follows the id**, therefore a measurement that reads the header must read the id
+of the row and not its name.
+
+**The trap 174: the message of a key of the queue lives six seconds, and a key of
+the playback can take 30.** The first measurement of this session polled the row
+of the message for 30 seconds after the key `l` and it read nothing at all,
+because the sentence of T-201 came at the 30th second. **A poll of the message of
+a key that touches the disk holds the whole wait of that key**, and the log of the
+program says which call of the database it stands in.
+
+### What this session leaves open
+
+**The reads of the disk whose default is a fact of the user stay open**, and this
+session measured one of them and did not correct it: the rename of `library_sort`
+above took **the sequence and the filter of the library of the user** away with no
+word of the screen and no line of the log — the header said `Library [17 items] —
+The title, the largest first`, and it said `Library [17 items]`. `get_speed_rate`
+and `get_is_show_key_bindings` hold the same shape and no harness of the road
+reaches them, because `Database::new` stops the program first (the trap 172).
+**The question is whether a read of the disk that failed may give a default at
+all.**
+
+**A key of the user that touches the disk still stops the loop of the screen**
+(the first question of T-204, which T-205, T-206, and this item each measured and
+left open). This session holds a number for it: **six calls of the database of the
+key `l` gave 30 seconds of a screen that said nothing**, and the sentence came
+after them.
+
+**The rows of `pending_progress` are not measured against this condition.** The
+flush of the positions of T-188 and of T-189 writes that table in a task of every
+30 seconds, and a write that the disk refused takes the place of the user of that
+row away: the task holds no key of the user and no view of its own.
 
 ## The session of the thirty-eighth turn of 2026-08-14: the disk that reads and takes no write
 

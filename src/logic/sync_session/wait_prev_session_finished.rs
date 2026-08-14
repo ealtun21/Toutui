@@ -1,5 +1,36 @@
 use crate::db::crud::*;
 use log::{error, info, warn};
+use std::sync::atomic::{AtomicBool, Ordering};
+
+/// The mark of the end of the loop of a playback **of this program**. See T-207.
+///
+/// **The wait of a playback is a question about the program that waits**, and the
+/// answer of that question stood on the disk alone: `update_is_loop_break("1")`
+/// of the end of the loop was `let _ =`, therefore a disk that takes no write
+/// left the row at `0` and the playback after it waited the whole 30 seconds of
+/// `THE_LONGEST_WAIT` with the message "Syncing your last listening session.
+/// Please wait...". A measurement of 2026-08-14 with the harness of T-206
+/// (`chmod 444`) held the user for 30 seconds at each of two keys `l`.
+///
+/// The disk keeps the row for every other reader of it, and **this box is the
+/// answer for the playback of this program**: a program that stops takes it with
+/// it, and no other program of the account reads it.
+static THE_LOOP_OF_THIS_PROGRAM_ENDED: AtomicBool = AtomicBool::new(false);
+
+/// The loop of a playback of this program came to its end.
+pub fn the_loop_of_this_program_ended() {
+    THE_LOOP_OF_THIS_PROGRAM_ENDED.store(true, Ordering::SeqCst);
+}
+
+/// Says that a loop of a playback of this program wrote its end.
+pub fn a_loop_of_this_program_wrote_its_end() -> bool {
+    THE_LOOP_OF_THIS_PROGRAM_ENDED.load(Ordering::SeqCst)
+}
+
+/// Takes the mark away. The playback that begins holds the loop after it.
+pub fn the_mark_of_the_loop_goes_away() {
+    THE_LOOP_OF_THIS_PROGRAM_ENDED.store(false, Ordering::SeqCst);
+}
 
 /// The longest time that a playback waits for the playback before it.
 ///
@@ -97,6 +128,20 @@ pub fn the_wait_of_a_playback(username: String, longest_wait: std::time::Duratio
         let start = std::time::Instant::now();
 
         while is_loop_break.as_deref() != Some("1") {
+            // **The loop of this program wrote its end, and the disk did not
+            // take that word** (T-207). The row of the disk then says `0` for
+            // ever, and the wait below holds the user for the whole limit of
+            // time: the mark of this program answers the question of this
+            // program.
+            if a_loop_of_this_program_wrote_its_end() {
+                info!(
+                    "[wait_prev_session_finished] the loop of the playback before this one wrote \
+                     its end. The disk holds no word of it."
+                );
+
+                break;
+            }
+
             if start.elapsed() >= longest_wait {
                 warn!(
                     "[wait_prev_session_finished] the playback before this one wrote no end in \
@@ -112,8 +157,31 @@ pub fn the_wait_of_a_playback(username: String, longest_wait: std::time::Duratio
         }
     }
 
-    let _ = update_is_loop_break("0", &username);
-    let _ = update_has_played_before("0", &username);
+    // **The playback that begins holds the loop after it** (T-207). The mark of
+    // the loop before this one goes away here, and the loop of this playback
+    // writes it again at its end.
+    the_mark_of_the_loop_goes_away();
+
+    // **A caller that reads no answer of its write says nothing at all** (T-200,
+    // T-205, and T-207). The two writes below hold the wait of the playback after
+    // this one, and each of them was `let _ =`. The wait holds no view of its own
+    // and the key of the user waits for the playback and not for these rows,
+    // therefore a fault takes a line of the log (T-177): the mark of this program
+    // above holds the road of the user.
+    if let Err(error) = update_is_loop_break("0", &username) {
+        error!(
+            "[wait_prev_session_finished] the disk did not take the start of the loop of {}: {}.",
+            username, error
+        );
+    }
+
+    if let Err(error) = update_has_played_before("0", &username) {
+        error!(
+            "[wait_prev_session_finished] the disk did not take the mark of the playback of {}: \
+             {}.",
+            username, error
+        );
+    }
 
     crate::logic::message::forget();
 }

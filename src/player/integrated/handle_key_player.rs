@@ -21,7 +21,20 @@ pub fn handle_key_player(key: &str, player: &PlayerHandle, username: &str, serve
         " " => {
             if let Ok(Some(session)) = get_listening_session(username, server) {
                 let value = if session.is_playback { "0" } else { "1" };
-                let _ = update_is_playback(value, session.id_session.as_str());
+
+                // **A caller that reads no answer of its write says nothing at
+                // all** (T-207). The row of `listening_session` is the one copy
+                // of the state of this playback for a program that dies (T-201),
+                // and the engine takes the pause below with no disk at all:
+                // therefore a fault of this write takes a line of the log and no
+                // word for the user (T-177).
+                if let Err(error) = update_is_playback(value, session.id_session.as_str()) {
+                    log::error!(
+                        "[the pause of the player] the disk did not take the pause of the session                          {}: {}. The engine holds the media.",
+                        session.id_session,
+                        error
+                    );
+                }
             }
 
             if state.status == PlaybackStatus::Paused {

@@ -3,6 +3,9 @@ use crate::api::me::update_media_progress::*;
 use crate::api::sessions::close_open_session::*;
 use crate::db::crud::*;
 use crate::logic::offline::{remember_progress, the_place_can_wait};
+use crate::logic::sync_session::the_rows_that_the_disk_kept::{
+    the_row_of_a_closed_session_goes_away, the_server_holds_this_session_already,
+};
 use crate::utils::exit_app::*;
 use log::{info, warn};
 
@@ -42,6 +45,27 @@ pub async fn sync_session_from_database(
 
         Ok(sessions) => {
             for session in sessions {
+                // **A place that this program gave to the server goes to that
+                // server no second time** (T-207). The removal of the row can
+                // fail, and the row of the disk then says "this place waits for
+                // the server" for a place that the server holds already: the
+                // program sent 646 seconds over the 6000 seconds of a second
+                // client of the account, and the book of the user lost 89
+                // minutes.
+                if the_server_holds_this_session_already(session.id_session.as_str()) {
+                    info!(
+                        "[handle_key] the server holds the place of the session {} already. The \
+                         disk kept its row, and this program sends it no second time.",
+                        session.id_session
+                    );
+
+                    // A disk that answers again takes that row away, and the
+                    // condition of the box goes away with it.
+                    the_row_of_a_closed_session_goes_away(session.id_session.as_str());
+
+                    continue;
+                }
+
                 close_one_session(api, &username, &server, session, handle_key).await;
             }
         }
@@ -65,7 +89,17 @@ pub async fn sync_session_from_database(
     // The sync above is the best that the program can do. It must not decide
     // whether the program stops.
     if app_quit {
-        let _ = update_has_played_before("1", username.as_str());
+        // **A caller that reads no answer of its write says nothing at all**
+        // (T-207). The program stops after this line, therefore no word can
+        // reach the user and the log holds the fault (T-177). The program that
+        // starts after this one writes the same mark again.
+        if let Err(error) = update_has_played_before("1", username.as_str()) {
+            warn!(
+                "[handle_key (Q)] the disk did not take the mark of the quit of {}: {}.",
+                username, error
+            );
+        }
+
         info!("App successfully quit");
         clean_exit();
     }
@@ -213,5 +247,9 @@ async fn close_one_session(
     // **The row of this session goes away, and no other row.** A blunt removal
     // takes the row of a program that died away with no request, and the place
     // of that user is then gone for ever. See T-145.
-    let _ = delete_the_session_of_a_playback(session.id_session.as_str());
+    //
+    // **A removal that the disk refused is no removal** (T-207). The caller of
+    // this line read no answer, therefore a disk that takes no write left a row
+    // of a place that the server holds already.
+    the_row_of_a_closed_session_goes_away(session.id_session.as_str());
 }

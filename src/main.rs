@@ -172,7 +172,21 @@ async fn main() -> Result<()> {
             }
             // At the start no playback loop runs. Therefore a new playback must
             // not wait for a loop before it.
-            let _ = update_has_played_before("1", username.as_str());
+            //
+            // **A caller that reads no answer of its write says nothing at all**
+            // (T-207). A disk that takes no write leaves the row of an older
+            // program, and the first playback of this program then waits the
+            // whole limit of time of `wait_prev_session_finished` for a loop that
+            // no program holds. The write holds no key of the user, therefore its
+            // fault takes a line of the log (T-177).
+            if let Err(error) = update_has_played_before("1", username.as_str()) {
+                log::error!(
+                    "[main] the disk did not take the mark of the start of {}: {}. The first \
+                     playback of this program can wait for a loop that no program holds.",
+                    username,
+                    error
+                );
+            }
 
             // Make the HTTP client. The client holds all the addresses of the
             // server. If the address that has the most importance does not answer,

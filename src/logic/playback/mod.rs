@@ -18,6 +18,7 @@ use crate::logic::offline::{remember_progress, tracks_from_downloads};
 use crate::logic::queue::{self, the_media_goes_back_to_the_queue, the_queue_goes_on, Outcome};
 use crate::logic::sync_session::force_sync;
 use crate::logic::sync_session::sync_session_from_database::*;
+use crate::logic::sync_session::the_rows_that_the_disk_kept::the_row_of_a_closed_session_goes_away;
 use crate::logic::sync_session::wait_prev_session_finished::*;
 use crate::logic::the_files_of_a_media::the_numbers_of_the_files;
 use crate::logic::the_playback::{
@@ -327,7 +328,20 @@ async fn the_loop_of_the_playback(
 
         // The next media of the queue opens its own session. Therefore this
         // playback must release the wait before that media starts.
-        let _ = update_is_loop_break("1", username.as_str());
+        //
+        // **The mark of this program comes first** (T-207): the row of the disk
+        // was the one answer of that wait, and a disk that takes no write held
+        // the user for the whole 30 seconds of `THE_LONGEST_WAIT` at the key `l`
+        // after this loop.
+        the_loop_of_this_program_ended();
+
+        if let Err(error) = update_is_loop_break("1", username.as_str()) {
+            error!(
+                "[play] the disk did not take the end of the loop of the playback of {}: {}. The \
+                 playback after this one reads the mark of this program.",
+                username, error
+            );
+        }
 
         // The playback did not start, and the media came of the queue: the
         // media goes back to the front of the queue. A media of the user must
@@ -393,6 +407,36 @@ async fn the_loop_of_the_playback(
 
         target = entry.target.clone();
         the_media_of_the_queue = Some(entry);
+    }
+}
+
+/// Writes one line of the log while a write of a loop of a playback fails. See
+/// T-207.
+///
+/// **A loop of a playback writes the disk each second**, therefore a line of the
+/// log of each fault gives one line each second while the disk says nothing —
+/// that is the shape of T-203 for a read of the render. The line comes one time,
+/// and the next write that the disk takes gives the line back for the fault after
+/// it.
+fn the_line_of_a_write_of_the_loop(
+    said_already: &mut bool,
+    what: &str,
+    answer: Option<rusqlite::Result<()>>,
+) {
+    match answer {
+        Some(Err(error)) => {
+            if !*said_already {
+                *said_already = true;
+
+                error!(
+                    "[follow_playback] the disk did not take {}: {}. The loop of the playback \
+                     goes on, and it writes this line one time.",
+                    what, error
+                );
+            }
+        }
+
+        _ => *said_already = false,
     }
 }
 
@@ -1368,6 +1412,10 @@ pub async fn follow_playback_offline(
     // before the seek. See T-38.
     let mut reached_the_start = false;
 
+    // **One line of the log while the disk says nothing** (T-207). The loop
+    // writes the disk each second.
+    let mut the_disk_said_nothing_of_the_place = false;
+
     loop {
         tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
 
@@ -1421,14 +1469,24 @@ pub async fn follow_playback_offline(
         let of_the_download = key.clone();
         let of_the_account = username.clone();
 
-        crate::db::the_work_of_the_disk(move || {
-            let _ = update_download_current_time(
+        let the_answer = crate::db::the_work_of_the_disk(move || {
+            update_download_current_time(
                 of_the_download.as_str(),
                 of_the_account.as_str(),
                 position,
-            );
+            )
         })
         .await;
+
+        // **A caller that reads no answer of its write says nothing at all**
+        // (T-207). The place of an offline playback reaches the disk here alone
+        // (T-152), therefore a write that failed takes the place of the user of
+        // this second away with no word.
+        the_line_of_a_write_of_the_loop(
+            &mut the_disk_said_nothing_of_the_place,
+            "the place of the offline playback",
+            the_answer,
+        );
 
         // **The position of an offline playback reaches the server at no other
         // moment.** `play_offline` opens no session on the server, therefore
@@ -1618,6 +1676,10 @@ pub async fn follow_playback(
     // before the seek. See T-38.
     let mut reached_the_start = false;
 
+    // **One line of the log while the disk says nothing** (T-207). The loop
+    // writes the disk each second.
+    let mut the_disk_said_nothing_of_the_place = false;
+
     loop {
         tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
 
@@ -1659,7 +1721,8 @@ pub async fn follow_playback(
             .await;
 
             if the_server_holds_it {
-                let _ = delete_the_session_of_a_playback(session_id.as_str());
+                // **A removal that the disk refused is no removal** (T-207).
+                the_row_of_a_closed_session_goes_away(session_id.as_str());
             }
 
             return Outcome::Stopped;
@@ -1701,19 +1764,32 @@ pub async fn follow_playback(
         let of_the_account = username.clone();
         let of_the_chapter = state.chapter_title.clone();
 
-        crate::db::the_work_of_the_disk(move || {
-            let _ = update_current_time(position, of_the_session.as_str());
-            let _ = update_download_current_time(
+        let the_answer = crate::db::the_work_of_the_disk(move || {
+            // **The row of the session holds the place of the user for a program
+            // that dies, and the row of the player of the screen reads it**
+            // (T-201). A write that failed took both of them away with no word.
+            let the_place = update_current_time(position, of_the_session.as_str());
+
+            let of_the_disk = update_download_current_time(
                 of_the_item.as_str(),
                 of_the_account.as_str(),
                 position,
             );
 
-            if let Some(title) = of_the_chapter.as_ref() {
-                let _ = update_chapter(title, of_the_session.as_str());
-            }
+            let of_the_chapter = match of_the_chapter.as_ref() {
+                Some(title) => update_chapter(title, of_the_session.as_str()),
+                None => Ok(()),
+            };
+
+            the_place.and(of_the_disk).and(of_the_chapter)
         })
         .await;
+
+        the_line_of_a_write_of_the_loop(
+            &mut the_disk_said_nothing_of_the_place,
+            "the place of this playback",
+            the_answer,
+        );
 
         match state.status {
             PlaybackStatus::Playing => {
@@ -1813,7 +1889,8 @@ pub async fn follow_playback(
                 .await;
 
                 if the_server_holds_it {
-                    let _ = delete_the_session_of_a_playback(session_id.as_str());
+                    // **A removal that the disk refused is no removal** (T-207).
+                    the_row_of_a_closed_session_goes_away(session_id.as_str());
                 }
 
                 return outcome_of(finished);

@@ -41,6 +41,33 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.37",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Toutui sent an old place of a book to your server, and the \
+             place of that book went backward.** A disk that is full, a database \
+             with no permission of a write, and a file system that is read-only \
+             each give the condition: Toutui gave the place of your book to the \
+             server, it could not remove the row of that playback from its own \
+             database, and it therefore sent that same place again. A book of \
+             eight hours went from 1h40m back to 10m, and every client of your \
+             account then held that place. Toutui gives a place to your server \
+             one time now.",
+            "- **A media of yours started 30 seconds after the key `l`, and the \
+             screen said `Syncing your last listening session. Please wait...` \
+             for those 30 seconds.** Toutui waits for the playback before the \
+             new one, and the mark of the end of that playback stood in the \
+             database alone: a disk that took no write left that mark, and the \
+             wait then held the whole limit of time. Toutui holds the mark of \
+             its own playback now, and the media starts at once.",
+            "- **A write of the database that failed said nothing at all.** The \
+             place of your playback of each second, the pause of the player, the \
+             chapter, and the marks of the wait each wrote the disk with no \
+             reader of the answer. The log names each of them now.",
+        ],
+    },
+    Entry {
         version: "0.8.36",
         date: "14/08/2026",
         body: &[

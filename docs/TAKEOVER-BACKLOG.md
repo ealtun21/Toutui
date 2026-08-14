@@ -8632,6 +8632,153 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-207: a write of the disk that no caller reads took the place of the user backward
+
+**T-206 left the sweep of `let _ =` beside a write of the database open**, and it
+named five functions of it. The sweep of this session took them, and two of them
+hold a fault of the user that the road did not name: **a place that the server
+holds already went to that server a second time, and it took the place of the
+user backward by 89 minutes**; and **a key `l` of the user held the program for
+30 seconds with no reason of its own**.
+
+The condition is the harness of T-206, and it is one command:
+
+```bash
+chmod 444 $XDG_CONFIG_HOME/toutui/db.sqlite3
+```
+
+SQLite opens such a file for a read, every `SELECT` of the program answers, and
+every write gives `attempt to write a readonly database`. A disk that is full, a
+database with no permission of a write, and a file system that a machine gave
+back as read-only each give that condition of the user. **The trap 171 holds
+still**: the `chmod` belongs after the first frame.
+
+#### The measurement of 2026-08-14, of the real program of the sandbox
+
+The program played "A Book Of Many Hours" (eight hours) of the sandbox with the
+null device of ALSA, and `chmod 444` came after eight seconds of it.
+
+**1. The place of the user of the server went backward.** The key `l` of a second
+media closed the session of the book, and the log said
+`[handle_key (l)][book] Item 6ba57b9a-… closed at 646s (not finished)`. The
+removal of the row after it was `let _ = delete_the_session_of_a_playback(...)`,
+therefore **the row stayed**, and no line of the log and no word of the screen
+named it. A second client of the account then wrote 6000 seconds with
+`PATCH /api/me/progress/:id`, and the next key `l` read that same row again:
+
+```text
+the server holds 6000
+[handle_key (l)][book] Item 6ba57b9a-… closed at 646s (not finished)
+the server holds 646
+```
+
+**The book of the user lost 89 minutes, and every client of that account then
+held that place.** A place of the user that reaches the server is worth more than
+a place that stands on the screen (T-193).
+
+**2. The key `l` held the user for 30 seconds.**
+`let _ = update_is_loop_break("1", …)` of the end of the loop of the playback
+failed in the same way, therefore the row of the disk stayed at `0` and
+`wait_prev_session_finished` of the key after it waited the whole
+`THE_LONGEST_WAIT`:
+
+```text
+18:14:22 [wait_prev_session_finished][is_loop_break] Some("0")
+18:14:52 [wait_prev_session_finished] the playback before this one wrote no end in 30 s.
+```
+
+The screen held "Syncing your last listening session. Please wait..." for those
+30 seconds, and the reason of that sentence was a write of the disk and no
+playback of the user at all. **That is the fault of T-35 and of T-158 with
+another condition.**
+
+#### The rule
+
+**A place that this program gave to the server goes to that server no second
+time**, and **the wait of a playback is a question about the program that waits**.
+The disk cannot hold either fact while it takes no write, therefore **a box of
+the process holds each of them**:
+
+- `src/logic/sync_session/the_rows_that_the_disk_kept.rs` holds the sessions of
+  this program whose place the server took and whose row the disk kept.
+  `sync_session_from_database` gives no such session to `close_one_session`. **A
+  disk that answers again takes the row away**, because a disk that is full and a
+  file system of a read-only machine each go away while the program runs: the
+  skip calls the removal again, and the row and the identity of it then go away
+  together.
+- `THE_LOOP_OF_THIS_PROGRAM_ENDED` of
+  `src/logic/sync_session/wait_prev_session_finished.rs` holds the end of the
+  loop of a playback of this program. The wait reads it, and the playback that
+  begins takes it away.
+
+**A program that stops takes both boxes with it**, and the row of the disk is then
+the row of a program that died: the rules of T-140 and of T-145 hold it, and
+those rules are correct for a program that this one did not see.
+
+**Every other write of that sweep reads its answer now**, and each of them takes a
+line of the log and no word for the user (T-177), because no key of the user waits
+for the row itself: `update_is_playback` of the key of the pause (the engine takes
+the pause with no disk at all), `update_has_played_before` of the start of the
+program and of the key `Q`, the two marks of the end of
+`the_wait_of_a_playback`, and `update_current_time`,
+`update_download_current_time`, and `update_chapter` of the two loops of the
+playback. **A loop of a playback writes the disk each second**, therefore
+`the_line_of_a_write_of_the_loop` writes one line while the fault stands, and the
+next write that the disk takes gives that line back for the fault after it — that
+is the rule of T-203 for a read of the render, in a loop of one second.
+
+| The condition | v0.8.36 | v0.8.37 |
+|---|---|---|
+| the key `l`, and the disk takes no write, and a second client wrote a newer place | the program sent 646 s over 6000 s | **the server holds 6000 s, and the log names the row that the disk kept** |
+| the key `l` after a loop whose end the disk refused | 30 seconds of "Syncing your last listening session" | **the playback starts at once** |
+| the place of the playback of each second | nothing at all | one line of the log while the fault stands |
+
+`tests/a_write_that_the_disk_did_not_take_is_no_fact_of_the_user.rs` holds the two
+rules in one function (T-144 and T-157), and it holds that the **read** of the
+sessions answers still before each of them: the fault of every assertion after
+that line is the write alone. A build with the box of the sessions removed fails
+at the first rule, and a build with the mark of the loop removed fails at the
+second one with a wait of the whole limit of time.
+
+#### What this item leaves open
+
+**The reads of the disk whose default is a fact of the user stay open**, and this
+session measured one of them and did not correct it. The road of T-206 named it,
+and it is the statement that fails of T-203: `sqlite3 "$DB" "ALTER TABLE users
+RENAME COLUMN library_sort TO library_sort_of_an_old_version;"` gives a database
+of a shape that the migration does not reach, because the migration adds those
+three columns for a database of a version below 6 alone. **The sequence and the
+filter of the library of the user then go away with no word of the screen and no
+line of the log**: the header of the Library view said
+`Library [17 items] — The title, the largest first` and it says `Library [17
+items]`, and the list of the user comes in another sequence.
+
+**A rename of `speed_rate` and of `is_show_key_bindings` stops the program at the
+words of T-199**, because `Database::new` reads those two columns of the row of
+the account: the two reads of `App::new` are therefore out of the reach of every
+harness of the road, and `get_speed_rate` of the two callers of the start of a
+playback needs a database whose `users` table loses that column while the program
+runs. **The question of the next session is whether a read of the disk that
+failed may give a default at all**: `get_library_sort` gives three empty texts,
+`get_speed_rate` and `get_is_show_key_bindings` each give the string
+`Error: unable open database`, and `.parse().unwrap_or(1.0)` of the five callers
+of the speed then gives the user 1.00x.
+
+**A key of the user that touches the disk still stops the loop of the screen for
+five seconds under the lock of `hold_the_lock.py`** (the first question of T-204,
+which T-205 and T-206 each measured and left open). The measurement of this
+session holds a number for the key `l`: **six calls of the database of one key
+gave 30 seconds of a screen that said nothing at all**, and the sentence of T-201
+came after them. The condition of this item gives every fault with no wait,
+therefore the two questions stand apart still.
+
+**The rows of `pending_progress` and of `queue` are not measured against this
+condition.** T-206 holds the queue, and the flush of the positions of T-188 and of
+T-189 writes `pending_progress` in a task of every 30 seconds: a write of that
+table that the disk refused takes the place of the user of that row away, and the
+task holds no key of the user and no view.
+
+
 ### T-206: a disk that reads and takes no write made the program say the work that it did not do
 
 **T-205 left the caller of `save_the_queue` open**: `write_the_queue` writes a
