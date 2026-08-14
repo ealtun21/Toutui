@@ -109,6 +109,15 @@ says it while the condition stands.
 `tests/a_place_that_the_disk_did_not_take_says_so.rs` holds the parts in one
 function (T-144 and T-157).
 
+### The trap of this session
+
+**The trap 179: a `chmod 444` of the database stays after the measurement.** The
+program of the next measurement then meets the condition of T-206 at its
+migration, and every read of that session lies. The `chmod 644` belongs to the
+same command as the measurement, and `podman start abs-test` belongs beside it:
+the two commands of this condition each stand outside the program, therefore
+nothing of the program gives them back.
+
 ### What this session leaves open
 
 **The flush of the positions is the next road of this condition.** The task of
