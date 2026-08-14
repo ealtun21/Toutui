@@ -7629,6 +7629,94 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-184: the position of a live message that no key could correct
+
+**The road of T-183 named this condition**: the answer of the socket. The item
+T-183 read `src/api/live.rs` for the shape of T-177 — a field of the answer that
+takes a default — and it found none: `Handshake` gives `pingInterval` and
+`pingTimeout` the default 0 and no line of the program reads either of them
+beside one line of the log, and `ProgressRow` gives every field a default and
+both functions of that file drop a row whose `libraryItemId` holds no character
+(the rule of T-177). **The fault of that file is not a field of the answer. It is
+what the program does with the answer.**
+
+`note_the_progress` of `src/logic/live.rs` **inserted** each row of the message
+into a map, and it took no row out. The sibling function of the same box,
+`note_the_media_away_from_continue_listening`, holds the other rule already, with
+the reason written above it: "This list **takes the place** of the list that came
+before it, because a message carries the whole account" (T-66). **One box, two
+rules, and the wrong one belongs to the value that the screen draws.**
+
+**The measurement.** A different client of the account takes the position of a
+media away: `DELETE /api/me/progress/<the identity of the row>` is the request of
+"Discard progress" of the web reader. The sandbox holds `A Book Of Many Hours` at
+48 percent.
+
+| The step | Before | After |
+|---|---|---|
+| The mark of the line at the start | `48% A Book Of Many Hours` | the same |
+| The row of the position goes away, and the message `user_updated` of 17 media comes | `48%` | `49%` of the request of the start, and no value of the live message |
+| The key `R`, which asks the server for every list again | **`48%`**, and the server holds no row of that media | `A Book Of Many Hours`, with no mark at all |
+| `GET /api/me` after it | the row of that media is absent | the same |
+
+**The value of the box stands above the value of the request** (`home_lines` of
+`src/app.rs` reads `live::progress_of` first), therefore the old percent survived
+every key of the program: no key of this program could correct it, and the user
+had to stop the program.
+
+**The correction, and it holds two roads of the same rule.**
+
+1. `note_the_progress` **takes the place** of the map. A message carries the whole
+   account, therefore a media that the message names in no row holds no live
+   position.
+2. `the_lists_are_new_again` — the function of the key `R` — empties the positions
+   too. The request of that key gives the newest position of every media,
+   therefore no message before that request says anything newer. **This road holds
+   the fault of a socket that is down**: the first road needs one message more, and
+   this one needs no message at all.
+
+**A third rule came of the correction, and the measurement found it.** The two
+lists take the place of the lists before them now, therefore **a message that
+holds no `mediaProgress` must reach neither of them**: it would empty both.
+`the_message_holds_the_positions` is that rule, and it is not
+`progress_of_the_user(body).is_empty()` — that value cannot tell a message which
+holds no list from a message whose list holds no row of a book.
+
+**The message `init` is that message.** The log of the measurement says it:
+
+```text
+[live] init: the message holds no list of the positions. The lists of the screen stay.
+[live] user_updated: the position of 16 media.
+```
+
+An Audiobookshelf 2.36.0 sends `init` with no `mediaProgress` at all, and the
+positions come with the `user_updated` after it. **The old shape of
+`take_the_message` hid that**: the gate `if !rows.is_empty()` wrote nothing for
+`init`, and it wrote nothing for a `user_updated` of an account whose media hold
+no position either. A correction of `note_the_progress` alone would therefore have
+taken every position of the screen away at each connection that starts again after
+a fault (T-61 makes such a connection every ten seconds at the first fault).
+
+**The tests.** `src/logic/live.rs` holds both roads in its one test function (the
+box belongs to the process, T-144 and T-157): a message that names one media of two
+leaves the other media with no live position, a message of no row empties the map,
+and the key `R` empties it too. `src/api/live.rs` holds the pure rule of the third
+correction. `tests/live_against_the_sandbox.rs` holds the whole road with the real
+socket: the row of the position goes away, and `progress_of` gives nothing. **A
+build with the old `note_the_progress` fails that test after 20 seconds, and it
+fails the unit test at once; a build whose key `R` keeps the positions fails the
+unit test.** **No test reaches the `if` of `take_the_message`**: that function is
+private and it writes to the box of the process, therefore the pure rule of it
+holds the measurement and the sandbox test holds the wiring of the road that a
+server takes.
+
+**What stays by a decision.** The mark of the line of a media whose position went
+away says the value of the request of the start until the key `R`: the row is
+absent from `mediaProgress`, therefore that media is neither finished nor hidden
+and the list of T-66 does not name it. **The disk of the screen is a photograph of
+the request** (T-44), and a read of the server at each frame would change the
+decision of T-66 for a condition that one key corrects.
+
 ### T-183: one device with no name took every device of the e-reader away
 
 **The road of the session before this one named this sweep**: "the send of an

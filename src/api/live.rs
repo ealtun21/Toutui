@@ -29,6 +29,12 @@
 //! 3. **One answer can hold more than one packet.** The separator is the byte
 //!    `0x1e`.
 //!
+//! **The message `init` holds no `mediaProgress`.** A measurement of 2026-08-14
+//! against the same server shows that the positions of the account come with the
+//! `user_updated` of the step 5, and never with `init`. The two lists of the
+//! screen take the place of the lists before them (T-184), therefore that
+//! difference decides a rule: see `the_message_holds_the_positions`.
+//!
 //! **A message can hold a secret.** `user_updated` carries the account of the
 //! user, and that object holds a new token. Therefore this module writes the
 //! name of a message in the log, and never the body.
@@ -278,6 +284,22 @@ pub fn poll_path(sid: &str) -> Option<String> {
     }
 
     Some(format!("{}&sid={}", HANDSHAKE_PATH, sid))
+}
+
+/// Tells if a message holds the list of the positions of the account.
+///
+/// **`progress_of_the_user` and `the_media_away_from_continue_listening` cannot
+/// answer this question**: each of them gives a list of no row for a message that
+/// holds no `mediaProgress`, and for a message that holds a `mediaProgress` of no
+/// row. The two conditions need two different answers: the first one says nothing
+/// of the positions, and the second one says that no media of the account holds a
+/// position. See T-184.
+///
+/// The function is pure, therefore a test needs no server.
+pub fn the_message_holds_the_positions(body: &serde_json::Value) -> bool {
+    body.get("mediaProgress")
+        .and_then(|value| value.as_array())
+        .is_some()
 }
 
 /// Gives the position of every media of the message `user_updated`.
@@ -579,21 +601,39 @@ fn short_text(error: &reqwest::Error) -> String {
 /// `user_updated` carries a new token of the user.
 fn take_the_message(name: &str, body: &serde_json::Value) {
     if name == "user_updated" || name == "init" {
-        let rows = progress_of_the_user(body);
-
-        if !rows.is_empty() {
-            info!("[live] {}: the position of {} media.", name, rows.len());
-            crate::logic::live::note_the_progress(rows);
-
-            // The message holds the whole account, therefore this list takes
-            // the place of the list that came before it. See T-66.
-            let away = the_media_away_from_continue_listening(body);
+        // **A message that holds no list of the positions says nothing of the
+        // positions.** The two lists below take the place of the lists that came
+        // before them, therefore a message of another shape must not empty them.
+        //
+        // **The message `init` is that message.** A measurement of 2026-08-14
+        // against an Audiobookshelf 2.36.0 shows that `init` carries no
+        // `mediaProgress` at all: the positions come with the `user_updated` that
+        // follows it. A connection that starts again after a fault would
+        // therefore take every position of the screen away with no such rule.
+        // See T-184.
+        if !the_message_holds_the_positions(body) {
             info!(
-                "[live] {} media of the account stay away from Continue Listening.",
-                away.len()
+                "[live] {}: the message holds no list of the positions. The lists of \
+                 the screen stay.",
+                name
             );
-            crate::logic::live::note_the_media_away_from_continue_listening(away);
+            return;
         }
+
+        // **The message holds the whole account, therefore each of these two
+        // lists takes the place of the list that came before it** (T-66 and
+        // T-184). A list of no row is an answer too: an account whose media hold
+        // no position holds no line of the shelf of Continue Listening either.
+        let rows = progress_of_the_user(body);
+        info!("[live] {}: the position of {} media.", name, rows.len());
+        crate::logic::live::note_the_progress(rows);
+
+        let away = the_media_away_from_continue_listening(body);
+        info!(
+            "[live] {} media of the account stay away from Continue Listening.",
+            away.len()
+        );
+        crate::logic::live::note_the_media_away_from_continue_listening(away);
 
         return;
     }
@@ -848,6 +888,25 @@ mod tests {
         assert!(
             progress_of_the_user(&serde_json::json!({"mediaProgress": "not a list"})).is_empty()
         );
+    }
+
+    /// **A message that holds no list of the positions is not a message of an
+    /// account whose media hold no position.** The two lists of the screen take
+    /// the place of the lists before them, therefore the first condition must
+    /// keep those lists and the second one must empty them. See T-184.
+    #[test]
+    fn a_message_that_holds_no_list_of_the_positions_is_not_a_list_of_no_row() {
+        assert!(!the_message_holds_the_positions(&serde_json::Value::Null));
+        assert!(!the_message_holds_the_positions(&serde_json::json!({
+            "id": "u1", "username": "toutuitest"
+        })));
+        assert!(!the_message_holds_the_positions(&serde_json::json!({
+            "mediaProgress": "not a list"
+        })));
+
+        assert!(the_message_holds_the_positions(&serde_json::json!({
+            "mediaProgress": []
+        })));
     }
 
     /// A server that gives no socket.io must not get a request every ten seconds

@@ -207,6 +207,57 @@ async fn a_change_of_a_different_client_comes_to_the_screen() {
         format!("{}%", wanted)
     );
 
+    // **A media whose position the server no longer holds must lose that
+    // position.** See T-184.
+    //
+    // A different client of the same account can take the position of a media
+    // away: `DELETE /api/me/progress/:id` of the web reader does that work, and
+    // the row of the account then holds no position of that media. The message
+    // `user_updated` of that change carries the whole account with no row of that
+    // media, therefore this box must forget it.
+    //
+    // **The old shape of `note_the_progress` inserted alone**: the box kept the
+    // old percent, the value of the box wins over the value of the request, and
+    // the key `R` could therefore not correct it. The measurement of the sandbox:
+    // the row of `A Book Of Many Hours` went away, the server answered the request
+    // of the Home view with no position of that media, and the line of the screen
+    // said `48%` after the message and after the key `R`.
+    //
+    // **The identity of that request is the identity of the row, and not the
+    // identity of the item**: a `DELETE /api/me/progress/<the item>` answers 404.
+    let row_of_the_media: serde_json::Value = api
+        .get_json(&format!("/api/me/progress/{}", item))
+        .await
+        .expect("the server must give the row of the position");
+
+    let id_of_the_row = row_of_the_media["id"]
+        .as_str()
+        .expect("a row of a position must hold an identity")
+        .to_string();
+
+    api.delete_no_content(&format!("/api/me/progress/{}", id_of_the_row))
+        .await
+        .expect("the server must take the position away");
+
+    wait_for("the media that holds no position", || {
+        toutui::logic::live::progress_of(&item).is_none()
+    })
+    .await;
+
+    // The position of the measurement comes back, therefore the sandbox holds the
+    // shape that this test finds at its next run.
+    api.patch_json(
+        &format!("/api/me/progress/{}", item),
+        &serde_json::json!({ "progress": 0.42, "currentTime": 756.0 }),
+    )
+    .await
+    .expect("the server must take the position again");
+
+    wait_for("the position of the media again", || {
+        toutui::logic::live::progress_of(&item).is_some()
+    })
+    .await;
+
     // A different client changes the metadata of the item. The title and the
     // cover of that item stand in many lists, therefore the header asks the
     // user for the key `R`.

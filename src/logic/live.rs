@@ -8,7 +8,9 @@
 //!
 //! - **The position of a media.** A different client of the same account moved
 //!   in a book. The mark of the line shows the new position at the next frame,
-//!   and the program asks the server for nothing. See T-44.
+//!   and the program asks the server for nothing. See T-44. **That list holds the
+//!   whole account**, therefore a message takes the place of it and the key `R`
+//!   empties it (T-184).
 //! - **The media away from Continue Listening.** A different client finished a
 //!   media, or hid it. That media must leave the shelf of Continue Listening,
 //!   and the program holds every line of that shelf already. Therefore the
@@ -76,14 +78,22 @@ pub fn state() -> State {
 /// Writes the position of every media of one message.
 ///
 /// A message carries the position of every media of the account, therefore this
-/// function writes them all. A position of a message is always newer than a
-/// position of a request, because the server sends the message after it wrote
-/// the value.
+/// list **takes the place** of the list that came before it — the rule of
+/// `note_the_media_away_from_continue_listening` and of T-66. A position of a
+/// message is always newer than a position of a request, because the server
+/// sends the message after it wrote the value.
+///
+/// **The old shape of this function inserted alone**, and a media whose position
+/// the server no longer holds then kept its old percent for ever: the value of
+/// this box wins over the value of the request, therefore the key `R` could not
+/// correct it. See T-184.
+///
+/// The caller must give the whole account. `take_the_message` of
+/// `src/api/live.rs` reads `mediaProgress` of the message, and a message that
+/// holds no such list reaches this function no more.
 pub fn note_the_progress(rows: Vec<(String, Progress)>) {
     if let Ok(mut place) = box_of_the_live().lock() {
-        for (id, progress) in rows {
-            place.progress.insert(id, progress);
-        }
+        place.progress = rows.into_iter().collect();
     }
 }
 
@@ -143,10 +153,17 @@ pub fn the_lists_are_old() -> bool {
 /// of the new request holds none of them already, and a media that came back on
 /// that shelf must not go away a second time. The next message gives the list
 /// again. See T-66.
+///
+/// **The positions go away for the same reason** (T-184): the request that this
+/// key makes gives the newest position of every media of the account, therefore
+/// no position of a message before that request says anything newer. A position
+/// that stays wins over the value of the request, and a media whose position the
+/// server no longer holds then keeps a percent that no server holds.
 pub fn the_lists_are_new_again() {
     if let Ok(mut place) = box_of_the_live().lock() {
         place.the_lists_are_old = false;
         place.away_from_continue_listening.clear();
+        place.progress.clear();
     }
 }
 
@@ -201,17 +218,26 @@ mod tests {
         );
         assert!(progress_of("a book that never played").is_none());
 
-        // A newer message takes the place of the older one.
+        // **A message carries the whole account, therefore the new list takes
+        // the place of the old one** (T-184). The old shape of this function
+        // inserted alone: a media whose position the server no longer holds then
+        // kept its old percent for ever, and the value of this box wins over the
+        // value of the request.
         note_the_progress(vec![("a book".to_string(), a_progress("44"))]);
         assert_eq!(
             progress_of("a book").map(|row| row.percent),
             Some("44".to_string())
         );
-        // The message named one media only, therefore the other one stays.
-        assert_eq!(
-            progress_of("a second book").map(|row| row.percent),
-            Some("7".to_string())
+        assert!(
+            progress_of("a second book").is_none(),
+            "the message named that media in no row, therefore it holds no live \
+             position: the mark of its line comes from the request"
         );
+
+        // A message of an account whose media hold no position empties the list.
+        note_the_progress(Vec::new());
+        assert!(progress_of("a book").is_none());
+        note_the_progress(vec![("a book".to_string(), a_progress("44"))]);
 
         // The media away from Continue Listening. See T-66.
         assert!(the_media_away_from_continue_listening().is_empty());
@@ -243,7 +269,17 @@ mod tests {
         // the media away from Continue Listening goes away too. See T-66.
         assert!(the_media_away_from_continue_listening().is_empty());
 
+        // **The positions go away at that key too** (T-184). The request of that
+        // key gives the newest position of every media, and a position of this box
+        // wins over the value of the request: a position that stays gives a percent
+        // that no server holds, and no key of the program can correct it.
+        assert!(
+            progress_of("a book").is_none(),
+            "the key R asks the server for the position of every media again"
+        );
+
         // A fault of the connection keeps the positions that came before it.
+        note_the_progress(vec![("a book".to_string(), a_progress("44"))]);
         keep(State::Fault(
             "the server did not answer in time".to_string(),
         ));

@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.15",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A media whose position went away on the server kept its old \
+             percent on the screen, and the key R could not correct it.** A \
+             different client of your account can take the position of a media \
+             away, and Toutui then held the value of the live message of the \
+             server for ever: that value stands above the value of every request. \
+             A live message carries the position of every media of your account, \
+             therefore that list takes the place of the list before it now, and \
+             the key R asks the server for every position again.",
+        ],
+    },
+    Entry {
         version: "0.8.14",
         date: "14/08/2026",
         body: &[
