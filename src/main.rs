@@ -576,6 +576,15 @@ async fn main() -> Result<()> {
                                 logic::sort_filter::from_the_server::forget();
                                 logic::authors::forget();
 
+                                // The store of the covers lives outside `App`,
+                                // therefore a new application keeps every cover
+                                // that the program read before. **A request of a
+                                // cover that came back with a fault stayed there
+                                // for the whole life of the program**, and no key
+                                // of the user could correct it: this key asks the
+                                // server for every cover again. See T-185.
+                                toutui::ui::cover::forget();
+
                                 // This request asks for every list again, therefore
                                 // no list of the screen is old after it. See T-47.
                                 logic::live::the_lists_are_new_again();

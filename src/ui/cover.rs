@@ -5,8 +5,11 @@
 //! 1. **The bytes.** A task asks the server for `GET /api/items/:id/cover` and
 //!    writes the answer in a store of the process. The store keeps an item
 //!    with no cover, therefore the application asks for such an item one time
-//!    only. The store lives outside the state of the application, therefore
-//!    the key `R` does not start the requests again.
+//!    only. **The key `R` empties that store** (T-185): the store holds a value
+//!    of the server, and a value of the server that the program keeps must go
+//!    away with that value. A request that came back with a fault is the
+//!    important road: the cover of a book then stayed away for the whole life
+//!    of the program, and no key of the user could correct it.
 //! 2. **The picture.** The render makes a protocol of `ratatui-image` from the
 //!    bytes one time, and it keeps that protocol. The protocol holds the form
 //!    of the terminal: the Kitty protocol, Sixel, iTerm2, or blocks of Unicode.
@@ -94,18 +97,52 @@ const MAX_DECODE_PIXELS: u32 = 10_000;
 enum CoverBytes {
     /// A task asks the server now.
     Asked,
-    /// The item has no cover, or the request failed. The application does not
-    /// ask again.
-    Missing,
+    /// The server answered, and it holds no cover of this item. The status of
+    /// that answer is 404. The application asks no second time.
+    NoCover,
+    /// The request came back with a fault. The log holds the reason, and no
+    /// view of the program shows it: a cover is a picture beside the text.
+    ///
+    /// **This is not an item with no cover** (T-185). The old shape of the
+    /// store held one condition for both, and the log then said that an item
+    /// has no cover for an item whose cover the server holds. The application
+    /// asks no second time here too: the render calls `picture` at each frame,
+    /// therefore a second request of a fault would be one request of each frame
+    /// of each item of the screen. The key `R` empties the store.
+    Fault,
     /// The bytes of the picture.
     Ready(Arc<Vec<u8>>),
 }
 
 /// The store of the process. It lives outside `App`, therefore a refresh with
-/// the key `R` keeps every cover that the application read before.
+/// the key `R` keeps no cover of its own: `forget` empties it.
 fn store() -> &'static RwLock<HashMap<String, CoverBytes>> {
     static STORE: OnceLock<RwLock<HashMap<String, CoverBytes>>> = OnceLock::new();
     STORE.get_or_init(|| RwLock::new(HashMap::new()))
+}
+
+/// Forgets every cover of the store. The key `R` calls this.
+///
+/// **The store holds a value of the server, therefore the key that asks the
+/// server again must empty it** — the rule of T-184 for the positions of the
+/// live messages, and of T-66 for the shelf of Continue Listening.
+///
+/// The measurement of 2026-08-14 (T-185): a proxy gave the status 500 to
+/// `GET /api/items/:id/cover`, the program wrote that fault in the store, the
+/// server answered every request again, and the key `R` then asked the server
+/// for seven lists and for **no** cover. The book of the screen kept no picture
+/// for the whole life of the program, and the user could correct it in no way.
+///
+/// A cover that a different client changed on the server comes back at this key
+/// for the same reason.
+///
+/// The pictures of `CoverArt` belong to `App`, and the key `R` makes a new
+/// `App`. Therefore the render makes every picture again from the bytes of the
+/// new requests.
+pub fn forget() {
+    if let Ok(mut map) = store().write() {
+        map.clear();
+    }
 }
 
 /// The picker of the process.
@@ -199,16 +236,24 @@ pub fn request(api: &Arc<ApiClient>, id: &str) {
     let id = id.to_string();
 
     tokio::spawn(async move {
-        let result = fetch(&api, &id).await;
-
-        let value = match result {
-            Some(bytes) => {
+        let value = match fetch(&api, &id).await {
+            TheAnswer::Bytes(bytes) => {
                 log::info!("[cover] the item {} gives {} bytes", id, bytes.len());
                 CoverBytes::Ready(Arc::new(bytes))
             }
-            None => {
+            TheAnswer::NoCover => {
                 log::info!("[cover] the item {} has no cover", id);
-                CoverBytes::Missing
+                CoverBytes::NoCover
+            }
+            TheAnswer::Fault(why) => {
+                log::info!(
+                    // The text of an `ApiError` ends with a full stop already.
+                    "[cover] the request of the cover of the item {} came back \
+                     with a fault. {} The key R asks the server again.",
+                    id,
+                    why
+                );
+                CoverBytes::Fault
             }
         };
 
@@ -218,11 +263,26 @@ pub fn request(api: &Arc<ApiClient>, id: &str) {
     });
 }
 
+/// What one request of a cover gave.
+///
+/// **An item with no cover and a request that failed are two different
+/// answers** (T-185). The status 404 is the answer of an item with no cover —
+/// the rule of T-175, of T-178, and of T-182 — and every other fault is a fault
+/// of the request.
+enum TheAnswer {
+    /// The bytes of the picture.
+    Bytes(Vec<u8>),
+    /// The server answered, and it holds no cover of this item.
+    NoCover,
+    /// The request came back with a fault, and this text says why.
+    Fault(String),
+}
+
 /// Reads the bytes of one cover, with a limit on the size.
-async fn fetch(api: &Arc<ApiClient>, id: &str) -> Option<Vec<u8>> {
+async fn fetch(api: &Arc<ApiClient>, id: &str) -> TheAnswer {
     let path = format!("/api/items/{}/cover", id);
 
-    let response = api
+    let response = match api
         .send(
             reqwest::Method::GET,
             &path,
@@ -230,17 +290,21 @@ async fn fetch(api: &Arc<ApiClient>, id: &str) -> Option<Vec<u8>> {
             crate::api::client::Idempotent::Yes,
         )
         .await
-        .ok()?;
+    {
+        Ok(response) => response,
+        // The server answered, and it holds no cover of this item.
+        Err(crate::api::client::error::ApiError::NotFound) => return TheAnswer::NoCover,
+        Err(error) => return TheAnswer::Fault(format!("{}", error)),
+    };
 
     if let Some(length) = response.content_length() {
         if length > MAX_COVER_BYTES {
-            log::info!(
-                "[cover] the item {} gives {} bytes. The limit is {} bytes.",
-                id,
-                length,
-                MAX_COVER_BYTES
-            );
-            return None;
+            return TheAnswer::Fault(format!(
+                // The text stands in a log line beside the text of an
+                // `ApiError`, therefore it is a sentence of its own.
+                "The cover holds {} bytes, and the limit is {} bytes.",
+                length, MAX_COVER_BYTES
+            ));
         }
     }
 
@@ -249,17 +313,19 @@ async fn fetch(api: &Arc<ApiClient>, id: &str) -> Option<Vec<u8>> {
 
     while let Ok(Some(chunk)) = response.chunk().await {
         if body.len() as u64 + chunk.len() as u64 > MAX_COVER_BYTES {
-            log::info!("[cover] the item {} sends more than the limit.", id);
-            return None;
+            return TheAnswer::Fault(format!(
+                "The cover sends more than the limit of {} bytes.",
+                MAX_COVER_BYTES
+            ));
         }
         body.extend_from_slice(&chunk);
     }
 
     if body.is_empty() {
-        return None;
+        return TheAnswer::NoCover;
     }
 
-    Some(body)
+    TheAnswer::Bytes(body)
 }
 
 /// The pictures that the render holds.
@@ -314,7 +380,10 @@ impl CoverArt {
 
             let bytes = match found {
                 Some(CoverBytes::Ready(bytes)) => bytes,
-                Some(CoverBytes::Missing) => {
+                // The item has no cover, or the request came back with a
+                // fault. The program asks no second time, and the key `R`
+                // empties the store. See T-185.
+                Some(CoverBytes::NoCover) | Some(CoverBytes::Fault) => {
                     self.pictures.insert(id.to_string(), None);
                     return None;
                 }
@@ -645,6 +714,13 @@ mod tests {
         height: 20,
     };
 
+    /// The store belongs to the process, therefore every test that touches it
+    /// takes this lock. Two such tests would fight for the store.
+    fn guard() -> std::sync::MutexGuard<'static, ()> {
+        static LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+        LOCK.lock().unwrap_or_else(|error| error.into_inner())
+    }
+
     fn area(width: u16, height: u16) -> Rect {
         Rect {
             x: 0,
@@ -669,6 +745,9 @@ mod tests {
     fn the_first_ask_for_an_unknown_cover_does_not_stop_the_thread() {
         use std::sync::mpsc;
         use std::time::Duration;
+
+        let _guard = guard();
+        forget();
 
         let (sender, receiver) = mpsc::channel();
 
@@ -701,6 +780,107 @@ mod tests {
             Ok(true),
             "the ask for a cover stopped the thread, or it gave a picture"
         );
+    }
+
+    /// **The key `R` asks the server for every list again, therefore it must
+    /// ask for every cover again too.** See T-185.
+    ///
+    /// The measurement of 2026-08-14: a proxy gave the status 500 to
+    /// `GET /api/items/:id/cover`, the program wrote that fault in the store,
+    /// the server answered every request again, and the key `R` then asked the
+    /// server for seven lists and for no cover at all. The book of the screen
+    /// kept no picture for the whole life of the program.
+    ///
+    /// The store belongs to the process, therefore the parts of this test stay
+    /// in one function.
+    #[test]
+    fn the_key_r_empties_the_store_of_the_covers() {
+        let _guard = guard();
+        forget();
+
+        {
+            let mut map = store().write().expect("the store of the covers");
+            map.insert(
+                "a book".to_string(),
+                CoverBytes::Ready(Arc::new(vec![1, 2, 3])),
+            );
+            map.insert("a book of a fault".to_string(), CoverBytes::Fault);
+            map.insert("a book with no cover".to_string(), CoverBytes::NoCover);
+        }
+
+        assert_eq!(store().read().expect("the store of the covers").len(), 3);
+
+        forget();
+
+        assert!(
+            store().read().expect("the store of the covers").is_empty(),
+            "the key R must empty the store: a cover that came back with a \
+             fault stays there for the whole life of the program, and no other \
+             key of the user corrects it"
+        );
+    }
+
+    /// A server of one status, on an address of this machine. The test needs no
+    /// network and no sandbox.
+    fn a_server_of_one_status(status: &'static str) -> String {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("a port of the machine");
+        let address = format!("http://{}", listener.local_addr().expect("the address"));
+
+        std::thread::spawn(move || {
+            for stream in listener.incoming() {
+                let Ok(mut stream) = stream else { break };
+                use std::io::{Read, Write};
+
+                let mut buffer = [0u8; 2048];
+                let _ = stream.read(&mut buffer);
+                let _ = stream.write_all(
+                    format!(
+                        "HTTP/1.1 {}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+                        status
+                    )
+                    .as_bytes(),
+                );
+            }
+        });
+
+        address
+    }
+
+    /// **An item with no cover and a request that failed are two different
+    /// answers.** See T-185.
+    ///
+    /// The old shape of `fetch` gave nothing for both, therefore the log said
+    /// that an item has no cover for an item whose cover the server holds. The
+    /// status 404 is the answer of an item with no cover — the rule of T-175,
+    /// of T-178, and of T-182.
+    #[test]
+    fn the_status_404_is_an_item_with_no_cover_and_a_fault_is_a_fault() {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("a runtime");
+
+        let client_of = |address: &str| {
+            let pool = crate::api::client::endpoint::EndpointPool::new(vec![
+                crate::api::client::endpoint::Endpoint::new(address, 0),
+            ]);
+            Arc::new(ApiClient::new(Arc::new(pool), "token".to_string()).expect("a client"))
+        };
+
+        let of_404 = client_of(&a_server_of_one_status("404 Not Found"));
+        assert!(
+            matches!(
+                runtime.block_on(fetch(&of_404, "a book")),
+                TheAnswer::NoCover
+            ),
+            "the status 404 is the answer of an item with no cover"
+        );
+
+        let of_500 = client_of(&a_server_of_one_status("500 Internal Server Error"));
+        match runtime.block_on(fetch(&of_500, "a book")) {
+            TheAnswer::Fault(why) => assert!(!why.is_empty(), "the fault must say why"),
+            _ => panic!("the status 500 is a fault of the request, and not an item with no cover"),
+        }
     }
 
     /// Makes a PNG file that names a picture of a given size, and that holds
