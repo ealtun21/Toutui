@@ -5460,6 +5460,12 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
+**This session took one condition and it found four items of it: a fault of the
+database of the program.** The items stand below in the sequence of the session,
+the newest first — T-202, T-201, T-200, and T-199. **One rule holds the four of
+them**: a fault of the disk is not a fact of the user, and every road of that
+fault was a road that a second Toutui of one account makes (T-140).
+
 **The fourth item is the other half of the sweep of T-200**: the **reads** of the
 module of the database. **The default of a read of the disk is a fact of the
 user**, and three of them held a fault: the view of the queue said "The queue is
