@@ -8632,6 +8632,119 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-196: a book of the reader that came in part became a book that no reader opens
+
+**T-193 named the one condition where a program can hold a part of a file for
+the whole file with no word of a fault at all**, and it corrected the audio.
+**The ebook of the key `e` held that same condition, and the fault of the user
+is the fault of T-186 again.**
+
+`download_to_file` of `src/api/client/mod.rs` writes the parts of the body to a
+file of the name `.part`, and it gives that file the name of the whole book at
+the end of the body (T-186). **It counted no byte.** A body with no
+`Content-Length` and no `Transfer-Encoding` ends at the close of the connection
+(RFC 9112, section 6.3), therefore `reqwest` reads a **clean** end of a body
+that holds a part of the file: `response.chunk()` gives `None`, the function
+finds no fault, and the part of the book takes the name of the whole book.
+
+#### The measurement of 2026-08-14
+
+The harness is `docs/harness/a_body_that_ends_early_and_looks_whole.py` of
+T-193, and the path is the ebook:
+
+```bash
+python3 docs/harness/a_body_that_ends_early_and_looks_whole.py 13508 13399 \
+    /the/absolute/path/of/requests.log 20000 /ebook
+```
+
+`curl` of that proxy for the EPUB of `Alice in Wonderland` of 136761 bytes: the
+status 200, 20000 bytes, and **no fault**. The head of the sandbox holds
+`Content-Length: 136761`, and the head of the proxy holds neither that header
+nor `Transfer-Encoding`.
+
+The account of the sandbox took `http://127.0.0.1:13508` (the trap 129), the
+cache of the ebooks of that account gave its copy of the book back, and the key
+`e` of `Alice in Wonderland` of the real program in tmux:
+
+| What | The program of v0.8.25 |
+|---|---|
+| The screen | `This file is not an EPUB.` |
+| The disk | `downloads/toutuitest/8fda6e43-….epub`, **20000 bytes** |
+| The key `h` and the key `e` after it | the same sentence, and **no request of the server** (`grep -c` of the log of the proxy: the same count before the key and after it) |
+
+**The book of the user is broken for every program of that account until the key
+`X`**: `get_the_ebook_of` finds the file of the disk, and it asks the server for
+nothing. That is the fault of the user of T-186, word for word, and the
+correction of T-186 does not reach it: that item holds the road of a head that
+**names** `Content-Length`, and `reqwest` then gives the fault of an incomplete
+message.
+
+#### The truth of the length
+
+The head of the answer names no length, therefore the client can count nothing.
+**The one truth of that length stands in the answer of `GET /api/items/:id`**:
+the file of the ebook holds `metadata.size`, and the sandbox gives 136761 for
+that file. T-179 gave the same field to the download of the audio, and the rule
+of that item holds here: **a size of 0 is a size that the server did not give**.
+
+`Ebook` of `src/api/library_items/the_ebooks.rs` holds `size` now, and
+`get_the_ebook_of` asks for it **before** the download: the name of a whole book
+belongs to a whole book (T-186), therefore the `.part` file must never take that
+name and then lose it. `download_to_file` takes the number of the bytes of the
+file, and it counts:
+
+- The size is 0 — the request came back with a fault, the answer names no file
+  of that identity, or a server of another version holds no `metadata.size`. The
+  function counts nothing, and the road of T-186 stays. **A line of the log is
+  the one word of that condition** (T-177): the user asked for a book, and the
+  program gives that book.
+- The bytes of the body differ from the size — the `.part` file goes away, and
+  the fault says the two numbers.
+
+The program of v0.8.26 against the same proxy:
+
+```text
+The program did not get the book: The answer of the server is not valid: the
+body of the answer holds 20000 bytes, and the file of the server has 136761
+bytes
+```
+
+and the disk holds no file of that book. The account took the address of the
+sandbox again, and the same key gave the whole book: 136761 bytes, and the
+reader opened it at its chapter 3. The PDF of 47 megabytes of the same road came
+whole too (47392815 bytes).
+
+#### The test
+
+`tests/a_book_that_ends_early_and_looks_whole_is_no_book.rs` holds a host of a
+raw socket beside the test of T-186. The first answer of `/ebook` holds a head
+of **no** length and 100 bytes of a book of 4100 bytes, the answer after it
+holds the whole book with its `Content-Length`, and every other path answers
+with the item and its `metadata.size`. **The parts of that test stay in one
+function**: it writes `XDG_DATA_HOME` and `XDG_CONFIG_HOME` (the shape of T-144
+and of T-157). **The build of the fault** (the trap 147): the arm of the count
+takes `&& false` at its end, and the test then fails at its first assertion —
+`a book that ends early is a fault: "…/an-item.epub"`, and the file of 100 bytes
+stands on the disk with the name of the whole book.
+
+**The test of T-186 passes with no change**, and it holds the other road: the
+raw server of that test answers 404 for `/api/items/an-item`, therefore the size
+is 0 and the fault of the incomplete message of `reqwest` does the work.
+
+#### What this item leaves open
+
+**The ebook of the reader is measured for the three roads of a body**: a status
+of a fault (T-52), a body that stops with a head that names its length (T-186),
+and a body that ends early and that looks whole (T-196). **The send of an ebook
+to an e-reader holds no body at all** (T-119 and T-183): the server reads the
+file, and no byte of it comes to the program.
+
+**The question that this item names for the next session**: the cover of a
+media takes the same road of a body. `src/ui/cover.rs` holds a store of the
+answers of the server (T-185), and a picture that came in part is a picture that
+no decoder reads. The cover holds no `metadata.size` of an answer of the server,
+therefore the truth of its length must come from the head of its own answer.
+
 ### T-195: a part of the stream with no audio became a book that you listened to
 
 **T-194 gave the reader of the stream the truth of the length of its playlist,

@@ -356,11 +356,21 @@ impl ApiClient {
     /// The method does not change to a different address, because a second
     /// download costs much time and much data. It marks the address `Down`
     /// and gives the error. The user starts the download again.
+    ///
+    /// **`the_size_of_the_file` is the number of the bytes that the file of the
+    /// server holds, and 0 is a size that the caller does not know** (the rule
+    /// of T-179). A body with no `Content-Length` and no `Transfer-Encoding`
+    /// ends at the close of the connection, therefore `reqwest` reads a clean
+    /// end of a body that holds a part of the file: no fault of the network, no
+    /// fault of a status, and fewer bytes than the file has. This number is
+    /// then the one truth of the length, and the method compares it with the
+    /// bytes that came. See T-196.
     pub async fn download_to_file(
         &self,
         path: &str,
         dest_dir: &Path,
         fallback_filename: &str,
+        the_size_of_the_file: u64,
     ) -> Result<PathBuf, ApiError> {
         let base_url = self.pool.an_address().ok_or(ApiError::Unreachable)?;
 
@@ -434,6 +444,8 @@ impl ApiClient {
         let mut response = response;
 
         let outcome = async {
+            let mut written: u64 = 0;
+
             while let Some(part) = response
                 .chunk()
                 .await
@@ -442,13 +454,30 @@ impl ApiClient {
                 file.write_all(&part)
                     .await
                     .map_err(|error| ApiError::Decode(error.to_string()))?;
+
+                written = written.saturating_add(part.len() as u64);
             }
 
             // A `tokio::fs::File` keeps the bytes in a buffer. The flush sends
             // the bytes to the disk. Without the flush the file can be empty.
             file.flush()
                 .await
-                .map_err(|error| ApiError::Decode(error.to_string()))
+                .map_err(|error| ApiError::Decode(error.to_string()))?;
+
+            // **A body that ends early can look whole.** The head of the answer
+            // named no length, therefore the client counted nothing and the end
+            // of the connection was the end of the body. The size of the file
+            // of the server is the one truth of the length, and a size of 0 is
+            // a size that the caller does not know (T-179). See T-196.
+            if the_size_of_the_file > 0 && written != the_size_of_the_file {
+                return Err(ApiError::Decode(format!(
+                    "the body of the answer holds {} bytes, and the file of the \
+                     server has {} bytes",
+                    written, the_size_of_the_file
+                )));
+            }
+
+            Ok(())
         }
         .await;
 

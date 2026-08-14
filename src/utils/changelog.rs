@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.26",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A book of the reader that came in part became a book that no \
+             reader opens.** A machine between you and your server can end the \
+             answer of a book in the middle, and that answer can look whole: \
+             the program then kept the first bytes of the book on the disk \
+             with the name of the whole book, it said \"This file is not an \
+             EPUB.\", and it asked your server for nothing at every visit \
+             after it. A measurement gave 20000 bytes of a book of 136761 \
+             bytes. The program counts the bytes of the answer against the \
+             size that your server gives now, a book that came in part leaves \
+             no file on the disk, and you read the two numbers.",
+        ],
+    },
+    Entry {
         version: "0.8.25",
         date: "14/08/2026",
         body: &[

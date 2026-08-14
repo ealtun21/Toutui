@@ -270,7 +270,7 @@ async fn a_download_tries_an_address_that_holds_the_state_down() {
     );
 
     let file = client
-        .download_to_file("/api/items/abc/ebook", dir.path(), "abc.epub")
+        .download_to_file("/api/items/abc/ebook", dir.path(), "abc.epub", 0)
         .await
         .unwrap();
 
@@ -355,7 +355,7 @@ async fn the_download_writes_the_body_to_a_file() {
     let client = client(vec![&server.uri()]);
 
     let file = client
-        .download_to_file("/api/items/abc/download", dir.path(), "abc.m4b")
+        .download_to_file("/api/items/abc/download", dir.path(), "abc.m4b", 0)
         .await
         .unwrap();
 
@@ -386,7 +386,7 @@ async fn the_download_uses_the_name_of_the_content_disposition_header() {
     let client = client(vec![&server.uri()]);
 
     let file = client
-        .download_to_file("/api/items/abc/download", dir.path(), "abc.m4b")
+        .download_to_file("/api/items/abc/download", dir.path(), "abc.m4b", 0)
         .await
         .unwrap();
 
@@ -409,7 +409,7 @@ async fn a_download_without_permission_gives_forbidden() {
     let client = client(vec![&server.uri()]);
 
     let result = client
-        .download_to_file("/api/items/abc/download", dir.path(), "abc.m4b")
+        .download_to_file("/api/items/abc/download", dir.path(), "abc.m4b", 0)
         .await;
 
     assert!(matches!(result, Err(ApiError::Forbidden)));

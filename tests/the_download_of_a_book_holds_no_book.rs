@@ -59,7 +59,7 @@ async fn a_large_book_comes_to_the_disk_complete() {
 
     let dir = tempfile::tempdir().unwrap();
 
-    api.download_to_file("/api/items/big/ebook", dir.path(), "big.epub")
+    api.download_to_file("/api/items/big/ebook", dir.path(), "big.epub", 0)
         .await
         .expect("the book must come");
 

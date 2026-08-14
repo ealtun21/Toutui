@@ -39,6 +39,12 @@ pub struct Ebook {
     pub ino: String,
     /// The name of the file, for the user.
     pub name: String,
+    /// The number of the bytes of the file, of `metadata.size`.
+    ///
+    /// **A size of 0 is a size that the server did not give** (T-179). The
+    /// download of the ebook then counts nothing, because it holds no truth of
+    /// the length. See T-196.
+    pub size: u64,
     /// The server opens this ebook for the address that carries no `ino`. It is
     /// the book of `media.ebookFile`.
     pub is_the_book_of_the_server: bool,
@@ -83,10 +89,18 @@ pub fn the_ebooks_of_the_answer(answer: &Value) -> Vec<Ebook> {
                         .unwrap_or(ino.as_str())
                         .to_string();
 
+                    // The one truth of the length of a body that names none.
+                    // See T-196.
+                    let size = file
+                        .pointer("/metadata/size")
+                        .and_then(Value::as_u64)
+                        .unwrap_or(0);
+
                     Some(Ebook {
                         is_the_book_of_the_server: ino == of_the_server,
                         ino,
                         name,
+                        size,
                     })
                 })
                 .collect()

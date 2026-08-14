@@ -107,6 +107,7 @@ mod tests {
         Ebook {
             ino: name.to_string(),
             name: name.to_string(),
+            size: 0,
             is_the_book_of_the_server: false,
         }
     }

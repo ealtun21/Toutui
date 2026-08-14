@@ -753,6 +753,55 @@ pub fn pdf_path_of(username: &str, item_id: &str, ino: Option<&str>) -> PathBuf 
         .join(format!("{}.pdf", the_name_of_the_book(item_id, ino)))
 }
 
+/// Gives the number of the bytes that the file of one ebook of the server
+/// holds. See T-196.
+///
+/// **A size of 0 is a size that the program does not have** (the rule of
+/// T-179): the request came back with a fault, the answer names no file of that
+/// identity, or the answer of a server of another version holds no field
+/// `metadata.size`. The download then counts nothing, and it keeps the road of
+/// T-186 alone: a head that names `Content-Length` gives `reqwest` the fault of
+/// an incomplete message.
+///
+/// **The line of the log is the one word of this condition.** The user asked
+/// for a book, and the program gets that book: a sentence of a size that the
+/// program could not read belongs to no view. See T-177.
+async fn the_size_of_the_ebook(api: &Arc<ApiClient>, item_id: &str, ino: Option<&str>) -> u64 {
+    let all =
+        match crate::api::library_items::the_ebooks::the_ebooks_of_the_item(api, item_id).await {
+            Ok(all) => all,
+            Err(error) => {
+                warn!(
+                    "[reader] the program cannot read the size of the ebook of the \
+                 item {}: {}",
+                    item_id, error
+                );
+
+                return 0;
+            }
+        };
+
+    // `None` takes the book that the server opens for the item, and that is
+    // the book of `media.ebookFile`. See T-76.
+    let of_the_book = all.iter().find(|ebook| match ino {
+        Some(ino) if !ino.is_empty() => ebook.ino == ino,
+        _ => ebook.is_the_book_of_the_server,
+    });
+
+    match of_the_book {
+        Some(ebook) if ebook.size > 0 => ebook.size,
+        _ => {
+            warn!(
+                "[reader] the answer of the item {} names no size for the ebook \
+                 {:?}. The program counts no byte of the body.",
+                item_id, ino
+            );
+
+            0
+        }
+    }
+}
+
 /// Reads the ebook of one item from the server, if the disk does not hold it.
 ///
 /// The program keeps the file, therefore a second visit needs no request and
@@ -809,7 +858,21 @@ pub async fn get_the_ebook_of(
         _ => format!("/api/items/{}/ebook", item_id),
     };
 
-    if let Err(error) = api.download_to_file(&address, &directory, &name).await {
+    // **The one truth of the length of this body stands in the answer of the
+    // item.** A head of an answer that names no `Content-Length` and no
+    // `Transfer-Encoding` gives a body that ends at the close of the
+    // connection, therefore a part of the book reads as a whole book: the
+    // program wrote 20000 bytes of an EPUB of 136761 bytes under the name of
+    // the whole book, and every program of that account then said "This file
+    // is not an EPUB." until the key `X`. The request stands before the
+    // download, because the name of a whole book belongs to a whole book
+    // (T-186). See T-196.
+    let size = the_size_of_the_ebook(api, item_id, ino).await;
+
+    if let Err(error) = api
+        .download_to_file(&address, &directory, &name, size)
+        .await
+    {
         // The endpoint of the ebook answers 404 for a media that holds no
         // ebook, and the text "The server does not have this item" then tells
         // the user nothing. One request more names the true cause. See T-52.

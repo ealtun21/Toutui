@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.25.** The item T-195 belongs to this session. The
-item T-194 belongs to the session before it, and the
+**The newest release is v0.8.26.** The item T-196 belongs to this session. The
+item T-195 belongs to the session before it, and the
+item T-194 belongs to the session before that one, and the
 item T-193 to the session before that one, and the
 items T-190, T-191, and T-192 to the session before that one. The items T-188
 and T-189 belong to the session before that one, and
@@ -38,6 +39,67 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the thirty-third turn of 2026-08-14: the book of the reader that came in part
+
+**One release: v0.8.26.** The session before this one closed the stream of the
+audio (T-195), and it named the panic of the thread of the playback and the keys
+`F`, `b`, `n`, `m`, `r`, `D`, and `X` against a server of a fault as the shapes
+that stay. **This session took a different road: the harness of T-193, on the
+one road of a body that a measurement had not walked.**
+
+| Item | What | Where |
+|---|---|---|
+| T-196 | **A book of the reader that came in part became a book that no reader opens.** A body with no `Content-Length` and no `Transfer-Encoding` ends at the close of the connection, therefore `reqwest` reads a **clean** end of it: `download_to_file` counted no byte, and 20000 bytes of an EPUB of 136761 bytes took the name of the whole book. The screen said "This file is not an EPUB.", and the key `e` after it asked the server for nothing: **the book of the user is broken for every program of that account until the key `X`.** That is the fault of the user of T-186, word for word | `src/api/client/mod.rs`, `src/api/library_items/the_ebooks.rs`, `src/logic/reader/session.rs` |
+
+The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-196. Four things are
+worth the room here:
+
+1. **A harness of one item reaches every road of its shape.**
+   `a_body_that_ends_early_and_looks_whole.py` came of T-193 for the file of the
+   audio. The ebook of the key `e` is the same shape with another reader, and
+   the harness needed one word of its command line: `/ebook`. **A harness that
+   found a fault once is a question for every part of the program that reads a
+   body.**
+2. **A correction of a fault of the user closes one road of it, and not the
+   fault.** T-186 gave the ebook the rule "the name of a whole book belongs to a
+   whole book", and it measured a head that **names** `Content-Length`: the
+   client then counts, and `reqwest` gives the fault of an incomplete message.
+   A head that names no length at all gave the same file of 20000 bytes with the
+   same name. **Read what the measurement of an old item held**, and not the
+   words of its decision (the rule of T-191).
+3. **The truth of a length can stand in another answer.** The head named none,
+   therefore the client could count nothing, and `metadata.size` of
+   `GET /api/items/:id` holds that number — the field of T-179. **The request of
+   the size stands before the download**, because a `.part` file that takes the
+   name of a whole book and loses it again breaks the rule of T-186 for the time
+   of two statements.
+4. **A truth that the program cannot read is a line of the log, and no word for
+   the user** (T-177). A size of 0 — a fault of the request, a file that the
+   answer does not name, or a server of another version — gives the road of
+   T-186 back, and the user still gets their book.
+
+**The condition that this session leaves open.** **The cover of a media takes
+the same road of a body.** `src/ui/cover.rs` holds a store of the answers of the
+server (T-185), and a picture that came in part is a picture that no decoder
+reads: the store holds that fault until the key `R`. The cover has no
+`metadata.size` of an answer of the server, therefore the truth of its length
+must come from the head of its own answer. The other shapes that stay are the
+panic of the thread of the playback (the shape of T-174) and the keys `F`, `b`,
+`n`, `m`, `r`, `D`, and `X` against a server of a fault.
+
+### The measurement that found no fault
+
+**The keys `<` and `>` of the view of the media of a list write the whole list of
+the screen to the server**, and that list is a copy of a read of an old moment
+(the shape of T-175 with two windows). A measurement with `curl` against the
+sandbox: `DELETE /api/collections/:id/book/:book` of a second program, and then
+`PATCH /api/collections/:id` with `books` that names that book again. **The
+server answered 200, and the book did not come back.** Audiobookshelf orders the
+books that the collection holds, and it takes no book of a body. The playlist
+holds the other road already: a body of a length that differs answers 400
+("Invalid playlist items. Length mismatch"), and the program says what the
+server said.
 
 ## The session of the thirty-second turn of 2026-08-14: a part of the stream with no sound
 
@@ -5152,17 +5214,19 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took the condition that the session before it left open: a part
-of the stream that holds no audio.** T-194 wrote that such a part goes away with a
-line of the log and no word for the user, and that line was the whole fault again:
-the program held six seconds of a book of ten minutes, and it told the server that
-the user finished the book (T-195). **The reader of the stream of the server holds
-no condition that a measurement did not reach now.** The road below names the
+**This session took the harness of T-193 to the one road of a body that no
+measurement had walked: the ebook of the key `e`.** A body with no
+`Content-Length` and no `Transfer-Encoding` ends at the close of the connection,
+therefore the client reads a clean end of a part of a book: the program kept
+20000 bytes of an EPUB of 136761 bytes under the name of the whole book, it said
+"This file is not an EPUB.", and it asked the server for nothing at every visit
+after it (T-196). **That is the fault of the user of T-186 again, by the road
+that the correction of T-186 does not hold.** The road below names the
 conditions that stay. This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.25**; `Cargo.toml` is at 0.8.25. The
+> AlbanDAVID/Toutui. Newest release **v0.8.26**; `Cargo.toml` is at 0.8.26. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -5171,7 +5235,7 @@ conditions that stay. This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-195 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-196 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -5401,7 +5465,11 @@ conditions that stay. This prompt names the state of the program on 2026-08-14.
 >
 > **A measurement of a body is not finished while the head of it names the
 > length** (T-193): the two harnesses take the two roads of a body that stops,
-> and the program held one of them already.
+> and the program held one of them already. **That harness reaches every part of
+> the program that reads a body** (T-196): the path `/ebook` of the same command
+> line gave the ebook of the key `e`, and the sandbox needs no change at all —
+> the account takes `http://127.0.0.1:13508` (the trap 129), and the cache of
+> the ebooks of that account gives its copy of the book back with a `mv`.
 >
 > **A part of a stream that holds no audio is
 > `docs/harness/a_part_that_holds_no_audio.py`** (T-195). **A part of no audio is
@@ -5491,8 +5559,8 @@ conditions that stay. This prompt names the state of the program on 2026-08-14.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1173 tests in 2.4 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1198 of 1198** with the sandbox up, in about 19 seconds. **Run that
+> Baseline: **1174 tests in 2.4 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1199 of 1199** with the sandbox up, in about 19 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -5526,11 +5594,28 @@ conditions that stay. This prompt names the state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in forty-five sessions of forty-six. **The session
->    of the thirty-second turn took the condition that the session before it left
->    open: a part of the stream that holds no audio.** It found one fault, and
->    that fault wrote the book of the user as a book that the user finished
->    (T-195).
+>    this shape found a fault in forty-six sessions of forty-seven. **The session
+>    of the thirty-third turn took the harness of an old item to a new reader of
+>    a body: the ebook of the key `e`.** It found one fault, and that fault gave
+>    the user a book that no reader opens, for ever (T-196).
+>    - **A harness that found a fault once is a question for every part of the
+>      program that reads the same kind of answer** (T-196).
+>      `a_body_that_ends_early_and_looks_whole.py` came of T-193 for the file of
+>      the audio, and one word of its command line gave the ebook: the same
+>      fault, another reader. **Ask of a new harness: which other function of
+>      this program reads a body?**
+>    - **A correction of a fault of the user closes one road of it, and not the
+>      fault** (T-196). T-186 measured a head that **names** `Content-Length`,
+>      and `reqwest` then gives the fault of an incomplete message; a head that
+>      names no length at all gave the same file of a part with the same name of
+>      a whole book. **Read what the measurement of an old item held**, and not
+>      the words of its decision (T-191).
+>    - **The truth of a length can stand in another answer** (T-196).
+>      `metadata.size` of `GET /api/items/:id` is that number for the ebook, and
+>      it is the field of T-179. **A request of the truth stands before the
+>      work**, and not after it: a `.part` file that takes the name of a whole
+>      book and loses it again breaks the rule of T-186 for the time of two
+>      statements.
 >    - **A condition that an item names as open is an item of its own** (T-195).
 >      T-194 wrote "a part that holds no audio still goes away with no word, and
 >      no measurement made such a part", and that sentence was the whole of the
@@ -5672,7 +5757,14 @@ conditions that stay. This prompt names the state of the program on 2026-08-14.
 >      closed**: the file of a book (T-193), the playlist of HLS (T-193), the
 >      parts of that playlist (T-194), and a part that holds no audio (T-195).
 >      **The reader of the stream holds no condition that a measurement did not
->      reach.**
+>      reach.** **The ebook of the reader is closed for the three roads of a
+>      body**: a status of a fault (T-52), a body that stops with a head that
+>      names its length (T-186), and a body that ends early and that looks whole
+>      (T-196). **The cover of a media holds that same road and no measurement
+>      of it**: `src/ui/cover.rs` keeps the answer of the server in a store until
+>      the key `R` (T-185), a picture that came in part is a picture that no
+>      decoder reads, and no answer of the server names the size of that file —
+>      the head of the answer of the cover is the one truth of its length.
 >      **The keys `M`, `N`, and `e` are
 >      closed** (T-175 and T-178), **the first request of the program is closed**
 >      (T-172), **the flush of the positions of the disk is closed** (T-188 and
@@ -5913,7 +6005,12 @@ conditions that stay. This prompt names the state of the program on 2026-08-14.
 > it says why the media stopped** (T-194), and **a part of a stream that holds no
 > packet of the audio is not a part of silence: the stream stops at that part, the
 > program writes the place that the parts before it give, and a first part with no
-> audio stops the playback before it starts and it names that part** (T-195).
+> audio stops the playback before it starts and it names that part** (T-195), and
+> **a body of an ebook that ends early and that looks whole is no book of the
+> disk: the size of the file of the answer of the item is the truth of the length
+> of a body that names none, a size of 0 is a size that the server did not give
+> and the program then counts no byte, and the request of that size stands before
+> the download** (T-196).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
