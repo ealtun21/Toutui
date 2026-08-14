@@ -8508,6 +8508,130 @@ The structures of the disk and of the file of the configuration
 too, and no server writes them. **The shape of T-183 is closed for the answers
 of the server.**
 
+### T-193: a body of the audio that stopped in the middle became a book that you listened to
+
+**The road of the audio is the one part of the program that no server of a
+fault had reached** (the list of the shapes of the handover). T-186 named the
+neighbour of this item for the downloads: **a fault of a status is not a fault
+of a body**. This item is the same question for the **stream of the playback**,
+and the answer of it is worse than a download that fails: the program wrote the
+book of the user as a book that the user finished.
+
+#### The condition, and why no old harness reached it
+
+`a_body_that_stops_in_the_middle.py` (T-186) keeps the head of the sandbox, and
+that head holds `Content-Length`. A client of `reqwest` then counts the bytes of
+the body, it finds fewer of them, and it gives the fault of an incomplete
+message: `fill_buffer` of `HttpFile` reads that fault, and it asks the server
+again from the byte that it holds. **That road was correct already.**
+
+**A body with no `Content-Length` and no `Transfer-Encoding` ends at the close
+of the connection** (RFC 9112, section 6.3). The client then reads a **clean**
+end of the body: no fault of the network, no fault of a status, and fewer bytes
+than the file holds. This is the answer that a proxy in front of Audiobookshelf
+gives when it loses its own connection to the server, and it is the one
+condition where a program can hold a part of a book for the whole book with no
+word of a fault at all.
+
+The harness of it is `docs/harness/a_body_that_ends_early_and_looks_whole.py`.
+It takes `Content-Length` and `Transfer-Encoding` **out** of the head of the
+answer, it writes `Connection: close` in their place, it sends the first bytes
+of the body, and it closes:
+
+```bash
+python3 docs/harness/a_body_that_ends_early_and_looks_whole.py 13508 13399 \
+    /the/absolute/path/of/proxy.log 20000 /file/32976962
+```
+
+A measurement of `curl` through it, of 2026-08-14: the exit is **0**, the header
+says `Content-Range: bytes 0-7200564/7200565`, and the client received **20000**
+bytes. The head keeps `Content-Range`, and that header holds the one truth of
+the length: the number of the bytes that the file has.
+
+#### The fault, in the real program
+
+The account of the sandbox took the address of the proxy (the trap 129), and the
+program played `A Long Test Book` of 30 minutes with `TOUTUI_AUDIO_DEVICE=null`.
+The log of the program, of the measurement of 2026-08-14:
+
+```
+13:00:57.686 [INFO] - [play] the item 9a671047-… starts at 0 seconds with 1 tracks
+13:00:57.694 [INFO] - [worker] the playback starts at 0 seconds
+13:00:58.791 [INFO] - [follow_playback] the playback stopped at 1800 seconds, finished=true
+```
+
+**One second after the playback started, the program said that the book of 30
+minutes was finished.** It wrote `isFinished` for the server, it took the book
+out of Continue Listening, and the screen of the user said **nothing at all**:
+the row of the player came and went, and the view held the same line as before.
+The log of the proxy held **two** requests of that file — the request of
+`HttpFile::open` that reads the size, and one request of the thread of the
+buffer. **No second attempt.**
+
+The user received 20000 bytes of a book of 7200565, which is 0.28 percent of it,
+and the program told the server that the user listened to the whole book.
+
+| The measurement | Before | After |
+|---|---|---|
+| The key `l` of `A Long Test Book` through the proxy | the playback ends after one second, `finished=true` at 1800 seconds, and no word on the screen | the row of the player says `3:14 / 30:00` after 20 seconds, and the book plays |
+| The requests of that file that the proxy saw, in 20 seconds | **2** | **41** |
+| The log of the program | no line of the reader | `[WARN] - [HttpFile] the body stopped at the byte 600000 of 7200565` for each one |
+
+#### The rule
+
+**A read of zero bytes is the end of the file only at the end of the file.**
+`fill_buffer` takes the size of the whole file now — the size of the header
+`Content-Range`, which `HttpFile::open` already reads — and a body that stops
+before that number is a connection that stopped: the thread waits, it makes the
+delay longer, and it asks the server again from the byte that it holds. That is
+the road that a body of a fault of the network already took, and this item gives
+the same road to a body that looks whole.
+
+**The reader shows `Reconnecting` while it waits**, because the same value
+`stalled` carries the two roads. A program that never gets the rest of the file
+therefore says the one thing that it knows, and it never says that the user
+finished a book.
+
+`tests/a_stream_that_stopped_is_no_end_of_the_book.rs` holds the rule. A server
+of a raw socket answers the first range request with 100 bytes of a file of
+1000, with no `Content-Length` and with `Connection: close`. **The parts of that
+test stay in one function** (the shape of T-144 and of T-157): the count of the
+answers belongs to one server. A build with the correction removed gives **100**
+bytes of the book of 1000, and one request.
+
+#### The second road of the audio, and the same fault
+
+A book that the server transcodes comes of a playlist of HLS, and
+`ask_for_the_text` of `hls_file.rs` reads that playlist with `.text()`: a body
+that stops in the middle gives a **short playlist** with no fault of its own,
+`parse_playlist` names fewer parts, and the book of 30 minutes ends after five
+of them — the same fault of the user, on the road of `Ok` instead of the road of
+`Ok(0)`.
+
+**A playlist of Audiobookshelf names its own end.** A measurement of an
+Audiobookshelf 2.36.0 of 2026-08-14, two seconds after
+`POST /api/items/:id/play` with `forceTranscode`:
+`GET /hls/:session/output.m3u8` gives `Content-Length: 7524`, the line
+`#EXT-X-PLAYLIST-TYPE:VOD`, the 300 parts of the book of 30 minutes, and the
+line `#EXT-X-ENDLIST` at its end.
+
+`hls::the_playlist_is_whole` holds that rule now, and `HlsFile::open` refuses a
+playlist that stopped: **a playlist of the type `VOD` that holds no
+`#EXT-X-ENDLIST` is a body that stopped**. **A playlist that names no type is
+not a playlist of this rule**: a server that makes the parts while the client
+reads them holds no end yet, and the function gives `true` for it. The sentence
+of that fault names the key of the view that the user sees, the rule of T-183.
+
+#### What this item leaves open
+
+**The parts of a HLS stream are not measured against this harness.** A part of
+the stream comes of `.bytes()`, and a part that stops in the middle gives fewer
+bytes of a transport stream with no fault. A part holds a time and no number of
+bytes, therefore the program has no truth of its length: the rule of this item
+does not reach it. **The question for the next session is what the decoder does
+with a part of a transport stream that stops in the middle**, and whether the
+playback then names the fault or goes on with a gap in the sound.
+
 ### T-192: a list with no identity said that the server does not hold your media
 
 **The road of T-190 and of T-191 named this sweep**: the rows of a list of the

@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.22.** The items T-190, T-191, and T-192 belong to
-this session. The items T-188 and T-189 belong to the session before it, and
+**The newest release is v0.8.23.** The item T-193 belongs to this session. The
+items T-190, T-191, and T-192 belong to the session before it. The items T-188
+and T-189 belong to the session before that one, and
 the item T-187 to the session before that one, and the
 item T-186 to the session before that one, and the
 item T-185 to the session before that one, and the
@@ -35,6 +36,110 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the thirtieth turn of 2026-08-14: the body of the audio that stopped and looked whole
+
+**One release: v0.8.23.** The session before this one closed the sweep of the
+rows of a list, and it named the parts of the program that a server of a fault
+had not reached: the keys `F`, `b`, `n`, `m`, `r`, `D`, and `X`, **and the
+stream of the audio**. This session took the stream of the audio, and the fault
+of it is the worst of the shape so far: the program wrote the book of the user
+as a book that the user finished.
+
+| Item | What | Where |
+|---|---|---|
+| T-193 | **A body of the audio that stopped in the middle became a book that you listened to.** A body with no `Content-Length` ends at the close of the connection, therefore `reqwest` reads a **clean** end of it: `fill_buffer` held that close as the end of the file. `A Long Test Book` of 30 minutes played for **one second**, the log said `the playback stopped at 1800 seconds, finished=true`, the book left Continue Listening, and the screen said **nothing at all**. The user received 20000 bytes of 7200565. The playlist of HLS holds the same shape, and `#EXT-X-ENDLIST` is the end of it | `src/player/engine/http_file.rs`, `src/player/engine/hls.rs`, `src/player/engine/hls_file.rs` |
+
+The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-193. Five things are
+worth the room here:
+
+1. **A fault of a body has two roads, and the old harness held one of them.**
+   `a_body_that_stops_in_the_middle.py` (T-186) keeps the head of the sandbox,
+   and that head holds `Content-Length`: `reqwest` counts the bytes, it finds
+   fewer of them, and it gives the fault of an incomplete message. **That road
+   was correct already.** The road that no harness reached takes
+   `Content-Length` and `Transfer-Encoding` **out** of the head: the body then
+   ends at the close of the connection (RFC 9112, section 6.3), and the client
+   reads a clean end. `docs/harness/a_body_that_ends_early_and_looks_whole.py`
+   is that harness. **A measurement of a body is not finished while the head of
+   it names the length.**
+2. **The question of a value with a default was "what does the program do with
+   it"; the question of a body is "what does the program hold as the truth of
+   the length".** `HttpFile::open` reads `Content-Range`, and that header names
+   the size of the whole file: the program held that truth already and it never
+   gave it to the thread that reads. **A program that holds the truth of a
+   length in one function and reads the body in another one is the shape to
+   look for.**
+3. **The fault of the user of this item is worse than a playback that stops.**
+   A book that stops is a book that the user starts again. This program told the
+   **server** that the user finished a book of 30 minutes after five seconds of
+   it: the place of the user went away, the book left Continue Listening, and
+   **every client of that account** then held the book as read. **A value that
+   the program sends to the server outlives the program that sent it.**
+4. **A read of zero bytes is the end of the file only at the end of the file.**
+   The correction gives the body that stopped the road that a body of a fault of
+   the network already took: the thread waits, it makes the delay longer, and it
+   asks the server again from the byte that it holds. The value `stalled` then
+   says `Reconnecting` for the two roads together, therefore the program says
+   the one thing that it knows and it never says that the user finished a book.
+5. **The second road of the audio holds the same shape with no `Ok(0)` at all.**
+   A playlist of HLS comes of `.text()`, and a body that stops gives a **short
+   playlist** with no fault: fewer parts, and the book ends after five of them.
+   **A playlist of the type `VOD` names its own end**, and a measurement of the
+   sandbox of 2026-08-14 holds it: `#EXT-X-PLAYLIST-TYPE:VOD`, the 300 parts of
+   the book, and `#EXT-X-ENDLIST`. A playlist that names no type is not a
+   playlist of this rule.
+
+**The condition that this session leaves open.** **The parts of a HLS stream.**
+A part comes of `.bytes()`, and a part that stops in the middle gives fewer
+bytes of a transport stream with no fault of its own. **A part holds a time and
+no number of bytes**, therefore the program has no truth of its length and the
+rule of this item does not reach it. **The question for the next session is what
+the decoder does with a part of a transport stream that stops in the middle**,
+and whether the playback then names that fault or goes on with a gap in the
+sound. The harness stands already, and the road of it is a book of a form that
+no decoder of the program reads (T-68), which takes the program to the stream of
+the server.
+
+### The traps of this session
+
+**The trap 147: a measurement of a body that stops needs a build of the fault
+that keeps every other line.** The correction of this item is one arm of a
+`match`, and a build without it must still compile:
+`Ok(0) if position < size && false => unreachable!()` gave that build in one
+edit, and the corrected file stood in the scratchpad for the road back. **No
+`git stash` and no `git checkout` of a file**: the two binaries then stand side
+by side in the scratchpad, and one harness drives each of them.
+
+**The trap 148: a place of the sandbox that a measurement changed is a
+measurement that lies the second time.** The first run of this item played a
+book that stood at 900 seconds already, and the reader then asked for a range
+inside the file: the truncation of 20000 bytes met a different part of the book.
+`PATCH /api/me/progress/:id` with `{"isFinished": false}` before **each** run
+gives the same condition every time (T-160 and T-163 hold the same rule for the
+shelf).
+
+**The trap 149: a poll of the row of the player must read the whole screen.** A
+`grep` of the word `Playing` or of a number of a place found no line: the row of
+the player of this program says `▶ 3:14 / 30:00`, and the mark of it is the
+character `▶`. A capture of the whole screen at two moments said more than
+twenty-five polls of a word that the program never writes.
+
+### The gates of this session
+
+| The gate | The answer |
+|---|---|
+| `cargo clippy --all-targets -- -D warnings` | no word |
+| `cargo fmt --check` | no word |
+| `cargo nextest run` | **1168 of 1168** in 2.3 seconds |
+| `cargo nextest run --run-ignored all` | **1193 of 1193**, with the sandbox up |
+| `cargo test -j 16 --no-fail-fast` | three runs after the correction, and every run passed |
+| `cargo tree -i openssl-sys` | no package |
+| `cargo tree -i cc` | `libsqlite3-sys` and `ring` only |
+
+**The sandbox.** The account holds the address of the sandbox again (the trap
+129), `pending_progress` and `listening_session` hold no row, and the place of
+`A Long Test Book` is 0 with `isFinished: false`.
 
 ## The session of the twenty-ninth turn of 2026-08-14: one row of a list took every row away
 
