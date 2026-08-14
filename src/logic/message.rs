@@ -22,7 +22,27 @@
 //! of that message while the user wrote their password. **No function of the
 //! program writes outside a frame**, therefore the module `pop_up_message` went
 //! away.
+//!
+//! **A message belongs to the view of the user, and some messages belong to a
+//! view of their own.** Three rules of the loop of `src/main.rs` write a
+//! message with no key of the user — the shelf Continue Listening of the Home
+//! view (T-160), the line of the view of the queue (T-161), and the media of
+//! the view of the chapters (T-162) — and each of them wrote that text to the
+//! one slot. The last writer won, whatever view the user was looking at: a
+//! measurement of 2026-08-14 held a user in the view of the queue whose line
+//! went to nobody, and the six seconds of their screen said "The media \"A Long
+//! Test Book\" is not on the shelf Continue Listening now" — the sentence of a
+//! view that they were not in. **The sentence of their own view never reached
+//! the screen.** See T-164.
+//!
+//! A message of a view therefore waits for that view, and **its life starts
+//! when the user first reads it**: the user of the queue reads the sentence of
+//! the queue, and the sentence of the Home view stands on the screen when they
+//! come back to that view. A message of no view — the answer of a key, and the
+//! answer of a task — stands above them all: the user pressed that key, and the
+//! answer of a key must come at once.
 
+use crate::app::AppView;
 use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
@@ -33,16 +53,31 @@ use std::time::{Duration, Instant};
 /// answer for a new key.
 pub const LIFE: Duration = Duration::from_secs(6);
 
-/// One message, and the time when the program wrote it.
+/// One message, and the time when the user first read it.
+///
+/// `written` is `None` while a message of a view waits for that view: the life
+/// of a message is the time of a person who reads it, therefore it starts at
+/// the frame that shows it. See T-164.
 #[derive(Debug, Clone)]
 struct Message {
     text: String,
-    written: Instant,
+    written: Option<Instant>,
 }
 
-fn box_of_the_message() -> &'static Mutex<Option<Message>> {
-    static MESSAGE: OnceLock<Mutex<Option<Message>>> = OnceLock::new();
-    MESSAGE.get_or_init(|| Mutex::new(None))
+/// Every message that stands now.
+#[derive(Debug, Default)]
+struct TheMessages {
+    /// The message that belongs to no view. A key of the user and a task of the
+    /// program write this one, and every view shows it.
+    of_no_view: Option<Message>,
+    /// The messages that belong to a view. Each view holds one, and the user
+    /// reads it when they look at that view. See T-164.
+    of_the_views: Vec<(AppView, Message)>,
+}
+
+fn box_of_the_message() -> &'static Mutex<TheMessages> {
+    static MESSAGE: OnceLock<Mutex<TheMessages>> = OnceLock::new();
+    MESSAGE.get_or_init(|| Mutex::new(TheMessages::default()))
 }
 
 /// Tells if a message of an age is still for the screen.
@@ -66,26 +101,79 @@ pub fn say(text: &str) {
     }
 
     if let Ok(mut place) = box_of_the_message().lock() {
-        *place = Some(Message {
+        place.of_no_view = Some(Message {
             text: text.to_string(),
-            written: Instant::now(),
+            written: Some(Instant::now()),
         });
+    }
+}
+
+/// Writes a message that belongs to one view.
+///
+/// **The user must read this message in that view, and in no other view**: a
+/// rule of the loop of the program writes it with no key of the user, and the
+/// user can stand anywhere. The message waits for that view, and its life
+/// starts at the frame that shows it. A second message of the same view takes
+/// the place of the first one. See T-164.
+pub fn say_in(view: AppView, text: &str) {
+    let text = text.trim();
+
+    if text.is_empty() {
+        return;
+    }
+
+    let Ok(mut place) = box_of_the_message().lock() else {
+        return;
+    };
+
+    let message = Message {
+        text: text.to_string(),
+        written: None,
+    };
+
+    match place.of_the_views.iter_mut().find(|(one, _)| *one == view) {
+        Some((_, older)) => *older = message,
+        None => place.of_the_views.push((view, message)),
     }
 }
 
 /// Gives the message that the screen must draw, if one is fresh.
 ///
-/// The render calls this at each frame. A message that is older than [`LIFE`]
-/// gives nothing, and the next frame then draws the view alone.
-pub fn for_the_screen() -> Option<String> {
+/// The render calls this at each frame, and it names the view of the user. The
+/// message of no view comes first: the user pressed a key, and the answer of a
+/// key must come at once. The message of the view of the user comes after it,
+/// and its life starts here. A message that is older than [`LIFE`] gives
+/// nothing, and the next frame then draws the view alone. See T-164.
+pub fn for_the_screen(view: AppView) -> Option<String> {
     let mut place = box_of_the_message().lock().ok()?;
-    let message = place.clone()?;
 
-    if is_for_the_screen(message.written.elapsed(), LIFE) {
-        return Some(message.text);
+    if let Some(message) = place.of_no_view.clone() {
+        let age = message.written.map(|when| when.elapsed());
+
+        if age.is_none_or(|age| is_for_the_screen(age, LIFE)) {
+            return Some(message.text);
+        }
+
+        place.of_no_view = None;
     }
 
-    *place = None;
+    let at = place
+        .of_the_views
+        .iter()
+        .position(|(one, _)| *one == view)?;
+
+    // The life of a message is the time of a person who reads it, therefore it
+    // starts at the frame that shows it. See T-164.
+    let when = *place.of_the_views[at]
+        .1
+        .written
+        .get_or_insert_with(Instant::now);
+
+    if is_for_the_screen(when.elapsed(), LIFE) {
+        return Some(place.of_the_views[at].1.text.clone());
+    }
+
+    place.of_the_views.remove(at);
     None
 }
 
@@ -121,13 +209,14 @@ pub fn one_line(text: &str, width: u16) -> String {
     format!("{}…", kept.trim_end())
 }
 
-/// Takes the message away at once.
+/// Takes every message away at once.
 ///
 /// A work that ended calls this, and the screen then shows the view alone. An
 /// example is the message "The program gets the book…" of a book that came.
 pub fn forget() {
     if let Ok(mut place) = box_of_the_message().lock() {
-        *place = None;
+        place.of_no_view = None;
+        place.of_the_views.clear();
     }
 }
 
@@ -140,44 +229,98 @@ mod tests {
     #[test]
     fn the_message_goes_from_the_work_to_the_screen() {
         forget();
-        assert_eq!(for_the_screen(), None);
+        assert_eq!(for_the_screen(AppView::Home), None);
 
         say("The server does not answer.");
         assert_eq!(
-            for_the_screen().as_deref(),
+            for_the_screen(AppView::Home).as_deref(),
             Some("The server does not answer.")
         );
 
         // The render reads the message at every frame, therefore a read takes
         // nothing away.
-        assert!(for_the_screen().is_some());
+        assert!(for_the_screen(AppView::Home).is_some());
+
+        // A message of no view stands in every view: the user pressed the key
+        // that it answers.
+        assert!(for_the_screen(AppView::Queue).is_some());
 
         // A new message takes the place of the older one. The user reads the
         // answer of their newest key.
         say("The mark of the media goes to the server…");
         assert_eq!(
-            for_the_screen().as_deref(),
+            for_the_screen(AppView::Home).as_deref(),
             Some("The mark of the media goes to the server…")
         );
 
         // A message of no letters takes the message away. A work that gives an
         // empty text says nothing.
         say("   ");
-        assert_eq!(for_the_screen(), None);
+        assert_eq!(for_the_screen(AppView::Home), None);
 
         say("A message");
         forget();
-        assert_eq!(for_the_screen(), None);
+        assert_eq!(for_the_screen(AppView::Home), None);
 
         // The space at the two ends of a message says nothing, and it moves the
         // text that the screen puts in the middle.
         say("  The server does not answer.  ");
         assert_eq!(
-            for_the_screen().as_deref(),
+            for_the_screen(AppView::Home).as_deref(),
             Some("The server does not answer.")
         );
 
         forget();
+
+        // **A message of a view belongs to that view, and to no other view.** A
+        // rule of the loop writes it with no key of the user, and the user can
+        // stand anywhere. See T-164.
+        say_in(AppView::Home, "The media is not on the shelf now.");
+
+        // The user stands in the view of the queue, therefore they read
+        // nothing of the Home view.
+        assert_eq!(for_the_screen(AppView::Queue), None);
+        assert_eq!(for_the_screen(AppView::Chapters), None);
+
+        // The user comes to the Home view, and they read it there.
+        assert_eq!(
+            for_the_screen(AppView::Home).as_deref(),
+            Some("The media is not on the shelf now.")
+        );
+
+        // **The two rules of one frame do not take each other away**: the fault
+        // of T-164 is one slot for every view.
+        forget();
+        say_in(AppView::Queue, "The media is not in the queue now.");
+        say_in(AppView::Home, "The media is not on the shelf now.");
+
+        assert_eq!(
+            for_the_screen(AppView::Queue).as_deref(),
+            Some("The media is not in the queue now.")
+        );
+        assert_eq!(
+            for_the_screen(AppView::Home).as_deref(),
+            Some("The media is not on the shelf now.")
+        );
+
+        // A second message of one view takes the place of the first one.
+        say_in(AppView::Queue, "A different media is not in the queue now.");
+        assert_eq!(
+            for_the_screen(AppView::Queue).as_deref(),
+            Some("A different media is not in the queue now.")
+        );
+
+        // The answer of a key stands above them all.
+        say("The media goes out of the queue…");
+        assert_eq!(
+            for_the_screen(AppView::Queue).as_deref(),
+            Some("The media goes out of the queue…")
+        );
+
+        // A message of no letters says nothing at all.
+        say_in(AppView::Stats, "   ");
+        forget();
+        assert_eq!(for_the_screen(AppView::Stats), None);
     }
 
     /// The row of the message holds one row. A message of more letters than the

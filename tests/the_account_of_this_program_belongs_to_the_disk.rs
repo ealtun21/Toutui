@@ -71,7 +71,8 @@ fn the_library_of_an_account_that_holds_no_row_changes_no_row_and_it_says_so() {
 
     let rows = update_id_selected_lib("lib-2", "the-account-of-the-library").unwrap();
     assert_eq!(rows, 1, "the account of a row must take the library");
-    let of_the_account = toutui::logic::message::for_the_screen().unwrap_or_default();
+    let of_the_account =
+        toutui::logic::message::for_the_screen(toutui::app::AppView::Home).unwrap_or_default();
     assert!(
         of_the_account.contains("library has been updated"),
         "the account of a row must read that its library changed: {}",
@@ -83,7 +84,8 @@ fn the_library_of_an_account_that_holds_no_row_changes_no_row_and_it_says_so() {
     let rows = update_id_selected_lib("lib-2", "an-account-that-a-second-program-removed").unwrap();
     assert_eq!(rows, 0, "a name that no row holds must change no row");
 
-    let of_no_account = toutui::logic::message::for_the_screen().unwrap_or_default();
+    let of_no_account =
+        toutui::logic::message::for_the_screen(toutui::app::AppView::Home).unwrap_or_default();
     assert!(
         !of_no_account.contains("library has been updated"),
         "the program must not say that it kept a choice that no row of the disk holds: {}",

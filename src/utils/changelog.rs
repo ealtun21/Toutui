@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.98",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **You read the message of a view that you were not in.** Three parts of the \
+             program write a message with no key of you: a media that leaves the shelf \
+             Continue Listening, a media that leaves your queue, and a media of the view of \
+             the chapters that stops. All three wrote to one row of the screen, and the last \
+             one won. A user who looked at their queue while the media came to its end read \
+             \"the media is not on the shelf Continue Listening now\" for the whole six \
+             seconds, and the sentence of their own view never came. **A message of a view \
+             waits for that view now**, and its six seconds start when you read it: you get \
+             the sentence of the view that you look at, and the sentence of the other view \
+             when you go there.",
+        ],
+    },
+    Entry {
         version: "0.7.97",
         date: "14/08/2026",
         body: &[

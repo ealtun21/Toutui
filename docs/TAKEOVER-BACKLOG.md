@@ -7629,6 +7629,78 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-164: the message of a view that the user was not in took the row of the message, and the sentence of their own view never came
+
+**The condition of this session, and T-162 named it and did not close it**: "a
+message belongs to the view of the user". T-162 measured the text of the Home
+view standing above the text of the view of the chapters **0.8 seconds** after
+it, and it wrote that both sentences are true.
+
+**Three rules of the loop of `src/main.rs` write a message with no key of the
+user at all**: the shelf Continue Listening of the Home view (T-160), the line
+of the view of the queue (T-161), and the media of the view of the chapters
+(T-162). Each of them wrote its text to **the one slot** of
+`crate::logic::message`, therefore **the last writer of the frame won**, whatever
+view the user was looking at. The rule of the Home view stands in the render of
+**every** view (`take_the_media_that_left_away` of `src/ui/tui.rs`), and it runs
+after the two other rules: **it wins every time.**
+
+**The measurement of 2026-08-14, and the user stood in the view of the queue.**
+The queue held the two books of eight hours, the user played `A Long Test Book`
+of 30 minutes, and their cursor stood on the first media of the queue:
+
+| The moment | The view of the queue of the user |
+|---|---|
+| Before | `The queue [2 items]`, and the cursor stands on `A Book Of Many Hours` |
+| **The book comes to its end, 22 seconds later** | the cursor stands on **nobody** (T-161 works), and `The queue [1 item]` |
+| The message row, at every look of 0.2 seconds for 6.2 seconds | **`The media "A Long Test Book" is not on the shelf Continue Listening now. No line is selected: the keys j and k select one.`** |
+| The sentence of T-161 | **it never reached the screen** |
+
+**The correction of T-161 is destroyed for the one user that it was written
+for.** That user has no line, and the reason that they read names a shelf of a
+view that they are not in and a media that they did not choose. The keys `j` and
+`k` of the sentence do give them a line of the queue, therefore the sentence is
+not only about another view: **it is a sentence that they cannot use to
+understand what happened to their own.**
+
+**The correction: a message of a view waits for that view, and its life starts
+when the user reads it.** `crate::logic::message` holds two things now:
+
+- **the message of no view** — the answer of a key of the user and the answer of
+  a task. `say` writes it, every view shows it, and its six seconds start at the
+  write: the user pressed that key, therefore its answer comes at once;
+- **the message of each view** — `say_in(view, text)` writes it, and the render
+  gives it to the user of that view alone. **`written` is `None` until the frame
+  that shows it**, therefore the user reads the whole six seconds of it.
+
+The three rules of the loop call `say_in` with their own view, and the render
+names the view of the user: `for_the_screen(self.view_state)`.
+
+| The measurement | Before | After |
+|---|---|---|
+| The message of the user of the view of the queue, at the frame of the change | `…is not on the shelf Continue Listening now.` for six seconds | `Loading the media…` for six seconds, and **`The media "A Book Of Many Hours" is not in the queue now.`** for the six after them |
+| The sentence of T-161 | **it never came** | it comes, and the user reads the whole of it |
+| The key `h` to the Home view, 14 seconds after the change | — | **`The media "A Long Test Book" is not on the shelf Continue Listening now.`**, and the fault that T-160 closed stays closed |
+
+**A message of a view waits with no limit of time, and that is a decision.** The
+three sentences of the rules each name a state that stays: the line of that view
+stands on nobody until the user presses `j` or `k`, and those keys work in that
+view alone. Therefore a user who comes to that view an hour later reads a
+sentence that is still true, and it is the reason for the line that they find.
+**A message of no view keeps its old life**: it answers a key, and a key of an
+hour ago answers nothing.
+
+**The answer of a key stands above the message of a view, and that is a
+decision.** A user who presses a key waits for the answer of that key, and
+`Loading the media…` of the measurement is the work of the program that the user
+can see. The message of the view comes after it, and no sentence is lost.
+
+`src/logic/message.rs` holds two tests of the rule, and
+`tests/a_message_belongs_to_the_view_of_the_user.rs` holds the wiring of the
+three rules and of the render: the test of the rules **fails** with one `say_in`
+of `src/app.rs` given back to `say`, and the test of the module **fails** with
+one slot for every view.
+
 ### T-163: the media of the view of the bookmarks changed, and the key of the user wrote a place of another book
 
 **The condition of this session, and the session named it**: the road said that

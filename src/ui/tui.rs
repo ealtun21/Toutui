@@ -177,7 +177,10 @@ impl App {
     /// before the bar of the downloads: a download is the work that the user
     /// waits for, therefore that bar keeps its rows.
     fn render_the_message(&self, area: Rect, buf: &mut Buffer) {
-        let Some(text) = crate::logic::message::for_the_screen() else {
+        // **The message names the view of the user**: a rule of the loop writes
+        // a message of a view with no key of the user, and that message waits
+        // for its view. See T-164.
+        let Some(text) = crate::logic::message::for_the_screen(self.view_state) else {
             return;
         };
 

@@ -2894,7 +2894,8 @@ impl App {
 
                 self.list_state_chapters.select(None);
 
-                crate::logic::message::say(
+                crate::logic::message::say_in(
+                    AppView::Chapters,
                     crate::logic::chapters::the_text_of_the_media_that_went_away(&title).as_str(),
                 );
             }
@@ -5970,7 +5971,8 @@ impl App {
                 .get(item)
                 .filter(|one| !one.is_empty())
             {
-                crate::logic::message::say(
+                crate::logic::message::say_in(
+                    AppView::Home,
                     crate::logic::home_view::the_text_of_the_media_that_went_away(title).as_str(),
                 );
             }
@@ -6470,7 +6472,8 @@ impl App {
 
                 self.list_state_queue.select(None);
 
-                crate::logic::message::say(
+                crate::logic::message::say_in(
+                    AppView::Queue,
                     crate::logic::queue::the_text_of_the_media_that_went_away(&title).as_str(),
                 );
             }
