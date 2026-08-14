@@ -215,10 +215,7 @@ impl ApiClient {
     pub async fn get_json<T: DeserializeOwned>(&self, path: &str) -> Result<T, ApiError> {
         let response = self.send(Method::GET, path, None, Idempotent::Yes).await?;
 
-        response
-            .json::<T>()
-            .await
-            .map_err(|error| ApiError::Decode(error.to_string()))
+        the_body_of_the_answer(response).await
     }
 
     /// Sends a `PATCH` request. The Audiobookshelf progress endpoint sets an
@@ -249,10 +246,7 @@ impl ApiClient {
             .send(Method::POST, path, Some(value), Idempotent::No)
             .await?;
 
-        response
-            .json::<T>()
-            .await
-            .map_err(|error| ApiError::Decode(error.to_string()))
+        the_body_of_the_answer(response).await
     }
 
     /// Sends a `DELETE` request that has no answer body.
@@ -446,4 +440,31 @@ impl ApiClient {
 
         Ok(dest_path)
     }
+}
+
+/// Reads the body of an answer as the structure that the caller asked for, and
+/// it names the fault of a body that does not agree with that structure.
+///
+/// **`reqwest::Response::json` hides the cause.** A measurement of 2026-08-14
+/// with `docs/harness/another_body_of_the_libraries.py`, which answered
+/// `GET /api/libraries` with the body of the sandbox and one field fewer: the
+/// program said `The answer of the server is not valid: error decoding response
+/// body` for a field that it never reads, for a field that it reads, and for a
+/// body of no JSON at all. **Those four words name no field and no place**, and
+/// the user, the maintainer, and the log of the program each read the same
+/// sentence for three different faults.
+///
+/// `serde_json` names the field and the place of the fault:
+/// `missing field `name` at line 1 column 3971`. The body of the answer stays
+/// in the memory of this function alone, therefore no line of it reaches the
+/// screen or the log: a body can hold a token. See T-176.
+async fn the_body_of_the_answer<T: DeserializeOwned>(
+    response: reqwest::Response,
+) -> Result<T, ApiError> {
+    let text = response
+        .text()
+        .await
+        .map_err(|error| ApiError::Decode(error.to_string()))?;
+
+    serde_json::from_str(&text).map_err(|error| ApiError::Decode(error.to_string()))
 }
