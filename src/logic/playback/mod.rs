@@ -1396,7 +1396,21 @@ pub async fn follow_playback_offline(
         let position = reported as u32;
         own_position = position;
 
-        let _ = update_download_current_time(key.as_str(), username.as_str(), position);
+        // **The work of the disk stands on a thread of its own** (T-204): a
+        // write that meets the lock of a second program of the account holds
+        // the thread that calls it for five seconds, and a thread of the
+        // runtime is the driver of the loop of the screen.
+        let of_the_download = key.clone();
+        let of_the_account = username.clone();
+
+        crate::db::the_work_of_the_disk(move || {
+            let _ = update_download_current_time(
+                of_the_download.as_str(),
+                of_the_account.as_str(),
+                position,
+            );
+        })
+        .await;
 
         // **The position of an offline playback reaches the server at no other
         // moment.** `play_offline` opens no session on the server, therefore
@@ -1409,15 +1423,23 @@ pub async fn follow_playback_offline(
         // in the same way that it writes that place to the row of the download
         // at each second. A newer position replaces the older one, and the
         // function says no line of the log. See T-152.
-        crate::logic::offline::keep_progress(
-            username.as_str(),
-            server.as_str(),
-            item_id.as_str(),
-            episode_id.as_deref(),
-            position as f64,
-            total_duration,
-            false,
-        );
+        let of_the_account = username.clone();
+        let of_the_server = server.clone();
+        let of_the_item = item_id.clone();
+        let of_the_episode = episode_id.clone();
+
+        crate::db::the_work_of_the_disk(move || {
+            crate::logic::offline::keep_progress(
+                of_the_account.as_str(),
+                of_the_server.as_str(),
+                of_the_item.as_str(),
+                of_the_episode.as_deref(),
+                position as f64,
+                total_duration,
+                false,
+            );
+        })
+        .await;
 
         if state.status == PlaybackStatus::Stopped {
             let finished = state.finished;
@@ -1650,12 +1672,30 @@ pub async fn follow_playback(
         own_position = position;
 
         // Write the position for each second. A crash must not lose it.
-        let _ = update_current_time(position, session_id.as_str());
-        let _ = update_download_current_time(item_id.as_str(), username.as_str(), position);
+        //
+        // **The work of the disk stands on a thread of its own** (T-204): these
+        // three writes took a thread of the runtime for 15 seconds while a
+        // second program of the account held the database, and the loop of the
+        // screen waited on that thread — the row of the player, the timer for
+        // sleep, and every key of the user stopped.
+        let of_the_session = session_id.clone();
+        let of_the_item = item_id.clone();
+        let of_the_account = username.clone();
+        let of_the_chapter = state.chapter_title.clone();
 
-        if let Some(title) = state.chapter_title.as_ref() {
-            let _ = update_chapter(title, session_id.as_str());
-        }
+        crate::db::the_work_of_the_disk(move || {
+            let _ = update_current_time(position, of_the_session.as_str());
+            let _ = update_download_current_time(
+                of_the_item.as_str(),
+                of_the_account.as_str(),
+                position,
+            );
+
+            if let Some(title) = of_the_chapter.as_ref() {
+                let _ = update_chapter(title, of_the_session.as_str());
+            }
+        })
+        .await;
 
         match state.status {
             PlaybackStatus::Playing => {

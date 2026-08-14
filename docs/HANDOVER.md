@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.33.** The item T-203 belongs to this session. The
+**The newest release is v0.8.34.** The item T-204 belongs to this session. The
+item T-203 belongs to the session before it. The
 items T-199, T-200, T-201, and T-202
 belong to the session before it. The items T-196, T-197, and T-198 belong to the session before it.
 The
@@ -43,12 +44,85 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.33**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.34**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1182 of 1182** in 2.4 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1208 of 1208** in 20.8 seconds with the sandbox up,
+**1185 of 1185** in 2.4 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1211 of 1211** in 19.3 seconds with the sandbox up,
 and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in three
 runs.
+
+## The session of the thirty-sixth turn of 2026-08-14: the disk of every frame, and the disk of every key
+
+**One release: v0.8.34.** The session before this one named its own question in
+its last paragraph (the rule of T-195): **which reads of the disk stand inside
+the render, and what does a state of the `App` hold in their place?** The item is
+**T-204**, and the measurement of that question found the fault that T-203 named
+**and a second one under it**.
+
+**The two measurements of the real program**, each with
+`docs/harness/hold_the_lock.py` (T-199):
+
+1. **A program that plays a book of eight hours drew one frame in 15 seconds.**
+   The row of the player stood at `▶ 15:35` for 24 seconds while the book played
+   on, and **the row of the keys of the player went away** while the user turned
+   nothing off: a read of the disk that failed became a fact of the user, and that
+   is the rule of T-202 and of T-203 for the render.
+2. **Five presses of the key `j` moved no cursor for the 30 seconds of the
+   lock**, and the five keys then came together. The key `B` of that condition
+   did nothing at all: it read the disk, it compared the answer with `"0"` and
+   with `"1"`, and a read that failed matched neither — no word, and no line of
+   the log.
+
+**The finding of this session is under the render**, and `strace -f -tt` (the
+trap 136) holds it: the loop of the screen waited **14.9 seconds** on one futex,
+and the thread that held it is **the driver of the runtime of tokio**, which ran
+the three writes of one second of `follow_playback`. **A call of the database
+that stands on a thread of the runtime stops the row of the player, the timer
+for sleep, and every key of the user.** The render alone never explains a freeze
+of more than five seconds: the busy timeout of rusqlite is five, and the freeze
+was 15.
+
+**The correction holds five parts**: the box of `logic::the_copies_of_the_disk`
+for the label of a copy of the disk, two values of the `App` for the row of the
+player, the key `B` that writes the value that the program holds and that says
+why a write failed, `crate::db::the_work_of_the_disk` (the pool of the blocking
+work of tokio) for the calls of the database of the two loops of the playback and
+of the task of the flush, and a box of the accounts that a task of one second
+fills for the read of T-159 after every key.
+
+| The condition | v0.8.33 | v0.8.34 |
+|---|---|---|
+| The row of the player, with a lock of 40 seconds | one frame each 15 seconds | **a frame each second** |
+| Five presses of `j`, with a lock of 30 seconds | no move at all | **the five keys at once** |
+| The key `B` with the lock | nothing, and no word | the sentence, and the log |
+
+**The condition that this session leaves open.** **A key of the user that writes
+the disk still waits for that disk on the thread of the screen**: the key `B` took
+five seconds, and the sentence came after them. **And the sweep of the calls of
+the database of an async function is not finished**: the login, the sync of a
+session, and the tasks of the downloads still call the database on a thread of the
+runtime.
+
+### The traps of this session
+
+**The trap 165: a freeze of the screen that is longer than the busy timeout is
+not the render.** rusqlite waits five seconds, therefore a freeze of 15 seconds
+holds three calls — and the render of one frame holds one. `strace -f -tt` of the
+program inside tmux names the thread and the lock; `/proc/<pid>/task/*/stat` says
+`S` for every thread of that condition and it names nothing at all.
+
+**The trap 166: a poll of the screen cannot tell a state that is old from a frame
+that did not come.** The row of the player holds the position of the engine, and
+that engine writes its state on a thread of its own: a row that does not move can
+be a state that stands still or a screen that does not draw. **The timer for sleep
+of the key `t` is the value that answers it**: it comes of the loop of the screen
+alone, therefore a timer that does not count is a loop that does not run.
+
+**The trap 167: a call of `spawn_blocking` that no one awaits changes the sequence
+of two writes.** The place of the user goes to the disk each second, and a later
+place must never reach the disk before an earlier one:
+`crate::db::the_work_of_the_disk` therefore waits for the answer of its thread.
+The caller waits, and the driver of the runtime does not.
 
 ## The session of the thirty-fifth turn of 2026-08-14: the downloads of a disk that said nothing
 
@@ -5543,46 +5617,48 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took the last paragraph of the newest item and it made one item of
-it** (the rule of T-195): T-202 named the reads of the **downloads** of the
-database, and every one of them gave a fact of the user. The item is **T-203**, and
-it holds two measurements of the real program and one release, v0.8.33.
+**This session took the question that the newest item named in its last
+paragraph** (the rule of T-195): T-203 asked which reads of the disk stand inside
+the render. The item is **T-204**, and it holds two measurements of the real
+program and one release, v0.8.34.
 
-**The first measurement is the worst fault of the user of this road.** The key `X`
-asks the database which media of the account plays from the disk now (T-156), a
-second Toutui that holds the database takes the answer of that read away, and the
-program of v0.8.32 then removed the three files of a book **under the ear of the
-user**. The rows of that download stayed, because the write that follows failed
-after the files went away. Four things are worth the room:
+**The measurement found the fault of the render, and a second one under it.** The
+render of the row of the player read the disk at each frame, and that read gave
+the user a fact that they did not choose; and **the loop of the screen stopped for
+15 seconds at a time** while a second Toutui of the account held the database.
+Five things are worth the room:
 
-1. **A read of the disk that decides a removal must fail toward the disk of the
-   user** (T-203). The old shape read `false` — "no program plays it" — and every
-   other road of that key holds the same shape: `false` of a lock, `None` of a row,
-   an empty list of the files. **Ask of a read of the disk: which road does the
-   default of it take, and does that road destroy a thing of the user?**
-2. **A correction of a session closes a road of a measurement too** (T-203). The
-   correction of T-199 stops the program at the read of the accounts of the start,
-   therefore `hold_the_lock.py` reaches no read of the start any more: the offline
-   mode needed a **statement** that fails, and `ALTER TABLE downloads RENAME COLUMN
-   downloaded_at ...` gives one with no wait at all. **A harness of a session can
-   go away with the correction of the session before it.**
-3. **A read of the disk that stands inside the render is a read of every frame**
-   (T-203). The row of the detail of six views asks the table `downloads` for the
-   label `[Downloaded]`, therefore a fault of that read wrote a line of the log 60
-   times a second in the first form of this correction, and the read holds the
-   thread of the screen: **the sentence of the key `X` never came to the user**,
-   because no frame comes inside the six seconds of a message while two reads of
-   five seconds stand before it. That is the shape of T-185 for the disk, and it is
-   the question of the next session.
-4. **A word of the log is the word of a fault that the user cannot read** (T-177).
-   Every road of this item holds a line of the log now, and the two roads of the
-   measurement held none at all.
+1. **A freeze of the screen that is longer than the busy timeout is not the
+   render** (T-204). rusqlite waits five seconds, and the freeze was 15: `strace
+   -f -tt` of the program inside tmux (the trap 136) says that the loop of the
+   screen waited 14.9 seconds on one futex, and that **the thread which held it is
+   the driver of the runtime of tokio** — it ran the three writes of one second of
+   the loop of the playback. **A call of the database that stands on a thread of
+   the runtime stops the screen and every key of the user.**
+2. **A read of the disk that stands inside the render is a fact of the user at
+   each frame** (T-204). The row of the keys of the player went away while the
+   user turned nothing off, and the label of a copy of the disk holds the same
+   shape. **A box of the process, and the disk at the moments that the program
+   needs it** (the rule of T-142), is the road: the label of a line is a word of
+   the screen, and no word of the screen is worth the thread of the screen.
+3. **A key that reads a state of the disk and that then writes it does nothing
+   when that read failed** (T-204, the shape of T-175 for the disk). The key `B`
+   compared the answer of the disk with `"0"` and with `"1"`, and a read that
+   failed matched neither: the disk kept its value, and no word and no line of the
+   log named the key.
+4. **A poll of the screen cannot tell a state that is old from a frame that did
+   not come** (the trap 166). The timer for sleep of the key `t` comes of the loop
+   of the screen alone, therefore it is the value that answers that question.
+5. **The work of the disk of a task belongs to a thread of its own**
+   (`crate::db::the_work_of_the_disk`), and the caller waits for it: the sequence
+   of two writes of one loop must stay, because a later place of the user must
+   never reach the disk before an earlier one.
 
 This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.33**; `Cargo.toml` is at 0.8.33. The
+> AlbanDAVID/Toutui. Newest release **v0.8.34**; `Cargo.toml` is at 0.8.34. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -5591,7 +5667,7 @@ This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-203 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-204 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -5827,6 +5903,19 @@ This prompt names the state of the program on 2026-08-14.
 > the account takes `http://127.0.0.1:13508` (the trap 129), and the cache of
 > the ebooks of that account gives its copy of the book back with a `mv`.
 >
+> **A freeze of the screen that is longer than five seconds is not the render**
+> (the trap 165): rusqlite waits five seconds, therefore a freeze of 15 seconds
+> holds three calls of the database. `strace -f -tt` of the program inside tmux
+> (the trap 136) names the thread and the lock, and **a call of the database of a
+> task holds the driver of the runtime of tokio**: the loop of the screen waits on
+> that driver at each frame. **A poll of the screen cannot tell a state that is old
+> from a frame that did not come** (the trap 166): the row of the player holds the
+> position of the engine, and that engine writes its state on a thread of its own —
+> **the timer for sleep of the key `t` comes of the loop of the screen alone**, and
+> it is therefore the value of such a measurement. **A call of `spawn_blocking`
+> that no one awaits changes the sequence of two writes** (the trap 167):
+> `crate::db::the_work_of_the_disk` waits for the answer of its thread.
+>
 > **A lock of the database reaches no read of the start** (the trap 161): the
 > correction of T-199 stops the program at `[main] the account of the start:
 > database is locked`, therefore a measurement of a read of the start needs a
@@ -5855,6 +5944,11 @@ This prompt names the state of the program on 2026-08-14.
 > python3 docs/harness/hold_the_lock.py \
 >     $XDG_CONFIG_HOME/toutui/db.sqlite3 70
 > ```
+>
+> **That harness reaches the render and the keys too** (T-204): a program that
+> plays a book draws one frame in 15 seconds while the lock stands, because the
+> three writes of one second of the loop of the playback hold the driver of the
+> runtime of tokio.
 >
 > **That road holds five traps** (156 to 160). A lock of less than five seconds
 > gives no fault at all. **Every key of the login screen reads the database**
@@ -6003,11 +6097,40 @@ This prompt names the state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in forty-eight sessions of forty-nine. **The session
->    of the thirty-fifth turn took the last paragraph of the newest item and it
->    made one item of it** (T-203): T-202 named the reads of the downloads, and the
->    key `X` of a program that could not read its database removed the files of a
->    book that a second program of the account played from the disk.
+>    this shape found a fault in forty-nine sessions of fifty. **The session of the
+>    thirty-sixth turn took the question that the newest item named, and it found
+>    the fault of that question and a second one under it** (T-204): the render of
+>    the row of the player read the disk at each frame, **and the loop of the
+>    screen stopped for 15 seconds at a time** because a call of the database of a
+>    task holds the driver of the runtime of tokio.
+>    - **A freeze that is longer than the busy timeout of five seconds is not the
+>      render** (T-204). `strace -f -tt` of the program inside tmux says which
+>      thread holds the lock, and **the answer was the driver of the runtime**: the
+>      three writes of one second of the loop of the playback took it for 15
+>      seconds, and the row of the player, the timer for sleep, and every key of
+>      the user stopped. **Ask of every call of the database: which thread does it
+>      stand on, and what waits for that thread?** The sweep of that question is
+>      open: the login, the sync of a session, and the tasks of the downloads still
+>      call the database on a thread of the runtime.
+>    - **A key of the user that writes the disk waits for that disk on the thread
+>      of the screen** (T-204, and it stays open). The key `B` took five seconds,
+>      and its sentence came after them: the question is whether the loop can draw
+>      a frame while a key of the user waits for the database, and what the row of
+>      the message says while it waits.
+>    - **A read of the disk that stands inside the render is a fact of the user at
+>      each frame** (T-204). The row of the keys of the player went away while the
+>      user turned nothing off. **A box of the process, and the disk at the moments
+>      that the program needs it** (T-142), is the road; every road that **removes**
+>      a file of the user keeps its own read at the moment of the use (T-203).
+>    - **A read of a file of the config stands inside the render too** (T-204). The
+>      `strace` of that item shows `config.toml` read at every frame. A disk that
+>      answers in 300 microseconds is no fault of the user today, and a disk that
+>      does not answer is another condition.
+>    - **The session of the thirty-fifth turn took the last paragraph of the newest
+>      item and it made one item of it** (T-203): T-202 named the reads of the
+>      downloads, and the key `X` of a program that could not read its database
+>      removed the files of a book that a second program of the account played from
+>      the disk.
 >    - **A read of the disk that decides a removal must fail toward the disk of the
 >      user** (T-203). `false` of `a_program_keeps_the_place_of_this_media`, `None`
 >      of a row, and an empty list of the files each said "the user holds nothing
@@ -6597,7 +6720,13 @@ This prompt names the state of the program on 2026-08-14.
 > which program of the account holds it, a removal that did not read its database
 > is no removal, the Library view of the offline mode names the disk and not the
 > server, the label of a line says that the disk did not answer, and the render
-> reads the row of that label with no word of the log** (T-203).
+> reads the row of that label with no word of the log** (T-203), and **the render
+> of the program reads no disk and no call of the database of a task stands on a
+> thread of the runtime: a box of the process holds the copies of the disk of the
+> account and the `App` holds the row of the keys of the player, the key `B`
+> writes the value that the program holds and it says why a write failed, and the
+> loop of the program reads the accounts of a box that a task of one second
+> fills** (T-204).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

@@ -347,17 +347,19 @@ fn at_number_part(list: &[Vec<f64>], index: usize, part: usize) -> f64 {
         .unwrap_or(0.0)
 }
 
-/// Gives the label of the copy of the disk of one media. See T-203.
+/// Gives the label of the copy of the disk of one media. See T-203 and T-204.
 ///
-/// **A read of the disk that failed is not a media with no copy on the disk.**
-/// The row of the detail of six views held `get_download(...).is_some()`, and a
-/// database that says nothing then took the label `[Downloaded]` away from every
-/// media of the account.
-fn the_copy_of_the_disk(key: &str, username: &str) -> &'static str {
+/// **A read of the disk that failed is not a media with no copy on the disk**
+/// (T-203), and **a read of the disk that stands inside the render is a read of
+/// every frame** (T-204): this row asked the database at each frame, and a
+/// second program of the account that holds the write lock then took the thread
+/// of the screen for five seconds of each of those frames.
+///
+/// The box of `crate::logic::the_copies_of_the_disk` holds the answer of the
+/// disk, and the program reads the disk at the moments that it needs it.
+fn the_copy_of_the_disk(key: &str) -> &'static str {
     crate::ui::keys::the_label_of_the_copy_of_the_disk(
-        crate::db::crud::get_download_of_a_frame(key, username)
-            .map(|row| row.is_some())
-            .ok(),
+        crate::logic::the_copies_of_the_disk::a_copy_stands_on_the_disk(key),
     )
 }
 
@@ -1677,7 +1679,7 @@ impl App {
         );
 
         if let Some(book) = self.selected_series_book() {
-            let of_the_disk = the_copy_of_the_disk(&book.id, &self.username);
+            let of_the_disk = the_copy_of_the_disk(&book.id);
 
             Paragraph::new(format!(
                 "Author: {} - Duration: {}{}",
@@ -1830,7 +1832,7 @@ impl App {
         if let Some(entry) = self.selected_list_entry() {
             // The download of an episode has the identity of the episode.
             let key = entry.episode_id.clone().unwrap_or_else(|| entry.id.clone());
-            let of_the_disk = the_copy_of_the_disk(&key, &self.username);
+            let of_the_disk = the_copy_of_the_disk(&key);
 
             Paragraph::new(format!(
                 "{} - Author: {} - Duration: {}{}",
@@ -2481,7 +2483,7 @@ impl App {
                 let of_the_disk = self
                     .ids_ep_cnt_list
                     .get(selected)
-                    .map(|id| the_copy_of_the_disk(id, &self.username))
+                    .map(|id| the_copy_of_the_disk(id))
                     .unwrap_or("");
 
                 Paragraph::new(format!(
@@ -2496,8 +2498,7 @@ impl App {
                 .left_aligned()
                 .render(area, buf);
             } else {
-                let of_the_disk =
-                    the_copy_of_the_disk(at(&self._ids_cnt_list, selected), &self.username);
+                let of_the_disk = the_copy_of_the_disk(at(&self._ids_cnt_list, selected));
                 Paragraph::new(format!(
                     "Author: {} - Year: {} - Duration: {}{}\nProgress: {}%, {} {}",
                     at(&self.auth_names_cnt_list, selected),
@@ -2577,8 +2578,7 @@ impl App {
                 .left_aligned()
                 .render(area, buf);
             } else {
-                let of_the_disk =
-                    the_copy_of_the_disk(at(&self.ids_library, selected), &self.username);
+                let of_the_disk = the_copy_of_the_disk(at(&self.ids_library, selected));
                 Paragraph::new(format!(
                     "Author: {} - Year: {}{}", //- Duration: {}\nProgress:{} {}{}",
                     at(&self.auth_names_library, selected),
@@ -2650,7 +2650,7 @@ impl App {
                     let of_the_disk = self
                         .ids_pod_ep
                         .get(selected)
-                        .map(|id| the_copy_of_the_disk(id, &self.username))
+                        .map(|id| the_copy_of_the_disk(id))
                         .unwrap_or("");
 
                     Paragraph::new(format!(
@@ -2689,7 +2689,7 @@ impl App {
             let of_the_disk = self
                 .ids_pod_ep_search
                 .get(selected)
-                .map(|id| the_copy_of_the_disk(id, &self.username))
+                .map(|id| the_copy_of_the_disk(id))
                 .unwrap_or("");
 
             Paragraph::new(format!(
@@ -2763,7 +2763,7 @@ impl App {
                 let of_the_disk = self
                     .ids_search_book
                     .get(selected)
-                    .map(|id| the_copy_of_the_disk(id, &self.username))
+                    .map(|id| the_copy_of_the_disk(id))
                     .unwrap_or("");
                 Paragraph::new(format!(
                     "Author: {} - Year: {}{}", //- Duration: {}\nProgress:{} {}{}",

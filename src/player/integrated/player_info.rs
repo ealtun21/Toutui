@@ -1,4 +1,3 @@
-use crate::db::crud::get_speed_rate;
 use crate::player::engine::{PlaybackState, PlaybackStatus};
 
 /// Gives the values that the player panel shows.
@@ -8,7 +7,11 @@ use crate::player::engine::{PlaybackState, PlaybackStatus};
 ///
 /// The list always holds ten values. Therefore the panel can read each
 /// position with no examination.
-pub fn player_info(username: &str, state: &PlaybackState) -> Vec<String> {
+/// `the_speed_of_the_account` is the speed of the disk, of the `App`. The row
+/// takes it when the engine holds no speed of its own. **The render reads no
+/// disk** (T-204): this function stood in the loop of the screen, and it read
+/// the database at each frame of a state with no speed.
+pub fn player_info(the_speed_of_the_account: f32, state: &PlaybackState) -> Vec<String> {
     let position = state.position.max(0.0) as u32;
     let duration = state.duration.max(0.0) as u32;
 
@@ -27,7 +30,7 @@ pub fn player_info(username: &str, state: &PlaybackState) -> Vec<String> {
     let speed = if state.speed > 0.0 {
         state.speed
     } else {
-        get_speed_rate(username).parse::<f32>().unwrap_or(1.0)
+        the_speed_of_the_account
     };
 
     vec![

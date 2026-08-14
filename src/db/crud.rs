@@ -869,6 +869,23 @@ pub fn get_download_of_a_frame(id_item: &str, username: &str) -> Result<Option<T
     the_row_of_a_download(&crate::db::migrate::open_conn()?, id_item, username)
 }
 
+/// Gives the key of each media of one account that stands on the disk. See
+/// T-204.
+///
+/// **The render must read no disk** (T-204), therefore the box of
+/// `crate::logic::the_copies_of_the_disk` holds this answer and the row of the
+/// detail of six views reads that box. The statement takes the account alone,
+/// as the read of one row of a frame did before it.
+pub fn the_keys_of_the_downloads(username: &str) -> Result<Vec<String>> {
+    let conn = the_connection("the_keys_of_the_downloads")?;
+
+    let mut stmt = conn.prepare("SELECT id_item FROM downloads WHERE username = ?1")?;
+
+    let rows = stmt.query_map(params![username], |row| row.get::<_, String>(0))?;
+
+    Ok(rows.filter_map(|row| row.ok()).collect())
+}
+
 /// The statement of the row of one download.
 fn the_row_of_a_download(
     conn: &Connection,

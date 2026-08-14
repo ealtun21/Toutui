@@ -8,6 +8,82 @@
 //! The rules of this module are pure functions. The view reads them, and a test
 //! holds each of them to the measurement that made it.
 
+/// The accounts of the disk, for the loop of the program. See T-204.
+///
+/// **The loop read the accounts of the disk after every key** (T-159), and that
+/// read stands on the thread of the screen: a second program of the account
+/// that holds the database (T-140) gave that read the busy timeout of five
+/// seconds of rusqlite. A measurement of 2026-08-14 with
+/// `docs/harness/hold_the_lock.py`: **five presses of the key `j` moved no
+/// cursor for the 30 seconds of the lock**, and no word said why.
+///
+/// The task of this box reads the disk, and the loop reads the box after a key.
+/// The rule of T-159 stays: the disk is the truth, and the program that meets
+/// an account of no row starts again. The answer of the box is one second old
+/// at the most, therefore a log out of a second program reaches this program in
+/// that time.
+pub mod the_box_of_the_accounts {
+    use std::sync::{Mutex, OnceLock};
+    use std::time::Duration;
+
+    /// The time between two reads of the disk.
+    const THE_TIME_BETWEEN_TWO_READS: Duration = Duration::from_secs(1);
+
+    type TheRows = Vec<(String, String, bool)>;
+
+    fn the_box() -> &'static Mutex<Option<TheRows>> {
+        static THE_BOX: OnceLock<Mutex<Option<TheRows>>> = OnceLock::new();
+        THE_BOX.get_or_init(|| Mutex::new(None))
+    }
+
+    /// Reads the accounts of the disk one time, and it keeps them.
+    ///
+    /// **A read that failed is not a row that went away** (T-199): the box then
+    /// holds nothing, the loop of the program changes no account, and the fault
+    /// takes one line of the log.
+    pub fn read_the_disk() {
+        let rows = match crate::db::crud::select_every_usr() {
+            Ok(rows) => Some(rows),
+            Err(why) => {
+                log::error!(
+                    "[the accounts] the program did not read the accounts of the disk: {}. \
+                     The account of this program stays.",
+                    why
+                );
+
+                None
+            }
+        };
+
+        if let Ok(mut place) = the_box().lock() {
+            *place = rows;
+        }
+    }
+
+    /// Gives the accounts of the last read of the disk.
+    ///
+    /// `None` says that the program did not read the disk, or that the read
+    /// failed: the loop then changes nothing.
+    pub fn the_accounts_of_the_disk() -> Option<TheRows> {
+        the_box().lock().ok()?.clone()
+    }
+
+    /// The task that reads the accounts of the disk.
+    ///
+    /// **The work of the disk stands on a thread of its own** (T-204): a read
+    /// that meets the lock of a second program holds the thread that calls it
+    /// for five seconds, and a thread of the runtime is the driver of the loop
+    /// of the screen.
+    pub fn spawn_the_task_of_the_accounts() -> tokio::task::JoinHandle<()> {
+        tokio::spawn(async move {
+            loop {
+                crate::db::the_work_of_the_disk(read_the_disk).await;
+                tokio::time::sleep(THE_TIME_BETWEEN_TWO_READS).await;
+            }
+        })
+    }
+}
+
 /// The name of the variable that asks the program for the login screen.
 ///
 /// **A login that comes again needs a terminal that no view holds** (T-123).

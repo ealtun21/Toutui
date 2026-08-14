@@ -2,6 +2,42 @@ pub mod crud;
 pub mod database_struct;
 pub mod migrate;
 
+/// Does the work of the disk on a thread of the pool of the blocking work, and
+/// it waits for the answer. See T-204.
+///
+/// **A call of the database that stands on a thread of the runtime stops the
+/// screen of the program.** rusqlite waits for a lock of the file, and it holds
+/// the thread that calls it: a second program of the account that writes the
+/// database (T-140) therefore gives that thread the busy timeout of five
+/// seconds. A measurement of 2026-08-14 with `docs/harness/hold_the_lock.py`
+/// and `strace`: the three writes of one second of the loop of the playback
+/// took a thread of the runtime for 15 seconds, that thread is the driver of
+/// the runtime, and the loop of the screen waited on it — **the row of the
+/// player, the timer for sleep, and every key of the user stopped for those 15
+/// seconds**, and the playback went on.
+///
+/// The work of this function stands on a thread of the pool of the blocking
+/// work of tokio, therefore no driver of the runtime waits for the disk. The
+/// caller waits for the answer, and the sequence of two calls of one loop
+/// stays: a later position must never reach the disk before an earlier one.
+pub async fn the_work_of_the_disk<T, W>(work: W) -> Option<T>
+where
+    T: Send + 'static,
+    W: FnOnce() -> T + Send + 'static,
+{
+    match tokio::task::spawn_blocking(work).await {
+        Ok(answer) => Some(answer),
+        Err(why) => {
+            log::error!(
+                "[the work of the disk] the thread of the disk did not come back: {}",
+                why
+            );
+
+            None
+        }
+    }
+}
+
 /// The program did not read the accounts of its database. See T-199.
 ///
 /// **A fault of the database is not a database with no account.** The old code

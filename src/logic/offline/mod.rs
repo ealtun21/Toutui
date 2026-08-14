@@ -429,7 +429,23 @@ pub fn spawn_flush_task(
             // **A read that failed is not a disk with no place that waits**
             // (T-203): the flush of this attempt reads the rows again, and it names
             // the fault in the log.
-            match count_pending_progress(&username, &server) {
+            // **The work of the disk stands on a thread of its own** (T-204):
+            // a read that meets the lock of a second program of the account
+            // holds the thread that calls it for five seconds, and a thread of
+            // the runtime is the driver of the loop of the screen.
+            let of_the_account = username.clone();
+            let of_the_server = server.clone();
+
+            let of_the_disk = crate::db::the_work_of_the_disk(move || {
+                count_pending_progress(&of_the_account, &of_the_server)
+            })
+            .await;
+
+            let Some(of_the_disk) = of_the_disk else {
+                continue;
+            };
+
+            match of_the_disk {
                 Ok(0) => continue,
                 Ok(_) => {}
                 Err(error) => {

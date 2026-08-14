@@ -23,6 +23,7 @@ pub mod sort_filter;
 pub mod stats;
 pub mod sync_session;
 pub mod the_accounts;
+pub mod the_copies_of_the_disk;
 pub mod the_downloads;
 pub mod the_ebooks;
 pub mod the_episodes;

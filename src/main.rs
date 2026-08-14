@@ -256,6 +256,14 @@ async fn main() -> Result<()> {
             // of this account and of this server before the first frame. See T-56.
             toutui::logic::queue::read_the_queue_of_the_account(&username, &server_key);
 
+            // **The loop of the program reads the accounts of a box** (T-204),
+            // and this task fills that box. The rule of T-159 stays: the disk is
+            // the truth, and a program whose account stands in no row starts
+            // again.
+            the_tasks_of_the_account.push(
+                toutui::logic::the_accounts::the_box_of_the_accounts::spawn_the_task_of_the_accounts(),
+            );
+
             the_tasks_of_the_account.push(toutui::logic::offline::spawn_flush_task(
                 std::sync::Arc::clone(&api),
                 username.clone(),
@@ -409,7 +417,7 @@ async fn main() -> Result<()> {
                 let playback = app.player.state();
                 let is_playing = playback.status != toutui::player::engine::PlaybackStatus::Stopped;
                 let player_notice = playback.notice.clone();
-                let player_info = player_info(app.username.as_str(), &playback);
+                let player_info = player_info(app.the_speed_of_the_account, &playback);
                 let sleep = app.text_of_the_timer_for_sleep();
 
                 terminal.draw(|frame| {
@@ -429,7 +437,7 @@ async fn main() -> Result<()> {
                             frame.buffer_mut(),
                             player_info,
                             bg_color_player,
-                            app.username.as_str(),
+                            app.the_key_bindings_stand,
                             player_notice,
                             sleep,
                         );
@@ -509,25 +517,30 @@ async fn main() -> Result<()> {
                                 // and no word for the user: the account of this
                                 // program stays, and the next key reads the disk
                                 // again. See T-199 and T-177.
-                                match toutui::db::crud::select_every_usr() {
-                                    Ok(of_the_disk) => {
-                                        if matches!(
-                                            logic::the_accounts::the_account_of_the_line(
-                                                &of_the_disk,
-                                                &app.username
-                                            ),
-                                            logic::the_accounts::TheAccountOfTheLine::ItIsGone
-                                        ) {
-                                            app.the_account_of_this_program_is_gone();
-                                        }
-                                    }
-                                    Err(error) => {
-                                        log::error!(
-                                            "[the accounts] the program did not read the accounts \
-                                             of the disk: {}. The account {} stays.",
-                                            error,
-                                            app.username
-                                        );
+                                // **A read of the disk holds the thread of the
+                                // screen** (T-204): this line was
+                                // `select_every_usr()`, and five presses of the
+                                // key `j` moved no cursor for the 30 seconds of
+                                // a lock of a second program of the account. The
+                                // task of the box reads the disk each second on
+                                // a thread of its own, and no read of the disk
+                                // stands between a key of the user and the next
+                                // frame.
+                                //
+                                // A box with nothing in it is a read that did
+                                // not come or that failed, and the account of
+                                // this program then stays (T-199).
+                                if let Some(of_the_disk) =
+                                    logic::the_accounts::the_box_of_the_accounts::the_accounts_of_the_disk()
+                                {
+                                    if matches!(
+                                        logic::the_accounts::the_account_of_the_line(
+                                            &of_the_disk,
+                                            &app.username
+                                        ),
+                                        logic::the_accounts::TheAccountOfTheLine::ItIsGone
+                                    ) {
+                                        app.the_account_of_this_program_is_gone();
                                     }
                                 }
                             }

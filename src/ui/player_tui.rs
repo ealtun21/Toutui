@@ -1,5 +1,4 @@
 use crate::config::rgb_parts;
-use crate::db::crud::*;
 use ratatui::{
     layout::Rect,
     style::{Color, Style},
@@ -14,7 +13,10 @@ pub fn render_player(
     buf: &mut ratatui::buffer::Buffer,
     player_info: Vec<String>,
     bg_color: Vec<u8>,
-    username: &str,
+    // The user asked for the row of the keys of the player with the key `B`.
+    // **The render reads no disk** (T-204): the `App` holds this value, and the
+    // key `B` writes it and the disk together.
+    the_key_bindings_stand: bool,
     notice: Option<String>,
     // The time that the timer for sleep has left, if a timer runs. See T-24.
     sleep: Option<String>,
@@ -48,8 +50,7 @@ pub fn render_player(
     };
 
     let mut key_bindings = "".to_string();
-    let is_show_key_bindings = get_is_show_key_bindings(username);
-    if is_show_key_bindings == "1" {
+    if the_key_bindings_stand {
         key_bindings = "Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I: spd +/− | o/i: vol +/− | t: sleep | Y: quit".to_string();
     }
 

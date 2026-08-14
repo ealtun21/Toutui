@@ -174,6 +174,19 @@ pub struct App {
     /// away. The program makes the lines again when this list differs from the
     /// list of the live messages. See T-66.
     pub the_media_that_left: std::collections::BTreeSet<usize>,
+    /// The user asked for the row of the keys of the player with the key `B`.
+    ///
+    /// **The render reads no disk** (T-204): `render_player` read this value of
+    /// the database at each frame, and a second program of the account that
+    /// held the write lock then took the thread of the screen for five seconds
+    /// of each of those frames. The key `B` writes this value and the disk
+    /// together, and a write that failed keeps the value that the program has.
+    pub the_key_bindings_stand: bool,
+    /// The speed of the playback of the account, of the disk.
+    ///
+    /// The row of the player takes it when the engine holds no speed of its
+    /// own. **The render reads no disk** (T-204).
+    pub the_speed_of_the_account: f32,
     /// The field of the sequence of the library, for the server. An empty
     /// text asks the server for its own sequence. See T-24.
     pub library_sort: String,
@@ -625,6 +638,20 @@ impl App {
         // sequence. See T-24.
         let (mut library_sort, library_desc, library_filter) =
             crate::db::crud::get_library_sort(&username);
+
+        // **The render reads no disk** (T-204). The two values of the row of the
+        // player come of the disk here, at the start and at every refresh with
+        // the key `R`, and the render then draws with no call of the database.
+        let the_key_bindings_stand = crate::db::crud::get_is_show_key_bindings(&username) == "1";
+        let the_speed_of_the_account = crate::db::crud::get_speed_rate(&username)
+            .parse::<f32>()
+            .unwrap_or(1.0);
+
+        // **A copy of the disk of a media is a label of six views**, and that
+        // label held a read of the database of each frame (T-203). The box of
+        // the process holds it now, and this call fills it for the account of
+        // this program. See T-204.
+        crate::logic::the_copies_of_the_disk::read_the_disk(&username);
 
         // A user can have an account on more than one server. The identity of the
         // server keeps the positions of one server separate from the positions of
@@ -1607,6 +1634,8 @@ impl App {
             home_rows,
             of_continue_listening,
             the_media_that_left: std::collections::BTreeSet::new(),
+            the_key_bindings_stand,
+            the_speed_of_the_account,
             library_sort,
             library_desc,
             library_filter,
@@ -1993,12 +2022,29 @@ impl App {
             }
 
             // show key bindings
+            //
+            // **A key that reads a state of the disk and that then writes it**
+            // (the shape of T-175) did nothing at all when that read failed: the
+            // value was neither "0" nor "1", therefore no branch wrote the disk,
+            // and no word told the user. The `App` holds that value now (T-204),
+            // and a write that failed keeps it and says why.
             KeyCode::Char('B') => {
-                let value = get_is_show_key_bindings(self.username.as_str());
-                if value == "0" {
-                    let _ = update_is_show_key_bindings("1", self.username.as_str());
-                } else if value == "1" {
-                    let _ = update_is_show_key_bindings("0", self.username.as_str());
+                let value = !self.the_key_bindings_stand;
+
+                match update_is_show_key_bindings(
+                    if value { "1" } else { "0" },
+                    self.username.as_str(),
+                ) {
+                    Ok(()) => self.the_key_bindings_stand = value,
+                    Err(why) => {
+                        log::error!(
+                            "[key B] the program did not write the row of the keys of the player: {}",
+                            why
+                        );
+                        crate::logic::message::say(
+                            crate::ui::keys::THE_KEYS_OF_THE_PLAYER_DID_NOT_REACH_THE_DISK,
+                        );
+                    }
                 }
             }
 

@@ -242,6 +242,7 @@ pub async fn download_with_progress(
                 );
 
                 let _ = delete_download(&plan.key, &username);
+                crate::logic::the_copies_of_the_disk::read_the_disk(&username);
 
                 crate::logic::message::say(
                     &the_words_of_a_download_that_the_database_did_not_take(&title),
@@ -249,6 +250,10 @@ pub async fn download_with_progress(
 
                 return;
             }
+
+            // The copies of the disk of the account changed, therefore the box
+            // of the render reads the disk again (T-204).
+            crate::logic::the_copies_of_the_disk::read_the_disk(&username);
 
             info!(
                 "[download_item] Downloaded \"{}\": {} file(s) in {}",
@@ -821,6 +826,11 @@ pub fn remove_download(key: &str, username: &str) -> TheRemovalOfADownload {
             "[remove_download] the application removed {} bytes of the download {}",
             bytes, key
         );
+
+        // The copies of the disk of the account changed, therefore the box of
+        // the render reads the disk again: the render itself reads no disk
+        // (T-204).
+        crate::logic::the_copies_of_the_disk::read_the_disk(username);
     }
 
     TheRemovalOfADownload::TheDiskAndTheDatabase(title, of_the_audio)

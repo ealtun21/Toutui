@@ -570,6 +570,17 @@ pub const THE_LIBRARY_WITH_NO_ANSWER: &str =
 /// The label of a media that stands on the disk of this account.
 pub const THE_COPY_OF_THE_DISK: &str = " - [Downloaded]";
 
+/// What the key `B` says when the disk did not take the row of the keys of the
+/// player. See T-204.
+///
+/// **A key of the user that writes the disk takes a sentence** (T-199), and the
+/// sentence names the key of the view that the user sees at that moment (T-183).
+/// A second program of the account can hold the database of this account
+/// (T-140).
+pub const THE_KEYS_OF_THE_PLAYER_DID_NOT_REACH_THE_DISK: &str =
+    "The program did not write the row of the keys of the player: the database \
+     did not answer. A different program of this account can hold it. Press B again.";
+
 /// The label of a media whose copy on the disk the program did not read. See
 /// T-203.
 pub const THE_DISK_DID_NOT_ANSWER: &str = " - [the disk did not answer]";

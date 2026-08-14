@@ -8632,6 +8632,146 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-204: the disk of every frame, and the disk of every key, stopped the program
+
+**T-203 asked which reads of the disk stand inside the render, and what a state
+of the `App` holds in their place.** The measurement of that question found the
+fault that T-203 named and a second one under it: **a call of the database that
+stands on a thread of the runtime stops the loop of the screen, and not the call
+alone.**
+
+#### The measurement of 2026-08-14
+
+The condition is `docs/harness/hold_the_lock.py` (T-199), which takes the write
+lock of the database of the program: rusqlite holds a busy timeout of five
+seconds, therefore every call of the program waits five seconds and it then says
+`database is locked`.
+
+**The first road: the program that plays a book.** The book of eight hours of the
+sandbox played with `TOUTUI_AUDIO_DEVICE=null`, and the lock stood 40 seconds.
+
+| The moment | The row of the player of v0.8.33 |
+|---|---|
+| 16:38:16 to 16:38:40 | `▶ 15:35 / 8:00:00`, and it did not move for **24 seconds** |
+| 16:38:43 | `▶ 28:14`, and **the row of the keys of the player went away** |
+
+**The row of the keys of the player belongs to the user**: `is_show_key_bindings`
+of the disk holds `1`, the user turned nothing off, and the read that failed gave
+the string `No db found`. That is the rule of T-202 and of T-203 for the render:
+**a read of the disk that failed is not a fact of the user.**
+
+**The key `B` of that condition did nothing at all.** The key read the disk, it
+compared the answer with `"0"` and with `"1"`, and a read that failed matched
+neither: the disk kept the value of the start, no word came to the screen, and no
+line of the log named the key. That is the shape of T-175 (a key that reads a
+state and that then writes it) for the **disk**.
+
+**The second road: the program that plays nothing.** Five presses of the key `j`,
+one each second, and a lock of 30 seconds:
+
+| The moment | The line of the Library view of v0.8.33 |
+|---|---|
+| 16:40:38 to 16:40:53 | `➤ 50% A Long Test Book`, and **the cursor did not move for the whole lock** |
+| after the lock | the five keys came together |
+
+#### What holds the thread of the screen, with `strace`
+
+**The freeze is longer than five seconds**, therefore the render alone does not
+explain it. `strace -f -tt` of the program under the lock (the trap 136) gives the
+answer, and it is the finding of this item:
+
+```text
+352806 16:55:06.382371 futex(0x7fb0d8099988, FUTEX_WAIT_PRIVATE, 1, NULL <unfinished ...>
+352816 16:55:06.233208 fcntl(10, F_SETLK, {l_type=F_RDLCK, ...}) = -1 EAGAIN
+352816 16:55:21.253261 futex(0x7fb0d8099988, FUTEX_WAKE_PRIVATE, 1) = 1
+352806 16:55:21.254946 write(1, "\33[39;48H...", 114) = 114
+```
+
+The thread 352806 is the loop of the screen, and it waited **14.9 seconds** on one
+lock. The thread 352816 held that lock: it is a thread of the runtime of tokio,
+**it is the driver of that runtime**, and it ran the three writes of one second of
+`follow_playback` — `update_current_time`, `update_download_current_time`, and
+`update_chapter`, five seconds each. The loop of the screen waits for that driver
+at each frame (`futex` of about 51 milliseconds with no lock of the database).
+
+**A call of the database that stands on a thread of the runtime therefore stops
+the row of the player, the timer for sleep, and every key of the user.** The
+playback goes on, and the user reads a screen of the minute before.
+
+#### The correction
+
+1. **The render reads no disk.** `logic::the_copies_of_the_disk` is a box of the
+   process that holds the key of each media of the account that stands on the
+   disk, and `the_copy_of_the_disk` of `src/ui/tui.rs` reads that box. The program
+   reads the disk at the moments that it needs it (the rule of T-142): a new `App`
+   (the start and the key `R`), the end of a download of this program, and the key
+   `X`. **A download of a second program of the account reaches this window with
+   the key `R`**, and that is the cost of the decision: a label of a line is a word
+   of the screen, and no word of the screen is worth the thread of the screen.
+   Every road that **removes** a file keeps its own read of the disk at the moment
+   of the use (T-203).
+2. **The `App` holds the row of the keys of the player and the speed of the
+   account.** `render_player` takes a `bool`, and `player_info` takes the speed:
+   neither of them opens the database.
+3. **The key `B` writes the value that the `App` holds**, and a write that failed
+   keeps that value and says why: `The program did not write the row of the keys of
+   the player: the database did not answer. A different program of this account can
+   hold it. Press B again.` (T-199 and T-183).
+4. **The work of the disk of a task stands on a thread of its own.**
+   `crate::db::the_work_of_the_disk` gives the work to the pool of the blocking
+   work of tokio and it waits for the answer: the sequence of two writes of one
+   loop stays, and no driver of the runtime waits for the disk. The two loops of
+   the playback and the task of the flush of the positions take it.
+5. **The loop of the program reads the accounts of a box.** The read of T-159
+   after every key stood on the thread of the screen. The task of
+   `the_box_of_the_accounts` reads the disk each second on a thread of its own, and
+   the rule of T-159 stays: a program whose account stands in no row starts again,
+   and the answer of the box is one second old at the most. A box with nothing in
+   it is a read that failed, and the account of this program then stays (T-199).
+
+#### The measurement of the corrected program
+
+| The condition | v0.8.33 | v0.8.34 |
+|---|---|---|
+| The row of the player, with a lock of 40 seconds | one frame each 15 seconds | **a frame each second, for the whole lock** |
+| The row of the keys of the player | it went away | it stays |
+| Five presses of the key `j`, with a lock of 30 seconds | no move for 30 seconds | **the five keys at once** |
+| The key `B` with the lock | nothing, and no word | the sentence comes after five seconds, and the log names the fault |
+| The key `X` and the key `D` with no lock | the label of the disk | the label goes and it comes back with no key `R` |
+
+#### The test
+
+`tests/the_render_reads_no_disk.rs` reads the source of the render, as the tests
+of T-135 and of T-143 do: no file of `src/ui/` and no line of `player_info` holds
+a call of the database, and the arm of the key `B` reads no disk and names the
+sentence of a write that failed. Each of the three files of the render held one
+call of the database at v0.8.33, therefore the build of the fault fails this test.
+`logic::the_copies_of_the_disk` holds the test of its box in one function (T-144
+and T-157).
+
+#### What this item leaves open
+
+**A key of the user that writes the disk still waits for that disk on the thread
+of the screen.** The key `B` of the measurement took five seconds, and the sentence
+came after them. The read belongs to a box, and a **write** belongs to the key: the
+question of the next session is whether the loop can draw a frame while a key of
+the user waits for the database, and what the row of the message says while it
+waits.
+
+**The sweep of the calls of the database of an async function is not finished.**
+`grep` of `crud::` in a function of `async fn` gives the tasks of the program, and
+each of them can hold the driver of the runtime for five seconds: the loops of the
+playback, the flush of the positions, and the task of the accounts take
+`the_work_of_the_disk` now, and the login, the sync of a session, and the tasks of
+the downloads do not. **The question of that sweep is: which call of the database
+stands on a thread of the runtime, and what does the user see while it waits?**
+
+**A read of a file of the config stands inside the render too.** The `strace` of
+this item shows `config.toml` read at **every frame** (`openat`, `read`, `close`),
+and T-142 gave that read its rule for the removal of a book of the disk. A file of
+a disk that answers in 300 microseconds is no fault of the user today, and a disk
+that does not answer is another condition.
+
 ### T-203: the downloads of a disk that said nothing became a fact of the user
 
 **T-202 gave the fault of the disk to three reads of the queue and of the

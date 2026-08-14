@@ -41,6 +41,30 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.34",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The program stopped for 15 seconds at a time while a second \
+             Toutui of your account wrote the database.** The row of the \
+             player, the timer for sleep, and the cursor of every list stood \
+             still, and the keys of the user came together at the end: five \
+             presses of the key `j` moved no line for 30 seconds. The work of \
+             the database of a task now stands on a thread of its own, \
+             therefore the screen draws each second and the keys of the user \
+             do their work while the database waits.",
+            "- **The row of the keys of the player went away while you turned \
+             nothing off**, and the mark of a copy on your disk went away from \
+             every media: a database that did not answer became a fact of the \
+             user. The program keeps those two values, and the screen asks the \
+             database at no frame at all.",
+            "- **The key `B` did nothing when the database did not answer.** \
+             That key read the value of the disk before it wrote it, and a \
+             read that failed matched neither value: the key now writes the \
+             value that the program holds, and a write that failed says why.",
+        ],
+    },
+    Entry {
         version: "0.8.33",
         date: "14/08/2026",
         body: &[
