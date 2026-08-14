@@ -430,7 +430,15 @@ async fn main() -> Result<()> {
 
                 let playback = app.player.state();
                 let is_playing = playback.status != toutui::player::engine::PlaybackStatus::Stopped;
-                let player_notice = playback.notice.clone();
+                // **The row of the player holds the word of a disk that keeps no
+                // place of this media** (T-210): the loop of the playback writes
+                // a box of the process, and the render reads it. A message of the
+                // program lives six seconds, and this condition stands for the
+                // whole playback. The render reads no disk (T-204).
+                let player_notice =
+                    toutui::logic::playback::the_place_of_the_disk::the_notice_of_the_player(
+                        playback.notice.clone(),
+                    );
                 let player_info = player_info(app.the_speed_of_the_account, &playback);
                 let sleep = app.text_of_the_timer_for_sleep();
 

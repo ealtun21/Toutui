@@ -96,7 +96,7 @@ pub fn remember_progress(
     duration: f64,
     is_finished: bool,
 ) {
-    if keep_progress(
+    match keep_progress(
         username,
         server,
         id_item,
@@ -105,17 +105,29 @@ pub fn remember_progress(
         duration,
         is_finished,
     ) {
-        info!(
+        Ok(()) => info!(
             "[offline] the position {}s of {} waits for the server",
             current_time.round(),
             id_item
-        );
+        ),
+
+        Err(error) => warn!(
+            "[offline] the application did not keep the position {}s of {}: {}. \
+             The place of that playback goes away.",
+            current_time.round(),
+            id_item,
+            error
+        ),
     }
 }
 
 /// Writes a position that waits for the server, and says nothing.
 ///
-/// Gives `true` when the row is on the disk.
+/// **The caller reads the answer of this write, and this function writes no line
+/// of the log** (T-210): the loop of an offline playback calls it at each second,
+/// therefore a line of each fault gave 28800 lines for a book of eight hours —
+/// and no word of the screen at all. The loop says the fault one time, and the
+/// row of the player holds the word for the user.
 ///
 /// **An offline playback reaches no server at all**, therefore the row of this
 /// table is the one copy of that playback: no row of `listening_session`
@@ -135,7 +147,7 @@ pub fn keep_progress(
     current_time: f64,
     duration: f64,
     is_finished: bool,
-) -> bool {
+) -> rusqlite::Result<()> {
     let progress = PendingProgress {
         id_item: id_item.to_string(),
         id_pod: id_pod.unwrap_or_default().to_string(),
@@ -145,15 +157,7 @@ pub fn keep_progress(
         updated_at: now_ms(),
     };
 
-    if let Err(error) = insert_pending_progress(username, server, &progress) {
-        warn!(
-            "[offline] the application did not keep the position: {}",
-            error
-        );
-        return false;
-    }
-
-    true
+    insert_pending_progress(username, server, &progress)
 }
 
 /// What the read of the position of the server tells the flush. See T-188.

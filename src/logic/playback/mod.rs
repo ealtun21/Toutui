@@ -7,6 +7,8 @@
 //! engine reads a local file and a file on the server with one trait.
 //! Therefore one loop is enough now.
 
+pub mod the_place_of_the_disk;
+
 use crate::api::client::ApiClient;
 use crate::api::library_items::play_lib_item_or_pod::*;
 use crate::api::me::get_media_progress::get_the_place_of_a_media;
@@ -456,11 +458,16 @@ async fn the_loop_of_the_playback(
 /// that is the shape of T-203 for a read of the render. The line comes one time,
 /// and the next write that the disk takes gives the line back for the fault after
 /// it.
+///
+/// The function gives `true` when the disk did not take this write. **The row of
+/// the player holds the word of that condition** (T-210): a line of the log
+/// reaches no user of a screen, and a message of the program lives six seconds
+/// while this condition stands for the whole playback.
 fn the_line_of_a_write_of_the_loop(
     said_already: &mut bool,
     what: &str,
     answer: Option<rusqlite::Result<()>>,
-) {
+) -> bool {
     match answer {
         Some(Err(error)) => {
             if !*said_already {
@@ -472,9 +479,14 @@ fn the_line_of_a_write_of_the_loop(
                     what, error
                 );
             }
+
+            true
         }
 
-        _ => *said_already = false,
+        _ => {
+            *said_already = false;
+            false
+        }
     }
 }
 
@@ -1451,8 +1463,13 @@ pub async fn follow_playback_offline(
     let mut reached_the_start = false;
 
     // **One line of the log while the disk says nothing** (T-207). The loop
-    // writes the disk each second.
+    // writes the disk each second, and it writes two rows of it: the row of the
+    // download, and the row that waits for the server (T-210).
     let mut the_disk_said_nothing_of_the_place = false;
+    let mut the_disk_said_nothing_of_the_place_that_waits = false;
+
+    // The playback of before this one is not the playback of the user now.
+    the_place_of_the_disk::the_disk_says(false);
 
     loop {
         tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
@@ -1520,7 +1537,7 @@ pub async fn follow_playback_offline(
         // (T-207). The place of an offline playback reaches the disk here alone
         // (T-152), therefore a write that failed takes the place of the user of
         // this second away with no word.
-        the_line_of_a_write_of_the_loop(
+        let the_disk_takes_no_place = the_line_of_a_write_of_the_loop(
             &mut the_disk_said_nothing_of_the_place,
             "the place of the offline playback",
             the_answer,
@@ -1542,7 +1559,7 @@ pub async fn follow_playback_offline(
         let of_the_item = item_id.clone();
         let of_the_episode = episode_id.clone();
 
-        crate::db::the_work_of_the_disk(move || {
+        let the_answer = crate::db::the_work_of_the_disk(move || {
             crate::logic::offline::keep_progress(
                 of_the_account.as_str(),
                 of_the_server.as_str(),
@@ -1551,9 +1568,28 @@ pub async fn follow_playback_offline(
                 position as f64,
                 total_duration,
                 false,
-            );
+            )
         })
         .await;
+
+        // **A caller that reads no answer of its write says nothing at all**
+        // (T-206 and T-207). This write is the one copy of the place of an
+        // offline playback for the server (T-152), and the old code threw its
+        // answer away: `keep_progress` wrote a line of the log for each second
+        // — 28800 lines for a book of eight hours — and no word came to the
+        // user. See T-210.
+        let the_place_that_waits_did_not_come = the_line_of_a_write_of_the_loop(
+            &mut the_disk_said_nothing_of_the_place_that_waits,
+            "the place that waits for the server",
+            the_answer,
+        );
+
+        // **The row of the player holds the word of a condition that stands**
+        // (T-210): a message of the program lives six seconds, and a disk that
+        // takes no write takes every second of this playback away.
+        the_place_of_the_disk::the_disk_says(
+            the_disk_takes_no_place || the_place_that_waits_did_not_come,
+        );
 
         if state.status == PlaybackStatus::Stopped {
             let finished = state.finished;
@@ -1718,6 +1754,9 @@ pub async fn follow_playback(
     // writes the disk each second.
     let mut the_disk_said_nothing_of_the_place = false;
 
+    // The playback of before this one is not the playback of the user now.
+    the_place_of_the_disk::the_disk_says(false);
+
     loop {
         tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
 
@@ -1823,11 +1862,15 @@ pub async fn follow_playback(
         })
         .await;
 
-        the_line_of_a_write_of_the_loop(
+        // **The row of the player holds the word of a condition that stands**
+        // (T-210). The row of `listening_session` is the place of the user for a
+        // program that dies, and the row of the player of the screen reads it
+        // (T-201): a disk that takes no write takes the two of them away.
+        the_place_of_the_disk::the_disk_says(the_line_of_a_write_of_the_loop(
             &mut the_disk_said_nothing_of_the_place,
             "the place of this playback",
             the_answer,
-        );
+        ));
 
         match state.status {
             PlaybackStatus::Playing => {

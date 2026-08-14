@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.39.** The item T-209 belongs to this session. The
+**The newest release is v0.8.40.** The item T-210 belongs to this session. The
+item T-209 belongs to the session before it. The
 item T-208 belongs to the session before it. The
 item T-207 belongs to the session before it. The
 item T-206 belongs to the session before it. The
@@ -49,11 +50,82 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.39**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.40**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1190 of 1190** in 2.3 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1216 of 1216** with the sandbox up in 17 seconds, and
+**1191 of 1191** in 2.3 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1217 of 1217** with the sandbox up, and
 `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in two runs.
+
+## The session of the forty-second turn of 2026-08-14: the place of every second that went to a disk that took no write
+
+**One release: v0.8.40.** Four sessions wrote one paragraph — "the rows of
+`pending_progress` are not measured against the condition of T-206" — and no one
+of them measured it. **A paragraph that four sessions write is the cheapest item
+of a session.**
+
+**The item is T-210**, and its condition is two commands and no harness at all:
+
+```bash
+podman stop -t 0 abs-test                      # the offline mode of T-25 and T-152
+chmod 444 $XDG_CONFIG_HOME/toutui/db.sqlite3   # after the first frame (the trap 171)
+```
+
+**The place of an offline playback reaches the disk alone** (T-152): no row of
+`listening_session` stands beside it, therefore the row of `pending_progress` of
+each second is the one copy of that place for the server of the user.
+
+**The measurement of the real program of the sandbox**, of the book of eight hours
+of the disk, 25 seconds after the key `l`:
+
+```text
+   A Second Book Of Many Hours by Many Hours Author | No chapter
+   ▶ 53:42 / 8:00:00 | Elapsed: 53:42 | Left: 7:06:18 (11%) | Speed: 1.00x
+```
+
+**No word of the screen**, the row of the download stood at 2083 seconds, the
+table `pending_progress` held no row, and the log held **one line for each
+second** — 25 lines in 25 seconds, and 28800 for the whole book.
+
+**The two faults.** `keep_progress` wrote that line itself and the loop took no
+value of it (the shape of T-206 and of T-207, one line under the write that T-207
+corrected); and a message of the program lives six seconds while this condition
+stands for the whole playback.
+
+**The correction.** `keep_progress` gives `rusqlite::Result<()>` and it writes no
+line; the loop reads it with `the_line_of_a_write_of_the_loop`, which gives `true`
+now for a write that the disk did not take.
+`src/logic/playback/the_place_of_the_disk.rs` is a box of the process — the shape
+of `crate::logic::message` — that the two loops of the playback write and that the
+render reads: **the render reads no disk** (T-204). The row of the player then
+says `The disk keeps no place of this media` beside the word of the engine, and it
+says it while the condition stands.
+
+| the condition | v0.8.39 | v0.8.40 |
+|---|---|---|
+| the row of the player, the disk takes no write | the media, the chapter, and the place | and `The disk keeps no place of this media` |
+| the log of 25 seconds of that playback | 25 lines, and 28800 for the book | two lines, one for each row of the disk |
+| the disk takes the write again | — | the word goes away, and the place of the user comes back |
+
+`tests/a_place_that_the_disk_did_not_take_says_so.rs` holds the parts in one
+function (T-144 and T-157).
+
+### What this session leaves open
+
+**The flush of the positions is the next road of this condition.** The task of
+every 30 seconds holds three calls of `let _ = delete_pending_progress(...)`: a
+row that the server took and that the disk did not remove goes to the server again
+at each attempt, and `count_pending_progress` of the header then says that a place
+of the user waits for a server that holds it already. That task holds no key of
+the user and no view of its own, therefore its fault takes a line of the log
+(T-177), and no line stands there today. **The condition is the same two
+commands.**
+
+**The other writes of a task that no key of the user waits for stay open**: the
+sync of a session, the tasks of the downloads, and the close of a session.
+
+**The freeze of the loop of the screen stays**, and it is the seventh session that
+names it. The question of T-204 stands: which keys can give their work of the disk
+to a task, and what the row of the message says at the moment of the press.
 
 ## The session of the forty-first turn of 2026-08-14: the setting of the user that the disk did not give
 

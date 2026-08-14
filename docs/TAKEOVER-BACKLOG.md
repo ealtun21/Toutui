@@ -8632,6 +8632,127 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-210: the place of every second of a playback went to a disk that took no write, and the screen said nothing
+
+**Four sessions named this condition and no one of them measured it.** T-206 gave
+the harness of a disk that reads and takes no write (`chmod 444`), and T-207,
+T-208, and T-209 each wrote the same paragraph: "the rows of `pending_progress`
+are not measured against the condition of T-206". **A paragraph that four
+sessions write is the cheapest item of a session** (the rule of T-209).
+
+**The condition needs no proxy and no harness of Python at all**, and it is two
+commands:
+
+```bash
+podman stop -t 0 abs-test                      # the offline mode of T-25 and T-152
+chmod 444 $XDG_CONFIG_HOME/toutui/db.sqlite3   # after the first frame (the trap 171)
+```
+
+**The place of an offline playback reaches the disk alone.** `play_offline` opens
+no session of the server, therefore no row of `listening_session` stands beside it
+(T-152): the loop writes the row of the download and the row of
+`pending_progress` at **each second**, and the row of `pending_progress` is the
+one copy of that place for the server of the user.
+
+#### The measurement of the fault, 2026-08-14
+
+The real program of the sandbox, of the book of eight hours
+`A Second Book Of Many Hours` of the disk, with the null device of ALSA. The
+program started in the offline mode, the disk took no write, and the key `l`
+played the book of the Library view for 25 seconds.
+
+```text
+📴 Offline as toutuitest        📴 Offline: the media on the disk
+🔗 localhost:13399 does not answer
+      A Second Book Of Many Hours by Many Hours Author | No chapter
+   ▶ 53:42 / 8:00:00 | Elapsed: 53:42 | Left: 7:06:18 (11%) | Speed: 1.00x
+```
+
+**The row of the message said nothing, and the row of the player said nothing.**
+The row of the disk of that book stood at 2083 seconds, and the table
+`pending_progress` held no row at all: the place of every second of that playback
+reached neither the server nor the disk.
+
+**The log held one line for each second:**
+
+```text
+19:09:49.871 [WARN] - [offline] the application did not keep the position: attempt to write a readonly database
+19:09:50.872 [WARN] - [offline] the application did not keep the position: attempt to write a readonly database
+…  (25 lines in 25 seconds, and 28800 lines for the whole book)
+```
+
+`grep -c` of that line gave **25** for 25 seconds, and `grep -c` of the line of
+T-207 gave **1**: the correction of T-207 reached the write of the row of the
+download, and the write of the row that waits for the server stood one line under
+it with its answer thrown away.
+
+#### The two faults, and the two rules
+
+**1. A caller that reads no answer of its write says nothing at all** (T-206 and
+T-207). The loop called `crate::logic::offline::keep_progress(...)` and it took no
+value of it; the function wrote a line of the log of its own, and no rule of the
+loop could reach that fault. `keep_progress` gives `rusqlite::Result<()>` now and
+it writes **no** line, and the loop reads it with
+`the_line_of_a_write_of_the_loop` — the one line of T-207, and the line again
+after a write that the disk takes.
+
+**2. A word that names work that stands must live while that work stands.** A
+message of the program lives six seconds (`crate::logic::message::LIFE`), and this
+condition stands for the whole playback: a user who looks at the screen two
+minutes after the first second reads nothing of a message. **The row of the player
+stands while the media plays**, therefore the word belongs to that row, beside the
+word of the engine (`Reconnected`, and the notice of T-47).
+
+`src/logic/playback/the_place_of_the_disk.rs` is a box of the process of the shape
+of `crate::logic::message`: the loop of the playback writes it at each second, and
+the render reads it. **The render reads no disk** (T-204). `the_notice` is pure,
+therefore the test needs no box.
+
+**The two loops of the playback write that box.** The loop with a server writes
+the row of `listening_session`, and that row is the place of the user of a program
+that dies **and** the row of the player of the screen (T-201).
+
+#### The measurement of the correction, of the same condition
+
+```text
+   A Second Book Of Many Hours by Many Hours Author | No chapter | The disk keeps no place of this media
+   ▶ 56:28 / 8:00:00 | Elapsed: 56:28 | Left: 7:03:32 (12%) | Speed: 1.00x
+```
+
+The log held **two** lines of the disk of the loop — the row of the download and
+the row that waits — and no line of a second. A `chmod 644` of the same file while
+the book played took the word of the row of the player away in the next second,
+and the two rows of the disk then held the place `4099`: **a write that the disk
+takes again gives the place of the user back, and the word goes with the
+condition.**
+
+| the condition | v0.8.39 | v0.8.40 |
+|---|---|---|
+| the row of the player, the disk takes no write | the media, the chapter, and the place | and `The disk keeps no place of this media` |
+| the log of 25 seconds of that playback | 25 lines, and 28800 for the book | two lines, one for each row of the disk |
+| the disk takes the write again | — | the word goes away, and the place of the user comes back |
+
+`tests/a_place_that_the_disk_did_not_take_says_so.rs` holds the parts in one
+function (T-144 and T-157): the box of the process holds one value for the whole
+binary.
+
+#### What this item leaves open
+
+**The flush of the positions of T-188 and of T-189 is not measured against this
+condition.** That task runs every 30 seconds with no key of the user and no view
+of its own, and it holds three calls of `let _ = delete_pending_progress(...)`: a
+row that the server took and that the disk did not remove goes to the server again
+at each attempt, and `count_pending_progress` of the header then says that a place
+of the user waits for a server that holds it already. **The rule of T-177 gives
+that fault a line of the log**, and no line stands there today.
+
+**The other writes of a task that no key of the user waits for stay open**: the
+sync of a session, the tasks of the downloads, and the close of a session each
+write the disk with no view of their own.
+
+**The freeze of the loop of the screen stays** (T-204 to T-209). The correction of
+this item adds no call of the database, and it takes none away.
+
 ### T-209: a read of the row of the account that failed became a setting of the user
 
 **Three sessions named this condition and no one of them corrected it.** T-206

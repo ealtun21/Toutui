@@ -41,6 +41,25 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.40",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A disk that took no write took the place of your playback away, \
+             and nothing on the screen said it.** Toutui writes the place of a \
+             media to its database at each second, and a disk that is full or a \
+             database with no permission of a write takes each of those seconds \
+             away: a book of eight hours from your disk then started at its first \
+             minute again. The row of the player says now that the disk keeps no \
+             place of that media, and that word stands while the condition \
+             stands.",
+            "- **The log took one line for each second of such a playback.** A \
+             book of eight hours gave 28800 lines. Toutui says the fault of the \
+             disk one time now, and it says it again after a write that the disk \
+             took.",
+        ],
+    },
+    Entry {
         version: "0.8.39",
         date: "14/08/2026",
         body: &[
