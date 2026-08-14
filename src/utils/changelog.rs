@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.17",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A book that did not come whole stayed a book of your disk, and \
+             the program said that it is not an EPUB.** A connection that went \
+             away in the middle of the download left a part of the book with the \
+             name of the whole book, and the reader of every program of your \
+             account after it opened that part: it asked the server for nothing, \
+             and the key X of the list was the one road out. The program gives \
+             the file the name of the whole book at the end of the download now, \
+             and a download that fails leaves no part of a book behind it.",
+            "- **A part of a book of a program that stopped in the middle of a \
+             download is a file of the key X now.** That key removes the copy of \
+             a book of your disk, and it did not see such a file.",
+        ],
+    },
+    Entry {
         version: "0.8.16",
         date: "14/08/2026",
         body: &[
