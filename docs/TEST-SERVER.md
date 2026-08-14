@@ -992,3 +992,42 @@ server reads that name as the command "the user did not read this media", and
 that command takes the place away. Give `currentTime` alone, and give `progress`
 beside it when a view of the program must show a percent (a measurement of
 2026-08-13 for T-141).
+
+## 16. The place of an episode of a podcast, for T-219
+
+**The place of an episode stands at `PATCH /api/me/progress/:item/:episode`**,
+and the path of the item alone answers a `GET` with the place of **one** episode
+of that podcast and it refuses every `PATCH` with
+`400 Library item is not a book` (T-188 and T-219).
+
+The podcast of the measurement of T-219 is `Arthur Gordon Pym` of the library
+`Podcasts`, of 11 episodes:
+
+```bash
+P=b793354b-9841-480a-bd09-41923596517e   # Arthur Gordon Pym
+E0=845f9d16-2121-40b1-a3ed-682cab9ed178  # Chapter 00
+E1=482f0136-06eb-44a2-a202-c2ea3ad68a53  # Chapter 01
+
+curl -X PATCH -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"isFinished":true}' "http://localhost:13399/api/me/progress/$P/$E0"
+curl -X PATCH -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"currentTime":30}'  "http://localhost:13399/api/me/progress/$P/$E1"
+```
+
+**An episode of a place stands on the shelf Continue Listening of the Home view
+of that library**, therefore a measurement of the keys of an episode needs no
+view of the episodes at all (the trap 202).
+
+**The library of the row of the account decides the Home view**, and one
+`sqlite3` gives it and gives it back (the trap 203):
+
+```bash
+sqlite3 "$DB" "update users set name_selected_lib='Podcasts',
+    id_selected_lib='ad96fe2b-9f45-477d-82e5-f5ccfe5d324a';"
+sqlite3 "$DB" "update users set name_selected_lib='Books',
+    id_selected_lib='1b090ea8-91c5-4591-ac9d-716985e61faf';"
+```
+
+The three episodes of the measurement of T-219 stand at
+`{"isFinished": false, "currentTime": 0, "hideFromContinueListening": false}`
+again.
