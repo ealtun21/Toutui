@@ -8632,6 +8632,139 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-216: a file of the disk that is not the file of its row is no file of the download
+
+**The item before this one named the road in its "leaves open"**, and this one
+took it (the rule of T-195, of T-209, of T-211, of T-213, and of T-215): "a file
+of a download that changed is not a file that went away. The rows hold the `ino`
+and the size of each file (T-181 and T-187), and this item asks one question of
+the file system: does the path stand?"
+
+**The shape of this item is a correction that closes one road of a fault, and not
+the fault** (the rule of T-196). T-215 gave the callers of `download_files` the
+question "does the path stand?", and a file that lost its bytes stands: the
+program then called that copy of the disk whole again.
+
+#### The condition
+
+**One `truncate` of one file of the directory of the downloads, and no harness at
+all.** The book is `Multi File Test Book` of the sandbox (the section 6 of
+`docs/TEST-SERVER.md`), of three files of 20 seconds and of 160613 bytes each:
+
+```bash
+truncate -s 80000 "$ABS/toutui-data/toutui/downloads/toutuitest/<the id>/002 - 02 - Part 2.mp3"
+```
+
+`ffmpeg -i <that file> -f null -` says `time=00:00:09.95`: the file of the disk
+holds ten seconds of the twenty of the row.
+
+#### The measurement of 2026-08-14, of the real program of the sandbox
+
+**The road of the server.** The key `l` of that book, with the server up and the
+place of the user at 0:
+
+```text
+22:34:29 [INFO] [play] the download ac365248-… gives 3 of 3 track(s) from the disk
+22:34:29 [INFO] [worker] the playback starts at 0 seconds
+22:34:30 [INFO] [follow_playback] the playback stopped at 60 seconds, finished=true
+```
+
+**The user heard 50 seconds of a book of 60, no word came to the screen, and the
+program then told the server that the user finished the book**:
+
+```text
+{'currentTime': 60, 'progress': 1, 'isFinished': True, 'duration': 60}
+```
+
+**A value that the program sends to the server outlives the program that sent it**
+(T-193): every client of that account holds the book as read, and the ten seconds
+that no machine played go away with it. The engine reads the tracks of the plan of
+the playback, therefore the place of the row of the player comes of the length of
+the **row** and not of the bytes of the file: no part of the program can see the
+ten seconds that went away.
+
+**The road of the disk.** With `podman stop -t 0 abs-test` and the place of the
+user at 0, the key `l` of the Library view of the offline mode said:
+
+```text
+   Offline: "Multi File Test Book" plays from the disk.
+```
+
+```text
+22:40:15 [INFO] [play] the offline mode plays Multi File Test Book at 0 seconds with 3 track(s)
+22:40:17 [INFO] [follow_playback_offline] the playback stopped at 60 seconds, finished=true
+22:40:17 [INFO] [offline] the position 60s of ac365248-… waits for the server
+```
+
+**The offline mode wrote the same mark of the end**, and the row of
+`pending_progress` then carries that mark to the server of the next session
+(T-152).
+
+#### The correction
+
+`the_files_that_stand_on_the_disk` of `src/logic/offline/mod.rs` reads the size of
+the row now, and a file of another number of bytes leaves the copy of the disk
+with one line of the log. `get_download_files` gives that column: the two callers
+of the table (`select_sources` and `play_offline`) hold the rule of T-215 already,
+therefore the road of the server and the sentence of the offline mode came with no
+change of their own.
+
+**The size of the row is the size of the file of the server** (T-181), and **the
+program writes a file of a download whole or it writes no file at all** (T-186):
+those two rules make the size of the row the truth of the file of the disk.
+
+**A size of 0 is a size that the server did not give** (T-179), and a row of an
+older version of the program holds that value too. The program has no length of
+such a file, therefore that file stands: the check of the size passes it, and the
+check of T-215 stays.
+
+| the condition | v0.8.45 | v0.8.46 |
+|---|---|---|
+| the key `l`, the server up, one file of half its bytes | "3 of 3 track(s) from the disk", 50 seconds of 60, and `isFinished: True` at the server | "0 of 3 track(s) from the disk", and 60 seconds of 60 of the server |
+| the key `l` of the offline mode, the same file | "plays from the disk", and 50 seconds of 60 with the mark of the end | "The disk does not hold every file of this media." |
+| the bytes come back | — | "3 of 3 track(s) from the disk" |
+
+The line of the log of v0.8.46:
+
+```text
+22:39:01 [WARN] [offline] the file …/002 - 02 - Part 2.mp3 of the number 2 of a
+    download holds 80000 byte(s), and its row says 160613. That copy of the disk
+    is not whole.
+```
+
+`tests/a_file_of_a_download_that_changed_is_no_file_of_the_disk.rs` holds the
+roads in one function (T-144 and T-157), and it needs no sandbox and no server: a
+directory of the machine holds the files of the book, and one `set_len` takes the
+bytes of one of them away. **A test of an old item can hold a number that no rule
+held before**: the test of T-215 wrote a row of 28 bytes for a file of 29, and the
+check of the size found it.
+
+#### What this item leaves open
+
+**The bytes of a file that keeps its size are not measured.** The row holds the
+`ino` and the size, and this item reads the size alone: a file whose bytes changed
+and whose size stands gives the road of the disk. A sum of the bytes of every file
+of a book at each playback is the cost of a read of the whole disk, therefore that
+question needs a measurement of the cost before a correction.
+
+**The label `[Downloaded]` of a media whose copy is not whole says nothing of
+that** (T-215 left it open, and it stays open). The label comes of the row of
+`downloads` and of the box of T-204, and no read of the file system stands behind
+it: the line of the user says that the media stands on the disk while the playback
+of it takes the server. **The box of the copies of the disk of T-204 is the place
+of that read**, because a read of the file system at each frame is no answer
+(T-203 and T-204).
+
+**The offline playback of a media whose copy is not whole plays nothing** (T-215
+left it open, and it stays open). The sentence of it is true, and the user hears
+no second of the files that stand.
+
+**The `.part` of a download that a program of this account writes is no file of a
+row** (T-186), therefore no check of this item reaches it. The question of a file
+of the disk that a **second** program of the account writes at the moment of this
+read stays open: the size of it stands under the size of the row for the whole of
+that download, and the key `D` of T-154 names that program already.
+
 ### T-215: a copy of the disk that is not whole is no copy of the disk
 
 **The item before this one named the road in its "leaves open"**, and this one

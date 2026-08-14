@@ -66,21 +66,48 @@ pub fn should_send(local_updated_at: i64, server_last_update: Option<i64>) -> bo
 /// **The program played 20 seconds of a book of 60, and it said nothing at all**
 /// while the whole book stood on the server. This is the rule of T-142 for the
 /// files of a download: **the disk at the moment of the use**.
-pub fn the_files_that_stand_on_the_disk(files: Vec<(u32, String, f64)>) -> Vec<(u32, String, f64)> {
+///
+/// **A file that lost bytes is no file that went away** (T-216). The first form of
+/// this function asked one question of the file system: does the path stand? A
+/// measurement of 2026-08-14 of the same book, with the second file at half of its
+/// bytes, said "3 of 3 track(s) from the disk" for a disk that holds 50 seconds of
+/// the 60 of the book, and the program then told the server that the user finished
+/// it. The row holds the size of the file of the server (T-181), the program
+/// writes a file of a download whole or it writes no file at all (T-186),
+/// therefore a file of another number of bytes is no file of that row.
+pub fn the_files_that_stand_on_the_disk(
+    files: Vec<(u32, String, f64, u64)>,
+) -> Vec<(u32, String, f64)> {
     files
         .into_iter()
-        .filter(|(index, path, _)| {
-            let stands = std::fs::metadata(path).is_ok();
-
-            if !stands {
+        .filter_map(|(index, path, duration, size)| {
+            let Ok(data) = std::fs::metadata(&path) else {
                 warn!(
                     "[offline] the file {} of the number {} of a download went away. \
                      That copy of the disk is not whole.",
                     path, index
                 );
+
+                return None;
+            };
+
+            // **A size of 0 is a size that the server did not give** (T-179), and a
+            // row of an older version of the program holds that value too. The
+            // program has no length of that file, therefore the file stands.
+            if size != 0 && data.len() != size {
+                warn!(
+                    "[offline] the file {} of the number {} of a download holds {} byte(s), \
+                     and its row says {}. That copy of the disk is not whole.",
+                    path,
+                    index,
+                    data.len(),
+                    size
+                );
+
+                return None;
             }
 
-            stands
+            Some((index, path, duration))
         })
         .collect()
 }
@@ -103,7 +130,7 @@ pub fn tracks_from_downloads(key: &str, username: &str) -> rusqlite::Result<Opti
 
     let tracks: Vec<Track> = files
         .into_iter()
-        .map(|(index, path, duration)| Track {
+        .map(|(index, path, duration, _size)| Track {
             index,
             // The engine reads the local file. Therefore it needs no identity
             // of a file on the server.

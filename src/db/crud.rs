@@ -988,17 +988,24 @@ pub fn keep_the_files_of_the_download(
     Ok(())
 }
 
-// Get the audio files of a downloaded item: (idx, file_path, duration) (for `download_files` table)
+// Get the audio files of a downloaded item: (idx, file_path, duration, size) (for
+// `download_files` table)
 //
 /// **A read that failed is not a download with no file** (T-203). An empty list
 /// said "the disk holds no file of this media": the offline playback then told the
 /// user that the disk has no copy of a book that stands on the disk, and the
 /// playback of the server took the road of the network for a book of the disk.
-pub fn get_download_files(id_item: &str, username: &str) -> Result<Vec<(u32, String, f64)>> {
+///
+/// **The size of the row is the size of the file of the server** (T-216). The
+/// program writes the file of a download whole or it writes no file at all
+/// (T-186), therefore a file of the disk of another number of bytes is no file of
+/// that row: [`crate::logic::offline::the_files_that_stand_on_the_disk`] reads
+/// this value.
+pub fn get_download_files(id_item: &str, username: &str) -> Result<Vec<(u32, String, f64, u64)>> {
     let conn = the_connection("get_download_files")?;
 
     let mut stmt = conn.prepare(
-        "SELECT idx, file_path, duration FROM download_files WHERE id_item = ?1 AND username = ?2 ORDER BY idx"
+        "SELECT idx, file_path, duration, size FROM download_files WHERE id_item = ?1 AND username = ?2 ORDER BY idx"
     )?;
 
     let rows = stmt.query_map(params![id_item, username], |row| {
@@ -1006,6 +1013,10 @@ pub fn get_download_files(id_item: &str, username: &str) -> Result<Vec<(u32, Str
             row.get::<_, u32>(0)?,
             row.get::<_, String>(1)?,
             row.get::<_, f64>(2)?,
+            // The column holds an `i64`, and a size of the server is no negative
+            // number. A row of an older version holds 0, and that value says
+            // "the program has no size of this file" (T-179).
+            row.get::<_, i64>(3)?.max(0) as u64,
         ))
     })?;
 

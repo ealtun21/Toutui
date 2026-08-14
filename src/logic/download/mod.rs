@@ -815,7 +815,7 @@ pub fn remove_download(key: &str, username: &str) -> TheRemovalOfADownload {
         let files: Vec<String> = match get_download_files(key, username) {
             Ok(files) => files
                 .into_iter()
-                .map(|(_index, path, _duration)| path)
+                .map(|(_index, path, _duration, _size)| path)
                 .collect(),
             Err(error) => {
                 error!(

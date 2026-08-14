@@ -1,58 +1,47 @@
-//! A copy of the disk that is not whole is no copy of the disk. See T-215.
+//! A file of the disk that is not the file of the row is no file of the download.
+//! See T-216.
 //!
-//! **A row of `download_files` is no file of the disk.** The row holds the path of
-//! a file that the program wrote, and a file goes away outside this program: the
-//! user removes it, a directory of the machine goes away, or a removal of a
-//! download takes the files of the disk and leaves the rows (T-214). Every caller
-//! of that table read the rows and called them the copy of the disk.
+//! **T-215 asks one question of the file system: does the path stand?** A file
+//! that lost bytes stands, therefore it passed that check: the row of
+//! `download_files` said 160613 bytes, the disk held 80000 of them, and the
+//! program called that copy of the disk whole.
 //!
 //! **The measurement of 2026-08-14** of the real program of the sandbox, of
-//! `Multi File Test Book` of three files of 20 seconds, with the second file away
-//! and the server up:
+//! `Multi File Test Book` of three files of 20 seconds, with the second file at
+//! half of its bytes (`truncate -s 80000`) and the server up:
 //!
 //! ```text
 //! [INFO] [play] the download ac365248-… gives 3 of 3 track(s) from the disk
-//! [WARN] [worker] the engine cannot open the track 2 of 3: The application cannot
-//!     open the file: No such file or directory (os error 2). The tracks before it play.
-//! [INFO] [follow_playback] the playback stopped at 20 seconds, finished=false
+//! [INFO] [worker] the playback starts at 0 seconds
+//! [INFO] [follow_playback] the playback stopped at 60 seconds, finished=true
 //! ```
 //!
-//! **The program played 20 seconds of a book of 60 and it said nothing at all**,
-//! while the whole book stood on the server. The row of the player held the length
-//! of the whole book, and the place 20 seconds went to the server.
-//!
-//! **The offline mode said a playback that did not exist.** With
-//! `podman stop -t 0 abs-test`, the place of the user at 20 seconds, and the same
-//! file away, the key `l` of the Library view of the offline mode said:
+//! `ffmpeg` says that the file of the disk holds **9.95 seconds** of audio, and
+//! the row of it says 20. **The user heard 50 seconds of a book of 60**, no word
+//! came to the screen, and the program then told the server:
 //!
 //! ```text
-//!    Offline: "Multi File Test Book" plays from the disk.
+//! {'currentTime': 60, 'progress': 1, 'isFinished': True, 'duration': 60}
 //! ```
 //!
-//! ```text
-//! [INFO] [play] the offline mode plays Multi File Test Book at 20 seconds with 3 track(s)
-//! [ERROR] [worker] the engine cannot start the book: The application cannot open
-//!     the file: No such file or directory (os error 2)
-//! ```
+//! **A value that the program sends to the server outlives the program that sent
+//! it** (T-193): every client of that account holds the book as read, and the ten
+//! seconds that no machine played go away with it.
 //!
-//! **No sound came, and no word of the fault came.** The check of `play_offline`
-//! holds the sentence of that condition already — "The disk does not hold every
-//! file of this media." — and it compared the files of the book with the files of
-//! **the same table**: a file that went away passed that check every time.
+//! **A size of 0 is a size that the server did not give** (T-179), therefore a row
+//! of that size keeps its file: the program has no length to compare.
 //!
 //! **This test needs no sandbox and no server.** A directory of the machine holds
-//! the files of the book, and one `remove_file` takes one of them away.
+//! the files of the book, and one `set_len` takes the bytes of one of them away.
 
 use toutui::player::engine::source::{select_sources, TrackSource};
 use toutui::player::engine::track::Track;
 
-const THE_ACCOUNT: &str = "the-account-of-a-copy-that-is-not-whole";
-const THE_SERVER: &str = "the-server-of-a-copy-that-is-not-whole";
-const THE_BOOK: &str = "the-book-of-a-copy-that-is-not-whole";
+const THE_ACCOUNT: &str = "the-account-of-a-file-that-changed";
+const THE_SERVER: &str = "the-server-of-a-file-that-changed";
+const THE_BOOK: &str = "the-book-of-a-file-that-changed";
 
-/// The bytes of a whole file of this book. **The row of a file holds the size of
-/// that file** (T-216), therefore the number of the row is the number of these
-/// bytes.
+/// The bytes of a whole file of this book.
 const THE_BYTES: &[u8] = b"the bytes of a file of a book";
 
 static HOME: std::sync::OnceLock<tempfile::TempDir> = std::sync::OnceLock::new();
@@ -74,6 +63,20 @@ fn temporary_home() -> std::path::PathBuf {
     dir.path().to_path_buf()
 }
 
+/// Writes the row of one file of the book. The size is the size of the server.
+fn the_row_of_the_file(index: u32, path: &std::path::Path, size: u64) {
+    toutui::db::crud::insert_download_file(
+        THE_BOOK,
+        THE_ACCOUNT,
+        index,
+        &format!("ino-{index}"),
+        &path.to_string_lossy(),
+        size,
+        20.0,
+    )
+    .expect("the row of the file");
+}
+
 /// The three files of the book, on the disk and in the rows of the database.
 fn the_book_of_three_files(directory: &std::path::Path) -> Vec<std::path::PathBuf> {
     std::fs::create_dir_all(directory).expect("the directory of the book");
@@ -83,18 +86,7 @@ fn the_book_of_three_files(directory: &std::path::Path) -> Vec<std::path::PathBu
     for index in 1..=3u32 {
         let path = directory.join(format!("00{index} - Part {index}.mp3"));
         std::fs::write(&path, THE_BYTES).expect("the file of the book");
-
-        toutui::db::crud::insert_download_file(
-            THE_BOOK,
-            THE_ACCOUNT,
-            index,
-            &format!("ino-{index}"),
-            &path.to_string_lossy(),
-            THE_BYTES.len() as u64,
-            20.0,
-        )
-        .expect("the row of the file");
-
+        the_row_of_the_file(index, &path, THE_BYTES.len() as u64);
         paths.push(path);
     }
 
@@ -147,13 +139,13 @@ fn the_sources_of_the_playback() -> (usize, usize) {
     (of_the_disk, sources.len() - of_the_disk)
 }
 
-/// A copy of the disk that is not whole takes the road of the server.
+/// A file that lost bytes takes the road of the server.
 ///
 /// **The parts of this test stay in one function**: two test functions of one
 /// binary take a thread each, and `cargo test` finds a fault of that shape at
 /// one run of six (T-144 and T-157).
 #[test]
-fn a_file_of_a_download_that_went_away_takes_the_road_of_the_server() {
+fn a_file_whose_size_is_not_the_size_of_its_row_takes_the_road_of_the_server() {
     let home = temporary_home();
     let directory = home.join("the-files-of-the-book");
 
@@ -166,19 +158,21 @@ fn a_file_of_a_download_that_went_away_takes_the_road_of_the_server() {
         "a whole copy of the disk plays from the disk"
     );
 
-    // **One file of the book goes away, and the rows of the database stay.**
-    std::fs::remove_file(&paths[1]).expect("the file of the middle goes away");
+    // **The file of the middle loses its bytes, and its path stands.** This is the
+    // condition that T-215 does not reach.
+    let shorter = std::fs::OpenOptions::new()
+        .write(true)
+        .open(&paths[1])
+        .expect("the file of the middle");
+    shorter.set_len(10).expect("the file loses its bytes");
+    drop(shorter);
 
     assert_eq!(
         the_sources_of_the_playback(),
         (0, 3),
-        "a copy of the disk that is not whole takes the road of the server"
+        "a file that is not the file of its row takes the road of the server"
     );
 
-    // **The offline mode reads the same rows** (`play_offline`), and its check of
-    // the files of the disk compared the rows with the rows. The files that stand
-    // on the disk are two of the three now, therefore that check finds the media
-    // that the disk does not hold whole.
     let files = toutui::db::crud::get_download_files(THE_BOOK, THE_ACCOUNT)
         .expect("the rows of the files of the download");
 
@@ -189,12 +183,33 @@ fn a_file_of_a_download_that_went_away_takes_the_road_of_the_server() {
         "the disk holds two files of the three of the book"
     );
 
-    // The file comes back, and the whole book plays from the disk again.
-    std::fs::write(&paths[1], THE_BYTES).expect("the file comes back");
+    // **A file of more bytes than its row is no file of that row either.**
+    std::fs::write(&paths[1], b"the bytes of a file of a book and more of them")
+        .expect("a file of more bytes");
+
+    assert_eq!(
+        the_sources_of_the_playback(),
+        (0, 3),
+        "a file of more bytes than its row takes the road of the server"
+    );
+
+    // The bytes of the file come back, and the whole book plays from the disk.
+    std::fs::write(&paths[1], THE_BYTES).expect("the bytes come back");
 
     assert_eq!(
         the_sources_of_the_playback(),
         (3, 0),
-        "a file that came back gives the road of the disk again"
+        "a file of the bytes of its row gives the road of the disk again"
+    );
+
+    // **A size of 0 is a size that the server did not give** (T-179). The program
+    // holds no length of that file, therefore the file of the disk stands.
+    the_row_of_the_file(2, &paths[1], 0);
+    std::fs::write(&paths[1], b"a file of another number of bytes").expect("another file");
+
+    assert_eq!(
+        the_sources_of_the_playback(),
+        (3, 0),
+        "a row of no size keeps the file of the disk"
     );
 }

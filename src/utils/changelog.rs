@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.46",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A file of the disk that lost some of its bytes played less than \
+             the book, and Toutui told the server that you finished it.** Toutui \
+             asks the disk whether the file of a download stands there, and a file \
+             that lost bytes stands. A measurement of a book of three files of 20 \
+             seconds, with the second file at half of its bytes, played 50 seconds \
+             of the 60 of the book with no word at all, and the server then held \
+             that book as finished. The row of a file holds the size of the file of \
+             the server, therefore a file of another number of bytes is no file of \
+             that row now: the media takes the road of the server, the offline mode \
+             says \"The disk does not hold every file of this media.\", and the log \
+             names the file and the two numbers.",
+        ],
+    },
+    Entry {
         version: "0.8.45",
         date: "14/08/2026",
         body: &[
