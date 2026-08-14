@@ -41,6 +41,25 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.12",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A download left a file of the book on the server, and it said that \
+             the book is available offline.** A server that does not give the identity \
+             of one audio file gave Toutui no address of that file: Toutui took the \
+             other files alone, it wrote a book with a hole in it to the disk, and it \
+             said nothing. Toutui makes no plan of such a book now, and it names the \
+             file that it cannot ask for.",
+            "- **A book of many files came to the disk in the wrong sequence, for a \
+             server that does not give the number of one file.** Two files then held \
+             the number 1: the last file of the book stood in the middle of it, two \
+             files took one name on the disk, and one of them left the list of the \
+             files of the download. A book whose files hold no number takes the \
+             sequence of the answer of the server now.",
+        ],
+    },
+    Entry {
         version: "0.8.11",
         date: "14/08/2026",
         body: &[
