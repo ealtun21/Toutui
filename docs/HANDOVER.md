@@ -6685,7 +6685,14 @@ answers slowly while it writes. Two answers to measure:
 - **The sessions can run in a loop.** The driver is `~/.local/bin/toutui-loop`,
   outside this repository, and its design is
   `docs/superpowers/specs/2026-08-13-session-loop-design.md`. It reads the block of
-  the quote of `## The prompt for the next session
+  the quote of `## The prompt for the next session`, therefore **that block must stay
+  the last part of this file, and every line of it must start with `> `**. A session
+  that writes a handover with no such block stops the loop. **The name of that
+  heading stands in this bullet too**, therefore a tool that splits this file on
+  the first hit of that text cuts the bullet and not the heading: split on the
+  **last** hit of it.
+
+## The prompt for the next session
 
 **This session took the last paragraph of the newest item, and then the last
 paragraph of its own item**: T-213 named the removals of the rows of a download,
