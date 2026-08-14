@@ -59,7 +59,16 @@ fn the_view_that_opens_holds_the_name_of_its_media() {
     let start = source
         .find("pub fn show_the_bookmarks(&mut self) {")
         .expect("the program shows the bookmarks");
-    let block = &source[start..start + 1500];
+
+    // **A window of a number of characters is a test of the comments of the
+    // function** (T-222): the words of the correction of that item took this
+    // line out of a window of 1500 characters, and the gate then said that the
+    // view holds no name. The block ends at the function after this one.
+    let end = start
+        + source[start..]
+            .find("\n    /// ")
+            .expect("a function comes after this one");
+    let block = &source[start..end];
 
     assert!(
         block.contains("self.bookmarks_of_name = name;"),

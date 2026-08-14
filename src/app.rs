@@ -5164,10 +5164,25 @@ impl App {
         let (item_id, name) = if state.status != crate::player::engine::PlaybackStatus::Stopped {
             (state.item_id.clone(), state.title.clone())
         } else {
-            match self.selected_item_id() {
+            // **A line that holds more than one media holds no bookmark of its
+            // own** (T-222). `selected_item_id` gives the first book of a line
+            // of a series (T-91 and T-221), therefore the key `V` of the line
+            // `The Test Chronicles [3 books]` of the sandbox opened the
+            // bookmarks of `The Test Chronicles Volume 1` with no word at all.
+            // The key of a line of a podcast opened the bookmarks of the
+            // podcast, and the words of that view named the key `b` of a
+            // playback that a podcast never has.
+            let of_this_line = match self.the_line_of_no_media() {
+                TheLineOfNoMedia::Nothing => self.selected_item_id(),
+                _ => None,
+            };
+
+            match of_this_line {
                 Some(id) => (id, self.selected_item_title().unwrap_or_default()),
                 None => {
-                    crate::logic::message::say("No media plays, and no media is selected.");
+                    crate::logic::message::say(self.words_of_a_line_with_no_media(
+                        "No media plays, and no media is selected.",
+                    ));
                     return;
                 }
             }
@@ -6157,8 +6172,28 @@ impl App {
     /// The program keeps the file in the directory of the downloads. Therefore
     /// a second visit needs no request, and the reader also works with no
     /// server.
+    ///
+    /// **A line that holds more than one media holds no ebook of its own**
+    /// (T-222). `selected_item_id` gives the **first book** of a line of a
+    /// series (T-91 and T-221), therefore the key `e` of the line
+    /// `The Test Chronicles [3 books]` of the sandbox opened the reader of
+    /// `The Test Chronicles Volume 1` with no word at all: the user asked for a
+    /// line of three books, and the program took one of them. The key of the
+    /// same line of a library of podcasts asked the server for the ebook of a
+    /// **podcast**, and the podcast holds its ebooks in no episode.
+    ///
+    /// **The key said nothing at all for a line that holds no media** (T-79).
+    /// It says now which line it needs.
     pub fn open_the_ebook(&mut self) {
-        let Some(item_id) = self.selected_item_id() else {
+        let of_this_line = match self.the_line_of_no_media() {
+            TheLineOfNoMedia::Nothing => self.selected_item_id(),
+            _ => None,
+        };
+
+        let Some(item_id) = of_this_line else {
+            crate::logic::message::say(
+                self.words_of_a_line_with_no_media("This line holds no book."),
+            );
             return;
         };
 
@@ -6960,6 +6995,15 @@ impl App {
             // series in one line (T-22).
             AppView::Library => match self.selected_library_row() {
                 Some(LibraryRow::Series { .. }) => TheLineOfNoMedia::ASeries,
+                _ => TheLineOfNoMedia::Nothing,
+            },
+            // **The Home view of a library of books holds a shelf of series
+            // too** (T-24 and T-222): the server gives the shelf
+            // `recent-series`, and each line of it holds every book of one
+            // series. A line of the Home view of a library of podcasts holds
+            // one episode, therefore it holds one media.
+            AppView::Home if !self.is_podcast => match self.selected_home_row() {
+                Some(HomeRow::Series { .. }) => TheLineOfNoMedia::ASeries,
                 _ => TheLineOfNoMedia::Nothing,
             },
             _ => TheLineOfNoMedia::Nothing,

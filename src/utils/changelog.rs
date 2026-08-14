@@ -41,6 +41,26 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.51",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key `e` and the key `V` of a line of a series did the work \
+             of the first book of that series.** A line of the Library view \
+             holds every book of one series, and the reader of the ebook and \
+             the view of the bookmarks took one book of it with no word at all. \
+             A line of a library of podcasts holds the episodes of one podcast, \
+             and the two keys asked the server for the ebook and for the \
+             bookmarks of the podcast. The two keys say what the line holds \
+             now, and they name the key `l` that opens it.",
+            "- **The line of a series of the Home view said that it holds no \
+             media.** The Home view of a library of books holds a shelf of the \
+             series, and the same line of the Library view said that it holds \
+             more than one book. The keys `D`, `X`, `n`, `m`, `@`, `M`, `N`, \
+             `e`, and `V` of that line name its books now.",
+        ],
+    },
+    Entry {
         version: "0.8.50",
         date: "14/08/2026",
         body: &[

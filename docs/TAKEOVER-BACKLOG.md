@@ -14414,6 +14414,130 @@ and 8 failures of 40 with it: **a gate that runs on a machine of nothing says le
 than a gate of a machine that works.** The question of the next session is whether
 every gate of this fork must run one time under the load of the machine.
 
+### T-222: the keys `e` and `V` of a line of more than one media read that line
+
+**The road of this item is the last paragraph of T-221**, which the session
+before it left open: "the other keys of a line of a podcast and of a line of a
+series are not measured", and "a line of a shelf of the Home view can hold a
+series". The measurement of those two sentences found **one** fault of three
+roads, and it found that the correction of T-221 said two different things about
+one line in two views.
+
+**Two keys of the program read `selected_item_id`**: the key `e` of the reader
+(T-10) and the key `V` of the bookmarks (T-24). That function gives the **first
+book** of a line of a series (T-91 and T-221), and the identity of the
+**podcast** of a line of a library of podcasts. Therefore the two keys did the
+work of one media for a line that holds many.
+
+**And the Home view holds a line of a series too.** The server gives the shelf
+`recent-series` of `GET /api/libraries/:id/personalized`, `group_home` makes a
+`HomeRow::Series` of each of its entities (T-24), and `the_line_of_no_media` of
+T-221 read `AppView::Library` alone.
+
+#### The measurement
+
+The sandbox, of v0.8.50, inside tmux. The line `The Test Chronicles [3 books]`
+of the Library view of the library `Books`, the line `Letters of Two Brides` of
+the Library view of the library `Podcasts`, and the line
+`Depthless Hunger, Book [1 book]` of the shelf `Recent Series` of the Home view
+of the library `Books`:
+
+| The view | The key | v0.8.50 | v0.8.51 |
+|---|---|---|---|
+| Library, a series | `e` | the reader of `5a66f3c0-…`, the **first book** of the series | `A series holds more than one book. Press l for its books.` |
+| Library, a series | `V` | the bookmarks of `The Test Chronicles Volume 1` | the same |
+| Library, a podcast | `e` | the reader asked the server for the ebook of the **podcast** | `A podcast holds more than one media. Press l for its episodes.` |
+| Library, a podcast | `V` | `"Letters of Two Brides" has no bookmark. Press b while it plays.` | the same |
+| Home, a series | `D`, `X`, `n` | `This line holds no media.` | `A series holds more than one book. Press l for its books.` |
+| Home, a series | `m` | `This line holds no book and no episode.` | the same |
+| Home, a series | `@` | `This line holds no book.` | the same |
+| Home, a series | `M` and `N` | `No media is selected.` | `A series holds no place. Press l for its books.` |
+| Home, a series | `e` | **no word of the screen, and no line of the log** | `A series holds more than one book. Press l for its books.` |
+| Home, a series | `V` | `No media plays, and no media is selected.` | the same |
+
+The line of the log of the key `e` of the series named the book that the user
+did not choose:
+
+```
+[WARN] - [reader] the answer of the item 5a66f3c0-7c4e-4dda-881e-622a6f505f9a
+names no size for the ebook None. The program counts no byte of the body.
+```
+
+That identity is `The Test Chronicles Volume 1`, and the line of the screen said
+`The Test Chronicles [3 books]`. **The user asked for a line of three books, and
+the program took one of them with no word at all.**
+
+The controls of the same run: the key `V` of the line `A Book Of Many Hours` of
+the same view opened `"A Book Of Many Hours" has no bookmark. Press b while it
+plays.`, the key `e` of that same line opened the reader, and the key `l` of the
+line of the podcast opened its 57 episodes. The lines of the log stood at 21
+before every key of the Home view and at 21 after them.
+
+**The words of the Home view named a reason that the program does not have**
+(T-91): the line of that view says `[1 book]` and `[3 books]` in the screen
+itself, and the program said that the line holds no media. **The same line of the
+Library view said `A series holds more than one book. Press l for its books.` in
+that same run**, therefore one line of one program held two answers.
+
+#### The correction
+
+`the_line_of_no_media` reads the Home view now: a `HomeRow::Series` of a library
+of books gives `TheLineOfNoMedia::ASeries`. A line of the Home view of a library
+of podcasts holds one episode, therefore that arm keeps the media type of the
+library in its guard.
+
+`open_the_ebook` and `show_the_bookmarks` each read `selected_item_id` **only
+for a line that holds one media**:
+
+```rust
+let of_this_line = match self.the_line_of_no_media() {
+    TheLineOfNoMedia::Nothing => self.selected_item_id(),
+    _ => None,
+};
+```
+
+The two keys then take the words of `words_of_a_line_with_no_media`, and each of
+them keeps its own sentence for a view that holds no line of a media: "This line
+holds no book." for the key `e`, which said nothing at all before (T-79), and
+"No media plays, and no media is selected." for the key `V`. **The key `V` reads
+the media that plays before every line**, therefore that check stays above the
+line of the user: a bookmark of a playback belongs to the media that plays
+(T-163).
+
+`tests/the_keys_of_a_line_of_more_than_one_media_read_that_line.rs` holds the
+rule. **It needs no sandbox and no server**: `App::new` takes a port that nothing
+listens on (T-25), and the two keys stop before every request. A build with the
+arm of the Home view removed fails at the state of the line of that view, a build
+with the guard of the key `e` removed fails at the key `e` of the series, and a
+build with the guard of the key `V` removed fails at the key `V` of it.
+
+#### What this item leaves open
+
+**A key that reads the state of the player and not the line of the user is no
+key of this shape** (T-222). The keys `b`, `F`, and `s` each read
+`self.player.state()` or `self.is_podcast` alone, therefore a line of more than
+one media reaches none of them. **The sweep of `selected_item_id` is closed**:
+its four callers are the key of the new episodes of a podcast (which wants the
+podcast), the reader, the bookmarks, and `the_line_of_no_media` itself.
+
+**The bookmarks of an episode of a podcast are not measured** (T-219 left it
+open, and it stays open). `selected_item_id` gives nothing for the view of the
+episodes, therefore the key `V` of an episode says "No media plays, and no media
+is selected." while that episode holds a place of its own (T-219): the question
+is whether `GET /api/me/item/:id/bookmarks` of Audiobookshelf names an episode
+at all.
+
+**A line of a shelf of the Home view can hold an author** (and it stays open):
+the shelf `newest-authors` gives an entity of a name with no media and no book,
+and `group_home` drops it. A shelf that gives no line gives no name, therefore no
+key of the user reaches such a line today; a session that gives the authors a
+line of the Home view makes a third line of more than one media.
+
+**The keys of a line of a series of the view `SeriesBook` and of the view of the
+lists are not measured against a line that holds more than one media** (and it
+stays open): a collection of Audiobookshelf holds books alone, and the question
+is whether a playlist can hold an episode of a podcast and a book together.
+
 ### T-221: a line that holds more than one media names the key that opens it
 
 **The road of this item is the last paragraph of T-219**, which the session

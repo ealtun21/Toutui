@@ -1,10 +1,11 @@
-# The handover of 2026-08-14
+# The handover of 2026-08-15
 
 This document is for the next session. It says what is done, what is open, and the
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.50.** The item T-221 belongs to this session. The
+**The newest release is v0.8.51.** The item T-222 belongs to this session. The
+item T-221 belongs to the session before it. The
 items T-219 and T-220 belong to the session before it. The item T-218 belongs to
 the session before it. The
 items T-216 and T-217 belong to the session before it.
@@ -58,13 +59,104 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.50**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.51**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1201 of 1201** in 2.5 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1227 of 1227** with the sandbox up in 17 seconds, and
-`cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in three
+**1202 of 1202** in 2.5 seconds with 26 skipped, and
+`cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in two
 runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the fifty-first turn of 2026-08-15: the keys of a line of more than one media
+
+**One release: v0.8.51**, and one item: T-222 of the keys `e` and `V` of a line
+that holds more than one media, and of the line of a series of the Home view.
+**The road of it is the last paragraph of T-221**, which the session before it
+left open: "the other keys of a line of a podcast and of a line of a series are
+not measured", and "a line of a shelf of the Home view can hold a series". The
+measurement of those two sentences found **one** fault of three roads, and it
+cost no harness of Python, no change of the source, and two libraries of the
+sandbox.
+
+### T-222: the keys `e` and `V` of a line of more than one media read that line
+
+**Two keys of the program read `selected_item_id`**: the key `e` of the reader
+(T-10) and the key `V` of the bookmarks (T-24). That function gives the **first
+book** of a line of a series (T-91 and T-221) and the identity of the **podcast**
+of a line of a library of podcasts, therefore the two keys did the work of one
+media for a line that holds many.
+
+The measurement of v0.8.50 inside tmux, of the line
+`The Test Chronicles [3 books]` of the Library view of the library `Books`: the
+key `e` opened the reader of the item `5a66f3c0-…`, and that item is
+`The Test Chronicles Volume 1`. The key `V` of that same line opened
+`"The Test Chronicles Volume 1" has no bookmark. Press b while it plays.`
+**The user asked for a line of three books, and the program took one of them with
+no word at all.** The two keys of the line `Letters of Two Brides` of the library
+`Podcasts` asked the server for the ebook and for the bookmarks of the
+**podcast**, and the words of the bookmarks named the key `b` of a playback that
+a podcast never has.
+
+**And the Home view holds a line of a series too.** The server gives the shelf
+`recent-series` of `GET /api/libraries/:id/personalized`, `group_home` makes a
+`HomeRow::Series` of each of its entities (T-24), and `the_line_of_no_media` of
+T-221 read `AppView::Library` alone: the line
+`Depthless Hunger, Book [1 book]` of the Home view said
+`This line holds no media.` for the keys `D`, `X`, and `n`, and
+`No media is selected.` for the keys `M` and `N`, while the same line of the
+Library view said `A series holds more than one book. Press l for its books.` in
+that same run. The key `e` of it wrote **no word of the screen and no line of the
+log**, and the log stood at 21 lines before every key and at 21 after them.
+
+**The correction.** `the_line_of_no_media` reads the Home view now: a
+`HomeRow::Series` of a library of books gives `TheLineOfNoMedia::ASeries`, and a
+line of the Home view of a library of podcasts holds one episode. `open_the_ebook`
+and `show_the_bookmarks` each read `selected_item_id` **only** for a line that
+holds one media, and they take the words of `words_of_a_line_with_no_media`. The
+key `V` reads the media that plays before every line, therefore that check stays
+above the line of the user (T-163).
+
+### The traps of this session
+
+**The trap 209: a test that reads the source with a window of a number of
+characters is a test of the comments of the function.** The words of the
+correction of T-222 took `self.bookmarks_of_name = name;` out of a window of 1500
+characters of `tests/the_view_of_the_bookmarks_holds_its_media.rs`, and the gate
+then said that the view of the bookmarks holds no name. **Ten windows of that
+shape stand in eight files of `tests/`**, and the road is the road of the first
+test of that same file: the block ends at the function after this one.
+
+**The trap 210: a key of a view of a media takes the user out of the view of the
+list.** The key `h` of the view of the bookmarks gave the **Home** view and not
+the Library view of the measurement, therefore the key after it stood on another
+line. A measurement of more than one key needs a control of the view
+(`the_screen | grep -q 'Library \['`) between two keys.
+
+### What this session leaves open
+
+**The bookmarks of an episode of a podcast are not measured** (T-219 and T-222).
+`selected_item_id` gives nothing for the view of the episodes, therefore the key
+`V` of an episode says "No media plays, and no media is selected." while that
+episode holds a place of its own: the question is whether
+`GET /api/me/item/:id/bookmarks` of Audiobookshelf names an episode at all.
+
+**A line of a shelf of the Home view can hold an author** (T-222). The shelf
+`newest-authors` gives an entity of a name with no media and no book, and
+`group_home` drops it: no key of the user reaches such a line today, and a
+session that gives the authors a line makes a third line of more than one media.
+
+**The keys of a line of the view `SeriesBook` and of the view of the lists are
+not measured against a line of more than one media** (T-222). A collection of
+Audiobookshelf holds books alone, and the question is whether a playlist can hold
+an episode of a podcast and a book together.
+
+**No test of the fork holds a rule of a host of a raw socket** (T-220, and it
+stays open). Thirteen files hold thirteen copies of the same twenty lines.
+
+**The five items of the sessions before this one stay open**: the bytes of a file
+that keeps its size, the write of the rows of a download that is no transaction
+(the eighth session that names it), the offline playback of a media whose copy is
+not whole, the label of a media that a second program of the account downloads
+now, and the column `name_selected_lib` that the program writes and never reads.
 
 ## The session of the fiftieth turn of 2026-08-14: a line that holds more than one media
 
@@ -7138,37 +7230,39 @@ answers slowly while it writes. Two answers to measure:
 ## The prompt for the next session
 
 **This session took the last paragraph of the newest item** (the rule of T-216
-and of T-217, and the cheapest item of a session). T-219 left open "a podcast of
-the Library view and of the view of the search takes no key `D` and no key `X`,
-and it says nothing at all", and the measurement of that paragraph found a
-**second** line of the same shape and a fault of the correction of T-219. The
-item is **T-221**, and it holds one release, v0.8.50.
+and of T-217, and the cheapest item of a session). T-221 left open "the other
+keys of a line of a podcast and of a line of a series are not measured" and "a
+line of a shelf of the Home view can hold a series", and the measurement of those
+two sentences found one fault of three roads. The item is **T-222**, and it holds
+one release, v0.8.51.
 
 Four things are worth the room:
 
-1. **A correction of one session is a measurement of the next one** (T-221).
-   T-219 read `selected_item_id().is_some()` for "this line holds a podcast", and
-   `selected_library_item` gives the **first book** of a line of a series: the
-   keys `M` and `N` of every series of every library of books then said "A
-   podcast holds no place. Press l for its episodes." **Ask of a correction:
-   which other line of the program reaches the road that it made?**
-2. **A test of a state must name that state, and not a value that follows it**
-   (T-221). The predicate of a podcast is the view and the media type of the
-   library, and the identity of an item is a value that a book of a series holds
-   too.
-3. **A key that says nothing and a key that says a wrong reason are one fault**
-   (T-79 and T-91), and the measurement of the first one is the key itself inside
-   tmux: the keys `D` and `X` reached no line of the log.
-4. **A line that holds more than one media is a shape and not a case** (T-221).
-   A podcast holds its episodes, and a line of the Library view holds the books
-   of one series: the two of them give nothing to `selected_download`, therefore
-   every key of one media meets them.
+1. **A correction of one session is a measurement of the next one** (T-221 and
+   T-222). T-221 gave the words of a line of more than one media to the Library
+   view, and the Home view holds that same line: the shelf `recent-series` of the
+   server makes a `HomeRow::Series`, and one line of one program then said two
+   different things in two views. **Ask of a correction: which other view of the
+   program holds the line that it names?**
+2. **A selector of a line is a sweep of its callers** (T-222). `selected_item_id`
+   gives the **first book** of a line of a series, and `grep` of it gave four
+   callers: two of them did the work of one media for a line that holds many, one
+   of them wants the podcast that it gets, and one of them is the predicate
+   itself.
+3. **A key that does the wrong work with no word is worse than a key that says
+   nothing** (T-79, T-91, and T-222). The key `e` of the line `The Test
+   Chronicles [3 books]` opened the reader of `The Test Chronicles Volume 1`, and
+   the log named that book: the user reads a book that they did not choose.
+4. **A test that reads the source with a window of characters is a test of the
+   comments** (T-222). The words of this correction took one line out of a window
+   of 1500 characters, and the gate said that the view of the bookmarks holds no
+   name. Ten windows of that shape stand in eight files of `tests/`.
 
-This prompt names the state of the program on 2026-08-15.
+This prompt names the state of the program on 2026-08-16.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.50**; `Cargo.toml` is at 0.8.50. The
+> AlbanDAVID/Toutui. Newest release **v0.8.51**; `Cargo.toml` is at 0.8.51. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -7177,7 +7271,7 @@ This prompt names the state of the program on 2026-08-15.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-221 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-222 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -7648,7 +7742,15 @@ This prompt names the state of the program on 2026-08-15.
 > control of the same run** (the trap 206): a key of the same line that speaks
 > says that the row of the message works, and a key of a **book** of the same
 > view says that the keys do their work. **The keys `k` of the end of a list are
-> cheaper than the keys `j` of its start** (the trap 207).
+> cheaper than the keys `j` of its start** (the trap 207). **A test that reads
+> the source with a window of a number of characters is a test of the comments of
+> that function** (the trap 209): the words of a correction take a line out of the
+> window, and the gate then says that the program lost a rule that it holds —
+> `tests/the_view_of_the_bookmarks_holds_its_media.rs` held one of ten such
+> windows of eight files, and the road is a block that ends at the function after
+> this one. **The key `h` of a view of a media gives the view before the list and
+> not the list** (the trap 210): a measurement of more than one key reads the
+> header of the screen between two of them.
 > **`gdb` and `eu-stack` say `Operation not permitted` for a program that they
 > did not start**, therefore a program that stands needs
 > `strace -f -tt -o <file>` inside tmux (the trap 136). **A mark of a hook of a
@@ -7779,34 +7881,62 @@ This prompt names the state of the program on 2026-08-15.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in sixty-three sessions of sixty-four. **The session
->    of the fiftieth turn took the last paragraph of the newest item, and that
->    paragraph gave two lines of the program and a fault of the correction before
->    it** (T-221).
+>    this shape found a fault in sixty-four sessions of sixty-five. **The session
+>    of the fifty-first turn took the last paragraph of the newest item, and that
+>    paragraph named two keys and one view** (T-222).
 >
->    A podcast of the Library view and of the view of the search holds its
->    episodes (T-126), and a line of the Library view holds every book of one
->    series (T-22): `selected_download` and `selected_place` give nothing for the
->    two of them. The keys `D` and `X` of such a line wrote **no word of the
->    screen and no line of the log** (T-79), and the keys `M` and `N` of a line of
->    a **series of a library of books** said "A podcast holds no place. Press l
->    for its episodes." — the correction of T-219 read
->    `selected_item_id().is_some()`, and `selected_library_item` gives the first
->    book of a line of a series (T-91).
->    - **A correction of one session is a measurement of the next one** (T-221).
->      **Ask of a correction: which other line of the program reaches the road
->      that it made?**
+>    The keys `e` of the reader and `V` of the bookmarks read `selected_item_id`,
+>    and that function gives the **first book** of a line of a series (T-91 and
+>    T-221) and the identity of the **podcast** of a line of a library of
+>    podcasts. The key `e` of the line `The Test Chronicles [3 books]` of the
+>    sandbox opened the reader of `The Test Chronicles Volume 1` with no word at
+>    all, and the key `V` of it opened the bookmarks of that same book. **And the
+>    Home view holds a line of a series too**: the shelf `recent-series` gives a
+>    `HomeRow::Series`, `the_line_of_no_media` of T-221 read `AppView::Library`
+>    alone, and the same line therefore said `This line holds no media.` in one
+>    view and `A series holds more than one book. Press l for its books.` in the
+>    other one.
+>    - **A correction of one session is a measurement of the next one** (T-221
+>      and T-222). T-221 gave the words of a line of more than one media to the
+>      Library view, and the Home view holds the same line. **Ask of a
+>      correction: which other view of the program holds the line that it
+>      names?**
+>    - **A sweep of one function of `src/` is cheaper than a sweep of one line of
+>      code** (T-222). `grep -n 'selected_item_id()'` gave four callers, and two
+>      of them held the fault: the fourth one is `the_line_of_no_media` itself,
+>      and the first one wants the podcast that it gets. **Ask of a selector of a
+>      line: which callers read it, and does each of them need one media?**
+>    - **A key that reads the state of the player is no key of this shape**
+>      (T-222). The keys `b`, `F`, and `s` read `self.player.state()` or
+>      `self.is_podcast` alone, therefore a line of more than one media reaches
+>      none of them: the sweep of the keys of such a line is closed.
+>    - **A window of a number of characters is a test of the comments of a
+>      function** (T-222, and it stays open). The words of the correction of this
+>      item took one line out of a window of 1500 characters of
+>      `tests/the_view_of_the_bookmarks_holds_its_media.rs`, and the gate then
+>      said that the view holds no name. **Ten windows of that shape stand in eight files of
+>      `tests/`**, and each of them can fail for a comment.
+>    - **The bookmarks of an episode of a podcast are not measured** (T-219 and
+>      T-222, and it stays open): the key `V` of an episode says "No media plays,
+>      and no media is selected." while that episode holds a place of its own,
+>      and `GET /api/me/item/:id/bookmarks` names no episode.
+>    - **A line of a shelf of the Home view can hold an author** (T-222, and it
+>      stays open): the shelf `newest-authors` gives an entity with no media and
+>      no book, and `group_home` drops it. A session that gives the authors a
+>      line makes a third line of more than one media.
+>
+>    **The session of the fiftieth turn took the same road**: a podcast of the
+>    Library view and of the view of the search holds its episodes (T-126), and a
+>    line of the Library view holds every book of one series (T-22). The keys `D`
+>    and `X` of such a line wrote **no word of the screen and no line of the log**
+>    (T-79), and the keys `M` and `N` of a line of a **series of a library of
+>    books** said "A podcast holds no place. Press l for its episodes." — the
+>    correction of T-219 read `selected_item_id().is_some()`, and
+>    `selected_library_item` gives the first book of a line of a series (T-91).
 >    - **A test of a state must name that state, and not a value that follows
 >      it** (T-221). The predicate of a podcast is the view and the media type of
 >      the library, and the identity of an item is a value that a book of a series
 >      holds too.
->    - **The other keys of a line of a podcast and of a line of a series are not
->      measured** (T-221, and it stays open): the key `b` of a bookmark, the key
->      `e` of the reader, the key `s` of the series of a media, and the key `F` of
->      the place of the playback.
->    - **A line of a shelf of the Home view can hold a series** (T-221, and it
->      stays open): the server gives a shelf of the type `series`, and
->      `selected_download` of the Home view gives one identity of one item.
 >
 >    **The session of the forty-ninth turn took the same road**: the keys `M` and
 >    `N` of an episode of a podcast asked for the address of the place of the
@@ -8717,7 +8847,10 @@ This prompt names the state of the program on 2026-08-15.
 > names the key that opens it: a podcast of the Library view and of the view of
 > the search names the key of its episodes, a line of a series of the Library
 > view names the key of its books, and the keys `D`, `X`, `n`, `m`, `@`, `M`, and
-> `N` of such a line say it** (T-221).
+> `N` of such a line say it** (T-221), and **the keys `e` and `V` of such a line
+> read that line: the reader and the bookmarks take no first book of a series and
+> no podcast of its episodes, and the Home view of a library of books holds a
+> line of a series too** (T-222).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
