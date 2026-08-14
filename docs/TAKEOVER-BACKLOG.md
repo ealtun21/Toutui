@@ -8632,6 +8632,191 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-214: the removal of a download that the disk took by half
+
+**The item before this one named the road in its last paragraph**, and this one
+took it (the rule of T-195, of T-209, and of T-211): "the removals of the rows of
+a download stand after the files of the user are whole, and the shape of T-211, of
+T-212, and of this item does not measure them yet".
+
+**The shape of this item is one function of two statements.** T-213 asked which
+column of a row a condition can take away alone; this one asks it of a **table**:
+a download stands in `downloads` with one row of the media, and in
+`download_files` with one row of each file of it. `delete_download` held two
+statements of `DELETE` and **no transaction**, therefore rusqlite wrote each of
+them of its own: a disk that refused the second one kept the first one.
+
+#### The condition
+
+**A trigger of SQLite fails one statement of one table, and every other read and
+write of the program answers** (the trap 183 of T-213). The condition of this item
+needs no proxy of Python and no second program:
+
+```bash
+sqlite3 "$DB" "CREATE TRIGGER the_disk_takes_no_row_of_a_file \
+    BEFORE DELETE ON download_files \
+    BEGIN SELECT RAISE(ABORT, 'the disk takes no removal of the row of a file'); END;"
+sqlite3 "$DB" "DROP TRIGGER the_disk_takes_no_row_of_a_file;"
+```
+
+The `chmod 444` of T-206 and the lock of T-199 each stop the **two** statements
+together, and the `ALTER TABLE` of T-203 and of T-212 takes a whole table away
+from every function of the program: each of them therefore hid this road.
+
+#### The measurement of 2026-08-14, of the real program of the sandbox
+
+The book `The Test Chronicles Volume 3`, a download of 24648 bytes, and the key
+`X` of the view of the series:
+
+```text
+20:28:33 [ERROR] [remove_download] the 24648 bytes of the download 040e9d69-… went away, and its rows of the database stay: the disk takes no removal of the row of a file
+```
+
+```text
+   The program removed the files of "The Test Chronicles Volume 3". Its database
+   keeps the rows of that download. Press X again.
+```
+
+`SELECT COUNT(*) FROM downloads` said **0**, and
+`SELECT COUNT(*) FROM download_files` said **1**. **The words named the rows of
+that download, and one of the two went away.**
+
+**The key `X` again then said that the media holds nothing at all**:
+
+```text
+   "The Test Chronicles Volume 3" holds no local copy and no ebook.
+```
+
+`remove_download` reads the row of `downloads` to find its work, therefore the row
+of the file stayed for ever: **the program contradicted itself in two seconds**,
+which is the shape of T-206.
+
+**The row that stayed took the disk of a media that holds no file.**
+`select_sources` reads `download_files` alone, and it asks no file system whether
+those paths stand: every playback of that book after the removal took the road of
+the disk.
+
+```text
+20:28:59 [INFO] [play] the download 040e9d69-… gives 1 of 1 track(s) from the disk
+20:28:59 [ERROR] [worker] the engine cannot start the book: The application cannot open the file: No such file or directory (os error 2)
+20:28:59 [INFO] [play] no decoder of the program reads book.mp3. The program asks the server for a stream of the whole media.
+```
+
+**The words of that road name a fault that the program does not have** (T-91): no
+decoder of the program met that file, because no file stood there. The program
+then asked the server for a stream of HLS of the whole media, and the file of the
+server stood beside it.
+
+#### The second road: the rollback of the rows of a download
+
+**A download whose rows the database refused goes away with a removal** (T-200),
+and `download_item` held `let _ = delete_download(…)`: a disk that refuses that
+removal too leaves the row of the media with no row of a file, because
+`insert_download` writes the row of the media first. Two triggers give that
+condition, and the key `D` is the measurement:
+
+```bash
+sqlite3 "$DB" "CREATE TRIGGER the_disk_takes_no_row_of_a_file \
+    BEFORE INSERT ON download_files BEGIN SELECT RAISE(ABORT, 'the disk takes no row of a file'); END;"
+sqlite3 "$DB" "CREATE TRIGGER the_disk_takes_no_removal \
+    BEFORE DELETE ON downloads BEGIN SELECT RAISE(ABORT, 'the disk takes no removal of the row of a download'); END;"
+```
+
+```text
+20:32:22 [ERROR] [download_item] the database did not take the download "The Test Chronicles Volume 3": the row of the file 1: the disk takes no row of a file
+```
+
+**One line, and no word of the removal that the disk refused.** `downloads` held
+**1** row, `download_files` held **0**, and the file of the book stood on the
+disk. The offline mode of T-25, with `podman stop -t 0 abs-test`, then held that
+media at the head of its Library view:
+
+```text
+📴 Offline as toutuitest                    📴 Offline: the media on the disk
+───────────────────────── Library [4 items] ─────────────────────────
+➤     The Test Chronicles Volume 3
+Author: Series Author - Year: N/A - [Downloaded]
+This media plays from the disk. The server does not answer.
+```
+
+and the key `l` of that line said:
+
+```text
+   The server does not answer, and the disk has no audio file of this media.
+```
+
+```text
+20:33:48 [ERROR] [play] the disk has no audio file of 040e9d69-1211-44fb-ad29-3ece26936d91
+```
+
+**The label said that the media stands on the disk, the line said that it plays
+from the disk, and the key of the playback said that no file of it stands there.**
+
+#### The correction
+
+**The rows of a download go away together, or they stay together.** The two
+statements of `delete_download` stand in one transaction of rusqlite now: a disk
+that refuses one of them keeps every row, the sentence "Press X again" is then
+true, and the key `X` again does the work.
+
+`download_item` reads the answer of its rollback, and a removal that the disk
+refused takes a line of the log and a sentence of its own:
+
+```text
+   The database of the program keeps a part of the download of "The Test
+   Chronicles Volume 3". That media has no copy on the disk. Press the key D
+   again.
+```
+
+```text
+20:37:53 [ERROR] [download_item] the rows of the download "…" stay on the disk: the disk takes no removal of the row of a download. That media holds no file of the disk, and the key D writes its rows again.
+```
+
+| the condition | v0.8.43 | v0.8.44 |
+|---|---|---|
+| the key `X`, the disk refuses the row of a file | `downloads` 0, `download_files` 1 | 1 and 1, and the words of "Press X again" are true |
+| the key `X` again, of the disk of the start | "holds no local copy and no ebook" | "Removed the local copy of …", and 0 and 0 |
+| a playback of that media after the removal | one track of the disk that no file holds | the media stands whole, or it stands in no row |
+| the rollback of a download, the disk refuses it | one line of the write, and no word | the line of the removal, and a sentence of the screen |
+
+`tests/the_removal_of_a_download_that_the_disk_took_by_half.rs` holds the two
+roads in one function (T-144 and T-157), and it needs no sandbox: the triggers of
+SQLite give the disk that refuses one statement, and `wiremock` gives the book of
+the key `D`.
+
+#### What this item leaves open
+
+**The write of the rows of a download is no transaction.**
+`the_rows_of_the_download` writes the row of the media, then one row of each file,
+then the removal of the rows of the files that the book no longer holds (T-187):
+each of them stands on a connection of its own. The rollback is the answer of the
+fork today, and a write of one transaction needs one function of `src/db/crud.rs`
+that holds the three of them. **The question is whether a download of a book of
+many files can leave a half state that the rollback does not reach.**
+
+**`select_sources` asks no file system.** A row of `download_files` whose file
+went away gives `TrackSource::Local` of a path that no file holds, and the words
+of that road say "no decoder of the program reads …". A user who removes a file of
+the directory of the downloads by hand makes that condition with no fault of the
+database at all, and **no measurement has reached it**: the question is whether the
+program must read the disk at the moment of the use (T-142) or say the fault of the
+file that went away.
+
+**The mark of the end of an offline playback needs no measurement of the loop.**
+The last paragraph of T-213 asked for it: `follow_playback_offline` writes
+`pending_progress` at each second with the mark of that second, **and it writes the
+mark of the end at the stop of the playback** — the `remember_progress` of its last
+block gives `finished` of the engine, and the caller reads the answer of that write
+(T-212). The flush then sends the mark with the place, as it does for the playback
+of the server (T-213). **What stays open is the place of that mark while the
+program lives**: an offline playback opens no session of the server, therefore no
+row of `listening_session` holds it, and a program that dies at the second of the
+end writes the mark of the second before it.
+
+**The calls of the database of the loop of the playback stand on a thread of the
+runtime**, and the freeze of the loop of the screen stays: it is the eleventh
+session that names it.
+
 ### T-213: the mark of the end of a media that the disk refused went away with no word
 
 **The item before this one named the road in its last paragraph**, and this one

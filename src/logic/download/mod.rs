@@ -241,12 +241,43 @@ pub async fn download_with_progress(
                     title, why
                 );
 
-                let _ = delete_download(&plan.key, &username);
+                // **A removal that the disk refused is no removal** (T-207 and
+                // T-211), and this one gives the rows of the download back to
+                // one shape or to the other: `insert_download` wrote the row of
+                // the media before the rows of the files, therefore a rollback
+                // that the disk refused leaves a media of the disk that holds no
+                // file at all.
+                //
+                // A measurement of 2026-08-14 with two triggers of SQLite
+                // (T-213), one of the write of a row of a file and one of the
+                // removal of the row of the media: `downloads` held **1** row,
+                // `download_files` held **0**, the file of the book stood on the
+                // disk, and the log said one line of the write alone. The offline
+                // mode of T-25 then said "This media plays from the disk" with
+                // the label `[Downloaded]`, and the key `l` of that line said
+                // "the disk has no audio file of this media". See T-214.
+                let of_the_rollback = delete_download(&plan.key, &username);
                 crate::logic::the_copies_of_the_disk::read_the_disk(&username);
 
-                crate::logic::message::say(
-                    &the_words_of_a_download_that_the_database_did_not_take(&title),
-                );
+                match of_the_rollback {
+                    Ok(()) => {
+                        crate::logic::message::say(
+                            &the_words_of_a_download_that_the_database_did_not_take(&title),
+                        );
+                    }
+                    Err(fault) => {
+                        error!(
+                            "[download_item] the rows of the download \"{}\" stay on the disk: {}. \
+                             That media holds no file of the disk, and the key D writes its rows \
+                             again.",
+                            title, fault
+                        );
+
+                        crate::logic::message::say(&the_words_of_a_download_whose_rows_stay(
+                            &title,
+                        ));
+                    }
+                }
 
                 return;
             }
@@ -720,6 +751,24 @@ pub fn the_words_of_a_download_that_the_database_did_not_take(title: &str) -> St
     format!(
         "The database of the program did not take the download of \"{}\". Stop a second Toutui, \
          and press the key D again.",
+        title
+    )
+}
+
+/// The words of a download whose rows the database keeps. See T-214.
+///
+/// **The rows of a download come together, or they stay together** (T-200). The
+/// rows of the files of a download that the database refused go away with the row
+/// of its media, and a disk that refuses that removal too leaves a media that
+/// holds no file: the offline mode of T-25 then shows that media with the label
+/// `[Downloaded]`, and the playback of it finds no file of the disk.
+///
+/// **The sentence names the key that does the work of the fault** (T-170 and
+/// T-183): the key `D` writes every row of that download again.
+pub fn the_words_of_a_download_whose_rows_stay(title: &str) -> String {
+    format!(
+        "The database of the program keeps a part of the download of \"{}\". That media has no \
+         copy on the disk. Press the key D again.",
         title
     )
 }

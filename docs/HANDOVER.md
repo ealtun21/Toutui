@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.43.** The item T-213 belongs to this session. The
+**The newest release is v0.8.44.** The item T-214 belongs to this session. The
+item T-213 belongs to the session before it. The
 item T-212 belongs to the session before it. The
 item T-211 belongs to the session before it. The
 item T-210 belongs to the session before it. The
@@ -53,11 +54,122 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.43**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.44**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1194 of 1194** in 2.5 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1220 of 1220** with the sandbox up, and
+**1195 of 1195** in 2.5 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1221 of 1221** with the sandbox up, and
 `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in two runs.
+
+## The session of the forty-sixth turn of 2026-08-14: the removal of a download that the disk took by half
+
+**One release: v0.8.44.** The session before this one named the road in its last
+paragraph — "the removals of the rows of a download stand after the files of the
+user are whole, and the shape of T-211, of T-212, and of T-213 does not measure
+them yet" — and this one took it. **The last paragraph of the newest item is the
+cheapest item of a session** (the rule of T-195, of T-209, of T-211, and of
+T-213).
+
+**The item is T-214**, and its condition holds one trigger and no proxy at all:
+
+```bash
+sqlite3 "$DB" "CREATE TRIGGER the_disk_takes_no_row_of_a_file \
+    BEFORE DELETE ON download_files \
+    BEGIN SELECT RAISE(ABORT, 'the disk takes no removal of the row of a file'); END;"
+```
+
+**A function of two statements is a function of two halves.** T-213 asked which
+**column** of a row a condition can take away alone; this one asks it of a
+**table**: a download stands in `downloads` with the row of its media and in
+`download_files` with one row of each file, and `delete_download` held two
+statements of `DELETE` and **no transaction**. rusqlite writes each statement of
+its own, therefore a disk that refused the second one kept the first one.
+
+**The measurement of the real program of the sandbox**, of the key `X` of
+`The Test Chronicles Volume 3`, a download of 24648 bytes:
+
+```text
+20:28:33 [ERROR] [remove_download] the 24648 bytes of the download 040e9d69-… went away, and its rows of the database stay: the disk takes no removal of the row of a file
+```
+
+```text
+   The program removed the files of "The Test Chronicles Volume 3". Its database
+   keeps the rows of that download. Press X again.
+```
+
+`downloads` held **0** rows and `download_files` held **1**: the words named the
+rows of that download, and one of the two went away. **The key `X` again then said
+`"The Test Chronicles Volume 3" holds no local copy and no ebook.`**, because
+`remove_download` reads the row of `downloads` to find its work — the row of the
+file stayed for ever, and the program contradicted itself in two seconds (the
+shape of T-206). **`select_sources` reads that table alone**, therefore every
+playback of that book after the removal took the road of the disk for a file that
+went away, and the words of it said "no decoder of the program reads book.mp3"
+(T-91).
+
+**The second road is the rollback of the rows of a download.** A download whose
+rows the database refused goes away with a removal (T-200), and `download_item`
+held `let _ = delete_download(…)`: two triggers, one of `INSERT` on
+`download_files` and one of `DELETE` on `downloads`, gave a row of a media with no
+row of a file, one line of the log of the write alone, and the file of the book on
+the disk. The offline mode of T-25 then held that media at the head of its Library
+view with the label `[Downloaded]` and the line "This media plays from the disk",
+and the key `l` of it said "The server does not answer, and the disk has no audio
+file of this media".
+
+**The correction.** The two statements of `delete_download` stand in one
+transaction: a disk that refuses one of them keeps every row, the sentence "Press X
+again" is then true, and the second press of the key gave "Removed the local copy
+of …" with 0 rows and 0 rows. `download_item` reads the answer of its rollback, and
+a removal that the disk refused says the fault:
+
+```text
+   The database of the program keeps a part of the download of "The Test
+   Chronicles Volume 3". That media has no copy on the disk. Press the key D
+   again.
+```
+
+`tests/the_removal_of_a_download_that_the_disk_took_by_half.rs` holds the two
+roads in one function (T-144 and T-157), and it needs no sandbox: the triggers give
+the disk that refuses one statement, and `wiremock` gives the book of the key `D`.
+
+### The traps of this session
+
+**The trap 188: the key `X` of the view of a search reaches no book of a series.**
+`selected_download` of `AppView::SearchBook` asks `ids_library` for the identity of
+the row, and the Library view holds a series as **one** row: a search that found a
+book of a series therefore gives `None`, and the key `X` and the key `D` do nothing
+at all with no word. The measurement of this session took the road of the key `s`,
+the series, and the key `l` of it. **That is a fault of the shape of T-79, and no
+item holds it yet.**
+
+**The trap 189: a trigger of `BEFORE INSERT` reaches `INSERT OR REPLACE` too.**
+`insert_download_file` writes with `INSERT OR REPLACE`, and the trigger of the
+write of a row of a file fails it. A condition of the write of the rows of a
+download therefore needs one trigger, and the rollback of that write needs a
+second one of `BEFORE DELETE` on the other table.
+
+### What this session leaves open
+
+**The write of the rows of a download is no transaction.**
+`the_rows_of_the_download` writes the row of the media, then one row of each file,
+then the removal of the rows of the files that the book no longer holds (T-187):
+each of them stands on a connection of its own, and the rollback is the answer of
+the fork today. **The question is whether a book of many files can leave a half
+state that the rollback does not reach.**
+
+**`select_sources` asks no file system.** A row of `download_files` whose file went
+away gives `TrackSource::Local` of a path that no file holds. A user who removes a
+file of the directory of the downloads by hand makes that condition with no fault
+of the database at all, and no measurement has reached it: the question is whether
+the program reads the disk at the moment of the use (T-142) or says the fault of
+the file that went away.
+
+**The key `X` of the view of a search of a book of a series does nothing** (the
+trap 188), and the key `D` of that same line does nothing too.
+
+**The calls of the database of the loop of the playback stand on a thread of the
+runtime**, and the freeze of the loop of the screen stays: it is the eleventh
+session that names it.
 
 ## The session of the forty-fifth turn of 2026-08-14: the mark of the end of a media that the disk refused
 
@@ -6501,68 +6613,52 @@ answers slowly while it writes. Two answers to measure:
 - **The sessions can run in a loop.** The driver is `~/.local/bin/toutui-loop`,
   outside this repository, and its design is
   `docs/superpowers/specs/2026-08-13-session-loop-design.md`. It reads the block of
-  the quote of `## The prompt for the next session`, therefore **that block must stay
-  the last part of this file, and every line of it must start with `> `**. A session
-  that writes a handover with no such block stops the loop. **The name of that
-  heading stands in this bullet too**, therefore a tool that splits this file on
-  the first hit of that text cuts the bullet and not the heading: split on the
-  **last** hit of it.
+  the quote of `## The prompt for the next session
 
-## The prompt for the next session
+**This session took the last paragraph of the newest item**: T-213 named the
+removals of the rows of a download, and the shape of T-211, of T-212, and of
+T-213 had not measured them. The item is **T-214**, and it holds one release,
+v0.8.44.
 
-**This session took the last paragraph of the newest item**: T-212 named the write
-of the mark of the end of a media (`update_is_finished` of `follow_playback`, with
-`let _ =`), and no measurement had reached it. The item is **T-213**, and it holds
-one release, v0.8.43.
+**A function of two statements is a function of two halves.** T-213 asked which
+column of a row a condition can take away alone; this one asked it of a **table**:
+`delete_download` held two statements of `DELETE` of two tables and **no
+transaction**, therefore a disk that refused the second one kept the first one.
+Four things are worth the room:
 
-**A row of the disk holds more than two halves.** T-206 asked which two things a
-condition takes away at one time; a row of `listening_session` holds the place of
-the user, the length of the media, and the mark of its end, and the three of them
-come of three different writes. A trigger `BEFORE UPDATE OF <the column>` fails one
-of those writes and nothing else. Four things are worth the room:
+1. **A trigger of SQLite fails one statement of one table** (T-214). The
+   `chmod 444` of T-206 and the lock of T-199 stop every statement of a function
+   together, and the `ALTER TABLE` of T-203 takes the table away from every
+   function of the program: a trigger of `BEFORE DELETE ON <a table>` fails one
+   statement of one function, and every other read and write answers. **Ask of
+   every function of the database: how many statements does it hold, and do they
+   stand in one transaction?**
+2. **A read that decides the work of a key reads one table of the two** (T-214).
+   `remove_download` reads the row of `downloads` to find its work, therefore a
+   half state made the key `X` say that the media holds no local copy while the
+   row of its file stood on the disk for ever. **The program contradicted itself
+   in two seconds** (the shape of T-206).
+3. **A row of the disk that names a file of the disk is a value of two
+   machines** (T-214). `select_sources` reads `download_files` and it asks no
+   file system, therefore a row that stayed took the road of the disk for a file
+   that went away, and the words of that road named a decoder that met no file
+   (T-91).
+4. **A rollback is a write, and a write that no caller reads said nothing**
+   (T-207 and T-214). The rollback of the rows of a download held `let _ =`: a
+   disk that refused it left a media of the offline mode with the label
+   `[Downloaded]` and no file at all.
 
-1. **A column of the disk that takes no write is a trigger of SQLite** (T-213).
-   Ask of a row of the disk: which writes fill it, and can I take one of them
-   alone?
-2. **A fault of the user needs the rule of the machine that the value reaches**
-   (T-213). The server marks a media finished by its own arithmetic inside the last
-   ten seconds of it, therefore the first form of that measurement measured nothing
-   at all.
-3. **A value of the disk that this program holds in its memory too is a value of
-   two roads** (T-213). The fault of the row reached the user through the **next**
-   program of the account alone.
-4. **The words of a fault of that weight belong to the screen and to the log**
-   (T-213). A book that the user finished and that no machine holds as finished is
-   a fact of the user, and a line of the log alone is not enough for it.
-
-**The condition needs no moment, and no harness of Python.** Every measurement of
-a fault of the database since T-199 took the whole file away: the lock of
-`hold_the_lock.py` and a file that holds no database each stop the read and the
-write **together**. `chmod 444` of the file of the database takes one half alone:
-SQLite opens the file for a read, every `SELECT` answers, and every `INSERT`
-gives `attempt to write a readonly database`. Four things are worth the room:
-
-1. **A condition of two halves needs a harness that takes one half away**
-   (T-206). Ask of a resource of the program: which two things does my condition
-   take away at one time, and can I take one of them alone?
-2. **A caller that reads no answer of its write says the work that it did not
-   do** (T-206). The key `n` said that the media is number 1 of the queue and the
-   disk held 0 rows, and the key `q` of that same sentence then said that the
-   queue is empty: **the program contradicted itself in two seconds.**
-3. **A key that reads the row that it wrote gives the value of before** (T-206).
-   The keys `O` and `I` of the speed said nothing at all, changed nothing, and
-   wrote no line of the log. **No sweep of the words for the user finds such a
-   key**, because the words of it do not exist.
-4. **A change of the disk that the disk did not take is no change** (T-206). The
-   disk is the truth of the queue (T-147), therefore the queue of the process
-   goes back to the queue of the disk, and the sentence of the key names the read
-   or the write (T-91) and the key of the view that the user sees (T-183).
+**The condition needs no proxy of Python, and no moment.** A trigger of SQLite
+gives the disk that refuses one statement of one table, and one command gives the
+disk of the start back. **The trigger stays after the measurement** (the trap 179
+and the trap 183), therefore the `DROP TRIGGER` belongs in the same command as the
+measurement.
 
 This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.43**; `Cargo.toml` is at 0.8.43. The
+> AlbanDAVID/Toutui. Newest release **v0.8.44**; `Cargo.toml` is at 0.8.44. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -6571,7 +6667,7 @@ This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-213 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-214 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -6901,7 +6997,20 @@ This prompt names the state of the program on 2026-08-14.
 > `BEFORE UPDATE OF <the column>` fails the statement that names that column in its
 > `SET`, and every other read and every other write of the program answers. **The
 > trigger stays after the measurement** (the trap 179 for a `chmod`), therefore the
-> `DROP TRIGGER` belongs in the same command as the measurement. **The address of
+> `DROP TRIGGER` belongs in the same command as the measurement. **A trigger of
+> `BEFORE DELETE ON <a table>` and one of `BEFORE INSERT ON <a table>` do the same
+> work for one statement of one function** (T-214): `delete_download` held two
+> statements of `DELETE` of two tables, and a trigger of the second table gave a
+> download of the row of its files alone. A trigger of `BEFORE INSERT` reaches
+> `INSERT OR REPLACE` too (the trap 189), therefore two triggers give the write of
+> the rows of a download and the rollback of that write:
+>
+> ```bash
+> sqlite3 "$DB" "CREATE TRIGGER the_disk_takes_no_row_of_a_file \
+>     BEFORE DELETE ON download_files \
+>     BEGIN SELECT RAISE(ABORT, 'the disk takes no removal of the row of a file'); END;"
+> ```
+> **The address of
 > the account must stay at the proxy for a measurement of two programs**:
 > `get_the_sessions_to_close` reads the rows of one account **and of one server**,
 > therefore an account that goes back to the sandbox hides the row that the first
@@ -7044,10 +7153,44 @@ This prompt names the state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in fifty-eight sessions of fifty-nine. **The session
->    of the forty-fifth turn took the last paragraph of the newest item, and it
->    found that a column of one row of the disk is a condition of its own**
->    (T-213): the loop of a playback wrote the mark of the end of a media with
+>    this shape found a fault in fifty-nine sessions of sixty. **The session of the
+>    forty-sixth turn took the last paragraph of the newest item, and it found that
+>    a function of two statements of two tables is a function of two halves**
+>    (T-214): `delete_download` held no transaction, therefore a disk that refused
+>    the removal of the rows of the files of a download kept the row of its media
+>    away and the rows of its files on the disk. The key `X` again then said that
+>    the media holds no local copy, and every playback of it took the road of the
+>    disk for a file that went away.
+>    - **A trigger of SQLite fails one statement of one function** (T-214). The
+>      `chmod 444` of T-206 and the lock of T-199 stop every statement of a
+>      function together, and the `ALTER TABLE` of T-203 takes the table away from
+>      every function of the program. **Ask of every function of the database: how
+>      many statements does it hold, and do they stand in one transaction?**
+>    - **A read that decides the work of a key reads one table of the two**
+>      (T-214). `remove_download` reads the row of `downloads` to find its work,
+>      therefore a half state of the two tables made the key `X` say that the media
+>      holds nothing while the row of its file stood on the disk for ever.
+>    - **A row of the disk that names a file of the disk is a value of two
+>      machines** (T-214). `select_sources` reads `download_files` and it asks no
+>      file system: a row that stayed gave `TrackSource::Local` of a path that no
+>      file holds, and the words of that road named a decoder that met no file
+>      (T-91). **That road stays open for a file that the user removes by hand.**
+>    - **A rollback is a write** (T-207 and T-214). The rollback of the rows of a
+>      download held `let _ =`: a disk that refused it left a media of the offline
+>      mode with the label `[Downloaded]` and no file of the disk at all, with no
+>      word for the user and no line of the log.
+>    - **The write of the rows of a download is no transaction** (T-214, and it
+>      stays open). `the_rows_of_the_download` writes the row of the media, then one
+>      row of each file, then the removal of the rows of the files that the book no
+>      longer holds (T-187), and each of them stands on a connection of its own:
+>      the question is whether a book of many files can leave a half state that the
+>      rollback does not reach.
+>    - **The key `X` and the key `D` of a book of a series of the view of a search
+>      do nothing at all** (the trap 188, and it stays open).
+>      `selected_download` asks `ids_library` for the row, and the Library view
+>      holds a series as one row. That is the shape of T-79, and no item holds it.
+>    - **The session of the forty-fifth turn found that a column of one row of the
+>      disk is a condition of its own** (T-213): the loop of a playback wrote the mark of the end of a media with
 >    `let _ =`, and a disk that refused that one write gave the next program of the
 >    account a book that the user finished and that the row of it says is not
 >    finished.
@@ -7074,20 +7217,22 @@ This prompt names the state of the program on 2026-08-14.
 >      user only through the **next** program of the account. **Ask of a value of
 >      the disk: which program reads it, and does this program need the disk to
 >      read it at all?**
->    - **The mark of the end of an offline playback is not measured** (T-213, and
->      it stays open). The loop of `follow_playback_offline` writes
->      `pending_progress` at each second with the mark of that second, and no line
->      of it writes the mark of the end: the question is whether a media of the disk
->      that comes to its end ever reaches the server as a media that the user
->      finished.
+>    - **The mark of the end of an offline playback needs no measurement of the
+>      loop** (T-213, and T-214 read it in the source). The loop of
+>      `follow_playback_offline` writes `pending_progress` at each second with the
+>      mark of that second, **and it writes the mark of the end at the stop of the
+>      playback**: the `remember_progress` of its last block gives `finished` of the
+>      engine, and the caller reads the answer of that write (T-212). **What stays
+>      open is the place of that mark while the program lives**: an offline playback
+>      opens no session of the server, therefore a program that dies at the second
+>      of the end writes the mark of the second before it.
 >    - **A column that the program writes and that no line of `src/` reads is a
 >      question of its own** (T-213, and it stays open). `update_elapsed_time`
 >      writes `elapsed_time` of `listening_session` at each sync, and no line
 >      outside the module of the database reads it. That is the rule of T-201 in the
 >      other direction.
->    - **The removals of the rows of a download stand after the files of the user
->      are whole**, and the shape of T-211, of T-212, and of T-213 does not measure
->      them yet.
+>    - **The removals of the rows of a download hold their own item now** (T-214),
+>      and the writes of them stay open.
 >    - The session before it took the other half of the shape of T-211: **a call of
 >      the database that stands after a request of the server that failed** (T-212).
 >      A place that reached no machine went away with the row that held it, and the
@@ -7804,7 +7949,10 @@ This prompt names the state of the program on 2026-08-14.
 > the place** (T-212), and **the mark of the end of a media that the disk refused
 > reaches the table of the places that wait with the place of the user: the loop
 > reads the answer of that write, the row of the session stays when no machine took
-> the mark, and the program says it on the screen** (T-213).
+> the mark, and the program says it on the screen** (T-213), and **the rows of a
+> download go away together or they stay together: the two removals of
+> `delete_download` stand in one transaction, and a rollback that the disk refused
+> says that the database keeps a part of that download** (T-214).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

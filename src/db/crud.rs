@@ -1012,21 +1012,40 @@ pub fn get_download_files(id_item: &str, username: &str) -> Result<Vec<(u32, Str
     Ok(rows.filter_map(|row| row.ok()).collect())
 }
 
-// Delete a downloaded item (for `downloads` and `download_files` tables)
+/// Removes one download: the row of the media, and the rows of its files.
+///
+/// **The rows of a download go away together, or they stay together** (T-214).
+/// The two statements stood outside a transaction, therefore rusqlite wrote each
+/// of them of its own: a disk that refused the second one kept the first one, and
+/// the download of the account then stood in the rows of its files alone.
+///
+/// A measurement of 2026-08-14 of the real program of the sandbox, with a trigger
+/// of SQLite that fails the removal of a row of `download_files` (T-213): the key
+/// `X` of a download of 24648 bytes took the files of the disk, it said
+/// "Its database keeps the rows of that download. Press X again.", and
+/// `downloads` held **0** rows with `download_files` at **1**. The key `X` again
+/// then said that the media holds no local copy, because `remove_download` reads
+/// the row of `downloads` to find its work: the row of the file stayed for ever.
+/// **`select_sources` reads that table alone**, therefore every playback of that
+/// book after the removal took the road of the disk for a file that went away.
+///
+/// **This is the rule of T-200 for a removal**: rows that hold one thing come
+/// together.
 pub fn delete_download(id_item: &str, username: &str) -> Result<()> {
-    {
-        let conn = the_connection("delete_download")?;
+    let mut conn = the_connection("delete_download")?;
+    let work = conn.transaction()?;
 
-        conn.execute(
-            "DELETE FROM downloads WHERE id_item = ?1 AND username = ?2",
-            params![id_item, username],
-        )?;
+    work.execute(
+        "DELETE FROM downloads WHERE id_item = ?1 AND username = ?2",
+        params![id_item, username],
+    )?;
 
-        conn.execute(
-            "DELETE FROM download_files WHERE id_item = ?1 AND username = ?2",
-            params![id_item, username],
-        )?;
-    }
+    work.execute(
+        "DELETE FROM download_files WHERE id_item = ?1 AND username = ?2",
+        params![id_item, username],
+    )?;
+
+    work.commit()?;
 
     Ok(())
 }

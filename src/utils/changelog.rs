@@ -41,6 +41,32 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.44",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key `X` removed one half of a download when the database \
+             refused the other half.** A download stands in two tables: the row \
+             of the media, and one row for each file of it. Toutui removed the \
+             two of them with two statements, therefore a database that refused \
+             the second one kept the first one. The media then stood in the rows \
+             of its files alone: the key `X` again said that the media holds no \
+             local copy, and every playback of that media took the road of the \
+             disk for files that went away. The two removals stand in one \
+             transaction now, therefore the rows of a download go away together \
+             or they stay together, and the key `X` again does the work.",
+            "- **Toutui says when its database keeps a part of a download.** A \
+             download whose rows the database refused goes away again with a \
+             removal, and Toutui read no answer of that removal: a database that \
+             refused it too left a media that holds no file of the disk, with no \
+             word for you and no line of the log. That media stood in the \
+             offline mode with the label of a download, and the playback of it \
+             then said that the disk holds no audio file. Toutui says it on the \
+             screen now, and the key `D` writes every row of that download \
+             again.",
+        ],
+    },
+    Entry {
         version: "0.8.43",
         date: "14/08/2026",
         body: &[
