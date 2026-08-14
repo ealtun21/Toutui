@@ -930,6 +930,50 @@ pub fn insert_download_file(
     Ok(())
 }
 
+/// Removes the rows of the files of a download that the book no longer holds.
+///
+/// **A book of the server can lose a file** (T-187). `insert_download_file`
+/// writes over the row of a file of the same number, and it leaves the row of
+/// every number after it: the offline playback then holds a file that the book
+/// does not hold, and it plays that file. This function takes those rows away.
+///
+/// The list holds the numbers of the files of the plan of the download. A list
+/// with no number removes every row of that download.
+pub fn keep_the_files_of_the_download(
+    id_item: &str,
+    username: &str,
+    the_numbers: &[u32],
+) -> Result<()> {
+    let err_message = "Error connecting to the database.";
+
+    let Ok(conn) = crate::db::migrate::open_conn() else {
+        crate::logic::message::say(err_message);
+        error!("[keep_the_files_of_the_download] {}", err_message);
+        return Ok(());
+    };
+
+    // The numbers come from the plan of the download, and each of them is a
+    // number of the program. Therefore the statement holds them, and no value
+    // of the server reaches this text.
+    let of_the_book: Vec<String> = if the_numbers.is_empty() {
+        // `NOT IN ()` is no statement of SQL. No row holds the number -1,
+        // therefore this list removes every row of the download.
+        vec!["-1".to_string()]
+    } else {
+        the_numbers.iter().map(|one| one.to_string()).collect()
+    };
+
+    conn.execute(
+        &format!(
+            "DELETE FROM download_files WHERE id_item = ?1 AND username = ?2 AND idx NOT IN ({})",
+            of_the_book.join(",")
+        ),
+        params![id_item, username],
+    )?;
+
+    Ok(())
+}
+
 // Get the audio files of a downloaded item: (idx, file_path, duration) (for `download_files` table)
 // The offline player reads this list. No caller exists yet.
 #[allow(dead_code)]

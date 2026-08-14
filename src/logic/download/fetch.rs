@@ -144,6 +144,12 @@ pub async fn fetch_item(
         write_progress(&progress, |state| state.bytes_done = done_bytes, plan);
     }
 
+    // **A book of the server that lost a file keeps that file on the disk**,
+    // and the offline playback then plays a part that the book does not hold.
+    // The lock of T-148 stands here, therefore no different program of this
+    // account writes these files at this moment. See T-187.
+    take_away_the_files_that_the_book_no_longer_holds(dest_dir, plan).await;
+
     write_progress(
         &progress,
         |state| {
@@ -321,6 +327,76 @@ async fn fetch_one(
     Ok((target.to_path_buf(), written))
 }
 
+/// Gives the names of the files of the directory of a download that the book of
+/// the server no longer holds. See T-187.
+///
+/// **The lock of the download stays.** It belongs to the program of this
+/// download, and not to the book of the server (T-148).
+///
+/// A `.part` file of a file that the book no longer holds goes away with it: no
+/// download asks for those bytes again.
+///
+/// The function is pure, therefore a test needs no disk.
+pub fn the_files_that_the_book_no_longer_holds(
+    on_the_disk: &[String],
+    plan: &DownloadPlan,
+) -> Vec<String> {
+    let of_the_book: Vec<String> = plan.files.iter().map(|file| file.disk_name()).collect();
+
+    on_the_disk
+        .iter()
+        .filter(|name| name.as_str() != super::lock::THE_NAME_OF_THE_LOCK)
+        .filter(|name| !of_the_book.contains(name))
+        .cloned()
+        .collect()
+}
+
+/// Removes the files of the directory of the download that the book of the
+/// server no longer holds. See T-187.
+///
+/// The function says one line of the log for each file. A book that did not
+/// change gives no line at all.
+async fn take_away_the_files_that_the_book_no_longer_holds(dest_dir: &Path, plan: &DownloadPlan) {
+    let Ok(mut rows) = tokio::fs::read_dir(dest_dir).await else {
+        return;
+    };
+
+    let mut on_the_disk: Vec<String> = Vec::new();
+
+    while let Ok(Some(row)) = rows.next_entry().await {
+        let a_file = row
+            .file_type()
+            .await
+            .map(|kind| kind.is_file())
+            .unwrap_or(false);
+
+        if !a_file {
+            continue;
+        }
+
+        if let Some(name) = row.file_name().to_str() {
+            on_the_disk.push(name.to_string());
+        }
+    }
+
+    for name in the_files_that_the_book_no_longer_holds(&on_the_disk, plan) {
+        let path = dest_dir.join(&name);
+
+        match tokio::fs::remove_file(&path).await {
+            Ok(()) => log::info!(
+                "[fetch_item] the file \"{}\" left the book \"{}\", therefore it left the disk",
+                name,
+                plan.title
+            ),
+            Err(error) => log::error!(
+                "[fetch_item] the file {} of a book that changed stays: {}",
+                path.display(),
+                error
+            ),
+        }
+    }
+}
+
 /// Gives the name of the file that is not complete.
 fn part_path(target: &Path) -> PathBuf {
     let mut name = target.as_os_str().to_os_string();
@@ -406,6 +482,78 @@ mod tests {
     /// Gives the progress of the item.
     fn state_of(progress: &ProgressMap) -> DownloadProgress {
         progress.read().unwrap().get("item-1").unwrap().clone()
+    }
+
+    /// **A book of the server that lost a file must lose it on the disk**, and
+    /// the lock of the download belongs to no book. See T-187.
+    #[test]
+    fn the_file_of_a_book_that_changed_leaves_the_disk() {
+        let plan = plan_of(&[(1, "10", "one.mp3", 100)]);
+
+        let on_the_disk = vec![
+            "001 - one.mp3".to_string(),
+            "002 - two.mp3".to_string(),
+            "003 - three.mp3.part".to_string(),
+            super::super::lock::THE_NAME_OF_THE_LOCK.to_string(),
+        ];
+
+        assert_eq!(
+            the_files_that_the_book_no_longer_holds(&on_the_disk, &plan),
+            vec![
+                "002 - two.mp3".to_string(),
+                "003 - three.mp3.part".to_string()
+            ]
+        );
+    }
+
+    /// A book that did not change loses no file.
+    #[test]
+    fn a_book_that_did_not_change_loses_no_file() {
+        let plan = plan_of(&[(1, "10", "one.mp3", 100), (2, "11", "two.mp3", 50)]);
+
+        let on_the_disk = vec![
+            "001 - one.mp3".to_string(),
+            "002 - two.mp3".to_string(),
+            super::super::lock::THE_NAME_OF_THE_LOCK.to_string(),
+        ];
+
+        assert!(the_files_that_the_book_no_longer_holds(&on_the_disk, &plan).is_empty());
+    }
+
+    /// The download of a book that lost a file takes that file of the disk. See
+    /// T-187.
+    #[tokio::test]
+    async fn the_download_of_a_book_that_lost_a_file_takes_it_of_the_disk() {
+        let server = MockServer::start().await;
+        let dir = tempfile::tempdir().unwrap();
+
+        // The file of the book that the server no longer holds, and the part
+        // file of a download of that same file.
+        std::fs::write(dir.path().join("002 - two.mp3"), vec![b'b'; 50]).unwrap();
+        std::fs::write(dir.path().join("002 - two.mp3.part"), vec![b'b'; 10]).unwrap();
+
+        Mock::given(method("GET"))
+            .and(path("/api/items/item-1/file/10/download"))
+            .respond_with(ResponseTemplate::new(200).set_body_bytes(vec![b'a'; 100]))
+            .mount(&server)
+            .await;
+
+        let plan = plan_of(&[(1, "10", "one.mp3", 100)]);
+
+        fetch_item(
+            &reqwest::Client::new(),
+            &server.uri(),
+            "secret",
+            &plan,
+            dir.path(),
+            map(),
+        )
+        .await
+        .unwrap();
+
+        assert!(dir.path().join("001 - one.mp3").exists());
+        assert!(!dir.path().join("002 - two.mp3").exists());
+        assert!(!dir.path().join("002 - two.mp3.part").exists());
     }
 
     #[tokio::test]

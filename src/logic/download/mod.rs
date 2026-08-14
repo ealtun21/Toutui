@@ -5,6 +5,7 @@ pub mod progress;
 
 use crate::db::crud::{
     delete_download, get_download, get_download_files, insert_download, insert_download_file,
+    keep_the_files_of_the_download,
 };
 use fetch::{fetch_item, TheFaultOfTheDownload};
 use log::{error, info};
@@ -234,6 +235,20 @@ pub async fn download_with_progress(
                     file.duration,
                 );
             }
+
+            // **A book of the server that lost a file keeps the row of that
+            // file**, and the offline playback then plays a file that the book
+            // does not hold. `fetch_item` took that file of the disk away
+            // already. See T-187.
+            let _ = keep_the_files_of_the_download(
+                &plan.key,
+                &username,
+                &plan
+                    .files
+                    .iter()
+                    .map(|file| file.index)
+                    .collect::<Vec<u32>>(),
+            );
 
             info!(
                 "[download_item] Downloaded \"{}\": {} file(s) in {}",
