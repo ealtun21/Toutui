@@ -295,15 +295,21 @@ pub fn read_the_queue_of_the_account(username: &str, server: &str) {
         *place = Some((username.to_string(), server.to_string()));
     }
 
-    let rows = crate::db::crud::read_the_queue(username, server);
+    match crate::db::crud::read_the_queue(username, server) {
+        Ok(rows) if rows.is_empty() => {}
+        Ok(rows) => {
+            log::info!("[queue] the disk holds {} media of the queue", rows.len());
 
-    if rows.is_empty() {
-        return;
+            read_the_disk();
+        }
+        Err(error) => {
+            log::error!(
+                "[queue] the program did not read the queue of the disk: {}. The queue of this \
+                 program holds no media of the disk yet.",
+                error
+            );
+        }
     }
-
-    log::info!("[queue] the disk holds {} media of the queue", rows.len());
-
-    read_the_disk();
 }
 
 /// Takes the queue of the disk into the queue of this program. See T-147.
@@ -315,15 +321,35 @@ pub fn read_the_queue_of_the_account(username: &str, server: &str) {
 ///
 /// A program that has no account named yet reads nothing: the queue then belongs
 /// to a test, and a test must not touch the database of a user.
-fn read_the_disk() {
+fn read_the_disk() -> bool {
     let Some((username, server)) = the_account().lock().ok().and_then(|place| place.clone()) else {
-        return;
+        return true;
     };
 
-    let entries: Vec<Entry> = crate::db::crud::read_the_queue(&username, &server)
-        .iter()
-        .map(entry_of_the_row)
-        .collect();
+    // **A read that failed is not a queue with no media** (T-202). The old code
+    // took `Vec::new()` of such a read and it emptied the queue of the process:
+    // the view then said "The queue is empty. Press n on a media to put it in the
+    // queue." while the disk held the media of the user, and a change of the
+    // queue after it wrote that emptiness on the disk.
+    //
+    // **The queue of the process stays**, therefore the view says what this
+    // program last read of the disk, and every caller that changes the queue
+    // changes nothing at all: the disk is the truth of the queue (T-147), and a
+    // program that did not read that truth must not write over it.
+    let rows = match crate::db::crud::read_the_queue(&username, &server) {
+        Ok(rows) => rows,
+        Err(error) => {
+            log::error!(
+                "[queue] the program did not read the queue of the disk: {}. The queue of this \
+                 program stays, and no key changes it.",
+                error
+            );
+
+            return false;
+        }
+    };
+
+    let entries: Vec<Entry> = rows.iter().map(entry_of_the_row).collect();
 
     with_the_queue(|queue| {
         queue.clear();
@@ -332,6 +358,8 @@ fn read_the_disk() {
             queue.add(entry);
         }
     });
+
+    true
 }
 
 /// Takes the queue of the disk, for a view that opens. See T-147.
@@ -341,6 +369,18 @@ fn read_the_disk() {
 /// the queue of the disk at the moment that it opens.
 pub fn read_the_queue_again() {
     read_the_disk();
+}
+
+/// The words of a key of the queue that the disk did not permit. See T-202.
+///
+/// **The disk is the truth of the queue** (T-147), therefore a program that did
+/// not read that truth writes nothing over it: the key of the user changes
+/// nothing at all, and a key that does nothing says why (T-79).
+///
+/// The function is pure, therefore a test needs no queue and no database.
+pub fn the_words_of_a_queue_that_the_disk_did_not_give() -> String {
+    "The program did not read the queue of its disk. Stop a second Toutui, and press the key again."
+        .to_string()
 }
 
 /// Gives the place of the media that a view named.
@@ -487,23 +527,42 @@ fn write_the_queue() {
 /// **The queue comes of the disk first** (T-147): a second program of the
 /// account can hold media that this program never saw, and the write below holds
 /// every row.
-pub fn add(entry: Entry) -> usize {
-    read_the_disk();
+/// **The answer is `None` when the disk did not answer** (T-202): the queue of
+/// the disk holds the media of every program of the account, therefore a program
+/// that did not read it writes nothing over it.
+pub fn add(entry: Entry) -> Option<usize> {
+    if !read_the_disk() {
+        return None;
+    }
+
     let place = with_the_queue(|queue| queue.add(entry));
     write_the_queue();
-    place
+    Some(place)
 }
 
 /// Puts a media at the front of the queue of the process. See T-146.
-pub fn put_at_the_front(entry: Entry) {
-    read_the_disk();
+///
+/// The answer is `false` when the disk did not answer (T-202).
+pub fn put_at_the_front(entry: Entry) -> bool {
+    if !read_the_disk() {
+        return false;
+    }
+
     with_the_queue(|queue| queue.put_at_the_front(entry));
     write_the_queue();
+    true
 }
 
 /// Takes the first media out of the queue of the process.
+///
+/// **The answer is `None` when the disk did not answer** (T-202), and the queue
+/// then stops with every media of the user on the disk: that is the road of a
+/// queue with no media, and no media of the user goes away.
 pub fn take_next() -> Option<Entry> {
-    read_the_disk();
+    if !read_the_disk() {
+        return None;
+    }
+
     let entry = with_the_queue(|queue| queue.take_next());
     write_the_queue();
     entry
@@ -515,8 +574,10 @@ pub fn take_next() -> Option<Entry> {
 /// A key of the view of the queue calls this: the place comes of the line that
 /// the user selected, and the identity holds that line when the disk moved under
 /// it. See `the_place_of_the_media` and T-147.
-pub fn take_the_media(index: usize, key: &str) -> Option<Entry> {
-    read_the_disk();
+pub fn take_the_media(index: usize, key: &str) -> Result<Option<Entry>, TheDiskDidNotAnswer> {
+    if !read_the_disk() {
+        return Err(TheDiskDidNotAnswer);
+    }
 
     let entry = with_the_queue(|queue| {
         let place = the_place_of_the_media(queue.entries(), index, key)?;
@@ -524,8 +585,18 @@ pub fn take_the_media(index: usize, key: &str) -> Option<Entry> {
     });
 
     write_the_queue();
-    entry
+    Ok(entry)
 }
+
+/// The disk of the queue did not answer, therefore the key changed nothing. See
+/// T-202.
+///
+/// **A media that a second program took out and a disk that says nothing are two
+/// conditions**, and the sentence of the key must not name the first one for the
+/// second one (T-91): `text_of_the_key_that_takes` says that the media of the
+/// line waits no more, and the media of a disk that says nothing waits still.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TheDiskDidNotAnswer;
 
 /// Gives the sentence of the key `X` of the view of the queue. See T-151.
 ///

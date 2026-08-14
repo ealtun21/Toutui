@@ -74,6 +74,7 @@ fn a_second_program_of_the_account_keeps_every_media_of_the_queue() {
     queue::add(a_book("the-second-book-of-a", "The Second Book Of A"));
 
     let titles: Vec<String> = read_the_queue(USER, SERVER)
+        .unwrap()
         .into_iter()
         .map(|row| row.title)
         .collect();
@@ -110,11 +111,14 @@ fn a_second_program_of_the_account_keeps_every_media_of_the_queue() {
 
     // The line 0 of the view of A held "The Second Book Of A" before the disk
     // moved under it. The key takes that media, and not "The Book Of B".
-    let taken = queue::take_the_media(0, &of_the_line).expect("the media of the line");
+    let taken = queue::take_the_media(0, &of_the_line)
+        .expect("the disk answered")
+        .expect("the media of the line");
 
     assert_eq!(taken.title, "The Second Book Of A");
     assert_eq!(
         read_the_queue(USER, SERVER)
+            .unwrap()
             .into_iter()
             .map(|row| row.title)
             .collect::<Vec<String>>(),
@@ -124,7 +128,9 @@ fn a_second_program_of_the_account_keeps_every_media_of_the_queue() {
     // A media that stands in the queue no more gives nothing, and the key must
     // still say what happened to the media of that line. **A key that does
     // nothing says why** (T-79), and this key said nothing at all before T-151.
-    assert!(queue::take_the_media(0, "a-media-of-no-queue").is_none());
+    assert!(queue::take_the_media(0, "a-media-of-no-queue")
+        .expect("the disk answered")
+        .is_none());
 
     let text = queue::text_of_the_key_that_takes(Some("The Book Of B"), None)
         .expect("the key must say what happened to the media of its line");

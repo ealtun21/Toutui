@@ -1,5 +1,5 @@
 use crate::db::crud::*;
-use log::{info, warn};
+use log::{error, info, warn};
 
 /// The longest time that a playback waits for the playback before it.
 ///
@@ -38,7 +38,33 @@ pub fn wait_prev_session_finished(username: String) {
 pub fn the_wait_of_a_playback(username: String, longest_wait: std::time::Duration) {
     let message = "Syncing your last listening session. Please wait...";
 
-    let has_played_before = get_has_played_before(&username);
+    // **A read that failed is not an account that stands in no row** (T-202).
+    // The old line took `None` of a fault of the database for that condition:
+    // the program said to the user that their account is gone — a reason that the
+    // program does not have (T-91) — and it did not wait at all, therefore two
+    // loops of a playback of one account could run at one time (T-158 and T-140).
+    //
+    // **A fault of this read takes the road of a playback that waits for
+    // nothing**, and it says nothing to the user. The value of the wait stands in
+    // the database, therefore a database that says nothing can never end that
+    // wait: the program would hold the user for the whole limit of time and say
+    // "Syncing your last listening session. Please wait..." for it, and the
+    // playback after it does not start at all — **a playback whose row of the
+    // session reaches no disk stops with a word of its own** (T-201). A line of
+    // the log names the fault, and this read holds no key of the user (T-177).
+    let has_played_before = match get_has_played_before(&username) {
+        Ok(value) => value,
+        Err(error) => {
+            error!(
+                "[wait_prev_session_finished] the program did not read the account {}: {}. This \
+                 playback waits for no loop before it.",
+                username, error
+            );
+
+            Some("1".to_string())
+        }
+    };
+
     info!(
         "[wait_prev_session_finished][has_played_before] {:?}",
         has_played_before
@@ -58,7 +84,11 @@ pub fn the_wait_of_a_playback(username: String, longest_wait: std::time::Duratio
     };
 
     if has_played_before != "1" {
-        let mut is_loop_break = get_is_loop_break(&username);
+        // **A fault of this read is not the value of the row** (T-202). The wait
+        // below goes on while the value is not `1`, therefore a fault takes the
+        // road of a wait that goes on, and the limit of time of that wait holds
+        // it.
+        let mut is_loop_break = the_value_of_the_loop(&username);
         info!(
             "[wait_prev_session_finished][is_loop_break] {:?}",
             is_loop_break
@@ -77,7 +107,7 @@ pub fn the_wait_of_a_playback(username: String, longest_wait: std::time::Duratio
             }
 
             std::thread::sleep(std::time::Duration::from_secs(1));
-            is_loop_break = get_is_loop_break(&username);
+            is_loop_break = the_value_of_the_loop(&username);
             crate::logic::message::say(message);
         }
     }
@@ -86,4 +116,26 @@ pub fn the_wait_of_a_playback(username: String, longest_wait: std::time::Duratio
     let _ = update_has_played_before("0", &username);
 
     crate::logic::message::forget();
+}
+
+/// Gives the value of `is_loop_break` of an account, and a fault of the database
+/// keeps the wait. See T-202.
+///
+/// **A read that failed is not the value `1`.** The value `1` says that the loop
+/// of the playback before this one wrote its end, and a fault of the database says
+/// nothing at all: the wait therefore goes on, and the limit of time of that wait
+/// holds it.
+fn the_value_of_the_loop(username: &str) -> Option<String> {
+    match get_is_loop_break(username) {
+        Ok(value) => value,
+        Err(error) => {
+            error!(
+                "[wait_prev_session_finished] the program did not read the loop of the account \
+                 {}: {}. The wait goes on.",
+                username, error
+            );
+
+            Some("0".to_string())
+        }
+    }
 }

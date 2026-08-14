@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.32",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The view of the queue said that your queue is empty while your \
+             media stood on the disk.** A second Toutui of your account that \
+             held the database took the answer of that read away, and the \
+             program then read a queue with no media: the view said \"The queue \
+             is empty.\", and a key of the queue after it wrote that emptiness \
+             on the disk — the media of every Toutui of your account then went \
+             away. The queue of the program keeps its media now, a key that \
+             cannot read the disk changes nothing and it says so, and the \
+             program no longer says that your account is gone when it cannot \
+             read that account.",
+        ],
+    },
+    Entry {
         version: "0.8.31",
         date: "14/08/2026",
         body: &[

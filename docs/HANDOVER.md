@@ -4,8 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.31.** The items T-199, T-200, and T-201 belong to
-this session. The items T-196, T-197, and T-198 belong to the session before it.
+**The newest release is v0.8.32.** The items T-199, T-200, T-201, and T-202
+belong to this session. The items T-196, T-197, and T-198 belong to the session before it.
 The
 item T-195 belongs to the session before it, and the
 item T-194 belongs to the session before that one, and the
@@ -42,16 +42,16 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.31**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.32**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1180 of 1180** in 2.3 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1206 of 1206** in 25.9 seconds with the sandbox up,
+**1181 of 1181** in 2.4 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1207 of 1207** in 21.7 seconds with the sandbox up,
 and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in three
 runs.
 
 ## The session of the thirty-fourth turn of 2026-08-14: a fault of the database became a program with no account
 
-**Three releases: v0.8.29, v0.8.30, and v0.8.31.** The session before this one closed the sweep of a body
+**Four releases: v0.8.29, v0.8.30, v0.8.31, and v0.8.32.** The session before this one closed the sweep of a body
 that stopped, and it left no condition of the road: the road said that a session
 must name a condition of its own. **This session took the sweep that T-198
 called the cheapest one of a session** — one line of code over the whole of
@@ -60,6 +60,7 @@ but a call of the **database**.
 
 | Item | What | Where |
 |---|---|---|
+| T-202 | **A read of the disk that failed became a fact of the user.** T-200 took the writes of the module of the database, and the reads hold the other half: the default of such a read is a fact of the user. Two media of the queue stood on the disk and the view of the queue said **`The queue is empty. Press n on a media to put it in the queue.`** — and every change of the queue writes the queue of the process on the disk (T-147), therefore a key after that read takes the media of every program of the account away. The wait of a playback held the same shape: `the account toutuitest stands in no row of the disk` while `select count(*) from users` said 1, and the program said the sentence of an account that is gone | `src/db/crud.rs`, `src/logic/queue.rs`, `src/logic/sync_session/wait_prev_session_finished.rs`, `src/logic/playback/mod.rs`, `src/app.rs` |
 | T-201 | **A playback whose session reached no disk played with no place and no row of the player.** `insert_listening_session` stood behind `let _ =` in the two places that start a playback, and that row is the one copy of the place of the user for a program that dies (T-140, T-145, and T-152) — **the row of the player of the screen reads it too**. The key `l` with a lock of the database: the null device played the episode, `select count(*) from listening_session` said 0, the row of the player said `N/A` with no title and no time, and every write of the place after it changed 0 rows | `src/logic/playback/mod.rs`, `src/logic/the_playback.rs` |
 | T-200 | **A function of the database that got no connection said `Ok`.** 21 functions of `src/db/crud.rs` held the shape `if let Ok(conn) = open_conn() { … } else { say("Error connecting to the database."); error!(…) }` with `Ok(…)` after it, therefore **the correction of T-199 reached none of them**: a caller that read the answer of a write got the answer of a write that never happened, and the module of the database wrote a word for the user in the row of the message of every view. The key `D` of an episode with a lock of the database: the whole file stood on the disk, the log said `Downloaded "Letter 45"`, and no row of `downloads` or of `download_files` held it — the line held no mark `[Downloaded]`, and the offline mode of T-25 did not find that book | `src/db/crud.rs`, `src/logic/download/mod.rs`, `src/app.rs` |
 | T-199 | **A fault of the database became a program with no account.** Three lines read a fault of the disk as a fact of the user: `let _ = db_insert_usr(&users)` of the login, `if let Ok(result) = select_default_usr()` of `Database::new`, and `select_every_usr().unwrap_or_default()` of the read after every key. A second Toutui of one account that held the database for six seconds then gave: a login that wrote no row and said `Login successful`, with the login screen back and **no character** in the row of its message; a login screen of a first start while the row of the account stood on the disk; and `the account toutuitest stands in no row of the disk. The program starts again.` while `select count(*) from users` said 1 | `src/api/server/auth_process.rs`, `src/db/database_struct.rs`, `src/db/mod.rs`, `src/api/client/error.rs`, `src/main.rs`, `src/app.rs` |
@@ -3907,7 +3908,15 @@ measurements of this session left.
      stands while the program dies is T-152 again). **A new condition came of
      T-201**: a request that follows a wait of more than five seconds meets a
      connection of the pool that the server closed, and a request of
-     `Idempotent::No` takes one attempt.
+     `Idempotent::No` takes one attempt. **T-202 closed the other half of the
+     sweep of T-200** — the reads of the module of the database, whose default is a
+     fact of the user — for the queue and for the wait of a playback. **The reads
+     of that shape that stay**: `get_all_downloads`,
+     `a_program_keeps_the_place_of_this_media`, `get_download` with its two
+     neighbours, and `get_pending_progress` with `count_pending_progress`. **And a
+     word of a key that meets the database does not reach the user** while a second
+     program holds it: a message lives six seconds, and a key of more than one call
+     of the database waits five seconds for each of them.
    - **No condition of the road stays. A next session must name a condition of
      its own.** The shapes that found faults before: a state of one process that
      a second program cannot see (T-142, T-147, T-148, T-150, T-153, T-154,
@@ -5451,6 +5460,32 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
+**The fourth item is the other half of the sweep of T-200**: the **reads** of the
+module of the database. **The default of a read of the disk is a fact of the
+user**, and three of them held a fault: the view of the queue said "The queue is
+empty. Press n on a media to put it in the queue." while two media of the user
+stood on the disk, and the wait of a playback said that the account of the user is
+gone while the row of that account stood there (T-202). Three things are worth the
+room:
+
+1. **A default of a read of the disk is a fact of the user, and a default of a
+   read of the server is a value** (T-202). The sweep of T-177 to T-192 asked
+   which **value** a default gives (a size of 0, a place of 0, an address of no
+   character); the sweep of the disk asks which **fact** it gives: an empty list is
+   "the user holds none of these", and `None` is "the account stands in no row".
+   **A fact is worse than a value**, because a view says it in words.
+2. **A read that failed and that a write follows is the shape to look for**
+   (T-202). Every change of the queue reads the disk and writes it again (T-147):
+   a read that gave no media therefore writes no media over the media of every
+   program of the account. **Ask of every read of the disk: does a write of this
+   program follow it, and does that write hold the answer of the read?**
+3. **A value of a wait that stands in the database cannot end a wait that the
+   database refused** (T-202). The wait of a playback reads `is_loop_break` of the
+   disk, and a database that says nothing can never give the value `1`: a wait of
+   that shape holds the user for its whole limit of time and it says "Please
+   wait..." for it. **The road of no wait is the correct one**, because a playback
+   whose row reaches no disk stops with a word of its own (T-201).
+
 **The third item of this session is the first caller that the road of T-200
 named**: `insert_listening_session` stood behind `let _ =`, and that row is the one
 copy of the place of the user for a program that dies **and** the row that the
@@ -5484,7 +5519,7 @@ rusqlite. This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.31**; `Cargo.toml` is at 0.8.31. The
+> AlbanDAVID/Toutui. Newest release **v0.8.32**; `Cargo.toml` is at 0.8.32. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -5493,7 +5528,7 @@ rusqlite. This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-201 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-202 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -5855,8 +5890,8 @@ rusqlite. This prompt names the state of the program on 2026-08-14.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1180 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1206 of 1206** with the sandbox up, in about 26 seconds. **Run that
+> Baseline: **1181 tests in 2.4 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1207 of 1207** with the sandbox up, in about 22 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -6065,6 +6100,24 @@ rusqlite. This prompt names the state of the program on 2026-08-14.
 >      list of five, and that decision then stopped the whole program. **Read what
 >      the measurement of an old item held**, and not the words of its decision
 >      alone.
+>    - **A default of a read of the disk is a fact of the user** (T-202). The
+>      sweep of T-177 to T-192 asked which **value** a default gives; the sweep of
+>      the disk asks which **fact** it gives: an empty list is "the user holds none
+>      of these", and `None` is "the account stands in no row". **A read that
+>      failed and that a write follows is the shape to look for**: every change of
+>      the queue reads the disk and writes it again (T-147), therefore a read that
+>      gave no media writes no media over the media of every program of the
+>      account. **The reads of that shape that no measurement has reached**:
+>      `get_all_downloads` (the offline mode of T-25 then says that the user holds
+>      no media), `a_program_keeps_the_place_of_this_media` (the key `X` then takes
+>      the files of a media that a program of this account plays, T-156),
+>      `get_download` with its two neighbours, and `get_pending_progress` with
+>      `count_pending_progress`.
+>    - **A word of a key that meets the database does not reach the user while a
+>      second program holds it** (T-202). A message lives six seconds, and a key
+>      that holds more than one call of the database waits five seconds for each of
+>      them: the frame of the render then comes after those six seconds. **The
+>      words of a correction of that condition reach the log alone.**
 >    - **A value that two parts of the program read holds two faults of the
 >      user** (T-201). The row of `listening_session` holds the place of a program
 >      that dies (T-140, T-145, and T-152) **and** the line of the player of the
@@ -6429,7 +6482,11 @@ rusqlite. This prompt names the state of the program on 2026-08-14.
 > log out** (T-200), and **a playback that keeps no place does not start: the row
 > of `listening_session` is the one copy of the place of the user for a program
 > that dies and the row of the player reads it, therefore a playback whose session
-> reached no disk closes the session of the server and it says why** (T-201).
+> reached no disk closes the session of the server and it says why** (T-201), and
+> **a read of the disk that failed is not a fact of the user: the queue of the
+> process stays and a caller that did not read the disk changes nothing, and the
+> wait of a playback waits for no loop and it says nothing when it did not read
+> the account** (T-202).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

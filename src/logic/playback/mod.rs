@@ -323,13 +323,25 @@ async fn the_loop_of_the_playback(
         // not go away with a server that does not answer. See T-146.
         if the_media_goes_back_to_the_queue(outcome) {
             if let Some(entry) = the_media_of_the_queue.take() {
+                let of_the_media = entry.title.clone();
+
                 warn!(
                     "[play] the playback of \"{}\" did not start. The media goes \
                      back to the front of the queue, and the queue stops.",
-                    entry.title
+                    of_the_media
                 );
 
-                queue::put_at_the_front(entry);
+                // **The disk is the truth of the queue** (T-147 and T-202). A
+                // disk that says nothing takes this media of the queue away for
+                // ever, therefore the log names it: the queue of the disk holds
+                // every media of the account, and no view holds this fault.
+                if !queue::put_at_the_front(entry) {
+                    error!(
+                        "[play] the program did not read the queue of its disk, therefore \"{}\" \
+                         went out of the queue.",
+                        of_the_media
+                    );
+                }
             }
         }
 

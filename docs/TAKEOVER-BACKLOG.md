@@ -8632,6 +8632,103 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-202: a read of the disk that failed became a fact of the user
+
+**T-200 gave the fault of the disk to the writes of the module of the database,
+and the reads hold the other half of that sweep.** The default of such a read is
+not a number or an empty text: it is a **fact of the user**. An empty list is
+"the queue of the user holds no media", and `None` is "the account of the user
+stands in no row of the disk".
+
+Three reads of `src/db/crud.rs` held that shape with a fault of the user behind
+it: `read_the_queue` (the queue of every program of the account, T-147),
+`get_has_played_before`, and `get_is_loop_break` (the wait of a playback, T-158).
+
+#### The measurement of 2026-08-14
+
+**The queue.** Two media of the podcast of the sandbox went in the queue with the
+key `n`, `docs/harness/hold_the_lock.py` took the database, and the key `q`
+opened the view of the queue:
+
+```text
+─────── The queue is empty. Press n on a media to put it in the queue. ───────
+[ERROR] - [read_the_queue] the program cannot open the database.
+```
+
+| What | The program of v0.8.31 |
+|---|---|
+| `select title from queue` | `Letter 48` and `Letter 47` |
+| The view of the queue | **`The queue is empty. Press n on a media to put it in the queue.`** |
+| The queue of the process | **no media**, because `read_the_disk` emptied it |
+
+**The view said a reason that the program does not have** (T-91 and T-171), and
+the fault does not stop there: **every change of the queue writes the queue of the
+process on the disk** (T-147). A key of the user after that read therefore writes
+the queue of no media over the queue of the disk, and the media of the user — of
+this program and of every other program of the account — goes away.
+
+**The wait of a playback.** The log of the measurement of T-201 held it already:
+
+```text
+[WARN] - [wait_prev_session_finished] the account toutuitest stands in no row of the disk.
+         No loop of a playback holds this one, therefore it does not wait.
+```
+
+`select count(*) from users` said **1** at that moment, and the program **said the
+sentence of an account that is gone to the user** (T-155). That sentence is a lie
+of the same shape as the third road of T-199.
+
+#### The correction
+
+**A read of the disk that failed is not a fact of the user.** The three reads give
+a fault now, and each caller takes the road of its own condition:
+
+1. **The queue of the process stays** when the read of the disk failed, therefore
+   the view says what this program last read and no line of it lies. **A caller
+   that did not read the disk changes nothing at all**: `add` gives `None`,
+   `put_at_the_front` gives `false`, `take_next` gives `None` (the road of a queue
+   with no media, and every media of the user stays on the disk), and
+   `take_the_media` gives `Err(TheDiskDidNotAnswer)` — that key must not say
+   "\"…\" is not in the queue now.", because the media of the line waits still.
+   The two keys of the user say
+   `the_words_of_a_queue_that_the_disk_did_not_give`.
+2. **The wait of a playback waits for no loop** when the read failed, and it says
+   nothing to the user. The value of that wait stands in the database, therefore a
+   database that says nothing can never end the wait: the program would hold the
+   user for the whole limit of 30 seconds with "Syncing your last listening
+   session. Please wait...", and **the playback after it does not start at all**
+   (T-201). The log names the fault, and this read holds no key of the user
+   (T-177).
+
+#### The test
+
+`tests/a_read_of_the_disk_that_failed_is_no_fact_of_the_user.rs` holds one
+function, and the condition is a file that holds no database (T-200). **The build
+of the fault** (the trap 147): `.or(Ok(Vec::new()))` on the read of the queue of
+`read_the_disk`, and the test then says "a media of a queue that the program did
+not read reaches no disk" with `Some(1)`.
+
+#### What this item leaves open
+
+**A word of a key that meets the database does not reach the user while a second
+program holds it.** A measurement of the key `n` with the lock up: the log held
+the fault and the sentence of the key never came to the screen. A message lives
+six seconds, and the key `n` holds more than one call of the database at five
+seconds each — the frame of the render comes after those six seconds. **That is
+the condition that T-199 left open**, and it now takes a word of a correction away
+too. The log holds the fault of every road of this item, therefore the maintainer
+reads it; the user reads nothing.
+
+**The reads of the disk whose default is a fact of the user, and that no
+measurement has reached**: `get_all_downloads` (an empty list is "this account
+holds no download", therefore the offline mode of T-25 says that the user has no
+media while the files stand on the disk), `a_program_keeps_the_place_of_this_media`
+(`false` is "no program of this account plays that file", therefore the key `X`
+takes the files of a media that a program of this account plays — the rule of
+T-156), `get_download` with `get_download_files` and `get_download_row`, and
+`get_pending_progress` with `count_pending_progress`. **Each of them is the
+question of this item**: which fact of the user does that default name?
+
 ### T-201: a playback whose session reached no disk played with no place and no row of the player
 
 **T-200 gave the fault of the disk to every caller of the module of the database,

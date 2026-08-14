@@ -126,7 +126,7 @@ async fn a_playback_that_did_not_start_gives_its_media_back_to_the_queue() {
 
     // The disk holds the queue too. A user who starts the program again must
     // find the media that did not play.
-    let rows = toutui::db::crud::read_the_queue("toutuitest", NO_SERVER);
+    let rows = toutui::db::crud::read_the_queue("toutuitest", NO_SERVER).unwrap();
 
     assert_eq!(
         rows.len(),

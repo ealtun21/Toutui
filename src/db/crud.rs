@@ -508,15 +508,16 @@ pub fn update_is_loop_break(value: &str, username: &str) -> Result<()> {
 /// goes away (T-155). The old form of this function gave the text "No db found"
 /// for that condition, and its one caller waited for that text to become `1`:
 /// **the program then waited for ever** (T-158).
-pub fn get_is_loop_break(username: &str) -> Option<String> {
-    let conn = crate::db::migrate::open_conn().ok()?;
+/// **A read that failed is not a row that no account holds** (T-202): the two
+/// conditions take two roads of the wait, and a fault of the database takes the
+/// road of a wait that goes on.
+pub fn get_is_loop_break(username: &str) -> Result<Option<String>> {
+    let conn = the_connection("get_is_loop_break")?;
 
-    let mut stmt = conn
-        .prepare("SELECT is_loop_break FROM users WHERE username = ?1")
-        .ok()?;
+    let mut stmt = conn.prepare("SELECT is_loop_break FROM users WHERE username = ?1")?;
 
     stmt.query_row(params![username], |row| row.get::<_, String>(0))
-        .ok()
+        .optional()
 }
 
 // Update is_vlv_launched_first_time
@@ -537,15 +538,13 @@ pub fn update_has_played_before(value: &str, username: &str) -> Result<()> {
 ///
 /// **`None` says that the account holds no row of the disk**, as
 /// `get_is_loop_break` does. See T-158.
-pub fn get_has_played_before(username: &str) -> Option<String> {
-    let conn = crate::db::migrate::open_conn().ok()?;
+pub fn get_has_played_before(username: &str) -> Result<Option<String>> {
+    let conn = the_connection("get_has_played_before")?;
 
-    let mut stmt = conn
-        .prepare("SELECT has_played_before FROM users WHERE username = ?1")
-        .ok()?;
+    let mut stmt = conn.prepare("SELECT has_played_before FROM users WHERE username = ?1")?;
 
     stmt.query_row(params![username], |row| row.get::<_, String>(0))
-        .ok()
+        .optional()
 }
 /// Writes the library of the account, and it gives the number of the rows that
 /// changed.
@@ -1435,22 +1434,21 @@ pub fn save_the_queue(username: &str, server: &str, rows: &[QueueRow]) -> Result
 }
 
 /// Reads the queue of one account of one server, in the sequence of the queue.
-pub fn read_the_queue(username: &str, server: &str) -> Vec<QueueRow> {
-    let Ok(conn) = crate::db::migrate::open_conn() else {
-        error!("[read_the_queue] the program cannot open the database.");
-        return Vec::new();
-    };
+///
+/// **A read that failed is not a queue with no media** (T-202). The old shape
+/// gave `Vec::new()` for a database that says nothing: the view of the queue then
+/// said "The queue is empty. Press n on a media to put it in the queue." while
+/// the disk held the media of the user, and every change of the queue after that
+/// read wrote the queue of no media on the disk. **The disk is the truth of the
+/// queue** (T-147), therefore a caller that did not read the disk changes
+/// nothing.
+pub fn read_the_queue(username: &str, server: &str) -> Result<Vec<QueueRow>> {
+    let conn = the_connection("read_the_queue")?;
 
-    let mut statement = match conn.prepare(
+    let mut statement = conn.prepare(
         "SELECT id_item, id_pod, title, author, duration FROM queue
          WHERE username = ?1 AND server = ?2 ORDER BY place",
-    ) {
-        Ok(statement) => statement,
-        Err(error) => {
-            error!("[read_the_queue] {}", error);
-            return Vec::new();
-        }
-    };
+    )?;
 
     let rows = statement.query_map(params![username, server], |row| {
         Ok(QueueRow {
@@ -1460,15 +1458,9 @@ pub fn read_the_queue(username: &str, server: &str) -> Vec<QueueRow> {
             author: row.get(3)?,
             duration: row.get(4)?,
         })
-    });
+    })?;
 
-    match rows {
-        Ok(rows) => rows.filter_map(|row| row.ok()).collect(),
-        Err(error) => {
-            error!("[read_the_queue] {}", error);
-            Vec::new()
-        }
-    }
+    Ok(rows.filter_map(|row| row.ok()).collect())
 }
 
 /// One row of the table of the queue. See T-56.

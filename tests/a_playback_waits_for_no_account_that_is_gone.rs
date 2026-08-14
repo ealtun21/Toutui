@@ -101,12 +101,12 @@ fn the_reads_of_the_wait_say_that_an_account_holds_no_row() {
     temporary_home();
 
     assert_eq!(
-        get_is_loop_break("an-account-of-no-row"),
+        get_is_loop_break("an-account-of-no-row").expect("the database answered"),
         None,
         "an account of no row must give no value of is_loop_break"
     );
     assert_eq!(
-        get_has_played_before("an-account-of-no-row"),
+        get_has_played_before("an-account-of-no-row").expect("the database answered"),
         None,
         "an account of no row must give no value of has_played_before"
     );

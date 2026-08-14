@@ -63,7 +63,7 @@ fn the_queue_of_one_account_survives_a_new_start() {
     let server = "http://127.0.0.1:13399";
 
     // A queue with no media gives no row, and it is not a fault.
-    assert!(read_the_queue(user, server).is_empty());
+    assert!(read_the_queue(user, server).unwrap().is_empty());
 
     let rows = vec![
         book("book-1", "The First Book"),
@@ -75,12 +75,12 @@ fn the_queue_of_one_account_survives_a_new_start() {
 
     // A new start of the program reads the rows again, **in the sequence of the
     // queue**. The sequence is the whole value of a queue.
-    let read = read_the_queue(user, server);
+    let read = read_the_queue(user, server).unwrap();
     assert_eq!(read, rows);
 
     // The account of a different server holds its own queue.
     let other = "http://192.168.1.10:13378";
-    assert!(read_the_queue(user, other).is_empty());
+    assert!(read_the_queue(user, other).unwrap().is_empty());
 
     save_the_queue(
         other,
@@ -88,20 +88,22 @@ fn the_queue_of_one_account_survives_a_new_start() {
         &[book("book-9", "A Book Of The Other Server")],
     )
     .expect("the program must write the queue of the other server");
-    assert_eq!(read_the_queue(user, server).len(), 3);
+    assert_eq!(read_the_queue(user, server).unwrap().len(), 3);
 
     // A user of a different account holds its own queue.
-    assert!(read_the_queue("a different user", server).is_empty());
+    assert!(read_the_queue("a different user", server)
+        .unwrap()
+        .is_empty());
 
     // The write of the queue gives every row again. A media that went out of the
     // queue must go out of the disk as well.
     save_the_queue(user, server, &rows[1..]).expect("the program must write the queue");
-    let after = read_the_queue(user, server);
+    let after = read_the_queue(user, server).unwrap();
     assert_eq!(after.len(), 2);
     assert_eq!(after[0].id_pod, "episode-7");
     assert_eq!(after[1].id_item, "book-2");
 
     // An empty queue takes every row away.
     save_the_queue(user, server, &[]).expect("the program must write the queue");
-    assert!(read_the_queue(user, server).is_empty());
+    assert!(read_the_queue(user, server).unwrap().is_empty());
 }

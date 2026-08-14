@@ -6692,7 +6692,16 @@ impl App {
         };
 
         let title = entry.title.clone();
-        let place = crate::logic::queue::add(entry);
+
+        // **The disk is the truth of the queue** (T-147), therefore a program that
+        // did not read the disk puts no media in it. See T-202.
+        let Some(place) = crate::logic::queue::add(entry) else {
+            crate::logic::message::say(
+                &crate::logic::queue::the_words_of_a_queue_that_the_disk_did_not_give(),
+            );
+
+            return;
+        };
 
         crate::logic::message::say(&format!(
             "\"{}\" is number {} of the queue. Press q to see the queue.",
@@ -6834,7 +6843,20 @@ impl App {
         // **A different program of the account can take that media out first**,
         // and this key then takes nothing. The key said nothing at all before
         // T-151, therefore the user could not tell one road from the other.
-        let entry = crate::logic::queue::take_the_media(index, &key);
+        // **A media that a second program took out and a disk that says nothing
+        // are two conditions** (T-202): the sentence of this key says that the
+        // media waits no more, and the media of a disk that says nothing waits
+        // still.
+        let entry = match crate::logic::queue::take_the_media(index, &key) {
+            Ok(entry) => entry,
+            Err(crate::logic::queue::TheDiskDidNotAnswer) => {
+                crate::logic::message::say(
+                    &crate::logic::queue::the_words_of_a_queue_that_the_disk_did_not_give(),
+                );
+
+                return;
+            }
+        };
 
         self.list_state_queue
             .select(crate::logic::queue::snapshot().selection_after_a_remove(index));
@@ -6876,8 +6898,16 @@ impl App {
             return;
         };
 
-        let Some(entry) = crate::logic::queue::take_the_media(index, &key) else {
-            return;
+        let entry = match crate::logic::queue::take_the_media(index, &key) {
+            Ok(Some(entry)) => entry,
+            Ok(None) => return,
+            Err(crate::logic::queue::TheDiskDidNotAnswer) => {
+                crate::logic::message::say(
+                    &crate::logic::queue::the_words_of_a_queue_that_the_disk_did_not_give(),
+                );
+
+                return;
+            }
         };
 
         self.list_state_queue
