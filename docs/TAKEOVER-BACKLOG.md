@@ -14245,3 +14245,171 @@ answered 500 for `POST /api/items/:id/play`. The value stayed `0`.
 `play` is a thin function now. It calls `play_media`, and it always gives the
 value `1` after that call. One place owns the value.
 `tests/playback_wait_flag.rs` holds the rule.
+
+### T-219: the place of an episode of a podcast holds that episode
+
+**The road of this item is the rule of T-218**: ask of every key of a view which
+list it reads, and whether that list belongs to this view. The keys `M` and `N`
+read `selected_item_id`, and that function gives the identity of the **item**
+alone: an episode of a podcast therefore took the address of the place of its
+podcast, and the two keys of T-175 never did their work for an episode.
+
+**The place of an episode of a podcast stands at
+`/api/me/progress/:item/:episode`** (T-182 and T-188), and T-188 measured that
+rule for the flush of the positions of the disk. **The keys of the user kept the
+fault.**
+
+#### The measurement
+
+The sandbox, the podcast `Arthur Gordon Pym` of the library `Podcasts` of 11
+episodes. The two episodes of the measurement:
+
+```bash
+PATCH /api/me/progress/<the podcast>/<Chapter 00>   {"isFinished": true}
+PATCH /api/me/progress/<the podcast>/<Chapter 01>   {"currentTime": 30}
+```
+
+**The read of the path of the item answers with the place of one episode of the
+podcast**, and no fault names it:
+
+```json
+{"libraryItemId": "b793354b-…", "episodeId": "845f9d16-… (Chapter 00)",
+ "mediaItemType": "podcastEpisode", "isFinished": true, "currentTime": 0}
+```
+
+**The write of that same path answers `400 Library item is not a book`.**
+
+The real program of v0.8.48, inside tmux, of the account of the sandbox:
+
+| The view | The line | The key | v0.8.48 | v0.8.49 |
+|---|---|---|---|---|
+| Home of the library `Podcasts` | `Chapter 01` of Continue Listening | `M` | `The server did not take the mark: The server reported a fault. Status 400.` | `The media is finished now.` |
+| the same | the same | `N` | `The server did not take the change: … Status 400.` | `The media is away from Continue Listening now.` |
+| The episodes of `Arthur Gordon Pym` | `Chapter 00` | `M` | `No media is selected.` | `The media is finished now.` |
+| the same | the same | `N` | `No media is selected.` | `The media is away from Continue Listening now.` |
+| Library of podcasts | `Arthur Gordon Pym` | `M` and `N` | `The server did not take the mark: … Status 400.` | `A podcast holds no place. Press l for its episodes.` |
+
+**The keys `D`, `X`, `n`, `m`, and `l` of those same lines do their work**,
+therefore each of those lines holds a media and the two keys said the opposite
+(T-79), and they named a reason that the program does not have (T-91).
+
+The server after the key `M` of v0.8.49, of the line `Chapter 01`: that episode
+holds `isFinished: true`, and `Chapter 00` keeps the mark that it held. The key
+`M` and the key `N` of the line `Chapter 02` of the view of the episodes then
+gave that episode `isFinished: true` and `hideFromContinueListening: true`.
+
+#### The fault of the source
+
+`toggle_the_mark_of_finished` and `toggle_the_shelf_of_continue_listening` read
+`selected_item_id`, and `mark_the_media` and `hide_the_media` wrote the path
+`/api/me/progress/{item}` with their hands. The view of the episodes of a podcast
+holds no arm of `selected_item_id` at all, therefore that function gave `None`
+and the two keys said "No media is selected."
+
+**`selected_download` holds the item and the episode of every view that shows an
+episode already**: the Home view of a library of podcasts, the view of the
+episodes, and the view of the media of a collection or of a playlist. That is the
+list that T-218 corrected for the view of the search.
+
+#### The correction
+
+`App::selected_place` gives the item **and** the episode of the line, of
+`selected_download`. `mark_the_media` and `hide_the_media` take the episode too,
+and they build their path with
+`crate::api::me::get_media_progress::the_path_of_the_place`, the function of
+T-188.
+
+**A podcast holds no place of its own**, therefore the line of a podcast of the
+Library view and of the view of the search says so and it names the key `l` of
+its episodes (T-83 for the rule of a key that does nothing, and T-170 for the key
+of the sentence). A view that holds no media of a line keeps the words of before.
+
+`tests/the_place_of_an_episode_of_a_podcast_holds_that_episode.rs` holds the roads
+in one function (T-144 and T-157), and it needs no sandbox: `App::new` takes a
+port that nothing listens on (T-25), and a host of a raw socket writes down the
+path of the read and of the write of the two keys. It fails on v0.8.48 at the
+first assertion of the Home view.
+
+#### What this item leaves open
+
+**A podcast of the Library view and of the view of the search takes no key `D` and
+no key `X`, and it says nothing at all.** `selected_download` gives `None` for
+those two arms, and the two keys of `src/app.rs` hold `if let Some(…)`: the user
+presses the key, and no word and no line of the log comes. That is the shape of
+T-79 and of T-218, and the words of this item stand beside it already.
+
+**The other keys of a line of an episode are not measured against the address of
+the place**: the key `F` of the send of the position, the key `V` of the
+bookmarks, and the key `b`. `show_the_bookmarks` reads `selected_item_id` too, and
+`GET /api/me/item/:id/bookmarks` names no episode: the question is whether the
+bookmarks of an episode of a podcast belong to the podcast on this server.
+
+### T-220: a host of a raw socket that keeps the body of a request loses its answer
+
+**The trap 200 of the handover named this fault and no session held an item of
+it**: "one test of the suite failed one run of thirteen —
+`a_playback_that_keeps_no_place_does_not_start` failed at 0.007 seconds in the run
+that followed `cargo clippy` of the whole tree, and it passed alone and in twelve
+runs after it." This session met it at its first run of the gate.
+
+**A test that fails one run of thirteen is a gate that says nothing** (T-144 and
+T-157).
+
+#### The measurement
+
+The test alone passes 60 runs of 60. **The condition is the load of the machine**:
+32 loops of a shell of nothing, and the test then failed **8 runs of 40**. The
+words of the fault:
+
+```text
+the sentence must say that the disk did not take the session, and it says
+"The server did not start the playback: The answer of the server is not valid:
+ error decoding response body"
+```
+
+**The body of the answer did not come whole**, and the program of the test is
+correct: the fault stands in the host of the raw socket of the test.
+
+#### The fault of the source
+
+The host reads the head of the request, and it stops at `\r\n\r\n`:
+
+```rust
+while socket.read(&mut byte).await.unwrap_or(0) == 1 {
+    request.push(byte[0]);
+    if request.ends_with(b"\r\n\r\n") { break; }
+}
+```
+
+`play_media` asks `POST /api/items/:id/play`, and that request holds a body. **The
+body of it stays in the socket**, the host writes its answer and it then drops the
+socket, and a socket that goes away with bytes of the other side inside it gives a
+`RST` and not a `FIN`: the kernel throws the answer of the host away, and the
+client reads a body that stops. The load of the machine decides whether the client
+read the answer before that `RST`.
+
+**One test of thirteen held the correction already**:
+`tests/the_keys_of_a_state_that_the_server_did_not_give.rs` of T-175 reads the
+body of a `PATCH` out of the socket, with the comment "A host that closes the
+connection before it gives the client a fault of the network." **A rule that one
+test holds is a rule for every test of that shape** (T-194).
+
+#### The correction
+
+The eleven hosts of a raw socket of `tests/` read `Content-Length` of the head and
+they take the body of the request out of the socket now. The load of 32 loops
+gives **0 failures of 40** after it.
+
+#### What this item leaves open
+
+**No test of the fork holds a rule of a host of a raw socket.** Thirteen files
+hold thirteen copies of the same 20 lines, and a fault of one of them is a fault
+of every one: this session found it in one file and it corrected eleven by hand.
+A module of `tests/` of that host is the road, and the answer of each test stays
+its own.
+
+**The gate of the machine hides a test that the load of a machine of CI does not
+hide.** The runs of this session gave 1200 of 1200 in 2.5 seconds with no load,
+and 8 failures of 40 with it: **a gate that runs on a machine of nothing says less
+than a gate of a machine that works.** The question of the next session is whether
+every gate of this fork must run one time under the load of the machine.

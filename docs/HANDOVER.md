@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.48.** The item T-218 belongs to this session. The
+**The newest release is v0.8.49.** The items T-219 and T-220 belong to this
+session. The item T-218 belongs to the session before it. The
 items T-216 and T-217 belong to the session before it.
 The items T-214 and T-215 belong to the session before it. The
 item T-213 belongs to the session before it. The
@@ -56,11 +57,111 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.48**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.49**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1199 of 1199** in 2.5 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1225 of 1225** with the sandbox up in 17 seconds, and
+**1200 of 1200** in 2.5 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1226 of 1226** with the sandbox up in 17 seconds, and
 `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in four runs.
+**Two runs of `cargo nextest run` under the load of 24 loops of a shell give
+1200 of 1200 too** (T-220).
+
+## The session of the forty-ninth turn of 2026-08-14: the place of an episode of a podcast
+
+**One release: v0.8.49**, and two items: T-219 of the keys `M` and `N` of an
+episode of a podcast, and T-220 of a test of the gate that failed one run of
+thirteen. **The road of T-219 is the rule of T-218** — ask of every key of a view
+which list it reads — read in the direction of the **address**: which path does
+this key send to the server, and does that path name the media of the line?
+**The road of T-220 is the trap 200 of this file**, which the session before it
+wrote with no item.
+
+### T-219: the keys `M` and `N` of an episode of a podcast
+
+**The place of an episode of a podcast stands at
+`/api/me/progress/:item/:episode`** (T-182 and T-188), and the two keys read
+`selected_item_id`, which gives the identity of the **item** alone.
+
+The sandbox, the podcast `Arthur Gordon Pym` with `Chapter 00` finished and
+`Chapter 01` at 30 seconds:
+
+```text
+GET   /api/me/progress/<the podcast>  ->  200, episodeId "Chapter 00", isFinished true
+PATCH /api/me/progress/<the podcast>  ->  400 Library item is not a book
+```
+
+| The view | The line | The key | v0.8.48 |
+|---|---|---|---|
+| Home of the library `Podcasts` | `Chapter 01` | `M` | `The server did not take the mark: … Status 400.` |
+| the same | the same | `N` | `The server did not take the change: … Status 400.` |
+| The episodes of the podcast | `Chapter 00` | `M` and `N` | `No media is selected.` |
+
+**The keys `D`, `X`, `n`, `m`, and `l` of those same lines do their work**: that
+is T-79 for the keys that never did theirs, and T-91 for the words that named a
+fault of the server for a request that the program made wrong. **The read of the
+path of the item answered with the place of another episode**, and no fault names
+that (T-188).
+
+**The correction.** `App::selected_place` gives the item **and** the episode of
+`selected_download`, the list that T-218 corrected for the view of the search,
+and `mark_the_media` and `hide_the_media` build their path with
+`the_path_of_the_place` of T-188. **A podcast holds no place of its own**,
+therefore the line of a podcast says `A podcast holds no place. Press l for its
+episodes.` (T-83 and T-170).
+
+### T-220: the test of the gate that failed one run of thirteen
+
+The first run of the gate of this session gave the failure of the trap 200. The
+test alone passes 60 runs of 60; **under 32 loops of a shell of nothing it failed
+8 runs of 40**, and it said "The answer of the server is not valid: error decoding
+response body".
+
+**The fault stands in the host of the raw socket of the test.** It reads the head
+of the request and it stops at the empty line, `POST /api/items/:id/play` holds a
+body, and that body stays in the socket: a socket that goes away with bytes of the
+other side inside it gives a `RST` and not a `FIN`, and the kernel throws the
+answer of the host away. The host of T-175 held the correction already, with the
+comment "A host that closes the connection before it gives the client a fault of
+the network". The eleven other hosts of `tests/` read `Content-Length` and they
+take the body out of the socket now: the same load gives 0 failures of 40.
+
+### The traps of this session
+
+**The trap 201: a gate of a machine of nothing says less than a gate of a machine
+that works.** Two runs of the whole suite under load found nothing after the
+correction of T-220, and the run before it failed at once. **A measurement of a
+fault of a sequence needs the load**, and `for i in $(seq 1 32); do (while :; do
+:; done) & done` is the whole of it.
+
+**The trap 202: the keys `M` and `N` of a library of podcasts need no view of the
+episodes.** The Home view of such a library holds the **episodes** already, and
+the shelf Continue Listening of the sandbox gives one line of one press of no key.
+
+**The trap 203: `sqlite3` of `id_selected_lib` is cheaper than the key of the next
+library.** The trap 195, the trap 198, and the trap 199 each cost a session, and
+one `update users set name_selected_lib=…, id_selected_lib=…` gives the library of
+the measurement and the library of the start with no key at all.
+
+### What this session leaves open
+
+**A podcast of the Library view and of the view of the search takes no key `D` and
+no key `X`, and it says nothing at all** (T-219). `selected_download` gives `None`
+for those two arms, and the keys hold `if let Some(…)`: that is T-79, and the
+words of T-219 stand beside it already.
+
+**The other keys of a line of an episode are not measured against the address of
+the place** (T-219): the key `F`, the key `V` of the bookmarks, and the key `b`.
+`show_the_bookmarks` reads `selected_item_id` too, and
+`GET /api/me/item/:id/bookmarks` names no episode.
+
+**No test of the fork holds a rule of a host of a raw socket** (T-220). Thirteen
+files hold thirteen copies of the same twenty lines. A module of `tests/` of that
+host is the road.
+
+**The five items of the sessions before this one stay open**: the bytes of a file
+that keeps its size, the write of the rows of a download that is no transaction
+(the sixth session that names it), the offline playback of a media whose copy is
+not whole, the label of a media that a second program of the account downloads
+now, and the column `name_selected_lib` that the program writes and never reads.
 
 ## The session of the forty-eighth turn of 2026-08-14: the four keys of a media of the search that the library did not read
 
@@ -143,7 +244,9 @@ that followed `cargo clippy` of the whole tree, and it passed alone and in twelv
 runs of the whole suite after it, and in four runs of `cargo test -j 16`. That test
 holds a host of a raw socket of a port of the machine and the box of the message of
 the process. **A failure of one run of thirteen is the shape of T-144 and of
-T-157**, and no session holds an item of it.
+T-157**, and no session holds an item of it. **T-220 closed it**: the host of the
+raw socket of that test keeps the body of the request, and the socket that goes
+away then gives a `RST` that throws the answer of the host away.
 
 ### What this session leaves open
 
