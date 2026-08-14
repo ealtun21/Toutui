@@ -348,6 +348,14 @@ async fn main() -> Result<()> {
                 // nobody when that media leaves the queue. See T-161.
                 app.the_line_of_the_queue_holds_its_media();
 
+                // **The media that plays changes while the view of its chapters
+                // stands open, and no key of the user does it**: the media comes
+                // to its end, and the queue starts the media of its front. The
+                // list is then the list of another media, therefore the line
+                // goes to nobody and the key `l` seeks in no media that the user
+                // did not choose. See T-162.
+                app.the_view_of_the_chapters_holds_its_media();
+
                 let playback = app.player.state();
                 let is_playing = playback.status != toutui::player::engine::PlaybackStatus::Stopped;
                 let player_notice = playback.notice.clone();

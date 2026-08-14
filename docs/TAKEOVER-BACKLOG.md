@@ -7629,6 +7629,93 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-162: the media of the view of the chapters changed, and the key of the user moved the place of another book
+
+**The condition of this session, and the session named it**: the road said that
+no measurement had reached "the view of the chapters while the media that plays
+changes", and that the rule of T-160 and of T-161 reached the Home view and the
+queue alone. **The queue starts the next media with no key of the user** (T-24),
+and the view of the chapters draws the chapters of the media that plays at each
+frame (`src/ui/tui.rs`): the list becomes the list of **another media**, and the
+line keeps the number of the line.
+
+**One window makes this condition, and the user presses no key while it
+happens.** The book of eight hours of the sandbox holds no chapter, therefore
+this session gave it three (the section 6i of `docs/TEST-SERVER.md`): a fault
+that moves the place of a media needs a media whose chapters stand far from the
+chapters of the media of the user.
+
+| The moment | The view of the chapters of the user |
+|---|---|
+| The user plays `A Long Test Book` of 30 minutes, and the queue holds `A Book Of Many Hours` at 4:50:35 | — |
+| The user presses `C` and `G` | `The chapters of "A Long Test Book" [3 items]`, and the cursor stands on the line 3, **`The third part` (20:00)** |
+| **The book comes to its end, 22 seconds later** | `The chapters of "A Book Of Many Hours" [3 items]`, and the cursor stands on the line 3: **`The hours of the end` (5:33:20)** |
+| The message row of that frame | it names the shelf Continue Listening (T-160), and **it says nothing of this view** |
+| The key `l` of the user | **the playback of `A Book Of Many Hours` went from 4:50:35 to 5:34:44**, and the message said `The playback goes to "The hours of the end".` |
+| `GET /api/me` of `curl`, six seconds later | **`currentTime: 21036`** |
+
+**The server holds the place of a media that the user did not choose.** The
+place of that book stood at 17435 seconds before the key, and the user chose a
+chapter of a book of 30 minutes. **One key of one view moved a user 43 minutes
+into an eight-hour book, and the sync wrote it.**
+
+**The rule of T-161 does not reach this.** That rule holds the media of a line
+of the queue, and the media of this view is the media that **plays**: the list
+of the chapters holds no media at all.
+
+**The correction: the view of the chapters holds the media that the user
+opened, and the line goes to nobody when that media stops.**
+`what_the_media_of_the_chapters_is` of `src/logic/chapters.rs` reads the
+playback of the frame before and the playback of the engine now:
+
+- the same playback → the line of the user stays, and the key `l` seeks in the
+  media that they chose;
+- another playback, or no playback at all → **no line is selected**, and the
+  message names it: `The media "A Long Test Book" does not play now. No line is
+  selected: the keys j and k select one.` The sentence names no cause: this
+  program cannot tell a media that came to its end from a media that a key of
+  the player stopped (T-91), and it promises no key that the view does not hold
+  (T-118 and T-143);
+- the view holds no playback yet → the view opened, therefore the program reads
+  the media that plays.
+
+**The identity is `playback_id`, and not the identity of the item.** A user who
+plays the same book again gives a new playback, and the chapters of that
+playback come from a new answer of `POST /api/items/:id/play`.
+
+**The loop of `src/main.rs` is the one place of that work**, beside the rule of
+the queue of T-161 and before the draw of the frame: the media that plays
+changes with no key of this user, therefore no key handler can hold the rule.
+
+**The key `l` says "No line is selected." now** (T-79). It returned with no word
+for a line of nobody, and a line of nobody comes with no key of the user since
+this correction.
+
+| The measurement | Before | After |
+|---|---|---|
+| The key `l` after the queue started the media of its front | **the place of `A Book Of Many Hours` went from 4:50:35 to 5:34:44**, and the server took it | `No line is selected.`, and the book plays on at its own place |
+| `GET /api/me` of `curl` after that key | `currentTime: 21036` | `currentTime: 1790`, the place of the playback of the queue |
+| The message row at the frame of the change | it named the shelf Continue Listening only | **`The media "A Long Test Book" does not play now.`**, at the frame of the change |
+| The key `j` after it, and then the key `l` | — | the cursor stands on a line again, and the playback goes to the chapter that the user chose |
+
+**The message of the Home view stands above the message of this view 0.8
+seconds later, and this session did not change that.** The media also leaves the
+shelf Continue Listening, and the rule of T-160 says its text from the render of
+any view: a measurement of the message row every 0.2 seconds gave the text of
+T-162 at one look and the text of T-160 four looks later, therefore the text of
+this view stood **0.8 seconds** on the screen of a message that lives six. Both
+sentences are true, and a change that holds the text of T-160 for the moment of
+the Home view would take the reason away from a user who comes back to that view
+later — the fault that T-160 closed. **A message that belongs to the view of the
+user is the condition for a next session.**
+
+`src/logic/chapters.rs` holds four tests of the rule, and
+`tests/the_view_of_the_chapters_holds_its_media.rs` holds the wiring of the loop,
+of the key `C`, and of the key `l`: the test of the loop **fails** with the call
+of `src/main.rs` removed. **No unit test reaches
+`App::the_view_of_the_chapters_holds_its_media`**, because that method needs an
+application of a server — the rule of T-131, of T-159, of T-160, and of T-161.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

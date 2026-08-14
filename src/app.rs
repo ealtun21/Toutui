@@ -186,6 +186,14 @@ pub struct App {
     pub list_state_sort_filter: ListState,
     /// The list of the chapters of the media that plays. See T-24.
     pub list_state_chapters: ListState,
+    /// The playback and the title of the media whose chapters the view shows.
+    ///
+    /// **The media that plays changes while that view stands open, and no key
+    /// of the user does it**: the media comes to its end, and the queue starts
+    /// the media of its front. The program holds the media of the view here,
+    /// therefore the line goes to nobody when that media goes away, and the key
+    /// `l` seeks in no media that the user did not choose. See T-162.
+    pub the_media_of_the_view_of_the_chapters: Option<(u64, String)>,
     /// The list of the bookmarks of one media. See T-24.
     pub list_state_bookmarks: ListState,
     /// The list of the media that wait in the queue. See T-24.
@@ -1480,6 +1488,7 @@ impl App {
             library_filter,
             list_state_sort_filter,
             list_state_chapters: ListState::default(),
+            the_media_of_the_view_of_the_chapters: None,
             list_state_bookmarks: ListState::default(),
             list_state_queue: ListState::default(),
             the_media_of_the_line_of_the_queue: None,
@@ -2819,8 +2828,74 @@ impl App {
         let now = crate::logic::chapters::chapter_at(&state.chapters, state.position);
 
         self.list_state_chapters.select(Some(now.unwrap_or(0)));
+
+        // The view opens with the media of this moment, therefore the program
+        // reads the media that plays again. See T-162.
+        self.the_media_of_the_view_of_the_chapters = None;
+
         self.scroll_offset = 0;
         self.view_state = AppView::Chapters;
+    }
+
+    /// Holds the media whose chapters the view shows, and it takes the line
+    /// away when that media does not play.
+    ///
+    /// **The loop of the program calls this at each frame**, because the media
+    /// that plays changes with no key of this user: the media comes to its end,
+    /// and the queue starts the media of its front. The view then draws the
+    /// chapters of another media and the line keeps the number of the line,
+    /// therefore the key `l` seeks in a media that the user did not choose. The
+    /// measurement of 2026-08-14 took a book of eight hours from 4:50:35 to
+    /// 5:33:20, and the server holds that place. See T-162, and T-160 and T-161
+    /// for the same rule of two other views.
+    pub fn the_view_of_the_chapters_holds_its_media(&mut self) {
+        if !matches!(self.view_state, AppView::Chapters) {
+            self.the_media_of_the_view_of_the_chapters = None;
+            return;
+        }
+
+        let state = self.player.state();
+
+        // A playback that stopped is no media of a chapter.
+        let of_the_player = if state.status == crate::player::engine::PlaybackStatus::Stopped {
+            None
+        } else {
+            Some((state.playback_id, state.title.clone()))
+        };
+
+        let of_the_program = self
+            .the_media_of_the_view_of_the_chapters
+            .as_ref()
+            .map(|(playback, _)| *playback);
+
+        match crate::logic::chapters::what_the_media_of_the_chapters_is(
+            of_the_program,
+            of_the_player.as_ref().map(|(playback, _)| *playback),
+        ) {
+            // The media of the user plays, and the line stays with its chapter.
+            crate::logic::chapters::TheMediaOfTheChapters::ItStillPlays => {}
+            // **No key of the view may reach a media that the user did not
+            // choose**, therefore the line goes to nobody and the program says
+            // which media went away.
+            crate::logic::chapters::TheMediaOfTheChapters::ItWentAway => {
+                let title = self
+                    .the_media_of_the_view_of_the_chapters
+                    .take()
+                    .map(|(_, title)| title)
+                    .unwrap_or_default();
+
+                self.list_state_chapters.select(None);
+
+                crate::logic::message::say(
+                    crate::logic::chapters::the_text_of_the_media_that_went_away(&title).as_str(),
+                );
+            }
+            // The view opened, or the user chose a chapter of the media that
+            // plays now with the keys j and k.
+            crate::logic::chapters::TheMediaOfTheChapters::TheProgramReadsItAgain => {
+                self.the_media_of_the_view_of_the_chapters = of_the_player;
+            }
+        }
     }
 
     /// Goes to the chapter that the user selected.
@@ -2828,6 +2903,10 @@ impl App {
         let state = self.player.state();
 
         let Some(index) = self.list_state_chapters.selected() else {
+            // **The media of the view can go away with no key of this user**
+            // (T-162), and the line then stands on nobody. A key that does
+            // nothing must say why (T-79).
+            crate::logic::message::say("No line is selected.");
             return;
         };
 

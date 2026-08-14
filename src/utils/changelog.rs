@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.96",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key `l` of the view of the chapters moved the place of a book that you did \
+             not choose.** The media that plays changes while you look at that view and you \
+             press no key: the media comes to its end, and the queue then starts the media of \
+             its front. The list became the list of chapters of that other media and your line \
+             kept the number of the line, therefore the key `l` moved the place of a book of \
+             eight hours by 43 minutes, and the server took that place. Your line goes away now \
+             when the media of the view stops, the message names that media, and the keys `j` \
+             and `k` give you a line again.",
+        ],
+    },
+    Entry {
         version: "0.7.95",
         date: "14/08/2026",
         body: &[

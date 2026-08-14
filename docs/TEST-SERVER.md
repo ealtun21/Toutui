@@ -389,6 +389,32 @@ the chapters must therefore press the keys inside that time. One write of two
 keys does the work: `l` starts the playback and the space pauses it at once.
 The position then stops, and the view stays open.
 
+## 6i. Give the book of eight hours three chapters
+
+**A measurement of the view of the chapters while the media that plays changes
+needs two media with chapters** (T-162): the media of the user, and the media
+that the queue starts after it. "A Book Of Many Hours" held no chapter, and its
+three chapters stand far from the three chapters of "A Long Test Book" —
+therefore the key `l` of a line that the user did not choose moves the place of
+that book by 43 minutes, and `curl` reads it.
+
+```bash
+TOKEN=<the token of the login>
+ITEM=6ba57b9a-acb5-44f9-b2b6-39ad9107b420   # A Book Of Many Hours
+
+curl -s -X POST "http://127.0.0.1:13399/api/items/$ITEM/chapters" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"chapters":[
+        {"id":0,"start":0,"end":10000,"title":"The hours of the start"},
+        {"id":1,"start":10000,"end":20000,"title":"The hours of the middle"},
+        {"id":2,"start":20000,"end":28800,"title":"The hours of the end"}]}'
+```
+
+**A measurement of that condition takes 22 seconds of real time.** The device
+`null` plays the 30 minutes of "A Long Test Book" in that time, and the section
+15 gives the book its place 0 again: `PATCH /api/me/progress/:id` with
+`{"isFinished": false}`.
+
 ## 6f. Give each book its own cover
 
 The test of the cover art (T-23) needs a cover that a test can name. One colour

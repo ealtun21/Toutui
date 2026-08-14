@@ -57,6 +57,62 @@ pub fn lines(chapters: &[Chapter], position: f64) -> Vec<String> {
         .collect()
 }
 
+/// What the media of the view of the chapters is now. See T-162.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TheMediaOfTheChapters {
+    /// The media whose chapters the user opened still plays.
+    ItStillPlays,
+    /// The media whose chapters the user opened does not play now.
+    ItWentAway,
+    /// The view holds no media yet, therefore the program reads the media that
+    /// plays.
+    TheProgramReadsItAgain,
+}
+
+/// Tells what happened to the media whose chapters the user opened.
+///
+/// **The media that plays changes while the view stands open, and no key of the
+/// user does it**: the media comes to its end and the queue starts the media of
+/// its front. The list of the chapters is then the list of another media, and
+/// the line keeps the number of the line: the key `l` of the view seeks in a
+/// media that the user did not choose. The measurement of 2026-08-14: the user
+/// chose "The third part" of a book of 30 minutes, the queue started a book of
+/// eight hours, and the key `l` took that book from 4:50:35 to 5:33:20. See
+/// T-162, and T-160 and T-161 for the same rule of two other views.
+///
+/// `of_the_program` is the playback that the view opened, and `of_the_player` is
+/// the playback of the engine now. A playback that stopped gives nothing.
+///
+/// The function is pure, therefore a test needs no engine and no screen.
+pub fn what_the_media_of_the_chapters_is(
+    of_the_program: Option<u64>,
+    of_the_player: Option<u64>,
+) -> TheMediaOfTheChapters {
+    match of_the_program {
+        None => TheMediaOfTheChapters::TheProgramReadsItAgain,
+        Some(playback) if Some(playback) == of_the_player => TheMediaOfTheChapters::ItStillPlays,
+        Some(_) => TheMediaOfTheChapters::ItWentAway,
+    }
+}
+
+/// The text for the user when the media of the view of the chapters goes away.
+///
+/// **The program cannot know which chapter the user wants now**, therefore it
+/// takes the line away and it says what happened. The key `l` then seeks in no
+/// media at all, and the user chooses the next chapter.
+///
+/// The sentence names no cause: this program cannot tell a media that came to
+/// its end from a media that a key of the player stopped (T-91). It names the
+/// two keys of the view that give a line again, and it promises no other key
+/// (T-118 and T-143). See T-162.
+pub fn the_text_of_the_media_that_went_away(title: &str) -> String {
+    format!(
+        "The media \"{}\" does not play now. \
+         No line is selected: the keys j and k select one.",
+        title
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -124,6 +180,57 @@ mod tests {
         assert!(text[1].starts_with('▶'));
         assert!(!text[0].starts_with('▶'));
         assert!(!text[2].starts_with('▶'));
+    }
+
+    /// The media of the user plays, therefore the line of the user stays. See
+    /// T-162.
+    #[test]
+    fn the_media_that_the_user_opened_still_plays() {
+        assert_eq!(
+            what_the_media_of_the_chapters_is(Some(7), Some(7)),
+            TheMediaOfTheChapters::ItStillPlays
+        );
+    }
+
+    /// **The queue starts the media of its front with no key of the user**, and
+    /// the list of the chapters is then the list of another media. See T-162.
+    #[test]
+    fn a_media_that_does_not_play_now_went_away() {
+        assert_eq!(
+            what_the_media_of_the_chapters_is(Some(7), Some(8)),
+            TheMediaOfTheChapters::ItWentAway
+        );
+
+        // The media came to its end, and no media plays now.
+        assert_eq!(
+            what_the_media_of_the_chapters_is(Some(7), None),
+            TheMediaOfTheChapters::ItWentAway
+        );
+    }
+
+    /// The view opens with the media of this moment. See T-162.
+    #[test]
+    fn a_view_that_holds_no_media_reads_the_media_that_plays() {
+        assert_eq!(
+            what_the_media_of_the_chapters_is(None, Some(7)),
+            TheMediaOfTheChapters::TheProgramReadsItAgain
+        );
+
+        assert_eq!(
+            what_the_media_of_the_chapters_is(None, None),
+            TheMediaOfTheChapters::TheProgramReadsItAgain
+        );
+    }
+
+    /// The text names the media that went away, and it promises the two keys
+    /// of the view only. See T-118, T-143, and T-162.
+    #[test]
+    fn the_text_names_the_media_and_two_keys() {
+        let text = the_text_of_the_media_that_went_away("A Long Test Book");
+
+        assert!(text.contains("A Long Test Book"), "{}", text);
+        assert!(text.contains("keys j and k"), "{}", text);
+        assert!(!text.contains("press h"), "{}", text);
     }
 
     /// Every line must start at the same column, or the list looks broken.

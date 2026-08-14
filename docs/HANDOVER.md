@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.95**, and T-161 belongs to this session. The item
-T-160 belongs to the session before it, and the items T-158 and T-159 to the one
+**The newest release is v0.7.96**, and T-162 belongs to this session. The item
+T-161 belongs to the session before it, the item
+T-160 to the one before that, and the items T-158 and T-159 to the one
 before that, the items T-155, T-156, and T-157 to the one before that, the item
 T-154 to the one before that, T-152 and T-153 to the one before that, T-150 and
 T-151 to the one before those, T-148 and T-149 to the one before them, T-146 and
@@ -13,6 +14,65 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the eighth turn of 2026-08-14: the chapters of another media
+
+**One release: v0.7.96.** No condition of the road stayed, therefore this
+session took the one part of the program that the road named and that no
+measurement had reached: **the view of the chapters while the media that plays
+changes**. The queue starts the next media with no key of the user (T-24), and
+the view draws the chapters of the media that plays at each frame. **It held one
+fault, one window makes it, and the fault reaches the server.**
+
+| Item | What | Keys |
+|---|---|---|
+| T-162 | **The key `l` moved the place of a book that the user did not choose.** The user chose a chapter of a book of 30 minutes, and the key moved a book of eight hours 43 minutes forward | `C`, `G`, then `l` |
+
+### T-162, and it is the one to know of this session
+
+**The list of the chapters holds no media**: it is the list of the media that
+**plays**, therefore the rule of T-161 for the queue does not reach it.
+
+| The moment | The view of the chapters |
+|---|---|
+| The user plays `A Long Test Book` of 30 minutes, and the queue holds `A Book Of Many Hours` at 4:50:35 | — |
+| The keys `C` and `G` | `The chapters of "A Long Test Book"`, and the cursor stands on `The third part` (20:00) |
+| **The book comes to its end, 22 seconds later** | `The chapters of "A Book Of Many Hours"`, and the cursor stands on the line 3: **`The hours of the end` (5:33:20)** |
+| The key `l` | **the playback went from 4:50:35 to 5:34:44**, and `curl` then read `currentTime: 21036` |
+
+**The correction is the rule of T-160 and of T-161 for a third view: the line
+holds a media, and not a number of a line.**
+`what_the_media_of_the_chapters_is` of `src/logic/chapters.rs` reads the
+`playback_id` of the frame before: the same playback keeps the line, another
+playback (or no playback at all) takes the line to nobody with a message that
+names the media, and a view that holds no playback reads the media that plays.
+**The loop of `src/main.rs` holds the rule at each frame**, beside the rule of
+the queue: the media changes with no key of this user.
+
+**The identity is the playback, and not the item.** A user who plays the same
+book again gives a new playback, and a new answer of `POST /api/items/:id/play`
+gives its chapters.
+
+**The key `l` says `No line is selected.` now** (T-79).
+
+**The message of the Home view stands above the message of this view 0.8 seconds
+later, and that is the condition for the next session.** The media leaves the
+shelf Continue Listening too, and the rule of T-160 says its text from the
+render of **any** view. Both sentences are true, and a change that holds the
+text of T-160 for the moment of the Home view would take the reason away from a
+user who comes back to that view later — the fault that T-160 closed. **A
+message belongs to the view of the user**, and no session has measured that.
+
+### The measurements of this session
+
+| The measurement | The answer |
+|---|---|
+| **The key `l` of the view of the chapters after the queue started the media of its front** | **one fault** (T-162): the place of a book of eight hours went 43 minutes forward, and the server took it |
+| The same condition, after the correction | `No line is selected.`, and `curl` holds the place of the playback of the queue |
+| The message row at the frame of the change | **it named the Home view only** before, and it names `A Long Test Book` after |
+| The keys `j` and `l` after it | the cursor stands on a line again, and the playback goes to the chapter that the user chose |
+| The text of this view against the text of the Home view | **0.8 seconds**, of a message that lives six |
+| **`cargo test`, the command of CI, four runs** | **no fault** |
 
 ## The session of the seventh turn of 2026-08-14: the queue that moves under the cursor
 
