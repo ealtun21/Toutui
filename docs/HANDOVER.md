@@ -7113,6 +7113,12 @@ answers slowly while it writes. Two answers to measure:
   machine has 32 cores, and the user tests the program while the tests build.
 - The address of the server of the user must stay outside this repository, and the
   account of the user too.
+- **A round gives the work that reads to subagents, and it keeps the work that
+  touches the machine.** The sandbox, tmux, the database of the program, `src/`,
+  `target/`, git, and this file stay with the session. The sweeps of `src/` and
+  the reads of the two long documents go to agents of `haiku` and of `sonnet`,
+  and they start together in one message. `### The subagents of a round` of the
+  prompt below holds the rule, the model of each work, and the sequence.
 - **The sessions can run in a loop.** The driver is `~/.local/bin/toutui-loop`,
   outside this repository, and its design is
   `docs/superpowers/specs/2026-08-13-session-loop-design.md`. It reads the block of
@@ -7695,6 +7701,80 @@ This prompt names the state of the program on 2026-08-15.
 > device alsa:null". `ALSA_CONFIG_PATH` does **not** silence the real program.
 > **The null device plays 30 minutes of a book in 25 seconds** (the trap 72), and
 > a sweep of some steps therefore needs a book of eight hours (the trap 90).
+>
+> ### The subagents of a round
+>
+> **A round holds work of two kinds.** The first kind touches the machine: the
+> sandbox, tmux, the database of the program, `src/`, `target/`, and git. **That
+> work belongs to this session alone, and one part of it at a time.** The second
+> kind reads files and it changes nothing. **That work goes to a subagent**, and
+> many of them run together. A round that gives the second kind away makes the
+> measurement of the first kind longer, and a longer measurement is the value of
+> this fork.
+>
+> **The rule of the ownership.** A subagent of an old session ran `git stash`,
+> and it took the work of another agent with it. Therefore: **name the files that
+> the agent may touch**, tell it that it must not commit, and forbid
+> `git stash`, `git checkout --`, and `git reset` with those three names. **Run
+> every gate of this file yourself before you commit the work of an agent.**
+>
+> **What must never go to a subagent**: the sandbox (podman, the port 13399, and
+> every place of a media), tmux and `docs/harness/drive.sh`, the database of the
+> program, an edit of `src/` for a build of the fault (the trap 147), every
+> command of cargo, every command of git, and `docs/HANDOVER.md`. **Two agents of
+> one of those resources give a measurement that lies**: `start_the_program`
+> empties the log of the other agent, `stop_the_program` kills its session of
+> tmux (the trap 103), a `PATCH` of a place changes its condition (the trap 148),
+> a `podman restart` takes its server away (the trap of T-68), and two commands
+> of cargo wait for one lock and they fill the disk (the trap 150).
+>
+> **What goes to a subagent, and the model of it.** The `model` of the tool takes
+> `haiku`, `sonnet`, and `opus`, and the type `fork` keeps the model and the
+> context of this session:
+>
+> | The work | The model | The type |
+> |---|---|---|
+> | Find a name, a call, or a line of `src/` | `haiku` | `Explore` |
+> | Read a part of `docs/HANDOVER.md` or of `docs/TAKEOVER-BACKLOG.md`, and give the paragraphs back | `haiku` | `Explore` |
+> | A sweep of one line of code over the whole of `src/` (the shape of T-198 and of T-199) | `sonnet` | `Explore` |
+> | A sweep that holds a decision (T-200: which of 21 functions gives `Ok` after an `else` that says nothing) | `sonnet` | `general-purpose` |
+> | The words of a draft of an item of `docs/TAKEOVER-BACKLOG.md`, of the numbers of this session | `sonnet` | `general-purpose` |
+> | A second reading of a correction that stands already | `opus` | `fork` |
+> | The measurement, the correction, the words for the user, the gates, the docs, and the release | `opus` | **this session** |
+>
+> **The sequence of a round that uses them.** A build takes minutes and a read of
+> `src/` takes seconds, therefore the two stand together:
+>
+> 1. Start the sandbox and the build, and **at the same time** give three or four
+>    agents of `Explore` the candidates of a fault, and one agent the last
+>    paragraph of the newest item. The build then costs no time of the round.
+> 2. Read the answers, take one condition, and **make the measurement yourself**
+>    inside tmux.
+> 3. Write the correction and the test yourself, and remove the correction for
+>    the build of the fault yourself (the trap 147).
+> 4. Start the gates, and **at the same time** give one agent the draft of the
+>    item of the backlog, with the numbers of the measurement in its prompt.
+> 5. Read that draft, correct it, and write `docs/HANDOVER.md` **yourself**.
+>
+> **Every agent of one message starts together.** Two agents of two messages run
+> one after the other, and that is the waste that this section stops.
+>
+> **An agent gives no fact of the program.** It gives a place to look. The value
+> of this fork comes of a measurement of the real program: a read of the source of
+> T-183 found no fault, and the measurement of that same file found two. **A fault
+> that an agent names is a candidate, and never an item**, and no item of
+> `docs/TAKEOVER-BACKLOG.md` stands with no measurement behind it.
+>
+> **A second program of the sandbox is the one exception of tmux**, and it holds
+> four conditions together (the trap 89 and the trap 94): the agent takes a
+> `SESSION` of its own, a `XDG_CONFIG_HOME` and a `XDG_DATA_HOME` of its own, a
+> port of a proxy of its own, and **it writes no place of a media and no row of
+> the server**. An agent that cannot hold the four of them takes no tmux at all.
+>
+> **The prompt of this file belongs to this session alone.** No agent writes the
+> block under the heading of the prompt, and no agent writes `docs/HANDOVER.md`:
+> a script of the session of the fiftieth turn took that heading away with the
+> first hit of its name, and the loop stopped (the trap 208).
 >
 > ### The work, in the sequence of its value
 >
