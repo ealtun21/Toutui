@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.9.** The items T-177 and T-178 belong to this
-session. The items T-175 and T-176 belong to the session before it.
+**The newest release is v0.8.10.** The item T-179 belongs to this
+session. The items T-177 and T-178 belong to the session before it.
+The items T-175 and T-176 belong to the session before that one.
 The items T-173 and T-174 belong to the session before that one.
 The items T-171 and T-172 belong to the session before that one. The
 items T-169 and T-170 belong to the session before that one. The item T-168 belongs to
@@ -25,6 +26,62 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the twentieth turn of 2026-08-14: the size that the server did not give
+
+**One release: v0.8.10.** The session before this one left no item open, and it
+named three answers of `src/api/` that no measurement of the shape of T-177 had
+reached: `POST /api/items/:id/play`, `GET /api/items/:id`, and the answer of the
+socket. This session took `GET /api/items/:id`, and **it held a fault of the
+download**.
+
+| Item | What | Where |
+|---|---|---|
+| T-179 | **A download threw every byte of the book away, for a server that gives no size of a file.** `metadata.size` of `media.audioFiles` takes the value 0 of `unwrap_or(0)`, and `fetch_one` compared the bytes of the answer with that 0: the program wrote every byte of `Alice in Wonderland`, and it then said `Download failed: the server sent 20554 bytes for alice.mp3, but the file has 0 bytes`. **The next press of the key `D` removed that work and it asked for the whole book again** — 112 megabytes of a book of the sandbox at every press. A size of 0 is "the server did not say" now: the end of the answer is the end of the file, a file of the disk needs no second request, and the bar holds the bytes that came | `src/logic/download/fetch.rs`, `src/logic/download/plan.rs`, `src/ui/tui.rs` |
+
+The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-179. Five things are
+worth the room here:
+
+1. **A field of an answer that the program reads with a default is not safe.**
+   T-176 and T-177 asked "does this answer read at all?", and every structure of
+   `src/api/` gives a default now. **The question of this session is the next
+   one**: what does the program **do** with that default? `unwrap_or(0)` and
+   `unwrap_or(0.0)` are the two lines of every such answer, and a 0 that a
+   comparison meets is a fault that no decode reports.
+2. **The fault took work of the user away, and it took work of the server too.**
+   The other faults of this class write a wrong word or they hide a value. This
+   one wrote every byte of a book of 112 megabytes, it removed the file, and it
+   asked for those bytes again at every press: a server of the internet then
+   sends a book without end.
+3. **The words of the fault said a thing that the program does not know.** "The
+   file has 0 bytes" is not a measurement — it is the absence of one, and the
+   rule of T-91 holds for such a sentence. The bar of the download held the same
+   fault: `0.0 MB / 0.0 MB` while the program wrote the book.
+4. **The disk is the truth of a download** (T-147), and this correction gives
+   that rule the last road of the module: a file with no `.part` holds every byte
+   that the server sent, therefore a second press of the key `D` asks for no byte
+   again. The log of the proxy holds 3 requests of the file before that key and 3
+   after it.
+5. **The measurement needs the whole path.**
+   `a_field_of_the_answer_goes_away.py` compares the whole path, therefore
+   `/api/items/:id` needs the id of the item in the command line — and that is a
+   gift: `POST /api/items/:id/play` of the same item keeps every field, therefore
+   the sweep holds one road of the program at a time.
+
+**The condition that this session leaves open.** None of its own. The road of
+the next session stands in the prompt at the end of this file.
+
+### The gates of this session
+
+| The gate | The answer |
+|---|---|
+| `cargo clippy --all-targets -- -D warnings` | no word |
+| `cargo fmt --check` | no word |
+| `cargo nextest run` | **1115 of 1115** in 2.3 seconds |
+| `cargo nextest run --run-ignored all` | **1140 of 1140** in 18.7 seconds, with the sandbox up |
+| `cargo test -j 16 --no-fail-fast` | two runs, and every run passed |
+| `cargo tree -i openssl-sys` | no package |
+| `cargo tree -i cc` | `libsqlite3-sys` and `ring` only |
 
 ## The session of the nineteenth turn of 2026-08-14: the place of a book that the program did not read
 
@@ -3899,6 +3956,30 @@ answers slowly while it writes. Two answers to measure:
     [ -n "$pid" ] && kill "$pid"
     ```
 
+### The traps of the session of the size that the server did not give (T-179)
+
+142. **`a_field_of_the_answer_goes_away.py` reads the whole path, and not a part
+    of it.** `path.split("?")[0].rstrip("/") == THE_PATH` is the rule, therefore
+    a path that holds an id needs that id in the command line. Take the id with
+    `curl` first, and give the whole path:
+    ```bash
+    python3 docs/harness/a_field_of_the_answer_goes_away.py 13504 13399 \
+        /the/absolute/path/of/proxy.log \
+        /api/items/8fda6e43-0728-46ad-98bc-4c8634e299ad size
+    ```
+    **That rule is a gift of the measurement**: `POST /api/items/:id/play` of the
+    same item keeps every field, therefore the sweep holds one road of the
+    program at a time (T-179).
+143. **The shell of this harness is not bash.** A `for` loop of the form
+    `for i in (seq 1 12)` and a `for ... end` gave
+    `(eval):1: parse error near 'end'`. **Write the loop of a measurement in a
+    file, and give that file to `bash`**: `drive.sh` needs bash, and the
+    functions of it work in no other shell (T-179).
+144. **The log of the proxy counts the requests of a measurement.** The question
+    "does this key ask the server again?" needs no strace and no screen:
+    `grep -c '/download' proxy.log` before the key and after it gave 3 and 3, and
+    that is the whole measurement of a file that the disk holds already (T-179).
+
 ### Of the harness and of the machine
 
 1. **A fixed `sleep` is the largest waste of a session.** The first frame of the
@@ -4217,19 +4298,18 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took the two roads that the session before it named**: a key
-that reads a state of the server and that then writes it, and the one structure
-of `src/api/` that asks for every field of an answer. **The reader wrote the
-first page of a book over the place of the user** when the read of that place
-came back with a fault (T-178), and **two fields that the program never reads
-took every position of the account away** (T-177). The session left no item
-open, and it corrected a decision of the session before it. **The next session
-must name a condition of its own.** This prompt names the state of the program
-on 2026-08-14.
+**This session took one road that the session before it named**: an answer of a
+server of another version, at `GET /api/items/:id`. **A download of a book of a
+server that gives no size of a file wrote every byte, it called that work a
+fault, and the next press of the key `D` asked for every byte again** (T-179).
+The session left no item open, and it names the next question of that road: a
+field of an answer that the program reads with a **default** is not safe, because
+the program then uses that default. **The next session must name a condition of
+its own.** This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.9**; `Cargo.toml` is at 0.8.9. The
+> AlbanDAVID/Toutui. Newest release **v0.8.10**; `Cargo.toml` is at 0.8.10. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -4238,7 +4318,7 @@ on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-178 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-179 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -4383,6 +4463,15 @@ on 2026-08-14.
 >     requests.log /api/me mediaItemId mediaItemType
 > ```
 >
+> **That proxy reads the whole path** (the trap 142), therefore a path that holds
+> an id needs that id: take the id with `curl`, and give
+> `/api/items/8fda6e43-0728-46ad-98bc-4c8634e299ad size` to it. The other paths
+> of the same item then keep every field, and the sweep holds one road of the
+> program at a time. **The loop of a measurement belongs in a file of `bash`**
+> (the trap 143): the shell of this harness reads no `for ... end`. **The log of
+> the proxy counts the requests** (the trap 144): `grep -c` of a path before a key
+> and after it says whether that key asked the server again.
+>
 > **`pkill -f` of a proxy kills the shell of this harness** (the trap 114): the
 > command line of a `for` loop of the shell holds that name too. The process of
 > a port comes of `ss -lptnH 'sport = :13502'` (the trap 131 and the trap 141).
@@ -4446,12 +4535,11 @@ on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in thirty-one sessions of thirty-two. **No
->    condition of the road stays**: the session of the nineteenth turn took the
->    two roads of the session before it, and it found a reader that writes the
->    first page of a book over the place of the user (T-178) and an answer of one
->    version of the server that takes every position of the account away (T-177).
->    It wrote the correction of each, and it left no item open.
+>    this shape found a fault in thirty-two sessions of thirty-three. **No
+>    condition of the road stays**: the session of the twentieth turn took one
+>    road of the session before it, and it found a download that writes every
+>    byte of a book and that then calls that work a fault (T-179). It wrote the
+>    correction, and it left no item open.
 >    - **The three shapes that found a fault before:** **a state of one process
 >      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153 to
 >      T-167), **a program that dies in the middle of work** (T-145, T-152), and
@@ -4463,7 +4551,11 @@ on 2026-08-14.
 >      the keys** (T-178): the keys `M`, `N`, and `e` were the three of it, and
 >      each of them held a fault. **A fifth shape came of T-177**: an answer of
 >      a server of another version, which holds one field fewer, and
->      `docs/harness/a_field_of_the_answer_goes_away.py` gives it.
+>      `docs/harness/a_field_of_the_answer_goes_away.py` gives it. **T-179 names
+>      the next question of that shape**: a field that the program reads with a
+>      **default** gives no fault of a decode, and the program then **uses** that
+>      default — `unwrap_or(0)` and `unwrap_or(0.0)` are the two lines to read of
+>      every such answer.
 >    - **The class of the views of `one_path_fails.py` is closed.** The bookmarks,
 >      the sessions, the statistics, the authors and the narrators, the devices of
 >      an e-reader, and the downloads of the server each hold a `State::Fault`,
@@ -4483,17 +4575,28 @@ on 2026-08-14.
 >      to an e-reader is the one to take**: `POST /api/emails/send-ebook-to-device`
 >      writes, and the list of the devices comes of the payload of the login
 >      (T-119) — the sweep must ask what the program does with a device that the
->      server no longer holds.
+>      server no longer holds. **A read of that code of 2026-08-14 found no fault
+>      of the words**: `the_end_of_the_send` names every status and every body of
+>      the server, and the key `l` of that view says what the read of the devices
+>      said. **No measurement stands behind that read**, therefore the sweep
+>      stays open: the shape of T-179 says that a road which looks safe in the
+>      source can still hold a value that no answer gave.
 >    - **The shape of T-177 is the answer of a server of another version**, and
 >      **no structure of `src/api/` asks for a field that the program does not
 >      read now**: `get_all_books.rs`, `sessions.rs`, `bookmarks.rs`,
 >      `get_authors.rs`, `stats/mod.rs`, `get_all_libraries.rs` (T-176), and
 >      `get_media_progress.rs` (T-177) each give every such field a default.
->      **The parts that no measurement of that shape has reached**: the answer
->      of `POST /api/items/:id/play` (the chapters and the parts of the stream),
->      the answer of `GET /api/items/:id`, and the answer of the socket. The
->      harness is `docs/harness/a_field_of_the_answer_goes_away.py`, and the
->      question of every sweep of it is **which field does this program read**.
+>      **The answer of `GET /api/items/:id` is measured for the download**
+>      (T-179): `metadata.size` of a file took the default 0, and a comparison of
+>      that 0 threw the whole download away. **The parts that no measurement of
+>      that shape has reached**: the answer of `POST /api/items/:id/play` (the
+>      chapters, `currentTime`, `duration`, and the parts of the stream), the
+>      other defaults of `GET /api/items/:id` (`ino`, `duration`, `index`, and
+>      `mimeType` of a file, which `tracks_from_item` and `plan_from_item` read),
+>      and the answer of the socket. The harness is
+>      `docs/harness/a_field_of_the_answer_goes_away.py`, and the question of
+>      every sweep of it is **which field does this program read, and what does it
+>      do with the default of that field**.
 >    - **A library whose name holds no character is measured** (T-176), and the
 >      words of it stay open by a decision: the program starts, the header says
 >      `📖  (book)`, and the view of the key `S` holds a line of no character. No
@@ -4616,7 +4719,10 @@ on 2026-08-14.
 > therefore it takes a line of the log and no word for the user** (T-177), and
 > **the reader writes no place of a book whose place the server did not give:
 > the status 404 is the answer of a book that the user never opened, and every
-> other fault stops the send and says so** (T-178).
+> other fault stops the send and says so** (T-178), and **a size of 0 of
+> `metadata.size` is a size that the server did not give: the end of the answer is
+> then the end of the file, a file of the disk with no `.part` needs no second
+> request, and the bar of that download names no total** (T-179).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.10",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A download failed after Toutui wrote every byte of the book, for a \
+             server that does not give the size of a file.** Toutui compared the bytes \
+             that came with a size of zero, therefore it said \"the server sent 20554 \
+             bytes for alice.mp3, but the file has 0 bytes\" and it kept no file. The \
+             next press of the key `D` removed that work and asked the server for the \
+             whole book again. A size that the server does not give changes nothing \
+             now: the end of the answer is the end of the file, a file that is on the \
+             disk needs no second download, and the bar of the download shows the bytes \
+             that came.",
+        ],
+    },
+    Entry {
         version: "0.8.9",
         date: "14/08/2026",
         body: &[
