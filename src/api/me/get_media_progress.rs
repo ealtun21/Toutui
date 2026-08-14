@@ -4,14 +4,34 @@ use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
 
+/// The position of one media of the account.
+///
+/// **The program reads the media of the position, and every other field takes a
+/// default.** This is the rule of T-176 for this answer. `Root` asked for every
+/// field of Audiobookshelf 2.36.0, and `mediaItemId` and `mediaItemType` came
+/// to `mediaProgress` with the version 2.5.0 alone: a server before that one
+/// gave the log 20 lines of "missing field `mediaItemId`", and **the Home view
+/// then held the position of no media at all** — no percent, no mark of a media
+/// that is finished, and `Progress:  N/A%,   N/A` on the line of the media. The
+/// program reads neither field. See T-177.
+///
+/// **`libraryItemId` is the one field that stays**: a row that names no media
+/// belongs to no line of any view, therefore the program can say nothing of it
+/// and it keeps no such row (`the_positions_of_the_answer` of
+/// `src/api/me/permissions.rs`).
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Root {
+    #[serde(default)]
     pub id: String,
+    #[serde(default)]
     pub user_id: String,
     pub library_item_id: String,
+    #[serde(default)]
     pub episode_id: Value,
+    #[serde(default)]
     pub media_item_id: String,
+    #[serde(default)]
     pub media_item_type: String,
     /// **A number of this answer can come as a text.** See `a_number` and
     /// T-130.
@@ -21,8 +41,11 @@ pub struct Root {
     pub progress: f64,
     #[serde(deserialize_with = "a_number", default)]
     pub current_time: f64,
+    #[serde(default)]
     pub is_finished: bool,
+    #[serde(default)]
     pub hide_from_continue_listening: bool,
+    #[serde(default)]
     pub ebook_location: Value,
     /// **The place of the reader is a fraction of the book, and not a whole
     /// number.** The field held `i64`, therefore the answer of a media whose
@@ -30,8 +53,11 @@ pub struct Root {
     /// that media. See T-127.
     #[serde(deserialize_with = "a_number", default)]
     pub ebook_progress: f64,
+    #[serde(default)]
     pub last_update: i64,
+    #[serde(default)]
     pub started_at: i64,
+    #[serde(default)]
     pub finished_at: Value,
 }
 
@@ -143,6 +169,87 @@ mod tests {
         assert_eq!(row.current_time, 0.0);
         assert_eq!(row.progress, 0.0);
         assert!(row.is_finished);
+    }
+
+    /// **A server of another version holds fewer fields, and the position of
+    /// the media must read.** `mediaItemId` and `mediaItemType` came to
+    /// `mediaProgress` with the version 2.5.0 of Audiobookshelf, and this
+    /// program reads neither of them. A measurement of 2026-08-14 with
+    /// `docs/harness/a_field_of_the_answer_goes_away.py` took those two fields
+    /// out of `GET /api/me`: the 20 rows of the account each said
+    /// "missing field `mediaItemId`" in the log, and **every position of every
+    /// media went away** — the Home view showed no percent and no mark of a
+    /// media that is finished, and the line of the media said
+    /// `Progress:  N/A%,   N/A`. No word said why. See T-177 and T-176.
+    #[test]
+    fn the_position_of_a_server_of_another_version_reads() {
+        let answer = serde_json::json!({
+            "id": "a-row",
+            "userId": "a-user",
+            "libraryItemId": "a-book",
+            "episodeId": null,
+            "duration": 1800.0,
+            "progress": 0.5,
+            "currentTime": 900.0,
+            "isFinished": false,
+            "hideFromContinueListening": false,
+            "ebookLocation": null,
+            "ebookProgress": 0,
+            "lastUpdate": 1786317827954i64,
+            "startedAt": 1786317827954i64,
+            "finishedAt": null
+        });
+
+        let row: Root = serde_json::from_value(answer).expect("the answer of the server reads");
+
+        assert_eq!(row.library_item_id, "a-book");
+        assert_eq!(row.current_time, 900.0);
+        assert_eq!(row.media_item_type, "");
+    }
+
+    /// **The media of the position is the one field that must stand.** A row
+    /// that names no media belongs to no line of any view, therefore the
+    /// program can say nothing of it and it keeps no such row. This is the rule
+    /// of T-176 for this answer: the program reads what it needs, and every
+    /// other field takes a default.
+    #[test]
+    fn a_row_that_names_no_media_does_not_read() {
+        let answer = serde_json::json!({
+            "id": "a-row",
+            "userId": "a-user",
+            "progress": 0.5
+        });
+
+        let fault = serde_json::from_value::<Root>(answer)
+            .expect_err("a row that names no media does not read");
+
+        assert!(
+            fault.to_string().contains("libraryItemId"),
+            "the words of the fault name the field: {}",
+            fault
+        );
+    }
+
+    /// A row of a podcast of a server of another version keeps its episode,
+    /// therefore `the_position_of_a_media` still leaves it to the episode. See
+    /// T-177.
+    #[test]
+    fn the_episode_of_a_position_of_another_version_stays() {
+        let answer = serde_json::json!({
+            "id": "a-row",
+            "userId": "a-user",
+            "libraryItemId": "a-podcast",
+            "episodeId": "an-episode",
+            "progress": 1.0,
+            "isFinished": true,
+            "lastUpdate": 1i64
+        });
+
+        let row: Root = serde_json::from_value(answer).expect("the answer of the server reads");
+
+        assert_eq!(row.episode_id, serde_json::json!("an-episode"));
+        assert!(row.is_finished);
+        assert_eq!(row.started_at, 0);
     }
 
     #[test]

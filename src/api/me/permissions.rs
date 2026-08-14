@@ -136,14 +136,7 @@ pub async fn the_account_of_the_token(
 ) -> Result<(TheAccount, Vec<crate::api::me::get_media_progress::Root>), ApiError> {
     let me: Me = client.get_json("/api/me").await?;
 
-    let mut the_positions = Vec::new();
-
-    for row in me.media_progress {
-        match serde_json::from_value::<crate::api::me::get_media_progress::Root>(row) {
-            Ok(one) => the_positions.push(one),
-            Err(error) => log::warn!("[app] a position of the account does not read: {}", error),
-        }
-    }
+    let the_positions = the_positions_of_the_answer(me.media_progress);
 
     Ok((
         TheAccount {
@@ -152,6 +145,31 @@ pub async fn the_account_of_the_token(
         },
         the_positions,
     ))
+}
+
+/// Reads the rows of `mediaProgress` of the answer of `GET /api/me`.
+///
+/// **A row that does not read takes a line of the log and no more.** The
+/// position of one media stands on the line of that media, therefore the
+/// program keeps every row that reads and it stops for none of them. The row
+/// that does not read names no media (`get_media_progress::Root` asks for
+/// `libraryItemId` alone), therefore it belongs to no line of any view and no
+/// view can say a word of it. See T-177.
+///
+/// The function is pure, therefore a test needs no server.
+pub fn the_positions_of_the_answer(
+    rows: Vec<serde_json::Value>,
+) -> Vec<crate::api::me::get_media_progress::Root> {
+    let mut the_positions = Vec::new();
+
+    for row in rows {
+        match serde_json::from_value::<crate::api::me::get_media_progress::Root>(row) {
+            Ok(one) => the_positions.push(one),
+            Err(error) => log::warn!("[app] a position of the account does not read: {}", error),
+        }
+    }
+
+    the_positions
 }
 
 /// Gives the sentence for a user who may not download.
@@ -243,6 +261,52 @@ mod tests {
         // do every work of the program.
         let text = lines.join("\n");
         assert!(!text.contains("You may not"), "{}", text);
+    }
+
+    /// **The positions of a server of another version read.** A measurement of
+    /// 2026-08-14 took `mediaItemId` and `mediaItemType` out of the answer of
+    /// `GET /api/me` with `docs/harness/a_field_of_the_answer_goes_away.py`:
+    /// the 20 rows of the account each said "missing field `mediaItemId`" in
+    /// the log, and the Home view of the program then showed the position of no
+    /// media at all. See T-177.
+    #[test]
+    fn the_positions_of_a_server_of_another_version_read() {
+        let me: Me = serde_json::from_value(serde_json::json!({
+            "id": "a-user",
+            "username": "toutuitest",
+            "mediaProgress": [
+                {
+                    "id": "a-row",
+                    "userId": "a-user",
+                    "libraryItemId": "a-book",
+                    "episodeId": null,
+                    "duration": 1800.0,
+                    "progress": 0.5,
+                    "currentTime": 900.0,
+                    "isFinished": false,
+                    "hideFromContinueListening": false,
+                    "ebookLocation": null,
+                    "ebookProgress": 0,
+                    "lastUpdate": 1i64,
+                    "startedAt": 1i64,
+                    "finishedAt": null
+                },
+                {
+                    "id": "another-row",
+                    "userId": "a-user",
+                    "progress": 0.5
+                }
+            ]
+        }))
+        .expect("the answer of the server must read");
+
+        let positions = the_positions_of_the_answer(me.media_progress);
+
+        // The row of the media reads, and the row that names no media does not
+        // take the other one away.
+        assert_eq!(positions.len(), 1);
+        assert_eq!(positions[0].library_item_id, "a-book");
+        assert_eq!(positions[0].progress, 0.5);
     }
 
     #[test]
