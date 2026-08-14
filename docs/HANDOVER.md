@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.98**, and T-163 and T-164 belong to this session.
-The item T-162 belongs to the session before it, the item
+**The newest release is v0.7.99**, and T-165 belongs to this session.
+The items T-163 and T-164 belong to the session before it, the item
+T-162 to the one before that, the item
 T-161 to the one before that, the item
 T-160 to the one before that, and the items T-158 and T-159 to the one
 before that, the items T-155, T-156, and T-157 to the one before that, the item
@@ -15,6 +16,87 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the tenth turn of 2026-08-14: the lists of two windows
+
+**One release: v0.7.99.** No condition of the road stayed, therefore this
+session took one of the parts of the program that the road named and that no
+measurement had reached: **the lists (the collections and the playlists) with
+two windows of one account**. It is the shape that found a fault in fourteen
+sessions — a state of one process that a second program cannot see — and **it
+held one fault of two forms**. The key of that view removes a whole collection
+or a whole playlist, and every user of the server loses a collection.
+
+| Item | What | Keys |
+|---|---|---|
+| T-165 | **The key `X` took a media out of a playlist that the user never opened.** A second window removed the collection of the line above, and the view of the user became another list with no word at all. The second form of it left the user in a view of no name, no line, and a footer of five keys that do nothing | `c`, `l`, then `X` |
+
+### T-165, and it is the one to know of this session
+
+**`take_the_lists` of `src/app.rs` is the one door**: it is the one function
+that changes `self.lists`, the render calls it at each frame, and it held the
+rule of T-41 for the media of a list alone. It clamped the line of the media to
+the number of the media, and **it never asked whether the list of the line
+stayed**: `selected_list()` reads a **number of a line**.
+
+| The moment | The window A | The window B |
+|---|---|---|
+| A opens the media of `A Test Playlist` | `A Test Playlist [4 items]` | — |
+| B removes the collection of the line above it | the same screen | `The collection "A Test Collection" is not on the server now.` |
+| **A presses `X`** | **`Z Second Playlist [2 items]`**, and the message names the media of `A Test Playlist` | — |
+| A presses `X` again | **`"The Test Chronicles Volume 3" is not in the playlist "Z Second Playlist" now.`** | — |
+
+**The first key of A was right** (the rule of T-147: a key acts on the media of
+its own line), and the refresh that came with it moved every list one place up.
+**The second form is sharper**: A stood in the media of the last list, B removed
+that list, and the screen of A then held **no title, no line, and no text at
+all** — with a footer of five keys that do nothing (T-143).
+
+**The correction is the rule of T-147, of T-160, of T-161, of T-162, and of
+T-163 for a fifth view: the line holds a list, and not a number of a line.**
+`what_the_line_of_the_lists_holds` of `src/logic/the_lists.rs` reads the
+identity of the list of the line before the write: the same list takes the line
+with it, a list that went away takes the line to nobody with a message that
+names it, and **a user who stands in the media of a list that went away gets the
+view of the lists again** — that view holds nothing at all without its list.
+
+**The message belongs to the view of the lists, and `say_in` writes it**
+(T-164): the rule runs in the render with no key of the user. The answer of
+their key stands above it for six seconds, and the sentence of the view comes
+after it: both sentences reached the user in the measurement.
+
+**The key of this window that removes a list says nothing of this rule, and that
+is a decision.** `remove_the_list_of_the_line` moves the line to the list below
+the one that goes away, or to the list above it when that one is the last:
+`take_the_lists` then follows a list that stays, and the answer of the key names
+the list that went away already.
+
+**The text of the correction found a fault of its own.** It says that the keys
+`j` and `k` select a line, and the key `j` gave **no line at all** for a line of
+nobody: `if let Some(selected)` of `src/app.rs`. The key gives the first line
+now, in the view of the lists and in the media of a list. **A text that promises
+a key needs a measurement of that key** (T-118 and T-143).
+
+**The view `PutInAList` keeps its number of a line, and that is a decision.**
+That view opens at the line 0 with each key `m`, it stands open for some
+seconds, and its keys `c` and `p` say nothing for a line of nobody: a line of
+nobody there would need a sentence of its own for no measured fault. **It is a
+part of the program that no measurement has reached**, and it holds the same
+cause.
+
+### The measurements of this session
+
+| The measurement | The answer |
+|---|---|
+| **The key `X` of A, after B removed the collection of the line above** | **one fault** (T-165): the view became `Z Second Playlist` with no word, and the next key took a media out of it |
+| The same condition, after the correction | `A Test Playlist [2 items]`, and the line stays on the media of the user |
+| **The key `X` of A, after B removed the list that A opened** | **one fault**: no title, no line, and five keys of the footer that do nothing |
+| The same condition, after the correction | the view of the lists, a line of nobody, and the sentence that names the playlist |
+| The two sentences of that moment | the answer of the key for six seconds, and the sentence of the view after it (T-164) |
+| **The key `j` after the line went to nobody** | **one fault of the words**: no line came, and the text promised it. The first line comes after the correction |
+| The key `X` of B on the list of its own line | **no fault**: the line goes to the list that follows, and B reads one sentence |
+| **`cargo test`, the command of CI, three runs** | **no fault** |
+| **`cargo nextest run --run-ignored all`** | **1109 of 1109**, with the sandbox up |
 
 ## The session of the ninth turn of 2026-08-14: the bookmarks of another media, and the message of another view
 
@@ -1659,14 +1741,14 @@ episodes for a podcast that is missing **54**, therefore it stays outside.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.98` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.99` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 1082 of 1082 in 2.3 s, and cargo nextest run --run-ignored all gives 1107
-    # of 1107 with the sandbox up, in 16.7 s of wall clock: one test waits 16 s
+    # 1084 of 1084 in 2.3 s, and cargo nextest run --run-ignored all gives 1109
+    # of 1109 with the sandbox up, in 16.7 s of wall clock: one test waits 16 s
     # for the time limit of the send of a book (T-119), and one waits 15 s for
     # the time limit of a request
 ALSA_CONFIG_PATH=<the same file> nice -n 19 ionice -c 3 cargo test -j 16 --no-fail-fast
@@ -1674,8 +1756,8 @@ ALSA_CONFIG_PATH=<the same file> nice -n 19 ionice -c 3 cargo test -j 16 --no-fa
     # three times of three. nextest gives each test a process of its own, therefore it
     # hides a test that shares a database with another test of its binary. Six
     # tests of three binaries failed on CI while nextest passed (T-144), and
-    # `--no-fail-fast` says every binary that fails. **It found a fault of this
-    # session at the run 1 of 4**: two test functions of `src/logic/message.rs`
+    # `--no-fail-fast` says every binary that fails. **It found a fault of the
+    # session of T-164 at the run 1 of 4**: two test functions of `src/logic/message.rs`
     # fought for the slot of the process of the message, and the module of that
     # slot says the rule in its own comment — "the parts of this test stay in one
     # function". They are one function now, and five runs after it gave no fault.
@@ -3131,6 +3213,19 @@ answers slowly while it writes. Two answers to measure:
     row moves with the view.** A poll of a fixed row gives the footer of one
     view and the message of another. `tmux capture-pane -p | grep -B1
     "j/k: move" | head -1` gives that row in every view of a list (T-164).
+126. **A window reads the lists of the server at a key of its own alone.** The
+    view of the collections and of the playlists draws `app.lists`, and one of
+    the keys of that window writes that field: a change of a second window
+    therefore reaches the screen at the next key, and not at the next frame. A
+    measurement of two windows needs one key of the first window after the key
+    of the second one (T-165).
+127. **The sandbox holds one collection and two playlists**, and a measurement
+    of a line that moves needs a second list of the library `Books` (the
+    section 6d of `docs/TEST-SERVER.md` makes them). The lists stand in the
+    sequence of the collections and then of the playlists, therefore a
+    collection that goes away moves every playlist one line up. The measurement
+    of T-165 made `Z Second Playlist`, and it took it away at its end: the
+    library holds `A Test Collection` and `A Test Playlist` again (T-165).
 126. **A cursor of the harness that walks with `j` walks in one direction
     only.** A helper that presses `j` until a title stands under `➤` must take
     the cursor to the top of the view first, or the second call of it walks past
@@ -3464,7 +3559,7 @@ names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.7.98**; `Cargo.toml` is at 0.7.98. The
+> AlbanDAVID/Toutui. Newest release **v0.7.99**; `Cargo.toml` is at 0.7.99. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -3530,16 +3625,21 @@ names the state of the program on 2026-08-14.
 > starts` with a capital T**, therefore a poll of `grep` for that line needs
 > `-i` (T-164). **The row of the message stands above the footer**, and a poll
 > of it reads the line above `j/k: move` and not a number of a row (T-164).
+> **A window reads the lists of the server at a key of its own alone**, therefore
+> a measurement of two windows needs one key of the first window after the key of
+> the second one; and a measurement of a line that moves needs a second playlist
+> of the library `Books`, because the sandbox holds one collection and one
+> playlist of it (the section 6d of `docs/TEST-SERVER.md`, and T-165).
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-165 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-166 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1082 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1107 of 1107** with the sandbox up, in 16.7 seconds. **Run that
+> Baseline: **1084 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1109 of 1109** with the sandbox up, in 16.7 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** The two test functions that
@@ -3570,27 +3670,27 @@ names the state of the program on 2026-08-14.
 >
 > ### The work, in the sequence of its value
 >
->    a fault in twenty-three sessions of twenty-four. **No condition of the
->    road stays**: the newest session took the last part that the road named —
->    the view of the bookmarks while the media that plays changes — and it held
->    one fault (T-163), and it then closed the condition that T-162 left open
->    (T-164).
+>    a fault in twenty-four sessions of twenty-five. **No condition of the
+>    road stays**: the newest session took one of the parts that the road named
+>    — the lists (the collections and the playlists) of two windows — and it
+>    held one fault of two forms (T-165).
 >    - **The three shapes that found a fault before:** **a state of one process
 >      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153,
->      T-154, T-155, T-156, T-158, T-159, T-160, T-161, T-162, T-163, T-164),
+>      T-154, T-155, T-156, T-158, T-159, T-160, T-161, T-162, T-163, T-164,
+>      T-165),
 >      **a program that dies
 >      in the middle of work** (T-145, T-152), and **a server that does not
 >      answer** (T-146, T-149, T-152, T-156).
->    - **The rule of the media of the view is made for four views now** (T-160
->      the Home view, T-161 the queue, T-162 the chapters, and T-163 the
->      bookmarks), and **the message of each of them belongs to its own view**
->      (T-164). **The parts of the program that no such measurement has
->      reached**: the search of a library that a second window changes, **the key
->      `S` of the library of the start with two windows that both hold their
->      account**, the lists (the collections and the playlists) of two windows,
->      **the view of the episodes of a podcast while a second window changes that
->      podcast**, and **the view of the downloads while a download of a second
->      window ends**.
+>    - **The rule of the line of the view is made for five views now** (T-160
+>      the Home view, T-161 the queue, T-162 the chapters, T-163 the bookmarks,
+>      and T-165 the collections and the playlists), and **the message of each of
+>      them belongs to its own view** (T-164). **The parts of the program that no
+>      such measurement has reached**: the search of a library that a second
+>      window changes, **the key `S` of the library of the start with two windows
+>      that both hold their account**, **the view of the episodes of a podcast
+>      while a second window changes that podcast**, **the view of the downloads
+>      while a download of a second window ends**, and **the view `PutInAList` of
+>      the key `m`, which keeps its number of a line by the decision of T-165**.
 >    - **The messages of the other views are not measured**: the reader, the
 >      downloads, and the view of the accounts. T-164 gives them the road — a
 >      message that a rule writes with no key of the user must name its view with
@@ -3600,7 +3700,10 @@ names the state of the program on 2026-08-14.
 >      the number of the rows to the caller of the library of the account, and
 >      **the writes of the sequence, of the speed, of the key bindings, and of
 >      the rows of a session (`id_session`) still say nothing** when their name
->      holds no row.
+>      holds no row. **T-159 may have closed the road of a key to them**: a
+>      program whose account stands in no row starts again after every key,
+>      therefore a measurement of that sweep needs a write with no key — the
+>      loop of a playback.
 > 2. **The words for the user.** Every text in ASD-STE100. A view says why it
 >    holds no line, and it never says a reason that the program does not have
 >    (T-91). **A text must not promise a function that the program does not
@@ -3658,7 +3761,10 @@ names the state of the program on 2026-08-14.
 > alone, and the title of that view names that media** (T-163), and **a message
 > that a rule of the loop writes belongs to its own view, its six seconds start
 > at the frame that shows it, and the answer of a key belongs to no view and it
-> stands above them all** (T-164).
+> stands above them all** (T-164), and **the line of the view of the lists holds
+> a collection or a playlist and not a number of a line: a list that goes away
+> takes that line to nobody, and the media of such a list shows the lists again**
+> (T-165).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
