@@ -5021,17 +5021,18 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session closed the shape that T-183 named**: a row of a list of the
-server that takes every other row of that list away. It swept every structure of
-`src/` that serde reads, and it found three faults — a shelf with no name that
-took the whole Home view (T-190), a library with no name that stopped the whole
-program (T-191), and a list with no identity whose every key said a fault of the
-media of the user (T-192). The road below names the conditions that stay. This
-prompt names the state of the program on 2026-08-14.
+**This session took the one part of the program that no server of a fault had
+reached: the stream of the audio.** A body with no `Content-Length` ends at the
+close of the connection, therefore the client reads a **clean** end of a body
+that stops in the middle: the program held that close as the end of the file, a
+book of 30 minutes played for one second, and the program told the server that
+the user **finished** the book with no word on the screen (T-193). The road
+below names the conditions that stay. This prompt names the state of the program
+on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.22**; `Cargo.toml` is at 0.8.22. The
+> AlbanDAVID/Toutui. Newest release **v0.8.23**; `Cargo.toml` is at 0.8.23. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -5250,6 +5251,43 @@ prompt names the state of the program on 2026-08-14.
 > waits for the rest of a body sends no end, and the first form of this harness
 > held `curl` for two minutes.
 >
+> **A body that stops in the middle and that looks whole is
+> `docs/harness/a_body_that_ends_early_and_looks_whole.py`** (T-193). The harness
+> above keeps the head of the sandbox, and that head holds `Content-Length`: a
+> client of `reqwest` counts the bytes, it finds fewer of them, and it gives the
+> fault of an **incomplete message**, which the program can read and say. This
+> one takes `Content-Length` and `Transfer-Encoding` **out** of the head and it
+> writes `Connection: close` in their place: a body with neither of them ends at
+> the close of the connection (RFC 9112, section 6.3), therefore the client reads
+> a **clean** end of a body that holds a part of the file. **That is the one
+> condition where a program can hold a part of a book for the whole book with no
+> word of a fault at all.** The head keeps `Content-Range`, and that header holds
+> the one truth of the length:
+>
+> ```bash
+> python3 docs/harness/a_body_that_ends_early_and_looks_whole.py 13508 13399 \
+>     requests.log 20000 /file/32976962
+> ```
+>
+> **A measurement of a body is not finished while the head of it names the
+> length** (T-193): the two harnesses take the two roads of a body that stops,
+> and the program held one of them already.
+>
+>
+> **A build of the fault needs one edit that keeps every other line** (the trap
+> 147): a correction that is one arm of a `match` goes away with
+> `Ok(0) if position < size && false => unreachable!()`, and the corrected file
+> stands in the scratchpad for the road back. **No `git stash` and no
+> `git checkout` of a file**: the two binaries then stand side by side, and one
+> harness drives each of them. **A place of the sandbox that a measurement
+> changed is a measurement that lies the second time** (the trap 148): a book
+> that stands at 900 seconds gives the reader a range inside the file, and the
+> truncation then meets a different part of the book —
+> `PATCH /api/me/progress/:id` with `{"isFinished": false}` before **each** run
+> gives the same condition every time. **A poll of the row of the player must
+> read the whole screen** (the trap 149): that row says `▶ 3:14 / 30:00`, and no
+> word `Playing` stands in it.
+>
 > **The loop of a measurement belongs in a file of `bash`**
 > (the trap 143): the shell of this harness reads no `for ... end`. **The log of
 > the proxy counts the requests** (the trap 144): `grep -c` of a path before a key
@@ -5283,8 +5321,8 @@ prompt names the state of the program on 2026-08-14.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1166 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1191 of 1191** with the sandbox up, in about 19 seconds. **Run that
+> Baseline: **1168 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1193 of 1193** with the sandbox up, in about 19 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -5318,10 +5356,29 @@ prompt names the state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in forty-two sessions of forty-three. **The
->    session of the twenty-ninth turn took the shape that T-183 named**: a row of a
->    list of the server that takes every other row of that list away. It found
->    three faults, and it left no item open (T-190, T-191, and T-192).
+>    this shape found a fault in forty-three sessions of forty-four. **The
+>    session of the thirtieth turn took the one part of the program that no
+>    server of a fault had reached: the stream of the audio.** It found one
+>    fault, and that fault wrote the book of the user as a book that the user
+>    finished (T-193).
+>    - **A fault of a body has two roads, and one harness held one of them**
+>      (T-193). `a_body_that_stops_in_the_middle.py` keeps `Content-Length`, and
+>      `reqwest` then gives the fault of an incomplete message: the program reads
+>      a fault, and it can say it. **A body with no `Content-Length` and no
+>      `Transfer-Encoding` ends at the close of the connection**, and the client
+>      reads a **clean** end of it: no fault of the network, no fault of a
+>      status, and fewer bytes than the file holds. `fill_buffer` of `HttpFile`
+>      held that close as the end of the file. **The question of a body is which
+>      value the program holds as the truth of the length**: `HttpFile::open`
+>      reads `Content-Range`, and it never gave that size to the thread that
+>      reads. **A program that holds the truth of a length in one function and
+>      reads the body in another one is the shape to look for.**
+>    - **A value that the program sends to the server outlives the program that
+>      sent it** (T-193). A book that stops is a book that the user starts again;
+>      this program told the **server** that the user finished a book of 30
+>      minutes after five seconds of it, and every client of that account then
+>      held the book as read. **A fault of the user that reaches the server is
+>      worth more than a fault of the user that stands on the screen.**
 >    - **The sweep of the rows of a list is closed for the answers of the server**
 >      (T-190, T-191, and T-192). A sweep of every structure of `src/` that serde
 >      reads gives three fields of an answer with no default and no `Option` now,
@@ -5396,7 +5453,17 @@ prompt names the state of the program on 2026-08-14.
 >      the moment of another media. **A wrong path that answers is worse than a
 >      wrong path that fails**, and no fault of a decode names it.
 >    - **The parts of the program that a server of a fault has not reached**: the
->      keys `F`, `b`, `n`, `m`, `r`, `D`, and `X`, and the stream of the audio.
+>      keys `F`, `b`, `n`, `m`, `r`, `D`, and `X`, and **the parts of a stream of
+>      HLS** (T-193). The file of a book is closed (T-193), and the playlist of
+>      HLS with it: a playlist of the type `VOD` that holds no `#EXT-X-ENDLIST`
+>      is a body that stopped. **A part of that stream comes of `.bytes()`, and a
+>      part that stops in the middle gives fewer bytes of a transport stream with
+>      no fault of its own**; a part holds a time and no number of bytes,
+>      therefore the program has no truth of its length and the rule of T-193
+>      does not reach it. **The question is what the decoder does with a part
+>      that stops in the middle**, and whether the playback then names the fault
+>      or goes on with a gap in the sound. The road to that stream is a book of a
+>      form that no decoder of the program reads (T-68).
 >      **The keys `M`, `N`, and `e` are
 >      closed** (T-175 and T-178), **the first request of the program is closed**
 >      (T-172), **the flush of the positions of the disk is closed** (T-188 and
@@ -5625,7 +5692,11 @@ prompt names the state of the program on 2026-08-14.
 > the server for the media of it** (T-191), and **a collection, a playlist, and
 > a media of one of them with no identity belong to no line: that id is the
 > address of six keys, and a line of no address gives a request of no address**
-> (T-192).
+> (T-192), and **a body of the audio that stops in the middle is not the end of
+> the file: the size of the header `Content-Range` is the truth of the length,
+> a body that stops before it takes the road of a connection that stopped, and a
+> playlist of the type `VOD` that holds no `#EXT-X-ENDLIST` is a playlist that
+> stopped** (T-193).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
