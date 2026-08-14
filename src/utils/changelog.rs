@@ -41,6 +41,26 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.19",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A place that you listened to with no server went over the newer \
+             place of your server.** The program asks your server for the place \
+             of a media before it sends the place of your disk, and a fault of \
+             that question was the answer \"this media never played\": your \
+             server held 5000 seconds of a book of eight hours, and the program \
+             wrote 100 seconds over it. The place of your disk waits for an \
+             answer that came back now, and the program tries again every 30 \
+             seconds.",
+            "- **A place of one episode of a podcast that you listened to with no \
+             server went away.** The program asked for the place of the podcast, \
+             and your server answers that question with the place of **one** \
+             episode of it: the moment of another episode then took the place of \
+             this one away. The program asks for the place of that episode now.",
+        ],
+    },
+    Entry {
         version: "0.8.18",
         date: "14/08/2026",
         body: &[
