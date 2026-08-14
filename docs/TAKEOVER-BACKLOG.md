@@ -8632,6 +8632,145 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-209: a read of the row of the account that failed became a setting of the user
+
+**Three sessions named this condition and no one of them corrected it.** T-206
+wrote "the reads of the disk whose default is a fact of the user stay open", and
+it named `get_speed_rate`, `get_library_sort`, and `get_is_show_key_bindings`;
+T-207 **measured** one of them and left it open with the words "the question is
+whether a read of the disk that failed may give a default at all"; T-208 left the
+same paragraph again.
+
+**The three functions read one row: the row of `users` of this account**, which
+is the row of the accounts of T-199. T-202 asked which **fact** of the user a
+default of a read gives (an empty list is "the user holds none of these"). **This
+item asks which *setting* it gives**: a default of a read is a value that the
+user chose, and the program then does the work that the user did not ask for.
+
+The old shape of each of the three:
+
+```rust
+pub fn get_speed_rate(username: &str) -> String {
+    let conn = match crate::db::migrate::open_conn() {
+        Ok(c) => c,
+        Err(_) => return String::from("Error: unable open database"),
+    };
+    ...
+}
+```
+
+and each of the five callers wrote `.parse::<f32>().unwrap_or(1.0)`.
+
+#### The condition
+
+**A read of the row of the account fails while the program lives.** The lock of
+`hold_the_lock.py` reaches no such read at the start (the trap 161 of T-203), and
+the correction of T-208 gives the key of a playback its fault before the read of
+the speed. The road is the statement that fails of T-203, and the trap 172 of
+T-207 names it: **`Database::new` selects `speed_rate` and
+`is_show_key_bindings` of the row of the account**, therefore a column of another
+name stops the program at the start.
+
+```bash
+# after the first frame, for the speed of a playback
+sqlite3 "$DB" "ALTER TABLE users RENAME COLUMN speed_rate TO speed_rate_of_an_old_version;"
+
+# before the start, for the sequence and the filter of the library
+sqlite3 "$DB" "ALTER TABLE users RENAME COLUMN library_sort TO library_sort_of_an_old_version;"
+```
+
+**A disk of the user gives that condition with no `sqlite3` at all**: a page of
+the table that the file system gave back with no byte, a database of a version
+that this build does not know, and a second program of the account that holds the
+lock at the moment of the read each stop one statement of the row of `users`.
+
+#### The measurements of 2026-08-14
+
+The real program of the sandbox, the book of eight hours
+`A Book Of Many Hours`, and the null device of ALSA.
+
+**1. The speed of the user.** The disk of the account held **1.5**, and the key
+`l` of the Home view gave
+
+```text
+▶ 1:49:21 / 8:00:00 | Elapsed: 1:49:21 | Left: 6:10:39 (23%) | Speed: 1.00x
+```
+
+`grep -ci speed` of the log gave **0**. **The program played a media of the user
+at a speed of no account, and it said nothing at all in the screen and nothing at
+all in the log.** That is T-79 and T-174 together, and no sweep of the words for
+the user finds it: the words of that fault did not exist.
+
+**2. The sequence and the filter of the library.** The header of the Library view
+said
+
+```text
+──────Library [17 items] — The title, the largest first──────
+```
+
+with the row of the account on the disk, and
+
+```text
+──────Library [17 items]──────
+```
+
+with the column of another name. The log held no line. T-207 measured this and it
+corrected nothing.
+
+**3. The keys `O` and `I` of the player.** `update_speed_rate` writes the row and
+the key reads that same row after it (T-206). A write that the disk takes and a
+read that fails therefore give the engine **1.00x**: the key of a faster media
+makes a slower one. No harness of this road makes the write pass and the read
+fail at one moment, and the line of the source held the same
+`.unwrap_or(1.0)`.
+
+#### The rule
+
+**A read of the row of `users` that failed is the fault of the accounts of
+T-199.** The three functions give `rusqlite::Result` now, and `App::new` gives
+each fault the type `crate::db::TheAccountsDidNotCome`: the start stops with words
+that name the database (T-172 and T-199), and the key `R` keeps the application of
+the user (T-205), because `the_accounts_did_not_come` reads that same type.
+
+**The start of a playback is a key of the user that waits for a media and not for
+a speed**, therefore that playback goes on: `the_speed_of_this_playback` of
+`src/logic/playback/mod.rs` says which speed it plays and that the database did
+not answer, and it writes a line of the log. **A word for the user that names the
+work that the program did is worth more than a program that stops.**
+
+**A write that the disk took and a read that failed are two conditions** (T-91).
+The keys `O` and `I` hold two sentences now: the sentence of T-206 names the row
+of the disk ("The speed does not change"), and the sentence of this item names the
+media ("This media keeps its speed"), because the disk holds the new speed in that
+condition and the engine does not.
+
+| the condition | v0.8.38 | v0.8.39 |
+|---|---|---|
+| the key `l`, and the read of the speed failed | `Speed: 1.00x`, no word, no line of the log | `Speed: 1.00x`, the sentence of the speed, and a line of the log |
+| the start, and the read of the sequence failed | `Library [17 items]`, no line of the log | the program stops and it names its database |
+| the key `R` of that same condition | the sequence of the user went away | the application of the user stays, and the log names the database |
+| the keys `O` and `I`, the write taken and the read failed | the engine at 1.00x, no word | the media keeps its speed, and the key says why |
+
+`tests/a_read_of_the_row_of_the_account_is_no_setting_of_the_user.rs` holds the
+parts in one function (T-144 and T-157): `XDG_CONFIG_HOME` belongs to the process.
+The condition of the gate is a file that holds no database, because it gives the
+same fault of `open_conn` with no wait at all (T-199 and T-200).
+
+#### What this item leaves open
+
+**The reads of the account that give an empty text are not measured.** The row of
+`users` holds more than these three fields, and `Database::new` reads the whole
+row: a read of that row that gave an empty token or an empty address is another
+shape, and the words of T-199 name the database for it already.
+
+**The rows of `pending_progress` are not measured against the condition of
+T-206.** The flush of the positions of T-188 and of T-189 writes that table in a
+task of every 30 seconds, and a write that the disk refused takes the place of the
+user of that row away: the task holds no key of the user and no view of its own.
+
+**The freeze of the loop of the screen stays** (T-204 to T-208). The correction of
+this item adds no call of the database, and it takes none away.
+
 ### T-208: a key of the user paid the wait of the disk one time for each call of its road
 
 **Four sessions named this condition and no one of them measured it.** T-204

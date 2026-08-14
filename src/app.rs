@@ -636,16 +636,24 @@ impl App {
         // that this build does not know goes away: the server takes a name of
         // a field that does not exist, and it then gives an unspecified
         // sequence. See T-24.
+        //
+        // **A read of that row that failed is not an account that chose
+        // nothing** (T-209). The three reads below stand on the row of `users`
+        // of this account — the row of the accounts of T-199 — therefore a fault
+        // of one of them is the fault of the accounts: the start stops with the
+        // words that name the database, and the key `R` keeps the application of
+        // the user (T-205).
         let (mut library_sort, library_desc, library_filter) =
-            crate::db::crud::get_library_sort(&username);
+            crate::db::crud::get_library_sort(&username)
+                .map_err(|error| crate::db::TheAccountsDidNotCome(error.to_string()))?;
 
         // **The render reads no disk** (T-204). The two values of the row of the
         // player come of the disk here, at the start and at every refresh with
         // the key `R`, and the render then draws with no call of the database.
-        let the_key_bindings_stand = crate::db::crud::get_is_show_key_bindings(&username) == "1";
+        let the_key_bindings_stand = crate::db::crud::get_is_show_key_bindings(&username)
+            .map_err(|error| crate::db::TheAccountsDidNotCome(error.to_string()))?;
         let the_speed_of_the_account = crate::db::crud::get_speed_rate(&username)
-            .parse::<f32>()
-            .unwrap_or(1.0);
+            .map_err(|error| crate::db::TheAccountsDidNotCome(error.to_string()))?;
 
         // **A copy of the disk of a media is a label of six views**, and that
         // label held a read of the database of each frame (T-203). The box of

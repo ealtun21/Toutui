@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.38.** The item T-208 belongs to this session. The
+**The newest release is v0.8.39.** The item T-209 belongs to this session. The
+item T-208 belongs to the session before it. The
 item T-207 belongs to the session before it. The
 item T-206 belongs to the session before it. The
 item T-205 belongs to the session before it. The
@@ -48,11 +49,117 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.38**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.39**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1189 of 1189** in 2.4 seconds with 26 skipped, `cargo nextest run
---run-ignored all` gives **1215 of 1215** with the sandbox up in 17 seconds, and
+**1190 of 1190** in 2.3 seconds with 26 skipped, `cargo nextest run
+--run-ignored all` gives **1216 of 1216** with the sandbox up in 17 seconds, and
 `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in two runs.
+
+## The session of the forty-first turn of 2026-08-14: the setting of the user that the disk did not give
+
+**One release: v0.8.39.** Three sessions named one paragraph and no one of them
+took it. T-206 wrote "the reads of the disk whose default is a fact of the user
+stay open" and it named three functions; T-207 **measured** one of them and left
+it with the words "the question is whether a read of the disk that failed may
+give a default at all"; T-208 wrote the same paragraph again. **A measurement
+that an item holds and that no item corrects is the cheapest item of a session.**
+
+**The item is T-209.** The three functions — `get_speed_rate`,
+`get_library_sort`, and `get_is_show_key_bindings` — read **one** row: the row of
+`users` of this account, which is the row of the accounts of T-199. T-202 asked
+which **fact** of the user a default of a read gives; **this item asks which
+*setting* it gives**, and a setting is a value that the user chose.
+
+**The condition needs the statement that fails of T-203**, because the lock of
+`hold_the_lock.py` reaches no read of the start (the trap 161) and the correction
+of T-208 gives a key its fault before the read of the speed:
+
+```bash
+# after the first frame, for the speed of a playback
+sqlite3 "$DB" "ALTER TABLE users RENAME COLUMN speed_rate TO speed_rate_of_an_old_version;"
+
+# before the start, for the sequence and the filter of the library
+sqlite3 "$DB" "ALTER TABLE users RENAME COLUMN library_sort TO library_sort_of_an_old_version;"
+```
+
+**The two measurements of the real program of the sandbox**, of a book of eight
+hours with the null device of ALSA:
+
+1. **A media of the user played at a speed of no account.** The disk held **1.5**,
+   the key `l` gave
+   `▶ 1:49:21 / 8:00:00 | … | Speed: 1.00x`, and `grep -ci speed` of the log gave
+   **0**. **No word of the screen and no line of the log.** That is T-79 and
+   T-174 together, and no sweep of the words for the user finds it: the words of
+   that fault did not exist.
+2. **The sequence and the filter of the library went away.** The header said
+   `Library [17 items] — The title, the largest first`, and it then said
+   `Library [17 items]`. The log held no line. T-207 measured this and corrected
+   nothing.
+
+**The correction.** The three functions give `rusqlite::Result` now — and
+`get_speed_rate` gives the **number** and not a text of it, therefore no caller
+writes `.parse::<f32>().unwrap_or(1.0)` any more. `App::new` gives each fault the
+type `crate::db::TheAccountsDidNotCome`: the start stops with words that name the
+database (T-199), and the key `R` keeps the application of the user (T-205).
+**The start of a playback is a key that waits for a media and not for a speed**,
+therefore that playback goes on and `the_speed_of_this_playback` says which speed
+it plays. The keys `O` and `I` hold two sentences now, because **a write that the
+disk took and a read that failed are two conditions** (T-91).
+
+| The condition | v0.8.38 | v0.8.39 |
+|---|---|---|
+| the key `l`, and the read of the speed failed | `Speed: 1.00x`, no word, no line | the sentence of the speed, and a line of the log |
+| the start, and the read of the sequence failed | `Library [17 items]` | the program stops and it names its database |
+| the key `R` of that same condition | the sequence of the user went away | the application of the user stays |
+| the keys `O` and `I`, the write taken and the read failed | the engine at 1.00x, no word | the media keeps its speed, and the key says why |
+
+`tests/a_read_of_the_row_of_the_account_is_no_setting_of_the_user.rs` holds the
+parts in one function (T-144 and T-157).
+
+### The traps of this session
+
+**The trap 177: a program that stops takes the session of tmux with it.**
+`start_the_program` polls for a marker of the screen, and a program that writes
+its words and exits leaves `no server running on /tmp/tmux-1000/default` — the
+poll then reads nothing for the whole timeout. A measurement of the **words of a
+stop** needs a command of its own around the program:
+
+```bash
+tmux new-session -d -s check -x 160 -y 45 \
+    "/bin/bash -c 'env … ./target/debug/toutui; echo EXIT=\$?; sleep 120'"
+```
+
+The `/bin/bash -c` is the trap 154 too: the login shell of the user is `fish`,
+and `$?` of that shell is not the status of the program.
+
+**The trap 178: a rename of a column comes back, and the row does not.** The
+measurement renames `speed_rate` and `library_sort` of the sandbox, and a session
+that stops between the two `ALTER TABLE` leaves a database that stops the program
+at its first line (the trap 172). **The `ALTER TABLE` back belongs to the same
+command as the measurement**, and the row of the account takes its values again
+with one `UPDATE`.
+
+### What this session leaves open
+
+**The rows of `pending_progress` are not measured against the condition of
+T-206**, and this is the fourth session that writes it. The flush of the positions
+of T-188 and of T-189 writes that table in a task of every 30 seconds, and a write
+that the disk refused takes the place of the user of that row away: the task holds
+no key of the user and no view of its own. **The condition is one command**
+(`chmod 444`), and the question is what the program does with a place that neither
+the server nor the disk took.
+
+**The freeze of the loop of the screen stays**, and it is the sixth session that
+names it. The question of T-204 stands: which keys can give their work of the disk
+to a task, and what the row of the message says at the moment of the press. **A
+word that names work that stands must live while that work stands** — a message
+lives six seconds, and the key `l` of the measurement of T-208 said nothing for
+twelve of them.
+
+**The reads of the row of `users` that give an empty text are not measured.**
+`Database::new` reads the whole row, and a read that gave an empty token or an
+empty address is another shape of T-192 (a default of an address is worse than a
+default of a number).
 
 ## The session of the fortieth turn of 2026-08-14: the wait of the disk that one key paid seven times
 

@@ -109,8 +109,25 @@ fn the_speed_changes(player: &PlayerHandle, username: &str, faster: bool, key: &
         return;
     }
 
-    let speed = get_speed_rate(username).parse::<f32>().unwrap_or(1.0);
-    player.send(PlayerCommand::SetSpeed(speed));
+    // **A read of the row that failed is not the speed 1.00x** (T-209). The old
+    // line wrote `.parse::<f32>().unwrap_or(1.0)`, therefore a write that
+    // reached the disk and a read that did not gave the engine a speed of no
+    // account: the user pressed `O` for a faster media, and the media then
+    // played more slowly than before. The disk holds the new speed in that
+    // condition, and the engine does not: the program says so, and it changes
+    // the engine no more.
+    match get_speed_rate(username) {
+        Ok(speed) => player.send(PlayerCommand::SetSpeed(speed)),
+        Err(error) => {
+            log::warn!(
+                "[the speed of the player] the program did not read the speed of {}: {}",
+                username,
+                error
+            );
+
+            crate::logic::message::say(&the_words_of_a_speed_that_the_disk_did_not_give(key));
+        }
+    }
 }
 
 /// What the keys `O` and `I` say when the disk did not take the speed. See
@@ -121,6 +138,23 @@ pub fn the_words_of_a_speed_that_the_disk_did_not_hold(key: &str) -> String {
     format!(
         "The program did not write the speed of this account: the database did not answer. The \
          speed does not change. Press {} again.",
+        key
+    )
+}
+
+/// What the keys `O` and `I` say when the disk took the speed and did not give
+/// it back. See T-209.
+///
+/// **A write that the disk took and a read that failed are two conditions**
+/// (T-91): the row of the account holds the new speed, and the engine holds the
+/// speed of before. The sentence therefore names the media of now and not the
+/// row of the disk, and it names the key of the view that the user sees (T-183).
+///
+/// The function is pure, therefore a test needs no player and no database.
+pub fn the_words_of_a_speed_that_the_disk_did_not_give(key: &str) -> String {
+    format!(
+        "The program did not read the speed of this account: the database did not answer. This \
+         media keeps its speed. Press {} again.",
         key
     )
 }

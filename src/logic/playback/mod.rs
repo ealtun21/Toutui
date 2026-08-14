@@ -56,6 +56,44 @@ const THE_DATABASE_OF_THE_PROGRAM_SAID_NOTHING: &str =
     "The program did not read the copy of the disk in its database. \
      Stop a second Toutui, and press the key again.";
 
+/// The speed of the playback of an account, and 1.00x for a disk that did not
+/// answer. See T-209.
+///
+/// **A read of the disk that failed is not a speed that the user chose.** The
+/// two starts of a playback wrote `get_speed_rate(&username).parse::<f32>()
+/// .unwrap_or(1.0)`, therefore every fault of the disk gave the media the speed
+/// 1.00x with no word of the screen and no line of the log: the measurement of
+/// 2026-08-14 held **1.5** on the disk of the account and `Speed: 1.00x` in the
+/// row of the player.
+///
+/// The playback goes on, because the user pressed a key to hear a media and a
+/// speed is not that media. **The program says which speed it plays and why**,
+/// and the key of the user waits for this answer (T-199).
+fn the_speed_of_this_playback(username: &str) -> f32 {
+    match crate::db::crud::get_speed_rate(username) {
+        Ok(speed) => speed,
+        Err(error) => {
+            error!(
+                "[play] the program did not read the speed of {}: {}",
+                username, error
+            );
+            crate::logic::message::say(THE_SPEED_OF_THE_DISK_DID_NOT_COME);
+            1.0
+        }
+    }
+}
+
+/// What the program says for a media that plays at a speed of no account. See
+/// T-209.
+///
+/// The sentence names the work that the program did (the media plays), the
+/// value that it used, and the key of that work (T-79 and T-170). It says no
+/// reason that the program does not have (T-91): the disk did not answer, and
+/// the program does not know whether the user chose another speed.
+pub const THE_SPEED_OF_THE_DISK_DID_NOT_COME: &str =
+    "The program did not read the speed of this account: the database did not answer. \
+     This media plays at 1.00x. Press O or I to set the speed again.";
+
 /// What the user selected.
 #[derive(Debug, Clone, PartialEq)]
 pub enum PlaybackTarget {
@@ -600,7 +638,7 @@ async fn play_media(
         local,
         sources.len()
     );
-    let speed = get_speed_rate(&username).parse::<f32>().unwrap_or(1.0);
+    let speed = the_speed_of_this_playback(&username);
 
     // Every playback has its own identity. The loop below reads the state of
     // the engine only while the engine plays this playback. See `9bacac`.
@@ -1342,7 +1380,7 @@ async fn play_offline(
         tracks.total_duration()
     };
 
-    let speed = get_speed_rate(&username).parse::<f32>().unwrap_or(1.0);
+    let speed = the_speed_of_this_playback(&username);
 
     let playback_id = next_playback_id();
 

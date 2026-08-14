@@ -78,42 +78,45 @@ pub fn update_is_show_key_bindings(value: &str, username: &str) -> Result<()> {
     Ok(())
 }
 
-// get is_show_key_bindings
-pub fn get_is_show_key_bindings(username: &str) -> String {
-    let conn = match crate::db::migrate::open_conn() {
-        Ok(c) => c,
-        Err(_) => return String::from("Error: unable open database"),
-    };
+/// Says whether the row of the keys of the player stands. See T-209.
+///
+/// **A read of the row of the account that failed is not a setting of the
+/// user.** The old shape gave the text `Error: unable open database`, `Error to
+/// prepare reqwest`, or `No db found`, and the caller compared that text with
+/// `1`: every fault of the disk therefore took the row of the keys away, and
+/// the user chose nothing. The three reads of the row of `users` hold that
+/// shape, and the fault of each of them is the fault of the accounts of T-199.
+pub fn get_is_show_key_bindings(username: &str) -> Result<bool> {
+    let conn = the_connection("get_is_show_key_bindings")?;
 
-    let mut stmt = match conn.prepare("SELECT is_show_key_bindings FROM users WHERE username = ?1")
-    {
-        Ok(s) => s,
-        Err(_) => return String::from("Error to prepare reqwest"),
-    };
+    let mut stmt = conn.prepare("SELECT is_show_key_bindings FROM users WHERE username = ?1")?;
 
-    match stmt.query_row(params![username], |row| row.get::<_, String>(0)) {
-        Ok(id) => id.to_string(),
-        Err(_) => String::from("No db found"),
-    }
+    let value = stmt.query_row(params![username], |row| row.get::<_, String>(0))?;
+
+    Ok(value == "1")
 }
 
 /// Reads the sequence and the filter of the library of an account. See T-24.
 ///
 /// The three values are the name of the field, `1` for the other direction,
-/// and the filter of the server. An account of an older database gives three
-/// empty texts, and the program then asks the server as it did before.
-pub fn get_library_sort(username: &str) -> (String, bool, String) {
-    let nothing = (String::new(), false, String::new());
+/// and the filter of the server. An account whose three fields hold no
+/// character gives three empty texts, and the program then asks the server as
+/// it did before.
+///
+/// **A read that failed is not an account that chose nothing** (T-209). The old
+/// shape gave the three empty texts for every fault of the disk. The
+/// measurement of 2026-08-14 with a column of another name
+/// (`ALTER TABLE users RENAME COLUMN library_sort TO
+/// library_sort_of_an_old_version`, the road of T-203): the header of the
+/// Library view said `Library [17 items] — The title, the largest first`, and it
+/// then said `Library [17 items]`. **The sequence and the filter of the user
+/// went away with no word of the screen and no line of the log.**
+pub fn get_library_sort(username: &str) -> Result<(String, bool, String)> {
+    let conn = the_connection("get_library_sort")?;
 
-    let Ok(conn) = crate::db::migrate::open_conn() else {
-        return nothing;
-    };
-
-    let Ok(mut stmt) = conn.prepare(
+    let mut stmt = conn.prepare(
         "SELECT library_sort, library_desc, library_filter FROM users WHERE username = ?1",
-    ) else {
-        return nothing;
-    };
+    )?;
 
     stmt.query_row(params![username], |row| {
         Ok((
@@ -122,7 +125,6 @@ pub fn get_library_sort(username: &str) -> (String, bool, String) {
             row.get::<_, String>(2)?,
         ))
     })
-    .unwrap_or(nothing)
 }
 
 /// Writes the sequence and the filter of the library of an account.
@@ -164,22 +166,24 @@ pub fn update_speed_rate(username: &str, is_speed_rate_up: bool) -> Result<()> {
     Ok(())
 }
 
-// get speed_rate
-pub fn get_speed_rate(username: &str) -> String {
-    let conn = match crate::db::migrate::open_conn() {
-        Ok(c) => c,
-        Err(_) => return String::from("Error: unable open database"),
-    };
+/// Gives the speed of the playback of an account. See T-209.
+///
+/// **The function gives the number and not a text of it.** The old shape gave
+/// the text `Error: unable open database` for a fault of the disk, and each of
+/// its callers wrote `.parse::<f32>().unwrap_or(1.0)`: a fault of the disk
+/// therefore became the speed 1.00x, which is a speed that the user chose.
+///
+/// The measurement of 2026-08-14 with a column of another name
+/// (`ALTER TABLE users RENAME COLUMN speed_rate TO
+/// speed_rate_of_an_old_version`, the road of T-203): the disk of the account
+/// held **1.5**, the key `l` of the Home view played a book of eight hours, and
+/// the row of the player said `Speed: 1.00x`. **The log held no line at all.**
+pub fn get_speed_rate(username: &str) -> Result<f32> {
+    let conn = the_connection("get_speed_rate")?;
 
-    let mut stmt = match conn.prepare("SELECT speed_rate FROM users WHERE username = ?1") {
-        Ok(s) => s,
-        Err(_) => return String::from("Error to prepare reqwest"),
-    };
+    let mut stmt = conn.prepare("SELECT speed_rate FROM users WHERE username = ?1")?;
 
-    match stmt.query_row(params![username], |row| row.get::<_, f32>(0)) {
-        Ok(id) => id.to_string(),
-        Err(_) => String::from("No db found"),
-    }
+    stmt.query_row(params![username], |row| row.get::<_, f32>(0))
 }
 
 /// Gives the listening session of one account, and nothing for the session of

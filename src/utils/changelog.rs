@@ -41,6 +41,30 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.39",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A media of yours played at the speed 1.00x while your account \
+             held another speed, and nothing said why.** Toutui reads the speed \
+             of your account from its database at the start of each playback, \
+             and a database that did not answer gave the speed 1.00x: that is a \
+             speed which you did not choose. Toutui says now which speed the \
+             media plays and that its database did not answer.",
+            "- **The sequence and the filter of your library went away with no \
+             word.** The same database gave Toutui a library of no sequence, and \
+             the header of the Library view then said `Library [17 items]` for a \
+             library that you put in the sequence of the title. Toutui stops with \
+             words that name its database now, and the key `R` keeps the \
+             application that stands.",
+            "- **The keys `O` and `I` gave your media the speed 1.00x after a \
+             write that your disk took.** Toutui writes the new speed and it \
+             reads that row again: the read that failed gave the speed 1.00x to \
+             the player, therefore the key of a faster media made a slower one. \
+             The media keeps its speed now, and the key says why.",
+        ],
+    },
+    Entry {
         version: "0.8.38",
         date: "14/08/2026",
         body: &[
