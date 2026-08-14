@@ -16,6 +16,13 @@ log, the path, the dotted name of the list, the number of the row of that list
 to the sandbox, therefore the login works through this proxy and the token is a
 real token.
 
+**The name `.` says that the body itself is the list** (T-190). The answer of
+`GET /api/libraries/:id/personalized` is a bare array of the shelves, and no
+field of an object holds it:
+
+    python3 docs/harness/a_field_of_one_row_goes_away.py 13506 13399 \\
+        requests.log /api/libraries/<the id>/personalized . 1 label
+
 **Give the absolute path of the file of the log** (the trap 132), and give the
 account one address alone (the trap 129).
 """
@@ -28,9 +35,12 @@ PORT = int(sys.argv[1])
 TARGET = int(sys.argv[2])
 LOG = open(sys.argv[3], "w", buffering=1)
 THE_PATH = sys.argv[4]
-THE_LIST = sys.argv[5].split(".")
+# The name `.` says that the body itself is the list.
+THE_LIST = [] if sys.argv[5] == "." else sys.argv[5].split(".")
 THE_ROW = int(sys.argv[6])
 THE_FIELDS = set(sys.argv[7:])
+# The name of the list for the log.
+THE_NAME = sys.argv[5]
 START = time.monotonic()
 
 
@@ -44,12 +54,12 @@ def without_the_fields(value):
 
     for name in THE_LIST:
         if not isinstance(row, dict) or name not in row:
-            note("!! the list %s is not in the body" % ".".join(THE_LIST))
+            note("!! the list %s is not in the body" % THE_NAME)
             return value
         row = row[name]
 
     if not isinstance(row, list) or len(row) <= THE_ROW:
-        note("!! the list %s holds no row %d" % (".".join(THE_LIST), THE_ROW))
+        note("!! the list %s holds no row %d" % (THE_NAME, THE_ROW))
         return value
 
     row = row[THE_ROW]
@@ -143,7 +153,7 @@ async def one_connection(client_reader, client_writer):
                             path,
                             ", ".join(sorted(THE_FIELDS)),
                             THE_ROW,
-                            ".".join(THE_LIST),
+                            THE_NAME,
                         )
                     )
             else:
@@ -162,7 +172,7 @@ async def main():
     server = await asyncio.start_server(one_connection, "127.0.0.1", PORT)
     note(
         "the proxy holds the port %d, and %s goes away of the row %d of %s"
-        % (PORT, ", ".join(sorted(THE_FIELDS)), THE_ROW, ".".join(THE_LIST))
+        % (PORT, ", ".join(sorted(THE_FIELDS)), THE_ROW, THE_NAME)
     )
     async with server:
         await server.serve_forever()

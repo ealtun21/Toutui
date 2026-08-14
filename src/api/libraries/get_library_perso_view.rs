@@ -1,5 +1,6 @@
 use crate::api::client::error::ApiError;
 use crate::api::client::ApiClient;
+use log::warn;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
@@ -11,6 +12,15 @@ use serde_json::Value;
 #[serde(rename_all = "camelCase")]
 pub struct Root {
     pub id: Option<String>,
+    /// The name of the shelf for the user.
+    ///
+    /// **The field takes a default**, because a shelf that holds no `label`
+    /// took every shelf of the Home view away: serde gives the fault of one
+    /// row to the whole answer, and the answer of this path is the list of
+    /// the shelves itself. A shelf with no name keeps its media, and
+    /// `crate::logic::home_view::the_name_of_the_shelf` gives the name of its
+    /// line. See T-190.
+    #[serde(default)]
     pub label: String,
     pub entities: Option<Vec<Entity>>,
 }
@@ -116,6 +126,12 @@ pub async fn get_the_shelves(
         .get_json(&format!("/api/libraries/{}/personalized", id_selected_lib))
         .await?;
 
+    the_shelves_with_no_name(
+        shelves
+            .iter()
+            .map(|shelf| (shelf.id.as_deref(), &shelf.label)),
+    );
+
     // The shelf of Continue Listening comes first. The server puts it first
     // today, and this line makes it sure: that shelf holds the media that the
     // user started, and the user looks for it before every other shelf.
@@ -127,6 +143,25 @@ pub async fn get_the_shelves(
     }
 
     Ok(shelves)
+}
+
+/// Writes one line of the log for each shelf that the server gave with no
+/// name.
+///
+/// **The line of that shelf stays**, because the media of it reach every
+/// request of the program: `crate::logic::home_view::the_name_of_the_shelf`
+/// gives the name of the line. The log holds the one word of this fault of the
+/// answer, and no view of the user says it — the rule of T-177. See T-190.
+pub fn the_shelves_with_no_name<'a>(shelves: impl Iterator<Item = (Option<&'a str>, &'a String)>) {
+    for (id, label) in shelves {
+        if label.trim().is_empty() {
+            warn!(
+                "[home] The answer of the server holds a shelf with no name. \
+                 The line of that shelf takes the name \"{}\".",
+                crate::logic::home_view::the_name_of_the_shelf(id, label)
+            );
+        }
+    }
 }
 
 /// Tells if a shelf of the personalized view is "Continue Listening".
@@ -184,5 +219,43 @@ mod tests_of_the_shelf {
             None,
             "Recently Added"
         )));
+    }
+
+    /// **One shelf with no `label` took every shelf away.** The answer of
+    /// `GET /api/libraries/:id/personalized` is the list of the shelves
+    /// itself, therefore serde gave the fault of that one row to the whole
+    /// answer and the Home view held no media at all. See T-190.
+    #[test]
+    fn a_shelf_with_no_name_keeps_every_other_shelf() {
+        let body = r#"[
+            {"id": "continue-listening", "label": "Continue Listening",
+             "entities": [{"id": "a", "media": {}}]},
+            {"id": "recently-added", "entities": [{"id": "b", "media": {}}]},
+            {"id": "discover", "label": "Discover",
+             "entities": [{"id": "c", "media": {}}]}
+        ]"#;
+
+        let shelves: Vec<Root> = serde_json::from_str(body).unwrap();
+
+        assert_eq!(shelves.len(), 3);
+        assert_eq!(shelves[1].label, "");
+        assert_eq!(shelves[2].label, "Discover");
+    }
+
+    /// The same answer of a library of podcasts. See T-190.
+    #[test]
+    fn a_shelf_of_podcasts_with_no_name_keeps_every_other_shelf() {
+        use crate::api::libraries::get_library_perso_view_pod::Root as RootPod;
+
+        let body = r#"[
+            {"id": "newest-episodes", "entities": [{"id": "a"}]},
+            {"id": "listen-again", "label": "Listen Again", "entities": []}
+        ]"#;
+
+        let shelves: Vec<RootPod> = serde_json::from_str(body).unwrap();
+
+        assert_eq!(shelves.len(), 2);
+        assert_eq!(shelves[0].label, "");
+        assert_eq!(shelves[1].label, "Listen Again");
     }
 }

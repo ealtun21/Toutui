@@ -95,7 +95,7 @@ pub fn group_home(shelves: &[Root], series: &[SeriesView]) -> Vec<HomeRow> {
         }
 
         rows.push(HomeRow::Shelf {
-            label: shelf.label.clone(),
+            label: the_name_of_the_shelf(shelf.id.as_deref(), &shelf.label),
         });
         rows.append(&mut of_this_shelf);
     }
@@ -127,7 +127,7 @@ pub fn group_home_pod(shelves: &[RootPod]) -> Vec<HomeRow> {
         }
 
         rows.push(HomeRow::Shelf {
-            label: shelf.label.clone(),
+            label: the_name_of_the_shelf(shelf.id.as_deref(), &shelf.label),
         });
         rows.append(&mut of_this_shelf);
     }
@@ -171,6 +171,30 @@ pub fn the_media_of_continue_listening_pod(shelves: &[RootPod]) -> Vec<bool> {
     }
 
     of_the_shelf
+}
+
+/// Gives the name of the line of a shelf.
+///
+/// **The label of a shelf is a name for the user, and it is no address**: a
+/// shelf with no label keeps its media, because the id of each of those media
+/// reaches every request of the program. The line of that shelf needs a name
+/// all the same, and the program has two roads to it:
+///
+/// 1. The label of the server, when it holds a character.
+/// 2. The identity of the shelf, which is the same on every server (T-24):
+///    `continue-listening`, `recently-added`, and the others.
+///
+/// A shelf that holds neither takes the name of this program. That name says
+/// what the program has, and it promises nothing (T-91 and T-118). See T-190.
+pub fn the_name_of_the_shelf(id: Option<&str>, label: &str) -> String {
+    if !label.trim().is_empty() {
+        return label.to_string();
+    }
+
+    match id {
+        Some(id) if !id.trim().is_empty() => id.to_string(),
+        _ => "A shelf with no name".to_string(),
+    }
 }
 
 /// Tells if a shelf is the shelf of Continue Listening.
@@ -686,5 +710,84 @@ mod tests {
         assert_eq!(last_line(&rows), None);
         assert_eq!(next_line(&rows, 0), None);
         assert_eq!(previous_line(&rows, 0), None);
+    }
+
+    /// **A shelf with no name keeps its media.** The label of a shelf is a
+    /// name for the user and no address, therefore the line of that shelf
+    /// takes the identity of the shelf. See T-190.
+    #[test]
+    fn the_name_of_a_shelf_comes_of_the_label_and_then_of_the_identity() {
+        assert_eq!(
+            the_name_of_the_shelf(Some("recently-added"), "Recently Added"),
+            "Recently Added"
+        );
+        assert_eq!(
+            the_name_of_the_shelf(Some("recently-added"), ""),
+            "recently-added",
+            "the identity is the name of a shelf that the server did not name"
+        );
+        assert_eq!(
+            the_name_of_the_shelf(Some("recently-added"), "   "),
+            "recently-added",
+            "a name of no character is a name that the server did not give"
+        );
+        assert_eq!(
+            the_name_of_the_shelf(None, ""),
+            "A shelf with no name",
+            "the program names a shelf that holds neither"
+        );
+        assert_eq!(
+            the_name_of_the_shelf(Some("  "), ""),
+            "A shelf with no name"
+        );
+    }
+
+    /// The lines of a shelf with no name stay, and the line of that shelf
+    /// holds its identity. See T-190.
+    #[test]
+    fn a_shelf_with_no_name_keeps_its_media() {
+        let shelves: Vec<Root> = serde_json::from_value(serde_json::json!([
+            { "id": "continue-listening", "label": "Continue Listening",
+              "entities": [ { "id": "a", "media": {} } ] },
+            { "id": "recently-added",
+              "entities": [ { "id": "b", "media": {} } ] }
+        ]))
+        .unwrap();
+
+        let rows = group_home(&shelves, &[]);
+
+        assert_eq!(
+            rows,
+            vec![
+                HomeRow::Shelf {
+                    label: "Continue Listening".to_string()
+                },
+                HomeRow::Media { item: 0 },
+                HomeRow::Shelf {
+                    label: "recently-added".to_string()
+                },
+                HomeRow::Media { item: 1 },
+            ]
+        );
+    }
+
+    /// The same for a library of podcasts. See T-190.
+    #[test]
+    fn a_shelf_of_podcasts_with_no_name_keeps_its_media() {
+        let shelves: Vec<RootPod> = serde_json::from_value(serde_json::json!([
+            { "id": "newest-episodes",
+              "entities": [ { "id": "a", "media": {}, "recentEpisode": {} } ] }
+        ]))
+        .unwrap();
+
+        assert_eq!(
+            group_home_pod(&shelves),
+            vec![
+                HomeRow::Shelf {
+                    label: "newest-episodes".to_string()
+                },
+                HomeRow::Media { item: 0 },
+            ]
+        );
     }
 }

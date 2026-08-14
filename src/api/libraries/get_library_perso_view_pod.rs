@@ -11,6 +11,10 @@ use serde_json::Value;
 #[serde(rename_all = "camelCase")]
 pub struct Root {
     pub id: Option<String>,
+    /// The name of the shelf for the user. **The field takes a default**: a
+    /// shelf that holds no `label` took every shelf of the Home view of a
+    /// library of podcasts away. See T-190 and `get_library_perso_view::Root`.
+    #[serde(default)]
     pub label: String,
     pub label_string_key: Option<String>,
     #[serde(rename = "type")]
@@ -164,6 +168,12 @@ pub async fn get_the_shelves_pod(
     let mut shelves: Vec<Root> = client
         .get_json(&format!("/api/libraries/{}/personalized", id_selected_lib))
         .await?;
+
+    crate::api::libraries::get_library_perso_view::the_shelves_with_no_name(
+        shelves
+            .iter()
+            .map(|shelf| (shelf.id.as_deref(), &shelf.label)),
+    );
 
     // The shelf of Continue Listening comes first, if the server gives one.
     let first = shelves.iter().position(is_the_shelf_of_continue_listening);
