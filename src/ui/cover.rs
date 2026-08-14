@@ -311,7 +311,27 @@ async fn fetch(api: &Arc<ApiClient>, id: &str) -> TheAnswer {
     let mut body: Vec<u8> = Vec::new();
     let mut response = response;
 
-    while let Ok(Some(chunk)) = response.chunk().await {
+    loop {
+        let chunk = match response.chunk().await {
+            Ok(Some(chunk)) => chunk,
+            Ok(None) => break,
+            // **A body that stopped is not the end of the body** (T-193,
+            // T-194, and T-196). The old line was
+            // `while let Ok(Some(chunk)) = response.chunk().await`, therefore a
+            // fault of the network ended the loop with no word at all: the
+            // store held the bytes of a part of a picture, no decoder read
+            // them, and the item showed no cover until the key `R` (T-185).
+            // The log said `the item 8fda6e43-… gives 2994 bytes` for a cover
+            // that the server holds whole. See T-198.
+            Err(error) => {
+                return TheAnswer::Fault(format!(
+                    "The body of the cover stopped after {} bytes: {}",
+                    body.len(),
+                    crate::api::client::error::classify_transport(&error)
+                ))
+            }
+        };
+
         if body.len() as u64 + chunk.len() as u64 > MAX_COVER_BYTES {
             return TheAnswer::Fault(format!(
                 "The cover sends more than the limit of {} bytes.",
@@ -880,6 +900,75 @@ mod tests {
         match runtime.block_on(fetch(&of_500, "a book")) {
             TheAnswer::Fault(why) => assert!(!why.is_empty(), "the fault must say why"),
             _ => panic!("the status 500 is a fault of the request, and not an item with no cover"),
+        }
+    }
+
+    /// A server that names the length of a picture and that sends a part of
+    /// it, on an address of this machine.
+    fn a_server_that_stops_the_body(whole: usize, part: usize) -> String {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("a port of the machine");
+        let address = format!("http://{}", listener.local_addr().expect("the address"));
+
+        std::thread::spawn(move || {
+            for stream in listener.incoming() {
+                let Ok(mut stream) = stream else { break };
+                use std::io::{Read, Write};
+
+                let mut buffer = [0u8; 2048];
+                let _ = stream.read(&mut buffer);
+                let _ = stream.write_all(
+                    format!(
+                        "HTTP/1.1 200 OK\r\nContent-Type: image/webp\r\n\
+                         Content-Length: {}\r\nConnection: close\r\n\r\n",
+                        whole
+                    )
+                    .as_bytes(),
+                );
+                let _ = stream.write_all(&vec![b'x'; part]);
+                let _ = stream.flush();
+            }
+        });
+
+        address
+    }
+
+    /// **A body that stopped is not the end of the body.** See T-198, and the
+    /// same rule of T-193, of T-194, and of T-196.
+    ///
+    /// The old shape of `fetch` read the parts with
+    /// `while let Ok(Some(chunk)) = response.chunk().await`, therefore a fault
+    /// of the network ended the loop with no word: the store held the bytes of
+    /// a part of a picture, no decoder read them, and the item showed no cover
+    /// until the key `R` (T-185). A measurement of 2026-08-14 with
+    /// `docs/harness/a_body_that_stops_in_the_middle.py` said
+    /// `[cover] the item 8fda6e43-… gives 2994 bytes` for a cover that the
+    /// server holds whole.
+    #[test]
+    fn a_body_of_a_cover_that_stopped_is_a_fault_and_not_a_picture() {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("a runtime");
+
+        let pool = crate::api::client::endpoint::EndpointPool::new(vec![
+            crate::api::client::endpoint::Endpoint::new(
+                &a_server_that_stops_the_body(9000, 3000),
+                0,
+            ),
+        ]);
+        let api = Arc::new(ApiClient::new(Arc::new(pool), "token".to_string()).expect("a client"));
+
+        match runtime.block_on(fetch(&api, "a book")) {
+            TheAnswer::Fault(why) => assert!(
+                why.contains("3000"),
+                "the fault names the bytes that came: {}",
+                why
+            ),
+            TheAnswer::Bytes(bytes) => panic!(
+                "a part of a picture of {} byte(s) is no picture of the store",
+                bytes.len()
+            ),
+            TheAnswer::NoCover => panic!("a body that stopped is not an item with no cover"),
         }
     }
 

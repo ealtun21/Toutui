@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.28",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A cover that came in part became an item with no cover.** The \
+             program held the end of the connection as the end of the picture, \
+             therefore the bytes of a part of a cover stood in the memory of \
+             the program: no reader of a picture read them, the item showed no \
+             cover, and the log said that the cover came. The program says the \
+             fault now, and it names the key `R` that asks your server again.",
+        ],
+    },
+    Entry {
         version: "0.8.27",
         date: "14/08/2026",
         body: &[

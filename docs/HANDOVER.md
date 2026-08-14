@@ -4,8 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.27.** The items T-196 and T-197 belong to this
-session. The
+**The newest release is v0.8.28.** The items T-196, T-197, and T-198 belong to
+this session. The
 item T-195 belongs to the session before it, and the
 item T-194 belongs to the session before that one, and the
 item T-193 to the session before that one, and the
@@ -41,9 +41,9 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-## The session of the thirty-third turn of 2026-08-14: the book of the reader that came in part, and the thread that died
+## The session of the thirty-third turn of 2026-08-14: the book of the reader that came in part, the thread that died, and the cover of a part
 
-**Two releases: v0.8.26 and v0.8.27.** The session before this one closed the stream of the
+**Three releases: v0.8.26, v0.8.27, and v0.8.28.** The session before this one closed the stream of the
 audio (T-195), and it named the panic of the thread of the playback and the keys
 `F`, `b`, `n`, `m`, `r`, `D`, and `X` against a server of a fault as the shapes
 that stay. **This session took a different road: the harness of T-193, on the
@@ -51,6 +51,7 @@ one road of a body that a measurement had not walked.**
 
 | Item | What | Where |
 |---|---|---|
+| T-198 | **A cover that came in part became an item with no cover.** `ui::cover::fetch` read the parts of the body with `while let Ok(Some(chunk))`, therefore a fault of the network ended the loop with no word: the store held 2994 bytes of a picture that no decoder reads, the item showed no cover until the key `R`, and the log said `the item 8fda6e43-… gives 2994 bytes`. **The sweep of the four functions of `src/` that read a body found this one line** | `src/ui/cover.rs` |
 | T-197 | **A thread that died left the user with a terminal that takes no key.** The hook of a panic gives the terminal back and it then comes back to a program that lives: the render wrote over the words of the panic, the key `Q` did nothing because the raw mode was gone, the audio played on, and the place of the user stayed at 0 on the disk and on the server for the whole book. **The log held no line of the panic at all.** The program stops now, it says that it stopped, and the log holds the fault | `src/utils/exit_app.rs` |
 | T-196 | **A book of the reader that came in part became a book that no reader opens.** A body with no `Content-Length` and no `Transfer-Encoding` ends at the close of the connection, therefore `reqwest` reads a **clean** end of it: `download_to_file` counted no byte, and 20000 bytes of an EPUB of 136761 bytes took the name of the whole book. The screen said "This file is not an EPUB.", and the key `e` after it asked the server for nothing: **the book of the user is broken for every program of that account until the key `X`.** That is the fault of the user of T-186, word for word | `src/api/client/mod.rs`, `src/api/library_items/the_ebooks.rs`, `src/logic/reader/session.rs` |
 
@@ -103,14 +104,23 @@ scratchpad, and the source back at once. Three things are worth the room:
    The log holds the fault now, because the terminal of the user goes away with
    the next command of their shell.
 
-**The condition that this session leaves open.** **The cover of a media takes
-the same road of a body.** `src/ui/cover.rs` holds a store of the answers of the
-server (T-185), and a picture that came in part is a picture that no decoder
-reads: the store holds that fault until the key `R`. The cover has no
-`metadata.size` of an answer of the server, therefore the truth of its length
-must come from the head of its own answer. The other shapes that stay are the
-panic of the thread of the playback (the shape of T-174) and the keys `F`, `b`,
-`n`, `m`, `r`, `D`, and `X` against a server of a fault.
+**The third item is the question that T-196 named**: which function of this
+program reads a body, and what does it do with a body that stopped? The answer
+of `src/` is four functions, and three of them hold the rule already — the audio
+of a download, the ebook of `download_to_file`, and the file of a new version.
+**The cover held `while let Ok(Some(chunk))`**, and that line reads a fault of
+the network as the end of the picture (T-198). **A sweep of one line of code
+over the whole of `src/` is the cheapest sweep of a session**, and the question
+of it comes of the item before it.
+
+**The condition that this session leaves open.** **A body that ends early and
+that looks whole needs a truth of its length**, and two of the four functions
+hold one: the ebook (`metadata.size` of the item, T-196) and the audio
+(`metadata.size` of the plan, T-179). **The cover and the file of a new version
+hold none**, and no answer of the server names those two sizes: a program that
+reads such a body can name nothing. The shapes that stay are the keys `F`, `b`,
+`n`, `m`, `r`, `D`, and `X` against a server of a fault, and a thread that comes
+to its end with no panic at all.
 
 ### The traps of this session
 
@@ -5266,11 +5276,16 @@ T-174 named and that no session had reached: a panic of a thread while a view
 stands.** The hook of the panic gave the terminal back and it came back to a
 program that lives: the render wrote over the words of the fault, the key `Q`
 did nothing, the audio played on, and the place of the user stayed at 0 for
-eight hours (T-197). This prompt names the state of the program on 2026-08-14.
+eight hours (T-197). **The third item is the question that T-196 named**: which
+function of this program reads a body, and what does it do with a body that
+stopped? Four functions of `src/` read one, and the cover held
+`while let Ok(Some(chunk))` — a fault of the network then ends the loop with no
+word, and the bytes of a part of a picture go to the store as the whole picture
+(T-198). This prompt names the state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.27**; `Cargo.toml` is at 0.8.27. The
+> AlbanDAVID/Toutui. Newest release **v0.8.28**; `Cargo.toml` is at 0.8.28. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -5279,7 +5294,7 @@ eight hours (T-197). This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-197 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-198 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -5612,8 +5627,8 @@ eight hours (T-197). This prompt names the state of the program on 2026-08-14.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1175 tests in 2.4 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1200 of 1200** with the sandbox up, in about 19 seconds. **Run that
+> Baseline: **1176 tests in 2.4 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1201 of 1201** with the sandbox up, in about 19 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -5664,6 +5679,12 @@ eight hours (T-197). This prompt names the state of the program on 2026-08-14.
 >      thread of a task then leaves a program that lives with a terminal of a
 >      shell. **Ask of every such piece: which thread does this run on, and what
 >      stands after it?**
+>    - **A sweep of one line of code over the whole of `src/` is the cheapest
+>      sweep of a session, and the question of it comes of the item before it**
+>      (T-198). T-196 asked which function reads a body; `grep` of `.chunk()`
+>      and of `while let Ok(Some` gave four, and one of them held the fault.
+>      **`while let Ok(...)` of a read of a network is the line to look for**: it
+>      reads a fault as the end of the data.
 >    - **A word for the user that a second writer covers is no word at all**
 >      (T-197). The panic wrote to the terminal, and the render drew over it at
 >      the next frame. **A word of a fault that must live longer than one frame
@@ -5833,11 +5854,13 @@ eight hours (T-197). This prompt names the state of the program on 2026-08-14.
 >      (T-196). **The shape of T-174 is closed for a panic of a thread**
 >      (T-197): the program stops, and the user reads the fault. **A thread that
 >      comes to its end with no panic is another condition**, and no loop of the
->      program holds such a road today. **The cover of a media holds that same
->      road and no measurement of it**: `src/ui/cover.rs` keeps the answer of the server in a store until
->      the key `R` (T-185), a picture that came in part is a picture that no
->      decoder reads, and no answer of the server names the size of that file —
->      the head of the answer of the cover is the one truth of its length.
+>      program holds such a road today. **The sweep of a body that stopped is
+>      closed for `src/`** (T-198): the four functions that read a body each name
+>      the fault of a part now, and the cover held the last of them. **A body
+>      that ends early and that looks whole needs a truth of its length**, and
+>      the cover and the file of a new version hold none: no answer of the server
+>      names those two sizes, therefore a program that reads such a body can name
+>      nothing.
 >      **The keys `M`, `N`, and `e` are
 >      closed** (T-175 and T-178), **the first request of the program is closed**
 >      (T-172), **the flush of the positions of the disk is closed** (T-188 and
@@ -6087,7 +6110,9 @@ eight hours (T-197). This prompt names the state of the program on 2026-08-14.
 > stops the program: a program that lost a thread says that it does the work of
 > that thread, the hook writes the fault in the log because the terminal of the
 > user goes away with the next command of the shell, and a panic that a caller
-> expects stops nothing** (T-197).
+> expects stops nothing** (T-197), and **a body of a cover that stopped is not
+> the end of the picture: the store takes the fault and not the bytes of a part,
+> and the log names the fault and the key `R`** (T-198).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

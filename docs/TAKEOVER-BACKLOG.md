@@ -8632,6 +8632,84 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-198: a cover that came in part became an item with no cover
+
+**T-196 named this condition, and the sweep of it found one line.** The question
+was: which function of this program reads a body, and what does it do with a
+body that stopped? The answer of `src/` is four places, and three of them hold
+the rule already — `logic::download::fetch` of the audio (`?` of the fault of
+`chunk()`), `ApiClient::download_to_file` of the ebook (T-186 and T-196), and
+`update::install` of the new version (`?`). **`ui::cover::fetch` held the
+fourth**:
+
+```rust
+while let Ok(Some(chunk)) = response.chunk().await {
+```
+
+**A fault of the network ends that loop with no word at all**, and the bytes of
+the part of the picture then go to the store as the whole picture.
+
+#### The measurement of 2026-08-14
+
+The harness is `docs/harness/a_body_that_stops_in_the_middle.py` of T-186, and
+the path is the cover:
+
+```bash
+python3 docs/harness/a_body_that_stops_in_the_middle.py 13510 13399 \
+    /the/absolute/path/of/requests.log 3000 /cover
+```
+
+**The answer of the cover of the sandbox holds `Transfer-Encoding: chunked` and
+no `Content-Length`**, therefore a body that stops in the middle of a chunk is a
+fault of the client: `curl` gives the code **18** (`CURLE_PARTIAL_FILE`) for that
+same request.
+
+| What | The program of v0.8.27 |
+|---|---|
+| The log | `[cover] the item 8fda6e43-… gives 2994 bytes` |
+| The screen | the line of `Alice in Wonderland` with **no cover**, beside a line of another item that holds one |
+| The store | `CoverBytes::Ready` of 2994 bytes of a picture that no decoder reads, and the rule of T-185 keeps it until the key `R` |
+
+**The line of the log is the fault of the maintainer**: it says that the cover
+came, and it names a number of bytes that is not the number of the file.
+
+#### The correction
+
+The loop reads the fault of `chunk()` now, and it gives `TheAnswer::Fault`. The
+rule of T-185 then does the rest: the item shows no cover, the log names the
+fault and the key `R`, and that key empties the store. The program of v0.8.28
+against the same proxy:
+
+```text
+[cover] the request of the cover of the item 8fda6e43-… came back with a fault.
+The body of the cover stopped after 2994 bytes: The answer of the server is not
+valid: error decoding response body The key R asks the server again.
+```
+
+**A body of a cover that ends early and that looks whole holds no such truth.**
+The answer of the cover names no size in any other answer of the server, and the
+head of a body with no `Content-Length` and no `Transfer-Encoding` names none
+either: the program then reads a clean end of a part of a picture, and no
+measurement of that body can name it. The one thing that the program can do is
+what it does now — the decoder gives no picture, and the item shows none.
+
+#### The test
+
+`a_body_of_a_cover_that_stopped_is_a_fault_and_not_a_picture` of
+`src/ui/cover.rs` holds a server of a raw socket that names 9000 bytes and sends
+3000. The test touches no store, therefore it needs no guard of the module.
+**The build of the fault** (the trap 147): the arm `Err(error) => return …`
+becomes `Err(_) => break`, and the test then says
+"a part of a picture of 3000 byte(s) is no picture of the store".
+
+#### What this item leaves open
+
+**The sweep of a body that stopped is closed for `src/`.** The four functions
+that read a body each name the fault of a part now. **A body that ends early and
+that looks whole needs a truth of its length**, and two of the four hold one:
+the ebook (`metadata.size` of the item, T-196) and the audio (`metadata.size` of
+the plan, T-179). The cover and the file of a new version hold none.
+
 ### T-197: a thread that died left the user with a terminal that takes no key
 
 **T-174 named this shape and it did not reach it**: a panic of a thread while a
