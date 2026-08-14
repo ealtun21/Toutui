@@ -714,7 +714,20 @@ impl App {
                 of_the_account
             );
 
-            let _ = update_id_selected_lib(&of_the_account, &username);
+            // This write stands behind no key of the user, therefore its fault
+            // takes a line of the log and no word for the user (T-177 and
+            // T-205). The program shows the library of the account with no row
+            // of the disk, and the next start does this work again.
+            if let Err(error) = update_id_selected_lib(&of_the_account, &username) {
+                log::error!(
+                    "[app] the program did not write the library {} of {}: {}. \
+                     The next start reads the library of the row again.",
+                    of_the_account,
+                    username,
+                    error
+                );
+            }
+
             id_selected_lib = of_the_account;
 
             crate::logic::message::say(&format!(
@@ -2689,7 +2702,24 @@ impl App {
                         if let Some(new_selected_lib) = selected_settings_library
                             .and_then(|index| self.libraries_ids.get(index))
                         {
-                            let _ = update_id_selected_lib(new_selected_lib, &self.username);
+                            // **A write of the disk that failed is no new
+                            // library** (T-205). See `take_the_next_library`.
+                            if let Err(error) =
+                                update_id_selected_lib(new_selected_lib, &self.username)
+                            {
+                                log::error!(
+                                    "[the library of the settings] the program did not write \
+                                     the library of {}: {}",
+                                    self.username,
+                                    error
+                                );
+
+                                crate::logic::message::say(
+                                    crate::ui::keys::THE_LIBRARY_DID_NOT_REACH_THE_DISK,
+                                );
+
+                                return;
+                            }
 
                             // **The screen must follow the choice.** The old
                             // code wrote the row of the database only, and every
@@ -3719,16 +3749,68 @@ impl App {
             return;
         };
 
+        let of_the_old = self.the_sequence_of_the_library();
+
         self.library_filter = crate::logic::authors::kind().filter_of(author);
 
-        let _ = crate::db::crud::update_library_sort(
+        if !self.the_disk_takes_the_sequence_of_the_library(of_the_old) {
+            return;
+        }
+
+        self.must_refresh = true;
+    }
+
+    /// The sequence, the direction, and the filter of the library of this
+    /// account. See T-205.
+    fn the_sequence_of_the_library(&self) -> (String, bool, String) {
+        (
+            self.library_sort.clone(),
+            self.library_desc,
+            self.library_filter.clone(),
+        )
+    }
+
+    /// Writes the sequence and the filter of the library of this account, and it
+    /// gives `false` when the disk did not take them. See T-205.
+    ///
+    /// **A write of the disk that failed is no new sequence.** The old line was
+    /// `let _ = update_library_sort(...)`: a database that a second Toutui of
+    /// this account held (T-140) took nothing, the program then asked the server
+    /// for the library again, and `App::new` read the sequence of the row of
+    /// before. The user read a list of the sequence of before with no word at
+    /// all, and a key of the user that writes the disk takes a sentence (T-199).
+    ///
+    /// The values of the application go back to the values of the disk, because
+    /// the row of the account is the truth of this sequence: a screen that holds
+    /// a sequence that no row holds says the sequence of nobody.
+    fn the_disk_takes_the_sequence_of_the_library(
+        &mut self,
+        of_the_old: (String, bool, String),
+    ) -> bool {
+        let of_the_disk = crate::db::crud::update_library_sort(
             &self.username,
             &self.library_sort,
             self.library_desc,
             &self.library_filter,
         );
 
-        self.must_refresh = true;
+        if let Err(error) = of_the_disk {
+            log::error!(
+                "[the sequence of the library] the program did not write the sequence of {}: {}",
+                self.username,
+                error
+            );
+
+            self.library_sort = of_the_old.0;
+            self.library_desc = of_the_old.1;
+            self.library_filter = of_the_old.2;
+
+            crate::logic::message::say(crate::ui::keys::THE_SEQUENCE_DID_NOT_REACH_THE_DISK);
+
+            return false;
+        }
+
+        true
     }
 
     /// Shows the lists that can take the media of the line. See T-84.
@@ -5440,6 +5522,8 @@ impl App {
             return;
         };
 
+        let of_the_old = self.the_sequence_of_the_library();
+
         match row {
             Row::Title(_) | Row::Note(_) => return,
             Row::Sort { field, .. } => {
@@ -5463,12 +5547,9 @@ impl App {
             }
         }
 
-        let _ = crate::db::crud::update_library_sort(
-            &self.username,
-            &self.library_sort,
-            self.library_desc,
-            &self.library_filter,
-        );
+        if !self.the_disk_takes_the_sequence_of_the_library(of_the_old) {
+            return;
+        }
 
         self.must_refresh = true;
     }
@@ -7135,7 +7216,24 @@ impl App {
             return;
         };
 
-        let _ = update_id_selected_lib(id, &self.username);
+        // **A write of the disk that failed is no new library** (T-205). The old
+        // line was `let _ = update_id_selected_lib(...)`: a database that a
+        // second Toutui of this account held (T-140) took the row of nobody, the
+        // program said that it shows the other library now, and the refresh
+        // after it read the row of the library of before. **A view never says a
+        // reason that the program does not have** (T-91), and a key of the user
+        // that writes the disk takes a sentence (T-199).
+        if let Err(error) = update_id_selected_lib(id, &self.username) {
+            log::error!(
+                "[the next library] the program did not write the library of {}: {}",
+                self.username,
+                error
+            );
+
+            crate::logic::message::say(crate::ui::keys::THE_NEXT_LIBRARY_DID_NOT_REACH_THE_DISK);
+
+            return;
+        }
 
         crate::logic::message::say(&format!("The program shows the library \"{}\" now.", name));
 

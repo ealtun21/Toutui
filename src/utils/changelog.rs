@@ -41,6 +41,30 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.35",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key `R` took the whole program away while a second Toutui \
+             of your account wrote the database.** The refresh read the \
+             accounts of the disk, that read met the database of the other \
+             program, and Toutui stopped with the words of a start that has no \
+             account: your lists, your account, and your playback went away \
+             with it. The key of the next library did the same. A refresh is \
+             not a start, therefore the program keeps the screen that stands \
+             and it says why that screen did not change.",
+            "- **The key of the next library said that it shows the other \
+             library while the database took nothing.** The three keys that \
+             write the library and the sequence of a library now read the \
+             answer of the disk: each of them says why, and the sequence of \
+             the screen goes back to the sequence of your row.",
+            "- **Two functions of the database said that they did their work \
+             for a database that they did not open**: the sequence of a \
+             library and the queue of the media. Each of them gives a fault \
+             now.",
+        ],
+    },
+    Entry {
         version: "0.8.34",
         date: "14/08/2026",
         body: &[

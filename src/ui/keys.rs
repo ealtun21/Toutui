@@ -581,6 +581,44 @@ pub const THE_KEYS_OF_THE_PLAYER_DID_NOT_REACH_THE_DISK: &str =
     "The program did not write the row of the keys of the player: the database \
      did not answer. A different program of this account can hold it. Press B again.";
 
+/// What a refresh says when it did not read the accounts of the database. See
+/// T-205.
+///
+/// **A refresh is not a start.** T-199 stops the program when the read of the
+/// accounts of `main` fails, and at the start that is right: the program holds
+/// no account, and it can do no work. A refresh holds the account, the token,
+/// every list, and the playback of the user already, therefore a database that a
+/// second program of this account writes for six seconds (T-140) must take none
+/// of them away. The application of the user stays, and the sentence names the
+/// key of the view that the user sees at that moment (T-183).
+pub const THE_REFRESH_DID_NOT_READ_THE_DATABASE: &str =
+    "The program did not read the accounts of its database, therefore the screen \
+     did not change. A different program of this account can hold it. Press R again.";
+
+/// What the key of the next library says when the disk did not take it. See
+/// T-205.
+///
+/// **A write of the disk that failed is no new library.** The old line was
+/// `let _ = update_id_selected_lib(...)`, and the program then said
+/// `The program shows the library "Podcasts" now.` while the row of the account
+/// held the library of before: a refresh reads that row again, and the user read
+/// the words of a work that the program did not do (T-91).
+pub const THE_NEXT_LIBRARY_DID_NOT_REACH_THE_DISK: &str =
+    "The program did not write the library of this account: the database did not \
+     answer. A different program of this account can hold it. Press Shift-Tab again.";
+
+/// What the view of the libraries of the settings says when the disk did not
+/// take the library of the line. See T-205.
+pub const THE_LIBRARY_DID_NOT_REACH_THE_DISK: &str =
+    "The program did not write the library of this account: the database did not \
+     answer. A different program of this account can hold it. Press Enter again.";
+
+/// What the sequence and the filter of the library say when the disk did not
+/// take them. See T-205.
+pub const THE_SEQUENCE_DID_NOT_REACH_THE_DISK: &str =
+    "The program did not write the sequence of this library: the database did not \
+     answer. A different program of this account can hold it. Press Enter again.";
+
 /// The label of a media whose copy on the disk the program did not read. See
 /// T-203.
 pub const THE_DISK_DID_NOT_ANSWER: &str = " - [the disk did not answer]";

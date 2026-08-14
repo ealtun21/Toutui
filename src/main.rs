@@ -11,7 +11,7 @@ use crate::utils::logs::*;
 use app::App;
 use color_eyre::Result;
 use crossterm::event::{self, KeyCode};
-use log::info;
+use log::{error, info};
 use login_app::AppLogin;
 use ratatui::{
     style::{Color, Style},
@@ -660,51 +660,101 @@ async fn main() -> Result<()> {
                                 // See T-135.
                                 let the_state_of_the_user = app.the_state_that_a_refresh_keeps();
 
-                                app = match App::new_with_the_engine(
+                                let the_new_application = App::new_with_the_engine(
                                     std::sync::Arc::clone(&api),
                                     the_engine,
                                 )
-                                .await
-                                {
-                                    Ok(new) => new,
+                                .await;
+
+                                // **A refresh is not a start** (T-205). T-199
+                                // gave the read of the accounts a fault of its
+                                // own, and the start of the program stops with
+                                // it: a program with no account can do no work.
+                                // **A refresh holds the account, the token, every
+                                // list, and the playback of the user already**,
+                                // and a second Toutui of this account writes the
+                                // database of it (T-140): a measurement of
+                                // 2026-08-14 with `docs/harness/hold_the_lock.py`
+                                // took the whole program away at the key `R` and
+                                // at the key of the next library, and the words of
+                                // that stop said "Toutui changed nothing".
+                                //
+                                // The application of the user stays here, and the
+                                // row of the message says why the screen did not
+                                // change.
+                                let the_database_said_nothing = matches!(
+                                    &the_new_application,
                                     Err(report)
-                                        if api::client::error::the_token_is_not_valid(&report) =>
-                                    {
-                                        for task in &the_tasks_of_the_account {
-                                            task.abort();
-                                        }
+                                        if api::client::error::the_accounts_did_not_come(report)
+                                );
 
-                                        logic::auth::auth_input::the_program_needs_a_new_token(
-                                            &username,
-                                            &server_address,
-                                        )
-                                        .map_err(color_eyre::eyre::Report::msg)?;
-
-                                        continue 'the_session;
-                                    }
-                                    // The key `R` makes the same requests as the
-                                    // start, therefore it holds the same road.
-                                    // See T-172.
-                                    Err(report) => {
-                                        for task in &the_tasks_of_the_account {
-                                            task.abort();
-                                        }
-
-                                        the_program_stops_with_words(
-                                            report,
-                                            &username,
-                                            &server_address,
+                                if the_database_said_nothing {
+                                    if let Err(report) = &the_new_application {
+                                        error!(
+                                            "[the refresh] the program did not read the accounts \
+                                             of its database: {}. The application of the user \
+                                             stays.",
+                                            report
                                         );
                                     }
-                                };
 
-                                app.keep_the_state_of_the_application_before(the_state_of_the_user);
+                                    // **The mark of the refresh goes away** (T-205).
+                                    // The key of the sequence and the key of the
+                                    // next library write it, and the loop reads it
+                                    // at each key: a mark that stays gives a refresh
+                                    // of every key after this one.
+                                    app.must_refresh = false;
 
-                                if from_the_sequence {
-                                    app.view_state = app::AppView::Library;
+                                    logic::message::forget();
+                                    logic::message::say(
+                                        toutui::ui::keys::THE_REFRESH_DID_NOT_READ_THE_DATABASE,
+                                    );
+                                } else {
+                                    app = match the_new_application {
+                                        Ok(new) => new,
+                                        Err(report)
+                                            if api::client::error::the_token_is_not_valid(
+                                                &report,
+                                            ) =>
+                                        {
+                                            for task in &the_tasks_of_the_account {
+                                                task.abort();
+                                            }
+
+                                            logic::auth::auth_input::the_program_needs_a_new_token(
+                                                &username,
+                                                &server_address,
+                                            )
+                                            .map_err(color_eyre::eyre::Report::msg)?;
+
+                                            continue 'the_session;
+                                        }
+                                        // The key `R` makes the same requests as the
+                                        // start, therefore it holds the same road.
+                                        // See T-172.
+                                        Err(report) => {
+                                            for task in &the_tasks_of_the_account {
+                                                task.abort();
+                                            }
+
+                                            the_program_stops_with_words(
+                                                report,
+                                                &username,
+                                                &server_address,
+                                            );
+                                        }
+                                    };
+
+                                    app.keep_the_state_of_the_application_before(
+                                        the_state_of_the_user,
+                                    );
+
+                                    if from_the_sequence {
+                                        app.view_state = app::AppView::Library;
+                                    }
+
+                                    logic::message::forget();
                                 }
-
-                                logic::message::forget();
 
                                 // A refresh makes a new application, therefore every
                                 // view can change. A clear makes the next draw write

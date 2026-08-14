@@ -99,6 +99,24 @@ pub fn the_token_is_not_valid(report: &color_eyre::eyre::Report) -> bool {
     })
 }
 
+/// Tells if a report of a fault holds a read of the accounts that failed.
+///
+/// **A refresh is not a start** (T-205). T-199 gave the read of the accounts a
+/// fault of its own, and `main` stops the program with it: at the start that is
+/// right, because the program holds no account at all. A refresh of the key `R`
+/// holds the account, the token, every list, and the playback of the user
+/// already, therefore a database that a second program of this account writes
+/// (T-140) must take none of them away. The refresh reads the category here,
+/// and it keeps the application that stands.
+///
+/// The function looks at every cause of the report, because a caller can put the
+/// fault of the database inside a report of its own.
+pub fn the_accounts_did_not_come(report: &color_eyre::eyre::Report) -> bool {
+    report
+        .chain()
+        .any(|cause| cause.is::<crate::db::TheAccountsDidNotCome>())
+}
+
 /// The words for a user whose program cannot read the lists of the server.
 ///
 /// **T-123 closed this road for a token that the server refused, and every

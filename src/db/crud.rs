@@ -126,14 +126,13 @@ pub fn get_library_sort(username: &str) -> (String, bool, String) {
 }
 
 /// Writes the sequence and the filter of the library of an account.
+///
+/// **This function said `Ok` for a connection that it did not get** (T-205), and
+/// the sweep of T-200 did not reach it: the key of the sequence and the key of
+/// the filter therefore read the answer of a write that never happened, and the
+/// user read no word at all. See `the_connection` for the rule.
 pub fn update_library_sort(username: &str, field: &str, desc: bool, filter: &str) -> Result<()> {
-    let conn = match crate::db::migrate::open_conn() {
-        Ok(conn) => conn,
-        Err(error) => {
-            error!("[update_library_sort] {}", error);
-            return Ok(());
-        }
-    };
+    let conn = the_connection("update_library_sort")?;
 
     conn.execute(
         "UPDATE users SET library_sort = ?1, library_desc = ?2, library_filter = ?3
@@ -1440,11 +1439,15 @@ mod tests {
 ///
 /// The queue is short: a user puts some media in it. Therefore the function
 /// writes every row again, and it needs no rule for a row that changed.
+///
+/// **This function said `Ok` for a connection that it did not get** (T-205), and
+/// the sweep of T-200 did not reach it. **The disk is the truth of the queue**
+/// (T-147): every change of the queue reads the disk and writes the whole of it
+/// again, therefore a write that lies leaves the queue of the process and the
+/// queue of the disk apart, and no program of this account holds the queue of the
+/// user.
 pub fn save_the_queue(username: &str, server: &str, rows: &[QueueRow]) -> Result<()> {
-    let Ok(mut conn) = crate::db::migrate::open_conn() else {
-        error!("[save_the_queue] the program cannot open the database.");
-        return Ok(());
-    };
+    let mut conn = the_connection("save_the_queue")?;
 
     let work = conn.transaction()?;
 

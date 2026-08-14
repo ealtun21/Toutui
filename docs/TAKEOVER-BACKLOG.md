@@ -8632,6 +8632,149 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-205: the key `R` of a database that a second program held took the program away
+
+**T-204 left three questions**, and the sweep of the first two of them found a
+fault that no item of the road named: **a key of the user took the whole program
+away.** The key is `R`, it stands in the footer of every view, and the condition
+is the condition of T-140 — two Toutui of one account.
+
+#### The measurement of 2026-08-14
+
+The condition is `docs/harness/hold_the_lock.py` (T-199): a second writer of the
+database of the program, and rusqlite waits five seconds for it.
+
+**The first road: the freeze of the screen.** The program stood in the Library
+view with no playback. The lock stood 30 seconds, one key of the user came after
+it, and a press of `j` each second said whether the loop of the screen answers.
+
+| The key | The screen of v0.8.34 stood still | What held it |
+|---|---|---|
+| no key at all | 1 ms | — |
+| `X` | **4863 ms** | `a_program_keeps_the_place_of_this_media` |
+| `B` | **4866 ms** | `update_is_show_key_bindings` |
+| `n` | **4874 ms** | `read_the_queue` |
+| Shift-Tab | **15013 ms** | `update_id_selected_lib`, and the refresh after it |
+
+**The row of the message says nothing for the whole of that wait**, and no key of
+the user reaches the program: the cursor does not move, and the key `Q` does not
+stop it. The five presses of `j` of the measurement of the key `X` came together
+at 17:17:26, and the sentence of that key came with them.
+
+**The second road: the program that went away.** The key Shift-Tab holds
+`must_refresh`, and the loop then makes a new `App`. A press of the key `R` gives
+the same road, and both of them ended the program of v0.8.34:
+
+```text
+2026-08-14 17:22:47.027 [ERROR] - [app] the program stops:
+    The program did not read the accounts of its database: database is locked
+```
+
+The terminal of the user held
+
+```text
+Toutui stops: it cannot read the accounts of its database.
+The program did not read the accounts of its database: database is locked
+The account is toutuitest.
+Toutui changed nothing. Stop a second Toutui of this account, and start this one again.
+```
+
+**"Toutui changed nothing" is the sentence of a start** (T-199), and it is not
+true of a refresh: the account, the token, every list, the queue, the timer for
+sleep, and the playback of the user went away with the program.
+
+**The third road: the word that lies.** The key of the next library said
+`The program shows the library "Podcasts" now.` before the program stopped, and
+the row of the account held the library of before. That write stood behind
+`let _ = update_id_selected_lib(...)`.
+
+**The fourth road: the sequence that no word names.** The key Enter of the view
+of the sequence and the filter changed the header of that view to the sequence
+of the line, the row of the account took nothing, and the log held
+`[update_library_sort] database is locked` alone. **The caller could not read
+that fault**: `update_library_sort` answered `Ok(())` for a connection that it
+did not get, and the sweep of T-200 over the 21 functions of that shape did not
+reach it. `save_the_queue` holds the same shape, and **the disk is the truth of
+the queue** (T-147).
+
+#### The correction
+
+1. **A refresh is not a start.** `the_accounts_did_not_come` of
+   `src/api/client/error.rs` reads the category of T-199 out of the report, and
+   the refresh of `src/main.rs` keeps the application of the user: the mark
+   `must_refresh` goes away, the log names the fault, and the row of the message
+   says `The program did not read the accounts of its database, therefore the
+   screen did not change. A different program of this account can hold it. Press
+   R again.` **The road of T-172 stays for a fault of the server**, and the start
+   of `main` keeps the road of T-199: a program with no account can do no work.
+2. **The three keys that write the library and the sequence read the answer of
+   the disk.** The key of the next library, the key Enter of the view of the
+   libraries of the settings, and the key Enter of the view of the sequence each
+   say why, and each of them names the key of the view that the user sees at that
+   moment (T-183). **The values of the application go back to the values of the
+   disk**: the row of the account is the truth of the sequence, and a screen that
+   holds a sequence that no row holds says the sequence of nobody.
+3. **`update_library_sort` and `save_the_queue` give a fault.** They are the last
+   two functions of the shape of T-200, and the write of `App::new` that repairs
+   a library that the account cannot read takes a line of the log (T-177: no key
+   of the user stands behind it).
+
+#### The measurement of the corrected program
+
+| The condition | v0.8.34 | v0.8.35 |
+|---|---|---|
+| The key `R` with the lock | the program went away | **the program stays, and the row of the message says why** |
+| The key Shift-Tab with the lock | the program went away, after a word that lies | the sentence of a write that failed, and the library of before |
+| The key Enter of the sequence, with the lock | the header of the view changed, and no word came | the sentence, and the header of the sequence of the row |
+
+#### The test
+
+`tests/a_refresh_of_a_database_that_said_nothing_keeps_the_program.rs` holds the
+five parts in one function (T-144 and T-157): the category of the report, the
+sequence of the two arms of the refresh of `src/main.rs` (a test of the source,
+as T-135, T-143, and T-204 hold), the fault of the two functions of the database
+against a file that holds no database, and the sentence of each of the three
+keys. A build with any one of the corrections removed fails it: the two functions
+of the database with `return Ok(())` again gave
+`the sequence of a library of a database that says nothing is no sequence`.
+
+#### What this item leaves open
+
+**A key of the user that touches the disk still stops the loop of the screen for
+five seconds, and the row of the message says nothing while it waits.** That is
+the first question of T-204, and this item measured it and did not correct it:
+the answer of `handle_key` needs `&mut App` on the thread of the screen, and the
+work of the disk of a key therefore belongs to a task of its own, as the key `D`
+holds one already. **The question of the next session is which keys can give
+their work to a task, and what the row of the message says at the moment of the
+press.** The five keys that a measurement reached are `X`, `B`, `n`, Shift-Tab,
+and the key Enter of the sequence.
+
+**A caller of `save_the_queue` does not read the fault of that function yet.**
+`write_the_queue` of `src/logic/queue.rs` writes a line of the log, and its five
+callers (`add`, `put_at_the_front`, `take_next`, `take_the_media`, and `clear`)
+say to the user that the media reached the queue. The read of the disk stands
+before each of those writes (T-202), therefore the window is the moment between
+that read and that write; **the disk is the truth of the queue** (T-147), and the
+queue of the process then holds a media that no program of this account reads.
+
+**The reads of the disk whose default is a fact of the user, and that no
+measurement has reached**: `get_library_sort` gives "the user chose no sequence
+and no filter", `get_speed_rate` and `get_is_show_key_bindings` give a string of
+their own fault. Each of the three stands in `App::new` alone, therefore the
+correction of this item hides them: a refresh that meets the lock now stops at
+`Database::new` before any of them reaches a view. **The condition that reaches
+them is a lock that comes after the read of the accounts and before the read of
+the sequence**, and no harness of this road makes that moment yet.
+
+**The sweep of the calls of the database of an async function is not finished.**
+The measurement of this session gave one answer of it: **the task of a download
+holds a thread of the runtime for 15 seconds and the loop of the screen goes
+on.** `insert_download`, `delete_download`, and `the_keys_of_the_downloads` each
+waited five seconds under the lock, and the five presses of `j` of those 15
+seconds each moved the cursor at once. The driver of the runtime of T-204 stood
+with another worker. **The login and the sync of a session are not measured.**
+
 ### T-204: the disk of every frame, and the disk of every key, stopped the program
 
 **T-203 asked which reads of the disk stand inside the render, and what a state
