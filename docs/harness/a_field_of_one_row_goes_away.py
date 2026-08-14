@@ -16,6 +16,10 @@ log, the path, the dotted name of the list, the number of the row of that list
 to the sandbox, therefore the login works through this proxy and the token is a
 real token.
 
+**A name of numbers alone is the row of a list** (T-192): the name
+`results.0.books` is the list of the books of the first collection of the
+answer.
+
 **The name `.` says that the body itself is the list** (T-190). The answer of
 `GET /api/libraries/:id/personalized` is a bare array of the shelves, and no
 field of an object holds it:
@@ -53,6 +57,12 @@ def without_the_fields(value):
     row = value
 
     for name in THE_LIST:
+        # A name of numbers alone is the row of a list. `results.0.books` is
+        # therefore the list of the books of the first collection (T-192).
+        if name.isdigit() and isinstance(row, list) and len(row) > int(name):
+            row = row[int(name)]
+            continue
+
         if not isinstance(row, dict) or name not in row:
             note("!! the list %s is not in the body" % THE_NAME)
             return value

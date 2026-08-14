@@ -8,6 +8,7 @@ use crate::api::libraries::get_all_books::LibraryItem;
 use crate::api::libraries::get_lists::{CollectionRoot, PlaylistRoot};
 use crate::utils::html_text::to_plain_text;
 use crate::utils::values_of_the_server::{a_text_or, a_text_or_nothing};
+use log::warn;
 
 /// What the list is.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -78,14 +79,25 @@ impl ListEntry {
 }
 
 /// Reads the title, the author, and the length of a library item.
-fn from_item(item: &LibraryItem) -> ListEntry {
+///
+/// **A media with no identity belongs to no line of a list** (T-192): the id is
+/// the address of the key `l` of a playback (`POST /api/items/:id/play`) and of
+/// the key `X` that takes the media out of the list. The old code gave such a
+/// media the id of no character, and the key `l` of it said "The server did not
+/// start the playback: The server does not have this item".
+fn from_item(item: &LibraryItem) -> Option<ListEntry> {
     let metadata = item
         .media
         .as_ref()
         .and_then(|media| media.metadata.as_ref());
 
-    ListEntry {
-        id: item.id.clone().unwrap_or_default(),
+    let id = the_identity_of_a_media(
+        item.id.as_deref(),
+        metadata.and_then(|d| d.title.as_deref()),
+    )?;
+
+    Some(ListEntry {
+        id,
         episode_id: None,
         // **A text of no letter is not a value.** See T-114.
         title: a_text_or_nothing(metadata.and_then(|data| data.title.as_deref())),
@@ -101,6 +113,26 @@ fn from_item(item: &LibraryItem) -> ListEntry {
         description: a_description_or_nothing(
             metadata.and_then(|data| data.description.as_deref()),
         ),
+    })
+}
+
+/// Gives the identity of a media of a list, or nothing.
+///
+/// A media with no identity has no address, therefore it belongs to no line and
+/// it takes a line of the log — the rule of T-181 and of T-192.
+fn the_identity_of_a_media(id: Option<&str>, title: Option<&str>) -> Option<String> {
+    match id {
+        Some(id) if !id.trim().is_empty() => Some(id.to_string()),
+        _ => {
+            warn!(
+                "[lists] The answer of the server holds a media of a list with no \
+                 identity. The program cannot ask the server for that media, \
+                 therefore it belongs to no line of the list. The name of it is \
+                 \"{}\".",
+                a_text_or_nothing(title)
+            );
+            None
+        }
     }
 }
 
@@ -115,18 +147,62 @@ fn a_description_or_nothing(text: Option<&str>) -> String {
 }
 
 /// Makes the display data of the collections.
+///
+/// **A collection with no identity belongs to no line.** See
+/// `the_identity_of_a_list` and T-192.
 pub fn collect_collections(root: &CollectionRoot) -> Vec<ListView> {
     root.results
         .iter()
         .flatten()
-        .map(|collection| ListView {
-            id: collection.id.clone().unwrap_or_default(),
-            kind: ListKind::Collection,
-            name: a_text_or_nothing(collection.name.as_deref()),
-            description: a_description_or_nothing(collection.description.as_deref()),
-            entries: collection.books.iter().flatten().map(from_item).collect(),
+        .filter_map(|collection| {
+            let id = the_identity_of_a_list(
+                collection.id.as_deref(),
+                ListKind::Collection,
+                collection.name.as_deref(),
+            )?;
+
+            Some(ListView {
+                id,
+                kind: ListKind::Collection,
+                name: a_text_or_nothing(collection.name.as_deref()),
+                description: a_description_or_nothing(collection.description.as_deref()),
+                entries: collection
+                    .books
+                    .iter()
+                    .flatten()
+                    .filter_map(from_item)
+                    .collect(),
+            })
         })
         .collect()
+}
+
+/// Gives the identity of a collection or of a playlist, or nothing.
+///
+/// **The identity of a list is the address of every key of it**: the key `l`
+/// of the view `PutInAList` (`POST /api/collections/:id/book`), the keys `r`
+/// and `D` of a name and of a description, the key `X` of the list, and the
+/// keys `X` and `</>` of a media of that list each hold it. A list with no
+/// identity gave a path of no identity, and the server answered `404`: the
+/// program then said "The server did not take the media: The server does not
+/// have this item", and the media of the user was correct.
+///
+/// Such a list therefore belongs to no line, and it takes a line of the log —
+/// the rule of T-177, of T-181, and of T-183. See T-192.
+fn the_identity_of_a_list(id: Option<&str>, kind: ListKind, name: Option<&str>) -> Option<String> {
+    match id {
+        Some(id) if !id.trim().is_empty() => Some(id.to_string()),
+        _ => {
+            warn!(
+                "[lists] The answer of the server holds a {} with no identity. \
+                 The program cannot ask the server for that list, therefore it \
+                 belongs to no line of the view. The name of it is \"{}\".",
+                kind.name().to_lowercase(),
+                a_text_or_nothing(name)
+            );
+            None
+        }
+    }
 }
 
 /// Makes the display data of the playlists.
@@ -137,55 +213,83 @@ pub fn collect_playlists(root: &PlaylistRoot) -> Vec<ListView> {
     root.results
         .iter()
         .flatten()
-        .map(|playlist| ListView {
-            id: playlist.id.clone().unwrap_or_default(),
-            kind: ListKind::Playlist,
-            name: a_text_or_nothing(playlist.name.as_deref()),
-            description: a_description_or_nothing(playlist.description.as_deref()),
-            entries: playlist
-                .items
-                .iter()
-                .flatten()
-                .map(|item| {
-                    let mut entry = match &item.library_item {
-                        Some(library_item) => from_item(library_item),
-                        None => ListEntry {
-                            id: String::new(),
-                            episode_id: None,
-                            title: "N/A".to_string(),
-                            author: "N/A".to_string(),
-                            duration: 0.0,
-                            description: "No description available".to_string(),
-                        },
-                    };
+        .filter_map(|playlist| {
+            let id = the_identity_of_a_list(
+                playlist.id.as_deref(),
+                ListKind::Playlist,
+                playlist.name.as_deref(),
+            )?;
 
-                    if let Some(id) = item.library_item_id.clone() {
-                        entry.id = id;
-                    }
+            Some(ListView {
+                id,
+                kind: ListKind::Playlist,
+                name: a_text_or_nothing(playlist.name.as_deref()),
+                description: a_description_or_nothing(playlist.description.as_deref()),
+                entries: playlist
+                    .items
+                    .iter()
+                    .flatten()
+                    .filter_map(|item| {
+                        // The entry names the item, and the item of the answer
+                        // holds it too. **A road of an identity is enough**, and an
+                        // entry of neither road belongs to no line (T-192).
+                        let mut entry = match &item.library_item {
+                            Some(library_item) => from_item(library_item).unwrap_or(ListEntry {
+                                id: String::new(),
+                                episode_id: None,
+                                title: "N/A".to_string(),
+                                author: "N/A".to_string(),
+                                duration: 0.0,
+                                description: "No description available".to_string(),
+                            }),
+                            None => ListEntry {
+                                id: String::new(),
+                                episode_id: None,
+                                title: "N/A".to_string(),
+                                author: "N/A".to_string(),
+                                duration: 0.0,
+                                description: "No description available".to_string(),
+                            },
+                        };
 
-                    // The episode gives its own title and its own length. The
-                    // podcast gives the author.
-                    if let Some(episode) = &item.episode {
-                        entry.episode_id = item.episode_id.clone();
-
-                        if let Some(title) = episode["title"].as_str() {
-                            entry.title = title.to_string();
+                        if let Some(id) = item.library_item_id.clone() {
+                            entry.id = id;
                         }
 
-                        if let Some(duration) = episode["audioFile"]["duration"].as_f64() {
-                            entry.duration = duration;
-                        } else if let Some(duration) = episode["duration"].as_f64() {
-                            entry.duration = duration;
+                        if entry.id.trim().is_empty() {
+                            warn!(
+                                "[lists] The answer of the server holds a media of a \
+                             playlist with no identity. The program cannot ask the \
+                             server for that media, therefore it belongs to no line \
+                             of the list."
+                            );
+                            return None;
                         }
 
-                        if let Some(description) = episode["description"].as_str() {
-                            entry.description = to_plain_text(description);
-                        }
-                    }
+                        // The episode gives its own title and its own length. The
+                        // podcast gives the author.
+                        if let Some(episode) = &item.episode {
+                            entry.episode_id = item.episode_id.clone();
 
-                    entry
-                })
-                .collect(),
+                            if let Some(title) = episode["title"].as_str() {
+                                entry.title = title.to_string();
+                            }
+
+                            if let Some(duration) = episode["audioFile"]["duration"].as_f64() {
+                                entry.duration = duration;
+                            } else if let Some(duration) = episode["duration"].as_f64() {
+                                entry.duration = duration;
+                            }
+
+                            if let Some(description) = episode["description"].as_str() {
+                                entry.description = to_plain_text(description);
+                            }
+                        }
+
+                        Some(entry)
+                    })
+                    .collect(),
+            })
         })
         .collect()
 }
@@ -372,5 +476,92 @@ mod tests {
         // A podcast gives the author in the field `author`, and a book gives
         // it in the field `authorName`.
         assert_eq!(lists[0].entries[0].author, "LibriVox");
+    }
+}
+
+#[cfg(test)]
+mod tests_of_a_list_with_no_identity {
+    use super::{collect_collections, collect_playlists};
+    use crate::api::libraries::get_lists::{CollectionRoot, PlaylistRoot};
+
+    /// **A collection with no identity belongs to no line**, and every other
+    /// collection of the same answer stays. See T-192.
+    #[test]
+    fn a_collection_with_no_identity_belongs_to_no_line() {
+        let root: CollectionRoot = serde_json::from_str(
+            r#"{"results": [
+                 {"name": "No Address", "books": [{"id": "b1"}]},
+                 {"id": "   ", "name": "No Address Again", "books": []},
+                 {"id": "c2", "name": "A Collection", "books": [{"id": "b2"}]}
+               ]}"#,
+        )
+        .unwrap();
+
+        let lists = collect_collections(&root);
+
+        assert_eq!(lists.len(), 1);
+        assert_eq!(lists[0].id, "c2");
+    }
+
+    /// The same for a playlist. See T-192.
+    #[test]
+    fn a_playlist_with_no_identity_belongs_to_no_line() {
+        let root: PlaylistRoot = serde_json::from_str(
+            r#"{"results": [
+                 {"name": "No Address", "items": [{"libraryItemId": "b1"}]},
+                 {"id": "p2", "name": "A Playlist", "items": [{"libraryItemId": "b2"}]}
+               ]}"#,
+        )
+        .unwrap();
+
+        let lists = collect_playlists(&root);
+
+        assert_eq!(lists.len(), 1);
+        assert_eq!(lists[0].id, "p2");
+    }
+
+    /// **A media of a list with no identity belongs to no line of that list**,
+    /// and the other media of the list stay. See T-192.
+    #[test]
+    fn a_media_with_no_identity_belongs_to_no_line_of_the_list() {
+        let root: CollectionRoot = serde_json::from_str(
+            r#"{"results": [
+                 {"id": "c1", "name": "A Collection", "books": [
+                   {"media": {"metadata": {"title": "No Address"}}},
+                   {"id": "  ", "media": {"metadata": {"title": "No Address Again"}}},
+                   {"id": "b2", "media": {"metadata": {"title": "A Book"}}}
+                 ]}
+               ]}"#,
+        )
+        .unwrap();
+
+        let lists = collect_collections(&root);
+
+        assert_eq!(lists.len(), 1);
+        assert_eq!(lists[0].entries.len(), 1);
+        assert_eq!(lists[0].entries[0].id, "b2");
+    }
+
+    /// A media of a playlist holds two roads of its identity, and one of them
+    /// is enough. An entry of neither road belongs to no line. See T-192.
+    #[test]
+    fn a_media_of_a_playlist_holds_two_roads_of_its_identity() {
+        let root: PlaylistRoot = serde_json::from_str(
+            r#"{"results": [
+                 {"id": "p1", "name": "A Playlist", "items": [
+                   {"episode": {"title": "An Episode"}},
+                   {"libraryItemId": "b1"},
+                   {"libraryItem": {"id": "b2", "media": {"metadata": {"title": "A Book"}}}}
+                 ]}
+               ]}"#,
+        )
+        .unwrap();
+
+        let lists = collect_playlists(&root);
+
+        assert_eq!(lists.len(), 1);
+        assert_eq!(lists[0].entries.len(), 2);
+        assert_eq!(lists[0].entries[0].id, "b1");
+        assert_eq!(lists[0].entries[1].id, "b2");
     }
 }
