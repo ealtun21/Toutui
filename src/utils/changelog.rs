@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.31",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A playback that kept no place played with no row of the player \
+             at all.** The row of the disk holds the place of your playback for \
+             a program that stops without an exit, and the row of the player of \
+             the screen reads that row: a second Toutui of your account that \
+             held the database took that row away, therefore the audio played, \
+             the row of the player said \"N/A\", and the place of the whole \
+             playback reached no disk. The playback does not start now, and the \
+             program says that it did not keep the session on its disk.",
+        ],
+    },
+    Entry {
         version: "0.8.30",
         date: "14/08/2026",
         body: &[

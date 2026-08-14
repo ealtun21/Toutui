@@ -8632,6 +8632,99 @@ does not reach it. **The question for the next session is what the decoder does
 with a part of a transport stream that stops in the middle**, and whether the
 playback then names the fault or goes on with a gap in the sound.
 
+### T-201: a playback whose session reached no disk played with no place and no row of the player
+
+**T-200 gave the fault of the disk to every caller of the module of the database,
+and the road of that item named the callers of the greatest weight: the values of
+the place of the user.** The first of them is the row of a session of a playback.
+
+`insert_listening_session` stood behind `let _ =` in the two places that start a
+playback — the file of the media (`play_media`) and the stream of the server
+(`play_the_stream_of_the_server`). **The row of `listening_session` is the one
+copy of the place of the user for a program that dies** (T-140, T-145, and
+T-152), and **the row of the player of the screen reads that row too**.
+
+#### The measurement of 2026-08-14
+
+The harness is `docs/harness/hold_the_lock.py` of T-199, and the key is `l` of an
+episode of the podcast of the sandbox. The lock stands before that key. The
+program of v0.8.30:
+
+```text
+[ERROR] - [insert_listening_session] the program did not open its database: database is locked
+[INFO]  - [play] the item 9fa45bd1-… starts at 0 seconds with 1 tracks
+```
+
+| What | The program of v0.8.30 |
+|---|---|
+| `select count(*) from listening_session` | **0** |
+| The audio | the null device played the episode |
+| The row of the player | **`N/A`**, with no title and no time |
+| The row of the message | `Loading the media...` for its six seconds, and then nothing |
+| Every write of the place after it | **0 rows** |
+
+**The fault of the user**: the media plays, the screen of the program says nothing
+of it, and the place of that playback reaches no disk at all. A program that dies
+then loses the whole playback — that is the fault of T-145 and of T-152 in full —
+and the row of the player of every frame says `N/A`.
+
+#### The correction
+
+**A playback that keeps no place does not start, and the program says why.** That
+is the rule of T-182 for another value of the same shape: a playback that the
+program cannot follow does not start. The two call sites read the answer of the
+write now, and each of them:
+
+1. writes the fault in the log with the identity of the session and of the item,
+2. **closes the session of the server**, because this program opened it and it
+   plays nothing,
+3. says the words of `WhyNot::TheDiskDidNotTakeTheSession`, and
+4. gives `Outcome::Fault`, therefore the media goes back to the front of the queue
+   and the queue stops there (T-146).
+
+The program of v0.8.31 against the same lock:
+
+```text
+[ERROR] - [insert_listening_session] the program did not open its database: database is locked
+[ERROR] - [play] the disk did not take the session 63570dd0-… of the item 9fa45bd1-…: database is locked
+[ERROR] - [play] the session 63570dd0-… of the server stays open: No server address answered.
+the row of the message:
+    The program did not keep the session on its disk: database is locked. Stop a
+    second Toutui, and press the key again.
+```
+
+#### The test
+
+`tests/a_playback_that_keeps_no_place_does_not_start.rs` holds one function. A
+host of a raw socket answers the path of the session with the body of
+`POST /api/items/:id/play` of the sandbox and every other path with the body of
+`GET /api/items/:id`, and the database of the test is a file that holds no
+database (T-200). **The build of the fault** (the trap 147): `.or(Ok(()))` on the
+answer of the write, and the test then says "the playback did not come back in
+20s" — the playback goes into its loop, and that loop never ends.
+
+The words hold their own test in `src/logic/the_playback.rs`.
+
+#### What this item leaves open
+
+**A request that follows a wait of more than five seconds meets a connection of
+the pool that the server closed.** The close of the session of the measurement
+said `No server address answered.` and it marked the address `Down`, and the
+sandbox answered every request before it and after it: Audiobookshelf closes an
+idle connection of keep-alive after five seconds, and the two reads of the
+database before that request each waited five seconds. **A request of
+`Idempotent::No` takes one attempt**, therefore a fault of the transport of that
+shape reaches the user as a fault of the server. **The question is whether a
+fault that came before the first byte of the request is a fault that permits a
+second attempt**, and no measurement of the fork holds that question yet.
+
+**The other callers of the place of the user stay.** `insert_pending_progress`
+holds the place that waits for a server that refused it (T-189), and
+`update_download_current_time` and `update_current_time` write the place of each
+second. **A fault of one second is no fault of the user**, because the second
+after it writes the same value; a fault that stands while the program dies is the
+fault of T-152 again, and no measurement of that window exists.
+
 ### T-200: a function of the database that got no connection said `Ok`
 
 **T-199 left the sweep of a fault of the disk open for every table that is not

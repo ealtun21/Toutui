@@ -533,7 +533,19 @@ async fn play_media(
         speed,
     };
 
-    let _ = insert_listening_session(
+    // **A playback that keeps no place does not start** (T-201). The old line
+    // read the answer of this write with `let _ =`, and `insert_listening_session`
+    // gave `Ok(())` for a connection that it did not get (T-200): the engine then
+    // played the audio with no row of `listening_session` at all. The row of the
+    // player of the screen reads that row, therefore it said `N/A` and no title;
+    // the place of the user reached no disk, therefore a program that dies lost
+    // the whole playback (T-145 and T-152); and every write of that place after it
+    // changed 0 rows.
+    //
+    // **The rule of T-182 stands here**: a playback that the program cannot
+    // follow does not start, and the program says why. The session of the server
+    // is open already, therefore this program closes it.
+    if let Err(error) = insert_listening_session(
         session_id.clone(),
         item_id.clone(),
         start_position.round() as u32,
@@ -546,7 +558,31 @@ async fn play_media(
         String::new(),
         username.as_str(),
         server_key.as_str(),
-    );
+    ) {
+        error!(
+            "[play] the disk did not take the session {} of the item {}: {}",
+            session_id, item_id, error
+        );
+
+        if let Err(why) =
+            crate::api::sessions::close_open_session::close_session_without_send_prg_data(
+                api,
+                session_id.as_str(),
+            )
+            .await
+        {
+            error!(
+                "[play] the session {} of the server stays open: {}",
+                session_id, why
+            );
+        }
+
+        say_why_the_playback_did_not_start(WhyNot::TheDiskDidNotTakeTheSession(
+            error.to_string().as_str(),
+        ));
+
+        return Outcome::Fault;
+    }
 
     info!(
         "[play] the item {} starts at {} seconds with {} tracks",
@@ -854,7 +890,10 @@ async fn play_the_stream_of_the_server(
             speed,
         };
 
-        let _ = insert_listening_session(
+        // **A playback that keeps no place does not start** (T-201). The rule
+        // of the file of the playback stands here too, and the stream of the
+        // server is a session of the server like every other one.
+        if let Err(error) = insert_listening_session(
             stream.session_id.clone(),
             item_id.clone(),
             place.round() as u32,
@@ -867,7 +906,27 @@ async fn play_the_stream_of_the_server(
             String::new(),
             username.as_str(),
             server_key.as_str(),
-        );
+        ) {
+            error!(
+                "[play] the disk did not take the session {} of the stream of the item {}: {}",
+                stream.session_id, item_id, error
+            );
+
+            if let Err(why) =
+                close_session_without_send_prg_data(api, stream.session_id.as_str()).await
+            {
+                error!(
+                    "[play] the session {} of the stream stays open: {}",
+                    stream.session_id, why
+                );
+            }
+
+            say_why_the_playback_did_not_start(WhyNot::TheDiskDidNotTakeTheSession(
+                error.to_string().as_str(),
+            ));
+
+            return Outcome::Fault;
+        }
 
         info!(
             "[play] the stream of the item {} starts at {} seconds",

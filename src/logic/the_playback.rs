@@ -37,6 +37,13 @@ pub enum WhyNot<'a> {
     /// The answer of the session gave no place, and the read of the place of
     /// that media came back with a fault. See T-182.
     ThePlaceDidNotCome(&'a str),
+    /// The disk did not take the row of the session of this playback. See T-201.
+    ///
+    /// **That row is the one copy of the place of the user for a program that
+    /// dies** (T-140, T-145, and T-152), and the row of the player of the screen
+    /// reads it too: a playback with no row plays the audio, and the screen says
+    /// nothing at all of the media.
+    TheDiskDidNotTakeTheSession(&'a str),
 }
 
 /// What the program does with the answer of a session of a playback. See
@@ -154,6 +161,16 @@ pub fn the_words_of_a_playback_that_did_not_start(why: WhyNot<'_>) -> String {
         WhyNot::ThePlaceDidNotCome(error) => {
             format!("The server did not give the place of this media: {}", error)
         }
+        // The row of the disk holds the place of the user for a program that
+        // dies, and the row of the player of the screen reads it. A playback
+        // with no such row keeps no place. See T-201.
+        WhyNot::TheDiskDidNotTakeTheSession(error) => {
+            format!(
+                "The program did not keep the session on its disk: {}. Stop a second Toutui, and \
+                 press the key again.",
+                error.trim_end_matches('.')
+            )
+        }
     }
 }
 
@@ -191,6 +208,19 @@ mod tests {
         assert_eq!(
             the_words_of_a_playback_that_did_not_start(WhyNot::NoAudioFile),
             "This media has no audio file."
+        );
+
+        // The fault of the measurement of T-201: a second program of one account
+        // held the database, therefore the row of the session reached no disk.
+        // The sentence names the key of the work of that fault (T-170).
+        let text = the_words_of_a_playback_that_did_not_start(WhyNot::TheDiskDidNotTakeTheSession(
+            "database is locked",
+        ));
+
+        assert_eq!(
+            text,
+            "The program did not keep the session on its disk: database is locked. Stop a second \
+             Toutui, and press the key again."
         );
 
         // Every sentence of a view ends with a stop, and no sentence of them is
