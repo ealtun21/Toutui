@@ -11,7 +11,7 @@
 //! See T-25.
 
 use crate::api::client::ApiClient;
-use crate::api::me::get_media_progress::get_book_progress;
+use crate::api::me::get_media_progress::{get_the_place_of_a_media, Root};
 use crate::api::me::update_media_progress::*;
 use crate::db::crud::*;
 use crate::player::engine::track::{Track, TrackList};
@@ -154,6 +154,66 @@ pub fn keep_progress(
     true
 }
 
+/// What the read of the position of the server tells the flush. See T-188.
+#[derive(Debug, Clone, PartialEq)]
+pub enum TheRead {
+    /// The server holds a position of this media, and this is the moment of it.
+    TheMoment(i64),
+    /// The server holds no position of this media. The program sends its own.
+    NoPosition,
+    /// The server does not answer. Every request after it fails in the same
+    /// way, therefore the flush stops here.
+    TheServerIsAway(String),
+    /// The program did not read the position of the server. It writes nothing,
+    /// and the row of the disk waits for the next attempt.
+    NoRead(String),
+    /// The server holds a position, and it gave no moment of it. The program
+    /// cannot say which position is the newer one.
+    NoMoment,
+}
+
+/// Tells what the flush must do with the answer of the read of the position.
+///
+/// **The flush reads a state of the server, and it then writes it.** That is
+/// the shape of T-175, and the rule of T-175 and of T-178 holds here too: **the
+/// status 404 is the answer of a media that never played, and every other fault
+/// stops the write.**
+///
+/// The old code read every fault as "the server holds no position of this
+/// media", therefore it sent its own position. A measurement of 2026-08-14 with
+/// `docs/harness/one_method_fails.py`, which answered `500` to
+/// `GET /api/me/progress/:id` and which forwarded the `PATCH` of the same path:
+/// the server held the place 5000 seconds of a book of eight hours with the
+/// moment of now, the disk held the place 100 seconds with a moment of one hour
+/// before it, and the flush of the start wrote 100 seconds to the server. The
+/// place of the user went away, and the log said "the server took the position
+/// 100s". **A fault of the read must therefore keep the row**: the row is the
+/// one copy of an offline playback (T-152), and the task of the flush tries
+/// again every 30 seconds.
+///
+/// **A moment of 0 is a moment that the server did not give.** `lastUpdate`
+/// takes the default 0 (the rule of T-177), therefore an answer of a server
+/// that does not hold that field made `should_send` compare the moment of the
+/// disk with the moment of 1970: the program then wrote its old position over
+/// every newer position of the server. A measurement of 2026-08-14 with
+/// `docs/harness/a_field_of_the_answer_goes_away.py` of the field `lastUpdate`
+/// gave the same 5000 seconds to 100 seconds. This is the rule of T-180 for
+/// this field: a program that cannot compare the two positions writes neither
+/// of them, and it keeps the row. See T-188.
+pub fn the_read_of_the_position(
+    answer: Result<Root, crate::api::client::error::ApiError>,
+) -> TheRead {
+    match answer {
+        Ok(root) if root.last_update > 0 => TheRead::TheMoment(root.last_update),
+        Ok(_) => TheRead::NoMoment,
+        Err(error) if error.is_offline() => TheRead::TheServerIsAway(error.to_string()),
+        // A media that the user did not start gives 404. The program then sends
+        // its position.
+        Err(crate::api::client::error::ApiError::NotFound) => TheRead::NoPosition,
+        Err(error) => TheRead::NoRead(error.to_string()),
+    }
+}
+
 /// Sends every position that waits, and removes each row that the server took.
 ///
 /// The function gives the number of positions that the server took. It stops
@@ -174,16 +234,44 @@ pub async fn flush_pending_progress(api: &ApiClient, username: &str, server: &st
     let mut sent = 0;
 
     for progress in waiting {
+        let episode = if progress.id_pod.is_empty() {
+            None
+        } else {
+            Some(progress.id_pod.as_str())
+        };
+
         // The server can hold a newer position from a different client.
-        let server_last_update = match get_book_progress(api, &progress.id_item).await {
-            Ok(root) => Some(root.last_update),
-            Err(error) if error.is_offline() => {
-                warn!("[offline] the server does not answer: {}", error);
+        //
+        // **The position of an episode of a podcast stands at the path of that
+        // episode** (T-182). The old code asked for the path of the item alone,
+        // and Audiobookshelf answers that path with the position of **one**
+        // episode of the podcast: the moment of another episode then decided
+        // for this one. See T-188.
+        let answer = get_the_place_of_a_media(api, &progress.id_item, episode).await;
+
+        let server_last_update = match the_read_of_the_position(answer) {
+            TheRead::TheMoment(moment) => Some(moment),
+            TheRead::NoPosition => None,
+            TheRead::TheServerIsAway(fault) => {
+                warn!("[offline] the server does not answer: {}", fault);
                 return sent;
             }
-            // A media that the user did not start gives 404. The application
-            // then sends its position.
-            Err(_) => None,
+            TheRead::NoRead(fault) => {
+                warn!(
+                    "[offline] the program did not read the position of {} of the server: {} \
+                     The position of the disk waits.",
+                    progress.id_item, fault
+                );
+                continue;
+            }
+            TheRead::NoMoment => {
+                warn!(
+                    "[offline] the server gave no moment of its position of {}. \
+                     The position of the disk waits.",
+                    progress.id_item
+                );
+                continue;
+            }
         };
 
         if !should_send(progress.updated_at, server_last_update) {
@@ -197,11 +285,6 @@ pub async fn flush_pending_progress(api: &ApiClient, username: &str, server: &st
 
         let duration = (progress.duration.round() as u32).to_string();
         let position = Some(progress.current_time.round() as u32);
-        let episode = if progress.id_pod.is_empty() {
-            None
-        } else {
-            Some(progress.id_pod.as_str())
-        };
 
         let result = match (episode, progress.is_finished) {
             (Some(episode), true) => {
@@ -309,6 +392,84 @@ pub fn spawn_flush_task(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A media that never played gives 404, and the program sends its
+    /// position. See T-188.
+    #[test]
+    fn a_media_that_never_played_takes_the_local_position() {
+        assert_eq!(
+            the_read_of_the_position(Err(crate::api::client::error::ApiError::NotFound)),
+            TheRead::NoPosition
+        );
+    }
+
+    /// **A fault of the read must stop the write.** The old code read every
+    /// fault as "the server holds no position", therefore the program wrote its
+    /// old position over the newer position of the server: the measurement of
+    /// T-188 lost 5000 seconds of a book of eight hours, and the log said "the
+    /// server took the position 100s".
+    #[test]
+    fn a_fault_of_the_read_keeps_the_position_of_the_disk() {
+        for fault in [
+            crate::api::client::error::ApiError::Server(500),
+            crate::api::client::error::ApiError::Forbidden,
+            crate::api::client::error::ApiError::Unauthorized,
+            crate::api::client::error::ApiError::Decode("no field".to_string()),
+        ] {
+            let text = fault.to_string();
+            assert_eq!(
+                the_read_of_the_position(Err(fault)),
+                TheRead::NoRead(text),
+                "a fault of the read must keep the row of the disk"
+            );
+        }
+    }
+
+    /// A server that does not answer stops the whole flush, because every
+    /// request after it fails in the same way.
+    #[test]
+    fn a_server_that_does_not_answer_stops_the_flush() {
+        assert!(matches!(
+            the_read_of_the_position(Err(crate::api::client::error::ApiError::Unreachable)),
+            TheRead::TheServerIsAway(_)
+        ));
+        assert!(matches!(
+            the_read_of_the_position(Err(crate::api::client::error::ApiError::Timeout)),
+            TheRead::TheServerIsAway(_)
+        ));
+    }
+
+    /// **A moment of 0 is a moment that the server did not give.** `lastUpdate`
+    /// takes the default 0, therefore an answer that holds no such field made
+    /// the program compare the moment of the disk with the moment of 1970 and
+    /// write its old position over the newer position of the server. See T-188
+    /// and T-180.
+    #[test]
+    fn a_position_with_no_moment_keeps_the_position_of_the_disk() {
+        let of_the_server = Root {
+            last_update: 0,
+            ..Default::default()
+        };
+
+        assert_eq!(
+            the_read_of_the_position(Ok(of_the_server)),
+            TheRead::NoMoment
+        );
+    }
+
+    /// The server gave the moment of its position, and the flush compares it.
+    #[test]
+    fn a_position_of_the_server_gives_its_moment() {
+        let of_the_server = Root {
+            last_update: 1700,
+            ..Default::default()
+        };
+
+        assert_eq!(
+            the_read_of_the_position(Ok(of_the_server)),
+            TheRead::TheMoment(1700)
+        );
+    }
 
     /// The server has no position of this media. The application sends.
     #[test]
