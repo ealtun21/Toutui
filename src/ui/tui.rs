@@ -1145,13 +1145,19 @@ impl App {
 
         let state = crate::logic::bookmarks::state();
 
+        // **The title names the media of the view**, and not the media that
+        // plays: the queue starts the media of its front with no key of the
+        // user, and a title of "The bookmarks" alone leaves the user with no
+        // way to tell whose places they read. See T-163.
+        let name = self.bookmarks_of_name.clone();
+
         let (title, lines) = match &state {
             crate::logic::bookmarks::State::Ready(all) if all.is_empty() => (
-                "This media has no bookmark. Press b while it plays.".to_string(),
+                crate::logic::bookmarks::the_title_of_no_bookmark(&name),
                 Vec::new(),
             ),
             crate::logic::bookmarks::State::Ready(all) => (
-                format!("The bookmarks [{}]", crate::ui::keys::items(all.len())),
+                crate::logic::bookmarks::the_title(&name, &crate::ui::keys::items(all.len())),
                 crate::api::me::bookmarks::lines(all),
             ),
             crate::logic::bookmarks::State::Waiting => {

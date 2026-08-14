@@ -210,6 +210,13 @@ pub struct App {
     pub the_media_of_the_line_of_the_queue: Option<(usize, String, String)>,
     /// The media whose bookmarks the view shows. See T-24.
     pub bookmarks_of: String,
+    /// The name of the media whose bookmarks the view shows.
+    ///
+    /// **The media that plays changes while that view stands open, and no key
+    /// of the user does it**: the queue starts the media of its front. The
+    /// title of the view names this media, and the key `b` writes a place of
+    /// this media alone. See T-163.
+    pub bookmarks_of_name: String,
     /// The timer for sleep, if the user set one. See T-24.
     pub sleep: Option<crate::logic::sleep_timer::Timer>,
     /// The choice of the timer, in minutes. `Some(0)` is the end of the
@@ -1493,6 +1500,7 @@ impl App {
             list_state_queue: ListState::default(),
             the_media_of_the_line_of_the_queue: None,
             bookmarks_of: String::new(),
+            bookmarks_of_name: String::new(),
             sleep: None,
             sleep_choice: None,
             list_state_new_podcast: ListState::default(),
@@ -4535,8 +4543,35 @@ impl App {
     /// name, and an empty name gives the name of the place.
     pub fn write_a_bookmark(&mut self) {
         let state = self.player.state();
+        let plays = state.status != crate::player::engine::PlaybackStatus::Stopped;
 
-        if state.status == crate::player::engine::PlaybackStatus::Stopped {
+        // **The view of the bookmarks holds the media that the user opened**,
+        // and the media that plays changes with no key of the user: the queue
+        // starts the media of its front (T-24). A bookmark of this view
+        // therefore belongs to the media of this view, and no other media.
+        // See T-163, and T-160, T-161, and T-162 for three other views.
+        if matches!(self.view_state, AppView::Bookmarks) && !self.bookmarks_of.is_empty() {
+            let of_the_player = if plays {
+                Some(state.item_id.as_str())
+            } else {
+                None
+            };
+
+            if crate::logic::bookmarks::what_the_media_of_the_bookmarks_is(
+                &self.bookmarks_of,
+                of_the_player,
+            ) == crate::logic::bookmarks::TheMediaOfTheBookmarks::ItDoesNotPlay
+            {
+                crate::logic::message::say(
+                    &crate::logic::bookmarks::the_text_of_the_media_that_does_not_play(
+                        &self.bookmarks_of_name,
+                    ),
+                );
+                return;
+            }
+        }
+
+        if !plays {
             crate::logic::message::say("No media plays now.");
             return;
         }
@@ -4585,11 +4620,11 @@ impl App {
     pub fn show_the_bookmarks(&mut self) {
         let state = self.player.state();
 
-        let item_id = if state.status != crate::player::engine::PlaybackStatus::Stopped {
-            state.item_id.clone()
+        let (item_id, name) = if state.status != crate::player::engine::PlaybackStatus::Stopped {
+            (state.item_id.clone(), state.title.clone())
         } else {
             match self.selected_item_id() {
-                Some(id) => id,
+                Some(id) => (id, self.selected_item_title().unwrap_or_default()),
                 None => {
                     crate::logic::message::say("No media plays, and no media is selected.");
                     return;
@@ -4598,6 +4633,10 @@ impl App {
         };
 
         self.bookmarks_of = item_id.clone();
+        // The title of the view names this media, and the key `b` of this view
+        // writes a place of this media alone: the media that plays changes with
+        // no key of the user. See T-163.
+        self.bookmarks_of_name = name;
         self.list_state_bookmarks.select(Some(0));
         self.scroll_offset = 0;
         self.view_state = AppView::Bookmarks;

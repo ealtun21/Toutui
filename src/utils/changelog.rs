@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.97",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key `b` of the view of the bookmarks wrote a place of a book that you did \
+             not choose.** The media that plays changes while you look at that view and you \
+             press no key: the media comes to its end, and the queue then starts the media of \
+             its front. The list kept the bookmarks of your media and the key wrote a place of \
+             the media that plays, therefore a bookmark of a book of eight hours went to the \
+             server at 5:25:30 while your view showed the one bookmark of a book of 30 minutes. \
+             The key `b` of that view writes a place of the media of that view now, and it says \
+             the reason when that media does not play.",
+            "- **The title of the view of the bookmarks named no media.** It says `The bookmarks \
+             of \"…\"` now, therefore you can tell whose places you read.",
+        ],
+    },
+    Entry {
         version: "0.7.96",
         date: "14/08/2026",
         body: &[

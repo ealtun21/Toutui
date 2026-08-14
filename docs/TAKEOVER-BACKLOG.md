@@ -7629,6 +7629,90 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-163: the media of the view of the bookmarks changed, and the key of the user wrote a place of another book
+
+**The condition of this session, and the session named it**: the road said that
+no measurement had reached "the view of the bookmarks while the media that plays
+changes", and that the rule of T-160, of T-161, and of T-162 reached the Home
+view, the queue, and the chapters alone. **The queue starts the media of its
+front with no key of the user** (T-24), and the view of the bookmarks holds the
+media that the user opened (`bookmarks_of`).
+
+**One window makes this condition, and the user presses no key while it
+happens.**
+
+**The list of this view is not the fault.** `bookmarks_of` holds the media of
+the user already, and the list stands still: no line moves under the cursor, the
+key `X` names the media of its own bookmark (`library_item_id`), and the key `l`
+asks the engine for that media and it refuses another one. **The key `b` is the
+one door**: it read the media of the **engine**, and the view of the user says
+nothing of that media.
+
+| The moment | The view of the bookmarks of the user |
+|---|---|
+| The user plays `A Long Test Book` of 30 minutes, and the queue holds `A Book Of Many Hours` at 4:50:35 | — |
+| The user presses `V` | **`The bookmarks [1 item]`**, and the line is `A place of the long book  (00:10)` |
+| **The book comes to its end, 22 seconds later** | **the same title, the same line**, and the message row is **empty** |
+| The key `b`, and the name `A place that the user wants` | `The bookmark "A place that the user wants" is on the server.`, and **the list still holds one line** |
+| `GET /api/me` of `curl` | **`{"item":"6ba57b9a…","time":19530,"title":"A place that the user wants"}`** |
+
+**The bookmark stands on a book that the user did not open, and the view of the
+user contradicts the message of the program.** The user reads "the bookmark is
+on the server" above a list of one line that does not hold it, and no text of
+the screen names the media of either side: **the title said `The bookmarks`
+alone**. A second measurement of the same condition gave the same fault at 22806
+seconds.
+
+**A user meets this with no key at all.** They open the bookmarks of the book
+that they listen to, they look away, the queue starts the next book, and their
+next `b` writes a place of that next book. The place of a book of eight hours
+means nothing in a book of 30 minutes, and no key of the program says which book
+took it.
+
+**The correction: the key `b` of this view writes a place of the media of this
+view, and the title of the view names that media.**
+`what_the_media_of_the_bookmarks_is` of `src/logic/bookmarks.rs` compares the
+media that the user opened with the media of the engine:
+
+- the same media → the key writes the place of the playback, as before;
+- another media, or no playback at all → **the key writes nothing**, and it
+  says `The media "A Long Test Book" does not play now, and this key writes a
+  place of it. The key V shows the bookmarks of the media that plays.` The
+  sentence names no cause: this program cannot tell a media that came to its end
+  from a media that a key of the player stopped (T-91). It promises the key `V`
+  alone, and `V` shows the bookmarks of the media that plays in every view
+  (T-118 and T-143).
+
+**The rule stands in the key, and not in the loop of `src/main.rs`.** That is a
+decision, and it is the difference from T-160, from T-161, and from T-162: **no
+line of this view moves under the cursor**, therefore the user reads the truth
+of their own view until they press `b`. A message at the frame of the change
+would say a thing that the view already holds, and it would stand above the
+message of the Home view of T-160 for no measured fault.
+
+**The title names the media**, in the shape of the view of the chapters:
+`The bookmarks of "A Long Test Book" [1 item]`, and
+`"A Long Test Book" has no bookmark. Press b while it plays.` for a media of no
+bookmark. The old text said "This media has no bookmark", and **the user could
+not tell which media that was**. `show_the_bookmarks` keeps the name beside the
+identity: the title of the playback for a media that plays, and
+`selected_item_title` for the media of a line.
+
+| The measurement | Before | After |
+|---|---|---|
+| The key `b` after the queue started the media of its front | **a bookmark of `A Book Of Many Hours` at 19530 s**, and the server took it | `The media "A Long Test Book" does not play now…`, and no bookmark |
+| `GET /api/me` of `curl` after that key | two bookmarks, and one of them of a book that the user did not open | **one bookmark**, of the book of the user |
+| The title of the view, at the three moments | `The bookmarks [1 item]` | `The bookmarks of "A Long Test Book" [1 item]` |
+| The message row at the frame of the change | **empty** | **empty**, and that is the decision above |
+
+`src/logic/bookmarks.rs` holds four tests of the rule, and
+`tests/the_view_of_the_bookmarks_holds_its_media.rs` holds the wiring of the key
+and of the title: the test of the key **fails** with the guard of
+`write_a_bookmark` removed, and the test of the title **fails** with the old
+`format!("The bookmarks [{}]", …)` back. **No unit test reaches
+`App::write_a_bookmark`**, because that method needs an application of a server
+— the rule of T-131, of T-159, of T-160, of T-161, and of T-162.
+
 ### T-162: the media of the view of the chapters changed, and the key of the user moved the place of another book
 
 **The condition of this session, and the session named it**: the road said that
