@@ -7484,6 +7484,70 @@ that loop stands as a rule of the source, as the rule of T-131 does: the read of
 the accounts stands after the key of the user and before the block that starts
 the program again.
 
+### T-160: the key of the user reached a media that the user did not choose
+
+**The condition of this session, and the session named it**: a line of the shelf
+Continue Listening that goes away **while the cursor of the user stands on it**.
+The road named two of its shapes: "a key of a view that the user presses two
+times" (the shape of T-154) and "a state of one process that a second program
+cannot see". This condition holds both, and it held one fault of the data.
+
+**The first form, and one window makes it.** The key `M` marks the media of the
+line as finished, the server takes that media off the shelf Continue Listening
+(T-66), and the lines of the Home view come again. **The lines keep the number
+of the line**, therefore the media below moved under the cursor:
+
+| The press of the key `M` | The line of the user | The media that the server marked |
+|---|---|---|
+| before | `A Long Test Book` | — |
+| the first press | `A Book Of Many Hours` — **the line moved with no word** | `A Long Test Book` |
+| the second press | `A Second Book Of Many Hours` | **`A Book Of Many Hours`** |
+| the third press | `Depthless Hunger, Book 2` | **`A Second Book Of Many Hours`** |
+
+**Three presses of one key marked three books, and the user read one message.**
+The message of each press is the same text ("The media is finished now."), and
+it names no media: nothing on the screen says that the key changed its media.
+A user who marks a book by mistake presses the key again to take the mark back,
+and that press marks the next book of the shelf.
+
+**The second form needs no key of this user at all.** Two windows of one
+account, and the cursor of the window A stands on `A Long Test Book`:
+
+| The moment | The window A |
+|---|---|
+| The window B presses `M` on `A Long Test Book` | the line went away, the cursor stands on `A Second Book Of Many Hours`, and **the message row of A is empty** |
+| The key `M` of the window A | `A Second Book Of Many Hours` went to `isFinished: true` of `curl`, and the user of A never chose that book |
+
+**The message of `PATCH /api/me/progress/:id` costs more than a mark.** The
+sandbox says that `{"isFinished": false}` writes `currentTime: 0` (the section
+15 of `docs/TEST-SERVER.md`): a mark that goes back takes the place of the user
+away. The key on the wrong media therefore reaches the place of the user of that
+media too.
+
+**The correction: the program cannot know which media the user wants now,
+therefore it takes the line away and it says what happened.**
+`the_media_of_the_line_that_went_away` of `src/logic/home_view.rs` tells if the
+media of the line of the user is one of the media that left, and
+`take_the_media_that_left_away` then selects no line and says
+`The media "A Long Test Book" is not on the shelf Continue Listening now. No
+line is selected: the keys j and k select one.` **No key of the selection can
+then reach a media that the user did not choose**: the next press of `M` says
+"No media is selected." and it changes no byte of the server. The keys `j` and
+`k` give a line again, and the text promises no other key (T-118 and T-143).
+
+| The measurement | Before | After |
+|---|---|---|
+| Two presses of `M` of one window | two media of `isFinished: true` | the second press says "No media is selected.", and `curl` holds `isFinished: false` for the second media |
+| The key `M` of A after the key `M` of B on the media of the line of A | A marked `A Second Book Of Many Hours` | the same media stands at `currentTime=3000` and `isFinished: false` |
+| The message of the window A after the key of the window B | **no message at all** | the text names `A Long Test Book` |
+| The key `j` after the line went away | — | the cursor stands on the first media again |
+
+`src/logic/home_view.rs` holds the three tests of the rule, and they fail with
+the correction removed. **No unit test reaches `App::take_the_media_that_left_away`**,
+because that method needs an application of a server: the rule of the wiring
+stands as a rule of the source, as the rules of T-131 and of T-159 do, and the
+measurement of the two windows above is the evidence of it.
+
 ## The upgrade of the dependencies, 2026-08-10
 
 Every crate went to the newest version that the fork can take. The gate passed

@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.7.94",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A key of the Home view changed a media that you did not choose.** A media that \
+             you mark as finished goes away from the shelf Continue Listening, and the media \
+             below it took your line with no word at all: the key `M` of three presses therefore \
+             marked three books, and one window of your account did the same to the line of a \
+             second window. Your line goes away now when its media leaves that shelf, and the \
+             message names that media: no key can then change a media that you did not select, \
+             and the keys `j` and `k` give you a line again.",
+        ],
+    },
+    Entry {
         version: "0.7.93",
         date: "14/08/2026",
         body: &[

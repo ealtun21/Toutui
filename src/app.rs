@@ -5811,12 +5811,43 @@ impl App {
         }
 
         let selected = self.selected_home_row().cloned();
+
+        // **A media that goes away from under the line of the user takes the
+        // next key of that user with it.** The lines keep the number of the
+        // line, therefore the media below moves under the cursor with no word
+        // at all. See T-160.
+        let went_away = crate::logic::home_view::the_media_of_the_line_that_went_away(
+            &self.home_rows,
+            self.list_state_cnt_list.selected(),
+            |item| that_left.contains(&item),
+        );
+
         self.the_media_that_left = that_left;
 
         self.home_rows = crate::logic::home_view::without_the_media_that_left(
             &self.home_rows_of_the_server,
             |item| self.the_media_that_left.contains(&item),
         );
+
+        // **The media of the line of the user went away, therefore no line is
+        // selected.** No key of the selection can then reach a media that the
+        // user did not choose, and the message names the media that went away.
+        // See T-160.
+        if let Some(item) = went_away {
+            self.list_state_cnt_list.select(None);
+
+            if let Some(title) = self
+                ._titles_cnt_list
+                .get(item)
+                .filter(|one| !one.is_empty())
+            {
+                crate::logic::message::say(
+                    crate::logic::home_view::the_text_of_the_media_that_went_away(title).as_str(),
+                );
+            }
+
+            return;
+        }
 
         // The user keeps the line that they selected. A line that went away
         // gives the line above it, and never the top of the view.

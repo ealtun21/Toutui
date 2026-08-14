@@ -226,6 +226,43 @@ pub fn without_the_media_that_left(
     answer
 }
 
+/// Tells which media went away from under the line of the user, if one did.
+///
+/// `rows` and `selected` are the lines and the line of the user **before** the
+/// change, and the answer is the number of the media of the lists of the Home
+/// view.
+///
+/// **A media that goes away moves the media below it under the line of the
+/// user.** The lines keep the number of the line, therefore the media that
+/// stood below takes that number with no word at all: the key `M` of two
+/// presses marked two media, and a second window of the account made the same
+/// thing with no key of this user (T-160).
+pub fn the_media_of_the_line_that_went_away(
+    rows: &[HomeRow],
+    selected: Option<usize>,
+    has_left: impl Fn(usize) -> bool,
+) -> Option<usize> {
+    let item = rows.get(selected?)?.item()?;
+
+    has_left(item).then_some(item)
+}
+
+/// The text for the user when the media of their line goes away from the shelf
+/// of Continue Listening.
+///
+/// **The program cannot know which media the user wants now**, therefore it
+/// takes the line away and it says what happened. A key of the selection then
+/// changes no media at all, and the user chooses the next one. The text names
+/// the two keys that the Home view holds, and it promises no other key (T-118
+/// and T-143). See T-160.
+pub fn the_text_of_the_media_that_went_away(title: &str) -> String {
+    format!(
+        "The media \"{}\" is not on the shelf Continue Listening now. \
+         No line is selected: the keys j and k select one.",
+        title
+    )
+}
+
 /// Gives the position of a series of the list of the series.
 fn position_of_the_series(id: Option<&str>, series: &[SeriesView]) -> Option<usize> {
     let id = id?;
@@ -486,6 +523,84 @@ mod tests {
             ],
             "the number of every other media must not change"
         );
+    }
+
+    /// **The media of the line of the user went away, and the line below it
+    /// takes that number of line.** The program must know it, therefore it can
+    /// take the line away and say what happened. See T-160.
+    #[test]
+    fn the_media_of_the_line_of_the_user_can_go_away() {
+        let rows = group_home(&the_shelves(), &[series("series-1", "A Series")]);
+
+        // The line 2 holds the media 1: the line 0 names the shelf, and the
+        // line 1 holds the media 0.
+        assert_eq!(rows[2], HomeRow::Media { item: 1 });
+
+        assert_eq!(
+            the_media_of_the_line_that_went_away(&rows, Some(2), |item| item == 1),
+            Some(1),
+            "the media of the line of the user went away"
+        );
+
+        assert_eq!(
+            the_media_of_the_line_that_went_away(&rows, Some(1), |item| item == 1),
+            None,
+            "a media that goes away below the line of the user changes no key"
+        );
+    }
+
+    /// A line that holds no media, and a view that holds no line, give
+    /// nothing. See T-160.
+    #[test]
+    fn a_line_of_no_media_never_says_that_a_media_went_away() {
+        let rows = group_home(&the_shelves(), &[series("series-1", "A Series")]);
+
+        assert!(matches!(rows[0], HomeRow::Shelf { .. }));
+
+        assert_eq!(
+            the_media_of_the_line_that_went_away(&rows, Some(0), |_| true),
+            None,
+            "the name of a shelf holds no media"
+        );
+
+        assert_eq!(
+            the_media_of_the_line_that_went_away(&rows, None, |_| true),
+            None,
+            "no line of the user, therefore no media went away from under it"
+        );
+
+        assert_eq!(
+            the_media_of_the_line_that_went_away(&rows, Some(rows.len()), |_| true),
+            None,
+            "a line outside the list holds no media"
+        );
+    }
+
+    /// The text names the media, and it promises the two keys of the view
+    /// only. See T-118, T-143, and T-160.
+    #[test]
+    fn the_text_names_the_media_that_went_away() {
+        let text = the_text_of_the_media_that_went_away("A Book Of Many Hours");
+
+        assert!(
+            text.contains("A Book Of Many Hours"),
+            "the user must read which media went away: {}",
+            text
+        );
+
+        assert!(
+            text.contains("the keys j and k"),
+            "the text must say how the user selects a media again: {}",
+            text
+        );
+
+        for key in ["l:", "M:", "press Enter"] {
+            assert!(
+                !text.contains(key),
+                "the text must promise no other key: {}",
+                text
+            );
+        }
     }
 
     /// A shelf that holds no media any more must give no name. This is the
