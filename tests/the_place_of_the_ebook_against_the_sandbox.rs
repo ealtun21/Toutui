@@ -149,6 +149,7 @@ async fn the_place_goes_to_the_server_as_an_epubcfi_and_it_comes_back_as_the_sam
 
     let (from_the_server, part) = place_of_the_server(&api, &item_id)
         .await
+        .expect("the read of the place must come back")
         .expect("the server must give the place back");
     println!("the server gives {from_the_server} back, and the part {part}");
     assert_eq!(

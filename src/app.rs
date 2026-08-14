@@ -5948,16 +5948,34 @@ impl App {
                         // therefore the reader neither reads that place nor
                         // writes it. See T-76.
                         reader.the_place_stays_here();
-                    } else if let Some((location, part)) =
+                    } else {
                         // The user reads the same book on a different machine.
                         // The program opens the book where they stopped. See
                         // T-10, section 6.
-                        crate::logic::reader::session::place_of_the_server(
-                                &api, &item_id,
-                            )
+                        match crate::logic::reader::session::place_of_the_server(&api, &item_id)
                             .await
-                    {
-                        reader.go_to_the_place_of_the_server(&location, part);
+                        {
+                            Ok(Some((location, part))) => {
+                                reader.go_to_the_place_of_the_server(&location, part);
+                            }
+                            // The user never opened this book. It starts at its
+                            // first page, and the send of that place is the
+                            // truth.
+                            Ok(None) => {}
+                            // **The reader stands at the first page of a book
+                            // that the server holds at another place.** A send
+                            // would take the place of the user away, on every
+                            // machine of the account. See T-178.
+                            Err(error) => {
+                                reader.the_server_did_not_give_the_place();
+                                crate::logic::message::say_in(
+                                    AppView::Reader,
+                                    &crate::logic::reader::session::the_sentence_of_a_place_that_did_not_come(
+                                        &error,
+                                    ),
+                                );
+                            }
+                        }
                     }
 
                     Ok(reader)
@@ -6116,14 +6134,14 @@ impl App {
             return;
         };
 
-        // The server holds one place for each media, and this book is not the
-        // book of the server. A send would give the place of this book to the
-        // book of the server, and the user would lose their line. See T-76.
-        if !reader.sends_the_place() {
-            crate::logic::message::say(
-                "This is not the book of the server. The place of this book \
-                 stays on this machine.",
-            );
+        // **A place that this program did not read must not go to the server.**
+        // The book of another file of the item holds one road (T-76), and a
+        // read of the place that came back with a fault holds the other one
+        // (T-178). The two roads say two different things.
+        if let Some(text) = crate::logic::reader::session::the_sentence_of_a_place_that_stays_here(
+            reader.the_place_of_the_book(),
+        ) {
+            crate::logic::message::say(text);
             return;
         }
 

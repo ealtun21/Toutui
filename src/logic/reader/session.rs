@@ -86,12 +86,8 @@ pub struct Reader {
     /// The time of the last send. The reader sends every 30 seconds at the
     /// most, and not for each line that the user reads.
     sent_at: std::time::Instant,
-    /// The place of this book goes to the server.
-    ///
-    /// The server holds one place for each media, and an item can hold more
-    /// than one ebook. A book that is not the book of the server therefore
-    /// keeps its place on this machine. See T-76.
-    sends_the_place: bool,
+    /// The road of the place of this book. See [`ThePlaceOfTheBook`].
+    the_place_of_the_book: ThePlaceOfTheBook,
     /// The file of this book on the disk. The reader writes the time of that
     /// file while the user reads, and the removal of the cache of a second
     /// window then keeps the book. See T-153.
@@ -104,6 +100,61 @@ pub struct Reader {
 
 /// The time between two sends of the place, while the user reads.
 pub const TIME_BETWEEN_SENDS: std::time::Duration = std::time::Duration::from_secs(30);
+
+/// Where the place of the reading of this book goes.
+///
+/// **A place that the program did not read must not go to the server**, and
+/// the two roads that stop the send need two different words for the user.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ThePlaceOfTheBook {
+    /// The place goes to the server. This is the road of a book of the server
+    /// that the program read.
+    GoesToTheServer,
+    /// This book is not the book of the server. The server holds one place for
+    /// each media, and an item can hold more than one ebook: a send would give
+    /// the place of this book to the book of the server. See T-76.
+    AnotherBookOfTheItem,
+    /// The server did not give the place of this book. The reader stands at the
+    /// first page of a book that the server holds at another place, therefore a
+    /// send would take the place of the user away. See T-178.
+    TheServerDidNotGiveIt,
+}
+
+/// The sentence of a reader that sends no place, for the user.
+///
+/// **The two roads name two different things** (T-91): one is a book of this
+/// machine, and the other is a place of the server that the program did not
+/// read. The sentence of the second one names the key that asks the server
+/// again (T-170).
+///
+/// The function is pure, therefore a test needs no server.
+pub fn the_sentence_of_a_place_that_stays_here(place: ThePlaceOfTheBook) -> Option<&'static str> {
+    match place {
+        ThePlaceOfTheBook::GoesToTheServer => None,
+        ThePlaceOfTheBook::AnotherBookOfTheItem => Some(
+            "This is not the book of the server. The place of this book \
+             stays on this machine.",
+        ),
+        ThePlaceOfTheBook::TheServerDidNotGiveIt => Some(
+            "The server did not give your place in this book. The program \
+             writes no place. Press h and then e to ask again.",
+        ),
+    }
+}
+
+/// The sentence of a book that opened at its first page, for the user.
+///
+/// The sentence names what the server said (T-91), it says what the program
+/// did, and it names the key that asks the server again (T-170). See T-178.
+pub fn the_sentence_of_a_place_that_did_not_come(
+    error: &crate::api::client::error::ApiError,
+) -> String {
+    format!(
+        "The server did not give your place: {} The program writes no place. \
+         Press h and then e to ask again.",
+        error
+    )
+}
 
 impl std::fmt::Debug for Reader {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -165,7 +216,7 @@ impl Reader {
             contents_line: 0,
             sent: None,
             sent_at: std::time::Instant::now(),
-            sends_the_place: true,
+            the_place_of_the_book: ThePlaceOfTheBook::GoesToTheServer,
             path: path.to_path_buf(),
             // The open of the book wrote the time of the file already
             // (`the_book_is_in_use` of `get_the_ebook_of`), therefore the first
@@ -176,6 +227,17 @@ impl Reader {
         })
     }
 
+    /// Says that the server did not give the place of this book, therefore the
+    /// reader stands at the first page and it sends nothing. See T-178.
+    pub fn the_server_did_not_give_the_place(&mut self) {
+        self.the_place_of_the_book = ThePlaceOfTheBook::TheServerDidNotGiveIt;
+    }
+
+    /// Gives the road of the place of this book, for the words of the user.
+    pub fn the_place_of_the_book(&self) -> ThePlaceOfTheBook {
+        self.the_place_of_the_book
+    }
+
     /// Says that this book is not the book of the server, therefore the place
     /// of the user stays on this machine. See T-76.
     ///
@@ -184,12 +246,15 @@ impl Reader {
     /// place of the second book to the first one, and the user would lose their
     /// line.
     pub fn the_place_stays_here(&mut self) {
-        self.sends_the_place = false;
+        self.the_place_of_the_book = ThePlaceOfTheBook::AnotherBookOfTheItem;
     }
 
     /// Tells if the place of this book goes to the server.
     pub fn sends_the_place(&self) -> bool {
-        self.sends_the_place
+        matches!(
+            self.the_place_of_the_book,
+            ThePlaceOfTheBook::GoesToTheServer
+        )
     }
 
     pub fn chapter_count(&self) -> usize {
@@ -412,7 +477,7 @@ impl Reader {
     /// who reads a page each ten seconds therefore makes one request each 30
     /// seconds, and not one for each page.
     pub fn wants_to_send(&self) -> bool {
-        self.sends_the_place && wants_to_send(self.sent, self.position(), self.sent_at.elapsed())
+        self.sends_the_place() && wants_to_send(self.sent, self.position(), self.sent_at.elapsed())
     }
 
     /// Tells if the reader must send the place before it goes away.
@@ -437,7 +502,7 @@ impl Reader {
     }
 
     pub fn wants_to_send_at_the_end(&self) -> bool {
-        self.sends_the_place && self.sent != Some(self.position())
+        self.sends_the_place() && self.sent != Some(self.position())
     }
 
     /// Says that the place went to the server.
@@ -511,16 +576,34 @@ pub fn last_top_line(lines: usize, height: u16) -> usize {
 /// Asks the server where the user stopped reading.
 ///
 /// The answer gives the text of the place and the part of the book. A book
-/// that the user never opened gives nothing.
+/// that the user never opened gives `Ok(None)`.
 ///
 /// Audiobookshelf gives `ebookProgress` as a number and `ebookLocation` as a
 /// text. A different client writes an EPUBCFI in that text, and this program
 /// then uses the part of the book. See T-10, section 6.1.
-pub async fn place_of_the_server(api: &Arc<ApiClient>, item_id: &str) -> Option<(String, f64)> {
-    let answer: serde_json::Value = api
-        .get_json(&format!("/api/me/progress/{}", item_id))
-        .await
-        .ok()?;
+///
+/// **The reader reads this place and it then writes it**, therefore a fault of
+/// this read must stop that write (T-175). The old code held `.ok()?`: every
+/// fault gave the beginning of the book, the user read one page, and the loop
+/// of the program then sent that beginning to the server. A measurement of
+/// 2026-08-14 with `docs/harness/one_method_fails.py`, which answered `500` to
+/// `GET /api/me/progress/:id` and which forwarded the `PATCH` of that same
+/// path: the server held `Alice in Wonderland` at `toutui:12:300` and 60
+/// percent, the reader opened at the chapter 2 of 14 and 0 percent, and the
+/// `PATCH` of the key `h` wrote `ebookProgress 0.0041` to the server. **The
+/// user lost their place in the book, on every machine of that account**, and
+/// no word of the reader said why. See T-178.
+///
+/// **A status of 404 is the answer of a book that the user never opened**, and
+/// such a book has no place: the reader starts at the first page, and its send
+/// gives the server the first place of that book.
+pub async fn place_of_the_server(
+    api: &Arc<ApiClient>,
+    item_id: &str,
+) -> Result<Option<(String, f64)>, crate::api::client::error::ApiError> {
+    let answer: serde_json::Value = crate::app::the_progress_that_the_server_gave(
+        api.get_json(&format!("/api/me/progress/{}", item_id)).await,
+    )?;
 
     let location = answer
         .get("ebookLocation")
@@ -534,10 +617,10 @@ pub async fn place_of_the_server(api: &Arc<ApiClient>, item_id: &str) -> Option<
         .unwrap_or(0.0);
 
     if location.is_empty() && part <= 0.0 {
-        return None;
+        return Ok(None);
     }
 
-    Some((location, part))
+    Ok(Some((location, part)))
 }
 
 /// Reads a number that the server gives as a number or as a text.
