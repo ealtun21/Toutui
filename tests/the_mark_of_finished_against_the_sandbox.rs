@@ -83,7 +83,7 @@ async fn the_key_marks_a_media_and_it_marks_it_back() {
 
     assert!(!is_finished(&token, &item).await);
 
-    let text = mark_the_media(&api, &item).await;
+    let text = mark_the_media(&api, &item, None).await;
     assert!(
         text.contains("is finished now"),
         "the message must say what happened: {}",
@@ -94,7 +94,7 @@ async fn the_key_marks_a_media_and_it_marks_it_back() {
         "the server must hold the media as finished"
     );
 
-    let text = mark_the_media(&api, &item).await;
+    let text = mark_the_media(&api, &item, None).await;
     assert!(
         text.contains("not finished"),
         "the message must say what happened: {}",

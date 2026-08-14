@@ -3030,8 +3030,8 @@ impl App {
     /// then sends the opposite. The user therefore presses one key, and the
     /// key does the right work in every view.
     pub fn toggle_the_mark_of_finished(&mut self) {
-        let Some(item_id) = self.selected_item_id() else {
-            crate::logic::message::say("No media is selected.");
+        let Some((item_id, episode_id)) = self.selected_place() else {
+            crate::logic::message::say(self.words_of_a_line_with_no_place());
             return;
         };
 
@@ -3044,7 +3044,7 @@ impl App {
         let api = std::sync::Arc::clone(&self.api);
 
         tokio::spawn(async move {
-            let text = mark_the_media(&api, &item_id).await;
+            let text = mark_the_media(&api, &item_id, episode_id.as_deref()).await;
 
             crate::logic::message::say(text.as_str());
         });
@@ -3057,8 +3057,8 @@ impl App {
     /// does this work. A user who does not want a book on the Home view had
     /// no way to take it away: the book stayed until they finished it.
     pub fn toggle_the_shelf_of_continue_listening(&mut self) {
-        let Some(item_id) = self.selected_item_id() else {
-            crate::logic::message::say("No media is selected.");
+        let Some((item_id, episode_id)) = self.selected_place() else {
+            crate::logic::message::say(self.words_of_a_line_with_no_place());
             return;
         };
 
@@ -3071,7 +3071,7 @@ impl App {
         let api = std::sync::Arc::clone(&self.api);
 
         tokio::spawn(async move {
-            let text = hide_the_media(&api, &item_id).await;
+            let text = hide_the_media(&api, &item_id, episode_id.as_deref()).await;
 
             crate::logic::message::say(text.as_str());
         });
@@ -6869,6 +6869,48 @@ impl App {
         }
     }
 
+    /// Gives the media of the keys `M` and `N`, with its episode. See T-219.
+    ///
+    /// **The place of an episode of a podcast stands at
+    /// `/api/me/progress/:item/:episode`** (T-182 and T-188), and the two keys
+    /// read `selected_item_id` before: that function gives the identity of the
+    /// **item** alone, therefore an episode of a podcast took the path of its
+    /// podcast. A measurement of 2026-08-14 against the sandbox, of the line
+    /// `Chapter 01` of the shelf Continue Listening of a library of podcasts:
+    /// `GET /api/me/progress/:item` answered with the place of `Chapter 00`,
+    /// and `PATCH` of that same path answered
+    /// `400 Library item is not a book`. The key of the user did nothing at
+    /// all, and the words of the program named a fault of the server.
+    ///
+    /// `selected_download` holds the item **and** the episode of every view
+    /// that shows an episode: the Home view of a library of podcasts, the view
+    /// of the episodes of a podcast, and the view of the media of a collection
+    /// or of a playlist.
+    pub fn selected_place(&self) -> Option<(String, Option<String>)> {
+        match self.selected_download()?.0 {
+            DownloadTarget::Book { item_id } => Some((item_id, None)),
+            DownloadTarget::Episode {
+                item_id,
+                episode_id,
+            } => Some((item_id, Some(episode_id))),
+        }
+    }
+
+    /// Gives the words of a line that holds no place of the user. See T-219.
+    ///
+    /// **A podcast holds no place, and its episodes hold one each.** The line
+    /// of a podcast of the Library view and of the view of the search
+    /// therefore names the key that opens its episodes (T-83 for the rule, and
+    /// T-170 for the key of the sentence). Every other line with no media says
+    /// that it holds none.
+    pub fn words_of_a_line_with_no_place(&self) -> &'static str {
+        if self.selected_item_id().is_some() {
+            "A podcast holds no place. Press l for its episodes."
+        } else {
+            "No media is selected."
+        }
+    }
+
     /// Gives the media that the user selected, for the queue. See T-24.
     ///
     /// `selected_download` gives the media of every view that holds one media,
@@ -7857,16 +7899,23 @@ pub fn message_of_no_shelf(error: &crate::api::client::error::ApiError) -> Strin
 /// against an Audiobookshelf 2.36.0 on 2026-08-11 sent `isFinished: false` and
 /// read `currentTime: 0` and `progress: 0` back. The server does that, and
 /// this program tells the user. See T-24.
+///
+/// **An episode of a podcast holds its own place**, and the path of that place
+/// names the episode after the item (T-182 and T-188). A path of the item alone
+/// answers with the place of one episode of that podcast, and the server refuses
+/// every write of it with `400 Library item is not a book`. See T-219.
 pub async fn mark_the_media(
     api: &std::sync::Arc<crate::api::client::ApiClient>,
     item_id: &str,
+    episode_id: Option<&str>,
 ) -> String {
-    let answer: serde_json::Value = match the_progress_that_the_server_gave(
-        api.get_json(&format!("/api/me/progress/{}", item_id)).await,
-    ) {
-        Ok(answer) => answer,
-        Err(error) => return message_of_no_mark(&error),
-    };
+    let path = crate::api::me::get_media_progress::the_path_of_the_place(item_id, episode_id);
+
+    let answer: serde_json::Value =
+        match the_progress_that_the_server_gave(api.get_json(&path).await) {
+            Ok(answer) => answer,
+            Err(error) => return message_of_no_mark(&error),
+        };
 
     let was_finished = answer
         .get("isFinished")
@@ -7875,10 +7924,7 @@ pub async fn mark_the_media(
 
     let body = serde_json::json!({ "isFinished": !was_finished });
 
-    match api
-        .patch_json(&format!("/api/me/progress/{}", item_id), &body)
-        .await
-    {
+    match api.patch_json(&path, &body).await {
         Ok(()) => message_of_the_mark(!was_finished),
         Err(error) => format!("The server did not take the mark: {}", error),
     }
@@ -7999,16 +8045,20 @@ pub async fn add_a_podcast(
 /// progress, and the server then gives an error to the first request; such a
 /// media does not stand on the shelf, and the program writes the field
 /// anyway. See T-24.
+/// **An episode of a podcast holds its own place**, and the path of that place
+/// names the episode after the item (T-182 and T-188). See T-219.
 pub async fn hide_the_media(
     api: &std::sync::Arc<crate::api::client::ApiClient>,
     item_id: &str,
+    episode_id: Option<&str>,
 ) -> String {
-    let answer: serde_json::Value = match the_progress_that_the_server_gave(
-        api.get_json(&format!("/api/me/progress/{}", item_id)).await,
-    ) {
-        Ok(answer) => answer,
-        Err(error) => return message_of_no_shelf(&error),
-    };
+    let path = crate::api::me::get_media_progress::the_path_of_the_place(item_id, episode_id);
+
+    let answer: serde_json::Value =
+        match the_progress_that_the_server_gave(api.get_json(&path).await) {
+            Ok(answer) => answer,
+            Err(error) => return message_of_no_shelf(&error),
+        };
 
     let was_hidden = answer
         .get("hideFromContinueListening")
@@ -8017,10 +8067,7 @@ pub async fn hide_the_media(
 
     let body = serde_json::json!({ "hideFromContinueListening": !was_hidden });
 
-    match api
-        .patch_json(&format!("/api/me/progress/{}", item_id), &body)
-        .await
-    {
+    match api.patch_json(&path, &body).await {
         Ok(()) => message_of_the_shelf(!was_hidden),
         Err(error) => format!("The server did not take the change: {}", error),
     }

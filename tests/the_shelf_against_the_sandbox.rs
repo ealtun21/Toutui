@@ -115,7 +115,7 @@ async fn the_key_takes_a_media_away_from_the_shelf_and_it_puts_it_back() {
         "the book must stand on the shelf before the key"
     );
 
-    let text = hide_the_media(&api, &item).await;
+    let text = hide_the_media(&api, &item, None).await;
     println!("{}", text);
     assert!(text.contains("away from Continue Listening"));
     assert!(is_hidden(&token, &item).await);
@@ -126,7 +126,7 @@ async fn the_key_takes_a_media_away_from_the_shelf_and_it_puts_it_back() {
         "the shelf of the server must not hold the book now"
     );
 
-    let text = hide_the_media(&api, &item).await;
+    let text = hide_the_media(&api, &item, None).await;
     println!("{}", text);
     assert!(text.contains("on Continue Listening again"));
     assert!(!is_hidden(&token, &item).await);

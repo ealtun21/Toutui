@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.49",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key `M` and the key `N` did nothing for an episode of a \
+             podcast.** An episode of a podcast holds its own place on the \
+             server, and the address of that place names the episode after the \
+             podcast: Toutui asked for the address of the podcast alone. In the \
+             Home view of a library of podcasts the server answered the read \
+             with the place of **another** episode, and it refused the write \
+             with the status 400; in the view of the episodes of a podcast the \
+             two keys said \"No media is selected.\" for a line that holds an \
+             episode. The two keys name the episode of the line now. The line \
+             of a podcast holds no place of its own, therefore it names the key \
+             `l` of its episodes.",
+        ],
+    },
+    Entry {
         version: "0.8.48",
         date: "14/08/2026",
         body: &[

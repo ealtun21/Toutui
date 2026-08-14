@@ -140,7 +140,7 @@ async fn the_keys_write_nothing_and_they_say_what_the_server_said() {
     let address = a_host_whose_read_fails(500, Arc::clone(&the_requests)).await;
     let api = a_client(&address);
 
-    let text = mark_the_media(&api, THE_MEDIA).await;
+    let text = mark_the_media(&api, THE_MEDIA, None).await;
 
     assert!(
         text.starts_with("The server did not give the mark:"),
@@ -172,7 +172,7 @@ async fn the_keys_write_nothing_and_they_say_what_the_server_said() {
         text
     );
 
-    let text = hide_the_media(&api, THE_MEDIA).await;
+    let text = hide_the_media(&api, THE_MEDIA, None).await;
 
     assert!(
         text.starts_with("The server did not give the state of this media:"),
@@ -216,7 +216,7 @@ async fn the_keys_write_nothing_and_they_say_what_the_server_said() {
     let address = a_host_whose_read_fails(404, Arc::clone(&the_requests)).await;
     let api = a_client(&address);
 
-    let text = mark_the_media(&api, THE_MEDIA).await;
+    let text = mark_the_media(&api, THE_MEDIA, None).await;
 
     assert_eq!(
         text, "The media is finished now.",
