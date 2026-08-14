@@ -41,6 +41,13 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
+**The numbers of the gates of v0.8.28**: `cargo clippy --all-targets -- -D
+warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
+**1176 of 1176** in 2.3 seconds with 25 skipped, `cargo nextest run
+--run-ignored all` gives **1201 of 1201** in 23.2 seconds with the sandbox up,
+and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in three
+runs.
+
 ## The session of the thirty-third turn of 2026-08-14: the book of the reader that came in part, the thread that died, and the cover of a part
 
 **Three releases: v0.8.26, v0.8.27, and v0.8.28.** The session before this one closed the stream of the
