@@ -7939,6 +7939,101 @@ stay in one function**, because it writes `XDG_DATA_HOME` and `XDG_CONFIG_HOME`
 bytes the server changed (T-148, T-150, T-179, T-181), and the row of the
 position of an offline playback (T-38, T-152).
 
+### T-187: a file that left the book stayed on the disk, and the offline playback played it
+
+**The road of T-186 named this sweep**: the two values of the disk that stay —
+the files of a download whose bytes the server changed, and the row of the
+position. This item takes the first of them, and the question is not the bytes
+of one file: it is **the list of the files** of a book that changed.
+
+`insert_download_file` of `src/db/crud.rs` writes
+`INSERT OR REPLACE INTO download_files`, and the key of that row is the number of
+the file. **A book of the server that loses a file therefore keeps the row of
+that file, and the disk keeps the file itself**: `fetch_item` writes the files of
+the plan, and it looks at no other file of the directory.
+
+**The measurement of 2026-08-14, against the sandbox.** The account `toutuitest`
+held the whole download of `Multi File Test Book` of three files of 20 seconds.
+The two files `02 - Part 2.mp3` and `03 - Part 3.mp3` then left the library, and
+`POST /api/items/:id/scan` gave a book of **one** audio file:
+
+```bash
+mv "$ABS/audiobooks/Test Author/Multi File Test Book/02 - Part 2.mp3" "$ABS/gone/T-187/"
+mv "$ABS/audiobooks/Test Author/Multi File Test Book/03 - Part 3.mp3" "$ABS/gone/T-187/"
+curl -s -X POST ".../api/items/ac365248-…/scan" -H "Authorization: Bearer $TOKEN"
+```
+
+The key `D` of the program of tmux said:
+
+```text
+"Multi File Test Book" is now available offline.
+```
+
+and the disk held **three** files, and `download_files` held **three** rows of 20
+seconds. The row of `downloads` held the new length of 20 seconds beside them.
+`podman stop -t 0 abs-test` took the server away, the offline playback of the
+same media started with the device `null`, and the log said:
+
+```text
+[play] the offline mode plays Multi File Test Book at 0 seconds with 3 track(s)
+[follow_playback_offline] the playback stopped at 60 seconds, finished=true
+[offline] the position 60s of ac365248-… waits for the server
+```
+
+**The user heard two parts that the book does not hold**, and the program then
+wrote the place **60 seconds** of a book of **20 seconds** for the server:
+`GET /api/me/progress/:id` of the server after it said `60 True`. **A value of
+the disk that the server no longer holds does not stay on the disk alone: it
+goes back to the server as the place of the user.**
+
+**The correction.** `fetch_item` of `src/logic/download/fetch.rs` takes the files
+of the directory that the book no longer holds away, after the last file and
+**under the lock of T-148**: no different program of this account writes those
+files at that moment. `the_files_that_the_book_no_longer_holds` is pure, and it
+keeps the lock of the download — that file belongs to the program of the
+download, and not to the book. A `.part` file of a file that left the book goes
+away with it, because no download asks for those bytes again.
+`keep_the_files_of_the_download` of `src/db/crud.rs` takes the rows of those
+files away, after the inserts of the plan.
+
+The same measurement with the new binary gave **one** file, **one** row, and:
+
+```text
+[play] the offline mode plays Multi File Test Book at 0 seconds with 1 track(s)
+[follow_playback_offline] the playback stopped at 20 seconds, finished=true
+[offline] the position 20s of ac365248-… waits for the server
+```
+
+**Three decisions.**
+
+1. **The ebook of the item stays.** The reader writes its file in the base
+   directory of the downloads, and the audio of one media holds a directory of
+   its own: the sweep of this correction reads that directory alone. The limit of
+   the cache of the ebooks (T-142) and the key `X` (T-65) hold the ebook.
+2. **A file that a different program of this account plays from the disk goes
+   away with the book.** The rule of T-156 belongs to the key `X`: the user asks
+   there for the removal of the copy, and the answer is "a program plays it now".
+   The key `D` asks for the **book of the server**, and the copy of the disk must
+   be that book. A file of Linux that a reader holds open keeps its bytes for that
+   reader until the end of it, therefore the playback that runs does not stop.
+3. **The user reads no new sentence.** The message of the key `D` says that the
+   media is available offline, and that is the truth after the correction. A
+   sentence of a file that left the book would name a thing of the disk that the
+   user never chose, and the log holds that line.
+
+`tests/a_book_that_lost_a_file_loses_it_on_the_disk.rs` holds the measurement
+end to end: two calls of `download_with_progress` against one server of wiremock,
+the answer of `GET /api/items/:id` of three files and then of one file, and
+`tracks_from_downloads` of the offline mode after each of them (3 tracks of 60
+seconds, then 1 track of 20 seconds). **The parts of that test stay in one
+function**, because it writes `XDG_CONFIG_HOME` and `XDG_DATA_HOME` (the shape of
+T-144 and of T-157). Two tests of `src/logic/download/fetch.rs` hold the rule of
+the lock and of the `.part` file, and each of them fails with the correction
+removed.
+
+**The value of the disk that stays open**: the row of the position of an offline
+playback (T-38, T-152).
+
 ### T-183: one device with no name took every device of the e-reader away
 
 **The road of the session before this one named this sweep**: "the send of an

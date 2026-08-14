@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.17.** The item T-186 belongs to this session. The
-item T-185 belongs to the session before it, and the
+**The newest release is v0.8.18.** The item T-187 belongs to this session. The
+item T-186 belongs to the session before it, and the
+item T-185 to the session before that one, and the
 items T-183 and T-184 to the session before that one.
 The item T-182 belongs to the session before that one.
 The item T-181 belongs to the session before that one.
@@ -32,6 +33,66 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the twenty-seventh turn of 2026-08-14: the file that left the book and stayed on the disk
+
+**One release: v0.8.18.** The session before this one left no item open, and it
+named the two values of the disk that stay: the files of a download whose bytes
+the server changed, and the row of the position. This session took the first of
+them, and the fault stood one level above the bytes: **the list of the files** of
+a book that changed.
+
+| Item | What | Where |
+|---|---|---|
+| T-187 | **A file that left the book stayed on the disk, and the offline playback played it.** `insert_download_file` writes over the row of the file of the same number, and it leaves the rows of every number after it; `fetch_item` writes the files of the plan, and it looks at no other file of the directory. A book of three files of 20 seconds that became a book of **one** file kept three files and three rows: the key `D` said "is now available offline", the offline playback said "with 3 track(s)", and the program wrote the place **60 seconds** of a book of **20 seconds** for the server. The download makes the copy of the disk the book of the server now, under the lock of T-148 | `src/logic/download/fetch.rs`, `src/db/crud.rs`, `src/logic/download/mod.rs` |
+
+The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-187. Four things are
+worth the room here:
+
+1. **A value of the disk that the server no longer holds does not stay on the
+   disk alone: it goes back to the server as the place of the user.** The
+   measurement of the offline playback wrote 60 seconds of a book of 20 seconds,
+   and `GET /api/me/progress/:id` held that value after the server came back.
+   **The question of a value of the disk is therefore what the program does with
+   it, and not the bytes of it.**
+2. **The question of a sweep of the disk is the list, and not the row.** T-179,
+   T-180, and T-181 asked what one file of the answer holds; this item asked
+   **which files the answer holds at all**. A key of `INSERT OR REPLACE` writes
+   over the row of its own number, and it says nothing about the rows that the
+   new answer does not name: **a list of the server that a table of the program
+   keeps needs a rule for the rows that left it.**
+3. **The two rules of the two keys are not one rule.** The key `X` of T-156 keeps
+   the files of a media that a program of this account plays from the disk: the
+   user asked there for a removal. The key `D` asks for the **book of the
+   server**, and the copy of the disk must be that book; a file of Linux that a
+   reader holds open keeps its bytes for that reader until the end. The decision
+   stands in the backlog with its reason.
+4. **The correction needed no new sentence for the user.** "is now available
+   offline" is the truth after it, and a sentence of a file that left the book
+   would name a thing of the disk that the user never chose (T-91 and T-118).
+
+**The condition that this session leaves open.** None of its own. **The value of
+the disk that stays**: the row of the position of an offline playback (T-38,
+T-152).
+
+### The gates of this session
+
+| The gate | The answer |
+|---|---|
+| `cargo clippy --all-targets -- -D warnings` | no word |
+| `cargo fmt --check` | no word |
+| `cargo nextest run` | **1144 of 1144** in 2.3 seconds |
+| `cargo nextest run --run-ignored all` | **1169 of 1169**, with the sandbox up |
+| `cargo test -j 16 --no-fail-fast` | four runs, and every run passed |
+| `cargo tree -i openssl-sys` | no package |
+| `cargo tree -i cc` | `libsqlite3-sys` and `ring` only |
+
+**The sandbox.** The book `Multi File Test Book` holds its three files again
+(`POST /api/items/:id/scan` after the `mv` back, and the three `ino` of the
+answer are the three of the start: a `mv` of one file system keeps the inode).
+The disk of the account holds the whole download of it again, the row of
+`pending_progress` of that media went away, and the place of the server is 0 with
+`isFinished: false`.
 
 ## The session of the twenty-sixth turn of 2026-08-14: the part of a book that held the name of a whole book
 
@@ -4716,19 +4777,18 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took the sweep that the session before it named**: the values of
-the server that this program keeps on the disk. The road named the file of an
-ebook whose bytes the server changed, and **the measurement found a shorter road
-to the same fault: the bytes that the program itself wrote**. **A part of a book
-held the name of a whole book, for ever, and the reader of every program of that
-account after it opened that part** (T-186). The session left no item open, and
-the road below names the two values of the disk that stay: the files of a
-download, and the row of the position. This prompt names the state of the program
-on 2026-08-14.
+**This session took the first of the two values of the disk that the session
+before it named**: the files of a download of a book that the server changed. The
+fault stood one level above the bytes of a file: **a book that lost a file kept
+that file on the disk and its row in the database**, the offline playback played
+a part that the book does not hold, and it wrote the place of that part for the
+server (T-187). The session left no item open, and the road below names the one
+value of the disk that stays: the row of the position. This prompt names the
+state of the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.17**; `Cargo.toml` is at 0.8.17. The
+> AlbanDAVID/Toutui. Newest release **v0.8.18**; `Cargo.toml` is at 0.8.18. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -4737,7 +4797,7 @@ on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-185 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-186 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -4765,7 +4825,11 @@ on 2026-08-14.
 > in less than one second**, therefore a measurement inside a download needs
 > `docs/harness/slow_body.py` (the trap 116). **`podman stop -t 0 abs-test` takes
 > the server away**, and the program then starts in the offline mode with the
-> media of the disk (T-152).
+> media of the disk (T-152). **A book of the library that changes needs no proxy
+> at all**: a `mv` of one file of `$ABS/audiobooks/<the author>/<the book>/` and
+> `POST /api/items/:id/scan` give a book of one file fewer in some seconds, and a
+> `mv` back with a second scan gives the book of the start with the same `ino` of
+> each file (T-187).
 >
 > **A server that answers some requests and that fails others is
 > `docs/harness/one_path_fails.py`** (T-169 and T-170). It answers the status
@@ -4960,8 +5024,8 @@ on 2026-08-14.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1140 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1165 of 1165** with the sandbox up, in about 20 seconds. **Run that
+> Baseline: **1144 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1169 of 1169** with the sandbox up, in about 20 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -4995,11 +5059,13 @@ on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in thirty-nine sessions of forty. **The
->    session of the twenty-sixth turn took the sweep that the session before it
->    named**: a part of a book held the name of a whole book, for ever, and the
->    reader of every program of that account after it opened that part (T-186). It
->    wrote the correction, and it left no item open.
+>    this shape found a fault in forty sessions of forty-one. **The
+>    session of the twenty-seventh turn took the first of the two values of the
+>    disk that the session before it named**: a book of the server that lost a file
+>    kept that file on the disk and its row in the database, the offline playback
+>    played a part that the book does not hold, and the program wrote the place of
+>    that part for the server (T-187). It wrote the correction, and it left no item
+>    open.
 >    - **The sweep of the boxes of the process is closed** (T-184 and T-185). The
 >      eight boxes of `src/logic/` each hold **one** answer of the server and a key
 >      of the view takes the place of it; the map of the positions of the live
@@ -5007,24 +5073,21 @@ on 2026-08-14.
 >      **for each item of the account**, and the key `R` empties both of them now.
 >      **The question of a sweep of this shape is not "which box of this
 >      directory": it is which value of the server this process keeps, and where.**
->    - **The road of this session was the values of the server that this program
->      keeps on the disk**, and **the file of an ebook is closed** (T-186). The road
->      named the file of the same `ino` whose bytes the server changed, and the
->      measurement found a shorter road to the same fault: **the bytes that the
->      program itself wrote.** `download_to_file` gave the file the name of the
->      whole book at the first byte, a body that stopped in the middle left a part
->      of a book under that name, and `get_the_ebook_of` says
->      `if path.exists() { return Ok(path) }`. **Two values of the disk stay:**
->      - **The files of a download** (T-148, T-150, T-179, T-181). The key `X`
->        takes that disk, and the plan of the download reads `ino`, `index`, and
->        `metadata.size` of the answer. **The question is a file of the disk whose
->        bytes the server changed**, and the road of T-179 (a file with no `.part`
->        needs no second request) is the line to read. **The audio holds the rule
->        of the `.part` since T-64**, therefore a body that stops leaves no whole
->        file of that road: the question there is the file that came **whole** and
->        that the server changed after it.
+>    - **The road of the last two sessions was the values of the server that this
+>      program keeps on the disk. The file of an ebook is closed** (T-186), **and
+>      the files of a download are closed** (T-187). The question of T-187 stood
+>      one level above the bytes of a file: `insert_download_file` writes over the
+>      row of the file of the same number, and it says nothing about the rows that
+>      the new answer does not name. A book of three files that became a book of
+>      one file kept three files of the disk and three rows, and the offline
+>      playback played the two parts that the book no longer holds. **A list of the
+>      server that a table of the program keeps needs a rule for the rows that left
+>      it**, and that question belongs to every such table. **One value of the disk
+>      stays:**
 >      - **The row of the position of the disk** (T-38, T-152). An offline
->        playback keeps its place for the server at each second.
+>        playback keeps its place for the server at each second, and **T-187 says
+>        what such a row does**: a value of the disk that the server no longer
+>        holds goes back to the server as the place of the user.
 >      **The road of a measurement of that shape is the road of T-185**: change
 >      the value on the server with a second program (`curl`), press every key of
 >      that view and the key `R`, and read the screen and the log of the proxy —
@@ -5313,7 +5376,11 @@ on 2026-08-14.
 > each frame** (T-185), and **the name of a whole book belongs to a whole book: a
 > download that fails leaves no part of a book on the disk, the key `X` reaches
 > the `.part` of a program that died in the middle, and the limit of the cache of
-> the ebooks counts the whole books alone** (T-186).
+> the ebooks counts the whole books alone** (T-186), and **the copy of the disk of
+> a download is the book of the server: a file that left that book leaves the disk
+> and the database with the next press of the key `D`, and a program of this
+> account that plays that file from the disk keeps its bytes until the end of it**
+> (T-187).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
