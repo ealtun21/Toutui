@@ -4,15 +4,85 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.7.94**, and T-160 belongs to this session. The items
-T-158 and T-159 belong to the session before it, and the items T-155, T-156, and
-T-157 to the one before that, the item T-154 to the one before that, T-152 and
-T-153 to the one before that, T-150 and T-151 to the one before those, T-148 and
-T-149 to the one before them, T-146 and T-147 to the one before those, T-145 to
-the one before that, T-142 to T-144 to the one before it, and T-140 and T-141 to
-the one before those.
+**The newest release is v0.7.95**, and T-161 belongs to this session. The item
+T-160 belongs to the session before it, and the items T-158 and T-159 to the one
+before that, the items T-155, T-156, and T-157 to the one before that, the item
+T-154 to the one before that, T-152 and T-153 to the one before that, T-150 and
+T-151 to the one before those, T-148 and T-149 to the one before them, T-146 and
+T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
+the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the seventh turn of 2026-08-14: the queue that moves under the cursor
+
+**One release: v0.7.95.** No condition of the road stayed, therefore this
+session named one of its own, and it took the shape that T-160 left open: **a
+line of a view that is not the Home view and that goes away under the cursor**.
+The road named three such lists — the queue, the downloads, and the episodes of
+a podcast — and **the queue is the one of the three that moves with no key of
+any user at all**. **It held one fault, and one window makes it.**
+
+| Item | What | Keys |
+|---|---|---|
+| T-161 | **The key of the user took a media of the queue that the user did not choose.** The key `X` took it out, and the key `l` played it and stopped the media that the queue had started | `q`, then `X` or `l` |
+
+### T-161, and it is the one to know of this session
+
+**The queue takes the media of its front away when the media that plays comes
+to its end** (T-24), and the view of the queue draws the queue of this process
+at each frame. **The lines keep the number of the line**, therefore the media
+below moves under the cursor with no word at all:
+
+| The moment | The view of the queue |
+|---|---|
+| The user plays a book of 30 minutes, and the queue holds three media | `The queue [3 items]` |
+| The keys `q` and `j` | the cursor stands on the line 2, `A Second Book Of Many Hours` |
+| **The book comes to its end, 22 seconds later** | `The queue [2 items]`, and the cursor stands on the line 2: **`Multi File Test Book`** |
+| The message row of that frame | **empty** |
+| The key `X` | **`Multi File Test Book` went out**, and the media of the user stays |
+
+**The key `l` is the sharp form of it.** The same condition with `l`: the key
+played `One Chapter Book`, it **stopped the media that the queue had started
+one second before**, and it took that media out of the queue. **Two media of
+the user go the wrong way with one key.**
+
+**The rule of T-147 does not reach this.** `take_the_media` reads the disk and
+it takes the media **of the line** (T-147), and the sentence of T-151 names
+that media: both of them read the line of the user, and the fault is that the
+media of that line is not the media that the user chose. **The queue that moved
+is the queue of this process**, therefore no read of the disk sees it.
+
+**The correction is the rule of T-160 for a second view: the cursor holds a
+media, and not a number of a line.** `what_the_line_of_the_user_holds` reads the
+line of the frame before and the media of that line: a media that stands in the
+queue takes the cursor with it, a media that left the queue takes the line to
+nobody with a message that names it, and a line that the user moved gives the
+media of the new line. **The loop of `src/main.rs` holds the rule at each
+frame**, beside the timer for sleep: the queue moves with no key of this user,
+therefore no key handler can hold it.
+
+**The keys `X` and `l` say `No media is selected.` now** (T-79). They returned
+with no word at all for a line of nobody, and a line of nobody comes with no key
+of the user since this correction.
+
+**A second window that takes a media out gives no such fault, and that is a
+decision.** A key of this window reads the disk (T-147), it finds the media of
+its line in no row, and it says the sentence of T-151. The view of this window
+keeps the old line until that key, and **a read of the disk at each frame would
+change the decision of T-147 for no measured fault**.
+
+### The measurements of this session
+
+| The measurement | The answer |
+|---|---|
+| **The key `X` after the media of the queue moved under the cursor** | **one fault** (T-161): the key took `Multi File Test Book` out, and the media of the user stayed |
+| The same condition, after the correction | the cursor stands on the media of the user, and that media goes out |
+| **The key `l` in the same condition** | **one fault**: it played the media below, and it stopped the media that the queue started |
+| The media of the line of the user comes to the front and plays | **the message row was empty** before, and the text names `A Book Of Many Hours` after |
+| The key `X` on a line of nobody | `No media is selected.`, and the queue keeps its media |
+| The key `j` after it | the cursor stands on the first media again |
+| **`cargo test`, the command of CI, four runs** | **no fault** |
 
 ## The session of the sixth turn of 2026-08-14: the line that goes away under the cursor
 
@@ -1442,14 +1512,14 @@ episodes for a podcast that is missing **54**, therefore it stays outside.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.94` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.95` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 1059 of 1059 in 2.4 s, and cargo nextest run --run-ignored all gives 1084
-    # of 1084 with the sandbox up, in 16.6 s of wall clock: one test waits 16 s
+    # 1065 of 1065 in 2.3 s, and cargo nextest run --run-ignored all gives 1090
+    # of 1090 with the sandbox up, in 16.6 s of wall clock: one test waits 16 s
     # for the time limit of the send of a book (T-119), and one waits 15 s for
     # the time limit of a request
 ALSA_CONFIG_PATH=<the same file> nice -n 19 ionice -c 3 cargo test -j 16 --no-fail-fast
@@ -1457,7 +1527,8 @@ ALSA_CONFIG_PATH=<the same file> nice -n 19 ionice -c 3 cargo test -j 16 --no-fa
     # three times of three. nextest gives each test a process of its own, therefore it
     # hides a test that shares a database with another test of its binary. Six
     # tests of three binaries failed on CI while nextest passed (T-144), and
-    # `--no-fail-fast` says every binary that fails.
+    # `--no-fail-fast` says every binary that fails. Four runs of this session
+    # gave no fault.
     # **The file of `ALSA_CONFIG_PATH` needs two lines only**: `pcm.!default {
     # type null }` and `ctl.!default { type null }`. No session before this one
     # said where that file stands, and each of them made it again.
@@ -1865,19 +1936,29 @@ measurements of this session left.
      T-160.** The condition holds the two shapes at one time: the key `M` of two
      presses marked two media of one window, and a second window took the line
      of the first one with no word. The line goes to nobody now.
+   - ~~**A line of a view that is not the Home view and that goes away under
+     the cursor**~~: **made on 2026-08-14 (the seventh session) for the queue,
+     and it found T-161.** The queue takes the media of its front away when the
+     media that plays comes to its end, and the lines keep the number of the
+     line: the key `X` then took a media of the queue that the user did not
+     choose out, and the key `l` played it and stopped the media that the queue
+     had started. **One window makes that fault, and the user presses no key
+     while it happens.**
    - **No condition of the road stays. A next session must name a condition of
      its own.** The shapes that found faults before: a state of one process that
      a second program cannot see (T-142, T-147, T-148, T-150, T-153, T-154,
-     T-155, T-156, T-158, T-159, T-160), a program that dies in the middle of
-     work (T-145, T-152), and a server that does not answer (T-146, T-149,
-     T-152, T-156). **The parts of the program that no such measurement has
-     reached**: the search of a library that a second window changes, the
+     T-155, T-156, T-158, T-159, T-160, T-161), a program that dies in the
+     middle of work (T-145, T-152), and a server that does not answer (T-146,
+     T-149, T-152, T-156). **The parts of the program that no such measurement
+     has reached**: the search of a library that a second window changes, the
      bookmarks and the lists of two windows, **the writes of the sequence, of
      the speed, of the key bindings, and of the rows of a session
      (`id_session`), which say nothing when their name holds no row** (the
-     sweep of T-155 and of T-159), and **a line of a view that is not the Home
-     view and that goes away under the cursor** — the queue, the downloads, and
-     the episodes of a podcast each hold a list that a second window changes.
+     sweep of T-155 and of T-159), and **the view of the chapters while the
+     media that plays changes**: the queue starts the next media with no key of
+     the user, the list of the chapters is then the list of another media, and
+     the key of that view seeks in the media that the user did not choose. The
+     rule of T-160 and of T-161 reaches the Home view and the queue alone.
    - ~~**A second account of a second server while a media plays**~~ (T-124):
      **made on 2026-08-13, and it found T-138 and T-139** — the place of one
      account went to the server of another account, and no key sent the place of
@@ -3190,14 +3271,15 @@ answers slowly while it writes. Two answers to measure:
 ## The prompt for the next session
 
 **No condition of the road stayed, therefore this session named one of its
-own**: a line of the shelf Continue Listening that goes away while the cursor of
-the user stands on it. **It held one fault** (T-160), and one window makes that
-fault as well as two. **The next session must name a condition of its own too.**
-This prompt names the state of the program on 2026-08-14.
+own**: a line of a view that is not the Home view and that goes away under the
+cursor, and the queue is the list of the three that moves with no key of any
+user. **It held one fault** (T-161), and one window makes it. **The next session
+must name a condition of its own too.** This prompt names the state of the
+program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.7.94**; `Cargo.toml` is at 0.7.94. The
+> AlbanDAVID/Toutui. Newest release **v0.7.95**; `Cargo.toml` is at 0.7.95. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -3206,7 +3288,7 @@ This prompt names the state of the program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-160 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-161 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -3250,17 +3332,20 @@ This prompt names the state of the program on 2026-08-14.
 > `toutuitest` (T-158). **`PATCH /api/me/progress/:id` with
 > `{"isFinished": false}` writes `currentTime: 0`**, therefore a measurement
 > that gives a media a place again needs that request first and the place after
-> it (section 15 of `docs/TEST-SERVER.md`, and T-160).
+> it (section 15 of `docs/TEST-SERVER.md`, and T-160). **A media of the sandbox
+> that ends while the user looks at a view** comes of `A Long Test Book` of 30
+> minutes: the null device plays it in 22 seconds, and the two books of eight
+> hours then hold the queue open (T-161).
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-161 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-162 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1059 tests in 2.4 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1084 of 1084** with the sandbox up, in 16.6 seconds. **Run that
+> Baseline: **1065 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1090 of 1090** with the sandbox up, in 16.6 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A test must not call a function that may never come back.** The wait of the
@@ -3286,22 +3371,24 @@ This prompt names the state of the program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **Name a condition of your own, and measure it.** Every new condition found
->    a fault in twenty sessions of twenty-one. **No condition of the road
->    stays**: the newest session named one of its own — a line of the Home view
->    that goes away while the cursor of the user stands on it — and it held one
->    fault (T-160).
+>    a fault in twenty-one sessions of twenty-two. **No condition of the road
+>    stays**: the newest session named one of its own — a line of the view of
+>    the queue that goes away under the cursor while the media that plays comes
+>    to its end — and it held one fault (T-161).
 >    - **The three shapes that found a fault before:** **a state of one process
 >      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153,
->      T-154, T-155, T-156, T-158, T-159, T-160), **a program that dies in the
->      middle of work** (T-145, T-152), and **a server that does not answer**
->      (T-146, T-149, T-152, T-156).
+>      T-154, T-155, T-156, T-158, T-159, T-160, T-161), **a program that dies
+>      in the middle of work** (T-145, T-152), and **a server that does not
+>      answer** (T-146, T-149, T-152, T-156).
 >    - **The parts of the program that no such measurement has reached**: the
 >      search of a library that a second window changes, **the key `S` of the
 >      library of the start with two windows that both hold their account**, the
->      bookmarks and the lists of two windows, and **a line of a view that is
->      not the Home view and that goes away under the cursor** — the queue, the
->      downloads, and the episodes of a podcast each hold a list that a second
->      window changes, and the rule of T-160 reaches the Home view alone.
+>      bookmarks and the lists of two windows, and **the view of the chapters
+>      while the media that plays changes** — the queue starts the next media
+>      with no key of the user, the list of the chapters is then the list of
+>      another media, and the key of that view seeks in the media that the user
+>      did not choose. **The rule of T-160 and of T-161 reaches the Home view
+>      and the queue alone.**
 >    - **The shape of T-155 is a sweep that this session began and did not
 >      finish**: a write of a state that names a row of the database. T-159 gave
 >      the number of the rows to the caller of the library of the account, and
@@ -3356,7 +3443,9 @@ This prompt names the state of the program on 2026-08-14.
 > reads the accounts of the disk after every key, and a program whose account
 > stands in no row starts again** (T-159), and **a line of the Home view whose
 > media leaves the shelf Continue Listening goes to nobody, and the message
-> names that media** (T-160).
+> names that media** (T-160), and **the cursor of the view of the queue holds a
+> media and not a number of a line: a media that leaves the queue takes that
+> line to nobody** (T-161).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
