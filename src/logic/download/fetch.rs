@@ -125,16 +125,21 @@ pub async fn fetch_item(
         let target = dest_dir.join(file.disk_name());
         let part = part_path(&target);
 
+        // **The bytes of the answer are the truth of the progress**, and not
+        // the size of the plan: a server that gave no size gives every file the
+        // size 0, and the bar of such a download then stood at the bytes of
+        // one file for the whole book. See T-179.
         match fetch_one(
             client, base_url, token, file, &target, &part, done_bytes, &progress, plan,
         )
         .await
         {
-            Ok(path) => paths.push(path),
+            Ok((path, bytes)) => {
+                paths.push(path);
+                done_bytes += bytes;
+            }
             Err(error) => return Err(fail(&progress, plan, error)),
         }
-
-        done_bytes += file.size;
 
         write_progress(&progress, |state| state.bytes_done = done_bytes, plan);
     }
@@ -142,7 +147,7 @@ pub async fn fetch_item(
     write_progress(
         &progress,
         |state| {
-            state.bytes_done = total_bytes;
+            state.bytes_done = total_bytes.max(done_bytes);
             state.state = DownloadState::Finished;
         },
         plan,
@@ -155,6 +160,8 @@ pub async fn fetch_item(
 ///
 /// The parameter `done_bytes` is the number of bytes of the files before this
 /// file. The function adds the bytes of this file to that number.
+///
+/// It gives the path of the file and the number of bytes of that file.
 #[allow(clippy::too_many_arguments)]
 async fn fetch_one(
     client: &reqwest::Client,
@@ -166,14 +173,14 @@ async fn fetch_one(
     done_bytes: u64,
     progress: &ProgressMap,
     plan: &DownloadPlan,
-) -> Result<PathBuf, String> {
+) -> Result<(PathBuf, u64), String> {
     // The file on the disk tells the function where to start.
     let resume = resume_from(part, file.size)
         .map_err(|error| format!("cannot read {}: {error}", part.display()))?;
 
     if let Resume::Complete = resume {
         rename(part, target).await?;
-        return Ok(target.to_path_buf());
+        return Ok((target.to_path_buf(), file.size));
     }
 
     let Resume::From(mut have) = resume else {
@@ -182,9 +189,14 @@ async fn fetch_one(
 
     // The file is already on the disk with the correct size. No request is
     // necessary.
+    //
+    // **A file with no `.part` holds every byte that the server sent** (the
+    // rule of this module, and the disk is the truth of a download of T-147),
+    // therefore a size that the server did not give takes the file of the disk
+    // and it asks for no byte again. See T-179.
     if let Ok(metadata) = tokio::fs::metadata(target).await {
-        if metadata.len() == file.size {
-            return Ok(target.to_path_buf());
+        if metadata.len() == file.size || (file.size == 0 && metadata.len() > 0) {
+            return Ok((target.to_path_buf(), metadata.len()));
         }
     }
 
@@ -284,16 +296,29 @@ async fn fetch_one(
         .map_err(|error| format!("cannot write {}: {error}", part.display()))?;
     drop(handle);
 
-    if written != file.size {
+    // **A size of 0 is a size that the server did not give** (T-179), and the
+    // end of the answer is then the end of the file. The old code compared
+    // every download with that 0: a server of another version, which holds no
+    // field `metadata.size`, gave the user
+    // "the server sent 20554 bytes for alice.mp3, but the file has 0 bytes"
+    // after the program wrote every byte of the book, and the next press of the
+    // key `D` removed that work and asked for every byte again.
+    if file.size > 0 && written != file.size {
         return Err(format!(
             "the server sent {written} bytes for {}, but the file has {} bytes",
             file.filename, file.size
         ));
     }
 
+    // No decoder reads a file of no byte, therefore a file of no byte is a
+    // fault of the download and not a download that came to its end.
+    if written == 0 {
+        return Err(format!("the server sent no byte for {}", file.filename));
+    }
+
     rename(part, target).await?;
 
-    Ok(target.to_path_buf())
+    Ok((target.to_path_buf(), written))
 }
 
 /// Gives the name of the file that is not complete.
@@ -750,6 +775,155 @@ mod tests {
 
         // The lock of the download goes away with the last program.
         assert!(!crate::logic::download::lock::the_path_of_the_lock(&download).exists());
+    }
+
+    /// **A server that gave no size gives the file the size 0**, and the bytes
+    /// of the answer are then the file. See T-179.
+    ///
+    /// The old code compared the bytes of the answer with that 0: the program
+    /// wrote every byte of the book, and it then said
+    /// "the server sent 20554 bytes for alice.mp3, but the file has 0 bytes".
+    #[tokio::test]
+    async fn a_download_of_a_file_with_no_size_writes_the_bytes_of_the_answer() {
+        let server = MockServer::start().await;
+        let dir = tempfile::tempdir().unwrap();
+
+        Mock::given(method("GET"))
+            .and(path("/api/items/item-1/file/10/download"))
+            .respond_with(ResponseTemplate::new(200).set_body_bytes(vec![b'a'; 20_554]))
+            .mount(&server)
+            .await;
+
+        let plan = plan_of(&[(1, "10", "alice.mp3", 0)]);
+        let progress = map();
+
+        let paths = fetch_item(
+            &reqwest::Client::new(),
+            &server.uri(),
+            "secret",
+            &plan,
+            dir.path(),
+            progress.clone(),
+        )
+        .await
+        .expect("the download of a file with no size comes to its end");
+
+        assert_eq!(paths[0], dir.path().join("001 - alice.mp3"));
+        assert_eq!(std::fs::read(&paths[0]).unwrap().len(), 20_554);
+        assert!(!dir.path().join("001 - alice.mp3.part").exists());
+
+        // The bar holds the bytes of the disk, and the state is the end.
+        let state = state_of(&progress);
+        assert_eq!(state.state, DownloadState::Finished);
+        assert_eq!(state.bytes_done, 20_554);
+        assert_eq!(state.bytes_total, 0);
+    }
+
+    /// The bar of a download of many files with no size holds the bytes of
+    /// every file of the answer, and not the bytes of one file. See T-179.
+    #[tokio::test]
+    async fn the_bar_of_a_book_with_no_size_counts_every_file() {
+        let server = MockServer::start().await;
+        let dir = tempfile::tempdir().unwrap();
+
+        Mock::given(method("GET"))
+            .and(path("/api/items/item-1/file/10/download"))
+            .respond_with(ResponseTemplate::new(200).set_body_bytes(vec![b'a'; 100]))
+            .mount(&server)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/api/items/item-1/file/11/download"))
+            .respond_with(ResponseTemplate::new(200).set_body_bytes(vec![b'b'; 50]))
+            .mount(&server)
+            .await;
+
+        let plan = plan_of(&[(1, "10", "one.mp3", 0), (2, "11", "two.mp3", 0)]);
+        let progress = map();
+
+        fetch_item(
+            &reqwest::Client::new(),
+            &server.uri(),
+            "secret",
+            &plan,
+            dir.path(),
+            progress.clone(),
+        )
+        .await
+        .expect("the two files come to the disk");
+
+        assert_eq!(state_of(&progress).bytes_done, 150);
+    }
+
+    /// A second press of the key `D` asks for no byte again: the file of the
+    /// disk holds the whole answer of the server already. See T-179.
+    #[tokio::test]
+    async fn a_file_of_the_disk_with_no_size_needs_no_request() {
+        // The server answers 404 to every request. Therefore a request of this
+        // download is a fault of the test.
+        let server = MockServer::start().await;
+        let dir = tempfile::tempdir().unwrap();
+
+        Mock::given(method("GET"))
+            .respond_with(ResponseTemplate::new(404))
+            .mount(&server)
+            .await;
+
+        std::fs::write(dir.path().join("001 - alice.mp3"), vec![b'a'; 20_554]).unwrap();
+
+        let plan = plan_of(&[(1, "10", "alice.mp3", 0)]);
+        let progress = map();
+
+        let paths = fetch_item(
+            &reqwest::Client::new(),
+            &server.uri(),
+            "secret",
+            &plan,
+            dir.path(),
+            progress.clone(),
+        )
+        .await
+        .expect("the file of the disk is the file of the download");
+
+        assert_eq!(std::fs::read(&paths[0]).unwrap().len(), 20_554);
+        assert_eq!(state_of(&progress).bytes_done, 20_554);
+    }
+
+    /// A file of no byte is a fault, and not a download that came to its end:
+    /// no decoder reads such a file. See T-179.
+    #[tokio::test]
+    async fn a_server_that_sends_no_byte_for_a_file_with_no_size_is_a_fault() {
+        let server = MockServer::start().await;
+        let dir = tempfile::tempdir().unwrap();
+
+        Mock::given(method("GET"))
+            .respond_with(ResponseTemplate::new(200).set_body_bytes(Vec::new()))
+            .mount(&server)
+            .await;
+
+        let plan = plan_of(&[(1, "10", "alice.mp3", 0)]);
+
+        let fault = fetch_item(
+            &reqwest::Client::new(),
+            &server.uri(),
+            "secret",
+            &plan,
+            dir.path(),
+            map(),
+        )
+        .await
+        .expect_err("a file of no byte is a fault");
+
+        let words = fault.to_string();
+
+        assert!(
+            words.contains("no byte") && words.contains("alice.mp3"),
+            "the words name the file and the condition: {words}"
+        );
+        assert!(
+            !dir.path().join("001 - alice.mp3").exists(),
+            "a file of no byte comes to no name of a file that is complete"
+        );
     }
 
     /// An answer that is not a success gives an error.

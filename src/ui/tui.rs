@@ -1,7 +1,7 @@
 use crate::app::App;
 use crate::app::AppView;
 use crate::config::*;
-use crate::logic::download::progress::DownloadState;
+use crate::logic::download::progress::{DownloadProgress, DownloadState};
 use crate::player::engine::PlaybackStatus;
 use crate::ui::cover;
 use crate::utils::convert_seconds::*;
@@ -280,23 +280,7 @@ impl App {
                 height: DOWNLOAD_BAR_HEIGHT,
             };
 
-            let label = if item.file_count > 1 {
-                format!(
-                    " ⬇ {}  file {}/{}  {} / {} ",
-                    shorten(&item.title, 28),
-                    item.file_index,
-                    item.file_count,
-                    megabytes(item.bytes_done),
-                    megabytes(item.bytes_total),
-                )
-            } else {
-                format!(
-                    " ⬇ {}  {} / {} ",
-                    shorten(&item.title, 34),
-                    megabytes(item.bytes_done),
-                    megabytes(item.bytes_total),
-                )
-            };
+            let label = the_label_of_a_download(item);
 
             Gauge::default()
                 .gauge_style(Style::default().fg(Color::Green).bg(Color::DarkGray))
@@ -361,6 +345,34 @@ fn at_number_part(list: &[Vec<f64>], index: usize, part: usize) -> f64 {
         .and_then(|row| row.get(part))
         .copied()
         .unwrap_or(0.0)
+}
+
+/// The words of the bar of one download.
+///
+/// **A total of 0 is a total that the server did not give** (T-179): every file
+/// of the plan then holds the size 0, and the old label said
+/// "0.0 MB / 0.0 MB" while the program wrote the bytes of the book. The label
+/// holds the bytes of the disk alone in that condition, because a bar cannot
+/// show a part of a whole that the program does not have.
+fn the_label_of_a_download(item: &DownloadProgress) -> String {
+    let done = megabytes(item.bytes_done);
+
+    let whole = match item.bytes_total {
+        0 => done,
+        total => format!("{} / {}", done, megabytes(total)),
+    };
+
+    if item.file_count > 1 {
+        return format!(
+            " ⬇ {}  file {}/{}  {} ",
+            shorten(&item.title, 28),
+            item.file_index,
+            item.file_count,
+            whole,
+        );
+    }
+
+    format!(" ⬇ {}  {} ", shorten(&item.title, 34), whole)
 }
 
 /// Changes a number of bytes to a text in megabytes.
@@ -2872,6 +2884,47 @@ Uninstall:
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// One download of the map of the progress.
+    fn a_download(done: u64, total: u64, files: usize) -> DownloadProgress {
+        DownloadProgress {
+            key: "item-1".to_string(),
+            title: "Alice in Wonderland".to_string(),
+            file_index: 1,
+            file_count: files,
+            bytes_done: done,
+            bytes_total: total,
+            state: DownloadState::Running,
+        }
+    }
+
+    /// **A total of 0 is a total that the server did not give** (T-179), and
+    /// the bar must not say that the whole book holds 0.0 MB while the program
+    /// writes its bytes.
+    #[test]
+    fn the_label_of_a_download_of_no_total_holds_the_bytes_of_the_disk() {
+        let words = the_label_of_a_download(&a_download(20_554, 0, 1));
+
+        assert!(words.contains("Alice in Wonderland"), "{words}");
+        assert!(!words.contains('/'), "the label names no total: {words}");
+        assert!(words.contains("0.0 MB"), "{words}");
+
+        let of_many = the_label_of_a_download(&a_download(20_554, 0, 3));
+
+        assert!(of_many.contains("file 1/3"), "{of_many}");
+        assert!(
+            !of_many.contains("MB / "),
+            "the label names no total: {of_many}"
+        );
+    }
+
+    /// A total that the server gave stays in the label.
+    #[test]
+    fn the_label_of_a_download_holds_the_total_of_the_server() {
+        let words = the_label_of_a_download(&a_download(1_048_576, 2_097_152, 1));
+
+        assert!(words.contains("1.0 MB / 2.0 MB"), "{words}");
+    }
 
     /// The row of the message must hold the message and nothing else.
     ///

@@ -7629,6 +7629,94 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-179: the download of a server that gave no size threw every byte away
+
+**The road of T-177 named this shape**: an answer of a server of another
+version, which holds one field fewer. The measurement of T-177 took two fields
+out of `GET /api/me`, and the road named three answers that no measurement of
+that shape had reached: `POST /api/items/:id/play`, `GET /api/items/:id`, and the
+answer of the socket. **This item is `GET /api/items/:id`, and the question of
+the sweep is the question of that road: which field does this program read?**
+
+`plan_from_item` of `src/logic/download/plan.rs` reads
+`media.audioFiles[].metadata.size`, and a field that the answer does not hold
+takes the value 0 of `unwrap_or(0)`. **`fetch_one` of
+`src/logic/download/fetch.rs` then compared the bytes of the answer with that
+0**:
+
+```rust
+if written != file.size {
+    return Err(format!(
+        "the server sent {written} bytes for {}, but the file has {} bytes",
+        file.filename, file.size
+    ));
+}
+```
+
+**The program wrote every byte of the book, and it then called that work a
+fault.** The measurement of 2026-08-14, with
+`docs/harness/a_field_of_the_answer_goes_away.py` on the port 13504, the path of
+`Alice in Wonderland`, and the field `size`:
+
+```bash
+python3 docs/harness/a_field_of_the_answer_goes_away.py 13504 13399 \
+    /the/absolute/path/of/proxy.log \
+    /api/items/8fda6e43-0728-46ad-98bc-4c8634e299ad size
+```
+
+| The measurement | Before | After |
+|---|---|---|
+| The key `D` on `Alice in Wonderland` | `Download failed for "Alice in Wonderland": the server sent 20554 bytes for alice.mp3, but the file has 0 bytes` | `"Alice in Wonderland" is now available offline.` |
+| The disk after that key | `001 - alice.mp3.part` of **20554 bytes**, and no file of a download that is complete | `001 - alice.mp3` of 20554 bytes |
+| The bar of the download | `⬇ Alice in Wonderland  0.0 MB / 0.0 MB` | `⬇ Alice in Wonderland  0.0 MB` |
+| A second press of the key `D` | the inode of the part file went from 12395342 to **12395344**: the program removed every byte of the work and it asked for the whole book again | the log of the proxy holds 3 requests of the file before that key and **3 after it**, and the file of the disk keeps its time |
+| The log of the program | `[ERROR] - [download_item] Failed to download "Alice in Wonderland": the server sent 20554 bytes ...` | `[INFO] - [download_item] Downloaded "Alice in Wonderland": 1 file(s)` |
+
+**The value 0 of `size` is not a size.** It is "the server did not say how many
+bytes", and the correction gives that meaning to every place that reads the
+value:
+
+1. **`resume_from` keeps the part file.** The old rule "a part file that is
+   longer than the expected size: the file on the server changed" met a part
+   file of 20554 bytes and an expected size of 0, therefore it removed the whole
+   download at every press of the key `D`. A size of 0 now gives `From(0)`, and
+   the write of the answer takes the file from the start: the program cannot tell
+   a part file of every byte from a part file of some bytes, therefore it must
+   not call such a file complete and it must not remove it.
+2. **The end of the answer is the end of the file.** The comparison of the bytes
+   stands for a size that the server gave. A file of **no** byte stays a fault of
+   its own, and it says `the server sent no byte for alice.mp3`: no decoder reads
+   such a file.
+3. **A file of the disk with no `.part` holds every byte that the server sent.**
+   That is the rule of the module, and the disk is the truth of a download
+   (T-147). Therefore a second press of the key `D` asks for no byte again, and a
+   book of 112 megabytes of the sandbox no longer goes over the network at every
+   press.
+4. **The bytes of the answer are the truth of the bar.** `fetch_one` gives the
+   number of bytes that it wrote, and `fetch_item` counts those bytes: the old
+   code added `file.size` after each file, therefore the bar of a book of many
+   files stood at the bytes of one file for the whole download.
+5. **A total of 0 takes no place in the words of the bar.** `the_label_of_a_download`
+   of `src/ui/tui.rs` says `0.5 MB` and not `0.5 MB / 0.0 MB`: a bar cannot show
+   a part of a whole that the program does not have (T-91).
+
+**Eight tests hold the rule**, and each of them fails with its correction
+removed: two of `src/logic/download/plan.rs` (the part file of an unknown size,
+and the plan of an answer with no such field), four of
+`src/logic/download/fetch.rs` (the bytes of the answer, the bar of two files, the
+file of the disk that needs no request, and the server that sends no byte), and
+two of `src/ui/tui.rs` (the label of no total, and the label of a total that the
+server gave).
+
+**The parts of this road that stay open.** The answer of
+`POST /api/items/:id/play` and the answer of the socket. `stream_session_of`,
+`collect_info_item`, `chapters_from`, and `tracks_from_item` each read the answer
+with `serde_json::Value` and a default of every field, therefore a field that
+goes away gives no fault of a decode — but a **default** of such a field can be a
+value that the program then uses, and that is the fault of this item:
+`unwrap_or(0)` and `unwrap_or(0.0)` are the two lines to read of every such
+answer.
+
 ### T-178: the reader wrote a place of a book that it did not read
 
 **The road of T-175 named this shape**: a key that reads a state of the server

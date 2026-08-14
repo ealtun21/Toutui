@@ -15,7 +15,11 @@ pub struct AudioFilePlan {
     pub ino: String,
     /// The name of the file on the server.
     pub filename: String,
-    /// The number of bytes of the complete file.
+    /// The number of bytes of the complete file, of the field `metadata.size`.
+    ///
+    /// **The value 0 is a size that the server did not give.** A server of
+    /// another version can hold no such field, and the number of bytes of the
+    /// answer is then the only size that the program has. See T-179.
     pub size: u64,
     /// The length of the file in seconds.
     pub duration: f64,
@@ -103,14 +107,23 @@ pub enum Resume {
 /// - A part file that has the expected size: the file is complete.
 /// - A part file that is longer than the expected size: the file on the server
 ///   changed. Delete the part file and start at byte 0.
+/// - **An expected size of 0 is a size that the server did not give** (T-179):
+///   start at byte 0, and keep the part file for the write of the whole answer.
+///   The program cannot tell a part file of every byte from a part file of some
+///   bytes, therefore it must not call such a file complete and it must not
+///   remove it.
 pub fn resume_from(part_path: &Path, expected_size: u64) -> std::io::Result<Resume> {
+    if expected_size == 0 {
+        return Ok(Resume::From(0));
+    }
+
     let have = match std::fs::metadata(part_path) {
         Ok(meta) => meta.len(),
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(Resume::From(0)),
         Err(error) => return Err(error),
     };
 
-    if have == expected_size && expected_size > 0 {
+    if have == expected_size {
         return Ok(Resume::Complete);
     }
 
@@ -523,6 +536,48 @@ mod tests {
         assert!(plan.total_duration() > 1700.0);
         assert_eq!(plan.files[0].disk_name(), "001 - Letter 1.mp3");
         assert_eq!(plan.title, "Letter 1");
+    }
+
+    /// **A size of 0 is a size that the server did not give**, and not the size
+    /// of a file of no byte. See T-179.
+    ///
+    /// The old code compared the part file with that 0: a part file of every
+    /// byte of the book stood above it, therefore `resume_from` removed the
+    /// whole work of the download at every press of the key `D`.
+    #[test]
+    fn a_size_that_the_server_did_not_give_keeps_the_part_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("a.part");
+        std::fs::write(&path, vec![0u8; 20_554]).unwrap();
+
+        assert_eq!(resume_from(&path, 0).unwrap(), Resume::From(0));
+        assert!(
+            path.exists(),
+            "the program keeps the bytes of a part file whose size it does not know"
+        );
+    }
+
+    /// A file of the answer of a server that holds no field `metadata.size`.
+    /// See T-179.
+    #[test]
+    fn a_file_with_no_size_holds_the_value_zero() {
+        let item = serde_json::json!({
+            "id": "item-1",
+            "media": {
+                "metadata": { "title": "A Book", "authorName": "An Author" },
+                "audioFiles": [{
+                    "index": 1,
+                    "ino": "32815082",
+                    "duration": 5.0,
+                    "metadata": { "filename": "alice.mp3", "ext": ".mp3" }
+                }]
+            }
+        });
+
+        let plan = plan_from_item(&item).expect("the plan holds the file");
+
+        assert_eq!(plan.files[0].size, 0);
+        assert_eq!(plan.total_bytes(), 0);
     }
 
     #[test]
