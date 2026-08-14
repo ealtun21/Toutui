@@ -1572,14 +1572,14 @@ episodes for a podcast that is missing **54**, therefore it stays outside.
 
 ## The state
 
-`main` is clean and pushed, and `v0.7.95` is tagged. Every gate passes:
+`main` is clean and pushed, and `v0.7.96` is tagged. Every gate passes:
 
 ```
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 1065 of 1065 in 2.3 s, and cargo nextest run --run-ignored all gives 1090
-    # of 1090 with the sandbox up, in 16.6 s of wall clock: one test waits 16 s
+    # 1072 of 1072 in 2.6 s, and cargo nextest run --run-ignored all gives 1097
+    # of 1097 with the sandbox up, in 16.7 s of wall clock: one test waits 16 s
     # for the time limit of the send of a book (T-119), and one waits 15 s for
     # the time limit of a request
 ALSA_CONFIG_PATH=<the same file> nice -n 19 ionice -c 3 cargo test -j 16 --no-fail-fast
@@ -3330,16 +3330,16 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**No condition of the road stayed, therefore this session named one of its
-own**: a line of a view that is not the Home view and that goes away under the
-cursor, and the queue is the list of the three that moves with no key of any
-user. **It held one fault** (T-161), and one window makes it. **The next session
-must name a condition of its own too.** This prompt names the state of the
-program on 2026-08-14.
+**No condition of the road stayed, therefore this session took the one part of
+the program that the road named and that no measurement had reached**: the view
+of the chapters while the media that plays changes. **It held one fault**
+(T-162), one window makes it, and the fault reaches the server. **The next
+session must name a condition of its own too.** This prompt names the state of
+the program on 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.7.95**; `Cargo.toml` is at 0.7.95. The
+> AlbanDAVID/Toutui. Newest release **v0.7.96**; `Cargo.toml` is at 0.7.96. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -3348,7 +3348,7 @@ program on 2026-08-14.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-161 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-162 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -3395,17 +3395,20 @@ program on 2026-08-14.
 > it (section 15 of `docs/TEST-SERVER.md`, and T-160). **A media of the sandbox
 > that ends while the user looks at a view** comes of `A Long Test Book` of 30
 > minutes: the null device plays it in 22 seconds, and the two books of eight
-> hours then hold the queue open (T-161).
+> hours then hold the queue open (T-161). **A measurement of two lists of
+> chapters needs the three chapters that this session gave the book of eight
+> hours** (the section 6i of `docs/TEST-SERVER.md`), because the queue takes 22
+> seconds to start that book (T-162).
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-162 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-163 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1065 tests in 2.3 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1090 of 1090** with the sandbox up, in 16.6 seconds. **Run that
+> Baseline: **1072 tests in 2.6 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1097 of 1097** with the sandbox up, in 16.7 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A test must not call a function that may never come back.** The wait of the
@@ -3431,24 +3434,31 @@ program on 2026-08-14.
 > ### The work, in the sequence of its value
 >
 > 1. **Name a condition of your own, and measure it.** Every new condition found
->    a fault in twenty-one sessions of twenty-two. **No condition of the road
->    stays**: the newest session named one of its own — a line of the view of
->    the queue that goes away under the cursor while the media that plays comes
->    to its end — and it held one fault (T-161).
+>    a fault in twenty-two sessions of twenty-three. **No condition of the road
+>    stays**: the newest session took the last part that the road named — the
+>    view of the chapters while the media that plays changes — and it held one
+>    fault (T-162).
 >    - **The three shapes that found a fault before:** **a state of one process
 >      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153,
->      T-154, T-155, T-156, T-158, T-159, T-160, T-161), **a program that dies
+>      T-154, T-155, T-156, T-158, T-159, T-160, T-161, T-162), **a program
+>      that dies
 >      in the middle of work** (T-145, T-152), and **a server that does not
 >      answer** (T-146, T-149, T-152, T-156).
+>    - **The condition that T-162 named and did not close**: **a message
+>      belongs to the view of the user**. The rule of T-160 says its text from
+>      the render of any view, therefore the text of the Home view stood above
+>      the text of the view of the chapters **0.8 seconds** after it, of a
+>      message that lives six. Both sentences are true, and a change that holds
+>      the text of T-160 for the moment of the Home view would take the reason
+>      away from a user who comes back to that view later — the fault that T-160
+>      closed. **Measure the messages of the other views too**: the reader, the
+>      downloads, and the view of the accounts.
 >    - **The parts of the program that no such measurement has reached**: the
 >      search of a library that a second window changes, **the key `S` of the
 >      library of the start with two windows that both hold their account**, the
->      bookmarks and the lists of two windows, and **the view of the chapters
->      while the media that plays changes** — the queue starts the next media
->      with no key of the user, the list of the chapters is then the list of
->      another media, and the key of that view seeks in the media that the user
->      did not choose. **The rule of T-160 and of T-161 reaches the Home view
->      and the queue alone.**
+>      bookmarks and the lists of two windows, and **the view of the bookmarks
+>      while the media that plays changes** — the rule of T-160, of T-161, and
+>      of T-162 reaches the Home view, the queue, and the chapters alone.
 >    - **The shape of T-155 is a sweep that this session began and did not
 >      finish**: a write of a state that names a row of the database. T-159 gave
 >      the number of the rows to the caller of the library of the account, and
@@ -3505,7 +3515,9 @@ program on 2026-08-14.
 > media leaves the shelf Continue Listening goes to nobody, and the message
 > names that media** (T-160), and **the cursor of the view of the queue holds a
 > media and not a number of a line: a media that leaves the queue takes that
-> line to nobody** (T-161).
+> line to nobody** (T-161), and **the line of the view of the chapters holds
+> the playback that the user opened: a media that stops takes that line to
+> nobody, and the key `l` then seeks in no media at all** (T-162).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find
