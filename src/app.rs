@@ -255,6 +255,14 @@ pub struct App {
     /// The title of the view and the key of the place read this. See T-221 for
     /// the rule of a line that holds more than one media.
     pub bookmarks_of_a_podcast: bool,
+    /// The episode whose bookmarks the user opened. A book gives nothing.
+    ///
+    /// **Every episode of one podcast holds the identity of that podcast**
+    /// (T-223), therefore `bookmarks_of` alone cannot tell one episode of the
+    /// view from another one: the guard of the key `b` passed while the queue
+    /// played a second episode, and the key wrote a place of that other episode
+    /// with no word at all. See T-224.
+    pub bookmarks_of_episode: Option<String>,
     /// The timer for sleep, if the user set one. See T-24.
     pub sleep: Option<crate::logic::sleep_timer::Timer>,
     /// The choice of the timer, in minutes. `Some(0)` is the end of the
@@ -1694,6 +1702,7 @@ impl App {
             bookmarks_of: String::new(),
             bookmarks_of_name: String::new(),
             bookmarks_of_a_podcast: false,
+            bookmarks_of_episode: None,
             sleep: None,
             sleep_choice: None,
             list_state_new_podcast: ListState::default(),
@@ -5106,17 +5115,39 @@ impl App {
                 None
             };
 
-            if crate::logic::bookmarks::what_the_media_of_the_bookmarks_is(
+            // **One identity names every episode of one podcast** (T-223),
+            // therefore the view holds the episode too: the queue started a
+            // second episode of the podcast of the view, this guard passed, and
+            // the key wrote a place of that other episode with no word (T-224).
+            let episode_of_the_player = if plays {
+                state.episode_id.as_deref()
+            } else {
+                None
+            };
+
+            match crate::logic::bookmarks::what_the_media_of_the_bookmarks_is(
                 &self.bookmarks_of,
                 of_the_player,
-            ) == crate::logic::bookmarks::TheMediaOfTheBookmarks::ItDoesNotPlay
-            {
-                crate::logic::message::say(
-                    &crate::logic::bookmarks::the_text_of_the_media_that_does_not_play(
-                        &self.bookmarks_of_name,
-                    ),
-                );
-                return;
+                self.bookmarks_of_episode.as_deref(),
+                episode_of_the_player,
+            ) {
+                crate::logic::bookmarks::TheMediaOfTheBookmarks::ItDoesNotPlay => {
+                    crate::logic::message::say(
+                        &crate::logic::bookmarks::the_text_of_the_media_that_does_not_play(
+                            &self.bookmarks_of_name,
+                        ),
+                    );
+                    return;
+                }
+                crate::logic::bookmarks::TheMediaOfTheBookmarks::AnotherEpisodePlays => {
+                    crate::logic::message::say(
+                        &crate::logic::bookmarks::the_text_of_another_episode(
+                            &self.bookmarks_of_name,
+                        ),
+                    );
+                    return;
+                }
+                crate::logic::bookmarks::TheMediaOfTheBookmarks::ItPlays => {}
             }
         }
 
@@ -5184,11 +5215,21 @@ impl App {
         // `selected_download` holds the item, the episode, and the name of the
         // podcast of every view that shows an episode (T-219).
         let of_an_episode = match self.selected_download() {
-            Some((DownloadTarget::Episode { item_id, .. }, _, podcast)) => Some((item_id, podcast)),
+            Some((
+                DownloadTarget::Episode {
+                    item_id,
+                    episode_id,
+                },
+                _,
+                podcast,
+            )) => Some((item_id, episode_id, podcast)),
             _ => None,
         };
 
-        let (item_id, name, of_a_podcast) =
+        // **The view keeps the episode too** (T-224): the key `b` of this view
+        // writes a place of the media that the user opened, and the identity of
+        // the item names every episode of one podcast (T-223).
+        let (item_id, name, of_a_podcast, episode_id) =
             if state.status != crate::player::engine::PlaybackStatus::Stopped {
                 // The title of a playback of an episode is the title of the podcast
                 // already, because the session of the server names the item.
@@ -5196,9 +5237,10 @@ impl App {
                     state.item_id.clone(),
                     state.title.clone(),
                     state.episode_id.is_some(),
+                    state.episode_id.clone(),
                 )
-            } else if let Some((item_id, podcast)) = of_an_episode {
-                (item_id, podcast, true)
+            } else if let Some((item_id, episode_id, podcast)) = of_an_episode {
+                (item_id, podcast, true, Some(episode_id))
             } else {
                 // **A line that holds more than one media holds no bookmark of its
                 // own** (T-222). `selected_item_id` gives the first book of a line
@@ -5214,7 +5256,12 @@ impl App {
                 };
 
                 match of_this_line {
-                    Some(id) => (id, self.selected_item_title().unwrap_or_default(), false),
+                    Some(id) => (
+                        id,
+                        self.selected_item_title().unwrap_or_default(),
+                        false,
+                        None,
+                    ),
                     None => {
                         crate::logic::message::say(self.words_of_a_line_with_no_media(
                             "No media plays, and no media is selected.",
@@ -5230,6 +5277,7 @@ impl App {
         // no key of the user. See T-163.
         self.bookmarks_of_name = name;
         self.bookmarks_of_a_podcast = of_a_podcast;
+        self.bookmarks_of_episode = episode_id;
         self.list_state_bookmarks.select(Some(0));
         self.scroll_offset = 0;
         self.view_state = AppView::Bookmarks;

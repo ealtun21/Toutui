@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.53",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key `b` of the bookmarks of a podcast wrote a place of a \
+             different episode.** The queue starts the media of its front with \
+             no key of the user, and every episode of one podcast holds the \
+             identity of that podcast: the guard of the view let a second \
+             episode pass, and the key wrote a place of it with no word at \
+             all. The view keeps the episode now. The key says that a \
+             different episode plays, and the key `V` gives the bookmarks with \
+             the episode that plays.",
+        ],
+    },
+    Entry {
         version: "0.8.52",
         date: "15/08/2026",
         body: &[

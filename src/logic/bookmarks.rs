@@ -63,6 +63,9 @@ pub enum TheMediaOfTheBookmarks {
     ItPlays,
     /// The media whose bookmarks the user opened does not play now.
     ItDoesNotPlay,
+    /// The podcast of the view plays, and the episode of it is not the episode
+    /// that the user opened. See T-224.
+    AnotherEpisodePlays,
 }
 
 /// Tells if the media of the view of the bookmarks plays now.
@@ -77,16 +80,35 @@ pub enum TheMediaOfTheBookmarks {
 /// showed the same one line before the key and after it. See T-163, and T-160,
 /// T-161, and T-162 for the same rule of three other views.
 ///
+/// **One identity can name more than one media** (T-223), therefore the
+/// identity of the item is not enough for a podcast: every episode of one
+/// podcast holds the identity of that podcast, and the comparison above passed
+/// for an episode that the user did not open. The measurement of 2026-08-15:
+/// the user read the bookmarks of the podcast `Arthur Gordon Pym` while
+/// `Chapter 01` played, the queue started `Chapter 02` with no key of the user,
+/// and the key `b` wrote a place of the second 96 of that other episode with no
+/// word at all. The row of the player names the **podcast** alone, therefore no
+/// part of the screen said that the episode changed. See T-224.
+///
 /// `of_the_view` is the media that the user opened, and `of_the_player` is the
 /// media of the engine now. A playback that stopped gives nothing.
+/// `the_episode_of_the_view` and `the_episode_of_the_player` hold the episode
+/// of each of them, and a book gives nothing.
 ///
 /// The function is pure, therefore a test needs no engine and no screen.
 pub fn what_the_media_of_the_bookmarks_is(
     of_the_view: &str,
     of_the_player: Option<&str>,
+    the_episode_of_the_view: Option<&str>,
+    the_episode_of_the_player: Option<&str>,
 ) -> TheMediaOfTheBookmarks {
     match of_the_player {
-        Some(media) if media == of_the_view => TheMediaOfTheBookmarks::ItPlays,
+        Some(media) if media == of_the_view => match the_episode_of_the_view {
+            Some(episode) if Some(episode) != the_episode_of_the_player => {
+                TheMediaOfTheBookmarks::AnotherEpisodePlays
+            }
+            _ => TheMediaOfTheBookmarks::ItPlays,
+        },
         _ => TheMediaOfTheBookmarks::ItDoesNotPlay,
     }
 }
@@ -104,6 +126,28 @@ pub fn the_text_of_the_media_that_does_not_play(name: &str) -> String {
     format!(
         "The media \"{}\" does not play now, and this key writes a place of it. \
          The key V shows the bookmarks of the media that plays.",
+        name
+    )
+}
+
+/// The text for the user when a different episode of the podcast of the view
+/// plays.
+///
+/// **The podcast of the view plays, therefore the sentence of a media that does
+/// not play is not true**: the user opened the places of one episode, and the
+/// queue started another episode of that same podcast with no key of the user
+/// (T-24). A bookmark holds a place, and a place of one episode names nothing
+/// in another one.
+///
+/// The sentence names the podcast and it names no episode: the row of the
+/// player holds the podcast alone, and no answer of the server gives this
+/// program the name of the episode of a place (T-223). It names the key `V`,
+/// which shows the bookmarks with the episode that plays now. See T-224.
+pub fn the_text_of_another_episode(name: &str) -> String {
+    format!(
+        "A different episode of the podcast \"{}\" plays now, and this key writes \
+         a place of the episode that you opened. The key V shows the bookmarks \
+         with the episode that plays.",
         name
     )
 }
@@ -195,7 +239,18 @@ mod tests {
     #[test]
     fn the_media_that_the_user_opened_plays() {
         assert_eq!(
-            what_the_media_of_the_bookmarks_is("book-1", Some("book-1")),
+            what_the_media_of_the_bookmarks_is("book-1", Some("book-1"), None, None),
+            TheMediaOfTheBookmarks::ItPlays
+        );
+
+        // The episode of the view plays. See T-224.
+        assert_eq!(
+            what_the_media_of_the_bookmarks_is(
+                "podcast-1",
+                Some("podcast-1"),
+                Some("episode-1"),
+                Some("episode-1")
+            ),
             TheMediaOfTheBookmarks::ItPlays
         );
     }
@@ -205,15 +260,65 @@ mod tests {
     #[test]
     fn a_media_that_does_not_play_now_takes_no_place() {
         assert_eq!(
-            what_the_media_of_the_bookmarks_is("book-1", Some("book-2")),
+            what_the_media_of_the_bookmarks_is("book-1", Some("book-2"), None, None),
             TheMediaOfTheBookmarks::ItDoesNotPlay
         );
 
         // The media came to its end, and no media plays now.
         assert_eq!(
-            what_the_media_of_the_bookmarks_is("book-1", None),
+            what_the_media_of_the_bookmarks_is("book-1", None, None, None),
             TheMediaOfTheBookmarks::ItDoesNotPlay
         );
+
+        // **The queue starts a second episode of the podcast of the view**, and
+        // the identity of the item passes for it (T-223). See T-224.
+        assert_eq!(
+            what_the_media_of_the_bookmarks_is(
+                "podcast-1",
+                Some("podcast-1"),
+                Some("episode-1"),
+                Some("episode-2")
+            ),
+            TheMediaOfTheBookmarks::AnotherEpisodePlays
+        );
+
+        // The playback of the episode of the view stopped.
+        assert_eq!(
+            what_the_media_of_the_bookmarks_is("podcast-1", None, Some("episode-1"), None),
+            TheMediaOfTheBookmarks::ItDoesNotPlay
+        );
+
+        // A media of no episode plays under a view of a podcast.
+        assert_eq!(
+            what_the_media_of_the_bookmarks_is(
+                "podcast-1",
+                Some("podcast-1"),
+                Some("episode-1"),
+                None
+            ),
+            TheMediaOfTheBookmarks::AnotherEpisodePlays
+        );
+
+        // **A view of a book takes no rule of the episodes**: the guard of
+        // T-163 stands for it, and the episode of the player changes nothing.
+        assert_eq!(
+            what_the_media_of_the_bookmarks_is("book-1", Some("book-1"), None, Some("episode-1")),
+            TheMediaOfTheBookmarks::ItPlays
+        );
+    }
+
+    /// The words name the podcast, they name no episode, and they name the one
+    /// key that gives the bookmarks of the episode that plays. See T-224.
+    #[test]
+    fn the_text_of_another_episode_names_the_podcast_and_one_key() {
+        let text = the_text_of_another_episode("Arthur Gordon Pym");
+
+        assert!(text.contains("Arthur Gordon Pym"), "{}", text);
+        assert!(text.contains("different episode"), "{}", text);
+        assert!(text.contains("key V"), "{}", text);
+        // The program cannot name the episode of a place (T-223), therefore the
+        // sentence promises no name of one.
+        assert!(!text.contains("Chapter"), "{}", text);
     }
 
     /// The text names the media of the view, and it promises the key `V` only.

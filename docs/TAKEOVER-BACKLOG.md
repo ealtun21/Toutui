@@ -14735,3 +14735,96 @@ T-163, where the queue changed the media with **no key of the user**.
   `default_title` gives the clock of the place.
 - **The key `X` of the view of the bookmarks of a podcast** removes a place of
   another episode with the same words as a place of the episode that plays.
+### T-224: a second episode of a podcast takes no place of the episode that the user opened
+
+**This item closes the question that T-223 left open.** T-223 gave the key `V`
+the podcast that holds every episode, and it named the danger that stood after
+it: the key `b` can write the place of another episode of that same podcast,
+while the queue changes the media with **no key of the user**. This item is that
+measurement.
+
+#### The measurement
+
+The real program v0.8.52 inside tmux, against the sandbox (podman on :13399), of
+the podcast `Arthur Gordon Pym` of 11 episodes of the library `Podcasts`:
+
+- The user put `Chapter 02` (38:56 long) in the queue with the key `n`, and the
+  user played `Chapter 01` (21:59 long) with the key `l`.
+- At 5:06 of `Chapter 01` the user pressed `V`. The view said
+  `The bookmarks of the podcast "Arthur Gordon Pym" [1 item]`, and its one line
+  was `A place of Chapter 01  (01:00)`.
+- The log then said: `[play] the media came to its end. The queue starts
+  "Chapter 02", and 0 media wait.` **No key of the user did it.**
+- The row of the player then said `▶ 1:26 / 38:56`, and its title stayed
+  `Arthur Gordon Pym by LibriVox | No chapter`. **The row of the player names
+  the podcast and no episode**, therefore no part of the screen said that the
+  episode changed.
+- The key `b` then opened the field for the name with no word at all. The user
+  typed `A place of Chapter 01` and pressed Enter.
+- `GET /api/me` of the server then held a second bookmark:
+  `{"libraryItemId":"b793354b-…","time":96,"title":"A place of Chapter 01"}`.
+  **The second 96 is a place of `Chapter 02`.**
+
+The same measurement of the corrected program (v0.8.53): the key `b` wrote
+nothing, and the row of the message said `A different episode of the podcast
+"Arthur Gordon Pym" plays now, and this key writes a place of the episode that
+you opened. The key V shows the bookmarks with the episode that plays.`
+`GET /api/me` held the one bookmark of before.
+
+The road back, measured in the same way: the key `V` again gave the view the
+episode that plays, and the key `b` then wrote
+`{"time":1756,"title":"A place of Chapter 02"}` — the second 1756 is 29:16, the
+place of `Chapter 02` at that moment.
+
+#### The fault of the source
+
+`write_a_bookmark` of `src/app.rs` held the guard of T-163: it asked whether the
+media of the view of the bookmarks plays now, and it compared `self.bookmarks_of`
+(the identity of the **item**) with `state.item_id` of the engine. **Every
+episode of one podcast holds the identity of that podcast** (T-223), therefore a
+second episode of the same podcast passed that guard.
+
+#### The correction
+
+- `src/logic/bookmarks.rs`: `TheMediaOfTheBookmarks` holds the third value
+  `AnotherEpisodePlays`. `what_the_media_of_the_bookmarks_is` takes two arguments
+  more — the episode of the view and the episode of the player — and it gives
+  that value when the item is the same and the episode is not. The new function
+  `the_text_of_another_episode` holds the words.
+- `src/app.rs`: the new field `bookmarks_of_episode: Option<String>`.
+  `show_the_bookmarks` fills it of `state.episode_id` of a playback, and of the
+  `episode_id` of `selected_download` for a line of an episode.
+  `write_a_bookmark` reads it.
+- `tests/a_second_episode_of_a_podcast_takes_no_place.rs` holds the rule, and the
+  parts of it stay in one function (T-144 and T-157). **It needs no server** (the
+  port 1 of T-25). **Three builds of the fault each fail it**: the arm of the
+  second episode of the pure function, the write of `bookmarks_of_episode` of
+  `show_the_bookmarks`, and the words.
+
+**The decision, and the reason for it: the program refuses the key and it says
+why.** That is the road of T-163, and not the road of T-223. The difference: the
+key of the place of T-223 keeps its work, because the program can **never** name
+the episode of a bookmark and a refusal would take that function away for ever;
+here the refusal costs nothing, because the key `V` gives the view the episode
+that plays and the key `b` then works. A place of one episode names nothing in
+another episode.
+
+#### What this item leaves open
+
+- **The row of the player of an episode names the podcast alone.** It said
+  `Arthur Gordon Pym by LibriVox` for `Chapter 01` and for `Chapter 02`,
+  therefore a user who looks at that row cannot tell which episode plays. That
+  is the shape of the line of a bookmark of T-223, and no measurement reached
+  it.
+- **The key `X` of the view of the bookmarks of a podcast** removes a place of
+  another episode with the same words as a place of the episode that plays
+  (T-223 left it open, and this item did not close it).
+- **The other views of a media that the queue changes are measured for a book
+  alone** (T-160 to T-166). Each of them compares the identity of the item,
+  therefore two episodes of one podcast in the queue are a condition of each of
+  them that no measurement reached: the view of the chapters (T-162), the view
+  of the queue (T-161), and the Home view (T-160).
+- **The two roads of `state.episode_id` of the view of the bookmarks hold no
+  test of `tests/`** (T-223 left the same sentence): the view that a playback of
+  an episode opens, and the guard of the key `b`. They need an engine that
+  plays, and the measurement of them stands in tmux alone.
