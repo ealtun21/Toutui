@@ -7116,7 +7116,20 @@ answers slowly while it writes. Two answers to measure:
 - **The sessions can run in a loop.** The driver is `~/.local/bin/toutui-loop`,
   outside this repository, and its design is
   `docs/superpowers/specs/2026-08-13-session-loop-design.md`. It reads the block of
-  the quote of `## The prompt for the next session
+  the quote of `## The prompt for the next session`, therefore **that block must stay
+  the last part of this file, and every line of it must start with `> `**. A session
+  that writes a handover with no such block stops the loop. **The name of that
+  heading stands in this bullet too**, therefore a tool that splits this file on
+  the first hit of that text cuts the bullet and not the heading: split on the
+  **last** hit of it. **That rule holds for a script that writes this file too**:
+  the session of the fiftieth turn wrote the new prompt with `str.index` of that
+  text, and the first hit stands in this bullet — the edit removed the rest of
+  this bullet and the heading itself, and the driver then found no block. Anchor
+  a write on `\n## The prompt for the next session\n`, or on the **last** hit,
+  and **run `grep -c '^## The prompt for the next session' docs/HANDOVER.md`
+  before the commit: the answer is 1**.
+
+## The prompt for the next session
 
 **This session took the last paragraph of the newest item** (the rule of T-216
 and of T-217, and the cheapest item of a session). T-219 left open "a podcast of
@@ -7570,6 +7583,16 @@ This prompt names the state of the program on 2026-08-15.
 > gives the same condition every time. **A poll of the row of the player must
 > read the whole screen** (the trap 149): that row says `▶ 3:14 / 30:00`, and no
 > word `Playing` stands in it.
+>
+> **A script that writes the prompt of this file must anchor on the heading at
+> the start of a line** (the trap 208): the text
+> `## The prompt for the next session` stands in a bullet of the rules above the
+> heading too, therefore `str.index` of it hits the bullet and an edit then takes
+> the heading away and the loop stops. Anchor on
+> `\n## The prompt for the next session\n` or on the **last** hit, and
+> **`grep -c '^## The prompt for the next session' docs/HANDOVER.md` must answer
+> 1 before the commit**. **Every line of that block starts with `> `**, and the
+> block is the last part of the file.
 >
 > **The loop of a measurement belongs in a file of `bash`**
 > (the trap 143 and the trap 152): the shell of the `Bash` tool of this harness is
