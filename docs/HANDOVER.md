@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.7.** The items T-173 and T-174 belong to this
-session. The items T-171 and T-172 belong to the session before it. The
+**The newest release is v0.8.8.** The items T-175 and T-176 belong to this
+session. The items T-173 and T-174 belong to the session before it.
+The items T-171 and T-172 belong to the session before that one. The
 items T-169 and T-170 belong to the session before that one. The item T-168 belongs to
 the session before that one, and the item
 T-167 to the session before that one.
@@ -23,6 +24,64 @@ T-147 to the one before those, T-145 to the one before that, T-142 to T-144 to
 the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
+
+## The session of the eighteenth turn of 2026-08-14: the answer of the server that the program did not read
+
+**One release: v0.8.8.** The session before this one left no item open, and it
+named two parts of the program that no measurement had reached: **the keys that
+write to the server**, and **the answer of `GET /api/libraries` after the
+login**. This session took one of each, and **each of them held a fault**.
+
+| Item | What | Where |
+|---|---|---|
+| T-175 | **The keys `M` and `N` wrote a state that the program did not read.** Each key reads the progress of the media and it then writes the opposite of it, and `Err(_)` of that read held every fault: a server that answered `500` to `GET /api/me/progress/:id` gave both keys the value "not finished" and "not away from the shelf" at every press. The user pressed `M` on a book that the server holds as finished, the program wrote `isFinished: true` one more time, and it said `The media is finished now.` The two keys write nothing now, and each of them says what the server said | `src/app.rs` |
+| T-176 | **One field of a library that the program does not read stopped the program.** `Library` asked for every field of the answer of Audiobookshelf 2.36.0, and a body with no `icon`, or with no `settings.autoScanCronExpression`, gave `Toutui stops: it cannot read the lists of the server.` Three fields stay now — the id, the name, and the media type — and the words of a body that the program cannot read name the field | `src/api/libraries/get_all_libraries.rs`, `src/api/client/mod.rs` |
+
+The evidence stands in `docs/TAKEOVER-BACKLOG.md` under T-175 and T-176. Five
+things are worth the room here:
+
+1. **A key that reads a state and that then writes it is a shape of its own**,
+   and no harness of this repository reached it: the read and the write of these
+   two keys stand on **one** path, therefore `one_path_fails.py` fails both of
+   them and the words of the write hide the fault of the read.
+   **`docs/harness/one_method_fails.py`** fails one method of a path, and it
+   forwards the other.
+2. **The comment of the old code was true of one status alone.** "A media that
+   never played has no progress, and the server gives an error" — the sandbox
+   answers `404` for such a media, and `Err(_)` held the status 500, the limit
+   of time, and a body that does not read beside it. **`ApiError` holds that
+   difference already** (T-172 gave it every category), and the correction is
+   one `match` of three arms.
+3. **The words of a decode named nothing at all.** `error decoding response
+   body` of `reqwest::Response::json` stood for a field that the program does
+   not need, for a field that it needs, and for a body of no JSON at all.
+   `serde_json` names the field and the place, and the body of the answer stays
+   in the memory of that one function: **a body can hold a token.**
+4. **The structures of the media hold the rule of T-176 already**, and one
+   structure is left with a reason: `src/api/me/get_media_progress.rs`. A field
+   of a position that the program does not read is a **state**, and a default of
+   a state is the fault of T-175. A row of that answer that does not read takes
+   a line of the log and no more, therefore it stops no program.
+5. **A library whose name holds no character is measured, and its words stay
+   open.** The program starts, the header says `📖  (book)`, and the view of the
+   key `S` holds a line of no character. No server of a measurement gives such a
+   name, therefore a text for that line would name a condition that no
+   measurement has reached (T-91 and T-118).
+
+**The condition that this session leaves open.** None of its own. The road of
+the next session stands in the prompt at the end of this file.
+
+### The gates of this session
+
+| The gate | The answer |
+|---|---|
+| `cargo clippy --all-targets -- -D warnings` | no word |
+| `cargo fmt --check` | no word |
+| `cargo nextest run` | **1102 of 1102** in 2.3 seconds |
+| `cargo nextest run --run-ignored all` | **1127 of 1127** in 18.4 seconds, with the sandbox up |
+| `cargo test -j 16 --no-fail-fast` | three runs, and every run passed |
+| `cargo tree -i openssl-sys` | no package |
+| `cargo tree -i cc` | `libsqlite3-sys` and `ring` only |
 
 ## The session of the seventeenth turn of 2026-08-14: the login of no library
 
@@ -3744,6 +3803,36 @@ answers slowly while it writes. Two answers to measure:
     `io::stdout().lock()` for their whole life, and a panic of another thread
     then held the program for ever. `the_backend_of_a_field` of
     `src/ui/text_field.rs` is the one place of that decision now (T-174).
+139. **A key that reads a state of the server and that then writes it needs a
+    proxy of one method.** The read and the write of the keys `M` and `N` stand
+    on **one** path, therefore `one_path_fails.py` fails both of them and the
+    fault of the read never reaches the screen.
+    **`docs/harness/one_method_fails.py`** takes rules of the shape
+    `METHOD:part-of-a-path`:
+    ```bash
+    python3 docs/harness/one_method_fails.py 13500 13399 requests.log \
+        GET:/api/me/progress
+    ```
+    The log of that proxy says whether a write left the program (T-175).
+140. **A body of the libraries of your own is
+    `docs/harness/another_body_of_the_libraries.py`.** It forwards every request
+    to the sandbox, and it answers `GET /api/libraries` with the body of a file:
+    ```bash
+    python3 docs/harness/another_body_of_the_libraries.py 13502 13399 \
+        requests.log /the/absolute/path/of/the/body.json
+    ```
+    Take the body of the sandbox with `curl`, change one field of it with
+    `python3`, and the program of the sandbox then meets a server of another
+    version (T-176).
+141. **`pkill -f` of a program of a harness kills the shell of that harness**
+    (the trap 114), and a `for` loop of this shell holds the name of the
+    program in its own command line. **The process of a port comes of
+    `ss -lptnH 'sport = :13502'`** (the trap 131), and one line of a function
+    stops it:
+    ```bash
+    pid=$(ss -lptnH "sport = :13502" | grep -o 'pid=[0-9]*' | head -1 | cut -d= -f2)
+    [ -n "$pid" ] && kill "$pid"
+    ```
 
 ### Of the harness and of the machine
 
@@ -4063,19 +4152,19 @@ answers slowly while it writes. Two answers to measure:
 
 ## The prompt for the next session
 
-**This session took the login screen, the first part that the session before it
-named.** A server that answers the login and that holds no library stopped the
-thread of the login with an index of a list of nothing (T-173), and **the
-program then said nothing at all: it stood for ever with a screen of no
-character** (T-174). The cause of the silence is one lock of the standard
-output that three screens of this program held, and `strace` found it after two
-other roads lied. The session left no item open. **The next session must name a
+**This session took two parts that the session before it named**: a key that
+writes to the server, and the answer of `GET /api/libraries`. **The keys `M` and
+`N` read a state of the server and they then write the opposite of it**, and a
+read that came back with a fault took each key to one direction alone (T-175).
+**`Library` asked for every field of the answer of one version of
+Audiobookshelf**, and one field that the program never reads stopped the whole
+program (T-176). The session left no item open. **The next session must name a
 condition of its own.** This prompt names the state of the program on
 2026-08-14.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.7**; `Cargo.toml` is at 0.8.7. The
+> AlbanDAVID/Toutui. Newest release **v0.8.8**; `Cargo.toml` is at 0.8.8. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -4084,7 +4173,7 @@ condition of its own.** This prompt names the state of the program on
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-174 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-176 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -4194,6 +4283,32 @@ condition of its own.** This prompt names the state of the program on
 > python3 docs/harness/no_library.py 13501 13399 requests.log
 > ```
 >
+> **A key that reads a state of the server and that then writes it needs
+> `docs/harness/one_method_fails.py`** (T-175): the read and the write of the
+> keys `M` and `N` stand on one path, therefore a proxy that fails the whole
+> path hides the fault of the read. It takes rules of the shape
+> `METHOD:part-of-a-path`, and its log says whether a write left the program:
+>
+> ```bash
+> python3 docs/harness/one_method_fails.py 13500 13399 requests.log \
+>     GET:/api/me/progress
+> ```
+>
+> **A body of the libraries of your own is
+> `docs/harness/another_body_of_the_libraries.py`** (T-176). It forwards every
+> request to the sandbox, and it answers `GET /api/libraries` with the body of a
+> file: take the body of the sandbox with `curl`, change one field of it with
+> `python3`, and the program then meets a server of another version:
+>
+> ```bash
+> python3 docs/harness/another_body_of_the_libraries.py 13502 13399 \
+>     requests.log /the/absolute/path/of/the/body.json
+> ```
+>
+> **`pkill -f` of a proxy kills the shell of this harness** (the trap 114): the
+> command line of a `for` loop of the shell holds that name too. The process of
+> a port comes of `ss -lptnH 'sport = :13502'` (the trap 131 and the trap 141).
+>
 > **The login screen needs a `XDG_CONFIG_HOME` that holds no account** (the trap
 > 135): make a directory of nothing, give it and a `XDG_DATA_HOME` of nothing to
 > the program, and write the address of the proxy in the first field.
@@ -4254,15 +4369,19 @@ condition of its own.** This prompt names the state of the program on
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in thirty sessions of thirty-one. **No condition of
->    the road stays**: the session of the seventeenth turn took the login screen
->    that the session before it named, and it found a login that stops the
->    program (T-173) and a program that says nothing at all of a fault of one
->    thread (T-174). It wrote the correction of each, and it left no item open.
+>    the road stays**: the session of the eighteenth turn took a key that writes
+>    to the server and the answer of `GET /api/libraries`, and it found a key
+>    that writes a state that it did not read (T-175) and a library of one field
+>    fewer that stops the program (T-176). It wrote the correction of each, and
+>    it left no item open.
 >    - **The three shapes that found a fault before:** **a state of one process
 >      that a second program cannot see** (T-142, T-147, T-148, T-150, T-153 to
 >      T-167), **a program that dies in the middle of work** (T-145, T-152), and
->      **a server that does not answer, or that answers with a fault** (T-146,
->      T-149, T-152, T-156, T-167, T-168, T-169, T-170, T-171, T-173).
+>      **a server that does not answer, that answers with a fault, or that
+>      answers with another body** (T-146, T-149, T-152, T-156, T-167 to T-176).
+>      **A fourth shape came of T-175**: a key that **reads** a state of the
+>      server and that then writes it. A proxy of one path hides that fault, and
+>      `docs/harness/one_method_fails.py` gives it.
 >    - **The class of the views of `one_path_fails.py` is closed.** The bookmarks,
 >      the sessions, the statistics, the authors and the narrators, the devices of
 >      an e-reader, and the downloads of the server each hold a `State::Fault`,
@@ -4273,14 +4392,29 @@ condition of its own.** This prompt names the state of the program on
 >      sweep stood in the header** (T-171): a sweep of a class must read the whole
 >      screen, and not the panel of the view alone.
 >    - **The parts of the program that a server of a fault has not reached**: the
->      keys that write to the server (`M`, `N`, `F`, `b`, `n`, `m`, `r`, `D`, and
->      `X`), the send of an ebook to an e-reader, and the stream of the audio.
->      **The first request of the program is closed** (T-172), and **the login
->      screen is closed for the status of `POST /login` (T-92) and for a server
->      that gives no library (T-173)**. The answer of `GET /api/libraries` after
->      the login holds more shapes that no measurement has reached: a library
->      that holds no name, a body that is not the JSON of that endpoint, and the
->      status `500` of that one request.
+>      keys `F`, `b`, `n`, `m`, `r`, `D`, and `X`, the send of an ebook to an
+>      e-reader, and the stream of the audio. **The keys `M` and `N` are closed**
+>      (T-175), **the first request of the program is closed** (T-172), and **the
+>      login screen is closed for the status of `POST /login` (T-92), for a
+>      server that gives no library (T-173), and for a body of the libraries that
+>      the program cannot read (T-176)**. **The road of T-175 is the one to
+>      take**: a key that reads a state and that then writes it. `Err(_)` of
+>      `src/app.rs` held two of them, and the sweep of that shape must ask, for
+>      every key that writes, **what the program read before that write**.
+>    - **The shape of T-176 is the answer of the server that the program cannot
+>      read**, and one structure of `src/api/` is left with a reason:
+>      `src/api/me/get_media_progress.rs`. A default of a field of a position is
+>      a **state**, and a state that the program did not read is T-175: a row
+>      that does not read takes a line of the log alone
+>      (`the_account_of_the_token` of `src/api/me/permissions.rs`), therefore the
+>      program keeps every position that reads and it stops for none of them.
+>      **The condition that no measurement has reached**: a body of `GET /api/me`
+>      whose `mediaProgress` holds a row that does not read — the user then sees
+>      no place of that media, and no word says why.
+>    - **A library whose name holds no character is measured** (T-176), and the
+>      words of it stay open by a decision: the program starts, the header says
+>      `📖  (book)`, and the view of the key `S` holds a line of no character. No
+>      server of a measurement gives such a name.
 >    - **A program that says nothing at all is the shape of T-174**, and no sweep
 >      of the words for the user finds it. **The parts of the program that no
 >      measurement of that shape has reached**: a panic of a thread while a view
@@ -4389,7 +4523,11 @@ condition of its own.** This prompt names the state of the program on
 > reaches no library writes no row of the database and it says that the server
 > gave no library** (T-173), and **no screen of a field holds the lock of the
 > standard output, because a hook of a panic of another thread writes to it**
-> (T-174).
+> (T-174), and **a key that reads a state of the server writes nothing when that
+> read came back with a fault: the status 404 is the answer of a media that
+> never played, and every other fault stops the write** (T-175), and **the
+> program reads the id, the name, and the media type of a library, and every
+> other field of that answer takes a default** (T-176).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

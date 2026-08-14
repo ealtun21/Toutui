@@ -41,6 +41,26 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.8",
+        date: "14/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The keys `M` and `N` wrote the wrong state when the server did not \
+             answer their first request.** Each key reads the state of the media and it \
+             then writes the opposite of it. A read that came back with a fault gave the \
+             key the value \"not finished\" and \"not away from the shelf\" at every \
+             press: a book that you finished stayed finished, a book that you took away \
+             from Continue Listening stayed away, and Toutui told you that it made the \
+             change. Toutui writes nothing now, and it says what the server said.",
+            "- **One field of a library that Toutui does not read stopped Toutui.** The \
+             list of the libraries of a server of another version can hold one field \
+             fewer, and Toutui then said \"it cannot read the lists of the server\" and \
+             stopped. Toutui reads the id, the name, and the type of a library now, and \
+             every other field of that answer changes nothing. The words of an answer \
+             that Toutui cannot read name the field too.",
+        ],
+    },
+    Entry {
         version: "0.8.7",
         date: "14/08/2026",
         body: &[

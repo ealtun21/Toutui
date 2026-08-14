@@ -7629,6 +7629,197 @@ and of the two keys: three of them fail with the correction removed. **No unit
 test reaches `App::the_line_of_the_queue_holds_its_media`**, because that method
 needs an application of a server — the rule of T-131, of T-159, and of T-160.
 
+### T-176: one field of a library that the program does not read stopped the program
+
+**The road of T-173 named this condition**: the answer of `GET /api/libraries`
+after the login holds more shapes than the empty list of that item — a library
+that holds no name, and a body that is not the JSON of that endpoint.
+`docs/harness/another_body_of_the_libraries.py` gives every one of them. It
+forwards every request to the sandbox, and it answers that one path with the
+body of a file:
+
+```bash
+python3 docs/harness/another_body_of_the_libraries.py 13502 13399 \
+    requests.log /the/absolute/path/of/the/body.json
+```
+
+**The fault is larger than the words.** `Library` of
+`src/api/libraries/get_all_libraries.rs` asked for **every** field of the answer
+of Audiobookshelf 2.36.0, and the program reads three of them.
+
+| The body of `GET /api/libraries` | The program of the account of the sandbox |
+|---|---|
+| **No `icon` of the first library** | **it stopped**: `Toutui stops: it cannot read the lists of the server.` |
+| **No `settings.autoScanCronExpression`** | **it stopped**, with the same four lines |
+| No `name` of the first library | it stopped, with the same four lines |
+| No JSON at all | it stopped, with the same four lines |
+| A field of a later version | it started, and the 34 lines of the Home view came |
+| A `name` of no character | it started |
+
+**`icon` and `autoScanCronExpression` reach no line of this program**, and
+neither does `provider`, `displayOrder`, `createdAt`, `lastUpdate`, `lastScan`,
+`lastScanVersion`, or one field of `settings`. A server of another version can
+hold one of them fewer, and every user of that server then has no program. The
+login of a new account gives the same fault one screen earlier: the login screen
+said `The answer of the server is not valid: error decoding response body`.
+
+**The second half of the item is the words.** The four faults of the table gave
+**one** sentence, and it names no field and no place:
+`error decoding response body` are the words of `reqwest::Response::json`, and
+they say the same thing to the user, to the maintainer, and to the log for a
+field that the program does not need, for a field that it needs, and for a body
+of no JSON at all.
+
+#### The correction
+
+1. **`Library` holds three fields that stay**: `id`, `name`, and `mediaType`.
+   The row of the account of the database holds the name and the id (T-173), and
+   the media type decides the views. **Every other field takes
+   `#[serde(default)]`**, and `Settings` takes it for the whole structure: no
+   line of this program reads one field of it. `folders` gives an empty list,
+   and the sentence `This library has no folder. The web page adds one.` of a
+   new podcast stands already.
+2. **`the_body_of_the_answer` of `src/api/client/mod.rs` reads the body with
+   `serde_json`**, and the fault then names the field and the place:
+   `missing field \`name\` at line 1 column 620`. `get_json` and `post_json`
+   both take it. **The body stays in the memory of that function**: a body can
+   hold a token, therefore no line of it reaches the screen or the log.
+
+| The measurement, after the correction | The answer |
+|---|---|
+| No `icon` | **the program starts**, and the Home view holds its 34 lines |
+| No `settings.autoScanCronExpression` | **the program starts** |
+| A field of a later version | the program starts |
+| No `name` | the program stops, and it says `missing field \`name\` at line 1 column 620` |
+| No JSON at all | the program stops, and it says `expected ident at line 1 column 2` |
+
+`tests/a_library_of_another_shape_reads.rs` holds the rule, and each half of the
+correction has its own line of that test: a body of the three fields alone gives
+two libraries, and a body of no name gives `missing field \`name\``. With the
+default of `icon` taken away the first assertion fails, and with
+`the_body_of_the_answer` taken away the second one does.
+
+**A library whose name holds no character stays as it is, and that is a
+decision.** The measurement gave the name of no character to the library
+`Books` of the sandbox: the program started, the header said `📖  (book)`, and
+the view of the key `S` held `[5 items]` with **a line of no character**. The
+user reaches that library with the keys `j` and `l`, and they cannot name it. No
+server of a measurement gives such a name — the web page of Audiobookshelf asks
+for one — therefore a text of this program for that line would name a condition
+that no measurement of a server has reached (T-91 and T-118). **The condition is
+measured, and the words of it stay open for a session that finds such a
+server.**
+
+**The structures of the media hold this rule already.** `get_all_books.rs`,
+`sessions.rs`, `bookmarks.rs`, `get_authors.rs`, and `stats/mod.rs` give every
+field an `Option` or a default. **`src/api/me/get_media_progress.rs` is the one
+structure that is left**, and it stays as it is with a reason: a field of a
+position that the program does not read is a **state**, and a default of that
+state is the fault of T-175. A row of that answer that does not read takes a
+line of the log and no more (`the_account_of_the_token` of
+`src/api/me/permissions.rs`), therefore it stops no program.
+
+### T-175: the keys `M` and `N` wrote a state that the program did not read
+
+**The road of T-171 named the keys that write to the server, and no measurement
+had reached them.** The keys `M` (the mark "finished") and `N` (the shelf
+Continue Listening) are not a write alone: **each of them reads a state of the
+server, and it then writes the opposite of it.** A read that did not come back
+therefore takes the key to one direction at every press.
+
+```rust
+match api.get_json(&format!("/api/me/progress/{}", item_id)).await {
+    Ok(answer) => answer,
+    // A media that never played has no progress, and the server gives an
+    // error. Such a media is not finished.
+    Err(_) => serde_json::json!({}),
+};
+```
+
+**The comment is true of one status alone.** A measurement of 2026-08-14
+against the sandbox: `GET /api/me/progress/:id` of `A Book That No Reader Reads`
+gives `404 Not Found`, and the same request of a book that played gives `200`
+with the progress. **`Err(_)` holds the status 500, the limit of time, the token
+that the server refused, and an answer that is not JSON** — and it reads every
+one of them as "the server has no progress for this media".
+
+#### The harness of the measurement
+
+`one_path_fails.py` fails **every** method of a path, and the read and the write
+of these two keys stand on the **same** path. A proxy of that shape gives the
+fault to the `PATCH` too, and the program then says
+`The server did not take the mark: …`: the fault of the read never reaches the
+screen. **`docs/harness/one_method_fails.py` is the harness of this item.** It
+takes rules of the shape `METHOD:part-of-a-path`:
+
+```bash
+python3 docs/harness/one_method_fails.py 13500 13399 requests.log \
+    GET:/api/me/progress
+```
+
+The traps of `one_path_fails.py` are the traps of this file too: one address in
+`users.server_address` (the trap 129), the state `Up` of the answer 500
+(T-128), and the absolute path of the log (the trap 132).
+
+#### The measurement, of the real program in tmux
+
+| The moment | The answer |
+|---|---|
+| The server holds `A Long Test Book` as finished | `isFinished true` |
+| The key `M` of the user, who wants the mark away | **`The media is finished now.`** |
+| The log of the proxy | `500 GET /api/me/progress/…`, and then `--- PATCH /api/me/progress/…` |
+| The server after the key | **`isFinished true`** |
+| The server holds `A Big Book Of A Scan` away from the shelf | `hideFromContinueListening true` |
+| The key `N` of the user, who wants it back | **`The media is away from Continue Listening now.`** |
+| The server after the key | **`hideFromContinueListening true`** |
+
+**The key of the user did the opposite of its work, and the words of the program
+named a state that it never read** (T-91). The second form of the same fault
+changes data: a book at 42 per cent whose read fails goes to `isFinished true`
+with the same key, and the user who wanted no mark cannot see why.
+
+#### The correction
+
+`the_progress_that_the_server_gave` of `src/app.rs` is pure, and it holds the one
+decision: **the status 404 is the answer of a media that never played, and every
+other fault stops the write.** `mark_the_media` and `hide_the_media` then say
+one sentence each:
+
+- `The server did not give the mark: The server reported a fault. Status 500.
+  The program changed nothing. Press M to ask the server again.`
+- `The server did not give the state of this media: The server reported a fault.
+  Status 500. The program changed nothing. Press N to ask the server again.`
+
+Each sentence names what the server said (T-91), it says that the program wrote
+nothing, and it names the key that does that work again (T-170). **The row of
+the message holds one line** (the trap 11): a screen of fewer than about 150
+columns cuts the end of these sentences with three points, and the log holds the
+whole text. The measurement after the correction, with the same proxy: both
+sentences stood on the screen of 160 columns, and **no `PATCH` left the
+program**.
+
+| The measurement | Before | After |
+|---|---|---|
+| The key `M` of a media that the server holds as finished, with the read of 500 | `The media is finished now.`, and a `PATCH` of `isFinished: true` | the sentence of the fault, and no `PATCH` |
+| The key `N` of a media that stands away from the shelf, with the read of 500 | `The media is away from Continue Listening now.`, and a `PATCH` | the sentence of the fault, and no `PATCH` |
+| The state of the media of the server after the two keys | the write of the program | **no change** |
+| The key `M` of a media that never played (the read gives 404) | `The media is finished now.` | the same, and the `PATCH` goes |
+
+`tests/the_keys_of_a_state_that_the_server_did_not_give.rs` holds the rule. A
+host of a raw socket gives the fault to `GET /api/me/progress` alone, it answers
+every other request with `200`, and it writes down the method and the path of
+every request that came: the test therefore says that the program wrote nothing.
+**The test needs no sandbox and no network**, and it holds the road of the 404
+too. With the correction taken away it says
+`the key M must say that the server did not give the mark, and it says "The
+media is finished now."`
+
+**No other key of this program holds this shape.** The two functions of `Err(_)`
+of `src/app.rs` are the two of this item, and every other write of a key
+(`src/api/lists.rs`, `src/api/me/update_media_progress.rs`, the place of the
+book of the reader) sends the value of the user and says the fault of the server
+with it.
+
 ### T-174: a fault of one thread stopped the program with a screen of no character
 
 **This item comes of the measurement of T-173, and it is the larger of the
