@@ -4,7 +4,10 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.71.** The item T-242 belongs to this session. The
+**The newest release is v0.8.74.** The item T-245 belongs to this session. The
+item T-244 belongs to the session before it. The
+item T-243 belongs to the session before it. The
+item T-242 belongs to the session before it. The
 item T-241 belongs to the session before it. The
 item T-240 belongs to the session before it. The
 item T-239 belongs to the session before it. The
@@ -79,13 +82,53 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.73**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.74**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1227 of 1227** in 2.6 seconds with 26 skipped,
+**1228 of 1228** in 2.5 seconds with 26 skipped,
 `cargo nextest run --run-ignored all` gives **1253 of 1253** with
 the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no
 failure in three runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the seventy-fourth turn of 2026-08-15: the view of the episodes holds the places of its own podcast
+
+**One release: v0.8.74**, and one item: T-245 of the places of the user of the
+view of the episodes of a podcast. **The road of it is the first paragraph of
+"What this item leaves open" of T-244**: the view of the episodes of a search
+held no place of the user at all. That paragraph held a fault, and it named the
+wrong box for it — `App::all_ids_pod_ep_search` takes a write of the render at
+each frame (`src/ui/tui.rs:2175`), with every other list of that view. **The
+one list of that view that no list of the library carried is the list of the
+places** of T-229, and the measurement of this round found that the same root
+reaches the view of the episodes of the **Library** view, where it does worse:
+that view does not lose the places, it holds the places of a **different**
+podcast.
+
+The measurement, of the library `Podcasts` of the sandbox: the user opened
+`Letters of Two Brides` (no place of any episode), they went back, they opened
+`Arthur Gordon Pym` (`22% Chapter 00`, `74% Chapter 01`, `89% Chapter 02`), they
+went back, and they opened `Letters of Two Brides` a second time. That third
+view said `22% Letter 1`, `74% Letter 2`, and `89% Letter 3`, and the panel of
+the first line said `Progress: 22%, 28m left, Not finished` — the place of an
+episode of one podcast with the length of an episode of the other one. **The
+program reads the episodes of a podcast one time** (T-126), therefore the second
+open makes no request, and the places came of the request alone.
+
+The correction gives the places a list of the library, of the shape of
+`all_the_lengths_of_the_episodes` of T-236: `App::all_pod_ep_places` and
+`App::all_pod_ep_places_search`. The answer of each podcast writes the row of
+that podcast, the key of a line reads the row of its line, and the render of the
+view of the search writes its lists out of the lists of the library. **It costs
+no request at all.** The same eight keys of the corrected program gave the
+letters with no percent, and a control of `Letter 2` at 40 percent gave
+`40% Letter 2` and nothing of the other lines, in the view of the Library and in
+the view of the search together.
+
+The test is `tests/the_places_of_the_view_of_the_episodes_hold_their_podcast.rs`,
+of an `App` of two podcasts and of the box of `crate::logic::the_episodes`, in
+one function. **Two builds of the fault fail it**: the read of the row removed
+gives the places of the other podcast, and the write of the row removed gives
+`[[], []]` for the lists of the library.
 
 ## The session of the seventy-third turn of 2026-08-15: the panel of an episode says the time that is left
 
@@ -9947,44 +9990,89 @@ place in two others.**
 - **The lines of the view of the bookmarks hold no place of the user**
   (T-229 to T-241, and it stays open).
 
+### The turn of the seventy-first: the line of a book of the Library view (T-242)
+
+**The
+session of the seventy-first turn took the first paragraph of "What this
+item leaves open" of the newest item: that paragraph named a value that
+one part of a view says and that the part above it does not, and the
+measurement found the two parts of one view in one frame** (T-242).
+
+The server held `A Book Of Many Hours` at 10800 seconds of 28800 with the
+percent 84. **The control of the same run** (the trap 206): the line of
+that book of the Home view said `  84% A Book Of Many Hours`. The key
+`Tab` and nine keys `j` gave the Library view of that same book, and the
+line of it said `➤     A Book Of Many Hours` while the panel one row under
+it said `Progress: 84%, 5h left, Not finished`. **A list of 18 books held
+no number of any line, and no line of a book that the user finished held
+the mark `✓`.**
+- **A line and the panel of that line are two parts of one view, and a
+  round that corrects one of them must ask for the other** (T-241 and
+  T-242): T-241 gave the place of the user to the panel of those two
+  views, and the line above it kept the mark of the media that plays
+  alone. **Ask of every correction: which part of that same view says the
+  same value, and does it say it now?**
+- **A correction that costs no request is a correction of every view of
+  that shape** (T-242): the box of the places of the account of T-241
+  reached the two lines with no request at all, therefore the round of the
+  line cost one function of 20 lines.
+- **A view that renders the titles of the server holds no mark at all**
+  (T-242): the Library view took `marks::of_library` and the view of the
+  search took no function of `marks` at all. **A sweep of `crate::ui::marks`
+  names every list of the program that says a place of the user, and every
+  list that does not.**
+- **The line and the panel of the view of the lists, of the view of the
+  series, and of the view of the books of a series hold no place of the
+  user** (T-241 to T-242, and it stays open): those three views name a
+  book of the library too.
+- **The line of the Library view of a library of podcasts says no place at
+  all** (T-242, and it stays open): a podcast holds more than one episode,
+  and the line of it names no episode (T-221).
+- **A media of the queue that no playback of this program moves keeps the
+  place of the moment of the key `q`** (T-230 to T-242, and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-242, and it stays open).
+
 ## The prompt for the next session
 **This session took the first paragraph of "What this item leaves open" of the
-newest item, and that paragraph held no fault at all.** T-243 named the view of
-the authors and the view of the narrators: a line of those views names an
-**author** and not a media, and the key `l` of such a line gives the Library
-view with a filter, whose line and panel hold the place of the user already
-(T-241 and T-242). The round wrote that measurement, it closed the paragraph,
-and it took the next condition of the same shape — the panel of a line of an
-episode of a podcast said `Progress: 22%, Not finished` in the Home view and in
-the view of the episodes, while the view of `A Podcast Playlist` of that same
-run said `Progress: 100%, 0m left, Finished` for that same episode. The item is
-**T-244**, and it holds one release, v0.8.73.
+newest item, and that paragraph held a fault and it named the wrong box for
+it.** T-244 said that the view of the episodes of a search holds no place of the
+user because `App::all_ids_pod_ep_search` takes no write; the render of that
+view writes that box at each frame (`src/ui/tui.rs:2175`), with every other list
+of the view. **The one list with no list of the library behind it is the list of
+the places** of T-229, and the measurement of that root found the fault of the
+**Library** view too, where it does worse: a user who opened one podcast, went
+back, and opened a second one saw `22% Letter 1`, `74% Letter 2`, and
+`89% Letter 3` — the places of the episodes of the first podcast — with the
+panel `Progress: 22%, 28m left, Not finished`. The item is **T-245**, and it
+holds one release, v0.8.74.
 
 Three things are worth the room:
 
-1. **A paragraph that stays open is a candidate and not an item.** The first
-   paragraph of T-243 held no fault, and the value of the round was the
-   measurement that closed it plus the next condition. **A round that finds
-   nothing in its paragraph must not stop**: it writes the measurement of that
-   paragraph in the item, and it takes the condition after it.
-2. **A value of a view holds more than one road, and each of them stops it
-   alone.** The time that is left of the panel of an episode needed three
-   corrections together: the format of the panel, the length of the media of
-   the Home view (`duration_cnt_list` holds the length of a book and a library
-   of podcasts leaves it empty), and the third part of the row of the places of
-   the episodes. **Take every road of one value in one round.**
-3. **A box that no road of the program writes is a fault that hides behind a
-   fresh request.** `App::all_ids_pod_ep_search` takes no write at all, and the
-   loop of the keys empties `self.ids_pod_ep_search` out of it at each key: the
-   view of the episodes of a search therefore holds the place of the user for
-   the frames of one request and for no key after it.
-   Twenty sessions of twenty took a paragraph of "What this item leaves open".
+1. **A paragraph that stays open names a candidate, and the box that it names
+   may be the wrong one.** The round read the source of the box of the
+   paragraph, it found a write of the render, and the measurement then found
+   the neighbour of that box with no write at all. **Read the source of the
+   paragraph before you take its word for the road.**
+2. **A list of a view that no list of the library carries is a list of the
+   last answer.** Ten lists of the view of the episodes come of the lists of
+   the library, and one came of the request of one podcast: **ask of every
+   list of a view which list of the library holds it**, because a program that
+   makes one request for one media (T-126) shows the answer of another media
+   for ever.
+3. **A value that is wrong is worse than a value that is missing.** T-244 saw a
+   view of no percent, and the same root gave a different view the percent of
+   another podcast beside the length of this one. **A measurement of a value
+   that a view does not say must ask what that view says in the run before
+   it.**
+   Twenty-one sessions of twenty-one took a paragraph of "What this item leaves
+   open".
 
 This prompt names the state of the program on 2026-08-16.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.73**; `Cargo.toml` is at 0.8.73. The
+> AlbanDAVID/Toutui. Newest release **v0.8.74**; `Cargo.toml` is at 0.8.74. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -9993,7 +10081,7 @@ This prompt names the state of the program on 2026-08-16.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-244 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-245 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -10619,6 +10707,49 @@ This prompt names the state of the program on 2026-08-16.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in eighty-three sessions of eighty-four.
 >    **The
+>    session of the seventy-fourth turn took the first paragraph of "What this
+>    item leaves open" of the newest item: that paragraph held a fault, and it
+>    named the wrong box for it. The measurement of the right box found the
+>    same fault in a second view, and worse there** (T-245).
+>
+>    T-244 said that the view of the episodes of a search holds no place of the
+>    user because `App::all_ids_pod_ep_search` takes no write of any road. **The
+>    render of that view writes that box at each frame**
+>    (`src/ui/tui.rs:2175`), with the titles, the subtitles, the seasons, the
+>    numbers, the authors, the descriptions, the durations, and the lengths.
+>    **The one list of that view with no list of the library behind it is the
+>    list of the places** of T-229.
+>
+>    The measurement, of the library `Podcasts` of two podcasts: the user opened
+>    `Letters of Two Brides` (no place of any line), the key `h`, they opened
+>    `Arthur Gordon Pym` (`22% Chapter 00`, `74% Chapter 01`, `89% Chapter 02`),
+>    the key `h`, and they opened `Letters of Two Brides` a second time. That
+>    view said `22% Letter 1`, `74% Letter 2`, and `89% Letter 3`, and the panel
+>    of the first line said `Progress: 22%, 28m left, Not finished` — the place
+>    of an episode of one podcast beside the length of an episode of the other
+>    one. **The control of the same run** (the trap 206): the first open of that
+>    same podcast said no percent at all.
+>    - **A paragraph that stays open names a candidate, and the box that it
+>      names may be the wrong one** (T-245). **Read the source of the paragraph
+>      before you take its word for the road.**
+>    - **Ask of every list of a view which list of the library holds it**
+>      (T-245): a program that makes one request for one media (T-126) shows
+>      the answer of another media for ever when the list of that view lives in
+>      the answer alone.
+>    - **A value that is wrong is worse than a value that is missing** (T-245).
+>    - **The keys of the view of the episodes of a search read
+>      `ids_pod_ep_search`** (T-244 to T-245, and it stays open): the key of the
+>      playback, the key `D`, and the key `X` of a line of that view are not
+>      measured.
+>    - **A media of the queue that no playback of this program moves keeps the
+>      place of the moment of the key `q`** (T-230 to T-245, and it stays open),
+>      and the panel of a line of that view is not measured.
+>    - **The lines of the view of the bookmarks hold no place of the user**
+>      (T-229 to T-245, and it stays open).
+>    - **The line of the Library view of a library of podcasts says no place at
+>      all** (T-242 to T-245, and it stays open).
+>
+>    **The
 >    session of the seventy-third turn took the first paragraph of "What this
 >    item leaves open" of the newest item: that paragraph held no fault at
 >    all, and the round then took the next condition of the same shape that a
@@ -10715,51 +10846,9 @@ This prompt names the state of the program on 2026-08-16.
 >    - **The lines of the view of the bookmarks hold no place of the user**
 >      (T-229 to T-243, and it stays open).
 >
->    **The
->    session of the seventy-first turn took the first paragraph of "What this
->    item leaves open" of the newest item: that paragraph named a value that
->    one part of a view says and that the part above it does not, and the
->    measurement found the two parts of one view in one frame** (T-242).
->
->    The server held `A Book Of Many Hours` at 10800 seconds of 28800 with the
->    percent 84. **The control of the same run** (the trap 206): the line of
->    that book of the Home view said `  84% A Book Of Many Hours`. The key
->    `Tab` and nine keys `j` gave the Library view of that same book, and the
->    line of it said `➤     A Book Of Many Hours` while the panel one row under
->    it said `Progress: 84%, 5h left, Not finished`. **A list of 18 books held
->    no number of any line, and no line of a book that the user finished held
->    the mark `✓`.**
->    - **A line and the panel of that line are two parts of one view, and a
->      round that corrects one of them must ask for the other** (T-241 and
->      T-242): T-241 gave the place of the user to the panel of those two
->      views, and the line above it kept the mark of the media that plays
->      alone. **Ask of every correction: which part of that same view says the
->      same value, and does it say it now?**
->    - **A correction that costs no request is a correction of every view of
->      that shape** (T-242): the box of the places of the account of T-241
->      reached the two lines with no request at all, therefore the round of the
->      line cost one function of 20 lines.
->    - **A view that renders the titles of the server holds no mark at all**
->      (T-242): the Library view took `marks::of_library` and the view of the
->      search took no function of `marks` at all. **A sweep of `crate::ui::marks`
->      names every list of the program that says a place of the user, and every
->      list that does not.**
->    - **The line and the panel of the view of the lists, of the view of the
->      series, and of the view of the books of a series hold no place of the
->      user** (T-241 to T-242, and it stays open): those three views name a
->      book of the library too.
->    - **The line of the Library view of a library of podcasts says no place at
->      all** (T-242, and it stays open): a podcast holds more than one episode,
->      and the line of it names no episode (T-221).
->    - **A media of the queue that no playback of this program moves keeps the
->      place of the moment of the key `q`** (T-230 to T-242, and it stays open).
->    - **The lines of the view of the bookmarks hold no place of the user**
->      (T-229 to T-242, and it stays open).
->
->
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the seventieth and every turn before it, the item of each, and the sweeps
+>    the seventy-first and every turn before it, the item of each, and the sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
 >    says nothing at all (T-174), the rule of the line of a view for the six
@@ -11108,7 +11197,12 @@ This prompt names the state of the program on 2026-08-16.
 > time that is left: the row of the place of an episode holds the place of the
 > user in seconds beside the percent, the length of the line of the Home view
 > of a library of podcasts is the length of an episode, and an episode that the
-> user did not begin names no time that is left** (T-244).
+> user did not begin names no time that is left** (T-244), and **the view of
+> the episodes of a podcast holds the places of the episodes of that podcast:
+> the lists of the library hold one row of places for each podcast, the key of
+> a line reads the row of its line, and the render of the view of the search
+> writes its own lists out of those lists — therefore a second visit of a
+> podcast costs no request and it says no place of another podcast** (T-245).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

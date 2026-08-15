@@ -41,6 +41,25 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.74",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The view of the episodes of a podcast held the places of a \
+             different podcast.** The program reads the episodes of a podcast \
+             one time, therefore a second visit of that podcast makes no \
+             request, and the places of the user came of the request alone: a \
+             user who opened one podcast, went back, and opened a second \
+             podcast saw the percent of the episodes of the first one on the \
+             lines of the second one — `22% Letter 1`, `74% Letter 2`, and \
+             `89% Letter 3` for three episodes that they never played, with \
+             the panel `Progress: 22%, 28m left, Not finished`. The lists of \
+             the library hold the places of each podcast now, and the view of \
+             the episodes and the view of the episodes of a search each hold \
+             the places of the podcast of their line.",
+        ],
+    },
+    Entry {
         version: "0.8.73",
         date: "15/08/2026",
         body: &[

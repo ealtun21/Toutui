@@ -2182,6 +2182,9 @@ impl App {
         self.all_durations_pod_ep_search = the_values_at(&self.all_durations_pod_ep, &places);
         self.all_the_lengths_of_the_episodes_search =
             the_values_at(&self.all_the_lengths_of_the_episodes, &places);
+        // The place of the user of each episode of each podcast of this view.
+        // See T-245.
+        self.all_pod_ep_places_search = the_values_at(&self.all_pod_ep_places, &places);
         self.ids_library_pod_search = the_values_at(&self.ids_library, &places);
 
         // **The line of a book of this view held no mark of the percent**

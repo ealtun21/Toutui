@@ -386,6 +386,16 @@ pub struct App {
     /// The length of each episode of each podcast of the library, in seconds.
     /// The text of `all_durations_pod_ep` gives no number. See T-236.
     pub all_the_lengths_of_the_episodes: Vec<Vec<Option<f64>>>,
+    /// The place of the user of each episode of each podcast of the library,
+    /// in the form of `pod_ep_places`. See T-245.
+    ///
+    /// **The view of the episodes held the places of the podcast that the user
+    /// opened before it**: the lists of the episodes came of these lists of the
+    /// library, and the places came of the request of that one podcast alone.
+    /// A podcast whose episodes the program read already makes no request
+    /// (T-126), therefore the line of `Letter 1` of the sandbox said `22%` —
+    /// the place of `Chapter 00` of the other podcast of that library.
+    pub all_pod_ep_places: Vec<Vec<Vec<String>>>,
     /// `true` for each podcast whose episodes the program read. See T-126.
     ///
     /// A podcast of no episode and a podcast whose episodes the program did not
@@ -466,6 +476,9 @@ pub struct App {
     /// The length of each episode of each podcast of the view of the
     /// search, in seconds. See T-236.
     pub all_the_lengths_of_the_episodes_search: Vec<Vec<Option<f64>>>,
+    /// The place of the user of each episode of each podcast of the view of
+    /// the search. See T-245.
+    pub all_pod_ep_places_search: Vec<Vec<Vec<String>>>,
     pub auth_names_pod_search_book: Vec<String>,
     /// The title of each line of the view of the search.
     ///
@@ -1483,6 +1496,7 @@ impl App {
         let all_titles_pod_search: Vec<Vec<String>> = Vec::new();
         let all_durations_pod_ep_search: Vec<Vec<String>> = Vec::new();
         let all_the_lengths_of_the_episodes_search: Vec<Vec<Option<f64>>> = Vec::new();
+        let all_pod_ep_places_search: Vec<Vec<Vec<String>>> = Vec::new();
         let titles_pod_ep_search: Vec<String> = Vec::new();
         let ids_library_pod_search: Vec<String> = Vec::new(); // library because we take index of library
         let subtitles_pod_ep_search: Vec<String> = Vec::new();
@@ -1506,6 +1520,7 @@ impl App {
         let mut all_titles_pod: Vec<Vec<String>> = Vec::new(); // fetch title of a podcast (not episode)
         let mut all_durations_pod_ep: Vec<Vec<String>> = Vec::new();
         let mut all_the_lengths_of_the_episodes: Vec<Vec<Option<f64>>> = Vec::new();
+        let mut all_pod_ep_places: Vec<Vec<Vec<String>>> = Vec::new();
         let titles_pod_ep: Vec<String> = Vec::new(); // fetch episode titles for a podcast. {titles_pod1_ep1, title_pod1_ep2}
         let ids_pod_ep: Vec<String> = Vec::new();
         let ids_pod_ep_search: Vec<String> = Vec::new();
@@ -1544,6 +1559,7 @@ impl App {
                 all_titles_pod.push(Vec::new());
                 all_durations_pod_ep.push(Vec::new());
                 all_the_lengths_of_the_episodes.push(Vec::new());
+                all_pod_ep_places.push(Vec::new());
                 the_episodes_that_came.push(false);
             }
         }
@@ -1874,6 +1890,7 @@ impl App {
             all_titles_pod,
             all_durations_pod_ep,
             all_the_lengths_of_the_episodes,
+            all_pod_ep_places,
             the_episodes_that_came,
             subtitles_pod_ep,
             seasons_pod_ep,
@@ -1901,6 +1918,7 @@ impl App {
             all_titles_pod_search,
             all_durations_pod_ep_search,
             all_the_lengths_of_the_episodes_search,
+            all_pod_ep_places_search,
             auth_names_pod_search_book,
             auth_names_search_book,
             published_year_library_search_book,
@@ -2996,6 +3014,13 @@ impl App {
                                     .get(index)
                                     .cloned()
                                     .unwrap_or_default();
+                                // **The place of the user belongs to the
+                                // podcast of the line** (T-245).
+                                self.pod_ep_places_search = self
+                                    .all_pod_ep_places_search
+                                    .get(index)
+                                    .cloned()
+                                    .unwrap_or_default();
 
                                 // **The program reads the episodes of a podcast
                                 // when the user opens it**, and the view of the
@@ -3659,6 +3684,15 @@ impl App {
             .get(place)
             .cloned()
             .unwrap_or_default();
+        // **The place of the user belongs to the podcast of the line** (T-245):
+        // this list held the places of the podcast that the user opened before
+        // this one, and a podcast whose episodes the program read already makes
+        // no request that gives the places of it (T-126).
+        self.pod_ep_places = self
+            .all_pod_ep_places
+            .get(place)
+            .cloned()
+            .unwrap_or_default();
 
         self.ask_the_server_for_the_episodes(place);
     }
@@ -3782,6 +3816,10 @@ impl App {
 
         if let Some(row) = self.all_the_lengths_of_the_episodes.get_mut(place) {
             *row = episodes.lengths.clone();
+        }
+
+        if let Some(row) = self.all_pod_ep_places.get_mut(place) {
+            *row = episodes.places.clone();
         }
 
         if let Some(flag) = self.the_episodes_that_came.get_mut(place) {

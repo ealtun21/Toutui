@@ -17509,3 +17509,158 @@ the place of an episode holds no place in seconds".
 - **The line of the Library view of a library of podcasts says no place at
   all** (T-242 to T-244, and it stays open): a podcast holds more than one
   episode, and the line of it names no episode (T-221).
+
+### T-245: the view of the episodes holds the places of its own podcast
+
+**This item measures the first bullet of "What this item leaves open" of
+T-244: the view of the episodes of a search holds no place of the user at
+all.** That bullet holds a fault, and the measurement of this round found that
+the same root reaches the view of the episodes of the **Library** view too, and
+that it does worse there: that view does not lose the places, it holds the
+places of a **different podcast**.
+
+**The bullet named the wrong box.** `App::all_ids_pod_ep_search` takes a write:
+the render of the view of the search writes it at each frame out of
+`all_ids_pod_ep` (`src/ui/tui.rs:2175`), with the place of each media of the
+answer in the lists of the library (T-113). Every list of that view takes that
+road — the titles, the subtitles, the seasons, the numbers, the authors, the
+descriptions, the durations, and the lengths of the episodes. **One list of
+that view had no list of the library behind it**: `pod_ep_places` and
+`pod_ep_places_search` of T-229, which the answer of one request wrote and
+which no key of a line ever read again.
+
+#### The measurement
+
+The real program v0.8.73, driven inside tmux by `docs/harness/drive.sh`,
+against the sandbox, with the library `Podcasts` of two podcasts:
+`Letters of Two Brides` of 57 episodes and `Arthur Gordon Pym` of 11. The
+server held `Chapter 00` of `Arthur Gordon Pym` at 22 percent, `Chapter 01` at
+74, and `Chapter 02` at 89, and it held no place of `Letter 1`, of `Letter 2`,
+and of `Letter 3`.
+
+The key `Tab`, the key `l` of the first line, the key `h`, the key `j`, the key
+`l`, the key `h`, the key `k`, and the key `l` gave the three views in this
+sequence:
+
+```text
+Episodes [57 items]          Episodes [11 items]        Episodes [57 items]
+➤     Letter 1               ➤ 22% Chapter 00           ➤ 22% Letter 1
+      Letter 2                 74% Chapter 01             74% Letter 2
+      Letter 3                 89% Chapter 02             89% Letter 3
+      Letter 4                     Chapter 03                 Letter 4
+```
+
+**The third view is the second view of the first podcast**, and its three first
+lines held the places of the episodes of the other podcast. The panel of the
+line `Letter 1` of it said:
+
+```text
+[Letters of Two Brides] - Author: LibriVox - Episode: 1 - Duration: 29m
+Progress: 22%, 28m left, Not finished
+```
+
+The percent 22 is the place of `Chapter 00` of `Arthur Gordon Pym`, and the
+time `28m` is the length of `Letter 1` less the 66 seconds of that other
+episode: **one line of one view mixed the place of one media with the length of
+another one.**
+
+**The control of the same run** (the trap 206): the first open of that same
+podcast, of that same program, said `Letter 1` and `Letter 2` with no percent
+at all, and the open of `Arthur Gordon Pym` between the two said
+`22% Chapter 00`, `74% Chapter 01`, and `89% Chapter 02` — the places of the
+right podcast, from the request of that podcast.
+
+**The road.** The program reads the episodes of a podcast one time (T-126):
+`ask_the_server_for_the_episodes` gives nothing at all for a podcast of
+`the_episodes_that_came`, therefore the request of T-229 that carries the
+places came for the first open alone. `take_the_episodes_of_the_line` gives the
+view every list of the podcast of the line out of the lists of the library, and
+no list of the library held the places: `pod_ep_places` therefore stayed at the
+value that the last answer of any podcast wrote.
+
+#### The correction
+
+`App::all_pod_ep_places` and `App::all_pod_ep_places_search`, of the shape of
+`all_the_lengths_of_the_episodes` of T-236: one row of places for each podcast
+of the library, and one for each line of the view of the search.
+
+- `take_the_episodes_that_came` writes the places of the answer in the row of
+  that podcast of `all_pod_ep_places` (`src/app.rs`).
+- `take_the_episodes_of_the_line` gives `pod_ep_places` the row of the podcast
+  of the line, beside the titles and the lengths that it gives already.
+- The key `l` of the view of the search gives `pod_ep_places_search` the row of
+  the line, beside the ten lists that it gives already (`src/app.rs`).
+- The render of the view of the search writes `all_pod_ep_places_search` out of
+  `all_pod_ep_places` with the places of the answer (`src/ui/tui.rs`), as it
+  writes every other list of that view.
+
+**The correction costs no request at all**: the places live in the lists of the
+library, and a second visit of a podcast reads them from there.
+
+#### The measurement of the corrected program
+
+The same eight keys of the same sandbox gave `Letter 1`, `Letter 2`, and
+`Letter 3` with no percent, and the panel of the first line said
+`Progress:  N/A%,   N/A`. A second control gave `Letter 2` of
+`Letters of Two Brides` the place of 40 percent with `curl`, and the third view
+of the same sequence said:
+
+```text
+➤     Letter 1
+  40% Letter 2
+      Letter 3
+```
+
+**The view of the search takes the same correction**: the key `/`, the word
+`letters`, and the key `l` of that same program gave
+
+```text
+Episodes [57 items]
+➤     Letter 1
+  40% Letter 2
+      Letter 3
+```
+
+with the panel `Progress:  N/A%,   N/A` of the first line, and the program made
+no request of that podcast at all.
+
+#### The test
+
+`tests/the_places_of_the_view_of_the_episodes_hold_their_podcast.rs`, in one
+function (T-144 and T-157). It makes an `App` of a library of two podcasts with
+the address of a port that nothing listens on (T-25), it gives the box of
+`crate::logic::the_episodes` the answer of each podcast, and it then opens the
+first podcast a second time with `take_the_episodes_of_the_line`.
+
+**The build of the fault**, one edit at a time and every other line kept
+(the trap 147): `take_the_episodes_of_the_line` with no
+`self.pod_ep_places = …` gives the places of `Arthur Gordon Pym` to the lines
+of the letters, which is the fault of the screen; and
+`take_the_episodes_that_came` with no write of `all_pod_ep_places` gives
+`[[], []]` for the lists of the library, and the second visit of a podcast then
+holds no place at all.
+
+#### What this item leaves open
+
+- **The keys of the view of the episodes of a search read
+  `ids_pod_ep_search`** (T-244 to T-245, and it stays open): the key of the
+  playback, the key `D`, and the key `X` of a line of that view are not
+  measured. The render writes that box at each frame (`src/ui/tui.rs:2175`),
+  and the loop of the keys writes it again at each key
+  (`src/app.rs`, `all_ids_pod_ep_search`).
+- **A media of the queue that no playback of this program moves keeps the
+  place of the moment of the key `q`** (T-230 to T-245, and it stays open),
+  and the panel of a line of that view is not measured.
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-245, and it stays open).
+- **The line and the panel of the view of the authors, of the view of the
+  narrators, of the view of the series itself, and of the view of the lists
+  name no one media** (T-243 to T-245, and it stays open): the place of such a
+  line is the shape of T-44 and of T-22.
+- **The view of the queue of the offline mode is not measured** (T-230 to
+  T-245).
+- **The box of the places of the account goes old while the program stands**
+  (T-241 to T-245, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at
+  all** (T-242 to T-245, and it stays open): a podcast holds more than one
+  episode, and the line of it names no episode (T-221).
