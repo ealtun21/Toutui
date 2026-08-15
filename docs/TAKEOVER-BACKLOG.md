@@ -21422,3 +21422,105 @@ says byte 25, the trap 235).
   not use** (a candidate, and not a measurement; open since T-264).
 - **The program reads the configuration file two times at its start** (a
   candidate, and not a measurement; open since T-259).
+
+### T-268: a read of the accounts that failed before every account says why
+
+**The state**: corrected on 2026-08-16, in v0.8.97. The measurement is of the
+real program inside tmux.
+
+#### The choice of this item
+
+T-267 left this open: **`Database::new().await?` of `src/main.rs` lines 126 and
+131 holds a bare `?`**. That was a candidate and not a measurement. T-199 gave a
+read of the accounts of the disk a fault of its own,
+`TheAccountsDidNotCome`, and it wrote the words of that fault in
+`the_words_of_a_program_that_stops`. Those words stood in the source for the
+whole of that time, and **no caller of the start reached them**: the two reads of
+`Database::new` of the start gave their report to the runtime of Rust.
+
+#### The fault
+
+`src/main.rs` line 126 held `let mut _database = Database::new().await?;`, and
+line 131 held `_database = Database::new().await?;`. `Database::new` of
+`src/db/database_struct.rs` line 68 reads the accounts with
+`select_default_usr().map_err(|error| TheAccountsDidNotCome(...))?`, therefore
+every fault of the disk of that read left `main` with a bare `?`.
+
+#### The measurement
+
+The real program v0.8.96, inside tmux, on a screen of 160 columns and 45 rows,
+against the sandbox. The condition is a second writer of the database of the
+program, `docs/harness/hold_the_lock.py` with a lock of 90 seconds: rusqlite
+holds a busy timeout of five seconds, therefore every call of the program comes
+back with `database is locked` (T-199 and T-140).
+
+The whole capture of the pane, with 200 lines of the history:
+
+```text
+Error: The program did not read the accounts of its database: database is locked
+Location:
+    src/db/database_struct.rs:68:27
+THE-STATUS-OF-THE-EXIT=1
+```
+
+**Three faults stand there together.** The words name a line of the source of
+this program, which no user must read (T-172). They hold no sentence of Toutui
+and no road back: the user reads no word of a second Toutui of that account, and
+no word that Toutui changed nothing. And `grep -c 'the program stops'` of the log
+of that run gave **0**, therefore `the_program_stops_with_words` did no work at
+all and the report of that stop reached no log.
+
+The log of that same run held three lines of `[the accounts] the program did not
+read the accounts of the disk` and one line of `[main] the account of the start:
+database is locked`: the reads that hold a fault of their own each said the
+fault, and the read that stops the program said nothing.
+
+#### The correction
+
+The two lines take a `match`, in the shape of the login screen of T-267, and the
+report of a fault goes to `the_program_stops_with_words`.
+
+**This read stands before the login screen**, therefore the program holds no name
+of an account and no address of a server at that moment: the call names neither
+of them (T-91, and the shape of T-267). The words of `TheAccountsDidNotCome` of
+`src/api/client/error.rs` held `The account is {}.`, and a name of no character
+gives `The account is .`, which names nobody. That branch of the words takes a
+road of its own for a name of no character:
+
+```text
+Toutui stops: it cannot read the accounts of its database.
+The program did not read the accounts of its database: database is locked
+Toutui changed nothing. Stop a second Toutui that uses this database, and start this one again.
+```
+
+The program of the same lock then gave those words, and
+`grep -c 'the program stops'` of the log gave **1**. The line of the source stays
+in the log alone. The control of the same run, with no lock at all, gave the Home
+view of 35 items after 613 milliseconds, the header `👋 Connected as toutuitest`,
+and no word of a fault.
+
+#### The gate
+
+`tests/the_accounts_that_did_not_come_before_a_login_say_why.rs`. It reads
+`src/main.rs` for a `Database::new().await?`, it counts the calls of
+`the_program_stops_with_words` that name no account and no server, and it reads
+the words of `TheAccountsDidNotCome` for a name of no character and for the name
+`toutuitest`. The build of the fault, the two bare `?` back in `src/main.rs`
+alone, failed that test at its first assertion.
+
+#### What this item leaves open
+
+- **A fault of `AppLogin::new` that is not the configuration file names an
+  account of no character and a server of no character** (a candidate, and not a
+  measurement; open since T-267).
+- **Every other `?` of `src/main.rs` that leaves the function** (a candidate, and
+  not a measurement): T-267 and T-268 each took one read of the start, and a
+  sweep of the whole file names the rest of them.
+- **A file that the program cannot make says no word on the screen** (a
+  candidate, and not a measurement; open since T-264).
+- **The row of the message says the number and not the name** (a candidate, and
+  not a measurement; open since T-264).
+- **The login screen says no word of a value of the file that the program does
+  not use** (a candidate, and not a measurement; open since T-264).
+- **The program reads the configuration file two times at its start** (a
+  candidate, and not a measurement; open since T-259).

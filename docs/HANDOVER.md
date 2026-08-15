@@ -1,10 +1,11 @@
-# The handover of 2026-08-15
+# The handover of 2026-08-16
 
 This document is for the next session. It says what is done, what is open, and the
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.96.** The item T-267 belongs to this session. The
+**The newest release is v0.8.97.** The item T-268 belongs to this session. The
+item T-267 belongs to the session before it. The
 item T-266 belongs to the session before it. The
 item T-265 belongs to the session before it. The
 item T-264 belongs to the session before it. The
@@ -104,14 +105,82 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.96**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.97**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1281 of 1281** in 3.1 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1307 of 1307** in 17.4 seconds
+**1282 of 1282** in 3.5 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1308 of 1308** in 18.5 seconds
 with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
-gives no failure over its 151 binaries in four runs.
+gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the ninety-seventh turn of 2026-08-16: a read of the accounts that failed before every account says why
+
+**One release: v0.8.97**, and one item: T-268. **The road of it is the candidate
+"`Database::new().await?` of `src/main.rs` lines 126 and 131 holds a bare `?`" of
+"What this item leaves open"**, which T-267 left open. T-199 gave a read of the
+accounts of the disk a fault of its own, `TheAccountsDidNotCome`, and it wrote
+the words of that fault in `the_words_of_a_program_that_stops`. **Those words
+stood in the source for the whole of that time, and no caller of the start
+reached them**: the two reads of `Database::new` of the start gave their report
+to the runtime of Rust.
+
+`Database::new` of `src/db/database_struct.rs` line 68 reads the accounts with
+`select_default_usr().map_err(|error| TheAccountsDidNotCome(...))?`, therefore
+every fault of the disk of that read left `main` with a bare `?`.
+
+**The measurement**, of the real program v0.8.96 inside tmux, on a screen of 160
+columns and 45 rows, against the sandbox. The condition is a second writer of the
+database of the program, `docs/harness/hold_the_lock.py` with a lock of 90
+seconds: rusqlite holds a busy timeout of five seconds, therefore every call of
+the program comes back with `database is locked` (T-199 and T-140). The whole
+capture of the pane, with 200 lines of the history:
+
+```text
+Error: The program did not read the accounts of its database: database is locked
+Location:
+    src/db/database_struct.rs:68:27
+THE-STATUS-OF-THE-EXIT=1
+```
+
+**Three faults stand there together.** The words name a line of the source of
+this program, which no user must read (T-172). They hold no sentence of Toutui
+and no road back: the user reads no word of a second Toutui of that account, and
+no word that Toutui changed nothing. And `grep -c 'the program stops'` of the log
+of that run gave **0**, therefore `the_program_stops_with_words` did no work at
+all and the report of that stop reached no log.
+
+The log of that same run held three lines of `[the accounts] the program did not
+read the accounts of the disk` and one line of `[main] the account of the start:
+database is locked`: the reads that hold a fault of their own each said the
+fault, and the read that stops the program said nothing.
+
+**The correction.** The two lines take a `match`, in the shape of the login
+screen of T-267, and the report goes to `the_program_stops_with_words`. That read
+stands before the login screen, therefore the call names no account and no server
+(T-91). The words of `TheAccountsDidNotCome` held `The account is {}.`, and a
+name of no character gives `The account is .`, which names nobody: that branch of
+the words takes a road of its own for such a name. The program of the same lock
+then gave
+
+```text
+Toutui stops: it cannot read the accounts of its database.
+The program did not read the accounts of its database: database is locked
+Toutui changed nothing. Stop a second Toutui that uses this database, and start this one again.
+```
+
+and `grep -c 'the program stops'` of the log gave **1**. The line of the source
+stays in the log alone. The control of the same run, with no lock at all, gave
+the Home view of 35 items after 613 milliseconds, the header
+`👋 Connected as toutuitest`, and no word of a fault.
+
+**The gate**: `tests/the_accounts_that_did_not_come_before_a_login_say_why.rs`.
+The build of the fault, the two bare `?` back in `src/main.rs` alone, failed that
+test at its first assertion.
+
+**What this turn leaves open.** Every other `?` of `src/main.rs` that leaves the
+function is a candidate and not a measurement: T-267 and T-268 each took one read
+of the start, and a sweep of the whole file names the rest of them.
 
 ## The session of the ninety-sixth turn of 2026-08-15: the login screen of a file that the program cannot read says why
 
@@ -13210,48 +13279,174 @@ message at all, at the start and at the key `R`.
 - **The line of the Library view of a library of podcasts says no place at
   all** (T-242 to T-264, and it stays open).
 
+
+**The session of the ninety-fourth turn of 2026-08-15** (T-265).
+
+**The
+session of the ninety-fourth turn took no paragraph of "What this item
+leaves open" of the newest item: those paragraphs each name one value of
+the configuration file, and T-258 to T-264 read the values of that file
+one at a time. No item of those seven measured the **file** itself, and a
+file whose shape the crate refuses gives no value of the user at all**
+(T-265).
+
+`load_config_from` of `src/config.rs` gave the fault of the crate `config`
+to `main` with `?`, and that road held two faults together. The words of
+the crate name the line and the column of the file, and they name no file
+and no road back; the report of `color_eyre` names a line of the source of
+this program, which no user must read (T-172). And `src/main.rs` line 159
+held `print!("\x1B[2J\x1B[1;1H")`, the clear of the prints of the login: a
+`print!` holds no line, therefore those bytes waited in the buffer of
+`stdout`, and the first write of the screen of ratatui flushed them. **A
+program that stops between that clear and that screen writes its words to
+`stderr` at once, and the buffer of `stdout` then gives the clear at the
+exit.**
+
+The measurement, of the real program v0.8.93 inside tmux, on a screen of
+160 columns and 45 rows. The configuration file of the sandbox took one
+fault of its shape: `background_color = [40, 40, 40` with no `]`. The whole
+capture of the pane, with 200 lines of the history, held one line:
+
+```text
+THE-STATUS-OF-THE-EXIT=1
+```
+
+The same run with the output of the program in a file gave the words that
+the terminal lost, and the order of the bytes said the reason: the clear
+stands **after** `Error: TOML parse error at line 64, column 31` and after
+`Location: src/config.rs:172:22`, and before the status of the exit.
+
+The correction holds three parts.
+`TheConfigurationFileDidNotCome` of `src/config.rs` holds the path of the
+file and what the crate said, and `load_config_from` gives that fault in
+the place of the fault of the crate.
+`the_words_of_a_program_that_stops` of `src/api/client/error.rs` reads it
+of the chain of the report, in the shape of `TheAccountsDidNotCome` of
+T-199, and it names no server and no account, because a fault of the file
+of the user is no fault of the server (T-91).
+`clear_the_screen_of_the_shell` of `src/utils/startup.rs` writes the clear
+and it flushes it. The screen of the same file then said:
+
+```text
+Toutui stops: it cannot read its configuration file.
+The program cannot read the configuration file /home/…/toutui/config.toml.
+TOML parse error at line 64, column 31
+unclosed array, expected `]`
+Correct that file, or give it a different name: Toutui then makes a new file.
+Toutui changed nothing.
+```
+
+and the line of the source stayed in the log alone. The control of the same
+run, with the file of the sandbox again, gave the Home view after 612
+milliseconds and no word of a fault.
+- **A sweep of the values of a file is not a sweep of the file** (T-265):
+  seven items each read one value of the configuration file, and the road
+  that gives **no** value stood beside them for seven rounds. **Ask of a
+  list of candidates that all hold one shape: which road of that same
+  source does no candidate name?**
+- **A write of `stdout` that holds no line is a write that no user sees**
+  (T-265): the words of a fault go to `stderr` at once, and a buffer of
+  `stdout` that flushes at the exit stands after them. **A measurement of
+  the words of a program that stops must read the screen of the terminal,
+  and not the output of a file**: the file held every word, and the pane of
+  tmux held one line.
+- **The words of a library belong inside the words of the program** (T-265):
+  the reason of the crate names the line and the column of the file, and no
+  word of the program can give that, therefore the sentence of the program
+  stands above it and it names the file and the road back.
+- **The login screen of a file that the program cannot read is not
+  measured** (T-265, and it stays open): `AppLogin::new` of
+  `src/login_app.rs` line 19 reads the file with `?` too, and that road
+  stands before the clear of line 159. **This is a candidate and not a
+  measurement.**
+- **The key `R` of a file that the program cannot read is not measured**
+  (T-265, and it stays open): `App::new_with_the_engine` of `src/app.rs`
+  line 668 reads the file with `?`, and a refresh is not a start (T-205).
+- **A file that the program cannot make says no word on the screen** (T-264
+  and T-265, and it stays open).
+- **The row of the message says the number and not the name** (T-264 and
+  T-265, and it stays open).
+- **The login screen says no word of a value of the file that the program
+  does not use** (T-264 and T-265, and it stays open).
+- **The program reads the configuration file two times at its start**
+  (T-259 to T-265, and it stays open).
+- **A machine of two names of the file is not measured** (T-263 to T-265,
+  and it stays open).
+- **A name of the prefix of an address is not every name of an identity of
+  an address** (T-262 to T-265, and it stays open).
+- **Two names that differ in their spaces alone are two identities** (T-261
+  to T-265, and it stays open).
+- **A file whose every server fails is not measured** (T-259 to T-265, and
+  it stays open).
+- **The block `reader` stands on no gate of a build of the fault** (T-259
+  to T-265, and it stays open).
+- **The words of a fault of the crate `config` are not ASD-STE100** (T-258
+  to T-265, and it stays open).
+- **The colours of the program stand on no test of a length** (T-257 to
+  T-265, and it stays open).
+- **The panel of a description is in no test of the render** (T-253 to
+  T-265, and it stays open).
+- **The two renders of the panel of the episodes of a podcast are in no
+  test** (T-250 to T-265, and it stays open).
+- **The title of a list says no number of the line of the cursor** (T-255
+  to T-265, and it stays open).
+- **The key `H` of the panel stands on no character of the screen** (T-254
+  to T-265, and it stays open).
+- **The line of the view of the authors says `[1 book(s)]`** (T-252 to
+  T-265, and it stays open).
+- **The panel of a narrator says "No description available" for every
+  narrator of every library** (T-252 to T-265, and it stays open).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-265, and it stays open).
+- **The key `B` says nothing on either road** (T-248 to T-265, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters,
+  and of the view of the queue gives the Home view** (T-247 to T-265, and
+  it stays open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
+  T-265, and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-265, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at
+  all** (T-242 to T-265, and it stays open).
+
 ## The prompt for the next session
-**This session took the candidate "The login screen of a file that the program
-cannot read is not measured"**, which T-265 and T-266 each left open. T-265 gave
-the configuration file a fault of its own and it corrected the reader of
-`src/main.rs` that stands **after** the login; T-266 corrected the road of the
-key `R`. **The login screen is the third reader of that file**, and it stood
-before both of them: `AppLogin::new` of `src/login_app.rs` line 19 reads it with
-`load_config()?`, and `src/main.rs` line 141 held a bare `?` that gave the report
-to the runtime of Rust. The real program v0.8.95, with a `XDG_CONFIG_HOME` of a
-database of no account and `background_color = [40, 40, 40` with no `]`, gave a
-pane of tmux of the words of the runtime alone: the reason of the crate, and
-`Location: src/config.rs:212:13`. No user must read a line of the source of this
-program (T-172), those words hold no sentence of Toutui and no road back, and
-the log of that run held no word of the fault. The item is **T-267**, and it
-holds the release v0.8.96.
+**This session took the candidate "`Database::new().await?` of `src/main.rs`
+lines 126 and 131 holds a bare `?`"**, which T-267 left open. T-199 gave a read
+of the accounts of the disk a fault of its own, `TheAccountsDidNotCome`, and it
+wrote the words of that fault in `the_words_of_a_program_that_stops`. **Those
+words stood in the source for the whole of that time, and no caller of the start
+reached them.** The real program v0.8.96, with `docs/harness/hold_the_lock.py`
+holding the database of the sandbox for 90 seconds, gave a pane of tmux of
+`Error: The program did not read the accounts of its database: database is
+locked` and `Location: src/db/database_struct.rs:68:27`, and nothing else. No
+user must read a line of the source of this program (T-172), those words hold no
+sentence of Toutui and no road back, and `grep -c 'the program stops'` of the log
+of that run gave 0. The item is **T-268**, and it holds the release v0.8.97.
 
 Two things are worth the room:
 
-1. **A correction of one round makes the road of the round after it, and one
-   source can hold that road more than one time.** T-265 corrected the first
-   reader of the configuration file, T-266 the second, and this round the third.
-   **Ask of a correction: how many callers hold that same road, and which of them
-   did the round before this one not reach?** A `grep` of the name of the
-   function that reads gives that list in seconds.
+1. **The words of a fault can stand in the source for many rounds with no caller
+   at all.** T-199 wrote the words of `TheAccountsDidNotCome` and the branch that
+   holds them, and the two reads of the start never reached that branch. **Ask of
+   a correction of an older round: which caller of that fault reaches the words,
+   and which one gives the report to the runtime?**
 
-2. **A bare `?` of `main` is the words of the runtime.** Those words name a line
-   of the source of this program, they hold no sentence of the program, and they
-   reach no log at all. **A sweep of every `?` of `src/main.rs` is the road of
-   that shape**, and `Database::new().await?` of the lines 126 and 131 holds it
-   still: T-199 gave a fault of the accounts a shape of its own, and those two
-   lines give it to the runtime.
+2. **A sentence of a value that no road fills is a sentence that names nobody.**
+   `The account is {}.` with a name of no character gives `The account is .` A
+   road that names no account needs words of its own, and not the words of a road
+   that names one.
 
-The gates of v0.8.96, under `nice -n 19 ionice -c 3` with `-j 16`:
+The gates of v0.8.97, under `nice -n 19 ionice -c 3` with `-j 16`:
 `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
-`cargo nextest run` gives 1281 of 1281 in 3.1 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives 1307 of 1307 in 17.4 seconds with
-the sandbox up, and `cargo test -j 16 --no-fail-fast` passed four times over its
-151 binaries.
+`cargo nextest run` gives 1282 of 1282 in 3.5 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives 1308 of 1308 in 18.5 seconds with
+the sandbox up, and `cargo test -j 16 --no-fail-fast` passed over its 152
+binaries.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.96**; `Cargo.toml` is at 0.8.96. The
+> AlbanDAVID/Toutui. Newest release **v0.8.97**; `Cargo.toml` is at 0.8.97. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -13260,7 +13455,7 @@ the sandbox up, and `cargo test -j 16 --no-fail-fast` passed four times over its
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-265 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-268 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -13778,7 +13973,7 @@ the sandbox up, and `cargo test -j 16 --no-fail-fast` passed four times over its
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-264 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-269 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
@@ -13894,7 +14089,79 @@ the sandbox up, and `cargo test -j 16 --no-fail-fast` passed four times over its
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in ninety-seven sessions of ninety-eight.
+>    this shape found a fault in ninety-eight sessions of ninety-nine.
+>    **The
+>    session of the ninety-seventh turn took the candidate
+>    "`Database::new().await?` of `src/main.rs` lines 126 and 131 holds a bare
+>    `?`" of "What this item leaves open" of the newest item, which T-267 left
+>    open. T-199 gave a read of the accounts of the disk a fault of its own and
+>    it wrote the words of that fault, and no caller of the start reached those
+>    words for the whole of that time** (T-268).
+>
+>    `src/main.rs` line 126 held `let mut _database = Database::new().await?;`,
+>    and line 131 held `_database = Database::new().await?;`. `Database::new` of
+>    `src/db/database_struct.rs` line 68 reads the accounts with
+>    `select_default_usr().map_err(|error| TheAccountsDidNotCome(...))?`,
+>    therefore every fault of the disk of that read left `main` with a bare `?`.
+>
+>    The measurement, of the real program v0.8.96 inside tmux, on a screen of 160
+>    columns and 45 rows, against the sandbox. The condition is a second writer of
+>    the database of the program, `docs/harness/hold_the_lock.py` with a lock of
+>    90 seconds (T-199 and T-140). The whole capture of the pane, with 200 lines
+>    of the history:
+>
+>    ```text
+>    Error: The program did not read the accounts of its database: database is locked
+>    Location:
+>        src/db/database_struct.rs:68:27
+>    THE-STATUS-OF-THE-EXIT=1
+>    ```
+>
+>    **Three faults stand there together.** The words name a line of the source of
+>    this program, which no user must read (T-172). They hold no sentence of
+>    Toutui and no road back. And `grep -c 'the program stops'` of the log of that
+>    run gave **0**, therefore the report of that stop reached no log at all. The
+>    log of the same run held three lines of `[the accounts] the program did not
+>    read the accounts of the disk` and one line of `[main] the account of the
+>    start: database is locked`: the reads that hold a fault of their own each
+>    said the fault, and the read that stops the program said nothing.
+>
+>    The correction gives the two reports to `the_program_stops_with_words`, in
+>    the shape of the login screen of T-267. **That read stands before the login
+>    screen**, therefore the call names no account and no server (T-91), and the
+>    words of `TheAccountsDidNotCome` take a road of their own for a name of no
+>    character: `The account is {}.` gives `The account is .` for such a name, and
+>    that sentence names nobody. The program of the same lock then said
+>
+>    ```text
+>    Toutui stops: it cannot read the accounts of its database.
+>    The program did not read the accounts of its database: database is locked
+>    Toutui changed nothing. Stop a second Toutui that uses this database, and start this one again.
+>    ```
+>
+>    and `grep -c 'the program stops'` of the log gave **1**. The control of the
+>    same run, with no lock at all, gave the Home view of 35 items after 613
+>    milliseconds and no word of a fault.
+>    - **The words of a fault can stand in the source for many rounds with no
+>      caller at all** (T-268): T-199 wrote the words of `TheAccountsDidNotCome`
+>      and the branch of `the_words_of_a_program_that_stops` that holds them, and
+>      the two reads of the start never reached that branch. **Ask of a correction
+>      of an older round: which caller of that fault reaches the words, and which
+>      one gives the report to the runtime?**
+>    - **A sentence of a value that no road fills is a sentence that names
+>      nobody** (T-268): `The account is {}.` with a name of no character gives
+>      `The account is .` **A road that names no account needs words of its own,
+>      and not the words of a road that names one.**
+>    - **Every other `?` of `src/main.rs` that leaves the function** (T-268, and
+>      it stays open): T-267 and T-268 each took one read of the start, and a
+>      sweep of the whole file names the rest of them. **This is a candidate and
+>      not a measurement.**
+>    - **A fault of `AppLogin::new` that is not the configuration file names an
+>      account of no character and a server of no character** (T-267 and T-268,
+>      and it stays open).
+>    - **Every candidate of the list of the turn below stays open** (T-229 to
+>      T-268): the block has a limit of size, therefore this turn names the new
+>      candidates alone and it does not repeat that list.
 >    **The
 >    session of the ninety-sixth turn took the candidate "The login screen of a
 >    file that the program cannot read is not measured" of "What this item leaves
@@ -14081,138 +14348,9 @@ the sandbox up, and `cargo test -j 16 --no-fail-fast` passed four times over its
 >      to T-266, and it stays open).
 >    - **The line of the Library view of a library of podcasts says no place at
 >      all** (T-242 to T-266, and it stays open).
->
->    **The
->    session of the ninety-fourth turn took no paragraph of "What this item
->    leaves open" of the newest item: those paragraphs each name one value of
->    the configuration file, and T-258 to T-264 read the values of that file
->    one at a time. No item of those seven measured the **file** itself, and a
->    file whose shape the crate refuses gives no value of the user at all**
->    (T-265).
->
->    `load_config_from` of `src/config.rs` gave the fault of the crate `config`
->    to `main` with `?`, and that road held two faults together. The words of
->    the crate name the line and the column of the file, and they name no file
->    and no road back; the report of `color_eyre` names a line of the source of
->    this program, which no user must read (T-172). And `src/main.rs` line 159
->    held `print!("\x1B[2J\x1B[1;1H")`, the clear of the prints of the login: a
->    `print!` holds no line, therefore those bytes waited in the buffer of
->    `stdout`, and the first write of the screen of ratatui flushed them. **A
->    program that stops between that clear and that screen writes its words to
->    `stderr` at once, and the buffer of `stdout` then gives the clear at the
->    exit.**
->
->    The measurement, of the real program v0.8.93 inside tmux, on a screen of
->    160 columns and 45 rows. The configuration file of the sandbox took one
->    fault of its shape: `background_color = [40, 40, 40` with no `]`. The whole
->    capture of the pane, with 200 lines of the history, held one line:
->
->    ```text
->    THE-STATUS-OF-THE-EXIT=1
->    ```
->
->    The same run with the output of the program in a file gave the words that
->    the terminal lost, and the order of the bytes said the reason: the clear
->    stands **after** `Error: TOML parse error at line 64, column 31` and after
->    `Location: src/config.rs:172:22`, and before the status of the exit.
->
->    The correction holds three parts.
->    `TheConfigurationFileDidNotCome` of `src/config.rs` holds the path of the
->    file and what the crate said, and `load_config_from` gives that fault in
->    the place of the fault of the crate.
->    `the_words_of_a_program_that_stops` of `src/api/client/error.rs` reads it
->    of the chain of the report, in the shape of `TheAccountsDidNotCome` of
->    T-199, and it names no server and no account, because a fault of the file
->    of the user is no fault of the server (T-91).
->    `clear_the_screen_of_the_shell` of `src/utils/startup.rs` writes the clear
->    and it flushes it. The screen of the same file then said:
->
->    ```text
->    Toutui stops: it cannot read its configuration file.
->    The program cannot read the configuration file /home/…/toutui/config.toml.
->    TOML parse error at line 64, column 31
->    unclosed array, expected `]`
->    Correct that file, or give it a different name: Toutui then makes a new file.
->    Toutui changed nothing.
->    ```
->
->    and the line of the source stayed in the log alone. The control of the same
->    run, with the file of the sandbox again, gave the Home view after 612
->    milliseconds and no word of a fault.
->    - **A sweep of the values of a file is not a sweep of the file** (T-265):
->      seven items each read one value of the configuration file, and the road
->      that gives **no** value stood beside them for seven rounds. **Ask of a
->      list of candidates that all hold one shape: which road of that same
->      source does no candidate name?**
->    - **A write of `stdout` that holds no line is a write that no user sees**
->      (T-265): the words of a fault go to `stderr` at once, and a buffer of
->      `stdout` that flushes at the exit stands after them. **A measurement of
->      the words of a program that stops must read the screen of the terminal,
->      and not the output of a file**: the file held every word, and the pane of
->      tmux held one line.
->    - **The words of a library belong inside the words of the program** (T-265):
->      the reason of the crate names the line and the column of the file, and no
->      word of the program can give that, therefore the sentence of the program
->      stands above it and it names the file and the road back.
->    - **The login screen of a file that the program cannot read is not
->      measured** (T-265, and it stays open): `AppLogin::new` of
->      `src/login_app.rs` line 19 reads the file with `?` too, and that road
->      stands before the clear of line 159. **This is a candidate and not a
->      measurement.**
->    - **The key `R` of a file that the program cannot read is not measured**
->      (T-265, and it stays open): `App::new_with_the_engine` of `src/app.rs`
->      line 668 reads the file with `?`, and a refresh is not a start (T-205).
->    - **A file that the program cannot make says no word on the screen** (T-264
->      and T-265, and it stays open).
->    - **The row of the message says the number and not the name** (T-264 and
->      T-265, and it stays open).
->    - **The login screen says no word of a value of the file that the program
->      does not use** (T-264 and T-265, and it stays open).
->    - **The program reads the configuration file two times at its start**
->      (T-259 to T-265, and it stays open).
->    - **A machine of two names of the file is not measured** (T-263 to T-265,
->      and it stays open).
->    - **A name of the prefix of an address is not every name of an identity of
->      an address** (T-262 to T-265, and it stays open).
->    - **Two names that differ in their spaces alone are two identities** (T-261
->      to T-265, and it stays open).
->    - **A file whose every server fails is not measured** (T-259 to T-265, and
->      it stays open).
->    - **The block `reader` stands on no gate of a build of the fault** (T-259
->      to T-265, and it stays open).
->    - **The words of a fault of the crate `config` are not ASD-STE100** (T-258
->      to T-265, and it stays open).
->    - **The colours of the program stand on no test of a length** (T-257 to
->      T-265, and it stays open).
->    - **The panel of a description is in no test of the render** (T-253 to
->      T-265, and it stays open).
->    - **The two renders of the panel of the episodes of a podcast are in no
->      test** (T-250 to T-265, and it stays open).
->    - **The title of a list says no number of the line of the cursor** (T-255
->      to T-265, and it stays open).
->    - **The key `H` of the panel stands on no character of the screen** (T-254
->      to T-265, and it stays open).
->    - **The line of the view of the authors says `[1 book(s)]`** (T-252 to
->      T-265, and it stays open).
->    - **The panel of a narrator says "No description available" for every
->      narrator of every library** (T-252 to T-265, and it stays open).
->    - **The keys of the sweep of T-247 that hold a playback are not measured**
->      (T-248 to T-265, and it stays open).
->    - **The key `B` says nothing on either road** (T-248 to T-265, and it stays
->      open).
->    - **The key `h` of the view of the bookmarks, of the view of the chapters,
->      and of the view of the queue gives the Home view** (T-247 to T-265, and
->      it stays open).
->    - **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
->      T-265, and it stays open).
->    - **The lines of the view of the bookmarks hold no place of the user**
->      (T-229 to T-265, and it stays open).
->    - **The line of the Library view of a library of podcasts says no place at
->      all** (T-242 to T-265, and it stays open).
->
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the ninety-second and every turn before it, the item of each, and the
+>    the ninety-fourth and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
@@ -14665,7 +14803,10 @@ the sandbox up, and `cargo test -j 16 --no-fail-fast` passed four times over its
 > login screen of a configuration file that the program cannot read says why:
 > the report of that file reaches the words of a program that stops and the log,
 > and those words name no account and no server, because the login screen stands
-> before every account** (T-267).
+> before every account** (T-267), and **a read of the accounts that failed
+> before every account says why: the two reads of `Database::new` of the start
+> stand before the login screen, therefore the words of that stop name the
+> database and no account at all** (T-268).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

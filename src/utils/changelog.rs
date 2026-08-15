@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.97",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Toutui says why it cannot read the accounts of its \
+             database.** Toutui reads its accounts at the start, before the \
+             login screen. A second Toutui of that database, or a disk that \
+             says nothing, stopped the program with the words of a library: \
+             those words named a line of the source of Toutui, they gave no \
+             road back, and the log kept no word of that stop. Toutui names \
+             the database now, it gives the reason, it tells you to stop a \
+             second Toutui that uses that database and to start this one \
+             again, and it says that it changed nothing. The log keeps the \
+             whole fault.",
+        ],
+    },
+    Entry {
         version: "0.8.96",
         date: "15/08/2026",
         body: &[

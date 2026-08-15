@@ -123,12 +123,38 @@ async fn main() -> Result<()> {
         }
 
         // Init database
-        let mut _database = Database::new().await?;
+        //
+        // T-268. `Database::new` reads the accounts of the disk, and T-199 gave
+        // that read a fault of its own. The `?` of these two lines gave that
+        // report to the runtime of Rust: a measurement of 2026-08-16 with
+        // `docs/harness/hold_the_lock.py` gave the user
+        //
+        // ```text
+        // Error: The program did not read the accounts of its database: database is locked
+        // Location:
+        //     src/db/database_struct.rs:68:27
+        // ```
+        //
+        // Those words name a line of the source of this program, which no user
+        // must read (T-172), they hold no sentence of Toutui and no road back,
+        // and `the_program_stops_with_words` did no work at all: the log of that
+        // run held no line of a program that stops.
+        //
+        // **This read stands before the login screen**, therefore the program
+        // holds no name of an account and no address of a server here, and the
+        // words name neither of them (T-91, and the shape of T-267).
+        let mut _database = match Database::new().await {
+            Ok(database) => database,
+            Err(report) => the_program_stops_with_words(report, "", ""),
+        };
         let mut _database_ready = false;
 
         // Wait for the database to be ready, waiting for the user to enter their credentials
         loop {
-            _database = Database::new().await?;
+            _database = match Database::new().await {
+                Ok(database) => database,
+                Err(report) => the_program_stops_with_words(report, "", ""),
+            };
             // **The login screen comes for two reasons now.** The database
             // holds no account, or the user asked for a new account with the
             // key `a` of the view of the accounts: that key starts the program

@@ -180,6 +180,23 @@ pub fn the_words_of_a_program_that_stops(
         .chain()
         .find_map(|cause| cause.downcast_ref::<crate::db::TheAccountsDidNotCome>())
     {
+        // **A read of the accounts that failed can come before every account**
+        // (T-268). `Database::new` of `src/main.rs` reads the accounts of the
+        // disk at the start of every turn of the session, and that read stands
+        // before the login screen: the program then holds no name of an account
+        // at all. A sentence of the shape "The account is ." names nobody, and a
+        // sentence that names an account that the program does not have is a
+        // reason that the program does not have (T-91).
+        if username.is_empty() {
+            return format!(
+                "Toutui stops: it cannot read the accounts of its database.\n\
+                 {}\n\
+                 Toutui changed nothing. Stop a second Toutui that uses this database, and start \
+                 this one again.",
+                fault
+            );
+        }
+
         return format!(
             "Toutui stops: it cannot read the accounts of its database.\n\
              {}\n\
