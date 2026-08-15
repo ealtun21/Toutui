@@ -165,7 +165,7 @@ async fn the_line_of_the_view_of_the_queue_names_the_time_of_an_episode() {
         place(" 62", " Finished", "1319"),
     );
 
-    let lines = the_lines_of_the_queue(&entries, &places, None);
+    let lines = the_lines_of_the_queue(&entries, &places, None, None);
 
     assert!(
         lines[0].contains("(27m left)"),
@@ -193,7 +193,7 @@ async fn the_line_of_the_view_of_the_queue_names_the_time_of_an_episode() {
     // episode. That length is no length, therefore the line says no time and
     // it does not say `0m`.
     let of_an_old_version = vec![episode("ep-4", "Chapter 05", Some(0.0))];
-    let lines = the_lines_of_the_queue(&of_an_old_version, &BTreeMap::new(), None);
+    let lines = the_lines_of_the_queue(&of_an_old_version, &BTreeMap::new(), None, None);
 
     assert!(
         !lines[0].contains('('),

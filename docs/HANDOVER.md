@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.66.** The item T-237 belongs to this session. The
+**The newest release is v0.8.67.** The item T-238 belongs to this session. The
+item T-237 belongs to the session before it. The
 item T-236 belongs to the session before it. The
 item T-235 belongs to the session before it. The
 item T-234 belongs to the session before it. The
@@ -74,13 +75,77 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.66**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.67**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1220 of 1220** in 2.7 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1246 of 1246** with
+**1221 of 1221** in 2.5 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1247 of 1247** with
 the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no
-failure in three runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
+failure in two runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the sixty-seventh turn of 2026-08-15: the line of the queue holds the place of the playback
+
+**One release: v0.8.67**, and one item: T-238 of the time of the line of the
+media that plays in the view of the queue. **The road of it is the first
+paragraph of "What this item leaves open" of T-237**: a media that stays in the
+queue keeps the place of the moment of the key `q`, and a live message of the
+server is the one road to a newer place.
+
+The measurement of the real program v0.8.66 inside tmux, against the sandbox.
+The server held `A Book Of Many Hours` at 7200 seconds of 28800. The user played
+it with the key `l` of the Home view, put it in the queue with the key `n`, and
+pressed the key `q`. The line said `(7h58m left)`, and 45 seconds later (the
+null device plays 8 hours in about 6 minutes) that same line said the same
+words:
+
+```text
+➤ ▶   1. 📕 A Book Of Many Hours — Many Hours Author  (7h58m left)
+                       ▶ 1:04:23 / 8:00:00 | Left: 6:55:37 (13%) | Speed: 1.00x
+```
+
+**The line of the media that plays and the row of the player of that same frame
+of that same screen said two different times, and the difference was one hour.**
+**The control of the same run** (the trap 206): the mark `▶` stood on that line
+at each frame, therefore the line reads the state of the playback already; and
+the row of the player said the true place, therefore the program holds it.
+
+**The cause: the playback of this program takes neither road to the place of
+that view.** `App::queue_lines` gave `the_lines_of_the_queue` the box of the
+places of the request of the key `q` (T-230 and T-237), and the row of a live
+message of the server over it (T-235). The server sends no message of a place to
+the client that wrote it, therefore no road of the view names the playback of
+this program. The engine held that place at each second in
+`PlaybackState::position`, and the row of the player of the same screen read it.
+
+The correction: `App::the_place_of_the_playback` gives `PlaybackState::position`
+for a playback that stands, in the shape of `App::playing_media`, and
+`the_lines_of_the_queue` takes that place as its fourth argument. The pure rule
+`the_place_of_the_line` gives **the place of the engine for the line of the media
+that plays, and the place of the row for every other line**. A place of 0 is a
+playback that did not begin — the screen says `Loading the media...` in that
+moment — and the line then keeps the place of the row. **The mark of the end of
+the row belongs to the place of the row** (T-236), therefore a media that the
+user finished and that plays again says the time that is left of the place of the
+engine.
+
+The corrected program (v0.8.67) said, at two moments of one run:
+
+```text
+➤ ▶   1. 📕 A Book Of Many Hours — Many Hours Author  (5h53m left)
+                       ▶ 2:07:26 / 8:00:00 | Left: 5:52:34 (27%) | Speed: 1.00x
+➤ ▶   1. 📕 A Book Of Many Hours — Many Hours Author  (5h15m left)
+                       ▶ 2:44:54 / 8:00:00 | Left: 5:15:06 (34%) | Speed: 1.00x
+```
+
+The engine holds that place already, therefore the correction costs no request
+at all.
+
+`tests/the_line_of_the_queue_holds_the_place_of_the_playback.rs` holds the rule
+in one function, and **five builds of the fault each fail it**: a line that keeps
+the place of the row, a line of every media that takes the place of the engine, a
+place of 0 of a playback that did not begin, a mark of the end of the row that
+stands over the place of the engine, and a render that gives the place of the
+engine to no line.
 
 ## The session of the sixty-sixth turn of 2026-08-15: the view of the queue asks for a media that came into it
 
@@ -9225,38 +9290,76 @@ three keys `n` before it each named the number of a line of that same view.
 - **The lines of the view of the bookmarks hold no place of the user**
    (T-229 to T-233, and it stays open).
 
+**The session of the sixty-third turn took the first paragraph of "What this item
+leaves open" of the newest item: that paragraph named the time of a line,
+and the measurement found a line that says the length of the whole media**
+(T-234).
+
+The user put three books in the queue with the key `n` and pressed `q`. The
+three lines said `(8h)`, `(30m)`, and `(8h)`, and the server held the three
+of them at 7200 seconds of 28800, at 900 of 1800, and at 7200 of 28800.
+**The line of the number 3 said `90%` and `(8h)` in the same words**: the
+user reads the percent of the work that is done and the length of the whole
+media, and that user must do the arithmetic to know that 6 hours stay. The
+user of this view chooses the media that comes after the media that plays,
+and a length gives no help with that choice. **The control of the same
+run** (the trap 206): the panel of the Home view of that same program, of
+that same media, said `Duration: 8h` and
+`Progress: 0%, 6h left, Not finished`.
+- **A view that says a number of a media must say the number that the user
+  needs** (T-234). The length is a fact of the media, and the time that is
+  left is a fact of the user. **Ask of every number that a view says: is it
+  a fact of the media or a fact of the user, and which of the two does that
+  view need?**
+- **A second view of the same program held the better words already**
+  (T-234). The panel of the Home view said `6h left` of the media whose
+  line of the queue said `(8h)`, and the two texts came of two functions.
+  **Ask of every text of a view: does another view of the program say this
+  same fact in better words?**
+- **A row of a box of the places can hold one value more** (T-234): the row
+  of `the_places_of_the_queue` held the percent and the mark of the end,
+  and the place in seconds cost no request at all, because `GET /api/me`
+  gives it with the percent.
+- **The place of the view of the queue is a photograph of the moment of the
+  key `q`** (T-230 to T-234, and it stays open): the request of the places
+  runs at that key alone.
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-234, and it stays open).
+- **The lines of the view of the search and of the view of the lists hold
+  no place at all** (T-228 to T-234, and it stays open).
+
 ## The prompt for the next session
 **This session took the first paragraph of "What this item leaves open" of the
-newest item.** T-234 wrote that the place of the view of the queue is a
-photograph of the moment of the key `q`. **A message of the server is the one
-road that gives that view a newer place with no key of the user**, and the
-measurement found that this road took the place away instead of giving it: a
-`PATCH` of one media of the account gave every line of that view the length of
-its media again. The item is **T-235**, and it holds one release, v0.8.64.
+newest item.** T-237 wrote that a media that stays in the queue keeps the place
+of the moment of the key `q`, and that a live message of the server is the one
+road to a newer place. **The playback of this same program takes neither road**,
+and the measurement found the line of the media that plays one hour behind the
+row of the player of that same frame. The item is **T-238**, and it holds one
+release, v0.8.67.
 
 Three things are worth the room:
 
 1. **The first paragraph of "What this item leaves open" of the newest item is
-   the cheapest road of a session, again.** Eleven sessions of eleven took that
-   road. The whole fault stood in one line of `src/app.rs` and in one field of
-   `src/api/live.rs`, and the measurement of the real program cost two runs of
-   the harness and one `curl`.
-2. **A correction of one road of a value leaves the other roads of that
-   value.** T-234 gave the row of the places a third value, and the render of
-   that same view writes the row of a live message over it: that second row
-   held two values, and it therefore undid the correction at the first message.
-   **Ask of every value that a view reads: how many places write it, and does
-   each of them hold every field?**
-3. **A message of one media reaches every line of a view.** The message of the
-   server carries the position of every media of the account (T-184), therefore
-   a fault of the row of a message is a fault of every line and not of one. The
-   measurement moved one media, and three lines changed.
+   the cheapest road of a session, again.** Fourteen sessions of fourteen took
+   that road. The whole fault stood in one argument of one function of
+   `src/logic/queue.rs`, and the measurement of the real program cost two runs
+   of the harness and two `curl`.
+2. **A view that says a value of a media that plays reads the engine of this
+   program.** The two roads to a value of the server — a request of a key, and
+   a live message — each carry the work of a machine that is not this one, and
+   neither of them names the playback of this program. The program holds the
+   newer value already, therefore the correction costs no request at all.
+3. **The control of the same run stood in the same line.** The mark `▶` of that
+   line reads the state of the playback at each frame, therefore the line knew
+   which media plays and it asked no one for the place of it. **Ask of every
+   line that holds a mark of a state: does it read the value of that same state
+   too?**
 
 This prompt names the state of the program on 2026-08-16.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.66**; `Cargo.toml` is at 0.8.66. The
+> AlbanDAVID/Toutui. Newest release **v0.8.67**; `Cargo.toml` is at 0.8.67. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -9889,8 +9992,48 @@ This prompt names the state of the program on 2026-08-16.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in seventy-eight sessions of seventy-nine. **The
->    session of the sixty-fifth turn took the first paragraph of "What this item
+>    this shape found a fault in seventy-nine sessions of eighty. **The
+>    session of the sixty-seventh turn took the first paragraph of "What this
+>    item leaves open" of the newest item: that paragraph named the two roads to a
+>    value of the server, and the measurement found a line whose value comes of
+>    neither of them** (T-238).
+>
+>    The server held `A Book Of Many Hours` at 7200 seconds of 28800. The user
+>    played it with the key `l` of the Home view, put it in the queue with the
+>    key `n`, and pressed the key `q`. The line said `(7h58m left)`, and 45
+>    seconds later that same line said the same words while the row of the
+>    player of that same frame said `▶ 1:04:23 / 8:00:00 | Left: 6:55:37`. **The
+>    line of the media that plays and the row of the player of one screen said
+>    two times of one media, and the difference was one hour.** **The control of
+>    the same run** (the trap 206): the mark `▶` stood on that line at each
+>    frame, therefore the line reads the state of the playback already.
+>    - **A view that says a value of a media that plays reads the engine of this
+>      program** (T-238). The two roads to a value of the server — a request of
+>      a key (T-230 and T-237) and a live message (T-235) — each carry the work
+>      of a machine that is not this one, and neither of them names the playback
+>      of this program: the server sends no message of a place to the client
+>      that wrote it. **Ask of every value of a view: does this program change
+>      that value itself, and does the view read it there?**
+>    - **A line that holds a mark of a state must read the value of that state**
+>      (T-238): the mark `▶` of that line comes of `playing_media` at each
+>      frame, therefore the line knew which media plays and it took the place of
+>      it from a request of a key. The mark and the value stood side by side in
+>      one function.
+>    - **A value that the program holds costs no request** (T-238):
+>      `PlaybackState::position` stands in the engine at each second, and the
+>      row of the player of the same screen reads it already.
+>    - **A place of 0 of the engine is a playback that did not begin** (T-238):
+>      the screen says `Loading the media...` in that moment, and the line then
+>      keeps the place of the request.
+>    - **A media of the queue that no playback of this program moves keeps the
+>      place of the moment of the key `q`** (T-230 to T-238, and it stays open).
+>    - **The lines of the view of the bookmarks hold no place of the user**
+>      (T-229 to T-238, and it stays open).
+>    - **The lines of the view of the search and of the view of the lists hold
+>      no place at all** (T-228 to T-238, and it stays open).
+>
+>    **The
+>    session of the sixty-sixth turn took the first paragraph of "What this item
 >    leaves open" of the newest item: that paragraph named the one moment of a
 >    request of a view, and the measurement found a line of that view that no
 >    request reached** (T-237).
@@ -9966,45 +10109,6 @@ This prompt names the state of the program on 2026-08-16.
 >      (T-229 to T-235, and it stays open).
 >    - **The lines of the view of the search and of the view of the lists hold
 >      no place at all** (T-228 to T-235, and it stays open).
->
->    **The
->    session of the sixty-third turn took the first paragraph of "What this item
->    leaves open" of the newest item: that paragraph named the time of a line,
->    and the measurement found a line that says the length of the whole media**
->    (T-234).
->
->    The user put three books in the queue with the key `n` and pressed `q`. The
->    three lines said `(8h)`, `(30m)`, and `(8h)`, and the server held the three
->    of them at 7200 seconds of 28800, at 900 of 1800, and at 7200 of 28800.
->    **The line of the number 3 said `90%` and `(8h)` in the same words**: the
->    user reads the percent of the work that is done and the length of the whole
->    media, and that user must do the arithmetic to know that 6 hours stay. The
->    user of this view chooses the media that comes after the media that plays,
->    and a length gives no help with that choice. **The control of the same
->    run** (the trap 206): the panel of the Home view of that same program, of
->    that same media, said `Duration: 8h` and
->    `Progress: 0%, 6h left, Not finished`.
->    - **A view that says a number of a media must say the number that the user
->      needs** (T-234). The length is a fact of the media, and the time that is
->      left is a fact of the user. **Ask of every number that a view says: is it
->      a fact of the media or a fact of the user, and which of the two does that
->      view need?**
->    - **A second view of the same program held the better words already**
->      (T-234). The panel of the Home view said `6h left` of the media whose
->      line of the queue said `(8h)`, and the two texts came of two functions.
->      **Ask of every text of a view: does another view of the program say this
->      same fact in better words?**
->    - **A row of a box of the places can hold one value more** (T-234): the row
->      of `the_places_of_the_queue` held the percent and the mark of the end,
->      and the place in seconds cost no request at all, because `GET /api/me`
->      gives it with the percent.
->    - **The place of the view of the queue is a photograph of the moment of the
->      key `q`** (T-230 to T-234, and it stays open): the request of the places
->      runs at that key alone.
->    - **The lines of the view of the bookmarks hold no place of the user**
->      (T-229 to T-234, and it stays open).
->    - **The lines of the view of the search and of the view of the lists hold
->      no place at all** (T-228 to T-234, and it stays open).
 >
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
@@ -10327,7 +10431,11 @@ This prompt names the state of the program on 2026-08-16.
 > the length** (T-236), and **the view of the queue asks the server for the place
 > of a media that came into the queue after the request of the key `q`: the loop
 > of that view holds the rule, the names of the media that the request asked for
-> are the condition of it, and the offline mode asks nothing at all** (T-237).
+> are the condition of it, and the offline mode asks nothing at all** (T-237), and
+> **the line of the view of the queue of the media that plays holds the place of
+> the engine of this program: the place of the row is the place of the moment of
+> the key `q`, a place of 0 of the engine is a playback that did not begin, and
+> the mark of the end of the row belongs to the place of the row** (T-238).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

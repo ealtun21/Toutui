@@ -92,7 +92,7 @@ fn the_line_of_the_view_of_the_queue_names_the_time_that_is_left() {
         vec![" 40".to_string(), " Not finished".to_string()],
     );
 
-    let lines = the_lines_of_the_queue(&entries, &places, None);
+    let lines = the_lines_of_the_queue(&entries, &places, None, None);
 
     assert_eq!(lines.len(), 6, "the lines are {:?}", lines);
 
@@ -156,7 +156,7 @@ fn the_line_of_the_view_of_the_queue_names_the_time_that_is_left() {
     // A caller that holds no place of the user gives none, and every line then
     // holds the length of its media. That is the view of the offline mode, and
     // it is the message of a test.
-    let nothing = the_lines_of_the_queue(&entries, &BTreeMap::new(), None);
+    let nothing = the_lines_of_the_queue(&entries, &BTreeMap::new(), None, None);
 
     assert!(
         nothing.iter().all(|line| !line.contains("left")),

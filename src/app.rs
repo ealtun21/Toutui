@@ -6983,6 +6983,28 @@ impl App {
         }
     }
 
+    /// Gives the place of the playback of this program, in seconds. See T-238.
+    ///
+    /// The engine writes this value at each second, and the row of the player
+    /// says it. **A view that holds the place of a media that plays reads the
+    /// engine and not a value of the server**: the request of the places of the
+    /// view of the queue ran at the key `q`, and the playback of this same
+    /// program moved that media away from the answer of it.
+    ///
+    /// A playback that stopped gives no place, as `playing_media` gives no
+    /// media.
+    pub fn the_place_of_the_playback(&self) -> Option<f64> {
+        let state = self.player.state();
+
+        if state.status == crate::player::engine::PlaybackStatus::Stopped
+            || state.item_id.is_empty()
+        {
+            None
+        } else {
+            Some(state.position)
+        }
+    }
+
     /// Gives the text of each line of the view `Home`.
     ///
     /// Every line starts with a mark: the media that plays, a media that the
@@ -7073,6 +7095,12 @@ impl App {
     /// of the percent and of the mark of the end alone took the time that is
     /// left away from every line of this view, because one message carries the
     /// position of every media of the account.
+    ///
+    /// **The line of the media that plays holds the place of the engine**
+    /// (T-238): the playback of this same program takes neither the road of the
+    /// key `q` nor the road of a live message, therefore that line stood at the
+    /// place of the moment of the key while the row of the player of that same
+    /// frame said the new one.
     pub fn queue_lines(&self, entries: &[crate::logic::queue::Entry]) -> Vec<String> {
         let mut places = crate::logic::queue::the_places();
 
@@ -7088,6 +7116,7 @@ impl App {
             entries,
             &places,
             self.playing_media().as_deref(),
+            self.the_place_of_the_playback(),
         )
     }
 

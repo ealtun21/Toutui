@@ -282,7 +282,7 @@ impl Queue {
     /// test names the media of the queue and no percent. The view of the user
     /// calls `the_lines_of_the_queue`. See T-230.
     pub fn lines(&self) -> Vec<String> {
-        the_lines_of_the_queue(&self.entries, &BTreeMap::new(), None)
+        the_lines_of_the_queue(&self.entries, &BTreeMap::new(), None, None)
     }
 }
 
@@ -326,11 +326,21 @@ impl Queue {
 /// media, or after it, keeps the length too, because the mark of that line
 /// says already that the media came to its end.
 ///
+/// **The line of the media that plays holds the place of the engine** (T-238).
+/// The row of `places` is the place of the moment of the key `q`, and the
+/// playback of this same program moves the media away from it: the row of the
+/// player said `Left: 6:55:37` while the line of that same media of that same
+/// frame said `(7h58m left)`. The engine holds the newer place, and it costs no
+/// request at all. `the_place_of_the_playback` is that place in seconds, and a
+/// place of 0 is a playback that did not begin: the line then keeps the place
+/// of the row.
+///
 /// The function is pure, therefore a test needs no server and no screen.
 pub fn the_lines_of_the_queue(
     entries: &[Entry],
     places: &BTreeMap<String, Vec<String>>,
     playing: Option<&str>,
+    the_place_of_the_playback: Option<f64>,
 ) -> Vec<String> {
     entries
         .iter()
@@ -355,11 +365,14 @@ pub fn the_lines_of_the_queue(
 
             // A media of no length says no time at all: a length of 0 is a
             // length that the server did not give (T-180 and T-236).
-            if let Some(text) = the_time_of_the_line(
-                entry.duration,
+            let (place, the_end) = the_place_of_the_line(
+                plays_now,
+                the_place_of_the_playback,
                 the_place_of_the_row(row),
                 the_mark_of_the_end_of_the_row(row),
-            ) {
+            );
+
+            if let Some(text) = the_time_of_the_line(entry.duration, place, the_end) {
                 line.push_str("  (");
                 line.push_str(&text);
                 line.push(')');
@@ -424,6 +437,44 @@ fn the_place_of_the_row(row: Option<&Vec<String>>) -> Option<f64> {
 fn the_mark_of_the_end_of_the_row(row: Option<&Vec<String>>) -> bool {
     row.and_then(|row| row.get(1))
         .is_some_and(|mark| mark.trim() == "Finished")
+}
+
+/// Gives the place of a line of the view of the queue, and the mark of its end.
+/// See T-238.
+///
+/// **The place of the row is the place of the moment of the key `q`**: the
+/// request of the places runs at that key, and a live message of the server is
+/// the one other road to a newer place (T-235). The playback of this same
+/// program takes neither road: it moves the media of its own line at each
+/// second, and the row of the player of that same screen says the new place
+/// while the line of the queue says the old one.
+///
+/// The measurement of 2026-08-15: the user played `A Book Of Many Hours`, put
+/// it in the queue with the key `n`, and pressed the key `q`. The line said
+/// `(7h58m left)`, and 45 seconds later that same line said `(7h58m left)`
+/// while the row of the player of that same frame said
+/// `▶ 1:04:23 / 8:00:00 | Left: 6:55:37`.
+///
+/// **The engine is the truth of the place of the media that plays**, and it
+/// costs no request. A place of 0 is a playback that did not begin — the media
+/// loads, and the line then keeps the place of the row.
+///
+/// **A media that plays stands at the place of the engine and not at its end**:
+/// the mark of the end of the row belongs to the place of the row, therefore a
+/// media that the user finished and that plays again says the time that is left
+/// of the place of the engine.
+///
+/// The function is pure, therefore a test needs no server and no screen.
+fn the_place_of_the_line(
+    plays_now: bool,
+    the_place_of_the_playback: Option<f64>,
+    the_place_of_the_row: Option<f64>,
+    the_end_of_the_row: bool,
+) -> (Option<f64>, bool) {
+    match the_place_of_the_playback {
+        Some(place) if plays_now && place > 0.0 => (Some(place), false),
+        _ => (the_place_of_the_row, the_end_of_the_row),
+    }
 }
 
 /// Gives the text of the time of a line of the view of the queue. See T-234.

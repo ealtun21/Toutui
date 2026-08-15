@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.67",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The line of the media that plays in the view of the queue kept \
+             the time of the moment of the key `q`.** That line said \
+             `7h58m left` while the row of the player of the same screen said \
+             `Left: 6:55:37`, because the place of the view came from a request \
+             of that key and the playback of this same program moved the media \
+             away from it. The line reads the place of the playback now.",
+        ],
+    },
+    Entry {
         version: "0.8.66",
         date: "15/08/2026",
         body: &[

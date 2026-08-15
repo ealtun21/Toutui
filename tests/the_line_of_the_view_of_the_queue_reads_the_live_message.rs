@@ -137,7 +137,7 @@ fn the_line_of_the_queue_keeps_the_time_that_is_left_after_a_message() {
         ),
     ];
 
-    let lines = the_lines_of_the_queue(&entries, &places, None);
+    let lines = the_lines_of_the_queue(&entries, &places, None, None);
 
     // **The line says the time that is left, and not the length.** The fault of
     // this item gave `(30m)` and `(8h)` here.
@@ -178,7 +178,7 @@ fn the_line_of_the_queue_keeps_the_time_that_is_left_after_a_message() {
         the_row_of_a_live_message(&of_no_place),
     );
 
-    let lines = the_lines_of_the_queue(&entries[..1], &places_of_no_place, None);
+    let lines = the_lines_of_the_queue(&entries[..1], &places_of_no_place, None, None);
     assert!(
         lines[0].contains("(30m)"),
         "a media of no place keeps the length of it: {}",

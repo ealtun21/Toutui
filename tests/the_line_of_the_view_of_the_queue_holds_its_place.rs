@@ -83,7 +83,7 @@ fn the_line_of_the_view_of_the_queue_holds_its_place() {
     places.insert("pym/chapter-00".to_string(), place(" 30", " Not finished"));
     places.insert("pym/chapter-01".to_string(), place(" 0", " Finished"));
 
-    let lines = the_lines_of_the_queue(&entries, &places, Some("pym/chapter-00"));
+    let lines = the_lines_of_the_queue(&entries, &places, Some("pym/chapter-00"), None);
 
     assert_eq!(lines.len(), 5, "the lines are {:?}", lines);
 
@@ -151,7 +151,7 @@ fn the_line_of_the_view_of_the_queue_holds_its_place() {
     // A caller that holds no place of the user gives none, and every line then
     // holds its title alone. That is the view of the offline mode, and it is
     // the message of a test.
-    let nothing = the_lines_of_the_queue(&entries, &BTreeMap::new(), None);
+    let nothing = the_lines_of_the_queue(&entries, &BTreeMap::new(), None, None);
 
     assert!(
         nothing

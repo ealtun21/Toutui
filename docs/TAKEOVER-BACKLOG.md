@@ -16423,3 +16423,111 @@ road of a later version.
   Home view says `6h left`, and the panel of the Home view of a library of
   podcasts and the panel of the view of the episodes each say `Duration: 39m`
   beside `Progress: 32%`. The program holds that number as a number now.
+
+### T-238: the line of the queue of the media that plays holds the place of the engine
+
+**This item measures the first paragraph of "What this item leaves open" of
+T-237: a media that stays in the queue keeps the place of the moment of the key
+`q`.** T-230 gave that view the place of the user, T-235 gave it the road of a
+live message of the server, and T-237 gave it the road of a media that comes
+into the queue. This item asks what a media of that queue holds while **this
+same program** plays it.
+
+#### The measurement
+
+The real program v0.8.66 inside tmux, against the sandbox (podman on :13399).
+The server held `A Book Of Many Hours` at 7200 seconds of 28800
+(`PATCH /api/me/progress/6ba57b9a…`). The user played it with the key `l` of the
+Home view, put it in the queue with the key `n`, and pressed the key `q`. The
+line said `(7h58m left)`, and 45 seconds later (the null device plays 8 hours in
+about 6 minutes) that same line said the same words:
+
+```text
+➤ ▶   1. 📕 A Book Of Many Hours — Many Hours Author  (7h58m left)
+                       ▶ 1:04:23 / 8:00:00 | Left: 6:55:37 (13%) | Speed: 1.00x
+```
+
+**The line of the media that plays and the row of the player of that same frame
+of that same screen said two different times**, and the difference was one hour.
+
+**The control of the same run** (the trap 206): the mark `▶` stood on that line
+at each frame, therefore the line reads the state of the playback already; and
+the row of the player of that same screen said the true place, therefore the
+program holds it.
+
+#### The fault of the source
+
+- `App::queue_lines` of `src/app.rs` gave `the_lines_of_the_queue` the box of
+  the places of the request of the key `q`, and the row of a live message of
+  the server over it (T-235). **The playback of this same program takes neither
+  road**: it writes the place of the user to the server, and the server sends
+  no message of it back to the client that made it.
+- `the_lines_of_the_queue` of `src/logic/queue.rs` knew the media that plays
+  already — `playing` gives the mark `▶` of the line — and it read the place of
+  that media from the box of the request.
+- The engine holds the place of the playback at each second in
+  `PlaybackState::position`, and the row of the player of the same screen reads
+  it. The line of the queue asked no one for it.
+
+#### The correction
+
+- `App::the_place_of_the_playback` gives `PlaybackState::position` for a
+  playback that stands, and `None` for a playback that stopped, in the shape of
+  `App::playing_media`.
+- `the_lines_of_the_queue` takes that place as its fourth argument, and
+  `the_place_of_the_line` is the rule: **the place of the engine for the line of
+  the media that plays, and the place of the row for every other line.**
+- **A place of 0 is a playback that did not begin**: the screen says
+  `Loading the media...` in that moment, and the line then keeps the place of
+  the row.
+- **The mark of the end of the row belongs to the place of the row** (T-236): a
+  media that plays stands at the place of the engine, therefore a media that the
+  user finished and that plays again says the time that is left of that place.
+- `tests/the_line_of_the_queue_holds_the_place_of_the_playback.rs` holds the
+  rule, in one function (T-144 and T-157). **Five builds of the fault each fail
+  it**: a line that keeps the place of the row, a line of every media that takes
+  the place of the engine, a place of 0 of a playback that did not begin, a mark
+  of the end of the row that stands over the place of the engine, and a render
+  that gives the place of the engine to no line.
+
+The same measurement of the corrected program, at two moments of one run:
+
+```text
+➤ ▶   1. 📕 A Book Of Many Hours — Many Hours Author  (5h53m left)
+                       ▶ 2:07:26 / 8:00:00 | Left: 5:52:34 (27%) | Speed: 1.00x
+➤ ▶   1. 📕 A Book Of Many Hours — Many Hours Author  (5h15m left)
+                       ▶ 2:44:54 / 8:00:00 | Left: 5:15:06 (34%) | Speed: 1.00x
+```
+
+**The decision, and the reason for it: a view that says a value of a media that
+plays reads the engine of this program, and not a value of the server.** The
+program holds the newer value already, therefore the correction costs no request
+at all. The two roads to a value of the server (a request of a key, and a live
+message) each carry the work of a machine that is not this one, and neither of
+them names the playback of this program.
+
+#### What this item leaves open
+
+- **A media of the queue that no playback of this program moves keeps the place
+  of the moment of the key `q`** (T-230 to T-238): the request runs for a media
+  that came into the queue (T-237), and a live message of the server is the one
+  road to a newer place of the other lines (T-235).
+- **The percent of the line of the media that plays comes of the row of the
+  request** (T-238): the mark of the line said `▶` in the measurement, therefore
+  the percent of that line stood behind no number that the user could read. A
+  line of a media that plays and that holds a percent beside the mark is not
+  measured.
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-238, and it stays open).
+- **The lines of the view of the search and of the view of the lists hold no
+  place at all** (T-228 to T-238, and it stays open).
+- **The view of the queue of the offline mode is not measured** (T-230 to
+  T-238): that view gives no place at all, therefore every line of it keeps the
+  length of its media.
+- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone** (T-226 to
+  T-238, and it stays open).
+- **The key `X` of the view of the bookmarks of a podcast** removes a place of
+  another episode with the same words (T-223 to T-238 each left it open, and
+  this item did not close it).
+- **The panel of a line of an episode says the length of the media and not the
+  time that is left** (T-236 to T-238, and it stays open).
