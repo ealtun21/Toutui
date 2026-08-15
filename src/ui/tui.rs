@@ -10,8 +10,8 @@ use ratatui::{
     layout::{Alignment, Constraint, Layout, Rect},
     style::{Color, Modifier, Style, Stylize},
     widgets::{
-        Block, Borders, Clear, Gauge, ListItem, ListState, Paragraph, Scrollbar,
-        ScrollbarOrientation, ScrollbarState, StatefulWidget, Widget, Wrap,
+        Block, Borders, Clear, Gauge, ListState, Paragraph, Scrollbar, ScrollbarOrientation,
+        ScrollbarState, StatefulWidget, Widget, Wrap,
     },
 };
 use ratatui_image::StatefulImage;
@@ -2486,24 +2486,19 @@ impl App {
         render_list_items: &[String],
         list_state: &mut ListState,
     ) {
-        let items: Vec<ListItem> = render_list_items
-            .iter()
-            .enumerate()
-            .map(|(i, title)| {
-                let color = Self::alternate_colors(i);
-                ListItem::new(title.clone()).bg(color)
-            })
-            .collect();
-
         // **The render of a list stands in a module of its own** (T-256): a
         // private method of `App` reaches no test, therefore the bar of the
         // scroll of T-255 stood on the measurement of tmux alone.
+        //
+        // **The colour of each line stands there too** (T-257): the colours of
+        // the user come of `self.config`, which `App` read at its start and at
+        // the key `R`, and no line of a frame opens `config.toml` again.
         crate::ui::the_list_of_a_view::render_the_list(
             area,
             buf,
             &self.config.colors,
             render_list_title,
-            items,
+            render_list_items,
             list_state,
         );
     }
@@ -2986,24 +2981,6 @@ Uninstall:
                 .wrap(Wrap { trim: true })
                 .left_aligned()
                 .render(area, buf);
-        }
-    }
-
-    fn alternate_colors(i: usize) -> Color {
-        let mut color_bg_list = Vec::new();
-        let mut color_alt_bg_list = Vec::new();
-        if let Ok(cfg) = load_config() {
-            color_bg_list = cfg.colors.list_background_color;
-            color_alt_bg_list = cfg.colors.list_background_color_alt_row;
-        }
-        if i.is_multiple_of(2) {
-            Color::Rgb(color_bg_list[0], color_bg_list[1], color_bg_list[2])
-        } else {
-            Color::Rgb(
-                color_alt_bg_list[0],
-                color_alt_bg_list[1],
-                color_alt_bg_list[2],
-            )
         }
     }
 }

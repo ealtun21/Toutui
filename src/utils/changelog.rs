@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.86",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A colour of the configuration file that holds no three numbers \
+             does not stop the program.** A line such as \
+             `list_background_color = [50, 50]` stopped the program before its \
+             first frame, and the terminal of the user said nothing at all. \
+             The program takes the last number of such a line now, and it \
+             starts.",
+            "- **The lists of the views draw more quickly.** The program read \
+             the configuration file one time for each line of each frame. It \
+             reads the colours that it holds now, and the key `R` gives the \
+             colours of the file again.",
+        ],
+    },
+    Entry {
         version: "0.8.85",
         date: "15/08/2026",
         body: &[

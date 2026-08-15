@@ -19360,3 +19360,158 @@ of CI, and a different run — passed two times with no failure.
   (T-229 to T-256, and it stays open).
 - **The line of the Library view of a library of podcasts says no place at
   all** (T-242 to T-256, and it stays open).
+
+### T-257: the render of a list reads no disk, and a colour of the configuration that holds no three numbers is a colour that the program does not have
+
+**The state**: corrected on 2026-08-15. The measurement is of the real program
+inside tmux, against the sandbox.
+
+#### What T-256 left open
+
+T-256 left this paragraph of its own "What this item leaves open":
+"**`App::alternate_colors` reads the disk for each line of each frame**
+(T-256, and it stays open): that function calls `load_config()` for every
+item of the list, and T-204 says that the render of the program reads no
+disk. This is a candidate and not a measurement: no session has measured
+it." This item takes that paragraph, and it measures the candidate.
+
+#### The fault
+
+**The first fault, the panic.** `App::alternate_colors(i)` of `src/ui/tui.rs`
+line 2992 read the two colours of the list with `load_config()` and it then
+indexed the vectors: `Color::Rgb(color_bg_list[0], color_bg_list[1],
+color_bg_list[2])`. The two vectors start empty, and a `load_config()` that
+fails leaves them empty. `src/ui/the_list_of_a_view.rs`, the module of
+T-256, held the same fault for five other colours:
+`list_selected_background_color`, `list_selected_foreground_color`,
+`line_header_color`, `header_background_color`, and
+`list_background_color`. The program holds `rgb_parts` of `src/config.rs`
+line 334 already — a function of a round before that gives the last number of
+the list for a number that the file does not hold, and the value of the
+program for a list of no number — and these two files indexed the vectors
+instead of calling it. 22 places of the program call `rgb_parts`, and no gate
+of this repository says which of the two a new render takes. The
+configuration holds no validation of the length of a colour:
+`config.get("colors")` deserializes a `Vec<u8>` of any length.
+
+**The second fault, the disk.** `alternate_colors` called `load_config()` one
+time for each line of each frame. `load_config` opens `config.toml` and it
+parses the whole TOML. T-204 says that the render of the program reads no
+disk.
+
+#### The measurement
+
+The real program v0.8.85, inside tmux, against the sandbox on :13399, on a
+screen of 160 columns and 45 rows.
+
+**The panic.** The line `list_background_color = [50, 50]` of `config.toml`
+of the sandbox (a colour of two numbers) gave this in the log of the
+program, and the program then died before the first frame:
+
+```text
+2026-08-15 21:36:10.645 [ERROR] - [panic] panicked at src/ui/tui.rs:3000:73: index out of bounds: the len is 2 but the index is 2
+```
+
+The session of tmux went away with it: `tmux has-session` said no, and the
+screen said `no server running`. The user sees no word at all — the
+terminal goes away with the next command of the shell (the rule of T-197).
+The render stands on the main thread.
+
+**The disk.** `strace -f -e trace=openat` of the program inside tmux:
+
+- 202 opens of `config.toml` before the first frame of the Home view of 35
+  items.
+- The Library view of the library `ManyPods` of 520 podcasts (500 lines of
+  the page): **14061 opens of `config.toml` in ten seconds**.
+
+#### The correction
+
+`the_colour(values: &[u8]) -> Color` of `src/ui/the_list_of_a_view.rs` calls
+`rgb_parts`, and the five colours of `render_the_list` take it. That one
+function closes the fault of the index for the whole of the module of
+T-256, and it gives a user of a colour of fewer than three numbers a frame
+and not a panic.
+
+`the_colour_of_a_line(colors: &Colors, i: usize) -> Color` of that same
+module gives the background of the line `i` of the colours that it takes,
+and it opens no file. `render_the_list` takes `lines: &[String]` now and it
+builds the `ListItem`s itself with that colour. Before this round the caller
+built them with a colour already, therefore no test of the module reached
+the colours of the list at all.
+
+`App::render_list` of `src/ui/tui.rs` gives `&self.config.colors`, which
+`App` read at its start and at the key `R`, and `alternate_colors` went
+away. The one read of the disk at the start of the program, and the one at
+the key `R`, are the only reads of `config.toml` that the render of a list
+needs now.
+
+#### The measurement of the correction
+
+The same two roads, the same harness.
+
+- The colour of two numbers: the program starts, the Home view draws
+  `Home [35 items]`, and the log holds 0 lines of a panic.
+- The Library view of `ManyPods`: **2 opens of `config.toml` at the start of
+  the program, and 0 in ten seconds of that view** (14061 before).
+
+#### The build of the fault
+
+`the_colour` with the index of the vector in the place of the call to
+`rgb_parts`, and `the_colour_of_a_line` with a call to `load_config()` in the
+place of the colours that it takes. `cargo test --lib the_list_of_a_view`
+then gives **2 failed**.
+
+#### The tests
+
+Two new test functions in `src/ui/the_list_of_a_view::tests`:
+
+- `a_line_of_a_list_takes_the_colours_that_the_program_holds` — it draws a
+  list of three lines with a `Colors` of the values 11,12,13 and 21,22,23
+  into a `Buffer` of ratatui with no terminal, and it reads the background
+  of the rows 1, 2, and 3.
+- `a_colour_of_fewer_than_three_numbers_draws_a_frame` — a `Colors` of the
+  colours `[50, 50]`, `[60]`, and `[]` draws a frame, and the backgrounds
+  hold 50,50,50 and 60,60,60.
+
+#### The gates
+
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` pass,
+`cargo nextest run` gives **1249 tests in 2.771 seconds**, and
+`cargo nextest run --run-ignored all` gives **1275 of 1275** with the sandbox
+up, in 17.7 seconds.
+
+#### What this item leaves open
+
+- **The colours of the program stand on no test of a length** (T-257, and it
+  stays open): 22 places call `rgb_parts` and two files indexed the vector,
+  and no gate of this repository says which of the two a new render takes.
+- **The configuration says nothing of a colour that holds no three
+  numbers** (T-257, and it stays open): the program takes the last number in
+  silence, and the user who wrote `[50, 50]` gets a colour that they did not
+  ask for with no line of the log at all.
+- **The panel of a description is in no test of the render** (T-253 to
+  T-257, and it stays open): `render_a_description` is a private method of
+  `App` still.
+- **The two renders of the panel of the episodes of a podcast are in no
+  test** (T-250 to T-257, and it stays open).
+- **The title of a list says no number of the line of the cursor** (T-255 to
+  T-257, and it stays open).
+- **The key `H` of the panel stands on no character of the screen** (T-254
+  to T-257, and it stays open).
+- **The line of the view of the authors says `[1 book(s)]`** (T-252 to
+  T-257, and it stays open).
+- **The panel of a narrator says "No description available" for every
+  narrator of every library** (T-252 to T-257, and it stays open).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-257, and it stays open).
+- **The key `B` says nothing on either road** (T-248 to T-257, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters,
+  and of the view of the queue gives the Home view** (T-247 to T-257, and it
+  stays open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
+  T-257, and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-257, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at
+  all** (T-242 to T-257, and it stays open).

@@ -13,7 +13,7 @@
 //! `Buffer` and they read the characters of that buffer. A `Buffer` needs no
 //! terminal and no screen, therefore those tests run in the gate.
 
-use crate::config::Colors;
+use crate::config::{rgb_parts, Colors};
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
@@ -25,51 +25,75 @@ use ratatui::{
     },
 };
 
+/// Gives the colour of the screen of the numbers of the configuration.
+///
+/// **A list of fewer than three numbers is a colour that the file does not
+/// hold** (T-257): `rgb_parts` gives the last number of the list, or the value
+/// of the program for a list of no number at all. An index of that list stops
+/// the whole program: the render stands on the main thread, and a panic of it
+/// takes the terminal of the user away with no word on the screen.
+fn the_colour(values: &[u8]) -> Color {
+    let (r, g, b) = rgb_parts(values);
+    Color::Rgb(r, g, b)
+}
+
+/// Gives the background of the line `i` of a list. The even lines take one
+/// colour of the user and the odd lines take the other.
+///
+/// **The render of the program reads no disk** (T-204 and T-257). This function
+/// takes the colours that `App` read at its start, and it opens no file: the
+/// function before it called `load_config()` one time for each line of each
+/// frame, and a measurement of the Library view of 500 lines counted **14061
+/// opens of `config.toml` in ten seconds**.
+pub fn the_colour_of_a_line(colors: &Colors, i: usize) -> Color {
+    if i.is_multiple_of(2) {
+        the_colour(&colors.list_background_color)
+    } else {
+        the_colour(&colors.list_background_color_alt_row)
+    }
+}
+
 /// Draws the list of a view, and the bar of the scroll of it.
 ///
-/// `title` stands in the header of the block, `items` are the lines of the
+/// `title` stands in the header of the block, `lines` are the lines of the
 /// list, and `list_state` holds the cursor of the user and the offset of the
 /// panel. ratatui writes that offset while it draws the list.
+///
+/// **The background of each line comes of this function** (T-257): the caller
+/// gave the lines with a colour already, therefore no test of this module
+/// reached the colours of the list at all.
 pub fn render_the_list(
     area: Rect,
     buf: &mut Buffer,
     colors: &Colors,
     title: &str,
-    items: Vec<ListItem<'_>>,
+    lines: &[String],
     list_state: &mut ListState,
 ) {
-    let bg_color_header = &colors.header_background_color;
-    let fg_color_header = &colors.line_header_color;
-    let bg_color_block = &colors.list_background_color;
-    let bg_selected = &colors.list_selected_background_color;
-    let fg_selected = &colors.list_selected_foreground_color;
+    let items: Vec<ListItem> = lines
+        .iter()
+        .enumerate()
+        .map(|(i, line)| ListItem::new(line.clone()).bg(the_colour_of_a_line(colors, i)))
+        .collect();
 
+    // **A colour of the configuration that holds no three numbers is a colour
+    // that the program does not have** (T-257): `rgb_parts` gives the value of
+    // the program for a number that the file does not hold, and an index of the
+    // list stops the program of the user at the first frame.
     let selected_style: Style = Style::new()
-        .bg(Color::Rgb(bg_selected[0], bg_selected[1], bg_selected[2]))
-        .fg(Color::Rgb(fg_selected[0], fg_selected[1], fg_selected[2]))
+        .bg(the_colour(&colors.list_selected_background_color))
+        .fg(the_colour(&colors.list_selected_foreground_color))
         .add_modifier(Modifier::BOLD);
 
     let header_style: Style = Style::new()
-        .fg(Color::Rgb(
-            fg_color_header[0],
-            fg_color_header[1],
-            fg_color_header[2],
-        ))
-        .bg(Color::Rgb(
-            bg_color_header[0],
-            bg_color_header[1],
-            bg_color_header[2],
-        ));
+        .fg(the_colour(&colors.line_header_color))
+        .bg(the_colour(&colors.header_background_color));
 
     let block = Block::new()
         .title(Line::raw(title.to_string()).centered())
         .borders(Borders::TOP)
         .border_style(header_style)
-        .bg(Color::Rgb(
-            bg_color_block[0],
-            bg_color_block[1],
-            bg_color_block[2],
-        ));
+        .bg(the_colour(&colors.list_background_color));
 
     // **A list that holds more lines than its rows says so** (T-255). The block
     // draws the header of the view over the whole width, and the list and the
@@ -143,9 +167,7 @@ mod tests {
         let area = Rect::new(0, 0, WIDTH, ROWS + 1);
         let mut buf = Buffer::empty(area);
 
-        let items: Vec<ListItem> = (0..lines)
-            .map(|i| ListItem::new(format!("Letter {}", i + 1)))
-            .collect();
+        let the_lines: Vec<String> = (0..lines).map(|i| format!("Letter {}", i + 1)).collect();
 
         let mut state = ListState::default();
         state.select(selected);
@@ -155,7 +177,7 @@ mod tests {
             &mut buf,
             &Colors::default(),
             "Episodes",
-            items,
+            &the_lines,
             &mut state,
         );
 
@@ -214,5 +236,85 @@ mod tests {
         // A list with no cursor keeps the offset of the panel: the thumb of it
         // stands at the top of the track.
         assert_eq!(the_rows_of_the_thumb(57, None).first(), Some(&1));
+    }
+
+    /// Draws a list of three lines with the colours of a user, and gives the
+    /// buffer of it. The row 0 is the header of the block, and the rows 1, 2,
+    /// and 3 are the lines of the list.
+    fn the_buffer_of_the_colours(colors: &Colors) -> Buffer {
+        let area = Rect::new(0, 0, WIDTH, 4);
+        let mut buf = Buffer::empty(area);
+
+        let the_lines: Vec<String> = (0..3).map(|i| format!("Letter {}", i + 1)).collect();
+
+        let mut state = ListState::default();
+        state.select(None);
+
+        render_the_list(area, &mut buf, colors, "Episodes", &the_lines, &mut state);
+
+        buf
+    }
+
+    /// The lines of a list take the colours that the program holds, and the
+    /// render opens no file at all. See T-257 and T-204.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn a_line_of_a_list_takes_the_colours_that_the_program_holds() {
+        // **The fault of T-257, of the real program v0.8.85 inside tmux**:
+        // `alternate_colors` called `load_config()` one time for each line of
+        // each frame, and `strace -f -e trace=openat` of the Library view of
+        // the library `ManyPods` counted **14061 opens of `config.toml` in ten
+        // seconds**. That function took no colour of its caller: it read the
+        // disk, therefore the colours of this test reached no line of the list.
+        let colors = Colors {
+            list_background_color: vec![11, 12, 13],
+            list_background_color_alt_row: vec![21, 22, 23],
+            ..Colors::default()
+        };
+
+        let buf = the_buffer_of_the_colours(&colors);
+
+        assert_eq!(buf[(0, 1)].style().bg, Some(Color::Rgb(11, 12, 13)));
+        assert_eq!(buf[(0, 2)].style().bg, Some(Color::Rgb(21, 22, 23)));
+        assert_eq!(buf[(0, 3)].style().bg, Some(Color::Rgb(11, 12, 13)));
+
+        // The colours of the whole list come of the same values: the block of
+        // the header takes the background of the list too.
+        assert_eq!(
+            the_colour_of_a_line(&colors, 0),
+            Color::Rgb(11, 12, 13),
+            "the even lines take the first colour of the user"
+        );
+        assert_eq!(the_colour_of_a_line(&colors, 1), Color::Rgb(21, 22, 23));
+    }
+
+    /// A colour of the configuration that holds no three numbers draws a frame,
+    /// and it stops the program of the user no more. See T-257.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn a_colour_of_fewer_than_three_numbers_draws_a_frame() {
+        // **The fault of T-257, of the real program v0.8.85 inside tmux**: the
+        // line `list_background_color = [50, 50]` of `config.toml` of the
+        // sandbox gave the log of the program
+        // `[panic] panicked at src/ui/tui.rs:3000:73: index out of bounds: the
+        // len is 2 but the index is 2`, and the terminal of the user went away
+        // before the first frame with no word on the screen.
+        let of_two_numbers = Colors {
+            list_background_color: vec![50, 50],
+            list_background_color_alt_row: vec![60],
+            list_selected_background_color: vec![],
+            line_header_color: vec![70, 71],
+            header_background_color: vec![],
+            ..Colors::default()
+        };
+
+        let buf = the_buffer_of_the_colours(&of_two_numbers);
+
+        // A number that the file does not hold takes the last number of the
+        // list, and a list of no number at all takes the value of the program.
+        assert_eq!(buf[(0, 1)].style().bg, Some(Color::Rgb(50, 50, 50)));
+        assert_eq!(buf[(0, 2)].style().bg, Some(Color::Rgb(60, 60, 60)));
     }
 }
