@@ -7,4 +7,5 @@ pub mod exit_app;
 pub mod html_text;
 pub mod logs;
 pub mod startup;
+pub mod the_terminal_that_went_away;
 pub mod values_of_the_server;

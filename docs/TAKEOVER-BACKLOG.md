@@ -21794,3 +21794,168 @@ not valid. Log in again."`.
   not a measurement; open since T-264).
 - **The program reads the configuration file two times at its start** (a
   candidate, and not a measurement; open since T-259).
+
+### T-271: a program whose terminal went away stops
+
+**The state**: corrected on 2026-08-16, in v0.8.100. The measurement is of the
+real program inside tmux, against the sandbox.
+
+#### The choice of this item
+
+The session of the hundredth turn looked for a condition of the program that no
+measurement has reached, and it found three programs of the sessions of
+2026-08-15 that stood on this machine at that moment: pids 1254056, 1255254 and
+1266014, each started at 21:37 or 21:42, each with
+`/proc/PID/fd/0 -> /dev/pts/N (deleted)`, each at **131 percent of one processor
+for three hours**. Their threads: `cpal_alsa_out` at 95 percent and the main
+thread at 36 percent. `strace` and `gdb` cannot attach to a program that they
+did not start (the trap 136), therefore the measurement below started its own.
+
+#### The fault
+
+A terminal that goes away sends SIGHUP to the foreground process group of that
+terminal alone. **A program that the user put in the background, a program of
+`nohup`, a program of a unit of systemd, and a program whose shell died with no
+signal of its own get no signal at all.** The kernel then stops nothing, and
+Toutui did not see the terminal that no process holds.
+
+#### The measurement
+
+The new harness `docs/harness/the_terminal_of_the_program_goes_away.py`. It sets
+the disposition of SIGHUP to `SIG_IGN`, and it then `exec`s the program of its
+command line: an ignored disposition stays over `exec` (POSIX). `tmux
+kill-session` (the trap 103) then takes the terminal away, and the program gets
+no signal.
+
+```bash
+tmux new-session -d -s check -x 160 -y 45 \
+    "env XDG_CONFIG_HOME=$ABS/toutui-config XDG_DATA_HOME=$ABS/toutui-data \
+         TOUTUI_AUDIO_DEVICE=null \
+         python3 docs/harness/the_terminal_of_the_program_goes_away.py \
+         ./target/debug/toutui"
+```
+
+The program stood after `tmux kill-session` at **196 percent of one processor**,
+for the whole of the measurement, with `/proc/PID/fd/0 -> /dev/pts/5 (deleted)`.
+`grep -c 'the terminal]'` of the log gave **0**: the log said nothing at all.
+
+`strace -f -tt -ff -e trace=poll,ppoll,epoll_wait,read,write,ioctl,select` of
+that program named the loop. The last line before the fault, and the lines after
+it:
+
+```text
+00:41:48.694009 epoll_wait(19, [{events=EPOLLIN|EPOLLERR|EPOLLHUP, data=0}], 3, 200) = 1
+00:41:48.786473 read(0, "", 1024)       = 0
+00:41:48.786489 read(0, "", 1024)       = 0
+```
+
+The file of the main thread held **439588 lines**, and the last 20000 of them
+held one kind of call alone: `read`. **439442 reads of no byte in four seconds.**
+
+Therefore `crossterm::event::poll(Duration::from_millis(200))` of `src/main.rs`
+never comes back for a terminal that gives the end of its input: it reads no
+byte, it counts no event, and it waits again. The `?` of that call reaches
+nothing, the loop of the screen draws no frame after it, and no write of the
+program meets the fault of the terminal. **The loop of the screen therefore
+cannot hold the answer**, because the fault comes while that loop stands inside
+the call that never comes back.
+
+The row of `listening_session` of such a program keeps a heartbeat that stays
+fresh, therefore a second program of the account cannot take that row (T-140):
+the place of the user stands in a program that the user cannot see.
+
+#### The correction
+
+A new module `src/utils/the_terminal_that_went_away.rs`: the enum
+`TheAnswerOfTheWatch` (`TheTerminalStays`, `TheTerminalWentAway`,
+`ThisProgramHasNoTerminal`), the struct `TheWatchOfTheTerminal` with the
+function `look`, the constant `THE_TIME_BETWEEN_TWO_LOOKS` of one second, the
+function `the_line_of_a_terminal_that_went_away`, and the task
+`spawn_the_watch_of_the_terminal`. `src/main.rs` starts that task beside the
+task of the positions that wait, with the client, the account, and the server.
+
+The task stands on a thread of the runtime, therefore the loop of the screen
+that never comes back holds it nowhere. A terminal that went away takes the road
+of the key `Q`: `sync_session_from_database` with the value `true` closes the
+session of the server, it sends the place of the user, and it stops the program.
+
+**The program watches a terminal that answered one time alone.** A program that
+never had a terminal must lose none: the child that reads a PDF (T-62) and a run
+of a test each stand there.
+
+**The user reads no word of this fault**, because the screen of the user is the
+terminal that went away (T-177). The log holds the sentence.
+
+Two rules of the correction came of the measurement, and each of them is a trap:
+
+1. **The probe is `crossterm::terminal::window_size` and not
+   `crossterm::terminal::size`.** `size` gives the `ioctl` of the terminal first
+   and a fallback of `tput` and of the variables `COLUMNS` and `LINES` after it,
+   and a terminal that went away inside tmux keeps those variables. A first
+   correction with `size`: the program stayed at 196 percent after the terminal
+   went away.
+2. **The first look comes before the first wait.** A first correction that
+   waited one second first read the program as a program with no terminal at
+   all, because the terminal went away 600 milliseconds after the first frame:
+   the log of that run held 15 looks of
+   `Err(Os { code: 5, … "Input/output error" })` and no stop at all.
+
+The same harness with the corrected build: `THE-PROGRAM-STOPPED-AFTER=755 ms`,
+and the log held
+
+```text
+[ERROR] - [the terminal] the terminal of this program went away, and no signal came with it. Toutui stops: a program of a terminal that no process holds gives no screen and no key, and it keeps a whole processor. Toutui closes the session of the server first, therefore the place of the user stays.
+[INFO] - [handle_key] The database holds no session to close
+[INFO] - App successfully quit
+```
+
+A second measurement, with a playback of the book "A Long Test Book" of 30
+minutes: the row of the player said
+`▶ 14:59 / 30:00 | Elapsed: 14:59 | Left: 15:01 (50%) | Speed: 0.80x`, and the
+row of `listening_session` held
+`e85013e6-0b89-471f-8935-e93b3ce7b628|9a671047-6146-4003-8510-d215db074a9c|1317`.
+After the terminal went away: the program stopped after **253 ms**,
+`SELECT count(*) FROM listening_session` gave **0**, and
+`GET /api/me/progress/9a671047-…` of the server gave
+`{'currentTime': 1317, 'progress': 0.73, 'lastUpdate': 1786830630062,
+'isFinished': False}` — the moment of the stop. **The place of the user reached
+the server.**
+
+#### The test
+
+`tests/a_terminal_that_went_away_stops_the_program.rs` holds two functions, and
+the module holds one. A build with the decision of `look` removed: the two tests
+of the watch fail. A build with the wait before the look:
+`the_program_holds_the_watch_of_its_terminal` fails. A build with no call of
+`spawn_the_watch_of_the_terminal` in `src/main.rs`: the crate does not build.
+
+The gates: `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check`
+pass, and `cargo nextest run` gives 1287 of 1287.
+
+#### What this item leaves open
+
+- **The login screen of a terminal that went away** (a candidate, and not a
+  measurement): `AppLogin::run` calls `render_auth`, which holds
+  `let _ = self.auth()`, and `auth()` waits in `crossterm::event::read()`. The
+  watch of this item starts after the login, therefore a login screen whose
+  terminal goes away holds the same loop of no byte.
+- **`let _ = self.auth()` of `src/ui/login_tui.rs` line 17 drops every fault of
+  the login screen** (a candidate, and not a measurement): `AppLogin::run` then
+  draws again with no word and with `should_exit` at `false`, and the else of
+  `auth()` gives `Err(io::Error::other("Invalid textarea"))`.
+- **The column `elapsed_time` of the table `listening_session`** (a candidate,
+  and not a measurement): `update_elapsed_time` writes it at each sync of every
+  playback with `let _ =`, and **no road of the program reads that value**. A
+  write of the disk that no caller reads is a road to `database is locked`
+  (T-140) for nothing.
+- **The `?` of `ApiClient::new(...)` of `src/main.rs` is a bare `?` still** (a
+  candidate, and not a measurement; open since T-269).
+- **The keys of the terminal and of the render of `src/main.rs`
+  (`terminal.draw(...)?`, `crossterm::event::poll(...)?`,
+  `crossterm::event::read()?`, `terminal.clear()?`) each hold a bare `?`** (a
+  candidate, and not a measurement; open since T-269).
+- **`AppLogin::new` holds one road of a fault alone, the configuration file of
+  T-267**: this session read that function and it found no second road. That
+  candidate of T-267 to T-269 closes here.
+- **A fault of the removal of the account that comes on the road of the key `R`
+  is not measured** (a candidate, and not a measurement; open since T-269).

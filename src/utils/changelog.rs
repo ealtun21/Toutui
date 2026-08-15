@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.100",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Toutui stops when its terminal goes away.** A terminal that \
+             closes sends a signal to the program of that terminal, and a \
+             program that you put in the background, a program of `nohup`, and \
+             a program of a service get no signal at all. Toutui did not see \
+             it: the program stayed for ever, it kept a whole processor, it \
+             gave no screen and it took no key, and its listening session \
+             stayed open on the server. Three such programs on one machine \
+             stood for three hours each. Toutui looks at its terminal each \
+             second now: a terminal that went away stops the program, and \
+             Toutui closes the session of the server and sends your place \
+             first. The log says why.",
+        ],
+    },
+    Entry {
         version: "0.8.99",
         date: "16/08/2026",
         body: &[

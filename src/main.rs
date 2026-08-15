@@ -348,8 +348,31 @@ async fn main() -> Result<()> {
             the_tasks_of_the_account.push(toutui::logic::offline::spawn_flush_task(
                 std::sync::Arc::clone(&api),
                 username.clone(),
-                server_key,
+                server_key.clone(),
             ));
+
+            // **The terminal of this program can go away, and no signal comes
+            // with it** (T-271). The loop of the screen cannot see it: a
+            // measurement of 2026-08-16 with
+            // `docs/harness/the_terminal_of_the_program_goes_away.py` gave
+            // 439442 reads of no byte in four seconds inside
+            // `crossterm::event::poll`, a call that never comes back on a
+            // terminal that gives the end of its input. The program then holds
+            // a whole processor for ever, and its row of `listening_session`
+            // keeps a heartbeat that no second program of the account can take
+            // (T-140).
+            //
+            // This task holds the answer, because it stands on a thread of the
+            // runtime and not in the loop of the screen. It stops the program
+            // on the road of the key `Q`: the session of the server closes, and
+            // the place of the user stays.
+            the_tasks_of_the_account.push(
+                toutui::utils::the_terminal_that_went_away::spawn_the_watch_of_the_terminal(
+                    std::sync::Arc::clone(&api),
+                    username.clone(),
+                    server_key,
+                ),
+            );
 
             // The terminal comes first, and a screen comes before the requests.
             //

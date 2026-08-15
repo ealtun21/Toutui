@@ -4,7 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.98.** The item T-269 belongs to this session. The
+**The newest release is v0.8.100.** The item T-271 belongs to this session. The
+item T-270 belongs to the session before it. The
+item T-269 belongs to the session before it. The
 item T-268 belongs to the session before it. The
 item T-267 belongs to the session before it. The
 item T-266 belongs to the session before it. The
@@ -106,14 +108,65 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.98**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.100**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1282 of 1282** in 3.5 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1308 of 1308** in 18.5 seconds
+**1287 of 1287** in 2.8 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1313 of 1313** in 17.9 seconds
 with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundredth turn of 2026-08-16: a program whose terminal went away stops
+
+**One release: v0.8.100**, and one item: T-271. **The road of it is a `ps` of the
+machine at the start of the round**: three programs of the sessions of
+2026-08-15 stood there, each with `/proc/PID/fd/0 -> /dev/pts/N (deleted)`, each
+at 131 percent of one processor for three hours, and each with a row of
+`listening_session` whose heartbeat stayed fresh.
+
+A terminal that goes away sends `SIGHUP` to the foreground process group of that
+terminal alone. A program of the background, a program of `nohup`, a program of
+a unit of systemd, and a program whose shell died with no signal of its own get
+no signal at all. The new harness
+`docs/harness/the_terminal_of_the_program_goes_away.py` gives that condition: it
+sets the disposition of `SIGHUP` to `SIG_IGN` and it then `exec`s the program of
+its command line, because an ignored disposition stays over `exec`.
+
+The real program v0.8.99 inside tmux, after `tmux kill-session`: **196 percent of
+one processor** for the whole of the measurement, and `grep -c 'the terminal]'`
+of the log gave **0**. `strace -f -tt -ff` named the loop —
+`epoll_wait` gave `EPOLLIN|EPOLLERR|EPOLLHUP`, and `read(0, "", 1024) = 0` came
+**439442 times in four seconds**. `crossterm::event::poll` never comes back for a
+terminal that gives the end of its input, therefore the `?` of that call reaches
+nothing and no write of the program meets the fault.
+
+The correction is `src/utils/the_terminal_that_went_away.rs` and a task of one
+second that `src/main.rs` starts: the task stands on a thread of the runtime,
+therefore the loop of the screen that never comes back holds it nowhere. A
+terminal that went away takes the road of the key `Q`. The corrected program
+stopped **755 ms** after the terminal went away; with a playback at 14:59 of a
+book of 30 minutes it stopped after **253 ms**, the table `listening_session`
+held **0** rows, and the server held `currentTime: 1317` with a `lastUpdate` of
+the moment of the stop.
+
+**Two rules of the correction came of the measurement.** The probe is
+`crossterm::terminal::window_size` and not `crossterm::terminal::size` (T-271,
+the trap 237), because `size` falls back to `tput` and to the variables
+`COLUMNS` and `LINES`, and a terminal that went away inside tmux keeps those
+variables: a first correction with `size` stayed at 196 percent. And the first
+look of the watch comes before its first wait (T-271, the trap 238), because a
+terminal that goes away inside that first second reads as a program with no
+terminal at all: the log of that run held 15 looks of
+`Err(Os { code: 5, … "Input/output error" })` and no stop at all.
+
+**A `ps -o pid,pcpu,etime -C toutui` at the start of a round is a measurement of
+its own** (T-271, the trap 239): a program of an older round that stands is a
+condition of the program that no key can make, and the three programs of
+2026-08-15 gave the item of this one. **A `strace` and a `gdb` reach no program
+that they did not start** (the trap 136), therefore such a program gives its
+threads and its file descriptors alone: `ps -L -o tid,pcpu,comm -p PID` and
+`ls -l /proc/PID/fd/0`.
 
 ## The session of the ninety-ninth turn of 2026-08-16: a message of the login screen that the disk did not take says nothing at all
 
@@ -13638,6 +13691,81 @@ again at the key `R`, with no row of a message at all.
 - **The line of the Library view of a library of podcasts says no place at
   all** (T-242 to T-266, and it stays open).
 
+### The session of the ninety-seventh turn of 2026-08-16 (T-268)
+
+**The
+session of the ninety-seventh turn took the candidate
+"`Database::new().await?` of `src/main.rs` lines 126 and 131 holds a bare
+`?`" of "What this item leaves open" of the newest item, which T-267 left
+open. T-199 gave a read of the accounts of the disk a fault of its own and
+it wrote the words of that fault, and no caller of the start reached those
+words for the whole of that time** (T-268).
+
+`src/main.rs` line 126 held `let mut _database = Database::new().await?;`,
+and line 131 held `_database = Database::new().await?;`. `Database::new` of
+`src/db/database_struct.rs` line 68 reads the accounts with
+`select_default_usr().map_err(|error| TheAccountsDidNotCome(...))?`,
+therefore every fault of the disk of that read left `main` with a bare `?`.
+
+The measurement, of the real program v0.8.96 inside tmux, on a screen of 160
+columns and 45 rows, against the sandbox. The condition is a second writer of
+the database of the program, `docs/harness/hold_the_lock.py` with a lock of
+90 seconds (T-199 and T-140). The whole capture of the pane, with 200 lines
+of the history:
+
+```text
+Error: The program did not read the accounts of its database: database is locked
+Location:
+    src/db/database_struct.rs:68:27
+THE-STATUS-OF-THE-EXIT=1
+```
+
+**Three faults stand there together.** The words name a line of the source of
+this program, which no user must read (T-172). They hold no sentence of
+Toutui and no road back. And `grep -c 'the program stops'` of the log of that
+run gave **0**, therefore the report of that stop reached no log at all. The
+log of the same run held three lines of `[the accounts] the program did not
+read the accounts of the disk` and one line of `[main] the account of the
+start: database is locked`: the reads that hold a fault of their own each
+said the fault, and the read that stops the program said nothing.
+
+The correction gives the two reports to `the_program_stops_with_words`, in
+the shape of the login screen of T-267. **That read stands before the login
+screen**, therefore the call names no account and no server (T-91), and the
+words of `TheAccountsDidNotCome` take a road of their own for a name of no
+character: `The account is {}.` gives `The account is .` for such a name, and
+that sentence names nobody. The program of the same lock then said
+
+```text
+Toutui stops: it cannot read the accounts of its database.
+The program did not read the accounts of its database: database is locked
+Toutui changed nothing. Stop a second Toutui that uses this database, and start this one again.
+```
+
+and `grep -c 'the program stops'` of the log gave **1**. The control of the
+same run, with no lock at all, gave the Home view of 35 items after 613
+milliseconds and no word of a fault.
+- **The words of a fault can stand in the source for many rounds with no
+  caller at all** (T-268): T-199 wrote the words of `TheAccountsDidNotCome`
+  and the branch of `the_words_of_a_program_that_stops` that holds them, and
+  the two reads of the start never reached that branch. **Ask of a correction
+  of an older round: which caller of that fault reaches the words, and which
+  one gives the report to the runtime?**
+- **A sentence of a value that no road fills is a sentence that names
+  nobody** (T-268): `The account is {}.` with a name of no character gives
+  `The account is .` **A road that names no account needs words of its own,
+  and not the words of a road that names one.**
+- **Every other `?` of `src/main.rs` that leaves the function** (T-268, and
+  it stays open): T-267 and T-268 each took one read of the start, and a
+  sweep of the whole file names the rest of them. **This is a candidate and
+  not a measurement.**
+- **A fault of `AppLogin::new` that is not the configuration file names an
+  account of no character and a server of no character** (T-267 and T-268,
+  and it stays open).
+- **Every candidate of the list of the turn below stays open** (T-229 to
+  T-268): the block has a limit of size, therefore this turn names the new
+  candidates alone and it does not repeat that list.
+
 ### The session of the ninety-sixth turn of 2026-08-15 (T-267)
 
 **The
@@ -13746,7 +13874,7 @@ The gates of v0.8.99, under `nice -n 19 ionice -c 3` with `-j 16`:
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.98**; `Cargo.toml` is at 0.8.98. The
+> AlbanDAVID/Toutui. Newest release **v0.8.100**; `Cargo.toml` is at 0.8.100. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -14048,6 +14176,27 @@ The gates of v0.8.99, under `nice -n 19 ionice -c 3` with `-j 16`:
 > seconds** (the trap 164): a poll of the disk eight seconds after that key reads
 > the files that the program removes one second later, therefore such a
 > measurement waits for the whole of the lock.
+>
+> **A terminal that goes away with no `SIGHUP` is
+> `docs/harness/the_terminal_of_the_program_goes_away.py`** (T-271). `tmux
+> kill-session` is the `SIGHUP` of a terminal that goes away (the trap 103), and
+> the kernel then stops the program: that road measures nothing of the program
+> itself. This harness sets the disposition of `SIGHUP` to `SIG_IGN` and it then
+> `exec`s the program of its command line, because an ignored disposition stays
+> over `exec`. It gives the condition of a program of the background, of `nohup`,
+> and of a unit of systemd:
+>
+> ```bash
+> tmux new-session -d -s check -x 160 -y 45 \
+>     "env XDG_CONFIG_HOME=$ABS/toutui-config TOUTUI_AUDIO_DEVICE=null \
+>          python3 docs/harness/the_terminal_of_the_program_goes_away.py \
+>          ./target/debug/toutui"
+> ```
+>
+> **A `ps` of the machine at the start of a round is a measurement of its own**
+> (T-271): three programs of the round of 2026-08-15 stood at 131 percent of one
+> processor for three hours each, and `ps -o pid,pcpu,etime -C toutui` named
+> them.
 >
 > **A second writer of the database of the program is
 > `docs/harness/hold_the_lock.py`** (T-199). **A fault of the database needs no
@@ -14408,7 +14557,69 @@ The gates of v0.8.99, under `nice -n 19 ionice -c 3` with `-j 16`:
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in ninety-nine sessions of one hundred.
+>    this shape found a fault in one hundred sessions of one hundred and one.
+>    **The
+>    session of the hundredth turn looked for a condition that no measurement has
+>    reached, and it found three programs of the sessions of 2026-08-15 that
+>    stood on this machine at that moment: each with
+>    `/proc/PID/fd/0 -> /dev/pts/N (deleted)`, each at 131 percent of one
+>    processor for three hours. A terminal that goes away sends `SIGHUP` to the
+>    foreground process group of that terminal alone, and a program of the
+>    background, a program of `nohup`, and a program of a unit of systemd get no
+>    signal at all** (T-271).
+>
+>    The condition is `docs/harness/the_terminal_of_the_program_goes_away.py`: it
+>    sets the disposition of `SIGHUP` to `SIG_IGN`, and an ignored disposition
+>    stays over `exec`. `tmux kill-session` then takes the terminal away with no
+>    signal. The real program v0.8.99 stood at **196 percent of one processor**
+>    for the whole of the measurement, and `grep -c 'the terminal]'` of the log
+>    gave **0**. `strace -f -tt -ff` of that program named the loop:
+>
+>    ```text
+>    epoll_wait(19, [{events=EPOLLIN|EPOLLERR|EPOLLHUP, data=0}], 3, 200) = 1
+>    read(0, "", 1024)       = 0
+>    ```
+>
+>    **439442 reads of no byte in four seconds.**
+>    `crossterm::event::poll(Duration::from_millis(200))` never comes back for a
+>    terminal that gives the end of its input, therefore the `?` of that call
+>    reaches nothing and the loop of the screen draws no frame after it. The row
+>    of `listening_session` of such a program keeps a fresh heartbeat, therefore
+>    no second program of the account can take it (T-140).
+>
+>    The correction is `src/utils/the_terminal_that_went_away.rs` and a task of
+>    one second that `src/main.rs` starts. A terminal that went away takes the
+>    road of the key `Q`: the session of the server closes, the place of the user
+>    goes to the server, and the program stops. The corrected program stopped
+>    **755 ms** after the terminal went away, and with a playback of 14:59 of a
+>    book of 30 minutes it stopped after **253 ms**, the table
+>    `listening_session` held **0** rows, and `GET /api/me/progress/:id` of the
+>    server gave `currentTime: 1317` with a `lastUpdate` of the moment of the
+>    stop.
+>    - **The probe of a terminal is `crossterm::terminal::window_size` and not
+>      `crossterm::terminal::size`** (T-271): `size` falls back to `tput` and to
+>      the variables `COLUMNS` and `LINES`, and a terminal that went away inside
+>      tmux keeps those variables. A first correction with `size` stayed at 196
+>      percent.
+>    - **The first look of a watch comes before its first wait** (T-271): a watch
+>      that waits one second first reads a program whose terminal went away
+>      inside that second as a program with no terminal at all.
+>    - **A program that stands is a measurement that waits** (T-271): three
+>      programs of an older round stood on this machine, and the `ps` of one
+>      round gave the item of the round after it.
+>    - **The login screen of a terminal that went away** (T-271, and it stays
+>      open): the watch starts after the login, and `let _ = self.auth()` of
+>      `src/ui/login_tui.rs` drops every fault of that screen. **This is a
+>      candidate and not a measurement.**
+>    - **The column `elapsed_time` of `listening_session`** (T-271, and it stays
+>      open): `update_elapsed_time` writes it at each sync of every playback with
+>      `let _ =`, and no road of the program reads that value.
+>    - **`AppLogin::new` holds one road of a fault alone**, the configuration
+>      file of T-267: that candidate of T-267 to T-269 closes with T-271.
+>    - **Every candidate of the list of the turns below stays open** (T-229 to
+>      T-271): the block has a limit of size, therefore this turn names the new
+>      candidates alone and it does not repeat that list.
+>
 >    **The
 >    session of the ninety-ninth turn took the candidate "`update_login_err` of
 >    `the_program_needs_a_new_token` takes `let _ =`" of "What this item leaves
@@ -14545,82 +14756,9 @@ The gates of v0.8.99, under `nice -n 19 ionice -c 3` with `-j 16`:
 >      T-269): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
 >
->    **The
->    session of the ninety-seventh turn took the candidate
->    "`Database::new().await?` of `src/main.rs` lines 126 and 131 holds a bare
->    `?`" of "What this item leaves open" of the newest item, which T-267 left
->    open. T-199 gave a read of the accounts of the disk a fault of its own and
->    it wrote the words of that fault, and no caller of the start reached those
->    words for the whole of that time** (T-268).
->
->    `src/main.rs` line 126 held `let mut _database = Database::new().await?;`,
->    and line 131 held `_database = Database::new().await?;`. `Database::new` of
->    `src/db/database_struct.rs` line 68 reads the accounts with
->    `select_default_usr().map_err(|error| TheAccountsDidNotCome(...))?`,
->    therefore every fault of the disk of that read left `main` with a bare `?`.
->
->    The measurement, of the real program v0.8.96 inside tmux, on a screen of 160
->    columns and 45 rows, against the sandbox. The condition is a second writer of
->    the database of the program, `docs/harness/hold_the_lock.py` with a lock of
->    90 seconds (T-199 and T-140). The whole capture of the pane, with 200 lines
->    of the history:
->
->    ```text
->    Error: The program did not read the accounts of its database: database is locked
->    Location:
->        src/db/database_struct.rs:68:27
->    THE-STATUS-OF-THE-EXIT=1
->    ```
->
->    **Three faults stand there together.** The words name a line of the source of
->    this program, which no user must read (T-172). They hold no sentence of
->    Toutui and no road back. And `grep -c 'the program stops'` of the log of that
->    run gave **0**, therefore the report of that stop reached no log at all. The
->    log of the same run held three lines of `[the accounts] the program did not
->    read the accounts of the disk` and one line of `[main] the account of the
->    start: database is locked`: the reads that hold a fault of their own each
->    said the fault, and the read that stops the program said nothing.
->
->    The correction gives the two reports to `the_program_stops_with_words`, in
->    the shape of the login screen of T-267. **That read stands before the login
->    screen**, therefore the call names no account and no server (T-91), and the
->    words of `TheAccountsDidNotCome` take a road of their own for a name of no
->    character: `The account is {}.` gives `The account is .` for such a name, and
->    that sentence names nobody. The program of the same lock then said
->
->    ```text
->    Toutui stops: it cannot read the accounts of its database.
->    The program did not read the accounts of its database: database is locked
->    Toutui changed nothing. Stop a second Toutui that uses this database, and start this one again.
->    ```
->
->    and `grep -c 'the program stops'` of the log gave **1**. The control of the
->    same run, with no lock at all, gave the Home view of 35 items after 613
->    milliseconds and no word of a fault.
->    - **The words of a fault can stand in the source for many rounds with no
->      caller at all** (T-268): T-199 wrote the words of `TheAccountsDidNotCome`
->      and the branch of `the_words_of_a_program_that_stops` that holds them, and
->      the two reads of the start never reached that branch. **Ask of a correction
->      of an older round: which caller of that fault reaches the words, and which
->      one gives the report to the runtime?**
->    - **A sentence of a value that no road fills is a sentence that names
->      nobody** (T-268): `The account is {}.` with a name of no character gives
->      `The account is .` **A road that names no account needs words of its own,
->      and not the words of a road that names one.**
->    - **Every other `?` of `src/main.rs` that leaves the function** (T-268, and
->      it stays open): T-267 and T-268 each took one read of the start, and a
->      sweep of the whole file names the rest of them. **This is a candidate and
->      not a measurement.**
->    - **A fault of `AppLogin::new` that is not the configuration file names an
->      account of no character and a server of no character** (T-267 and T-268,
->      and it stays open).
->    - **Every candidate of the list of the turn below stays open** (T-229 to
->      T-268): the block has a limit of size, therefore this turn names the new
->      candidates alone and it does not repeat that list.
->
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the ninety-sixth and every turn before it, the item of each, and the
+>    the ninety-seventh and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
@@ -15085,7 +15223,12 @@ The gates of v0.8.99, under `nice -n 19 ionice -c 3` with `-j 16`:
 > did not take says nothing at all: the box of the process holds that message and
 > the render reads that box, the disk keeps it for the program after this one
 > because a token that the server refused starts the program again, and a write
-> that the disk refused takes a line of the log** (T-270).
+> that the disk refused takes a line of the log** (T-270), and **a program whose terminal went away
+> stops: the loop of the screen stands inside a call of crossterm that never
+> comes back for a terminal that gives the end of its input, therefore a task of
+> one second reads the `ioctl` of that terminal, and a terminal that went away
+> takes the road of the key `Q` — the session of the server closes and the place
+> of the user goes to the server** (T-271).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
