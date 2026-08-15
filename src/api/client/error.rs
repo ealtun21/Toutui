@@ -207,6 +207,27 @@ pub fn the_words_of_a_program_that_stops(
         );
     }
 
+    // **A row of an account that stays is not a fault of the lists of the
+    // server.** The server answered the first request, and it said that the
+    // token is not valid: the program then removes the row of that account and
+    // it gives the login screen (T-123). A database that takes no removal keeps
+    // that row, therefore the login screen of that same row would meet the same
+    // answer for ever, and the program stops. The words name the database, the
+    // account, the server, and the road back. See T-269.
+    if let Some(fault) = report
+        .chain()
+        .find_map(|cause| cause.downcast_ref::<crate::db::TheAccountDidNotGoAway>())
+    {
+        return format!(
+            "Toutui stops: it did not remove an account of its database.\n\
+             {}\n\
+             The server {} did not accept the token of that account, therefore Toutui must \
+             remove that row and show the login screen.\n\
+             Toutui changed nothing. Correct the database, and start Toutui again.",
+            fault, server
+        );
+    }
+
     // **A fault of the configuration file is not a fault of the server.** The
     // file belongs to the user, and the user can correct it: therefore the
     // words name that file and the road back, and they do not say that the

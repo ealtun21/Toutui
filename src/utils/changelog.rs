@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.98",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Toutui says why it did not remove an account of its \
+             database.** A server that does not accept the token of an \
+             account sends you to the login screen, and Toutui first removes \
+             the row of that account: a row that stays sends you to the same \
+             answer of the server again. A database that refuses that removal \
+             stopped the program with the words of a library: those words \
+             named a line of a file of Rust, they gave no road back, and the \
+             log kept no word of that stop. Toutui names the account, the \
+             database, the reason, and the server now, it tells you to \
+             correct the database and to start Toutui again, and it says that \
+             it changed nothing. The log keeps the whole fault.",
+        ],
+    },
+    Entry {
         version: "0.8.97",
         date: "16/08/2026",
         body: &[

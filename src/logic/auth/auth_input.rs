@@ -101,14 +101,22 @@ pub fn the_login_starts_with_this_address(address: &str) {
 /// the server refused. See `start_the_program_again`. A system that has no
 /// `exec` gives an answer here, and the caller then makes the login screen
 /// itself.
-pub fn the_program_needs_a_new_token(username: &str, server_address: &str) -> Result<(), String> {
+pub fn the_program_needs_a_new_token(
+    username: &str,
+    server_address: &str,
+) -> Result<(), crate::db::TheAccountDidNotGoAway> {
     if let Err(error) = crate::db::crud::remove_the_account(username) {
         // The row stays, therefore the login screen would give the same fault
-        // for ever. The caller says the fault of the API instead.
-        return Err(format!(
-            "The account {} stays in the database: {}",
-            username, error
-        ));
+        // for ever. The caller stops the program with words of this fault.
+        //
+        // **The fault has a type**, because `map_err(Report::msg)` of the caller
+        // gave the user a report of the runtime of Rust: `Location:` with a line
+        // of a file of the standard library, no sentence of Toutui, no road
+        // back, and no line of the log at all. See T-269.
+        return Err(crate::db::TheAccountDidNotGoAway {
+            username: username.to_string(),
+            reason: error.to_string(),
+        });
     }
 
     let _ = update_login_err("The token is not valid. Log in again.");

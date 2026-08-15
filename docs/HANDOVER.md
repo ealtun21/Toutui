@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.97.** The item T-268 belongs to this session. The
+**The newest release is v0.8.98.** The item T-269 belongs to this session. The
+item T-268 belongs to the session before it. The
 item T-267 belongs to the session before it. The
 item T-266 belongs to the session before it. The
 item T-265 belongs to the session before it. The
@@ -105,7 +106,7 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.97**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.98**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
 **1282 of 1282** in 3.5 seconds with 26 skipped,
 `cargo nextest run --run-ignored all` gives **1308 of 1308** in 18.5 seconds
@@ -113,6 +114,60 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the ninety-eighth turn of 2026-08-16: an account that the database keeps after a token that the server refused says why
+
+**One release: v0.8.98**, and one item: T-269. **The road of it is the candidate
+"Every other `?` of `src/main.rs` that leaves the function" of "What this item
+leaves open"**, which T-268 left open. `src/main.rs` held two call sites of
+`logic::auth::auth_input::the_program_needs_a_new_token(&username,
+&server_address).map_err(color_eyre::eyre::Report::msg)?`: one at the start of a
+session, when the first request of `App::new` came back with 401, and one on the
+road of the key `R`. **A bare `?` of `main` gives the report to the runtime of
+Rust.**
+
+`the_program_needs_a_new_token` gives `Err` only when `remove_the_account`
+fails, and that removal is the one road of the fault of T-123: a row that stays
+sends the login screen to the same answer of the server for ever.
+
+The measurement, of the real program v0.8.97 inside tmux, on a screen of 160
+columns and 45 rows, against the sandbox. The condition of the 401 is a harness
+of this round, `docs/harness/a_status_of_one_path.py`, which is
+`one_path_fails.py` with the status of its command line, and the condition of the
+database that takes no removal is a trigger of SQLite of `BEFORE DELETE ON users`
+(T-213). The whole capture of the pane:
+
+```text
+Error: The account toutuitest stays in the database: the disk takes no removal of the account
+Location:
+    /home/…/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+THE-STATUS-OF-THE-EXIT=1
+```
+
+Three faults stand there together: the words name a line of a file of the
+standard library of Rust, which no user must read (T-172); they hold no sentence
+of Toutui and no road back; and `grep -c 'the program stops'` of the log of that
+run gave 0.
+
+The correction is a type `TheAccountDidNotGoAway` of `src/db/mod.rs`, a branch of
+`the_words_of_a_program_that_stops`, and the two call sites of `src/main.rs`. The
+program of the same condition then said
+
+```text
+Toutui stops: it did not remove an account of its database.
+The account toutuitest stays in the database: the disk takes no removal of the account
+The server http://127.0.0.1:13510 did not accept the token of that account, therefore Toutui must remove that row and show the login screen.
+Toutui changed nothing. Correct the database, and start Toutui again.
+```
+
+and the log of that run gave 1. The control of the same run, with no trigger at
+all, removed the row and it gave the login screen with `The token is not valid.
+Log in again.`
+
+**A chmod 444 and the lock of T-199 each hide this road**: the two of them stop
+every write of the database together, and the migration of `Database::new` and
+the read of the accounts stand before this removal. **A trigger of one statement
+of one table is the road of a write of a row that fails alone** (T-213).
 
 ## The session of the ninety-seventh turn of 2026-08-16: a read of the accounts that failed before every account says why
 
@@ -13410,43 +13465,162 @@ milliseconds and no word of a fault.
 - **The line of the Library view of a library of podcasts says no place at
   all** (T-242 to T-265, and it stays open).
 
+### The turn of the ninety-fifth of 2026-08-15: a refresh that cannot read the configuration file keeps the program (T-266)
+
+**The
+session of the ninety-fifth turn took the candidate "The key `R` of a file
+that the program cannot read is not measured" of "What this item leaves open"
+of the newest item, which T-265 left open. That candidate stands on the road
+of the item before it: the correction of T-265 gave that file a fault of its
+own, and it therefore made this road of the key `R`** (T-266).
+
+**A refresh is not a start** (T-205). `main` stops the program for a
+configuration file that it cannot read, and at the start that is right,
+because the program holds no value of the user at all. The key `R` reads that
+file again (T-142): `App::new_with_the_engine` of `src/app.rs` line 668 reads
+it with `load_config()?`, and the road of the refresh of `src/main.rs` gave
+that report to `the_program_stops_with_words`. The application of the user
+holds the account, every list, and the playback already, and the values of the
+file that it read at its start stay good.
+
+The measurement, of the real program v0.8.94 inside tmux, on a screen of 160
+columns and 45 rows, against the sandbox. The build of the fault comes of one
+edit of `src/main.rs`, `(the_file_did_not_come && false)` (the trap 147). The
+program stood in the Home view after 407 milliseconds. The user then wrote two
+lines at the end of `config.toml`, and one bracket went away:
+
+```toml
+[colors]
+background_color = [40, 40, 40
+```
+
+The key `R` took the whole program away. `tmux has-session` gave no session,
+and the log held one line: `[app] the program stops: The program cannot read
+the configuration file /home/…/toutui/config.toml.` The playback, the queue,
+and every list of the user went with that program, for one character of a file
+that the program read one time already.
+
+The correction is `the_configuration_file_did_not_come` of
+`src/api/client/error.rs`, in the shape of `the_accounts_did_not_come` of
+T-199, and the road of the refresh reads it beside the fault of the database.
+The program of the same file and of the same key then stood: the whole capture
+of the pane held the Home view of 35 items, and the row of the message above
+the footer held
+
+```text
+The program cannot read its configuration file, therefore the screen did not change. The log names the fault of that file. Correct it, and press R again.
+```
+
+The control of the same run, with the file of no fault, gave the Home view
+again at the key `R`, with no row of a message at all.
+- **A correction of one round makes the road of the round after it** (T-266):
+  T-265 gave the configuration file a fault of its own, and that fault then
+  stood on every road that reads the file. **Ask of the correction of the
+  round before this one: which other caller meets that new fault, and does
+  that caller hold the values of the user already?**
+- **A binary of the correction that no build made is the binary of the fault**
+  (the trap 235): the first run of this measurement restored the source of
+  `src/main.rs` and it did not build again, therefore both runs drove the same
+  binary and the correction looked dead. **A measurement of two binaries must
+  compare them**: `cmp target/debug/toutui <the binary of the fault>` must say
+  that the two differ before the second run.
+- **A build of the fault of three files gives no gate at all** (T-266, and
+  the trap 236): a
+  removal of the constant and of the function stops the compiler, and a test
+  that does not compile says nothing of the rule. **Remove the decision alone**
+  — the `src/main.rs` of the version before this one, with every other file of
+  the new version — and the test then fails at its assertion.
+- **The login screen of a file that the program cannot read is not measured**
+  (T-265 and T-266, and it stays open): `AppLogin::new` of `src/login_app.rs`
+  line 19 reads the file with `?`, and that road stands before the clear of
+  the screen. **This is a candidate and not a measurement.**
+- **A file that the program cannot make says no word on the screen** (T-264 to
+  T-266, and it stays open).
+- **The row of the message says the number and not the name** (T-264 to T-266,
+  and it stays open).
+- **The login screen says no word of a value of the file that the program does
+  not use** (T-264 to T-266, and it stays open).
+- **The program reads the configuration file two times at its start** (T-259
+  to T-266, and it stays open).
+- **A machine of two names of the file is not measured** (T-263 to T-266, and
+  it stays open).
+- **A name of the prefix of an address is not every name of an identity of an
+  address** (T-262 to T-266, and it stays open).
+- **Two names that differ in their spaces alone are two identities** (T-261 to
+  T-266, and it stays open).
+- **A file whose every server fails is not measured** (T-259 to T-266, and it
+  stays open).
+- **The block `reader` stands on no gate of a build of the fault** (T-259 to
+  T-266, and it stays open).
+- **The words of a fault of the crate `config` are not ASD-STE100** (T-258 to
+  T-266, and it stays open).
+- **The colours of the program stand on no test of a length** (T-257 to T-266,
+  and it stays open).
+- **The panel of a description is in no test of the render** (T-253 to T-266,
+  and it stays open).
+- **The two renders of the panel of the episodes of a podcast are in no test**
+  (T-250 to T-266, and it stays open).
+- **The title of a list says no number of the line of the cursor** (T-255 to
+  T-266, and it stays open).
+- **The key `H` of the panel stands on no character of the screen** (T-254 to
+  T-266, and it stays open).
+- **The line of the view of the authors says `[1 book(s)]`** (T-252 to T-266,
+  and it stays open).
+- **The panel of a narrator says "No description available" for every narrator
+  of every library** (T-252 to T-266, and it stays open).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-266, and it stays open).
+- **The key `B` says nothing on either road** (T-248 to T-266, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters, and
+  of the view of the queue gives the Home view** (T-247 to T-266, and it stays
+  open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to T-266,
+  and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user** (T-229
+  to T-266, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at
+  all** (T-242 to T-266, and it stays open).
+
 ## The prompt for the next session
-**This session took the candidate "`Database::new().await?` of `src/main.rs`
-lines 126 and 131 holds a bare `?`"**, which T-267 left open. T-199 gave a read
-of the accounts of the disk a fault of its own, `TheAccountsDidNotCome`, and it
-wrote the words of that fault in `the_words_of_a_program_that_stops`. **Those
-words stood in the source for the whole of that time, and no caller of the start
-reached them.** The real program v0.8.96, with `docs/harness/hold_the_lock.py`
-holding the database of the sandbox for 90 seconds, gave a pane of tmux of
-`Error: The program did not read the accounts of its database: database is
-locked` and `Location: src/db/database_struct.rs:68:27`, and nothing else. No
-user must read a line of the source of this program (T-172), those words hold no
-sentence of Toutui and no road back, and `grep -c 'the program stops'` of the log
-of that run gave 0. The item is **T-268**, and it holds the release v0.8.97.
+**This session took the candidate "Every other `?` of `src/main.rs` that leaves
+the function"**, which T-268 left open. `src/main.rs` held
+`the_program_needs_a_new_token(&username, &server_address)
+.map_err(color_eyre::eyre::Report::msg)?` two times: at the start of a session,
+when the first request of `App::new` came back with 401, and on the road of the
+key `R`. That function gives `Err` only when `remove_the_account` fails, and
+**that removal is the one road of the fault of T-123**. The real program v0.8.97,
+against the sandbox behind `docs/harness/a_status_of_one_path.py` with the status
+401 for `/api/libraries`, and with a trigger of SQLite of
+`BEFORE DELETE ON users`, gave a pane of tmux of `Error: The account toutuitest
+stays in the database: the disk takes no removal of the account` and a `Location:`
+of a file of the standard library of Rust, and nothing else. No user must read
+such a line (T-172), those words hold no sentence of Toutui and no road back, and
+`grep -c 'the program stops'` of the log of that run gave 0. The item is
+**T-269**, and it holds the release v0.8.98.
 
 Two things are worth the room:
 
-1. **The words of a fault can stand in the source for many rounds with no caller
-   at all.** T-199 wrote the words of `TheAccountsDidNotCome` and the branch that
-   holds them, and the two reads of the start never reached that branch. **Ask of
-   a correction of an older round: which caller of that fault reaches the words,
-   and which one gives the report to the runtime?**
+1. **A `chmod 444` and the lock of T-199 each hide a write of a row that fails
+   alone.** The two of them stop every write of the database together, and the
+   migration of `Database::new` and the read of the accounts stand before this
+   removal. **A trigger of one statement of one table is the road of that
+   condition** (T-213).
 
-2. **A sentence of a value that no road fills is a sentence that names nobody.**
-   `The account is {}.` with a name of no character gives `The account is .` A
-   road that names no account needs words of its own, and not the words of a road
-   that names one.
+2. **A status of 401 is not a status of 500.** `docs/harness/one_path_fails.py`
+   answers 500 alone, and the road of a token that the server refuses needs 401:
+   `docs/harness/a_status_of_one_path.py` takes the status of its command line.
 
-The gates of v0.8.97, under `nice -n 19 ionice -c 3` with `-j 16`:
+The gates of v0.8.98, under `nice -n 19 ionice -c 3` with `-j 16`:
 `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
-`cargo nextest run` gives 1282 of 1282 in 3.5 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives 1308 of 1308 in 18.5 seconds with
-the sandbox up, and `cargo test -j 16 --no-fail-fast` passed over its 152
-binaries.
+`cargo nextest run` gives 1283 of 1283 in 4.4 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives 1309 of 1309 in 17.4 seconds with
+the sandbox up, and `cargo test -j 16 --no-fail-fast` passed three times over its
+152 binaries.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.97**; `Cargo.toml` is at 0.8.97. The
+> AlbanDAVID/Toutui. Newest release **v0.8.98**; `Cargo.toml` is at 0.8.98. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -13455,7 +13629,7 @@ binaries.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-268 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-269 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -13577,6 +13751,25 @@ binaries.
 > `wiremock` gives one status to one method of one path with no proxy at all**,
 > and `received_requests` then says which path the program asked for (T-188 and
 > T-189).
+>
+> **A status of one path that is not 500 is
+> `docs/harness/a_status_of_one_path.py`** (T-269). `one_path_fails.py` answers
+> 500 alone, and **a status of 401 is not a status of 500**: the program reads
+> 401 as a token that the server refuses (T-123), and it then removes the row of
+> the account and it gives the login screen. This harness takes the status of its
+> command line, and every other request goes to the sandbox:
+>
+> ```bash
+> python3 docs/harness/a_status_of_one_path.py 13510 13399 requests.log 401 \
+>     /api/libraries
+> ```
+>
+> The account takes `http://127.0.0.1:13510` in `users.server_address` of the
+> database of the program (the trap 129), and a copy of that file gives the
+> address of the sandbox back at the end. **A token of a `sqlite3` gives
+> `Failed to decrypt the token.`** (the trap 192), therefore no measurement of a
+> token that the server refuses writes that column.
+>
 > **A server that answers the login and that holds no library is
 > `docs/harness/no_library.py`** (T-173). It forwards every request to the
 > sandbox, and it answers `GET /api/libraries` with the status 200 and the body
@@ -13973,15 +14166,15 @@ binaries.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-269 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-270 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1280 tests in 2.9 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1302 of 1302** with the sandbox up, in about 18 seconds. **Run that
+> Baseline: **1283 tests in 4.4 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1309 of 1309** with the sandbox up, in about 18 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -14090,6 +14283,84 @@ binaries.
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in ninety-eight sessions of ninety-nine.
+>    **The
+>    session of the ninety-eighth turn took the candidate "Every other `?` of
+>    `src/main.rs` that leaves the function" of "What this item leaves open" of
+>    the newest item, which T-268 left open. T-267 and T-268 each took one read of
+>    the start; this turn took the two call sites of the token that the server
+>    refuses** (T-269).
+>
+>    `src/main.rs` held
+>    `logic::auth::auth_input::the_program_needs_a_new_token(&username,
+>    &server_address).map_err(color_eyre::eyre::Report::msg)?` two times: one at
+>    the start of a session, when the first request of `App::new` came back with
+>    401, and one on the road of the key `R`. That function gives `Err` only when
+>    `remove_the_account` fails, and **that removal is the one road of the fault of
+>    T-123**: a row that stays sends the login screen to the same answer of the
+>    server for ever.
+>
+>    The measurement, of the real program v0.8.97 inside tmux, on a screen of 160
+>    columns and 45 rows, against the sandbox. The condition of the 401 is
+>    `docs/harness/a_status_of_one_path.py` of this round, and the condition of the
+>    database that takes no removal is a trigger of SQLite of
+>    `BEFORE DELETE ON users` (T-213). The whole capture of the pane:
+>
+>    ```text
+>    Error: The account toutuitest stays in the database: the disk takes no removal of the account
+>    Location:
+>        /home/…/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+>    THE-STATUS-OF-THE-EXIT=1
+>    ```
+>
+>    **Three faults stand there together.** The words name a line of a file of the
+>    standard library of Rust, which no user must read (T-172). They hold no
+>    sentence of Toutui and no road back. And `grep -c 'the program stops'` of the
+>    log of that run gave **0**: that log stopped at
+>    `[main][api] The pool has 1 address(es).`, and it held no word of the token
+>    and no word of the removal.
+>
+>    The correction is a type `TheAccountDidNotGoAway` of `src/db/mod.rs`, a branch
+>    of `the_words_of_a_program_that_stops`, and the two call sites of
+>    `src/main.rs`. The program of the same condition then said
+>
+>    ```text
+>    Toutui stops: it did not remove an account of its database.
+>    The account toutuitest stays in the database: the disk takes no removal of the account
+>    The server http://127.0.0.1:13510 did not accept the token of that account, therefore Toutui must remove that row and show the login screen.
+>    Toutui changed nothing. Correct the database, and start Toutui again.
+>    ```
+>
+>    and the log of that run gave **1**. The control of the same run, with no
+>    trigger at all, removed the row and it gave the login screen with `The token
+>    is not valid. Log in again.`
+>    - **A `chmod 444` and the lock of T-199 each hide a write of a row that fails
+>      alone** (T-269): the two of them stop every write of the database together,
+>      and the migration of `Database::new` and the read of the accounts stand
+>      before this removal. **A trigger of one statement of one table is the road of
+>      that condition** (T-213).
+>    - **A status of 401 is not a status of 500** (T-269):
+>      `docs/harness/one_path_fails.py` answers 500 alone, and the road of a token
+>      that the server refuses needs 401.
+>      `docs/harness/a_status_of_one_path.py` takes the status of its command line.
+>    - **The `?` of `ApiClient::new(...)` of `src/main.rs`** (T-269, and it stays
+>      open): a pool that gives no client stops the program with the words of the
+>      runtime. **This is a candidate and not a measurement.**
+>    - **The keys of the terminal and of the render of `src/main.rs`
+>      (`terminal.draw(...)?`, `crossterm::event::poll(...)?`,
+>      `crossterm::event::read()?`, `terminal.clear()?`) each hold a bare `?`**
+>      (T-269, and it stays open): a terminal that goes away is the road of those.
+>    - **A fault of the removal of the account on the road of the key `R` is not
+>      measured** (T-269, and it stays open): the correction stands on both roads,
+>      and the measurement drove the road of the start alone.
+>    - **`update_login_err` of `the_program_needs_a_new_token` takes `let _ =`**
+>      (T-269, and it stays open).
+>    - **A fault of `AppLogin::new` that is not the configuration file names an
+>      account of no character and a server of no character** (T-267 to T-269, and
+>      it stays open).
+>    - **Every candidate of the list of the turns below stays open** (T-229 to
+>      T-269): the block has a limit of size, therefore this turn names the new
+>      candidates alone and it does not repeat that list.
+>
 >    **The
 >    session of the ninety-seventh turn took the candidate
 >    "`Database::new().await?` of `src/main.rs` lines 126 and 131 holds a bare
@@ -14234,123 +14505,9 @@ binaries.
 >      T-267): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
 >
->    **The
->    session of the ninety-fifth turn took the candidate "The key `R` of a file
->    that the program cannot read is not measured" of "What this item leaves open"
->    of the newest item, which T-265 left open. That candidate stands on the road
->    of the item before it: the correction of T-265 gave that file a fault of its
->    own, and it therefore made this road of the key `R`** (T-266).
->
->    **A refresh is not a start** (T-205). `main` stops the program for a
->    configuration file that it cannot read, and at the start that is right,
->    because the program holds no value of the user at all. The key `R` reads that
->    file again (T-142): `App::new_with_the_engine` of `src/app.rs` line 668 reads
->    it with `load_config()?`, and the road of the refresh of `src/main.rs` gave
->    that report to `the_program_stops_with_words`. The application of the user
->    holds the account, every list, and the playback already, and the values of the
->    file that it read at its start stay good.
->
->    The measurement, of the real program v0.8.94 inside tmux, on a screen of 160
->    columns and 45 rows, against the sandbox. The build of the fault comes of one
->    edit of `src/main.rs`, `(the_file_did_not_come && false)` (the trap 147). The
->    program stood in the Home view after 407 milliseconds. The user then wrote two
->    lines at the end of `config.toml`, and one bracket went away:
->
->    ```toml
->    [colors]
->    background_color = [40, 40, 40
->    ```
->
->    The key `R` took the whole program away. `tmux has-session` gave no session,
->    and the log held one line: `[app] the program stops: The program cannot read
->    the configuration file /home/…/toutui/config.toml.` The playback, the queue,
->    and every list of the user went with that program, for one character of a file
->    that the program read one time already.
->
->    The correction is `the_configuration_file_did_not_come` of
->    `src/api/client/error.rs`, in the shape of `the_accounts_did_not_come` of
->    T-199, and the road of the refresh reads it beside the fault of the database.
->    The program of the same file and of the same key then stood: the whole capture
->    of the pane held the Home view of 35 items, and the row of the message above
->    the footer held
->
->    ```text
->    The program cannot read its configuration file, therefore the screen did not change. The log names the fault of that file. Correct it, and press R again.
->    ```
->
->    The control of the same run, with the file of no fault, gave the Home view
->    again at the key `R`, with no row of a message at all.
->    - **A correction of one round makes the road of the round after it** (T-266):
->      T-265 gave the configuration file a fault of its own, and that fault then
->      stood on every road that reads the file. **Ask of the correction of the
->      round before this one: which other caller meets that new fault, and does
->      that caller hold the values of the user already?**
->    - **A binary of the correction that no build made is the binary of the fault**
->      (the trap 235): the first run of this measurement restored the source of
->      `src/main.rs` and it did not build again, therefore both runs drove the same
->      binary and the correction looked dead. **A measurement of two binaries must
->      compare them**: `cmp target/debug/toutui <the binary of the fault>` must say
->      that the two differ before the second run.
->    - **A build of the fault of three files gives no gate at all** (T-266, and
->      the trap 236): a
->      removal of the constant and of the function stops the compiler, and a test
->      that does not compile says nothing of the rule. **Remove the decision alone**
->      — the `src/main.rs` of the version before this one, with every other file of
->      the new version — and the test then fails at its assertion.
->    - **The login screen of a file that the program cannot read is not measured**
->      (T-265 and T-266, and it stays open): `AppLogin::new` of `src/login_app.rs`
->      line 19 reads the file with `?`, and that road stands before the clear of
->      the screen. **This is a candidate and not a measurement.**
->    - **A file that the program cannot make says no word on the screen** (T-264 to
->      T-266, and it stays open).
->    - **The row of the message says the number and not the name** (T-264 to T-266,
->      and it stays open).
->    - **The login screen says no word of a value of the file that the program does
->      not use** (T-264 to T-266, and it stays open).
->    - **The program reads the configuration file two times at its start** (T-259
->      to T-266, and it stays open).
->    - **A machine of two names of the file is not measured** (T-263 to T-266, and
->      it stays open).
->    - **A name of the prefix of an address is not every name of an identity of an
->      address** (T-262 to T-266, and it stays open).
->    - **Two names that differ in their spaces alone are two identities** (T-261 to
->      T-266, and it stays open).
->    - **A file whose every server fails is not measured** (T-259 to T-266, and it
->      stays open).
->    - **The block `reader` stands on no gate of a build of the fault** (T-259 to
->      T-266, and it stays open).
->    - **The words of a fault of the crate `config` are not ASD-STE100** (T-258 to
->      T-266, and it stays open).
->    - **The colours of the program stand on no test of a length** (T-257 to T-266,
->      and it stays open).
->    - **The panel of a description is in no test of the render** (T-253 to T-266,
->      and it stays open).
->    - **The two renders of the panel of the episodes of a podcast are in no test**
->      (T-250 to T-266, and it stays open).
->    - **The title of a list says no number of the line of the cursor** (T-255 to
->      T-266, and it stays open).
->    - **The key `H` of the panel stands on no character of the screen** (T-254 to
->      T-266, and it stays open).
->    - **The line of the view of the authors says `[1 book(s)]`** (T-252 to T-266,
->      and it stays open).
->    - **The panel of a narrator says "No description available" for every narrator
->      of every library** (T-252 to T-266, and it stays open).
->    - **The keys of the sweep of T-247 that hold a playback are not measured**
->      (T-248 to T-266, and it stays open).
->    - **The key `B` says nothing on either road** (T-248 to T-266, and it stays
->      open).
->    - **The key `h` of the view of the bookmarks, of the view of the chapters, and
->      of the view of the queue gives the Home view** (T-247 to T-266, and it stays
->      open).
->    - **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to T-266,
->      and it stays open).
->    - **The lines of the view of the bookmarks hold no place of the user** (T-229
->      to T-266, and it stays open).
->    - **The line of the Library view of a library of podcasts says no place at
->      all** (T-242 to T-266, and it stays open).
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the ninety-fourth and every turn before it, the item of each, and the
+>    the ninety-fifth and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
@@ -14806,7 +14963,12 @@ binaries.
 > before every account** (T-267), and **a read of the accounts that failed
 > before every account says why: the two reads of `Database::new` of the start
 > stand before the login screen, therefore the words of that stop name the
-> database and no account at all** (T-268).
+> database and no account at all** (T-268), and **an account that the
+> database keeps after a token that the server refused says why: the removal of
+> the row of that account is the one road of the fault of a token that the server
+> does not accept, therefore a database that refuses that removal stops the
+> program, and the words name the account, the database, the reason, the server,
+> and the road back** (T-269).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

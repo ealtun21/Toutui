@@ -21524,3 +21524,130 @@ alone, failed that test at its first assertion.
   not use** (a candidate, and not a measurement; open since T-264).
 - **The program reads the configuration file two times at its start** (a
   candidate, and not a measurement; open since T-259).
+
+### T-269: an account that the database keeps after a token that the server refused says why
+
+**The state**: corrected on 2026-08-16, in v0.8.98. The measurement is of the
+real program inside tmux.
+
+#### The choice of this item
+
+T-268 left this open: **every other `?` of `src/main.rs` that leaves the
+function**. `src/main.rs` held two call sites of
+`logic::auth::auth_input::the_program_needs_a_new_token(&username,
+&server_address).map_err(color_eyre::eyre::Report::msg)?`: one at the start of a
+session, when the first request of `App::new` came back with 401, and one on the
+road of the key `R`. A bare `?` of `main` gave the report of either call to the
+runtime of Rust.
+
+#### The fault
+
+`the_program_needs_a_new_token` of `src/logic/auth/auth_input.rs` line 104 gives
+`Err` only when `crate::db::crud::remove_the_account(username)` fails. That
+removal is the one road of the fault of T-123: a row that stays sends the login
+screen to the same answer of the server for ever. A fault of that removal left
+`main` with a bare `?`, in the shape that T-267 and T-268 each corrected at a
+different call.
+
+#### The measurement
+
+The real program v0.8.97, inside tmux, on a screen of 160 columns and 45 rows,
+against the sandbox (podman, port 13399). The condition of the 401 is a new
+harness of this round, `docs/harness/a_status_of_one_path.py`, which is
+`one_path_fails.py` with the status of its command line:
+
+```bash
+python3 docs/harness/a_status_of_one_path.py 13510 13399 requests.log 401 \
+    /api/libraries
+```
+
+The account of the sandbox took the address `http://127.0.0.1:13510` in
+`users.server_address` of the database of the program (the trap 129), and a copy
+of that file gave the address of the sandbox back at the end.
+
+The condition of the database that takes no removal is a trigger of SQLite
+(T-213):
+
+```sql
+CREATE TRIGGER the_disk_takes_no_removal BEFORE DELETE ON users
+BEGIN SELECT RAISE(ABORT, 'the disk takes no removal of the account'); END;
+```
+
+A `chmod 444` and the lock of T-199 each stop every write of the database
+together, therefore each of them hides this road: the migration of
+`Database::new` and the read of the accounts stand before this removal.
+
+The whole capture of the pane of the program of the fault:
+
+```text
+Error: The account toutuitest stays in the database: the disk takes no removal of the account
+Location:
+    /home/…/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+THE-STATUS-OF-THE-EXIT=1
+```
+
+**Three faults stand there together.** The words name a line of a file of the
+standard library of Rust, which no user must read (T-172). They hold no sentence
+of Toutui and no road back. And `grep -c 'the program stops'` of the log of that
+run gave **0**. The log of that run stopped at `[main][api] The pool has 1
+address(es).`, and it held no word of the token and no word of the removal.
+
+#### The correction
+
+A type `TheAccountDidNotGoAway { username, reason }` of `src/db/mod.rs`.
+`the_program_needs_a_new_token` gives that type instead of a `String`, a branch
+of `the_words_of_a_program_that_stops` of `src/api/client/error.rs` reads it, and
+the two call sites of `src/main.rs` give the report to
+`the_program_stops_with_words`.
+
+The program of the same condition then said:
+
+```text
+Toutui stops: it did not remove an account of its database.
+The account toutuitest stays in the database: the disk takes no removal of the account
+The server http://127.0.0.1:13510 did not accept the token of that account, therefore Toutui must remove that row and show the login screen.
+Toutui changed nothing. Correct the database, and start Toutui again.
+```
+
+and `grep -c 'the program stops'` of the log gave **1**, with the line `[app] the
+program stops: The account toutuitest stays in the database: the disk takes no
+removal of the account`. The status of the exit is 1.
+
+**The control of the same run**, with no trigger at all: the program removed the
+row (`[remove_the_account] 1 row(s) went away.`), it started again, and the login
+screen came with the address `http://127.0.0.1:13510` and the message `The token
+is not valid. Log in again.` The log held `[auth] the server refused the token of
+toutuitest. The login screen comes again.`
+
+#### The gate
+
+`tests/an_account_that_did_not_go_away_says_why.rs`. The build of the fault
+removes the branch of `the_words_of_a_program_that_stops` alone, and the test
+then fails at `the words must name the database:` with the words of the lists of
+the server.
+
+**The server is a reason that the program has**, therefore the words name it
+(T-91): the server answered the request, and it did not accept the token.
+
+#### What this item leaves open
+
+- **The `?` of `ApiClient::new(...)` of `src/main.rs` is a bare `?` still** (a
+  candidate, and not a measurement): a pool that gives no client stops the
+  program with the words of the runtime.
+- **The keys of the terminal and of the render of `src/main.rs`
+  (`terminal.draw(...)?`, `crossterm::event::poll(...)?`,
+  `crossterm::event::read()?`, `terminal.clear()?`) each hold a bare `?`** (a
+  candidate, and not a measurement): a terminal that goes away is the road of
+  those, and no measurement has reached it.
+- **A fault of the removal of the account that comes on the road of the key `R`
+  is not measured** (a candidate, and not a measurement): the correction stands
+  on both roads, and the measurement drove the road of the start alone.
+- **`update_login_err` of `the_program_needs_a_new_token` takes `let _ =`** (a
+  candidate, and not a measurement): a login screen whose message did not reach
+  the disk says nothing.
+- **A file that the program cannot make says no word on the screen** (a
+  candidate, and not a measurement; open since T-264).
+- **The row of the message says the number and not the name** (a candidate, and
+  not a measurement; open since T-264).
+- **The program reads the configuration file two times at its start** (a
+  candidate, and not a measurement; open since T-259).

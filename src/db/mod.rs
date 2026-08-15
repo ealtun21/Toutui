@@ -65,6 +65,40 @@ impl std::fmt::Display for TheAccountsDidNotCome {
 
 impl std::error::Error for TheAccountsDidNotCome {}
 
+/// The program did not remove an account of its database. See T-269.
+///
+/// **A token that the server refuses is a row of the disk that must go away.**
+/// The server answered 401 to the first request of the program, therefore
+/// `the_program_needs_a_new_token` removes the row of that account and it gives
+/// the login screen (T-123). A database that takes no removal keeps that row,
+/// and the login screen of the same row would then meet the same 401 for ever.
+/// The program stops there.
+///
+/// The fault has a type of its own, because the words of the user must name the
+/// database and the account: `the_words_of_a_program_that_stops` reads this
+/// type. The old code gave the fault to `map_err(Report::msg)?` of `src/main.rs`,
+/// and the user then read `Location:` with a line of a file of the standard
+/// library of Rust (T-172).
+#[derive(Debug)]
+pub struct TheAccountDidNotGoAway {
+    /// The name of the account whose row stays on the disk.
+    pub username: String,
+    /// What the database said.
+    pub reason: String,
+}
+
+impl std::fmt::Display for TheAccountDidNotGoAway {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "The account {} stays in the database: {}",
+            self.username, self.reason
+        )
+    }
+}
+
+impl std::error::Error for TheAccountDidNotGoAway {}
+
 #[cfg(test)]
 mod tests {
     use super::*;

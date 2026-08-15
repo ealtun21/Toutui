@@ -416,11 +416,33 @@ async fn main() -> Result<()> {
                         task.abort();
                     }
 
-                    logic::auth::auth_input::the_program_needs_a_new_token(
+                    // T-269. The removal of the row of the account is the one
+                    // road of this fault: a row that stays sends the login
+                    // screen to the same answer of the server for ever. The
+                    // `map_err(Report::msg)?` of this line gave the report to
+                    // the runtime of Rust, and a measurement of 2026-08-16 with
+                    // a trigger of `BEFORE DELETE ON users` gave the user
+                    //
+                    // ```text
+                    // Error: The account toutuitest stays in the database: the disk takes no removal of the account
+                    // Location:
+                    //     …/library/core/src/ops/function.rs:250:5
+                    // ```
+                    //
+                    // That text names a line of a file of the standard library
+                    // of Rust, which no user must read (T-172), it holds no
+                    // sentence of Toutui and no road back, and the log of that
+                    // run held no line of a program that stops.
+                    if let Err(fault) = logic::auth::auth_input::the_program_needs_a_new_token(
                         &username,
                         &server_address,
-                    )
-                    .map_err(color_eyre::eyre::Report::msg)?;
+                    ) {
+                        the_program_stops_with_words(
+                            color_eyre::eyre::Report::new(fault),
+                            username.as_str(),
+                            server_address.as_str(),
+                        )
+                    }
 
                     continue 'the_session;
                 }
@@ -842,11 +864,20 @@ async fn main() -> Result<()> {
                                                 task.abort();
                                             }
 
-                                            logic::auth::auth_input::the_program_needs_a_new_token(
-                                                &username,
-                                                &server_address,
-                                            )
-                                            .map_err(color_eyre::eyre::Report::msg)?;
+                                            // The key `R` holds the same road as
+                                            // the start. See T-269.
+                                            if let Err(fault) =
+                                                logic::auth::auth_input::the_program_needs_a_new_token(
+                                                    &username,
+                                                    &server_address,
+                                                )
+                                            {
+                                                the_program_stops_with_words(
+                                                    color_eyre::eyre::Report::new(fault),
+                                                    username.as_str(),
+                                                    server_address.as_str(),
+                                                )
+                                            }
 
                                             continue 'the_session;
                                         }
