@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.105",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The reader says that your disk did not give a book, and it \
+             does not say that your book is not an EPUB.** Toutui keeps the \
+             ebook of a media in a file of its own. A file with no permission \
+             of a read, a file that went away, and a disk that answers with a \
+             fault each stop the read of that file: Toutui said there \"This \
+             file is not an EPUB.\" for a good book. Toutui says now that the \
+             disk did not give the book, it says that the book can be good, \
+             and it gives the reason of your machine. A book that no reader \
+             opens keeps its words, and Toutui writes the reason of that book \
+             in the file of the log.",
+        ],
+    },
+    Entry {
         version: "0.8.104",
         date: "16/08/2026",
         body: &[

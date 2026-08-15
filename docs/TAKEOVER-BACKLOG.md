@@ -22477,3 +22477,130 @@ the second terminal of the program.
   `?` (open since T-269). A candidate, and not a measurement.
 - A fault of the removal of the account that comes on the road of the key `R`
   is not measured (open since T-269). A candidate, and not a measurement.
+
+### T-276: a disk that gave no book says why
+
+**The state**: corrected on 2026-08-16, in v0.8.105. The measurement is of the
+real program inside tmux against the sandbox.
+
+#### The choice of this item
+
+T-275 left open "The three other values of `ReaderError` (`NotAnEpub`,
+`ChapterAbsent`, `ChapterTooLarge`) each say one reason", open since T-274.
+This item reaches `NotAnEpub`.
+
+#### The fault
+
+`Book::open` of `src/logic/reader/book.rs` began with
+`the_file_is_a_pdf(path)`, which held
+`let Ok(mut file) = std::fs::File::open(path) else { return false; };` — every
+fault of that open gave `false`. The road then reached
+`Epub::open(path).map_err(|_| ReaderError::NotAnEpub)?`, which dropped every
+reason too. Therefore a good book that the disk refused gave the user
+`This file is not an EPUB.` — a reason that the program does not have (T-91) —
+and the log held no word of the reader at all.
+
+#### The measurement
+
+The real program v0.8.104 inside tmux against the sandbox (podman `abs-test` on
+:13399), the account `toutuitest`, the library `Books`. The control came first:
+the key `e` on "Alice in Wonderland" gave
+`Alice's Adventures in Wonderland — chapter 3 of 14 — 4%`.
+
+The program stopped, and `chmod 000` of the file of the cache of the ebooks
+`$XDG_DATA_HOME/toutui/downloads/toutuitest/8fda6e43-0728-46ad-98bc-4c8634e299ad.epub`
+(136761 bytes) gave the condition of a file that the disk refuses. The program
+started again, and the key `e` on the same book gave the screen:
+
+```text
+This file is not an EPUB.
+```
+
+The whole log of that run held one line of the fault, and it came of the cache
+and not of the reader:
+
+```text
+[cache] the time of .../8fda6e43-0728-46ad-98bc-4c8634e299ad.epub did not change: Permission denied (os error 13)
+```
+
+#### The correction
+
+A new value `ReaderError::TheDiskGaveNoBook(String)`, and a new function
+`the_file_starts_as_a_pdf(path) -> io::Result<bool>` that gives the fault of the
+disk back. A file of fewer than five bytes is no PDF and no fault of the disk:
+that read gives `io::ErrorKind::UnexpectedEof`, and the function then gives
+`false`. `the_file_is_a_pdf` stays, as
+`the_file_starts_as_a_pdf(path).unwrap_or(false)`, for the one caller of the
+download (`src/logic/reader/session.rs:895`), which holds the file that it wrote
+one moment before. `Book::open` matches the three answers, and the fault of the
+disk takes a line of the log and the new value. `Epub::open` keeps `NotAnEpub`,
+and its reason now takes a line of the log.
+
+The corrected program of the same condition said:
+
+```text
+The disk did not give this book. The book can be good. The machine said: Permission denied (os error 13). Give the program permission to read the file of the book. The file of the log holds more. Press h to go back.
+```
+
+and the log of that run held
+
+```text
+[reader] the disk gave no byte of the book /home/.../8fda6e43-0728-46ad-98bc-4c8634e299ad.epub: Permission denied (os error 13)
+```
+
+#### The controls
+
+Of the corrected program, in one run inside tmux: the same book with the file of
+`chmod 644` gave `Alice's Adventures in Wonderland — chapter 3 of 14 — 4%`; the
+book "A Book Of An Epub With No Container" of the same library kept the words
+`This file is not an EPUB.`, and the log of that run then held the reason that
+the old code dropped:
+`[reader] the program did not open the book .../a4d8b9b2-....epub: [InvalidResource - ResourceKind("")@Value("META-INF/container.xml")]: specified file not found in archive`.
+
+#### The test
+
+`tests/a_disk_that_gave_no_book_says_why.rs`, four tests, no network and no
+sandbox. A file that is not there and a file of `chmod 000` are the two roads of
+one condition and they stay in one function; the test reads the file with
+`std::fs::File::open` first, because the user of a gate can be root and root
+reads a file of `0o000`.
+
+The build of the fault: `Err(fault) => { info!(...); return Err(...) }` of
+`Book::open` became `Err(_fault) => {}`, and the test then said
+`a file that is not there gives the disk: Some(NotAnEpub)`.
+
+A trap for the next session: the first build of the fault took the arm of
+`read_exact` (`Err(fault) => Err(fault)` to `Err(_) => Ok(false)`) and every test
+passed, because the `?` of `std::fs::File::open` is the correction and the arm of
+`read_exact` is not. **A build of the fault that passes is a build that removed a
+different line.**
+
+#### The gates
+
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` pass, and
+`cargo nextest run` (1309 of 1309 in 3.0 seconds, 26 skipped),
+`cargo nextest run --run-ignored all` (1335 of 1335 in 17.2 seconds, with the
+sandbox up), and `cargo test -j 16 --no-fail-fast` (two runs, no failure) pass
+too.
+
+#### What this item leaves open
+
+- `ChapterAbsent` and `ChapterTooLarge` of `ReaderError`: `chapter_bytes` gives
+  `ChapterAbsent` for every fault of `copy_bytes` that is not the limit,
+  therefore an I/O fault of the archive says that the chapter is absent (open
+  since T-274). A candidate, and not a measurement.
+- The other `?` of `auth()` that a real terminal can give: `Terminal::new`,
+  `term.size()`, and `crossterm::event::read()` (open since T-275). A candidate,
+  and not a measurement.
+- `let _ = out.read_to_string(&mut words)` and `let _ = child.kill()` of the
+  parent of the child that reads a PDF (open since T-274). A candidate, and not
+  a measurement.
+- The `?` of `ApiClient::new(...)` of `src/main.rs` is a bare `?` still (open
+  since T-269). A candidate, and not a measurement.
+- The keys of the terminal and of the render of `src/main.rs` each hold a bare
+  `?` (open since T-269). A candidate, and not a measurement.
+- A fault of the removal of the account that comes on the road of the key `R` is
+  not measured (open since T-269). A candidate, and not a measurement.
+- `if let Ok(data) = std::fs::metadata(path)` of `Book::open` drops the fault of
+  the disk still, and the read of the five bytes reaches that condition first
+  (new with this item). A candidate, and not a measurement.

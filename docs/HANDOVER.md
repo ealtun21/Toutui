@@ -4,7 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.103.** The item T-274 belongs to this session. The
+**The newest release is v0.8.105.** The item T-276 belongs to this session. The
+item T-275 belongs to the session before it. The
+item T-274 belongs to the session before it. The
 item T-273 belongs to the session before it. The
 item T-272 belongs to the session before it. The
 item T-271 belongs to the session before it. The
@@ -119,6 +121,43 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and fifth turn of 2026-08-16: a disk that gave no book says why
+
+**One release: v0.8.105**, and one item: T-276. **The road of it is the
+candidate "The three other values of `ReaderError` (`NotAnEpub`,
+`ChapterAbsent`, and `ChapterTooLarge`) each say one reason" of T-274, which
+T-275 left open.** This turn reaches `NotAnEpub`.
+
+`Book::open` of `src/logic/reader/book.rs` began with `the_file_is_a_pdf(path)`,
+which gave `false` for every fault of `std::fs::File::open`, and the road then
+reached `Epub::open(path).map_err(|_| ReaderError::NotAnEpub)?`, which dropped
+every reason too. Therefore a good book that the disk refused gave the user
+`This file is not an EPUB.` — a reason that the program does not have (T-91).
+
+The measurement, of the real program v0.8.104 inside tmux against the sandbox,
+of the book `Alice in Wonderland` of the library `Books`: the key `e` gave
+chapter 3 of 14, `chmod 000` of the file of the cache of the ebooks gave the
+condition of a file that the disk refuses, and the key `e` of the same book of a
+new program said that the file is not an EPUB. The whole log of that run held
+one line of the fault, of the cache and not of the reader.
+
+The correction is the value `ReaderError::TheDiskGaveNoBook(String)` and the
+function `the_file_starts_as_a_pdf(path) -> io::Result<bool>`. The corrected
+program of the same condition said `The disk did not give this book. The book
+can be good. The machine said: Permission denied (os error 13). ...`, and the
+log named the file and the reason. The two controls: the same book of a file of
+`chmod 644` gave chapter 3 of 14 again, and `A Book Of An Epub With No
+Container` kept the words of a book that is not an EPUB, with the reason of
+`rbook` in the log for the first time.
+
+The test is `tests/a_disk_that_gave_no_book_says_why.rs`, of four tests, and it
+needs no network and no sandbox.
+
+**The trap of this turn**: the first build of the fault took the arm of
+`read_exact` of the new function, and every test passed. The `?` of
+`std::fs::File::open` is the correction, and that arm is not. **A build of the
+fault that passes is a build that removed a different line.**
 
 ## The session of the hundred and third turn of 2026-08-16: a disk that took no page of a PDF says why
 
@@ -14215,67 +14254,125 @@ stops the watch of the login screen alone.
   T-271): the block has a limit of size, therefore this turn names the new
   candidates alone and it does not repeat that list.
 
+### The session of the hundred and second turn of 2026-08-16 (T-273)
+
+**The
+session of the hundred and second turn took the candidate "The child of
+T-62 that reads a PDF, and every other process of this program that has no
+terminal" of "What this item leaves open" of the newest item, which T-272
+left open. T-271 and T-272 hold a terminal that goes away; this turn holds
+a terminal that never came** (T-273).
+
+`src/main.rs` made its two terminals with `ratatui::init()`, and that
+function of ratatui 0.30.2 is
+`try_init().expect("failed to initialize terminal")`. `crossterm` reads the
+keys of the user from the standard input when that input is a terminal, and
+it opens `/dev/tty` when it is not (`tty_fd` of
+`crossterm-0.29.0/src/terminal/sys/file_descriptor.rs` line 124). **A
+process with no controlling terminal has no `/dev/tty`**, therefore that
+open gives `No such device or address` (os error 6): that is the condition
+of a unit of systemd, of a task of cron, and of a program of `setsid`.
+
+The measurement of the real program v0.8.101, with a `XDG_CONFIG_HOME` that
+holds no account (the trap 135) and with no controlling terminal at all:
+
+```bash
+setsid env XDG_CONFIG_HOME=$CFG XDG_DATA_HOME=$DATA TOUTUI_AUDIO_DEVICE=null \
+    ./target/debug/toutui < /dev/null
+```
+
+The whole output of that program held a panic of
+`…/ratatui-0.30.2/src/init.rs:366:16` and the words of the hook of T-197,
+`Toutui stopped: a part of the program had an internal fault.` **The machine
+gave the program no terminal, and that is no fault of Toutui** (T-91), and
+the words named a line of the source of a crate (T-172). The log held no
+word of the terminal.
+
+The correction is `src/utils/the_terminal_of_the_program.rs`, with
+`the_terminal_of_the_program()` on `ratatui::try_init()`, and the two call
+sites of `src/main.rs`. The corrected program of the same condition gave the
+status 1 and `Toutui stops: it found no terminal.` with the reason of the
+machine and the road back, and the log held one line of `[the terminal]`.
+The controls inside tmux: the login screen at 0.0 percent of one processor,
+and a real login of `toutuitest` that gave the Home view of the library
+`Podcasts` — that second control reaches the second call site.
+- **A crate that panics is a fault of the words of the user** (T-273):
+  `ratatui::init()` holds an `expect`, and the hook of the panic of T-197
+  then says that a part of the program had an internal fault. Ask of every
+  call of a crate at the start of a program: does that call panic, and does
+  the crate hold a `try_` of it?
+- **A test of this fork can start the real binary** (T-273): no test of the
+  156 binaries did that before this turn. `CARGO_BIN_EXE_toutui` gives the
+  path, `setsid --wait` gives a process with no controlling terminal, and
+  the test reads the standard output and the standard error together,
+  because the hook of the panic writes to the two of them.
+- **The child of T-62 that reads a PDF** (T-273, and it stays open): that
+  child opens no terminal at all, therefore this turn did not reach it.
+  **This is a candidate and not a measurement.**
+- **`let _ = self.auth()` of `src/ui/login_tui.rs` line 17 drops every fault
+  of the login screen** (T-272 and T-273): **T-275 closes it**.
+- **Every candidate of the list of the turns below stays open** (T-229 to
+  T-272): the block has a limit of size, therefore this turn names the new
+  candidates alone and it does not repeat that list.
+
 ## The prompt for the next session
-**This session read the candidate "`let _ = self.auth()` of
-`src/ui/login_tui.rs` line 17 drops every fault of the login screen"**, which
-T-272 opened and which T-273 and T-274 each named again. T-271 and T-272 hold a
-terminal that went away, and T-273 holds a program that has no terminal at all.
-**This turn holds the third condition: the program found its terminal, it drew
-the login screen, and the standard output of it then failed.**
+**This session read the candidate "The three other values of `ReaderError`
+(`NotAnEpub`, `ChapterAbsent`, and `ChapterTooLarge`) each say one reason"**,
+which T-274 opened and which T-275 left open. **This turn holds `NotAnEpub`:
+the words of a book that is not an EPUB stood on the road of a good book that
+the disk refused.**
 
-`render_auth` of `src/ui/login_tui.rs` held `let _ = self.auth();`, and
-`src/main.rs` held `let _app_result = app_login.run(terminal);`. `auth()` makes
-a terminal of its own on `std::io::stdout()`, and its `?` sites are
-`Terminal::new`, `term.size()`, `term.draw()`, and `crossterm::event::read()`:
-the two lines dropped every one of them.
+`Book::open` of `src/logic/reader/book.rs` began with
+`the_file_is_a_pdf(path)`, which held
+`let Ok(mut file) = std::fs::File::open(path) else { return false; };`: every
+fault of that open gave `false`. The road then reached
+`Epub::open(path).map_err(|_| ReaderError::NotAnEpub)?`, which dropped every
+reason too.
 
-The measurement, of the real program v0.8.103 inside tmux, with a real terminal
-and with the standard output of the program in a pipe whose reader went away
-after three seconds. The first frame reached the pipe. A key of the user at 4.2
-seconds gave `term.draw()` the fault `Broken pipe (os error 32)`; the two lines
-dropped it; the loop of `src/main.rs` waited one second, and it called
-`the_terminal_of_the_program()` again at 5.2 seconds. `ratatui::try_init()` then
-failed with the same broken pipe, and the user read `Failed to restore terminal:
-Broken pipe (os error 32)` and `Toutui stops: it found no terminal.` with the
-road back `Start Toutui in a terminal.` **The user stood in a terminal already**
-(T-91), and the log held no word of the login screen at all.
+The measurement, of the real program v0.8.104 inside tmux against the sandbox,
+of the book `Alice in Wonderland` of the library `Books`. The control came
+first: the key `e` gave `Alice's Adventures in Wonderland — chapter 3 of 14 —
+4%`. The program stopped, `chmod 000` of the file of the cache of the ebooks
+gave the condition of a file that the disk refuses, and the key `e` of the same
+book of a new program gave `This file is not an EPUB.` **The book was good**,
+and the whole log of that run held one line of the fault, of the cache and not
+of the reader: `Permission denied (os error 13)`.
 
-The correction: `AppLogin` holds `the_fault_of_the_screen`, `render_auth` keeps
-the fault of `auth()` there and it sets `should_exit`, `AppLogin::run` gives
-`io::Result<()>` back through the free function
-`the_end_of_a_frame_of_the_login`, and `src/main.rs` stops the program with
-words of that fault. A new `the_program_gives_the_terminal_back()` of
-`src/utils/the_terminal_of_the_program.rs` uses `ratatui::try_restore()` and it
-puts the fault in the log; the five calls of `ratatui::restore()` now use it.
-The corrected program of the same condition said `Toutui stops: the login screen
-did not reach the terminal.` with the reason of the machine and the road back,
-with no word of a crate above it, and it stopped with the status 1. The control:
-a real login of the sandbox inside tmux gave the Home view of the library
-`Podcasts`, and the key `Q` stopped the program. The item is **T-275**, and it
-holds the release v0.8.104.
+The correction: a value `ReaderError::TheDiskGaveNoBook(String)` and a function
+`the_file_starts_as_a_pdf(path) -> io::Result<bool>`, which gives the fault of
+the disk back. A file of fewer than five bytes is no PDF and no fault of the
+disk: that read gives `io::ErrorKind::UnexpectedEof`, and the function then
+gives `false`. `the_file_is_a_pdf` stays as
+`the_file_starts_as_a_pdf(path).unwrap_or(false)` for the one caller of the
+download, and `Epub::open` keeps `NotAnEpub` with its reason in the log. The
+corrected program of the same condition said `The disk did not give this book.
+The book can be good. The machine said: Permission denied (os error 13). Give
+the program permission to read the file of the book. The file of the log holds
+more. Press h to go back.` The two controls: the same book of a file of
+`chmod 644` gave chapter 3 of 14 again, and `A Book Of An Epub With No
+Container` kept `This file is not an EPUB.` with the reason of `rbook` in the
+log. The item is **T-276**, and it holds the release v0.8.105.
 
 Two things are worth the room:
 
-1. **A fault that a `let _ =` drops can come back as the words of a different
-   fault.** The loop of `src/main.rs` made a terminal again one second later,
-   and the words of T-273 then named a reason that the program does not have.
-   Ask of every `let _ =` of a loop: which words does the next turn of that loop
-   give the user?
-2. **A crate that writes words to a stream of the user is a fault of the words
-   of the user.** `ratatui::restore()` holds an `eprintln!` of its own, and
-   `ratatui::try_restore()` gives that fault back instead. Ask of every call of
-   a crate: does it write to a stream of the user, and does the crate hold a
-   `try_` of it?
+1. **A build of the fault that passes is a build that removed a different
+   line.** The first attempt took the arm of `read_exact` of
+   `the_file_starts_as_a_pdf` and every test passed: the `?` of
+   `std::fs::File::open` is the correction, and that arm is not. A build of the
+   fault that says nothing is a measurement of the edit, and not of the program.
+2. **A `map_err(|_| ...)` of a crate holds more than one fault.** The fault of
+   the disk and the fault of the book each reached `NotAnEpub`. Ask of every
+   `map_err(|_|` of this program: how many roads does that one value hold, and
+   does the user read a reason that the program has?
 
-The gates of v0.8.104, under `nice -n 19 ionice -c 3` with `-j 16`:
+The gates of v0.8.105, under `nice -n 19 ionice -c 3` with `-j 16`:
 `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
-`cargo nextest run` gives 1305 of 1305 in 2.6 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1331 of 1331** with the sandbox up
-in 17 seconds, and `cargo test -j 16 --no-fail-fast` passed its 158 binaries.
+`cargo nextest run` gives 1309 of 1309 in 3.0 seconds with 26 skipped, and
+`cargo test -j 16 --no-fail-fast` passed its binaries in two runs.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.104**; `Cargo.toml` is at 0.8.104. The
+> AlbanDAVID/Toutui. Newest release **v0.8.105**; `Cargo.toml` is at 0.8.105. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -14858,8 +14955,8 @@ in 17 seconds, and `cargo test -j 16 --no-fail-fast` passed its 158 binaries.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1300 tests in 2.8 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1326 of 1326** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1309 tests in 3.0 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1335 of 1335** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -14967,8 +15064,75 @@ in 17 seconds, and `cargo test -j 16 --no-fail-fast` passed its 158 binaries.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in one hundred and one sessions of one hundred and
->    two.
+>    this shape found a fault in one hundred and two sessions of one hundred and
+>    three.
+>    **The
+>    session of the hundred and fifth turn took the candidate "The three other
+>    values of `ReaderError` (`NotAnEpub`, `ChapterAbsent`, and
+>    `ChapterTooLarge`) each say one reason", which T-274 opened and which T-275
+>    left open. It reaches `NotAnEpub`** (T-276).
+>
+>    `Book::open` of `src/logic/reader/book.rs` began with
+>    `the_file_is_a_pdf(path)`, which held
+>    `let Ok(mut file) = std::fs::File::open(path) else { return false; };`:
+>    every fault of that open gave `false`. The road then reached
+>    `Epub::open(path).map_err(|_| ReaderError::NotAnEpub)?`, which dropped every
+>    reason too.
+>
+>    The measurement, of the real program v0.8.104 inside tmux against the
+>    sandbox, of the book `Alice in Wonderland` of the library `Books`. The
+>    control came first: the key `e` gave `Alice's Adventures in Wonderland —
+>    chapter 3 of 14 — 4%`. The program then stopped, and `chmod 000` of the file
+>    of the cache of the ebooks
+>    (`$XDG_DATA_HOME/toutui/downloads/toutuitest/8fda6e43-...epub`, of 136761
+>    bytes) gave the condition of a file that the disk refuses. The key `e` of
+>    the same book of a new program gave the screen
+>
+>    ```text
+>    This file is not an EPUB.
+>    ```
+>
+>    **The book was good**: the same program read chapter 3 of 14 of it 90
+>    seconds before. The whole log of that run held one line of the fault, and it
+>    came of the cache and not of the reader:
+>    `[cache] the time of ... did not change: Permission denied (os error 13)`.
+>
+>    The correction is a value `ReaderError::TheDiskGaveNoBook(String)` and a
+>    function `the_file_starts_as_a_pdf(path) -> io::Result<bool>`, which gives
+>    the fault of the disk back. A file of fewer than five bytes is no PDF and no
+>    fault of the disk: that read gives `io::ErrorKind::UnexpectedEof`, and the
+>    function then gives `false`. `the_file_is_a_pdf` stays, as
+>    `the_file_starts_as_a_pdf(path).unwrap_or(false)`, for the one caller of the
+>    download. `Epub::open` keeps `NotAnEpub`, and its reason now takes a line of
+>    the log. The corrected program of the same condition said `The disk did not
+>    give this book. The book can be good. The machine said: Permission denied
+>    (os error 13). Give the program permission to read the file of the book. The
+>    file of the log holds more. Press h to go back.` The two controls: the same
+>    book of a file of `chmod 644` gave chapter 3 of 14 again, and `A Book Of An
+>    Epub With No Container` of the same library kept `This file is not an EPUB.`
+>    with the reason of `rbook` in the log.
+>    - **A build of the fault that passes is a build that removed a different
+>      line** (T-276): the first attempt took the arm of `read_exact`
+>      (`Err(fault) => Err(fault)` to `Err(_) => Ok(false)`) and every test
+>      passed, because the `?` of `std::fs::File::open` is the correction of this
+>      item. The second attempt took the arm of `Book::open`, and the test then
+>      said `a file that is not there gives the disk: Some(NotAnEpub)`.
+>    - **A `map_err(|_| ...)` of a crate holds more than one fault** (T-276): the
+>      fault of the disk and the fault of the book each reached `NotAnEpub`. Ask
+>      of every `map_err(|_|` of this program: how many roads does that one value
+>      hold, and does the user read a reason that the program has?
+>    - **`ChapterAbsent` and `ChapterTooLarge` of `ReaderError`** (T-276, and they
+>      stay open): `chapter_bytes` gives `ChapterAbsent` for every fault of
+>      `copy_bytes` that is not the limit, therefore an I/O fault of the archive
+>      says that the chapter is absent. **This is a candidate and not a
+>      measurement.**
+>    - **`if let Ok(data) = std::fs::metadata(path)` of `Book::open`** (T-276, and
+>      it stays open) drops the fault of the disk still, and the read of the five
+>      bytes reaches that condition first. **This is a candidate and not a
+>      measurement.**
+>    - **Every candidate of the list of the turns below stays open** (T-229 to
+>      T-275): the block has a limit of size, therefore this turn names the new
+>      candidates alone and it does not repeat that list.
 >    **The
 >    session of the hundred and fourth turn took the candidate "`let _ =
 >    self.auth()` of `src/ui/login_tui.rs` drops every fault of the login
@@ -15124,68 +15288,10 @@ in 17 seconds, and `cargo test -j 16 --no-fail-fast` passed its 158 binaries.
 >    - **Every candidate of the list of the turns below stays open** (T-229 to
 >      T-273): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
->    **The
->    session of the hundred and second turn took the candidate "The child of
->    T-62 that reads a PDF, and every other process of this program that has no
->    terminal" of "What this item leaves open" of the newest item, which T-272
->    left open. T-271 and T-272 hold a terminal that goes away; this turn holds
->    a terminal that never came** (T-273).
->
->    `src/main.rs` made its two terminals with `ratatui::init()`, and that
->    function of ratatui 0.30.2 is
->    `try_init().expect("failed to initialize terminal")`. `crossterm` reads the
->    keys of the user from the standard input when that input is a terminal, and
->    it opens `/dev/tty` when it is not (`tty_fd` of
->    `crossterm-0.29.0/src/terminal/sys/file_descriptor.rs` line 124). **A
->    process with no controlling terminal has no `/dev/tty`**, therefore that
->    open gives `No such device or address` (os error 6): that is the condition
->    of a unit of systemd, of a task of cron, and of a program of `setsid`.
->
->    The measurement of the real program v0.8.101, with a `XDG_CONFIG_HOME` that
->    holds no account (the trap 135) and with no controlling terminal at all:
->
->    ```bash
->    setsid env XDG_CONFIG_HOME=$CFG XDG_DATA_HOME=$DATA TOUTUI_AUDIO_DEVICE=null \
->        ./target/debug/toutui < /dev/null
->    ```
->
->    The whole output of that program held a panic of
->    `…/ratatui-0.30.2/src/init.rs:366:16` and the words of the hook of T-197,
->    `Toutui stopped: a part of the program had an internal fault.` **The machine
->    gave the program no terminal, and that is no fault of Toutui** (T-91), and
->    the words named a line of the source of a crate (T-172). The log held no
->    word of the terminal.
->
->    The correction is `src/utils/the_terminal_of_the_program.rs`, with
->    `the_terminal_of_the_program()` on `ratatui::try_init()`, and the two call
->    sites of `src/main.rs`. The corrected program of the same condition gave the
->    status 1 and `Toutui stops: it found no terminal.` with the reason of the
->    machine and the road back, and the log held one line of `[the terminal]`.
->    The controls inside tmux: the login screen at 0.0 percent of one processor,
->    and a real login of `toutuitest` that gave the Home view of the library
->    `Podcasts` — that second control reaches the second call site.
->    - **A crate that panics is a fault of the words of the user** (T-273):
->      `ratatui::init()` holds an `expect`, and the hook of the panic of T-197
->      then says that a part of the program had an internal fault. Ask of every
->      call of a crate at the start of a program: does that call panic, and does
->      the crate hold a `try_` of it?
->    - **A test of this fork can start the real binary** (T-273): no test of the
->      156 binaries did that before this turn. `CARGO_BIN_EXE_toutui` gives the
->      path, `setsid --wait` gives a process with no controlling terminal, and
->      the test reads the standard output and the standard error together,
->      because the hook of the panic writes to the two of them.
->    - **The child of T-62 that reads a PDF** (T-273, and it stays open): that
->      child opens no terminal at all, therefore this turn did not reach it.
->      **This is a candidate and not a measurement.**
->    - **`let _ = self.auth()` of `src/ui/login_tui.rs` line 17 drops every fault
->      of the login screen** (T-272 and T-273): **T-275 closes it**.
->    - **Every candidate of the list of the turns below stays open** (T-229 to
->      T-272): the block has a limit of size, therefore this turn names the new
->      candidates alone and it does not repeat that list.
 >
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the hundred and first and every turn before it, the item of each, and the
+>    the hundred and second and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
@@ -15667,7 +15773,11 @@ in 17 seconds, and `cargo test -j 16 --no-fail-fast` passed its 158 binaries.
 > are** (T-274), and **a login screen that did not reach the terminal says why:
 > the fault of that screen belongs to the answer of `AppLogin::run`, it comes
 > before the fault of the frame of that loop, and the program gives the terminal
-> back with words of its own** (T-275).
+> back with words of its own** (T-275), and **a disk that gave no book says why:
+> the read of the five bytes that say the form of a file holds the reason of the
+> machine, the words of a book that is not an EPUB stay for a file that the disk
+> gave and that no reader opens, and the reason of that reader takes a line of
+> the log** (T-276).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

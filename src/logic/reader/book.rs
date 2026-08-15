@@ -24,6 +24,7 @@
 // `rbook` gives a concrete type for each part of the book, and not an
 // `impl Trait`. Therefore the module calls the methods of the concrete types
 // and it needs no trait in scope.
+use log::info;
 use rbook::Epub;
 use std::collections::HashMap;
 use std::fmt;
@@ -51,8 +52,14 @@ pub const MAX_CHAPTER_BYTES: usize = 8 * 1024 * 1024;
 /// A fault of the reader. Each value gives one short message to the user.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ReaderError {
-    /// The file is not an EPUB, or the archive is damaged.
+    /// The file is not an EPUB, or the archive is damaged. **This value is the
+    /// book of the user, and no other road** (T-276): a disk that gave the
+    /// program no byte of the file takes the value below, because a program
+    /// must never say a reason that it does not have (T-91).
     NotAnEpub,
+    /// The disk did not give the file of the book, and the book is not the
+    /// reason. The text is the reason of the machine. See T-276.
+    TheDiskGaveNoBook(String),
     /// The file starts as a PDF, and `lopdf` gave no page of it. **This value
     /// is the book of the user, and no other road** (T-274): a child that the
     /// disk stopped and a child that did not start each take a value below,
@@ -86,6 +93,13 @@ impl fmt::Display for ReaderError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ReaderError::NotAnEpub => write!(f, "This file is not an EPUB."),
+            ReaderError::TheDiskGaveNoBook(reason) => write!(
+                f,
+                "The disk did not give this book. The book can be good. \
+                 The machine said: {reason}. Give the program permission to \
+                 read the file of the book. The file of the log holds more. \
+                 Press h to go back."
+            ),
             ReaderError::ThePdfGivesNoPage => write!(
                 f,
                 "This PDF gives no page. The file can be damaged. Press h to go back."
@@ -186,23 +200,41 @@ impl Write for CappedWriter {
     }
 }
 
-/// Tells if a file is a PDF.
+/// Tells if a file starts as a PDF, and it gives the fault of the disk back.
 ///
 /// Every PDF starts with `%PDF-`. The name of the file says nothing: the server
 /// gives the ebook of a media at one address for every form. See T-54.
-pub fn the_file_is_a_pdf(path: &Path) -> bool {
+///
+/// **A disk that gives no byte of the file is not a file of another form**
+/// (T-276). The old form of this function gave `false` for every fault, and
+/// `Book::open` then said `This file is not an EPUB.` for a good book that the
+/// disk refused. The reason of the machine is the one word that the user needs.
+///
+/// A file of fewer than five bytes is no PDF, and it is no fault of the disk:
+/// that read gives [`io::ErrorKind::UnexpectedEof`], and this function then
+/// gives `false`.
+pub fn the_file_starts_as_a_pdf(path: &Path) -> io::Result<bool> {
     use std::io::Read;
 
-    let Ok(mut file) = std::fs::File::open(path) else {
-        return false;
-    };
+    let mut file = std::fs::File::open(path)?;
 
     let mut head = [0u8; 5];
 
     match file.read_exact(&mut head) {
-        Ok(()) => &head == b"%PDF-",
-        Err(_) => false,
+        Ok(()) => Ok(&head == b"%PDF-"),
+        Err(fault) if fault.kind() == io::ErrorKind::UnexpectedEof => Ok(false),
+        Err(fault) => Err(fault),
     }
+}
+
+/// Tells if a file is a PDF, and a disk that said nothing gives `false`.
+///
+/// The caller of the download holds the file that it wrote one moment before,
+/// and the name of that file changes nothing of the book that the reader opens.
+/// A caller that gives the book to the user takes
+/// [`the_file_starts_as_a_pdf`] instead. See T-276.
+pub fn the_file_is_a_pdf(path: &Path) -> bool {
+    the_file_starts_as_a_pdf(path).unwrap_or(false)
 }
 
 /// One open book.
@@ -241,12 +273,27 @@ impl Book {
     pub fn open(path: &Path) -> Result<Book, ReaderError> {
         // The form of the file comes from the first bytes, and not from the name
         // of the file. A server can give a PDF with any name. See T-54.
-        if the_file_is_a_pdf(path) {
-            let pdf = crate::logic::reader::pdf::Pdf::open(path)?;
+        //
+        // **A disk that gives no byte of the file stops here** (T-276): the
+        // file of the user can be a good book, therefore the program says the
+        // reason of the machine and not the form of the file.
+        match the_file_starts_as_a_pdf(path) {
+            Ok(true) => {
+                let pdf = crate::logic::reader::pdf::Pdf::open(path)?;
 
-            return Ok(Book {
-                kind: Kind::Pdf(Box::new(pdf)),
-            });
+                return Ok(Book {
+                    kind: Kind::Pdf(Box::new(pdf)),
+                });
+            }
+            Ok(false) => {}
+            Err(fault) => {
+                info!(
+                    "[reader] the disk gave no byte of the book {}: {fault}",
+                    path.display()
+                );
+
+                return Err(ReaderError::TheDiskGaveNoBook(fault.to_string()));
+            }
         }
 
         // Look at the size first. A read of the directory of the file costs
@@ -257,7 +304,18 @@ impl Book {
             }
         }
 
-        let epub = Epub::open(path).map_err(|_| ReaderError::NotAnEpub)?;
+        // The archive of the crate holds the reason of the fault, and the user
+        // reads one short sentence. That reason takes a line of the log
+        // (T-276): the old code dropped it, therefore a book that no reader
+        // opens said nothing at all of why.
+        let epub = Epub::open(path).map_err(|fault| {
+            info!(
+                "[reader] the program did not open the book {}: {fault}",
+                path.display()
+            );
+
+            ReaderError::NotAnEpub
+        })?;
 
         // The manifest names every file of the book. `rbook` gives no count of
         // the entries of the archive, therefore the reader counts the manifest.
