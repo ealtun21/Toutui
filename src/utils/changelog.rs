@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.104",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Toutui says why the login screen did not reach your \
+             terminal.** Toutui writes that screen to its standard output. A \
+             pipe whose reader went away, a disk that is full, and a file that \
+             Toutui cannot write each stop that screen: Toutui dropped the \
+             fault there, it waited one second, it made a terminal again, and \
+             it then said that it found no terminal while you stood in one. \
+             Toutui says now that the login screen did not reach the terminal, \
+             it gives the reason of your machine, and it names the road back. \
+             Toutui also gives your terminal back with words of its own, and \
+             not with the words of a part of another program.",
+        ],
+    },
+    Entry {
         version: "0.8.103",
         date: "16/08/2026",
         body: &[

@@ -39,7 +39,7 @@ fn the_program_stops_with_words(
 
     // The application stands on the alternate screen. The words of the user
     // must stand on the screen of their shell.
-    ratatui::restore();
+    utils::the_terminal_of_the_program::the_program_gives_the_terminal_back();
 
     eprintln!(
         "{}",
@@ -196,12 +196,26 @@ async fn main() -> Result<()> {
                 // them.
                 let the_watch_of_the_login_screen =
                     utils::the_terminal_that_went_away::spawn_the_watch_of_the_terminal_of_the_login_screen();
-                let _app_result = app_login.run(terminal);
+                // T-275. The old line of this place dropped the answer of the
+                // login screen. A standard output that failed gave that screen a
+                // fault at each frame, and the loop then waited one second and
+                // it made a terminal again: the words of the user came of T-273,
+                // and they said that the program found no terminal while the
+                // user stood in one (T-91).
+                let the_end_of_the_login = app_login.run(terminal);
                 // The watch of T-271 holds the road after the login, and that
                 // one closes the session of the server. Two watches of one
                 // terminal give the road of this one to a program that holds a
                 // session, therefore this task stops here.
                 the_watch_of_the_login_screen.abort();
+                // The login screen holds the loop of the keys of the user, and
+                // it comes back for a login that succeeded, for a login that
+                // failed, and for the key Esc. Every other answer of it is a
+                // screen that did not reach the terminal (T-275).
+                if let Err(fault) = the_end_of_the_login {
+                    utils::the_terminal_of_the_program::
+                        the_program_stops_for_a_screen_that_did_not_reach_the_terminal(&fault);
+                }
                 // The wait stops a fast loop. If the screen of the login comes
                 // back at once, for example because the terminal gives an error,
                 // this loop would use a full processor without it.
@@ -442,7 +456,7 @@ async fn main() -> Result<()> {
                                     if key.kind == event::KeyEventKind::Press
                                         && matches!(key.code, KeyCode::Char('Q') | KeyCode::Esc)
                                     {
-                                        ratatui::restore();
+                                        utils::the_terminal_of_the_program::the_program_gives_the_terminal_back();
                                         return Ok(());
                                     }
                                 }
@@ -1008,6 +1022,6 @@ async fn main() -> Result<()> {
     }
 
     // Restore the terminal state before exiting the application
-    ratatui::restore();
+    utils::the_terminal_of_the_program::the_program_gives_the_terminal_back();
     Ok(())
 }

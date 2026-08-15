@@ -14148,65 +14148,134 @@ stop.
   T-271): the block has a limit of size, therefore this turn names the new
   candidates alone and it does not repeat that list.
 
+### The session of the hundred and first turn of 2026-08-16 (T-272)
+
+**The
+session of the hundred and first turn took the candidate "The login screen
+of a terminal that went away" of "What this item leaves open" of the newest
+item, which T-271 left open. The watch of T-271 starts after the login, and
+it needs the client of the server, the name of an account, and the name of
+a server: the login screen stands before every one of them** (T-272).
+
+`AppLogin::run` of `src/login_app.rs` loops
+`while !self.should_exit { terminal.draw(...)? }`, the draw calls
+`render_auth` of `src/ui/login_tui.rs` line 17, which holds
+`let _ = self.auth()`, and the loop of `auth()` of
+`src/logic/auth/auth_input.rs` holds a bare blocking
+`crossterm::event::read()?` with **no `poll` at all**.
+
+The measurement, of the real program v0.8.100 inside tmux, on a screen of
+160 columns and 45 rows, with a `XDG_CONFIG_HOME` that holds no account
+(the trap 135) and with
+`docs/harness/the_terminal_of_the_program_goes_away.py`. The screen held
+`Server address`, and `tmux kill-session` took the terminal away with no
+signal. The program stood at **34.1 percent** of one processor after five
+seconds and at **71.7 percent** after 34 seconds, with
+`/proc/PID/fd/0 -> /dev/pts/5 (deleted)`, and it never stopped.
+`strace -f -tt` named the loop:
+
+```text
+read(0, "", 1024)       = 0
+```
+
+**1607222 reads of no byte in 11.7 seconds.** No `epoll_wait` of the shape
+of T-271 stood in that trace: this loop is `crossterm::event::read` and not
+`crossterm::event::poll`.
+
+The correction is
+`spawn_the_watch_of_the_terminal_of_the_login_screen()` of
+`src/utils/the_terminal_that_went_away.rs`, which takes **no argument at
+all**, and three lines of `src/main.rs`: the task starts before
+`app_login.run(terminal)`, and `.abort()` stops it after that line. It
+closes **no** session, because the login screen holds no account, no client
+of the server, and no session, and its line of the log says that. The
+corrected program stopped after **65 ms**, and `grep -c 'the terminal]'` of
+the log gave 1. The control of the road after the login, of the same build
+and of the same harness, stopped after **565 ms** with the line of T-271,
+which holds `closes the session of the server`: therefore the `.abort()`
+stops the watch of the login screen alone.
+- **A strace of a program that it did not start gives `Operation not
+  permitted`** (T-272, and the trap 136): the harness of the terminal
+  `exec`s the program of its command line, therefore
+  `python3 harness.py strace -f -tt -o FILE ./target/debug/toutui` gives a
+  strace that takes the ignored disposition of `SIGHUP` too.
+- **A watch of the same terminal must not stand two times** (T-272): the
+  watch of T-271 closes the session of the server, and a second watch that
+  closes none takes the place of the user with it.
+- **`let _ = self.auth()` of `src/ui/login_tui.rs` line 17 drops every
+  fault of the login screen** (T-272, and it stays open): a terminal that
+  gives a real fault, and not the end of its input, holds a loop of no wait
+  at all, and this turn did not measure that road.
+  `let _app_result = app_login.run(terminal)` of `src/main.rs` drops the
+  fault of that loop too. **This is a candidate and not a measurement.**
+- **The child of T-62 that reads a PDF, and every other process of this
+  program that has no terminal** (T-272, and it stays open): this turn
+  measured no terminal that goes away for those.
+- **Every candidate of the list of the turns below stays open** (T-229 to
+  T-271): the block has a limit of size, therefore this turn names the new
+  candidates alone and it does not repeat that list.
+
 ## The prompt for the next session
-**This session read the candidate "The child of T-62 that reads a PDF, and every
-other process of this program that has no terminal"**, which T-272 left open and
-which T-273 named again. That candidate **closes with no measurement**: `main`
-calls `the_child_of_the_line_of_command` before `ratatui`, therefore the child
-that reads a PDF makes no terminal at all and T-273 holds every process of this
-program that does. The same read of that module found a different fault, and it
-is a fault of the words of the user.
+**This session read the candidate "`let _ = self.auth()` of
+`src/ui/login_tui.rs` line 17 drops every fault of the login screen"**, which
+T-272 opened and which T-273 and T-274 each named again. T-271 and T-272 hold a
+terminal that went away, and T-273 holds a program that has no terminal at all.
+**This turn holds the third condition: the program found its terminal, it drew
+the login screen, and the standard output of it then failed.**
 
-`the_book_that_a_child_reads` of `src/logic/reader/pdf_of_a_child.rs` gave
-`ReaderError::ThePdfGivesNoPage` on **seven** roads: `current_exe` that failed, a
-child that did not start, the code 2 of a book that gives no page, the code 3 of
-a disk that took no page, every other code, a child that did not come back in 300
-seconds, and a file of pages that the parent did not read back. The words of that
-value are `This PDF gives no page. The file can be damaged. Press h to go back.`
-**Six of the seven say a reason that the program does not have** (T-91), and the
-doc comment of that value said so already.
+`render_auth` of `src/ui/login_tui.rs` held `let _ = self.auth();`, and
+`src/main.rs` held `let _app_result = app_login.run(terminal);`. `auth()` makes
+a terminal of its own on `std::io::stdout()`, and its `?` sites are
+`Terminal::new`, `term.size()`, `term.draw()`, and `crossterm::event::read()`:
+the two lines dropped every one of them.
 
-The measurement, of the real program v0.8.102 inside tmux against the sandbox, of
-the book `A Big Book Of A Scan` (a PDF of 47 megabytes of a scan of 60 pages).
-The control first: the key `e` gave `[pdf] a child read 60 page(s) in 47310 ms`
-and a file of the pages of 9171423 bytes beside the book. That file then went
-away, and `chmod 555` gave the directory of the cache of the ebooks no write. The
-key `e` of the same book then gave the screen `This PDF gives no page. The file
-can be damaged. Press h to go back.`, and the log of that same run gave `[pdf]
-the child stopped with the code 3: toutui: the program did not write the pages:
-Permission denied (os error 13)`. **The program held the reason in its hand.**
+The measurement, of the real program v0.8.103 inside tmux, with a real terminal
+and with the standard output of the program in a pipe whose reader went away
+after three seconds. The first frame reached the pipe. A key of the user at 4.2
+seconds gave `term.draw()` the fault `Broken pipe (os error 32)`; the two lines
+dropped it; the loop of `src/main.rs` waited one second, and it called
+`the_terminal_of_the_program()` again at 5.2 seconds. `ratatui::try_init()` then
+failed with the same broken pipe, and the user read `Failed to restore terminal:
+Broken pipe (os error 32)` and `Toutui stops: it found no terminal.` with the
+road back `Start Toutui in a terminal.` **The user stood in a terminal already**
+(T-91), and the log held no word of the login screen at all.
 
-The correction gives `ReaderError` two values, it names the two codes of the
-child, and `the_fault_of_the_answer_of_the_child` reads the answer of that child.
-The corrected program of the same condition says `The disk did not take the pages
-of this PDF. The book is good. The machine said: Permission denied (os error 13).
-Make space on the disk, or give the program permission to write in its directory.
-Press h to go back.` The two controls: the same book of a directory that takes a
-write gave `page 1 of 60`, and `A Book That No Reader Reads` of the sandbox kept
-the true sentence with the code 2 in its log. The item is **T-274**, and it holds
-the release v0.8.103.
+The correction: `AppLogin` holds `the_fault_of_the_screen`, `render_auth` keeps
+the fault of `auth()` there and it sets `should_exit`, `AppLogin::run` gives
+`io::Result<()>` back through the free function
+`the_end_of_a_frame_of_the_login`, and `src/main.rs` stops the program with
+words of that fault. A new `the_program_gives_the_terminal_back()` of
+`src/utils/the_terminal_of_the_program.rs` uses `ratatui::try_restore()` and it
+puts the fault in the log; the five calls of `ratatui::restore()` now use it.
+The corrected program of the same condition said `Toutui stops: the login screen
+did not reach the terminal.` with the reason of the machine and the road back,
+with no word of a crate above it, and it stopped with the status 1. The control:
+a real login of the sandbox inside tmux gave the Home view of the library
+`Podcasts`, and the key `Q` stopped the program. The item is **T-275**, and it
+holds the release v0.8.104.
 
 Two things are worth the room:
 
-1. **The exit code of a child process is the one road to the fault of the user.**
-   A parent that reads that code alone can name the disk, the book, and the part
-   that did not start apart. Ask of every process of this program: how many
-   faults does one value of its answer hold?
-2. **A doc comment that names three faults of one value is the item.** The
-   comment of `ThePdfGivesNoPage` said "this value holds a child that stopped, a
-   child that gave a fault, and a file that `lopdf` cannot read", and the words
-   of that value name the file of the user alone. Read the doc comments of an
-   enum of a fault: each of them says how many roads it holds.
+1. **A fault that a `let _ =` drops can come back as the words of a different
+   fault.** The loop of `src/main.rs` made a terminal again one second later,
+   and the words of T-273 then named a reason that the program does not have.
+   Ask of every `let _ =` of a loop: which words does the next turn of that loop
+   give the user?
+2. **A crate that writes words to a stream of the user is a fault of the words
+   of the user.** `ratatui::restore()` holds an `eprintln!` of its own, and
+   `ratatui::try_restore()` gives that fault back instead. Ask of every call of
+   a crate: does it write to a stream of the user, and does the crate hold a
+   `try_` of it?
 
-The gates of v0.8.103, under `nice -n 19 ionice -c 3` with `-j 16`:
+The gates of v0.8.104, under `nice -n 19 ionice -c 3` with `-j 16`:
 `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
-`cargo nextest run` gives 1300 of 1300 in 2.8 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives 1326 of 1326 with the sandbox up, and
-`cargo test -j 16 --no-fail-fast` passed its 157 binaries two times.
+`cargo nextest run` gives 1305 of 1305 in 2.6 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1331 of 1331** with the sandbox up
+in 17 seconds, and `cargo test -j 16 --no-fail-fast` passed its 158 binaries.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.102**; `Cargo.toml` is at 0.8.102. The
+> AlbanDAVID/Toutui. Newest release **v0.8.104**; `Cargo.toml` is at 0.8.104. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -14901,6 +14970,83 @@ The gates of v0.8.103, under `nice -n 19 ionice -c 3` with `-j 16`:
 >    this shape found a fault in one hundred and one sessions of one hundred and
 >    two.
 >    **The
+>    session of the hundred and fourth turn took the candidate "`let _ =
+>    self.auth()` of `src/ui/login_tui.rs` drops every fault of the login
+>    screen", which T-272, T-273, and T-274 each left open. T-273 holds a
+>    program with no terminal at all, and T-271 and T-272 hold a terminal that
+>    went away; this turn holds a program that found its terminal and whose
+>    standard output then failed** (T-275).
+>
+>    `render_auth` held `let _ = self.auth();`, and `src/main.rs` held
+>    `let _app_result = app_login.run(terminal);`. `auth()` makes a terminal of
+>    its own on `std::io::stdout()`, and its `?` sites are `Terminal::new`,
+>    `term.size()`, `term.draw()`, and `crossterm::event::read()`: the two lines
+>    dropped every one of them.
+>
+>    The measurement, of the real program v0.8.103 inside tmux, with a real
+>    terminal and with the standard output of the program in a pipe whose reader
+>    went away after three seconds
+>    (`./target/debug/toutui | { sleep 3; echo ...; }` of a `tmux new-session`,
+>    with a `XDG_CONFIG_HOME` of nothing — the trap 135). The first frame
+>    reached the pipe, the reader went away at 3 seconds, and a key of the user
+>    at 4.2 seconds gave `term.draw()` the fault `Broken pipe (os error 32)`.
+>    The two lines dropped it, the loop of `src/main.rs` waited one second, and
+>    it made a terminal again at 5.2 seconds: `ratatui::try_init()` then failed
+>    with the same broken pipe, and the user read
+>
+>    ```text
+>    Failed to restore terminal: Broken pipe (os error 32)
+>    Toutui stops: it found no terminal.
+>    Broken pipe (os error 32)
+>    Toutui draws its screen in a terminal, and it reads the keys of the user
+>    from that terminal.
+>    Start Toutui in a terminal. A unit of systemd, a task of cron, and a
+>    program of the background give no terminal.
+>    ```
+>
+>    **The user stood in a terminal already** (T-91), and the log held no word
+>    of the login screen at all. The first line came of `ratatui::restore()`,
+>    which writes words of a crate to the standard error (T-172).
+>
+>    The correction: `AppLogin` holds `the_fault_of_the_screen`, `render_auth`
+>    keeps the fault and it sets `should_exit`, `AppLogin::run` gives
+>    `io::Result<()>` back through `the_end_of_a_frame_of_the_login`, and
+>    `src/main.rs` calls
+>    `the_program_stops_for_a_screen_that_did_not_reach_the_terminal`. A new
+>    `the_program_gives_the_terminal_back()` of
+>    `src/utils/the_terminal_of_the_program.rs` uses `ratatui::try_restore()`
+>    and it puts the fault in the log; the five calls of `ratatui::restore()`
+>    now use it. The corrected program of the same condition said
+>    `Toutui stops: the login screen did not reach the terminal.` with the
+>    reason of the machine and the road back, with no word of a crate above it,
+>    and it stopped with the status 1. The control: a real login of the sandbox
+>    inside tmux gave the Home view of the library `Podcasts`, and the key `Q`
+>    stopped the program.
+>    - **A fault that two lines drop can come back as the words of a different
+>      fault** (T-275): the loop of `src/main.rs` made a terminal again, and the
+>      words of T-273 then named a reason that the program does not have. Ask of
+>      every `let _ =` of a loop: which words does the next turn of that loop
+>      give the user?
+>    - **A crate that writes words to the standard error is a fault of the words
+>      of the user** (T-275): `ratatui::restore()` holds an `eprintln!`, and
+>      `ratatui::try_restore()` gives that fault back. Ask of every call of a
+>      crate: does it write to a stream of the user, and does the crate hold a
+>      `try_` of it?
+>    - **The other `?` of `auth()`** (T-275, and they stay open):
+>      `Terminal::new`, `term.size()`, and `crossterm::event::read()` each hold
+>      a road of their own, and this turn measured `term.draw()` alone. **This
+>      is a candidate and not a measurement.**
+>    - **The three other values of `ReaderError`** (`NotAnEpub`,
+>      `ChapterAbsent`, and `ChapterTooLarge`) each say one reason (T-274, and
+>      they stay open). **This is a candidate and not a measurement.**
+>    - **`let _ = out.read_to_string(&mut words)` and `let _ = child.kill()` of
+>      the parent of the child that reads a PDF** (T-274, and they stay open).
+>      **This is a candidate and not a measurement.**
+>    - **Every candidate of the list of the turns below stays open** (T-229 to
+>      T-274): the block has a limit of size, therefore this turn names the new
+>      candidates alone and it does not repeat that list.
+>
+>    **The
 >    session of the hundred and third turn read the candidate "The child of T-62
 >    that reads a PDF, and every other process of this program that has no
 >    terminal" of the newest item, and it closes that candidate with no
@@ -14973,9 +15119,8 @@ The gates of v0.8.103, under `nice -n 19 ionice -c 3` with `-j 16`:
 >      failed leaves a process of the user. **This is a candidate and not a
 >      measurement.**
 >    - **`let _ = self.auth()` of `src/ui/login_tui.rs` line 17 drops every fault
->      of the login screen** (T-272 to T-274, and it stays open): the three `?` of
->      the loop of `auth()` stand in a loop of no wait at all. **This is a
->      candidate and not a measurement.**
+>      of the login screen** (T-272 to T-274): **T-275 closes it**, and the turn
+>      above holds the measurement.
 >    - **Every candidate of the list of the turns below stays open** (T-229 to
 >      T-273): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
@@ -15033,81 +15178,14 @@ The gates of v0.8.103, under `nice -n 19 ionice -c 3` with `-j 16`:
 >      child opens no terminal at all, therefore this turn did not reach it.
 >      **This is a candidate and not a measurement.**
 >    - **`let _ = self.auth()` of `src/ui/login_tui.rs` line 17 drops every fault
->      of the login screen** (T-272 and T-273, and it stays open): the five `?`
->      of `auth()` each take that road, and a terminal that gives a real fault of
->      a read holds a loop of no wait at all.
+>      of the login screen** (T-272 and T-273): **T-275 closes it**.
 >    - **Every candidate of the list of the turns below stays open** (T-229 to
 >      T-272): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
 >
->    **The
->    session of the hundred and first turn took the candidate "The login screen
->    of a terminal that went away" of "What this item leaves open" of the newest
->    item, which T-271 left open. The watch of T-271 starts after the login, and
->    it needs the client of the server, the name of an account, and the name of
->    a server: the login screen stands before every one of them** (T-272).
->
->    `AppLogin::run` of `src/login_app.rs` loops
->    `while !self.should_exit { terminal.draw(...)? }`, the draw calls
->    `render_auth` of `src/ui/login_tui.rs` line 17, which holds
->    `let _ = self.auth()`, and the loop of `auth()` of
->    `src/logic/auth/auth_input.rs` holds a bare blocking
->    `crossterm::event::read()?` with **no `poll` at all**.
->
->    The measurement, of the real program v0.8.100 inside tmux, on a screen of
->    160 columns and 45 rows, with a `XDG_CONFIG_HOME` that holds no account
->    (the trap 135) and with
->    `docs/harness/the_terminal_of_the_program_goes_away.py`. The screen held
->    `Server address`, and `tmux kill-session` took the terminal away with no
->    signal. The program stood at **34.1 percent** of one processor after five
->    seconds and at **71.7 percent** after 34 seconds, with
->    `/proc/PID/fd/0 -> /dev/pts/5 (deleted)`, and it never stopped.
->    `strace -f -tt` named the loop:
->
->    ```text
->    read(0, "", 1024)       = 0
->    ```
->
->    **1607222 reads of no byte in 11.7 seconds.** No `epoll_wait` of the shape
->    of T-271 stood in that trace: this loop is `crossterm::event::read` and not
->    `crossterm::event::poll`.
->
->    The correction is
->    `spawn_the_watch_of_the_terminal_of_the_login_screen()` of
->    `src/utils/the_terminal_that_went_away.rs`, which takes **no argument at
->    all**, and three lines of `src/main.rs`: the task starts before
->    `app_login.run(terminal)`, and `.abort()` stops it after that line. It
->    closes **no** session, because the login screen holds no account, no client
->    of the server, and no session, and its line of the log says that. The
->    corrected program stopped after **65 ms**, and `grep -c 'the terminal]'` of
->    the log gave 1. The control of the road after the login, of the same build
->    and of the same harness, stopped after **565 ms** with the line of T-271,
->    which holds `closes the session of the server`: therefore the `.abort()`
->    stops the watch of the login screen alone.
->    - **A strace of a program that it did not start gives `Operation not
->      permitted`** (T-272, and the trap 136): the harness of the terminal
->      `exec`s the program of its command line, therefore
->      `python3 harness.py strace -f -tt -o FILE ./target/debug/toutui` gives a
->      strace that takes the ignored disposition of `SIGHUP` too.
->    - **A watch of the same terminal must not stand two times** (T-272): the
->      watch of T-271 closes the session of the server, and a second watch that
->      closes none takes the place of the user with it.
->    - **`let _ = self.auth()` of `src/ui/login_tui.rs` line 17 drops every
->      fault of the login screen** (T-272, and it stays open): a terminal that
->      gives a real fault, and not the end of its input, holds a loop of no wait
->      at all, and this turn did not measure that road.
->      `let _app_result = app_login.run(terminal)` of `src/main.rs` drops the
->      fault of that loop too. **This is a candidate and not a measurement.**
->    - **The child of T-62 that reads a PDF, and every other process of this
->      program that has no terminal** (T-272, and it stays open): this turn
->      measured no terminal that goes away for those.
->    - **Every candidate of the list of the turns below stays open** (T-229 to
->      T-271): the block has a limit of size, therefore this turn names the new
->      candidates alone and it does not repeat that list.
->
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the hundredth and every turn before it, the item of each, and the
+>    the hundred and first and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
@@ -15586,7 +15664,10 @@ The gates of v0.8.103, under `nice -n 19 ionice -c 3` with `-j 16`:
 > child that reads a PDF is the one road to the fault of the user, the words of a
 > book that can be damaged stay for a book that gives no page, and the disk, the
 > part that did not start, and the part that took too long each say what they
-> are** (T-274).
+> are** (T-274), and **a login screen that did not reach the terminal says why:
+> the fault of that screen belongs to the answer of `AppLogin::run`, it comes
+> before the fault of the frame of that loop, and the program gives the terminal
+> back with words of its own** (T-275).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

@@ -22354,3 +22354,126 @@ TheDiskTookNoPageOfThePdf("Permission denied (os error 13)")`.
   bare `?` (open since T-269). A candidate, and not a measurement.
 - A fault of the removal of the account that comes on the road of the key `R`
   is not measured (open since T-269). A candidate, and not a measurement.
+
+### T-275: a login screen that did not reach the terminal says why
+
+**The state**: corrected on 2026-08-16, in v0.8.104. The measurement is of the
+real program inside tmux, with a pipe whose reader went away.
+
+#### The choice of this item
+
+T-272, T-273, and T-274 each left the same two lines open: `let _ =
+self.auth()` of `src/ui/login_tui.rs`, which drops every fault of the login
+screen, and `let _app_result = app_login.run(terminal)` of `src/main.rs`, which
+drops the fault of that loop too. This item reaches both lines.
+
+#### The fault
+
+`render_auth` of `src/ui/login_tui.rs` held `let _ = self.auth();`, and
+`src/main.rs` held `let _app_result = app_login.run(terminal);`. The two lines
+dropped every fault of the login screen.
+
+`AppLogin::run` loops `while !self.should_exit { terminal.draw(...)? }`, and the
+render calls `auth()`. `auth()` makes a terminal of its own on
+`std::io::stdout()` (`the_backend_of_a_field`), and its `?` sites are
+`Terminal::new`, `term.size()`, `term.draw()`, and `crossterm::event::read()`.
+
+#### The measurement
+
+The real program v0.8.103, inside tmux, with a real terminal, and the standard
+output of the program in a pipe whose reader went away after three seconds:
+`./target/debug/toutui | { sleep 3; echo ...; }`, with a `XDG_CONFIG_HOME` of
+nothing (the trap 135), so that the login screen came. tmux gave the program a
+real terminal, and `/dev/tty` answered.
+
+The first frame reached the pipe. The reader went away at 3 seconds. A key of
+the user at 4.2 seconds gave `term.draw()` the fault `Broken pipe (os error
+32)`; `let _ = self.auth()` dropped it, the outer frame failed too and
+`let _app_result` dropped that; the loop of `src/main.rs` waited one second, and
+it called `the_terminal_of_the_program()` again at 5.2 seconds.
+`ratatui::try_init()` then failed with the same broken pipe, and the user read:
+
+```text
+Failed to restore terminal: Broken pipe (os error 32)
+Toutui stops: it found no terminal.
+Broken pipe (os error 32)
+Toutui draws its screen in a terminal, and it reads the keys of the user from that terminal.
+Start Toutui in a terminal. A unit of systemd, a task of cron, and a program of the background give no terminal.
+```
+
+The user stood in a terminal already: those words name a reason that the program
+does not have (T-91). The log held the line of T-273 and no word of the login
+screen at all. The first line came of `ratatui::restore()`, which writes words
+of a crate to the standard error (T-172).
+
+#### The correction
+
+`AppLogin` holds `the_fault_of_the_screen: Option<io::Error>`. `render_auth`
+keeps the fault of `auth()` there and it sets `should_exit`, in the place of
+`let _ =`. `AppLogin::run` gives `io::Result<()>` back, through the free
+function `the_end_of_a_frame_of_the_login(of_the_screen, of_the_frame)` — the
+fault of the screen comes first, because the frame of that loop holds no
+character of the login screen. `src/main.rs` calls
+`the_program_stops_for_a_screen_that_did_not_reach_the_terminal(&fault)` in the
+place of `let _app_result =`.
+
+A new function `the_program_gives_the_terminal_back()` of
+`src/utils/the_terminal_of_the_program.rs` uses `ratatui::try_restore()` and it
+puts the fault in the log, in the place of `ratatui::restore()`. The five calls
+of `ratatui::restore()` of `src/main.rs` and of that module now use it.
+
+The corrected program of the same condition said, with no word of a crate above
+it:
+
+```text
+Toutui stops: the login screen did not reach the terminal.
+Broken pipe (os error 32)
+Toutui writes the login screen to its standard output, and it reads the keys of the user from the terminal.
+Start Toutui in a terminal. Do not send the standard output of Toutui to a file or to a different program.
+```
+
+The status of the program was 1, and the log held `[the terminal] the login
+screen did not reach the terminal, therefore the user reads no field of it and
+no message of it. Toutui stops. The machine said: Broken pipe (os error 32)`.
+
+#### The controls
+
+A real login of the sandbox inside tmux (`http://localhost:13399`,
+`toutuitest`, `toutuitest`) gave the Home view of the library `Podcasts` with
+`👋 Connected as toutuitest`, and the key `Q` stopped the program: a login
+screen that does reach the terminal keeps its road.
+
+#### The test
+
+`tests/the_login_screen_that_did_not_reach_the_terminal_says_why.rs`, five
+tests. A test of the real binary needs a terminal for the program and a standard
+output that fails together, and no machine of a gate gives the two of them: the
+test reads the two call sites of the source, as the second test of T-273 reads
+the second terminal of the program.
+
+#### The gates
+
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` pass, and
+`cargo nextest run` (1305 tests) and `cargo test -j 16 --no-fail-fast` pass too.
+
+#### What this item leaves open
+
+- `let _ = self.auth()` of `src/ui/login_tui.rs` and `let _app_result =
+  app_login.run(terminal)` of `src/main.rs` close with this item (open since
+  T-272).
+- **The other `?` of `auth()` that a real terminal can give** (a candidate, and
+  not a measurement): `Terminal::new`, `term.size()`, and
+  `crossterm::event::read()` each hold a road of their own, and this item
+  measured `term.draw()` alone.
+- **The three other values of `ReaderError`** (`NotAnEpub`, `ChapterAbsent`,
+  and `ChapterTooLarge`) each say one reason, and no measurement of this turn
+  reached them (open since T-274). A candidate, and not a measurement.
+- `let _ = out.read_to_string(&mut words)` and `let _ = child.kill()` of the
+  parent of the child that reads a PDF (open since T-274). A candidate, and not
+  a measurement.
+- The `?` of `ApiClient::new(...)` of `src/main.rs` is a bare `?` still (open
+  since T-269). A candidate, and not a measurement.
+- The keys of the terminal and of the render of `src/main.rs` each hold a bare
+  `?` (open since T-269). A candidate, and not a measurement.
+- A fault of the removal of the account that comes on the road of the key `R`
+  is not measured (open since T-269). A candidate, and not a measurement.
