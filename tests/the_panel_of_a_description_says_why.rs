@@ -204,17 +204,25 @@ async fn the_panel_of_a_podcast_says_why_it_holds_no_description() {
     .expect("the answer of the server must read");
 
     // The view of the episodes said "N/A" for every episode of that podcast.
+    // **The box holds the value of the server alone now** (T-251): the panel of
+    // that view falls back to the description of the episode, and it gives the
+    // words of T-249 when the server holds none of the three.
     assert_eq!(
         collect_subtitles_pod_ep(&podcast).await,
         vec![
-            NO_DESCRIPTION.to_string(),
-            NO_DESCRIPTION.to_string(),
+            "".to_string(),
+            "".to_string(),
             "The third letter.".to_string()
         ]
     );
 
-    // The description of the podcast itself takes the same words.
-    assert_eq!(collect_descs_pod_ep(&podcast).await, vec![NO_DESCRIPTION]);
+    // The description of that podcast is `""` too, therefore every line of the
+    // panel of that view says the words of T-249.
+    assert_eq!(collect_descs_pod_ep(&podcast).await, vec!["", "", ""]);
+    assert_eq!(
+        toutui::logic::the_panel_of_a_line::the_description_of_a_podcast("", ""),
+        NO_DESCRIPTION
+    );
 
     // The Home view of a library of podcasts holds the same panel.
     let shelves: Vec<ShelfRoot> = serde_json::from_value(serde_json::json!([

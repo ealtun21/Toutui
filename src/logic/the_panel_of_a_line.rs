@@ -149,6 +149,11 @@ pub fn the_place_of_the_panel(
 /// because those words are a text of a letter and every fallback then stops at
 /// them.
 ///
+/// **The view of the episodes of a podcast holds this same panel** (T-251): the
+/// two renders of that view read the subtitle of the episode alone, and
+/// `collect_descs_pod_ep` gives the description of the episode of the line, or
+/// the description of the podcast for an episode of no description.
+///
 /// The function is pure, therefore a test needs no server and no screen.
 pub fn the_description_of_a_podcast(the_subtitle: &str, the_description: &str) -> String {
     if !the_subtitle.trim().is_empty() {

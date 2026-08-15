@@ -38,6 +38,15 @@ pub async fn collect_ids_pod_ep(item: &Root) -> Vec<String> {
 }
 
 /// collect subtiles
+///
+/// **This list holds the value of the server alone** (T-251, and the rule of
+/// T-249 and T-250): the panel of the view of the episodes says the description
+/// of the episode when that episode holds no subtitle, therefore the words of a
+/// subtitle that the server does not have belong to
+/// `crate::logic::the_panel_of_a_line::the_description_of_a_podcast` of the
+/// screen and not to this box. A box that a fallback reads must hold no word of
+/// the program, because those words are a text of a letter and the fallback then
+/// stops at them.
 pub async fn collect_subtitles_pod_ep(item: &Root) -> Vec<String> {
     let mut subtitles_pod_ep = Vec::new();
 
@@ -46,13 +55,10 @@ pub async fn collect_subtitles_pod_ep(item: &Root) -> Vec<String> {
             for episode in episodes {
                 let text = episode.subtitle.as_deref().map(to_plain_text);
 
-                // **The panel of a description says why it holds no text**
-                // (T-249). The words "N/A" belong to a value that stands beside
-                // a label, and this list is the whole panel of the view of the
-                // episodes.
-                subtitles_pod_ep.push(
-                    crate::utils::values_of_the_server::a_description_or_nothing(text.as_deref()),
-                );
+                subtitles_pod_ep.push(crate::utils::values_of_the_server::a_text_or(
+                    text.as_deref(),
+                    "",
+                ));
             }
         }
     }
@@ -103,21 +109,49 @@ pub async fn collect_authors_pod_ep(item: &Root) -> Vec<String> {
     authors_pod_ep
 }
 
-/// collect desc
+/// The description of each episode of a podcast, for the panel of the view of
+/// the episodes. See T-251.
+///
+/// **The description of an episode is not the description of its podcast**, and
+/// the program asked the server for neither of them at the panel: the render
+/// read the subtitle of the episode alone, and this box held one value — the
+/// description of the podcast — for a view of many lines.
+///
+/// The list holds one value for each episode now, as every other list of this
+/// view does (the rule of T-24). The description of the episode comes first,
+/// and the description of the podcast after it: the server gives the show notes
+/// of an episode in `description`, and an episode of no show notes says what
+/// the podcast is.
+///
+/// **The list holds the value of the server alone** (T-249 and T-250): the
+/// screen gives the words of a description that the server does not have.
 pub async fn collect_descs_pod_ep(item: &Root) -> Vec<String> {
-    let mut descs_pod_ep = Vec::new();
+    let Some(media) = &item.media else {
+        return Vec::new();
+    };
 
-    if let Some(media) = &item.media {
-        if let Some(metadata) = &media.metadata {
-            let text = metadata.description.as_deref().map(to_plain_text);
+    let of_the_podcast = media
+        .metadata
+        .as_ref()
+        .and_then(|metadata| metadata.description.as_deref())
+        .map(to_plain_text)
+        .unwrap_or_default();
 
-            descs_pod_ep.push(
-                crate::utils::values_of_the_server::a_description_or_nothing(text.as_deref()),
-            );
-        }
-    }
+    let Some(episodes) = &media.episodes else {
+        return Vec::new();
+    };
 
-    descs_pod_ep
+    episodes
+        .iter()
+        .map(|episode| {
+            let of_the_episode = episode.description.as_deref().map(to_plain_text);
+
+            crate::utils::values_of_the_server::a_text_or(
+                of_the_episode.as_deref(),
+                &of_the_podcast,
+            )
+        })
+        .collect()
 }
 
 /// collect title of podcast (no of podcast episode)

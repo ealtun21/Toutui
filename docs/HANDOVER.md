@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.79.** The item T-250 belongs to this session. The
+**The newest release is v0.8.80.** The item T-251 belongs to this session. The
+item T-250 belongs to the session before it. The
 item T-249 belongs to the session before it. The
 item T-248 belongs to the session before it. The
 item T-247 belongs to the session before it. The
@@ -94,6 +95,61 @@ warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
 the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no
 failure in two runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the eightieth turn of 2026-08-15: the panel of an episode says the description of that episode
+
+**One release: v0.8.80**, and one item: T-251. **The road of it is the first
+paragraph of "What this item leaves open" of T-250**, and that paragraph named
+the same panel of a second view: `render_desc_pod_ep` and
+`render_desc_pod_ep_search` of `src/ui/tui.rs` read `subtitles_pod_ep` alone,
+which is the shape that T-250 corrected in `render_desc_home`.
+
+**That paragraph said that the sandbox gives no condition of the fault**,
+because the 57 episodes of `Letters of Two Brides` hold `""` for the subtitle
+and for the description. **The sandbox held one half of the condition already**:
+`Arthur Gordon Pym` of that same library holds a description of the server, and
+its eleven episodes hold no subtitle. One request of `curl` made the other half
+— `PATCH /api/podcasts/:id/episode/:episode` gave `Chapter 01` the show notes of
+an episode — and the three lines of one view then held the three roads of the
+panel. The section 5b of `docs/TEST-SERVER.md` holds that request, and the
+description stays in the sandbox.
+
+**The panel lost two values of the server, and not one.** The description of the
+podcast stood in `descs_pod_ep` and no render read it, and the description of
+the **episode** reached no box of the program at all: nothing of the fork read
+`episode.description` of the answer of `GET /api/items/:id`. **That box held one
+value for a view of many lines** too, while every other list of the view holds
+one value for each episode (the rule of T-24).
+
+The measurement, of the real program inside tmux against the sandbox. The
+library of the account went to `Podcasts` with a `sqlite3` of
+`name_selected_lib` and of `id_selected_lib` (the trap 203), and it went back
+after the run (the trap 198):
+
+```text
+➤ 22% Chapter 00                          ➤ 74% Chapter 01
+[Arthur Gordon Pym] - … - Duration: 5m    [Arthur Gordon Pym] - … - Duration: 22m
+Progress: 22%, 4m left, Not finished      Progress: 74%, 5m left, Not finished
+No description available                  No description available
+```
+
+**The control of that same run** (the trap 206): the Library view of that same
+program, two keys before, gave the four lines of the description of the podcast
+of its line, therefore the description of a podcast reaches the screen of this
+program and the panel of the episodes of that same podcast said nothing of it.
+
+The correction gives `collect_descs_pod_ep` one value for each episode — the
+description of that episode, and the description of the podcast for an episode
+of no description of its own — and the two renders call
+`the_description_of_a_podcast` of `src/logic/the_panel_of_a_line.rs`, which
+T-250 wrote. `collect_subtitles_pod_ep` gave `NO_DESCRIPTION` since T-249, and
+the fallback of the panel stopped at those words; it holds the value of the
+server alone now (the rule of T-249 and of T-250).
+
+**What this session leaves open** stands in the item T-251 of
+`docs/TAKEOVER-BACKLOG.md`. The first of it: **the two renders of that panel are
+in no test**, therefore the correction of the screen of T-250 and of T-251
+stands on a measurement of tmux alone.
 
 ## The session of the seventy-ninth turn of 2026-08-15: the panel of a podcast says the description of that podcast
 
@@ -10649,40 +10705,101 @@ offline.`
 - **The line of the Library view of a library of podcasts says no place
   at all** (T-242 to T-247, and it stays open).
 
+ **The
+ session of the seventy-seventh turn took the first paragraph of "What
+ this item leaves open" of the newest item: that paragraph named eleven
+ keys of one view, and ten of them held no fault. The eleventh one is a
+ key of the table that does nothing and that says nothing** (T-248).
+
+ T-247 named the keys `u`, `w`, `x`, `y`, `z`, `A`, `B`, `I`, `Y`, `Z`,
+ and `K` of the view of the episodes of a podcast. **A read of the source
+ of each of them, before the measurement, cut the eleven to one**: `w`,
+ `x`, `y`, `z`, and `Z` are letters that the program binds in no view at
+ all and that the table of the key `?` promises in no group; `u`, `I`,
+ and `Y` are keys of the player, and no playback stood in that run; `B`
+ writes the row of the keys of the player of the disk; and `K` moves the
+ description of the panel one line, and `scroll_offset` stood at 0.
+
+ **The eleventh key is `A`, "Add a podcast to the library" of the group
+ "The library and the server" of the table.** Four of the five keys of
+ that group do their work in the view of the episodes — the key `E` of
+ that view said `The server gets 16 episode(s).` in the sweep of T-247 —
+ and `App::look_for_a_podcast` held
+ `Home | Library | SearchBook | NewPodcast` and an early `return` with no
+ word. The measurement, of the library `Podcasts` of the sandbox: the key
+ `Tab`, the key `l`, and `Episodes [57 items]` of `Letters of Two
+ Brides`; the key `A` there gave no field, no message, and no line of the
+ log at all (11 lines before it and 11 after it). **The two controls of
+ the same run** (the trap 206): the key `V` of that same view said `The
+ podcast "Letters of Two Brides" has no bookmark.`, and the key `A` of
+ the Library view of that same library opened the field `The name of the
+ podcast (Enter, or Esc)`.
+ - **A read of the source of every key of a paragraph, before the
+   measurement, is the cheapest part of such a round** (T-248): eleven
+   keys of a sweep of 6.5 seconds each cost more than a minute of tmux
+   and they hold one fault, and a `grep` of `KeyCode::Char` said in
+   seconds which five of them exist at all.
+ - **A poll of a field of this program must read the whole screen** (the
+   trap 149, and now the trap 222): the field of the name of a podcast
+   draws over the panel of the description, near the foot of the screen,
+   and a `head -8` of the capture of tmux said that the control of the
+   Library view does nothing either.
+ - **A key of a group of the table that four of its five keys hold is a
+   key of that view** (T-248): the correction gave the key the view of
+   the episodes, because that view belongs to a library of podcasts and
+   the key needs no line of any list, and it gave every other view the
+   sentence of T-247.
+ - **The offline mode of T-25 gives a test of a key that opens a field**
+   (T-248): the sentence `The server does not answer.` stands after the
+   guard of the view and before the field, therefore a view that reaches
+   it is a view that the key holds, and the test needs no terminal.
+ - **The keys `u`, `I`, and `Y` of that view with a playback are not
+   measured** (T-248, and it stays open), and **the key `B` says nothing
+   on either road** (T-248, and it stays open).
+ - **The key `h` of the view of the bookmarks, of the view of the
+   chapters, and of the view of the queue gives the Home view** (T-247 to
+   T-248, and it stays open).
+ - **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
+   T-248, and it stays open).
+ - **The view of the queue of the offline mode is not measured** (T-230
+   to T-248), and the panel of a line of that view is not measured.
+ - **The lines of the view of the bookmarks hold no place of the user**
+   (T-229 to T-248, and it stays open).
+ - **The line of the Library view of a library of podcasts says no place
+   at all** (T-242 to T-248, and it stays open).
+
 ## The prompt for the next session
 **This session took the first paragraph of "What this item leaves open" of the
-newest item**, and that paragraph named a box of the program that no render of
-the screen reads. `App::descs_pod_cnt_list` holds the description of the podcast
-of each line of the Home view of a library of podcasts, and `render_desc_home`
-reads `subtitles_pod_cnt_list` alone. **The server gives no subtitle for an
-episode of a podcast of a feed**, therefore that panel said the words of a panel
-that holds no text while the server gave four lines of a description. The item
-is **T-250**, and it holds one release, v0.8.79.
+newest item**, and that paragraph named the same panel of a second view: the
+view of the episodes of a podcast read the subtitle of the episode alone. **That
+paragraph also said that the sandbox gives no condition of the fault, and it was
+wrong**: the second podcast of that same library holds a description of the
+server and no subtitle of an episode, and one `PATCH` of the sandbox gave one
+episode the show notes of its own. The item is **T-251**, and it holds one
+release, v0.8.80.
 
 Three things are worth the room:
 
-1. **A box that the render never reads is a road of its own.** The program asked
-   the server for a value, it kept that value for the whole life of the view,
-   and no user ever saw it. A `grep` of the name of a field over `src/` answers
-   the question in seconds, and it needs no tmux at all: **ask of every box of
-   `App` which render reads it.**
-2. **A box that a fallback reads must hold the value of the server alone.** That
-   is the rule that T-249 wrote for `SeriesBookView::description`, and it holds
-   for a list as it holds for a field: the words of a program are a text of a
-   letter, therefore `a_text_or` stops at them and the value after them never
-   comes. The two collectors of this item gave `NO_DESCRIPTION` and `N/A`; they
-   give the value of the server now, and the screen gives the words.
-3. **The value of a panel can come of two answers of one request.** The subtitle
-   of the episode and the description of the podcast stand in one body, the
-   program collected both of them, and the panel needed the two in a sequence:
-   the nearer value first, the wider value after it, and the words of a panel
-   that holds no text when the server gives neither.
+1. **A paragraph that says "the sandbox holds no condition of that fault" is a
+   paragraph to measure, and not one to believe.** T-250 read the podcasts of
+   the shelves of the Home view and it wrote that sentence; the library holds
+   two podcasts, and the second one held the condition. **Ask the server for
+   every item of the library before you write that the sandbox holds nothing.**
 
-This prompt names the state of the program on 2026-08-15.
+2. **A field of the answer that no collector reads is the other half of "which
+   render reads this box?"** T-250 asked the first half. `episode.description`
+   stood in the struct of the API of this fork since the fork began, no
+   collector took it, and the panel of an episode therefore could not say the
+   show notes of that episode even if the render had read every box it holds.
+
+3. **A list of a view holds one value for each line** (the rule of T-24).
+   `collect_descs_pod_ep` gave one value for a view of 57 lines. The test of the
+   correction says the number of the lines before it says the words, and the
+   build of the fault stopped there.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.79**; `Cargo.toml` is at 0.8.79. The
+> AlbanDAVID/Toutui. Newest release **v0.8.80**; `Cargo.toml` is at 0.8.80. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -10691,7 +10808,7 @@ This prompt names the state of the program on 2026-08-15.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-248 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-251 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -11320,6 +11437,82 @@ This prompt names the state of the program on 2026-08-15.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in eighty-five sessions of eighty-six.
 >    **The
+>    session of the eightieth turn took the first paragraph of "What this item
+>    leaves open" of the newest item: that paragraph named the same panel of a
+>    second view, and it said that the sandbox holds no condition of the fault.
+>    The sandbox held one half of it already, and one request of `curl` made the
+>    other half** (T-251).
+>
+>    T-250 gave the Home view of a library of podcasts the description of the
+>    podcast, and it left the view of the episodes of that same podcast open
+>    because the 57 episodes of `Letters of Two Brides` hold `""` for the
+>    subtitle **and** for the description. **`Arthur Gordon Pym` of that same
+>    library is the podcast of another shape**: it holds a description of the
+>    server, and its eleven episodes hold no subtitle. A
+>    `PATCH /api/podcasts/:id/episode/:episode` of the sandbox gave `Chapter 01`
+>    the show notes of an episode (the section 5b of `docs/TEST-SERVER.md`), and
+>    the three lines of one view then held the three roads of that panel.
+>
+>    **The panel lost two values of the server, and not one.**
+>    `render_desc_pod_ep` read `subtitles_pod_ep` alone: the description of the
+>    podcast stood in `descs_pod_ep` and no render read it, and the description
+>    of the **episode** reached no box of the program at all — nothing of the
+>    fork read `episode.description` of the answer of the server. **That box
+>    held one value for a view of many lines**, while every other list of the
+>    view holds one for each episode (the rule of T-24).
+>
+>    The measurement, of the real program inside tmux. The library of the
+>    account went to `Podcasts` with a `sqlite3` (the trap 203), and back after
+>    the run (the trap 198):
+>
+>    ```text
+>    ➤ 22% Chapter 00                        ➤ 74% Chapter 01
+>    [Arthur Gordon Pym] - … - Duration: 5m  [Arthur Gordon Pym] - … - Duration: 22m
+>    Progress: 22%, 4m left, Not finished    Progress: 74%, 5m left, Not finished
+>    No description available                No description available
+>    ```
+>
+>    **The control of that same run** (the trap 206): the Library view of that
+>    same program, two keys before, gave the four lines of the description of
+>    the podcast of its line.
+>    - **A paragraph that says "the sandbox gives no condition of that fault" is
+>      a paragraph to measure and not to believe** (T-251): T-250 read the one
+>      podcast of the shelves of the Home view, and the second podcast of that
+>      same library held the condition. **Ask the server for every item of the
+>      library before you write that the sandbox holds nothing.**
+>    - **A field of the answer that no box of the program reads is the other
+>      half of "which render reads this box?"** (T-250 gave the first half):
+>      `episode.description` stood in the struct of the answer, no collector
+>      took it, and the panel of that episode therefore could not say the show
+>      notes of it. **Ask of every field of a struct of the API: which collector
+>      takes it?**
+>    - **A list of a view holds one value for each line** (the rule of T-24, and
+>      T-251): `collect_descs_pod_ep` gave one value for a view of 57 lines, and
+>      the test of the correction says the number of the lines before it says
+>      the words.
+>    - **The two renders of the panel of the episodes are in no test** (T-250
+>      and T-251, and it stays open): the correction of the screen of both items
+>      stands on a measurement of tmux alone.
+>    - **The panel of the view of the authors and the panel of the view of the
+>      narrators are not measured** (T-249 to T-251, and it stays open).
+>    - **The panel of a description holds no scroll bar** (T-249 to T-251, and
+>      it stays open).
+>    - **The keys of the sweep of T-247 that hold a playback are not measured**
+>      (T-248 to T-251, and it stays open): the keys `u`, `I`, and `Y` of the
+>      view of the episodes, with a playback of an episode.
+>    - **The key `B` says nothing on either road** (T-248 to T-251, and it stays
+>      open).
+>    - **The key `h` of the view of the bookmarks, of the view of the chapters,
+>      and of the view of the queue gives the Home view** (T-247 to T-251, and
+>      it stays open).
+>    - **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
+>      T-251, and it stays open).
+>    - **The lines of the view of the bookmarks hold no place of the user**
+>      (T-229 to T-251, and it stays open).
+>    - **The line of the Library view of a library of podcasts says no place at
+>      all** (T-242 to T-251, and it stays open).
+>
+>    **The
 >    session of the seventy-ninth turn took the first paragraph of "What this
 >    item leaves open" of the newest item: that paragraph named a box of the
 >    program that no render of the screen reads, and the panel of a podcast of
@@ -11359,11 +11552,9 @@ This prompt names the state of the program on 2026-08-15.
 >      them never comes. The two collectors of this item gave `NO_DESCRIPTION`
 >      and `N/A`; they give `""` now, and the screen gives the words.
 >    - **The panel of the view of the episodes of a podcast holds the subtitle
->      of the episode alone** (T-250, and it stays open): `collect_descs_pod_ep`
->      is the second box of that view, and the 57 episodes of `Letters of Two
->      Brides` hold `""` for the subtitle **and** for the description, therefore
->      the sandbox gives no condition of that fault and a measurement needs a
->      podcast of another shape.
+>      of the episode alone** (T-250; **T-251 closed it**): the second podcast
+>      of that same library held the condition that this paragraph said the
+>      sandbox does not have.
 >    - **The panel of the view of the authors and the panel of the view of the
 >      narrators are not measured** (T-249 to T-250, and it stays open).
 >    - **The panel of a description holds no scroll bar** (T-249 to T-250, and
@@ -11453,72 +11644,10 @@ This prompt names the state of the program on 2026-08-15.
 >    - **The line of the Library view of a library of podcasts says no place at
 >      all** (T-242 to T-249, and it stays open).
 >
->    **The
->    session of the seventy-seventh turn took the first paragraph of "What
->    this item leaves open" of the newest item: that paragraph named eleven
->    keys of one view, and ten of them held no fault. The eleventh one is a
->    key of the table that does nothing and that says nothing** (T-248).
->
->    T-247 named the keys `u`, `w`, `x`, `y`, `z`, `A`, `B`, `I`, `Y`, `Z`,
->    and `K` of the view of the episodes of a podcast. **A read of the source
->    of each of them, before the measurement, cut the eleven to one**: `w`,
->    `x`, `y`, `z`, and `Z` are letters that the program binds in no view at
->    all and that the table of the key `?` promises in no group; `u`, `I`,
->    and `Y` are keys of the player, and no playback stood in that run; `B`
->    writes the row of the keys of the player of the disk; and `K` moves the
->    description of the panel one line, and `scroll_offset` stood at 0.
->
->    **The eleventh key is `A`, "Add a podcast to the library" of the group
->    "The library and the server" of the table.** Four of the five keys of
->    that group do their work in the view of the episodes — the key `E` of
->    that view said `The server gets 16 episode(s).` in the sweep of T-247 —
->    and `App::look_for_a_podcast` held
->    `Home | Library | SearchBook | NewPodcast` and an early `return` with no
->    word. The measurement, of the library `Podcasts` of the sandbox: the key
->    `Tab`, the key `l`, and `Episodes [57 items]` of `Letters of Two
->    Brides`; the key `A` there gave no field, no message, and no line of the
->    log at all (11 lines before it and 11 after it). **The two controls of
->    the same run** (the trap 206): the key `V` of that same view said `The
->    podcast "Letters of Two Brides" has no bookmark.`, and the key `A` of
->    the Library view of that same library opened the field `The name of the
->    podcast (Enter, or Esc)`.
->    - **A read of the source of every key of a paragraph, before the
->      measurement, is the cheapest part of such a round** (T-248): eleven
->      keys of a sweep of 6.5 seconds each cost more than a minute of tmux
->      and they hold one fault, and a `grep` of `KeyCode::Char` said in
->      seconds which five of them exist at all.
->    - **A poll of a field of this program must read the whole screen** (the
->      trap 149, and now the trap 222): the field of the name of a podcast
->      draws over the panel of the description, near the foot of the screen,
->      and a `head -8` of the capture of tmux said that the control of the
->      Library view does nothing either.
->    - **A key of a group of the table that four of its five keys hold is a
->      key of that view** (T-248): the correction gave the key the view of
->      the episodes, because that view belongs to a library of podcasts and
->      the key needs no line of any list, and it gave every other view the
->      sentence of T-247.
->    - **The offline mode of T-25 gives a test of a key that opens a field**
->      (T-248): the sentence `The server does not answer.` stands after the
->      guard of the view and before the field, therefore a view that reaches
->      it is a view that the key holds, and the test needs no terminal.
->    - **The keys `u`, `I`, and `Y` of that view with a playback are not
->      measured** (T-248, and it stays open), and **the key `B` says nothing
->      on either road** (T-248, and it stays open).
->    - **The key `h` of the view of the bookmarks, of the view of the
->      chapters, and of the view of the queue gives the Home view** (T-247 to
->      T-248, and it stays open).
->    - **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
->      T-248, and it stays open).
->    - **The view of the queue of the offline mode is not measured** (T-230
->      to T-248), and the panel of a line of that view is not measured.
->    - **The lines of the view of the bookmarks hold no place of the user**
->      (T-229 to T-248, and it stays open).
->    - **The line of the Library view of a library of podcasts says no place
->      at all** (T-242 to T-248, and it stays open).
->
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the seventy-sixth and every turn before it, the item of each, and the sweeps
+>    the seventy-seventh and every turn before it, the item of each, and the
+>    sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
 >    says nothing at all (T-174), the rule of the line of a view for the six
@@ -11894,7 +12023,11 @@ This prompt names the state of the program on 2026-08-15.
 > (T-249), and **the panel of a podcast of the Home view says the
 > description of that podcast: the subtitle of the episode of the line comes
 > first, the description of the podcast after it, and the two boxes of it hold
-> the value of the server alone** (T-250).
+> the value of the server alone** (T-250), and **the panel of an episode of a
+> podcast says the description of that episode: the list of the descriptions
+> holds one value for each episode, the description of the podcast belongs to an
+> episode of no description of its own, and the subtitle of the episode stands
+> above the two of them** (T-251).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

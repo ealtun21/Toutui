@@ -318,6 +318,26 @@ begins with the hard delete of T-154 for both podcasts:
 Two Brides" and the 11 of "Narrative of Arthur Gordon Pym" after them — and that
 queue held about three minutes.
 
+**The one episode of the sandbox that holds a description of its own** stands in
+that second podcast. Every episode of a podcast of a feed of LibriVox gives `""`
+for the subtitle **and** for the description, therefore T-250 found no condition
+of the panel of the view of the episodes at all. One request gives that
+condition, and it stays in the sandbox (T-251):
+
+```bash
+curl -s -X PATCH -H "Authorization: Bearer $TOKEN" \
+    -H 'Content-Type: application/json' \
+    -d '{"description":"<p>The measurement of this episode: the show notes of Chapter 01.</p>"}' \
+    "$SERVER/api/podcasts/b793354b-9841-480a-bd09-41923596517e/episode/482f0136-06eb-44a2-a202-c2ea3ad68a53"
+```
+
+`Chapter 01` of `Arthur Gordon Pym` therefore holds the show notes of an
+episode, `Chapter 00` of that same podcast holds none, and the podcast itself
+holds the description of its feed. The three lines of one view give the three
+roads of that panel. **A hard delete of the episodes of this podcast takes that
+description away**, therefore the measurement of T-166 above needs this request
+again after it.
+
 ## 6. Make a book that has many audio files
 
 `ffmpeg` makes the files. The book is short, thus a test is quick.

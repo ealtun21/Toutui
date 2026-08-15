@@ -18396,3 +18396,155 @@ and the test says the screen of the measurement:
   T-250, and it stays open).
 - **The line of the Library view of a library of podcasts says no place at all**
   (T-242 to T-250, and it stays open).
+
+### T-251: the panel of an episode of a podcast says the description of that episode
+
+**The state**: corrected on 2026-08-15. The measurement is of the real program
+inside tmux, against the sandbox.
+
+#### What T-250 left open
+
+T-250 named this panel and it said that the sandbox gives no condition of the
+fault: the 57 episodes of `Letters of Two Brides` each hold `""` for the
+subtitle **and** for the description. That paragraph asked for a podcast whose
+episodes hold no subtitle beside a description of the podcast. **The sandbox
+holds that podcast already**: `Arthur Gordon Pym` of the library `Podcasts`
+gives a description of the server for the podcast, and `""` for the subtitle of
+each of its eleven episodes. A `PATCH /api/podcasts/:id/episode/:episode` of the
+sandbox then gave `Chapter 01` the show notes of an episode, which is the second
+condition of this panel (the section 5b of `docs/TEST-SERVER.md`).
+
+#### The fault
+
+`render_desc_pod_ep` and `render_desc_pod_ep_search` of `src/ui/tui.rs` read
+`subtitles_pod_ep` alone, which is the shape of `render_desc_home` before
+T-250. Two values of the server never reached the screen:
+
+- **the description of the episode**: the program asked the server for it in no
+  place at all. `collect_descs_pod_ep` read `media.metadata.description` — the
+  description of the **podcast** — and `episode.description` of the answer of
+  `GET /api/items/:id` reached no box of the program;
+- **the description of the podcast**: `collect_descs_pod_ep` gave it, and no
+  render of the screen read `descs_pod_ep`.
+
+**That box held one value for a view of many lines.** Every other list of this
+view holds one value for each episode (the rule of T-24), therefore
+`at(&descs_pod_ep, selected)` of every line after the first one would stand
+against no value at all.
+
+The measurement of 2026-08-15. The library of the account went to `Podcasts`
+with a `sqlite3` of `name_selected_lib` and of `id_selected_lib` (the trap 203),
+and it went back after the run (the trap 198). The key `Tab`, the key `j`, and
+the key `l` give the eleven episodes of `Arthur Gordon Pym`:
+
+```text
+──────────────────────────Episodes [11 items]──────────────────────────
+➤ 22% Chapter 00
+  74% Chapter 01
+[Arthur Gordon Pym] - Author: LibriVox - Episode: 0 - Duration: 5m
+Progress: 22%, 4m left, Not finished
+No description available
+```
+
+The key `j` of that same run gives `Chapter 01`, whose description the server
+holds:
+
+```text
+➤ 74% Chapter 01
+[Arthur Gordon Pym] - Author: LibriVox - Episode: 1 - Duration: 22m
+Progress: 74%, 5m left, Not finished
+No description available
+```
+
+**The control of that same run** (the trap 206): the Library view of that same
+program, two keys before, said the description of the podcast of its line —
+
+```text
+────────────Library [2 items] — a filter is on (f)────────────
+➤     Letters of Two Brides
+      Arthur Gordon Pym
+Author: LibriVox
+Letters of Two Brides is an epistolary novel. The two brides are Louise de
+Chaulieu (Madame Gaston) and Renée de Maucombe (Madame l'Estorade). …
+```
+
+therefore the description of a podcast reaches the screen of this program, and
+the panel of the episodes of that same podcast said nothing of it.
+
+#### The correction
+
+- `collect_descs_pod_ep` of `src/api/utils/collect_get_pod_ep.rs` gives one
+  value for each episode: the description of the episode, and the description of
+  the podcast for an episode of no description of its own. The show notes name
+  the line, and the description of the podcast names the whole of it.
+- `render_desc_pod_ep` and `render_desc_pod_ep_search` of `src/ui/tui.rs` call
+  `the_description_of_a_podcast` of `src/logic/the_panel_of_a_line.rs`, which
+  T-250 wrote: the subtitle of the episode first, the description after it, and
+  the words of T-249 when the server gave none of the three.
+- **The two boxes hold the value of the server alone** (the rule of T-249 and of
+  T-250): `collect_subtitles_pod_ep` gave `NO_DESCRIPTION` since T-249, and the
+  fallback of the panel stopped at those words. It gives `a_text_or(…, "")` now,
+  and the screen gives the words.
+
+The same program of that same road, after the correction:
+
+```text
+➤ 22% Chapter 00
+[Arthur Gordon Pym] - Author: LibriVox - Episode: 0 - Duration: 5m
+Progress: 22%, 4m left, Not finished
+The Narrative of Arthur Gordon Pym of Nantucket is Edgar Allan Poe's only
+complete novel, published in 1838. …
+```
+
+```text
+➤ 74% Chapter 01
+[Arthur Gordon Pym] - Author: LibriVox - Episode: 1 - Duration: 22m
+Progress: 74%, 5m left, Not finished
+The measurement of this episode: the show notes of Chapter 01.
+```
+
+#### The build of the fault
+
+`tests/the_panel_of_an_episode_says_its_description.rs`, of the podcast of the
+measurement and of three podcasts that hold less. One edit of
+`collect_descs_pod_ep` that keeps every other line (the trap 147) — the function
+gives the description of the podcast alone, as it did — and the test says the
+number of the lines first:
+
+```text
+assertion `left == right` failed: the lists of this view stand one against the
+other by the number of the line: ["The one complete novel of Edgar Allan Poe."]
+  left: 1
+ right: 3
+```
+
+#### What this item leaves open
+
+- **The two renders of that panel are not in a test** (T-250 and T-251, and it
+  stays open): the correction of the screen of both items stands on a
+  measurement of tmux alone, because no test of this fork draws a frame of the
+  view of the episodes.
+- **The panel of the view of the authors and the panel of the view of the
+  narrators are not measured** (T-249 to T-251, and it stays open):
+  `src/api/libraries/get_authors.rs` writes the words of a description with a
+  literal of its own.
+- **The panel of a description holds no scroll bar** (T-249 to T-251, and it
+  stays open): the description of `Arthur Gordon Pym` of this measurement is
+  longer than the panel of a screen of 45 rows, and the user gets no word of how
+  much of it is left.
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-251, and it stays open): the keys `u`, `I`, and `Y` of the view of
+  the episodes.
+- **The key `B` says nothing on either road** (T-248 to T-251, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters, and
+  of the view of the queue gives the Home view** (T-247 to T-251, and it stays
+  open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to T-251,
+  and it stays open).
+- **The view of the queue of the offline mode is not measured** (T-230 to
+  T-251), and the panel of a line of that view is not measured.
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-251, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at all**
+  (T-242 to T-251, and it stays open).

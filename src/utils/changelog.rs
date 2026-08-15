@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.80",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The panel of the view of the episodes of a podcast said \
+             \"No description available\" while the server gave a \
+             description.** The panel read the subtitle of the episode alone, \
+             and the server gives no subtitle for an episode of a podcast of a \
+             feed. The description of the episode reached no box of the \
+             program, and the description of the podcast reached no view of \
+             the screen. The panel says the subtitle of the episode first now, \
+             the description of that episode after it, the description of the \
+             podcast after that, and the words of a panel that holds no text \
+             when the server gives none of the three.",
+        ],
+    },
+    Entry {
         version: "0.8.79",
         date: "15/08/2026",
         body: &[

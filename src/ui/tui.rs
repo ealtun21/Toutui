@@ -2801,10 +2801,18 @@ impl App {
 
             // Check if index is valid for subtitles vector
             if selected < self.subtitles_pod_ep.len() {
-                Paragraph::new(at(&self.subtitles_pod_ep, selected).to_string())
-                    .scroll((self.scroll_offset, 0))
-                    .wrap(Wrap { trim: true })
-                    .render(area, buf);
+                // **The panel of an episode says the description of that
+                // episode when the episode holds no subtitle** (T-251). The
+                // program collected `descs_pod_ep` and no render read it.
+                Paragraph::new(
+                    crate::logic::the_panel_of_a_line::the_description_of_a_podcast(
+                        at(&self.subtitles_pod_ep, selected),
+                        at(&self.descs_pod_ep, selected),
+                    ),
+                )
+                .scroll((self.scroll_offset, 0))
+                .wrap(Wrap { trim: true })
+                .render(area, buf);
             } else {
                 log::error!(
                     "render_desc_pod_ep: Index {} out of bounds for subtitles_pod_ep (len={})!",
@@ -2822,10 +2830,17 @@ impl App {
     // desc of the podcast for `PodcastEpisode` (from search)
     fn render_desc_pod_ep_search(&self, area: Rect, buf: &mut Buffer, list_state: &ListState) {
         if let Some(selected) = list_state.selected() {
-            Paragraph::new(at(&self.subtitles_pod_ep_search, selected).to_string())
-                .scroll((self.scroll_offset, 0))
-                .wrap(Wrap { trim: true })
-                .render(area, buf);
+            // The view of the episodes of a search holds the same panel. See
+            // T-251, and T-246 for the lists of that view.
+            Paragraph::new(
+                crate::logic::the_panel_of_a_line::the_description_of_a_podcast(
+                    at(&self.subtitles_pod_ep_search, selected),
+                    at(&self.descs_pod_ep_search, selected),
+                ),
+            )
+            .scroll((self.scroll_offset, 0))
+            .wrap(Wrap { trim: true })
+            .render(area, buf);
         }
     }
 
