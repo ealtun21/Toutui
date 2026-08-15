@@ -65,6 +65,7 @@
 
 use crate::logic::playback::PlaybackTarget;
 use crate::utils::convert_seconds::convert_seconds;
+use std::collections::BTreeMap;
 use std::sync::{Mutex, OnceLock};
 
 /// One media that waits in the queue.
@@ -217,44 +218,130 @@ impl Queue {
         Some(selected.min(self.entries.len() - 1))
     }
 
-    /// Makes the text of each line of the view.
+    /// Makes the text of each line of the view, with no place of the user.
     ///
-    /// The number of the place stands at the start, therefore the user reads
-    /// the sequence. The length stands at the end.
+    /// A caller that holds no place of the user gives none: the message of a
+    /// test names the media of the queue and no percent. The view of the user
+    /// calls `the_lines_of_the_queue`. See T-230.
     pub fn lines(&self) -> Vec<String> {
-        self.entries
-            .iter()
-            .enumerate()
-            .map(|(index, entry)| {
-                let mark = if entry.target.episode_id().is_some() {
-                    "🎙"
-                } else {
-                    "📕"
-                };
+        the_lines_of_the_queue(&self.entries, &BTreeMap::new(), None)
+    }
+}
 
-                let mut line = format!("{}. {} {}", index + 1, mark, entry.title);
+/// Gives the text of each line of the view of the queue. See T-230.
+///
+/// **A line of this view is one media, and it held no place of that media at
+/// all**: no percent of the user, no mark of the media that the user finished,
+/// and no mark of the media that plays. Every other list of a media of the
+/// program wraps its title with `crate::ui::marks::line`: the Home view with
+/// `marks::of_progress` (T-44 and T-228), the Library view with
+/// `marks::of_library`, and the view of the episodes of a podcast with
+/// `marks::of_progress` too (T-229). This list wrapped nothing.
+///
+/// The measurement of 2026-08-15: `A Second Book Of Many Hours` played and
+/// `A Big Book Of A Scan` stood at 42 percent. The Home view of that same
+/// program said `▶   A Second Book Of Many Hours` and
+/// `42% A Big Book Of A Scan`, and the two lines of the queue of that same
+/// second said `1. 📕 A Big Book Of A Scan — Big Author  (0m)` and
+/// `2. 📕 A Second Book Of Many Hours — Many Hours Author  (8h)`. A book that
+/// the user finished stood in that queue before it, and its line said the same
+/// nothing.
+///
+/// `places` holds one row for each media, keyed by `Entry::key`, in the form of
+/// `App::book_progress_cnt_list`: the percent of the user and the mark of the
+/// end. **The key names the episode after the item** (T-223, T-228, and
+/// T-229): two episodes of one podcast hold the identity of that podcast, and
+/// a key of the item alone would give one mark to every episode of it. A media
+/// of no row takes no mark, as a media that never played takes none.
+///
+/// The number of the place stands after the mark, therefore the user reads the
+/// sequence. The length stands at the end.
+///
+/// The function is pure, therefore a test needs no server and no screen.
+pub fn the_lines_of_the_queue(
+    entries: &[Entry],
+    places: &BTreeMap<String, Vec<String>>,
+    playing: Option<&str>,
+) -> Vec<String> {
+    entries
+        .iter()
+        .enumerate()
+        .map(|(index, entry)| {
+            let kind = if entry.target.episode_id().is_some() {
+                "🎙"
+            } else {
+                "📕"
+            };
 
-                if !entry.author.trim().is_empty() {
-                    line.push_str(" — ");
-                    line.push_str(entry.author.trim());
-                }
+            let mut line = format!("{}. {} {}", index + 1, kind, entry.title);
 
-                // A view that holds the length as a text only gives no number.
-                // The line then shows the name and no length.
-                if let Some(length) = entry.duration {
-                    let text = convert_seconds(vec![length])
-                        .first()
-                        .cloned()
-                        .unwrap_or_default();
+            if !entry.author.trim().is_empty() {
+                line.push_str(" — ");
+                line.push_str(entry.author.trim());
+            }
 
-                    line.push_str("  (");
-                    line.push_str(&text);
-                    line.push(')');
-                }
+            // A view that holds the length as a text only gives no number.
+            // The line then shows the name and no length.
+            if let Some(length) = entry.duration {
+                let text = convert_seconds(vec![length])
+                    .first()
+                    .cloned()
+                    .unwrap_or_default();
 
-                line
-            })
-            .collect()
+                line.push_str("  (");
+                line.push_str(&text);
+                line.push(')');
+            }
+
+            let key = entry.key();
+            let plays_now = playing.is_some_and(|playing| playing == key);
+            let row = places.get(&key);
+            let percent = row
+                .and_then(|row| row.first())
+                .map(String::as_str)
+                .unwrap_or("");
+            let finished = row
+                .and_then(|row| row.get(1))
+                .map(String::as_str)
+                .unwrap_or("");
+
+            crate::ui::marks::line(
+                &crate::ui::marks::of_progress(percent, finished, plays_now),
+                &line,
+            )
+        })
+        .collect()
+}
+
+/// The place of the user of each media of the queue, keyed by `Entry::key`.
+///
+/// The task of `show_the_queue` writes this box, and the render reads it. The
+/// shape is the shape of `crate::logic::the_episodes`: a task asks, the box
+/// holds the answer, and the render takes it at the next frame. See T-230.
+fn box_of_the_places() -> &'static Mutex<BTreeMap<String, Vec<String>>> {
+    static PLACES: OnceLock<Mutex<BTreeMap<String, Vec<String>>>> = OnceLock::new();
+    PLACES.get_or_init(|| Mutex::new(BTreeMap::new()))
+}
+
+/// Writes the place of the user of each media of the queue. See T-230.
+///
+/// The list **takes the place** of the list that came before it: the key `q`
+/// asks the server again, and a media that left the queue must take no line of
+/// a later frame.
+pub fn keep_the_places(places: BTreeMap<String, Vec<String>>) {
+    if let Ok(mut slot) = box_of_the_places().lock() {
+        *slot = places;
+    }
+}
+
+/// Gives the place of the user of each media of the queue. See T-230.
+///
+/// A request that did not come back gives an empty list, and every line then
+/// holds its title alone, as it did before T-230.
+pub fn the_places() -> BTreeMap<String, Vec<String>> {
+    match box_of_the_places().lock() {
+        Ok(places) => places.clone(),
+        Err(_) => BTreeMap::new(),
     }
 }
 
@@ -952,8 +1039,25 @@ mod tests {
         let lines = queue.lines();
 
         assert_eq!(lines.len(), 2);
-        assert!(lines[0].starts_with("1. "), "the line is {:?}", lines[0]);
-        assert!(lines[1].starts_with("2. "), "the line is {:?}", lines[1]);
+        // The mark of the place of the user stands at the start of the line,
+        // and the number of the place stands after it. A media of no place
+        // takes a mark of spaces alone. See T-230.
+        assert!(
+            lines[0].starts_with(&format!(
+                "{}1. ",
+                crate::ui::marks::of_progress("", "", false)
+            )),
+            "the line is {:?}",
+            lines[0]
+        );
+        assert!(
+            lines[1].starts_with(&format!(
+                "{}2. ",
+                crate::ui::marks::of_progress("", "", false)
+            )),
+            "the line is {:?}",
+            lines[1]
+        );
         assert!(lines[0].contains("First"));
         assert!(lines[0].contains("An Author"));
         assert!(lines[0].contains("1m"), "the line is {:?}", lines[0]);

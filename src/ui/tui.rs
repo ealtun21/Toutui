@@ -1235,7 +1235,7 @@ impl App {
         .areas(area);
 
         let queue = crate::logic::queue::snapshot();
-        let lines = queue.lines();
+        let lines = self.queue_lines(queue.entries());
 
         let title = if lines.is_empty() {
             "The queue is empty. Press n on a media to put it in the queue.".to_string()

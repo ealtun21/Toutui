@@ -15460,3 +15460,163 @@ view.
 - **The key `X` of the view of the bookmarks of a podcast** removes a place of
   another episode with the same words (T-223 to T-228 each left it open, and
   this item did not close it).
+
+### T-230: the line of the view of the queue holds the place of its media
+
+**This item takes the first paragraph of "What this item leaves open" of
+T-229.** That paragraph named three views — the queue, the bookmarks, and the
+chapters — and it said that the sweep of "which list of a media holds the place
+of that media" is open for every view that T-229 did not read. **The answer is
+that the view of the chapters holds that place already** (`logic::chapters::
+lines` puts `▶` on the chapter of the position since T-24), **that the view of
+the bookmarks holds a line of a bookmark and not of a media**, and **that no
+line of the view of the queue held one word of the place of its media**.
+
+#### The measurement
+
+The real program v0.8.58 inside tmux, against the sandbox (podman on :13399),
+of the library `Books`. The server held `A Book Of Many Hours` at 90 percent,
+`A Second Book Of Many Hours` finished, and `A Long Test Book` at 50 percent.
+The user pressed the key `n` on each of the three and then the key `q`:
+
+```text
+1. 📕 A Book Of Many Hours — Many Hours Author  (8h)
+2. 📕 A Long Test Book — Long Author  (30m)
+3. 📕 A Second Book Of Many Hours — Many Hours Author  (8h)
+```
+
+**The control of the same run** (the trap 206): the Home view of that same
+program said `90% A Book Of Many Hours`, `50% A Long Test Book`, and
+`✓   A Second Book Of Many Hours`.
+
+A second run of the same program played `A Second Book Of Many Hours` and the
+user put it in the queue with the key `n`. The Home view said
+`▶   A Second Book Of Many Hours` and `42% A Big Book Of A Scan`, and the two
+lines of the queue of that same second said:
+
+```text
+1. 📕 A Big Book Of A Scan — Big Author  (0m)
+2. 📕 A Second Book Of Many Hours — Many Hours Author  (8h)
+```
+
+**A book that the user finished, a book at 42 percent, and the book that played
+at that moment each looked like a book that never played.**
+
+The same measurement of the corrected program (v0.8.59) gave
+`42% 1. 📕 A Big Book Of A Scan`, `      2. 📕 A Book That Ends Before Its
+Length`, `      3. 📕 A Very Large Book`, `90% 4. 📕 A Book Of Many Hours`, and
+`✓   5. 📕 A Second Book Of Many Hours`; the key `l` on the fourth line and the
+key `n` on the media that then played gave `▶   5. 📕 A Book Of Many Hours`.
+**The live message of the server reaches that line too**: a second client moved
+`A Big Book Of A Scan` to 77 percent with `curl` while the program stood, and
+the line said `77% 1. 📕 A Big Book Of A Scan` **271 milliseconds** later with
+no key of the user.
+
+**Two episodes of one podcast each hold the place of that episode.** The server
+held `Chapter 00` of `Arthur Gordon Pym` at 35 percent and `Chapter 01`
+finished; the user opened the episodes of that podcast, pressed `n` on each of
+the two, and pressed `q`:
+
+```text
+35% 1. 🎙 Chapter 00 — Arthur Gordon Pym
+✓   2. 🎙 Chapter 01 — Arthur Gordon Pym
+```
+
+#### The fault of the source
+
+- `src/logic/queue.rs`, `Queue::lines`: the line was
+  `format!("{}. {} {}", index + 1, the emoji of the media type, entry.title)`
+  with the author and the length after it. Every other list of a media of the
+  program wraps its title with `crate::ui::marks::line`: the Home view with
+  `marks::of_progress` (T-44 and T-228), the Library view with
+  `marks::of_library`, and the view of the episodes of a podcast with
+  `marks::of_progress` too (T-229). This one wrapped nothing.
+- `src/app.rs`, `show_the_queue`: the key `q` read the queue of the disk
+  (T-147) and it asked the server for nothing at all. No field of `App` held
+  the place of a media of the queue: `book_progress_cnt_list` holds the media
+  of the Home view of the library of the moment, and a media of the queue can
+  belong to a different library or to no page that the program read.
+
+#### The correction
+
+- `src/logic/queue.rs`: the new pure function
+  `the_lines_of_the_queue(entries, places, playing)`. `places` holds one row
+  for each media, **keyed by `Entry::key`**: that key names the episode after
+  the item (T-223, T-228, and T-229), therefore two episodes of one podcast
+  hold two places and the mark of the media that plays stands on one of them.
+  A media of no row keeps its title alone, as a media that never played does.
+- `src/logic/queue.rs`: the box `box_of_the_places`, with `keep_the_places` and
+  `the_places`. The shape is the shape of `crate::logic::the_episodes`: a task
+  asks, the box holds the answer, and the render takes it at the next frame.
+  The list takes the place of the list before it, because the key `q` asks
+  again.
+- `src/logic/queue.rs`: `Queue::lines` gives the line with no place of the
+  user. A caller that holds no place of the user gives none, and the message of
+  a test is such a caller.
+- `src/app.rs`: `show_the_queue` calls the new
+  `ask_the_server_for_the_places_of_the_queue`, and the new
+  `the_places_of_the_queue` asks **one** `GET /api/me` for the whole account
+  and reads the row of each media with
+  `crate::logic::the_positions::the_place_of_a_media` (T-127 and T-229).
+- `src/app.rs`: the new `App::queue_lines` makes the lines, and a position of a
+  live message takes the place of the row of the request (T-47).
+- `src/ui/tui.rs`: `render_queue` reads those lines.
+- `tests/the_line_of_the_view_of_the_queue_holds_its_place.rs` holds the rule,
+  and the parts of it stay in one function (T-144 and T-157). It needs no
+  server and no screen, because the function is pure. **Three builds of the
+  fault each fail it**: a line that reads no place at all, a key of a line that
+  drops the episode, and a line that takes the row of its neighbour.
+
+**The decision, and the reason for it: the mark stands before the number of the
+place.** `crate::ui::marks::WIDTH` is four columns, therefore the titles of
+every list of the program stand under each other. A mark between the number and
+the title would give a column that moves with the number of the media of the
+queue.
+
+**The decision, and the reason for it: the offline mode asks nothing.** The
+copies of the disk hold no place of the server, therefore
+`ask_the_server_for_the_places_of_the_queue` gives up at once and every line of
+that view keeps its title alone.
+
+**The decision, and the reason for it: a request that gave no place leaves every
+line as it stood.** The fault takes a line of the log (T-177) and no word for
+the user: the lines then hold the title, the author, and the length, which is
+what they held before this item.
+
+#### What this item leaves open
+
+- **The key `n` on a media that stands in the queue already says a number that
+  no line of the queue holds** (this item, and it stays open). The measurement:
+  the queue held two media, the user pressed `n` on the second of them, the
+  message said `"A Second Book Of Many Hours" is number 3 of the queue.`, and
+  the view of that same key said `The queue [2 items]` with two lines. The
+  doc of `Queue::add` says that a media of the queue goes in a second time, and
+  the disk held two rows of the positions 0 and 2. **The memory of the process
+  and the disk of the queue do not agree on a media that goes in two times**,
+  and T-147 says that the disk is the truth.
+- **The line of the view of the queue names the length of the media and not the
+  time that is left** (this item, and it stays open): `Entry.duration` is a
+  number of seconds, therefore the line **can** say the time that is left, and
+  the panel of the Home view says it already (`Progress: 90%, 48m left`). No
+  measurement says whether `(8h)` for a book of 48 minutes that are left is a
+  fault of the words.
+- **The place of the view of the queue is a photograph of the moment of the
+  key `q`** (this item, and it stays open): the request runs at that key alone.
+  A live message moves the line (this item measured 271 milliseconds),
+  therefore the road of a place that goes old with no message reached no
+  measurement.
+- **The lines of the view of the bookmarks hold no place of the user** (T-229,
+  and this item does not close it): a line of that view is one bookmark of one
+  media, therefore "the place of the user" of such a line is not the place of a
+  media. The question of that view is a different one: **which bookmark stands
+  before the position of the playback, and does the view say it?**
+- **The lines of the view of the search and of the view of the lists hold no
+  place at all** (T-228 and T-229, and it stays open).
+- **The view of the queue of the offline mode is not measured** (this item):
+  the request does not run offline, therefore the lines of that view hold their
+  titles alone and no measurement says that the user reads it so.
+- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone** (T-226 to
+  T-229, and it stays open).
+- **The key `X` of the view of the bookmarks of a podcast** removes a place of
+  another episode with the same words (T-223 to T-229 each left it open, and
+  this item did not close it).

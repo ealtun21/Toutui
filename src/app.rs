@@ -7012,6 +7012,31 @@ impl App {
             .collect()
     }
 
+    /// Gives the text of each line of the view of the queue. See T-230.
+    ///
+    /// The place of the user comes from the request that the key `q` made, and
+    /// a live message of the server takes the place of that row: a different
+    /// client of the same account moved in a media of the queue, and the line
+    /// then shows the new place at the next frame, as the line of the Home view
+    /// does (T-47 and T-228).
+    pub fn queue_lines(&self, entries: &[crate::logic::queue::Entry]) -> Vec<String> {
+        let mut places = crate::logic::queue::the_places();
+
+        for entry in entries {
+            let key = entry.key();
+
+            if let Some(live) = crate::logic::live::progress_of(&key) {
+                places.insert(key, vec![live.percent, live.finished]);
+            }
+        }
+
+        crate::logic::queue::the_lines_of_the_queue(
+            entries,
+            &places,
+            self.playing_media().as_deref(),
+        )
+    }
+
     /// Gives the text of each line of the view `Library`.
     pub fn library_lines(&self) -> Vec<String> {
         let playing = self.playing_item();
@@ -7469,6 +7494,47 @@ impl App {
 
         self.scroll_offset = 0;
         self.view_state = AppView::Queue;
+
+        // **The line of the queue holds the place of its media** (T-230). One
+        // request of `GET /api/me` gives the place of every media of the
+        // account, therefore a queue of any size costs one request and not one
+        // for each line (T-127 and T-229).
+        self.ask_the_server_for_the_places_of_the_queue();
+    }
+
+    /// Asks the server for the place of the user of each media of the queue.
+    /// See T-230.
+    ///
+    /// The key `q` calls this, therefore the view holds the place of the moment
+    /// that the user opened it. The offline mode asks nothing: the copies of
+    /// the disk hold no place of the server, and the lines then keep their
+    /// titles alone.
+    fn ask_the_server_for_the_places_of_the_queue(&mut self) {
+        if self.is_offline {
+            return;
+        }
+
+        let keys: Vec<(String, Option<String>)> = crate::logic::queue::snapshot()
+            .entries()
+            .iter()
+            .map(|entry| {
+                (
+                    entry.target.item_id().to_string(),
+                    entry.target.episode_id().map(str::to_string),
+                )
+            })
+            .collect();
+
+        if keys.is_empty() {
+            crate::logic::queue::keep_the_places(std::collections::BTreeMap::new());
+            return;
+        }
+
+        let api = std::sync::Arc::clone(&self.api);
+
+        tokio::spawn(async move {
+            crate::logic::queue::keep_the_places(the_places_of_the_queue(&api, &keys).await);
+        });
     }
 
     /// Holds the media that the user chose in the view of the queue, and it
@@ -8566,6 +8632,59 @@ pub fn message_of_the_mark(finished: bool) -> String {
 /// `App::book_progress_cnt_list`: the percent of the user and the mark of the
 /// end. An episode of no place gives `N/A`, as a media that never played gives
 /// it in the Home view.
+/// Gives the place of the user of each media of the queue. See T-230.
+///
+/// **One request of `GET /api/me` gives the place of every media of the
+/// account** (T-127), therefore a queue of any size costs one request. The
+/// answer is keyed by `crate::logic::queue::Entry::key`, and that key names the
+/// episode after the item: two episodes of one podcast hold the identity of
+/// that podcast (T-223), and a key of the item alone would give the place of
+/// one episode to every episode of it (T-188 and T-228).
+///
+/// **A request that did not come back gives no place, and it takes no request
+/// of its own** (T-177): the lines then hold their titles alone, as they did
+/// before T-230, and the log names the fault. A media of no row of the answer
+/// takes no row at all: `marks::of_progress` gives no mark to a media that
+/// never played.
+async fn the_places_of_the_queue(
+    api: &crate::api::client::ApiClient,
+    keys: &[(String, Option<String>)],
+) -> std::collections::BTreeMap<String, Vec<String>> {
+    let mut places = std::collections::BTreeMap::new();
+
+    let the_positions = match crate::api::me::permissions::the_account_of_the_token(api).await {
+        Ok((_, the_positions)) => the_positions,
+        Err(error) => {
+            log::warn!(
+                "[queue] the server gave no place of the {} media of the queue: {}. \
+                 The lines of that view hold no percent.",
+                keys.len(),
+                error
+            );
+
+            return places;
+        }
+    };
+
+    for (item, episode) in keys {
+        if let Some(row) = crate::logic::the_positions::the_place_of_a_media(
+            &the_positions,
+            item,
+            episode.as_deref(),
+        ) {
+            places.insert(
+                crate::logic::live::the_key_of_the_media(item, episode.as_deref()),
+                vec![
+                    collect_progress_percentage_book(row).await,
+                    collect_is_finished_book(row).await,
+                ],
+            );
+        }
+    }
+
+    places
+}
+
 async fn the_places_of_the_episodes(
     api: &crate::api::client::ApiClient,
     podcast_id: &str,
