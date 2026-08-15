@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.101.** The item T-272 belongs to this session. The
+**The newest release is v0.8.102.** The item T-273 belongs to this session. The
+item T-272 belongs to the session before it. The
 item T-271 belongs to the session before it. The
 item T-270 belongs to the session before it. The
 item T-269 belongs to the session before it. The
@@ -117,6 +118,60 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and second turn of 2026-08-16: a program that has no terminal says why
+
+**One release: v0.8.102**, and one item: T-273. **The road of it is the candidate
+"The child of T-62 that reads a PDF, and every other process of this program that
+has no terminal" of T-272.** T-271 and T-272 hold a terminal that goes away; this
+turn holds a terminal that never came.
+
+`src/main.rs` made its two terminals with `ratatui::init()`, and that function of
+ratatui 0.30.2 is `try_init().expect("failed to initialize terminal")`.
+`crossterm` reads the keys of the user from the standard input when that input is
+a terminal, and it opens `/dev/tty` when it is not (`tty_fd` of
+`crossterm-0.29.0/src/terminal/sys/file_descriptor.rs` line 124). A process with
+no controlling terminal has no `/dev/tty`, therefore that open gives `No such
+device or address` (os error 6). That is the condition of a unit of systemd, of a
+task of cron, and of a program of `setsid`.
+
+The real program v0.8.101 of
+`setsid env … TOUTUI_AUDIO_DEVICE=null ./target/debug/toutui < /dev/null`
+panicked at `…/ratatui-0.30.2/src/init.rs:366:16`, and the hook of the panic of
+T-197 then said `Toutui stopped: a part of the program had an internal fault.`
+**The machine gave the program no terminal, and that is no fault of Toutui**
+(T-91), and those words named a line of the source of a crate (T-172). The log
+held no word of the terminal.
+
+The correction is the module `src/utils/the_terminal_of_the_program.rs`:
+`the_terminal_of_the_program()` takes `ratatui::try_init()`, and for a fault it
+writes a line of the log, it calls `ratatui::restore()`, it writes the words on
+the standard error, and it stops the program with the status 1. `src/main.rs`
+takes it at its two call sites, the terminal of the login screen and the terminal
+of the application of the user. The corrected program of the same condition said
+
+```text
+Toutui stops: it found no terminal.
+No such device or address (os error 6)
+Toutui draws its screen in a terminal, and it reads the keys of the user from that terminal.
+Start Toutui in a terminal. A unit of systemd, a task of cron, and a program of the background give no terminal.
+```
+
+The controls inside tmux, on a screen of 160 columns and 45 rows: the corrected
+program in a real terminal gave the login screen at 0.0 percent of one processor,
+and a real login of `toutuitest` against the sandbox gave the Home view of the
+library `Podcasts` with 18 items — that second control reaches the second call
+site, because that terminal stands after the login.
+
+**A call of a crate that panics is a fault of the words of the user** (T-273,
+the trap 240):
+`ratatui::init()` holds an `expect`, and the hook of the panic of T-197 then
+names an internal fault of Toutui for a fault of the machine. **A test of this
+fork can start the real binary** (T-273, the trap 241): no test of the 156
+binaries did that
+before this turn, and `CARGO_BIN_EXE_toutui` with `setsid --wait` gives a process
+with no controlling terminal. That test reads the standard output and the
+standard error together, because the hook of the panic writes to the two of them.
 
 ## The session of the hundredth turn of 2026-08-16: a program whose terminal went away stops
 
@@ -13922,44 +13977,110 @@ is not valid. Log in again.`
   T-269): the block has a limit of size, therefore this turn names the new
   candidates alone and it does not repeat that list.
 
+### The session of the ninety-ninth turn of 2026-08-16 (T-270)
+
+**The
+session of the ninety-ninth turn took the candidate "`update_login_err` of
+`the_program_needs_a_new_token` takes `let _ =`" of "What this item leaves
+open" of the newest item, which T-269 left open. A sweep of that name found
+ten call sites of that shape: every message of the login screen made a road
+through the disk** (T-270).
+
+Each fault of that screen wrote the column `login_err` of the table `others`
+with `let _ = update_login_err(...)`, and the loop of the screen read that
+column again with `get_others()` at each frame
+(`src/logic/auth/auth_input.rs`). The sentences of that road are the wrong
+password, the address with no `http://`, the field with no character, the
+login that stopped, the token of T-123, and the account that stands in no row
+of the disk (T-159).
+
+The measurement, of the real program v0.8.98 inside tmux, on a screen of 160
+columns and 45 rows, against the sandbox, with a `XDG_CONFIG_HOME` that holds
+no account (the trap 135). The condition is a trigger of SQLite of one column
+(T-213), and it stands **after** the first frame, because the migration of
+`Database::new` writes before it (the trap 171):
+
+```bash
+sqlite3 "$CFG/toutui/db.sqlite3" "CREATE TRIGGER the_disk_takes_no_message \
+    BEFORE UPDATE OF login_err ON others \
+    BEGIN SELECT RAISE(ABORT, 'the disk takes no message of the login screen'); END;"
+```
+
+The keys gave `http://localhost:13399`, `toutuitest`, and
+`the-wrong-password`. The whole capture of the pane held the three lines of
+the field of the address and **nothing else**. The control of the same build
+and of the same keys, with no trigger at all, held one line more: `The server
+refused the username or the password.` The log of the run of the trigger held
+`[auth_process] Login failed: …` and no word of the disk at all.
+
+The correction is a box of the process, in the shape of
+`the_address_that_answered` of T-92, and two functions on it:
+`say_on_the_login_screen(value)` writes the box and the disk and it says the
+fault of a write in the log, and `the_message_of_the_login_screen()` gives the
+box first and the disk after it. The disk keeps the column, because the
+message of T-123 belongs to the process after this one: that road holds an
+`exec`. The program of the same trigger then said the sentence of the server,
+and the log held three lines of the fault of the disk.
+- **The lock of T-199, the `chmod 444` of T-206, and the `ALTER TABLE` of
+  T-203 each hide a fault of a message** (T-270): the two first stop the read
+  of `get_others` too, therefore the screen holds no message on either road.
+  **A trigger of one column is the road of a write of one value that fails
+  alone** (T-213).
+- **A value that a program writes to the disk and that it reads back at each
+  frame is a value that the disk can take away** (T-270). Ask of such a road:
+  which process needs that value, and does the box of this process hold it
+  already?
+- **A message of the login screen that reaches no disk reaches no program
+  after this one** (T-270, and it stays open): the sentence of T-123 and the
+  sentence of an account that is gone (T-159) each stand on the road of an
+  `exec`. **This is a candidate and not a measurement.**
+- **Every candidate of the list of the turns below stays open** (T-229 to
+  T-270): the block has a limit of size, therefore this turn names the new
+  candidates alone and it does not repeat that list.
+
 ## The prompt for the next session
-**This session took the candidate "The login screen of a terminal that went
-away"**, which T-271 left open. T-271 gave the program a watch of its terminal,
-and that watch starts after the login: it needs the client of the server, the
-name of an account, and the name of a server, and the login screen stands before
-every one of them. The real program v0.8.100 inside tmux, with a
-`XDG_CONFIG_HOME` that holds no account and with
-`docs/harness/the_terminal_of_the_program_goes_away.py`, stood on the login
-screen at **71.7 percent** of one processor 34 seconds after `tmux kill-session`,
-and it never stopped: `strace -f -tt` counted **1607222** calls of
-`read(0, "", 1024) = 0` in 11.7 seconds, inside `crossterm::event::read` of the
-loop of `AppLogin::auth`. The correction is a second watch that takes no argument
-at all and that closes no session, and three lines of `src/main.rs`: the task
-starts before `app_login.run(terminal)` and `.abort()` stops it after that line.
-The corrected program stopped after **65 ms**. The item is **T-272**, and it
-holds the release v0.8.101.
+**This session took the candidate "The child of T-62 that reads a PDF, and every
+other process of this program that has no terminal"**, which T-272 left open.
+T-271 and T-272 hold a terminal that goes away; this session holds a terminal
+that never came. `src/main.rs` made its two terminals with `ratatui::init()`, and
+that function of ratatui 0.30.2 is
+`try_init().expect("failed to initialize terminal")`. A process with no
+controlling terminal has no `/dev/tty`, therefore the open of `crossterm` gives
+`No such device or address`: that is the condition of a unit of systemd, of a
+task of cron, and of a program of `setsid`. The real program v0.8.101 of
+`setsid env … ./target/debug/toutui < /dev/null` panicked at
+`…/ratatui-0.30.2/src/init.rs:366:16`, and the hook of the panic of T-197 then
+said `Toutui stopped: a part of the program had an internal fault.` **The machine
+gave the program no terminal, and that is no fault of Toutui** (T-91). The
+correction is `src/utils/the_terminal_of_the_program.rs` on
+`ratatui::try_init()`, and the two call sites of `src/main.rs`. The corrected
+program says `Toutui stops: it found no terminal.` with the reason of the machine
+and the road back, and it stops with the status 1. The item is **T-273**, and it
+holds the release v0.8.102.
 
 Two things are worth the room:
 
-1. **A correction of a loop of the screen holds one loop of the screen alone.**
-   T-271 corrected the loop of the application, and the login screen holds a loop
-   of its own, with a different call of crossterm. Ask of every correction of
-   this shape: which other loop of this program stands on the same road, and what
-   does that loop hold that this one does not?
+1. **A call of a crate that panics is a fault of the words of the user.**
+   `ratatui::init()` holds an `expect`, and the hook of the panic of T-197 then
+   names an internal fault of Toutui for a fault of the machine. Ask of every
+   call of a crate at the start of this program: does that call panic, and does
+   the crate hold a `try_` of it?
 
-2. **A watch of the same terminal must not stand two times.** The watch of T-271
-   closes the session of the server and it sends the place of the user, and a
-   second watch that closes none takes that place with it. The `.abort()` is
-   therefore a part of the correction and not a tidiness of it.
+2. **A test of this fork can start the real binary.** No test of the 156 binaries
+   did that before this turn. `CARGO_BIN_EXE_toutui` gives the path,
+   `setsid --wait` gives a process with no controlling terminal, and the test
+   reads the standard output and the standard error together, because the hook of
+   the panic writes to the two of them.
 
-The gates of v0.8.101, under `nice -n 19 ionice -c 3` with `-j 16`:
+The gates of v0.8.102, under `nice -n 19 ionice -c 3` with `-j 16`:
 `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
-`cargo nextest run` gives 1289 of 1289 in 3.0 seconds with 26 skipped, and
-`cargo test -j 16 --no-fail-fast` passed three times over its 154 binaries.
+`cargo nextest run` gives 1292 of 1292 in 3.2 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives 1318 of 1318 with the sandbox up, and
+`cargo test -j 16 --no-fail-fast` passed over its 156 binaries.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.101**; `Cargo.toml` is at 0.8.101. The
+> AlbanDAVID/Toutui. Newest release **v0.8.102**; `Cargo.toml` is at 0.8.102. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -14533,7 +14654,7 @@ The gates of v0.8.101, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1283 tests in 4.4 seconds**, and `cargo nextest run --run-ignored
+> Baseline: **1292 tests in 3.2 seconds**, and `cargo nextest run --run-ignored
 > all` gives **1309 of 1309** with the sandbox up, in about 18 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
@@ -14642,7 +14763,69 @@ The gates of v0.8.101, under `nice -n 19 ionice -c 3` with `-j 16`:
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in one hundred sessions of one hundred and one.
+>    this shape found a fault in one hundred and one sessions of one hundred and
+>    two.
+>    **The
+>    session of the hundred and second turn took the candidate "The child of
+>    T-62 that reads a PDF, and every other process of this program that has no
+>    terminal" of "What this item leaves open" of the newest item, which T-272
+>    left open. T-271 and T-272 hold a terminal that goes away; this turn holds
+>    a terminal that never came** (T-273).
+>
+>    `src/main.rs` made its two terminals with `ratatui::init()`, and that
+>    function of ratatui 0.30.2 is
+>    `try_init().expect("failed to initialize terminal")`. `crossterm` reads the
+>    keys of the user from the standard input when that input is a terminal, and
+>    it opens `/dev/tty` when it is not (`tty_fd` of
+>    `crossterm-0.29.0/src/terminal/sys/file_descriptor.rs` line 124). **A
+>    process with no controlling terminal has no `/dev/tty`**, therefore that
+>    open gives `No such device or address` (os error 6): that is the condition
+>    of a unit of systemd, of a task of cron, and of a program of `setsid`.
+>
+>    The measurement of the real program v0.8.101, with a `XDG_CONFIG_HOME` that
+>    holds no account (the trap 135) and with no controlling terminal at all:
+>
+>    ```bash
+>    setsid env XDG_CONFIG_HOME=$CFG XDG_DATA_HOME=$DATA TOUTUI_AUDIO_DEVICE=null \
+>        ./target/debug/toutui < /dev/null
+>    ```
+>
+>    The whole output of that program held a panic of
+>    `…/ratatui-0.30.2/src/init.rs:366:16` and the words of the hook of T-197,
+>    `Toutui stopped: a part of the program had an internal fault.` **The machine
+>    gave the program no terminal, and that is no fault of Toutui** (T-91), and
+>    the words named a line of the source of a crate (T-172). The log held no
+>    word of the terminal.
+>
+>    The correction is `src/utils/the_terminal_of_the_program.rs`, with
+>    `the_terminal_of_the_program()` on `ratatui::try_init()`, and the two call
+>    sites of `src/main.rs`. The corrected program of the same condition gave the
+>    status 1 and `Toutui stops: it found no terminal.` with the reason of the
+>    machine and the road back, and the log held one line of `[the terminal]`.
+>    The controls inside tmux: the login screen at 0.0 percent of one processor,
+>    and a real login of `toutuitest` that gave the Home view of the library
+>    `Podcasts` — that second control reaches the second call site.
+>    - **A crate that panics is a fault of the words of the user** (T-273):
+>      `ratatui::init()` holds an `expect`, and the hook of the panic of T-197
+>      then says that a part of the program had an internal fault. Ask of every
+>      call of a crate at the start of a program: does that call panic, and does
+>      the crate hold a `try_` of it?
+>    - **A test of this fork can start the real binary** (T-273): no test of the
+>      156 binaries did that before this turn. `CARGO_BIN_EXE_toutui` gives the
+>      path, `setsid --wait` gives a process with no controlling terminal, and
+>      the test reads the standard output and the standard error together,
+>      because the hook of the panic writes to the two of them.
+>    - **The child of T-62 that reads a PDF** (T-273, and it stays open): that
+>      child opens no terminal at all, therefore this turn did not reach it.
+>      **This is a candidate and not a measurement.**
+>    - **`let _ = self.auth()` of `src/ui/login_tui.rs` line 17 drops every fault
+>      of the login screen** (T-272 and T-273, and it stays open): the five `?`
+>      of `auth()` each take that road, and a terminal that gives a real fault of
+>      a read holds a loop of no wait at all.
+>    - **Every candidate of the list of the turns below stays open** (T-229 to
+>      T-272): the block has a limit of size, therefore this turn names the new
+>      candidates alone and it does not repeat that list.
+>
 >    **The
 >    session of the hundred and first turn took the candidate "The login screen
 >    of a terminal that went away" of "What this item leaves open" of the newest
@@ -14769,64 +14952,6 @@ The gates of v0.8.101, under `nice -n 19 ionice -c 3` with `-j 16`:
 >      T-271): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
 >
->    **The
->    session of the ninety-ninth turn took the candidate "`update_login_err` of
->    `the_program_needs_a_new_token` takes `let _ =`" of "What this item leaves
->    open" of the newest item, which T-269 left open. A sweep of that name found
->    ten call sites of that shape: every message of the login screen made a road
->    through the disk** (T-270).
->
->    Each fault of that screen wrote the column `login_err` of the table `others`
->    with `let _ = update_login_err(...)`, and the loop of the screen read that
->    column again with `get_others()` at each frame
->    (`src/logic/auth/auth_input.rs`). The sentences of that road are the wrong
->    password, the address with no `http://`, the field with no character, the
->    login that stopped, the token of T-123, and the account that stands in no row
->    of the disk (T-159).
->
->    The measurement, of the real program v0.8.98 inside tmux, on a screen of 160
->    columns and 45 rows, against the sandbox, with a `XDG_CONFIG_HOME` that holds
->    no account (the trap 135). The condition is a trigger of SQLite of one column
->    (T-213), and it stands **after** the first frame, because the migration of
->    `Database::new` writes before it (the trap 171):
->
->    ```bash
->    sqlite3 "$CFG/toutui/db.sqlite3" "CREATE TRIGGER the_disk_takes_no_message \
->        BEFORE UPDATE OF login_err ON others \
->        BEGIN SELECT RAISE(ABORT, 'the disk takes no message of the login screen'); END;"
->    ```
->
->    The keys gave `http://localhost:13399`, `toutuitest`, and
->    `the-wrong-password`. The whole capture of the pane held the three lines of
->    the field of the address and **nothing else**. The control of the same build
->    and of the same keys, with no trigger at all, held one line more: `The server
->    refused the username or the password.` The log of the run of the trigger held
->    `[auth_process] Login failed: …` and no word of the disk at all.
->
->    The correction is a box of the process, in the shape of
->    `the_address_that_answered` of T-92, and two functions on it:
->    `say_on_the_login_screen(value)` writes the box and the disk and it says the
->    fault of a write in the log, and `the_message_of_the_login_screen()` gives the
->    box first and the disk after it. The disk keeps the column, because the
->    message of T-123 belongs to the process after this one: that road holds an
->    `exec`. The program of the same trigger then said the sentence of the server,
->    and the log held three lines of the fault of the disk.
->    - **The lock of T-199, the `chmod 444` of T-206, and the `ALTER TABLE` of
->      T-203 each hide a fault of a message** (T-270): the two first stop the read
->      of `get_others` too, therefore the screen holds no message on either road.
->      **A trigger of one column is the road of a write of one value that fails
->      alone** (T-213).
->    - **A value that a program writes to the disk and that it reads back at each
->      frame is a value that the disk can take away** (T-270). Ask of such a road:
->      which process needs that value, and does the box of this process hold it
->      already?
->    - **A message of the login screen that reaches no disk reaches no program
->      after this one** (T-270, and it stays open): the sentence of T-123 and the
->      sentence of an account that is gone (T-159) each stand on the road of an
->      `exec`. **This is a candidate and not a measurement.**
->    - **Every candidate of the list of the turns below stays open** (T-229 to
->      T-270): the block has a limit of size, therefore this turn names the new
->      candidates alone and it does not repeat that list.
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
 >    the ninety-seventh and every turn before it, the item of each, and the
@@ -15299,7 +15424,12 @@ The gates of v0.8.101, under `nice -n 19 ionice -c 3` with `-j 16`:
 > comes back for a terminal that gives the end of its input, therefore a task of
 > one second reads the `ioctl` of that terminal, and a terminal that went away
 > takes the road of the key `Q` — the session of the server closes and the place
-> of the user goes to the server** (T-271).
+> of the user goes to the server** (T-271), and **the login screen of a terminal
+> that went away stops: the watch of that screen takes no argument at all and it
+> closes no session, because the login screen holds no account** (T-272), and **a
+> program that has no terminal says why: the words name the terminal, the reason
+> of the machine, and the road back, and the program stops with the status 1**
+> (T-273).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

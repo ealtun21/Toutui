@@ -22074,3 +22074,134 @@ A build with the call of the watch replaced by `tokio::spawn(async {})`:
 - **The child of T-62 that reads a PDF, and every other process of this program
   that has no terminal** (a candidate, and not a measurement): this item did not
   measure a terminal that goes away for those.
+
+### T-273: a program that has no terminal says why
+
+**The state**: corrected on 2026-08-16, in v0.8.102. The measurement is of the
+real program, and the control is inside tmux against the sandbox.
+
+#### The choice of this item
+
+T-272 left open two roads: "The child of T-62 that reads a PDF, and every
+other process of this program that has no terminal", and "a terminal that
+gives a real fault, and not the end of its input". T-271 and T-272 hold a
+terminal that goes away. This item holds a terminal that never came.
+
+#### The fault
+
+`src/main.rs` made its two terminals with `ratatui::init()`. `ratatui::init()`
+of ratatui 0.30.2 is `try_init().expect("failed to initialize terminal")`.
+`crossterm` reads the keys of the user from the standard input when that
+input is a terminal, and it opens `/dev/tty` when it is not (`tty_fd` of
+`crossterm-0.29.0/src/terminal/sys/file_descriptor.rs` line 124). A process
+with no controlling terminal has no `/dev/tty`, therefore that open gives
+`No such device or address` (os error 6). The program then panicked, and the
+hook of the panic of T-197 said `Toutui stopped: a part of the program had an
+internal fault.` The machine gave the program no terminal: that is no fault
+of Toutui, and a view never says a reason that the program does not have
+(T-91). The words also named `…/ratatui-0.30.2/src/init.rs:366:16`, and a user
+must read no line of the source (T-172). The condition is the condition of a
+unit of systemd, of a task of cron, and of a program of `setsid`.
+
+#### The measurement
+
+The real program v0.8.101, with a `XDG_CONFIG_HOME` that holds no account
+(the trap 135), and with no controlling terminal:
+
+```
+setsid env XDG_CONFIG_HOME=$CFG XDG_DATA_HOME=$DATA TOUTUI_AUDIO_DEVICE=null \
+    ./target/debug/toutui < /dev/null
+```
+
+The whole output of that program:
+
+```
+thread 'main' (2322268) panicked at …/ratatui-0.30.2/src/init.rs:366:16:
+failed to initialize terminal: Os { code: 6, kind: Uncategorized, message: "No such device or address" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+Toutui stopped: a part of the program had an internal fault. The lines above name that fault, and the file of the log holds them too. Start Toutui again to listen again.
+```
+
+The log held the two lines of the start and one line of `[panic]`, and no
+word of the terminal.
+
+#### The correction
+
+A new module `src/utils/the_terminal_of_the_program.rs` with three functions:
+`the_words_of_a_program_with_no_terminal(reason)`,
+`the_line_of_a_program_with_no_terminal(reason)`, and
+`the_terminal_of_the_program()`. The last one takes `ratatui::try_init()`, and
+for a fault it writes the line of the log, it calls `ratatui::restore()`
+(because `try_init` enters the alternate screen before it makes the
+terminal), it writes the words on the standard error, and it stops the
+program with the status 1. `src/main.rs` takes it at its two call sites: the
+terminal of the login screen, and the terminal of the application of the
+user.
+
+The corrected program of the same condition gave the status 1 and these
+words:
+
+```
+Toutui stops: it found no terminal.
+No such device or address (os error 6)
+Toutui draws its screen in a terminal, and it reads the keys of the user from that terminal.
+Start Toutui in a terminal. A unit of systemd, a task of cron, and a program of the background give no terminal.
+```
+
+and the log held
+
+```
+[ERROR] - [the terminal] this program has no terminal, therefore it draws no screen and it reads no key. Toutui stops. The machine said: No such device or address (os error 6)
+```
+
+The controls, inside tmux on a screen of 160 columns and 45 rows: the
+corrected program in a real terminal gave the login screen at 0.0 percent of
+one processor, and a real login of `toutuitest` against the sandbox gave the
+Home view of the library `Podcasts` with 18 items. The second control
+reaches the second call site, because that terminal stands after the login.
+
+#### The test
+
+`tests/a_program_with_no_terminal_says_why.rs`, three functions. The first
+starts the real binary (`CARGO_BIN_EXE_toutui`) with `setsid --wait` and a
+directory of nothing, and it reads the standard output and the standard
+error together: the words of the terminal stand there, the words `panicked`
+and `internal fault` do not, and the status is 1. A machine with no `setsid`
+gives that test nothing, and it says so. The second reads `src/main.rs`: no
+call of `ratatui::init`, and two calls of the new function. The third reads
+the words and the line of the log of the error 6 of the machine, and it holds
+the rule of T-172 (the words name no file of a source). The test needs no
+network and no sandbox.
+
+The build of the fault, with the call site of the login screen back at
+`ratatui::init()`: the two first tests fail, and the first says `the program
+said no word of the terminal`.
+
+The gates: `cargo clippy --all-targets -- -D warnings` and
+`cargo fmt --check` pass, `cargo nextest run` gives 1292 of 1292, and
+`cargo test -j 16 --no-fail-fast` passes too.
+
+#### What this item leaves open
+
+- **The child of T-62 that reads a PDF has no terminal of its own** (a
+  candidate, and not a measurement; open since T-272): that child opens no
+  terminal at all, therefore this item did not reach it.
+- **`let _ = self.auth()` of `src/ui/login_tui.rs` line 17 drops every fault
+  of the login screen** (a candidate, and not a measurement; open since
+  T-272): the five `?` of `auth()` each take that road, and a terminal that
+  gives a real fault of a read holds a loop of no wait at all.
+- **`let _app_result = app_login.run(terminal)` of `src/main.rs` drops the
+  fault of the loop of the login screen too** (a candidate, and not a
+  measurement; open since T-272).
+- **The column `elapsed_time` of the table `listening_session`** (a
+  candidate, and not a measurement; open since T-271): `update_elapsed_time`
+  writes it with `let _ =` and no road of the program reads that value.
+- **The `?` of `ApiClient::new(...)` of `src/main.rs` is a bare `?` still** (a
+  candidate, and not a measurement; open since T-269).
+- **The keys of the terminal and of the render of `src/main.rs`
+  (`terminal.draw(...)?`, `crossterm::event::poll(...)?`,
+  `crossterm::event::read()?`, `terminal.clear()?`) each hold a bare `?`** (a
+  candidate, and not a measurement; open since T-269).
+- **A fault of the removal of the account that comes on the road of the key
+  `R` is not measured** (a candidate, and not a measurement; open since
+  T-269).

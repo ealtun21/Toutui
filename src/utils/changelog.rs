@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.102",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Toutui says why it does not start when it finds no \
+             terminal.** Toutui draws its screen in a terminal, and it reads \
+             your keys from that terminal. A unit of systemd, a task of cron, \
+             and a program of the background give no terminal: Toutui stopped \
+             there with the words of an internal fault, and those words named \
+             a line of the source of a library. Toutui says now that it found \
+             no terminal, it gives the reason of your machine, and it tells \
+             you to start it in a terminal.",
+        ],
+    },
+    Entry {
         version: "0.8.101",
         date: "16/08/2026",
         body: &[

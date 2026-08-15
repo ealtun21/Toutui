@@ -180,7 +180,11 @@ async fn main() -> Result<()> {
                     Ok(app_login) => app_login,
                     Err(report) => the_program_stops_with_words(report, "", ""),
                 };
-                let terminal = ratatui::init();
+                // T-273. `ratatui::init()` panics for a machine that gives no
+                // terminal, and the hook of the panic of T-197 then says that a
+                // part of the program had an internal fault: a reason that the
+                // program does not have (T-91).
+                let terminal = utils::the_terminal_of_the_program::the_terminal_of_the_program();
                 // T-272. The loop of the login screen stands inside
                 // `crossterm::event::read`, and that call reads no byte and it
                 // counts no event for a terminal that gives the end of its
@@ -400,7 +404,10 @@ async fn main() -> Result<()> {
             // for 15 seconds, the whole timeout of one request. A slow server with
             // many books gives a black screen for much longer, and the user cannot
             // tell a slow server from a program that stopped. See T-40.
-            let mut terminal = ratatui::init();
+            // The words of a machine that gives no terminal stand here too. See
+            // T-273.
+            let mut terminal =
+                toutui::utils::the_terminal_of_the_program::the_terminal_of_the_program();
 
             let started = std::time::Instant::now();
             let server_name = _database
