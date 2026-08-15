@@ -9,6 +9,7 @@ pub mod library_pages;
 pub mod library_view;
 pub mod list_moves;
 pub mod live;
+pub mod media_name;
 pub mod message;
 pub mod new_podcast;
 pub mod offline;

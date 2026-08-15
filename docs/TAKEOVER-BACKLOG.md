@@ -15050,3 +15050,135 @@ default of a read.
   those two keys on a line of the Home view of a library of podcasts was made.
   **Ask of every list of a view: does one value of it name one line?**
 - **A row of 80 columns holds little** (T-80 and T-225, and it stays open).
+
+### T-227: the view of the chapters names the episode of a podcast
+
+**This item closes the first road that T-226 left open.** T-226 wrote that "the
+view of the chapters names the podcast alone", and that the sentence of T-162
+says `The media "Arthur Gordon Pym" does not play now.` **while the row of the
+player of that same second says that `Arthur Gordon Pym — Chapter 02` plays**.
+The measurement of this item found that the fault holds **three** sentences of
+that one view, and that the sandbox reaches two of them.
+
+#### The measurement
+
+The real program v0.8.55 inside tmux, against the sandbox (podman on :13399), of
+the podcast `Arthur Gordon Pym` of the library `Podcasts`. The two episodes
+`Chapter 00` (5:05) and `Chapter 01` (21:59) each took a place of 60 seconds
+with `PATCH /api/me/progress/<the podcast>/<the episode>`, therefore the shelf
+Continue Listening held the two of them.
+
+- The user pressed `l` on `Chapter 01` and then the key `C`. The header of the
+  view said `"Arthur Gordon Pym" holds no chapter. Press h to go back.` while
+  the row of the player of that same frame said
+  `Arthur Gordon Pym — Chapter 01 by LibriVox | No chapter` with
+  `▶ 5:34 / 21:59`.
+- The user put `Chapter 00` in the queue with the key `n` before that playback.
+  The media came to its end — the log says `[play] the media came to its end.
+  The queue starts "Chapter 00", and 0 media wait.` — and the sentence of T-162
+  came: `The media "Arthur Gordon Pym" does not play now. No line is selected:
+  the keys j and k select one.`
+- **Two seconds after that sentence** the header said
+  `"Arthur Gordon Pym" holds no chapter. Press h to go back.` again, and the row
+  of the player said `Arthur Gordon Pym — Chapter 00` with `▶ 2:59 / 5:05`.
+  **The program named the podcast three times, for two different episodes, and
+  the user could not tell which episode the view holds.**
+
+**The control of the same run** (the trap 206): the book `A Book Of Many Hours`
+of the library `Books` with its three chapters of the section 6i of
+`docs/TEST-SERVER.md` gave
+`The chapters of "A Book Of Many Hours" [3 items]` and the row
+`A Book Of Many Hours by Many Hours Author | The hours of the start`. **A book
+holds no name of an episode, and the header of a book is correct.**
+
+The same measurement of the corrected program (v0.8.56) gave
+`"Arthur Gordon Pym — Chapter 00" holds no chapter. Press h to go back.` above
+the row `Arthur Gordon Pym — Chapter 00`, and
+`The media "Arthur Gordon Pym — Chapter 01" does not play now.` for the episode
+that went away. The book of the control kept its header.
+
+**The third sentence of the view stands outside the sandbox.** The header
+`The chapters of "<the name>" [N items]` needs a podcast whose episodes hold
+chapters, and `POST /api/items/:id/play/:episode` of every episode of the
+sandbox answers `chapters: []` (T-226). The test of this item holds that
+sentence, and no measurement of the real program stands behind it.
+
+#### The fault of the source
+
+The three sentences read `state.title` of the state of the player, and **that
+field is the name of the podcast**: `PlaybackRequest.title` takes
+`info_item[4]` of the answer of the session, and every episode of one podcast
+holds it (T-223 and T-225).
+
+- `src/ui/tui.rs`, `render_chapters`: the two headers of a media each read
+  `state.title`.
+- `src/app.rs`, `the_view_of_the_chapters_holds_its_media`: the box of the media
+  of the view held `(playback_id, state.title.clone())`, therefore the sentence
+  of T-162 of `src/logic/chapters.rs` read the name of the podcast.
+
+**The row of the player of that same frame held the name of the episode
+already** (T-225): `state.episode_title` stands beside `state.title`, and
+`the_title_of_the_row` of `src/player/integrated/player_info.rs` was the one
+reader of it.
+
+#### The correction
+
+- `src/logic/media_name.rs`: the new module of the pure function
+  `the_name_of_the_media(title, episode_title)`. It is the body of
+  `the_title_of_the_row` of T-225, and that function went away: **the row of the
+  player and the view of the chapters read one function now.** A media with no
+  name of an episode keeps its own name alone (T-91).
+- `src/logic/chapters.rs`: the new pure function `the_header_of_the_view(title,
+  episode_title, count, the_playback_stopped)`. The three sentences of the
+  header of `src/ui/tui.rs` were the body of it, and a pure function of
+  `src/logic/` takes a test. `the_text_of_the_media_that_went_away` takes the
+  name of the episode too.
+- `src/app.rs`: the box of the media of the view holds
+  `(playback_id, title, episode_title)`.
+- `tests/the_view_of_the_chapters_names_the_episode.rs` holds the rule, and the
+  parts of it stay in one function (T-144 and T-157). **It needs no server and
+  no screen**, because the three functions are pure. **Three builds of the fault
+  each fail it**: a name of a media that drops the episode, a header of the view
+  that reads the title alone, and the sentence of the media that went away that
+  reads the title alone.
+- `tests/the_row_of_the_player_names_the_episode.rs` of T-225 reads the new name
+  of the function.
+
+**The decision, and the reason for it: a playback that stopped names no media at
+all.** The header of a media that plays no more says `No media plays now. A
+media that plays gives its chapters.`, and that sentence held no name before
+this item and it holds none now: the program then reads the state of a player of
+no media, and a name of that state is a name of nothing (T-59 and T-91).
+
+#### What this item leaves open
+
+- **The header `The chapters of "<the name>" [N items]` of an episode reached no
+  measurement.** The episodes of the sandbox give 0 chapters, therefore the
+  sandbox holds one road of the two of that header. A podcast whose episodes
+  hold chapters gives it, and the section 6i of `docs/TEST-SERVER.md` is the
+  shape of the work.
+- **The row of the player of an episode of a download names no episode** (T-225,
+  and it stays open): `PlaybackRequest.episode_title` of the offline playback of
+  `src/logic/playback/mod.rs` is `None`, therefore the header of the view of the
+  chapters of the offline mode holds the same road. **The row of a download of
+  an episode holds the name of that episode already**
+  (`the_plan_of_an_episode` of `src/logic/download/plan.rs`).
+- **A row of 80 columns holds little** (T-80, T-225, and T-226, and it stays
+  open). The name of the podcast, the name of the episode, and the words of the
+  header now stand in one row: `"Arthur Gordon Pym — Chapter 00" holds no
+  chapter. Press h to go back.` is 62 characters, and a podcast of a longer name
+  passes the width of a narrow terminal. **No paragraph of that row holds a
+  wrap.**
+- **The other parts of the screen that read `state.title` alone are not
+  measured.** The sweep of this item read the view of the chapters; the question
+  of every other reader of that field is the question of T-225: which two media
+  give one set of words?
+- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone** (T-226,
+  and it stays open): it gives the identity of the podcast for a line that is
+  one episode, and the keys `e` and `V` read it (T-222 and T-223).
+- **The mark of a line of an episode comes from a different list** (T-226, and
+  it stays open): no measurement asked which list gives the percent of a line of
+  a library of podcasts, and whether a live message reaches it.
+- **The key `X` of the view of the bookmarks of a podcast** removes a place of
+  another episode with the same words (T-223, T-224, T-225, and T-226 each left
+  it open, and this item did not close it).

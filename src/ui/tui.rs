@@ -1273,21 +1273,16 @@ impl App {
         let state = self.player.state();
         let lines = crate::logic::chapters::lines(&state.chapters, state.position);
 
-        // The list holds no line for three reasons, and the title must name the
-        // right one. A user who presses `C` with no media reads a different
-        // sentence from a user whose media holds no chapter. See T-59.
-        let title = if !lines.is_empty() {
-            format!(
-                "The chapters of \"{}\" [{}]",
-                state.title,
-                crate::ui::keys::items(lines.len())
-            )
-        } else if state.status == PlaybackStatus::Stopped {
-            "No media plays now. A media that plays gives its chapters. Press h to go back."
-                .to_string()
-        } else {
-            format!("\"{}\" holds no chapter. Press h to go back.", state.title)
-        };
+        // The header holds the three sentences of this view, and it is a pure
+        // function of `crate::logic::chapters`: **the two headers of a media
+        // name the episode of a podcast** (T-227), and a pure function takes a
+        // test.
+        let title = crate::logic::chapters::the_header_of_the_view(
+            &state.title,
+            state.episode_title.as_deref(),
+            lines.len(),
+            state.status == PlaybackStatus::Stopped,
+        );
 
         self.render_header(header_area, buf);
         App::render_footer(

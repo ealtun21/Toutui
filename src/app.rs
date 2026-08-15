@@ -224,7 +224,12 @@ pub struct App {
     /// the media of its front. The program holds the media of the view here,
     /// therefore the line goes to nobody when that media goes away, and the key
     /// `l` seeks in no media that the user did not choose. See T-162.
-    pub the_media_of_the_view_of_the_chapters: Option<(u64, String)>,
+    /// The identity of the playback, the name of the media, and the name of the
+    /// episode of that media. **The name of the episode stands beside the name
+    /// of the media** (T-227): every episode of one podcast holds the name of
+    /// that podcast (T-223), therefore the name alone said the same words for
+    /// the episode that went away and for the episode that the queue started.
+    pub the_media_of_the_view_of_the_chapters: Option<(u64, String, Option<String>)>,
     /// The list of the bookmarks of one media. See T-24.
     pub list_state_bookmarks: ListState,
     /// The list of the media that wait in the queue. See T-24.
@@ -3180,17 +3185,27 @@ impl App {
         let of_the_player = if state.status == crate::player::engine::PlaybackStatus::Stopped {
             None
         } else {
-            Some((state.playback_id, state.title.clone()))
+            // **The name of an episode stands beside the name of the media**
+            // (T-227). `state.title` is the name of the podcast, and every
+            // episode of that podcast holds it (T-223): the sentence said
+            // `The media "Arthur Gordon Pym" does not play now.` for the
+            // episode `Chapter 01`, and the queue then started `Chapter 00` of
+            // that same podcast with no key of the user.
+            Some((
+                state.playback_id,
+                state.title.clone(),
+                state.episode_title.clone(),
+            ))
         };
 
         let of_the_program = self
             .the_media_of_the_view_of_the_chapters
             .as_ref()
-            .map(|(playback, _)| *playback);
+            .map(|(playback, _, _)| *playback);
 
         match crate::logic::chapters::what_the_media_of_the_chapters_is(
             of_the_program,
-            of_the_player.as_ref().map(|(playback, _)| *playback),
+            of_the_player.as_ref().map(|(playback, _, _)| *playback),
         ) {
             // The media of the user plays, and the line stays with its chapter.
             crate::logic::chapters::TheMediaOfTheChapters::ItStillPlays => {}
@@ -3198,17 +3213,21 @@ impl App {
             // choose**, therefore the line goes to nobody and the program says
             // which media went away.
             crate::logic::chapters::TheMediaOfTheChapters::ItWentAway => {
-                let title = self
+                let (title, episode_title) = self
                     .the_media_of_the_view_of_the_chapters
                     .take()
-                    .map(|(_, title)| title)
+                    .map(|(_, title, episode_title)| (title, episode_title))
                     .unwrap_or_default();
 
                 self.list_state_chapters.select(None);
 
                 crate::logic::message::say_in(
                     AppView::Chapters,
-                    crate::logic::chapters::the_text_of_the_media_that_went_away(&title).as_str(),
+                    crate::logic::chapters::the_text_of_the_media_that_went_away(
+                        &title,
+                        episode_title.as_deref(),
+                    )
+                    .as_str(),
                 );
             }
             // The view opened, or the user chose a chapter of the media that

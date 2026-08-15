@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.55.** The item T-226 belongs to this session. The
+**The newest release is v0.8.56.** The item T-227 belongs to this session. The
+item T-226 belongs to the session before it. The
 item T-225 belongs to the session before it. The
 item T-224 belongs to the session before it. The
 item T-223 belongs to the session before it. The
@@ -63,12 +64,63 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.54**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.56**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1206 of 1206** in 2.5 seconds with 26 skipped, and
+**1208 of 1208** in 2.6 seconds with 26 skipped, and
 `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in three
 runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the fifty-sixth turn of 2026-08-15: the view of the chapters names the episode
+
+**One release: v0.8.56**, and one item: T-227 of the three sentences of the view
+of the chapters. **The road of it is the first paragraph of "What this item
+leaves open" of T-226**, which said that the view names the podcast alone and
+that the sentence of T-162 contradicts the row of the player of that same
+second.
+
+**The fault holds three sentences of one view, and the sandbox reaches two of
+them.** The measurement of the real program v0.8.55 inside tmux, of the podcast
+`Arthur Gordon Pym` of the library `Podcasts`: the user played `Chapter 01` and
+pressed the key `C`, and the header said `"Arthur Gordon Pym" holds no chapter.
+Press h to go back.` while the row of the player of that same frame said
+`Arthur Gordon Pym — Chapter 01 by LibriVox` with `▶ 5:34 / 21:59`. The queue
+then started `Chapter 00` of that same podcast with no key of the user, the
+sentence of T-162 said `The media "Arthur Gordon Pym" does not play now.`, and
+two seconds after it the header said `"Arthur Gordon Pym" holds no chapter.`
+again above the row `Arthur Gordon Pym — Chapter 00`. **The program named the
+podcast three times, for two different episodes.** The control of the same run,
+the book `A Book Of Many Hours` with its three chapters, gave
+`The chapters of "A Book Of Many Hours" [3 items]`: **a book holds no name of an
+episode, and the media type alone decides.**
+
+The three sentences read `state.title`, and that field is the name of the
+podcast (T-223 and T-225). The row of the player of that same frame held the
+name of the episode already, and `the_title_of_the_row` of
+`src/player/integrated/player_info.rs` was the one reader of `episode_title`.
+
+Three things are worth the room:
+
+1. **A pure function of one view is the road to the view beside it.** T-225
+   wrote `the_title_of_the_row` for the row of the player, and its name said
+   "the row": that name hid it from the view of the chapters for one session.
+   The function stands in `src/logic/media_name.rs` now as
+   `the_name_of_the_media`, and two parts of the screen read it. **Ask of every
+   pure function of a correction: does its name hold the view that made it?**
+2. **A view of a media holds more than one sentence of the name of that media.**
+   The header of a media of chapters, the header of a media of no chapter, and
+   the sentence of the media that went away each held the name, and the road of
+   T-226 named one of the three. **Ask of a fault of a name: how many sentences
+   of that view hold it?**
+3. **A sandbox can hold one road of two of one sentence.** The episodes of the
+   sandbox give 0 chapters, therefore the header `The chapters of "<the name>"`
+   of an episode reached no measurement at all: the test holds it, and the item
+   says that no measurement stands behind it. **A test that stands with no
+   measurement belongs in the words of the item.**
+
+**The gates**: `cargo clippy --all-targets -- -D warnings` and
+`cargo fmt --check` say nothing, and `cargo nextest run` gives **1208 of 1208**
+in 2.6 seconds with 26 skipped.
 
 ## The session of the fifty-fifth turn of 2026-08-15: an episode that left Continue Listening leaves the Home view
 
@@ -7443,39 +7495,38 @@ answers slowly while it writes. Two answers to measure:
   before the commit: the answer is 1**.
 
 ## The prompt for the next session
-**This session took the second paragraph of "What this item leaves open" of the
+**This session took the first paragraph of "What this item leaves open" of the
 newest item** (the rule of T-216 and of T-217, and the cheapest item of a
-session). T-225 wrote that the other views of a media that the queue changes are
-measured for a book alone, and it named three of them: the Home view of T-160,
-the view of the queue of T-161, and the view of the chapters of T-162. **The
-sweep of those three found the fault in the first one, and it found no queue
-behind it at all.** The item is **T-226**, and it holds one release, v0.8.55.
+session). T-226 wrote that the view of the chapters names the podcast alone, and
+that the sentence of T-162 contradicts the row of the player of that same
+second. **The measurement found that the fault holds three sentences of that one
+view, and that the sandbox reaches two of them.** The item is **T-227**, and it
+holds one release, v0.8.56.
 
 Three things are worth the room:
 
-1. **A filter that a neighbour holds with a reason can travel to a function that
-   has no such reason** (T-226). `progress_of_the_user` of `src/api/live.rs`
-   keeps the rows of the books alone, and its doc says why;
-   `the_media_away_from_continue_listening`, two functions below it, held the
-   same line and its doc said nothing. **Ask of every filter: does the doc of it
-   hold the reason, or does the doc of a neighbour hold it?**
-2. **A road that an item names as "measured for a book alone" is a road, and not
-   a fault** (T-226). Of the three views, the queue held no fault at all, the
-   chapters hold a fault of the **words**, and the Home view held the fault of
-   the work. **The value of such a paragraph is the sweep, and not the first
-   candidate.**
-3. **A correction of one half is worse than no correction at all** (T-226). The
-   filter of `src/api/live.rs` and the reader of `src/app.rs` had to move
-   together: a correction of the filter alone would have taken **every** episode
-   of the podcast off the shelf with one press of the key. **Ask of a correction
-   of a list: which reader compares a value of that list, and does that reader
-   name one line?**
+1. **A pure function of one view is the road to the view beside it.** T-225
+   wrote `the_title_of_the_row` for the row of the player, and its name said
+   "the row": that name hid it from the view of the chapters for one session.
+   The function stands in `src/logic/media_name.rs` now as
+   `the_name_of_the_media`, and two parts of the screen read it. **Ask of every
+   pure function of a correction: does its name hold the view that made it?**
+2. **A view of a media holds more than one sentence of the name of that media.**
+   The header of a media of chapters, the header of a media of no chapter, and
+   the sentence of the media that went away each held the name, and the road of
+   T-226 named one of the three. **Ask of a fault of a name: how many sentences
+   of that view hold it?**
+3. **A sandbox can hold one road of two of one sentence.** The episodes of the
+   sandbox give 0 chapters, therefore the header `The chapters of "<the name>"`
+   of an episode reached no measurement at all: the test holds it, and the item
+   says that no measurement stands behind it. **A test that stands with no
+   measurement belongs in the words of the item.**
 
 This prompt names the state of the program on 2026-08-16.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.55**; `Cargo.toml` is at 0.8.55. The
+> AlbanDAVID/Toutui. Newest release **v0.8.56**; `Cargo.toml` is at 0.8.56. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -7484,7 +7535,7 @@ This prompt names the state of the program on 2026-08-16.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-226 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-227 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -7992,8 +8043,8 @@ This prompt names the state of the program on 2026-08-16.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1207 tests in 2.5 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1233 of 1233** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1208 tests in 2.6 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1234 of 1234** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -8101,10 +8152,51 @@ This prompt names the state of the program on 2026-08-16.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in sixty-eight sessions of sixty-nine. **The
->    session of the fifty-fifth turn took the second paragraph of "What this item
->    leaves open" of the newest item: that paragraph named three views, and the
->    sweep of the three found the fault in the first one** (T-226).
+>    this shape found a fault in sixty-nine sessions of seventy. **The session of
+>    the fifty-sixth turn took the first paragraph of "What this item leaves
+>    open" of the newest item: that paragraph named one sentence of one view, and
+>    the measurement found that the fault holds three sentences of that view**
+>    (T-227).
+>
+>    The three sentences of the view of the chapters read `state.title`, and that
+>    field is the name of the **podcast** (T-223 and T-225). The user played
+>    `Chapter 01` of `Arthur Gordon Pym` and pressed the key `C`: the header said
+>    `"Arthur Gordon Pym" holds no chapter. Press h to go back.` while the row of
+>    the player of that same frame said `Arthur Gordon Pym — Chapter 01` with
+>    `▶ 5:34 / 21:59`. The queue then started `Chapter 00` of that same podcast
+>    with no key of the user, the sentence of T-162 said `The media "Arthur
+>    Gordon Pym" does not play now.`, and two seconds after it the header said
+>    the same words above the row `Arthur Gordon Pym — Chapter 00`.
+>    - **A pure function of one view is the road to the view beside it** (T-227).
+>      T-225 wrote `the_title_of_the_row` for the row of the player, and that
+>      name said "the row": it hid the function from the view of the chapters for
+>      one session. It stands in `src/logic/media_name.rs` now as
+>      `the_name_of_the_media`. **Ask of every pure function of a correction:
+>      does its name hold the view that made it?**
+>    - **A view of a media holds more than one sentence of the name of that
+>      media** (T-227). The road of T-226 named one of the three. **Ask of a
+>      fault of a name: how many sentences of that view hold it?**
+>    - **A sandbox can hold one road of two of one sentence** (T-227, and it
+>      stays open). The episodes of the sandbox give 0 chapters, therefore the
+>      header `The chapters of "<the name>" [N items]` of an **episode** reached
+>      no measurement: the test holds it, and no measurement stands behind it. A
+>      podcast whose episodes hold chapters gives that road, and the section 6i
+>      of `docs/TEST-SERVER.md` is the shape of the work.
+>    - **The row of the player of an episode of a download names no episode**
+>      (T-225 and T-227, and it stays open): `PlaybackRequest.episode_title` of
+>      the offline playback is `None`, therefore the header of the view of the
+>      chapters of the offline mode holds the same road.
+>    - **The other parts of the screen that read `state.title` alone are not
+>      measured** (T-227). The question of every other reader of that field is
+>      the question of T-225: which two media give one set of words?
+>    - **A row of 80 columns holds little** (T-80, T-225, T-226, and T-227, and
+>      it stays open): `"Arthur Gordon Pym — Chapter 00" holds no chapter. Press
+>      h to go back.` is 62 characters, and no paragraph of that row holds a
+>      wrap.
+>
+>    **The session of the fifty-fifth turn took the second paragraph of the same
+>    section: that paragraph named three views, and the sweep of the three found
+>    the fault in the first one** (T-226).
 >
 >    The rule of T-66 was **dead** for a library of podcasts. `Chapter 00` and
 >    `Chapter 01` of `Arthur Gordon Pym` stood together on the shelf Continue
@@ -9244,7 +9336,11 @@ This prompt names the state of the program on 2026-08-16.
 > left the shelf Continue Listening leaves the Home view: a row of an episode of
 > the live message names that episode, the line of the Home view of a library of
 > podcasts reads the identity of the podcast and of the episode together, and an
-> episode whose identity the server did not give keeps its line** (T-226).
+> episode whose identity the server did not give keeps its line** (T-226), and
+> **the view of the chapters names the episode of a podcast: the two headers of
+> that view hold the name of the podcast and the name of the episode, the
+> sentence of a media that plays no more names the episode that went away, and a
+> playback that stopped names no media at all** (T-227).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

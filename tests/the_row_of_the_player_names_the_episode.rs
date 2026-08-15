@@ -38,8 +38,9 @@ use serde_json::json;
 use toutui::api::library_items::play_lib_item_or_pod::{
     collect_info_item, the_name_of_the_episode,
 };
+use toutui::logic::media_name::the_name_of_the_media;
 use toutui::player::engine::{PlaybackState, PlaybackStatus};
-use toutui::player::integrated::player_info::{player_info, the_title_of_the_row};
+use toutui::player::integrated::player_info::player_info;
 
 /// The podcast of the sandbox, and one episode of it.
 const THE_NAME_OF_THE_PODCAST: &str = "Arthur Gordon Pym";
@@ -107,12 +108,12 @@ fn the_row_of_the_player_names_the_episode_of_a_podcast() {
 
     // The name of the media of the row.
     assert_eq!(
-        the_title_of_the_row(THE_NAME_OF_THE_PODCAST, Some(THE_NAME_OF_THE_EPISODE)),
+        the_name_of_the_media(THE_NAME_OF_THE_PODCAST, Some(THE_NAME_OF_THE_EPISODE)),
         "Arthur Gordon Pym — Chapter 02",
         "the row of an episode names the podcast and the episode"
     );
     assert_eq!(
-        the_title_of_the_row("A Long Test Book", None),
+        the_name_of_the_media("A Long Test Book", None),
         "A Long Test Book",
         "a media with no name of an episode keeps its own name alone"
     );

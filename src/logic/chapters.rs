@@ -105,11 +105,58 @@ pub fn what_the_media_of_the_chapters_is(
 /// its end from a media that a key of the player stopped (T-91). It names the
 /// two keys of the view that give a line again, and it promises no other key
 /// (T-118 and T-143). See T-162.
-pub fn the_text_of_the_media_that_went_away(title: &str) -> String {
+///
+/// **The sentence names the episode of a podcast** (T-227): the name of a
+/// playback of a podcast is the name of the podcast, and every episode of that
+/// podcast holds it (T-223). The sentence said `The media "Arthur Gordon Pym"
+/// does not play now.` for the episode `Chapter 01`, and the queue then started
+/// `Chapter 00` of that same podcast with no key of the user.
+pub fn the_text_of_the_media_that_went_away(title: &str, episode_title: Option<&str>) -> String {
     format!(
         "The media \"{}\" does not play now. \
          No line is selected: the keys j and k select one.",
-        title
+        crate::logic::media_name::the_name_of_the_media(title, episode_title)
+    )
+}
+
+/// The header of the view of the chapters.
+///
+/// The list holds no line for three reasons, and the header must name the right
+/// one. A user who presses `C` with no media reads a different sentence from a
+/// user whose media holds no chapter. See T-59.
+///
+/// **The two headers of a media name the episode of a podcast** (T-227): the
+/// header said `"Arthur Gordon Pym" holds no chapter.` for the episode
+/// `Chapter 01` and, after the queue started `Chapter 00` of that same podcast
+/// with no key of the user, the same words again, while the row of the player of
+/// that same frame said which episode plays (T-225). The two episodes of one
+/// podcast gave one header, and the user could not tell which episode the view
+/// holds.
+///
+/// A media that plays no more names no media at all, because the program then
+/// holds the name of no media of a chapter.
+pub fn the_header_of_the_view(
+    title: &str,
+    episode_title: Option<&str>,
+    count: usize,
+    the_playback_stopped: bool,
+) -> String {
+    if count > 0 {
+        return format!(
+            "The chapters of \"{}\" [{}]",
+            crate::logic::media_name::the_name_of_the_media(title, episode_title),
+            crate::ui::keys::items(count)
+        );
+    }
+
+    if the_playback_stopped {
+        return "No media plays now. A media that plays gives its chapters. Press h to go back."
+            .to_string();
+    }
+
+    format!(
+        "\"{}\" holds no chapter. Press h to go back.",
+        crate::logic::media_name::the_name_of_the_media(title, episode_title)
     )
 }
 
@@ -226,7 +273,7 @@ mod tests {
     /// of the view only. See T-118, T-143, and T-162.
     #[test]
     fn the_text_names_the_media_and_two_keys() {
-        let text = the_text_of_the_media_that_went_away("A Long Test Book");
+        let text = the_text_of_the_media_that_went_away("A Long Test Book", None);
 
         assert!(text.contains("A Long Test Book"), "{}", text);
         assert!(text.contains("keys j and k"), "{}", text);

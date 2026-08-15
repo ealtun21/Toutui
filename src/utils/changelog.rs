@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.56",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The view of the chapters said the name of the podcast and no \
+             name of the episode.** The header of that view and the sentence of \
+             a media that plays no more each named the podcast, therefore two \
+             episodes of one podcast gave one set of words while the row of the \
+             player of that same frame said which episode plays. The three \
+             sentences name the podcast and the episode now.",
+        ],
+    },
+    Entry {
         version: "0.8.55",
         date: "15/08/2026",
         body: &[
