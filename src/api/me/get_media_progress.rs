@@ -85,18 +85,6 @@ where
     }
 }
 
-/// Gets the listening progress of one book.
-///
-/// The server gives `404` if the user did not start the book. The caller then
-/// shows an empty progress.
-///
-/// See <https://api.audiobookshelf.org/#get-a-media-progress>.
-pub async fn get_book_progress(client: &ApiClient, book_id: &str) -> Result<Root, ApiError> {
-    client
-        .get_json(&format!("/api/me/progress/{}", book_id))
-        .await
-}
-
 /// The path of the position of one media of the account.
 ///
 /// An episode of a podcast holds its own position, and the path of that

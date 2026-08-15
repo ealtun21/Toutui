@@ -15182,3 +15182,146 @@ no media, and a name of that state is a name of nothing (T-59 and T-91).
 - **The key `X` of the view of the bookmarks of a podcast** removes a place of
   another episode with the same words (T-223, T-224, T-225, and T-226 each left
   it open, and this item did not close it).
+
+### T-228: the line of the Home view holds the place of its own episode
+
+**This item closes the road that T-226 left open and that T-227 carried.** T-226
+wrote that "the mark of a line of an episode comes from a different list", and
+that no measurement asked which list gives the percent of a line of a library of
+podcasts and whether a live message reaches it. **The answer is that no list
+gave it at all**, and the same identity gave the mark of the media that plays to
+every episode of one podcast.
+
+#### The measurement
+
+The real program v0.8.56 inside tmux, against the sandbox (podman on :13399), of
+the podcast `Arthur Gordon Pym` of the library `Podcasts`. The two episodes
+`Chapter 00` (5:05) and `Chapter 01` (21:59) took two different places with
+`PATCH /api/me/progress/<the podcast>/<the episode>` — 4:04 of 5:05 (80 percent)
+and 2:12 of 21:59 (10 percent) — therefore the shelf Continue Listening held the
+two of them.
+
+- The two lines of that shelf said `Chapter 01` and `Chapter 00` with **no
+  percent at all**, and the panel of the line said
+  `[Arthur Gordon Pym] - Author: LibriVox - Episode: 1 - Duration: 22m` and
+  nothing of the place of the user.
+- The user pressed the key `l` on `Chapter 01`. The row of the player said
+  `Arthur Gordon Pym — Chapter 01 by LibriVox` with `⏸ 2:37 / 21:59`, and **the
+  two lines each took the mark `▶`**: the program said that two episodes of one
+  podcast play together.
+
+**The control of the same run** (the trap 206): the Home view of the library
+`Books` of that same program gave `5%  A Book Of Many Hours`,
+`50% A Long Test Book`, `16% A Second Book Of Many Hours`, and
+`42% A Big Book Of A Scan`, and the panel said
+`Progress: 5%, 7h38m left, Not finished`. **A library of books held every value
+that a library of podcasts held of none.**
+
+The same measurement of the corrected program (v0.8.57) gave `10% Chapter 01`
+and `80% Chapter 00`, `Progress: 10%, Not finished` in the panel, and the mark
+`▶` on the line of `Chapter 01` alone while `Chapter 00` kept its `80%`. **The
+live message of the server reaches that line too**: a second client moved
+`Chapter 00` to 30 percent with `curl` while the program stood, and the line
+said `30% Chapter 00` 204 milliseconds later with no key of the user. The
+library of books of the control kept every value.
+
+#### The fault of the source
+
+- `src/app.rs`: the block that reads the place of every line of the Home view
+  **stood in the branch of the books alone**. A library of podcasts therefore
+  filled no row of `book_progress_cnt_list`, and every line of it said "N/A".
+- `src/logic/the_positions.rs`: `the_position_of_a_media` read the row of the
+  item that names no episode. A row of a podcast names an episode, therefore the
+  answer of `GET /api/me` gave no row for such a line, and the fallback of the
+  program asked `GET /api/me/progress/<the podcast>` — **and that path answers
+  with the place of one episode of it** (T-188), which is the place of a
+  different media for every other line of that podcast.
+- `src/app.rs`, `home_lines`: `plays_now` and the position of a live message
+  each read `_ids_cnt_list`, and that list holds the identity of the **podcast**
+  for every line of it (T-223 and T-226).
+- `src/api/live.rs`, `progress_of_the_user`: the filter kept the rows of the
+  books alone, therefore no message of the server reached a line of an episode.
+  Its doc said that "the mark of that line comes from a different list", and no
+  such list existed.
+
+#### The correction
+
+- `src/logic/the_positions.rs`: `the_place_of_a_media(rows, item_id,
+  episode_id)` takes the place of `the_position_of_a_media`. A caller with an
+  episode takes the row of that episode; a caller with none takes the row that
+  names none.
+- `src/app.rs`: the block of the places stands outside the branch of the books
+  now, under `if !is_offline`. Each line gives its episode of `ids_ep_cnt_list`,
+  and the fallback asks `get_the_place_of_a_media`, which holds the path of
+  T-182. `get_book_progress` went away: no caller can now ask the path of the
+  item for the place of an episode.
+- `src/logic/home_view.rs`: the new pure function `the_key_of_the_line(ids,
+  episode_ids, item)`. The key of a line, the key of the media that plays, the
+  key of a position of a live message, and the key of
+  `the_media_that_left_the_shelf` are one value now — the value of
+  `crate::logic::live::the_key_of_the_media`.
+- `src/app.rs`: the new `playing_media` gives that key, and `home_lines` reads
+  it. **The view `Library` keeps `playing_item`**: a line of that view is a
+  podcast, and an episode of that podcast that plays belongs to it.
+- `src/api/live.rs`: `progress_of_the_user` keeps the rows of the episodes, and
+  its key names the episode after the item.
+- `src/ui/tui.rs`: the panel of a line of a podcast says
+  `Progress: {}%, {}`. **It names no time that is left**, because the list of the
+  lengths of that view holds a text and not a number.
+- `tests/the_line_of_the_home_view_holds_the_place_of_its_episode.rs` holds the
+  rule, and the parts of it stay in one function (T-144 and T-157). **It needs no
+  server and no screen**, because the three functions are pure. **Three builds of
+  the fault each fail it**: a read of the place that drops the episode, a key of
+  a line that drops the episode, and a list of the positions of a live message
+  that drops the rows of the episodes.
+
+**The decision, and the reason for it: the panel of a line of a podcast names no
+time that is left.** `durations_pod_cnt_list` holds a text of the shape `22m`,
+and the row of the place of an episode is the one place that holds the length as
+a number. A paragraph that says a time that the program computed from a text
+would be a value that no answer gave (T-91), therefore that paragraph says the
+percent and the mark of the end alone.
+
+#### What this item leaves open
+
+- **The value `progress` of a row of a place goes up and it does not go down.**
+  A `PATCH` of `{"currentTime": 0, "duration": <the length>, "progress": 0}` of
+  an episode of the sandbox left the row at its old percent with a `currentTime`
+  of 0, and `{"isFinished": false}` before it did the same. The road to a row of
+  0 percent of an episode reached no measurement, therefore the two episodes of
+  `Arthur Gordon Pym` stand at a `currentTime` of 0 and at 30 and 12 percent
+  (the section 16 of `docs/TEST-SERVER.md`). **A measurement of a percent of an
+  episode must therefore write the percent that it needs, and it must not trust
+  the percent of before.**
+- **A `PATCH` of `{"currentTime": N}` alone writes a percent of 0**, because the
+  row of a place holds its own `duration` and the server divides by it: the body
+  of such a request needs `duration` beside `currentTime`. That is the shape of
+  T-180 for the other machine.
+- **The mark of a line of the view of the episodes of a podcast is not
+  measured.** This item read the Home view; the view that the key `l` of a line
+  of the Library view opens holds one line for one episode too, and no
+  measurement asked which place stands in each of those lines.
+- **The lines of the view of the search and of the view of the lists hold no
+  place at all**, and no measurement says whether that is a decision or a fault
+  of the same shape as this one.
+- **A row of a place whose `duration` the server did not give gives a percent of
+  0** (T-180 for the line, and it stays open): the line of the Home view then
+  says `0%` for a media that the user played, and no measurement reached it.
+- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone** (T-226 and
+  T-227, and it stays open): it gives the identity of the podcast for a line that
+  is one episode, and the keys `e` and `V` read it (T-222 and T-223). **The key
+  of a line holds the episode now** (`the_key_of_the_line`), therefore that
+  correction has the value that it needs.
+- **The header `The chapters of "<the name>" [N items]` of an episode reached no
+  measurement** (T-227, and it stays open): the episodes of the sandbox give 0
+  chapters, and the section 6i of `docs/TEST-SERVER.md` is the shape of the work.
+- **The row of the player of an episode of a download names no episode** (T-225
+  and T-227, and it stays open). **A read of the source of this session says that
+  the row of such a download holds the name of the episode in its title and the
+  name of the podcast in its author** (`plan_from_episode` of
+  `src/logic/download/plan.rs`), therefore the row of the player of the offline
+  mode says `Chapter 00 by Arthur Gordon Pym` and it names the podcast as an
+  author. **That is a read, and not a measurement** (the rule of T-183).
+- **The key `X` of the view of the bookmarks of a podcast** removes a place of
+  another episode with the same words (T-223, T-224, T-225, T-226, and T-227
+  each left it open, and this item did not close it).

@@ -307,9 +307,13 @@ pub fn the_message_holds_the_positions(body: &serde_json::Value) -> bool {
 /// The message carries the whole account of the user. This function takes the
 /// positions only, therefore the token of that message goes nowhere.
 ///
-/// A row of a podcast names an episode. The Home view holds one line for one
-/// episode, and the mark of that line comes from a different list. Therefore
-/// this function gives the rows of the books only.
+/// **A row of a podcast names an episode, and this function keeps it** (T-228).
+/// The Home view of a library of podcasts holds one line for one episode, and
+/// that line reads this list: a message that gave the rows of the books alone
+/// left the mark of every episode at the value of the request of the start for
+/// ever. The value is the key of `crate::logic::live::the_key_of_the_media`,
+/// because the identity of the item names every episode of one podcast (T-223).
+/// That is the value of `the_media_away_from_continue_listening` below.
 pub fn progress_of_the_user(body: &serde_json::Value) -> Vec<(String, Progress)> {
     let Some(rows) = body.get("mediaProgress").and_then(|value| value.as_array()) else {
         return Vec::new();
@@ -317,7 +321,7 @@ pub fn progress_of_the_user(body: &serde_json::Value) -> Vec<(String, Progress)>
 
     rows.iter()
         .filter_map(|row| serde_json::from_value::<ProgressRow>(row.clone()).ok())
-        .filter(|row| row.episode_id.is_none() && !row.library_item_id.is_empty())
+        .filter(|row| !row.library_item_id.is_empty())
         .map(|row| {
             let progress = Progress {
                 percent: format!("{}", (row.progress * 100.0).round() as i64),
@@ -328,7 +332,12 @@ pub fn progress_of_the_user(body: &serde_json::Value) -> Vec<(String, Progress)>
                 },
             };
 
-            (row.library_item_id, progress)
+            let key = crate::logic::live::the_key_of_the_media(
+                &row.library_item_id,
+                row.episode_id.as_deref(),
+            );
+
+            (key, progress)
         })
         .collect()
 }
@@ -830,9 +839,13 @@ mod tests {
 
         let rows = progress_of_the_user(&body);
 
-        // The row of the episode of a podcast does not come, because the mark
-        // of that line comes from a different list.
-        assert_eq!(rows.len(), 2);
+        // **The row of an episode of a podcast comes too** (T-228): a line of
+        // the Home view of a library of podcasts is one episode, and that line
+        // reads this list. Its key names the episode after the item, because the
+        // identity of the item names every episode of one podcast (T-223).
+        assert_eq!(rows.len(), 3);
+        assert_eq!(rows[2].0, "a podcast/an episode");
+        assert_eq!(rows[2].1.percent, "50");
 
         assert_eq!(rows[0].0, "9a671047");
         // 0.4315 gives 43 percent, and the form is the form of

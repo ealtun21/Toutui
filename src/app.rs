@@ -4,7 +4,7 @@ use crate::api::libraries::get_library_perso_view::get_the_shelves;
 use crate::api::libraries::get_library_perso_view_pod::get_the_shelves_pod;
 use crate::api::libraries::get_lists::*;
 use crate::api::library_items::get_pod_ep::*;
-use crate::api::me::get_media_progress::*;
+use crate::api::me::get_media_progress::get_the_place_of_a_media;
 use crate::api::utils::collect_get_all_books::*;
 use crate::api::utils::collect_get_all_libraries::*;
 use crate::api::utils::collect_get_media_progress::*;
@@ -1092,6 +1092,17 @@ impl App {
             duration_cnt_list = collect_duration_cnt_list(&shelves).await;
             desc_cnt_list = collect_desc_cnt_list(&shelves).await;
             _ids_cnt_list = collect_ids_cnt_list(&shelves).await;
+        }
+
+        // **The place of the user belongs to every line of the Home view**
+        // (T-228). This block stood in the branch of the books alone, therefore
+        // a line of a library of podcasts held no percent at all: the two
+        // episodes of `Arthur Gordon Pym` of the sandbox stood at 80 percent and
+        // at 10 percent of the server, and the two lines of the shelf Continue
+        // Listening said nothing of either place. A line of such a library is
+        // one episode, and `ids_ep_cnt_list` gives the second half of its key
+        // (T-223 and T-226).
+        if !is_offline {
             // The position of each book needs its own request. The old code
             // sent them one after the other, therefore the start of the
             // program took the time of one request for each book of the list.
@@ -1128,10 +1139,29 @@ impl App {
 
             the_account = account_of_the_token;
 
-            let mut the_media_that_need_a_request: Vec<(usize, String)> = Vec::new();
+            let mut the_media_that_need_a_request: Vec<(usize, String, Option<String>)> =
+                Vec::new();
+
+            // **A line of a library of podcasts is one episode**, and the
+            // identity of the item names every episode of one podcast (T-223).
+            // The row of the place stands at that episode, therefore the program
+            // reads the two values together. A library of books gives no such
+            // list, and the episode of every line is then `None`. See T-228.
+            let the_episode_of = |place: usize| -> Option<String> {
+                ids_ep_cnt_list
+                    .get(place)
+                    .filter(|one| !one.is_empty())
+                    .cloned()
+            };
 
             for (place, id) in _ids_cnt_list.iter().enumerate() {
-                match crate::logic::the_positions::the_position_of_a_media(&the_positions, id) {
+                let episode = the_episode_of(place);
+
+                match crate::logic::the_positions::the_place_of_a_media(
+                    &the_positions,
+                    id,
+                    episode.as_deref(),
+                ) {
                     Some(row) => {
                         answers[place] = Some((
                             vec![
@@ -1148,7 +1178,7 @@ impl App {
                     // the line says "N/A" either way. The program asks for such
                     // a book only when that answer did not come. See T-127.
                     None if the_answer_came => done += 1,
-                    None => the_media_that_need_a_request.push((place, id.clone())),
+                    None => the_media_that_need_a_request.push((place, id.clone(), episode)),
                 }
             }
 
@@ -1163,24 +1193,31 @@ impl App {
             for group in the_media_that_need_a_request.chunks(AT_THE_SAME_TIME) {
                 let mut tasks = tokio::task::JoinSet::new();
 
-                for (place, id) in group.iter() {
+                for (place, id, episode) in group.iter() {
                     let place = *place;
                     let api = std::sync::Arc::clone(&api);
                     let id = id.clone();
+                    let episode = episode.clone();
 
                     tasks.spawn(async move {
-                        let answer = match get_book_progress(&api, &id).await {
-                            Ok(value) => Some((
-                                vec![
-                                    collect_progress_percentage_book(&value).await,
-                                    collect_is_finished_book(&value).await,
-                                ],
-                                vec![collect_current_time_prg(&value).await],
-                            )),
-                            // A book that never played has no progress. The
-                            // server gives an error, and that is not a fault.
-                            Err(_) => None,
-                        };
+                        // **The path of the place of an episode names that
+                        // episode** (T-182 and T-188): the path of the item
+                        // alone answers with the place of **one** episode of the
+                        // podcast, therefore it gives the line of a second
+                        // episode the place of the first one. See T-228.
+                        let answer =
+                            match get_the_place_of_a_media(&api, &id, episode.as_deref()).await {
+                                Ok(value) => Some((
+                                    vec![
+                                        collect_progress_percentage_book(&value).await,
+                                        collect_is_finished_book(&value).await,
+                                    ],
+                                    vec![collect_current_time_prg(&value).await],
+                                )),
+                                // A book that never played has no progress. The
+                                // server gives an error, and that is not a fault.
+                                Err(_) => None,
+                            };
 
                         (place, answer)
                     });
@@ -6761,12 +6798,39 @@ impl App {
         }
     }
 
+    /// Gives the key of the media that plays now, if one plays.
+    ///
+    /// **The identity of the item names every episode of one podcast** (T-223).
+    /// The user played `Chapter 01` of `Arthur Gordon Pym` of the sandbox, and
+    /// the mark of the media that plays stood on the line of `Chapter 00` too:
+    /// the two lines held one identity, and no part of the Home view said which
+    /// episode plays. The key holds the episode beside the item, and it is the
+    /// key of `crate::logic::live::the_key_of_the_media`. See T-228.
+    ///
+    /// **The view `Library` reads `playing_item` and not this function**: a line
+    /// of that view is a podcast, and an episode of that podcast that plays
+    /// belongs to it.
+    pub fn playing_media(&self) -> Option<String> {
+        let state = self.player.state();
+
+        if state.status == crate::player::engine::PlaybackStatus::Stopped
+            || state.item_id.is_empty()
+        {
+            None
+        } else {
+            Some(crate::logic::live::the_key_of_the_media(
+                &state.item_id,
+                state.episode_id.as_deref(),
+            ))
+        }
+    }
+
     /// Gives the text of each line of the view `Home`.
     ///
     /// Every line starts with a mark: the media that plays, a media that the
     /// user finished, or the part that the user heard. See T-44.
     pub fn home_lines(&self) -> Vec<String> {
-        let playing = self.playing_item();
+        let playing = self.playing_media();
 
         self.home_rows
             .iter()
@@ -6791,20 +6855,30 @@ impl App {
                     let percent = progress.and_then(|row| row.first()).map(|s| s.as_str());
                     let finished = progress.and_then(|row| row.get(1)).map(|s| s.as_str());
 
-                    let plays_now = self
-                        ._ids_cnt_list
-                        .get(*item)
+                    // **The key of a line holds the episode beside the item**
+                    // (T-228). A line of a library of podcasts is one episode,
+                    // and the identity of the item names every episode of one
+                    // podcast (T-223): the mark of the media that plays stood on
+                    // every line of that podcast, and no line held the place of
+                    // its own episode.
+                    let key = crate::logic::home_view::the_key_of_the_line(
+                        &self._ids_cnt_list,
+                        &self.ids_ep_cnt_list,
+                        *item,
+                    );
+
+                    let plays_now = key
+                        .as_ref()
                         .zip(playing.as_ref())
-                        .is_some_and(|(id, playing)| id == playing);
+                        .is_some_and(|(key, playing)| key == playing);
 
                     // A live message of the server gives a newer position than
                     // the request of the start. A different client of the same
                     // account moved in this book, and the mark then shows the
                     // new place at the next frame. See T-47.
-                    let live = self
-                        ._ids_cnt_list
-                        .get(*item)
-                        .and_then(|id| crate::logic::live::progress_of(id));
+                    let live = key
+                        .as_ref()
+                        .and_then(|key| crate::logic::live::progress_of(key));
 
                     let mark = match &live {
                         Some(live) => {

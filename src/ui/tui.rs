@@ -2489,13 +2489,21 @@ impl App {
                     .map(|id| the_copy_of_the_disk(id))
                     .unwrap_or("");
 
+                // **The panel of a line of a book says the place of the user,
+                // and this one said nothing at all** (T-228). The two episodes
+                // of `Arthur Gordon Pym` of the sandbox stood at 80 percent and
+                // at 10 percent of the server. The row of the place of an
+                // episode holds no length of the media that the program reads as
+                // a number, therefore this paragraph names no time that is left.
                 Paragraph::new(format!(
-                    "[{}] - Author: {} - Episode: {} - Duration: {}{}",
+                    "[{}] - Author: {} - Episode: {} - Duration: {}{}\nProgress: {}%, {}",
                     at(&self.titles_pod_cnt_list, selected),
                     at(&self.authors_pod_cnt_list, selected),
                     at(&self.nums_ep_pod_cnt_list, selected),
                     at(&self.durations_pod_cnt_list, selected),
                     of_the_disk,
+                    at_part(&self.book_progress_cnt_list, selected, 0),
+                    at_part(&self.book_progress_cnt_list, selected, 1),
                 ))
                 .wrap(Wrap { trim: true })
                 .left_aligned()

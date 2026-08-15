@@ -250,6 +250,28 @@ pub fn without_the_media_that_left(
     answer
 }
 
+/// Gives the key of one media of the Home view.
+///
+/// **A line of a library of podcasts is one episode**, and the identity of the
+/// item names every episode of one podcast (T-223). The mark of the media that
+/// plays stood on every line of that podcast, and the position of a live message
+/// reached no line of it: the user played `Chapter 01` of `Arthur Gordon Pym` of
+/// the sandbox, and `Chapter 00` took the mark of the media that plays with it
+/// (T-228).
+///
+/// `episode_ids` holds the second half of the key, and it holds no value at all
+/// for a library of books: the key of a book is the identity of its item. The
+/// value is the value of `crate::logic::live::the_key_of_the_media`, therefore
+/// the key of a line, the key of the media that plays, the key of a position of
+/// a live message, and the key of `the_media_that_left_the_shelf` are one value.
+///
+/// The function is pure, therefore a test needs no server and no screen.
+pub fn the_key_of_the_line(ids: &[String], episode_ids: &[String], item: usize) -> Option<String> {
+    ids.get(item).map(|id| {
+        crate::logic::live::the_key_of_the_media(id, episode_ids.get(item).map(String::as_str))
+    })
+}
+
 /// Gives the number of each media of the Home view that left the shelf of
 /// Continue Listening.
 ///

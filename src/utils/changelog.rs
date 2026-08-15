@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.57",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The Home view of a library of podcasts said no place of the \
+             user.** A line of that view is one episode, and the program read \
+             the identity of the podcast alone: no line held a percent, the \
+             mark of the media that plays stood on every line of that podcast, \
+             and a message of the server reached none of them. Each line holds \
+             the place of its own episode now, and the panel of that line says \
+             it.",
+        ],
+    },
+    Entry {
         version: "0.8.56",
         date: "15/08/2026",
         body: &[

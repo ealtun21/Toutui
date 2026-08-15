@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.56.** The item T-227 belongs to this session. The
+**The newest release is v0.8.57.** The item T-228 belongs to this session. The
+item T-227 belongs to the session before it. The
 item T-226 belongs to the session before it. The
 item T-225 belongs to the session before it. The
 item T-224 belongs to the session before it. The
@@ -64,12 +65,60 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.56**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.57**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1208 of 1208** in 2.6 seconds with 26 skipped, and
-`cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure in three
-runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
+**1211 of 1211** in 2.5 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1237 of 1237** in 17 seconds with
+the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no
+failure in two runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the fifty-seventh turn of 2026-08-15: the line of the Home view holds the place of its episode
+
+**One release: v0.8.57**, and one item: T-228 of the place of the user of a line
+of a library of podcasts. **The road of it is the paragraph that T-226 left open
+and that T-227 carried**, which said that the mark of a line of an episode comes
+from a different list and that no measurement asked which list that is. **The
+answer is that no list gave it at all.**
+
+**The measurement of the real program v0.8.56 inside tmux**, of the podcast
+`Arthur Gordon Pym` of the library `Podcasts`. The two episodes stood at 80
+percent (`Chapter 00`, 4:04 of 5:05) and at 10 percent (`Chapter 01`, 2:12 of
+21:59) of the server, and the shelf Continue Listening held the two of them: the
+two lines said **no percent at all**, the panel of the line said nothing of the
+place, and the key `l` on `Chapter 01` gave the mark `▶` to **both** lines. The
+control of the same run — the Home view of the library `Books` — gave
+`5%  A Book Of Many Hours` and `Progress: 5%, 7h38m left, Not finished`.
+
+**The three roads of one root.** The block that reads the place of every line
+stood in the branch of the books alone; `home_lines` read `_ids_cnt_list`, and
+that list holds the identity of the **podcast** for every line of it (T-223);
+and `progress_of_the_user` of the live message kept the rows of the books alone,
+with a doc that named a list that did not exist. **The read of the place holds a
+fourth road**: the fallback of the program asked
+`GET /api/me/progress/<the podcast>`, and that path answers with the place of
+**one** episode of it (T-188).
+
+The corrected program (v0.8.57) gave `10% Chapter 01` and `80% Chapter 00`, the
+panel `Progress: 10%, Not finished`, and the mark `▶` on the line of
+`Chapter 01` alone. **A second client moved `Chapter 00` to 30 percent with
+`curl` while the program stood, and the line said `30% Chapter 00` 204
+milliseconds later with no key of the user.** The library of books of the
+control kept every value.
+
+**The key of a line of the Home view is one value now**
+(`the_key_of_the_line` of `src/logic/home_view.rs`): the key of the line, the
+key of the media that plays, the key of a position of a live message, and the
+key of `the_media_that_left_the_shelf` each read
+`crate::logic::live::the_key_of_the_media`. **`get_book_progress` went away**,
+therefore no caller can ask the path of the item for the place of an episode.
+
+**The two traps of the other machine** (the section 16 of
+`docs/TEST-SERVER.md`): a `PATCH` of `{"currentTime": N}` alone writes a percent
+of 0, because the row of a place holds its own `duration` and the server divides
+by it; and the percent of such a row **goes up and it does not go down**, therefore
+a measurement of a percent of an episode writes the percent that it needs and it
+trusts no percent of before.
 
 ## The session of the fifty-sixth turn of 2026-08-15: the view of the chapters names the episode
 
@@ -7495,38 +7544,38 @@ answers slowly while it writes. Two answers to measure:
   before the commit: the answer is 1**.
 
 ## The prompt for the next session
-**This session took the first paragraph of "What this item leaves open" of the
-newest item** (the rule of T-216 and of T-217, and the cheapest item of a
-session). T-226 wrote that the view of the chapters names the podcast alone, and
-that the sentence of T-162 contradicts the row of the player of that same
-second. **The measurement found that the fault holds three sentences of that one
-view, and that the sandbox reaches two of them.** The item is **T-227**, and it
-holds one release, v0.8.56.
+**This session took a paragraph that two items carried without closing it.**
+T-226 wrote that "the mark of a line of an episode comes from a different list",
+and that no measurement asked which list that is; T-227 carried the same
+paragraph and did not close it. **The measurement found that no list gave it at
+all**: the Home view of a library of podcasts said no place of the user, and the
+mark of the media that plays stood on every line of one podcast. The item is
+**T-228**, and it holds one release, v0.8.57.
 
 Three things are worth the room:
 
-1. **A pure function of one view is the road to the view beside it.** T-225
-   wrote `the_title_of_the_row` for the row of the player, and its name said
-   "the row": that name hid it from the view of the chapters for one session.
-   The function stands in `src/logic/media_name.rs` now as
-   `the_name_of_the_media`, and two parts of the screen read it. **Ask of every
-   pure function of a correction: does its name hold the view that made it?**
-2. **A view of a media holds more than one sentence of the name of that media.**
-   The header of a media of chapters, the header of a media of no chapter, and
-   the sentence of the media that went away each held the name, and the road of
-   T-226 named one of the three. **Ask of a fault of a name: how many sentences
-   of that view hold it?**
-3. **A sandbox can hold one road of two of one sentence.** The episodes of the
-   sandbox give 0 chapters, therefore the header `The chapters of "<the name>"`
-   of an episode reached no measurement at all: the test holds it, and the item
-   says that no measurement stands behind it. **A test that stands with no
-   measurement belongs in the words of the item.**
+1. **A paragraph that two items carried and did not close is the cheapest road
+   of a session.** T-226 wrote it, T-227 carried it, and the whole fault stood
+   in one `grep` of the source before the program ran. **Ask of the paragraphs
+   of the newest item: which of them stands in the item before it too?**
+2. **A branch of one media type can hold the work of every media type.** The
+   block that reads the place of every line of the Home view stood in the `else`
+   of the books, and the branch of the podcasts held the collectors alone: the
+   two lines of the shelf Continue Listening then said no percent at all, while
+   the same view of a library of books said `5%  A Book Of Many Hours`. **Ask of
+   every branch of a media type: which work of the neighbour branch does this
+   one not do, and does the screen say so?**
+3. **A doc that names another part of the program is a fault that waits when
+   that part does not exist.** `progress_of_the_user` said that "the mark of
+   that line comes from a different list", and no such list stood in `src/`.
+   That is the rule of T-226 for a filter, one level higher. **Ask of every doc
+   that names another part of the program: does that part exist?**
 
 This prompt names the state of the program on 2026-08-16.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.56**; `Cargo.toml` is at 0.8.56. The
+> AlbanDAVID/Toutui. Newest release **v0.8.57**; `Cargo.toml` is at 0.8.57. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -7535,7 +7584,7 @@ This prompt names the state of the program on 2026-08-16.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-227 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-228 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -8043,8 +8092,8 @@ This prompt names the state of the program on 2026-08-16.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1208 tests in 2.6 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1234 of 1234** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1211 tests in 2.5 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1237 of 1237** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -8152,11 +8201,53 @@ This prompt names the state of the program on 2026-08-16.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in sixty-nine sessions of seventy. **The session of
->    the fifty-sixth turn took the first paragraph of "What this item leaves
->    open" of the newest item: that paragraph named one sentence of one view, and
->    the measurement found that the fault holds three sentences of that view**
->    (T-227).
+>    this shape found a fault in seventy sessions of seventy-one. **The session
+>    of the fifty-seventh turn took a paragraph that two items carried without
+>    closing it: it named a list that gives the mark of a line, and the
+>    measurement found that no list gave it at all** (T-228).
+>
+>    A line of the Home view of a library of podcasts is one episode, and the
+>    program read the identity of the **podcast** for it (T-223 and T-226). The
+>    two episodes of `Arthur Gordon Pym` of the sandbox stood at 80 percent and
+>    at 10 percent of the server: the two lines said **no percent at all**, the
+>    panel of the line said nothing of the place, and the key `l` on `Chapter 01`
+>    gave the mark `▶` to **both** lines. The control of the same run — the Home
+>    view of the library `Books` — gave `5%  A Book Of Many Hours` and
+>    `Progress: 5%, 7h38m left, Not finished`.
+>    - **A paragraph that two items carried and did not close is the cheapest
+>      road of a session** (T-228). T-226 wrote it, T-227 carried it, and the
+>      whole of it stood in one `grep` of the source. **Ask of the paragraphs of
+>      the newest item: which of them stands in the item before it too?**
+>    - **A branch of one media type can hold the work of every media type**
+>      (T-228). The block that reads the place of every line of the Home view
+>      stood in the `else` of the books, and the branch of the podcasts held the
+>      collectors alone. **Ask of every branch of a media type: which work of the
+>      neighbour branch does this one not do, and does the screen say so?**
+>    - **A doc that names a list that does not exist is a fault that waits**
+>      (T-228). `progress_of_the_user` said that "the mark of that line comes
+>      from a different list", and no such list stood in `src/`. That is the rule
+>      of T-226 for a filter, one level higher: **ask of every doc that names
+>      another part of the program: does that part exist?**
+>    - **A path of an answer that holds an id needs the id of the row** (T-188
+>      and T-228). The fallback of the place asked
+>      `GET /api/me/progress/<the podcast>`, and that path answers with the place
+>      of **one** episode of it: the fault of T-188 stood in a second caller for
+>      six sessions, and `get_book_progress` went away with this item.
+>    - **The mark of a line of the view of the episodes of a podcast is not
+>      measured** (T-228, and it stays open): that view holds one line for one
+>      episode too.
+>    - **The lines of the view of the search and of the view of the lists hold
+>      no place at all** (T-228, and it stays open), and no measurement says
+>      whether that is a decision or a fault of the same shape.
+>    - **The percent of a row of a place of the sandbox goes up and it does not
+>      go down** (T-228, and it stays open): the road to a row of 0 percent of an
+>      episode reached no measurement, therefore a measurement of a percent
+>      writes the percent that it needs and it trusts no percent of before.
+>
+>    **The session of the fifty-sixth turn took the first paragraph of "What this
+>    item leaves open" of the newest item: that paragraph named one sentence of
+>    one view, and the measurement found that the fault holds three sentences of
+>    that view** (T-227).
 >
 >    The three sentences of the view of the chapters read `state.title`, and that
 >    field is the name of the **podcast** (T-223 and T-225). The user played
@@ -9340,7 +9431,12 @@ This prompt names the state of the program on 2026-08-16.
 > **the view of the chapters names the episode of a podcast: the two headers of
 > that view hold the name of the podcast and the name of the episode, the
 > sentence of a media that plays no more names the episode that went away, and a
-> playback that stopped names no media at all** (T-227).
+> playback that stopped names no media at all** (T-227), and **the line of the
+> Home view of a library of podcasts holds the place of its own episode: the key
+> of that line names the episode after the item, the mark of the media that plays
+> and the position of a live message each read that key, the fallback of the
+> place asks the path of the episode, and the panel of that line says the percent
+> of the user** (T-228).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

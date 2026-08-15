@@ -1031,3 +1031,23 @@ sqlite3 "$DB" "update users set name_selected_lib='Books',
 The three episodes of the measurement of T-219 stand at
 `{"isFinished": false, "currentTime": 0, "hideFromContinueListening": false}`
 again.
+
+**A `PATCH` of `{"currentTime": N}` alone writes a percent of 0** (T-228). The
+row of a place holds its own `duration`, and the server divides by it: a body
+that names no `duration` therefore gives a row of a place with no percent, and
+every line of the screen then says `0%`. The body of a place of a percent needs
+the three values:
+
+```bash
+curl -X PATCH -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"currentTime":244,"duration":305.71102,"progress":0.798}' \
+  "http://localhost:13399/api/me/progress/$P/$E0"
+```
+
+**The percent of such a row goes up, and it does not go down** (T-228). A
+`PATCH` of `{"currentTime": 0, "duration": <the length>, "progress": 0}` left
+the row at its old percent with a `currentTime` of 0, and `{"isFinished":
+false}` before it did the same. **The two episodes of `Arthur Gordon Pym` of the
+measurement of T-228 therefore stand at a `currentTime` of 0 and at 30 percent
+(`Chapter 00`) and 12 percent (`Chapter 01`)**: a measurement of a percent of an
+episode writes the percent that it needs, and it trusts no percent of before.
