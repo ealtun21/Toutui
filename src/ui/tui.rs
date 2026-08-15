@@ -2510,9 +2510,13 @@ impl App {
                 // **The panel of a line of a book says the place of the user,
                 // and this one said nothing at all** (T-228). The two episodes
                 // of `Arthur Gordon Pym` of the sandbox stood at 80 percent and
-                // at 10 percent of the server. The row of the place of an
-                // episode holds no length of the media that the program reads as
-                // a number, therefore this paragraph names no time that is left.
+                // at 10 percent of the server.
+                //
+                // **The panel of an episode says the time that is left too**
+                // (T-244): this paragraph named the percent and the mark of the
+                // end alone, and the panel of that same episode of the view of a
+                // playlist of that same run said `Progress: 100%, 0m left,
+                // Finished`.
                 //
                 // **The panel of a media that plays reads the engine of this
                 // program** (T-239): see
@@ -2520,13 +2524,14 @@ impl App {
                 let place = self.the_place_of_the_panel_of_the_home_view(selected);
 
                 Paragraph::new(format!(
-                    "[{}] - Author: {} - Episode: {} - Duration: {}{}\nProgress: {}%, {}",
+                    "[{}] - Author: {} - Episode: {} - Duration: {}{}\nProgress: {}%, {} {}",
                     at(&self.titles_pod_cnt_list, selected),
                     at(&self.authors_pod_cnt_list, selected),
                     at(&self.nums_ep_pod_cnt_list, selected),
                     at(&self.durations_pod_cnt_list, selected),
                     of_the_disk,
                     place.percent,
+                    place.the_time_that_is_left,
                     place.the_end,
                 ))
                 .wrap(Wrap { trim: true })
@@ -2701,24 +2706,26 @@ impl App {
                         .unwrap_or("");
 
                     // **The panel of a line of this view said nothing of the
-                    // place of the user** (T-229). The row of the place of an
-                    // episode holds no length of the media that the program
-                    // reads as a number, therefore this paragraph names no time
-                    // that is left, as the panel of a line of a podcast of the
-                    // Home view names none (T-228).
+                    // place of the user** (T-229).
+                    //
+                    // **The panel of an episode says the time that is left too**
+                    // (T-244): the length of the episode stands in
+                    // `the_lengths_of_the_episodes` (T-236) and the place of the
+                    // user in seconds stands in `pod_ep_places`.
                     //
                     // **The panel of a media that plays reads the engine of
                     // this program** (T-239).
                     let place = self.the_place_of_the_panel_of_the_episodes(selected);
 
                     Paragraph::new(format!(
-                        "[{}] - Author: {} - Episode: {} - Duration: {}{}\nProgress: {}%, {}",
+                        "[{}] - Author: {} - Episode: {} - Duration: {}{}\nProgress: {}%, {} {}",
                         at(&duplicated_titles, selected).trim(),
                         at(&duplicated_authors, selected).trim(),
                         at(&self.episodes_pod_ep, selected).trim(),
                         at(&self.durations_pod_ep, selected).trim(),
                         of_the_disk,
                         place.percent,
+                        place.the_time_that_is_left,
                         place.the_end,
                     ))
                     .wrap(Wrap { trim: true })
@@ -2753,17 +2760,19 @@ impl App {
                 .unwrap_or("");
 
             // The panel of this view says the place of the user too. See
-            // T-229, and T-239 for the media that plays.
+            // T-229, T-239 for the media that plays, and T-244 for the time that
+            // is left.
             let place = self.the_place_of_the_panel_of_the_episodes_of_a_search(selected);
 
             Paragraph::new(format!(
-                "[{}] - Author: {} - Episode: {} - Duration: {}{}\nProgress: {}%, {}",
+                "[{}] - Author: {} - Episode: {} - Duration: {}{}\nProgress: {}%, {} {}",
                 at(&duplicated_titles_search, selected).trim(),
                 at(&duplicated_authors_search, selected).trim(),
                 at(&self.episodes_pod_ep_search, selected).trim(),
                 at(&self.durations_pod_ep_search, selected).trim(),
                 of_the_disk,
                 place.percent,
+                place.the_time_that_is_left,
                 place.the_end,
             ))
             .wrap(Wrap { trim: true })

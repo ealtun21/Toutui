@@ -33,9 +33,9 @@
 
 /// The three values of the panel of a line that names a place of the user.
 ///
-/// The panel of a book of the Home view says the three of them, and the panel
-/// of an episode of a podcast says the percent and the mark of the end alone:
-/// the format of that panel names no time that is left (T-228 and T-229).
+/// **Every panel of a line says the three of them** (T-244). The panel of an
+/// episode of a podcast said the percent and the mark of the end alone, because
+/// the format of that panel named no time that is left (T-228 and T-229).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ThePlaceOfThePanel {
     /// The percent of the media, with no sign of the percent.

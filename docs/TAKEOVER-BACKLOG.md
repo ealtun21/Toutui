@@ -17281,3 +17281,231 @@ the function that holds the key, and it keeps one assertion of
 - **The line of the Library view of a library of podcasts says no place at
   all** (T-242 to T-243, and it stays open): a podcast holds more than one
   episode, and the line of it names no episode (T-221).
+
+### T-244: the panel of a line of an episode of a podcast says the time that is left
+
+**This item measures the first bullet of "What this item leaves open" of
+T-243: the view of the authors and the view of the narrators of a library name
+a book too, and their lines and panels are not measured.** That bullet holds no
+fault: the measurement below shows that the key `l` of a line of those two
+views gives the **Library view** with a filter, and the line and the panel of
+that view hold the place of the user already (T-241 and T-242). The round
+therefore took the next condition of the same shape that a measurement
+reaches, and it found the panel of an episode of a podcast.
+
+#### The measurement of the first bullet of T-243
+
+The real program driven inside tmux by `docs/harness/drive.sh`, against the
+sandbox, with the library `Books`. The key `a` gave:
+
+```text
+The authors [9 items]
+➤ Big Author [2 book(s)]
+  ...
+  Many Hours Author [2 book(s)]
+j/k: move  l: the books of this author  h: back  ?: every key  Q: quit
+```
+
+**A line of that view names an author and not a book**, and it says the number
+of the books of that author. Five keys `j` and the key `l` gave:
+
+```text
+Library [2 items] — a filter is on (f)
+➤ 85% A Book Of Many Hours
+      A Second Book Of Many Hours
+Author: Many Hours Author - Year: N/A - Duration: 8h
+Progress: 85%, 1h13m left, Not finished
+```
+
+**The books of an author are the Library view with a filter of that author**
+(`crate::logic::sort_filter::filter_value`), therefore the correction of T-241
+and of T-242 reached those two views already. The view of the narrators takes
+the same road with the name of the narrator (T-73). **No line of the view of
+the authors and no line of the view of the narrators names one media**, and the
+place of a whole author is the shape of T-44 and of T-22, which stays open.
+
+#### The measurement of this item
+
+The same program, the library `Podcasts`. The server held `Chapter 00` of
+`Arthur Gordon Pym` at 66 seconds of 306 with the percent 22, and `Chapter 02`
+of that same podcast at 1168 seconds of 2337 with the percent 50. The Home view
+of that run said:
+
+```text
+➤ 22% Chapter 00
+  50% Chapter 02
+[Arthur Gordon Pym] - Author: LibriVox - Episode: 0 - Duration: 5m
+Progress: 22%, Not finished
+```
+
+The key `Tab`, one key `j`, and the key `l` gave the view of the episodes of
+that same podcast:
+
+```text
+➤ ✓   Chapter 00
+  81% Chapter 01
+  50% Chapter 02
+[Arthur Gordon Pym] - Author: LibriVox - Episode: 2 - Duration: 39m
+Progress: 50%, Not finished
+```
+
+**The control of that same run** (the trap 206): the key `h`, the key `c`, and
+the key `l` gave the view of the media of `A Podcast Playlist`, which names
+`Chapter 00` of that same podcast, and the panel of that line said:
+
+```text
+➤ ✓   Chapter 00
+Episode - Author: LibriVox - Duration: 5m
+Progress: 100%, 0m left, Finished
+```
+
+**One program of one account said the time that is left of one episode in one
+view and nothing of it in two others.** The panel of a book of every view of
+the program says the three values together (T-241 and T-243).
+
+#### The fault
+
+The fault holds three roads, and each of them stops the time that is left
+alone:
+
+- **The format of the three panels that name an episode named no time that is
+  left.** `render_info_home` (the road of `self.is_podcast`),
+  `render_info_pod_ep`, and `render_info_pod_ep_search` of `src/ui/tui.rs` each
+  held `"…\nProgress: {}%, {}"` with `place.percent` and `place.the_end`, and
+  the panel of a book of that same file holds `"…\nProgress: {}%, {} {}"` with
+  `place.the_time_that_is_left` between them.
+- **`App::the_place_of_the_panel_of_the_home_view` read the length of a
+  book.** The line of that view is one episode for a library of podcasts
+  (T-226), the length of it stands in
+  `the_lengths_of_the_episodes_of_the_home_view` (T-236), and the time of the
+  row read `duration_cnt_list`, which a library of podcasts leaves empty.
+- **`App::the_place_of_the_panel_of_this_podcast` gave the empty text.** The
+  row of `pod_ep_places` held the percent and the mark of the end alone, and
+  the place of the user in seconds is the second value that a time that is left
+  needs.
+
+`crate::logic::the_panel_of_a_line::the_place_of_the_panel` made the time that
+is left of the road of the engine and of the road of a live message already
+(T-239 and T-240), and no panel of an episode printed it.
+
+#### The correction
+
+`the_places_of_the_episodes` of `src/app.rs` writes a third value in the row of
+each episode, `collect_current_time_prg(row)`, as `the_places_of_the_queue`
+does (T-234) and as `crate::logic::the_positions::the_places_of_the_account`
+does (T-241). An episode that the answer of the account does not name takes a
+row of three parts of `N/A`.
+
+`App::the_place_of_the_panel_of_this_podcast` makes the time of the row of that
+third part and of the length of `the_lengths_of_the_episodes` (T-236).
+`App::the_place_of_the_panel_of_the_home_view` takes the length of the media of
+its own line, which is the length of an episode for a library of podcasts.
+
+The three panels of `src/ui/tui.rs` say `place.the_time_that_is_left` between
+the percent and the mark of the end.
+
+**The three roads keep the sequence of T-239, of T-240, and of T-241**: the
+engine of this program first, the row of a live message after it, and the row
+of the request last. The correction costs no request at all.
+
+#### The measurement of the corrected program
+
+The same run, the same data. The Home view of the library `Podcasts`:
+
+```text
+➤ 22% Chapter 00
+[Arthur Gordon Pym] - Author: LibriVox - Episode: 0 - Duration: 5m
+Progress: 22%, 4m left, Not finished
+```
+
+The view of the episodes of that same podcast:
+
+```text
+[Arthur Gordon Pym] - Author: LibriVox - Episode: 2 - Duration: 39m
+Progress: 50%, 19m left, Not finished
+```
+
+**A media that the user did not begin names no time that is left**
+(`convert_seconds_for_prg`): the server held `Chapter 01` at the percent 81
+with `currentTime` of 0, and the panel of that line said
+`Progress: 81%,  Not finished`, in the same words as the view of a playlist
+says them (T-243).
+
+**The road of the engine** (T-239): the key `l` of `Chapter 02` started the
+playback with `TOUTUI_AUDIO_DEVICE=null`, and the panel of that line said
+`Progress: 60%, 15m left, Not finished` while the row of the player of that
+same program said `▶ 25:21 / 38:56 | Elapsed: 25:21 | Left: 13:35 (65%)` some
+seconds later.
+
+**The road of a live message** (T-240): the key `Y` stopped that playback, a
+second client of the account wrote `{"currentTime": 1000}` and
+`{"progress": 0.74}` for `Chapter 01`, the log said
+`[live] user_updated: the position of 27 media.`, and the panel of that same
+line went from `Progress: 81%,  Not finished` to
+`Progress: 74%, 5m left, Not finished` with no key of the user.
+
+**The control of that same run**: the view of the media of `A Podcast
+Playlist` said `Progress: 22%, 4m left, Not finished` for `Chapter 00`, which
+is the sentence of the view of the episodes of that same episode.
+
+**No regression of a library of books**: the Home view of the library `Books`
+of the corrected program said `Progress: 50%, 15m left, Not finished` for
+`A Long Test Book`, because the length of the line of a library of books is
+`duration_cnt_list` and the correction reads it through the same value.
+
+#### The test
+
+`tests/the_panel_of_an_episode_says_the_time_that_is_left.rs`, in one function
+(T-144 and T-157). It reads the blocks of `render_info_home`, of
+`render_info_pod_ep`, of `render_info_pod_ep_search`, of
+`the_place_of_the_panel_of_the_home_view`, of
+`the_place_of_the_panel_of_this_podcast`, and of `the_places_of_the_episodes`
+(the trap 209), and the pure roads of `the_place_of_the_panel`.
+
+**The build of the fault**, one edit at a time and every other line kept
+(the trap 147): the format of `render_info_pod_ep` back at
+`"…\nProgress: {}%, {}"` fails the test at "the panel of an episode of
+`fn render_info_pod_ep(` names no time that is left"; the time of the row of
+`the_place_of_the_panel_of_this_podcast` back at `""` fails it at "the panel of
+an episode of a podcast makes no time that is left"; the length of
+`the_place_of_the_panel_of_the_home_view` back at `duration_cnt_list` fails it
+at "the time of the row of the Home view takes no length of an episode"; and
+the third value of `the_places_of_the_episodes` removed fails it at "the row of
+the place of an episode holds no place in seconds".
+
+#### What this item leaves open
+
+- **The view of the episodes of a search holds no place of the user at all**
+  (T-244, and it stays open, and it is measured). The same run: the key `/`,
+  the word `Arthur`, and the key `l` gave the view of the episodes of that same
+  podcast, and every line of it held the title alone while the view of the
+  episodes of the Library view of that same run held `➤ 22% Chapter 00` and
+  `81% Chapter 01`. The panel of it said `Progress: N/A%, N/A`.
+  `App::all_ids_pod_ep_search` of `src/app.rs` takes no write of any road of
+  the program: the loop of the keys writes `self.ids_pod_ep_search` out of that
+  empty box at each key (`src/app.rs:2664`), therefore the ids of the episodes
+  that the request of T-229 wrote go away with the first key after it, and
+  `pod_ep_places_search` holds the row of no line. **The keys of that view read
+  `ids_pod_ep_search` too** (the key of the playback, the key `D`, and the key
+  `X`), therefore that box reaches more than the place of the user.
+- **The line and the panel of the view of the authors and of the view of the
+  narrators name no media** (T-244): a line of those views is an author or a
+  narrator of many books, therefore the place of such a line is the shape of
+  T-44 and of T-22, and it stays open with the view of the series itself and
+  the view of the lists.
+- **A media of the queue that no playback of this program moves keeps the
+  place of the moment of the key `q`** (T-230 to T-244, and it stays open),
+  and the panel of a line of that view is not measured.
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-244, and it stays open).
+- **The view of the queue of the offline mode is not measured** (T-230 to
+  T-244).
+- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone** (T-226
+  to T-244, and it stays open).
+- **The key `X` of the view of the bookmarks of a podcast** removes a place
+  of another episode with the same words (T-223 to T-244, and it stays open).
+- **The box of the places of the account goes old while the program stands**
+  (T-241 to T-244, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at
+  all** (T-242 to T-244, and it stays open): a podcast holds more than one
+  episode, and the line of it names no episode (T-221).

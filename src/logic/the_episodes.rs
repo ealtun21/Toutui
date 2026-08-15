@@ -46,8 +46,10 @@ pub struct Episodes {
     /// no number, and the key `n` of this view needs the length of the media
     /// for the line of the view of the queue. See T-236.
     pub lengths: Vec<Option<f64>>,
-    /// The place of the user of each episode: the percent and the mark of the
-    /// end, in the form of `App::book_progress_cnt_list`. See T-229.
+    /// The place of the user of each episode: the percent, the mark of the end,
+    /// and the place of the user in seconds, in the form of
+    /// `crate::logic::the_positions`. See T-229, and T-244 for the seconds: the
+    /// panel of that episode says the time that is left with them.
     pub places: Vec<Vec<String>>,
 }
 

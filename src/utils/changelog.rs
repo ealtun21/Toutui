@@ -41,6 +41,26 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.73",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The panel of an episode of a podcast said no time that is \
+             left.** The panel of a book says the percent, the time that is \
+             left, and the mark of the end together, and the panel of an \
+             episode of the Home view, of the view of the episodes of a \
+             podcast, and of the view of the episodes of a search said the \
+             percent and the mark of the end alone: one program said \
+             `Progress: 22%, Not finished` for an episode at 66 seconds of \
+             306, while the view of a playlist that named that same episode \
+             said `Progress: 100%, 0m left, Finished`. The three panels say \
+             the time that is left now. An episode that the user did not \
+             begin names none, an episode that plays takes the place of the \
+             player of this program, and a message of the server comes at the \
+             next frame.",
+        ],
+    },
+    Entry {
         version: "0.8.72",
         date: "15/08/2026",
         body: &[

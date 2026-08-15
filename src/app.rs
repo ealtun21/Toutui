@@ -7064,8 +7064,13 @@ impl App {
             self.duration_cnt_list.get(selected).copied()
         };
 
+        // **The length of the media of this line is the length of an episode
+        // for a library of podcasts** (T-244): this time read
+        // `duration_cnt_list`, which holds the length of a book, and a library
+        // of podcasts fills no row of it. The panel of an episode therefore said
+        // no time that is left at all.
         let the_time_of_the_row = crate::utils::convert_seconds::convert_seconds_for_prg(
-            self.duration_cnt_list.get(selected).copied().unwrap_or(0.0),
+            length.unwrap_or(0.0),
             self.book_progress_cnt_list_cur_time
                 .get(selected)
                 .and_then(|row| row.first())
@@ -7350,13 +7355,28 @@ impl App {
             .as_ref()
             .and_then(|key| crate::logic::live::progress_of(key));
 
+        let length = lengths.get(selected).copied().flatten();
+
+        // **The row of the place of an episode holds the place of the user in
+        // seconds** (T-244): this call gave no time of the row at all, and the
+        // panel of an episode therefore said the percent and the mark of the end
+        // alone, while the panel of that same episode of the view of a playlist
+        // of that same run said `Progress: 100%, 0m left, Finished`.
+        let the_time_of_the_row = crate::utils::convert_seconds::convert_seconds_for_prg(
+            length.unwrap_or(0.0),
+            the_part_of_the_row(places, selected, 2)
+                .trim()
+                .parse::<f64>()
+                .unwrap_or(0.0),
+        );
+
         crate::logic::the_panel_of_a_line::the_place_of_the_panel(
             plays_now,
             self.the_place_of_the_playback(),
             live.as_ref(),
-            lengths.get(selected).copied().flatten(),
+            length,
             the_part_of_the_row(places, selected, 0),
-            "",
+            &the_time_of_the_row,
             the_part_of_the_row(places, selected, 1),
         )
     }
@@ -9275,9 +9295,12 @@ pub fn message_of_the_mark(finished: bool) -> String {
 /// holds some tens of lines; this view holds every episode of a podcast.
 ///
 /// The answer is one row for each episode, in the form of
-/// `App::book_progress_cnt_list`: the percent of the user and the mark of the
-/// end. An episode of no place gives `N/A`, as a media that never played gives
-/// it in the Home view.
+/// `crate::logic::the_positions`: the percent of the user, the mark of the end,
+/// and the place of the user in seconds. An episode of no place gives `N/A`, as
+/// a media that never played gives it in the Home view.
+///
+/// **The row holds the place of the user in seconds too** (T-244), because the
+/// panel of that episode says the time that is left of it.
 /// Gives the place of the user of each media of the queue. See T-230.
 ///
 /// **One request of `GET /api/me` gives the place of every media of the
@@ -9342,7 +9365,8 @@ async fn the_places_of_the_episodes(
     podcast_id: &str,
     ids: &[String],
 ) -> Vec<Vec<String>> {
-    let nothing = || vec![vec![" N/A".to_string(), " N/A".to_string()]; ids.len()];
+    let no_row = || vec![" N/A".to_string(), " N/A".to_string(), " N/A".to_string()];
+    let nothing = || vec![no_row(); ids.len()];
 
     let the_positions = match crate::api::me::permissions::the_account_of_the_token(api).await {
         Ok((_, the_positions)) => the_positions,
@@ -9369,8 +9393,11 @@ async fn the_places_of_the_episodes(
             Some(row) => places.push(vec![
                 collect_progress_percentage_book(row).await,
                 collect_is_finished_book(row).await,
+                // The place of the user, in seconds. The panel of that episode
+                // says the time that is left with it (T-244).
+                collect_current_time_prg(row).await.to_string(),
             ]),
-            None => places.push(vec![" N/A".to_string(), " N/A".to_string()]),
+            None => places.push(no_row()),
         }
     }
 
