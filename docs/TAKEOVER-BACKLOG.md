@@ -22604,3 +22604,165 @@ too.
 - `if let Ok(data) = std::fs::metadata(path)` of `Book::open` drops the fault of
   the disk still, and the read of the five bytes reaches that condition first
   (new with this item). A candidate, and not a measurement.
+
+### T-277: a chapter that the book did not give says why
+
+**The state**: corrected on 2026-08-16, in v0.8.106. The measurement is of the
+real program inside tmux against the sandbox.
+
+#### The choice of this item
+
+T-276 left open "`ChapterAbsent` and `ChapterTooLarge` of `ReaderError`:
+`chapter_bytes` gives `ChapterAbsent` for every fault of `copy_bytes` that is
+not the limit", open since T-274. This item reaches `ChapterAbsent`.
+
+#### The fault
+
+Three faults of one screen.
+
+`Book::chapter_bytes` of `src/logic/reader/book.rs` held
+`Err(_) => Err(ReaderError::ChapterAbsent)` as the last arm of the match on
+`manifest_entry.copy_bytes(&mut writer)`. The sentence of that value is
+"This chapter is absent." The arm took no line of the log at all, therefore
+the reason of the crate went away completely.
+
+`Reader::render_for` of `src/logic/reader/session.rs` read
+`!self.lines.is_empty()` as "the render came back". A chapter that gave a
+fault gives no line, therefore that condition never stood: the render started
+again at every frame. The loop of the screen of `src/ui/tui.rs:629` calls
+`reader.take_the_answer()` and then `crate::ui::reader_tui::render(...)`,
+which calls `reader.render_for(inside.width)` at `src/ui/reader_tui.rs:122`.
+`take_the_answer` wrote the message of the fault, and `render_for` of the SAME
+frame wrote "Reading…" over it before the draw. The user therefore never read
+that message.
+
+A third fault came out of the correction: the `Paragraph` of the message of
+`src/ui/reader_tui.rs` had no `wrap`, therefore a sentence longer than the
+width of the screen was cut, and the reason and the key did not reach the
+user.
+
+#### The measurement
+
+The real program v0.8.105 inside tmux (session `chap`, 160x45) against the
+sandbox (podman `abs-test` on :13399), the account `toutuitest`, the library
+`Books`, the book `Alice in Wonderland`. The file of the cache of the ebooks
+is
+`$XDG_DATA_HOME/toutui/downloads/toutuitest/8fda6e43-0728-46ad-98bc-4c8634e299ad.epub`,
+136761 bytes. 64 bytes of the deflate stream of the entry
+`OEBPS/6260297267691793459_11-h-1.htm.html`, at 2000 bytes after the start of
+the data of that entry, each took the value of its own complement (XOR 0xFF).
+The central directory and the local header kept every number, and the time of
+the file went back with `touch -r`, therefore the cache of the program kept
+that file. That entry is the spine 2, and the header of the reader calls it
+"chapter 3 of 14".
+
+The key `e` on that book gave the header
+`Alice's Adventures in Wonderland — chapter 3 of 14 — 3%` and the one word
+`Reading…`. A poll of the screen of 24 looks of 250 milliseconds gave
+`Reading…` at every one of them. The key `n` then gave `chapter 4 of 14` and
+the text of "CHAPTER II. The Pool of Tears", and the key `p` gave `Reading…`
+again. The book was good: every other chapter of it read.
+
+#### The correction
+
+A new value `ReaderError::TheArchiveGaveNoChapter(String)`, which holds the
+reason of the crate of the archive. The arm of `chapter_bytes` keeps the
+fault, it writes a line of the log, and it gives that value. `ChapterAbsent`
+stays for the one road of `spine_entry.manifest_entry()` that gives `None`,
+where the program holds no reason. A new field
+`the_render_that_came: Option<(usize, u16)>` of `Reader`: `take_the_answer`
+writes the chapter and the width of the answer in it, `render_for` reads it in
+the place of the lines, and `go_to_chapter` empties it. The `Paragraph` of the
+message of `reader_tui.rs` takes `.wrap(Wrap { trim: true })`.
+
+**The gate of the tests said which road that arm holds** (T-277): the hostile
+file `03-missing-target.epub` of the repository names a file of the manifest
+that the archive does not hold, and its read reaches that same arm. The first
+form of this correction said in its doc comment that the archive holds the
+chapter, and that sentence was a reason that the program does not have. The
+value therefore names none of the three roads that reach it, and its sentence
+says what the machine said alone.
+
+The corrected program of the same condition said, on three lines of the
+screen:
+
+```text
+The book gave no text of this chapter. The other chapters can be good. The
+machine said: [CannotRead - `Resource { key: Value("/OEBPS/6260297267691793459_11-h-1.htm.html"),
+kind: ResourceKind("") }`]: corrupt deflate stream. The file of the log holds
+more. Press n for the next chapter.
+```
+
+and the log held:
+
+```text
+[reader] the archive gave no chapter 2 of the book: [CannotRead - `Resource { key: Value("/OEBPS/6260297267691793459_11-h-1.htm.html"), kind: ResourceKind("") }`]: corrupt deflate stream
+```
+
+#### The controls
+
+Of the corrected program: the log held 2 lines of that fault at the first
+frame and 2 lines 15 seconds later (the render starts no more); the message
+stood on the screen after those 15 seconds; the key `n` gave chapter 4 and its
+text; the key `p` gave chapter 3 and the same sentence again; and the same
+book with the file of the start (`cp` of the copy of the scratchpad) gave the
+text of chapter 3 with no line of a fault in the log.
+
+#### The test
+
+`tests/a_chapter_that_did_not_come_says_why.rs`, two tests, no network and no
+sandbox. The book comes from `tests/data/alice.epub` of the repository, and
+the test makes the same damage of the same entry in a directory of
+`tempfile`. The first test reads the value and the sentence. The second test
+is a `#[tokio::test]`: it draws the real widget
+`toutui::ui::reader_tui::render` into a `Buffer` of 100 by 30 with no terminal
+at all, and it does the work of the loop of the screen (`take_the_answer` and
+then the draw) for 200 frames; it then draws 20 frames more and it says that
+no frame gives "Reading" again. `src/logic/reader/book.rs` also holds the
+change of the test
+`a_book_that_names_a_file_that_is_absent_gives_a_clear_error`: the hostile
+file `03-missing-target.epub` reaches the same arm of `copy_bytes`, therefore
+it now gives the reason of the crate.
+
+The three builds of the fault, each with one edit and every other line kept:
+
+- The arm of `chapter_bytes` back to
+  `Err(_fault) => Err(ReaderError::ChapterAbsent)`: both tests failed, and the
+  first one said "the archive that gave no chapter says: ChapterAbsent".
+- The `same` of `render_for` back to
+  `width == self.rendered_width && self.waiting_for.is_none() && !self.lines.is_empty()`:
+  the second test failed and it said the screen holds `Reading…`.
+- The `.wrap(Wrap { trim: true })` away: the second test failed, and the
+  screen then held "The machine said: [CannotRead" and no more.
+
+#### The gates
+
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` pass.
+`cargo nextest run` gives 1311 of 1311 in 2.8 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives 1337 of 1337 in 17.4 seconds with
+the sandbox up, and `cargo test -j 16 --no-fail-fast` passed in two runs.
+
+#### What this item leaves open
+
+- `ChapterTooLarge` of `ReaderError` says one reason still, and no measurement
+  of this turn reached it (open since T-274). A candidate, and not a
+  measurement.
+- The other `?` of `auth()` that a real terminal can give: `Terminal::new`,
+  `term.size()`, and `crossterm::event::read()` (open since T-275). A
+  candidate, and not a measurement.
+- `let _ = out.read_to_string(&mut words)` and `let _ = child.kill()` of the
+  parent of the child that reads a PDF (open since T-274). A candidate, and
+  not a measurement.
+- The `?` of `ApiClient::new(...)` of `src/main.rs` is a bare `?` still (open
+  since T-269). A candidate, and not a measurement.
+- The keys of the terminal and of the render of `src/main.rs` each hold a bare
+  `?` (open since T-269). A candidate, and not a measurement.
+- A fault of the removal of the account that comes on the road of the key `R`
+  is not measured (open since T-269). A candidate, and not a measurement.
+- `if let Ok(data) = std::fs::metadata(path)` of `Book::open` drops the fault
+  of the disk still (open since T-276). A candidate, and not a measurement.
+- Every other `Paragraph` of a message of the program that holds no `wrap` can
+  cut a sentence that says why (new with this item). A candidate, and not a
+  measurement.
+- `chapter_sizes` gives 0 for a chapter that failed, and it says nothing at
+  all (new with this item). A candidate, and not a measurement.

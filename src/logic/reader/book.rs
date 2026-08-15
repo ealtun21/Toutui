@@ -83,8 +83,18 @@ pub enum ReaderError {
     TooManyEntries(usize),
     /// The book has no chapter with this number.
     NoSuchChapter(usize),
-    /// The book names a chapter, and the archive does not hold it.
+    /// The spine names a chapter, and the manifest of the book does not hold
+    /// it. **The program has no reason of the archive on this road, and it
+    /// therefore says none** (T-277): a read of the archive that failed takes
+    /// the value below, because a program must never say a reason that it does
+    /// not have (T-91).
     ChapterAbsent,
+    /// The archive gave no byte of the chapter. The file of the chapter can be
+    /// absent from the archive, and the read of a file that stands in it can
+    /// fail: **the crate of the archive holds the one reason, and the text is
+    /// that reason** (T-277). The sentence of this value therefore says what
+    /// the machine said, and it names neither of the two.
+    TheArchiveGaveNoChapter(String),
     /// The chapter is larger than [`MAX_CHAPTER_BYTES`].
     ChapterTooLarge,
 }
@@ -135,6 +145,12 @@ impl fmt::Display for ReaderError {
                 write!(f, "This book has no chapter {index}.")
             }
             ReaderError::ChapterAbsent => write!(f, "This chapter is absent."),
+            ReaderError::TheArchiveGaveNoChapter(reason) => write!(
+                f,
+                "The book gave no text of this chapter. The other chapters can \
+                 be good. The machine said: {reason}. The file of the log holds \
+                 more. Press n for the next chapter."
+            ),
             ReaderError::ChapterTooLarge => write!(f, "This chapter is too large."),
         }
     }
@@ -522,7 +538,16 @@ impl Book {
             // Therefore the flag of the writer, and not the error, tells why
             // the copy stopped.
             Err(_) if writer.hit_limit => Err(ReaderError::ChapterTooLarge),
-            Err(_) => Err(ReaderError::ChapterAbsent),
+            // **The crate of the archive holds the one reason here** (T-277): a
+            // file of the chapter that the archive does not hold, a damaged
+            // stream of that file, and a disk that gave no byte of it each come
+            // to this arm. The program therefore says what the machine said,
+            // and it names none of the three (T-91).
+            Err(fault) => {
+                info!("[reader] the archive gave no chapter {index} of the book: {fault}");
+
+                Err(ReaderError::TheArchiveGaveNoChapter(fault.to_string()))
+            }
         }
     }
 
@@ -815,8 +840,18 @@ mod tests {
         let path = hostile_dir().join("03-missing-target.epub");
         let book = Book::open(&path).expect("the archive must open");
         assert_eq!(1, book.chapter_count());
+
+        // **The crate of the archive names the file that is absent** (T-277),
+        // and the user reads that name. The value before this item held no
+        // reason at all.
         match book.chapter_xhtml(0) {
-            Err(error) => assert_eq!(ReaderError::ChapterAbsent, error),
+            Err(ReaderError::TheArchiveGaveNoChapter(reason)) => {
+                assert!(
+                    !reason.trim().is_empty(),
+                    "the archive that gave no chapter holds the reason of the crate"
+                );
+            }
+            Err(other) => panic!("a file that is absent gives the reason, and it gave {other:?}"),
             Ok(text) => panic!("a file that is absent must give an error, and it gave {text:?}"),
         }
     }

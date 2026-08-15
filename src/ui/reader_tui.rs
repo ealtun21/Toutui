@@ -127,8 +127,12 @@ pub fn render(reader: &mut Reader, area: Rect, buf: &mut Buffer) {
             .clone()
             .unwrap_or_else(|| "This chapter has no text.".to_string());
 
+        // **A sentence that says why is longer than one line** (T-277): a
+        // paragraph with no wrap cuts that sentence at the width of the screen,
+        // and the user then reads no reason and no key.
         Paragraph::new(message)
             .centered()
+            .wrap(Wrap { trim: true })
             .style(Style::default().fg(Color::Rgb(150, 150, 150)))
             .render(inside, buf);
 

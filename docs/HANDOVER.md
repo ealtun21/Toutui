@@ -122,6 +122,75 @@ gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
 
+## The session of the hundred and sixth turn of 2026-08-16: a chapter that the book did not give says why
+
+**One release: v0.8.106**, and one item: T-277. **The road of it is the
+candidate "`ChapterAbsent` and `ChapterTooLarge` of `ReaderError`" of T-274,
+which T-275 and T-276 each left open.** This turn reaches `ChapterAbsent`, and
+the screen of that value gave a fault of its own.
+
+Three faults of one screen. `Book::chapter_bytes` of
+`src/logic/reader/book.rs` held `Err(_) => Err(ReaderError::ChapterAbsent)` as
+the last arm of the match on `manifest_entry.copy_bytes(&mut writer)`: the
+sentence of that value is `This chapter is absent.`, and the arm took no line
+of the log at all. `Reader::render_for` of `src/logic/reader/session.rs` read
+`!self.lines.is_empty()` as "the render came back": a chapter that gave a fault
+gives no line, therefore that condition never stood and the render started
+again at every frame. The loop of the screen calls `reader.take_the_answer()`
+(`src/ui/tui.rs:629`) and then the render, which calls
+`reader.render_for(inside.width)` (`src/ui/reader_tui.rs:122`): the first wrote
+the message of the fault, and the second wrote `Reading…` over it before the
+draw of that same frame. And the `Paragraph` of that message held no `wrap`,
+therefore a sentence longer than the width of the screen was cut.
+
+The measurement, of the real program v0.8.105 inside tmux against the sandbox,
+of the book `Alice in Wonderland` of the library `Books`. 64 bytes of the
+deflate stream of the entry `OEBPS/6260297267691793459_11-h-1.htm.html` of the
+file of the cache of the ebooks
+(`$XDG_DATA_HOME/toutui/downloads/toutuitest/8fda6e43-0728-46ad-98bc-4c8634e299ad.epub`,
+136761 bytes) each took the value of its own complement, 2000 bytes after the
+start of the data of that entry. The central directory and the local header
+kept every number, and `touch -r` gave the time of the file back: the cache of
+the program therefore kept that file. That entry is the spine 2, and the header
+of the reader calls it "chapter 3 of 14". The key `e` on that book gave
+
+```text
+Alice's Adventures in Wonderland — chapter 3 of 14 — 3%
+                                Reading…
+```
+
+and a poll of 24 looks of 250 milliseconds gave `Reading…` at every one of
+them. **The book was good**: the key `n` gave chapter 4 and the text of
+"CHAPTER II. The Pool of Tears", and the key `p` gave `Reading…` again.
+
+The correction is a value `ReaderError::TheArchiveGaveNoChapter(String)` that
+holds the reason of the crate of the archive, a field
+`the_render_that_came: Option<(usize, u16)>` of `Reader` that `take_the_answer`
+writes and that `render_for` reads in the place of the lines, and a
+`.wrap(Wrap { trim: true })` of the `Paragraph` of the message.
+`ChapterAbsent` stays for the one road of `spine_entry.manifest_entry()` that
+gives `None`, where the program holds no reason. The corrected program of the
+same condition said, on three lines of the screen, `The book gave no text of
+this chapter. The other chapters can be good. The machine said: [CannotRead -
+...]: corrupt deflate stream. The file of the log holds more. Press n for the
+next chapter.`, and the log named the file and the reason. The controls: the
+log held 2 lines of that fault at the first frame and 2 lines 15 seconds later,
+the message stood on the screen after those 15 seconds, the keys `n` and `p`
+each did their work, and the book of the file of the start gave the text of
+chapter 3 with no line of a fault at all.
+
+The test is `tests/a_chapter_that_did_not_come_says_why.rs`, of two tests, with
+no network and no sandbox: the book comes from `tests/data/alice.epub` of this
+repository, and the second test draws the real widget of the reader into a
+`Buffer` of 100 by 30 with no terminal at all and it does the work of the loop
+of the screen for 200 frames. The three builds of the fault each failed a test.
+
+The gates of v0.8.106, under `nice -n 19 ionice -c 3` with `-j 16`:
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
+`cargo nextest run` gives 1311 of 1311 in 2.9 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives 1337 of 1337 in 17.4 seconds with
+the sandbox up, and `cargo test -j 16 --no-fail-fast` passed in two runs.
+
 ## The session of the hundred and fifth turn of 2026-08-16: a disk that gave no book says why
 
 **One release: v0.8.105**, and one item: T-276. **The road of it is the
@@ -14315,64 +14384,148 @@ and a real login of `toutuitest` that gave the Home view of the library
   T-272): the block has a limit of size, therefore this turn names the new
   candidates alone and it does not repeat that list.
 
+### The turn of the hundred and third one of 2026-08-16 (T-274)
+
+**The
+session of the hundred and third turn read the candidate "The child of T-62
+that reads a PDF, and every other process of this program that has no
+terminal" of the newest item, and it closes that candidate with no
+measurement: `main` calls `the_child_of_the_line_of_command` before
+`ratatui`, therefore that child makes no terminal at all. The same read of
+that module found a different fault, of the words of the user** (T-274).
+
+`the_book_that_a_child_reads` of `src/logic/reader/pdf_of_a_child.rs` gave
+`ReaderError::ThePdfGivesNoPage` on **seven** roads, and the words of that
+value are `This PDF gives no page. The file can be damaged. Press h to go
+back.` Six of the seven roads say a reason that the program does not have
+(T-91).
+
+The measurement, of the real program v0.8.102 inside tmux against the
+sandbox, of the book `A Big Book Of A Scan` (a PDF of 47 megabytes of a scan
+of 60 pages). The key `e` gave `[pdf] a child read 60 page(s) in 47310 ms`
+and a file of the pages of 9171423 bytes beside the book. That file then went
+away, and `chmod 555` gave the directory of the cache of the ebooks no write:
+the condition of a disk that is full, of a file system that the machine gave
+back as read-only, and of a directory with no permission of a write. The key
+`e` of the same book then gave the screen
+
+```text
+This PDF gives no page. The file can be damaged. Press h to go back.
+```
+
+and the log of that same run gave
+
+```text
+[pdf] the child stopped with the code 3: toutui: the program did not write
+the pages: Permission denied (os error 13)
+```
+
+**The program held the reason in its hand, and it said a reason that it does
+not have.** The book was good: that same program read every one of its 60
+pages 90 seconds before.
+
+The correction is two values of `ReaderError`
+(`TheDiskTookNoPageOfThePdf(String)` and
+`ThePartThatReadsAPdfFailed(String)`), two constants of the code of the child
+(2 for a book that gives no page, and 3 for a disk that took no page), and
+`the_fault_of_the_answer_of_the_child(Option<i32>, &str)`. The corrected
+program of the same condition said `The disk did not take the pages of this
+PDF. The book is good. The machine said: Permission denied (os error 13).
+Make space on the disk, or give the program permission to write in its
+directory. Press h to go back.` The two controls: the same book of a
+directory that takes a write gave `page 1 of 60`, and `A Book That No Reader
+Reads` of the sandbox kept the true sentence of a book that gives no page,
+with the code 2 in the log.
+- **The exit code of a child process is the one road to the fault of the
+  user** (T-274): a parent that reads that code alone can name the disk, the
+  book, and the part that did not start apart. Ask of every process of this
+  program: how many faults does one value of its answer hold?
+- **A doc comment that names three faults of one value is the item** (T-274):
+  the comment of `ThePdfGivesNoPage` said "this value holds a child that
+  stopped, a child that gave a fault, and a file that `lopdf` cannot read",
+  and the words of that value name the file of the user alone. Read the doc
+  comments of an enum of a fault: each of them says how many roads it holds.
+- **A fixture of a PDF needs 537 bytes and no crate** (T-274):
+  `tests/fixtures/a_pdf_of_one_page.pdf` holds five objects and a table of
+  the places of them, therefore a test of the reader of a PDF needs no book
+  of the sandbox at all.
+- **The other values of `ReaderError`** (T-274, and they stay open):
+  `NotAnEpub`, `ChapterAbsent`, and `ChapterTooLarge` each say one reason,
+  and no measurement of this turn reached them. **This is a candidate and
+  not a measurement.**
+- **`let _ = out.read_to_string(&mut words)` and `let _ = child.kill()` of
+  the parent of that child** (T-274, and they stay open): a read of the words
+  that failed gives the user a sentence with no reason, and a kill that
+  failed leaves a process of the user. **This is a candidate and not a
+  measurement.**
+- **`let _ = self.auth()` of `src/ui/login_tui.rs` line 17 drops every fault
+  of the login screen** (T-272 to T-274): **T-275 closes it**, and the turn
+  above holds the measurement.
+- **Every candidate of the list of the turns below stays open** (T-229 to
+  T-273): the block has a limit of size, therefore this turn names the new
+  candidates alone and it does not repeat that list.
+
 ## The prompt for the next session
-**This session read the candidate "The three other values of `ReaderError`
-(`NotAnEpub`, `ChapterAbsent`, and `ChapterTooLarge`) each say one reason"**,
-which T-274 opened and which T-275 left open. **This turn holds `NotAnEpub`:
-the words of a book that is not an EPUB stood on the road of a good book that
-the disk refused.**
+**This session read the candidate "`ChapterAbsent` and `ChapterTooLarge` of
+`ReaderError`"**, which T-274 opened and which T-275 and T-276 each left open.
+**This turn holds `ChapterAbsent`: the words of a chapter that the archive does
+not hold stood on the road of a chapter that the archive gave no byte of, and
+the screen of that value never reached the user at all.**
 
-`Book::open` of `src/logic/reader/book.rs` began with
-`the_file_is_a_pdf(path)`, which held
-`let Ok(mut file) = std::fs::File::open(path) else { return false; };`: every
-fault of that open gave `false`. The road then reached
-`Epub::open(path).map_err(|_| ReaderError::NotAnEpub)?`, which dropped every
-reason too.
+Three faults of one screen. `Book::chapter_bytes` of
+`src/logic/reader/book.rs` held `Err(_) => Err(ReaderError::ChapterAbsent)` as
+the last arm of the match on `manifest_entry.copy_bytes(&mut writer)`, and that
+arm took no line of the log at all. `Reader::render_for` of
+`src/logic/reader/session.rs` read `!self.lines.is_empty()` as "the render came
+back", and a chapter that gave a fault gives no line: the render therefore
+started again at every frame, and `render_for` wrote `Reading…` over the
+message that `take_the_answer` had written one call before it, in the same
+frame. And the `Paragraph` of that message held no `wrap`.
 
-The measurement, of the real program v0.8.104 inside tmux against the sandbox,
-of the book `Alice in Wonderland` of the library `Books`. The control came
-first: the key `e` gave `Alice's Adventures in Wonderland — chapter 3 of 14 —
-4%`. The program stopped, `chmod 000` of the file of the cache of the ebooks
-gave the condition of a file that the disk refuses, and the key `e` of the same
-book of a new program gave `This file is not an EPUB.` **The book was good**,
-and the whole log of that run held one line of the fault, of the cache and not
-of the reader: `Permission denied (os error 13)`.
+The measurement, of the real program v0.8.105 inside tmux against the sandbox,
+of the book `Alice in Wonderland` of the library `Books`. 64 bytes of the
+deflate stream of one entry of the file of the cache of the ebooks each took
+the value of its own complement, and `touch -r` gave the time of the file back:
+the cache of the program kept that file. The key `e` gave
+`Alice's Adventures in Wonderland — chapter 3 of 14 — 3%` and the one word
+`Reading…`, and a poll of 24 looks of 250 milliseconds gave that word at every
+one of them. **The book was good**: the key `n` gave chapter 4 and its text.
 
-The correction: a value `ReaderError::TheDiskGaveNoBook(String)` and a function
-`the_file_starts_as_a_pdf(path) -> io::Result<bool>`, which gives the fault of
-the disk back. A file of fewer than five bytes is no PDF and no fault of the
-disk: that read gives `io::ErrorKind::UnexpectedEof`, and the function then
-gives `false`. `the_file_is_a_pdf` stays as
-`the_file_starts_as_a_pdf(path).unwrap_or(false)` for the one caller of the
-download, and `Epub::open` keeps `NotAnEpub` with its reason in the log. The
-corrected program of the same condition said `The disk did not give this book.
-The book can be good. The machine said: Permission denied (os error 13). Give
-the program permission to read the file of the book. The file of the log holds
-more. Press h to go back.` The two controls: the same book of a file of
-`chmod 644` gave chapter 3 of 14 again, and `A Book Of An Epub With No
-Container` kept `This file is not an EPUB.` with the reason of `rbook` in the
-log. The item is **T-276**, and it holds the release v0.8.105.
+The correction: a value `ReaderError::TheArchiveGaveNoChapter(String)` that
+holds the reason of the crate, a field
+`the_render_that_came: Option<(usize, u16)>` of `Reader` that says that the
+render came back, and a `.wrap(Wrap { trim: true })` of the `Paragraph` of the
+message. The corrected program of the same condition said `The book gave no
+text of this chapter. The other chapters can be good. The machine said:
+[CannotRead - ...]: corrupt deflate stream. The file of the log holds more.
+Press n for the next chapter.` The item is **T-277**, and it holds the release
+v0.8.106.
 
-Two things are worth the room:
+Three things are worth the room:
 
-1. **A build of the fault that passes is a build that removed a different
-   line.** The first attempt took the arm of `read_exact` of
-   `the_file_starts_as_a_pdf` and every test passed: the `?` of
-   `std::fs::File::open` is the correction, and that arm is not. A build of the
-   fault that says nothing is a measurement of the edit, and not of the program.
-2. **A `map_err(|_| ...)` of a crate holds more than one fault.** The fault of
-   the disk and the fault of the book each reached `NotAnEpub`. Ask of every
-   `map_err(|_|` of this program: how many roads does that one value hold, and
-   does the user read a reason that the program has?
+1. **A condition of the state that a fault cannot make is a loop.**
+   `render_for` read "the lines are not empty" for "the render came back", and
+   a render that failed gives no line. Ask of every "is it necessary" of this
+   program: does the answer of the work write the value that the condition
+   reads?
+2. **A message that a view never draws and a message that the view cuts are one
+   fault.** The correction of the value alone gave the user `The machine said:
+   [CannotRead` and no more.
+3. **The gate of the tests says which roads an arm holds.** The hostile file
+   `03-missing-target.epub` of the repository names a file that the archive
+   does not hold, and its read reaches the same arm of `copy_bytes`. The first
+   form of the correction said that the archive holds the chapter, and that was
+   a reason that the program does not have.
 
-The gates of v0.8.105, under `nice -n 19 ionice -c 3` with `-j 16`:
+The gates of v0.8.106, under `nice -n 19 ionice -c 3` with `-j 16`:
 `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
-`cargo nextest run` gives 1309 of 1309 in 3.0 seconds with 26 skipped, and
-`cargo test -j 16 --no-fail-fast` passed its binaries in two runs.
+`cargo nextest run` gives 1311 of 1311 in 2.9 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives 1337 of 1337 in 17.4 seconds, and
+`cargo test -j 16 --no-fail-fast` passed in two runs.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.105**; `Cargo.toml` is at 0.8.105. The
+> AlbanDAVID/Toutui. Newest release **v0.8.106**; `Cargo.toml` is at 0.8.106. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -15067,6 +15220,93 @@ The gates of v0.8.105, under `nice -n 19 ionice -c 3` with `-j 16`:
 >    this shape found a fault in one hundred and two sessions of one hundred and
 >    three.
 >    **The
+>    session of the hundred and sixth turn took the candidate "`ChapterAbsent`
+>    and `ChapterTooLarge` of `ReaderError`", which T-274 opened and which T-275
+>    and T-276 each left open. It reaches `ChapterAbsent`, and the screen of that
+>    value gave a fault of its own** (T-277).
+>
+>    Three faults of one screen. `Book::chapter_bytes` of
+>    `src/logic/reader/book.rs` held `Err(_) => Err(ReaderError::ChapterAbsent)`
+>    as the last arm of the match on `manifest_entry.copy_bytes(&mut writer)`:
+>    the sentence of that value is `This chapter is absent.`, and the arm took no
+>    line of the log at all. `Reader::render_for` of
+>    `src/logic/reader/session.rs` read `!self.lines.is_empty()` as "the render
+>    came back": a chapter that gave a fault gives no line, therefore the render
+>    started again at every frame. The loop of the screen calls
+>    `reader.take_the_answer()` (`src/ui/tui.rs:629`) and then the render, which
+>    calls `reader.render_for(inside.width)` (`src/ui/reader_tui.rs:122`): the
+>    first wrote the message of the fault, and the second wrote `Reading…` over
+>    it before the draw of that same frame. And the `Paragraph` of that message
+>    held no `wrap`, therefore a sentence longer than the width of the screen was
+>    cut.
+>
+>    The measurement, of the real program v0.8.105 inside tmux against the
+>    sandbox, of the book `Alice in Wonderland` of the library `Books`. 64 bytes
+>    of the deflate stream of the entry
+>    `OEBPS/6260297267691793459_11-h-1.htm.html` of the file of the cache of the
+>    ebooks each took the value of its own complement, 2000 bytes after the start
+>    of the data of that entry. The central directory and the local header kept
+>    every number, and `touch -r` gave the time of the file back: the cache of
+>    the program therefore kept that file. That entry is the spine 2, and the
+>    header of the reader calls it "chapter 3 of 14". The key `e` on that book
+>    gave
+>
+>    ```text
+>    Alice's Adventures in Wonderland — chapter 3 of 14 — 3%
+>                                    Reading…
+>    ```
+>
+>    and a poll of 24 looks of 250 milliseconds gave `Reading…` at every one of
+>    them. **The book was good**: the key `n` gave chapter 4 and the text of
+>    "CHAPTER II. The Pool of Tears", and the key `p` gave `Reading…` again.
+>
+>    The correction is a value `ReaderError::TheArchiveGaveNoChapter(String)`
+>    that holds the reason of the crate of the archive, a field
+>    `the_render_that_came: Option<(usize, u16)>` of `Reader` that
+>    `take_the_answer` writes and that `render_for` reads in the place of the
+>    lines, and a `.wrap(Wrap { trim: true })` of the `Paragraph` of the message.
+>    `ChapterAbsent` stays for the one road of `spine_entry.manifest_entry()`
+>    that gives `None`, where the program holds no reason. The corrected program
+>    of the same condition said `The book gave no text of this chapter. The other
+>    chapters can be good. The machine said: [CannotRead - ...]: corrupt deflate
+>    stream. The file of the log holds more. Press n for the next chapter.` on
+>    three lines, and the log named the file and the reason. The controls: the
+>    log held 2 lines of that fault at the first frame and 2 lines 15 seconds
+>    later, the message stood on the screen after those 15 seconds, the keys `n`
+>    and `p` each did their work, and the book of the file of the start gave the
+>    text of chapter 3 with no line of a fault at all.
+>    - **A message that a view never draws and a message that the view cuts are
+>      one fault** (T-277): the correction of the value gave the user
+>      `The machine said: [CannotRead` and no more, because the `Paragraph` of
+>      that message held no `wrap`. Ask of every message of a view: does the
+>      widget of it hold a `wrap`, and how long is the longest sentence that
+>      reaches it?
+>    - **A condition of the state that a fault cannot make is a loop** (T-277):
+>      `render_for` read "the lines are not empty" for "the render came back",
+>      and a render that failed gives no line. Ask of every "is it necessary"
+>      of this program: does the answer of the work write the value that the
+>      condition reads, or does the condition read a value that only the work
+>      that succeeded writes?
+>    - **The gate of the tests says which roads an arm holds** (T-277): the
+>      hostile file `03-missing-target.epub` names a file of the manifest that
+>      the archive does not hold, and its read reaches the same arm of
+>      `copy_bytes`. The first form of the correction said in its doc comment
+>      that the archive holds the chapter, and that was a reason that the
+>      program does not have.
+>    - **`ChapterTooLarge` of `ReaderError`** (T-277, and it stays open) says one
+>      reason still, and no measurement of this turn reached it. **This is a
+>      candidate and not a measurement.**
+>    - **Every other `Paragraph` of a message of this program that holds no
+>      `wrap`** (T-277, and they stay open) can cut a sentence that says why.
+>      **This is a candidate and not a measurement.**
+>    - **`chapter_sizes` gives 0 for a chapter that failed** (T-277, and it stays
+>      open), and it says nothing at all. **This is a candidate and not a
+>      measurement.**
+>    - **Every candidate of the list of the turns below stays open** (T-229 to
+>      T-276): the block has a limit of size, therefore this turn names the new
+>      candidates alone and it does not repeat that list.
+>
+>    **The
 >    session of the hundred and fifth turn took the candidate "The three other
 >    values of `ReaderError` (`NotAnEpub`, `ChapterAbsent`, and
 >    `ChapterTooLarge`) each say one reason", which T-274 opened and which T-275
@@ -15121,11 +15361,8 @@ The gates of v0.8.105, under `nice -n 19 ionice -c 3` with `-j 16`:
 >      fault of the disk and the fault of the book each reached `NotAnEpub`. Ask
 >      of every `map_err(|_|` of this program: how many roads does that one value
 >      hold, and does the user read a reason that the program has?
->    - **`ChapterAbsent` and `ChapterTooLarge` of `ReaderError`** (T-276, and they
->      stay open): `chapter_bytes` gives `ChapterAbsent` for every fault of
->      `copy_bytes` that is not the limit, therefore an I/O fault of the archive
->      says that the chapter is absent. **This is a candidate and not a
->      measurement.**
+>    - **`ChapterAbsent` of `ReaderError`**: **T-277 closes it**, and the turn
+>      above holds the measurement. `ChapterTooLarge` stays open.
 >    - **`if let Ok(data) = std::fs::metadata(path)` of `Book::open`** (T-276, and
 >      it stays open) drops the fault of the disk still, and the read of the five
 >      bytes reaches that condition first. **This is a candidate and not a
@@ -15201,92 +15438,13 @@ The gates of v0.8.105, under `nice -n 19 ionice -c 3` with `-j 16`:
 >      a road of their own, and this turn measured `term.draw()` alone. **This
 >      is a candidate and not a measurement.**
 >    - **The three other values of `ReaderError`** (`NotAnEpub`,
->      `ChapterAbsent`, and `ChapterTooLarge`) each say one reason (T-274, and
->      they stay open). **This is a candidate and not a measurement.**
+>      `ChapterAbsent`, and `ChapterTooLarge`): **T-276 closes `NotAnEpub` and
+>      T-277 closes `ChapterAbsent`**, and `ChapterTooLarge` stays open.
 >    - **`let _ = out.read_to_string(&mut words)` and `let _ = child.kill()` of
 >      the parent of the child that reads a PDF** (T-274, and they stay open).
 >      **This is a candidate and not a measurement.**
 >    - **Every candidate of the list of the turns below stays open** (T-229 to
 >      T-274): the block has a limit of size, therefore this turn names the new
->      candidates alone and it does not repeat that list.
->
->    **The
->    session of the hundred and third turn read the candidate "The child of T-62
->    that reads a PDF, and every other process of this program that has no
->    terminal" of the newest item, and it closes that candidate with no
->    measurement: `main` calls `the_child_of_the_line_of_command` before
->    `ratatui`, therefore that child makes no terminal at all. The same read of
->    that module found a different fault, of the words of the user** (T-274).
->
->    `the_book_that_a_child_reads` of `src/logic/reader/pdf_of_a_child.rs` gave
->    `ReaderError::ThePdfGivesNoPage` on **seven** roads, and the words of that
->    value are `This PDF gives no page. The file can be damaged. Press h to go
->    back.` Six of the seven roads say a reason that the program does not have
->    (T-91).
->
->    The measurement, of the real program v0.8.102 inside tmux against the
->    sandbox, of the book `A Big Book Of A Scan` (a PDF of 47 megabytes of a scan
->    of 60 pages). The key `e` gave `[pdf] a child read 60 page(s) in 47310 ms`
->    and a file of the pages of 9171423 bytes beside the book. That file then went
->    away, and `chmod 555` gave the directory of the cache of the ebooks no write:
->    the condition of a disk that is full, of a file system that the machine gave
->    back as read-only, and of a directory with no permission of a write. The key
->    `e` of the same book then gave the screen
->
->    ```text
->    This PDF gives no page. The file can be damaged. Press h to go back.
->    ```
->
->    and the log of that same run gave
->
->    ```text
->    [pdf] the child stopped with the code 3: toutui: the program did not write
->    the pages: Permission denied (os error 13)
->    ```
->
->    **The program held the reason in its hand, and it said a reason that it does
->    not have.** The book was good: that same program read every one of its 60
->    pages 90 seconds before.
->
->    The correction is two values of `ReaderError`
->    (`TheDiskTookNoPageOfThePdf(String)` and
->    `ThePartThatReadsAPdfFailed(String)`), two constants of the code of the child
->    (2 for a book that gives no page, and 3 for a disk that took no page), and
->    `the_fault_of_the_answer_of_the_child(Option<i32>, &str)`. The corrected
->    program of the same condition said `The disk did not take the pages of this
->    PDF. The book is good. The machine said: Permission denied (os error 13).
->    Make space on the disk, or give the program permission to write in its
->    directory. Press h to go back.` The two controls: the same book of a
->    directory that takes a write gave `page 1 of 60`, and `A Book That No Reader
->    Reads` of the sandbox kept the true sentence of a book that gives no page,
->    with the code 2 in the log.
->    - **The exit code of a child process is the one road to the fault of the
->      user** (T-274): a parent that reads that code alone can name the disk, the
->      book, and the part that did not start apart. Ask of every process of this
->      program: how many faults does one value of its answer hold?
->    - **A doc comment that names three faults of one value is the item** (T-274):
->      the comment of `ThePdfGivesNoPage` said "this value holds a child that
->      stopped, a child that gave a fault, and a file that `lopdf` cannot read",
->      and the words of that value name the file of the user alone. Read the doc
->      comments of an enum of a fault: each of them says how many roads it holds.
->    - **A fixture of a PDF needs 537 bytes and no crate** (T-274):
->      `tests/fixtures/a_pdf_of_one_page.pdf` holds five objects and a table of
->      the places of them, therefore a test of the reader of a PDF needs no book
->      of the sandbox at all.
->    - **The other values of `ReaderError`** (T-274, and they stay open):
->      `NotAnEpub`, `ChapterAbsent`, and `ChapterTooLarge` each say one reason,
->      and no measurement of this turn reached them. **This is a candidate and
->      not a measurement.**
->    - **`let _ = out.read_to_string(&mut words)` and `let _ = child.kill()` of
->      the parent of that child** (T-274, and they stay open): a read of the words
->      that failed gives the user a sentence with no reason, and a kill that
->      failed leaves a process of the user. **This is a candidate and not a
->      measurement.**
->    - **`let _ = self.auth()` of `src/ui/login_tui.rs` line 17 drops every fault
->      of the login screen** (T-272 to T-274): **T-275 closes it**, and the turn
->      above holds the measurement.
->    - **Every candidate of the list of the turns below stays open** (T-229 to
->      T-273): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
 >
 >    **The turns before those three stand in `## The turns before the three
@@ -15777,7 +15935,11 @@ The gates of v0.8.105, under `nice -n 19 ionice -c 3` with `-j 16`:
 > the read of the five bytes that say the form of a file holds the reason of the
 > machine, the words of a book that is not an EPUB stay for a file that the disk
 > gave and that no reader opens, and the reason of that reader takes a line of
-> the log** (T-276).
+> the log** (T-276), and **a chapter that the book did not give says why: the
+> reason of the crate of the archive is the one reason of a chapter that gave no
+> byte, the render of a chapter that gave a fault does not start again because
+> that fault gives no line, and a message of a view that is longer than one line
+> stands on more than one line** (T-277).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

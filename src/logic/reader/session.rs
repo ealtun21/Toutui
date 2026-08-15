@@ -71,6 +71,13 @@ pub struct Reader {
     rendered_width: u16,
     /// The chapter that the task renders now.
     waiting_for: Option<usize>,
+    /// The chapter and the width of the answer that came back.
+    ///
+    /// **A chapter that gave a fault gives no line** (T-277), therefore the
+    /// lines cannot say that the render came back. Without this mark the render
+    /// starts again at every frame, and the message of the fault goes away
+    /// before the user reads it: the screen then says "Reading…" for ever.
+    the_render_that_came: Option<(usize, u16)>,
     /// A message for the user: "Reading…", or the reason of a failure.
     pub message: Option<String>,
     /// The table of contents. The key `t` shows it.
@@ -211,6 +218,7 @@ impl Reader {
             waiting_place: None,
             rendered_width: 0,
             waiting_for: None,
+            the_render_that_came: None,
             message: None,
             contents_open: false,
             contents_line: 0,
@@ -276,6 +284,7 @@ impl Reader {
             self.places = answer.places;
             self.message = answer.message;
             self.waiting_for = None;
+            self.the_render_that_came = Some((answer.chapter, answer.width));
 
             // A place of the web reader waited for these lines. The reader now
             // knows the letters of each line, therefore it knows the line.
@@ -307,8 +316,12 @@ impl Reader {
             return;
         }
 
-        let same =
-            width == self.rendered_width && self.waiting_for.is_none() && !self.lines.is_empty();
+        // **The answer of the render, and not the lines, says that the render
+        // came back** (T-277): a chapter that gave a fault gives no line, and a
+        // condition of the lines therefore starts the render again at every
+        // frame. The message of that fault then goes away in the same frame
+        // that made it, and the user reads "Reading…" for ever.
+        let same = self.the_render_that_came == Some((self.chapter, width));
 
         if same || self.waiting_for == Some(self.chapter) && width == self.rendered_width {
             return;
@@ -374,6 +387,9 @@ impl Reader {
         self.waiting_place = None;
         self.rendered_width = 0;
         self.waiting_for = None;
+        // The reader comes back to a chapter that it read already, therefore
+        // this mark goes away with the lines that it names (T-277).
+        self.the_render_that_came = None;
         self.message = Some("Reading…".to_string());
     }
 

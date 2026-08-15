@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.106",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The reader says why a chapter gives no text, and it does not \
+             say \"Reading…\" for ever.** A chapter of a book that Toutui \
+             cannot read gives no line. The reader read that condition as \
+             \"the text is not ready\", therefore it started the read again at \
+             every frame and the message of the fault went away before you \
+             read it: the screen said \"Reading…\" and it did not change. \
+             Toutui says now what the machine said of that chapter, it says \
+             that the other chapters can be good, and it names the key that \
+             goes to the next chapter. The message stays on the screen, and \
+             the file of the log holds the reason. A message that is longer \
+             than one line stands now on more than one line.",
+        ],
+    },
+    Entry {
         version: "0.8.105",
         date: "16/08/2026",
         body: &[
