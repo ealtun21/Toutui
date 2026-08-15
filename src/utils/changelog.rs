@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.68",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The panel of a line of a media that plays kept the place of \
+             the moment of the request of the view.** The panel said \
+             `Progress: 37%, 5h left` while the row of the player of the same \
+             screen said `4:13:12 / 8:00:00 | Left: 3:46:48 (53%)`. The panel \
+             of the Home view, and the panel of the two views of the episodes \
+             of a podcast, read the place of the playback now.",
+        ],
+    },
+    Entry {
         version: "0.8.67",
         date: "15/08/2026",
         body: &[

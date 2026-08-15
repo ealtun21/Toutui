@@ -7005,6 +7005,131 @@ impl App {
         }
     }
 
+    /// Gives the place of the panel of the selected line of the Home view.
+    /// See T-239.
+    ///
+    /// The box of `book_progress_cnt_list` holds the answer of the request of
+    /// the start, and the playback of this same program moves the media of its
+    /// own line away from that answer at each second. The length of the media
+    /// comes of the list of the durations for a library of books, and of
+    /// `the_lengths_of_the_episodes_of_the_home_view` for a library of
+    /// podcasts (T-236).
+    pub fn the_place_of_the_panel_of_the_home_view(
+        &self,
+        selected: usize,
+    ) -> crate::logic::the_panel_of_a_line::ThePlaceOfThePanel {
+        let key = crate::logic::home_view::the_key_of_the_line(
+            &self._ids_cnt_list,
+            &self.ids_ep_cnt_list,
+            selected,
+        );
+
+        let plays_now = key
+            .as_ref()
+            .zip(self.playing_media().as_ref())
+            .is_some_and(|(key, playing)| key == playing);
+
+        let length = if self.is_podcast {
+            self.the_lengths_of_the_episodes_of_the_home_view
+                .get(selected)
+                .copied()
+                .flatten()
+        } else {
+            self.duration_cnt_list.get(selected).copied()
+        };
+
+        let the_time_of_the_row = crate::utils::convert_seconds::convert_seconds_for_prg(
+            self.duration_cnt_list.get(selected).copied().unwrap_or(0.0),
+            self.book_progress_cnt_list_cur_time
+                .get(selected)
+                .and_then(|row| row.first())
+                .copied()
+                .unwrap_or(0.0),
+        );
+
+        crate::logic::the_panel_of_a_line::the_place_of_the_panel(
+            plays_now,
+            self.the_place_of_the_playback(),
+            length,
+            the_part_of_the_row(&self.book_progress_cnt_list, selected, 0),
+            &the_time_of_the_row,
+            the_part_of_the_row(&self.book_progress_cnt_list, selected, 1),
+        )
+    }
+
+    /// Gives the place of the panel of the selected line of the view of the
+    /// episodes of a podcast. See T-239.
+    ///
+    /// The panel of that view names no time that is left (T-229), therefore
+    /// the percent and the mark of the end are the two values that it says.
+    pub fn the_place_of_the_panel_of_the_episodes(
+        &self,
+        selected: usize,
+    ) -> crate::logic::the_panel_of_a_line::ThePlaceOfThePanel {
+        self.the_place_of_the_panel_of_this_podcast(
+            self.the_podcast_of_the_episodes(),
+            &self.ids_pod_ep,
+            &self.pod_ep_places,
+            &self.the_lengths_of_the_episodes,
+            selected,
+        )
+    }
+
+    /// The same place for the view of the episodes of a podcast of a search.
+    /// See T-239.
+    pub fn the_place_of_the_panel_of_the_episodes_of_a_search(
+        &self,
+        selected: usize,
+    ) -> crate::logic::the_panel_of_a_line::ThePlaceOfThePanel {
+        self.the_place_of_the_panel_of_this_podcast(
+            self.the_podcast_of_the_episodes_of_a_search(),
+            &self.ids_pod_ep_search,
+            &self.pod_ep_places_search,
+            &self.the_lengths_of_the_episodes_search,
+            selected,
+        )
+    }
+
+    /// Makes the place of the panel of one line of a view of the episodes of a
+    /// podcast. See T-239.
+    ///
+    /// **The key of a line of that view names the episode after the podcast**
+    /// (T-229): the identity of the item names every episode of one podcast,
+    /// therefore a key of the item alone gives the place of the engine to every
+    /// line of the podcast that plays.
+    fn the_place_of_the_panel_of_this_podcast(
+        &self,
+        podcast_id: Option<String>,
+        ids: &[String],
+        places: &[Vec<String>],
+        lengths: &[Option<f64>],
+        selected: usize,
+    ) -> crate::logic::the_panel_of_a_line::ThePlaceOfThePanel {
+        // A podcast that the lists of the library no longer hold gives no key
+        // at all, and the panel then keeps the values of the row.
+        let key = podcast_id.zip(
+            ids.get(selected)
+                .filter(|one| !one.is_empty())
+                .map(String::as_str),
+        );
+
+        let plays_now = key
+            .map(|(podcast, episode)| {
+                crate::logic::live::the_key_of_the_media(&podcast, Some(episode))
+            })
+            .zip(self.playing_media())
+            .is_some_and(|(key, playing)| key == playing);
+
+        crate::logic::the_panel_of_a_line::the_place_of_the_panel(
+            plays_now,
+            self.the_place_of_the_playback(),
+            lengths.get(selected).copied().flatten(),
+            the_part_of_the_row(places, selected, 0),
+            "",
+            the_part_of_the_row(places, selected, 1),
+        )
+    }
+
     /// Gives the text of each line of the view `Home`.
     ///
     /// Every line starts with a mark: the media that plays, a media that the
@@ -8508,6 +8633,18 @@ impl App {
             }
         }
     }
+}
+
+/// Reads one text of a list of lists of a view. See T-239.
+///
+/// A line that the lists of a view do not hold says `N/A`, as the panel of the
+/// render said it before this function: `at_part` of `src/ui/tui.rs` gave that
+/// same word, and the panel now reads the place of one function alone.
+fn the_part_of_the_row(list: &[Vec<String>], index: usize, part: usize) -> &str {
+    list.get(index)
+        .and_then(|row| row.get(part))
+        .map(|value| value.as_str())
+        .unwrap_or("N/A")
 }
 
 /// Gives the progress that the server holds for one media, or the fault that

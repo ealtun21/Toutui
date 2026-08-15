@@ -331,22 +331,6 @@ fn at_number(list: &[f64], index: usize) -> f64 {
     list.get(index).copied().unwrap_or(0.0)
 }
 
-/// Reads one text of a list of lists of the screen. See `at`.
-fn at_part(list: &[Vec<String>], index: usize, part: usize) -> &str {
-    list.get(index)
-        .and_then(|row| row.get(part))
-        .map(|value| value.as_str())
-        .unwrap_or("N/A")
-}
-
-/// Reads one number of a list of lists of the screen. See `at`.
-fn at_number_part(list: &[Vec<f64>], index: usize, part: usize) -> f64 {
-    list.get(index)
-        .and_then(|row| row.get(part))
-        .copied()
-        .unwrap_or(0.0)
-}
-
 /// Gives the label of the copy of the disk of one media. See T-203 and T-204.
 ///
 /// **A read of the disk that failed is not a media with no copy on the disk**
@@ -2497,6 +2481,12 @@ impl App {
                 // at 10 percent of the server. The row of the place of an
                 // episode holds no length of the media that the program reads as
                 // a number, therefore this paragraph names no time that is left.
+                //
+                // **The panel of a media that plays reads the engine of this
+                // program** (T-239): see
+                // `App::the_place_of_the_panel_of_the_home_view`.
+                let place = self.the_place_of_the_panel_of_the_home_view(selected);
+
                 Paragraph::new(format!(
                     "[{}] - Author: {} - Episode: {} - Duration: {}{}\nProgress: {}%, {}",
                     at(&self.titles_pod_cnt_list, selected),
@@ -2504,26 +2494,30 @@ impl App {
                     at(&self.nums_ep_pod_cnt_list, selected),
                     at(&self.durations_pod_cnt_list, selected),
                     of_the_disk,
-                    at_part(&self.book_progress_cnt_list, selected, 0),
-                    at_part(&self.book_progress_cnt_list, selected, 1),
+                    place.percent,
+                    place.the_end,
                 ))
                 .wrap(Wrap { trim: true })
                 .left_aligned()
                 .render(area, buf);
             } else {
                 let of_the_disk = the_copy_of_the_disk(at(&self._ids_cnt_list, selected));
+
+                // **The panel of a media that plays reads the engine of this
+                // program** (T-239). The panel said `Progress: 37%, 5h left`
+                // while the row of the player of that same frame said
+                // `▶ 4:13:12 / 8:00:00 | Left: 3:46:48 (53%)`.
+                let place = self.the_place_of_the_panel_of_the_home_view(selected);
+
                 Paragraph::new(format!(
                     "Author: {} - Year: {} - Duration: {}{}\nProgress: {}%, {} {}",
                     at(&self.auth_names_cnt_list, selected),
                     at(&self.pub_year_cnt_list, selected),
                     at(&duration_cnt_list_conv, selected),
                     of_the_disk,
-                    at_part(&self.book_progress_cnt_list, selected, 0), // percentage progression
-                    convert_seconds_for_prg(
-                        at_number(&self.duration_cnt_list, selected),
-                        at_number_part(&self.book_progress_cnt_list_cur_time, selected, 0)
-                    ), // time left
-                    at_part(&self.book_progress_cnt_list, selected, 1), // is finished
+                    place.percent,               // percentage progression
+                    place.the_time_that_is_left, // time left
+                    place.the_end,               // is finished
                 ))
                 .wrap(Wrap { trim: true })
                 .left_aligned()
@@ -2672,6 +2666,11 @@ impl App {
                     // reads as a number, therefore this paragraph names no time
                     // that is left, as the panel of a line of a podcast of the
                     // Home view names none (T-228).
+                    //
+                    // **The panel of a media that plays reads the engine of
+                    // this program** (T-239).
+                    let place = self.the_place_of_the_panel_of_the_episodes(selected);
+
                     Paragraph::new(format!(
                         "[{}] - Author: {} - Episode: {} - Duration: {}{}\nProgress: {}%, {}",
                         at(&duplicated_titles, selected).trim(),
@@ -2679,8 +2678,8 @@ impl App {
                         at(&self.episodes_pod_ep, selected).trim(),
                         at(&self.durations_pod_ep, selected).trim(),
                         of_the_disk,
-                        at_part(&self.pod_ep_places, selected, 0),
-                        at_part(&self.pod_ep_places, selected, 1),
+                        place.percent,
+                        place.the_end,
                     ))
                     .wrap(Wrap { trim: true })
                     .left_aligned()
@@ -2714,7 +2713,9 @@ impl App {
                 .unwrap_or("");
 
             // The panel of this view says the place of the user too. See
-            // T-229.
+            // T-229, and T-239 for the media that plays.
+            let place = self.the_place_of_the_panel_of_the_episodes_of_a_search(selected);
+
             Paragraph::new(format!(
                 "[{}] - Author: {} - Episode: {} - Duration: {}{}\nProgress: {}%, {}",
                 at(&duplicated_titles_search, selected).trim(),
@@ -2722,8 +2723,8 @@ impl App {
                 at(&self.episodes_pod_ep_search, selected).trim(),
                 at(&self.durations_pod_ep_search, selected).trim(),
                 of_the_disk,
-                at_part(&self.pod_ep_places_search, selected, 0),
-                at_part(&self.pod_ep_places_search, selected, 1),
+                place.percent,
+                place.the_end,
             ))
             .wrap(Wrap { trim: true })
             .left_aligned()

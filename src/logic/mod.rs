@@ -31,6 +31,7 @@ pub mod the_episodes;
 pub mod the_ereaders;
 pub mod the_files_of_a_media;
 pub mod the_lists;
+pub mod the_panel_of_a_line;
 pub mod the_playback;
 pub mod the_positions;
 pub mod the_requests_of_the_start;

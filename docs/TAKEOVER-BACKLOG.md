@@ -16531,3 +16531,133 @@ them names the playback of this program.
   this item did not close it).
 - **The panel of a line of an episode says the length of the media and not the
   time that is left** (T-236 to T-238, and it stays open).
+
+### T-239: the panel of a line of a media that plays holds the place of the engine
+
+**This item measures the second paragraph of "What this item leaves open" of
+T-238: the percent of the line of the media that plays comes of the row of the
+request.** The mark of a line of the view of the queue says `▶` for that media
+and no number at all (`crate::ui::marks::of_progress` gives the mark of the
+playback in the place of the percent), therefore that percent stands behind no
+number that the user can read. **The panel of a line says that same value with
+a number**, and the measurement found it there.
+
+#### The measurement
+
+The real program v0.8.67 inside tmux, against the sandbox (podman on :13399).
+The server held `A Book Of Many Hours` at 10800 seconds of 28800
+(`PATCH /api/me/progress/6ba57b9a…`, and the percent of that row stood at 37).
+The user played it with the key `l` of the Home view, and 75 seconds later (the
+null device plays 8 hours in about six minutes) one frame of one screen said:
+
+```text
+➤ ▶   A Book Of Many Hours
+Author: Many Hours Author - Year: N/A - Duration: 8h
+Progress: 37%, 5h left, Not finished
+           ▶ 4:13:12 / 8:00:00 | Elapsed: 4:13:12 | Left: 3:46:48 (53%) | Speed: 1.00x
+```
+
+**The panel of the line and the row of the player of that same frame said two
+places of one media**, and the difference was one hour and four minutes, and 16
+percent.
+
+**The control of the same run** (the trap 206): the mark `▶` stood on that line
+at each frame, therefore the view knew which media plays; and the row of the
+player of that same screen said the true place, therefore the program holds it.
+
+#### The fault of the source
+
+- `render_info` of `src/ui/tui.rs` read `App::book_progress_cnt_list` and
+  `App::book_progress_cnt_list_cur_time` for the percent, the time that is
+  left, and the mark of the end of the panel of the Home view. Those boxes hold
+  the answer of the request of the start and of the key `R`, and no other road
+  writes them.
+- The two panels of the views of the episodes of a podcast read
+  `App::pod_ep_places` and `App::pod_ep_places_search` in the same way (T-229).
+- **The playback of this same program takes no road back to those boxes**: it
+  writes the place of the user to the server, and the server sends no message
+  of that place to the client that wrote it (T-235). The engine holds the value
+  at each second in `PlaybackState::position`, and the row of the player of the
+  same screen reads it already.
+
+#### The correction
+
+- `crate::logic::the_panel_of_a_line::the_place_of_the_panel` is the rule, and
+  it is pure: **the place of the engine for the panel of the media that plays,
+  and the values of the row for every other line.** It gives the percent, the
+  time that is left, and the mark of the end together.
+- **A place of 0 is a playback that did not begin** (T-238): the screen says
+  `Loading the media...` in that moment, and the panel then keeps the row.
+- **A length of 0, and a length that the server did not give, are one thing**
+  (T-180): the program makes no percent and no time of a place with no length,
+  therefore the panel keeps the row. The length of a book comes of
+  `App::duration_cnt_list`, and the length of an episode comes of
+  `App::the_lengths_of_the_episodes` and of the two lists beside it (T-236).
+- **The mark of the end of the row belongs to the place of the row** (T-238): a
+  media that the user finished and that plays again says the percent and the
+  time of the place of the engine.
+- `App::the_place_of_the_panel_of_the_home_view`,
+  `App::the_place_of_the_panel_of_the_episodes`, and
+  `App::the_place_of_the_panel_of_the_episodes_of_a_search` give that place to
+  the three panels. **The key of a line of a view of episodes names the episode
+  after the podcast** (T-229): a key of the item alone gives the place of the
+  engine to every line of the podcast that plays.
+- `tests/the_panel_of_a_line_holds_the_place_of_the_playback.rs` holds the rule,
+  in one function (T-144 and T-157). **Five builds of the fault each fail it**:
+  a panel that keeps the row for the media that plays, a panel of every line
+  that takes the place of the engine, a place of 0 that reaches the panel, a
+  length of 0 that makes a percent, and a mark of the end of the row that stands
+  over the place of the engine.
+
+The same measurement of the corrected program, at one frame of one run (the row
+of the server stood at 26 percent and at 10800 seconds):
+
+```text
+➤ ▶   A Book Of Many Hours
+Author: Many Hours Author - Year: N/A - Duration: 8h
+Progress: 50%, 3h59m left, Not finished
+           ▶ 4:00:57 / 8:00:00 | Elapsed: 4:00:57 | Left: 3:59:03 (50%) | Speed: 1.00x
+```
+
+And the panel of the view of the episodes of `Arthur Gordon Pym`, for
+`Chapter 02`, which stood at 32 percent of the server:
+
+```text
+[Arthur Gordon Pym] - Author: LibriVox - Episode: 2 - Duration: 39m
+Progress: 50%, Not finished
+           ⏸ 19:28 / 38:56 | Elapsed: 19:28 | Left: 19:28 (50%) | Speed: 1.00x
+```
+
+**The decision, and the reason for it: every value of a view that names the
+place of a media that plays reads the engine of this program.** T-238 gave that
+rule to the line of the view of the queue, and the panel of a line is the second
+place that says such a value. The program holds the newer value already,
+therefore the correction costs no request at all.
+
+#### What this item leaves open
+
+- **The panel of a line reads no live message of the server** (T-239): the
+  render of the line of the Home view takes the row of a message over the row of
+  the request (T-47 and T-235), and the panel of that same line reads the box of
+  the request alone. A second client of the account that moves in a media that
+  no playback of this program holds therefore changes the line and not the panel
+  of it. **This item did not measure that road.**
+- **The panel of a line of a book of the Library view and of the view of the
+  search says no place at all** (T-239): those two panels name the author and
+  the year, and the lines of them hold the percent of the user already.
+- **A media of the queue that no playback of this program moves keeps the place
+  of the moment of the key `q`** (T-230 to T-239, and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-239, and it stays open).
+- **The lines of the view of the search and of the view of the lists hold no
+  place at all** (T-228 to T-239, and it stays open).
+- **The view of the queue of the offline mode is not measured** (T-230 to
+  T-239).
+- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone** (T-226 to
+  T-239, and it stays open).
+- **The key `X` of the view of the bookmarks of a podcast** removes a place of
+  another episode with the same words (T-223 to T-239 each left it open, and
+  this item did not close it).
+- **The panel of a line of an episode says the length of the media and not the
+  time that is left** (T-236 to T-239, and it stays open): the format of that
+  panel names no time, and the program holds the length as a number now.
