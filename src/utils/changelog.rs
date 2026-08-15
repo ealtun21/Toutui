@@ -41,6 +41,25 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.75",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key of the playback of the view of the episodes of a \
+             podcast of a search did nothing, and it said nothing.** The \
+             program reads the episodes of a podcast when the user opens it, \
+             therefore the answer of that podcast comes after the view of the \
+             search goes away, and the key of the playback read a list that \
+             the render of the view of the search writes. A user who looked \
+             for a podcast, who opened it, and who pressed the key of the \
+             playback on a line of it got no playback, no message, and no \
+             line of the log at all, while the key `D` of that same line took \
+             the file of that same episode from the server. The keys of that \
+             view read the list of that view now, and a playback that does \
+             not start says why.",
+        ],
+    },
+    Entry {
         version: "0.8.74",
         date: "15/08/2026",
         body: &[

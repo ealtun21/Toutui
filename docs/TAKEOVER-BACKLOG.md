@@ -17664,3 +17664,134 @@ holds no place at all.
 - **The line of the Library view of a library of podcasts says no place at
   all** (T-242 to T-245, and it stays open): a podcast holds more than one
   episode, and the line of it names no episode (T-221).
+
+### T-246: the key of the playback of the view of the episodes of a search
+
+**This item closes the first bullet of "What this item leaves open" of
+T-245: the keys of the view of the episodes of a search read
+`ids_pod_ep_search`.** The measurement of this round found that the key of the
+playback of that view is the worst of them: it did not name the wrong episode,
+it named none at all, and the playback did not start.
+
+#### The measurement
+
+The real program v0.8.74, driven inside tmux by `docs/harness/drive.sh`,
+against the sandbox (podman on :13399), with the library `Podcasts` and the
+podcast `Letters of Two Brides` of 57 episodes.
+
+The key `/`, the word `letters`, the key `Enter`, and the key `l` (it opens
+the podcast of the one line that the search found), then two keys `j`, gave
+this screen:
+
+```text
+──────────────────── Episodes [57 items] ────────────────────
+      Letter 1
+      Letter 2
+➤     Letter 3
+```
+
+The key `l` of that line gave no row of the player, and no message at all:
+**the log held 11 lines before that key and 11 lines after it.**
+
+**The control of the same run** (the trap 206): the key `D` of that same line
+of that same frame said `"Letter 3" is now available offline.` And the key
+`h` and the key `l` of the view of the search gave that same view a second
+time, where the same key `l` of the same line started the playback and wrote
+five lines in the log, of which
+`[play] the item 9fa45bd1-66bc-4c17-ba49-a5a6a5ec8806 starts at 0 seconds with 1 tracks`
+and `[worker] the playback starts at 0 seconds`.
+
+#### The road (the fault)
+
+The two ways into `AppView::PodcastEpisode` hold their episodes in two lists:
+`ids_pod_ep` (the Library view) and `ids_pod_ep_search` (the view of the
+search). `selected_download` reads the second one, therefore the keys `D`,
+`X`, `n`, `m`, `M`, `N`, `V`, and `@` of that view name the episode of the
+line.
+
+The key of the playback read `all_ids_pod_ep_search` instead (`src/app.rs`),
+with an index of a vector and not `get`. The render of the view of the
+**search** writes that box (`src/ui/tui.rs:2175`), out of `all_ids_pod_ep` of
+the library.
+
+The program reads the episodes of a podcast when the user opens it (T-126).
+The answer of a podcast that the user opens the first time therefore comes
+**after** the view of the search went away, and that box holds no episode of
+that podcast until the render of the view of the search runs again. That is
+why the second open of the same podcast played.
+
+The same key took the episodes of the view away before it read them: the
+block of the key `l` that opens a podcast wrote `self.ids_pod_ep_search` out
+of that same empty box at **every** key `l`, and the view of the episodes is
+one of the views that this key reaches.
+
+#### The correction
+
+`App::the_episode_of_the_line_of_the_episodes` gives the identity of the
+episode of the line: `ids_pod_ep_search` for the view of the search, and
+`ids_pod_ep` for the Library view — the lists that the view draws and that
+every other key of it reads. The key of the playback calls it, and the
+unchecked index of a vector goes away.
+
+The block of the key `l` that gives the lists of a podcast runs for a view
+that is not `AppView::PodcastEpisode`: that key opens the episodes of a
+podcast, and the user stands in the view before that one.
+
+A playback that did not start says why (T-167): the key says
+`This line holds no episode. Press h, and then l for the episodes again.` It
+said nothing at all.
+
+#### The measurement of the corrected program
+
+The same keys of the same sandbox gave, at the **first** open of that
+podcast, the row of the player
+`▶ 9:04 / 10:54 | Elapsed: 9:04 | Left: 1:50 (83%) | Speed: 1.00x`, the mark
+`▶` of the line `Letter 3`, and five lines of the log where the program held
+11 before. A second measurement of the same run gave the keys `D`, `X`, and
+`l` of the line `Letter 4` of that same view: `"Letter 4" is now available
+offline.`, `Removed the local copy of "Letter 4".`, and the mark `▶` of that
+same line. The road of the Library view gave the same podcast, the same
+line, and the same playback.
+
+#### The test
+
+`tests/the_keys_of_the_view_of_the_episodes_of_a_search_read_that_view.rs`,
+in one function (T-144 and T-157). It makes an `App` of a library of two
+podcasts with the address of a port that nothing listens on (T-25), it gives
+the box of `crate::logic::the_episodes` the answer of the podcast of the
+search while `all_ids_pod_ep_search` holds one empty row, and it then presses
+the key `l` with `App::handle_key`.
+
+**The two builds of the fault**, one edit at a time (the trap 147): the
+function that reads `all_ids_pod_ep_search` gives `None` for the line
+`Letter 3`, and the block of the key with no guard of the view leaves
+`ids_pod_ep_search` empty.
+
+#### What this item leaves open
+
+- **The keys `n`, `m`, `M`, `N`, `V`, and `@` of that view are not
+  measured** (T-246, and it stays open): the six of them read
+  `selected_download`, as the key `D` and the key `X` of this measurement
+  do, and no measurement of the real program names them.
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246, and it
+  stays open): that function gives the view of the episodes of the Library
+  view every list of the podcast of the line except the identities of the
+  episodes, and the block of the key `l` gives that one list. A caller of
+  that function that is not the key `l` therefore gives the view the
+  episodes of the podcast before it.
+- **A media of the queue that no playback of this program moves keeps the
+  place of the moment of the key `q`** (T-230 to T-246, and it stays open),
+  and the panel of a line of that view is not measured.
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-246, and it stays open).
+- **The line and the panel of the view of the authors, of the view of the
+  narrators, of the view of the series itself, and of the view of the lists
+  name no one media** (T-243 to T-246, and it stays open): the place of such
+  a line is the shape of T-44 and of T-22.
+- **The view of the queue of the offline mode is not measured** (T-230 to
+  T-246).
+- **The box of the places of the account goes old while the program stands**
+  (T-241 to T-246, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at
+  all** (T-242 to T-246, and it stays open): a podcast holds more than one
+  episode, and the line of it names no episode (T-221).

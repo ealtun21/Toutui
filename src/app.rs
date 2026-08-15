@@ -50,6 +50,15 @@ pub enum TheLineOfNoMedia {
     Nothing,
 }
 
+/// The words of the key of the playback of a line of the view of the episodes
+/// of a podcast that names no episode. See T-246.
+///
+/// **A playback that did not start says why** (T-167), and this key said
+/// nothing at all. The key `h` gives the view before this one, and the key `l`
+/// of the podcast of that view gives its episodes again.
+pub const THE_EPISODES_DID_NOT_COME: &str =
+    "This line holds no episode. Press h, and then l for the episodes again.";
+
 /// The views of the application. The type has no field, therefore a copy
 /// costs nothing, and a test can name a view in a list.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -2668,7 +2677,15 @@ impl App {
                 // hold, and an index of a vector stops the program.** A podcast
                 // of a page that the program did not read has no row here.
                 // See T-126 and T-41.
-                if self.is_podcast {
+                //
+                // **This key opens the episodes of a podcast, and the user
+                // stands in the view before that one** (T-246): a key of the
+                // view of the episodes itself took the episodes of that view
+                // away, because the lists of the library hold no episode of a
+                // podcast that the user opens the first time. The answer of
+                // that podcast reaches the lists of the view alone until the
+                // render of the view of the search runs again.
+                if self.is_podcast && !matches!(self.view_state, AppView::PodcastEpisode) {
                     if let Some(index) = selected_library {
                         if ids_library.get(index).is_some() {
                             self.ids_pod_ep =
@@ -3126,72 +3143,50 @@ impl App {
                         }
                     }
                     AppView::PodcastEpisode => {
-                        if self.is_from_search_pod {
-                            // we need the index of selected_search_book to feet after with
-                            // ids_library_pod_search
-                            if let Some(index) = selected_search_book {
-                                // ids_library_pod_search because we need the pod id and he is given by
-                                // this variable
-                                if let Some(id_pod) = self.ids_library_pod_search.get(index) {
-                                    //    println!("{:?}", id_pod);
-                                    let all_ids_pod_ep_search_clone =
-                                        self.all_ids_pod_ep_search.clone();
-                                    //   println!("{:?}", all_ids_pod_ep_search_clone[index]);
-                                    let id_pod_clone = id_pod.clone();
-                                    let selected_pod_ep = self.list_state_pod_ep.selected();
+                        // **The two ways into this view hold the podcast in two
+                        // different lists**, and `selected_download` reads them
+                        // the same way. See T-246.
+                        let id_pod = if self.is_from_search_pod {
+                            // ids_library_pod_search holds the identity of the
+                            // podcast of the line of the view of the search.
+                            selected_search_book
+                                .and_then(|index| self.ids_library_pod_search.get(index))
+                                .cloned()
+                        } else {
+                            // The lists of the library give the episodes of the
+                            // podcast of the line again at this key.
+                            if let Some(index) = selected_library {
+                                self.ids_pod_ep =
+                                    self.all_ids_pod_ep.get(index).cloned().unwrap_or_default();
+                            }
 
+                            selected_library
+                                .and_then(|index| ids_library.get(index))
+                                .cloned()
+                        };
+
+                        if let Some(item_id) = id_pod {
+                            match self.the_episode_of_the_line_of_the_episodes() {
+                                Some(episode_id) => {
                                     tokio::spawn(async move {
-                                        if let Some(episode_id) = all_ids_pod_ep_search_clone[index]
-                                            .get(selected_pod_ep.unwrap_or(0))
-                                            .cloned()
-                                        {
-                                            play(
-                                                &api,
-                                                &player,
-                                                PlaybackTarget::Episode {
-                                                    item_id: id_pod_clone,
-                                                    episode_id,
-                                                },
-                                                username,
-                                                server_address,
-                                                server_key,
-                                            )
-                                            .await;
-                                        }
+                                        play(
+                                            &api,
+                                            &player,
+                                            PlaybackTarget::Episode {
+                                                item_id,
+                                                episode_id,
+                                            },
+                                            username,
+                                            server_address,
+                                            server_key,
+                                        )
+                                        .await;
                                     });
                                 }
-                            }
-                        } else {
-                            // selected_livrary ids_library because we need the pod id and he is given by
-                            // these variables
-                            // we also need the index of selected library to feet after with
-                            // ids_library
-                            if let Some(index) = selected_library {
-                                if let Some(id_pod) = ids_library.get(index) {
-                                    let of_the_podcast: Vec<String> =
-                                        self.all_ids_pod_ep.get(index).cloned().unwrap_or_default();
-                                    self.ids_pod_ep = of_the_podcast.clone();
-                                    let id_pod_clone = id_pod.clone();
-                                    let selected_pod_ep = self.list_state_pod_ep.selected();
-                                    tokio::spawn(async move {
-                                        if let Some(episode_id) = of_the_podcast
-                                            .get(selected_pod_ep.unwrap_or(0))
-                                            .cloned()
-                                        {
-                                            play(
-                                                &api,
-                                                &player,
-                                                PlaybackTarget::Episode {
-                                                    item_id: id_pod_clone,
-                                                    episode_id,
-                                                },
-                                                username,
-                                                server_address,
-                                                server_key,
-                                            )
-                                            .await;
-                                        }
-                                    });
+                                // **A playback that did not start says why**
+                                // (T-167). This key said nothing at all.
+                                None => {
+                                    crate::logic::message::say(THE_EPISODES_DID_NOT_COME);
                                 }
                             }
                         }
@@ -3890,6 +3885,40 @@ impl App {
             &self.ids_pod_ep,
             &self.pod_ep_places,
         )
+    }
+
+    /// Gives the identity of the episode of the line of the view of the
+    /// episodes of a podcast. See T-246.
+    ///
+    /// **The key of the playback of that view read a list that the view does
+    /// not draw.** The two ways into the view hold their episodes in two
+    /// different lists: `ids_pod_ep` for the Library view, and
+    /// `ids_pod_ep_search` for the view of the search. The key of the playback
+    /// read `all_ids_pod_ep_search` instead of the second one, and the render of
+    /// the view of the **search** writes that box (`src/ui/tui.rs`). The program
+    /// reads the episodes of a podcast when the user opens it (T-126),
+    /// therefore the answer of a podcast that the user opens the first time
+    /// comes after the view of the search went away, and that box then holds no
+    /// episode of that podcast at all.
+    ///
+    /// The measurement of the sandbox: the key `/`, the word `letters`, the key
+    /// `l`, and two keys `j` gave the line `Letter 3` of
+    /// `Letters of Two Brides`. The key of the playback of that line started no
+    /// playback, it wrote no line of the log, and it said nothing at all, while
+    /// the key `D` of that same line of that same frame said
+    /// `"Letter 3" is now available offline.`
+    ///
+    /// Every other key of that view reads `ids_pod_ep_search`
+    /// (`selected_download`), and that list is the list that the view draws.
+    pub fn the_episode_of_the_line_of_the_episodes(&self) -> Option<String> {
+        let ids = if self.is_from_search_pod {
+            &self.ids_pod_ep_search
+        } else {
+            &self.ids_pod_ep
+        };
+
+        ids.get(self.list_state_pod_ep.selected().unwrap_or(0))
+            .cloned()
     }
 
     /// The same lines for the view of the episodes of a podcast of a search.

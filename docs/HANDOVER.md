@@ -82,13 +82,64 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.74**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.75**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1228 of 1228** in 2.5 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1254 of 1254** with
+**1229 of 1229** in 2.6 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1255 of 1255** with
 the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no
-failure in three runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
+failure in two runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the seventy-fifth turn of 2026-08-15: the key of the playback of the view of the episodes of a search
+
+**One release: v0.8.75**, and one item: T-246 of the keys of the view of the
+episodes of a podcast of a search. **The road of it is the first paragraph of
+"What this item leaves open" of T-245**: the key of the playback, the key `D`,
+and the key `X` of a line of that view are not measured. The key `D` and the
+key `X` name the episode of the line, and **the key of the playback names none
+at all**.
+
+The two ways into `AppView::PodcastEpisode` hold their episodes in two lists:
+`ids_pod_ep` for the Library view, and `ids_pod_ep_search` for the view of the
+search. `selected_download` reads the second one, therefore the keys `D`, `X`,
+`n`, `m`, `M`, `N`, `V`, and `@` of that view name the episode of the line. The
+key of the playback read `all_ids_pod_ep_search` instead, with an index of a
+vector and not `get`, and **the render of the view of the search writes that
+box** (`src/ui/tui.rs:2175`). The program reads the episodes of a podcast when
+the user opens it (T-126), therefore the answer of a podcast that the user
+opens the first time comes **after** the view of the search went away, and that
+box holds no episode of that podcast at all. The same key took the episodes of
+the view away before it read them: the block of the key `l` that gives a
+podcast its lists ran for every view, and the view of the episodes is one of
+the views that this key reaches.
+
+The measurement, of the library `Podcasts` of the sandbox: the key `/`, the
+word `letters`, the key `Enter`, the key `l`, and two keys `j` gave the line
+`Letter 3` of `Letters of Two Brides`. The key `l` of that line gave no row of
+the player, no message, and **no line of the log at all** — the log held 11
+lines before that key and 11 lines after it. **The control of the same run**
+(the trap 206): the key `D` of that same line of that same frame said
+`"Letter 3" is now available offline.`, and the key `h` and the key `l` gave
+that same view a second time, where the same key of the same line started the
+playback and wrote the five lines of it in the log.
+
+The correction: `App::the_episode_of_the_line_of_the_episodes` gives the
+identity of the episode of the line out of the list that the view draws, the
+key of the playback calls it, the block of the key `l` runs for a view that is
+not `AppView::PodcastEpisode`, and a playback that did not start says why
+(T-167). The same keys of the corrected program gave, at the **first** open of
+that podcast, the row of the player
+`▶ 9:04 / 10:54 | Elapsed: 9:04 | Left: 1:50 (83%) | Speed: 1.00x` and five
+lines of the log, and the keys `D`, `X`, and `l` of the line `Letter 4` of that
+same view each named that same episode.
+
+The test is
+`tests/the_keys_of_the_view_of_the_episodes_of_a_search_read_that_view.rs`, of
+an `App` of two podcasts, of the box of `crate::logic::the_episodes`, and of
+`App::handle_key`, in one function. **Two builds of the fault fail it**: the
+function that reads `all_ids_pod_ep_search` gives `None` for the line
+`Letter 3`, and the block of the key with no guard of the view leaves
+`ids_pod_ep_search` empty.
 
 ## The session of the seventy-fourth turn of 2026-08-15: the view of the episodes holds the places of its own podcast
 
@@ -10033,46 +10084,92 @@ the mark `✓`.**
 - **The lines of the view of the bookmarks hold no place of the user**
   (T-229 to T-242, and it stays open).
 
+### The turn of the seventy-second: the two views of a series and of a list (T-243)
+
+**The
+session of the seventy-second turn took the first paragraph of "What this
+item leaves open" of the newest item: that paragraph named three views
+that hold no place of the user, and the measurement found two of them in
+one run** (T-243).
+
+The server held `The Test Chronicles Volume 2` at the percent 41 and
+`A Long Test Book` at the percent 63. **The control of the same run** (the
+trap 206): the Home view said `➤ 41% The Test Chronicles Volume 2` and
+`  63% A Long Test Book`. The key `s`, two keys `j`, the key `l`, and one
+key `j` gave the view of the books of `The Test Chronicles`, and the line
+of that same book said `➤ #2 - The Test Chronicles Volume 2` while the
+panel under it said `Author: Series Author - Duration: 0m`. The key `c`
+and the key `l` gave the view of the media of `A Test Collection`, and
+that line said `➤ A Long Test Book` with the panel
+`Book - Author: Long Author - Duration: 30m`. **No line of either view
+held a number, and neither panel said a place at all.**
+- **A function that takes the id of a media must take the key of it**
+  (T-243): the two functions of T-241 and of T-242 made the key of a book
+  inside themselves with `the_key_of_the_media(id, None)`, therefore a
+  view whose line names an episode of a podcast could not use them. The
+  three roads moved into `the_mark_of_this_media(key, …)` and into
+  `the_place_of_the_panel_of_this_media(key, …)`, and the two views of a
+  book keep the key that they made.
+- **A test that reads the block of a function stops the correction that
+  moves that block** (the trap 218): the tests of T-241 and of T-242 read
+  the blocks of the two functions for the three roads. **A test of the
+  shape of the trap 209 belongs to the rule and not to the name**: read
+  the tests that name a function before you move the body of it.
+- **The document of the sandbox says how to make a thing, and it does not
+  say that the thing stands** (the trap 219): `A Podcast Playlist` of the
+  section 6d of `docs/TEST-SERVER.md` did not stand, and one
+  `POST /api/playlists` of two entries made it.
+- **The view of the authors and the view of the narrators of a library
+  each name one book of a line** (T-243, and it stays open): the key `a`
+  and the key `v` open them, and their lines and panels are not measured.
+  **That is the shape that this round corrected.**
+- **The line and the panel of the view of the series itself and of the
+  view of the lists say no place** (T-243, and it stays open), because
+  each of those lines names more than one media (T-44 and T-22).
+- **A media of the queue that no playback of this program moves keeps the
+  place of the moment of the key `q`** (T-230 to T-243, and it stays
+  open), and the panel of a line of that view is not measured.
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-243, and it stays open).
+
 ## The prompt for the next session
 **This session took the first paragraph of "What this item leaves open" of the
-newest item, and that paragraph held a fault and it named the wrong box for
-it.** T-244 said that the view of the episodes of a search holds no place of the
-user because `App::all_ids_pod_ep_search` takes no write; the render of that
-view writes that box at each frame (`src/ui/tui.rs:2175`), with every other list
-of the view. **The one list with no list of the library behind it is the list of
-the places** of T-229, and the measurement of that root found the fault of the
-**Library** view too, where it does worse: a user who opened one podcast, went
-back, and opened a second one saw `22% Letter 1`, `74% Letter 2`, and
-`89% Letter 3` — the places of the episodes of the first podcast — with the
-panel `Progress: 22%, 28m left, Not finished`. The item is **T-245**, and it
-holds one release, v0.8.74.
+newest item, and that paragraph named three keys of one view.** T-245 said that
+the keys of the view of the episodes of a podcast of a search read
+`ids_pod_ep_search`, and that the key of the playback, the key `D`, and the key
+`X` of a line of that view are not measured. **The key of the playback reads
+another box**: `all_ids_pod_ep_search`, which the render of the view of the
+**search** writes. The program reads the episodes of a podcast when the user
+opens it (T-126), therefore the answer comes after that view went away, and the
+key of the playback of the line `Letter 3` of the sandbox gave no row of the
+player, no message, and no line of the log at all, while the key `D` of that
+same line of that same frame took the file of that same episode from the
+server. The item is **T-246**, and it holds one release, v0.8.75.
 
 Three things are worth the room:
 
-1. **A paragraph that stays open names a candidate, and the box that it names
-   may be the wrong one.** The round read the source of the box of the
-   paragraph, it found a write of the render, and the measurement then found
-   the neighbour of that box with no write at all. **Read the source of the
-   paragraph before you take its word for the road.**
-2. **A list of a view that no list of the library carries is a list of the
-   last answer.** Ten lists of the view of the episodes come of the lists of
-   the library, and one came of the request of one podcast: **ask of every
-   list of a view which list of the library holds it**, because a program that
-   makes one request for one media (T-126) shows the answer of another media
-   for ever.
-3. **A value that is wrong is worse than a value that is missing.** T-244 saw a
-   view of no percent, and the same root gave a different view the percent of
-   another podcast beside the length of this one. **A measurement of a value
-   that a view does not say must ask what that view says in the run before
-   it.**
-   Twenty-one sessions of twenty-one took a paragraph of "What this item leaves
+1. **A box that a render writes is a box of that view alone.** Ten lists of the
+   view of the episodes come of the lists of the library, and the key of the
+   playback read the box of the render of the view of the **search**. That
+   render stops at the frame where the view changes, and the answer of the
+   server comes after it. **Ask of every box of a key: which frame writes it,
+   and does that frame come before the key?**
+2. **A key of a view that writes the lists of that view can take them away.**
+   The block of the key `l` that gives a podcast its lists ran for every view,
+   and the view of the episodes is one of the views that this key reaches: the
+   key took the episodes of the view away before it read them.
+3. **A key that does nothing and that says nothing is worse than a key that
+   names the wrong media.** The user has no word of it, the log holds no line
+   of it, and a poll of the number of the lines of the log is therefore the
+   measurement (the trap 205). A playback that did not start says why (T-167).
+   Twenty-two sessions of twenty-two took a paragraph of "What this item leaves
    open".
 
 This prompt names the state of the program on 2026-08-16.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.74**; `Cargo.toml` is at 0.8.74. The
+> AlbanDAVID/Toutui. Newest release **v0.8.75**; `Cargo.toml` is at 0.8.75. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -10589,15 +10686,15 @@ This prompt names the state of the program on 2026-08-16.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-245 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-246 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1228 tests in 2.5 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1254 of 1254** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1229 tests in 2.6 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1255 of 1255** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -10705,7 +10802,58 @@ This prompt names the state of the program on 2026-08-16.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in eighty-three sessions of eighty-four.
+>    this shape found a fault in eighty-four sessions of eighty-five.
+>    **The
+>    session of the seventy-fifth turn took the first paragraph of "What this
+>    item leaves open" of the newest item: that paragraph named three keys of
+>    one view, and the measurement found that one of the three does nothing at
+>    all and that it says nothing at all** (T-246).
+>
+>    T-245 said that the keys of the view of the episodes of a search read
+>    `ids_pod_ep_search`, and that the key of the playback, the key `D`, and
+>    the key `X` of a line of that view are not measured. **The key of the
+>    playback reads another box**: `all_ids_pod_ep_search`, which the render of
+>    the view of the **search** writes (`src/ui/tui.rs:2175`), with an index of
+>    a vector and not `get`.
+>
+>    The measurement, of the library `Podcasts` of the sandbox: the key `/`,
+>    the word `letters`, the key `Enter`, the key `l`, and two keys `j` gave
+>    the line `Letter 3` of `Letters of Two Brides`. The key `l` of that line
+>    gave no row of the player, no message, and **no line of the log at all**:
+>    the log held 11 lines before that key and 11 lines after it. **The control
+>    of the same run** (the trap 206): the key `D` of that same line of that
+>    same frame said `"Letter 3" is now available offline.`, and the key `h`
+>    and the key `l` gave that same view a second time, where the same key of
+>    the same line started the playback and wrote five lines in the log.
+>    - **A box that a render writes is a box of that view alone** (T-246): the
+>      program reads the episodes of a podcast when the user opens it (T-126),
+>      therefore the answer of a podcast comes after the view of the search
+>      went away, and that box holds no episode of that podcast until the
+>      render of that view runs again. **Ask of every box of a key: which
+>      frame writes it, and does that frame come before the key?**
+>    - **A key of a view that writes the lists of that view can take them
+>      away** (T-246): the block of the key `l` that gives a podcast its lists
+>      ran for every view, and the view of the episodes is one of the views
+>      that this key reaches.
+>    - **A key that does nothing and that says nothing is worse than a key
+>      that names the wrong media** (T-246 and T-167): the user has no word of
+>      it, and the log holds no line of it.
+>    - **The keys `n`, `m`, `M`, `N`, `V`, and `@` of that view are not
+>      measured** (T-246, and it stays open): the six of them read
+>      `selected_download`, as the key `D` and the key `X` of this measurement
+>      do.
+>    - **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246, and
+>      it stays open): that function gives the view of the Library view every
+>      list of the podcast of the line except the identities of the episodes,
+>      and the block of the key `l` gives that one list.
+>    - **A media of the queue that no playback of this program moves keeps the
+>      place of the moment of the key `q`** (T-230 to T-246, and it stays
+>      open), and the panel of a line of that view is not measured.
+>    - **The lines of the view of the bookmarks hold no place of the user**
+>      (T-229 to T-246, and it stays open).
+>    - **The line of the Library view of a library of podcasts says no place
+>      at all** (T-242 to T-246, and it stays open).
+>
 >    **The
 >    session of the seventy-fourth turn took the first paragraph of "What this
 >    item leaves open" of the newest item: that paragraph held a fault, and it
@@ -10799,56 +10947,10 @@ This prompt names the state of the program on 2026-08-16.
 >      open), and the panel of a line of that view is not measured.
 >    - **The lines of the view of the bookmarks hold no place of the user**
 >      (T-229 to T-244, and it stays open).
-
->    **The
->    session of the seventy-second turn took the first paragraph of "What this
->    item leaves open" of the newest item: that paragraph named three views
->    that hold no place of the user, and the measurement found two of them in
->    one run** (T-243).
->
->    The server held `The Test Chronicles Volume 2` at the percent 41 and
->    `A Long Test Book` at the percent 63. **The control of the same run** (the
->    trap 206): the Home view said `➤ 41% The Test Chronicles Volume 2` and
->    `  63% A Long Test Book`. The key `s`, two keys `j`, the key `l`, and one
->    key `j` gave the view of the books of `The Test Chronicles`, and the line
->    of that same book said `➤ #2 - The Test Chronicles Volume 2` while the
->    panel under it said `Author: Series Author - Duration: 0m`. The key `c`
->    and the key `l` gave the view of the media of `A Test Collection`, and
->    that line said `➤ A Long Test Book` with the panel
->    `Book - Author: Long Author - Duration: 30m`. **No line of either view
->    held a number, and neither panel said a place at all.**
->    - **A function that takes the id of a media must take the key of it**
->      (T-243): the two functions of T-241 and of T-242 made the key of a book
->      inside themselves with `the_key_of_the_media(id, None)`, therefore a
->      view whose line names an episode of a podcast could not use them. The
->      three roads moved into `the_mark_of_this_media(key, …)` and into
->      `the_place_of_the_panel_of_this_media(key, …)`, and the two views of a
->      book keep the key that they made.
->    - **A test that reads the block of a function stops the correction that
->      moves that block** (the trap 218): the tests of T-241 and of T-242 read
->      the blocks of the two functions for the three roads. **A test of the
->      shape of the trap 209 belongs to the rule and not to the name**: read
->      the tests that name a function before you move the body of it.
->    - **The document of the sandbox says how to make a thing, and it does not
->      say that the thing stands** (the trap 219): `A Podcast Playlist` of the
->      section 6d of `docs/TEST-SERVER.md` did not stand, and one
->      `POST /api/playlists` of two entries made it.
->    - **The view of the authors and the view of the narrators of a library
->      each name one book of a line** (T-243, and it stays open): the key `a`
->      and the key `v` open them, and their lines and panels are not measured.
->      **That is the shape that this round corrected.**
->    - **The line and the panel of the view of the series itself and of the
->      view of the lists say no place** (T-243, and it stays open), because
->      each of those lines names more than one media (T-44 and T-22).
->    - **A media of the queue that no playback of this program moves keeps the
->      place of the moment of the key `q`** (T-230 to T-243, and it stays
->      open), and the panel of a line of that view is not measured.
->    - **The lines of the view of the bookmarks hold no place of the user**
->      (T-229 to T-243, and it stays open).
 >
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the seventy-first and every turn before it, the item of each, and the sweeps
+>    the seventy-second and every turn before it, the item of each, and the sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
 >    says nothing at all (T-174), the rule of the line of a view for the six
@@ -11202,7 +11304,12 @@ This prompt names the state of the program on 2026-08-16.
 > the lists of the library hold one row of places for each podcast, the key of
 > a line reads the row of its line, and the render of the view of the search
 > writes its own lists out of those lists — therefore a second visit of a
-> podcast costs no request and it says no place of another podcast** (T-245).
+> podcast costs no request and it says no place of another podcast** (T-245),
+> and **the keys of the view of the episodes of a podcast of a search read the
+> list that the view draws: the key of the playback reads the episode of the
+> line, the block of the key that opens a podcast gives the lists of that
+> podcast to the view before it alone, and a playback that did not start says
+> why** (T-246).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
