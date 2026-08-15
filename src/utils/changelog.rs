@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.69",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The panel of a line kept the place of the request while the \
+             line of it showed a newer place.** A different client of the same \
+             account moved in a book, the line said `75%` at the next frame, \
+             and the panel of that same line said `Progress: 52%, 5h left`. \
+             The panel of the Home view, and the panel of the two views of the \
+             episodes of a podcast, read the message of the server now.",
+        ],
+    },
+    Entry {
         version: "0.8.68",
         date: "15/08/2026",
         body: &[

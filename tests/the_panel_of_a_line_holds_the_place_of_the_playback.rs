@@ -21,6 +21,7 @@ fn the_panel_of_a_line_holds_the_place_of_the_playback() {
     let panel = the_place_of_the_panel(
         true,
         Some(15192.0),
+        None,
         Some(28800.0),
         "37",
         "5h left,",
@@ -36,6 +37,7 @@ fn the_panel_of_a_line_holds_the_place_of_the_playback() {
     let panel = the_place_of_the_panel(
         false,
         Some(15192.0),
+        None,
         Some(28800.0),
         "37",
         "5h left,",
@@ -50,6 +52,7 @@ fn the_panel_of_a_line_holds_the_place_of_the_playback() {
     let panel = the_place_of_the_panel(
         true,
         Some(0.0),
+        None,
         Some(28800.0),
         "37",
         "5h left,",
@@ -59,7 +62,15 @@ fn the_panel_of_a_line_holds_the_place_of_the_playback() {
     assert_eq!(panel.the_time_that_is_left, "5h left,");
 
     // A playback that stopped holds no place at all.
-    let panel = the_place_of_the_panel(true, None, Some(28800.0), "37", "5h left,", "Not finished");
+    let panel = the_place_of_the_panel(
+        true,
+        None,
+        None,
+        Some(28800.0),
+        "37",
+        "5h left,",
+        "Not finished",
+    );
     assert_eq!(panel.percent, "37");
     assert_eq!(panel.the_time_that_is_left, "5h left,");
 
@@ -70,6 +81,7 @@ fn the_panel_of_a_line_holds_the_place_of_the_playback() {
         let panel = the_place_of_the_panel(
             true,
             Some(15192.0),
+            None,
             length,
             "37",
             "5h left,",
@@ -85,6 +97,7 @@ fn the_panel_of_a_line_holds_the_place_of_the_playback() {
     let panel = the_place_of_the_panel(
         true,
         Some(1440.0),
+        None,
         Some(28800.0),
         "100",
         "0m left,",
@@ -99,6 +112,7 @@ fn the_panel_of_a_line_holds_the_place_of_the_playback() {
     let panel = the_place_of_the_panel(
         false,
         Some(1440.0),
+        None,
         Some(28800.0),
         "100",
         "0m left,",
@@ -108,7 +122,7 @@ fn the_panel_of_a_line_holds_the_place_of_the_playback() {
 
     // The panel of a line that the lists of a view do not hold says `N/A`, and
     // this function gives that word back with no change (T-177).
-    let panel = the_place_of_the_panel(false, Some(15192.0), None, "N/A", "", "N/A");
+    let panel = the_place_of_the_panel(false, Some(15192.0), None, None, "N/A", "", "N/A");
     assert_eq!(panel.percent, "N/A");
     assert_eq!(panel.the_end, "N/A");
 }

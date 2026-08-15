@@ -1068,3 +1068,23 @@ curl -X PATCH -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/js
 **That body is the road of a measurement of a percent of an episode.** The
 percent still goes up and it does not go down, therefore a measurement writes
 the percent that it needs and it trusts no percent of before.
+
+**A `DELETE` of the row gives a percent that goes down** (T-240). The road of
+`{"progress": N}` alone reached no lower percent for the book
+`A Book Of Many Hours`: a body of `{"progress":0.75}` left the row at 0.5226,
+and a body of the three values left it there too. `DELETE` of that same path
+takes the row away — **it answers the status 404, and it does the work** — and
+the `PATCH` after it then writes every value of the body:
+
+```bash
+B=6ba57b9a-acb5-44f9-b2b6-39ad9107b420        # A Book Of Many Hours, 8 hours
+curl -X DELETE -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:13399/api/me/progress/$B"
+curl -X PATCH -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"currentTime":3600,"duration":28800,"progress":0.125}' \
+  "http://localhost:13399/api/me/progress/$B"
+```
+
+**That road is the second client of the account of a measurement of a live
+message**: the server sends `user_updated` after each of the two requests, and
+the log of the program says `[live] user_updated: the position of 27 media.`

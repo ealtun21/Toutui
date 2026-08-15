@@ -17,6 +17,19 @@
 //! Progress: 37%, 5h left, Not finished
 //!            ▶ 4:13:12 / 8:00:00 | Elapsed: 4:13:12 | Left: 3:46:48 (53%)
 //! ```
+//!
+//! **A live message of the server is the second road to a newer place**
+//! (T-240). The measurement of 2026-08-15: the server held that same book at
+//! 10800 seconds of 28800 with the percent 52, no playback of the program held
+//! it, and a second client of the account moved it to 21600 seconds with the
+//! percent 75. The line took the message at the next frame (T-47), and the
+//! panel of that same line kept the answer of the request of the start:
+//!
+//! ```text
+//! ➤ 75% A Book Of Many Hours
+//! Author: Many Hours Author - Year: N/A - Duration: 8h
+//! Progress: 52%, 5h left, Not finished
+//! ```
 
 /// The three values of the panel of a line that names a place of the user.
 ///
@@ -58,19 +71,35 @@ pub struct ThePlaceOfThePanel {
 /// the user finished and that plays again says the percent and the time of that
 /// place, and not the mark of its end.
 ///
+/// **A live message of the server is newer than the request of the view**
+/// (T-240): a different client of the same account moved in a media that no
+/// playback of this program holds, and the server sends the message after it
+/// wrote the value (T-47). The line of that media shows the new percent at the
+/// next frame already, therefore the panel of that same line must not say the
+/// value of the request.
+///
 /// The function is pure, therefore a test needs no server and no screen.
 pub fn the_place_of_the_panel(
     plays_now: bool,
     the_place_of_the_playback: Option<f64>,
+    the_message_of_the_server: Option<&crate::api::live::Progress>,
     the_length_of_the_media: Option<f64>,
     the_percent_of_the_row: &str,
     the_time_of_the_row: &str,
     the_end_of_the_row: &str,
 ) -> ThePlaceOfThePanel {
-    let of_the_row = || ThePlaceOfThePanel {
-        percent: the_percent_of_the_row.to_string(),
-        the_time_that_is_left: the_time_of_the_row.to_string(),
-        the_end: the_end_of_the_row.to_string(),
+    let of_the_row = || match the_message_of_the_server {
+        Some(live) => ThePlaceOfThePanel {
+            percent: live.percent.clone(),
+            the_time_that_is_left: the_time_of_a_message(live, the_length_of_the_media)
+                .unwrap_or_else(|| the_time_of_the_row.to_string()),
+            the_end: live.finished.clone(),
+        },
+        None => ThePlaceOfThePanel {
+            percent: the_percent_of_the_row.to_string(),
+            the_time_that_is_left: the_time_of_the_row.to_string(),
+            the_end: the_end_of_the_row.to_string(),
+        },
     };
 
     let place = match the_place_of_the_playback {
@@ -90,4 +119,27 @@ pub fn the_place_of_the_panel(
         ),
         the_end: "Not finished".to_string(),
     }
+}
+
+/// The time that is left of the place of a live message of the server.
+/// See T-240.
+///
+/// The message holds the place of the user in seconds, as a text (T-235). A
+/// place that is no number, and a length that the server did not give, each
+/// give nothing at all, and the panel then keeps the time of the row.
+///
+/// **A place of 0 is the start of the media here**, and not a value that the
+/// message did not give: the line of the view of the queue reads that same
+/// value in that same way (T-234). The panel of a media that the user did not
+/// begin names no time that is left, as `convert_seconds_for_prg` says.
+fn the_time_of_a_message(
+    live: &crate::api::live::Progress,
+    the_length_of_the_media: Option<f64>,
+) -> Option<String> {
+    let place = live.place.trim().parse::<f64>().ok()?;
+    let length = the_length_of_the_media.filter(|length| *length > 0.0)?;
+
+    Some(crate::utils::convert_seconds::convert_seconds_for_prg(
+        length, place,
+    ))
 }

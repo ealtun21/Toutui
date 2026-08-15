@@ -16661,3 +16661,129 @@ therefore the correction costs no request at all.
 - **The panel of a line of an episode says the length of the media and not the
   time that is left** (T-236 to T-239, and it stays open): the format of that
   panel names no time, and the program holds the length as a number now.
+
+### T-240: the panel of a line holds the place of a live message of the server
+
+**This item measures the first paragraph of "What this item leaves open" of
+T-239: the panel of a line reads no live message of the server.** The render of
+the line of the Home view takes the row of a message over the row of the
+request (T-47 and T-235), and the panel of that same line read the box of the
+request alone. A second client of the account that moves in a media that no
+playback of this program holds therefore changed the line and not the panel of
+it, and the measurement found that fault.
+
+#### The measurement
+
+The real program driven inside tmux by `docs/harness/drive.sh`, against the
+sandbox (podman Audiobookshelf on the port 13399). The server held the book
+`A Book Of Many Hours` (eight hours, 28800 seconds) at 10800 seconds with the
+percent 52. No playback of the program held that media. The program started,
+and the Home view of the library `Books` said:
+
+```text
+➤ 52% A Book Of Many Hours
+Author: Many Hours Author - Year: N/A - Duration: 8h
+Progress: 52%, 5h left, Not finished
+```
+
+A second client of that same account (`curl`) then moved the media to 21600
+seconds with the percent 75. The log of the program said
+`[live] user_updated: the position of 27 media.` Three seconds later, one frame
+of one screen said:
+
+```text
+➤ 75% A Book Of Many Hours
+Author: Many Hours Author - Year: N/A - Duration: 8h
+Progress: 52%, 5h left, Not finished
+```
+
+**The line took the message and the panel of that same line kept the answer of
+the request of the start.** The difference was 23 percent and three hours.
+
+**The control of the same run** (the trap 206): the line of that same media
+said 75 percent at that same frame, therefore the message came and the render
+read it.
+
+#### The cause
+
+- `App::home_lines` of `src/app.rs` reads `crate::logic::live::progress_of(key)`
+  for the mark of each line, and it takes that row over the row of
+  `book_progress_cnt_list` (the answer of the request of the start). See T-47.
+  `App::the_place_of_the_panel_of_the_home_view` read the box of the request
+  alone.
+- The two views of the episodes of a podcast hold that same shape:
+  `App::the_lines_of_this_podcast` reads the message (T-229), and
+  `App::the_place_of_the_panel_of_this_podcast` did not.
+
+#### The correction
+
+- `crate::logic::the_panel_of_a_line::the_place_of_the_panel` takes a new
+  argument, `the_message_of_the_server: Option<&crate::api::live::Progress>`.
+  **The sequence of the three roads to the place of a media is now**: the engine
+  of this program for the media that plays (T-239), then the row of a live
+  message (T-47), then the row of the request of the view.
+- The percent and the mark of the end come of the message, and the time that is
+  left comes of the place of the message (in seconds, as a text — T-235) with
+  the length of the media.
+- **A place that is no number, and a length of 0 or a length that the server did
+  not give (T-180), each keep the time of the row.**
+- **A place of 0 is the start of the media**, and `convert_seconds_for_prg`
+  names no time for it.
+- The three panels take the function together.
+
+**The decision, and the reason for it: a value of a view that a newer road
+reaches must take that road in every place of the view.** The line of the Home
+view held the three roads to the place of a media already — the engine (T-239),
+a live message (T-47), and the request of the view — and the panel of that same
+line held one of them. The rule of a line is the rule of the panel of that line,
+and the program holds the newer value already: the correction costs no request
+at all.
+
+**The proof of the correction, against the real program.** The server held the
+book at 21600 of 28800 with the percent 75, and the panel said
+`Progress: 75%, 2h left, Not finished`. A second client moved it to 3600 seconds
+with the percent 12.5, and the line and the panel of the next frame said `13%`
+and `Progress: 13%, 7h left, Not finished`.
+
+**The second view.** The view of the episodes of the podcast
+`Arthur Gordon Pym`, the episode `Chapter 01`, at 60 seconds of 305.7 with the
+percent 20: the line said `20% Chapter 01`, and the panel said
+`Progress: 20%, Not finished`. A second client moved it to 200 seconds with the
+percent 65, and the line and the panel then both said 65 percent.
+
+**The test.** `tests/the_panel_of_a_line_holds_the_message_of_the_server.rs`,
+one function. The build of the fault
+(`let of_the_row = || match None::<&crate::api::live::Progress> {`) failed it at
+the first assert with `left: "52", right: "75"`, and the test of T-239 still
+passed.
+
+**A trap of the sandbox.** The percent of a row of a place of Audiobookshelf
+goes up, and it does not go down (T-228 says it). A `PATCH` of
+`{"currentTime":N,"duration":D,"progress":P}` with a smaller P leaves the
+percent where it stood. `DELETE /api/me/progress/:id` (it answers 404, and it
+does the work) before that `PATCH` gives a row of any percent at all.
+
+#### What this item leaves open
+
+- **The panel of a line of a book of the Library view and of the view of the
+  search says no place at all** (T-239 and T-240): those two panels name the
+  author and the year, and the lines of them hold the percent of the user
+  already.
+- **A media of the queue that no playback of this program moves keeps the place
+  of the moment of the key `q`** (T-230 to T-240, and it stays open): a live
+  message is the one other road (T-235), and the view of the queue reads it
+  already. The panel of a line of that view is not measured.
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-240, and it stays open).
+- **The lines of the view of the search and of the view of the lists hold no
+  place at all** (T-228 to T-240, and it stays open).
+- **The view of the queue of the offline mode is not measured** (T-230 to
+  T-240).
+- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone** (T-226 to
+  T-240, and it stays open).
+- **The key `X` of the view of the bookmarks of a podcast** removes a place of
+  another episode with the same words (T-223 to T-240 each left it open, and
+  this item did not close it).
+- **The panel of a line of an episode says the length of the media and not the
+  time that is left** (T-236 to T-240, and it stays open): the format of that
+  panel names no time, and the program holds the length as a number now.

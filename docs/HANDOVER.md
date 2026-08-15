@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.68.** The item T-239 belongs to this session. The
+**The newest release is v0.8.69.** The item T-240 belongs to this session. The
+item T-239 belongs to the session before it. The
 item T-238 belongs to the session before it. The
 item T-237 belongs to the session before it. The
 item T-236 belongs to the session before it. The
@@ -76,13 +77,64 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.68**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.69**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1222 of 1222** in 2.5 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1248 of 1248** with
+**1223 of 1223** in 2.5 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1249 of 1249** with
 the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no
 failure in two runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the sixty-ninth turn of 2026-08-15: the panel of a line holds the message of the server
+
+**One release: v0.8.69**, and one item: T-240 of the place of a live message of
+the server in the panel of a line. **The road of it is the first paragraph of
+"What this item leaves open" of T-239**: the line of the Home view takes the row
+of a live message over the row of the request (T-47 and T-235), and the panel of
+that same line read the box of the request alone.
+
+The measurement of the real program v0.8.68 inside tmux, against the sandbox.
+The server held `A Book Of Many Hours` at 10800 seconds of 28800, with the
+percent 52, and no playback of the program held that media. A second client of
+that same account (`curl`) then moved it to 21600 seconds with the percent 75.
+The log said `[live] user_updated: the position of 27 media.`, and three seconds
+later one frame of one screen said two places of that one media:
+
+```text
+➤ 75% A Book Of Many Hours
+Author: Many Hours Author - Year: N/A - Duration: 8h
+Progress: 52%, 5h left, Not finished
+```
+
+The difference was 23 percent and three hours. The control of the same run (the
+trap 206): the line of that same media said 75 percent at that same frame,
+therefore the message came and the render read it.
+
+**The correction**: `the_place_of_the_panel` takes a new argument,
+`the_message_of_the_server: Option<&crate::api::live::Progress>`. **The sequence
+of the three roads to the place of a media is now the engine of this program
+(T-239), then the row of a live message (T-47), then the row of the request of
+the view.** The percent and the mark of the end come of the message, and the
+time that is left comes of the place of the message (T-235) with the length of
+the media. A place that is no number, and a length of 0 or a length that the
+server did not give (T-180), each keep the time of the row. The three panels
+take the function together.
+`tests/the_panel_of_a_line_holds_the_message_of_the_server.rs` holds the rule in
+one function, and the build of the fault fails it at the first assert.
+
+The measurement of the corrected program: a second client moved the book to 3600
+seconds with the percent 12.5, and the line and the panel of the next frame said
+`13%` and `Progress: 13%, 7h left, Not finished`. The panel of `Chapter 01` of
+`Arthur Gordon Pym` said `Progress: 65%` for a message of that same shape.
+
+**The decision, and the reason for it: a value of a view that a newer road
+reaches must take that road in every place of the view.** The line held the
+three roads to the place of a media, and the panel of that same line held one of
+them. The evidence stands in T-240 of `docs/TAKEOVER-BACKLOG.md`.
+
+**A trap of the sandbox, in the section 16 of `docs/TEST-SERVER.md`**: the
+percent of a row of a place goes up and it does not go down, and a `DELETE` of
+`/api/me/progress/:id` before the `PATCH` gives a row of any percent at all.
 
 ## The session of the sixty-eighth turn of 2026-08-15: the panel of a line holds the place of the playback
 
@@ -9410,37 +9462,79 @@ of the user away.
 - **The lines of the view of the search and of the view of the lists hold
   no place at all** (T-228 to T-235, and it stays open).
 
+**The
+session of the sixty-sixth turn took the first paragraph of "What this item
+leaves open" of the newest item: that paragraph named the one moment of a
+request of a view, and the measurement found a line of that view that no
+request reached** (T-237).
+
+The user put two books in the queue with the key `n` and pressed `q`, and
+the two lines said `(15m left)` and `(6h left)`. A second program of that
+same account then put a third book in the queue (one row of the table
+`queue` of `db.sqlite3`), and the user pressed the key `X` on the line 1.
+The key `X` reads the queue of the disk again (T-147), therefore the third
+book came into the open view with no key of this user, and **the line of it
+said `(8h)` with no mark of a place**, while the server held that media at
+7200 seconds of 28800 with the percent 90. **The control of the same run**
+(the trap 206): the line 1 of that same view said `(6h left)`, and the Home
+view of that same program said `90% A Book Of Many Hours`.
+- **The key that opens a view is not the one moment of that view** (T-237).
+  The request of the places runs at the key `q`, and the queue of this
+  program changes with no key of this user: the disk is the truth of the
+  queue (T-147), therefore the key `X` and the media that comes to its end
+  each bring a line that no request reached. **Ask of every view that holds
+  a value of the server for each line: can a line come into that view after
+  the request?**
+- **A rule of a loop of a view holds every road that a key cannot hold**
+  (T-237): the rule stands in `the_line_of_the_queue_holds_its_media`, which
+  runs at each frame, therefore it reaches the key `X`, the media that comes
+  to its end, and every road of a later version.
+- **A rule of a frame needs a box of what the program asked for, and not a
+  box of what the server answered** (T-237): a media that the user never
+  began stands in no row of `GET /api/me`, therefore a rule of the box of
+  the places gives one request at each frame. The names of the request go to
+  their box **before** the task of that request, and the log of a proxy said
+  it: one request after the key `X`, and no request more in six seconds.
+- **A media that stays in the queue keeps the place of the moment of the key
+  `q`** (T-230 to T-237, and it stays open): the request runs for a media
+  that came in, and a live message of the server is the one other road to a
+  newer place (T-235).
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-237, and it stays open).
+- **The lines of the view of the search and of the view of the lists hold no
+  place at all** (T-228 to T-237, and it stays open).
+
 ## The prompt for the next session
-**This session took the second paragraph of "What this item leaves open" of the
-newest item.** T-238 wrote that the percent of the line of the media that plays
-comes of the row of the request, and that the mark `▶` of that line stands in
-the place of the percent — therefore no user can read the fault there. **The
-panel of a line says that same value with a number**, and the measurement found
-the panel of the Home view 16 percent and one hour behind the row of the player
-of that same frame. The item is **T-239**, and it holds one release, v0.8.68.
+**This session took the first paragraph of "What this item leaves open" of the
+newest item.** T-239 wrote that the panel of a line reads no live message of the
+server: the line of the Home view takes the row of a message over the row of the
+request (T-47 and T-235), and the panel of that same line read the box of the
+request alone. **The measurement found the two places of one value side by side
+in one frame** — the line said `75%` and the panel said `Progress: 52%, 5h
+left`, 23 percent and three hours behind it. The item is **T-240**, and it holds
+one release, v0.8.69.
 
 Three things are worth the room:
 
-1. **A paragraph that says "this value stands behind no number" is a road, and
-   not a closed door.** It names a value that the program computes wrong, and
-   the work of the round is to find the second view that says that value with a
-   number. Fifteen sessions of fifteen took a paragraph of "What this item
-   leaves open".
-2. **A rule of one view is a rule of every view of that shape.** Three panels of
-   this program name a place of the user, and the correction gave the three of
-   them one pure function. A correction of the panel of the Home view alone
-   would have left the two views of the episodes of a podcast with the fault.
-3. **The engine of this program is cheaper than the server, and it is newer.**
-   `PlaybackState::position` stands in the memory of the program at each second,
-   and the row of the player reads it already: a view that takes it costs no
-   request at all. **Ask of every value of a view: does this program change that
-   value itself, and does the view read it there?**
+1. **A line and the panel of that line are two places of one value.** The line
+   held the three roads to the place of a media — the engine of this program
+   (T-239), a live message (T-47), and the request of the view — and the panel
+   of it held one of them. **Ask of a value that two parts of one view say: does
+   each part take every road to it?**
+2. **A rule of one view is a rule of every view of that shape.** The three
+   panels that name a place of the user took one pure function at T-239, and
+   this round therefore corrected the three of them with one argument. A
+   correction that stands in a shared function is the value of that shape.
+3. **A value that the program holds already costs no request.** The box of the
+   live messages holds the percent, the mark of the end, and the place in
+   seconds of every media of the account (T-184 and T-235). Sixteen sessions of
+   sixteen took a paragraph of "What this item leaves open".
 
 This prompt names the state of the program on 2026-08-16.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.68**; `Cargo.toml` is at 0.8.68. The
+> AlbanDAVID/Toutui. Newest release **v0.8.69**; `Cargo.toml` is at 0.8.69. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -9449,7 +9543,7 @@ This prompt names the state of the program on 2026-08-16.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-239 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-240 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -9964,8 +10058,8 @@ This prompt names the state of the program on 2026-08-16.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1222 tests in 2.6 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1248 of 1248** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1223 tests in 2.6 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1249 of 1249** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -10073,7 +10167,45 @@ This prompt names the state of the program on 2026-08-16.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in eighty sessions of eighty-one.
+>    this shape found a fault in eighty-one sessions of eighty-two.
+>    **The
+>    session of the sixty-ninth turn took the first paragraph of "What this
+>    item leaves open" of the newest item: that paragraph named a road to a
+>    value that one place of a view holds and that a second place of that same
+>    view does not, and the measurement found the two places side by side**
+>    (T-240).
+>
+>    The server held `A Book Of Many Hours` at 10800 seconds of 28800, with the
+>    percent 52, and no playback of the program held that media. A second
+>    client of that same account moved it to 21600 seconds with the percent 75,
+>    the log said `[live] user_updated: the position of 27 media.`, and three
+>    seconds later one frame of one screen said `➤ 75% A Book Of Many Hours`
+>    for the line and `Progress: 52%, 5h left, Not finished` for the panel of
+>    that same line. **The difference was 23 percent and three hours.**
+>    - **A line and the panel of that line are two places of one value**
+>      (T-240): the line held the three roads to the place of a media — the
+>      engine of this program (T-239), a live message (T-47), and the request
+>      of the view — and the panel of it held one of them. **Ask of a value that
+>      two parts of one view say: does each part take every road to it?**
+>    - **A paragraph that names a road that one function does not take is the
+>      item of a round** (T-240): T-239 wrote that the panel reads no live
+>      message, and the measurement of that same road found the fault in three
+>      panels together.
+>    - **A value of a message that a view does not read is a value that the
+>      program holds already** (T-240): the box of the live messages holds the
+>      percent, the mark of the end, and the place in seconds of every media of
+>      the account (T-184 and T-235), therefore the correction costs no request.
+>    - **The panel of a line of a book of the Library view and of the view of
+>      the search says no place at all** (T-239 and T-240, and it stays open):
+>      those two panels name the author and the year.
+>    - **A media of the queue that no playback of this program moves keeps the
+>      place of the moment of the key `q`** (T-230 to T-240, and it stays open),
+>      and the panel of a line of that view is not measured.
+>    - **The lines of the view of the bookmarks hold no place of the user**
+>      (T-229 to T-240, and it stays open).
+>    - **The lines of the view of the search and of the view of the lists hold
+>      no place at all** (T-228 to T-240, and it stays open).
+>
 >    **The
 >    session of the sixty-eighth turn took the second paragraph of "What this
 >    item leaves open" of the newest item: that paragraph named a percent that
@@ -10147,51 +10279,9 @@ This prompt names the state of the program on 2026-08-16.
 >    - **The lines of the view of the search and of the view of the lists hold
 >      no place at all** (T-228 to T-238, and it stays open).
 >
->    **The
->    session of the sixty-sixth turn took the first paragraph of "What this item
->    leaves open" of the newest item: that paragraph named the one moment of a
->    request of a view, and the measurement found a line of that view that no
->    request reached** (T-237).
->
->    The user put two books in the queue with the key `n` and pressed `q`, and
->    the two lines said `(15m left)` and `(6h left)`. A second program of that
->    same account then put a third book in the queue (one row of the table
->    `queue` of `db.sqlite3`), and the user pressed the key `X` on the line 1.
->    The key `X` reads the queue of the disk again (T-147), therefore the third
->    book came into the open view with no key of this user, and **the line of it
->    said `(8h)` with no mark of a place**, while the server held that media at
->    7200 seconds of 28800 with the percent 90. **The control of the same run**
->    (the trap 206): the line 1 of that same view said `(6h left)`, and the Home
->    view of that same program said `90% A Book Of Many Hours`.
->    - **The key that opens a view is not the one moment of that view** (T-237).
->      The request of the places runs at the key `q`, and the queue of this
->      program changes with no key of this user: the disk is the truth of the
->      queue (T-147), therefore the key `X` and the media that comes to its end
->      each bring a line that no request reached. **Ask of every view that holds
->      a value of the server for each line: can a line come into that view after
->      the request?**
->    - **A rule of a loop of a view holds every road that a key cannot hold**
->      (T-237): the rule stands in `the_line_of_the_queue_holds_its_media`, which
->      runs at each frame, therefore it reaches the key `X`, the media that comes
->      to its end, and every road of a later version.
->    - **A rule of a frame needs a box of what the program asked for, and not a
->      box of what the server answered** (T-237): a media that the user never
->      began stands in no row of `GET /api/me`, therefore a rule of the box of
->      the places gives one request at each frame. The names of the request go to
->      their box **before** the task of that request, and the log of a proxy said
->      it: one request after the key `X`, and no request more in six seconds.
->    - **A media that stays in the queue keeps the place of the moment of the key
->      `q`** (T-230 to T-237, and it stays open): the request runs for a media
->      that came in, and a live message of the server is the one other road to a
->      newer place (T-235).
->    - **The lines of the view of the bookmarks hold no place of the user**
->      (T-229 to T-237, and it stays open).
->    - **The lines of the view of the search and of the view of the lists hold no
->      place at all** (T-228 to T-237, and it stays open).
->
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the sixty-fourth and every turn before it, the item of each, and the sweeps
+>    the sixty-sixth and every turn before it, the item of each, and the sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
 >    says nothing at all (T-174), the rule of the line of a view for the six
@@ -10518,7 +10608,11 @@ This prompt names the state of the program on 2026-08-16.
 > **the panel of a line of a media that plays holds the place of the engine of
 > this program: the percent, the time that is left, and the mark of the end come
 > of that place, a place of 0 is a playback that did not begin, and a length of 0
-> is a length that the server did not give** (T-239).
+> is a length that the server did not give** (T-239), and **the panel of a line
+> holds the place of a live message of the server: the engine of this program
+> comes first, the row of a message after it, and the row of the request of the
+> view last, and a place that is no number or a length that the server did not
+> give keeps the time of the row** (T-240).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

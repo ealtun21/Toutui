@@ -7029,6 +7029,13 @@ impl App {
             .zip(self.playing_media().as_ref())
             .is_some_and(|(key, playing)| key == playing);
 
+        // **A live message of the server is newer than the request of the
+        // start** (T-240). The line of this same media takes that row already
+        // (T-47), and the panel of it said the value of the request.
+        let live = key
+            .as_ref()
+            .and_then(|key| crate::logic::live::progress_of(key));
+
         let length = if self.is_podcast {
             self.the_lengths_of_the_episodes_of_the_home_view
                 .get(selected)
@@ -7050,6 +7057,7 @@ impl App {
         crate::logic::the_panel_of_a_line::the_place_of_the_panel(
             plays_now,
             self.the_place_of_the_playback(),
+            live.as_ref(),
             length,
             the_part_of_the_row(&self.book_progress_cnt_list, selected, 0),
             &the_time_of_the_row,
@@ -7113,16 +7121,26 @@ impl App {
                 .map(String::as_str),
         );
 
+        let key = key.map(|(podcast, episode)| {
+            crate::logic::live::the_key_of_the_media(&podcast, Some(episode))
+        });
+
         let plays_now = key
-            .map(|(podcast, episode)| {
-                crate::logic::live::the_key_of_the_media(&podcast, Some(episode))
-            })
-            .zip(self.playing_media())
+            .as_ref()
+            .zip(self.playing_media().as_ref())
             .is_some_and(|(key, playing)| key == playing);
+
+        // **A live message of the server is newer than the request of the
+        // view** (T-240). The line of this same episode takes that row already
+        // (T-229), and the panel of it said the value of the request.
+        let live = key
+            .as_ref()
+            .and_then(|key| crate::logic::live::progress_of(key));
 
         crate::logic::the_panel_of_a_line::the_place_of_the_panel(
             plays_now,
             self.the_place_of_the_playback(),
+            live.as_ref(),
             lengths.get(selected).copied().flatten(),
             the_part_of_the_row(places, selected, 0),
             "",
