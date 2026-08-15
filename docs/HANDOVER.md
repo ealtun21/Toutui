@@ -100,6 +100,86 @@ gives no failure over its 40 binaries in two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
 
+## The session of the eighty-fourth turn of 2026-08-15: the list of a view says where the cursor stands
+
+**One release: v0.8.84**, and one item: T-255. **The road of it is the paragraph
+of the list of "What this item leaves open" of T-254**: "the Library view of
+2056 items draws `render_list` and not `render_a_description`, and that list
+says the number of its items in the title alone."
+
+The first paragraph of that same list asks for a test of the render, and it
+stays open: `render_list` and `render_a_description` are private methods of
+`App`, and no test of this repository draws a frame into a buffer. **This round
+took the paragraph of the user again**, because the fault of the user stands on
+the screen of v0.8.83.
+
+**The fault.** T-253 gave the panel of a description a bar of the scroll, and
+T-254 gave that bar the letters of its keys. The list of a view is the part of
+the screen that the user moves through the most, and it held no bar at all:
+`render_list` of `src/ui/tui.rs` drew a `List` of ratatui into the area of the
+view, and the 24 views of that one function each took the fault.
+
+**The measurement**, of the real program v0.8.83 inside tmux on 160 by 45,
+against the sandbox. The library `ManyPods` of 520 podcasts, and the Library
+view of it, whose panel holds 18 rows. The first frame drew `Many Podcast 520`
+to `Many Podcast 503`, and 30 presses of the key `j` drew `Many Podcast 507` to
+`Many Podcast 490` with the cursor at the foot. **The two frames hold the same
+number of characters and no other mark at all**: the cursor stands at the line
+31 of 520, and no character says that, or that 469 lines are left below it.
+The control of the same run: the Home view of that same library holds 12 lines
+in the same 18 rows.
+
+**The correction.** `src/logic/the_scroll_of_a_list.rs` gives
+`the_list_of_the_render(lines, width, rows)` and `the_place_of_the_bar(offset,
+last)`, and `App::render_list` draws the block of the header over the whole
+width, the list and the bar below it. **One line of a list takes one row of the
+panel**, because a `List` of ratatui cuts a line and it wraps none: the number
+of the rows of the list is the number of its lines, and that is the one
+difference from the panel of a description of T-253, where the number of the
+lines comes of the width. **ratatui writes the offset of the `ListState` while
+it draws the list**, therefore the bar comes after the list and no part of this
+program measures the place of the user a second time.
+
+**The bar of a list names no key.** T-254 put the letters `K` and `J` at the two
+ends of the bar of a panel, because `FOOTER_OF_A_LIBRARY_OF_BOOKS` holds 116 of
+the 130 characters of the gate of the footers. The footer of every view of a
+list says `j/k: move` already, therefore the letters of that bar would say a
+second time what the footer says, and they would take two rows of the track that
+hold the place of the user.
+
+**The measurement of the correction**, of v0.8.84 in the same view: the thumb
+stood at the head of the track at the first frame, and 500 presses of the key
+`j` took the cursor to the line 501 of 520 and the thumb to the foot of it. The
+Home view of 12 lines of the same run took no bar.
+
+**The build of the fault** (the trap 147): `let _ = self.the_bar_comes; false`
+in `TheList::the_bar_comes`, and
+`the_bar_of_the_scroll_comes_of_a_list_that_is_longer_than_the_panel` fails with
+`assertion failed: many.the_bar_comes()`.
+
+**The gates of v0.8.84**, under `nice -n 19 ionice -c 3` with `-j 16`:
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
+`cargo nextest run` gives **1245 of 1245** in 2.7 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1271 of 1271** in 17.1 seconds
+with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
+gives no failure in three runs.
+
+**The trap 227: the two columns of the library of the account move together.**
+A `sqlite3` that writes `name_selected_lib` and leaves `id_selected_lib` where
+it stood gives a program of the library of the **id**: the header of the screen
+then names the library of the name, and every view of it holds the media of the
+other one. The measurement of this round wrote the name alone, and the program
+drew `📖 ManyPods (podcast)` with the shelves of an empty library of books. Take
+the id of `GET /api/libraries` with `curl`, and write the two columns in one
+statement.
+
+**The trap 228: the key of the next library starts at the library of the row of
+the account.** A round that left that row at another library counts the presses
+of `BTab` from the wrong place, and three presses then give the fourth library
+and not the third. Read the header of the screen (`📖 Books (book)`) before the
+count, or write the two columns with `sqlite3` before the start of the program
+(the trap 203 and the trap 204).
+
 ## The session of the eighty-third turn of 2026-08-15: the bar of the scroll names the keys that move the panel
 
 **One release: v0.8.83**, and one item: T-254. **The road of it is the paragraph
@@ -11178,40 +11258,120 @@ the podcast of its line.
 - **The line of the Library view of a library of podcasts says no place at
   all** (T-242 to T-251, and it stays open).
 
+**The
+session of the eighty-first turn took the paragraph of the scroll bar of
+"What this item leaves open" of the newest item: that paragraph asked for a
+value on the screen, and the measurement of that panel found that the panel
+loses the whole of its text** (T-252).
+
+T-251 wrote that the description of `Arthur Gordon Pym` is longer than the
+panel of a screen of 45 rows and that the user gets no word of how much of
+it is left. **The program knew no length of that text at all.** Fourteen
+panels of `src/ui/tui.rs` drew a description with
+`.scroll((self.scroll_offset, 0))`, and the key `J` of `src/app.rs` did
+`self.scroll_offset += 1` with no limit: a panel that scrolled past its last
+line held no line at all, and the user cannot tell such a panel from a media
+whose description the server did not give (the words of T-249 go away with
+the text).
+
+The measurement, of the real program inside tmux. The library `Books`, the
+view of the authors (the key `Tab` and then the key `a`), and the author
+`Lewis Carroll`. **No author of the sandbox held a description**, therefore
+one `PATCH /api/authors/:id` made the condition (the section 17 of
+`docs/TEST-SERVER.md`), and the eight authors of no description are the
+control of the same run (the trap 206):
+
+```text
+➤ Lewis Carroll [1 book(s)]           ➤ Lewis Carroll [1 book(s)]
+
+Charles Lutwidge Dodgson wrote        (the panel holds no line)
+under the name Lewis Carroll.
+```
+
+The panel on the left is the first frame, and the panel on the right is one
+press of the key `J`. 23 presses after it changed nothing more, and the key
+`H` gave the line back: the text stood in the program the whole time.
+
+The correction is `src/logic/the_scroll_of_a_panel.rs`, and
+`App::render_a_description` took the place of the fourteen panels.
+- **A paragraph that asks for a value on the screen can name a fault of the
+  work** (T-252): T-251 asked for a scroll bar, and the measurement found
+  that the panel loses the text. **Ask of every paragraph of "what a view
+  does not say": what does the program not know?**
+- **A key that writes a value and a render that reads it are two roads of
+  one rule** (T-252): the render is the one road to the limit of a scroll,
+  because it alone holds the text and the size of the panel. **Ask of every
+  value that a key writes: which line of the program says the largest value
+  of it?**
+- **One shape of four lines in fourteen places is one road of the program**
+  (T-252): one method took the place of the fourteen, and one correction
+  reached every view. **Count the copies of a shape before you correct one
+  of them.**
+- **The panel of a description holds a bar of the scroll** (T-249 to T-252,
+  and **T-253 closed it**).
+- **The footer of a view promises no key of the panel** (T-252, and it stays
+  open): the keys `J`, `K`, and `H` stand in no footer of the program.
+- **The line of the view of the authors says `[1 book(s)]`** (T-252, and it
+  stays open): the title of that same view says `The authors [9 items]`.
+- **The panel of a narrator says "No description available" for every
+  narrator of every library** (T-252, and it stays open): the server gives
+  no description of a narrator at all.
+- **The two renders of the panel of the episodes of a podcast are in no
+  test** (T-250 to T-252, and it stays open).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-252, and it stays open).
+- **The key `B` says nothing on either road** (T-248 to T-252, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters,
+  and of the view of the queue gives the Home view** (T-247 to T-252, and it
+  stays open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
+  T-252, and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-252, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at
+  all** (T-242 to T-252, and it stays open).
+
 ## The prompt for the next session
-**This session took the paragraph of the footer of "What this item leaves open"
-of the newest item**, and that paragraph said that a user who sees the bar of
-the scroll of T-253 gets no word of the key that moves it. The measurement of
-the footers found that the footer of the two views that most need those words
-holds no room for them, therefore the bar itself names the keys at its two
-ends. The item is **T-254**, and it holds one release, v0.8.83.
+**This session took the paragraph of the list of "What this item leaves open"
+of the newest item**, and that paragraph said that the list of a view holds no
+bar of the scroll while the panel beside it holds one. The measurement of a
+list of 520 lines found that no character of the screen says where in that
+list the cursor of the user stands, and one correction of one function reached
+the 24 views that draw a list. The item is **T-255**, and it holds one
+release, v0.8.84.
 
 Three things are worth the room:
 
-1. **A key of a view that no character of the screen names is a key that no
-   user finds.** The list of the key `?` held `J / K   Scroll the description
-   down and up` the whole time, and no footer of the program named the panel at
-   all. **Ask of every key that a correction gives a view: which character of
-   that view says it?**
+1. **A correction that a paragraph names for one view can hold 24 views.**
+   `render_list` is one function, and the Home view, the Library view, the
+   view of the search, the six views of the settings, and the rest of them
+   each call it. **Count the callers of the function before you measure one
+   view of it.**
 
-2. **The place of a word is a measurement and not a choice.** The footer is the
-   place where a view names its keys (T-143), and `FOOTER_OF_A_LIBRARY_OF_BOOKS`
-   holds 116 of the 130 characters of the gate of the footers.
-   The Home view of the real program in 60 columns fills the two rows
-   of `FOOTER_HEIGHT` exactly, and a third row goes away with the layout. **The
-   two views of that footer are the two views that draw a panel of a
-   description**: the footer that most needs the words is the footer that holds
-   none.
+2. **A rule of one shape is not the same rule for a neighbour of that shape.**
+   The number of the lines of a panel of a description comes of the width of
+   it (T-253), and the number of the lines of a list is the number of its
+   items, because a `List` of ratatui cuts a line and it wraps none. The bar
+   of the two of them stands on two different measurements, and the module of
+   the list is therefore a module of its own.
 
-3. **A mark that costs no row and no column comes with the thing that it
-   names.** The letters stand at the two ends of a bar that stands already,
-   therefore they come when the key does work and they go when it does none. A
-   bar of fewer than four rows keeps the whole of its track, because the place
-   of the user in the text is the work of T-253.
+3. **A word that the footer says already needs no second place.** T-254 put
+   the letters `K` and `J` at the two ends of the bar of a panel, because no
+   footer of the program has room for those words. The footer of every view of
+   a list says `j/k: move`, therefore the bar of a list names no key and it
+   keeps the whole of its track for the place of the user. **Read the footer
+   before you put a word on the screen.**
 
+The gates of v0.8.84, under `nice -n 19 ionice -c 3` with `-j 16`:
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say
+nothing, `cargo nextest run` gives 1245 of 1245 in 2.7 seconds,
+`cargo nextest run --run-ignored all` gives 1271 of 1271 in 17.1 seconds with
+the sandbox up, and `cargo test -j 16 --no-fail-fast` gives no fault in three
+runs.
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.83**; `Cargo.toml` is at 0.8.83. The
+> AlbanDAVID/Toutui. Newest release **v0.8.84**; `Cargo.toml` is at 0.8.84. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -11731,15 +11891,15 @@ Three things are worth the room:
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-254 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-255 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1242 tests in 2.6 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1268 of 1268** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1245 tests in 2.7 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1271 of 1271** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -11847,7 +12007,94 @@ Three things are worth the room:
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in eighty-eight sessions of eighty-nine.
+>    this shape found a fault in eighty-nine sessions of ninety.
+>    **The
+>    session of the eighty-fourth turn took the paragraph of the list of "What
+>    this item leaves open" of the newest item: that paragraph said that the
+>    list of a view holds no bar of the scroll, and the measurement of a list of
+>    520 lines found that no character of the screen says where in that list the
+>    cursor of the user stands** (T-255).
+>
+>    T-253 gave the panel of a description a bar of the scroll, and T-254 gave
+>    that bar the letters of its keys. **The list of a view is the part of the
+>    screen that the user moves through the most, and it held no bar at all.**
+>    `render_list` of `src/ui/tui.rs` drew a `List` of ratatui into the area of
+>    the view, and the 24 views of that one function each took the fault.
+>
+>    The measurement, of the real program v0.8.83 inside tmux, on a screen of
+>    160 columns and 45 rows. The library `ManyPods` of 520 podcasts, and the
+>    Library view of it. The panel of that list holds 18 rows:
+>
+>    ```text
+>    ────Library [500 items of 520] — a filter is on (f)────
+>    ➤     Many Podcast 520                    Many Podcast 507
+>          Many Podcast 519                    Many Podcast 506
+>          ...                                 ...
+>          Many Podcast 503              ➤     Many Podcast 490
+>    ```
+>
+>    The frame on the left is the first frame, and the frame on the right is 30
+>    presses of the key `j`. **The two of them hold the same number of
+>    characters and no other mark at all**: the cursor stands at the line 31 of
+>    520, and the panel says nothing of the 469 lines below it.
+>
+>    The correction is `src/logic/the_scroll_of_a_list.rs`, and a `Scrollbar` of
+>    the right side of `App::render_list`.
+>    - **A correction that a paragraph of "what a view does not say" names for
+>      one view can hold 24 views** (T-255): `render_list` is one function, and
+>      the Home view, the Library view, the view of the search, the six views of
+>      the settings, and the rest of them each call it. **Count the callers of
+>      the function before you measure one view of it.**
+>    - **A rule of one shape is not the same rule for a neighbour of that
+>      shape** (T-255): the number of the lines of a panel of a description
+>      comes of the width of it (T-253), and the number of the lines of a list
+>      is the number of its items, because a `List` of ratatui cuts a line and
+>      it wraps none. The bar of the two of them therefore stands on two
+>      different measurements.
+>    - **The state of the render of a widget is the place of its bar** (T-255):
+>      ratatui writes the offset of the `ListState` while it draws the list,
+>      therefore the bar comes after the list and no part of this program
+>      measures the place of the user a second time.
+>    - **A word that the footer says already needs no second place** (T-254 and
+>      T-255): the bar of a panel names the keys `K` and `J` because no footer
+>      has room for them, and the bar of a list names no key because the footer
+>      of every view of a list says `j/k: move`. **Read the footer before you
+>      put a word on the screen.**
+>    - **The bar of the scroll of a list and of a panel is in no test of the
+>      render** (T-253 to T-255, and it stays open): `render_list` and
+>      `render_a_description` are private methods of `App`, and no test of this
+>      repository draws a frame of the program into a buffer. **A test of that
+>      shape would close the two renders of the panel of the episodes of a
+>      podcast too.**
+>    - **The bar of a list says the place of the panel and not the place of the
+>      cursor** (T-255, and it stays open): the thumb reads the offset of the
+>      `ListState`, therefore a key `j` that moves the cursor inside the rows of
+>      the panel moves no character of the bar.
+>    - **The title of a list says no number of the line of the cursor** (T-255,
+>      and it stays open): the title says `Library [520 items]`, and the number
+>      of the line of the user stands on no character of the screen.
+>    - **The key `H` of the panel stands on no character of the screen** (T-254
+>      and T-255, and it stays open).
+>    - **The line of the view of the authors says `[1 book(s)]`** (T-252 to
+>      T-255, and it stays open).
+>    - **The panel of a narrator says "No description available" for every
+>      narrator of every library** (T-252 to T-255, and it stays open).
+>    - **The two renders of the panel of the episodes of a podcast are in no
+>      test** (T-250 to T-255, and it stays open).
+>    - **The keys of the sweep of T-247 that hold a playback are not measured**
+>      (T-248 to T-255, and it stays open).
+>    - **The key `B` says nothing on either road** (T-248 to T-255, and it stays
+>      open).
+>    - **The key `h` of the view of the bookmarks, of the view of the chapters,
+>      and of the view of the queue gives the Home view** (T-247 to T-255, and
+>      it stays open).
+>    - **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
+>      T-255, and it stays open).
+>    - **The lines of the view of the bookmarks hold no place of the user**
+>      (T-229 to T-255, and it stays open).
+>    - **The line of the Library view of a library of podcasts says no place at
+>      all** (T-242 to T-255, and it stays open).
+>
 >    **The
 >    session of the eighty-third turn took the paragraph of the footer of "What
 >    this item leaves open" of the newest item: that paragraph said that a user
@@ -11998,83 +12245,9 @@ Three things are worth the room:
 >    - **The line of the Library view of a library of podcasts says no place at
 >      all** (T-242 to T-253, and it stays open).
 >
->    **The
->    session of the eighty-first turn took the paragraph of the scroll bar of
->    "What this item leaves open" of the newest item: that paragraph asked for a
->    value on the screen, and the measurement of that panel found that the panel
->    loses the whole of its text** (T-252).
->
->    T-251 wrote that the description of `Arthur Gordon Pym` is longer than the
->    panel of a screen of 45 rows and that the user gets no word of how much of
->    it is left. **The program knew no length of that text at all.** Fourteen
->    panels of `src/ui/tui.rs` drew a description with
->    `.scroll((self.scroll_offset, 0))`, and the key `J` of `src/app.rs` did
->    `self.scroll_offset += 1` with no limit: a panel that scrolled past its last
->    line held no line at all, and the user cannot tell such a panel from a media
->    whose description the server did not give (the words of T-249 go away with
->    the text).
->
->    The measurement, of the real program inside tmux. The library `Books`, the
->    view of the authors (the key `Tab` and then the key `a`), and the author
->    `Lewis Carroll`. **No author of the sandbox held a description**, therefore
->    one `PATCH /api/authors/:id` made the condition (the section 17 of
->    `docs/TEST-SERVER.md`), and the eight authors of no description are the
->    control of the same run (the trap 206):
->
->    ```text
->    ➤ Lewis Carroll [1 book(s)]           ➤ Lewis Carroll [1 book(s)]
->
->    Charles Lutwidge Dodgson wrote        (the panel holds no line)
->    under the name Lewis Carroll.
->    ```
->
->    The panel on the left is the first frame, and the panel on the right is one
->    press of the key `J`. 23 presses after it changed nothing more, and the key
->    `H` gave the line back: the text stood in the program the whole time.
->
->    The correction is `src/logic/the_scroll_of_a_panel.rs`, and
->    `App::render_a_description` took the place of the fourteen panels.
->    - **A paragraph that asks for a value on the screen can name a fault of the
->      work** (T-252): T-251 asked for a scroll bar, and the measurement found
->      that the panel loses the text. **Ask of every paragraph of "what a view
->      does not say": what does the program not know?**
->    - **A key that writes a value and a render that reads it are two roads of
->      one rule** (T-252): the render is the one road to the limit of a scroll,
->      because it alone holds the text and the size of the panel. **Ask of every
->      value that a key writes: which line of the program says the largest value
->      of it?**
->    - **One shape of four lines in fourteen places is one road of the program**
->      (T-252): one method took the place of the fourteen, and one correction
->      reached every view. **Count the copies of a shape before you correct one
->      of them.**
->    - **The panel of a description holds a bar of the scroll** (T-249 to T-252,
->      and **T-253 closed it**).
->    - **The footer of a view promises no key of the panel** (T-252, and it stays
->      open): the keys `J`, `K`, and `H` stand in no footer of the program.
->    - **The line of the view of the authors says `[1 book(s)]`** (T-252, and it
->      stays open): the title of that same view says `The authors [9 items]`.
->    - **The panel of a narrator says "No description available" for every
->      narrator of every library** (T-252, and it stays open): the server gives
->      no description of a narrator at all.
->    - **The two renders of the panel of the episodes of a podcast are in no
->      test** (T-250 to T-252, and it stays open).
->    - **The keys of the sweep of T-247 that hold a playback are not measured**
->      (T-248 to T-252, and it stays open).
->    - **The key `B` says nothing on either road** (T-248 to T-252, and it stays
->      open).
->    - **The key `h` of the view of the bookmarks, of the view of the chapters,
->      and of the view of the queue gives the Home view** (T-247 to T-252, and it
->      stays open).
->    - **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
->      T-252, and it stays open).
->    - **The lines of the view of the bookmarks hold no place of the user**
->      (T-229 to T-252, and it stays open).
->    - **The line of the Library view of a library of podcasts says no place at
->      all** (T-242 to T-252, and it stays open).
->
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the eightieth and every turn before it, the item of each, and the
+>    the eighty-first and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
@@ -12467,7 +12640,13 @@ Three things are worth the room:
 > the letter of the key that moves the panel up stands at the top of the bar and
 > the letter of the key that moves it down stands at the foot of it, the footer
 > of a view holds no room for those words, and a bar of few rows keeps the whole
-> of its track** (T-254).
+> of its track** (T-254), and **the list of a view says where the cursor of the
+> user stands: the bar of the scroll of a list comes when the list holds more
+> lines than the rows of the view, the number of the rows of a list is the
+> number of its lines because a `List` of ratatui wraps no line, the state of
+> the bar reads the offset that ratatui wrote while it drew the list, and the
+> bar of a list names no key because the footer of every such view says
+> `j/k: move` already** (T-255).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

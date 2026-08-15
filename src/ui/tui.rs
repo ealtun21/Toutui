@@ -2528,13 +2528,56 @@ impl App {
             })
             .collect();
 
+        // **A list that holds more lines than its rows says so** (T-255). The
+        // block draws the header of the view over the whole width, and the
+        // list and the bar of the scroll then divide the area below it.
+        let inner = block.inner(area);
+        let the_list = crate::logic::the_scroll_of_a_list::the_list_of_the_render(
+            items.len(),
+            inner.width,
+            inner.height,
+        );
+
+        block.render(area, buf);
+
+        let [list_area, bar_area] = Layout::horizontal([
+            Constraint::Length(the_list.width_of_the_lines),
+            Constraint::Fill(1),
+        ])
+        .areas(inner);
+
         let list = List::new(items)
-            .block(block)
             .highlight_style(selected_style)
             .highlight_symbol("➤ ")
             .highlight_spacing(HighlightSpacing::Always);
 
-        StatefulWidget::render(list, area, buf, list_state);
+        StatefulWidget::render(list, list_area, buf, list_state);
+
+        if the_list.the_bar_comes() {
+            // **ratatui writes the offset of the list while it draws it**,
+            // therefore the bar comes after the list and it needs no second
+            // measurement of the place of the user.
+            //
+            // The state of the bar counts the lines that stand above the panel,
+            // and not the lines of the list: the thumb of the bar then reaches
+            // the foot of it at the last line of the list.
+            //
+            // **The bar of a list names no key** (T-255): the footer of every
+            // view of a list says `j/k: move` already.
+            let mut state = ScrollbarState::new(the_list.last).position(
+                crate::logic::the_scroll_of_a_list::the_place_of_the_bar(
+                    list_state.offset(),
+                    the_list.last,
+                ),
+            );
+
+            Scrollbar::new(ScrollbarOrientation::VerticalRight)
+                .begin_symbol(None)
+                .end_symbol(None)
+                .track_symbol(Some("│"))
+                .thumb_symbol("█")
+                .render(bar_area, buf, &mut state);
+        }
     }
 
     // info about the book or podacst for `Home`

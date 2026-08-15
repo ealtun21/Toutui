@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.84",
+        date: "15/08/2026",
+        body: &[
+            "Added:",
+            "- **The list of a view says where the cursor of the user stands.** \
+             A bar at the right of the list comes when the list holds more \
+             lines than the rows of the view, and the place of the bar says \
+             which part of the list the view draws. A list that holds every \
+             line of it takes no bar.",
+        ],
+    },
+    Entry {
         version: "0.8.83",
         date: "15/08/2026",
         body: &[

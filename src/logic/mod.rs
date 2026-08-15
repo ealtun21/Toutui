@@ -35,4 +35,5 @@ pub mod the_panel_of_a_line;
 pub mod the_playback;
 pub mod the_positions;
 pub mod the_requests_of_the_start;
+pub mod the_scroll_of_a_list;
 pub mod the_scroll_of_a_panel;

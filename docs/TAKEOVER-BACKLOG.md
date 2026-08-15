@@ -19020,3 +19020,189 @@ stay.
   T-254, and it stays open).
 - **The line of the Library view of a library of podcasts says no place at all**
   (T-242 to T-254, and it stays open).
+
+---
+
+### T-255: the list of a view says where the cursor of the user stands
+
+**The state**: corrected on 2026-08-15. The measurement is of the real program
+inside tmux, against the sandbox.
+
+#### What T-254 left open
+
+T-254 left this paragraph of its own "What this item leaves open": "**The list
+of a view holds no bar of the scroll** (T-253 and T-254, and it stays open): the
+Library view of 2056 items draws `render_list` and not `render_a_description`,
+and that list says the number of its items in the title alone."
+
+The first paragraph of that same list asks for a test of the render, and it
+stays open: `render_list` and `render_a_description` are private methods of
+`App`, and no test of this repository draws a frame of the program into a
+buffer. This item takes the paragraph of the user and not the paragraph of the
+gate.
+
+#### The fault
+
+T-253 gave the panel of a description a bar of the scroll, and T-254 gave that
+bar the letters of its keys. **The list of a view is the part of the screen that
+the user moves through the most, and it held no bar at all.** `render_list` of
+`src/ui/tui.rs` drew a `List` of ratatui into the area of the view, and the 24
+views of that one function each took the fault: the Home view, the Library view,
+the view of the search, the view of the episodes of a podcast, the view of the
+series, the view of the queue, the view of the chapters, the view of the
+bookmarks, the six views of the settings, and the rest of them.
+
+**The title of the view says how many items the list holds, and no character of
+the screen says where in that list the cursor stands.** A user of a list of 520
+lines therefore cannot tell the line 31 from the line 331, and no character says
+that any line is left below the last row of the panel.
+
+#### The measurement
+
+The real program v0.8.83, inside tmux, against the sandbox, on a screen of 160
+columns and 45 rows. The library `ManyPods` of 520 podcasts (the section 5c of
+`docs/TEST-SERVER.md`), and the Library view of it. The panel of the list holds
+18 rows.
+
+The first frame, and the frame after 30 presses of the key `j`:
+
+```text
+────Library [500 items of 520] — a filter is on (f)────
+➤     Many Podcast 520                                        Many Podcast 507
+      Many Podcast 519                                        Many Podcast 506
+      ...                                                     ...
+      Many Podcast 504                                        Many Podcast 491
+      Many Podcast 503                                  ➤     Many Podcast 490
+```
+
+**The two frames hold the same number of characters and no other mark at all.**
+The cursor stands at the line 31 of 520 in the second one, and the panel says
+nothing of that number, of the 469 lines below it, or of the 13 lines above it.
+
+The control of the same run: the Home view of that same library holds 12 lines
+in the same 18 rows, and the user of that view needs no such mark.
+
+#### The correction
+
+`src/logic/the_scroll_of_a_list.rs`, and `App::render_list` of `src/ui/tui.rs`.
+
+`the_list_of_the_render(lines, width, rows)` gives a `TheList` of three values:
+the width of the lines, the largest offset of the list, and the answer to "the
+bar comes". **One line of a list takes one row of the panel**, because a `List`
+of ratatui cuts a line that is longer than the panel and it wraps no line:
+therefore the number of the rows of the list is the number of its lines, and the
+function needs no text at all. That is the one difference from the panel of a
+description of T-253, where the number of the lines comes of the width.
+
+**The bar takes one character of the width of the lines**, in the same way as
+the bar of a panel does. The number of the rows does not change with the width,
+therefore the bar of a list comes and goes with no decision that reads its own
+output (the trap 226 of T-253).
+
+`render_list` draws the block of the header over the whole width first, and the
+list and the bar then divide the area below it. **ratatui writes the offset of
+the `ListState` while it draws the list**, therefore the bar comes after the
+list and no part of this program has to measure the place of the user a second
+time. `the_place_of_the_bar(offset, last)` keeps that offset inside the track.
+
+**The state of the bar counts the largest offset and not the lines of the
+list**, as T-253 does: the thumb reaches the foot of the track at the last line
+of the list and not one panel after it.
+
+#### Why the bar of a list names no key
+
+T-254 put the letters `K` and `J` at the two ends of the bar of a panel, because
+`FOOTER_OF_A_LIBRARY_OF_BOOKS` holds 116 of the 130 characters of the gate
+`every_footer_fits_in_eighty_columns`, and no footer of the program has room for
+the words of the keys of the panel.
+
+**The footer of every view of a list says `j/k: move` already.** The letters at
+the ends of the bar of a list would therefore say a second time what the footer
+says, and they would take the two rows of the track that hold the place of the
+user. The bar of a list keeps the whole of its track.
+
+#### The measurement of the correction
+
+The same view of the same library, of the program at v0.8.84. The first frame:
+
+```text
+────Library [500 items of 520] — a filter is on (f)────
+➤     Many Podcast 520                                       █
+      Many Podcast 519                                       │
+      ...                                                    │
+      Many Podcast 503                                       │
+```
+
+500 presses of the key `j` took the cursor to the line 501 of 520, and the thumb
+stood at the foot of the track:
+
+```text
+──────────Library [520 items] — a filter is on (f)─────────
+      Many Podcast 037                                       │
+      ...                                                    │
+      Many Podcast 021                                       │
+➤     Many Podcast 020                                       █
+```
+
+**The control of that same run**: the Home view of that same library holds 12
+lines in 18 rows, and no bar came on it.
+
+#### The build of the fault
+
+The trap 147: one edit of `TheList::the_bar_comes` — `let _ =
+self.the_bar_comes; false` in the place of `self.the_bar_comes` — and the test
+`the_bar_of_the_scroll_comes_of_a_list_that_is_longer_than_the_panel` of that
+module then fails:
+
+```text
+thread '...' panicked at src/logic/the_scroll_of_a_list.rs:120:9:
+assertion failed: many.the_bar_comes()
+```
+
+#### The tests
+
+Two new functions of the new module `logic::the_scroll_of_a_list::tests`. The
+module holds no box of the process, therefore the two tests need no one
+function.
+
+#### What this item leaves open
+
+- **The bar of the scroll of a list and of a panel is in no test of the render**
+  (T-253 to T-255, and it stays open): the correction of the screen stands on
+  the measurement of tmux alone, as the corrections of T-250 to T-254 do.
+  `render_list` and `render_a_description` are private methods of `App`, and no
+  test of this repository draws a frame of the program into a buffer. **A test
+  of that shape would close the two renders of the panel of the episodes of a
+  podcast too.**
+- **The bar of a list says the place of the panel and not the place of the
+  cursor** (T-255, and it stays open): the thumb reads the offset of the
+  `ListState`, therefore a key `j` that moves the cursor inside the rows of the
+  panel moves no character of the bar. A user of a list of 520 lines in 18 rows
+  sees one row of the track for about 28 lines of the list.
+- **The title of a list says no number of the line of the cursor** (T-255, and
+  it stays open): the title says `Library [520 items]`, and the number of the
+  line of the user stands on no character of the screen. The bar gives the part
+  of the list and not the number.
+- **The key `H` of the panel stands on no character of the screen** (T-254 and
+  T-255, and it stays open): the bar of a panel names the two keys that move it
+  one line, and the key that gives the top of the text back has no room at the
+  ends of a bar of two ends.
+- **The line of the view of the authors says `[1 book(s)]`** (T-252 to T-255,
+  and it stays open).
+- **The panel of a narrator says "No description available" for every narrator
+  of every library** (T-252 to T-255, and it stays open).
+- **The two renders of the panel of the episodes of a podcast are in no test**
+  (T-250 to T-255, and it stays open).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-255, and it stays open).
+- **The key `B` says nothing on either road** (T-248 to T-255, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters, and
+  of the view of the queue gives the Home view** (T-247 to T-255, and it stays
+  open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to T-255,
+  and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-255, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at all**
+  (T-242 to T-255, and it stays open).
