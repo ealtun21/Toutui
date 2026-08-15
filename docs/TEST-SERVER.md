@@ -590,6 +590,14 @@ curl -X POST http://localhost:13399/api/playlists \
        "items":[{"libraryItemId":"'$POD_ID'","episodeId":"'$EP_ID'"}]}'
 ```
 
+**The sandbox of 2026-08-15 holds `A Podcast Playlist` with the two episodes
+`Chapter 00` and `Chapter 01` of `Arthur Gordon Pym`** (T-243). The two
+episodes belong to one podcast, therefore a line that takes the key of the item
+alone gives both of them one place: a measurement of the place of a line of
+that view needs two different percents, and
+`PATCH /api/me/progress/:item/:episode` with `{"progress": N}` writes them
+(section 16).
+
 An entry of a playlist gives `libraryItem` and, for an episode, `episode`. The
 episode gives its own title and its own length. A podcast gives the author in
 the field `author`, and a book gives it in the field `authorName`.

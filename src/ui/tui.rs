@@ -1654,7 +1654,10 @@ impl App {
         };
 
         let name = series.name.clone();
-        let lines: Vec<String> = series.books.iter().map(|book| book.line()).collect();
+
+        // **The line of this view said no place of the user at all** (T-243).
+        // The box of the places of the account reaches it with no request.
+        let lines: Vec<String> = self.series_book_lines();
         let render_list_title = format!("{} [{}]", name, crate::ui::keys::items(lines.len()));
 
         self.render_list(
@@ -1668,14 +1671,22 @@ impl App {
         if let Some(book) = self.selected_series_book() {
             let of_the_disk = the_copy_of_the_disk(&book.id);
 
+            // **The panel of a book of this view said the author and the
+            // length alone** (T-243), while the panel of that same book of the
+            // Home view of that same run said the place of the user.
+            let place = self.the_place_of_the_panel_of_a_series_book(book);
+
             Paragraph::new(format!(
-                "Author: {} - Duration: {}{}",
+                "Author: {} - Duration: {}{}\nProgress: {}%, {} {}",
                 book.author,
                 convert_seconds(vec![book.duration])
                     .first()
                     .cloned()
                     .unwrap_or_default(),
                 of_the_disk,
+                place.percent,               // percentage progression
+                place.the_time_that_is_left, // time left
+                place.the_end,               // is finished
             ))
             .wrap(Wrap { trim: true })
             .left_aligned()
@@ -1801,12 +1812,12 @@ impl App {
             return;
         };
 
-        let lines: Vec<String> = list.entries.iter().map(|entry| entry.line()).collect();
-        let render_list_title = format!(
-            "{} [{}]",
-            list.name.clone(),
-            crate::ui::keys::items(lines.len())
-        );
+        // **The line of this view said no place of the user at all** (T-243).
+        // The key of the place names the episode after the item (T-223),
+        // therefore a line of an episode holds the place of its own episode.
+        let name = list.name.clone();
+        let lines: Vec<String> = self.list_entry_lines();
+        let render_list_title = format!("{} [{}]", name, crate::ui::keys::items(lines.len()));
 
         self.render_list(
             list_area,
@@ -1821,8 +1832,13 @@ impl App {
             let key = entry.episode_id.clone().unwrap_or_else(|| entry.id.clone());
             let of_the_disk = the_copy_of_the_disk(&key);
 
+            // **The panel of a media of this view said the author and the
+            // length alone** (T-243), while the panel of that same media of the
+            // Home view of that same run said the place of the user.
+            let place = self.the_place_of_the_panel_of_a_list_entry(entry);
+
             Paragraph::new(format!(
-                "{} - Author: {} - Duration: {}{}",
+                "{} - Author: {} - Duration: {}{}\nProgress: {}%, {} {}",
                 if entry.is_episode() {
                     "Episode"
                 } else {
@@ -1834,6 +1850,9 @@ impl App {
                     .cloned()
                     .unwrap_or_default(),
                 of_the_disk,
+                place.percent,               // percentage progression
+                place.the_time_that_is_left, // time left
+                place.the_end,               // is finished
             ))
             .wrap(Wrap { trim: true })
             .left_aligned()

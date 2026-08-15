@@ -17102,3 +17102,182 @@ a session, and not before it.**
   all** (T-242): a podcast holds more than one episode, and the line of it
   names no episode (T-221). Whether such a line must say the place of the
   newest episode of it is not measured.
+
+### T-243: the line and the panel of the view of the books of a series and of the view of the media of a list hold the place of the user
+
+**This item measures the first bullet of "What this item leaves open" of
+T-242: the view of the lists, the view of the series, and the view of the
+books of a series hold no place of the user.** The view of the series itself
+still names more than one media on one line (T-44 and T-22), and it stays
+open. This round corrects the view of the books of a series and the view of
+the media of a collection or of a playlist, because each line of those two
+views names one media.
+
+#### The measurement
+
+The real program driven inside tmux by `docs/harness/drive.sh`, against the
+sandbox. The server held `The Test Chronicles Volume 2` at the percent 41
+and `A Long Test Book` at the percent 63. The Home view of that run (the
+control of the same run) said:
+
+```text
+➤ 41% The Test Chronicles Volume 2
+  63% A Long Test Book
+```
+
+The key `s`, two keys `j`, the key `l`, and one key `j` gave the view of the
+books of `The Test Chronicles`:
+
+```text
+  #1 - The Test Chronicles Volume 1
+➤ #2 - The Test Chronicles Volume 2
+  #3 - The Test Chronicles Volume 3
+Author: Series Author - Duration: 0m
+No description available
+```
+
+The key `c` and the key `l` gave the view of the media of `A Test
+Collection`:
+
+```text
+➤ A Long Test Book
+Book - Author: Long Author - Duration: 30m
+No description available
+```
+
+No line held a number, no line of a book that the user finished held the
+mark `✓`, and neither panel said a place at all.
+
+#### The correction
+
+`App::the_mark_of_a_book` of T-242 kept its key of a book, and its three
+roads moved to a new `App::the_mark_of_this_media(key, plays_now)`, which
+takes the key of the media. `App::the_place_of_the_panel_of_this_book` of
+T-241 did the same for a new
+`App::the_place_of_the_panel_of_this_media(key, length)`. **A line of a
+media of a collection or of a playlist holds an episode of a podcast too**
+(T-223), therefore the two functions take the key and not the id.
+
+`App::series_book_lines` and `App::list_entry_lines` are new, and
+`render_series_book` and `render_list_entries` of `src/ui/tui.rs` call them.
+
+`App::the_place_of_the_panel_of_a_series_book(book)` and
+`App::the_place_of_the_panel_of_a_list_entry(entry)` are new, and the two
+panels say `Progress: {}%, {} {}` after the author and the length.
+
+A free function `the_key_of_a_line(id, episode_id)` gives no key for a media
+with no identity (T-192), and it names the episode after the item (T-223).
+
+The three roads keep the sequence of T-239, T-240, and T-241: **the engine
+of this program first**, **the row of a live message after it**, and **the
+row of the box of `crate::logic::the_positions` last**. The box costs no
+request of a view (T-127 and T-241).
+
+**The view of the series itself and the view of the lists keep their lines
+with no mark**: a series and a list each hold more than one media (T-44 and
+T-22).
+
+#### The measurement of the corrected program
+
+The same run, the same data. The books of `The Test Chronicles`:
+
+```text
+  ✓   #1 - The Test Chronicles Volume 1
+➤ 41% #2 - The Test Chronicles Volume 2
+  ✓   #3 - The Test Chronicles Volume 3
+Author: Series Author - Duration: 0m
+Progress: 41%, 0m left, Not finished
+```
+
+The media of `A Test Collection`:
+
+```text
+➤ 63% A Long Test Book
+Book - Author: Long Author - Duration: 30m
+Progress: 63%, 11m left, Not finished
+```
+
+**The road of a live message** (T-240 and T-47): a second client of the
+account wrote `{"progress": 0.9}` for `A Long Test Book`, the log said
+`[live] user_updated: the position of 27 media.`, and the line and the panel
+of the next frame said `90%` and `Progress: 90%, 11m left, Not finished`
+with no key of the user.
+
+**The road of the engine** (T-239): the key `l` of that line started the
+playback with `TOUTUI_AUDIO_DEVICE=null`, and three seconds later the line
+said `➤ ▶   A Long Test Book`, the panel said `Progress: 73%, 8m left, Not
+finished`, and the row of the player of that same frame said `▶ 21:56 /
+30:00 | Elapsed: 21:56 | Left: 8:04 (73%) | Speed: 1.00x`.
+
+**The key of the episode** (T-223): a playlist `A Podcast Playlist` of the
+library `Podcasts` held the two episodes `Chapter 00` and `Chapter 01` of
+the one podcast `Arthur Gordon Pym`, at the percent 22 and at the percent
+81. The two lines of the view said:
+
+```text
+➤ 22% Chapter 00
+  81% Chapter 01
+Episode - Author: LibriVox - Duration: 5m
+Progress: 22%, 4m left, Not finished
+```
+
+and the key `j` gave `Progress: 81%,  Not finished` for `Chapter 01`,
+because the server holds no `currentTime` of that episode and a place of 0
+gives no time that is left (`convert_seconds_for_prg`).
+
+#### The test
+
+`tests/the_views_of_a_series_and_of_a_list_hold_the_place.rs`, in one
+function (T-144 and T-157). It reads the blocks of `series_book_lines`, of
+`list_entry_lines`, of `the_mark_of_this_media`, of
+`the_place_of_the_panel_of_this_media`, of `the_key_of_a_line`, of
+`render_series_book`, and of `render_list_entries` (the trap 209), and the
+pure lines of `SeriesView`, of `SeriesBookView`, of `ListView`, and of
+`ListEntry`.
+
+**The build of the fault**: `render_series_book` back at
+`series.books.iter().map(|book| book.line())` fails the test at "the line of
+`fn render_series_book(` holds the title of the server and no mark", and the
+panel back at `"Author: {} - Duration: {}{}"` fails it at "the panel of `fn
+render_series_book(` says no percent, no time that is left, and no mark of
+the end".
+
+The two tests of T-241 and of T-242 read the blocks of
+`the_place_of_the_panel_of_this_book` and of `the_mark_of_a_book`, and the
+three roads moved out of those two blocks: each test now reads the block of
+the function that holds the key, and it keeps one assertion of
+`the_key_of_the_media(id, None)` on the old block.
+
+#### What this item leaves open
+
+- **The view of the authors and the view of the narrators of a library name
+  a book too, and their lines and panels are not measured** (T-243): the key
+  `a` and the key `v` open those two views, each line names one book, and
+  this is the shape that this round corrected for the view of the books of a
+  series and for the view of the media of a list.
+- **The line and the panel of the view of the series itself and of the view
+  of the lists say no place**, because each of those lines names more than
+  one media (T-44 and T-22); whether such a line must say the place of the
+  whole series or of the whole list is not measured.
+- **A media of the queue that no playback of this program moves keeps the
+  place of the moment of the key `q`** (T-230 to T-243, and it stays open),
+  and the panel of a line of that view is not measured.
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-243, and it stays open).
+- **The panel of a line of an episode of the two views of the episodes says
+  the length of the media and not the time that is left** (T-236 to T-243,
+  and it stays open).
+- **The view of the queue of the offline mode is not measured** (T-230 to
+  T-243).
+- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone** (T-226
+  to T-243, and it stays open).
+- **The key `X` of the view of the bookmarks of a podcast** removes a place
+  of another episode with the same words (T-223 to T-243, and it stays
+  open).
+- **The box of the places of the account goes old while the program
+  stands** (T-241 to T-243, and it stays open): a media that a second
+  program of this account moves with no live message is the road that stays
+  open.
+- **The line of the Library view of a library of podcasts says no place at
+  all** (T-242 to T-243, and it stays open): a podcast holds more than one
+  episode, and the line of it names no episode (T-221).

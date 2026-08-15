@@ -41,6 +41,27 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.72",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The view of the books of a series and the view of the media \
+             of a collection or of a playlist said no place of the user.** The \
+             line of such a media held no percent and no mark of the end, and \
+             the panel of it named the author and the length alone, while the \
+             line of that same media of the Home view of the same screen said \
+             `41% The Test Chronicles Volume 2`. The line and the panel of the \
+             two views say the percent, the time that is left, and the mark of \
+             the end now. A media that plays takes the place of the player of \
+             this program, and a message of the server comes at the next \
+             frame. The place of every media of the account comes with the \
+             answer that the start reads already, therefore this costs no \
+             request of the server. A media of a collection or of a playlist \
+             can be an episode of a podcast, and the line of it says the place \
+             of that episode and not of the podcast.",
+        ],
+    },
+    Entry {
         version: "0.8.71",
         date: "15/08/2026",
         body: &[

@@ -171,7 +171,17 @@ async fn the_panel_of_a_book_of_the_library_holds_the_place() {
     // views takes the function of the panel of the Home view, therefore the
     // sequence of the three roads is the sequence of that function.
     let source = std::fs::read_to_string("src/app.rs").expect("the source of the application");
-    let block = the_block_of(&source, "fn the_place_of_the_panel_of_this_book(");
+    // **`the_place_of_the_panel_of_this_book` gives the key of a book to
+    // `the_place_of_the_panel_of_this_media`** (T-243): a line of a media of a
+    // collection or of a playlist holds an episode of a podcast too, therefore
+    // the three roads stand in the function that takes the key.
+    assert!(
+        the_block_of(&source, "fn the_place_of_the_panel_of_this_book(")
+            .contains("the_key_of_the_media(id, None)"),
+        "the panel of a book takes the place of one episode of a podcast"
+    );
+
+    let block = the_block_of(&source, "fn the_place_of_the_panel_of_this_media(");
 
     assert!(
         block.contains("crate::logic::live::progress_of"),

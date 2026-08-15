@@ -121,7 +121,11 @@ fn the_line_of_a_book_of_the_library_holds_the_percent() {
     // it, and the row of the box of the places last** (T-239, T-240, and
     // T-241): the mark of a line takes the sequence of the panel of that same
     // line, therefore one book says one place in the two rows of the screen.
-    let block = the_block_of(&source, "fn the_mark_of_a_book(");
+    // **`the_mark_of_a_book` gives the key of a book to `the_mark_of_this_media`**
+    // (T-243): a line of a media of a collection or of a playlist holds an
+    // episode of a podcast too, therefore the three roads stand in the function
+    // that takes the key.
+    let block = the_block_of(&source, "fn the_mark_of_this_media(");
 
     assert!(
         block.contains("crate::logic::live::progress_of"),
@@ -145,7 +149,7 @@ fn the_line_of_a_book_of_the_library_holds_the_percent() {
     // holds no row of a podcast, therefore that line keeps the mark of the
     // media that plays.
     assert!(
-        block.contains("the_key_of_the_media(id, None)"),
+        the_block_of(&source, "fn the_mark_of_a_book(").contains("the_key_of_the_media(id, None)"),
         "the mark of a book takes the place of one episode of a podcast"
     );
 

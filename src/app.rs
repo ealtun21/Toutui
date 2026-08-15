@@ -7138,6 +7138,25 @@ impl App {
             .filter(|one| !one.is_empty())
             .map(|id| crate::logic::live::the_key_of_the_media(id, None));
 
+        self.the_place_of_the_panel_of_this_media(key, lengths.get(selected).copied())
+    }
+
+    /// Makes the place of the panel of one line of a view that names one media,
+    /// from the key of that media. See T-243.
+    ///
+    /// **The view of the books of a series and the view of the media of a
+    /// collection or of a playlist hold no list of the places of their own**:
+    /// the panel of such a line said the author and the length alone, while the
+    /// panel of that same media of the Home view of that same run said the
+    /// percent, the time that is left, and the mark of the end.
+    ///
+    /// The three roads stay in the sequence of T-239, of T-240, and of T-241,
+    /// and the box of `crate::logic::the_positions` costs no request of a view.
+    fn the_place_of_the_panel_of_this_media(
+        &self,
+        key: Option<String>,
+        length: Option<f64>,
+    ) -> crate::logic::the_panel_of_a_line::ThePlaceOfThePanel {
         let plays_now = key
             .as_ref()
             .zip(self.playing_media().as_ref())
@@ -7149,8 +7168,6 @@ impl App {
         let live = key
             .as_ref()
             .and_then(|key| crate::logic::live::progress_of(key));
-
-        let length = lengths.get(selected).copied();
 
         let row = key
             .as_ref()
@@ -7183,6 +7200,82 @@ impl App {
             &the_time_of_the_row,
             of_the_row(1),
         )
+    }
+
+    /// Gives the place of the panel of one book of the view of the books of a
+    /// series. See T-243.
+    pub fn the_place_of_the_panel_of_a_series_book(
+        &self,
+        book: &SeriesBookView,
+    ) -> crate::logic::the_panel_of_a_line::ThePlaceOfThePanel {
+        self.the_place_of_the_panel_of_this_media(the_key_of_a_line(&book.id, None), {
+            Some(book.duration)
+        })
+    }
+
+    /// The same place for one media of a collection or of a playlist.
+    /// See T-243.
+    pub fn the_place_of_the_panel_of_a_list_entry(
+        &self,
+        entry: &ListEntry,
+    ) -> crate::logic::the_panel_of_a_line::ThePlaceOfThePanel {
+        self.the_place_of_the_panel_of_this_media(
+            the_key_of_a_line(&entry.id, entry.episode_id.as_deref()),
+            Some(entry.duration),
+        )
+    }
+
+    /// Gives the text of each line of the view of the books of a series.
+    /// See T-243.
+    pub fn series_book_lines(&self) -> Vec<String> {
+        let playing = self.playing_media();
+
+        let Some(series) = self.selected_series() else {
+            return Vec::new();
+        };
+
+        series
+            .books
+            .iter()
+            .map(|book| {
+                let key = the_key_of_a_line(&book.id, None);
+
+                let plays_now = key
+                    .as_ref()
+                    .zip(playing.as_ref())
+                    .is_some_and(|(key, playing)| key == playing);
+
+                crate::ui::marks::line(&self.the_mark_of_this_media(key, plays_now), &book.line())
+            })
+            .collect()
+    }
+
+    /// Gives the text of each line of the view of the media of a collection or
+    /// of a playlist. See T-243.
+    ///
+    /// **A media of such a list is one book or one episode of a podcast**: the
+    /// key of the place of an episode names that episode after the podcast
+    /// (T-223), therefore the line of it holds the place of its own episode.
+    pub fn list_entry_lines(&self) -> Vec<String> {
+        let playing = self.playing_media();
+
+        let Some(list) = self.selected_list() else {
+            return Vec::new();
+        };
+
+        list.entries
+            .iter()
+            .map(|entry| {
+                let key = the_key_of_a_line(&entry.id, entry.episode_id.as_deref());
+
+                let plays_now = key
+                    .as_ref()
+                    .zip(playing.as_ref())
+                    .is_some_and(|(key, playing)| key == playing);
+
+                crate::ui::marks::line(&self.the_mark_of_this_media(key, plays_now), &entry.line())
+            })
+            .collect()
     }
 
     /// Gives the place of the panel of the selected line of the view of the
@@ -7411,6 +7504,21 @@ impl App {
             .filter(|one| !one.is_empty())
             .map(|id| crate::logic::live::the_key_of_the_media(id, None));
 
+        self.the_mark_of_this_media(key, plays_now)
+    }
+
+    /// Gives the mark of a line that names one media, from the key of that
+    /// media. See T-243.
+    ///
+    /// **A line of a book of the library holds the id of that book alone**
+    /// (T-242), and a line of a media of a collection or of a playlist holds an
+    /// episode of a podcast too: the key of a place names the episode after the
+    /// item (T-223), therefore this function takes the key and not the id.
+    ///
+    /// The three roads stay in the sequence of the panel of a line (T-239,
+    /// T-240, and T-241): the engine of this program, the row of a live
+    /// message, and the row of the box of the places of the account.
+    fn the_mark_of_this_media(&self, key: Option<String>, plays_now: bool) -> String {
         // **A live message of the server is newer than the answer of the
         // start** (T-240): a second client of the account moves in a book, and
         // the mark of it must not say the value of the request.
@@ -8866,6 +8974,24 @@ fn the_part_of_the_row(list: &[Vec<String>], index: usize, part: usize) -> &str 
         .and_then(|row| row.get(part))
         .map(|value| value.as_str())
         .unwrap_or("N/A")
+}
+
+/// Gives the key of the place of a media of a line that names one media.
+/// See T-243.
+///
+/// **A media with no identity has no place**: the answer of the server gives
+/// such a media no id (T-192), therefore the line of it keeps the mark and the
+/// panel of a media that played never.
+///
+/// The key names the episode after the item, as every key of a place does
+/// (T-223): a media of a collection or of a playlist is one book or one episode
+/// of a podcast.
+fn the_key_of_a_line(id: &str, episode_id: Option<&str>) -> Option<String> {
+    if id.trim().is_empty() {
+        return None;
+    }
+
+    Some(crate::logic::live::the_key_of_the_media(id, episode_id))
 }
 
 /// Gives the progress that the server holds for one media, or the fault that

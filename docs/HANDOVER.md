@@ -79,13 +79,98 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.71**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.72**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1225 of 1225** in 2.6 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1251 of 1251** with
+**1226 of 1226** in 2.5 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1252 of 1252** with
 the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no
-failure in three runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
+failure in two runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the seventy-second turn of 2026-08-15: the two views of a series and of a list hold the place
+
+**One release: v0.8.72**, and one item: T-243 of the place of the user in the
+line and in the panel of the view of the books of a series and of the view of
+the media of a collection or of a playlist. **The road of it is the first
+paragraph of "What this item leaves open" of T-242**: that paragraph named
+three views that hold no place of the user, and each of them names a book of
+the library too.
+
+The measurement of the real program v0.8.71 inside tmux, against the sandbox.
+The server held `The Test Chronicles Volume 2` at the percent 41 and
+`A Long Test Book` at the percent 63. **The control of the same run** (the trap
+206): the Home view of that same program said `➤ 41% The Test Chronicles Volume
+2` and `  63% A Long Test Book`. The key `s`, two keys `j`, the key `l`, and one
+key `j` gave the view of the books of `The Test Chronicles`:
+
+```text
+➤ #2 - The Test Chronicles Volume 2
+Author: Series Author - Duration: 0m
+```
+
+The key `c` and the key `l` gave the view of the media of `A Test Collection`:
+
+```text
+➤ A Long Test Book
+Book - Author: Long Author - Duration: 30m
+```
+
+No line held a number, no line of a book that the user finished held the mark
+`✓`, and neither panel said a place at all.
+
+**The correction costs no request at all**, because T-241 made the box of the
+places of the account already. The three roads of T-239, of T-240, and of T-241
+moved out of `App::the_mark_of_a_book` and out of
+`App::the_place_of_the_panel_of_this_book` into
+`App::the_mark_of_this_media(key, plays_now)` and into
+`App::the_place_of_the_panel_of_this_media(key, length)`, which each take the
+**key** of the media: **a media of a collection or of a playlist is one book or
+one episode of a podcast** (T-223), and a key of the item alone gives every
+episode of one podcast the same place. `App::series_book_lines`,
+`App::list_entry_lines`, `App::the_place_of_the_panel_of_a_series_book`, and
+`App::the_place_of_the_panel_of_a_list_entry` are new, and the two render
+functions of `src/ui/tui.rs` call them. The view of the series itself and the
+view of the lists keep their lines with no mark, because each of those lines
+names more than one media (T-44 and T-22).
+
+The measurement of the corrected program: the books of the series said
+`  ✓   #1`, `➤ 41% #2`, and `  ✓   #3` with `Progress: 41%, 0m left, Not
+finished`, and the media of the collection said `➤ 63% A Long Test Book` with
+`Progress: 63%, 11m left, Not finished`. A second client of the account wrote
+`{"progress": 0.9}` for that book, the log said `[live] user_updated: the
+position of 27 media.`, and the line and the panel of the next frame said `90%`.
+The key `l` of that line gave `➤ ▶   A Long Test Book` with
+`Progress: 73%, 8m left, Not finished` while the row of the player of that same
+frame said `▶ 21:56 / 30:00 | Left: 8:04 (73%)`. **The key of the episode**: a
+playlist of the library `Podcasts` held the two episodes `Chapter 00` and
+`Chapter 01` of the one podcast `Arthur Gordon Pym` at the percent 22 and at the
+percent 81, and the two lines of the view said `➤ 22% Chapter 00` and
+`  81% Chapter 01`.
+
+**The decision, and the reason for it: a function that takes the id of a media
+takes the key of it, because a view of the program names an episode too.** The
+two functions of T-241 and of T-242 each made the key of a book inside
+themselves, therefore a view of a media of a playlist could not use them at all.
+The evidence stands in T-243 of `docs/TAKEOVER-BACKLOG.md`.
+
+### The traps of this session
+
+**The trap 218: a test that reads the block of a function stops the correction
+that moves that block.** The tests of T-241 and of T-242 read the blocks of
+`the_place_of_the_panel_of_this_book` and of `the_mark_of_a_book` for the three
+roads, and this round moved those roads into the two functions that take the
+key. **A test of the shape of the trap 209 belongs to the rule and not to the
+name of the function**: each of the two tests now reads the block of the
+function that holds the key, and it keeps one assertion of
+`the_key_of_the_media(id, None)` on the old block. Read the tests that name a
+function before you move the body of it.
+
+**The trap 219: `A Podcast Playlist` of the section 6d of
+`docs/TEST-SERVER.md` did not stand in the sandbox.** `GET /api/playlists` gave
+one playlist of the library of the books alone. **The document of the sandbox
+says how to make a thing, and it does not say that the thing stands**: ask the
+server before a measurement that needs it. `POST /api/playlists` with two
+entries of `libraryItemId` and of `episodeId` made it in one command.
 
 ## The session of the seventy-first turn of 2026-08-15: the line of a book of the library holds the percent
 
@@ -9718,41 +9803,81 @@ and four minutes, and 16 percent.**
 - **The lines of the view of the search and of the view of the lists hold
   no place at all** (T-228 to T-239, and it stays open).
 
+**The
+session of the sixty-ninth turn took the first paragraph of "What this
+item leaves open" of the newest item: that paragraph named a road to a
+value that one place of a view holds and that a second place of that same
+view does not, and the measurement found the two places side by side**
+(T-240).
+
+The server held `A Book Of Many Hours` at 10800 seconds of 28800, with the
+percent 52, and no playback of the program held that media. A second
+client of that same account moved it to 21600 seconds with the percent 75,
+the log said `[live] user_updated: the position of 27 media.`, and three
+seconds later one frame of one screen said `➤ 75% A Book Of Many Hours`
+for the line and `Progress: 52%, 5h left, Not finished` for the panel of
+that same line. **The difference was 23 percent and three hours.**
+- **A line and the panel of that line are two places of one value**
+  (T-240): the line held the three roads to the place of a media — the
+  engine of this program (T-239), a live message (T-47), and the request
+  of the view — and the panel of it held one of them. **Ask of a value that
+  two parts of one view say: does each part take every road to it?**
+- **A paragraph that names a road that one function does not take is the
+  item of a round** (T-240): T-239 wrote that the panel reads no live
+  message, and the measurement of that same road found the fault in three
+  panels together.
+- **A value of a message that a view does not read is a value that the
+  program holds already** (T-240): the box of the live messages holds the
+  percent, the mark of the end, and the place in seconds of every media of
+  the account (T-184 and T-235), therefore the correction costs no request.
+- **The panel of a line of a book of the Library view and of the view of
+  the search says no place at all** (T-239 and T-240, and it stays open):
+  those two panels name the author and the year.
+- **A media of the queue that no playback of this program moves keeps the
+  place of the moment of the key `q`** (T-230 to T-240, and it stays open),
+  and the panel of a line of that view is not measured.
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-240, and it stays open).
+- **The lines of the view of the search and of the view of the lists hold
+  no place at all** (T-228 to T-240, and it stays open).
+
 ## The prompt for the next session
 **This session took the first paragraph of "What this item leaves open" of the
-newest item.** T-241 wrote that the line of the Library view and the line of the
-view of the search hold no mark of the percent: `crate::ui::marks::of_library`
-gives the mark of the media that plays alone. **The measurement found the two
-parts of one view side by side in one frame** — the line of `A Book Of Many
-Hours` said `➤     A Book Of Many Hours`, and the panel one row under it said
-`Progress: 84%, 5h left, Not finished`. The item is **T-242**, and it holds one
-release, v0.8.71.
+newest item.** T-242 named three views that hold no place of the user, and each
+of them names a book of the library too. **The measurement found two of them in
+one run** — the view of the books of `The Test Chronicles` said
+`➤ #2 - The Test Chronicles Volume 2` with the panel
+`Author: Series Author - Duration: 0m`, and the view of the media of
+`A Test Collection` said `➤ A Long Test Book` with the panel
+`Book - Author: Long Author - Duration: 30m`, while the Home view of that same
+run said `41%` and `63%` for those two books. The item is **T-243**, and it
+holds one release, v0.8.72.
 
 Three things are worth the room:
 
-1. **A line and the panel of that line are two parts of one view, and a round
-   that corrects one of them must ask for the other.** T-241 gave the place of
-   the user to the panel of those two views, and the line above it kept the mark
-   of the media that plays alone: one frame then held one book at one place in
-   one row and at no place in the row above it. **Ask of every correction: which
-   part of that same view says the same value, and does it say it now?**
-2. **A view that renders the titles of the server holds no mark at all.** The
-   Library view took `marks::of_library`, and the view of the search took no
-   function of `crate::ui::marks` at all. A sweep of that module names every
-   list of the program that says a place of the user, and every list that does
-   not.
-3. **The gate of clippy belongs after the last test that a session writes.** The
-   commit of T-241 shipped two calls of `map.get(…).is_none()` that
-   `clippy::unnecessary_get_then_check` refuses, because the gate of that round
-   ran before the last file of it (the trap 216).
-   Eighteen sessions of eighteen took a paragraph of "What this item leaves
+1. **A function that takes the id of a media must take the key of it.** The two
+   functions of T-241 and of T-242 made the key of a book inside themselves with
+   `the_key_of_the_media(id, None)`, therefore a view whose line names an
+   episode of a podcast could not use them at all. The three roads moved into
+   `the_mark_of_this_media(key, …)` and into
+   `the_place_of_the_panel_of_this_media(key, …)`.
+2. **A test that reads the block of a function stops the correction that moves
+   that block.** The tests of T-241 and of T-242 read the blocks of those two
+   functions for the three roads (the trap 218). A test of the shape of the
+   trap 209 belongs to the rule and not to the name: read the tests that name a
+   function before you move the body of it.
+3. **The document of the sandbox says how to make a thing, and it does not say
+   that the thing stands.** `A Podcast Playlist` of the section 6d of
+   `docs/TEST-SERVER.md` did not stand, and one `POST /api/playlists` of two
+   entries made it (the trap 219).
+   Nineteen sessions of nineteen took a paragraph of "What this item leaves
    open".
 
 This prompt names the state of the program on 2026-08-16.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.71**; `Cargo.toml` is at 0.8.71. The
+> AlbanDAVID/Toutui. Newest release **v0.8.72**; `Cargo.toml` is at 0.8.72. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -9761,7 +9886,7 @@ This prompt names the state of the program on 2026-08-16.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-242 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-243 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -10269,15 +10394,15 @@ This prompt names the state of the program on 2026-08-16.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-243 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-244 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1225 tests in 2.6 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1251 of 1251** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1226 tests in 2.5 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1252 of 1252** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -10387,6 +10512,52 @@ This prompt names the state of the program on 2026-08-16.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in eighty-two sessions of eighty-three.
 >    **The
+>    session of the seventy-second turn took the first paragraph of "What this
+>    item leaves open" of the newest item: that paragraph named three views
+>    that hold no place of the user, and the measurement found two of them in
+>    one run** (T-243).
+>
+>    The server held `The Test Chronicles Volume 2` at the percent 41 and
+>    `A Long Test Book` at the percent 63. **The control of the same run** (the
+>    trap 206): the Home view said `➤ 41% The Test Chronicles Volume 2` and
+>    `  63% A Long Test Book`. The key `s`, two keys `j`, the key `l`, and one
+>    key `j` gave the view of the books of `The Test Chronicles`, and the line
+>    of that same book said `➤ #2 - The Test Chronicles Volume 2` while the
+>    panel under it said `Author: Series Author - Duration: 0m`. The key `c`
+>    and the key `l` gave the view of the media of `A Test Collection`, and
+>    that line said `➤ A Long Test Book` with the panel
+>    `Book - Author: Long Author - Duration: 30m`. **No line of either view
+>    held a number, and neither panel said a place at all.**
+>    - **A function that takes the id of a media must take the key of it**
+>      (T-243): the two functions of T-241 and of T-242 made the key of a book
+>      inside themselves with `the_key_of_the_media(id, None)`, therefore a
+>      view whose line names an episode of a podcast could not use them. The
+>      three roads moved into `the_mark_of_this_media(key, …)` and into
+>      `the_place_of_the_panel_of_this_media(key, …)`, and the two views of a
+>      book keep the key that they made.
+>    - **A test that reads the block of a function stops the correction that
+>      moves that block** (the trap 218): the tests of T-241 and of T-242 read
+>      the blocks of the two functions for the three roads. **A test of the
+>      shape of the trap 209 belongs to the rule and not to the name**: read
+>      the tests that name a function before you move the body of it.
+>    - **The document of the sandbox says how to make a thing, and it does not
+>      say that the thing stands** (the trap 219): `A Podcast Playlist` of the
+>      section 6d of `docs/TEST-SERVER.md` did not stand, and one
+>      `POST /api/playlists` of two entries made it.
+>    - **The view of the authors and the view of the narrators of a library
+>      each name one book of a line** (T-243, and it stays open): the key `a`
+>      and the key `v` open them, and their lines and panels are not measured.
+>      **That is the shape that this round corrected.**
+>    - **The line and the panel of the view of the series itself and of the
+>      view of the lists say no place** (T-243, and it stays open), because
+>      each of those lines names more than one media (T-44 and T-22).
+>    - **A media of the queue that no playback of this program moves keeps the
+>      place of the moment of the key `q`** (T-230 to T-243, and it stays
+>      open), and the panel of a line of that view is not measured.
+>    - **The lines of the view of the bookmarks hold no place of the user**
+>      (T-229 to T-243, and it stays open).
+>
+>    **The
 >    session of the seventy-first turn took the first paragraph of "What this
 >    item leaves open" of the newest item: that paragraph named a value that
 >    one part of a view says and that the part above it does not, and the
@@ -10468,47 +10639,10 @@ This prompt names the state of the program on 2026-08-16.
 >    - **The lines of the view of the bookmarks hold no place of the user**
 >      (T-229 to T-241, and it stays open).
 >
->    **The
->    session of the sixty-ninth turn took the first paragraph of "What this
->    item leaves open" of the newest item: that paragraph named a road to a
->    value that one place of a view holds and that a second place of that same
->    view does not, and the measurement found the two places side by side**
->    (T-240).
->
->    The server held `A Book Of Many Hours` at 10800 seconds of 28800, with the
->    percent 52, and no playback of the program held that media. A second
->    client of that same account moved it to 21600 seconds with the percent 75,
->    the log said `[live] user_updated: the position of 27 media.`, and three
->    seconds later one frame of one screen said `➤ 75% A Book Of Many Hours`
->    for the line and `Progress: 52%, 5h left, Not finished` for the panel of
->    that same line. **The difference was 23 percent and three hours.**
->    - **A line and the panel of that line are two places of one value**
->      (T-240): the line held the three roads to the place of a media — the
->      engine of this program (T-239), a live message (T-47), and the request
->      of the view — and the panel of it held one of them. **Ask of a value that
->      two parts of one view say: does each part take every road to it?**
->    - **A paragraph that names a road that one function does not take is the
->      item of a round** (T-240): T-239 wrote that the panel reads no live
->      message, and the measurement of that same road found the fault in three
->      panels together.
->    - **A value of a message that a view does not read is a value that the
->      program holds already** (T-240): the box of the live messages holds the
->      percent, the mark of the end, and the place in seconds of every media of
->      the account (T-184 and T-235), therefore the correction costs no request.
->    - **The panel of a line of a book of the Library view and of the view of
->      the search says no place at all** (T-239 and T-240, and it stays open):
->      those two panels name the author and the year.
->    - **A media of the queue that no playback of this program moves keeps the
->      place of the moment of the key `q`** (T-230 to T-240, and it stays open),
->      and the panel of a line of that view is not measured.
->    - **The lines of the view of the bookmarks hold no place of the user**
->      (T-229 to T-240, and it stays open).
->    - **The lines of the view of the search and of the view of the lists hold
->      no place at all** (T-228 to T-240, and it stays open).
 >
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the sixty-eighth and every turn before it, the item of each, and the sweeps
+>    the sixty-ninth and every turn before it, the item of each, and the sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
 >    says nothing at all (T-174), the rule of the line of a view for the six
@@ -10847,7 +10981,13 @@ This prompt names the state of the program on 2026-08-16.
 > of the Library view and of the view of the search holds the mark of the
 > percent: the engine of this program comes first, the row of a live message
 > after it, and the row of the box of the places last, and a line that holds
-> more than one media keeps the mark of the media that plays** (T-242).
+> more than one media keeps the mark of the media that plays** (T-242), and
+> **the line and the panel of the view of the books of a series and of the view
+> of the media of a collection or of a playlist hold the place of the user: the
+> function of the mark and the function of the panel each take the key of the
+> media, therefore a line of an episode of a podcast holds the place of that
+> episode, and a line that names more than one media keeps its line with no
+> mark** (T-243).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
