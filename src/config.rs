@@ -514,6 +514,10 @@ struct TheRowOfAServer {
 ///   of that server stays: a server has more than one address, and one of them
 ///   answers.
 /// - A server that keeps no address belongs to no pool.
+/// - A name that a server before it holds already belongs to no pool: two
+///   servers of one name hold one identity, and the place of one server then
+///   goes to a different server (T-261). The server of the first block keeps
+///   the name, and every server after it that repeats that name goes away.
 fn the_servers_of_the_file(config: &ConfigLib) -> Vec<ServerConfig> {
     let rows: Vec<config::Value> = match config.get("servers") {
         Ok(rows) => rows,
@@ -559,6 +563,30 @@ fn the_servers_of_the_file(config: &ConfigLib) -> Vec<ServerConfig> {
                  A name is the identity of the place of the user, therefore that server \
                  goes away and the program uses the address of the login screen.",
                 place + 1
+            );
+            continue;
+        }
+
+        // T-261. Two servers of one name hold one identity. `server_key` gives
+        // the name of the **first** server that holds the address, therefore
+        // the account of the second server writes the column `server` of the
+        // tables `queue` and `downloads` with the name of the first one: the
+        // queue and the downloads of one server then go to a different server,
+        // which the rule of T-25 does not permit. The server of the first block
+        // keeps the name, and a server after it that repeats that name goes
+        // away. The address of the account of that server then gives the
+        // identity.
+        if servers
+            .iter()
+            .any(|server: &ServerConfig| server.name == row.name)
+        {
+            log::warn!(
+                "[config] the server {} of the block servers has the name {}, which a server \
+                 before it has already. A name is the identity of the place of the user, and \
+                 two servers must not hold one identity, therefore that server goes away and \
+                 the program uses the address of the login screen.",
+                place + 1,
+                row.name
             );
             continue;
         }
@@ -1226,6 +1254,138 @@ endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
         );
         assert_eq!(first, "http://first:13378");
         assert_eq!(second, "http://second:13378");
+    }
+
+    /// **Two servers of one name held one identity** (T-261, and the rule of
+    /// T-25). `server_key` gives the name of the first server that holds the
+    /// address, therefore the account of the second server wrote the queue and
+    /// the downloads of the first one: a measurement of the real program showed
+    /// the queue of the server of the port 13399 on the screen of the account
+    /// of the port 13500. The second server goes away now, and its address
+    /// gives its own identity.
+    #[test]
+    fn two_servers_of_one_name_hold_two_identities() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[[servers]]\nname = \"home\"\n\
+             endpoints = [ { url = \"http://first:13378\", priority = 0 } ]\n\
+             \n[[servers]]\nname = \"home\"\n\
+             endpoints = [ { url = \"http://second:13378\", priority = 0 } ]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        let first = server_key(&config.servers, "http://first:13378");
+        let second = server_key(&config.servers, "http://second:13378");
+        assert_ne!(
+            first, second,
+            "two servers must never hold the same identity of the place of the user"
+        );
+        assert_eq!(
+            first, "home",
+            "the server of the first block keeps the name"
+        );
+        assert_eq!(
+            second, "http://second:13378",
+            "the address of the account must give the identity of the second server"
+        );
+    }
+
+    /// **A name that a server before it holds already belongs to no pool**
+    /// (T-261): that server goes away whole, therefore no address of it stands
+    /// in the pool of the first server. An address of one server must never
+    /// answer for a different server, because the program sends the token of
+    /// the account to it.
+    #[test]
+    fn a_server_of_a_name_that_stands_already_goes_away_whole() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[[servers]]\nname = \"home\"\n\
+             endpoints = [ { url = \"http://first:13378\", priority = 0 } ]\n\
+             \n[[servers]]\nname = \"home\"\n\
+             endpoints = [ { url = \"http://second:13378\", priority = 0 } ]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(
+            config.servers.len(),
+            1,
+            "a server of a name that stands already must belong to no pool"
+        );
+        assert_eq!(
+            pool_for_address(&config.servers, "http://first:13378").len(),
+            1,
+            "the pool of the first server must hold no address of the second one"
+        );
+        assert_eq!(
+            pool_for_address(&config.servers, "http://second:13378").len(),
+            1,
+            "the pool of the second server must hold the address of the account alone"
+        );
+    }
+
+    /// **A server that keeps its name goes away, and the server after it then
+    /// keeps that name** (T-261). The name of a server that belongs to no pool
+    /// is no identity of the disk, therefore it holds no name away from a
+    /// server that the program reads.
+    #[test]
+    fn a_name_of_a_server_that_went_away_stays_free() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[[servers]]\nname = \"home\"\n\
+             endpoints = [ { url = \"http://first:13378\", priority = 300 } ]\n\
+             \n[[servers]]\nname = \"home\"\n\
+             endpoints = [ { url = \"http://second:13378\", priority = 0 } ]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(
+            config.servers.len(),
+            1,
+            "the server that the program reads must stay"
+        );
+        assert_eq!(
+            server_key(&config.servers, "http://second:13378"),
+            "home",
+            "the name of the server that went away must stay free"
+        );
+    }
+
+    /// **Two names of two servers stay two identities** (T-261). This test
+    /// passes on both builds, and it guards the road of the user who names each
+    /// server of the file.
+    #[test]
+    fn two_servers_of_two_names_keep_their_identities() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[[servers]]\nname = \"home\"\n\
+             endpoints = [ { url = \"http://first:13378\", priority = 0 } ]\n\
+             \n[[servers]]\nname = \"the server away from home\"\n\
+             endpoints = [ { url = \"http://second:13378\", priority = 0 } ]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(config.servers.len(), 2, "the two servers of the user stay");
+        assert_eq!(server_key(&config.servers, "http://first:13378"), "home");
+        assert_eq!(
+            server_key(&config.servers, "http://second:13378"),
+            "the server away from home"
+        );
     }
 
     /// **A value of the block `reader` that the program cannot read takes the

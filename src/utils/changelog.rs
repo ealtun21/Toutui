@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.90",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Two servers of the configuration file that hold one name do \
+             not share the queue and the downloads of the user.** The name of \
+             a server is the identity of the place of that user on the disk. \
+             Two blocks `[[servers]]` with the name `home` gave one identity \
+             to two servers: the account of the second server showed the queue \
+             of the first one, and the program said no word at all. The server \
+             of the first block keeps the name now, a server after it that \
+             repeats that name goes away, the address of the login screen \
+             gives the identity of that server, and the log names it.",
+        ],
+    },
+    Entry {
         version: "0.8.89",
         date: "15/08/2026",
         body: &[
