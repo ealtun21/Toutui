@@ -16297,3 +16297,129 @@ beside the lists of the text now, and the render keeps the text that it had.
   podcasts and the panel of the view of the episodes each say
   `Duration: 39m` beside `Progress: 32%`. The program holds that number as a
   number now.
+
+### T-237: the view of the queue asks for the place of a media that came into it
+
+**This item measures the first paragraph of "What this item leaves open" of
+T-236: the place of the view of the queue comes of the key `q` and of a live
+message, and no other key and no tick asks for it again.** T-230 gave that view
+the place of the user, and the request of it runs at the key `q` alone. This
+item asks what a media that comes into the queue **after** that key holds.
+
+#### The measurement
+
+The real program v0.8.65 inside tmux, against the sandbox (podman on :13399).
+The user pressed the key `n` on `A Long Test Book` and on `A Second Book Of
+Many Hours` of the library `Books`, and then the key `q`:
+
+```text
+➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+      2. 📕 A Second Book Of Many Hours — Many Hours Author  (6h left)
+```
+
+A second program of the account then put `A Book Of Many Hours` in the queue
+(one row of the table `queue` of `db.sqlite3`, of the shape that
+`save_the_queue` writes), and the user pressed the key `X` on the line 1:
+
+```text
+➤     1. 📕 A Second Book Of Many Hours — Many Hours Author  (6h left)
+      2. 📕 A Book Of Many Hours — Many Hours Author  (8h)
+```
+
+The server holds `A Book Of Many Hours` at 7200 seconds of 28800, with the
+percent 90 (`GET /api/me`). **The line of that media said the length of the
+whole media, and it held no mark of a place at all.**
+
+**The control of the same run** (the trap 206): the line 1 of that same view
+said `(6h left)`, therefore the row of the time works; and the Home view of that
+same program said `90% A Book Of Many Hours`, therefore the server gave the
+place and the program read it.
+
+#### The fault of the source
+
+- `App::ask_the_server_for_the_places_of_the_queue` of `src/app.rs` runs at
+  `show_the_queue` alone, and the answer of it names the media of the queue of
+  that moment. `keep_the_places` **takes the place** of the list that came
+  before it, therefore a media that came into the queue after that request
+  stands in no row of the box of the places.
+- **The queue changes with no key of this user.** `the_queue_changes` of
+  `src/logic/queue.rs` reads the queue of the disk again (T-147), and the key
+  `X` and the media that comes to its end each call it: a second program of the
+  account puts a media in the queue, and the line of it comes into the open
+  view of the first program.
+- The line of such a media then falls to the road of a media that the user
+  never began: `the_lines_of_the_queue` finds no row, therefore the mark of the
+  line says nothing and `the_time_of_the_line` gives the length of the whole
+  media.
+
+#### The correction
+
+- `src/logic/queue.rs` holds a second box beside the box of the places:
+  `keep_the_keys_that_the_program_asked` and `the_keys_that_the_program_asked`
+  hold the names of the media that the last request named. The list takes the
+  place of the list before it, therefore a media that left the queue and that
+  came back into it is a media that the program must ask for again.
+- `a_media_of_the_queue_stands_outside(entries, asked)` is the rule, and it is
+  pure. **It reads the names of the request and not the box of the places**
+  (T-230): a media that the user never began stands in no row of `GET /api/me`,
+  therefore a rule of the box of the places would give one request at each
+  frame.
+- `App::ask_the_server_for_the_places_of_the_queue` writes those names **before**
+  the task of the request: the answer comes in a task of its own, and the loop
+  of the view would else ask the server again at each frame until that answer
+  came.
+- `App::the_line_of_the_queue_holds_its_media` runs at each frame of the view
+  (T-161), and it calls the rule there. **The offline mode asks nothing at all**
+  (T-230), therefore the names of the box stay empty there and the rule reads
+  them only when the program is not offline.
+- `tests/the_view_of_the_queue_asks_for_a_media_that_came_into_it.rs` holds the
+  rule, in one function (T-144 and T-157). **Five builds of the fault each fail
+  it**: a rule that says nothing for a media that stands outside, a key of the
+  item alone for an episode, a loop of the view that does not call the rule, a
+  request that keeps no name, and a rule that reads no offline mode.
+
+The same measurement of the corrected program:
+
+```text
+➤     1. 📕 A Second Book Of Many Hours — Many Hours Author  (6h left)
+  90% 2. 📕 A Book Of Many Hours — Many Hours Author  (6h left)
+```
+
+**The log of a proxy of that same run counted the requests** (the trap 144, with
+`one_path_fails.py` on 13500 as a passthrough and the address of the account at
+that port): two requests of `/api/me` at the key `q`, **one** after the key `X`,
+and no request more in the six seconds after it. The rule asks one time for a
+media that came in, and it asks nothing at all while the queue does not change.
+
+**The decision, and the reason for it: a view that holds a value of the server
+for each of its lines must ask for a line that came into it.** The key that
+opens a view is not the one moment of that view: the queue of this program
+changes with no key of this user, because the disk is the truth of the queue
+(T-147). The rule stands in the loop of the view, therefore it holds every road
+that brings a media in — the key `X`, the media that comes to its end, and every
+road of a later version.
+
+#### What this item leaves open
+
+- **A media that stays in the queue keeps the place of the moment of the key
+  `q`** (T-230 to T-237): the request runs for a media that came in, and the
+  places of the other lines then come with that same answer. A queue that does
+  not change therefore asks nothing, and a live message of the server is the one
+  road to a newer place (T-235).
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-237, and it stays open).
+- **The lines of the view of the search and of the view of the lists hold no
+  place at all** (T-228 to T-237, and it stays open).
+- **The view of the queue of the offline mode is not measured** (T-230 to
+  T-237): that view gives no place at all, therefore every line of it keeps the
+  length of its media.
+- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone** (T-226 to
+  T-237, and it stays open).
+- **The key `X` of the view of the bookmarks of a podcast** removes a place of
+  another episode with the same words (T-223 to T-237 each left it open, and
+  this item did not close it).
+- **The panel of a line of an episode says the length of the media and not the
+  time that is left** (T-236 and T-237): the panel of a line of a book of the
+  Home view says `6h left`, and the panel of the Home view of a library of
+  podcasts and the panel of the view of the episodes each say `Duration: 39m`
+  beside `Progress: 32%`. The program holds that number as a number now.

@@ -67,7 +67,7 @@
 
 use crate::logic::playback::PlaybackTarget;
 use crate::utils::convert_seconds::convert_seconds;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Mutex, OnceLock};
 
 /// One media that waits in the queue.
@@ -496,6 +496,56 @@ pub fn the_places() -> BTreeMap<String, Vec<String>> {
         Ok(places) => places.clone(),
         Err(_) => BTreeMap::new(),
     }
+}
+
+/// The media of the queue that the last request of the places named.
+///
+/// The key `q` asks the server one time, and the answer holds the media of the
+/// queue of that moment alone. See T-237.
+fn box_of_the_keys_that_the_program_asked() -> &'static Mutex<BTreeSet<String>> {
+    static ASKED: OnceLock<Mutex<BTreeSet<String>>> = OnceLock::new();
+    ASKED.get_or_init(|| Mutex::new(BTreeSet::new()))
+}
+
+/// Names the media that the request of the places asked for. See T-237.
+///
+/// The list **takes the place** of the list that came before it: a media that
+/// left the queue and that came back into it is a media of no row of the box of
+/// the places, therefore the program must ask the server for it again.
+pub fn keep_the_keys_that_the_program_asked(keys: BTreeSet<String>) {
+    if let Ok(mut slot) = box_of_the_keys_that_the_program_asked().lock() {
+        *slot = keys;
+    }
+}
+
+/// Gives the media that the last request of the places named. See T-237.
+pub fn the_keys_that_the_program_asked() -> BTreeSet<String> {
+    match box_of_the_keys_that_the_program_asked().lock() {
+        Ok(keys) => keys.clone(),
+        Err(_) => BTreeSet::new(),
+    }
+}
+
+/// Says whether the queue holds a media that the request of the places did not
+/// name. See T-237.
+///
+/// **A media comes into the queue while the view of that queue stands open**:
+/// the key `X` of this program, and the media that comes to its end, each read
+/// the queue of the disk again (T-147), therefore a second program of the
+/// account puts a media in the queue and the line of it comes with no key of
+/// this user. The request of the places ran at the key `q`, and it named the
+/// media of that moment alone: the line of the new media then held no mark of
+/// the place and it said the length of the whole media.
+///
+/// **A request that came back with no row of a media is not a media that the
+/// program did not ask for** (T-230): a media that the user never began stands
+/// in no row of `GET /api/me`, therefore the answer of this function reads the
+/// media that the program **asked** for and not the media of the box of the
+/// places. A read of that box would give one request at each frame.
+///
+/// The function is pure, therefore a test needs no server and no screen.
+pub fn a_media_of_the_queue_stands_outside(entries: &[Entry], asked: &BTreeSet<String>) -> bool {
+    entries.iter().any(|entry| !asked.contains(&entry.key()))
 }
 
 /// The queue of the process.

@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.65.** The item T-236 belongs to this session. The
+**The newest release is v0.8.66.** The item T-237 belongs to this session. The
+item T-236 belongs to the session before it. The
 item T-235 belongs to the session before it. The
 item T-234 belongs to the session before it. The
 item T-233 belongs to the session before it. The
@@ -73,13 +74,82 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.65**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.66**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1219 of 1219** in 2.6 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1245 of 1245** in 17 seconds with
+**1220 of 1220** in 2.7 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1246 of 1246** with
 the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no
-failure in two runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
+failure in three runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the sixty-sixth turn of 2026-08-15: the view of the queue asks for a media that came into it
+
+**One release: v0.8.66**, and one item: T-237 of the place of a media that comes
+into the queue while the view of that queue stands open. **The road of it is the
+first paragraph of "What this item leaves open" of T-236**: the place of that
+view comes of the key `q` and of a live message, and no other key and no tick
+asks for it again.
+
+The measurement of the real program v0.8.65 inside tmux, against the sandbox.
+The user pressed the key `n` on `A Long Test Book` and on `A Second Book Of Many
+Hours` of the library `Books`, and then the key `q`:
+
+```text
+➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+      2. 📕 A Second Book Of Many Hours — Many Hours Author  (6h left)
+```
+
+A second program of the account then put `A Book Of Many Hours` in the queue
+(one row of the table `queue` of `db.sqlite3`), and the user pressed the key `X`
+on the line 1:
+
+```text
+➤     1. 📕 A Second Book Of Many Hours — Many Hours Author  (6h left)
+      2. 📕 A Book Of Many Hours — Many Hours Author  (8h)
+```
+
+**The line of the media that came in said the length of the whole media, and it
+held no mark of a place.** The server holds that media at 7200 seconds of 28800
+with the percent 90. **The control of the same run** (the trap 206): the line 1
+of that same view said `(6h left)`, therefore the row of the time works; and the
+Home view of that same program said `90% A Book Of Many Hours`.
+
+**The cause: the key that opens a view is not the one moment of that view.**
+`App::ask_the_server_for_the_places_of_the_queue` runs at `show_the_queue`
+alone, and `keep_the_places` takes the place of the list before it. The queue
+changes with no key of this user: `the_queue_changes` of `src/logic/queue.rs`
+reads the queue of the disk again (T-147), and the key `X` and the media that
+comes to its end each call it. The line of a media of no row then falls to the
+road of a media that the user never began.
+
+The correction: `src/logic/queue.rs` holds a second box beside the box of the
+places, with `keep_the_keys_that_the_program_asked` and
+`the_keys_that_the_program_asked`, and the pure rule
+`a_media_of_the_queue_stands_outside(entries, asked)`. **The rule reads the
+names of the request and not the box of the places**: a media that the user
+never began stands in no row of `GET /api/me`, therefore a rule of that box
+would give one request at each frame. The request writes those names **before**
+its task, and `App::the_line_of_the_queue_holds_its_media`, which runs at each
+frame of the view (T-161), calls the rule. The offline mode asks nothing at all
+(T-230), therefore the rule stands behind `!self.is_offline`.
+
+The corrected program (v0.8.66) said:
+
+```text
+➤     1. 📕 A Second Book Of Many Hours — Many Hours Author  (6h left)
+  90% 2. 📕 A Book Of Many Hours — Many Hours Author  (6h left)
+```
+
+**The log of a proxy of that same run counted the requests** (the trap 144, with
+`one_path_fails.py` on 13500 as a passthrough and the address of the account at
+that port): two requests of `/api/me` at the key `q`, **one** after the key `X`,
+and no request more in the six seconds after it.
+
+`tests/the_view_of_the_queue_asks_for_a_media_that_came_into_it.rs` holds the
+rule in one function, and **five builds of the fault each fail it**: a rule that
+says nothing for a media that stands outside, a key of the item alone for an
+episode, a loop of the view that does not call the rule, a request that keeps no
+name, and a rule that reads no offline mode.
 
 ## The session of the sixty-fifth turn of 2026-08-15: the line of the queue names the time of an episode
 
@@ -9186,7 +9256,7 @@ This prompt names the state of the program on 2026-08-16.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.65**; `Cargo.toml` is at 0.8.65. The
+> AlbanDAVID/Toutui. Newest release **v0.8.66**; `Cargo.toml` is at 0.8.66. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -9819,7 +9889,49 @@ This prompt names the state of the program on 2026-08-16.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in seventy-seven sessions of seventy-eight. **The
+>    this shape found a fault in seventy-eight sessions of seventy-nine. **The
+>    session of the sixty-fifth turn took the first paragraph of "What this item
+>    leaves open" of the newest item: that paragraph named the one moment of a
+>    request of a view, and the measurement found a line of that view that no
+>    request reached** (T-237).
+>
+>    The user put two books in the queue with the key `n` and pressed `q`, and
+>    the two lines said `(15m left)` and `(6h left)`. A second program of that
+>    same account then put a third book in the queue (one row of the table
+>    `queue` of `db.sqlite3`), and the user pressed the key `X` on the line 1.
+>    The key `X` reads the queue of the disk again (T-147), therefore the third
+>    book came into the open view with no key of this user, and **the line of it
+>    said `(8h)` with no mark of a place**, while the server held that media at
+>    7200 seconds of 28800 with the percent 90. **The control of the same run**
+>    (the trap 206): the line 1 of that same view said `(6h left)`, and the Home
+>    view of that same program said `90% A Book Of Many Hours`.
+>    - **The key that opens a view is not the one moment of that view** (T-237).
+>      The request of the places runs at the key `q`, and the queue of this
+>      program changes with no key of this user: the disk is the truth of the
+>      queue (T-147), therefore the key `X` and the media that comes to its end
+>      each bring a line that no request reached. **Ask of every view that holds
+>      a value of the server for each line: can a line come into that view after
+>      the request?**
+>    - **A rule of a loop of a view holds every road that a key cannot hold**
+>      (T-237): the rule stands in `the_line_of_the_queue_holds_its_media`, which
+>      runs at each frame, therefore it reaches the key `X`, the media that comes
+>      to its end, and every road of a later version.
+>    - **A rule of a frame needs a box of what the program asked for, and not a
+>      box of what the server answered** (T-237): a media that the user never
+>      began stands in no row of `GET /api/me`, therefore a rule of the box of
+>      the places gives one request at each frame. The names of the request go to
+>      their box **before** the task of that request, and the log of a proxy said
+>      it: one request after the key `X`, and no request more in six seconds.
+>    - **A media that stays in the queue keeps the place of the moment of the key
+>      `q`** (T-230 to T-237, and it stays open): the request runs for a media
+>      that came in, and a live message of the server is the one other road to a
+>      newer place (T-235).
+>    - **The lines of the view of the bookmarks hold no place of the user**
+>      (T-229 to T-237, and it stays open).
+>    - **The lines of the view of the search and of the view of the lists hold no
+>      place at all** (T-228 to T-237, and it stays open).
+>
+>    **The
 >    session of the sixty-fourth turn took the first paragraph of "What this
 >    item leaves open" of the newest item: that paragraph named the place of a
 >    view, and the measurement found that a message of the server takes that
@@ -10212,7 +10324,10 @@ This prompt names the state of the program on 2026-08-16.
 > views that hold an episode give the length of it as a number, a length of 0 is
 > a length that the server did not give, a list of the lengths holds one value
 > for each episode, and a media that the mark of its row says is finished keeps
-> the length** (T-236).
+> the length** (T-236), and **the view of the queue asks the server for the place
+> of a media that came into the queue after the request of the key `q`: the loop
+> of that view holds the rule, the names of the media that the request asked for
+> are the condition of it, and the offline mode asks nothing at all** (T-237).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

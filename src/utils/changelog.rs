@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.66",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A media that came into the queue while the view of the queue \
+             stood open said the length of the whole media.** That line held no \
+             mark of a place, because the request of the places ran at the key \
+             `q` and it named the media of that moment alone. The view asks the \
+             server for the place of such a media now, one time.",
+        ],
+    },
+    Entry {
         version: "0.8.65",
         date: "15/08/2026",
         body: &[

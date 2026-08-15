@@ -7601,13 +7601,26 @@ impl App {
     /// that the user opened it. The offline mode asks nothing: the copies of
     /// the disk hold no place of the server, and the lines then keep their
     /// titles alone.
+    ///
+    /// **The request names the media of the queue of this moment** (T-237). The
+    /// program keeps those names, and the loop of the view asks again for a
+    /// media that comes into the queue after this request.
     fn ask_the_server_for_the_places_of_the_queue(&mut self) {
         if self.is_offline {
             return;
         }
 
-        let keys: Vec<(String, Option<String>)> = crate::logic::queue::snapshot()
-            .entries()
+        let entries = crate::logic::queue::snapshot();
+        let entries = entries.entries();
+
+        // **The names go to the box before the request** (T-237): the answer
+        // comes in a task of its own, and the loop of the view would else ask
+        // the server again at each frame until that answer came.
+        crate::logic::queue::keep_the_keys_that_the_program_asked(
+            entries.iter().map(|entry| entry.key()).collect(),
+        );
+
+        let keys: Vec<(String, Option<String>)> = entries
             .iter()
             .map(|entry| {
                 (
@@ -7649,6 +7662,24 @@ impl App {
         let queue = crate::logic::queue::snapshot();
         let entries = queue.entries();
         let of_the_user = self.list_state_queue.selected();
+
+        // **A media that came into the queue holds the place of its user**
+        // (T-237). The key `X` and the media that comes to its end each read the
+        // queue of the disk again, therefore a second program of the account
+        // puts a media in this queue with no key of this user: the request of
+        // the key `q` named the media of that moment alone, and the line of the
+        // new media said the length of the whole media with no mark of a place.
+        //
+        // The offline mode asks nothing at all, therefore the names of the box
+        // stay empty there and this rule must not read them.
+        if !self.is_offline
+            && crate::logic::queue::a_media_of_the_queue_stands_outside(
+                entries,
+                &crate::logic::queue::the_keys_that_the_program_asked(),
+            )
+        {
+            self.ask_the_server_for_the_places_of_the_queue();
+        }
 
         let of_the_program = self
             .the_media_of_the_line_of_the_queue
