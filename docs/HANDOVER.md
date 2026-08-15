@@ -151,6 +151,23 @@ description available", and it holds no bar and no letter.
 **The build of the fault**: `false && self.the_letters_come` gives
 `assertion failed: panel.the_letters_come()`.
 
+**The trap 227: the room of a footer is not the gate of the footer.** The gate
+`every_footer_fits_in_eighty_columns` counts 130 characters, and the layout of
+`the_areas_of_a_view` gives the footer `FOOTER_HEIGHT` rows, which is 2. A
+footer of 116 characters therefore fills both rows at **60 columns** already,
+and the row after them goes away with no word at all: the user of a narrow
+terminal would lose the end of the footer, and `Q: quit` stands there. **A
+measurement of the room of a footer needs the narrow screen and not the gate.**
+
+**The trap 228: a session of tmux of an old round keeps a program of an old
+version against the sandbox.** `tmux ls` at the end of this round held the
+session `desc` of a round of v0.8.77, and its pane held a binary
+`toutui-corrected` that was still connected to the sandbox. Such a program
+writes rows of `listening_session` and of `pending_progress` of the account, and
+a later round then measures the work of a program that it did not start.
+**Read `tmux ls` at the start of a round**, and `tmux capture-pane -p -t <the
+session>` says the version of the program in its header.
+
 ## The session of the eighty-second turn of 2026-08-15: the panel of a description says that it holds more text
 
 **One release: v0.8.82**, and one item: T-253. **The road of it is the first
