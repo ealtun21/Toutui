@@ -19206,3 +19206,157 @@ function.
   T-255, and it stays open).
 - **The line of the Library view of a library of podcasts says no place at all**
   (T-242 to T-255, and it stays open).
+
+### T-256: the bar of the scroll of a list holds the line of the cursor, and a test draws it
+
+**The state**: corrected on 2026-08-15. The measurement is of the real program
+inside tmux, against the sandbox.
+
+#### What T-255 left open
+
+T-255 left two paragraphs of its own "What this item leaves open". This item
+takes the first one: "**The bar of a list says the place of the panel and not
+the place of the cursor** (T-255, and it stays open): the thumb reads the
+offset of the `ListState`, therefore a key `j` that moves the cursor inside
+the rows of the panel moves no character of the bar. A user of a list of 520
+lines in 18 rows sees one row of the track for about 28 lines of the list."
+
+The second paragraph of that same list — "The bar of the scroll of a list and
+of a panel is in no test of the render" — asks for a test of the render, and
+this item closes half of it: the two renders of the panel of the episodes of
+a podcast stay open, and the panel of a description of T-253 stays open too.
+
+#### The fault
+
+T-255 gave the list of a view a bar of the scroll, and that bar read the
+**offset** of the `ListState` of ratatui — the first line that the panel
+draws. The offset does not change while the cursor moves inside the rows of
+the panel, therefore the bar said nothing of the whole first panel of a list.
+**The title of T-255 is "the list of a view says where the cursor of the user
+stands", and the offset is not the place of the cursor.**
+
+A second fault stood in the first paragraph of "What this item leaves open"
+of T-253, of T-254, and of T-255: no test of this repository drew a frame of
+the program into a buffer. `render_list` was a private method of `App` of
+`src/ui/tui.rs`, therefore the bar of T-255 stood on the measurement of tmux
+alone, and a build that lost that bar broke no test.
+
+#### The measurement
+
+The real program v0.8.84 inside tmux, `docs/harness/drive.sh`, against the
+sandbox on :13399. A screen of 160 columns and 45 rows. The library
+`Podcasts`, the key `Tab` for the Library view, the cursor on "Letters of Two
+Brides", and the key `l` for the view of its episodes. The view holds 57
+episodes and the panel of it holds 18 rows (the rows 4 to 21 of the screen).
+
+- The first frame: the cursor at the line 1 (the row 4 of the screen), and the
+  thumb of the bar at the rows 4, 5, 6, 7, 8 and 9.
+- 17 presses of the key `j`: the cursor at the line 18, the last row of the
+  panel — the whole of the panel — and the thumb at the rows 4, 5, 6, 7, 8 and
+  9 again. **No character of the bar changed.**
+
+A second measurement, of the library `ManyPods` of 520 podcasts (the Library
+view, 500 lines of the filter in 18 rows): the first frame and 18 presses of
+the key `j` each held the thumb at the row 4 of the screen.
+
+#### The correction
+
+`src/logic/the_scroll_of_a_list.rs`:
+
+- `TheList` holds a new field `the_track`: the largest place of the thumb,
+  which is `lines - 1`. T-255 gave the state of the bar `last` (the largest
+  offset, `lines - rows`), therefore the thumb reached the foot of the track
+  one panel before the last line.
+- `the_place_of_the_bar(selected: Option<usize>, offset: usize, the_track:
+  usize) -> usize` gives `selected.unwrap_or(offset).min(the_track)`. **A
+  list with no cursor keeps the offset**, because the place of the panel is
+  the one place that such a list has.
+
+The new module `src/ui/the_list_of_a_view.rs` holds `render_the_list`, the
+whole body of the old `App::render_list`. It takes the area, the buffer, a
+`&Colors`, the title, the `Vec<ListItem>` and the `&mut ListState`, and it
+needs no other part of `App`. `App::render_list` of `src/ui/tui.rs` now builds
+the items with `Self::alternate_colors` and it calls that function.
+
+#### The measurement of the correction
+
+The corrected program in tmux, of the same view of the 57 episodes:
+
+- The first frame: the thumb at the rows 4, 5, 6 and 7.
+- 17 presses of the key `j`: the thumb at the rows 8, 9, 10 and 11. **The bar
+  moved with the cursor.**
+
+(The thumb holds four rows now and not six, because the track counts the 57
+lines and not the 39 offsets.)
+
+#### The build of the fault
+
+`the_place_of_the_bar` with `let _ = selected; offset.min(the_track)` in the
+place of its one line. `cargo test --lib the_list_of_a_view` then fails:
+
+```text
+assertion `left != right` failed: the cursor crossed the whole panel and the bar said nothing
+  left: [1, 2, 3, 4]
+ right: [1, 2, 3, 4]
+```
+
+The other test of that module passed, therefore the bar still came; the
+thumb of it did not move.
+
+#### The tests
+
+Two new test functions in `src/ui/the_list_of_a_view::tests`, and they draw a
+`Buffer` of ratatui with no terminal and no screen:
+`a_list_that_is_longer_than_its_panel_draws_a_bar` and
+`the_thumb_of_the_bar_moves_with_the_cursor_inside_the_panel`. The helper
+`the_rows_of_the_thumb(lines, selected)` draws the list into a buffer of 160
+columns and 19 rows and it gives the rows of the buffer that hold the thumb.
+The test of `src/logic/the_scroll_of_a_list.rs` that held the place of the
+bar became `the_thumb_of_the_bar_holds_the_line_of_the_cursor`.
+
+#### The gates
+
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` pass.
+`cargo nextest run` gives **1247 tests in 2.8 seconds** (1245 before this
+item), and `cargo nextest run --run-ignored all` gives **1273 of 1273** with
+the sandbox up, in 17.3 seconds. `cargo test -j 16 --no-fail-fast` — the gate
+of CI, and a different run — passed two times with no failure.
+
+#### What this item leaves open
+
+- **The two renders of the panel of the episodes of a podcast are in no
+  test** (T-250 to T-256, and it stays open): the road is open now —
+  `render_the_list` of the new module draws into a `Buffer` with no
+  terminal, and `render_a_description` of `src/ui/tui.rs` is still a private
+  method of `App`.
+- **The panel of a description is in no test of the render** (T-253 to
+  T-256, and it stays open): `render_a_description` is still a private
+  method of `App`, and the module of T-256 gives the shape of the
+  correction.
+- **The title of a list says no number of the line of the cursor** (T-255
+  and T-256, and it stays open): the title says `Episodes [57 items]`, and
+  the bar gives the part of the list and not the number.
+- **The key `H` of the panel stands on no character of the screen** (T-254
+  to T-256, and it stays open).
+- **`App::alternate_colors` reads the disk for each line of each frame**
+  (T-256, and it stays open): that function calls `load_config()` for every
+  item of the list, and T-204 says that the render of the program reads no
+  disk. This is a candidate and not a measurement: no session has measured
+  it.
+- **The line of the view of the authors says `[1 book(s)]`** (T-252 to
+  T-256, and it stays open).
+- **The panel of a narrator says "No description available" for every
+  narrator of every library** (T-252 to T-256, and it stays open).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-256, and it stays open).
+- **The key `B` says nothing on either road** (T-248 to T-256, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters,
+  and of the view of the queue gives the Home view** (T-247 to T-256, and it
+  stays open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
+  T-256, and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-256, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at
+  all** (T-242 to T-256, and it stays open).

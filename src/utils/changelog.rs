@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.85",
+        date: "15/08/2026",
+        body: &[
+            "Changed:",
+            "- **The bar of the scroll of a list holds the line of the cursor.** \
+             The bar said which part of the list the view draws, and it did not \
+             move while the cursor went through the lines of the view. It stands \
+             at the top of its track at the first line of the list now, and at \
+             the foot of it at the last line.",
+        ],
+    },
+    Entry {
         version: "0.8.84",
         date: "15/08/2026",
         body: &[

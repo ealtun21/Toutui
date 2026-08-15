@@ -8,4 +8,5 @@ pub mod reader_tui;
 pub mod sessions_tui;
 pub mod stats_tui;
 pub mod text_field;
+pub mod the_list_of_a_view;
 pub mod tui;

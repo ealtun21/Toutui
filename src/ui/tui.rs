@@ -9,10 +9,9 @@ use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Constraint, Layout, Rect},
     style::{Color, Modifier, Style, Stylize},
-    text::Line,
     widgets::{
-        Block, Borders, Clear, Gauge, HighlightSpacing, List, ListItem, ListState, Paragraph,
-        Scrollbar, ScrollbarOrientation, ScrollbarState, StatefulWidget, Widget, Wrap,
+        Block, Borders, Clear, Gauge, ListItem, ListState, Paragraph, Scrollbar,
+        ScrollbarOrientation, ScrollbarState, StatefulWidget, Widget, Wrap,
     },
 };
 use ratatui_image::StatefulImage;
@@ -2487,38 +2486,6 @@ impl App {
         render_list_items: &[String],
         list_state: &mut ListState,
     ) {
-        let bg_color_header = self.config.colors.header_background_color.clone();
-        let fg_color_header = self.config.colors.line_header_color.clone();
-        let bg_color_block = self.config.colors.list_background_color.clone();
-        let bg_selected = self.config.colors.list_selected_background_color.clone();
-        let fg_selected = self.config.colors.list_selected_foreground_color.clone();
-        let selected_style: Style = Style::new()
-            .bg(Color::Rgb(bg_selected[0], bg_selected[1], bg_selected[2]))
-            .fg(Color::Rgb(fg_selected[0], fg_selected[1], fg_selected[2]))
-            .add_modifier(Modifier::BOLD);
-
-        let header_style: Style = Style::new()
-            .fg(Color::Rgb(
-                fg_color_header[0],
-                fg_color_header[1],
-                fg_color_header[2],
-            ))
-            .bg(Color::Rgb(
-                bg_color_header[0],
-                bg_color_header[1],
-                bg_color_header[2],
-            ));
-
-        let block = Block::new()
-            .title(Line::raw(render_list_title.to_string()).centered())
-            .borders(Borders::TOP)
-            .border_style(header_style)
-            .bg(Color::Rgb(
-                bg_color_block[0],
-                bg_color_block[1],
-                bg_color_block[2],
-            ));
-
         let items: Vec<ListItem> = render_list_items
             .iter()
             .enumerate()
@@ -2528,56 +2495,17 @@ impl App {
             })
             .collect();
 
-        // **A list that holds more lines than its rows says so** (T-255). The
-        // block draws the header of the view over the whole width, and the
-        // list and the bar of the scroll then divide the area below it.
-        let inner = block.inner(area);
-        let the_list = crate::logic::the_scroll_of_a_list::the_list_of_the_render(
-            items.len(),
-            inner.width,
-            inner.height,
+        // **The render of a list stands in a module of its own** (T-256): a
+        // private method of `App` reaches no test, therefore the bar of the
+        // scroll of T-255 stood on the measurement of tmux alone.
+        crate::ui::the_list_of_a_view::render_the_list(
+            area,
+            buf,
+            &self.config.colors,
+            render_list_title,
+            items,
+            list_state,
         );
-
-        block.render(area, buf);
-
-        let [list_area, bar_area] = Layout::horizontal([
-            Constraint::Length(the_list.width_of_the_lines),
-            Constraint::Fill(1),
-        ])
-        .areas(inner);
-
-        let list = List::new(items)
-            .highlight_style(selected_style)
-            .highlight_symbol("➤ ")
-            .highlight_spacing(HighlightSpacing::Always);
-
-        StatefulWidget::render(list, list_area, buf, list_state);
-
-        if the_list.the_bar_comes() {
-            // **ratatui writes the offset of the list while it draws it**,
-            // therefore the bar comes after the list and it needs no second
-            // measurement of the place of the user.
-            //
-            // The state of the bar counts the lines that stand above the panel,
-            // and not the lines of the list: the thumb of the bar then reaches
-            // the foot of it at the last line of the list.
-            //
-            // **The bar of a list names no key** (T-255): the footer of every
-            // view of a list says `j/k: move` already.
-            let mut state = ScrollbarState::new(the_list.last).position(
-                crate::logic::the_scroll_of_a_list::the_place_of_the_bar(
-                    list_state.offset(),
-                    the_list.last,
-                ),
-            );
-
-            Scrollbar::new(ScrollbarOrientation::VerticalRight)
-                .begin_symbol(None)
-                .end_symbol(None)
-                .track_symbol(Some("│"))
-                .thumb_symbol("█")
-                .render(bar_area, buf, &mut state);
-        }
     }
 
     // info about the book or podacst for `Home`
