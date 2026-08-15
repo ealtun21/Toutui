@@ -12,7 +12,7 @@ use ratatui::{
     text::Line,
     widgets::{
         Block, Borders, Clear, Gauge, HighlightSpacing, List, ListItem, ListState, Paragraph,
-        StatefulWidget, Widget, Wrap,
+        Scrollbar, ScrollbarOrientation, ScrollbarState, StatefulWidget, Widget, Wrap,
     },
 };
 use ratatui_image::StatefulImage;
@@ -775,18 +775,44 @@ impl App {
     /// and the size of the panel, and the key of the user holds neither.
     /// Therefore this function keeps the largest scroll of the panel in the box
     /// of `crate::logic::the_scroll_of_a_panel`, and the key reads that box.
+    ///
+    /// **A panel that holds more text than its rows says so** (T-253): the bar
+    /// of the scroll stands at the right of the text, and it takes one
+    /// character of the width. A panel that holds the whole of its text takes
+    /// no bar and it keeps the whole width.
     fn render_a_description(&self, area: Rect, buf: &mut Buffer, text: &str) {
-        let scroll = crate::logic::the_scroll_of_a_panel::the_scroll_of_the_render(
+        let panel = crate::logic::the_scroll_of_a_panel::the_panel_of_the_render(
             self.scroll_offset,
             text,
             area.width,
             area.height,
         );
 
+        let [text_area, bar_area] = Layout::horizontal([
+            Constraint::Length(panel.width_of_the_text),
+            Constraint::Fill(1),
+        ])
+        .areas(area);
+
         Paragraph::new(text.to_string())
-            .scroll((scroll, 0))
+            .scroll((panel.scroll, 0))
             .wrap(Wrap { trim: true })
-            .render(area, buf);
+            .render(text_area, buf);
+
+        if panel.the_bar_comes() {
+            // The state of the bar counts the lines of the text that stand
+            // above the panel, and not the lines of the text: the thumb of the
+            // bar then reaches the foot of it at the last line of the panel.
+            let mut state =
+                ScrollbarState::new(usize::from(panel.last)).position(usize::from(panel.scroll));
+
+            Scrollbar::new(ScrollbarOrientation::VerticalRight)
+                .begin_symbol(None)
+                .end_symbol(None)
+                .track_symbol(Some("│"))
+                .thumb_symbol("█")
+                .render(bar_area, buf, &mut state);
+        }
     }
 }
 

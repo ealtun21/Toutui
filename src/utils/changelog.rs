@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.82",
+        date: "15/08/2026",
+        body: &[
+            "Added:",
+            "- **The panel of a description says that it holds more text.** A \
+             bar at the right of the panel comes when the text is longer than \
+             the rows of it, and the place of the bar says where in that text \
+             the panel stands. A panel that holds the whole of its text takes \
+             no bar.",
+        ],
+    },
+    Entry {
         version: "0.8.81",
         date: "15/08/2026",
         body: &[

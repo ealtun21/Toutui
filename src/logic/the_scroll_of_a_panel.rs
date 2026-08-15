@@ -1,4 +1,13 @@
-//! The scroll of the panel of a description. See T-252.
+//! The scroll of the panel of a description. See T-252 and T-253.
+//!
+//! **A panel that holds more text than its rows says so** (T-253). The
+//! measurement of 2026-08-15, of the real program inside tmux: the view
+//! "About and changelog" of the settings holds the longest text of the program,
+//! and 2000 presses of the key `J` took the panel to the entry of the version
+//! 0.7.41 of it. No character of the screen said that the panel holds more
+//! text, and no character said where in that text the user stands. The bar of
+//! the scroll of the panel is the word of it, and `the_panel_of_the_render`
+//! gives the render everything that bar needs.
 //!
 //! **A panel that scrolled past its last line holds no line at all**, and the
 //! user then cannot tell it from a media whose description the server did not
@@ -108,17 +117,69 @@ pub fn the_last_scroll(text: &str, width: u16, rows: u16) -> u16 {
     u16::try_from(lines.saturating_sub(usize::from(rows))).unwrap_or(u16::MAX)
 }
 
-/// Gives the scroll that the render of a panel must take, and it keeps the
-/// largest scroll of that panel for the key.
+/// What the render of a panel of a description draws. See T-253.
+#[derive(Debug, PartialEq, Eq)]
+pub struct ThePanel {
+    /// The width of the text. It is one character less than the width of the
+    /// panel when the bar of the scroll stands beside it.
+    pub width_of_the_text: u16,
+    /// The scroll of the render, inside the text.
+    pub scroll: u16,
+    /// The largest scroll of the panel. 0 says that the panel holds the whole
+    /// of its text, and the bar of the scroll then does not come.
+    pub last: u16,
+    /// The number of the lines of the text, at `width_of_the_text`.
+    pub lines: usize,
+    /// The bar of the scroll stands beside the text. A panel of one character
+    /// holds the bar or the text, and the text comes first.
+    the_bar_comes: bool,
+}
+
+impl ThePanel {
+    /// Says that the bar of the scroll stands beside the text.
+    ///
+    /// **This is the one line of the correction of T-253**: a build with
+    /// `false` in the place of `self.the_bar_comes` gives the panel of the
+    /// changelog that says nothing of its length again.
+    pub fn the_bar_comes(&self) -> bool {
+        self.the_bar_comes
+    }
+}
+
+/// Gives everything that the render of a panel of a description needs, and it
+/// keeps the largest scroll of that panel for the key.
 ///
-/// **The render is the one road to the length of the text**: it holds the text
-/// and the size of the panel, and the key of the user holds neither.
-pub fn the_scroll_of_the_render(now: u16, text: &str, width: u16, rows: u16) -> u16 {
-    let last = the_last_scroll(text, width, rows);
+/// **A panel that holds more text than its rows says so** (T-253): the user of
+/// the panel of the changelog pressed the key that moves it down 2000 times,
+/// and no character of the screen said where the text stands or that any line
+/// of it is left. The bar of the scroll of that panel is the word of it.
+///
+/// **The bar takes one character of the width of the text**, therefore the
+/// number of the lines comes of that smaller width. A text that holds every
+/// line of it in the panel takes no bar and it keeps the whole width: a bar
+/// that comes of the width of the bar itself would come and go at each frame.
+///
+/// The function is pure but for the box of the last scroll, therefore a test
+/// needs no screen.
+pub fn the_panel_of_the_render(now: u16, text: &str, width: u16, rows: u16) -> ThePanel {
+    // A panel of one character holds the bar or the text, and the text comes
+    // first.
+    let the_bar_comes = width >= 2 && the_last_scroll(text, width, rows) > 0;
+
+    let width_of_the_text = if the_bar_comes { width - 1 } else { width };
+
+    let lines = the_number_of_the_lines(text, width_of_the_text);
+    let last = the_last_scroll(text, width_of_the_text, rows);
 
     THE_LAST_SCROLL.store(last, Ordering::Relaxed);
 
-    inside_the_text(now, last)
+    ThePanel {
+        width_of_the_text,
+        scroll: inside_the_text(now, last),
+        last,
+        lines,
+        the_bar_comes,
+    }
 }
 
 /// Gives the scroll after one press of the key that moves the panel down.
@@ -188,7 +249,7 @@ mod tests {
         // one line of text in a panel of four rows.
         let text = "Charles Lutwidge Dodgson wrote under the name Lewis Carroll.";
 
-        assert_eq!(the_scroll_of_the_render(0, text, 160, 4), 0);
+        assert_eq!(the_panel_of_the_render(0, text, 160, 4).scroll, 0);
 
         // **The key of that measurement took the whole line away.** It changes
         // nothing now.
@@ -197,7 +258,7 @@ mod tests {
 
         // A text of ten lines in a panel of four rows: the last scroll is six.
         let long = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10";
-        assert_eq!(the_scroll_of_the_render(0, long, 160, 4), 0);
+        assert_eq!(the_panel_of_the_render(0, long, 160, 4).scroll, 0);
         assert_eq!(the_scroll_after_one_step_down(0), 1);
         assert_eq!(the_scroll_after_one_step_down(5), 6);
         assert_eq!(the_scroll_after_one_step_down(6), 6);
@@ -206,12 +267,52 @@ mod tests {
         // The render of a scroll that stands above the text gives the last
         // line of it, therefore a panel that changed its text holds every
         // line of the new one.
-        assert_eq!(the_scroll_of_the_render(40, long, 160, 4), 6);
-        assert_eq!(the_scroll_of_the_render(40, text, 160, 4), 0);
+        assert_eq!(the_panel_of_the_render(40, long, 160, 4).scroll, 6);
+        assert_eq!(the_panel_of_the_render(40, text, 160, 4).scroll, 0);
 
         // The box takes a value of a test, and the key reads it.
         keep_the_last_scroll(3);
         assert_eq!(the_scroll_after_one_step_down(0), 1);
         assert_eq!(the_scroll_after_one_step_down(9), 3);
+    }
+
+    /// The bar of the scroll of the panel. See T-253.
+    ///
+    /// **The parts of this test stay in one function**, because the box of the
+    /// process holds one value for the whole binary of the test.
+    #[test]
+    fn the_bar_of_the_scroll_comes_of_a_text_that_is_longer_than_the_panel() {
+        // A text that ends inside the panel takes no bar, and it keeps the
+        // whole width of the panel for its characters.
+        let short = the_panel_of_the_render(0, "A book.", 80, 4);
+        assert!(!short.the_bar_comes());
+        assert_eq!(short.width_of_the_text, 80);
+        assert_eq!(short.lines, 1);
+        assert_eq!(short.last, 0);
+
+        // A text of ten lines in a panel of four rows: the bar comes, and the
+        // text then holds one character fewer of each line.
+        let long = the_panel_of_the_render(0, "1\n2\n3\n4\n5\n6\n7\n8\n9\n10", 80, 4);
+        assert!(long.the_bar_comes());
+        assert_eq!(long.width_of_the_text, 79);
+        assert_eq!(long.lines, 10);
+        assert_eq!(long.last, 6);
+
+        // **The number of the lines comes of the width of the text and not of
+        // the width of the panel**: 40 characters take one line of a panel of
+        // 40 characters, and two lines of a text of 39.
+        let text = "1234567890123456789012345678901234567890\nb\nc\nd\ne";
+        let panel = the_panel_of_the_render(0, text, 40, 4);
+        assert!(panel.the_bar_comes());
+        assert_eq!(panel.width_of_the_text, 39);
+        assert_eq!(panel.lines, 6);
+        assert_eq!(panel.last, 2);
+
+        // A panel of one character holds the bar or the text, and the text
+        // comes first: the width of the text is never 0.
+        let narrow = the_panel_of_the_render(0, "a\nb\nc", 1, 1);
+        assert_eq!(narrow.width_of_the_text, 1);
+        assert!(!narrow.the_bar_comes());
+        assert_eq!(narrow.last, 2);
     }
 }

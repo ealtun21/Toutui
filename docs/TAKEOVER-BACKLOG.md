@@ -18714,3 +18714,163 @@ for the whole binary of the test.
   T-252, and it stays open).
 - **The line of the Library view of a library of podcasts says no place at all**
   (T-242 to T-252, and it stays open).
+
+### T-253: the panel of a description says that it holds more text
+
+**The state**: corrected on 2026-08-15. The measurement is of the real program
+inside tmux, against the sandbox.
+
+#### What T-252 left open
+
+T-252 left the first paragraph of its own "What this item leaves open": "**The
+panel of a description holds no scroll bar** (T-249 to T-252, and it stays
+open): the program measures the length of the text now, therefore the value of
+that measurement can reach the screen too, and the user gets no word of how much
+of the text is left."
+
+#### The fault
+
+`App::render_a_description` of `src/ui/tui.rs` drew the text of the panel and no
+other character. The program held the length of that text since T-252, and no
+part of the screen said it. **A panel of a description therefore says the same
+thing for a text that ends inside it and for a text of 4000 lines**: the user
+cannot tell one from the other, and a user who moves the panel down cannot tell
+where in the text the panel stands.
+
+#### The measurement
+
+The real program v0.8.81, inside tmux, against the sandbox, on a screen of 160
+columns and 45 rows. The view "About and changelog" of the settings (the key
+`S`, two presses of the key `j`, and the key `l`) holds the longest text of the
+program (the section 17 of `docs/TEST-SERVER.md`).
+
+The first frame of that panel:
+
+```text
+Toutui v0.8.81 - Licence: GPL-3.0 - Contact: https://github.com/ealtun21/Toutui/issues
+Source code: https://github.com/ealtun21/Toutui
+What's new:
+AlbanDAVID wrote Toutui and archived it. This repository continues
+that work. https://github.com/AlbanDAVID/Toutui
+```
+
+2000 presses of the key `J`, and the panel stood at the entry of the version
+0.7.41:
+
+```text
+Changelog Toutui v0.7.41 (11/08/2026)
+
+Added:
+- The key r gives a collection or a playlist a new name, and the key X removes
+```
+
+**No character of either screen says that the panel holds more text, and no
+character says where in that text the panel stands.** The two frames hold the
+same number of characters of the text and no other mark at all.
+
+#### The correction
+
+`the_panel_of_the_render(now, text, width, rows)` of
+`src/logic/the_scroll_of_a_panel.rs` took the place of `the_scroll_of_the_render`.
+It gives a `ThePanel` of four values: the width of the text, the scroll of the
+render, the largest scroll of the panel, and the number of the lines. It keeps
+the largest scroll in the box of the process for the key, as T-252 did.
+
+`App::render_a_description` divides the area of the panel into the text and the
+bar. The bar is a `Scrollbar` of `ScrollbarOrientation::VerticalRight` with no
+arrow at either end: the track is `│` and the thumb is `█`. **The state of the
+bar counts the largest scroll and not the lines of the text**, therefore the
+thumb reaches the foot of the bar at the last line of the panel and not one
+panel before it.
+
+**The bar takes one character of the width of the text**, therefore the number
+of the lines comes of that smaller width. A text that holds every line of it in
+the panel takes no bar and it keeps the whole width: a decision that read the
+width of the text after the bar came would give a bar that comes and goes at
+each frame. **A panel of one character holds the bar or the text, and the text
+comes first.**
+
+#### The measurement of the correction
+
+The same view of the same program at v0.8.82. The first frame, the thumb at the
+head of the bar:
+
+```text
+AlbanDAVID wrote Toutui and archived it. This repository continues        █
+that work. https://github.com/AlbanDAVID/Toutui                           │
+                                                                          │
+```
+
+5000 presses of the key `J`, the last line of the text, and the thumb at the
+foot of the bar:
+
+```text
+Enjoy!                                                                    │
+                                                                          │
+####                                                                      █
+```
+
+The key `H` gives the first line back, and the thumb goes back to the head.
+
+**The control of that same run**, of four panels of the sandbox whose text ends
+inside the panel: the author `Lewis Carroll` of the view of the authors (a panel
+of four rows), the eight authors of no description of that same view, the two
+podcasts of the Library view of the library `Podcasts`, and the panel of the
+view of the episodes of `Arthur Gordon Pym`. **No bar came on any of them**, and
+three presses of the key `J` on the line of `Lewis Carroll` changed no character
+of the screen (the rule of T-252).
+
+#### The build of the fault
+
+The trap 147: one edit of `ThePanel::the_bar_comes` —
+`let _ = self.the_bar_comes; false` in the place of `self.the_bar_comes` — and
+the test `the_bar_of_the_scroll_comes_of_a_text_that_is_longer_than_the_panel`
+of that module then fails:
+
+```text
+thread '...' panicked at src/logic/the_scroll_of_a_panel.rs:297:9:
+assertion failed: long.the_bar_comes()
+```
+
+#### The tests
+
+One new function of the module `logic::the_scroll_of_a_panel::tests`. **The
+parts of that test stay in one function**, because the box of the process holds
+one value for the whole binary of the test. The three tests of T-252 stay, and
+the two of them that called `the_scroll_of_the_render` call
+`the_panel_of_the_render` now.
+
+#### What this item leaves open
+
+- **The bar of the scroll of the panel is in no test of the render** (T-253, and
+  it stays open): the correction of the screen stands on the measurement of tmux
+  alone, as the corrections of T-250 and of T-251 do. `render_a_description` is
+  a private method of `App`, and no test of this repository draws a frame of the
+  program into a buffer.
+- **The footer of a view promises no key of the panel** (T-252 and T-253, and it
+  stays open): the keys `J`, `K`, and `H` stand in no footer of the program, and
+  a user who sees the bar of the scroll now gets no word of the key that moves
+  it.
+- **The list of a view holds no bar of the scroll** (T-253, and it stays open):
+  the Library view of 2056 items draws `render_list` and not
+  `render_a_description`, and that list says the number of its items in the
+  title alone.
+- **The line of the view of the authors says `[1 book(s)]`** (T-252 and T-253,
+  and it stays open).
+- **The panel of a narrator says "No description available" for every narrator
+  of every library** (T-252 and T-253, and it stays open).
+- **The two renders of the panel of the episodes of a podcast are in no test**
+  (T-250 to T-253, and it stays open).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-253, and it stays open).
+- **The key `B` says nothing on either road** (T-248 to T-253, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters, and
+  of the view of the queue gives the Home view** (T-247 to T-253, and it stays
+  open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to T-253,
+  and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-253, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at all**
+  (T-242 to T-253, and it stays open).
