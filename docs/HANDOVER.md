@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.102.** The item T-273 belongs to this session. The
+**The newest release is v0.8.103.** The item T-274 belongs to this session. The
+item T-273 belongs to the session before it. The
 item T-272 belongs to the session before it. The
 item T-271 belongs to the session before it. The
 item T-270 belongs to the session before it. The
@@ -118,6 +119,53 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and third turn of 2026-08-16: a disk that took no page of a PDF says why
+
+**One release: v0.8.103**, and one item: T-274. **The road of it is the candidate
+"The child of T-62 that reads a PDF, and every other process of this program that
+has no terminal" of T-272 and of T-273.** That candidate **closes with no
+measurement**: `main` calls `the_child_of_the_line_of_command` before `ratatui`,
+therefore that child makes no terminal at all and T-273 holds every process of
+this program that does. The same read of that module found a different fault, of
+the words of the user.
+
+`the_book_that_a_child_reads` of `src/logic/reader/pdf_of_a_child.rs` gave
+`ReaderError::ThePdfGivesNoPage` on **seven** roads, and the words of that value
+are `This PDF gives no page. The file can be damaged. Press h to go back.` Six of
+the seven say a reason that the program does not have (T-91).
+
+The measurement, of the real program v0.8.102 inside tmux against the sandbox, of
+the book `A Big Book Of A Scan` (a PDF of 47 megabytes of a scan of 60 pages).
+The control first: the key `e` gave `[pdf] a child read 60 page(s) in 47310 ms`
+and a file of the pages of 9171423 bytes beside the book. That file then went
+away, and `chmod 555` gave the directory of the cache of the ebooks no write. The
+key `e` of the same book then gave that same sentence of a book that can be
+damaged, and the log of that run gave `[pdf] the child stopped with the code 3:
+toutui: the program did not write the pages: Permission denied (os error 13)`.
+**The program held the reason in its hand.** The book was good: that same program
+read every one of its 60 pages 90 seconds before.
+
+The correction gives `ReaderError` the two values `TheDiskTookNoPageOfThePdf` and
+`ThePartThatReadsAPdfFailed`, it names the two codes of the child, and
+`the_fault_of_the_answer_of_the_child` reads the answer of that child. The
+corrected program of the same condition says `The disk did not take the pages of
+this PDF. The book is good. The machine said: Permission denied (os error 13).
+Make space on the disk, or give the program permission to write in its directory.
+Press h to go back.` The two controls: the same book of a directory that takes a
+write gave `page 1 of 60`, and `A Book That No Reader Reads` of the sandbox kept
+the true sentence with the code 2 in its log.
+
+The test is `tests/a_disk_that_took_no_page_of_a_pdf_says_why.rs`, of eight
+functions, with the new fixture `tests/fixtures/a_pdf_of_one_page.pdf` of 537
+bytes. It needs no network and no sandbox.
+
+**The numbers of the gates of v0.8.103**: `cargo clippy --all-targets -- -D
+warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
+**1300 of 1300** in 2.8 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1326 of 1326** with the sandbox up,
+and `cargo test -j 16 --no-fail-fast` (the gate of CI) gave no failure over its
+157 binaries in two runs.
 
 ## The session of the hundred and second turn of 2026-08-16: a program that has no terminal says why
 
@@ -14038,45 +14086,123 @@ and the log held three lines of the fault of the disk.
   T-270): the block has a limit of size, therefore this turn names the new
   candidates alone and it does not repeat that list.
 
+**The
+session of the hundredth turn looked for a condition that no measurement has
+reached, and it found three programs of the sessions of 2026-08-15 that
+stood on this machine at that moment: each with
+`/proc/PID/fd/0 -> /dev/pts/N (deleted)`, each at 131 percent of one
+processor for three hours. A terminal that goes away sends `SIGHUP` to the
+foreground process group of that terminal alone, and a program of the
+background, a program of `nohup`, and a program of a unit of systemd get no
+signal at all** (T-271).
+
+The condition is `docs/harness/the_terminal_of_the_program_goes_away.py`: it
+sets the disposition of `SIGHUP` to `SIG_IGN`, and an ignored disposition
+stays over `exec`. `tmux kill-session` then takes the terminal away with no
+signal. The real program v0.8.99 stood at **196 percent of one processor**
+for the whole of the measurement, and `grep -c 'the terminal]'` of the log
+gave **0**. `strace -f -tt -ff` of that program named the loop:
+
+```text
+epoll_wait(19, [{events=EPOLLIN|EPOLLERR|EPOLLHUP, data=0}], 3, 200) = 1
+read(0, "", 1024)       = 0
+```
+
+**439442 reads of no byte in four seconds.**
+`crossterm::event::poll(Duration::from_millis(200))` never comes back for a
+terminal that gives the end of its input, therefore the `?` of that call
+reaches nothing and the loop of the screen draws no frame after it. The row
+of `listening_session` of such a program keeps a fresh heartbeat, therefore
+no second program of the account can take it (T-140).
+
+The correction is `src/utils/the_terminal_that_went_away.rs` and a task of
+one second that `src/main.rs` starts. A terminal that went away takes the
+road of the key `Q`: the session of the server closes, the place of the user
+goes to the server, and the program stops. The corrected program stopped
+**755 ms** after the terminal went away, and with a playback of 14:59 of a
+book of 30 minutes it stopped after **253 ms**, the table
+`listening_session` held **0** rows, and `GET /api/me/progress/:id` of the
+server gave `currentTime: 1317` with a `lastUpdate` of the moment of the
+stop.
+- **The probe of a terminal is `crossterm::terminal::window_size` and not
+  `crossterm::terminal::size`** (T-271): `size` falls back to `tput` and to
+  the variables `COLUMNS` and `LINES`, and a terminal that went away inside
+  tmux keeps those variables. A first correction with `size` stayed at 196
+  percent.
+- **The first look of a watch comes before its first wait** (T-271): a watch
+  that waits one second first reads a program whose terminal went away
+  inside that second as a program with no terminal at all.
+- **A program that stands is a measurement that waits** (T-271): three
+  programs of an older round stood on this machine, and the `ps` of one
+  round gave the item of the round after it.
+- **The login screen of a terminal that went away** (T-271, and it stays
+  open): the watch starts after the login, and `let _ = self.auth()` of
+  `src/ui/login_tui.rs` drops every fault of that screen. **This is a
+  candidate and not a measurement.**
+- **The column `elapsed_time` of `listening_session`** (T-271, and it stays
+  open): `update_elapsed_time` writes it at each sync of every playback with
+  `let _ =`, and no road of the program reads that value.
+- **`AppLogin::new` holds one road of a fault alone**, the configuration
+  file of T-267: that candidate of T-267 to T-269 closes with T-271.
+- **Every candidate of the list of the turns below stays open** (T-229 to
+  T-271): the block has a limit of size, therefore this turn names the new
+  candidates alone and it does not repeat that list.
+
 ## The prompt for the next session
-**This session took the candidate "The child of T-62 that reads a PDF, and every
-other process of this program that has no terminal"**, which T-272 left open.
-T-271 and T-272 hold a terminal that goes away; this session holds a terminal
-that never came. `src/main.rs` made its two terminals with `ratatui::init()`, and
-that function of ratatui 0.30.2 is
-`try_init().expect("failed to initialize terminal")`. A process with no
-controlling terminal has no `/dev/tty`, therefore the open of `crossterm` gives
-`No such device or address`: that is the condition of a unit of systemd, of a
-task of cron, and of a program of `setsid`. The real program v0.8.101 of
-`setsid env … ./target/debug/toutui < /dev/null` panicked at
-`…/ratatui-0.30.2/src/init.rs:366:16`, and the hook of the panic of T-197 then
-said `Toutui stopped: a part of the program had an internal fault.` **The machine
-gave the program no terminal, and that is no fault of Toutui** (T-91). The
-correction is `src/utils/the_terminal_of_the_program.rs` on
-`ratatui::try_init()`, and the two call sites of `src/main.rs`. The corrected
-program says `Toutui stops: it found no terminal.` with the reason of the machine
-and the road back, and it stops with the status 1. The item is **T-273**, and it
-holds the release v0.8.102.
+**This session read the candidate "The child of T-62 that reads a PDF, and every
+other process of this program that has no terminal"**, which T-272 left open and
+which T-273 named again. That candidate **closes with no measurement**: `main`
+calls `the_child_of_the_line_of_command` before `ratatui`, therefore the child
+that reads a PDF makes no terminal at all and T-273 holds every process of this
+program that does. The same read of that module found a different fault, and it
+is a fault of the words of the user.
+
+`the_book_that_a_child_reads` of `src/logic/reader/pdf_of_a_child.rs` gave
+`ReaderError::ThePdfGivesNoPage` on **seven** roads: `current_exe` that failed, a
+child that did not start, the code 2 of a book that gives no page, the code 3 of
+a disk that took no page, every other code, a child that did not come back in 300
+seconds, and a file of pages that the parent did not read back. The words of that
+value are `This PDF gives no page. The file can be damaged. Press h to go back.`
+**Six of the seven say a reason that the program does not have** (T-91), and the
+doc comment of that value said so already.
+
+The measurement, of the real program v0.8.102 inside tmux against the sandbox, of
+the book `A Big Book Of A Scan` (a PDF of 47 megabytes of a scan of 60 pages).
+The control first: the key `e` gave `[pdf] a child read 60 page(s) in 47310 ms`
+and a file of the pages of 9171423 bytes beside the book. That file then went
+away, and `chmod 555` gave the directory of the cache of the ebooks no write. The
+key `e` of the same book then gave the screen `This PDF gives no page. The file
+can be damaged. Press h to go back.`, and the log of that same run gave `[pdf]
+the child stopped with the code 3: toutui: the program did not write the pages:
+Permission denied (os error 13)`. **The program held the reason in its hand.**
+
+The correction gives `ReaderError` two values, it names the two codes of the
+child, and `the_fault_of_the_answer_of_the_child` reads the answer of that child.
+The corrected program of the same condition says `The disk did not take the pages
+of this PDF. The book is good. The machine said: Permission denied (os error 13).
+Make space on the disk, or give the program permission to write in its directory.
+Press h to go back.` The two controls: the same book of a directory that takes a
+write gave `page 1 of 60`, and `A Book That No Reader Reads` of the sandbox kept
+the true sentence with the code 2 in its log. The item is **T-274**, and it holds
+the release v0.8.103.
 
 Two things are worth the room:
 
-1. **A call of a crate that panics is a fault of the words of the user.**
-   `ratatui::init()` holds an `expect`, and the hook of the panic of T-197 then
-   names an internal fault of Toutui for a fault of the machine. Ask of every
-   call of a crate at the start of this program: does that call panic, and does
-   the crate hold a `try_` of it?
+1. **The exit code of a child process is the one road to the fault of the user.**
+   A parent that reads that code alone can name the disk, the book, and the part
+   that did not start apart. Ask of every process of this program: how many
+   faults does one value of its answer hold?
+2. **A doc comment that names three faults of one value is the item.** The
+   comment of `ThePdfGivesNoPage` said "this value holds a child that stopped, a
+   child that gave a fault, and a file that `lopdf` cannot read", and the words
+   of that value name the file of the user alone. Read the doc comments of an
+   enum of a fault: each of them says how many roads it holds.
 
-2. **A test of this fork can start the real binary.** No test of the 156 binaries
-   did that before this turn. `CARGO_BIN_EXE_toutui` gives the path,
-   `setsid --wait` gives a process with no controlling terminal, and the test
-   reads the standard output and the standard error together, because the hook of
-   the panic writes to the two of them.
-
-The gates of v0.8.102, under `nice -n 19 ionice -c 3` with `-j 16`:
+The gates of v0.8.103, under `nice -n 19 ionice -c 3` with `-j 16`:
 `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
-`cargo nextest run` gives 1292 of 1292 in 3.2 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives 1318 of 1318 with the sandbox up, and
-`cargo test -j 16 --no-fail-fast` passed over its 156 binaries.
+`cargo nextest run` gives 1300 of 1300 in 2.8 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives 1326 of 1326 with the sandbox up, and
+`cargo test -j 16 --no-fail-fast` passed its 157 binaries two times.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
@@ -14452,6 +14578,15 @@ The gates of v0.8.102, under `nice -n 19 ionice -c 3` with `-j 16`:
 > SQLite opens a file of `444` for a read, every `SELECT` of the program answers,
 > and every `INSERT` gives `attempt to write a readonly database`.
 >
+> **A directory of `555` is the disk of the user that takes no new file** (T-274).
+> The `chmod 444` above holds one file that stands already; a program that writes
+> a **new** file needs the directory itself. `chmod 555` of
+> `$XDG_DATA_HOME/toutui/downloads/<the account>` gives the condition of a disk
+> that is full, of a file system that the machine gave back as read-only, and of
+> a directory with no permission of a write, and every read of the cache of the
+> ebooks answers. The `chmod 755` back belongs in the same command (the trap
+> 179).
+>
 > **A column of the disk that takes no write is a trigger of SQLite** (T-213). The
 > `chmod 444` above and the lock of T-199 each stop every write of a row together,
 > and the `ALTER TABLE` of T-203 takes a whole table away: each of them therefore
@@ -14619,7 +14754,7 @@ The gates of v0.8.102, under `nice -n 19 ionice -c 3` with `-j 16`:
 > view says that the keys do their work. **The keys `k` of the end of a list are
 > cheaper than the keys `j` of its start** (the trap 207). **The key of the pause
 > is `Space`, and the key `p` of the player is +10 seconds** (the trap 211).
-> **The null device plays an episode of 22 minutes in about 18 seconds** (the
+> **The null device plays an episode of 22 minutes in about 17 seconds** (the
 > trap 212), therefore a measurement of a place inside such a media presses
 > `Space` at the first frame of the row of the player. **The key `V` reads the
 > media that plays before the line of the user** (the trap 213 and T-163),
@@ -14654,8 +14789,8 @@ The gates of v0.8.102, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1292 tests in 3.2 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1309 of 1309** with the sandbox up, in about 18 seconds. **Run that
+> Baseline: **1300 tests in 2.8 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1326 of 1326** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -14765,6 +14900,85 @@ The gates of v0.8.102, under `nice -n 19 ionice -c 3` with `-j 16`:
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and one sessions of one hundred and
 >    two.
+>    **The
+>    session of the hundred and third turn read the candidate "The child of T-62
+>    that reads a PDF, and every other process of this program that has no
+>    terminal" of the newest item, and it closes that candidate with no
+>    measurement: `main` calls `the_child_of_the_line_of_command` before
+>    `ratatui`, therefore that child makes no terminal at all. The same read of
+>    that module found a different fault, of the words of the user** (T-274).
+>
+>    `the_book_that_a_child_reads` of `src/logic/reader/pdf_of_a_child.rs` gave
+>    `ReaderError::ThePdfGivesNoPage` on **seven** roads, and the words of that
+>    value are `This PDF gives no page. The file can be damaged. Press h to go
+>    back.` Six of the seven roads say a reason that the program does not have
+>    (T-91).
+>
+>    The measurement, of the real program v0.8.102 inside tmux against the
+>    sandbox, of the book `A Big Book Of A Scan` (a PDF of 47 megabytes of a scan
+>    of 60 pages). The key `e` gave `[pdf] a child read 60 page(s) in 47310 ms`
+>    and a file of the pages of 9171423 bytes beside the book. That file then went
+>    away, and `chmod 555` gave the directory of the cache of the ebooks no write:
+>    the condition of a disk that is full, of a file system that the machine gave
+>    back as read-only, and of a directory with no permission of a write. The key
+>    `e` of the same book then gave the screen
+>
+>    ```text
+>    This PDF gives no page. The file can be damaged. Press h to go back.
+>    ```
+>
+>    and the log of that same run gave
+>
+>    ```text
+>    [pdf] the child stopped with the code 3: toutui: the program did not write
+>    the pages: Permission denied (os error 13)
+>    ```
+>
+>    **The program held the reason in its hand, and it said a reason that it does
+>    not have.** The book was good: that same program read every one of its 60
+>    pages 90 seconds before.
+>
+>    The correction is two values of `ReaderError`
+>    (`TheDiskTookNoPageOfThePdf(String)` and
+>    `ThePartThatReadsAPdfFailed(String)`), two constants of the code of the child
+>    (2 for a book that gives no page, and 3 for a disk that took no page), and
+>    `the_fault_of_the_answer_of_the_child(Option<i32>, &str)`. The corrected
+>    program of the same condition said `The disk did not take the pages of this
+>    PDF. The book is good. The machine said: Permission denied (os error 13).
+>    Make space on the disk, or give the program permission to write in its
+>    directory. Press h to go back.` The two controls: the same book of a
+>    directory that takes a write gave `page 1 of 60`, and `A Book That No Reader
+>    Reads` of the sandbox kept the true sentence of a book that gives no page,
+>    with the code 2 in the log.
+>    - **The exit code of a child process is the one road to the fault of the
+>      user** (T-274): a parent that reads that code alone can name the disk, the
+>      book, and the part that did not start apart. Ask of every process of this
+>      program: how many faults does one value of its answer hold?
+>    - **A doc comment that names three faults of one value is the item** (T-274):
+>      the comment of `ThePdfGivesNoPage` said "this value holds a child that
+>      stopped, a child that gave a fault, and a file that `lopdf` cannot read",
+>      and the words of that value name the file of the user alone. Read the doc
+>      comments of an enum of a fault: each of them says how many roads it holds.
+>    - **A fixture of a PDF needs 537 bytes and no crate** (T-274):
+>      `tests/fixtures/a_pdf_of_one_page.pdf` holds five objects and a table of
+>      the places of them, therefore a test of the reader of a PDF needs no book
+>      of the sandbox at all.
+>    - **The other values of `ReaderError`** (T-274, and they stay open):
+>      `NotAnEpub`, `ChapterAbsent`, and `ChapterTooLarge` each say one reason,
+>      and no measurement of this turn reached them. **This is a candidate and
+>      not a measurement.**
+>    - **`let _ = out.read_to_string(&mut words)` and `let _ = child.kill()` of
+>      the parent of that child** (T-274, and they stay open): a read of the words
+>      that failed gives the user a sentence with no reason, and a kill that
+>      failed leaves a process of the user. **This is a candidate and not a
+>      measurement.**
+>    - **`let _ = self.auth()` of `src/ui/login_tui.rs` line 17 drops every fault
+>      of the login screen** (T-272 to T-274, and it stays open): the three `?` of
+>      the loop of `auth()` stand in a loop of no wait at all. **This is a
+>      candidate and not a measurement.**
+>    - **Every candidate of the list of the turns below stays open** (T-229 to
+>      T-273): the block has a limit of size, therefore this turn names the new
+>      candidates alone and it does not repeat that list.
 >    **The
 >    session of the hundred and second turn took the candidate "The child of
 >    T-62 that reads a PDF, and every other process of this program that has no
@@ -14890,71 +15104,10 @@ The gates of v0.8.102, under `nice -n 19 ionice -c 3` with `-j 16`:
 >    - **Every candidate of the list of the turns below stays open** (T-229 to
 >      T-271): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
->    **The
->    session of the hundredth turn looked for a condition that no measurement has
->    reached, and it found three programs of the sessions of 2026-08-15 that
->    stood on this machine at that moment: each with
->    `/proc/PID/fd/0 -> /dev/pts/N (deleted)`, each at 131 percent of one
->    processor for three hours. A terminal that goes away sends `SIGHUP` to the
->    foreground process group of that terminal alone, and a program of the
->    background, a program of `nohup`, and a program of a unit of systemd get no
->    signal at all** (T-271).
->
->    The condition is `docs/harness/the_terminal_of_the_program_goes_away.py`: it
->    sets the disposition of `SIGHUP` to `SIG_IGN`, and an ignored disposition
->    stays over `exec`. `tmux kill-session` then takes the terminal away with no
->    signal. The real program v0.8.99 stood at **196 percent of one processor**
->    for the whole of the measurement, and `grep -c 'the terminal]'` of the log
->    gave **0**. `strace -f -tt -ff` of that program named the loop:
->
->    ```text
->    epoll_wait(19, [{events=EPOLLIN|EPOLLERR|EPOLLHUP, data=0}], 3, 200) = 1
->    read(0, "", 1024)       = 0
->    ```
->
->    **439442 reads of no byte in four seconds.**
->    `crossterm::event::poll(Duration::from_millis(200))` never comes back for a
->    terminal that gives the end of its input, therefore the `?` of that call
->    reaches nothing and the loop of the screen draws no frame after it. The row
->    of `listening_session` of such a program keeps a fresh heartbeat, therefore
->    no second program of the account can take it (T-140).
->
->    The correction is `src/utils/the_terminal_that_went_away.rs` and a task of
->    one second that `src/main.rs` starts. A terminal that went away takes the
->    road of the key `Q`: the session of the server closes, the place of the user
->    goes to the server, and the program stops. The corrected program stopped
->    **755 ms** after the terminal went away, and with a playback of 14:59 of a
->    book of 30 minutes it stopped after **253 ms**, the table
->    `listening_session` held **0** rows, and `GET /api/me/progress/:id` of the
->    server gave `currentTime: 1317` with a `lastUpdate` of the moment of the
->    stop.
->    - **The probe of a terminal is `crossterm::terminal::window_size` and not
->      `crossterm::terminal::size`** (T-271): `size` falls back to `tput` and to
->      the variables `COLUMNS` and `LINES`, and a terminal that went away inside
->      tmux keeps those variables. A first correction with `size` stayed at 196
->      percent.
->    - **The first look of a watch comes before its first wait** (T-271): a watch
->      that waits one second first reads a program whose terminal went away
->      inside that second as a program with no terminal at all.
->    - **A program that stands is a measurement that waits** (T-271): three
->      programs of an older round stood on this machine, and the `ps` of one
->      round gave the item of the round after it.
->    - **The login screen of a terminal that went away** (T-271, and it stays
->      open): the watch starts after the login, and `let _ = self.auth()` of
->      `src/ui/login_tui.rs` drops every fault of that screen. **This is a
->      candidate and not a measurement.**
->    - **The column `elapsed_time` of `listening_session`** (T-271, and it stays
->      open): `update_elapsed_time` writes it at each sync of every playback with
->      `let _ =`, and no road of the program reads that value.
->    - **`AppLogin::new` holds one road of a fault alone**, the configuration
->      file of T-267: that candidate of T-267 to T-269 closes with T-271.
->    - **Every candidate of the list of the turns below stays open** (T-229 to
->      T-271): the block has a limit of size, therefore this turn names the new
->      candidates alone and it does not repeat that list.
 >
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the ninety-seventh and every turn before it, the item of each, and the
+>    the hundredth and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
@@ -15429,7 +15582,11 @@ The gates of v0.8.102, under `nice -n 19 ionice -c 3` with `-j 16`:
 > closes no session, because the login screen holds no account** (T-272), and **a
 > program that has no terminal says why: the words name the terminal, the reason
 > of the machine, and the road back, and the program stops with the status 1**
-> (T-273).
+> (T-273), and **a disk that took no page of a PDF says why: the exit code of the
+> child that reads a PDF is the one road to the fault of the user, the words of a
+> book that can be damaged stay for a book that gives no page, and the disk, the
+> part that did not start, and the part that took too long each say what they
+> are** (T-274).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

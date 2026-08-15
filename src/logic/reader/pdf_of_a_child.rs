@@ -42,6 +42,17 @@ use std::sync::OnceLock;
 /// stands in no message of `--help`: the program gives it to itself.
 pub const THE_FLAG: &str = "--the-pdf-of-a-child";
 
+/// The code of a child that read no page of the book of the user.
+///
+/// **The code of the child is the one road to the fault of the user** (T-274):
+/// the book that gives no page and the disk that took no page each give the
+/// user a different sentence, therefore the parent reads this number and it
+/// never says one reason for both.
+pub const THE_CODE_OF_A_BOOK_THAT_GIVES_NO_PAGE: i32 = 2;
+
+/// The code of a child that read the book, and whose pages the disk refused.
+pub const THE_CODE_OF_A_DISK_THAT_TOOK_NO_PAGE: i32 = 3;
+
 /// The first bytes of the file of the parsed book.
 ///
 /// A file of an older form of this program gives a different mark, therefore
@@ -259,12 +270,16 @@ pub fn the_answer_of_the_line(words: &[String]) -> i32 {
 /// The function gives the code that the process must give the parent. `main`
 /// calls it before every other line of the program: the child opens no
 /// terminal, it makes no database, and it plays nothing.
+///
+/// **Each line of this function writes `toutui: <what it did not do>: <the
+/// reason of the machine>`** (T-274). [`the_reason_of_the_child`] reads that
+/// form, and the user then gets the reason of the machine and no other word.
 pub fn the_work_of_the_child(book: &Path, to: &Path) -> i32 {
     let pdf = match Pdf::of_the_file(book) {
         Ok(pdf) => pdf,
         Err(error) => {
             eprintln!("toutui: this PDF gives no page: {}", error);
-            return 2;
+            return THE_CODE_OF_A_BOOK_THAT_GIVES_NO_PAGE;
         }
     };
 
@@ -275,12 +290,12 @@ pub fn the_work_of_the_child(book: &Path, to: &Path) -> i32 {
 
     if let Err(error) = std::fs::write(&beside, the_bytes_of(&pdf)) {
         eprintln!("toutui: the program did not write the pages: {}", error);
-        return 3;
+        return THE_CODE_OF_A_DISK_THAT_TOOK_NO_PAGE;
     }
 
     if let Err(error) = std::fs::rename(&beside, to) {
         eprintln!("toutui: the pages did not take their name: {}", error);
-        return 3;
+        return THE_CODE_OF_A_DISK_THAT_TOOK_NO_PAGE;
     }
 
     0
@@ -303,7 +318,9 @@ pub fn the_book_that_a_child_reads(book: &Path) -> Result<Pdf, ReaderError> {
 
     let program = std::env::current_exe().map_err(|error| {
         warn!("[pdf] the program does not know its own path: {}", error);
-        ReaderError::ThePdfGivesNoPage
+        ReaderError::ThePartThatReadsAPdfFailed(
+            "The program did not find its own file.".to_string(),
+        )
     })?;
 
     let started = std::time::Instant::now();
@@ -320,7 +337,9 @@ pub fn the_book_that_a_child_reads(book: &Path) -> Result<Pdf, ReaderError> {
         .spawn()
         .map_err(|error| {
             warn!("[pdf] the child did not start: {}", error);
-            ReaderError::ThePdfGivesNoPage
+            ReaderError::ThePartThatReadsAPdfFailed(
+                "The part that reads a PDF did not start.".to_string(),
+            )
         })?;
 
     let code = wait_for_the_child(&mut child);
@@ -331,6 +350,10 @@ pub fn the_book_that_a_child_reads(book: &Path) -> Result<Pdf, ReaderError> {
         let _ = out.read_to_string(&mut words);
     }
 
+    // **The code of the child names the fault of the user** (T-274). The book
+    // that gives no page is one road of this list, and the disk that took no
+    // page, the child that did not start, and the child that did not come back
+    // are three others: each of them says that the book of the user is good.
     match code {
         Some(0) => {}
         Some(code) => {
@@ -339,17 +362,19 @@ pub fn the_book_that_a_child_reads(book: &Path) -> Result<Pdf, ReaderError> {
                 code,
                 words.trim()
             );
-            return Err(ReaderError::ThePdfGivesNoPage);
+            return Err(the_fault_of_the_answer_of_the_child(Some(code), &words));
         }
         None => {
             warn!("[pdf] the child did not come back, and the program stopped it");
-            return Err(ReaderError::ThePdfGivesNoPage);
+            return Err(the_fault_of_the_answer_of_the_child(None, &words));
         }
     }
 
     let Some(pdf) = read_the_parsed_book(&parsed) else {
         warn!("[pdf] the child wrote no page of this book");
-        return Err(ReaderError::ThePdfGivesNoPage);
+        return Err(ReaderError::ThePartThatReadsAPdfFailed(
+            "The program did not read the pages that it wrote.".to_string(),
+        ));
     };
 
     info!(
@@ -359,6 +384,62 @@ pub fn the_book_that_a_child_reads(book: &Path) -> Result<Pdf, ReaderError> {
     );
 
     Ok(pdf)
+}
+
+/// Gives the fault of the user of the answer of a child that gave no page.
+///
+/// **A program must never say a reason that it does not have** (T-91). The
+/// measurement of T-274: a directory of the cache that took no write gave the
+/// code 3, and the reader said "This PDF gives no page. The file can be
+/// damaged." for a book of 60 pages that the same program read 90 seconds
+/// before. The answer of the child holds the truth, therefore this function
+/// reads it.
+///
+/// `None` is a child that did not come back in [`THE_LONGEST_WAIT`], and the
+/// parent then stopped it.
+pub fn the_fault_of_the_answer_of_the_child(code: Option<i32>, words: &str) -> ReaderError {
+    let Some(code) = code else {
+        return ReaderError::ThePartThatReadsAPdfFailed(format!(
+            "The part that reads a PDF took more than {} minutes.",
+            THE_LONGEST_WAIT.as_secs() / 60
+        ));
+    };
+
+    the_fault_of_the_code(code, words)
+}
+
+/// Gives the fault of the user of the code of a child that stopped.
+fn the_fault_of_the_code(code: i32, words: &str) -> ReaderError {
+    match code {
+        THE_CODE_OF_A_BOOK_THAT_GIVES_NO_PAGE => ReaderError::ThePdfGivesNoPage,
+        THE_CODE_OF_A_DISK_THAT_TOOK_NO_PAGE => {
+            ReaderError::TheDiskTookNoPageOfThePdf(the_reason_of_the_child(words))
+        }
+        // The code 1 is a line of command with no path, and every other code is
+        // a child that the machine stopped. The book of the user stands in
+        // neither of them.
+        _ => ReaderError::ThePartThatReadsAPdfFailed(
+            "The part that reads a PDF stopped.".to_string(),
+        ),
+    }
+}
+
+/// Gives the reason of the machine of the words of a child that stopped.
+///
+/// [`the_work_of_the_child`] writes `toutui: <what it did not do>: <the reason
+/// of the machine>` on its standard error. The user reads the reason of the
+/// machine, and the log holds the whole line. A child that said nothing, and a
+/// line of another form, give no word at all: the sentence of the user then
+/// names no reason, and it stays true. See T-274.
+pub fn the_reason_of_the_child(words: &str) -> String {
+    let Some(line) = words.lines().find(|line| !line.trim().is_empty()) else {
+        return String::new();
+    };
+
+    match line.trim().splitn(3, ": ").collect::<Vec<_>>()[..] {
+        ["toutui", _, reason] => reason.trim().to_string(),
+        _ => String::new(),
+    }
 }
 
 /// Waits for the child, and it stops a child that never comes back.

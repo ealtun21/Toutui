@@ -53,12 +53,21 @@ pub const MAX_CHAPTER_BYTES: usize = 8 * 1024 * 1024;
 pub enum ReaderError {
     /// The file is not an EPUB, or the archive is damaged.
     NotAnEpub,
-    /// The file starts as a PDF, and no page came out of it. **A child process
-    /// reads a PDF** (T-62), therefore this value holds a child that stopped, a
-    /// child that gave a fault, and a file that `lopdf` cannot read. The user
-    /// reads one sentence and a key of the program, and never a dead screen
-    /// (T-52).
+    /// The file starts as a PDF, and `lopdf` gave no page of it. **This value
+    /// is the book of the user, and no other road** (T-274): a child that the
+    /// disk stopped and a child that did not start each take a value below,
+    /// because a program must never say a reason that it does not have (T-91).
+    /// The user reads one sentence and a key of the program, and never a dead
+    /// screen (T-52).
     ThePdfGivesNoPage,
+    /// The child that reads a PDF gave the pages, and the disk did not take
+    /// them. The text is the reason of the machine, and it is empty for a
+    /// child that said nothing. See T-274.
+    TheDiskTookNoPageOfThePdf(String),
+    /// The part of the program that reads a PDF did not do its work, and the
+    /// book of the user is not the reason. The text is one sentence that says
+    /// what did not happen. See T-274.
+    ThePartThatReadsAPdfFailed(String),
     /// The file is larger than [`MAX_BOOK_BYTES`]. The number is the size of
     /// the file in bytes.
     BookTooLarge(u64),
@@ -80,6 +89,23 @@ impl fmt::Display for ReaderError {
             ReaderError::ThePdfGivesNoPage => write!(
                 f,
                 "This PDF gives no page. The file can be damaged. Press h to go back."
+            ),
+            ReaderError::TheDiskTookNoPageOfThePdf(reason) if reason.is_empty() => write!(
+                f,
+                "The disk did not take the pages of this PDF. The book is good. \
+                 Make space on the disk, or give the program permission to write \
+                 in its directory. Press h to go back."
+            ),
+            ReaderError::TheDiskTookNoPageOfThePdf(reason) => write!(
+                f,
+                "The disk did not take the pages of this PDF. The book is good. \
+                 The machine said: {reason}. Make space on the disk, or give the \
+                 program permission to write in its directory. Press h to go back."
+            ),
+            ReaderError::ThePartThatReadsAPdfFailed(reason) => write!(
+                f,
+                "The program did not read this PDF. The book can be good. \
+                 {reason} The file of the log holds more. Press h to go back."
             ),
             ReaderError::BookTooLarge(size) => write!(
                 f,

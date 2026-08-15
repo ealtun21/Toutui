@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.103",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The reader says that your disk did not take the pages of a \
+             PDF, and it does not say that your book can be damaged.** Toutui \
+             reads a PDF in a second process, and that process writes the \
+             pages beside the book. A disk that is full, a file system that is \
+             read-only, and a directory with no permission of a write each \
+             stop that write. Toutui said there \"This PDF gives no page. The \
+             file can be damaged.\" for a book that it read a moment before, \
+             and it said the same words for a part of the program that did not \
+             start and for a book that took too long. Toutui says now which of \
+             them it met, it gives the reason of your machine, and the words \
+             of a damaged book stay for a damaged book.",
+        ],
+    },
+    Entry {
         version: "0.8.102",
         date: "16/08/2026",
         body: &[

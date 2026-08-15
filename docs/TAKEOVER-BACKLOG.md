@@ -22205,3 +22205,152 @@ The gates: `cargo clippy --all-targets -- -D warnings` and
 - **A fault of the removal of the account that comes on the road of the key
   `R` is not measured** (a candidate, and not a measurement; open since
   T-269).
+
+### T-274: a disk that took no page of a PDF says why
+
+**The state**: corrected on 2026-08-16, in v0.8.103. The measurement is of the
+real program inside tmux against the sandbox.
+
+#### The choice of this item
+
+T-273 left open "The child of T-62 that reads a PDF, and every other process
+of this program that has no terminal". A read of that road found that the
+child opens no terminal at all: `main` calls
+`the_child_of_the_line_of_command` before `ratatui`, therefore T-273 reaches
+it and that candidate closes. The same read found a different fault of the
+same module: the words of that child.
+
+#### The fault
+
+`the_book_that_a_child_reads` of `src/logic/reader/pdf_of_a_child.rs` gave
+`ReaderError::ThePdfGivesNoPage` on seven roads: `current_exe` that failed, a
+child that did not start, the code 2 of a book that gives no page, the code 3
+of a disk that took no page, every other code, a child that did not come back
+in 300 seconds, and a file of pages that the parent did not read back. The
+words of that value are "This PDF gives no page. The file can be damaged.
+Press h to go back." Six of the seven roads say a reason that the program
+does not have (T-91), and the doc comment of the value said so already: "this
+value holds a child that stopped, a child that gave a fault, and a file that
+`lopdf` cannot read".
+
+#### The measurement
+
+The real program v0.8.102, tmux, 160 columns by 45 rows, sandbox on :13399,
+account `toutuitest`, library `Books`. The book is "A Big Book Of A Scan", a
+PDF of 47392815 bytes of a scan of 60 pages.
+
+The control first: the key `e` on that book, and the log said `[pdf] a child
+read 60 page(s) in 47310 ms`. The parsed pages stood beside the book as a
+file of 9171423 bytes.
+
+Then that file of the pages went away, and `chmod 555` gave the directory of
+the cache of the ebooks no write. The condition of a user: a disk that is
+full, a file system that the machine gave back as read-only, and a directory
+with no permission of a write.
+
+The key `e` on the same book again. The screen said: `This PDF gives no page.
+The file can be damaged. Press h to go back.`
+
+The log of that same run said: `[pdf] the child stopped with the code 3:
+toutui: the program did not write the pages: Permission denied (os error 13)`
+
+The program had the reason in its hand, and it said a reason that it does
+not have. The book was good: the same program read every one of its 60 pages
+90 seconds before.
+
+#### The correction
+
+Two new values of `ReaderError` in `src/logic/reader/book.rs`:
+`TheDiskTookNoPageOfThePdf(String)` (the text is the reason of the machine)
+and `ThePartThatReadsAPdfFailed(String)` (the text is one sentence that says
+what did not happen). `ThePdfGivesNoPage` stays, and it now holds the book of
+the user and no other road.
+
+Two constants of the code of the child: `THE_CODE_OF_A_BOOK_THAT_GIVES_NO_PAGE`
+(2) and `THE_CODE_OF_A_DISK_THAT_TOOK_NO_PAGE` (3). `the_work_of_the_child`
+gives them, and the parent reads them.
+
+`the_fault_of_the_answer_of_the_child(code: Option<i32>, words: &str)` gives
+the fault of the user. `None` is a child that did not come back.
+
+`the_reason_of_the_child(words)` reads the form `toutui: <what it did not
+do>: <the reason of the machine>` that every line of `the_work_of_the_child`
+writes. A child that said nothing, and a line of another form, give no word:
+the sentence of the user then names no reason and it stays true.
+
+The corrected program of the same condition gave these words:
+
+```
+The disk did not take the pages of this PDF. The book is good. The machine said: Permission denied (os error 13). Make space on the disk, or give the program permission to write in its directory. Press h to go back.
+```
+
+#### The controls
+
+The good road: the same book, a directory that takes a write, and the reader
+gave `A Big Book Of A Scan — page 1 of 60 — 0%`. The log said `[pdf] a child
+read 60 page(s) in 47006 ms`.
+
+A PDF that really gives no page: the book "A Book That No Reader Reads" of
+the sandbox. The screen said `This PDF gives no page. The file can be
+damaged. Press h to go back.`, and the log said `[pdf] the child stopped with
+the code 2: toutui: this PDF gives no page: This file is not an EPUB.` The
+true sentence stays where it is true.
+
+#### The test
+
+`tests/a_disk_that_took_no_page_of_a_pdf_says_why.rs`, eight functions, and
+it needs no network and no sandbox. A new fixture
+`tests/fixtures/a_pdf_of_one_page.pdf` of 537 bytes gives a book that `lopdf`
+reads with no crate to make it.
+
+The first function calls `the_work_of_the_child` with a good directory (the
+code 0) and then with a directory of `chmod 555` (the code 3); a machine of
+the user root takes every write, and the test says that it measured nothing
+there. The other functions hold the words of each road: the disk names the
+disk and the machine and never "can be damaged", the book keeps its true
+sentence, every other code and a child that did not come back say that the
+book can be good, a child that said nothing gives a sentence with no dangling
+reason, and no sentence names a file of a source (T-172).
+
+The build of the fault: `the_fault_of_the_code` that gives `ThePdfGivesNoPage`
+for every code. Two functions then fail, and one says `the code of a disk
+that took no page gave another fault: left ThePdfGivesNoPage, right
+TheDiskTookNoPageOfThePdf("Permission denied (os error 13)")`.
+
+#### The gates
+
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` pass, and
+`cargo nextest run` gives 1300 of 1300.
+
+#### What this item leaves open
+
+- **The child of T-62 that reads a PDF has no terminal of its own** closes
+  with this item (open since T-272): `main` calls
+  `the_child_of_the_line_of_command` before `ratatui`, therefore that child
+  makes no terminal and T-273 holds every process of this program that does.
+- `let _ = self.auth()` of `src/ui/login_tui.rs` line 17 drops every fault of
+  the login screen (open since T-272): the three `?` of the loop of `auth()`
+  (`term.size()`, `term.draw()`, `crossterm::event::read()`) stand in a loop
+  of no wait at all, and `let _app_result = app_login.run(terminal)` of
+  `src/main.rs` drops the fault of the outer loop too. A terminal that gives
+  a real fault of a read, and not the end of its input, is the condition, and
+  this turn did not measure it. A candidate, and not a measurement.
+- The words of the reader for a book that is no PDF and no EPUB, and the
+  other values of `ReaderError` (`NotAnEpub`, `ChapterAbsent`,
+  `ChapterTooLarge`), each say one reason: no measurement of this turn
+  reached them. A candidate, and not a measurement.
+- `let _ = out.read_to_string(&mut words)` of the parent drops the fault of
+  the read of the words of the child: the user then reads a sentence with no
+  reason, and the log holds no word of why. A candidate, and not a
+  measurement.
+- `let _ = child.kill()` and `let _ = child.wait()` of `wait_for_the_child`
+  say nothing when the machine kept the child: the program then leaves a
+  process of the user. A candidate, and not a measurement.
+- The column `elapsed_time` of the table `listening_session` (open since
+  T-271). A candidate, and not a measurement.
+- The `?` of `ApiClient::new(...)` of `src/main.rs` is a bare `?` still (open
+  since T-269). A candidate, and not a measurement.
+- The keys of the terminal and of the render of `src/main.rs` each hold a
+  bare `?` (open since T-269). A candidate, and not a measurement.
+- A fault of the removal of the account that comes on the road of the key `R`
+  is not measured (open since T-269). A candidate, and not a measurement.
