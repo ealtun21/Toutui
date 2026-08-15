@@ -42,6 +42,72 @@ pub struct Episodes {
     pub descriptions: Vec<String>,
     pub titles_of_the_podcast: Vec<String>,
     pub durations: Vec<String>,
+    /// The place of the user of each episode: the percent and the mark of the
+    /// end, in the form of `App::book_progress_cnt_list`. See T-229.
+    pub places: Vec<Vec<String>>,
+}
+
+/// Gives the text of each line of the view of the episodes of a podcast.
+/// See T-229.
+///
+/// **A line of this view is one episode**, and the identity of the item names
+/// every episode of one podcast (T-223). The key of a line therefore names the
+/// episode after the item, and it is the key of
+/// `crate::logic::live::the_key_of_the_media`: the mark of the media that plays
+/// stands on the line of the episode that plays, and on no other line of that
+/// podcast.
+///
+/// `places` holds one row for each episode, in the form of
+/// `App::book_progress_cnt_list`: the percent of the user and the mark of the
+/// end. A line of no row takes no mark, as a media that never played takes
+/// none.
+///
+/// **The view said nothing at all before this function** (T-229): the user
+/// played `Chapter 02` of `Arthur Gordon Pym` of the sandbox and the eleven
+/// lines of that view each held the title alone, while the Library view of that
+/// same second gave `▶ Arthur Gordon Pym` and the Home view gave
+/// `▶ Chapter 02`.
+///
+/// The function is pure, therefore a test needs no server and no screen.
+pub fn the_lines_of_the_episodes(
+    podcast_id: &str,
+    titles: &[String],
+    ids: &[String],
+    places: &[Vec<String>],
+    playing: Option<&str>,
+) -> Vec<String> {
+    titles
+        .iter()
+        .enumerate()
+        .map(|(line, title)| {
+            // An episode whose identity the server did not give holds no key,
+            // therefore no media that plays can stand on its line. See T-226.
+            let key = ids
+                .get(line)
+                .filter(|one| !one.is_empty())
+                .map(|episode| crate::logic::live::the_key_of_the_media(podcast_id, Some(episode)));
+
+            let plays_now = key
+                .as_ref()
+                .zip(playing)
+                .is_some_and(|(key, playing)| key == playing);
+
+            let row = places.get(line);
+            let percent = row
+                .and_then(|row| row.first())
+                .map(String::as_str)
+                .unwrap_or("");
+            let finished = row
+                .and_then(|row| row.get(1))
+                .map(String::as_str)
+                .unwrap_or("");
+
+            crate::ui::marks::line(
+                &crate::ui::marks::of_progress(percent, finished, plays_now),
+                title,
+            )
+        })
+        .collect()
 }
 
 fn the_episodes_that_wait() -> &'static Mutex<Option<Episodes>> {

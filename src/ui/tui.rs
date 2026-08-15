@@ -2266,7 +2266,7 @@ impl App {
                     list_area,
                     buf,
                     &render_list_title,
-                    &self.titles_pod_ep_search.clone(),
+                    &self.pod_ep_lines_search(),
                     &mut self.list_state_pod_ep.clone(),
                 );
                 self.render_info_pod_ep_search(item_area1, buf, &self.list_state_pod_ep.clone());
@@ -2291,7 +2291,7 @@ impl App {
                     list_area,
                     buf,
                     &render_list_title,
-                    &self.titles_pod_ep.clone(),
+                    &self.pod_ep_lines(),
                     &mut self.list_state_pod_ep.clone(),
                 );
                 self.render_info_pod_ep(item_area1, buf, &self.list_state_pod_ep.clone());
@@ -2664,13 +2664,21 @@ impl App {
                         .map(|id| the_copy_of_the_disk(id))
                         .unwrap_or("");
 
+                    // **The panel of a line of this view said nothing of the
+                    // place of the user** (T-229). The row of the place of an
+                    // episode holds no length of the media that the program
+                    // reads as a number, therefore this paragraph names no time
+                    // that is left, as the panel of a line of a podcast of the
+                    // Home view names none (T-228).
                     Paragraph::new(format!(
-                        "[{}] - Author: {} - Episode: {} - Duration: {}{}",
+                        "[{}] - Author: {} - Episode: {} - Duration: {}{}\nProgress: {}%, {}",
                         at(&duplicated_titles, selected).trim(),
                         at(&duplicated_authors, selected).trim(),
                         at(&self.episodes_pod_ep, selected).trim(),
                         at(&self.durations_pod_ep, selected).trim(),
                         of_the_disk,
+                        at_part(&self.pod_ep_places, selected, 0),
+                        at_part(&self.pod_ep_places, selected, 1),
                     ))
                     .wrap(Wrap { trim: true })
                     .left_aligned()
@@ -2703,13 +2711,17 @@ impl App {
                 .map(|id| the_copy_of_the_disk(id))
                 .unwrap_or("");
 
+            // The panel of this view says the place of the user too. See
+            // T-229.
             Paragraph::new(format!(
-                "[{}] - Author: {} - Episode: {} - Duration: {}{}",
+                "[{}] - Author: {} - Episode: {} - Duration: {}{}\nProgress: {}%, {}",
                 at(&duplicated_titles_search, selected).trim(),
                 at(&duplicated_authors_search, selected).trim(),
                 at(&self.episodes_pod_ep_search, selected).trim(),
                 at(&self.durations_pod_ep_search, selected).trim(),
                 of_the_disk,
+                at_part(&self.pod_ep_places_search, selected, 0),
+                at_part(&self.pod_ep_places_search, selected, 1),
             ))
             .wrap(Wrap { trim: true })
             .left_aligned()

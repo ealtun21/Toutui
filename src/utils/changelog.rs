@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.58",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The view of the episodes of a podcast said nothing of the \
+             place of the user.** Each line of that view is one episode, and \
+             each of them held the title alone: no percent, no mark of the \
+             episode that the user finished, and no mark of the episode that \
+             plays. Each line holds the place of its own episode now, a \
+             message of the server moves it, and the panel of that line says \
+             the percent.",
+        ],
+    },
+    Entry {
         version: "0.8.57",
         date: "15/08/2026",
         body: &[

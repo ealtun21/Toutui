@@ -15325,3 +15325,138 @@ percent and the mark of the end alone.
 - **The key `X` of the view of the bookmarks of a podcast** removes a place of
   another episode with the same words (T-223, T-224, T-225, T-226, and T-227
   each left it open, and this item did not close it).
+
+---
+
+### T-229: the line of the view of the episodes of a podcast holds its place
+
+**This item closes the road that T-228 left open.** T-228 wrote that "the mark
+of a line of the view of the episodes of a podcast is not measured", and that
+the view that the key `l` of a line of the Library view opens holds one line for
+one episode too. **The answer is that no line of that view held one word of its
+episode**: no percent of the user, no mark of the episode that the user
+finished, and no mark of the episode that plays.
+
+#### The measurement
+
+The real program v0.8.57 inside tmux, against the sandbox (podman on :13399),
+of the podcast `Arthur Gordon Pym` of the library `Podcasts`. The server held
+`Chapter 00` at 30 percent, `Chapter 01` finished (the playback of a run before
+it came to its end), and `Chapter 02` at a place of 700 seconds of 2336. The
+user pressed `Tab`, then `j` on `Arthur Gordon Pym`, then `l` for its episodes,
+and then `l` on `Chapter 02` and `Space` at the first frame of the row of the
+player (the trap 212).
+
+- The eleven lines of that view said `Chapter 00` to `Chapter 10` and **nothing
+  else at all**, before the playback and while it stood.
+- The panel of the line said
+  `[Arthur Gordon Pym] - Author: LibriVox - Episode: 2 - Duration: 39m` and no
+  word of the place of the user.
+- The row of the player of that same frame said
+  `Arthur Gordon Pym — Chapter 02 by LibriVox` with `⏸ 12:21 / 38:56`.
+
+**The control of the same run** (the trap 206): the key `h` gave the Library
+view of that same program, and that view said `▶   Arthur Gordon Pym`; the key
+`Tab` and the key `R` gave the Home view, and that view said `▶   Chapter 02`
+under the shelf Continue Listening, `✓   Letter 57` under the shelf of the
+newest episodes, and `Progress: 0%, Not finished` in its panel. **The two views
+that hold one line for a whole podcast said which episode plays, and the one
+view that holds a line for each episode said nothing.**
+
+The same measurement of the corrected program (v0.8.58) gave `30% Chapter 00`,
+`✓   Chapter 01`, `▶   Chapter 02`, and eight lines of a title alone, and the
+panel said `Progress: 0%, Not finished`. **The live message of the server
+reaches that line too**: a second client moved `Chapter 00` to 55 percent with
+`curl` while the program stood, and the line said `55% Chapter 00`
+**269 milliseconds** later with no key of the user.
+
+#### The fault of the source
+
+- `src/ui/tui.rs`, `render_pod_ep`: the list took `self.titles_pod_ep` and
+  `self.titles_pod_ep_search` **as they came from the server**. Every other list
+  of a media of the program wraps its title with `crate::ui::marks::line`: the
+  Home view with `marks::of_progress` (T-44 and T-228) and the Library view with
+  `marks::of_library`. This one wrapped nothing.
+- `src/app.rs`, `ask_the_server_for_the_episodes`: the task of the episodes read
+  the titles, the identities, the seasons, the numbers, the authors, the
+  descriptions, and the lengths of the answer of the server, and **no place of
+  the user at all**. No field of `App` held the percent of an episode of that
+  view.
+- `src/ui/tui.rs`, `render_info_pod_ep` and `render_info_pod_ep_search`: the
+  panel of that view named the podcast, the author, the number of the episode,
+  and the length, and no percent. The panel of a line of a podcast of the Home
+  view says `Progress: {}%, {}` since T-228.
+
+#### The correction
+
+- `src/logic/the_episodes.rs`: the new pure function
+  `the_lines_of_the_episodes(podcast_id, titles, ids, places, playing)`. The key
+  of a line is `crate::logic::live::the_key_of_the_media(podcast_id, Some(the
+  episode))`, therefore the mark of the media that plays stands on the line of
+  the episode that plays and on no other line of that podcast (T-223 and T-228).
+  An episode whose identity the server did not give holds no key, and its line
+  keeps its title (T-226).
+- `src/logic/the_episodes.rs`: `Episodes` holds `places`, one row for each
+  episode in the form of `App::book_progress_cnt_list`.
+- `src/app.rs`: the new `the_places_of_the_episodes` asks **one**
+  `GET /api/me` for the whole account and it reads the row of each episode with
+  `crate::logic::the_positions::the_place_of_a_media` (T-127 and T-228).
+- `src/app.rs`: `App::pod_ep_lines` and `App::pod_ep_lines_search` make the
+  lines, and a position of a live message takes the place of the row of the
+  request (T-47).
+- `src/ui/tui.rs`: the list of that view reads those lines, and the two panels
+  of it say `Progress: {}%, {}`.
+- `tests/the_line_of_the_view_of_the_episodes_holds_its_place.rs` holds the
+  rule, and the parts of it stay in one function (T-144 and T-157). It needs no
+  server and no screen, because the function is pure. **Three builds of the
+  fault each fail it**: a line that reads no place at all, a key of a line that
+  drops the episode, and a line that takes the row of its neighbour.
+
+**The decision, and the reason for it: a request that gave no place leaves every
+title, and the program asks no request for one line.** The Home view asks
+`GET /api/me/progress/:id` for a media that the answer of the account does not
+name (T-127), because that view holds some tens of lines. A podcast of the
+sandbox holds 57 episodes and a library of that server holds 520 podcasts,
+therefore a request for each line is no road at all: the fault of the one
+request takes a line of the log (T-177), and the lines then stand as they stood
+before this item.
+
+**The decision, and the reason for it: the panel of that view names no time that
+is left.** `durations_pod_ep` holds a text of the shape `39m`, and a paragraph
+that says a time that the program computed from a text would be a value that no
+answer gave (T-91). That is the decision of T-228 for the panel of the Home
+view.
+
+#### What this item leaves open
+
+- **The place of that view is a photograph of the moment of the open.** The
+  program reads the episodes of one podcast one time
+  (`the_episodes_that_came` never goes back to `false`, T-167), therefore the
+  percent of a line that no live message moved is the percent of that moment.
+  The key `R` gives a fresh list. A live message reaches the line (this item
+  measured it), therefore the road of a place that goes old with no message
+  reached no measurement.
+- **The lines of the view of the search and of the view of the lists hold no
+  place at all** (T-228, and it stays open): no measurement says whether that is
+  a decision or a fault of the same shape as this one.
+- **The lines of the view of the queue, of the view of the bookmarks, and of the
+  view of the chapters hold no place of the user** (this item, and it stays
+  open). The sweep of "which list of a media holds the place of that media" is
+  open for every view that this item did not read.
+- **A `PATCH` of `/api/me/progress/:item/:episode` that holds `duration` beside
+  `currentTime` leaves the percent of the row where it stood** (this item): a
+  body of `{"currentTime": 700, "duration": 2336.731429, "progress": 0.2996}`
+  gave a row of `currentTime` 700 and of `progress` 0.0039, and a body of
+  `{"progress": 0.9}` alone gave a row of 90 percent at once. **A measurement of
+  a percent of an episode therefore sends `progress` alone**, and that closes
+  one half of the road that T-228 left open: the percent still goes up and it
+  does not go down.
+- **The mark of a line of the view of the episodes of the offline mode is not
+  measured** (this item): the task of the episodes does not run offline
+  (`ask_the_server_for_the_episodes` gives up at once), therefore the lists of
+  that view then hold the answer of a run before it or no line at all.
+- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone** (T-226,
+  T-227, and T-228, and it stays open).
+- **The key `X` of the view of the bookmarks of a podcast** removes a place of
+  another episode with the same words (T-223 to T-228 each left it open, and
+  this item did not close it).

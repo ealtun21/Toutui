@@ -399,6 +399,12 @@ pub struct App {
     pub descs_pod_ep: Vec<String>,
     pub titles_pod: Vec<String>,
     pub durations_pod_ep: Vec<String>,
+    /// The place of the user of each episode of the view of the episodes: the
+    /// percent and the mark of the end, in the form of
+    /// `book_progress_cnt_list`. See T-229.
+    pub pod_ep_places: Vec<Vec<String>>,
+    /// The same values for the view of the episodes of a podcast of a search.
+    pub pod_ep_places_search: Vec<Vec<String>>,
     pub ids_ep_cnt_list: Vec<String>,
     pub all_titles_pod_ep_search: Vec<Vec<String>>,
     pub titles_pod_ep_search: Vec<String>,
@@ -1466,6 +1472,8 @@ impl App {
         let descs_pod_ep: Vec<String> = Vec::new();
         let titles_pod: Vec<String> = Vec::new();
         let durations_pod_ep: Vec<String> = Vec::new();
+        let pod_ep_places: Vec<Vec<String>> = Vec::new();
+        let pod_ep_places_search: Vec<Vec<String>> = Vec::new();
 
         // **The start makes no request for a podcast now.** It read the
         // episodes of every podcast of the page, one request after the other:
@@ -1826,6 +1834,8 @@ impl App {
             descs_pod_ep,
             titles_pod,
             durations_pod_ep,
+            pod_ep_places,
+            pod_ep_places_search,
             subtitles_pod_ep_search,
             seasons_pod_ep_search,
             episodes_pod_ep_search,
@@ -3644,11 +3654,19 @@ impl App {
                 }
             };
 
+            let ids = collect_ids_pod_ep(&podcast).await;
+
+            // **The line of an episode holds the place of the user** (T-229).
+            // One request of `GET /api/me` gives the place of every episode of
+            // the account, and a podcast of 520 episodes therefore costs one
+            // request and not one for each line (T-127).
+            let places = the_places_of_the_episodes(&api, id.as_str(), &ids).await;
+
             crate::logic::the_episodes::keep(crate::logic::the_episodes::Episodes {
                 place,
                 id,
                 titles: collect_titles_pod_ep(&podcast).await,
-                ids: collect_ids_pod_ep(&podcast).await,
+                ids,
                 subtitles: collect_subtitles_pod_ep(&podcast).await,
                 seasons: collect_seasons_pod_ep(&podcast).await,
                 numbers: collect_episodes_pod_ep(&podcast).await,
@@ -3656,6 +3674,7 @@ impl App {
                 descriptions: collect_descs_pod_ep(&podcast).await,
                 titles_of_the_podcast: collect_titles_pod(&podcast).await,
                 durations: collect_durations_pod_ep(&podcast).await,
+                places,
             });
 
             crate::logic::the_episodes::keep_the_flag(false);
@@ -3729,6 +3748,7 @@ impl App {
             self.descs_pod_ep_search = episodes.descriptions;
             self.titles_pod_search = episodes.titles_of_the_podcast;
             self.durations_pod_ep_search = episodes.durations;
+            self.pod_ep_places_search = episodes.places;
             return;
         }
 
@@ -3741,6 +3761,95 @@ impl App {
         self.descs_pod_ep = episodes.descriptions;
         self.titles_pod = episodes.titles_of_the_podcast;
         self.durations_pod_ep = episodes.durations;
+        self.pod_ep_places = episodes.places;
+    }
+
+    /// Gives the text of each line of the view of the episodes of a podcast.
+    /// See T-229.
+    ///
+    /// **The line of an episode said nothing of that episode**: the user played
+    /// `Chapter 02` of `Arthur Gordon Pym` of the sandbox and the eleven lines
+    /// of this view each held the title alone, while the Library view of that
+    /// same second gave `▶ Arthur Gordon Pym` and the Home view gave
+    /// `▶ Chapter 02` and the mark `✓` of the episode that the user finished.
+    ///
+    /// A live message of the server gives a newer place than the request of the
+    /// open of this view. A different client of the same account moved in that
+    /// episode, and the line then shows the new place at the next frame, as the
+    /// line of the Home view does (T-47 and T-228).
+    pub fn pod_ep_lines(&self) -> Vec<String> {
+        self.the_lines_of_this_podcast(
+            self.the_podcast_of_the_episodes(),
+            &self.titles_pod_ep,
+            &self.ids_pod_ep,
+            &self.pod_ep_places,
+        )
+    }
+
+    /// The same lines for the view of the episodes of a podcast of a search.
+    pub fn pod_ep_lines_search(&self) -> Vec<String> {
+        self.the_lines_of_this_podcast(
+            self.the_podcast_of_the_episodes_of_a_search(),
+            &self.titles_pod_ep_search,
+            &self.ids_pod_ep_search,
+            &self.pod_ep_places_search,
+        )
+    }
+
+    /// Makes the lines of the view of the episodes, with the place that a live
+    /// message gave. See T-229.
+    fn the_lines_of_this_podcast(
+        &self,
+        podcast_id: Option<String>,
+        titles: &[String],
+        ids: &[String],
+        places: &[Vec<String>],
+    ) -> Vec<String> {
+        // A podcast that the lists of the library no longer hold gives no key
+        // at all, and every line then keeps its title alone.
+        let Some(podcast_id) = podcast_id else {
+            return titles.to_vec();
+        };
+
+        let places: Vec<Vec<String>> = titles
+            .iter()
+            .enumerate()
+            .map(|(line, _)| {
+                let live = ids
+                    .get(line)
+                    .filter(|one| !one.is_empty())
+                    .map(|episode| {
+                        crate::logic::live::the_key_of_the_media(&podcast_id, Some(episode))
+                    })
+                    .and_then(|key| crate::logic::live::progress_of(&key));
+
+                match live {
+                    Some(live) => vec![live.percent, live.finished],
+                    None => places.get(line).cloned().unwrap_or_default(),
+                }
+            })
+            .collect();
+
+        crate::logic::the_episodes::the_lines_of_the_episodes(
+            &podcast_id,
+            titles,
+            ids,
+            &places,
+            self.playing_media().as_deref(),
+        )
+    }
+
+    /// Gives the identity of the podcast whose episodes this view holds.
+    fn the_podcast_of_the_episodes(&self) -> Option<String> {
+        self.ids_library.get(self.selected_library_item()?).cloned()
+    }
+
+    /// Gives the identity of the podcast of a search whose episodes this view
+    /// holds.
+    fn the_podcast_of_the_episodes_of_a_search(&self) -> Option<String> {
+        self.ids_library_pod_search
+            .get(self.list_state_search_results.selected()?)
+            .cloned()
     }
 
     /// The search found a podcast of a page that the program did not read.
@@ -8436,4 +8545,63 @@ pub fn message_of_the_mark(finished: bool) -> String {
          start."
             .to_string()
     }
+}
+
+/// Gives the place of the user of each episode of one podcast. See T-229.
+///
+/// **One request holds every place** (T-127). `GET /api/me` gives
+/// `mediaProgress` for every media of the account, and a row of a podcast names
+/// the episode beside the item (T-223): the row of each line therefore comes
+/// out of one answer. A podcast of the sandbox holds 57 episodes and a library
+/// of that server holds 520 podcasts, therefore a request for each line is no
+/// road at all.
+///
+/// **A request that did not come back gives no place, and it takes no request
+/// of its own** (T-177): the lines then hold their titles alone, as they did
+/// before this function, and the log names the fault. The Home view asks
+/// `GET /api/me/progress/:id` for a media of no row (T-127) because that view
+/// holds some tens of lines; this view holds every episode of a podcast.
+///
+/// The answer is one row for each episode, in the form of
+/// `App::book_progress_cnt_list`: the percent of the user and the mark of the
+/// end. An episode of no place gives `N/A`, as a media that never played gives
+/// it in the Home view.
+async fn the_places_of_the_episodes(
+    api: &crate::api::client::ApiClient,
+    podcast_id: &str,
+    ids: &[String],
+) -> Vec<Vec<String>> {
+    let nothing = || vec![vec![" N/A".to_string(), " N/A".to_string()]; ids.len()];
+
+    let the_positions = match crate::api::me::permissions::the_account_of_the_token(api).await {
+        Ok((_, the_positions)) => the_positions,
+        Err(error) => {
+            log::warn!(
+                "[podcast] the server gave no place of the episodes of the podcast {}: {}. \
+                 The lines of that view hold no percent.",
+                podcast_id,
+                error
+            );
+
+            return nothing();
+        }
+    };
+
+    let mut places = Vec::with_capacity(ids.len());
+
+    for id in ids {
+        match crate::logic::the_positions::the_place_of_a_media(
+            &the_positions,
+            podcast_id,
+            Some(id.as_str()),
+        ) {
+            Some(row) => places.push(vec![
+                collect_progress_percentage_book(row).await,
+                collect_is_finished_book(row).await,
+            ]),
+            None => places.push(vec![" N/A".to_string(), " N/A".to_string()]),
+        }
+    }
+
+    places
 }

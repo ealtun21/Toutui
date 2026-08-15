@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.57.** The item T-228 belongs to this session. The
+**The newest release is v0.8.58.** The item T-229 belongs to this session. The
+item T-228 belongs to the session before it. The
 item T-227 belongs to the session before it. The
 item T-226 belongs to the session before it. The
 item T-225 belongs to the session before it. The
@@ -7544,38 +7545,38 @@ answers slowly while it writes. Two answers to measure:
   before the commit: the answer is 1**.
 
 ## The prompt for the next session
-**This session took a paragraph that two items carried without closing it.**
-T-226 wrote that "the mark of a line of an episode comes from a different list",
-and that no measurement asked which list that is; T-227 carried the same
-paragraph and did not close it. **The measurement found that no list gave it at
-all**: the Home view of a library of podcasts said no place of the user, and the
-mark of the media that plays stood on every line of one podcast. The item is
-**T-228**, and it holds one release, v0.8.57.
+**This session took the first paragraph of "What this item leaves open" of the
+newest item.** T-228 wrote that "the mark of a line of the view of the episodes
+of a podcast is not measured", and that the view which the key `l` of a line of
+the Library view opens holds one line for one episode too. **The measurement
+found that no line of that view held one word of its episode**: no percent of
+the user, no mark of the episode that the user finished, and no mark of the
+episode that plays. The item is **T-229**, and it holds one release, v0.8.58.
 
 Three things are worth the room:
 
-1. **A paragraph that two items carried and did not close is the cheapest road
-   of a session.** T-226 wrote it, T-227 carried it, and the whole fault stood
-   in one `grep` of the source before the program ran. **Ask of the paragraphs
-   of the newest item: which of them stands in the item before it too?**
-2. **A branch of one media type can hold the work of every media type.** The
-   block that reads the place of every line of the Home view stood in the `else`
-   of the books, and the branch of the podcasts held the collectors alone: the
-   two lines of the shelf Continue Listening then said no percent at all, while
-   the same view of a library of books said `5%  A Book Of Many Hours`. **Ask of
-   every branch of a media type: which work of the neighbour branch does this
-   one not do, and does the screen say so?**
-3. **A doc that names another part of the program is a fault that waits when
-   that part does not exist.** `progress_of_the_user` said that "the mark of
-   that line comes from a different list", and no such list stood in `src/`.
-   That is the rule of T-226 for a filter, one level higher. **Ask of every doc
-   that names another part of the program: does that part exist?**
+1. **The first paragraph of "What this item leaves open" of the newest item is
+   the cheapest road of a session, again.** T-228 named the view, and the whole
+   fault stood in one `grep` of `render_pod_ep` before the program ran. Six
+   sessions of six took that road.
+2. **A list of a media that wraps no mark is a list that says nothing.** Every
+   other list of a media of the program wraps its title with
+   `crate::ui::marks::line`: the Home view with `marks::of_progress` and the
+   Library view with `marks::of_library`. This one gave the titles of the server
+   to the screen. **Ask of every list of a media: which mark does this line hold,
+   and which list of the program holds none?**
+3. **A view that a task fills reads what that task collected, and no more.** The
+   task of the episodes read the titles, the identities, the seasons, the
+   numbers, the authors, the descriptions, and the lengths, and no place of the
+   user at all: no field of `App` could hold a percent of that view. **Ask of
+   every task that fills a view: which value of the server does it not collect,
+   and which line of the screen needs that value?**
 
 This prompt names the state of the program on 2026-08-16.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.57**; `Cargo.toml` is at 0.8.57. The
+> AlbanDAVID/Toutui. Newest release **v0.8.58**; `Cargo.toml` is at 0.8.58. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -7584,7 +7585,7 @@ This prompt names the state of the program on 2026-08-16.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-228 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-229 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -7667,7 +7668,11 @@ This prompt names the state of the program on 2026-08-16.
 > two moments of the server needs two different places (T-188). **The place of an
 > episode of a podcast stands at `PATCH /api/me/progress/:item/:episode`**, and
 > `GET /api/me/progress/:item` of a podcast answers with the place of **one**
-> episode of it (T-188). **A media of the sandbox
+> episode of it (T-188). **A body of that `PATCH` that holds `duration` beside
+> `currentTime` leaves the percent of the row where it stood, and a body of
+> `{"progress": N}` alone writes that percent at once** (T-229, and the section
+> 16 of `docs/TEST-SERVER.md`); the percent of such a row still goes up and it
+> does not go down. **A media of the sandbox
 > that ends while the user looks at a view** comes of `A Long Test Book` of 30
 > minutes: the null device plays it in 22 seconds, and the two books of eight
 > hours then hold the queue open (T-161). **A measurement of two lists of
@@ -8092,8 +8097,8 @@ This prompt names the state of the program on 2026-08-16.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1211 tests in 2.5 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1237 of 1237** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1212 tests in 2.5 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1238 of 1238** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -8201,7 +8206,52 @@ This prompt names the state of the program on 2026-08-16.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in seventy sessions of seventy-one. **The session
+>    this shape found a fault in seventy-one sessions of seventy-two. **The
+>    session of the fifty-eighth turn took the first paragraph of "What this item
+>    leaves open" of the newest item: that paragraph named one view, and the
+>    measurement found that no line of that view held one word of its episode**
+>    (T-229).
+>
+>    The view of the episodes of a podcast is the one view that holds a line for
+>    each episode, and it wrapped no mark at all. The server held `Chapter 00` of
+>    `Arthur Gordon Pym` at 30 percent, `Chapter 01` finished, and `Chapter 02`
+>    at 700 seconds of 2336; the user opened that view and played `Chapter 02`,
+>    and the eleven lines each said the title alone while the row of the player
+>    of that same frame said `Arthur Gordon Pym — Chapter 02 by LibriVox` with
+>    `⏸ 12:21 / 38:56`. The panel of the line said nothing of the place. **The
+>    control of the same run** (the trap 206): the Library view of that program
+>    said `▶   Arthur Gordon Pym` and the Home view said `▶   Chapter 02`,
+>    `✓   Letter 57`, and `Progress: 0%, Not finished`.
+>    - **A list of a media that wraps no mark is a list that says nothing**
+>      (T-229). Every other list of a media of the program wraps its title with
+>      `crate::ui::marks::line`. **Ask of every list of a media: which mark does
+>      this line hold, and which list of the program holds none?**
+>    - **A view that a task fills reads what that task collected, and no more**
+>      (T-229). The task of the episodes collected seven lists of the answer of
+>      the server and no place of the user, therefore no field of `App` could
+>      hold a percent of that view. **Ask of every task that fills a view: which
+>      value of the server does it not collect, and which line of the screen
+>      needs that value?**
+>    - **A rule of the other machine can hide the condition of a measurement**
+>      (T-229). A `PATCH` of `/api/me/progress/:item/:episode` that holds
+>      `duration` beside `currentTime` leaves the percent of the row where it
+>      stood, and a body of `{"progress": N}` alone writes it at once. That
+>      closes one half of the road that T-228 left open (the section 16 of
+>      `docs/TEST-SERVER.md`).
+>    - **The lines of the view of the queue, of the view of the bookmarks, and
+>      of the view of the chapters hold no place of the user** (T-229, and it
+>      stays open): the sweep of "which list of a media holds the place of that
+>      media" is open for every view that this item did not read.
+>    - **The lines of the view of the search and of the view of the lists hold
+>      no place at all** (T-228 and T-229, and it stays open).
+>    - **The place of the view of the episodes is a photograph of the moment of
+>      the open** (T-229, and it stays open): the program reads the episodes of
+>      one podcast one time (T-167), and a live message is the one road of a
+>      fresh percent without the key `R`.
+>    - **The view of the episodes of the offline mode is not measured** (T-229,
+>      and it stays open): the task of the episodes does not run offline.
+>
+>    **The session
 >    of the fifty-seventh turn took a paragraph that two items carried without
 >    closing it: it named a list that gives the mark of a line, and the
 >    measurement found that no list gave it at all** (T-228).
@@ -8233,9 +8283,8 @@ This prompt names the state of the program on 2026-08-16.
 >      `GET /api/me/progress/<the podcast>`, and that path answers with the place
 >      of **one** episode of it: the fault of T-188 stood in a second caller for
 >      six sessions, and `get_book_progress` went away with this item.
->    - **The mark of a line of the view of the episodes of a podcast is not
->      measured** (T-228, and it stays open): that view holds one line for one
->      episode too.
+>    - **The mark of a line of the view of the episodes of a podcast** (T-228).
+>      **T-229 closed it**: no line of that view held one word of its episode.
 >    - **The lines of the view of the search and of the view of the lists hold
 >      no place at all** (T-228, and it stays open), and no measurement says
 >      whether that is a decision or a fault of the same shape.
@@ -9436,7 +9485,11 @@ This prompt names the state of the program on 2026-08-16.
 > of that line names the episode after the item, the mark of the media that plays
 > and the position of a live message each read that key, the fallback of the
 > place asks the path of the episode, and the panel of that line says the percent
-> of the user** (T-228).
+> of the user** (T-228), and **the line of the view of the episodes of a podcast
+> holds the place of that episode: the key of the line names the episode after
+> the podcast, one request of the account gives the place of every line, a
+> request that gave no place leaves every title and it takes a line of the log,
+> and the panel of that line says the percent** (T-229).
 >
 > All prose and user-facing strings in ASD-STE100 simplified technical English. No
 > crate that needs a library of the system: `cargo tree -i openssl-sys` must find

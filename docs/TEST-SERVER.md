@@ -1051,3 +1051,20 @@ false}` before it did the same. **The two episodes of `Arthur Gordon Pym` of the
 measurement of T-228 therefore stand at a `currentTime` of 0 and at 30 percent
 (`Chapter 00`) and 12 percent (`Chapter 01`)**: a measurement of a percent of an
 episode writes the percent that it needs, and it trusts no percent of before.
+
+**A body that holds `duration` beside `currentTime` leaves the percent where it
+stood** (T-229). The `PATCH` above gives a row of the new `currentTime` and of
+the **old** `progress`: a body of
+`{"currentTime":700,"duration":2336.731429,"progress":0.2996}` of `Chapter 02`
+gave a row of `currentTime` 700 and of `progress` 0.0039. **A body of
+`{"progress": N}` alone writes that percent at once**, and the program then
+reads it and the live message of the server carries it:
+
+```bash
+curl -X PATCH -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"progress":0.55}' "http://localhost:13399/api/me/progress/$P/$E0"
+```
+
+**That body is the road of a measurement of a percent of an episode.** The
+percent still goes up and it does not go down, therefore a measurement writes
+the percent that it needs and it trusts no percent of before.
