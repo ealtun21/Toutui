@@ -18263,3 +18263,136 @@ they need no terminal and no server.
   T-249, and it stays open).
 - **The line of the Library view of a library of podcasts says no place at all**
   (T-242 to T-249, and it stays open).
+
+### T-250: the panel of a podcast of the Home view says the description of that podcast
+
+**A box that the render never reads is a road of its own.** T-249 gave the
+words of a panel that holds no text, and the first paragraph of what it left
+open named one box: `App::descs_pod_cnt_list` holds the description of the
+podcast of each line of the Home view of a library of podcasts, and
+`render_desc_home` of `src/ui/tui.rs` reads `subtitles_pod_cnt_list` alone.
+The description of the podcast therefore reached no panel of the screen at all.
+
+#### The fault
+
+`src/app.rs` fills the two boxes together at the start of a library of
+podcasts, of one answer of the server:
+
+| The box | What it holds | Which render reads it |
+|---|---|---|
+| `subtitles_pod_cnt_list` | the subtitle of the **episode** of the line | `render_desc_home` |
+| `descs_pod_cnt_list` | the description of the **podcast** of that same line | **no render at all** |
+
+**The server gives no subtitle for an episode of a podcast of a feed.** The
+sandbox on 2026-08-15, of the library `Podcasts`:
+`GET /api/libraries/:id/personalized` gives `subtitle: ""` for every episode of
+the four shelves of episodes, and it gives the description of the podcast beside
+each of them. The user of that library therefore saw the words of T-249 in the
+place of a description of four lines of text that the program held already.
+
+#### The measurement
+
+The real program v0.8.78, inside tmux, against the sandbox (podman on :13399).
+The library of the account went to `Podcasts` with a `sqlite3` of
+`name_selected_lib` and of `id_selected_lib` (the trap 203), and it went back
+after the run (the trap 198).
+
+**The first line of the Home view, one frame:**
+
+```text
+👋 Connected as toutuitest              📖 Podcasts (podcast)           🦜 Toutui v0.8.78
+────────────────────────────Home [18 items]────────────────────────────
+  ▌ Continue Listening
+➤ 3%  Letter 1
+…
+[Letters of Two Brides] - Author: LibriVox - Episode: 1 - Duration: 29m - [Downloaded]
+Progress: 3%, 28m left, Not finished
+
+No description available
+```
+
+The server holds the description of that podcast, and `curl` of the same
+shelves says it:
+
+```text
+item title= 'Letters of Two Brides'  desc= 'Letters of Two Brides is an epistolary novel. The two brides'
+episode title= 'Letter 1'  subtitle= ''  epdesc= ''
+```
+
+**The same frame after the correction:**
+
+```text
+➤ 3%  Letter 1
+[Letters of Two Brides] - Author: LibriVox - Episode: 1 - Duration: 29m - [Downloaded]
+Progress: 3%, 28m left, Not finished
+
+Letters of Two Brides is an epistolary novel. The two brides are Louise de Chaulieu (Madame
+Gaston) and Renée de Maucombe (Madame l'Estorade). The women became friends during their
+education at a convent and upon leaving began a life-long correspondence. For a 17 year period,
+they exchange letters describing their lives.
+```
+
+**The key `j` of that same run says that each line reads its own row**: the
+second line is `Chapter 01` of `Arthur Gordon Pym`, and the panel of it gave the
+description of that second podcast and no word of the first one.
+
+#### The correction
+
+- `the_description_of_a_podcast` of `src/logic/the_panel_of_a_line.rs` gives the
+  subtitle of the episode when the server gave one, the description of the
+  podcast after it, and the words of T-249 when the server gave neither. The
+  subtitle stands first because it names the line itself, and the description
+  names the whole podcast.
+- `render_desc_home` of `src/ui/tui.rs` calls it with the two boxes.
+- **The two boxes hold the value of the server alone**, which is the rule that
+  T-249 wrote for `SeriesBookView::description`: a box that a fallback reads must
+  hold no word of the program, because those words are a text of a letter and
+  every fallback then stops at them. `collect_subtitles_pod_cnt_list` gave
+  `NO_DESCRIPTION` since T-249, and `collect_descs_pod_cnt_list` gave `N/A`
+  since the fork began; both give `a_text_or(…, "")` now.
+
+#### The build of the fault
+
+`tests/the_panel_of_a_podcast_says_its_description.rs`, of the three conditions
+of the shelves of the sandbox. One edit of `the_description_of_a_podcast` that
+keeps every other line (the trap 147) — the function reads the subtitle alone —
+and the test says the screen of the measurement:
+
+```text
+  left: ["No description available", "The first chapter.", "No description available"]
+ right: ["Letters of Two Brides is an epistolary novel.", "The first chapter.", "No description available"]
+```
+
+#### What this item leaves open
+
+- **The panel of the view of the authors and the panel of the view of the
+  narrators are not measured** (T-249 to T-250, and it stays open):
+  `src/api/libraries/get_authors.rs` writes the words of a description with a
+  literal of its own, and no measurement of the real program read that panel.
+- **The panel of a description holds no scroll bar** (T-249 to T-250, and it
+  stays open): the key `K` and the key `J` move `scroll_offset`, and the
+  description of `Arthur Gordon Pym` of the measurement above is longer than the
+  panel of a screen of 45 rows. The user gets no word of how much of it is left.
+- **The panel of the view of the episodes of a podcast holds the subtitle of the
+  episode alone** (T-250, and it stays open): `collect_subtitles_pod_ep` and
+  `collect_descs_pod_ep` are the two boxes of that view, and the same question
+  of this item stands for it — the 57 episodes of `Letters of Two Brides` each
+  hold `""` for the subtitle **and** for the description, therefore the sandbox
+  gives no condition of a fault there, and a measurement needs a podcast whose
+  episodes hold no subtitle beside a description of the podcast.
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-250, and it stays open): the keys `u`, `I`, and `Y` of the view of
+  the episodes.
+- **The key `B` says nothing on either road** (T-248 to T-250, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters, and
+  of the view of the queue gives the Home view** (T-247 to T-250, and it stays
+  open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to T-250,
+  and it stays open).
+- **The view of the queue of the offline mode is not measured** (T-230 to
+  T-250), and the panel of a line of that view is not measured.
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-250, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at all**
+  (T-242 to T-250, and it stays open).

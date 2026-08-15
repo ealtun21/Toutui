@@ -232,9 +232,13 @@ async fn the_panel_of_a_podcast_says_why_it_holds_no_description() {
     ]))
     .expect("the answer of the server must read");
 
+    // **That box holds the value of the server alone** (T-250): the panel of
+    // the Home view falls back to the description of the podcast, and it gives
+    // the words of T-249 when the server holds neither of the two.
+    assert_eq!(collect_subtitles_pod_cnt_list(&shelves).await, vec![""]);
     assert_eq!(
-        collect_subtitles_pod_cnt_list(&shelves).await,
-        vec![NO_DESCRIPTION]
+        toutui::logic::the_panel_of_a_line::the_description_of_a_podcast("", ""),
+        NO_DESCRIPTION
     );
 }
 

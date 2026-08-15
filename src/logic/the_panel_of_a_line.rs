@@ -121,6 +121,43 @@ pub fn the_place_of_the_panel(
     }
 }
 
+/// The text of the panel of a podcast of the Home view. See T-250.
+///
+/// **The subtitle of an episode is not the description of the podcast.** The
+/// server gives both of them in one answer, and the program collected both of
+/// them: `subtitles_pod_cnt_list` holds the subtitle of the episode of the line,
+/// and `descs_pod_cnt_list` holds the description of the podcast of that same
+/// line. The render read the subtitle alone, therefore the second box reached no
+/// panel of the screen at all.
+///
+/// The measurement of 2026-08-15, of the library `Podcasts` of the sandbox. The
+/// server gives `""` for the subtitle of every one of the 57 episodes of
+/// `Letters of Two Brides`, and it gives the description of that podcast beside
+/// each of them:
+///
+/// ```text
+/// ────────Home [18 items]────────
+/// ➤ 3%  Letter 1
+/// [Letters of Two Brides] - Author: LibriVox - Episode: 1 - Duration: 29m
+/// Progress: 3%, 28m left, Not finished
+///
+/// No description available
+/// ```
+///
+/// **The two boxes hold the value of the server alone** (the rule of T-249): a
+/// box that another value falls back to must not hold the words of the program,
+/// because those words are a text of a letter and every fallback then stops at
+/// them.
+///
+/// The function is pure, therefore a test needs no server and no screen.
+pub fn the_description_of_a_podcast(the_subtitle: &str, the_description: &str) -> String {
+    if !the_subtitle.trim().is_empty() {
+        return the_subtitle.to_string();
+    }
+
+    crate::utils::values_of_the_server::a_description_or_nothing(Some(the_description))
+}
+
 /// The time that is left of the place of a live message of the server.
 /// See T-240.
 ///

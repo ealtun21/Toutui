@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.78.** The item T-249 belongs to this session. The
+**The newest release is v0.8.79.** The item T-250 belongs to this session. The
+item T-249 belongs to the session before it. The
 item T-248 belongs to the session before it. The
 item T-247 belongs to the session before it. The
 item T-246 belongs to the session before it. The
@@ -93,6 +94,60 @@ warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
 the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no
 failure in two runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the seventy-ninth turn of 2026-08-15: the panel of a podcast says the description of that podcast
+
+**One release: v0.8.79**, and one item: T-250. **The road of it is the first paragraph of
+"What this item leaves open" of T-249**, and that paragraph named a box of the
+program that no render of the screen reads: `App::descs_pod_cnt_list` holds the
+description of the podcast of each line of the Home view of a library of
+podcasts, and `render_desc_home` of `src/ui/tui.rs` reads
+`subtitles_pod_cnt_list` alone.
+
+**The server gives no subtitle for an episode of a podcast of a feed.** The
+sandbox on 2026-08-15: `GET /api/libraries/:id/personalized` of the library
+`Podcasts` gives `subtitle: ""` for every episode of the four shelves of
+episodes, and it gives the description of the podcast beside each of them. The
+user of that library therefore read the words of T-249 in the place of a
+description of four lines that the program held already.
+
+**The measurement**, of the real program v0.8.78 inside tmux. The library of the
+account went to `Podcasts` with a `sqlite3` of `name_selected_lib` and of
+`id_selected_lib` (the trap 203), and it went back after the run (the trap 198):
+
+```text
+➤ 3%  Letter 1
+[Letters of Two Brides] - Author: LibriVox - Episode: 1 - Duration: 29m - [Downloaded]
+Progress: 3%, 28m left, Not finished
+
+No description available
+```
+
+The same frame after the correction holds the four lines of the description of
+`Letters of Two Brides`, and the key `j` of that same run gave the description
+of `Arthur Gordon Pym` and no word of the podcast before it.
+
+**The correction**: `the_description_of_a_podcast` of
+`src/logic/the_panel_of_a_line.rs` gives the subtitle of the episode first, the
+description of the podcast after it, and the words of T-249 when the server gave
+neither. **The two boxes hold the value of the server alone**, which is the rule
+that T-249 wrote for `SeriesBookView::description`: a box that a fallback reads
+must hold no word of the program, because those words are a text of a letter and
+every fallback then stops at them.
+
+**The build of the fault**:
+`tests/the_panel_of_a_podcast_says_its_description.rs`, with one edit of that
+function that keeps every other line (the trap 147). The test then says the
+screen of the measurement:
+
+```text
+  left: ["No description available", "The first chapter.", "No description available"]
+ right: ["Letters of Two Brides is an epistolary novel.", "The first chapter.", "No description available"]
+```
+
+**The gates**: clippy clean, `cargo fmt --check` clean, `cargo nextest run`
+gives 1237 of 1237 in 2.6 seconds, and `cargo test -j 16 --no-fail-fast` passes
+with no failure.
 
 ## The session of the seventy-eighth turn of 2026-08-15: the panel of a description says why it holds no text
 
@@ -10516,43 +10571,118 @@ the same line started the playback and wrote five lines in the log.
 - **The line of the Library view of a library of podcasts says no place
   at all** (T-242 to T-246, and it stays open).
 
+### The turn of the seventy-sixth: the keys of the views of the library say why (T-247)
+
+**The
+session of the seventy-sixth turn took the first paragraph of "What this
+item leaves open" of the newest item: that paragraph held no fault at
+all, and the sweep of every key of that same view then found four keys
+of the table of the keys that do nothing and that say nothing**
+(T-247).
+
+**The first paragraph of T-246 named the keys `n`, `m`, `M`, `N`, `V`,
+and `@` of the view of the episodes of a podcast of a search, and the
+measurement closed it with no correction**: the key `n` said
+`"Letter 3" is number 1 of the queue.`, the key `M` and the key `N`
+each said their sentence and the server then held that change of the
+episode `851477d4` of `Letters of Two Brides` **and of no other
+episode**, the key `m` gave `Put "Letter 3" in a list [1 item]`, the
+key `V` gave `The podcast "Letters of Two Brides" has no bookmark.`
+(T-223), and the key `@` said `An episode of a podcast holds no ebook.`
+A second measurement with the word `librivox`, which gives the two
+podcasts of the library, opened one podcast, went back, opened the
+other one, went back, and opened the first one a **second** time: every
+list of it was the list of that podcast, and the whole screen of that
+view of the road of the search and of the road of the Library view was
+byte for byte the same.
+
+The next condition, of that same view: a sweep of every key of it. The
+table of the key `?` promises the key `s` (the series), the key `a`
+(the authors), the key `v` (the narrators), and the key `c` (the
+collections and the playlists) in the group "The views", beside the
+keys `Tab`, `Shift+Tab`, and `/`, which every view holds. **The four
+keys of the view of the episodes each gave no view, no message, and no
+line of the log**: the log held 11 lines before each of them and 11
+after it. **The control of the same run** (the trap 206): the same four
+keys of the Library view of that same library said
+`A library of podcasts has no series.`, `A library of podcasts has no
+author.`, `A library of podcasts has no narrator.`, and the key `c`
+opened `Collections and playlists [1 item]`, and the key `D` of the
+same line of the view of the episodes said `"Letter 1" is now available
+offline.`
+- **A sweep of the keys of a view must wait the whole life of a
+  message** (T-247, and the trap 220): a message lives six seconds
+  (T-59), therefore a step of 1.6 seconds gave the message of the key
+  `e` to the keys `f` and `g`, and the message of the key `i` to the
+  keys `o`, `r`, and `s`. **A key that looks as if it speaks in such a
+  sweep is a key of no measurement at all.** The step of 6.5 seconds
+  gives the truth.
+- **A sweep of the keys of a view changes the server** (T-247, and the
+  trap 221): the key `E` of the view of the episodes said `The server
+  gets 16 episode(s).`, and the sandbox then held 27 episodes of
+  `Arthur Gordon Pym` where it holds 11.
+  `DELETE /api/podcasts/:id/episode/:episode?hard=1` of the 16 gave the
+  sandbox back (T-154). **Read what each key of a sweep does before you
+  press it, and give the sandbox back in the same round.**
+- **The table of the keys of a program is a text of the user** (T-247):
+  the rule of T-118 and of T-143 holds for it as it holds for a footer.
+  **Ask of every key of that table: which views hold it, and what does
+  it say in the views that do not?**
+- **The other keys of that sweep are not measured** (T-247, and it
+  stays open): the keys `u`, `w`, `x`, `y`, `z`, `A`, `B`, `I`, `Y`,
+  `Z`, and `K` of that view gave no word of the screen, and the life of
+  a message and the keys of the player make each of them a road of its
+  own.
+- **The key `h` of the view of the bookmarks, of the view of the
+  chapters, and of the view of the queue gives the Home view** (T-247,
+  and it stays open): the user who opened one of the three from the
+  view of the episodes loses the place of that view, while the keys `m`
+  and `@` of that same view go back to the view before them.
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
+  T-247, and it stays open): the block of the key `l` gives that one
+  list, therefore a second caller of that function gives the view the
+  episodes of the podcast before it.
+- **The view of the queue of the offline mode is not measured** (T-230
+  to T-247), and the panel of a line of that view is not measured.
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-247, and it stays open).
+- **The line of the Library view of a library of podcasts says no place
+  at all** (T-242 to T-247, and it stays open).
+
 ## The prompt for the next session
-**This session took no paragraph of the newest item.** The three paragraphs that
-T-248 left open each need a playback of an episode inside tmux, and the round
-took a condition of the second kind of the work instead: **the words for the
-user**, of a value that stands in seven views. **"N/A" is a value of a field,
-and a description is a panel of its own** — those two letters stand beside a
-label, and the panel of the description holds no label at all. Nine functions of
-six files make that panel, and they gave **three different answers** for the
-same condition: `No description available` in three views, `N/A` in three more,
-and **nothing at all** in the view of the books of a series. The item is
-**T-249**, and it holds one release, v0.8.78.
+**This session took the first paragraph of "What this item leaves open" of the
+newest item**, and that paragraph named a box of the program that no render of
+the screen reads. `App::descs_pod_cnt_list` holds the description of the podcast
+of each line of the Home view of a library of podcasts, and `render_desc_home`
+reads `subtitles_pod_cnt_list` alone. **The server gives no subtitle for an
+episode of a podcast of a feed**, therefore that panel said the words of a panel
+that holds no text while the server gave four lines of a description. The item
+is **T-250**, and it holds one release, v0.8.79.
 
 Three things are worth the room:
 
-1. **A value of the program that stands in more than one view is a sweep of its
-   own.** Twenty-four rounds took a paragraph of "What this item leaves open",
-   and that road holds a fault in almost every one of them; **this round asked a
-   different question instead** — "what does each maker of one panel give for
-   the same condition?" — and nine functions of six files gave three different
-   answers, one of which was nothing at all. The road cost no tmux for the
-   sweep: a `grep` of the name of the panel over `src/` named the nine.
-2. **A default of a field is not a default of a panel.** `NOT_AVAILABLE` is
-   right beside a label (`Year: N/A` tells the user which value is absent) and
-   wrong on a line of its own (a panel holds no label, therefore `N/A` says
-   nothing). One shared helper of the values of the server therefore needs two
-   words and not one.
-3. **A field of a struct that a fallback of another view reads must hold the
-   value of the server alone.** `SeriesBookView::description` held the words of
-   the program, and the panel of the series reads that same field as its own
-   fallback (T-43): the words of the program hid the description of the book
-   after it. The road is a function of the screen beside the raw field.
+1. **A box that the render never reads is a road of its own.** The program asked
+   the server for a value, it kept that value for the whole life of the view,
+   and no user ever saw it. A `grep` of the name of a field over `src/` answers
+   the question in seconds, and it needs no tmux at all: **ask of every box of
+   `App` which render reads it.**
+2. **A box that a fallback reads must hold the value of the server alone.** That
+   is the rule that T-249 wrote for `SeriesBookView::description`, and it holds
+   for a list as it holds for a field: the words of a program are a text of a
+   letter, therefore `a_text_or` stops at them and the value after them never
+   comes. The two collectors of this item gave `NO_DESCRIPTION` and `N/A`; they
+   give the value of the server now, and the screen gives the words.
+3. **The value of a panel can come of two answers of one request.** The subtitle
+   of the episode and the description of the podcast stand in one body, the
+   program collected both of them, and the panel needed the two in a sequence:
+   the nearer value first, the wider value after it, and the words of a panel
+   that holds no text when the server gives neither.
 
 This prompt names the state of the program on 2026-08-15.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.78**; `Cargo.toml` is at 0.8.78. The
+> AlbanDAVID/Toutui. Newest release **v0.8.79**; `Cargo.toml` is at 0.8.79. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -11079,8 +11209,8 @@ This prompt names the state of the program on 2026-08-15.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1230 tests in 2.8 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1256 of 1256** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1237 tests in 2.6 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1263 of 1263** with the sandbox up, in about 25 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -11189,6 +11319,71 @@ This prompt names the state of the program on 2026-08-15.
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in eighty-five sessions of eighty-six.
+>    **The
+>    session of the seventy-ninth turn took the first paragraph of "What this
+>    item leaves open" of the newest item: that paragraph named a box of the
+>    program that no render of the screen reads, and the panel of a podcast of
+>    the Home view then said the words of a panel that holds no text while the
+>    server gave four lines of a description** (T-250).
+>
+>    `App::descs_pod_cnt_list` holds the description of the podcast of each line
+>    of the Home view of a library of podcasts, and `render_desc_home` of
+>    `src/ui/tui.rs` reads `subtitles_pod_cnt_list` alone. **The server gives no
+>    subtitle for an episode of a podcast of a feed**:
+>    `GET /api/libraries/:id/personalized` of the library `Podcasts` of the
+>    sandbox gives `subtitle: ""` for every episode of the four shelves of
+>    episodes, and it gives the description of the podcast beside each of them.
+>
+>    The measurement, of the real program inside tmux. The library of the account
+>    went to `Podcasts` with a `sqlite3` of `name_selected_lib` and of
+>    `id_selected_lib` (the trap 203), and it went back after the run (the trap
+>    198):
+>
+>    ```text
+>    ➤ 3%  Letter 1
+>    [Letters of Two Brides] - Author: LibriVox - Episode: 1 - Duration: 29m
+>    Progress: 3%, 28m left, Not finished
+>
+>    No description available
+>    ```
+>
+>    The correction gives the subtitle of the episode first, the description of
+>    the podcast after it, and the words of T-249 when the server gave neither.
+>    - **A box that the render never reads is a road of its own** (T-250, and
+>      T-249 named it): the program asked the server for a value, it kept that
+>      value for the whole life of the view, and no user ever saw it. **Ask of
+>      every box of `App`: which render reads it?**
+>    - **A box that a fallback reads must hold the value of the server alone**
+>      (T-250 and T-249): the words of a program are a text of a letter,
+>      therefore a fallback of `a_text_or` stops at them and the value after
+>      them never comes. The two collectors of this item gave `NO_DESCRIPTION`
+>      and `N/A`; they give `""` now, and the screen gives the words.
+>    - **The panel of the view of the episodes of a podcast holds the subtitle
+>      of the episode alone** (T-250, and it stays open): `collect_descs_pod_ep`
+>      is the second box of that view, and the 57 episodes of `Letters of Two
+>      Brides` hold `""` for the subtitle **and** for the description, therefore
+>      the sandbox gives no condition of that fault and a measurement needs a
+>      podcast of another shape.
+>    - **The panel of the view of the authors and the panel of the view of the
+>      narrators are not measured** (T-249 to T-250, and it stays open).
+>    - **The panel of a description holds no scroll bar** (T-249 to T-250, and
+>      it stays open): the description of `Arthur Gordon Pym` of this
+>      measurement is longer than the panel of a screen of 45 rows.
+>    - **The keys of the sweep of T-247 that hold a playback are not measured**
+>      (T-248 to T-250, and it stays open): the keys `u`, `I`, and `Y` of the
+>      view of the episodes, with a playback of an episode.
+>    - **The key `B` says nothing on either road** (T-248 to T-250, and it stays
+>      open).
+>    - **The key `h` of the view of the bookmarks, of the view of the chapters,
+>      and of the view of the queue gives the Home view** (T-247 to T-250, and
+>      it stays open).
+>    - **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
+>      T-250, and it stays open).
+>    - **The lines of the view of the bookmarks hold no place of the user**
+>      (T-229 to T-250, and it stays open).
+>    - **The line of the Library view of a library of podcasts says no place at
+>      all** (T-242 to T-250, and it stays open).
+>
 >    **The
 >    session of the seventy-eighth turn took no paragraph of the newest item:
 >    the three that stood open each need a playback inside tmux, and the round
@@ -11321,85 +11516,9 @@ This prompt names the state of the program on 2026-08-15.
 >    - **The line of the Library view of a library of podcasts says no place
 >      at all** (T-242 to T-248, and it stays open).
 >
->    **The
->    session of the seventy-sixth turn took the first paragraph of "What this
->    item leaves open" of the newest item: that paragraph held no fault at
->    all, and the sweep of every key of that same view then found four keys
->    of the table of the keys that do nothing and that say nothing**
->    (T-247).
->
->    **The first paragraph of T-246 named the keys `n`, `m`, `M`, `N`, `V`,
->    and `@` of the view of the episodes of a podcast of a search, and the
->    measurement closed it with no correction**: the key `n` said
->    `"Letter 3" is number 1 of the queue.`, the key `M` and the key `N`
->    each said their sentence and the server then held that change of the
->    episode `851477d4` of `Letters of Two Brides` **and of no other
->    episode**, the key `m` gave `Put "Letter 3" in a list [1 item]`, the
->    key `V` gave `The podcast "Letters of Two Brides" has no bookmark.`
->    (T-223), and the key `@` said `An episode of a podcast holds no ebook.`
->    A second measurement with the word `librivox`, which gives the two
->    podcasts of the library, opened one podcast, went back, opened the
->    other one, went back, and opened the first one a **second** time: every
->    list of it was the list of that podcast, and the whole screen of that
->    view of the road of the search and of the road of the Library view was
->    byte for byte the same.
->
->    The next condition, of that same view: a sweep of every key of it. The
->    table of the key `?` promises the key `s` (the series), the key `a`
->    (the authors), the key `v` (the narrators), and the key `c` (the
->    collections and the playlists) in the group "The views", beside the
->    keys `Tab`, `Shift+Tab`, and `/`, which every view holds. **The four
->    keys of the view of the episodes each gave no view, no message, and no
->    line of the log**: the log held 11 lines before each of them and 11
->    after it. **The control of the same run** (the trap 206): the same four
->    keys of the Library view of that same library said
->    `A library of podcasts has no series.`, `A library of podcasts has no
->    author.`, `A library of podcasts has no narrator.`, and the key `c`
->    opened `Collections and playlists [1 item]`, and the key `D` of the
->    same line of the view of the episodes said `"Letter 1" is now available
->    offline.`
->    - **A sweep of the keys of a view must wait the whole life of a
->      message** (T-247, and the trap 220): a message lives six seconds
->      (T-59), therefore a step of 1.6 seconds gave the message of the key
->      `e` to the keys `f` and `g`, and the message of the key `i` to the
->      keys `o`, `r`, and `s`. **A key that looks as if it speaks in such a
->      sweep is a key of no measurement at all.** The step of 6.5 seconds
->      gives the truth.
->    - **A sweep of the keys of a view changes the server** (T-247, and the
->      trap 221): the key `E` of the view of the episodes said `The server
->      gets 16 episode(s).`, and the sandbox then held 27 episodes of
->      `Arthur Gordon Pym` where it holds 11.
->      `DELETE /api/podcasts/:id/episode/:episode?hard=1` of the 16 gave the
->      sandbox back (T-154). **Read what each key of a sweep does before you
->      press it, and give the sandbox back in the same round.**
->    - **The table of the keys of a program is a text of the user** (T-247):
->      the rule of T-118 and of T-143 holds for it as it holds for a footer.
->      **Ask of every key of that table: which views hold it, and what does
->      it say in the views that do not?**
->    - **The other keys of that sweep are not measured** (T-247, and it
->      stays open): the keys `u`, `w`, `x`, `y`, `z`, `A`, `B`, `I`, `Y`,
->      `Z`, and `K` of that view gave no word of the screen, and the life of
->      a message and the keys of the player make each of them a road of its
->      own.
->    - **The key `h` of the view of the bookmarks, of the view of the
->      chapters, and of the view of the queue gives the Home view** (T-247,
->      and it stays open): the user who opened one of the three from the
->      view of the episodes loses the place of that view, while the keys `m`
->      and `@` of that same view go back to the view before them.
->    - **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
->      T-247, and it stays open): the block of the key `l` gives that one
->      list, therefore a second caller of that function gives the view the
->      episodes of the podcast before it.
->    - **The view of the queue of the offline mode is not measured** (T-230
->      to T-247), and the panel of a line of that view is not measured.
->    - **The lines of the view of the bookmarks hold no place of the user**
->      (T-229 to T-247, and it stays open).
->    - **The line of the Library view of a library of podcasts says no place
->      at all** (T-242 to T-247, and it stays open).
->
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the seventy-fifth and every turn before it, the item of each, and the sweeps
+>    the seventy-sixth and every turn before it, the item of each, and the sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
 >    says nothing at all (T-174), the rule of the line of a view for the six
@@ -11772,7 +11891,10 @@ This prompt names the state of the program on 2026-08-15.
 > "No description available", a description of no character is no description,
 > and the field of a book of a series holds the description of the server alone
 > because the panel of the series reads that field as its own fallback**
-> (T-249).
+> (T-249), and **the panel of a podcast of the Home view says the
+> description of that podcast: the subtitle of the episode of the line comes
+> first, the description of the podcast after it, and the two boxes of it hold
+> the value of the server alone** (T-250).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

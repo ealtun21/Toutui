@@ -55,13 +55,18 @@ pub async fn collect_ids_pod_cnt_list(roots: &[Root]) -> Vec<String> {
 }
 
 /// Collect subtitles from recent episodes
+///
+/// **This list holds the value of the server alone** (T-250): the panel of the
+/// Home view of a library of podcasts says the description of the podcast when
+/// the episode holds no subtitle, therefore the words of a subtitle that the
+/// server does not have belong to `the_description_of_a_podcast` of the screen
+/// and not to this box. See T-249 for the rule of a field that a fallback reads.
 pub async fn collect_subtitles_pod_cnt_list(roots: &[Root]) -> Vec<String> {
     episode_entities(roots)
         .map(|(_, episode)| {
             let text = episode.subtitle.as_deref().map(to_plain_text);
 
-            // **The panel of a description says why it holds no text** (T-249).
-            crate::utils::values_of_the_server::a_description_or_nothing(text.as_deref())
+            crate::utils::values_of_the_server::a_text_or(text.as_deref(), "")
         })
         .collect()
 }
@@ -95,15 +100,20 @@ pub async fn collect_authors_pod_cnt_list(roots: &[Root]) -> Vec<String> {
 }
 
 /// Collect description
+///
+/// The description of the podcast of the line. **This list holds the value of
+/// the server alone** (T-250), and the panel of the screen gives the words of a
+/// description that the server does not have.
 pub async fn collect_descs_pod_cnt_list(roots: &[Root]) -> Vec<String> {
     episode_entities(roots)
         .map(|(entity, _)| {
-            media_of(entity)
+            let text = media_of(entity)
                 .metadata
                 .as_ref()
                 .and_then(|metadata| metadata.description.as_ref())
-                .map(|description| to_plain_text(description))
-                .unwrap_or_else(|| "N/A".to_string())
+                .map(|description| to_plain_text(description));
+
+            crate::utils::values_of_the_server::a_text_or(text.as_deref(), "")
         })
         .collect()
 }
@@ -258,17 +268,12 @@ mod tests {
         assert_eq!(ids, vec!["pod-1", "pod-1"]);
         assert_eq!(authors, vec!["An Author", "N/A"]);
         assert_eq!(seasons, vec!["1", "N/A"]);
-        // **The panel of a description says why it holds no text** (T-249). The
-        // subtitle of an episode is the panel of the Home view of a library of
-        // podcasts, and that panel holds no label to name a value of "N/A".
-        assert_eq!(
-            subtitles,
-            vec![
-                "A subtitle",
-                crate::utils::values_of_the_server::NO_DESCRIPTION
-            ]
-        );
-        assert_eq!(descriptions, vec!["A text", "N/A"]);
+        // **The two boxes of the panel hold the value of the server alone**
+        // (T-250): the subtitle of the episode falls back to the description of
+        // the podcast, therefore the words of the program belong to the screen.
+        // See T-249 for the words themselves.
+        assert_eq!(subtitles, vec!["A subtitle", ""]);
+        assert_eq!(descriptions, vec!["A text", ""]);
     }
 
     #[tokio::test]

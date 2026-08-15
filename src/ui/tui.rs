@@ -2579,7 +2579,13 @@ impl App {
         if let Some(selected) = self.selected_home_item() {
             let mut _content: String = String::new();
             if self.is_podcast {
-                _content = at(&self.subtitles_pod_cnt_list, selected).to_string();
+                // **The panel of a podcast says the description of that podcast
+                // when the episode holds no subtitle** (T-250). The program
+                // collected `descs_pod_cnt_list` and no render read it.
+                _content = crate::logic::the_panel_of_a_line::the_description_of_a_podcast(
+                    at(&self.subtitles_pod_cnt_list, selected),
+                    at(&self.descs_pod_cnt_list, selected),
+                );
             } else {
                 _content = at(&self.desc_cnt_list, selected).to_string();
             }
