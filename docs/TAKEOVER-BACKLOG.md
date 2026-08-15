@@ -15858,3 +15858,102 @@ same one.
 - **The key `X` of the view of the bookmarks of a podcast** removes a place of
   another episode with the same words (T-223 to T-231 each left it open, and
   this item did not close it).
+
+### T-233: the key `X` of the queue says the place of the media that it took
+
+**This item takes the first paragraph of "What this item leaves open" of
+T-232.** That paragraph said that the sentence of the key `X` names the title
+alone, and the program holds the number of the line. **The program has that
+reason** (T-91): `take_the_media` computes the place with
+`the_place_of_the_media` before it removes the entry, and that value went away.
+
+#### The measurement
+
+The real program v0.8.61 inside tmux, against the sandbox (podman on :13399),
+of the library `Books`, with the table `queue` of the account empty at the
+start. The user pressed `n` on `A Long Test Book`, `j`, `n` on
+`A Big Book Of A Scan`, `j`, and `n` on `A Book That Ends Before Its Length`.
+The three messages named the numbers 1, 2, and 3. The user then pressed `q`,
+`j`, and `X` on the line 2.
+
+The view before the key `X`:
+
+```text
+The queue [3 items]
+➤ 50% 1. 📕 A Long Test Book — Long Author  (30m)
+  77% 2. 📕 A Big Book Of A Scan — Big Author  (0m)
+      3. 📕 A Book That Ends Before Its Length — Long Author  (30m)
+```
+
+The message of the key `X`:
+
+```text
+"A Big Book Of A Scan" is not in the queue now.
+```
+
+The view after it held `The queue [2 items]`, and `A Book That Ends Before Its
+Length` moved from the number 3 to the number 2.
+
+**The sentence names the title alone.** A media that goes out of the queue
+changes the number of every media after it, and the program held that number
+and it threw the number away.
+
+**The control of the same run** (the trap 206): the three keys `n` before it
+each named the number of a line of that same view, therefore the row of the
+message works.
+
+#### The fault of the source
+
+- `src/logic/queue.rs`, `take_the_media`: the function computed the place with
+  `the_place_of_the_media` and it gave the `Entry` alone. The place went away
+  before a caller could read it.
+- `src/logic/queue.rs`, `text_of_the_key_that_takes`: the function took the two
+  titles and no place, therefore no sentence of it could name a number.
+
+#### The correction
+
+- `src/logic/queue.rs`: `take_the_media` gives `Option<TheMediaThatWentOut>`, a
+  new structure of `place` (the first place is 1) and of `entry`.
+- `src/logic/queue.rs`: `text_of_the_key_that_takes` takes the place, and it
+  says `"<the title>" was number <N> of the queue. It is not in the queue now.`
+- `src/app.rs`, `remove_from_the_queue`: the function gives the place of the
+  answer, and the number of the line of the view (`index + 1`) for the road
+  where a second program of the account took that media out first. The two
+  roads keep one sentence (T-151).
+- `src/app.rs`, `start_the_media_of_the_queue` (the key `l`): the function reads
+  `went_out.entry`.
+- `tests/the_key_that_takes_a_media_says_its_place.rs` holds the rule, and the
+  parts of it stay in one function (T-144 and T-157). **Two builds of the fault
+  each fail it**: words that hold no place, and a `take_the_media` that gives
+  the number of the line (`place: index + 1`) in place of the place of the disk
+  — the second one failed with `left: 2, right: 3`.
+
+The same measurement of the corrected program (v0.8.62):
+
+```text
+"A Big Book Of A Scan" was number 2 of the queue. It is not in the queue now.
+```
+
+**The decision, and the reason for it: the place of the answer is the place of
+the disk, and not the number of the line of the view.** A second program of the
+account moves the media under that view (T-147), and `the_place_of_the_media`
+then finds that media at another place. The other road is the number of the
+line, and that number is a number of a view that is older than the disk.
+
+#### What this item leaves open
+
+- **The line of the view of the queue names the length of the media and not the
+  time that is left** (T-230 to T-233, and it stays open).
+- **The place of the view of the queue is a photograph of the moment of the key
+  `q`** (T-230 to T-233, and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-233, and it stays open).
+- **The lines of the view of the search and of the view of the lists hold no
+  place at all** (T-228 to T-233, and it stays open).
+- **The view of the queue of the offline mode is not measured** (T-230 to
+  T-233).
+- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone** (T-226 to
+  T-233, and it stays open).
+- **The key `X` of the view of the bookmarks of a podcast** removes a place of
+  another episode with the same words (T-223 to T-233 each left it open, and
+  this item did not close it).

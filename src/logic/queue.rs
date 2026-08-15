@@ -805,11 +805,38 @@ pub fn take_next() -> Result<Option<Entry>, TheDiskDidNotAnswer> {
 /// A key of the view of the queue calls this: the place comes of the line that
 /// the user selected, and the identity holds that line when the disk moved under
 /// it. See `the_place_of_the_media` and T-147.
-pub fn take_the_media(index: usize, key: &str) -> Result<Option<Entry>, TheDiskDidNotAnswer> {
+///
+/// **The answer holds the place that the media held** (T-233), and the first
+/// place is 1. The sentence of the key `X` reads that number: a media that goes
+/// out of a queue of ten changes the number of every media after it, and the
+/// title alone does not say which number went away. **The place of the answer is
+/// the place of the disk, and not the number of the line of the view**: a second
+/// program of the account moves the media under that view, and this function then
+/// takes the media of the line at another place.
+pub fn take_the_media(
+    index: usize,
+    key: &str,
+) -> Result<Option<TheMediaThatWentOut>, TheDiskDidNotAnswer> {
     the_queue_changes(|queue| {
         let place = the_place_of_the_media(queue.entries(), index, key)?;
-        queue.take_at(place)
+        let entry = queue.take_at(place)?;
+
+        Some(TheMediaThatWentOut {
+            place: place + 1,
+            entry,
+        })
     })
+}
+
+/// The media that a key took out of the queue, and the place that it held. See
+/// T-233.
+#[derive(Debug, Clone, PartialEq)]
+pub struct TheMediaThatWentOut {
+    /// The place of the media at the moment that it went out. The first place
+    /// is 1, therefore this is the number that the line of the view holds.
+    pub place: usize,
+    /// The media itself.
+    pub entry: Entry,
 }
 
 /// The disk of the queue did not answer, therefore the key changed nothing. See
@@ -844,14 +871,25 @@ pub enum TheDiskDidNotAnswer {
 /// the media of that line waits no more. The program cannot say which program
 /// took it out, therefore the sentence names no program (T-91).
 ///
+/// **The sentence names the place of that media** (T-233). `place` is the place
+/// of the disk when this key took the media out, and it is the number of the
+/// line of the view when a second program took it out first: the two roads give
+/// the number that the user saw. The media that goes out changes the number of
+/// every media after it, therefore the title alone leaves the user with no way
+/// to read the view again.
+///
 /// The function is pure, therefore a test needs no queue and no database.
 pub fn text_of_the_key_that_takes(
+    place: usize,
     title_of_the_line: Option<&str>,
     what_went_out: Option<&str>,
 ) -> Option<String> {
     let title = what_went_out.or(title_of_the_line)?;
 
-    Some(format!("\"{}\" is not in the queue now.", title))
+    Some(format!(
+        "\"{}\" was number {} of the queue. It is not in the queue now.",
+        title, place
+    ))
 }
 
 /// Empties the queue of the process.

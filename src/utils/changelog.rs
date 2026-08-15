@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.62",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key X of the view of the queue said no place of the media \
+             that it took.** The sentence named the title alone, and a media \
+             that goes out of the queue changes the number of every media \
+             after it: the user could not tell which number went away. The \
+             sentence names that number now.",
+        ],
+    },
+    Entry {
         version: "0.8.61",
         date: "15/08/2026",
         body: &[

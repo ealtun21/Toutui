@@ -7636,8 +7636,8 @@ impl App {
         // are two conditions** (T-202): the sentence of this key says that the
         // media waits no more, and the media of a disk that says nothing waits
         // still.
-        let entry = match crate::logic::queue::take_the_media(index, &key) {
-            Ok(entry) => entry,
+        let went_out = match crate::logic::queue::take_the_media(index, &key) {
+            Ok(went_out) => went_out,
             Err(fault) => {
                 crate::logic::message::say(
                     &crate::logic::queue::the_words_of_a_queue_that_the_disk_did_not_hold(
@@ -7657,9 +7657,19 @@ impl App {
         // T-161.
         self.the_media_of_the_line_of_the_queue = None;
 
+        // **The place of the disk is the truth** (T-147 and T-233): this key
+        // takes the media of the line, and a second program of the account can
+        // move that media to another place first. A media that a second program
+        // took out gives no place at all, and the number of the line of the view
+        // is then the number that the user saw.
         if let Some(text) = crate::logic::queue::text_of_the_key_that_takes(
+            went_out
+                .as_ref()
+                .map_or(index + 1, |went_out| went_out.place),
             Some(&title_of_the_line),
-            entry.as_ref().map(|entry| entry.title.as_str()),
+            went_out
+                .as_ref()
+                .map(|went_out| went_out.entry.title.as_str()),
         ) {
             crate::logic::message::say(&text);
         }
@@ -7690,7 +7700,7 @@ impl App {
         };
 
         let entry = match crate::logic::queue::take_the_media(index, &key) {
-            Ok(Some(entry)) => entry,
+            Ok(Some(went_out)) => went_out.entry,
             Ok(None) => return,
             Err(fault) => {
                 crate::logic::message::say(

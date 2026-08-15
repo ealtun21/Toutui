@@ -115,7 +115,7 @@ fn a_second_program_of_the_account_keeps_every_media_of_the_queue() {
         .expect("the disk answered")
         .expect("the media of the line");
 
-    assert_eq!(taken.title, "The Second Book Of A");
+    assert_eq!(taken.entry.title, "The Second Book Of A");
     assert_eq!(
         read_the_queue(USER, SERVER)
             .unwrap()
@@ -132,7 +132,7 @@ fn a_second_program_of_the_account_keeps_every_media_of_the_queue() {
         .expect("the disk answered")
         .is_none());
 
-    let text = queue::text_of_the_key_that_takes(Some("The Book Of B"), None)
+    let text = queue::text_of_the_key_that_takes(1, Some("The Book Of B"), None)
         .expect("the key must say what happened to the media of its line");
 
     assert!(text.contains("The Book Of B"), "{}", text);
