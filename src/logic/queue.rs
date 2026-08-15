@@ -353,9 +353,13 @@ pub fn the_lines_of_the_queue(
             let plays_now = playing.is_some_and(|playing| playing == key);
             let row = places.get(&key);
 
-            // A view that holds the length as a text only gives no number.
-            // The line then shows the name and no time.
-            if let Some(text) = the_time_of_the_line(entry.duration, the_place_of_the_row(row)) {
+            // A media of no length says no time at all: a length of 0 is a
+            // length that the server did not give (T-180 and T-236).
+            if let Some(text) = the_time_of_the_line(
+                entry.duration,
+                the_place_of_the_row(row),
+                the_mark_of_the_end_of_the_row(row),
+            ) {
                 line.push_str("  (");
                 line.push_str(&text);
                 line.push(')');
@@ -412,6 +416,16 @@ fn the_place_of_the_row(row: Option<&Vec<String>>) -> Option<f64> {
         .and_then(|place| place.trim().parse::<f64>().ok())
 }
 
+/// Says whether a row of `places` marks the end of the media. See T-236.
+///
+/// The second value of the row holds that mark, in the form of
+/// `collect_is_finished_book`, and `crate::ui::marks::of_progress` reads that
+/// same word for the mark of the line.
+fn the_mark_of_the_end_of_the_row(row: Option<&Vec<String>>) -> bool {
+    row.and_then(|row| row.get(1))
+        .is_some_and(|mark| mark.trim() == "Finished")
+}
+
 /// Gives the text of the time of a line of the view of the queue. See T-234.
 ///
 /// The answer is the time that is left of the media for a user who began it,
@@ -421,8 +435,21 @@ fn the_place_of_the_row(row: Option<&Vec<String>>) -> Option<f64> {
 /// A place that stands at the end of the media, or after it, gives the length
 /// too: the mark of that line says already that the media came to its end, and
 /// a line of `(0m left)` says nothing more.
-fn the_time_of_the_line(duration: Option<f64>, place: Option<f64>) -> Option<String> {
-    let length = duration?;
+///
+/// **A media that the user finished keeps the length too** (T-236). The server
+/// writes the place of such a media below the length of it: the row of
+/// `Chapter 01` of `Arthur Gordon Pym` of the sandbox stood at 1319 seconds of
+/// 1319.6 with the mark of the end, and the line of that episode said
+/// `(0m left)`. The mark of the row is the truth of the end, and not the
+/// number of seconds that stay.
+fn the_time_of_the_line(
+    duration: Option<f64>,
+    place: Option<f64>,
+    the_end: bool,
+) -> Option<String> {
+    // **A length of 0 is a length that the server did not give** (T-180 and
+    // T-236), and a row of the disk of a version before T-236 holds one.
+    let length = duration.filter(|length| *length > 0.0)?;
 
     let text = |seconds: f64| {
         convert_seconds(vec![seconds])
@@ -432,7 +459,7 @@ fn the_time_of_the_line(duration: Option<f64>, place: Option<f64>) -> Option<Str
     };
 
     match place {
-        Some(place) if place > 0.0 && place < length => {
+        Some(place) if !the_end && place > 0.0 && place < length => {
             Some(format!("{} left", text(length - place)))
         }
         _ => Some(text(length)),

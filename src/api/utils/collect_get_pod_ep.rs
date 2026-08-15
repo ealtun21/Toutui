@@ -145,3 +145,39 @@ pub async fn collect_durations_pod_ep(item: &Root) -> Vec<String> {
 
     convert_seconds(durations)
 }
+
+/// Gives the length of each episode of a podcast, in seconds. See T-236.
+///
+/// `collect_durations_pod_ep` gives the same lengths as a text, and a text
+/// gives no number: the key `n` of the view of the episodes therefore put an
+/// episode in the queue with no length at all, and the line of that media of
+/// the view of the queue said no time (T-234).
+///
+/// **A length of 0 is a length that the server did not give** (T-180), and an
+/// episode of no audio file holds no length. Each of them gives `None`, and the
+/// media of that line says no time.
+///
+/// **The list holds one value for each episode**: `collect_durations_pod_ep`
+/// pushes a value for an episode of an audio file alone, therefore an episode
+/// with no audio file takes the length of the episode after it. The lists of
+/// this view stand one against the other by the number of the line (T-24).
+pub async fn the_lengths_of_the_episodes(item: &Root) -> Vec<Option<f64>> {
+    let Some(episodes) = item
+        .media
+        .as_ref()
+        .and_then(|media| media.episodes.as_ref())
+    else {
+        return Vec::new();
+    };
+
+    episodes
+        .iter()
+        .map(|episode| {
+            episode
+                .audio_file
+                .as_ref()
+                .and_then(|file| file.duration)
+                .filter(|length| *length > 0.0)
+        })
+        .collect()
+}

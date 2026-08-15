@@ -16167,3 +16167,133 @@ stays for a media that no message names.
 - **The key `X` of the view of the bookmarks of a podcast** removes a place of
   another episode with the same words (T-223 to T-235 each left it open, and
   this item did not close it).
+
+### T-236: the line of the view of the queue names the time of an episode of a podcast
+
+**This item measures the line of the view of the queue for a media of a
+podcast, after T-235 gave the view of the queue the message of the server.**
+T-234 gave a line of a book the time that is left; this item asks what a line
+of an episode holds.
+
+#### The measurement
+
+The real program v0.8.64 inside tmux, against the sandbox (podman on
+:13399). The user pressed `n` on `A Long Test Book` of the library `Books`,
+then pressed `n` on `Chapter 02` of the podcast `Arthur Gordon Pym` of the
+library `Podcasts` (from the shelf Continue Listening of the Home view), then
+pressed `q`. The view of the queue:
+
+```text
+➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+  32% 2. 🎙 Chapter 02 — Arthur Gordon Pym
+```
+
+The line of the book held the time that is left (T-234 gave it), and the line
+of the episode held no time at all.
+
+**The control of the same run** (the trap 206): the line of the book of that
+same view said `(15m left)`, therefore the row of the time works; and the
+panel of the Home view of that same program, of that same episode, said
+`[Arthur Gordon Pym] - Author: LibriVox - Episode: 2 - Duration: 39m` and
+`Progress: 32%, Not finished`. **The program held the length of that episode
+already, in the very view where the user pressed the key.**
+
+The user then pressed `n` on `Chapter 01` of the same podcast, from the view
+of the episodes, and the line of it said `(0m left)`. The server holds that
+row at `currentTime` 1319 of a `duration` of 1319.601633, with `isFinished`
+true.
+
+#### The fault of the source
+
+- `App::selected_length` of `src/app.rs` gives the length in seconds that the
+  key `n` writes in the row of the queue of the disk. It held an arm
+  `AppView::Home if self.is_podcast => None`, and no arm at all for
+  `AppView::PodcastEpisode` (that view fell to `_ => None`). The comment of
+  the function said the reason: those two views hold the length of an
+  episode as a **text** only (`durations_pod_cnt_list` and
+  `durations_pod_ep`, which `convert_seconds` makes), and a text gives no
+  number. Before T-234, the length of a media served the playback of a book
+  alone, therefore no measurement had reached the line of an episode of the
+  queue.
+- The row of `Chapter 01` said `0m left` because T-234 read the number of
+  seconds of the row for its decision, and a server that marks a media
+  finished can still write the place of it below the length of it (here,
+  `currentTime` 1319 of a duration 1319.601633). **The mark of the end of the
+  row is the truth of the end, and not the number of seconds that stay.**
+
+#### The correction
+
+- `src/api/utils/collect_personalized_view_pod.rs` holds
+  `the_lengths_of_the_episodes_of_the_shelves`, and
+  `src/api/utils/collect_get_pod_ep.rs` holds
+  `the_lengths_of_the_episodes`. Each of them gives the length of every
+  episode in seconds, as `Vec<Option<f64>>`. A length of 0, and an episode
+  with no audio file, give `None`: a length of 0 is a length that the server
+  did not give (T-180).
+- `collect_durations_pod_ep` pushes one value for an episode of an audio file
+  alone, and `the_lengths_of_the_episodes` holds **one value for each
+  episode**: an episode with no audio file would else take the length of the
+  episode after it (T-24: the lists of a view stand one against the other by
+  the number of the line).
+- `App` holds `the_lengths_of_the_episodes_of_the_home_view`,
+  `the_lengths_of_the_episodes`, `the_lengths_of_the_episodes_search`,
+  `all_the_lengths_of_the_episodes`, and
+  `all_the_lengths_of_the_episodes_search`, beside the lists of the text. The
+  two ways into the view of the episodes (the Library view and the view of
+  the search) hold the episodes in two different lists, as
+  `selected_download` reads them.
+- `selected_length` reads them, and it gives nothing for a length of 0 in
+  every view.
+- `the_time_of_the_line` of `src/logic/queue.rs` takes the mark of the end of
+  the row now (`the_mark_of_the_end_of_the_row`, the second value of the
+  row, the word `Finished` of `collect_is_finished_book`), and a media of
+  that mark says the length. It also gives no time for a length of 0,
+  because a row of the disk of a version before this item holds one.
+- `tests/the_line_of_the_view_of_the_queue_names_the_time_of_an_episode.rs`
+  holds the rule, in one function (T-144 and T-157). **Seven builds of the
+  fault each fail it**: a collector of the shelves that gives no number, a
+  collector of the episodes that gives no number, a line of a media that the
+  user finished that says `0m left`, a length of 0 that gives `0m`, and the
+  three arms of `selected_length`.
+
+The same measurement of the corrected program:
+
+```text
+➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+  32% 2. 🎙 Chapter 02 — Arthur Gordon Pym  (27m left)
+  ✓   3. 🎙 Chapter 01 — Arthur Gordon Pym  (22m)
+```
+
+(Chapter 02 stands at 740 seconds of 2336.731429.)
+
+**The decision, and the reason for it: a length of a media belongs to the
+program as a number, and the text of it belongs to the screen.** The two views
+of an episode made the text of a length at the moment of the request, and the
+number then went away: every key that needs a length therefore met a view that
+holds one media and that says nothing of it. The lists of the seconds stand
+beside the lists of the text now, and the render keeps the text that it had.
+
+#### What this item leaves open
+
+- **The place of the view of the queue comes of the key `q` and of a live
+  message, and no other key and no tick asks for it again** (T-230 to
+  T-236): therefore a media that no message names keeps the place of the
+  moment of that key.
+- **The lines of the view of the bookmarks hold no place of the user** (T-229
+  to T-236, and it stays open).
+- **The lines of the view of the search and of the view of the lists hold no
+  place at all** (T-228 to T-236, and it stays open).
+- **The view of the queue of the offline mode is not measured** (T-230 to
+  T-236): that view gives no place at all, therefore every line of it keeps
+  the length of its media.
+- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone** (T-226
+  to T-236, and it stays open).
+- **The key `X` of the view of the bookmarks of a podcast** removes a place
+  of another episode with the same words (T-223 to T-236 each left it open,
+  and this item did not close it).
+- **The panel of a line of an episode says the length of the media and not
+  the time that is left** (T-236): the panel of a line of a book of the Home
+  view says `6h left`, and the panel of the Home view of a library of
+  podcasts and the panel of the view of the episodes each say
+  `Duration: 39m` beside `Progress: 32%`. The program holds that number as a
+  number now.

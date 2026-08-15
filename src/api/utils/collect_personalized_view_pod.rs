@@ -135,6 +135,31 @@ pub async fn collect_durations_pod_cnt_list(roots: &[Root]) -> Vec<String> {
     convert_seconds(durations)
 }
 
+/// Gives the length of each episode of the shelves, in seconds. See T-236.
+///
+/// `collect_durations_pod_cnt_list` gives the same lengths as a text, and a
+/// text gives no number: the key `n` of this view therefore put an episode in
+/// the queue with no length at all, and the line of that media of the view of
+/// the queue said no time (T-234).
+///
+/// **A length of 0 is a length that the server did not give** (T-180): the
+/// answer of an episode of no audio file holds no length, and a media of no
+/// length keeps its line and it says no time.
+///
+/// The sequence is the sequence of `episode_entities`, therefore the number of
+/// a line of the Home view reads this list.
+pub async fn the_lengths_of_the_episodes_of_the_shelves(roots: &[Root]) -> Vec<Option<f64>> {
+    episode_entities(roots)
+        .map(|(_, episode)| {
+            episode
+                .audio_file
+                .as_ref()
+                .and_then(|file| file.duration)
+                .filter(|length| *length > 0.0)
+        })
+        .collect()
+}
+
 /// collect ids ep
 pub async fn collect_ids_ep_pod_cnt_list(roots: &[Root]) -> Vec<String> {
     episode_entities(roots)

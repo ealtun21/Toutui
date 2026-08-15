@@ -383,6 +383,9 @@ pub struct App {
     pub all_descs_pod_ep: Vec<Vec<String>>,
     pub all_titles_pod: Vec<Vec<String>>,
     pub all_durations_pod_ep: Vec<Vec<String>>,
+    /// The length of each episode of each podcast of the library, in seconds.
+    /// The text of `all_durations_pod_ep` gives no number. See T-236.
+    pub all_the_lengths_of_the_episodes: Vec<Vec<Option<f64>>>,
     /// `true` for each podcast whose episodes the program read. See T-126.
     ///
     /// A podcast of no episode and a podcast whose episodes the program did not
@@ -399,6 +402,9 @@ pub struct App {
     pub descs_pod_ep: Vec<String>,
     pub titles_pod: Vec<String>,
     pub durations_pod_ep: Vec<String>,
+    /// The length of each episode of the view of the episodes, in seconds.
+    /// The key `n` of that view reads it. See T-236.
+    pub the_lengths_of_the_episodes: Vec<Option<f64>>,
     /// The place of the user of each episode of the view of the episodes: the
     /// percent and the mark of the end, in the form of
     /// `book_progress_cnt_list`. See T-229.
@@ -432,6 +438,10 @@ pub struct App {
     pub descs_pod_cnt_list: Vec<String>,
     pub titles_pod_cnt_list: Vec<String>,
     pub durations_pod_cnt_list: Vec<String>,
+    /// The length of each episode of the Home view of a library of
+    /// podcasts, in seconds. The text of `durations_pod_cnt_list` gives no
+    /// number, and the key `n` of that view needs one. See T-236.
+    pub the_lengths_of_the_episodes_of_the_home_view: Vec<Option<f64>>,
     pub published_year_library: Vec<String>,
     pub desc_library: Vec<String>,
     pub duration_library: Vec<f64>,
@@ -443,6 +453,9 @@ pub struct App {
     pub descs_pod_ep_search: Vec<String>,
     pub titles_pod_search: Vec<String>,
     pub durations_pod_ep_search: Vec<String>,
+    /// The length of each episode of the view of the episodes that the
+    /// search opened, in seconds. See T-236.
+    pub the_lengths_of_the_episodes_search: Vec<Option<f64>>,
     pub all_subtitles_pod_ep_search: Vec<Vec<String>>,
     pub all_seasons_pod_ep_search: Vec<Vec<String>>,
     pub all_episodes_pod_ep_search: Vec<Vec<String>>,
@@ -450,6 +463,9 @@ pub struct App {
     pub all_descs_pod_ep_search: Vec<Vec<String>>,
     pub all_titles_pod_search: Vec<Vec<String>>,
     pub all_durations_pod_ep_search: Vec<Vec<String>>,
+    /// The length of each episode of each podcast of the view of the
+    /// search, in seconds. See T-236.
+    pub all_the_lengths_of_the_episodes_search: Vec<Vec<Option<f64>>>,
     pub auth_names_pod_search_book: Vec<String>,
     /// The title of each line of the view of the search.
     ///
@@ -851,6 +867,7 @@ impl App {
         let mut descs_pod_cnt_list: Vec<String> = Vec::new();
         let mut titles_pod_cnt_list: Vec<String> = Vec::new();
         let mut durations_pod_cnt_list: Vec<String> = Vec::new();
+        let mut the_lengths_of_the_episodes_of_the_home_view: Vec<Option<f64>> = Vec::new();
         let mut book_progress_cnt_list: Vec<Vec<String>> = Vec::new();
         let mut book_progress_cnt_list_cur_time: Vec<Vec<f64>> = Vec::new();
 
@@ -1074,6 +1091,11 @@ impl App {
             descs_pod_cnt_list = collect_descs_pod_cnt_list(&shelves_pod).await;
             titles_pod_cnt_list = collect_titles_pod_cnt_list(&shelves_pod).await; // title of a podcast
             durations_pod_cnt_list = collect_durations_pod_cnt_list(&shelves_pod).await;
+            // **The key `n` of this view needs the length as a number**
+            // (T-236): the text above gives none, and the line of that
+            // media of the view of the queue then said no time.
+            the_lengths_of_the_episodes_of_the_home_view =
+                the_lengths_of_the_episodes_of_the_shelves(&shelves_pod).await;
         } else {
             // init for  `Home` (continue listening) for books
             crate::utils::startup::set("the shelves of the Home view");
@@ -1441,6 +1463,7 @@ impl App {
         let all_descs_pod_ep_search: Vec<Vec<String>> = Vec::new();
         let all_titles_pod_search: Vec<Vec<String>> = Vec::new();
         let all_durations_pod_ep_search: Vec<Vec<String>> = Vec::new();
+        let all_the_lengths_of_the_episodes_search: Vec<Vec<Option<f64>>> = Vec::new();
         let titles_pod_ep_search: Vec<String> = Vec::new();
         let ids_library_pod_search: Vec<String> = Vec::new(); // library because we take index of library
         let subtitles_pod_ep_search: Vec<String> = Vec::new();
@@ -1450,6 +1473,7 @@ impl App {
         let descs_pod_ep_search: Vec<String> = Vec::new();
         let titles_pod_search: Vec<String> = Vec::new();
         let durations_pod_ep_search: Vec<String> = Vec::new();
+        let the_lengths_of_the_episodes_search: Vec<Option<f64>> = Vec::new();
         let is_from_search_pod = false;
 
         //init for `PodcastEpisode`
@@ -1462,6 +1486,7 @@ impl App {
         let mut all_descs_pod_ep: Vec<Vec<String>> = Vec::new();
         let mut all_titles_pod: Vec<Vec<String>> = Vec::new(); // fetch title of a podcast (not episode)
         let mut all_durations_pod_ep: Vec<Vec<String>> = Vec::new();
+        let mut all_the_lengths_of_the_episodes: Vec<Vec<Option<f64>>> = Vec::new();
         let titles_pod_ep: Vec<String> = Vec::new(); // fetch episode titles for a podcast. {titles_pod1_ep1, title_pod1_ep2}
         let ids_pod_ep: Vec<String> = Vec::new();
         let ids_pod_ep_search: Vec<String> = Vec::new();
@@ -1472,6 +1497,7 @@ impl App {
         let descs_pod_ep: Vec<String> = Vec::new();
         let titles_pod: Vec<String> = Vec::new();
         let durations_pod_ep: Vec<String> = Vec::new();
+        let the_lengths_of_the_episodes: Vec<Option<f64>> = Vec::new();
         let pod_ep_places: Vec<Vec<String>> = Vec::new();
         let pod_ep_places_search: Vec<Vec<String>> = Vec::new();
 
@@ -1498,6 +1524,7 @@ impl App {
                 all_descs_pod_ep.push(Vec::new());
                 all_titles_pod.push(Vec::new());
                 all_durations_pod_ep.push(Vec::new());
+                all_the_lengths_of_the_episodes.push(Vec::new());
                 the_episodes_that_came.push(false);
             }
         }
@@ -1815,6 +1842,7 @@ impl App {
             descs_pod_cnt_list,
             titles_pod_cnt_list,
             durations_pod_cnt_list,
+            the_lengths_of_the_episodes_of_the_home_view,
             published_year_library,
             desc_library,
             duration_library,
@@ -1826,6 +1854,7 @@ impl App {
             all_descs_pod_ep,
             all_titles_pod,
             all_durations_pod_ep,
+            all_the_lengths_of_the_episodes,
             the_episodes_that_came,
             subtitles_pod_ep,
             seasons_pod_ep,
@@ -1834,6 +1863,7 @@ impl App {
             descs_pod_ep,
             titles_pod,
             durations_pod_ep,
+            the_lengths_of_the_episodes,
             pod_ep_places,
             pod_ep_places_search,
             subtitles_pod_ep_search,
@@ -1843,6 +1873,7 @@ impl App {
             descs_pod_ep_search,
             titles_pod_search,
             durations_pod_ep_search,
+            the_lengths_of_the_episodes_search,
             all_subtitles_pod_ep_search,
             all_seasons_pod_ep_search,
             all_episodes_pod_ep_search,
@@ -1850,6 +1881,7 @@ impl App {
             all_descs_pod_ep_search,
             all_titles_pod_search,
             all_durations_pod_ep_search,
+            all_the_lengths_of_the_episodes_search,
             auth_names_pod_search_book,
             auth_names_search_book,
             published_year_library_search_book,
@@ -2940,6 +2972,11 @@ impl App {
                                 self.titles_pod_search = at(&self.all_titles_pod_search);
                                 self.durations_pod_ep_search =
                                     at(&self.all_durations_pod_ep_search);
+                                self.the_lengths_of_the_episodes_search = self
+                                    .all_the_lengths_of_the_episodes_search
+                                    .get(index)
+                                    .cloned()
+                                    .unwrap_or_default();
 
                                 // **The program reads the episodes of a podcast
                                 // when the user opens it**, and the view of the
@@ -3598,6 +3635,11 @@ impl App {
             .get(place)
             .cloned()
             .unwrap_or_default();
+        self.the_lengths_of_the_episodes = self
+            .all_the_lengths_of_the_episodes
+            .get(place)
+            .cloned()
+            .unwrap_or_default();
 
         self.ask_the_server_for_the_episodes(place);
     }
@@ -3674,6 +3716,7 @@ impl App {
                 descriptions: collect_descs_pod_ep(&podcast).await,
                 titles_of_the_podcast: collect_titles_pod(&podcast).await,
                 durations: collect_durations_pod_ep(&podcast).await,
+                lengths: the_lengths_of_the_episodes(&podcast).await,
                 places,
             });
 
@@ -3718,6 +3761,10 @@ impl App {
         );
         keep(&mut self.all_durations_pod_ep, episodes.durations.clone());
 
+        if let Some(row) = self.all_the_lengths_of_the_episodes.get_mut(place) {
+            *row = episodes.lengths.clone();
+        }
+
         if let Some(flag) = self.the_episodes_that_came.get_mut(place) {
             *flag = true;
         }
@@ -3748,6 +3795,7 @@ impl App {
             self.descs_pod_ep_search = episodes.descriptions;
             self.titles_pod_search = episodes.titles_of_the_podcast;
             self.durations_pod_ep_search = episodes.durations;
+            self.the_lengths_of_the_episodes_search = episodes.lengths;
             self.pod_ep_places_search = episodes.places;
             return;
         }
@@ -3761,6 +3809,7 @@ impl App {
         self.descs_pod_ep = episodes.descriptions;
         self.titles_pod = episodes.titles_of_the_podcast;
         self.durations_pod_ep = episodes.durations;
+        self.the_lengths_of_the_episodes = episodes.lengths;
         self.pod_ep_places = episodes.places;
     }
 
@@ -7247,21 +7296,55 @@ impl App {
 
     /// Gives the length of the selected media, in seconds.
     ///
-    /// The function gives nothing when the view holds the length as a text
-    /// only. The view of the episodes of a podcast is such a view: the server
-    /// gives the seconds, and `collect_durations_pod_ep` makes the text at
-    /// once.
+    /// **An episode of a podcast holds a length too** (T-236). The two views
+    /// that hold an episode gave nothing at all, because each of them holds the
+    /// length as a text and a text gives no number: the key `n` therefore put
+    /// an episode in the queue with no length, and the line of that media of
+    /// the view of the queue said no time while the line of every book of that
+    /// same view said the time that is left (T-234). The measurement of
+    /// v0.8.64 against the sandbox, of `Chapter 02` of `Arthur Gordon Pym`:
+    ///
+    /// ```text
+    /// 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+    /// 32% 2. 🎙 Chapter 02 — Arthur Gordon Pym
+    /// ```
+    ///
+    /// The panel of that same program, of that same episode, said
+    /// `Duration: 39m`. `the_lengths_of_the_episodes_of_the_home_view` and
+    /// `the_lengths_of_the_episodes` hold that length as a number now.
+    ///
+    /// **A length of 0 is a length that the server did not give** (T-180): the
+    /// media of that line then says no time at all, and it does not say `0m`.
     fn selected_length(&self) -> Option<f64> {
-        match self.view_state {
-            // A library of podcasts holds the lengths of the episodes in the
-            // lists of the podcasts, and not in this list.
-            AppView::Home if self.is_podcast => None,
+        let length = match self.view_state {
+            AppView::Home if self.is_podcast => self
+                .selected_home_item()
+                .and_then(|index| {
+                    self.the_lengths_of_the_episodes_of_the_home_view
+                        .get(index)
+                        .copied()
+                })
+                .flatten(),
             AppView::Home => self
                 .selected_home_item()
                 .and_then(|index| self.duration_cnt_list.get(index).copied()),
             AppView::Library => self
                 .selected_library_item()
                 .and_then(|index| self.duration_library.get(index).copied()),
+            // The two ways into this view hold the episodes in two different
+            // lists, as `selected_download` reads them.
+            AppView::PodcastEpisode => {
+                let lengths = if self.is_from_search_pod {
+                    &self.the_lengths_of_the_episodes_search
+                } else {
+                    &self.the_lengths_of_the_episodes
+                };
+
+                self.list_state_pod_ep
+                    .selected()
+                    .and_then(|index| lengths.get(index).copied())
+                    .flatten()
+            }
             AppView::SearchBook => self
                 .list_state_search_results
                 .selected()
@@ -7269,7 +7352,9 @@ impl App {
             AppView::SeriesBook => self.selected_series_book().map(|book| book.duration),
             AppView::ListEntries => self.selected_list_entry().map(|entry| entry.duration),
             _ => None,
-        }
+        };
+
+        length.filter(|length| *length > 0.0)
     }
 
     /// Gives the media of the keys `M` and `N`, with its episode. See T-219.

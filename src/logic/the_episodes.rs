@@ -42,6 +42,10 @@ pub struct Episodes {
     pub descriptions: Vec<String>,
     pub titles_of_the_podcast: Vec<String>,
     pub durations: Vec<String>,
+    /// The length of each episode, in seconds. The text of `durations` gives
+    /// no number, and the key `n` of this view needs the length of the media
+    /// for the line of the view of the queue. See T-236.
+    pub lengths: Vec<Option<f64>>,
     /// The place of the user of each episode: the percent and the mark of the
     /// end, in the form of `App::book_progress_cnt_list`. See T-229.
     pub places: Vec<Vec<String>>,

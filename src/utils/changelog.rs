@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.65",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The line of an episode of a podcast in the view of the queue \
+             said no time at all.** The two views that hold an episode kept \
+             the length of it as a text only, therefore the key `n` put that \
+             episode in the queue with no length. The line says the time that \
+             is left of the episode now.",
+            "- **A media that the user finished said `0m left` in that same \
+             view.** The server writes the place of such a media below the \
+             length of it. The line says the length of the media now, and the \
+             mark of that line says the end.",
+        ],
+    },
+    Entry {
         version: "0.8.64",
         date: "15/08/2026",
         body: &[

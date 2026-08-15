@@ -2177,6 +2177,8 @@ impl App {
         self.all_descs_pod_ep_search = the_values_at(&self.all_descs_pod_ep, &places);
         self.all_titles_pod_search = the_values_at(&self.all_titles_pod, &places);
         self.all_durations_pod_ep_search = the_values_at(&self.all_durations_pod_ep, &places);
+        self.all_the_lengths_of_the_episodes_search =
+            the_values_at(&self.all_the_lengths_of_the_episodes, &places);
         self.ids_library_pod_search = the_values_at(&self.ids_library, &places);
 
         self.render_header(header_area, buf);
