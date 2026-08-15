@@ -159,8 +159,10 @@ pub fn load_config_from(path: &Path) -> Result<ConfigFile> {
         .map_err(|e| Report::new(e))?;
 
     // A block `colors` that is absent, and a key of that block that is absent,
-    // take the value of the program. See T-122.
-    let colors: Colors = config.get("colors").unwrap_or_default();
+    // take the value of the program. See T-122. A colour that the program
+    // cannot read takes the colour of the program alone, and the other colours
+    // of the user stay. See T-258.
+    let colors = the_colours_of_the_file(&config);
     // A configuration file that an older version made has no `servers`
     // block. An empty list is correct in that condition.
     let servers: Vec<ServerConfig> = config.get("servers").unwrap_or_default();
@@ -312,6 +314,125 @@ pub fn write_the_value(block: &str, key: &str, value: &str) -> Result<()> {
     std::fs::rename(&beside, &path)?;
 
     Ok(())
+}
+
+/// A colour of the configuration file holds three numbers.
+const THE_NUMBERS_OF_A_COLOUR: usize = 3;
+
+/// Reads one colour of the block `colors` of the configuration file.
+///
+/// **The program reads each colour of the file apart** (T-258). The block was
+/// one value for `serde` before this item: `config.get::<Colors>("colors")`
+/// gave an error for a block that held one number above 255, and
+/// `unwrap_or_default` then took **every** colour of the user away. A
+/// measurement of the real program v0.8.86, of a file that held
+/// `background_color = [200, 0, 0]` and `list_selected_background_color =
+/// [80, 80, 300]`, gave a screen of `48;2;40;40;40`: the red of the user went
+/// away because a number of another colour stands above 255, and the log said
+/// no word of it.
+///
+/// The three conditions:
+///
+/// - The key is absent: the colour of the program comes, and the log says
+///   nothing. A file of an older version holds no `player_background_color`,
+///   and that file is not a fault of the user. See T-122.
+/// - The key holds a value that the program cannot read as a list of numbers
+///   of 0 to 255: the colour of the program comes, and the log names that key.
+/// - The key holds a list of no three numbers: **a colour of two numbers is a
+///   colour that the program does not have**, therefore the colour of the
+///   program comes and the log names that key. `rgb_parts` repeats the last
+///   number of such a list, and the user then sees a colour that they did not
+///   ask for.
+fn the_colour_of_the_file(config: &ConfigLib, key: &str, of_the_program: Vec<u8>) -> Vec<u8> {
+    match config.get::<Vec<u8>>(&format!("colors.{}", key)) {
+        Ok(values) if values.len() == THE_NUMBERS_OF_A_COLOUR => values,
+        Ok(values) => {
+            log::warn!(
+                "[config] the colour {} holds {} numbers and not three. \
+                 The colour of the program stays.",
+                key,
+                values.len()
+            );
+            of_the_program
+        }
+        // The key is absent. That is not a fault of the user. See T-122.
+        Err(config::ConfigError::NotFound(_)) => of_the_program,
+        Err(error) => {
+            log::warn!(
+                "[config] the program cannot read the colour {}: {}. \
+                 The colour of the program stays.",
+                key,
+                error
+            );
+            of_the_program
+        }
+    }
+}
+
+/// Reads the block `colors` of the configuration file, one colour at a time.
+///
+/// See `the_colour_of_the_file` for the rule of one colour. A block that is
+/// absent gives every colour of the program, and it says nothing.
+fn the_colours_of_the_file(config: &ConfigLib) -> Colors {
+    let program = Colors::default();
+
+    Colors {
+        background_color: the_colour_of_the_file(
+            config,
+            "background_color",
+            program.background_color,
+        ),
+        log_background_color: the_colour_of_the_file(
+            config,
+            "log_background_color",
+            program.log_background_color,
+        ),
+        header_background_color: the_colour_of_the_file(
+            config,
+            "header_background_color",
+            program.header_background_color,
+        ),
+        line_header_color: the_colour_of_the_file(
+            config,
+            "line_header_color",
+            program.line_header_color,
+        ),
+        list_background_color: the_colour_of_the_file(
+            config,
+            "list_background_color",
+            program.list_background_color,
+        ),
+        list_background_color_alt_row: the_colour_of_the_file(
+            config,
+            "list_background_color_alt_row",
+            program.list_background_color_alt_row,
+        ),
+        list_selected_background_color: the_colour_of_the_file(
+            config,
+            "list_selected_background_color",
+            program.list_selected_background_color,
+        ),
+        list_selected_foreground_color: the_colour_of_the_file(
+            config,
+            "list_selected_foreground_color",
+            program.list_selected_foreground_color,
+        ),
+        search_bar_foreground_color: the_colour_of_the_file(
+            config,
+            "search_bar_foreground_color",
+            program.search_bar_foreground_color,
+        ),
+        login_foreground_color: the_colour_of_the_file(
+            config,
+            "login_foreground_color",
+            program.login_foreground_color,
+        ),
+        player_background_color: the_colour_of_the_file(
+            config,
+            "player_background_color",
+            program.player_background_color,
+        ),
+    }
 }
 
 /// The colour that a list with no value gives.
@@ -699,6 +820,80 @@ endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
     fn a_colour_that_is_too_short_repeats_the_last_value() {
         assert_eq!(rgb_parts(&[40]), (40, 40, 40));
         assert_eq!(rgb_parts(&[40, 50]), (40, 50, 50));
+    }
+
+    /// **One colour that the program cannot read must not take the other
+    /// colours of the user away** (T-258). The number 300 stands above 255,
+    /// therefore the block was one error for `serde` and `unwrap_or_default`
+    /// gave every colour of the program. A measurement of the real program
+    /// v0.8.86 gave a screen of `48;2;40;40;40` for a file that asked for
+    /// `48;2;200;0;0`.
+    #[test]
+    fn a_colour_that_the_program_cannot_read_keeps_the_other_colours() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[colors]\nbackground_color = [200, 0, 0]\n\
+             list_selected_background_color = [80, 80, 300]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(
+            config.colors.background_color,
+            vec![200, 0, 0],
+            "the colour of the user must stay"
+        );
+        assert_eq!(
+            config.colors.list_selected_background_color,
+            vec![80, 80, 80],
+            "the colour that the program cannot read takes the colour of the program"
+        );
+    }
+
+    /// **A colour that holds no three numbers is a colour that the program does
+    /// not have** (T-258). `rgb_parts` repeats the last number of such a list,
+    /// therefore a user who wrote `[50, 50]` saw a colour that they did not ask
+    /// for. The colour of the program comes now, and the log names the key.
+    #[test]
+    fn a_colour_of_no_three_numbers_takes_the_colour_of_the_program() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[colors]\nlist_background_color = [50, 50]\n\
+             header_background_color = [1, 2, 3, 4]\n\
+             line_header_color = []\n\
+             background_color = [7, 8, 9]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(config.colors.list_background_color, vec![50, 50, 50]);
+        assert_eq!(config.colors.header_background_color, vec![60, 60, 60]);
+        assert_eq!(config.colors.line_header_color, vec![180, 180, 180]);
+        assert_eq!(
+            config.colors.background_color,
+            vec![7, 8, 9],
+            "the colour of three numbers of the user must stay"
+        );
+    }
+
+    /// A key that the file does not hold takes the colour of the program, and
+    /// that is not a fault of the user. See T-122 and T-258.
+    #[test]
+    fn a_colour_that_the_file_does_not_hold_takes_the_colour_of_the_program() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(&path, "[colors]\nbackground_color = [1, 2, 3]\n")
+            .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(config.colors.player_background_color, vec![80, 80, 80]);
     }
 
     /// **A user who builds the program has no configuration file**, and the

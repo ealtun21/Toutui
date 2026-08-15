@@ -19515,3 +19515,174 @@ up, in 17.7 seconds.
   (T-229 to T-257, and it stays open).
 - **The line of the Library view of a library of podcasts says no place at
   all** (T-242 to T-257, and it stays open).
+
+### T-258: the program reads each colour of the configuration file apart, and a colour that it cannot read takes the colour of the program alone
+
+**The state**: corrected on 2026-08-15. The measurement is of the real program
+inside tmux, against the sandbox.
+
+#### What T-257 left open
+
+T-257 left this paragraph of its own "What this item leaves open": "**The
+configuration says nothing of a colour that holds no three numbers** (T-257,
+and it stays open): the program takes the last number in silence, and the user
+who wrote `[50, 50]` gets a colour that they did not ask for with no line of
+the log at all." This item takes that paragraph, and the measurement of it
+found a second fault of the same line of the source, which is larger than the
+candidate.
+
+#### The fault
+
+`load_config_from` of `src/config.rs` line 163 read the whole block of the
+colours as one value:
+
+```rust
+let colors: Colors = config.get("colors").unwrap_or_default();
+```
+
+**That is the shape of T-122, for a value instead of an absent key.** T-122
+gave `Colors` the attribute `#[serde(default)]`, therefore a key that the file
+does not hold takes the colour of the program and every other colour of the
+user stays. A key that holds a value that `serde` cannot read is a different
+condition: the whole `get` gives an error, and `unwrap_or_default` then gives
+`Colors::default()` — **every colour of the user goes away because one number
+of one colour stands above 255**. The field is a `Vec<u8>`, therefore the
+number 300 of any one of the eleven colours does this.
+
+The second fault is the candidate of T-257: a colour that holds no three
+numbers reaches `rgb_parts`, which repeats the last number of the list. The
+user who wrote `[50, 50]` gets `(50, 50, 50)` and the user who wrote
+`[1, 2, 3, 4]` gets `(1, 2, 3)`, and the log holds no line of either.
+
+#### The measurement
+
+The real program v0.8.86, inside tmux, against the sandbox on :13399, on a
+screen of 160 columns and 45 rows. `config.toml` of the sandbox took
+`background_color = [200, 0, 0]`, and `tmux capture-pane -p -e` gives the
+colours of the screen.
+
+**The colours of the user, each of three numbers**, the first three rows of
+the screen:
+
+```text
+      2 48;2;200;0;0
+      1 48;2;60;60;60
+```
+
+**One number of one *other* colour above 255**
+(`list_selected_background_color = [80, 80, 300]`), the same three rows:
+
+```text
+      2 48;2;40;40;40
+      1 48;2;60;60;60
+```
+
+The red of the user went away, and `grep -icE "colou?r"` of the log of the
+program gave **0**: the program said no word of it, on the screen and in the
+log.
+
+**The colour of two numbers**: the line `list_background_color = [50, 50]` of
+`config.toml` gave the rows of the list of the Home view, and the log of the
+program held **0** lines of a colour.
+
+#### The correction
+
+`the_colour_of_the_file` and `the_colours_of_the_file` of `src/config.rs`.
+The program reads each of the eleven colours of the block apart, with
+`config.get::<Vec<u8>>("colors.<the key>")`, and it holds three conditions:
+
+- `Err(ConfigError::NotFound)`: the key is absent. The colour of the program
+  comes, and the log says nothing. A file of an older version holds no
+  `player_background_color`, and that file is not a fault of the user (T-122).
+- `Ok` of a list of no three numbers: the colour of the program comes, and the
+  log names the key.
+- Every other `Err`: the colour of the program comes, and the log names the key
+  and the fault.
+
+#### The measurement after the correction
+
+The real program v0.8.87, of the same file of the first measurement
+(`background_color = [200, 0, 0]` and
+`list_selected_background_color = [80, 80, 300]`):
+
+```text
+      2 48;2;200;0;0
+      1 48;2;60;60;60
+```
+
+The red of the user stays, and the log holds the line of the one colour that
+the program cannot read. The line `list_background_color = [50, 50]` gives:
+
+```text
+[WARN] - [config] the colour list_background_color holds 2 numbers and not
+three. The colour of the program stays.
+```
+
+#### The build of the fault
+
+`src/config.rs` line 165 back to `config.get("colors").unwrap_or_default()`,
+and the two new tests fail:
+
+```text
+a_colour_of_no_three_numbers_takes_the_colour_of_the_program ... FAILED
+  left: [50, 50]   right: [50, 50, 50]
+a_colour_that_the_program_cannot_read_keeps_the_other_colours ... FAILED
+  left: [40, 40, 40]   right: [200, 0, 0]
+```
+
+#### The tests
+
+Three tests of `src/config.rs`:
+`a_colour_that_the_program_cannot_read_keeps_the_other_colours`,
+`a_colour_of_no_three_numbers_takes_the_colour_of_the_program`, and
+`a_colour_that_the_file_does_not_hold_takes_the_colour_of_the_program` (the
+guard of the rule of T-122, which passes on both builds).
+
+#### What this item leaves open
+
+- **A number of a colour above 255 is a number that the user wrote** (T-258,
+  and it stays open): the log names the key and the fault of `serde`, and the
+  words of that fault are the words of the crate `config` and not the words of
+  this fork. **A message of the crate is not a sentence of ASD-STE100.**
+- **The user sees no word of a colour that the program cannot read** (T-258,
+  and it stays open): the line goes to the log alone, and the first frame of
+  the program holds no message of it. The rule of T-177 gives the log to a row
+  that belongs to no line of any view; a colour of the file belongs to the
+  screen that the user looks at.
+- **The block `reader` and the block `servers` hold the same shape** (T-258,
+  and it stays open): `config.get("reader").unwrap_or_default()` and
+  `config.get("servers").unwrap_or_default()` each take the whole block away
+  for one value that the program cannot read, and neither of them says a word.
+  **This is a candidate and not a measurement.**
+- **The colours of the program stand on no test of a length** (T-257 and
+  T-258, and it stays open): 22 places call `rgb_parts`, and no gate of this
+  repository says which of the two a new render takes. The load of the
+  configuration gives three numbers now, therefore the render meets no shorter
+  list of the file — but a caller of `Colors::default()` of its own, or a new
+  key of the block, stands outside that gate.
+- **The panel of a description is in no test of the render** (T-253 to T-258,
+  and it stays open): `render_a_description` is a private method of `App`
+  still, and the module of T-256 gives the shape of that correction.
+- **The two renders of the panel of the episodes of a podcast are in no test**
+  (T-250 to T-258, and it stays open).
+- **The title of a list says no number of the line of the cursor** (T-255 to
+  T-258, and it stays open).
+- **The key `H` of the panel stands on no character of the screen** (T-254 to
+  T-258, and it stays open).
+- **The line of the view of the authors says `[1 book(s)]`** (T-252 to T-258,
+  and it stays open).
+- **The panel of a narrator says "No description available" for every narrator
+  of every library** (T-252 to T-258, and it stays open).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-258, and it stays open).
+- **The key `B` says nothing on either road** (T-248 to T-258, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters, and
+  of the view of the queue gives the Home view** (T-247 to T-258, and it stays
+  open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to T-258,
+  and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user** (T-229
+  to T-258, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at
+  all** (T-242 to T-258, and it stays open).

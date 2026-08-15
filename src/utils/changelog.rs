@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.87",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **One colour of the configuration file that the program cannot \
+             read does not take the other colours of the user away.** A number \
+             above 255, such as `list_selected_background_color = [80, 80, \
+             300]`, gave every colour of the program and no word at all. The \
+             program reads each colour of the file apart now: that colour \
+             alone takes the colour of the program, and the log names the key.",
+            "- **A colour that holds no three numbers takes the colour of the \
+             program.** A line such as `list_background_color = [50, 50]` gave \
+             a colour that the user did not ask for, in silence. The log names \
+             that key now.",
+        ],
+    },
+    Entry {
         version: "0.8.86",
         date: "15/08/2026",
         body: &[
