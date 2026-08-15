@@ -17,6 +17,19 @@ pub struct ConfigFile {
     pub servers: Vec<ServerConfig>,
     /// The settings of the reader of the ebooks. See T-72.
     pub reader: ReaderConfig,
+    /// The name of each value of the configuration file that the program does
+    /// not use. See T-264.
+    ///
+    /// The read of the file takes a value of the user away for two reasons: the
+    /// program cannot read it (T-258 and T-259), or a rule of the program
+    /// refuses it (T-260 to T-263). Each of the two took a line of the log
+    /// alone, and **the file belongs to the user**: the user wrote that value,
+    /// and the program then used a different one with no word at all. This list
+    /// holds the name of each such value, and
+    /// `the_words_of_the_values_that_the_program_does_not_use` makes the
+    /// sentence of the screen.
+    #[serde(default, skip)]
+    pub the_values_that_the_program_does_not_use: Vec<String>,
 }
 
 /// The settings of the reader of the ebooks. See T-72.
@@ -162,23 +175,79 @@ pub fn load_config_from(path: &Path) -> Result<ConfigFile> {
     // take the value of the program. See T-122. A colour that the program
     // cannot read takes the colour of the program alone, and the other colours
     // of the user stay. See T-258.
-    let colors = the_colours_of_the_file(&config);
+    // T-264. Every reader below takes a value of the user away in silence. The
+    // name of each such value comes here, and the caller that holds a screen
+    // says the sentence of it.
+    let mut went_away = Vec::new();
+
+    let colors = the_colours_of_the_file(&config, &mut went_away);
     // A configuration file that an older version made has no `servers`
     // block. An empty list is correct in that condition. A server of that list
     // that the program cannot read goes away alone, and every other server of
     // the user stays. See T-259.
-    let servers = the_servers_of_the_file(&config);
+    let servers = the_servers_of_the_file(&config, &mut went_away);
     // A configuration file of an older version has no block `reader`. Every
     // value of that block then takes the value of the program. See T-72. A
     // value of that block that the program cannot read takes the value of the
     // program alone. See T-259.
-    let reader = the_reader_of_the_file(&config);
+    let reader = the_reader_of_the_file(&config, &mut went_away);
 
     Ok(ConfigFile {
         colors,
         servers,
         reader,
+        the_values_that_the_program_does_not_use: went_away,
     })
+}
+
+/// Gives the sentence of the screen for the values that the program does not
+/// use, or nothing when the program uses every value of the file. See T-264.
+///
+/// **A value of the file that goes away took a line of the log alone.** The log
+/// is the one word of a fault that no view of the user holds (T-177), and this
+/// fault holds a view: the user wrote the file, the user can correct it, and the
+/// screen stands in front of them at the start and at the key `R`. Therefore the
+/// screen says the number, and the log keeps the name and the reason of each
+/// value.
+///
+/// The sentence says "does not use" and not "cannot read", because the two
+/// reasons of T-258 to T-263 stand together in this list: a value that the
+/// program cannot read, and a value that a rule of the program refuses.
+pub fn the_words_of_the_values_that_the_program_does_not_use(names: &[String]) -> Option<String> {
+    match names.len() {
+        // The program uses every value of the file. A message of no fault is a
+        // message that hides the answer of a key for six seconds.
+        0 => None,
+        // A count of one takes no plural. The shape `1 value(s)` is no sentence
+        // of a person.
+        1 => Some(
+            "The program does not use 1 value of the configuration file. \
+             The log names it."
+                .to_string(),
+        ),
+        many => Some(format!(
+            "The program does not use {} values of the configuration file. \
+             The log names each of them.",
+            many
+        )),
+    }
+}
+
+/// Says the sentence of [`the_words_of_the_values_that_the_program_does_not_use`]
+/// on the screen of the user. See T-264.
+///
+/// **The read of the configuration file has no screen of its own.** The program
+/// reads that file at its start, at the key `R`, at the login, and at the moment
+/// that a book comes into the cache of the ebooks. The first two of them stand
+/// in front of the user, therefore they call this function; the other two say
+/// nothing, because a message of a task that the user did not ask for belongs to
+/// no view (T-164).
+pub fn say_the_values_that_the_program_does_not_use(config: &ConfigFile) {
+    if let Some(words) = the_words_of_the_values_that_the_program_does_not_use(
+        &config.the_values_that_the_program_does_not_use,
+    ) {
+        crate::logic::message::say(&words);
+    }
 }
 
 /// Gives the text of `config.toml` with one value changed. See T-77.
@@ -347,10 +416,16 @@ const THE_NUMBERS_OF_A_COLOUR: usize = 3;
 ///   program comes and the log names that key. `rgb_parts` repeats the last
 ///   number of such a list, and the user then sees a colour that they did not
 ///   ask for.
-fn the_colour_of_the_file(config: &ConfigLib, key: &str, of_the_program: Vec<u8>) -> Vec<u8> {
+fn the_colour_of_the_file(
+    config: &ConfigLib,
+    key: &str,
+    of_the_program: Vec<u8>,
+    went_away: &mut Vec<String>,
+) -> Vec<u8> {
     match config.get::<Vec<u8>>(&format!("colors.{}", key)) {
         Ok(values) if values.len() == THE_NUMBERS_OF_A_COLOUR => values,
         Ok(values) => {
+            went_away.push(format!("colors.{}", key));
             log::warn!(
                 "[config] the colour {} holds {} numbers and not three. \
                  The colour of the program stays.",
@@ -362,6 +437,7 @@ fn the_colour_of_the_file(config: &ConfigLib, key: &str, of_the_program: Vec<u8>
         // The key is absent. That is not a fault of the user. See T-122.
         Err(config::ConfigError::NotFound(_)) => of_the_program,
         Err(error) => {
+            went_away.push(format!("colors.{}", key));
             log::warn!(
                 "[config] the program cannot read the colour {}: {}. \
                  The colour of the program stays.",
@@ -377,7 +453,7 @@ fn the_colour_of_the_file(config: &ConfigLib, key: &str, of_the_program: Vec<u8>
 ///
 /// See `the_colour_of_the_file` for the rule of one colour. A block that is
 /// absent gives every colour of the program, and it says nothing.
-fn the_colours_of_the_file(config: &ConfigLib) -> Colors {
+fn the_colours_of_the_file(config: &ConfigLib, went_away: &mut Vec<String>) -> Colors {
     let program = Colors::default();
 
     Colors {
@@ -385,56 +461,67 @@ fn the_colours_of_the_file(config: &ConfigLib) -> Colors {
             config,
             "background_color",
             program.background_color,
+            went_away,
         ),
         log_background_color: the_colour_of_the_file(
             config,
             "log_background_color",
             program.log_background_color,
+            went_away,
         ),
         header_background_color: the_colour_of_the_file(
             config,
             "header_background_color",
             program.header_background_color,
+            went_away,
         ),
         line_header_color: the_colour_of_the_file(
             config,
             "line_header_color",
             program.line_header_color,
+            went_away,
         ),
         list_background_color: the_colour_of_the_file(
             config,
             "list_background_color",
             program.list_background_color,
+            went_away,
         ),
         list_background_color_alt_row: the_colour_of_the_file(
             config,
             "list_background_color_alt_row",
             program.list_background_color_alt_row,
+            went_away,
         ),
         list_selected_background_color: the_colour_of_the_file(
             config,
             "list_selected_background_color",
             program.list_selected_background_color,
+            went_away,
         ),
         list_selected_foreground_color: the_colour_of_the_file(
             config,
             "list_selected_foreground_color",
             program.list_selected_foreground_color,
+            went_away,
         ),
         search_bar_foreground_color: the_colour_of_the_file(
             config,
             "search_bar_foreground_color",
             program.search_bar_foreground_color,
+            went_away,
         ),
         login_foreground_color: the_colour_of_the_file(
             config,
             "login_foreground_color",
             program.login_foreground_color,
+            went_away,
         ),
         player_background_color: the_colour_of_the_file(
             config,
             "player_background_color",
             program.player_background_color,
+            went_away,
         ),
     }
 }
@@ -448,7 +535,12 @@ fn the_colours_of_the_file(config: &ConfigLib) -> Colors {
 ///
 /// A key that the file does not hold takes the value of the program in silence:
 /// a file of an older version is not a fault of the user (T-122).
-fn the_value_of_the_file<T>(config: &ConfigLib, key: &str, of_the_program: T) -> T
+fn the_value_of_the_file<T>(
+    config: &ConfigLib,
+    key: &str,
+    of_the_program: T,
+    went_away: &mut Vec<String>,
+) -> T
 where
     T: for<'a> Deserialize<'a>,
 {
@@ -457,6 +549,7 @@ where
         // The key is absent. That is not a fault of the user. See T-122.
         Err(config::ConfigError::NotFound(_)) => of_the_program,
         Err(error) => {
+            went_away.push(key.to_string());
             log::warn!(
                 "[config] the program cannot read {}: {}. \
                  The value of the program stays.",
@@ -474,7 +567,7 @@ where
 /// who wrote `ebook_cache_mb = -1` lost every value of the block, and the cache
 /// of the ebooks then held one gigabyte for a limit of 512 megabytes that the
 /// user asked for, with no word at all.
-fn the_reader_of_the_file(config: &ConfigLib) -> ReaderConfig {
+fn the_reader_of_the_file(config: &ConfigLib, went_away: &mut Vec<String>) -> ReaderConfig {
     let program = ReaderConfig::default();
 
     ReaderConfig {
@@ -482,6 +575,7 @@ fn the_reader_of_the_file(config: &ConfigLib) -> ReaderConfig {
             config,
             "reader.ebook_cache_mb",
             program.ebook_cache_mb,
+            went_away,
         ),
     }
 }
@@ -526,13 +620,14 @@ struct TheRowOfAServer {
 ///   servers of one name hold one identity, and the place of one server then
 ///   goes to a different server (T-261). The server of the first block keeps
 ///   the name, and every server after it that repeats that name goes away.
-fn the_servers_of_the_file(config: &ConfigLib) -> Vec<ServerConfig> {
+fn the_servers_of_the_file(config: &ConfigLib, went_away: &mut Vec<String>) -> Vec<ServerConfig> {
     let rows: Vec<config::Value> = match config.get("servers") {
         Ok(rows) => rows,
         // The block is absent. A file of an older version holds none. See
         // T-122.
         Err(config::ConfigError::NotFound(_)) => return Vec::new(),
         Err(error) => {
+            went_away.push("servers".to_string());
             log::warn!(
                 "[config] the program cannot read the block servers: {}. \
                  The program uses the address of the login screen.",
@@ -548,6 +643,7 @@ fn the_servers_of_the_file(config: &ConfigLib) -> Vec<ServerConfig> {
         let row: TheRowOfAServer = match row.try_deserialize() {
             Ok(row) => row,
             Err(error) => {
+                went_away.push(format!("the server {} of the block servers", place + 1));
                 log::warn!(
                     "[config] the program cannot read the server {} of the block servers: {}. \
                      That server goes away, and every other server stays.",
@@ -566,6 +662,7 @@ fn the_servers_of_the_file(config: &ConfigLib) -> Vec<ServerConfig> {
         // of one server goes to a different server (T-25). A server of no name
         // goes away, and the address of the account then gives the identity.
         if row.name.trim().is_empty() {
+            went_away.push(format!("the server {} of the block servers", place + 1));
             log::warn!(
                 "[config] the server {} of the block servers has a name of no character. \
                  A name is the identity of the place of the user, therefore that server \
@@ -587,6 +684,7 @@ fn the_servers_of_the_file(config: &ConfigLib) -> Vec<ServerConfig> {
         // Such a server goes away, and its address then gives its identity.
         let name = row.name.trim().to_ascii_lowercase();
         if name.starts_with("http://") || name.starts_with("https://") {
+            went_away.push(format!("the server {} of the block servers", place + 1));
             log::warn!(
                 "[config] the server {} of the block servers has the name {}, which is an \
                  address. The address of an account is the identity of the place of that user \
@@ -612,6 +710,7 @@ fn the_servers_of_the_file(config: &ConfigLib) -> Vec<ServerConfig> {
             .iter()
             .any(|server: &ServerConfig| server.name == row.name)
         {
+            went_away.push(format!("the server {} of the block servers", place + 1));
             log::warn!(
                 "[config] the server {} of the block servers has the name {}, which a server \
                  before it has already. A name is the identity of the place of the user, and \
@@ -627,16 +726,20 @@ fn the_servers_of_the_file(config: &ConfigLib) -> Vec<ServerConfig> {
         for address in row.endpoints {
             match address.try_deserialize::<EndpointConfig>() {
                 Ok(endpoint) => endpoints.push(endpoint),
-                Err(error) => log::warn!(
-                    "[config] the program cannot read an address of the server {}: {}. \
+                Err(error) => {
+                    went_away.push(format!("an address of the server {}", row.name));
+                    log::warn!(
+                        "[config] the program cannot read an address of the server {}: {}. \
                      That address goes away, and every other address of it stays.",
-                    row.name,
-                    error
-                ),
+                        row.name,
+                        error
+                    );
+                }
             }
         }
 
         if endpoints.is_empty() {
+            went_away.push(format!("the server {} of the block servers", place + 1));
             log::warn!(
                 "[config] the server {} has no address that the program can read. \
                  That server goes away.",
@@ -651,7 +754,7 @@ fn the_servers_of_the_file(config: &ConfigLib) -> Vec<ServerConfig> {
         });
     }
 
-    the_addresses_of_one_server_alone(servers)
+    the_addresses_of_one_server_alone(servers, went_away)
 }
 
 /// Takes an address that more than one server of the block `servers` holds out
@@ -680,7 +783,10 @@ fn the_servers_of_the_file(config: &ConfigLib) -> Vec<ServerConfig> {
 ///
 /// An address that **one** server holds two times is no address of two servers,
 /// and it stays.
-fn the_addresses_of_one_server_alone(mut servers: Vec<ServerConfig>) -> Vec<ServerConfig> {
+fn the_addresses_of_one_server_alone(
+    mut servers: Vec<ServerConfig>,
+    went_away: &mut Vec<String>,
+) -> Vec<ServerConfig> {
     let mut the_addresses_of_two_servers: Vec<String> = Vec::new();
 
     for (place, server) in servers.iter().enumerate() {
@@ -717,6 +823,7 @@ fn the_addresses_of_one_server_alone(mut servers: Vec<ServerConfig>) -> Vec<Serv
             .map(|server| server.name.clone())
             .collect();
 
+        went_away.push(format!("the address {} of the block servers", address));
         log::warn!(
             "[config] more than one server of the block servers has the address {}: {}. \
              The name of the server that holds an address is the identity of the place of \
@@ -735,6 +842,7 @@ fn the_addresses_of_one_server_alone(mut servers: Vec<ServerConfig>) -> Vec<Serv
 
     servers.retain(|server| {
         if server.endpoints.is_empty() {
+            went_away.push(format!("the server {} of the block servers", server.name));
             log::warn!(
                 "[config] the server {} keeps no address of its own. That server goes away.",
                 server.name
@@ -1899,6 +2007,138 @@ endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
         assert_eq!(
             of_the_example.colors.list_selected_background_color,
             of_the_program.list_selected_background_color
+        );
+    }
+    /// T-264. **A value of the configuration file that the program does not use
+    /// took a line of the log alone.** The file belongs to the user: they wrote
+    /// that value, and the program then used a different one with no word at
+    /// all. A measurement of the real program v0.8.92 inside tmux, with a file
+    /// of a colour of two numbers, of a server with a name of no character, and
+    /// of `ebook_cache_mb = "not a number"`, gave a screen of 45 rows with
+    /// **no** word of the configuration: `grep -icE "config|colour|value|file"`
+    /// of the whole screen gave 0.
+    ///
+    /// The two reasons of a value that goes away stand in one list: the program
+    /// cannot read it (T-258 and T-259), and a rule of the program refuses it
+    /// (T-260 to T-263).
+    #[test]
+    fn the_program_names_each_value_of_the_file_that_it_does_not_use() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[colors]\nbackground_color = [40, 40]\n\
+             list_background_color = [50, 50, 50]\n\
+             [reader]\nebook_cache_mb = \"not a number\"\n\
+             [[servers]]\nname = \"\"\n\
+             endpoints = [ { url = \"http://one.example.com\", priority = 0 } ]\n\
+             [[servers]]\nname = \"home\"\n\
+             endpoints = [ { url = \"http://two.example.com\", priority = 0 } ]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(
+            config.the_values_that_the_program_does_not_use,
+            vec![
+                "colors.background_color".to_string(),
+                "the server 1 of the block servers".to_string(),
+                "reader.ebook_cache_mb".to_string(),
+            ],
+            "the program must name the colour, the server, and the value of the reader"
+        );
+
+        // The values of the user that the program uses stay, and they name
+        // nothing.
+        assert_eq!(config.colors.list_background_color, vec![50, 50, 50]);
+        assert_eq!(config.servers.len(), 1, "the server of a name stays");
+    }
+
+    /// A file whose every value the program uses names nothing. **A message of
+    /// no fault hides the answer of a key for six seconds**, therefore the
+    /// program must say nothing at all.
+    #[test]
+    fn a_file_that_the_program_reads_names_no_value_at_all() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[colors]\nbackground_color = [40, 40, 40]\n[reader]\nebook_cache_mb = 512\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert!(
+            config.the_values_that_the_program_does_not_use.is_empty(),
+            "a file of no fault must name no value"
+        );
+        assert_eq!(
+            the_words_of_the_values_that_the_program_does_not_use(
+                &config.the_values_that_the_program_does_not_use
+            ),
+            None,
+            "a file of no fault must say nothing at all"
+        );
+    }
+
+    /// The sentence of the screen. **A count of one takes no plural**: the shape
+    /// `1 value(s)` is no sentence of a person.
+    #[test]
+    fn the_sentence_of_the_screen_counts_the_values() {
+        assert_eq!(
+            the_words_of_the_values_that_the_program_does_not_use(&[]),
+            None
+        );
+        assert_eq!(
+            the_words_of_the_values_that_the_program_does_not_use(&[
+                "colors.background_color".to_string()
+            ])
+            .expect("one value gives a sentence"),
+            "The program does not use 1 value of the configuration file. The log names it."
+        );
+        assert_eq!(
+            the_words_of_the_values_that_the_program_does_not_use(&[
+                "colors.background_color".to_string(),
+                "reader.ebook_cache_mb".to_string(),
+                "the server 1 of the block servers".to_string(),
+            ])
+            .expect("three values give a sentence"),
+            "The program does not use 3 values of the configuration file. \
+             The log names each of them."
+        );
+    }
+
+    /// A server that a rule of the program refuses is a value that the program
+    /// does not use (T-260 to T-263), and the user must read it too. The
+    /// address `http://one.example.com` stands in the two servers, therefore it
+    /// goes away from each of them (T-263), and the two servers then keep no
+    /// address of their own.
+    #[test]
+    fn a_server_that_a_rule_of_the_program_refuses_names_itself() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[[servers]]\nname = \"home\"\n\
+             endpoints = [ { url = \"http://one.example.com\", priority = 0 } ]\n\
+             [[servers]]\nname = \"work\"\n\
+             endpoints = [ { url = \"http://one.example.com\", priority = 0 } ]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert!(config.servers.is_empty(), "the two servers go away");
+        assert_eq!(
+            config.the_values_that_the_program_does_not_use,
+            vec![
+                "the address http://one.example.com of the block servers".to_string(),
+                "the server home of the block servers".to_string(),
+                "the server work of the block servers".to_string(),
+            ],
+            "the address and the two servers that it took away must each name themselves"
         );
     }
 }

@@ -206,6 +206,13 @@ async fn main() -> Result<()> {
 
             let config_file = config::load_config()?;
 
+            // T-264. A value of the file that the program does not use took a
+            // line of the log alone, and the user who wrote that value saw
+            // nothing at all. The message stands here, before the first frame:
+            // the box of the message belongs to no `App`, therefore it waits
+            // for the frame that draws it.
+            config::say_the_values_that_the_program_does_not_use(&config_file);
+
             // The cache of the ebooks runs inside a task, and that task holds no
             // `App`. Therefore the limit of the configuration file goes to its slot
             // here, one time. See T-72.
@@ -776,6 +783,20 @@ async fn main() -> Result<()> {
                                     }
 
                                     logic::message::forget();
+
+                                    // T-264. The key `R` reads the
+                                    // configuration file again, therefore the
+                                    // user who corrected that file reads the
+                                    // answer of that key here. The line above
+                                    // removes the message of the refresh,
+                                    // therefore this sentence comes after it:
+                                    // a `say` inside `App::new_with_the_engine`
+                                    // said the words, and the `forget` of the
+                                    // refresh then took them away before the
+                                    // first frame.
+                                    config::say_the_values_that_the_program_does_not_use(
+                                        &app.config,
+                                    );
                                 }
 
                                 // A refresh makes a new application, therefore every

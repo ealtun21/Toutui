@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.93",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The user reads the values of the configuration file that the \
+             program does not use.** The program takes a value of that file \
+             away for two reasons: it cannot read that value, or a rule of the \
+             program refuses it. Each of the two roads wrote a line of the log \
+             alone: a user with a colour of two numbers, with a server of a \
+             name of no character, and with a limit of the cache of the ebooks \
+             that is no number, lost the three of them and the screen said \
+             nothing at all. The row of the message says the number of those \
+             values now, at the start of the program and at the key `R`, and \
+             the log keeps the name and the reason of each of them.",
+        ],
+    },
+    Entry {
         version: "0.8.92",
         date: "15/08/2026",
         body: &[

@@ -20772,3 +20772,186 @@ Three tests of `src/config.rs`:
   T-263, and it stays open).
 - **The line of the Library view of a library of podcasts says no place at all**
   (T-242 to T-263, and it stays open).
+### T-264: the user reads the values of the configuration file that the program does not use
+
+**The state**: corrected on 2026-08-15. The measurement is of the real program
+inside tmux, against the sandbox.
+
+#### The choice of this item
+
+**The user sees no word of a value of the file that the program cannot read**
+stood open from T-258 to T-263, six rounds. Each of those six items gave the
+program a new reason to take a value of the user away, and each of them gave
+that value a line of the log alone. The candidate names the harm of the user
+and not the work of the round (the rule of T-263), therefore it comes before
+the other candidates of T-263: a user who writes a value of their own file, and
+who then reads a screen that says nothing, cannot know that the program uses a
+different value.
+
+#### The fault
+
+`load_config_from` of `src/config.rs` takes a value of the user away for two
+reasons: the program cannot read that value (T-258 and T-259), or a rule of the
+program refuses it (T-260 to T-263). **Each of those roads called `log::warn!`
+and nothing else.** The file belongs to the user: the user wrote that value, and
+the program then used a different value with no word for the user at all.
+
+#### The measurement
+
+The real program v0.8.92, inside tmux, on a screen of 160 columns and 45 rows,
+against the sandbox of `docs/TEST-SERVER.md`. The configuration file of the
+sandbox took three faults together: `background_color = [40, 40]` (a colour of
+two numbers, T-258), a block `[[servers]]` of `name = ""` (a server of a name of
+no character, T-260), and `ebook_cache_mb = "not a number"` (a value of the block
+`reader` that the program cannot read, T-259). The program started, and the log
+held the three warnings:
+
+```text
+[config] the colour background_color holds 2 numbers and not three. The colour of the program stays.
+[config] the server 1 of the block servers has a name of no character. ...
+[config] the program cannot read reader.ebook_cache_mb: invalid type: string "not a number", expected an integer ...
+```
+
+`grep -icE "config|colour|value|file"` of the whole capture of tmux gave **0**.
+The user lost their colour, their server, and their limit of the cache of the
+ebooks, and the screen said nothing.
+
+#### The correction
+
+`ConfigFile` holds `the_values_that_the_program_does_not_use: Vec<String>` now.
+Every road of `load_config_from` that takes a value away pushes the name of that
+value: `colors.<the key>`, `reader.ebook_cache_mb`, `the server N of the block
+servers`, `an address of the server <the name>`, and `the address <the address>
+of the block servers`. `the_words_of_the_values_that_the_program_does_not_use`
+makes the sentence, and `say_the_values_that_the_program_does_not_use` writes it
+in the row of the message.
+
+**The two callers that stand in front of the user say it**: `src/main.rs` at the
+start of the program (before the first frame; the box of the message belongs to
+no `App`, therefore it waits for the frame that draws it), and `src/main.rs` on
+the road of the key `R`, **after** the `logic::message::forget()` of that road.
+The other two readers of the file — the login and the cache of the ebooks — say
+nothing, because a message of a task that the user did not ask for belongs to no
+view (T-164).
+
+For one value, the sentence is `The program does not use 1 value of the
+configuration file. The log names it.` For more, it is `The program does not use
+N values of the configuration file. The log names each of them.` **A count of
+one takes no plural**, because the shape `1 value(s)` is no sentence of a
+person. The words say "does not use" and not "cannot read", because the two
+reasons stand together in one list.
+
+**A trap stands in the road of the key `R`**: that road calls
+`logic::message::forget()` after it makes the new application, to remove the
+message `The program asks the server again…`. The first form of this correction
+put the `say` inside `App::new_with_the_engine`, and that `forget` then took the
+words away before the first frame: the log held the warning of the configuration
+and the screen held no row at all, for eight polls of 0.5 seconds. **The words of
+a refresh belong after that `forget`.**
+
+#### The measurement after the correction
+
+The same file and the same screen. The row above the footer said:
+
+```text
+                    The program does not use 3 values of the configuration file. The log names each of them.
+                      j/k: move  l: play or open  Tab: home/library  S-Tab: the next library  /: search  R: refresh  ?: every key  Q: quit
+```
+
+and the same `grep -icE "config|colour|value|file"` gave **1**. A file of one
+fault gave `The program does not use 1 value of the configuration file. The log
+names it.`
+
+**The control of the same run.** A file with no fault gave no row of a message at
+all, at the start and at the key `R`.
+
+**A second control.** The program started with a file of no fault, and the screen
+held no row of a message. The measurement then wrote a colour of two numbers in
+that file, and the key `R` gave the message. A third run corrected the file while
+the program stood: the message went away after six seconds, and the key `R` then
+said nothing.
+
+#### The build of the fault
+
+Two parts, two builds. `the_values_that_the_program_does_not_use: Vec::new()` in
+`load_config_from` failed
+`config::tests::the_program_names_each_value_of_the_file_that_it_does_not_use`,
+`config::tests::a_server_that_a_rule_of_the_program_refuses_names_itself`, and
+the test of the file below. An early `return` of
+`say_the_values_that_the_program_does_not_use` failed the test of the file below
+with `the user must read the number of the values on the screen`.
+
+#### The tests
+
+`tests/the_user_reads_the_values_of_the_configuration_that_the_program_does_not_use.rs`
+holds **one** test function, because the box of the message is a slot of a
+module and two test functions of one binary fight for it (the shape of T-144 and
+of T-157). `src/config.rs` holds four more:
+`the_program_names_each_value_of_the_file_that_it_does_not_use`,
+`a_file_that_the_program_reads_names_no_value_at_all`,
+`the_sentence_of_the_screen_counts_the_values`, and
+`a_server_that_a_rule_of_the_program_refuses_names_itself`.
+
+#### What this item leaves open
+
+- **A file that the program cannot make, or a directory that does not open,
+  gives every value of the program and it says no word on the screen** (T-264,
+  and it stays open): `make_the_configuration_if_it_is_absent` gives `false` and
+  `load_config_from` gives `ConfigFile::default()` with no name of any value.
+  That road holds no value of the user, therefore the sentence of the count says
+  nothing about it. **This is a candidate and not a measurement.**
+- **The row of the message says the number and not the name** (T-264, and it
+  stays open): a file of many faults gives one number, and the user must read the
+  log to find which values went away. The row holds one line of the width of the
+  screen.
+- **The login screen says no word of a value of the file that the program does
+  not use** (T-264, and it stays open): `AppLogin::new` of `src/login_app.rs`
+  reads the file too, and that screen has a row of its own.
+- **The program reads the configuration file two times at its start** (T-259 to
+  T-264, and it stays open): the log of the measurement held the three warnings
+  two times, one millisecond apart. `src/main.rs` reads the file, and
+  `App::new_with_the_engine` of `src/app.rs` reads it again. The user reads one
+  message, because the box of the message holds one slot, and the log holds each
+  fault two times.
+- **A machine of two names of the file is not measured** (T-263 to T-264, and it
+  stays open): two servers of `http://localhost` and of `http://127.0.0.1` hold
+  two identities of one machine still, and the program sees no such thing.
+  **This is a candidate and not a measurement.**
+- **A name of the prefix of an address is not every name of an identity of an
+  address** (T-262 to T-264, and it stays open).
+- **Two names that differ in their spaces alone are two identities** (T-261 to
+  T-264, and it stays open).
+- **A file whose every server fails is not measured** (T-259 to T-264, and it
+  stays open).
+- **The block `reader` stands on no gate of a build of the fault** (T-259 to
+  T-264, and it stays open).
+- **The words of a fault of the crate `config` are not ASD-STE100** (T-258 to
+  T-264, and it stays open): the sentence of the screen names no such words, and
+  the log holds them.
+- **The colours of the program stand on no test of a length** (T-257 to T-264,
+  and it stays open).
+- **The panel of a description is in no test of the render** (T-253 to T-264,
+  and it stays open).
+- **The two renders of the panel of the episodes of a podcast are in no test**
+  (T-250 to T-264, and it stays open).
+- **The title of a list says no number of the line of the cursor** (T-255 to
+  T-264, and it stays open).
+- **The key `H` of the panel stands on no character of the screen** (T-254 to
+  T-264, and it stays open).
+- **The line of the view of the authors says `[1 book(s)]`** (T-252 to T-264,
+  and it stays open).
+- **The panel of a narrator says "No description available" for every narrator
+  of every library** (T-252 to T-264, and it stays open).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-264, and it stays open).
+- **The key `B` says nothing on either road** (T-248 to T-264, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters, and
+  of the view of the queue gives the Home view** (T-247 to T-264, and it stays
+  open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to T-264,
+  and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-264, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at all**
+  (T-242 to T-264, and it stays open).
