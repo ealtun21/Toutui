@@ -85,7 +85,7 @@ the one before it, and T-140 and T-141 to the one before those.
 **The numbers of the gates of v0.8.74**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
 **1228 of 1228** in 2.5 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1253 of 1253** with
+`cargo nextest run --run-ignored all` gives **1254 of 1254** with
 the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no
 failure in three runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
@@ -10596,8 +10596,8 @@ This prompt names the state of the program on 2026-08-16.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1227 tests in 2.6 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1253 of 1253** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1228 tests in 2.5 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1254 of 1254** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
