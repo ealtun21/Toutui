@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.91",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A server of the configuration file that has the name of an \
+             address does not take the queue and the downloads of a different \
+             server.** The address of the login screen is the identity of the \
+             place of the user when no server of the file holds that address. \
+             A block `[[servers]]` with the name `http://localhost:13399` \
+             therefore held the identity of the server at that address: the \
+             account of a different server showed the queue of it, and the \
+             program said no word at all. A server with a name that starts \
+             with `http://` or `https://` goes away now, the address of the \
+             login screen gives the identity of that server, and the log names \
+             it.",
+        ],
+    },
+    Entry {
         version: "0.8.90",
         date: "15/08/2026",
         body: &[

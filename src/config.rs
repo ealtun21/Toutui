@@ -514,6 +514,10 @@ struct TheRowOfAServer {
 ///   of that server stays: a server has more than one address, and one of them
 ///   answers.
 /// - A server that keeps no address belongs to no pool.
+/// - A name that is an address belongs to no pool: the address of an account
+///   that no server of the file names is the identity of the place of that
+///   user, therefore a name of the prefix `http://` or `https://` can hold the
+///   identity of a different server (T-262).
 /// - A name that a server before it holds already belongs to no pool: two
 ///   servers of one name hold one identity, and the place of one server then
 ///   goes to a different server (T-261). The server of the first block keeps
@@ -563,6 +567,30 @@ fn the_servers_of_the_file(config: &ConfigLib) -> Vec<ServerConfig> {
                  A name is the identity of the place of the user, therefore that server \
                  goes away and the program uses the address of the login screen.",
                 place + 1
+            );
+            continue;
+        }
+
+        // T-262. A name that is an address holds the identity of a server that
+        // the file does not name. `server_key` gives the name of the server for
+        // an address that the file names, and it gives `normalise(the address)`
+        // for every other address. `check_shape` of `src/api/server/address.rs`
+        // gives an address of the prefix `http://` or `https://` alone,
+        // therefore a name of one of those two prefixes can be the identity of
+        // a different server: a measurement of the real program showed the
+        // queue of the server of the port 13399 on the screen of the account of
+        // the port 13500, whose server the file named `http://localhost:13399`.
+        // Such a server goes away, and its address then gives its identity.
+        let name = row.name.trim().to_ascii_lowercase();
+        if name.starts_with("http://") || name.starts_with("https://") {
+            log::warn!(
+                "[config] the server {} of the block servers has the name {}, which is an \
+                 address. The address of an account is the identity of the place of that user \
+                 when no server of the file holds that address, therefore a name that is an \
+                 address can give one identity to two servers: that server goes away and the \
+                 program uses the address of the login screen.",
+                place + 1,
+                row.name
             );
             continue;
         }
@@ -1385,6 +1413,96 @@ endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
         assert_eq!(
             server_key(&config.servers, "http://second:13378"),
             "the server away from home"
+        );
+    }
+
+    /// **A name that is an address held the identity of a different server**
+    /// (T-262, and the rule of T-25). The address of an account that no server
+    /// of the file names is the identity of the place of that user, therefore a
+    /// server of the name `http://second:13378` took the queue and the
+    /// downloads of the server at that address: a measurement of the real
+    /// program showed the queue of the server of the port 13399 on the screen
+    /// of the account of the port 13500. That server goes away now, and its
+    /// own address gives its identity.
+    #[test]
+    fn a_name_that_is_an_address_holds_no_identity_of_a_different_server() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[[servers]]\nname = \"http://second:13378\"\n\
+             endpoints = [ { url = \"http://first:13378\", priority = 0 } ]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        let first = server_key(&config.servers, "http://first:13378");
+        let second = server_key(&config.servers, "http://second:13378");
+        assert_ne!(
+            first, second,
+            "two servers must never hold the same identity of the place of the user"
+        );
+        assert_eq!(
+            first, "http://first:13378",
+            "the address of the account must give the identity of the server of that name"
+        );
+    }
+
+    /// **A server of a name that is an address belongs to no pool** (T-262):
+    /// that server goes away whole, therefore no address of it stands in the
+    /// pool of the server of that address. The program sends the token of the
+    /// account to an address of the pool, and an address of a different server
+    /// must never get it (T-97 and T-128). The prefix `https://` is an address
+    /// too, because `check_shape` gives one of the two prefixes alone.
+    #[test]
+    fn a_server_of_a_name_that_is_an_address_goes_away_whole() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[[servers]]\nname = \"https://second:13378\"\n\
+             endpoints = [ { url = \"http://first:13378\", priority = 0 },\n\
+             { url = \"http://third:13378\", priority = 1 } ]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(
+            config.servers.len(),
+            0,
+            "a server of a name that is an address must belong to no pool"
+        );
+        assert_eq!(
+            pool_for_address(&config.servers, "http://first:13378").len(),
+            1,
+            "the pool must hold the address of the account alone"
+        );
+    }
+
+    /// **A name that holds an address inside it stays** (T-262). This test
+    /// passes on both builds, and it guards the road of the user who names a
+    /// server with words that hold an address: such a name starts with no
+    /// prefix of an address, therefore it is the identity of no other server.
+    #[test]
+    fn a_name_that_holds_an_address_inside_it_stays() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[[servers]]\nname = \"the server at http://second:13378\"\n\
+             endpoints = [ { url = \"http://first:13378\", priority = 0 } ]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(config.servers.len(), 1, "the server of the user must stay");
+        assert_eq!(
+            server_key(&config.servers, "http://first:13378"),
+            "the server at http://second:13378",
+            "the identity of the place of the user must stay"
         );
     }
 

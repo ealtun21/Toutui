@@ -20333,3 +20333,230 @@ measures nothing.
   T-261, and it stays open).
 - **The line of the Library view of a library of podcasts says no place at all**
   (T-242 to T-261, and it stays open).
+
+### T-262: a server of the configuration file with the name of an address holds the identity of a different server
+
+**The state**: corrected on 2026-08-15. The measurement is of the real program
+inside tmux, against the sandbox.
+
+#### The choice of this item
+
+T-261 left two candidates of the identity of a server open: two names that
+differ in their spaces alone, and one address that two servers of the file
+hold. This item takes neither of them, and it says why. Two names that differ
+in their spaces are **two** identities of two servers, therefore no place of a
+user goes to a different server: the fault of them is the eye of the user, and
+not the disk. One address of two servers gives the pool of the first of them,
+and a correction of it takes an address of the user away.
+
+The identity of the place of the user holds a third road that no measurement
+had reached: **the name of a server and the address of an account stand in one
+space of names**. `server_key` gives the name of a server for an address that
+the file names, and it gives the address itself for every other address,
+therefore a **name** that is an address holds the identity of a server that the
+file does not name. That road gives the fault of T-25 itself, and the
+measurement below found it.
+
+#### The fault
+
+`the_servers_of_the_file` of `src/config.rs` reads each server of the block
+apart (T-259), it drops a server whose name holds no character (T-260), and it
+drops a server whose name a server before it holds already (T-261). **It reads
+no name against the addresses of the accounts.**
+
+`server_key` of `src/config.rs`:
+
+```rust
+server_name_for_address(servers, stored_address)
+    .unwrap_or_else(|| normalise(stored_address).to_string())
+```
+
+The fallback is the address of the account. `check_shape` of
+`src/api/server/address.rs` line 24 gives an address of the prefix `http://` or
+`https://` alone, therefore every address of the table `users` starts with one
+of those two. A **name** of one of those two prefixes is then a value of the
+same space: `src/main.rs` line 267 and `src/app.rs` line 772 write that value in
+the column `server` of the tables `queue` and `downloads` of `db.sqlite3`, and
+two servers hold one identity. The doc of `server_key` says that this must never
+happen: "Two servers then never have the same identity, and the application does
+not send the position of one server to a different server."
+
+#### The measurement
+
+The real program v0.8.90, inside tmux, against the sandbox on the port 13399, on
+a screen of 160 columns and 45 rows. A second address of a server comes of
+`docs/harness/one_path_fails.py 13500 13399 requests.log /this/path/never/comes`,
+which forwards every request.
+
+**The server that the file does not name.** `config.toml` with no block
+`[[servers]]`, the account at `http://localhost:13399`, the key `n` on the first
+line of the Home view, and the key `q`:
+
+```text
+────The queue [1 item]────
+➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+```
+
+and the row of the disk `toutuitest|http://localhost:13399|0|A Long Test Book`.
+**The identity of that server is its address**, because the file names it not.
+
+**The server of the name of that address.** The same file with one block:
+
+```toml
+[[servers]]
+name = "http://localhost:13399"
+endpoints = [ { url = "http://127.0.0.1:13500", priority = 0 } ]
+```
+
+the account at `http://127.0.0.1:13500`, and the key `q`:
+
+```text
+👋 Connected as toutuitest        📖 Books (book)        🦜 Toutui v0.8.90
+🔗 127.0.0.1:13500
+────The queue [1 item]────
+➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+```
+
+**The queue of one server came to the screen of a different server**, and the
+disk holds one row still. `grep -icE "config|server|name"` of the log gave
+**1**, and that line is
+`[app] the answer of the account holds the position of 30 media of 32.` — **no
+word of the configuration at all**.
+
+**The control of the same run.** The same file with the name of the server at
+`the server away from home`, the same account, and the same proxy:
+
+```text
+────The queue is empty. Press n on a media to put it in the queue.────
+```
+
+The name of the file is therefore the cause, and not the address and not the
+proxy.
+
+#### The correction
+
+`the_servers_of_the_file` of `src/config.rs`. A server whose name starts with
+`http://` or `https://` goes away, and the log names the place of that server
+and the name:
+
+```text
+[config] the server 1 of the block servers has the name http://localhost:13399,
+which is an address. The address of an account is the identity of the place of
+that user when no server of the file holds that address, therefore a name that
+is an address can give one identity to two servers: that server goes away and
+the program uses the address of the login screen.
+```
+
+The check reads the name of the file with no space at its two ends, and it reads
+it with small letters alone: a name of the prefix `HTTP://` is an address of the
+user too, and it costs no name that the program can keep.
+
+**The check comes before the check of the name that stands already** (T-261),
+and both come before the read of the addresses: a server that keeps no address
+holds its name away from no server after it.
+
+**The class of the correction is the prefix, and not the whole name.** A name of
+the prefix `http://` that no account holds is no identity of another server
+today, and a login of tomorrow makes it one. A name that **holds** an address
+inside it ("the server at http://second:13378") starts with no prefix of an
+address, therefore it stays.
+
+#### The measurement after the correction
+
+The real program v0.8.91, of the same file and the same proxy. The account at
+`http://127.0.0.1:13500`:
+
+```text
+🔗 127.0.0.1:13500
+────The queue is empty. Press n on a media to put it in the queue.────
+```
+
+and the account at `http://localhost:13399`:
+
+```text
+────The queue [1 item]────
+➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+```
+
+The place of the user of the first server stays, the second server takes its own
+address for its identity, and the log holds the WARN line above **two times**,
+which is the evidence of the open candidate of T-259: the program reads the
+configuration file two times at its start.
+
+#### The build of the fault
+
+The condition of the name that is an address with `&& false`, which keeps every
+other line of the file. The two tests fail:
+
+```text
+a_server_of_a_name_that_is_an_address_goes_away_whole ... FAILED
+  left: 1   right: 0
+a_name_that_is_an_address_holds_no_identity_of_a_different_server ... FAILED
+  left: "http://second:13378"   right: "http://second:13378"
+```
+
+#### The tests
+
+Three tests of `src/config.rs`:
+
+- `a_name_that_is_an_address_holds_no_identity_of_a_different_server`
+- `a_server_of_a_name_that_is_an_address_goes_away_whole` (the prefix `https://`,
+  and the pool of the address of the account holds no address of that server)
+- `a_name_that_holds_an_address_inside_it_stays` (the guard of the road of the
+  user who names a server with words that hold an address, and it passes on both
+  builds)
+
+#### What this item leaves open
+
+- **A name of the prefix of an address is not every name of an identity of an
+  address** (T-262, and it stays open): the fallback of `server_key` is
+  `normalise(stored_address)`, and a name that is an address of no prefix
+  reaches no account of today. A login screen of a version that takes an address
+  of no prefix would open that road again. **This is a candidate and not a
+  measurement.**
+- **Two names that differ in their spaces alone are two identities** (T-261 and
+  T-262, and it stays open): the fault of them is the eye of the user, and the
+  paragraph of the choice of this item holds the reason.
+- **One address that two servers of the file hold is not measured** (T-261 and
+  T-262, and it stays open): `pool_for_address` and `server_name_for_address`
+  each give the first server of the list that holds the address, therefore the
+  pool of that account holds the addresses of one of the two servers alone.
+  **This is a candidate and not a measurement.**
+- **A file whose every server fails is not measured** (T-259 to T-262, and it
+  stays open).
+- **The program reads the configuration file two times at its start** (T-259 to
+  T-262, and it stays open).
+- **The block `reader` stands on no gate of a build of the fault** (T-259 to
+  T-262, and it stays open).
+- **The words of a fault of the crate `config` are not ASD-STE100** (T-258 to
+  T-262, and it stays open).
+- **The user sees no word of a value of the file that the program cannot read**
+  (T-258 to T-262, and it stays open): the lines go to the log alone, and a user
+  whose queue is empty has no way to know that a server of their file went away.
+- **The colours of the program stand on no test of a length** (T-257 to T-262,
+  and it stays open).
+- **The panel of a description is in no test of the render** (T-253 to T-262,
+  and it stays open).
+- **The two renders of the panel of the episodes of a podcast are in no test**
+  (T-250 to T-262, and it stays open).
+- **The title of a list says no number of the line of the cursor** (T-255 to
+  T-262, and it stays open).
+- **The key `H` of the panel stands on no character of the screen** (T-254 to
+  T-262, and it stays open).
+- **The line of the view of the authors says `[1 book(s)]`** (T-252 to T-262,
+  and it stays open).
+- **The panel of a narrator says "No description available" for every narrator
+  of every library** (T-252 to T-262, and it stays open).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-262, and it stays open).
+- **The key `B` says nothing on either road** (T-248 to T-262, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters, and
+  of the view of the queue gives the Home view** (T-247 to T-262, and it stays
+  open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to T-262,
+  and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-262, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at all**
+  (T-242 to T-262, and it stays open).
