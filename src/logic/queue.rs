@@ -378,6 +378,29 @@ pub fn the_lines_of_the_queue(
         .collect()
 }
 
+/// Gives the row of the places that one live message makes. See T-235.
+///
+/// **A message of the server takes the place of the row of the request**: the
+/// render of the view of the queue writes this row over the row that the key
+/// `q` read, because a message is always newer than a request (T-184). The old
+/// shape of that render made a row of two values, and the line of every media
+/// of the queue then lost the time that is left and it said the length of the
+/// media again — one message carries the position of **every** media of the
+/// account, therefore one message of one media reached every line.
+///
+/// The row holds the three values of `the_places_of_the_queue` of
+/// `src/app.rs`, in that same sequence: the percent, the mark of the end, and
+/// the place of the user in seconds.
+///
+/// The function is pure, therefore a test needs no server and no screen.
+pub fn the_row_of_a_live_message(live: &crate::api::live::Progress) -> Vec<String> {
+    vec![
+        live.percent.clone(),
+        live.finished.clone(),
+        live.place.clone(),
+    ]
+}
+
 /// Gives the place of the user of a row of `places`, in seconds. See T-234.
 ///
 /// The third value of the row holds that place. A row of a version before

@@ -116,16 +116,23 @@ pub enum Packet {
 
 /// The position of one media, in the form that the mark of a line needs.
 ///
-/// The two values have the exact form of
-/// `collect_progress_percentage_book` and of `collect_is_finished_book`,
-/// therefore the screen shows a live value and a value of a request in the
-/// same way. See T-44.
+/// The three values have the exact form of
+/// `collect_progress_percentage_book`, of `collect_is_finished_book`, and of
+/// `collect_current_time_prg`, therefore the screen shows a live value and a
+/// value of a request in the same way. See T-44.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Progress {
     /// The part of the media that the user heard, in percent, as a text.
     pub percent: String,
     /// `Finished` or `Not finished`.
     pub finished: String,
+    /// The place of the user of that media, in seconds, as a text. **A line of
+    /// the view of the queue says the time that is left with this value**
+    /// (T-234), and a message that gave the percent alone took that time away
+    /// and gave the length of the media back (T-235). A message that holds no
+    /// such value gives the text of 0, and the line of that media then keeps
+    /// the length.
+    pub place: String,
 }
 
 /// One row of `mediaProgress` of the message `user_updated`.
@@ -139,6 +146,9 @@ struct ProgressRow {
     progress: f64,
     #[serde(default)]
     is_finished: bool,
+    /// The place of the user, in seconds. See T-235.
+    #[serde(default)]
+    current_time: f64,
     /// The identity of the episode, for a podcast. A book gives `null`.
     #[serde(default)]
     episode_id: Option<String>,
@@ -330,6 +340,7 @@ pub fn progress_of_the_user(body: &serde_json::Value) -> Vec<(String, Progress)>
                 } else {
                     "Not finished".to_string()
                 },
+                place: row.current_time.to_string(),
             };
 
             let key = crate::logic::live::the_key_of_the_media(

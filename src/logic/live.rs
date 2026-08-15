@@ -203,6 +203,7 @@ mod tests {
         Progress {
             percent: percent.to_string(),
             finished: "Not finished".to_string(),
+            place: "0".to_string(),
         }
     }
 

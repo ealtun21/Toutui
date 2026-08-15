@@ -16058,3 +16058,112 @@ therefore the two views of one media say one thing.
 - **The key `X` of the view of the bookmarks of a podcast** removes a place of
   another episode with the same words (T-223 to T-234 each left it open, and
   this item did not close it).
+
+### T-235: the line of the view of the queue keeps the time that is left when a message of the server comes
+
+**This item measures a live message that reaches the view of the queue, after
+T-234 gave that view the time that is left.** One message of the server holds
+the position of every media of the account (T-184), and this item asks what
+that message does to a line of the queue that names a time already.
+
+#### The measurement
+
+The real program v0.8.63 inside tmux, against the sandbox (podman on :13399),
+of the library `Books`, with the table `queue` of the account empty at the
+start. The server held these places: `A Long Test Book` at `currentTime` 900
+of a duration of 1800 with the progress 0.5, `A Second Book Of Many Hours` at
+7200 of 28800 with the progress 0, and `A Book Of Many Hours` at 7200 of 28800
+with the progress 0.9. The user pressed `n`, `j`, `n`, `j`, and `n` on the
+first three lines of the shelf Continue Listening of the Home view, and then
+`q`.
+
+The view of the queue:
+
+```text
+➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+      2. 📕 A Second Book Of Many Hours — Many Hours Author  (6h left)
+  90% 3. 📕 A Book Of Many Hours — Many Hours Author  (6h left)
+```
+
+Then a second client of the same account moved in one media of the queue:
+`PATCH /api/me/progress/e2b76945-10de-45f9-a09c-86c4666b9808` with the body
+`{"progress":0.42}`, with `curl`. The log of the program then said
+`[live] user_updated: the position of 27 media.` The same view, at the next
+frame, and it stayed so:
+
+```text
+➤ 50% 1. 📕 A Long Test Book — Long Author  (30m)
+  42% 2. 📕 A Second Book Of Many Hours — Many Hours Author  (8h)
+  90% 3. 📕 A Book Of Many Hours — Many Hours Author  (8h)
+```
+
+**Every line of the view lost the time that is left, and each of them said the
+length of its media again**, and the message named one media alone. One
+message carries the position of every media of the account (T-184), therefore
+a message of one media reaches every line of that view.
+
+**The control of the same run** (the trap 206): the percent of the line 2
+moved from nothing to `42%` in that same frame. **The message came and the
+render read it: it took the percent of the message and it threw the place of
+the user away.**
+
+#### The fault of the source
+
+- `src/app.rs`, `queue_lines`: the render wrote the row of a live message over
+  the row of the request, and that row held two values:
+  `vec![live.percent, live.finished]`. T-234 gave the row of the places a
+  third value, the place of the user in seconds, and this row held two.
+  `the_place_of_the_row` of `src/logic/queue.rs` then gave `None`, and
+  `the_time_of_the_line` gave the length of the media.
+- `src/api/live.rs`, `ProgressRow` and `Progress`: the row of `mediaProgress`
+  of the message holds `currentTime`, and the program read the percent and the
+  mark of the end of it alone.
+
+#### The correction
+
+- `src/api/live.rs`: `ProgressRow` reads `current_time` (`#[serde(default)]`),
+  and `Progress` holds a third value, `place`, the place of the user in
+  seconds as a text. A message that holds no such value gives the text of 0,
+  and the line of that media then keeps the length of it.
+- `src/logic/queue.rs`, a new function `the_row_of_a_live_message`: it gives
+  the three values of `the_places_of_the_queue` of `src/app.rs`, in that same
+  sequence.
+- `src/app.rs`, `queue_lines`: it calls that function.
+- `tests/the_line_of_the_view_of_the_queue_reads_the_live_message.rs` holds
+  the rule, and the parts of it stay in one function (T-144 and T-157).
+  **Three builds of the fault each fail it**: a row of a message of two
+  values, a row that reads the percent of the message for the place of the
+  user, and a message that gives no place of the user.
+
+The same measurement of the corrected program: after a `PATCH` of
+`{"progress":0.55}` the line 1 said
+`55% 1. 📕 A Second Book Of Many Hours — Many Hours Author  (6h left)`, and the
+two other lines kept `(15m left)` and `(6h left)`. A `PATCH` of
+`{"currentTime":14400}` of that same media then gave `(4h left)` at the next
+frame.
+
+**The decision, and the reason for it: the view of the queue follows the place
+of the account now.** The open paragraph of T-230 to T-234 said that the place
+of that view is a photograph of the moment of the key `q`. A message of the
+server is the one road that gives that view a newer place with no key of the
+user, and that road took the place away instead of giving it. The photograph
+stays for a media that no message names.
+
+#### What this item leaves open
+
+- **The place of the view of the queue comes of the key `q` and of a live
+  message, and no other key and no tick asks for it again** (T-230 to T-235):
+  therefore a media that no message names keeps the place of the moment of
+  that key.
+- **The lines of the view of the bookmarks hold no place of the user** (T-229
+  to T-235, and it stays open).
+- **The lines of the view of the search and of the view of the lists hold no
+  place at all** (T-228 to T-235, and it stays open).
+- **The view of the queue of the offline mode is not measured** (T-230 to
+  T-235): that view gives no place at all, therefore every line of it keeps
+  the length of its media.
+- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone** (T-226 to
+  T-235, and it stays open).
+- **The key `X` of the view of the bookmarks of a podcast** removes a place of
+  another episode with the same words (T-223 to T-235 each left it open, and
+  this item did not close it).

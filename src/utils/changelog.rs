@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.64",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A message of the server took the time that is left away from \
+             every line of the view of the queue.** A different client of the \
+             account moved in one media, and each line of that view then said \
+             the length of its media again. The lines keep the time that is \
+             left now, and they follow the place of the account.",
+        ],
+    },
+    Entry {
         version: "0.8.63",
         date: "15/08/2026",
         body: &[

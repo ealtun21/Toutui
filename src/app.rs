@@ -7019,6 +7019,11 @@ impl App {
     /// client of the same account moved in a media of the queue, and the line
     /// then shows the new place at the next frame, as the line of the Home view
     /// does (T-47 and T-228).
+    ///
+    /// **The row of a message holds the place of the user too** (T-235). A row
+    /// of the percent and of the mark of the end alone took the time that is
+    /// left away from every line of this view, because one message carries the
+    /// position of every media of the account.
     pub fn queue_lines(&self, entries: &[crate::logic::queue::Entry]) -> Vec<String> {
         let mut places = crate::logic::queue::the_places();
 
@@ -7026,7 +7031,7 @@ impl App {
             let key = entry.key();
 
             if let Some(live) = crate::logic::live::progress_of(&key) {
-                places.insert(key, vec![live.percent, live.finished]);
+                places.insert(key, crate::logic::queue::the_row_of_a_live_message(&live));
             }
         }
 
