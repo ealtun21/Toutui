@@ -1122,6 +1122,12 @@ impl App {
             _ids_cnt_list = collect_ids_cnt_list(&shelves).await;
         }
 
+        // **A start that reads no place of the account empties the box of the
+        // places** (T-241). The key `R` makes a new application (T-185), and a
+        // value of the program that stood before it must reach no line of a
+        // later frame. The offline mode reads no place at all.
+        crate::logic::the_positions::keep_the_places(std::collections::BTreeMap::new());
+
         // **The place of the user belongs to every line of the Home view**
         // (T-228). This block stood in the branch of the books alone, therefore
         // a line of a library of podcasts held no percent at all: the two
@@ -1166,6 +1172,14 @@ impl App {
                 };
 
             the_account = account_of_the_token;
+
+            // **The Library view and the view of the search hold no list of the
+            // places of their own** (T-241). This answer names every media that
+            // the account played, therefore the box gives the place of a line of
+            // any view of the program and it costs no request at all.
+            crate::logic::the_positions::keep_the_places(
+                crate::logic::the_positions::the_places_of_the_account(&the_positions).await,
+            );
 
             let mut the_media_that_need_a_request: Vec<(usize, String, Option<String>)> =
                 Vec::new();
@@ -1288,17 +1302,22 @@ impl App {
         // that did not read it takes it here, and that wait is the wait of a
         // request that ran already.
         if let Some(task) = the_account_of_the_token.take() {
-            the_account = task
-                .await
-                .unwrap_or_else(|error| {
-                    log::warn!("[app] the task of the account stopped: {}", error);
-                    (
-                        crate::api::me::permissions::TheAccount::default(),
-                        Vec::new(),
-                        false,
-                    )
-                })
-                .0;
+            let (account_of_the_token, the_positions, _) = task.await.unwrap_or_else(|error| {
+                log::warn!("[app] the task of the account stopped: {}", error);
+                (
+                    crate::api::me::permissions::TheAccount::default(),
+                    Vec::new(),
+                    false,
+                )
+            });
+
+            the_account = account_of_the_token;
+
+            // The branch of the shelves did not run, therefore the box of the
+            // places of the account takes the answer here. See T-241.
+            crate::logic::the_positions::keep_the_places(
+                crate::logic::the_positions::the_places_of_the_account(&the_positions).await,
+            );
         }
 
         let account = the_account;
@@ -7062,6 +7081,107 @@ impl App {
             the_part_of_the_row(&self.book_progress_cnt_list, selected, 0),
             &the_time_of_the_row,
             the_part_of_the_row(&self.book_progress_cnt_list, selected, 1),
+        )
+    }
+
+    /// Gives the place of the panel of the selected line of the Library view.
+    /// See T-241.
+    ///
+    /// **The panel of a book of this view said the author and the year alone**:
+    /// the measurement of 2026-08-15 gave `Author: Many Hours Author - Year:
+    /// N/A` for `A Book Of Many Hours`, and the panel of that same book of the
+    /// Home view of that same program said `Progress: 38%, 5h left, Not
+    /// finished`.
+    pub fn the_place_of_the_panel_of_the_library(
+        &self,
+        selected: usize,
+    ) -> crate::logic::the_panel_of_a_line::ThePlaceOfThePanel {
+        self.the_place_of_the_panel_of_this_book(
+            &self.ids_library,
+            &self.duration_library,
+            selected,
+        )
+    }
+
+    /// The same place for the view of the search of the books. See T-241.
+    pub fn the_place_of_the_panel_of_the_search_book(
+        &self,
+        selected: usize,
+    ) -> crate::logic::the_panel_of_a_line::ThePlaceOfThePanel {
+        self.the_place_of_the_panel_of_this_book(
+            &self.ids_search_book,
+            &self.duration_library_search_book,
+            selected,
+        )
+    }
+
+    /// Makes the place of the panel of one line of a view of the books of the
+    /// library. See T-241.
+    ///
+    /// **Neither of the two views asks the server for the place of a book**:
+    /// the box of `crate::logic::the_positions` holds the place of every media
+    /// of the account, and the start of the program fills it with the answer
+    /// that it reads for the permissions already (T-127).
+    ///
+    /// **A book that the box does not name played never**: the answer of the
+    /// account holds every media that this account played, therefore the panel
+    /// of such a line says the words of a media of no place, as the Home view
+    /// says them.
+    fn the_place_of_the_panel_of_this_book(
+        &self,
+        ids: &[String],
+        lengths: &[f64],
+        selected: usize,
+    ) -> crate::logic::the_panel_of_a_line::ThePlaceOfThePanel {
+        let key = ids
+            .get(selected)
+            .filter(|one| !one.is_empty())
+            .map(|id| crate::logic::live::the_key_of_the_media(id, None));
+
+        let plays_now = key
+            .as_ref()
+            .zip(self.playing_media().as_ref())
+            .is_some_and(|(key, playing)| key == playing);
+
+        // **A live message of the server is newer than the answer of the
+        // start** (T-240): a second client of the account moves in a book, and
+        // the panel of it must not say the value of the request.
+        let live = key
+            .as_ref()
+            .and_then(|key| crate::logic::live::progress_of(key));
+
+        let length = lengths.get(selected).copied();
+
+        let row = key
+            .as_ref()
+            .and_then(|key| crate::logic::the_positions::the_place_of(key));
+
+        let the_place_of_the_row = row
+            .as_ref()
+            .and_then(|row| row.get(2))
+            .and_then(|place| place.trim().parse::<f64>().ok())
+            .unwrap_or(0.0);
+
+        let the_time_of_the_row = crate::utils::convert_seconds::convert_seconds_for_prg(
+            length.unwrap_or(0.0),
+            the_place_of_the_row,
+        );
+
+        let of_the_row = |part: usize| -> &str {
+            row.as_ref()
+                .and_then(|row| row.get(part))
+                .map(String::as_str)
+                .unwrap_or(" N/A")
+        };
+
+        crate::logic::the_panel_of_a_line::the_place_of_the_panel(
+            plays_now,
+            self.the_place_of_the_playback(),
+            live.as_ref(),
+            length,
+            of_the_row(0),
+            &the_time_of_the_row,
+            of_the_row(1),
         )
     }
 

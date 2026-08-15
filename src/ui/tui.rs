@@ -2553,7 +2553,7 @@ impl App {
 
     // info about the book or podacst for `Library`
     fn render_info_library(&self, area: Rect, buf: &mut Buffer) {
-        let _duration_library_conv = convert_seconds(self.duration_library.clone());
+        let duration_library_conv = convert_seconds(self.duration_library.clone());
 
         // A line of a series tells the number of the books and the whole
         // length. See T-22.
@@ -2586,15 +2586,23 @@ impl App {
                 .render(area, buf);
             } else {
                 let of_the_disk = the_copy_of_the_disk(at(&self.ids_library, selected));
+
+                // **The panel of a book of this view said no place of the
+                // user** (T-241): it named the author and the year, while the
+                // panel of that same book of the Home view of that same frame
+                // said the percent, the time that is left, and the mark of the
+                // end.
+                let place = self.the_place_of_the_panel_of_the_library(selected);
+
                 Paragraph::new(format!(
-                    "Author: {} - Year: {}{}", //- Duration: {}\nProgress:{} {}{}",
+                    "Author: {} - Year: {} - Duration: {}{}\nProgress: {}%, {} {}",
                     at(&self.auth_names_library, selected),
                     at(&self.published_year_library, selected),
+                    at(&duration_library_conv, selected),
                     of_the_disk,
-                    //duration_library_conv[selected],
-                    //self.book_progress_library[selected][0], // percentage progression
-                    //format!("{}",convert_seconds_for_prg(self.duration_library[selected], self.book_progress_library_cur_time[selected][0])), // time left
-                    //self.book_progress_library[selected][1] // is_finished
+                    place.percent,               // percentage progression
+                    place.the_time_that_is_left, // time left
+                    place.the_end,               // is finished
                 ))
                 .wrap(Wrap { trim: true })
                 .left_aligned()
@@ -2773,7 +2781,7 @@ impl App {
 
     // info about the book or podacst for `SearchBook`
     fn render_info_search_book(&self, area: Rect, buf: &mut Buffer, list_state: &ListState) {
-        let _duration_library_search_book_conv =
+        let duration_library_search_book_conv =
             convert_seconds(self.duration_library_search_book.clone());
 
         if let Some(selected) = list_state.selected() {
@@ -2791,15 +2799,20 @@ impl App {
                     .get(selected)
                     .map(|id| the_copy_of_the_disk(id))
                     .unwrap_or("");
+                // **The panel of a book of the view of the search said no place
+                // of the user** (T-241). The rule of the Library view is the
+                // rule of this view: the two panels take one function.
+                let place = self.the_place_of_the_panel_of_the_search_book(selected);
+
                 Paragraph::new(format!(
-                    "Author: {} - Year: {}{}", //- Duration: {}\nProgress:{} {}{}",
+                    "Author: {} - Year: {} - Duration: {}{}\nProgress: {}%, {} {}",
                     at(&self.auth_names_search_book, selected),
                     at(&self.published_year_library_search_book, selected),
+                    at(&duration_library_search_book_conv, selected),
                     of_the_disk,
-                    //  duration_library_search_book_conv[selected],
-                    //  self.book_progress_search_book[selected][0], // percentage progression
-                    //  format!("{}",convert_seconds_for_prg(self.duration_library_search_book[selected], self.book_progress_search_book_cur_time[selected][0])), // time left
-                    //  self.book_progress_search_book[selected][1] // is finished
+                    place.percent,               // percentage progression
+                    place.the_time_that_is_left, // time left
+                    place.the_end,               // is finished
                 ))
                 .wrap(Wrap { trim: true })
                 .left_aligned()

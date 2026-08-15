@@ -16787,3 +16787,169 @@ does the work) before that `PATCH` gives a row of any percent at all.
 - **The panel of a line of an episode says the length of the media and not the
   time that is left** (T-236 to T-240, and it stays open): the format of that
   panel names no time, and the program holds the length as a number now.
+
+### T-241: the panel of a book of the Library view holds the place of the user
+
+**This item measures the first paragraph of "What this item leaves open" of
+T-240: the panel of a line of a book of the Library view and of the view of the
+search says no place at all.** Those two panels named the author and the year,
+and no percent, no time that is left, and no mark of the end stood in either of
+them. The answer that the start reads for the permissions of the account holds
+the place of every media of that account already (T-127), therefore the value
+stood in the program and no view of a book of the library said it.
+
+#### The measurement
+
+The real program v0.8.69 driven inside tmux by `docs/harness/drive.sh`, against
+the sandbox (podman Audiobookshelf on the port 13399). The server held the book
+`A Book Of Many Hours` (eight hours, 28800 seconds) at 10800 seconds with the
+percent 38:
+
+```bash
+curl -X DELETE -H "Authorization: Bearer $TOKEN" \
+    http://localhost:13399/api/me/progress/6ba57b9a-acb5-44f9-b2b6-39ad9107b420
+curl -X PATCH -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+    -d '{"currentTime":10800,"duration":28800,"progress":0.375,"isFinished":false}' \
+    http://localhost:13399/api/me/progress/6ba57b9a-acb5-44f9-b2b6-39ad9107b420
+```
+
+The program started at the library `Books`. **The control of the same run** (the
+trap 206): the Home view of that same program, at that same second, said the
+place of that book with a number.
+
+```text
+➤ 38% A Book Of Many Hours
+Author: Many Hours Author - Year: N/A - Duration: 8h
+Progress: 38%, 5h left, Not finished
+```
+
+The key `Tab` opened the Library view, and nine keys `j` took the line to that
+same book:
+
+```text
+➤     A Book Of Many Hours
+Author: Many Hours Author - Year: N/A
+```
+
+The key `/` and the words `Many Hours` gave the view of the search, and the
+panel of the first line of it said the same:
+
+```text
+➤ A Book Of Many Hours
+Author: Many Hours Author - Year: N/A
+```
+
+**One program of one account said the place of one book in one view and it said
+nothing of that place in two others.** The line of those two views holds no mark
+of a percent either (`crate::ui::marks::of_library` gives the mark of the media
+that plays alone), therefore no part of the Library view and no part of the view
+of the search named the place of the user of a book.
+
+The words of the source say why: the two panels of `src/ui/tui.rs` held the
+place of the user in a comment of the maintainer before this fork, with the
+lists `book_progress_library` and `book_progress_search_book` of `App` beside
+them. The lists were never filled: the code that filled them read `_ids_cnt_list`
+— the list of the **Home** view — and it asked `GET /api/me/progress/:id` one
+time for each line of it.
+
+#### The correction
+
+**One request of `GET /api/me` gives the place of every media of the account**
+(T-127), and the start of the program asks that endpoint for the permissions
+already. The correction therefore costs no request at all.
+
+`crate::logic::the_positions` takes a box of the places of the account:
+
+- `the_places_of_the_account(rows)` makes a map of the answer of `GET /api/me`.
+  The key names the episode after the item (T-223), and the row holds the three
+  values of `App::book_progress_cnt_list` and of `the_places_of_the_queue`: the
+  percent of the user, the mark of the end, and the place of the user in
+  seconds (T-234).
+- `keep_the_places(places)` writes it, and `the_place_of(key)` gives one row.
+  The render calls the second one at each frame for the line that the user
+  selected, therefore it clones one row and not the whole list.
+
+`App::new` writes the box with the answer that the two branches of the start
+read already, and it empties the box before them: the key `R` makes a new
+application (T-185), and the offline mode reads no place at all.
+
+`App::the_place_of_the_panel_of_the_library` and
+`App::the_place_of_the_panel_of_the_search_book` take one function together, as
+the three panels of T-239 do. That function gives the three values to
+`crate::logic::the_panel_of_a_line::the_place_of_the_panel`, therefore the
+sequence of the three roads to the place of a media is the sequence of every
+panel of the program: **the engine of this program first** (T-239), **the row of
+a live message after it** (T-240), and **the row of the box last**. A book that
+the answer of the account did not name played never (T-127), and the panel of
+that line then says ` N/A`, as the panel of the Home view says it.
+
+The two panels of `src/ui/tui.rs` say the format of the panel of the Home view:
+`Author: {} - Year: {} - Duration: {}{}\nProgress: {}%, {} {}`.
+
+#### The measurement of the corrected program
+
+The same run, the same book, the same second. The Library view:
+
+```text
+➤     A Book Of Many Hours
+Author: Many Hours Author - Year: N/A - Duration: 8h
+Progress: 38%, 5h left, Not finished
+```
+
+The view of the search said the same words, and the Home view of that same run
+said them too.
+
+**The road of a live message** (T-240): a second client of the account moved
+that book to 21600 seconds while the line of the Library view stood on it. The
+log said `[live] user_updated: the position of 27 media.`, and the panel of the
+next frame said `Progress: 38%, 2h left, Not finished` — the time that is left
+came of the place of the message, and the percent stayed at 38 because the row
+of the server stayed at 0.375 (the trap of the sandbox of T-240).
+
+**The road of the engine** (T-239): the key `l` of that line started the
+playback with `TOUTUI_AUDIO_DEVICE=null`, and 45 seconds later one frame said
+`Progress: 83%, 1h24m left, Not finished` for the panel while the row of the
+player of that same frame said
+`▶ 6:36:04 / 8:00:00 | Elapsed: 6:36:04 | Left: 1:23:56 (83%)`.
+
+#### The test
+
+`tests/the_panel_of_a_book_of_the_library_holds_the_place.rs`, in one function
+(T-144 and T-157). It reads the map of `the_places_of_the_account` for a book
+and for an episode, and it reads the block of the three functions of the source
+(the trap 209). **The build of the fault**: the two panels of `src/ui/tui.rs`
+back at `Author: {} - Year: {}{}` fails the test at the first assert of the
+format.
+
+#### What this item leaves open
+
+- **The line of the Library view and the line of the view of the search hold no
+  mark of the percent** (T-228 to T-241, and it stays open): the panel of those
+  two views says the place now, and `crate::ui::marks::of_library` gives the
+  mark of the media that plays alone. The box of the places of the account
+  reaches every line of those two views with no request at all.
+- **The panel of a line of the view of the lists, of the view of the series, and
+  of the view of the books of a series is not measured** (T-241): those views
+  name a book of the library too.
+- **A media of the queue that no playback of this program moves keeps the place
+  of the moment of the key `q`** (T-230 to T-241, and it stays open): a live
+  message is the one other road (T-235), and the view of the queue reads it
+  already. The panel of a line of that view is not measured.
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-241, and it stays open).
+- **The view of the queue of the offline mode is not measured** (T-230 to
+  T-241).
+- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone** (T-226 to
+  T-241, and it stays open).
+- **The key `X` of the view of the bookmarks of a podcast** removes a place of
+  another episode with the same words (T-223 to T-241 each left it open, and
+  this item did not close it).
+- **The panel of a line of an episode says the length of the media and not the
+  time that is left** (T-236 to T-241, and it stays open): the format of that
+  panel names no time, and the program holds the length as a number now.
+- **The box of the places of the account goes old while the program stands**
+  (T-241): the engine of this program and a live message of the server each
+  reach the panel before it, therefore no measurement of this round found a
+  value of that box that the program could correct. A media that a second
+  program of this account moves with no live message is the road that stays
+  open.

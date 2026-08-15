@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.70",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The panel of a book of the Library view and of the view of \
+             the search said no place of the user.** The two panels named the \
+             author and the year, while the panel of that same book of the \
+             Home view of the same screen said `Progress: 38%, 5h left, Not \
+             finished`. The two panels say the percent, the time that is \
+             left, and the mark of the end now. The place of every media of \
+             the account comes with the answer that the start reads already, \
+             therefore this costs no request of the server.",
+        ],
+    },
+    Entry {
         version: "0.8.69",
         date: "15/08/2026",
         body: &[

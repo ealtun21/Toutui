@@ -17,6 +17,7 @@
 //! those media as it did before, and it asks for no other.
 
 use crate::api::me::get_media_progress::Root;
+use std::collections::BTreeMap;
 
 /// Reads the row of one media out of the answer of `GET /api/me`.
 ///
@@ -50,6 +51,84 @@ pub fn the_place_of_a_media<'a>(
                 None => row.episode_id.is_null(),
             }
     })
+}
+
+/// The place of the user of every media of the account, keyed by
+/// `crate::logic::live::the_key_of_the_media`. See T-241.
+///
+/// **A view that holds no list of the places of its own reads this box.** The
+/// Library view and the view of the search each name a book of the library, and
+/// neither of them asked the server for the place of that book: the panel of
+/// such a line said the author and the year alone, while the panel of that same
+/// book of the Home view of that same frame said `Progress: 38%, 5h left, Not
+/// finished`.
+///
+/// The row holds the three values of `App::book_progress_cnt_list` and of
+/// `the_places_of_the_queue`: the percent of the user, the mark of the end, and
+/// the place of the user in seconds.
+fn box_of_the_places() -> &'static std::sync::Mutex<BTreeMap<String, Vec<String>>> {
+    static PLACES: std::sync::OnceLock<std::sync::Mutex<BTreeMap<String, Vec<String>>>> =
+        std::sync::OnceLock::new();
+    PLACES.get_or_init(|| std::sync::Mutex::new(BTreeMap::new()))
+}
+
+/// Writes the place of the user of every media of the account. See T-241.
+///
+/// **The list takes the place of the list that came before it**: `App::new`
+/// writes it, and the key `R` makes a new application (T-185). A start that
+/// read no place of the account therefore empties the box, and no value of a
+/// program that stood before this one stays on the screen.
+pub fn keep_the_places(places: BTreeMap<String, Vec<String>>) {
+    if let Ok(mut slot) = box_of_the_places().lock() {
+        *slot = places;
+    }
+}
+
+/// Gives the place of the user of one media of the account. See T-241.
+///
+/// The render calls this at each frame for the line that the user selected,
+/// therefore it clones one row and not the whole list. A media that the answer
+/// of the account did not name gives nothing at all, and the panel of that line
+/// then says the words of a media that never played.
+pub fn the_place_of(key: &str) -> Option<Vec<String>> {
+    match box_of_the_places().lock() {
+        Ok(places) => places.get(key).cloned(),
+        Err(_) => None,
+    }
+}
+
+/// Makes the box of the places out of the answer of `GET /api/me`. See T-241.
+///
+/// **The answer of the account holds every media that this account played**
+/// (T-127), therefore one request gives the place of every line of every view,
+/// and a library of 2056 items costs no request at all.
+///
+/// The key names the episode after the item, as every key of a place does: two
+/// episodes of one podcast hold the identity of that podcast (T-223).
+pub async fn the_places_of_the_account(rows: &[Root]) -> BTreeMap<String, Vec<String>> {
+    use crate::api::utils::collect_get_media_progress::{
+        collect_current_time_prg, collect_is_finished_book, collect_progress_percentage_book,
+    };
+
+    let mut places = BTreeMap::new();
+
+    for row in rows {
+        let key = crate::logic::live::the_key_of_the_media(
+            row.library_item_id.as_str(),
+            row.episode_id.as_str(),
+        );
+
+        places.insert(
+            key,
+            vec![
+                collect_progress_percentage_book(row).await,
+                collect_is_finished_book(row).await,
+                collect_current_time_prg(row).await.to_string(),
+            ],
+        );
+    }
+
+    places
 }
 
 #[cfg(test)]
