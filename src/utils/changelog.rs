@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.60",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key n on a media that waits already said a number that no \
+             line of the queue held.** The message said that the media is \
+             number 3 of the queue, and the view of that same key then showed \
+             two lines: the disk holds one row for one media, therefore the \
+             row of the second place went away. The queue holds that media one \
+             time now, it moves to the end, and the number of the message is \
+             the number of its line.",
+        ],
+    },
+    Entry {
         version: "0.8.59",
         date: "15/08/2026",
         body: &[

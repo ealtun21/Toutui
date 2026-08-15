@@ -15620,3 +15620,127 @@ what they held before this item.
 - **The key `X` of the view of the bookmarks of a podcast** removes a place of
   another episode with the same words (T-223 to T-229 each left it open, and
   this item did not close it).
+
+### T-231: the number of the key `n` is the number of a line of the queue
+
+**This item takes the first paragraph of "What this item leaves open" of
+T-230.** That paragraph said that the key `n` on a media that stands in the
+queue already names a number that no line of the view holds, and that the
+memory of the process and the disk of the queue do not agree on such a media.
+**T-147 says that the disk is the truth**, and the disk holds one row for one
+media.
+
+#### The measurement
+
+The real program v0.8.59 inside tmux, against the sandbox (podman on :13399),
+of the library `Books`, with the table `queue` of the account empty at the
+start. The user pressed `n` on `A Long Test Book`, `j`, `n` on
+`A Big Book Of A Scan`, and `n` on that same book again. The three messages of
+the three keys:
+
+```text
+"A Long Test Book" is number 1 of the queue. Press q to see the queue.
+"A Big Book Of A Scan" is number 2 of the queue. Press q to see the queue.
+"A Big Book Of A Scan" is number 3 of the queue. Press q to see the queue.
+```
+
+The key `q` of that same second:
+
+```text
+The queue [2 items]
+50% 1. 📕 A Long Test Book — Long Author  (30m)
+77% 2. 📕 A Big Book Of A Scan — Big Author  (0m)
+```
+
+**The queue of the disk of that same moment held two rows, of the places 0 and
+2**:
+
+```text
+0|9a671047-6146-4003-8510-d215db074a9c||A Long Test Book
+2|9485e88c-ab57-471a-bc05-d4fe01be1607||A Big Book Of A Scan
+```
+
+**The control of the same run** (the trap 206): the two keys `n` before that
+one each named the number of a line of that same view, therefore the row of the
+message and the key do their work.
+
+#### The fault of the source
+
+- `src/logic/queue.rs`, `Queue::add`: the function pushed the entry and it gave
+  `entries.len()`. Its doc said that "a media that stands in the queue already
+  goes in a second time. The user can want to hear one episode two times, and a
+  rule that refuses it gives no value."
+- `src/db/migrate.rs`, `migrate_to_v7`: the primary key of the table `queue` is
+  `(username, server, id_item, id_pod)`. `crate::db::crud::save_the_queue`
+  removes every row of the account and it then writes one row for each entry
+  with `INSERT OR REPLACE`, therefore the two entries of one media give **one**
+  row, of the last place of the two. The queue of three entries of the
+  measurement wrote the places 0, 1, and 2, and the row of the place 1 went away
+  with the row of the place 2.
+- **The doc of the memory promised a function that the disk does not have**
+  (T-118, one level lower): the program said the number of its memory, and
+  every program of the account read the queue of the disk after it.
+
+#### The correction
+
+- `src/logic/queue.rs`: the new `Queue::take_the_key_out`, and `Queue::add`
+  calls it before the push. **A media that waits already moves to the end**, and
+  the answer is the place that it takes there. That is the queue that the disk
+  held already: the row of the place 2 of the measurement stands after the row
+  of the place 0, therefore the correction changes no queue of a disk of a user
+  and it needs no migration.
+- `src/logic/queue.rs`: `Queue::put_at_the_front` calls it too. A playback that
+  did not start puts its media at the front (T-146), and the user can have
+  pressed the key `n` on that same media while it played: the disk of such a
+  queue held that media at the place of the entry of the key `n` and **not** at
+  the front, therefore the media of a playback that did not start did not stand
+  where T-146 says.
+- `tests/the_queue_holds_a_media_one_time.rs` holds the rule, and the parts of
+  it stay in one function (T-144 and T-157). `Queue` holds no lock and no global
+  value, therefore that test needs no database, no server, and no screen.
+  **Two builds of the fault each fail it**: an `add` that puts the media in a
+  second time (the number of the message is 3 for a queue of 2), and a
+  `put_at_the_front` that leaves the entry of before (the queue holds 5 media
+  for 4 media of the user).
+- `src/logic/queue.rs`: the test `the_same_media_goes_in_two_times` of the
+  module held the old rule, and `the_same_media_takes_one_place` holds this one.
+
+The same measurement of the corrected program (v0.8.60) said
+`"A Big Book Of A Scan" is number 2 of the queue.`, the view said
+`The queue [2 items]` with the same two lines, and the disk held the places 0
+and 1. A second measurement pressed `n` on the media of the **first** line of a
+queue of two: the message said `"A Long Test Book" is number 2 of the queue.`,
+and the view and the disk each gave `A Big Book Of A Scan` first and
+`A Long Test Book` after it.
+
+**The decision, and the reason for it: the media moves to the end.** The two
+other roads are a media that keeps its place and a media that the queue refuses
+with a word for the user. The disk of every version of this fork holds the first
+road already (the row of the last place wins), therefore this correction takes
+no queue of a user away and it says what the disk says. A user who presses `n`
+on a media that waits asks for that media, and the end of the queue is where the
+key `n` puts a media.
+
+#### What this item leaves open
+
+- **The key `n` says no word of a media that moved** (this item, and it stays
+  open): the message names the new number alone, therefore a user who does not
+  read the view cannot tell a media that came in from a media that moved from
+  the place 1 to the place 5. A sentence of that road needs a measurement of the
+  words (T-91: the program must not say a reason that it does not have, and it
+  **has** this one).
+- **The line of the view of the queue names the length of the media and not the
+  time that is left** (T-230, and it stays open).
+- **The place of the view of the queue is a photograph of the moment of the key
+  `q`** (T-230, and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-230, and it stays open): which bookmark stands before the position of the
+  playback, and does the view say it?
+- **The lines of the view of the search and of the view of the lists hold no
+  place at all** (T-228 to T-230, and it stays open).
+- **The view of the queue of the offline mode is not measured** (T-230).
+- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone** (T-226 to
+  T-230, and it stays open).
+- **The key `X` of the view of the bookmarks of a podcast** removes a place of
+  another episode with the same words (T-223 to T-230 each left it open, and
+  this item did not close it).

@@ -8,7 +8,8 @@
 //! # The rules of the queue
 //!
 //! - The key `n` puts the selected media at the end of the queue. It does not
-//!   change the media that plays.
+//!   change the media that plays. **A media that waits already moves to the
+//!   end**, because the disk holds one row for one media (T-231).
 //! - The queue starts the next media when a media comes to **its end** only. A
 //!   media that the user stopped, and a media that a different playback took
 //!   away, leave the queue where it is.
@@ -156,15 +157,30 @@ impl Queue {
         self.entries.iter().any(|entry| entry.key() == key)
     }
 
+    /// Takes every media of this identity out of the queue.
+    ///
+    /// **The queue of the disk holds one row for one media** (T-231): the
+    /// primary key of the table is the account, the server, the item, and the
+    /// episode. Therefore the queue of the process holds one entry for one
+    /// media too, and the two agree.
+    fn take_the_key_out(&mut self, key: &str) {
+        self.entries.retain(|entry| entry.key() != key);
+    }
+
     /// Puts a media at the end of the queue.
     ///
     /// The function gives the place of the media, and the first place is 1.
     /// The message for the user reads that number.
     ///
-    /// A media that stands in the queue already goes in a second time. The
-    /// user can want to hear one episode two times, and a rule that refuses it
-    /// gives no value.
+    /// **A media that stands in the queue already moves to the end** (T-231),
+    /// and the answer is the place that it takes there. The old shape put it in
+    /// a second time: the message then said `is number 3 of the queue` for a
+    /// view of two lines, because `save_the_queue` writes one row for one media
+    /// and the row of the second place went away with the row of the third one.
+    /// **The disk is the truth of the queue** (T-147), and the disk holds that
+    /// media at the end.
     pub fn add(&mut self, entry: Entry) -> usize {
+        self.take_the_key_out(&entry.key());
         self.entries.push(entry);
         self.entries.len()
     }
@@ -174,7 +190,12 @@ impl Queue {
     /// The queue gives this media to the next playback. A playback that did not
     /// start calls this function with the media that it did not play, therefore
     /// the media stands where it stood before that playback. See T-146.
+    ///
+    /// **A media that stands in the queue already moves to the front** (T-231):
+    /// the user pressed the key `n` on the media of a playback that then did not
+    /// start, and a queue of two entries of one media writes one row on the disk.
     pub fn put_at_the_front(&mut self, entry: Entry) {
+        self.take_the_key_out(&entry.key());
         self.entries.insert(0, entry);
     }
 
@@ -1019,15 +1040,20 @@ mod tests {
         assert!(!queue.holds("pod"));
     }
 
-    /// A user can want one episode two times. The queue must take it.
+    /// **The disk holds one row for one media**, therefore the queue of the
+    /// process holds one entry for it and the media moves to the end. The old
+    /// rule of this test said that the media goes in a second time, and the key
+    /// `n` then named a number that no line of the view held. See T-231.
     #[test]
-    fn the_same_media_goes_in_two_times() {
+    fn the_same_media_takes_one_place() {
         let mut queue = Queue::default();
 
         queue.add(book("a", "First"));
-        queue.add(book("a", "First"));
+        queue.add(book("b", "Second"));
 
+        assert_eq!(queue.add(book("a", "First")), 2);
         assert_eq!(queue.len(), 2);
+        assert_eq!(queue.entries()[1].key(), "a");
     }
 
     #[test]
