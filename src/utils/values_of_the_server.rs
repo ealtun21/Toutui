@@ -38,6 +38,34 @@ pub fn a_text_or_nothing(value: Option<&str>) -> String {
     a_text_or(value, NOT_AVAILABLE)
 }
 
+/// The words of a description that the server does not have. See T-249.
+pub const NO_DESCRIPTION: &str = "No description available";
+
+/// Gives the description of the server, or the words of a description that it
+/// does not have. See T-249.
+///
+/// **"N/A" is a value of a field, and a description is a panel of its own.** The
+/// words `NOT_AVAILABLE` stand beside a label: the line of the Library view says
+/// `Year: N/A`, and the label tells the user which value the server does not
+/// have. The panel of the description holds no label at all, therefore `N/A`
+/// alone stands on a line of the screen and it says nothing to the user.
+///
+/// The measurement of 2026-08-15, of `A Long Test Book` of the sandbox, which
+/// holds no description at all. One book, one frame each, two views:
+///
+/// ```text
+/// Search result [1 item]        Home [35 items]
+/// ➤ 50% A Long Test Book        ➤ 50% A Long Test Book
+/// …                             …
+/// No description available      N/A
+/// ```
+///
+/// Every panel of a description takes these words now, therefore one rule holds
+/// for every view.
+pub fn a_description_or_nothing(value: Option<&str>) -> String {
+    a_text_or(value, NO_DESCRIPTION)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

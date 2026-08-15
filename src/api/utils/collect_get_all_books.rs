@@ -1,6 +1,6 @@
 use crate::api::libraries::get_all_books::Root;
 use crate::utils::html_text::to_plain_text;
-use crate::utils::values_of_the_server::{a_text_or, a_text_or_nothing};
+use crate::utils::values_of_the_server::a_text_or_nothing;
 
 /// collect titles
 pub async fn collect_titles_library(library: &Root) -> Vec<String> {
@@ -100,7 +100,11 @@ pub async fn collect_desc_library(library: &Root) -> Vec<String> {
                     // that holds no text is not a description. See T-114.
                     let text = metadata.description.as_deref().map(to_plain_text);
 
-                    desc_library.push(a_text_or(text.as_deref(), "No description available"));
+                    desc_library.push(
+                        crate::utils::values_of_the_server::a_description_or_nothing(
+                            text.as_deref(),
+                        ),
+                    );
                 }
             }
         }

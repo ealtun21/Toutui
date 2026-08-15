@@ -61,9 +61,11 @@ pub fn the_media_that_the_server_found(media: &[LibraryItem]) -> Vec<Found> {
                 year: crate::utils::values_of_the_server::a_text_or_nothing(
                     metadata.and_then(|data| data.published_year.as_deref()),
                 ),
-                description: crate::utils::values_of_the_server::a_text_or(
+                // **The panel of a description says why it holds no text**
+                // (T-249). Every panel of the program calls this one function,
+                // therefore one rule holds for every view.
+                description: crate::utils::values_of_the_server::a_description_or_nothing(
                     description.as_deref(),
-                    "No description available",
                 ),
                 duration: item
                     .media

@@ -5,7 +5,7 @@
 
 use crate::api::libraries::get_all_series::SeriesRoot;
 use crate::utils::html_text::to_plain_text;
-use crate::utils::values_of_the_server::a_text_or_nothing;
+use crate::utils::values_of_the_server::{a_description_or_nothing, a_text_or_nothing};
 
 /// One book of a series.
 #[derive(Debug, Clone, PartialEq)]
@@ -42,12 +42,15 @@ impl SeriesView {
             return self.description.clone();
         }
 
-        self.books
-            .iter()
-            .map(|book| book.description.trim())
-            .find(|text| !text.is_empty())
-            .unwrap_or_default()
-            .to_string()
+        // **The panel of a description says why it holds no text** (T-249). A
+        // series with no description, whose books hold no description either,
+        // gave a panel of no line at all.
+        a_description_or_nothing(
+            self.books
+                .iter()
+                .map(|book| book.description.trim())
+                .find(|text| !text.is_empty()),
+        )
     }
 
     /// Gives the line of this series in the list.
@@ -69,6 +72,15 @@ impl SeriesBookView {
         } else {
             format!("#{} - {}", self.sequence, self.title)
         }
+    }
+
+    /// Gives the text that the panel of the screen shows below the list.
+    ///
+    /// **The panel of a description says why it holds no text** (T-249). The
+    /// field holds the description of the server alone, because the panel of
+    /// the series reads it as its own fallback.
+    pub fn description_for_the_screen(&self) -> String {
+        a_description_or_nothing(Some(self.description.as_str()))
     }
 }
 
@@ -141,10 +153,16 @@ pub fn collect_series(root: &SeriesRoot) -> Vec<SeriesView> {
                             .as_ref()
                             .and_then(|media| media.duration)
                             .unwrap_or(0.0),
+                        // **The description of the server, and nothing in the
+                        // place of a description that it does not have** (T-249).
+                        // The panel of the screen says why it holds no text, and
+                        // this field is the fallback of the panel of the series
+                        // too: a text of the program in it hides the description
+                        // of the book after it.
                         description: metadata
                             .and_then(|data| data.description.as_deref())
                             .map(to_plain_text)
-                            .unwrap_or_else(|| "No description available".to_string()),
+                            .unwrap_or_default(),
                     }
                 })
                 .collect();
@@ -158,7 +176,7 @@ pub fn collect_series(root: &SeriesRoot) -> Vec<SeriesView> {
                     .description
                     .as_deref()
                     .map(to_plain_text)
-                    .unwrap_or_else(|| "No description available".to_string()),
+                    .unwrap_or_default(),
                 books,
             }
         })
@@ -263,7 +281,12 @@ mod tests {
             books: Vec::new(),
         };
 
-        assert_eq!(series.description_for_the_screen(), "");
+        // **The panel of a description says why it holds no text** (T-249). This
+        // panel held no line at all.
+        assert_eq!(
+            series.description_for_the_screen(),
+            crate::utils::values_of_the_server::NO_DESCRIPTION
+        );
     }
 
     /// A text sort gives `#10` before `#2`. A number sort does not.
@@ -330,7 +353,14 @@ mod tests {
     #[test]
     fn a_book_with_no_description_gives_a_message() {
         let series = collect_series(&sample());
-        assert_eq!(series[0].books[0].description, "No description available");
+
+        // The field holds the description of the server alone, and the panel of
+        // the screen says why it holds no text. See T-249.
+        assert_eq!(series[0].books[0].description, "");
+        assert_eq!(
+            series[0].books[0].description_for_the_screen(),
+            crate::utils::values_of_the_server::NO_DESCRIPTION
+        );
     }
 
     #[test]

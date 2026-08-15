@@ -60,7 +60,8 @@ pub async fn collect_subtitles_pod_cnt_list(roots: &[Root]) -> Vec<String> {
         .map(|(_, episode)| {
             let text = episode.subtitle.as_deref().map(to_plain_text);
 
-            crate::utils::values_of_the_server::a_text_or_nothing(text.as_deref())
+            // **The panel of a description says why it holds no text** (T-249).
+            crate::utils::values_of_the_server::a_description_or_nothing(text.as_deref())
         })
         .collect()
 }
@@ -257,7 +258,16 @@ mod tests {
         assert_eq!(ids, vec!["pod-1", "pod-1"]);
         assert_eq!(authors, vec!["An Author", "N/A"]);
         assert_eq!(seasons, vec!["1", "N/A"]);
-        assert_eq!(subtitles, vec!["A subtitle", "N/A"]);
+        // **The panel of a description says why it holds no text** (T-249). The
+        // subtitle of an episode is the panel of the Home view of a library of
+        // podcasts, and that panel holds no label to name a value of "N/A".
+        assert_eq!(
+            subtitles,
+            vec![
+                "A subtitle",
+                crate::utils::values_of_the_server::NO_DESCRIPTION
+            ]
+        );
         assert_eq!(descriptions, vec!["A text", "N/A"]);
     }
 

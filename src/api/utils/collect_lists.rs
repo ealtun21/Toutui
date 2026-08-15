@@ -7,7 +7,7 @@
 use crate::api::libraries::get_all_books::LibraryItem;
 use crate::api::libraries::get_lists::{CollectionRoot, PlaylistRoot};
 use crate::utils::html_text::to_plain_text;
-use crate::utils::values_of_the_server::{a_text_or, a_text_or_nothing};
+use crate::utils::values_of_the_server::a_text_or_nothing;
 use log::warn;
 
 /// What the list is.
@@ -143,7 +143,7 @@ fn the_identity_of_a_media(id: Option<&str>, title: Option<&str>) -> Option<Stri
 fn a_description_or_nothing(text: Option<&str>) -> String {
     let plain = text.map(to_plain_text);
 
-    a_text_or(plain.as_deref(), "No description available")
+    crate::utils::values_of_the_server::a_description_or_nothing(plain.as_deref())
 }
 
 /// Makes the display data of the collections.

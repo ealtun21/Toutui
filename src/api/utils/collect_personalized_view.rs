@@ -68,12 +68,20 @@ pub async fn collect_duration_cnt_list(continue_listening: &[Root]) -> Vec<f64> 
 pub async fn collect_desc_cnt_list(continue_listening: &[Root]) -> Vec<String> {
     media_entities(continue_listening)
         .map(|(_, media)| {
-            media
+            // **A description of no letter is no description** (T-114), and the
+            // panel of a description says why it holds no text (T-249). This
+            // line held neither rule: a text of `""`, which is what the server
+            // gives for a book of a scan with no tag, reached the panel of the
+            // Home view as it stood, and that panel then held nothing at all;
+            // and a description that the server does not have gave "N/A", which
+            // stands on a line of its own with no label to name it.
+            let text = media
                 .metadata
                 .as_ref()
                 .and_then(|metadata| metadata.description.as_ref())
-                .map(|description| to_plain_text(description))
-                .unwrap_or_else(|| "N/A".to_string())
+                .map(|description| to_plain_text(description));
+
+            crate::utils::values_of_the_server::a_description_or_nothing(text.as_deref())
         })
         .collect()
 }
@@ -154,7 +162,13 @@ mod tests {
         assert_eq!(years, vec!["1999", "N/A"]);
         assert_eq!(durations, vec![60.0, 0.0]);
         assert_eq!(descriptions[0], "A text");
-        assert_eq!(descriptions[1], "N/A");
+        // **The panel of a description says why it holds no text** (T-249): a
+        // book with no description said "N/A" here, and the same book of the
+        // view of the search said "No description available".
+        assert_eq!(
+            descriptions[1],
+            crate::utils::values_of_the_server::NO_DESCRIPTION
+        );
     }
 
     #[tokio::test]

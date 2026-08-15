@@ -41,6 +41,25 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.78",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The panel of the description said \"N/A\" in three views, and \
+             in one view it said nothing at all.** The words \"N/A\" belong to \
+             a value that stands beside a label: the line of the view says \
+             `Year: N/A`, and that label tells the user which value the server \
+             does not have. The panel of the description holds no label, \
+             therefore those two letters said nothing to the user. The Home \
+             view, the view of the episodes of a podcast, and the panel of a \
+             book of a series say `No description available` now, which is \
+             what the view of the search and the Library view said already. \
+             The Home view of a library of books held a second fault: a \
+             description of no character reached the panel as it stood, and \
+             the panel then held nothing at all.",
+        ],
+    },
+    Entry {
         version: "0.8.77",
         date: "15/08/2026",
         body: &[

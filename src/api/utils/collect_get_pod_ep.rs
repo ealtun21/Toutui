@@ -46,7 +46,13 @@ pub async fn collect_subtitles_pod_ep(item: &Root) -> Vec<String> {
             for episode in episodes {
                 let text = episode.subtitle.as_deref().map(to_plain_text);
 
-                subtitles_pod_ep.push(a_text_or_nothing(text.as_deref()));
+                // **The panel of a description says why it holds no text**
+                // (T-249). The words "N/A" belong to a value that stands beside
+                // a label, and this list is the whole panel of the view of the
+                // episodes.
+                subtitles_pod_ep.push(
+                    crate::utils::values_of_the_server::a_description_or_nothing(text.as_deref()),
+                );
             }
         }
     }
@@ -105,7 +111,9 @@ pub async fn collect_descs_pod_ep(item: &Root) -> Vec<String> {
         if let Some(metadata) = &media.metadata {
             let text = metadata.description.as_deref().map(to_plain_text);
 
-            descs_pod_ep.push(a_text_or_nothing(text.as_deref()));
+            descs_pod_ep.push(
+                crate::utils::values_of_the_server::a_description_or_nothing(text.as_deref()),
+            );
         }
     }
 

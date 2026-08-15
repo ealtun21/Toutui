@@ -18104,3 +18104,162 @@ nothing). Each of the two failed the test.
   (T-241 to T-248, and it stays open).
 - **The line of the Library view of a library of podcasts says no place at all**
   (T-242 to T-248, and it stays open).
+
+### T-249: the panel of a description says why it holds no text
+
+**"N/A" is a value of a field, and a description is a panel of its own.** The
+words of `NOT_AVAILABLE` stand beside a label: the line of the Library view says
+`Author: LibriVox - Year: N/A - Duration: 1h30m`, and that label tells the user
+which value the server does not have. **The panel of the description holds no
+label at all**, therefore `N/A` alone stands on a line of the screen and it says
+nothing to the user. That is the rule of T-91 (a view says why it holds no line)
+and of T-174 (the words of a program that says nothing at all), and it holds for
+a panel as it holds for a view.
+
+#### The fault
+
+Nine functions of six files each make the text of a panel of a description, and
+they gave **three different answers** for the same condition:
+
+| The panel | What it gave |
+|---|---|
+| The view of the search (`src/logic/search/mod.rs`) | `No description available` |
+| The Library view of a library of books (`collect_get_all_books.rs`) | `No description available` |
+| The view of the collections and of the playlists (`collect_lists.rs`) | `No description available` |
+| The Home view of a library of books (`collect_personalized_view.rs`) | **`N/A`**, and **nothing at all** for a text of `""` |
+| The Home view of a library of podcasts (`collect_personalized_view_pod.rs`) | **`N/A`** |
+| The view of the episodes of a podcast (`collect_get_pod_ep.rs`, the subtitle and the description) | **`N/A`** |
+| The view of the books of a series (`collect_series.rs`) | **no line at all** |
+
+**The Home view of a library of books held a second fault of its own.** That one
+line read `metadata.description` of the server and it took no rule of T-114 at
+all: a description of `""` — which is what the server gives for a book of a scan
+that holds no tag — reached the panel as it stood, and the panel then held
+nothing at all. Every other panel of the table went through `to_plain_text` and
+`a_text_or`, which hold that rule already.
+
+**The view of the books of a series held a third fault**, and that panel held no
+line at all: `collect_series` wrote `No description available` into the **field**
+`SeriesBookView::description`, and the panel of the series reads that same field
+as its own fallback (T-43). The words of the program in the field therefore hid
+the description of the book after it, and the round of T-43 took those words out
+of the fallback alone — the panel of the book itself then rendered
+`book.description` raw, and a book of no description gave the empty string.
+
+#### The measurement
+
+The real program v0.8.77, inside tmux, against the sandbox (podman on :13399).
+
+**One book, two views, one frame each.** `A Long Test Book` of the library
+`Books` holds no description at all: `GET /api/libraries/:id/items` gives
+`description: null` for it.
+
+```text
+────────Search result [1 item]────────    ────────Home [35 items]────────
+➤ 50% A Long Test Book                    ➤ 50% A Long Test Book
+Author: Long Author - Year: N/A - …       Author: Long Author - Year: N/A - …
+Progress: 50%, 15m left, Not finished     Progress: 50%, 15m left, Not finished
+No description available                  N/A
+```
+
+**The view of the episodes of a podcast said `N/A` for every one of the 57
+episodes** of `Letters of Two Brides`
+(`9fa45bd1-66bc-4c17-ba49-a5a6a5ec8806`). `GET /api/items/:id` of that podcast
+says why: the server gives `""` for the subtitle **and** for the description of
+each of the 57.
+
+**The view of the books of a series held no line at all.** `The Test Chronicles`
+of the sandbox, after a `PATCH /api/items/:id/media` gave the second book the
+description `<p> </p>` — a web page with no text, which the server keeps as it
+stands:
+
+```text
+─────The Test Chronicles [3 items]─────   ─────The Test Chronicles [3 items]─────
+➤ ✓   #1 - …Volume 1                        ✓   #1 - …Volume 1
+  41% #2 - …Volume 2                      ➤ 41% #2 - …Volume 2
+  ✓   #3 - …Volume 3                        ✓   #3 - …Volume 3
+Author: Series Author - Duration: 0m      Author: Series Author - Duration: 0m
+Progress: 100%, 0m left, Finished         Progress: 41%, 0m left, Not finished
+No description available                  ⟨the panel holds no line⟩
+```
+
+The line of the first book gave the words of the field, and the line of the
+second book gave the plain text of `<p> </p>`, which is no character at all.
+
+**The verification of the second program**: `curl` of the sandbox of
+2026-08-15 says `description: None` for `A Long Test Book`, `''` for the
+subtitle and for the description of each of the 57 episodes of
+`Letters of Two Brides`, and `'<p> </p>'` for `The Test Chronicles Volume 2`.
+
+#### The correction
+
+`src/utils/values_of_the_server.rs` holds the words and one function for every
+panel:
+
+```rust
+/// The words of a description that the server does not have. See T-249.
+pub const NO_DESCRIPTION: &str = "No description available";
+
+pub fn a_description_or_nothing(value: Option<&str>) -> String {
+    a_text_or(value, NO_DESCRIPTION)
+}
+```
+
+`a_text_or` holds the rule of T-114 already: a text of no character, and a text
+of spaces alone, are no text. Every panel of the table above calls that one
+function now, therefore one rule holds for every view.
+
+`SeriesBookView::description` holds **the description of the server alone**, and
+the new `SeriesBookView::description_for_the_screen` gives the words of the
+panel. The fallback of the series (T-43) reads the field, therefore no word of
+the program can hide the description of the book after it, and `src/ui/tui.rs`
+renders the function and not the field.
+
+`tests/the_panel_of_a_description_says_why.rs` holds the rule, in four
+functions of one file (T-144 and T-157). **The tests are pure**: they read the
+answer of the server as `serde_json` and they call the collectors, therefore
+they need no terminal and no server.
+
+**Two builds of the fault**, one edit at a time (the trap 147):
+
+- `a_description_or_nothing` gives `NOT_AVAILABLE` in the place of
+  `NO_DESCRIPTION`. Four of the five tests of the file failed
+  (`left: "N/A"`, `right: "No description available"`), and three tests of the
+  library failed with it.
+- `description_for_the_screen` of a book of a series gives the field as it
+  stands. One test of the file failed (`left: ""`,
+  `right: "No description available"`).
+
+#### What this item leaves open
+
+- **`collect_descs_pod_cnt_list` reaches no panel of the screen** (T-249, and it
+  stays open): `App::descs_pod_cnt_list` takes the description of the podcast of
+  a shelf of the Home view, and the render of that panel
+  (`render_desc_home` of `src/ui/tui.rs`) reads `subtitles_pod_cnt_list` for a
+  library of podcasts. The field therefore keeps its `N/A`, and no user sees it.
+  **A box that the render never reads is a road of its own**: either the panel
+  of a podcast of the Home view must say the description when the episode holds
+  no subtitle, or that box belongs nowhere.
+- **The panel of the view of the authors and the panel of the view of the
+  narrators are not measured** (T-249, and it stays open):
+  `src/api/libraries/get_authors.rs` writes the same words with a literal of its
+  own, and no measurement of the real program read that panel.
+- **The panel of a description holds no scroll bar** (T-249, and it stays open):
+  the key `K` and the key `J` move `scroll_offset`, and a description of many
+  lines gives the user no word of how much of it is left.
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-249, and it stays open): the keys `u`, `I`, and `Y` of the view of
+  the episodes.
+- **The key `B` says nothing on either road** (T-248 to T-249, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters, and
+  of the view of the queue gives the Home view** (T-247 to T-249, and it stays
+  open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to T-249,
+  and it stays open).
+- **The view of the queue of the offline mode is not measured** (T-230 to
+  T-249), and the panel of a line of that view is not measured.
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-249, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at all**
+  (T-242 to T-249, and it stays open).

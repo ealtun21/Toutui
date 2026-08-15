@@ -1692,7 +1692,7 @@ impl App {
             .left_aligned()
             .render(item_area1, buf);
 
-            Paragraph::new(book.description.clone())
+            Paragraph::new(book.description_for_the_screen())
                 .scroll((self.scroll_offset, 0))
                 .wrap(Wrap { trim: true })
                 .render(item_area2, buf);
