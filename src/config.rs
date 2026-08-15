@@ -518,6 +518,10 @@ struct TheRowOfAServer {
 ///   that no server of the file names is the identity of the place of that
 ///   user, therefore a name of the prefix `http://` or `https://` can hold the
 ///   identity of a different server (T-262).
+/// - An address that more than one server holds belongs to no server: an
+///   address names one machine, and the name of the server that holds it is the
+///   identity of the place of the user, therefore that address goes away from
+///   each of those servers (T-263). See `the_addresses_of_one_server_alone`.
 /// - A name that a server before it holds already belongs to no pool: two
 ///   servers of one name hold one identity, and the place of one server then
 ///   goes to a different server (T-261). The server of the first block keeps
@@ -646,6 +650,100 @@ fn the_servers_of_the_file(config: &ConfigLib) -> Vec<ServerConfig> {
             endpoints,
         });
     }
+
+    the_addresses_of_one_server_alone(servers)
+}
+
+/// Takes an address that more than one server of the block `servers` holds out
+/// of every server that holds it.
+///
+/// See T-263. An address names one machine, and the name of the server that
+/// holds that address is the identity of the place of the user on the disk
+/// (`server_key`). Therefore an address that two servers hold gives **one**
+/// identity to **two** servers: `server_name_for_address` and
+/// `pool_for_address` each give the first server of the list that holds the
+/// address, and the queue and the downloads of the second server then go to the
+/// first one.
+///
+/// A measurement of the real program v0.8.91 showed the two faults of one file.
+/// The file named the server `work` with the addresses `http://127.0.0.1:13500`
+/// and `http://localhost:13399`, and the server `home` with the address
+/// `http://localhost:13399`. The queue of the account of the port 13500 came to
+/// the screen of the account of the port 13399, and the header of that second
+/// account said `🔗 127.0.0.1:13500`: **the program of one server asked the
+/// address of a different server.**
+///
+/// The program cannot know which of the two servers holds that machine, because
+/// the file says both. Therefore that address belongs to **no** server: it goes
+/// away from each of them, and the address of the login screen then gives the
+/// identity of that place. A server that keeps no address belongs to no pool.
+///
+/// An address that **one** server holds two times is no address of two servers,
+/// and it stays.
+fn the_addresses_of_one_server_alone(mut servers: Vec<ServerConfig>) -> Vec<ServerConfig> {
+    let mut the_addresses_of_two_servers: Vec<String> = Vec::new();
+
+    for (place, server) in servers.iter().enumerate() {
+        for endpoint in &server.endpoints {
+            let address = normalise(&endpoint.url);
+
+            let a_server_after_it_holds_it = servers.iter().enumerate().any(|(other, server)| {
+                other != place
+                    && server
+                        .endpoints
+                        .iter()
+                        .any(|endpoint| normalise(&endpoint.url) == address)
+            });
+
+            if a_server_after_it_holds_it
+                && !the_addresses_of_two_servers
+                    .iter()
+                    .any(|held| held == address)
+            {
+                the_addresses_of_two_servers.push(address.to_string());
+            }
+        }
+    }
+
+    for address in &the_addresses_of_two_servers {
+        let names: Vec<String> = servers
+            .iter()
+            .filter(|server| {
+                server
+                    .endpoints
+                    .iter()
+                    .any(|endpoint| normalise(&endpoint.url) == address)
+            })
+            .map(|server| server.name.clone())
+            .collect();
+
+        log::warn!(
+            "[config] more than one server of the block servers has the address {}: {}. \
+             The name of the server that holds an address is the identity of the place of \
+             the user, therefore that address goes away from each of those servers and the \
+             program uses the address of the login screen.",
+            address,
+            names.join(", ")
+        );
+
+        for server in servers.iter_mut() {
+            server
+                .endpoints
+                .retain(|endpoint| normalise(&endpoint.url) != address);
+        }
+    }
+
+    servers.retain(|server| {
+        if server.endpoints.is_empty() {
+            log::warn!(
+                "[config] the server {} keeps no address of its own. That server goes away.",
+                server.name
+            );
+            return false;
+        }
+
+        true
+    });
 
     servers
 }
@@ -1502,6 +1600,113 @@ endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
         assert_eq!(
             server_key(&config.servers, "http://first:13378"),
             "the server at http://second:13378",
+            "the identity of the place of the user must stay"
+        );
+    }
+
+    /// **An address that two servers of the file hold holds the identity of a
+    /// different server** (T-263). The measurement of the real program v0.8.91:
+    /// the file named the server `work` with the addresses of the ports 13500
+    /// and 13399, and the server `home` with the address of the port 13399. The
+    /// queue of the account of the port 13500 came to the screen of the account
+    /// of the port 13399, because `server_key` gave `work` for the two of them.
+    ///
+    /// The address of an account that no server of the file holds is the
+    /// identity of the place of that user, therefore that address gives the two
+    /// servers two identities again.
+    #[test]
+    fn an_address_of_two_servers_holds_no_identity_of_a_different_server() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[[servers]]\nname = \"work\"\nendpoints = [\n\
+             { url = \"http://127.0.0.1:13500\", priority = 0 },\n\
+             { url = \"http://localhost:13399\", priority = 1 },\n]\n\n\
+             [[servers]]\nname = \"home\"\n\
+             endpoints = [ { url = \"http://localhost:13399\", priority = 0 } ]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(
+            server_key(&config.servers, "http://localhost:13399"),
+            "http://localhost:13399",
+            "the address of two servers must hold the identity of no server of the file"
+        );
+        assert_eq!(
+            server_key(&config.servers, "http://127.0.0.1:13500"),
+            "work",
+            "the address of one server must keep the name of that server"
+        );
+    }
+
+    /// **An address of two servers goes away from each of them, and a server
+    /// that keeps no address goes away** (T-263). The pool of the account of
+    /// that address must hold that address alone: the measurement of the real
+    /// program showed the header `🔗 127.0.0.1:13500` for the account of the
+    /// port 13399, because the pool of it was the pool of a different server.
+    ///
+    /// The address of the server `home` holds a slash at its end, and the
+    /// address of the server `work` holds none: two addresses of one machine
+    /// are one address (`normalise`).
+    #[test]
+    fn an_address_of_two_servers_goes_away_from_each_of_them() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[[servers]]\nname = \"work\"\nendpoints = [\n\
+             { url = \"http://127.0.0.1:13500\", priority = 0 },\n\
+             { url = \"http://localhost:13399\", priority = 1 },\n]\n\n\
+             [[servers]]\nname = \"home\"\n\
+             endpoints = [ { url = \"http://localhost:13399/\", priority = 0 } ]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(
+            config.servers.len(),
+            1,
+            "the server that keeps no address of its own must go away"
+        );
+        assert_eq!(config.servers[0].name, "work");
+        assert_eq!(
+            config.servers[0].endpoints.len(),
+            1,
+            "the address of two servers must go away from the server that stays"
+        );
+        assert_eq!(
+            pool_for_address(&config.servers, "http://localhost:13399").len(),
+            1,
+            "the pool of that account must hold the address of the login screen alone"
+        );
+    }
+
+    /// **An address that one server holds two times is no address of two
+    /// servers** (T-263). This test passes on both builds, and it guards the
+    /// user who writes one address two times in one block: that server holds
+    /// its identity still.
+    #[test]
+    fn an_address_that_one_server_holds_two_times_stays() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[[servers]]\nname = \"home\"\nendpoints = [\n\
+             { url = \"http://first:13378\", priority = 0 },\n\
+             { url = \"http://first:13378\", priority = 1 },\n]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(config.servers.len(), 1, "the server of the user must stay");
+        assert_eq!(
+            server_key(&config.servers, "http://first:13378"),
+            "home",
             "the identity of the place of the user must stay"
         );
     }

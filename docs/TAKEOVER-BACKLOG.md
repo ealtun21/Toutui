@@ -20560,3 +20560,215 @@ Three tests of `src/config.rs`:
   T-262, and it stays open).
 - **The line of the Library view of a library of podcasts says no place at all**
   (T-242 to T-262, and it stays open).
+
+### T-263: one address that two servers of the configuration file hold holds the identity of a different server
+
+**The state**: corrected on 2026-08-15. The measurement is of the real program
+inside tmux, against the sandbox.
+
+#### The choice of this item
+
+T-262 left the address of two servers open, and it gave the reason: "a
+correction of it takes an address of the user away". **That reason reads the
+cost of the correction, and not the harm of the fault.** The harm of it is the
+harm of T-25 itself, and it holds two roads and not one: the identity of the
+place of the user on the disk, and the address that the program asks. The
+measurement below found the two of them on one screen.
+
+The other candidates of T-262 stay open, and the reasons of T-262 stand: a name
+of an address of no prefix reaches no account of today, and two names that
+differ in their spaces alone are two identities of two servers.
+
+#### The fault
+
+`the_servers_of_the_file` of `src/config.rs` reads each server of the block
+apart (T-259), it drops a server whose name holds no character (T-260), a server
+whose name is an address (T-262), and a server whose name a server before it
+holds already (T-261). **It reads no address of one server against the addresses
+of the other servers.**
+
+An address names one machine. `server_name_for_address` and `pool_for_address`
+of `src/config.rs` each give the **first** server of the list that holds the
+address, therefore an address that two servers hold gives:
+
+- **one identity to two servers.** `server_key` gives the name of that first
+  server, and `src/main.rs` line 267 and `src/app.rs` line 772 write it in the
+  column `server` of the tables `queue` and `downloads` of `db.sqlite3`.
+- **the pool of the first server to the account of the second one.** The pool
+  holds every address of that first server, and `send` tries the address after
+  the one that failed (T-97), therefore the program asks a machine that the file
+  names as a different server.
+
+#### The measurement
+
+The real program v0.8.91, inside tmux, against the sandbox on the port 13399, on
+a screen of 160 columns and 45 rows. A second address of a server comes of
+`docs/harness/one_path_fails.py 13500 13399 requests.log /a/path/of/no/hit`,
+which forwards every request. `config.toml`:
+
+```toml
+[[servers]]
+name = "work"
+endpoints = [
+  { url = "http://127.0.0.1:13500", priority = 0 },
+  { url = "http://localhost:13399", priority = 1 },
+]
+
+[[servers]]
+name = "home"
+endpoints = [ { url = "http://localhost:13399", priority = 0 } ]
+```
+
+**The account of the server `work`**, at `http://127.0.0.1:13500`, with the key
+`n` on the first line of the Home view and the key `q`:
+
+```text
+👋 Connected as toutuitest        📖 Books (book)        🦜 Toutui v0.8.91
+🔗 127.0.0.1:13500
+────The queue [1 item]────
+➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+```
+
+and the row of the disk `toutuitest|work|0|A Long Test Book`.
+
+**The account of the server `home`**, at `http://localhost:13399`, of the same
+file, with the key `q`:
+
+```text
+👋 Connected as toutuitest        📖 Books (book)        🦜 Toutui v0.8.91
+🔗 127.0.0.1:13500
+────The queue [1 item]────
+➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+```
+
+**The two faults stand on that one screen.** The queue of the server `work` came
+to the screen of the server `home`, which the doc of `server_key` says must
+never happen (T-25). And the header says `🔗 127.0.0.1:13500`: **the program of
+the account of the server `home` asked the address of the server `work`**,
+because `pool_for_address` gave it the pool of `work`.
+`grep -icE "config|server|name"` of the log gave **1**, and that line is
+`[app] the answer of the account holds the position of 30 media of 32.` — **no
+word of the configuration at all.**
+
+**The control of the same run.** The same file with no second address of the
+server `work`, the same account, and the same proxy:
+
+```text
+🔗 localhost:13399
+────The queue is empty. Press n on a media to put it in the queue.────
+```
+
+The address of two servers is therefore the cause, and not the proxy and not the
+account.
+
+#### The correction
+
+`the_addresses_of_one_server_alone` of `src/config.rs`, which runs after the
+loop of the rows: **the program cannot know which of the two servers holds that
+machine, because the file says both.** Therefore that address belongs to no
+server: it goes away from each of them, and the address of the login screen then
+gives the identity of that place. A server that keeps no address of its own goes
+away. The comparison reads the address with no slash at its end (`normalise`),
+because two addresses of one machine are one address.
+
+An address that **one** server holds two times is no address of two servers, and
+it stays.
+
+#### The measurement after the correction
+
+The real program v0.8.92, of the same file and the same proxy. The account of
+the server `work`, at `http://127.0.0.1:13500`, keeps its identity and its
+place: the header says `🔗 127.0.0.1:13500`, the row of the disk says
+`toutuitest|work|0|A Long Test Book`, and the queue holds one item. The account
+at `http://localhost:13399`:
+
+```text
+🔗 localhost:13399
+────The queue is empty. Press n on a media to put it in the queue.────
+```
+
+and the log:
+
+```text
+[WARN] [config] more than one server of the block servers has the address
+http://localhost:13399: work, home. The name of the server that holds an address
+is the identity of the place of the user, therefore that address goes away from
+each of those servers and the program uses the address of the login screen.
+[WARN] [config] the server home keeps no address of its own. That server goes
+away.
+```
+
+The two lines came **two times**, which is the evidence of the open candidate of
+T-259: the program reads the configuration file two times at its start.
+
+#### The build of the fault
+
+The condition of the address of two servers with `if false &&`, which keeps
+every other line of the file. Two tests fail:
+
+```text
+an_address_of_two_servers_holds_no_identity_of_a_different_server ... FAILED
+  left: "work"   right: "http://localhost:13399"
+an_address_of_two_servers_goes_away_from_each_of_them ... FAILED
+  left: 2   right: 1
+```
+
+#### The tests
+
+Three tests of `src/config.rs`:
+
+- `an_address_of_two_servers_holds_no_identity_of_a_different_server`
+- `an_address_of_two_servers_goes_away_from_each_of_them` (the address of the
+  server `home` holds a slash at its end and the address of the server `work`
+  holds none, and the pool of that account holds one address)
+- `an_address_that_one_server_holds_two_times_stays` (the guard of the user who
+  writes one address two times in one block, and it passes on both builds)
+
+#### What this item leaves open
+
+- **A machine of two names of the file is not measured** (T-263, and it stays
+  open): two servers of two addresses of **one** machine (`http://localhost` and
+  `http://127.0.0.1`) hold two identities still, and the program cannot see
+  that the two names give one machine. **This is a candidate and not a
+  measurement.**
+- **A name of the prefix of an address is not every name of an identity of an
+  address** (T-262 and T-263, and it stays open).
+- **Two names that differ in their spaces alone are two identities** (T-261 to
+  T-263, and it stays open).
+- **A file whose every server fails is not measured** (T-259 to T-263, and it
+  stays open).
+- **The program reads the configuration file two times at its start** (T-259 to
+  T-263, and it stays open).
+- **The block `reader` stands on no gate of a build of the fault** (T-259 to
+  T-263, and it stays open).
+- **The words of a fault of the crate `config` are not ASD-STE100** (T-258 to
+  T-263, and it stays open).
+- **The user sees no word of a value of the file that the program cannot read**
+  (T-258 to T-263, and it stays open): the lines go to the log alone.
+- **The colours of the program stand on no test of a length** (T-257 to T-263,
+  and it stays open).
+- **The panel of a description is in no test of the render** (T-253 to T-263,
+  and it stays open).
+- **The two renders of the panel of the episodes of a podcast are in no test**
+  (T-250 to T-263, and it stays open).
+- **The title of a list says no number of the line of the cursor** (T-255 to
+  T-263, and it stays open).
+- **The key `H` of the panel stands on no character of the screen** (T-254 to
+  T-263, and it stays open).
+- **The line of the view of the authors says `[1 book(s)]`** (T-252 to T-263,
+  and it stays open).
+- **The panel of a narrator says "No description available" for every narrator
+  of every library** (T-252 to T-263, and it stays open).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-263, and it stays open).
+- **The key `B` says nothing on either road** (T-248 to T-263, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters, and
+  of the view of the queue gives the Home view** (T-247 to T-263, and it stays
+  open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to T-263,
+  and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-263, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at all**
+  (T-242 to T-263, and it stays open).
