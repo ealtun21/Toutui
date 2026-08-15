@@ -15957,3 +15957,104 @@ line, and that number is a number of a view that is older than the disk.
 - **The key `X` of the view of the bookmarks of a podcast** removes a place of
   another episode with the same words (T-223 to T-233 each left it open, and
   this item did not close it).
+
+### T-234: the line of the view of the queue names the time that is left
+
+**This item takes the first paragraph of "What this item leaves open" of
+T-233.** That paragraph said that the line of the view of the queue names the
+length of the media and not the time that is left (T-230 to T-233).
+
+#### The measurement
+
+The real program v0.8.62 inside tmux, against the sandbox (podman on :13399),
+of the library `Books`, with the table `queue` of the account empty at the
+start. The server held these places: `A Second Book Of Many Hours` at
+`currentTime` 7200 of a duration of 28800 with the progress 0, `A Long Test
+Book` at 900 of 1800 with the progress 0.5, and `A Book Of Many Hours` at 7200
+of 28800 with the progress 0.9. The user pressed `n`, `j`, `n`, `j`, and `n` on
+the first three lines of the shelf Continue Listening of the Home view, and
+then `q`. The three messages named the numbers 1, 2, and 3.
+
+The view of the queue:
+
+```text
+The queue [3 items]
+➤     1. 📕 A Second Book Of Many Hours — Many Hours Author  (8h)
+  50% 2. 📕 A Long Test Book — Long Author  (30m)
+  90% 3. 📕 A Book Of Many Hours — Many Hours Author  (8h)
+```
+
+**Every line names the length of its media.** The line of the number 3 says
+`90%` and `(8h)` in the same words: the user of that line reads the percent of
+the work that is done and the length of the whole media, and that user must do
+the arithmetic to know that 6 hours stay. The user of this view chooses the
+media that comes after the media that plays, and a length gives no help with
+that choice.
+
+**The control of the same run** (the trap 206): the panel of the Home view of
+that same program, of that same media `A Second Book Of Many Hours`, said
+`Author: Many Hours Author - Year: N/A - Duration: 8h - [Downloaded]` and
+`Progress: 0%, 6h left, Not finished`. **The program holds the time that is
+left already** (T-91), and one view of it says that time while the other one
+says the length.
+
+#### The fault of the source
+
+- `src/logic/queue.rs`, `the_lines_of_the_queue`: the line took
+  `entry.duration` and it gave `convert_seconds` of it. That is the length of
+  the media.
+- `src/app.rs`, `the_places_of_the_queue`: the row of a media held the percent
+  of the user and the mark of the end, and it did not hold the place of the
+  user in seconds. Therefore no caller of `the_lines_of_the_queue` could
+  compute the time that is left.
+
+#### The correction
+
+- `src/app.rs`, `the_places_of_the_queue`: the row holds a third value,
+  `collect_current_time_prg(row)`, the place of the user in seconds.
+- `src/logic/queue.rs`, a new function `the_place_of_the_row`: it reads the
+  third value of the row and it parses it. A row of two values, and a row whose
+  third value is no number, each give `None`.
+- `src/logic/queue.rs`, a new function `the_time_of_the_line`: it gives
+  `<N> left` for a place that stands after 0 and before the end of the media,
+  and the length of the media for every other place. A media of no length gives
+  nothing, and the line of it then holds no time at all.
+- `tests/the_line_of_the_view_of_the_queue_names_the_time_that_is_left.rs`
+  holds the rule, and the parts of it stay in one function (T-144 and T-157).
+  **Three builds of the fault each fail it**: a line that says the length of
+  every media, a line that says `0m left` for a media that came to its end
+  (`place <= length`), and a line that reads the mark of the end in place of
+  the place (`row.get(1)`).
+
+The same measurement of the corrected program:
+
+```text
+➤     1. 📕 A Second Book Of Many Hours — Many Hours Author  (6h left)
+  50% 2. 📕 A Long Test Book — Long Author  (15m left)
+  90% 3. 📕 A Book Of Many Hours — Many Hours Author  (6h left)
+```
+
+**The decision, and the reason for it: a media that the user did not begin
+keeps the length.** For such a media the length is the time that is left,
+therefore the two words say one fact and the shorter one is better. A media
+that came to its end keeps the length too, because the mark `✓` of that line
+says already that the media came to its end, and a line of `(0m left)` says
+nothing more. The words `left` follow the panel of the Home view (`6h left`),
+therefore the two views of one media say one thing.
+
+#### What this item leaves open
+
+- **The place of the view of the queue is a photograph of the moment of the key
+  `q`** (T-230 to T-234, and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user** (T-229
+  to T-234, and it stays open).
+- **The lines of the view of the search and of the view of the lists hold no
+  place at all** (T-228 to T-234, and it stays open).
+- **The view of the queue of the offline mode is not measured** (T-230 to
+  T-234): that view gives no place at all, therefore every line of it keeps the
+  length of its media.
+- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone** (T-226 to
+  T-234, and it stays open).
+- **The key `X` of the view of the bookmarks of a podcast** removes a place of
+  another episode with the same words (T-223 to T-234 each left it open, and
+  this item did not close it).

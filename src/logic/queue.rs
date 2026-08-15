@@ -306,14 +306,25 @@ impl Queue {
 /// nothing.
 ///
 /// `places` holds one row for each media, keyed by `Entry::key`, in the form of
-/// `App::book_progress_cnt_list`: the percent of the user and the mark of the
-/// end. **The key names the episode after the item** (T-223, T-228, and
-/// T-229): two episodes of one podcast hold the identity of that podcast, and
-/// a key of the item alone would give one mark to every episode of it. A media
-/// of no row takes no mark, as a media that never played takes none.
+/// `App::book_progress_cnt_list`: the percent of the user, the mark of the
+/// end, and the place of the user in seconds. **The key names the episode
+/// after the item** (T-223, T-228, and T-229): two episodes of one podcast
+/// hold the identity of that podcast, and a key of the item alone would give
+/// one mark to every episode of it. A media of no row takes no mark, as a
+/// media that never played takes none.
 ///
 /// The number of the place stands after the mark, therefore the user reads the
-/// sequence. The length stands at the end.
+/// sequence. The time stands at the end.
+///
+/// **The time at the end is the time that is left of the media, and not the
+/// length of it** (T-234). The user of this view chooses the next media, and
+/// the length of a media that stands at 90 percent tells that user nothing:
+/// the panel of the Home view of the same program says `6h left` for the media
+/// whose line of this view said `(8h)`. A media of no place, and a media of a
+/// place of 0, keep the length: the user did not begin them, therefore the
+/// length is the time that is left. A place that stands at the end of the
+/// media, or after it, keeps the length too, because the mark of that line
+/// says already that the media came to its end.
 ///
 /// The function is pure, therefore a test needs no server and no screen.
 pub fn the_lines_of_the_queue(
@@ -338,22 +349,18 @@ pub fn the_lines_of_the_queue(
                 line.push_str(entry.author.trim());
             }
 
-            // A view that holds the length as a text only gives no number.
-            // The line then shows the name and no length.
-            if let Some(length) = entry.duration {
-                let text = convert_seconds(vec![length])
-                    .first()
-                    .cloned()
-                    .unwrap_or_default();
+            let key = entry.key();
+            let plays_now = playing.is_some_and(|playing| playing == key);
+            let row = places.get(&key);
 
+            // A view that holds the length as a text only gives no number.
+            // The line then shows the name and no time.
+            if let Some(text) = the_time_of_the_line(entry.duration, the_place_of_the_row(row)) {
                 line.push_str("  (");
                 line.push_str(&text);
                 line.push(')');
             }
 
-            let key = entry.key();
-            let plays_now = playing.is_some_and(|playing| playing == key);
-            let row = places.get(&key);
             let percent = row
                 .and_then(|row| row.first())
                 .map(String::as_str)
@@ -369,6 +376,44 @@ pub fn the_lines_of_the_queue(
             )
         })
         .collect()
+}
+
+/// Gives the place of the user of a row of `places`, in seconds. See T-234.
+///
+/// The third value of the row holds that place. A row of a version before
+/// T-234 holds two values only, and a row whose third value is no number is a
+/// row that says nothing: each of them gives `None`, and the line of that
+/// media then keeps the length of it.
+fn the_place_of_the_row(row: Option<&Vec<String>>) -> Option<f64> {
+    row.and_then(|row| row.get(2))
+        .and_then(|place| place.trim().parse::<f64>().ok())
+}
+
+/// Gives the text of the time of a line of the view of the queue. See T-234.
+///
+/// The answer is the time that is left of the media for a user who began it,
+/// and the length of the media for every other user. A media of no length
+/// gives `None`, and the line of it then holds no time at all.
+///
+/// A place that stands at the end of the media, or after it, gives the length
+/// too: the mark of that line says already that the media came to its end, and
+/// a line of `(0m left)` says nothing more.
+fn the_time_of_the_line(duration: Option<f64>, place: Option<f64>) -> Option<String> {
+    let length = duration?;
+
+    let text = |seconds: f64| {
+        convert_seconds(vec![seconds])
+            .first()
+            .cloned()
+            .unwrap_or_default()
+    };
+
+    match place {
+        Some(place) if place > 0.0 && place < length => {
+            Some(format!("{} left", text(length - place)))
+        }
+        _ => Some(text(length)),
+    }
 }
 
 /// The place of the user of each media of the queue, keyed by `Entry::key`.

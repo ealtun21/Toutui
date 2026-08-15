@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.63",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The line of the view of the queue said the length of its \
+             media.** A user who chooses the media that comes next needs the \
+             time that is left, and a line of a media at 90 percent said the \
+             length of the whole media. The line says the time that is left \
+             now, and a media that the user did not begin keeps its length.",
+        ],
+    },
+    Entry {
         version: "0.8.62",
         date: "15/08/2026",
         body: &[

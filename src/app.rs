@@ -8658,6 +8658,9 @@ pub fn message_of_the_mark(finished: bool) -> String {
 /// before T-230, and the log names the fault. A media of no row of the answer
 /// takes no row at all: `marks::of_progress` gives no mark to a media that
 /// never played.
+///
+/// **The row holds the place of the user in seconds too** (T-234), because the
+/// line of that media says the time that is left of it and not the length.
 async fn the_places_of_the_queue(
     api: &crate::api::client::ApiClient,
     keys: &[(String, Option<String>)],
@@ -8689,6 +8692,9 @@ async fn the_places_of_the_queue(
                 vec![
                     collect_progress_percentage_book(row).await,
                     collect_is_finished_book(row).await,
+                    // The place of the user, in seconds. The line of that
+                    // media says the time that is left with it (T-234).
+                    collect_current_time_prg(row).await.to_string(),
                 ],
             );
         }
