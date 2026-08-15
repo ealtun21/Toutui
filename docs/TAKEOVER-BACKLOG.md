@@ -21147,3 +21147,160 @@ other 985 tests of the library passed.
   T-265, and it stays open).
 - **The line of the Library view of a library of podcasts says no place at all**
   (T-242 to T-265, and it stays open).
+
+### T-266: a refresh that cannot read the configuration file keeps the program of the user
+
+**The state**: corrected on 2026-08-15, in v0.8.95. The measurement is of the
+real program inside tmux, against the sandbox.
+
+#### The choice of this item
+
+T-265 left this open: **the key `R` of a file that the program cannot read is
+not measured**. That candidate names the harm of the user, and it stands on the
+road of the item of the round before it: T-265 gave the configuration file a
+fault of its own, `TheConfigurationFileDidNotCome`, and `main` stops the
+program with it. **At the start that is right**, because the program holds no
+value of the user at all. **A refresh is not a start** (T-205), and the key `R`
+reads that file again (T-142).
+
+#### The fault
+
+`App::new_with_the_engine` of `src/app.rs` line 668 reads the configuration
+file with `load_config()?`, and the road of the key `R` of `src/main.rs` gave
+that report to `the_program_stops_with_words`. The application of the user
+holds the account, every list, and the playback already, and the values of the
+file that it read at its start stay good: a fault of one character of that file
+took every one of them away.
+
+#### The measurement
+
+The real program v0.8.94, inside tmux, on a screen of 160 columns and 45 rows,
+against the sandbox (`docs/harness/drive.sh`, the account `toutuitest` of
+`http://localhost:13399`). The build of the fault comes of one edit of
+`src/main.rs` (the trap 147):
+
+```rust
+if the_database_said_nothing || (the_file_did_not_come && false) {
+```
+
+The program stood in the Home view at the first frame, after 407 milliseconds.
+The user then wrote two lines at the end of `config.toml`, and one bracket went
+away:
+
+```toml
+[colors]
+background_color = [40, 40, 40
+```
+
+The key `R` then took the whole program away. `tmux has-session` gave no
+session, and the log held one line:
+
+```text
+[app] the program stops: The program cannot read the configuration file /home/…/toutui/config.toml.
+```
+
+The playback, the queue, and every list of the user went with that program.
+
+The program of the correction, with the same file and the same key, **stands**.
+The whole capture of the pane held the Home view of 35 items, and the row of
+the message above the footer held:
+
+```text
+The program cannot read its configuration file, therefore the screen did not change. The log names the fault of that file. Correct it, and press R again.
+```
+
+and the log held:
+
+```text
+[the refresh] the program cannot read its configuration file: … The application of the user stays.
+```
+
+The control of the same run, with the file of no fault, gave the Home view
+again at the key `R`, with no row of a message at all and no line of a fault in
+the log.
+
+#### The correction
+
+`the_configuration_file_did_not_come` of `src/api/client/error.rs` reads the
+chain of the report, in the shape of `the_accounts_did_not_come` of T-199. The
+road of the refresh of `src/main.rs` keeps the application of the user, it
+writes `app.must_refresh = false`, and the row of the message says
+`THE_REFRESH_DID_NOT_READ_THE_CONFIGURATION_FILE` of `src/ui/keys.rs`. Those
+words name the file and the key of the view that the user sees at that moment
+(T-183), and they say nothing of the server and nothing of an account (T-91),
+because the file belongs to the user. The line and the column of the fault stay
+in the log, because the words of the crate `config` name them and no row of a
+message holds that much text.
+
+**The two other readers of that file hold this rule already**:
+`take_the_limit_of_the_cache_of_the_file` of `src/app.rs` and
+`read_the_limit_of_the_configuration_again` of `src/logic/reader/cache.rs` each
+give the values of the program back for a file that the program cannot read.
+
+#### The gate
+
+`tests/a_refresh_of_a_file_that_the_program_cannot_read_keeps_the_program.rs`.
+The build of the fault, with the decision of `src/main.rs` of v0.8.94 and every
+other line of v0.8.95, fails it at
+`the refresh reads the fault of the configuration file`.
+
+#### What this item leaves open
+
+
+- **The login screen of a file that the program cannot read is not measured**
+  (T-265 and T-266, and it stays open): `AppLogin::new` of `src/login_app.rs` line 19 reads
+  the file with `?` too, and that road stands before the clear of line 159.
+  The words of the crate reach the terminal there, and the words of the program
+  do not. **This is a candidate and not a measurement.**
+- **A file that the program cannot make gives every value of the program and it
+  says no word on the screen** (T-264 to T-266, and it stays open):
+  `make_the_configuration_if_it_is_absent` gives `false` and `load_config_from`
+  gives `ConfigFile::default()` with no name of any value.
+- **The row of the message says the number and not the name** (T-264 and T-266,
+  and it stays open): a file of many faults gives one number, and the user must
+  read the log to find which values went away.
+- **The login screen says no word of a value of the file that the program does
+  not use** (T-264 to T-266, and it stays open).
+- **The program reads the configuration file two times at its start** (T-259 to
+  T-266, and it stays open).
+- **A machine of two names of the file is not measured** (T-263 to T-266, and it
+  stays open).
+- **A name of the prefix of an address is not every name of an identity of an
+  address** (T-262 to T-266, and it stays open).
+- **Two names that differ in their spaces alone are two identities** (T-261 to
+  T-266, and it stays open).
+- **A file whose every server fails is not measured** (T-259 to T-266, and it
+  stays open).
+- **The block `reader` stands on no gate of a build of the fault** (T-259 to
+  T-266, and it stays open).
+- **The words of a fault of the crate `config` are not ASD-STE100** (T-258 to
+  T-266, and it stays open): the words of the program stand above them now, and
+  the reason of the crate keeps its own words, because it names the line and the
+  column of the file.
+- **The colours of the program stand on no test of a length** (T-257 to T-266,
+  and it stays open).
+- **The panel of a description is in no test of the render** (T-253 to T-266,
+  and it stays open).
+- **The two renders of the panel of the episodes of a podcast are in no test**
+  (T-250 to T-266, and it stays open).
+- **The title of a list says no number of the line of the cursor** (T-255 to
+  T-266, and it stays open).
+- **The key `H` of the panel stands on no character of the screen** (T-254 to
+  T-266, and it stays open).
+- **The line of the view of the authors says `[1 book(s)]`** (T-252 to T-266,
+  and it stays open).
+- **The panel of a narrator says "No description available" for every narrator
+  of every library** (T-252 to T-266, and it stays open).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-266, and it stays open).
+- **The key `B` says nothing on either road** (T-248 to T-266, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters, and
+  of the view of the queue gives the Home view** (T-247 to T-266, and it stays
+  open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to T-266,
+  and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-266, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at all**
+  (T-242 to T-266, and it stays open).

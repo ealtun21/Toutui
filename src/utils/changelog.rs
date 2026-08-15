@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.95",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key `R` keeps your program when Toutui cannot read the \
+             configuration file.** You can change that file while Toutui runs, \
+             and the key `R` reads it again. A file of a shape that is not \
+             correct, for example an array with no `]`, then stopped the whole \
+             program: the playback, the queue, and every list went away for one \
+             character. Toutui keeps the application now, and it says that the \
+             screen did not change. The log names the line and the column of \
+             the fault. Correct that file, and press `R` again.",
+        ],
+    },
+    Entry {
         version: "0.8.94",
         date: "15/08/2026",
         body: &[

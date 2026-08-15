@@ -736,14 +736,43 @@ async fn main() -> Result<()> {
                                         if api::client::error::the_accounts_did_not_come(report)
                                 );
 
-                                if the_database_said_nothing {
+                                // **A refresh is not a start**, and the
+                                // configuration file holds that rule too (T-266).
+                                // The key `R` reads `config.toml` again (T-142),
+                                // therefore the user who changes one colour of
+                                // that file and who leaves one bracket out meets
+                                // this road. A measurement of 2026-08-15 of the
+                                // real program v0.8.94: that key took the whole
+                                // program away with the status 1, and the
+                                // playback, the queue, and every list of the user
+                                // went with it, for one character of a file that
+                                // the program read one time already. The values of
+                                // the file that the application holds stay good,
+                                // therefore that application stays.
+                                let the_file_did_not_come = matches!(
+                                    &the_new_application,
+                                    Err(report)
+                                        if api::client::error
+                                            ::the_configuration_file_did_not_come(report)
+                                );
+
+                                if the_database_said_nothing || the_file_did_not_come {
                                     if let Err(report) = &the_new_application {
-                                        error!(
-                                            "[the refresh] the program did not read the accounts \
-                                             of its database: {}. The application of the user \
-                                             stays.",
-                                            report
-                                        );
+                                        if the_file_did_not_come {
+                                            error!(
+                                                "[the refresh] the program cannot read its \
+                                                 configuration file: {}. The application of the \
+                                                 user stays.",
+                                                report
+                                            );
+                                        } else {
+                                            error!(
+                                                "[the refresh] the program did not read the \
+                                                 accounts of its database: {}. The application of \
+                                                 the user stays.",
+                                                report
+                                            );
+                                        }
                                     }
 
                                     // **The mark of the refresh goes away** (T-205).
@@ -754,9 +783,12 @@ async fn main() -> Result<()> {
                                     app.must_refresh = false;
 
                                     logic::message::forget();
-                                    logic::message::say(
-                                        toutui::ui::keys::THE_REFRESH_DID_NOT_READ_THE_DATABASE,
-                                    );
+                                    logic::message::say(if the_file_did_not_come {
+                                        toutui::ui::keys::
+                                            THE_REFRESH_DID_NOT_READ_THE_CONFIGURATION_FILE
+                                    } else {
+                                        toutui::ui::keys::THE_REFRESH_DID_NOT_READ_THE_DATABASE
+                                    });
                                 } else {
                                     app = match the_new_application {
                                         Ok(new) => new,

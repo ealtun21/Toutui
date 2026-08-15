@@ -595,6 +595,24 @@ pub const THE_REFRESH_DID_NOT_READ_THE_DATABASE: &str =
     "The program did not read the accounts of its database, therefore the screen \
      did not change. A different program of this account can hold it. Press R again.";
 
+/// What a refresh says when it cannot read the configuration file. See T-266.
+///
+/// **A refresh is not a start** (T-205). The key `R` reads `config.toml` again
+/// (T-142), therefore the user who changes one colour of that file and who
+/// leaves one bracket out meets this road. A measurement of 2026-08-15 of the
+/// real program v0.8.94: that key took the whole program away with the status 1,
+/// and the words of T-265 stood in the terminal of the shell. The application of
+/// the user holds the account, every list, and the playback already, and the
+/// values of the file that it read before stay good: therefore the application
+/// stays, and the sentence names the file and the key of the view that the user
+/// sees at that moment (T-183). The log holds the line and the column of the
+/// fault, because the words of the crate `config` name them and no row of a
+/// message holds that much text.
+pub const THE_REFRESH_DID_NOT_READ_THE_CONFIGURATION_FILE: &str =
+    "The program cannot read its configuration file, therefore the screen did \
+     not change. The log names the fault of that file. Correct it, and press R \
+     again.";
+
 /// What the key of the next library says when the disk did not take it. See
 /// T-205.
 ///

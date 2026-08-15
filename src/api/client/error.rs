@@ -117,6 +117,29 @@ pub fn the_accounts_did_not_come(report: &color_eyre::eyre::Report) -> bool {
         .any(|cause| cause.is::<crate::db::TheAccountsDidNotCome>())
 }
 
+/// Tells if a report of a fault holds a configuration file that the program
+/// cannot read.
+///
+/// **A refresh is not a start** (T-205, and T-266). T-265 gave that file a fault
+/// of its own, and `main` stops the program with it: at the start that is right,
+/// because the program holds no value of the user at all. The key `R` reads that
+/// file again (T-142), therefore the user who corrects one line of it and who
+/// makes one fault of the shape of TOML takes the whole program away: the
+/// playback, the queue, and every list of the user go with it.
+///
+/// The two other readers of that file hold this rule already
+/// (`take_the_limit_of_the_cache_of_the_file` of `src/app.rs` and
+/// `read_the_limit_of_the_configuration_again` of `src/logic/reader/cache.rs`):
+/// a file that the program cannot read changes nothing.
+///
+/// The function looks at every cause of the report, because a caller can put the
+/// fault of the file inside a report of its own.
+pub fn the_configuration_file_did_not_come(report: &color_eyre::eyre::Report) -> bool {
+    report
+        .chain()
+        .any(|cause| cause.is::<crate::config::TheConfigurationFileDidNotCome>())
+}
+
 /// The words for a user whose program cannot read the lists of the server.
 ///
 /// **T-123 closed this road for a token that the server refused, and every
