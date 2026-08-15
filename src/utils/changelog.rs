@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.61",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key n said one sentence for three conditions of the \
+             queue.** A media that came in, a media that moved to the end, and \
+             a media that stands at the end already each gave \"… is number N \
+             of the queue\": a user who did not press the key q read a queue \
+             that grew for each of the three. The sentence names the two \
+             places of a media that moves now, and it says that a media of the \
+             last line waits there already.",
+        ],
+    },
+    Entry {
         version: "0.8.60",
         date: "15/08/2026",
         body: &[

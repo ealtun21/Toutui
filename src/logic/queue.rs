@@ -9,7 +9,8 @@
 //!
 //! - The key `n` puts the selected media at the end of the queue. It does not
 //!   change the media that plays. **A media that waits already moves to the
-//!   end**, because the disk holds one row for one media (T-231).
+//!   end**, because the disk holds one row for one media (T-231), and **the
+//!   sentence of that key says that the media moved** (T-232).
 //! - The queue starts the next media when a media comes to **its end** only. A
 //!   media that the user stopped, and a media that a different playback took
 //!   away, leave the queue where it is.
@@ -138,6 +139,26 @@ pub struct Queue {
     entries: Vec<Entry>,
 }
 
+/// The place that the key `n` gave a media, and the place that it held before.
+/// See T-232.
+///
+/// **A media that came in and a media that moved are two conditions**, and the
+/// key said one sentence for the two of them: `"A Long Test Book" is number 2
+/// of the queue.` came of a queue that grew from 1 media to 2 **and** of a
+/// queue of 2 media where that book went from the place 1 to the place 2. A
+/// user who does not press the key `q` cannot tell the two.
+///
+/// The program holds the reason of each of them (T-91), therefore
+/// `the_words_of_the_key_that_adds` says it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ThePlaceOfTheMedia {
+    /// The place of the media now. The first place is 1.
+    pub place: usize,
+    /// The place that the media held before this key, and nothing for a media
+    /// that the queue did not hold.
+    pub the_place_before: Option<usize>,
+}
+
 impl Queue {
     /// Gives the media that wait, in their sequence.
     pub fn entries(&self) -> &[Entry] {
@@ -163,8 +184,16 @@ impl Queue {
     /// primary key of the table is the account, the server, the item, and the
     /// episode. Therefore the queue of the process holds one entry for one
     /// media too, and the two agree.
-    fn take_the_key_out(&mut self, key: &str) {
+    ///
+    /// **The answer gives the place that the media held** (T-232), and the
+    /// first place is 1. A caller that says a word for the user needs it: a
+    /// media that came in and a media that moved are two conditions, and the
+    /// program must not say the first one for the second one (T-91).
+    fn take_the_key_out(&mut self, key: &str) -> Option<usize> {
+        let place = self.entries.iter().position(|entry| entry.key() == key);
         self.entries.retain(|entry| entry.key() != key);
+
+        place.map(|place| place + 1)
     }
 
     /// Puts a media at the end of the queue.
@@ -179,10 +208,18 @@ impl Queue {
     /// and the row of the second place went away with the row of the third one.
     /// **The disk is the truth of the queue** (T-147), and the disk holds that
     /// media at the end.
-    pub fn add(&mut self, entry: Entry) -> usize {
-        self.take_the_key_out(&entry.key());
+    ///
+    /// **The answer says the place of before too** (T-232): the key `n` on a
+    /// media that waits already said the same sentence as the key `n` on a
+    /// media that came in, and the program held the reason of the other one.
+    pub fn add(&mut self, entry: Entry) -> ThePlaceOfTheMedia {
+        let the_place_before = self.take_the_key_out(&entry.key());
         self.entries.push(entry);
-        self.entries.len()
+
+        ThePlaceOfTheMedia {
+            place: self.entries.len(),
+            the_place_before,
+        }
     }
 
     /// Puts a media at the front of the queue.
@@ -710,10 +747,42 @@ fn the_queue_changes<T>(work: impl FnOnce(&mut Queue) -> T) -> Result<T, TheDisk
 
 /// Puts a media at the end of the queue of the process.
 ///
-/// The answer gives the place of the media, and it says why for a disk that did
-/// not answer (T-202 and T-206).
-pub fn add(entry: Entry) -> Result<usize, TheDiskDidNotAnswer> {
+/// The answer gives the place of the media and the place that it held before
+/// (T-232), and it says why for a disk that did not answer (T-202 and T-206).
+pub fn add(entry: Entry) -> Result<ThePlaceOfTheMedia, TheDiskDidNotAnswer> {
     the_queue_changes(|queue| queue.add(entry))
+}
+
+/// Gives the sentence of the key `n`. See T-232.
+///
+/// **Three conditions, and three sentences.** The key said one of them for the
+/// three: `"…" is number N of the queue. Press q to see the queue.`
+///
+/// - The queue did not hold the media: it came in, and the number is its line.
+/// - The queue held the media at another place: it **moved**, and the queue
+///   holds the same number of media as before. The sentence names the two
+///   places, because the program has them (T-91).
+/// - The queue held the media at the last place: the key changed nothing at
+///   all, and **a key that does nothing must say why** (T-79).
+///
+/// The function is pure, therefore a test needs no queue, no database, and no
+/// screen.
+pub fn the_words_of_the_key_that_adds(title: &str, place: ThePlaceOfTheMedia) -> String {
+    match place.the_place_before {
+        None => format!(
+            "\"{}\" is number {} of the queue. Press q to see the queue.",
+            title, place.place
+        ),
+        Some(before) if before == place.place => format!(
+            "\"{}\" waits at number {} of the queue already. Press q to see the queue.",
+            title, place.place
+        ),
+        Some(before) => format!(
+            "\"{}\" waits in the queue already. It moves from number {} to number {}. Press q to \
+             see the queue.",
+            title, before, place.place
+        ),
+    }
 }
 
 /// Puts a media at the front of the queue of the process. See T-146.
@@ -963,9 +1032,9 @@ mod tests {
     fn the_queue_keeps_the_sequence_of_the_user() {
         let mut queue = Queue::default();
 
-        assert_eq!(queue.add(book("a", "First")), 1);
-        assert_eq!(queue.add(book("b", "Second")), 2);
-        assert_eq!(queue.add(book("c", "Third")), 3);
+        assert_eq!(queue.add(book("a", "First")).place, 1);
+        assert_eq!(queue.add(book("b", "Second")).place, 2);
+        assert_eq!(queue.add(book("c", "Third")).place, 3);
 
         assert_eq!(queue.take_next().unwrap().title, "First");
         assert_eq!(queue.take_next().unwrap().title, "Second");
@@ -1051,7 +1120,7 @@ mod tests {
         queue.add(book("a", "First"));
         queue.add(book("b", "Second"));
 
-        assert_eq!(queue.add(book("a", "First")), 2);
+        assert_eq!(queue.add(book("a", "First")).place, 2);
         assert_eq!(queue.len(), 2);
         assert_eq!(queue.entries()[1].key(), "a");
     }

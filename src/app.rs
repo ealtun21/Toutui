@@ -7449,9 +7449,11 @@ impl App {
             }
         };
 
-        crate::logic::message::say(&format!(
-            "\"{}\" is number {} of the queue. Press q to see the queue.",
-            title, place
+        // **A media that came in, a media that moved, and a media that stands at
+        // the end already are three conditions** (T-232), and the key said one
+        // sentence for the three of them.
+        crate::logic::message::say(&crate::logic::queue::the_words_of_the_key_that_adds(
+            &title, place,
         ));
     }
 

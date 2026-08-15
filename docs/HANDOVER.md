@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.60.** The item T-231 belongs to this session. The
+**The newest release is v0.8.61.** The item T-232 belongs to this session. The
+item T-231 belongs to the session before it. The
 item T-230 belongs to the session before it. The
 item T-229 belongs to the session before it. The
 item T-228 belongs to the session before it. The
@@ -68,13 +69,66 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.60**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.61**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1214 of 1214** in 2.6 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1240 of 1240** in 18 seconds with
+**1215 of 1215** in 2.8 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1241 of 1241** in 17 seconds with
 the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no
 failure in two runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the sixty-first turn of 2026-08-15: the key `n` says that the media moved
+
+**One release: v0.8.61**, and one item: T-232 of the words of the key `n`. **The
+road of it is the first paragraph of "What this item leaves open" of T-231**:
+that paragraph said that the key names the new number alone, therefore a user
+who does not read the view cannot tell a media that came in from a media that
+moved. **The program has that reason** (T-91), because T-231 gave `Queue::add`
+the rule that a media which waits already moves to the end.
+
+The measurement of the real program v0.8.60 inside tmux, against the sandbox,
+with the table `queue` of the account empty at the start: the user pressed `n`
+on `A Long Test Book`, `j`, `n` on `A Big Book Of A Scan`, `k`, and `n` on
+`A Long Test Book` again. The third message said
+`"A Long Test Book" is number 2 of the queue.`, and that sentence holds the
+shape of the second one: the second key made a queue of 2 media of a queue of 1,
+and the third key made a queue of 2 media of a queue of 2. **A user who reads
+the three sentences and who does not press the key `q` counts three media.** A
+fourth key `n` of that same media (it stood at the last line already) said the
+same sentence again, and it changed no row of the disk at all — **a key that
+does nothing must say why** (T-79).
+
+**The control of the same run** (the trap 206): the two keys `n` before the
+third one each named the number of a line of that same view.
+
+The correction: `Queue::take_the_key_out` gives `Option<usize>`, the place that
+the media held before, and the first place is 1 (the number of the line of the
+view). The new `ThePlaceOfTheMedia { place, the_place_before }` is the answer of
+`Queue::add` and of the global `add`, and the new pure
+`the_words_of_the_key_that_adds` gives **three** sentences for the three
+conditions. `src/app.rs`, `add_to_the_queue`, calls it.
+
+The corrected program (v0.8.61) said
+`"A Long Test Book" waits in the queue already. It moves from number 1 to number
+2. Press q to see the queue.` for the third key, and
+`"A Long Test Book" waits at number 2 of the queue already. Press q to see the
+queue.` for the fourth one. The disk and the view of the key `q` each held the
+same two lines.
+
+`tests/the_key_of_the_queue_says_that_the_media_moved.rs` holds the rule, and
+**two builds of the fault each fail it**: words that give one sentence for the
+three conditions, and a `take_the_key_out` that gives no place of before.
+
+**The decision, and the reason for it: the sentence names the two places.** The
+other road is a sentence with the new number alone. The program holds the place
+of before, therefore a sentence that leaves it out throws a fact of the user
+away: a queue of ten media where the book of the line 2 moves to the line 10 is
+a change that the number 10 alone does not show.
+
+**What this turn left open** stands in T-232 of `docs/TAKEOVER-BACKLOG.md`. The
+cheapest of them: **the key `X` of the view of the queue says no place of the
+media that it took.** The sentence of `take_the_media` names the title alone,
+and the program holds the number of the line.
 
 ## The session of the sixtieth turn of 2026-08-15: the number of the key `n` is the number of a line
 
@@ -8634,39 +8688,83 @@ view of the library `Books` — gave `5%  A Book Of Many Hours` and
   episode reached no measurement, therefore a measurement of a percent
   writes the percent that it needs and it trusts no percent of before.
 
+**The session of the fifty-eighth turn took the first paragraph of "What this item
+leaves open" of the newest item: that paragraph named one view, and the
+measurement found that no line of that view held one word of its episode**
+(T-229).
+
+The view of the episodes of a podcast is the one view that holds a line for
+each episode, and it wrapped no mark at all. The server held `Chapter 00` of
+`Arthur Gordon Pym` at 30 percent, `Chapter 01` finished, and `Chapter 02`
+at 700 seconds of 2336; the user opened that view and played `Chapter 02`,
+and the eleven lines each said the title alone while the row of the player
+of that same frame said `Arthur Gordon Pym — Chapter 02 by LibriVox` with
+`⏸ 12:21 / 38:56`. The panel of the line said nothing of the place. **The
+control of the same run** (the trap 206): the Library view of that program
+said `▶   Arthur Gordon Pym` and the Home view said `▶   Chapter 02`,
+`✓   Letter 57`, and `Progress: 0%, Not finished`.
+- **A list of a media that wraps no mark is a list that says nothing**
+  (T-229). Every other list of a media of the program wraps its title with
+  `crate::ui::marks::line`. **Ask of every list of a media: which mark does
+  this line hold, and which list of the program holds none?**
+- **A view that a task fills reads what that task collected, and no more**
+  (T-229). The task of the episodes collected seven lists of the answer of
+  the server and no place of the user, therefore no field of `App` could
+  hold a percent of that view. **Ask of every task that fills a view: which
+  value of the server does it not collect, and which line of the screen
+  needs that value?**
+- **A rule of the other machine can hide the condition of a measurement**
+  (T-229). A `PATCH` of `/api/me/progress/:item/:episode` that holds
+  `duration` beside `currentTime` leaves the percent of the row where it
+  stood, and a body of `{"progress": N}` alone writes it at once. That
+  closes one half of the road that T-228 left open (the section 16 of
+  `docs/TEST-SERVER.md`).
+- **The lines of the view of the queue, of the view of the bookmarks, and
+  of the view of the chapters hold no place of the user** (T-229). **T-230
+  closed it**: the chapters hold that place already, a line of the
+  bookmarks is one bookmark and not a media, and the queue held nothing.
+- **The lines of the view of the search and of the view of the lists hold
+  no place at all** (T-228 and T-229, and it stays open).
+- **The place of the view of the episodes is a photograph of the moment of
+  the open** (T-229, and it stays open): the program reads the episodes of
+  one podcast one time (T-167), and a live message is the one road of a
+  fresh percent without the key `R`.
+- **The view of the episodes of the offline mode is not measured** (T-229,
+  and it stays open): the task of the episodes does not run offline.
+
 ## The prompt for the next session
 **This session took the first paragraph of "What this item leaves open" of the
-newest item.** T-230 wrote that the key `n` on a media that stands in the queue
-already says a number that no line of the view holds, and that the memory of the
-process and the disk of the queue do not agree on such a media. **The
-measurement gave that fault in three keys**: the messages said `number 1`,
-`number 2`, and `number 3`, the view of that same second said
-`The queue [2 items]`, and the disk held two rows of the places 0 and 2. The
-item is **T-231**, and it holds one release, v0.8.60.
+newest item.** T-231 wrote that the key `n` says no word of a media that moved:
+the message names the new number alone, and the program **has** that reason
+(T-91). **The measurement gave that fault in four keys**: the third key said
+`"A Long Test Book" is number 2 of the queue.` for a queue that did not grow,
+and the fourth key of that same media said the same sentence for a queue that
+changed no row of the disk at all. The item is **T-232**, and it holds one
+release, v0.8.61.
 
 Three things are worth the room:
 
 1. **The first paragraph of "What this item leaves open" of the newest item is
-   the cheapest road of a session, again.** Seven sessions of seven took that
-   road. The whole fault stood in `Queue::add` and in the primary key of the
-   table `queue`, and the measurement of the real program cost two runs of the
-   harness.
-2. **A doc of the memory can promise a function that the disk does not have.**
-   `Queue::add` said that "a media that stands in the queue already goes in a
-   second time. The user can want to hear one episode two times", and
-   `save_the_queue` writes one row for one media. That is T-118 one level lower.
-   **Ask of every rule of a doc of the memory: does the disk of it hold that
-   rule too?**
-3. **A number that a key says is a number that a view must hold.** The message
-   of the key read the memory of the process, and the lines of the view read the
-   disk. **Ask of every message that names a number: which view holds that
-   number, and what makes the two agree?**
+   the cheapest road of a session, again.** Eight sessions of eight took that
+   road. The whole fault stood in one `format!` of `src/app.rs` and in a
+   function of `src/logic/queue.rs` that gave nothing, and the measurement of
+   the real program cost two runs of the harness.
+2. **A rule that a correction gives the program is a fact that the words must
+   say.** T-231 gave the queue the rule that a media which waits already moves
+   to the end, and the sentence of that key stayed as it was. **Ask of every
+   correction: which text of the user reads the value that this correction now
+   holds?**
+3. **A function that throws a value away takes a fact of the user with it.**
+   `Queue::take_the_key_out` held the place of the media of before at the
+   moment that it removed the entry, and it gave nothing. **Ask of every
+   function that removes a row or an entry: what did it know at that moment,
+   and who needs it?**
 
 This prompt names the state of the program on 2026-08-16.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.60**; `Cargo.toml` is at 0.8.60. The
+> AlbanDAVID/Toutui. Newest release **v0.8.61**; `Cargo.toml` is at 0.8.61. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -8675,7 +8773,7 @@ This prompt names the state of the program on 2026-08-16.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-231 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-232 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -9296,7 +9394,44 @@ This prompt names the state of the program on 2026-08-16.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in seventy-three sessions of seventy-four. **The
+>    this shape found a fault in seventy-four sessions of seventy-five. **The
+>    session of the sixty-first turn took the first paragraph of "What this item
+>    leaves open" of the newest item: that paragraph named the words of a key,
+>    and the measurement found one sentence for three conditions** (T-232).
+>
+>    The key `n` said `"A Long Test Book" is number 1 of the queue.`, then
+>    `"A Big Book Of A Scan" is number 2 of the queue.`, and then
+>    `"A Long Test Book" is number 2 of the queue.` **The third sentence holds
+>    the shape of the second one**, and the two conditions are not the same: the
+>    second key made a queue of 2 media of a queue of 1, and the third key made
+>    a queue of 2 media of a queue of 2. A user who reads the three sentences
+>    and who does not press the key `q` counts three media. A **fourth** key `n`
+>    of that same media (it stood at the last line already) said the same
+>    sentence again, and it changed no row of the disk at all. **The control of
+>    the same run** (the trap 206): the two keys `n` before the third one each
+>    named the number of a line of that same view.
+>    - **A rule that a correction gives the program is a fact that the words
+>      must say** (T-232). T-231 gave the queue the rule that a media which
+>      waits already moves to the end, and the sentence of that key stayed as it
+>      was. **Ask of every correction: which text of the user reads the value
+>      that this correction now holds?**
+>    - **A function that throws a value away takes a fact of the user with it**
+>      (T-232). `Queue::take_the_key_out` held the place of the media of before
+>      at the moment that it removed the entry, and it gave nothing. **Ask of
+>      every function that removes a row or an entry: what did it know at that
+>      moment, and who needs it?**
+>    - **A key that changes nothing must say why** (T-79, and T-232): the key
+>      `n` on the media of the last line of the queue moves no row of the disk,
+>      and it said the sentence of a key that put a media in.
+>    - **The key `X` of the view of the queue says no place of the media that it
+>      took** (T-232, and it stays open): the sentence of `take_the_media` names
+>      the title alone, and the program holds the number of the line.
+>    - **The line of the view of the queue names the length of the media and not
+>      the time that is left** (T-230 to T-232, and it stays open).
+>    - **The place of the view of the queue is a photograph of the moment of the
+>      key `q`** (T-230 to T-232, and it stays open).
+>
+>    **The
 >    session of the sixtieth turn took the first paragraph of "What this item
 >    leaves open" of the newest item: that paragraph named a message of a key,
 >    and the measurement found that the memory of the process and the disk do
@@ -9377,54 +9512,9 @@ This prompt names the state of the program on 2026-08-16.
 >    - **The view of the queue of the offline mode is not measured** (T-230, and
 >      it stays open): the request of the places does not run offline.
 >
->    **The
->    session of the fifty-eighth turn took the first paragraph of "What this item
->    leaves open" of the newest item: that paragraph named one view, and the
->    measurement found that no line of that view held one word of its episode**
->    (T-229).
->
->    The view of the episodes of a podcast is the one view that holds a line for
->    each episode, and it wrapped no mark at all. The server held `Chapter 00` of
->    `Arthur Gordon Pym` at 30 percent, `Chapter 01` finished, and `Chapter 02`
->    at 700 seconds of 2336; the user opened that view and played `Chapter 02`,
->    and the eleven lines each said the title alone while the row of the player
->    of that same frame said `Arthur Gordon Pym — Chapter 02 by LibriVox` with
->    `⏸ 12:21 / 38:56`. The panel of the line said nothing of the place. **The
->    control of the same run** (the trap 206): the Library view of that program
->    said `▶   Arthur Gordon Pym` and the Home view said `▶   Chapter 02`,
->    `✓   Letter 57`, and `Progress: 0%, Not finished`.
->    - **A list of a media that wraps no mark is a list that says nothing**
->      (T-229). Every other list of a media of the program wraps its title with
->      `crate::ui::marks::line`. **Ask of every list of a media: which mark does
->      this line hold, and which list of the program holds none?**
->    - **A view that a task fills reads what that task collected, and no more**
->      (T-229). The task of the episodes collected seven lists of the answer of
->      the server and no place of the user, therefore no field of `App` could
->      hold a percent of that view. **Ask of every task that fills a view: which
->      value of the server does it not collect, and which line of the screen
->      needs that value?**
->    - **A rule of the other machine can hide the condition of a measurement**
->      (T-229). A `PATCH` of `/api/me/progress/:item/:episode` that holds
->      `duration` beside `currentTime` leaves the percent of the row where it
->      stood, and a body of `{"progress": N}` alone writes it at once. That
->      closes one half of the road that T-228 left open (the section 16 of
->      `docs/TEST-SERVER.md`).
->    - **The lines of the view of the queue, of the view of the bookmarks, and
->      of the view of the chapters hold no place of the user** (T-229). **T-230
->      closed it**: the chapters hold that place already, a line of the
->      bookmarks is one bookmark and not a media, and the queue held nothing.
->    - **The lines of the view of the search and of the view of the lists hold
->      no place at all** (T-228 and T-229, and it stays open).
->    - **The place of the view of the episodes is a photograph of the moment of
->      the open** (T-229, and it stays open): the program reads the episodes of
->      one podcast one time (T-167), and a live message is the one road of a
->      fresh percent without the key `R`.
->    - **The view of the episodes of the offline mode is not measured** (T-229,
->      and it stays open): the task of the episodes does not run offline.
->
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the fifty-sixth and every turn before it, the item of each, and the sweeps
+>    the fifty-eighth and every turn before it, the item of each, and the sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
 >    says nothing at all (T-174), the rule of the line of a view for the six

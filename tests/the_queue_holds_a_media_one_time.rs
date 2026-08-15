@@ -73,13 +73,13 @@ fn the_queue_holds_a_media_one_time() {
     let mut queue = Queue::default();
 
     // The two keys `n` of two media give the two numbers of the two lines.
-    assert_eq!(queue.add(book("long", "A Long Test Book")), 1);
-    assert_eq!(queue.add(book("scan", "A Big Book Of A Scan")), 2);
+    assert_eq!(queue.add(book("long", "A Long Test Book")).place, 1);
+    assert_eq!(queue.add(book("scan", "A Big Book Of A Scan")).place, 2);
 
     // **The key `n` on the media that stands in the queue already**: the disk
     // holds two rows after it, therefore the number of the message is 2 and the
     // view holds two lines.
-    assert_eq!(queue.add(book("scan", "A Big Book Of A Scan")), 2);
+    assert_eq!(queue.add(book("scan", "A Big Book Of A Scan")).place, 2);
     assert_eq!(queue.len(), 2);
     assert_eq!(the_queue_of_the_disk(&queue).len(), queue.len());
 
@@ -96,13 +96,22 @@ fn the_queue_holds_a_media_one_time() {
 
     // Two episodes of one podcast are two media (T-223 and T-229), therefore
     // both of them keep their place.
-    assert_eq!(queue.add(episode("pym", "chapter-00", "Chapter 00")), 3);
-    assert_eq!(queue.add(episode("pym", "chapter-01", "Chapter 01")), 4);
+    assert_eq!(
+        queue.add(episode("pym", "chapter-00", "Chapter 00")).place,
+        3
+    );
+    assert_eq!(
+        queue.add(episode("pym", "chapter-01", "Chapter 01")).place,
+        4
+    );
     assert_eq!(queue.len(), 4);
     assert_eq!(the_queue_of_the_disk(&queue).len(), 4);
 
     // The key `n` on one of those two episodes moves that episode alone.
-    assert_eq!(queue.add(episode("pym", "chapter-00", "Chapter 00")), 4);
+    assert_eq!(
+        queue.add(episode("pym", "chapter-00", "Chapter 00")).place,
+        4
+    );
     assert_eq!(
         queue
             .entries()

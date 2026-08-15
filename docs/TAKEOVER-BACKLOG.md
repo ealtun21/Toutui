@@ -15744,3 +15744,117 @@ key `n` puts a media.
 - **The key `X` of the view of the bookmarks of a podcast** removes a place of
   another episode with the same words (T-223 to T-230 each left it open, and
   this item did not close it).
+
+### T-232: the key `n` says nothing of a media that moved
+
+**This item takes the first paragraph of "What this item leaves open" of
+T-231.** That paragraph said that the key `n` names the new number alone,
+therefore a user who does not read the view cannot tell a media that came in
+from a media that moved. **The program has that reason** (T-91): T-231 gave
+`Queue::add` the rule that a media which waits already moves to the end, and
+the function that removes the entry of before knows the place that it held.
+
+#### The measurement
+
+The real program v0.8.60 inside tmux, against the sandbox (podman on :13399),
+of the library `Books`, with the table `queue` of the account empty at the
+start. The user pressed `n` on `A Long Test Book`, `j`, `n` on
+`A Big Book Of A Scan`, `k`, and `n` on `A Long Test Book` again. The four
+messages of the four keys:
+
+```text
+"A Long Test Book" is number 1 of the queue. Press q to see the queue.
+"A Big Book Of A Scan" is number 2 of the queue. Press q to see the queue.
+"A Long Test Book" is number 2 of the queue. Press q to see the queue.
+```
+
+The disk of that same moment, and the view of the key `q`:
+
+```text
+0|A Big Book Of A Scan
+1|A Long Test Book
+
+The queue [2 items]
+➤ 77% 1. 📕 A Big Book Of A Scan — Big Author  (0m)
+  50% 2. 📕 A Long Test Book — Long Author  (30m)
+```
+
+**The third sentence holds the shape of the second one**, and the two conditions
+are not the same: the second key made a queue of 2 media of a queue of 1, and
+the third key made a queue of 2 media of a queue of 2. A user who reads the
+three sentences and who does not press the key `q` counts three media.
+
+**The control of the same run** (the trap 206): the two keys `n` before that one
+each named the number of a line of that same view, therefore the row of the
+message and the key do their work.
+
+**A fourth key `n` of that same media** (the media stood at the last line of the
+queue already) said the same sentence a second time, and it changed no row of
+the disk at all. **A key that does nothing must say why** (T-79), and this one
+said the sentence of a key that put a media in the queue.
+
+#### The fault of the source
+
+- `src/logic/queue.rs`, `Queue::take_the_key_out`: the function gave nothing.
+  It holds the place of the media of before at the moment that it removes it,
+  and that value went away.
+- `src/logic/queue.rs`, `Queue::add`: the answer was the new place alone, a
+  `usize`. No caller could tell the three conditions apart.
+- `src/app.rs`, `add_to_the_queue`: the `format!` of the message stood in the
+  view, and it held one sentence.
+
+#### The correction
+
+- `src/logic/queue.rs`: `take_the_key_out` gives `Option<usize>`, the place of
+  the media of before, and the first place is 1 (the number of the line of the
+  view, and not the index of the list).
+- `src/logic/queue.rs`: the new `ThePlaceOfTheMedia { place, the_place_before }`
+  is the answer of `Queue::add` and of the global `add`.
+- `src/logic/queue.rs`: the new `the_words_of_the_key_that_adds` gives **three**
+  sentences for the three conditions. The function is pure, therefore a test of
+  it needs no queue, no database, and no screen.
+- `src/app.rs`: `add_to_the_queue` calls that function.
+- `tests/the_key_of_the_queue_says_that_the_media_moved.rs` holds the rule, and
+  the parts of it stay in one function (T-144 and T-157). **Two builds of the
+  fault each fail it**: words that give one sentence for the three conditions,
+  and a `take_the_key_out` that gives no place of before.
+
+The same measurement of the corrected program (v0.8.61):
+
+```text
+"A Long Test Book" is number 1 of the queue. Press q to see the queue.
+"A Big Book Of A Scan" is number 2 of the queue. Press q to see the queue.
+"A Long Test Book" waits in the queue already. It moves from number 1 to number 2. Press q to see the queue.
+"A Long Test Book" waits at number 2 of the queue already. Press q to see the queue.
+```
+
+The disk held the places 0 and 1 of `A Big Book Of A Scan` and of
+`A Long Test Book`, and the view of the key `q` held those same two lines.
+
+**The decision, and the reason for it: the sentence names the two places.** The
+other road is a sentence that says "it moves to the end" with the new number
+alone. The program holds the place of before, therefore a sentence that leaves
+it out throws a fact of the user away: a queue of ten media where the book of
+the line 2 moves to the line 10 is a change that the number 10 alone does not
+show. The third sentence names no place at all, because the two places are the
+same one.
+
+#### What this item leaves open
+
+- **The key `X` of the view of the queue says no place of the media that it
+  took** (this item, and it stays open): the sentence of `take_the_media` names
+  the title alone, and the program holds the number of the line.
+- **The line of the view of the queue names the length of the media and not the
+  time that is left** (T-230, and it stays open).
+- **The place of the view of the queue is a photograph of the moment of the key
+  `q`** (T-230, and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-231, and it stays open).
+- **The lines of the view of the search and of the view of the lists hold no
+  place at all** (T-228 to T-231, and it stays open).
+- **The view of the queue of the offline mode is not measured** (T-230).
+- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone** (T-226 to
+  T-231, and it stays open).
+- **The key `X` of the view of the bookmarks of a podcast** removes a place of
+  another episode with the same words (T-223 to T-231 each left it open, and
+  this item did not close it).
