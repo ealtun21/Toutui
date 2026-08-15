@@ -7383,6 +7383,58 @@ impl App {
         )
     }
 
+    /// Gives the mark of a line of a book of the library. See T-242.
+    ///
+    /// **The line of the Library view and the line of the view of the search
+    /// held the mark of the media that plays alone**: `marks::of_library` gave
+    /// no percent, therefore a list of 18 books said nothing of the place of the
+    /// user of any of them, while the line of that same book of the Home view of
+    /// that same frame said `84% A Book Of Many Hours`.
+    ///
+    /// The three roads to that mark are the three roads of the panel of a line
+    /// (T-239, T-240, and T-241), in the same sequence: **the engine of this
+    /// program first** — the mark of the media that plays says `▶` and no
+    /// number, therefore `plays_now` carries that road — **the row of a live
+    /// message after it** (T-47), and **the row of the box of the places of the
+    /// account last** (T-241). The box costs no request of a view: the start
+    /// reads the answer of the account for the permissions already (T-127).
+    ///
+    /// **A line of a library of podcasts holds more than one media** (T-221):
+    /// the key of a place names the episode after the item (T-223), therefore
+    /// the box holds no row of a podcast and the mark of such a line stays the
+    /// mark of the media that plays.
+    ///
+    /// **A book that the box does not name played never** (T-127), and the mark
+    /// of that line is then no mark at all, as the Home view gives it.
+    fn the_mark_of_a_book(&self, id: Option<&String>, plays_now: bool) -> String {
+        let key = id
+            .filter(|one| !one.is_empty())
+            .map(|id| crate::logic::live::the_key_of_the_media(id, None));
+
+        // **A live message of the server is newer than the answer of the
+        // start** (T-240): a second client of the account moves in a book, and
+        // the mark of it must not say the value of the request.
+        if let Some(live) = key
+            .as_ref()
+            .and_then(|key| crate::logic::live::progress_of(key))
+        {
+            return crate::ui::marks::of_progress(&live.percent, &live.finished, plays_now);
+        }
+
+        let row = key
+            .as_ref()
+            .and_then(|key| crate::logic::the_positions::the_place_of(key));
+
+        let of_the_row = |part: usize| -> &str {
+            row.as_ref()
+                .and_then(|row| row.get(part))
+                .map(String::as_str)
+                .unwrap_or("")
+        };
+
+        crate::ui::marks::of_progress(of_the_row(0), of_the_row(1), plays_now)
+    }
+
     /// Gives the text of each line of the view `Library`.
     pub fn library_lines(&self) -> Vec<String> {
         let playing = self.playing_item();
@@ -7401,20 +7453,51 @@ impl App {
                         .unwrap_or_default(),
                 ),
                 None => {
-                    let plays_now = self
-                        .ids_library
-                        .get(row.item())
+                    let id = self.ids_library.get(row.item());
+
+                    let plays_now = id
                         .zip(playing.as_ref())
                         .is_some_and(|(id, playing)| id == playing);
 
+                    // **The line of this view said no percent of the user**
+                    // (T-242). The box of the places of the account reaches it
+                    // with no request at all.
                     crate::ui::marks::line(
-                        &crate::ui::marks::of_library(plays_now),
+                        &self.the_mark_of_a_book(id, plays_now),
                         self.titles_library
                             .get(row.item())
                             .map(|title| title.as_str())
                             .unwrap_or_default(),
                     )
                 }
+            })
+            .collect()
+    }
+
+    /// Gives the text of each line of the view of the search of the books.
+    /// See T-242.
+    ///
+    /// **That view held the titles of the server and no mark at all**: the rule
+    /// of the Library view is the rule of this view, as the panel of the two of
+    /// them takes one function (T-241).
+    ///
+    /// The caller gives the titles, because the render makes them in the frame
+    /// of the search and the reader of a book takes them from the application
+    /// (T-117).
+    pub fn search_book_lines(&self, titles: &[String]) -> Vec<String> {
+        let playing = self.playing_item();
+
+        titles
+            .iter()
+            .enumerate()
+            .map(|(line, title)| {
+                let id = self.ids_search_book.get(line);
+
+                let plays_now = id
+                    .zip(playing.as_ref())
+                    .is_some_and(|(id, playing)| id == playing);
+
+                crate::ui::marks::line(&self.the_mark_of_a_book(id, plays_now), title)
             })
             .collect()
     }

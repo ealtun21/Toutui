@@ -2165,13 +2165,26 @@ impl App {
             the_values_at(&self.all_the_lengths_of_the_episodes, &places);
         self.ids_library_pod_search = the_values_at(&self.ids_library, &places);
 
+        // **The line of a book of this view held no mark of the percent**
+        // (T-242): the panel of it says the place of the user (T-241), and the
+        // line of that same book of the Home view of that same frame said
+        // `84% A Book Of Many Hours`.
+        //
+        // **A line of a library of podcasts holds more than one media**
+        // (T-221), therefore such a line keeps the title of the server.
+        let the_lines_of_the_search: Vec<String> = if self.is_podcast {
+            titles_search_book_or_pod.to_vec()
+        } else {
+            self.search_book_lines(titles_search_book_or_pod)
+        };
+
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, _text_render_footer);
         self.render_list(
             list_area,
             buf,
             render_list_title,
-            titles_search_book_or_pod,
+            &the_lines_of_the_search,
             &mut self.list_state_search_results.clone(),
         );
         if !titles_search_book_or_pod.is_empty() {

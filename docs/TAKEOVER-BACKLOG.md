@@ -16953,3 +16953,152 @@ format.
   value of that box that the program could correct. A media that a second
   program of this account moves with no live message is the road that stays
   open.
+
+### T-242: the line of a book of the Library view and of the view of the search holds the mark of the percent
+
+**This item measures the first bullet of "What this item leaves open" of
+T-241: the line of the Library view and the line of the view of the search
+hold no mark of the percent.** `crate::ui::marks::of_library` gives the mark
+of the media that plays alone, and no other mark stood on either line. The
+panel of those two views says the place of the user already (T-241), and the
+line above it said nothing.
+
+#### The measurement
+
+The real program driven inside tmux by `docs/harness/drive.sh`, against the
+sandbox. The server held the book `A Book Of Many Hours` (eight hours, 28800
+seconds) at 10800 seconds with the percent 84.
+
+The Home view of the run said the place of the book with a number:
+
+```text
+➤ 50% A Long Test Book
+  84% A Book Of Many Hours
+  77% A Big Book Of A Scan
+```
+
+The Library view of that same run, on that same book, said the panel of
+T-241 and no mark on the line above it:
+
+```text
+➤     A Book Of Many Hours
+Author: Many Hours Author - Year: N/A - Duration: 8h
+Progress: 84%, 5h left, Not finished
+```
+
+The view of the search of that same run said the same panel, with no mark
+column at all:
+
+```text
+➤ A Book Of Many Hours
+Author: Many Hours Author - Year: N/A - Duration: 8h
+Progress: 84%, 5h left, Not finished
+```
+
+A list of 18 books of the Library view held no number of any line, and no
+line of a book that the user finished held the mark `✓`, although the panel
+of the first line of it said `Progress: 100%, 0m left, Finished`.
+
+#### The correction
+
+`App::the_mark_of_a_book(id, plays_now)` takes the three roads of the panel
+of a line (T-239, T-240, T-241) in the same sequence: **the engine of this
+program first** (the mark `▶` of the media that plays, which says no number,
+because the row of the player of that same frame says the place of the
+engine), **the row of a live message after it** (T-47), and **the row of the
+box of `crate::logic::the_positions` last** (T-241). The box costs no request
+of a view: the start reads the answer of `GET /api/me` for the permissions
+already (T-127).
+
+`App::library_lines` calls it for a line of a book, and a line of a series
+keeps `marks::of_library`, because a series holds more than one book (T-44
+and T-22).
+
+`App::search_book_lines(titles)` is new: the view of the search rendered
+`titles_search_book` with no mark at all. `render_search_book` of
+`src/ui/tui.rs` calls it for a library of books, and a library of podcasts
+keeps the titles of the server, because a line of a podcast holds more than
+one media (T-221).
+
+The key of the place names the episode after the item (T-223), and
+`the_mark_of_a_book` asks for `the_key_of_the_media(id, None)`: the box
+therefore holds no row of a podcast, and the mark of such a line stays the
+mark of the media that plays. A book that the box does not name played never
+(T-127), and the mark of that line is then no mark at all.
+
+#### The measurement of the corrected program
+
+The same run, the same book. The Library view:
+
+```text
+  ✓   A Book Of An Epub With No Container
+  77% A Big Book Of A Scan
+  ✓   A Huge Book Of A Scan
+  50% A Long Test Book
+➤ 84% A Book Of Many Hours
+      The Test Chronicles [3 books]
+  ✓   One Chapter Book
+```
+
+The view of the search said `➤ 84% A Book Of Many Hours`, and the Home view
+of that same run said `84%` too.
+
+**The road of a live message** (T-240 and T-47): the line of `A Big Book Of A
+Scan` stood at `77%` in the Library view, a second client of the account
+wrote `{"progress": 0.9}` for that book, the log said `[live] user_updated:
+the position of 27 media.`, and the line of the next frame said `90%` with no
+key of the user.
+
+**The road of the engine** (T-239): the key `l` of that line started the
+playback of `A Book Of Many Hours` with `TOUTUI_AUDIO_DEVICE=null`, and the
+line then said `➤ ▶   A Book Of Many Hours` while the row of the player of
+that same frame said `⏸ 6:47:01 / 8:00:00 | Elapsed: 6:47:01 | Left: 1:12:59
+(85%) | Speed: 1.00x`.
+
+#### The test
+
+`tests/the_line_of_a_book_of_the_library_holds_the_percent.rs`, in one
+function (T-144 and T-157). It reads the pure functions of `crate::ui::marks`
+and the blocks of `library_lines`, of `search_book_lines`, of
+`the_mark_of_a_book`, and of `render_search_book` (the trap 209). **The build
+of the fault**: `library_lines` back at
+`crate::ui::marks::of_library(plays_now)` and `render_search_book` back at
+`titles_search_book_or_pod.to_vec()` fails the test at `the line of "fn
+library_lines(" reads no place of the user`.
+
+**The gate of the last commit held two faults of clippy** (the trap 215):
+`cargo clippy --all-targets -- -D warnings` said
+`unnecessary use of get("a-podcast").is_none()` for two lines of
+`tests/the_panel_of_a_book_of_the_library_holds_the_place.rs` of T-241, and
+that test came with the commit 9905172. `!places.contains_key(…)` is the
+correction of each of them. **The gate of clippy runs after the last test of
+a session, and not before it.**
+
+#### What this item leaves open
+
+- **The line and the panel of the view of the lists, of the view of the
+  series, and of the view of the books of a series hold no place of the
+  user** (T-241 to T-242, and it stays open): those three views name a book
+  of the library too, and the box of the places reaches every line of them
+  with no request at all.
+- **A media of the queue that no playback of this program moves keeps the
+  place of the moment of the key `q`** (T-230 to T-242, and it stays open),
+  and the panel of a line of that view is not measured.
+- **The lines of the view of the bookmarks hold no place of the user** (T-229
+  to T-242, and it stays open).
+- **The panel of a line of an episode says the length of the media and not
+  the time that is left** (T-236 to T-242, and it stays open).
+- **The view of the queue of the offline mode is not measured** (T-230 to
+  T-242).
+- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone** (T-226
+  to T-242, and it stays open).
+- **The key `X` of the view of the bookmarks of a podcast** removes a place
+  of another episode with the same words (T-223 to T-242, and it stays
+  open).
+- **The box of the places of the account goes old while the program stands**
+  (T-241 to T-242, and it stays open): a media that a second program of this
+  account moves with no live message is the road that stays open.
+- **The line of the Library view of a library of podcasts says no place at
+  all** (T-242): a podcast holds more than one episode, and the line of it
+  names no episode (T-221). Whether such a line must say the place of the
+  newest episode of it is not measured.

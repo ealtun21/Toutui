@@ -110,7 +110,7 @@ async fn the_panel_of_a_book_of_the_library_holds_the_place() {
     // of a podcast** (T-188 and T-228), therefore the key of an episode names
     // that episode after the item.
     assert!(
-        places.get("a-podcast").is_none(),
+        !places.contains_key("a-podcast"),
         "the key of an episode is not the key of the item"
     );
     let row = places
@@ -122,7 +122,7 @@ async fn the_panel_of_a_book_of_the_library_holds_the_place() {
     // **A media that stands in no row of the answer played never** (T-127): the
     // box holds no place of it, and the panel of that line then says the words
     // of a media that never played.
-    assert!(places.get("a-book-that-played-never").is_none());
+    assert!(!places.contains_key("a-book-that-played-never"));
 
     // ---------------------------------------------------------------------
     // The two panels of the screen.

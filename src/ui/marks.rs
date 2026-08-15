@@ -40,11 +40,14 @@ pub fn of_progress(percent: &str, finished: &str, plays_now: bool) -> String {
     }
 }
 
-/// Gives the mark of a line of the Library view.
+/// Gives the mark of a line that holds more than one media.
 ///
-/// The library holds no position for each book, therefore the mark tells the
-/// media that plays only. A line of a series has no mark, because a series
-/// holds more than one book.
+/// A line of a series has no mark of a position, because a series holds more
+/// than one book, therefore the mark tells the media that plays only.
+///
+/// **A book of the Library view takes `of_progress`** (T-242): the box of
+/// `crate::logic::the_positions` holds the place of every media of the account,
+/// therefore that line says the percent of the user with no request at all.
 pub fn of_library(plays_now: bool) -> String {
     if plays_now {
         fill(PLAYS)

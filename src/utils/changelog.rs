@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.71",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The line of a book of the Library view and of the view of \
+             the search said no percent of the user.** The line held the mark \
+             of the media that plays alone, therefore a list of 18 books said \
+             no number of any of them, and a book that the user finished had \
+             no mark. The line of that same book of the Home view of the same \
+             screen said `84% A Book Of Many Hours`. The line of the two \
+             views says the percent and the mark of the end now, and it takes \
+             a message of the server at the next frame. The place of every \
+             media of the account comes with the answer that the start reads \
+             already, therefore this costs no request of the server.",
+        ],
+    },
+    Entry {
         version: "0.8.70",
         date: "15/08/2026",
         body: &[
