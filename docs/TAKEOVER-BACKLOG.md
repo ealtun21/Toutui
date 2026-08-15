@@ -21304,3 +21304,121 @@ other line of v0.8.95, fails it at
   T-266, and it stays open).
 - **The line of the Library view of a library of podcasts says no place at all**
   (T-242 to T-266, and it stays open).
+
+### T-267: the login screen of a configuration file that the program cannot read says why
+
+**The state**: corrected on 2026-08-15, in v0.8.96. The measurement is of the
+real program inside tmux.
+
+#### The choice of this item
+
+T-265 and T-266 each left this open: **the login screen of a file that the
+program cannot read is not measured**. T-265 gave the program a fault of its
+own, `TheConfigurationFileDidNotCome`, and the words
+`the_words_of_a_program_that_stops` that name the file and the road back, and it
+corrected the reader of `src/main.rs` line 221, which stands **after** the
+login. T-266 corrected the road of the key `R`, which reads the file again while
+the program stands. The **third** reader of that file is the login screen:
+`AppLogin::new` of `src/login_app.rs` line 19 reads it with `load_config()?`,
+before the program holds any account of the user. That road held no correction,
+and `src/main.rs` line 141 gave its report to the runtime of Rust with a bare
+`?`.
+
+#### The fault
+
+`src/main.rs` line 141 held `let app_login = AppLogin::new().await?;`. A bare
+`?` there gives the report to the runtime, in the shape that T-265 corrected at
+the reader that stands after the login.
+
+#### The measurement
+
+The real program v0.8.95, inside tmux, on a screen of 160 columns and 45 rows.
+The condition: a `XDG_CONFIG_HOME` of a database that holds no account, which
+gives the login screen (the trap 135). The `config.toml` of that directory took
+one fault of its shape, `background_color = [40, 40, 40` with no `]`.
+
+The whole capture of the pane held the words of the runtime, and nothing else:
+
+```text
+Error: The program cannot read the configuration file /…/config/toutui/config.toml.
+TOML parse error at line 40, column 1
+   |
+40 | log_background_color = [40, 40, 40]
+   | ^
+missing comma between array elements, expected `,`
+ in ../…/config/toutui/config.toml
+
+Location:
+    src/config.rs:212:13
+```
+
+and the status of the exit was 1. **Three faults stand there together.** The
+words name a line of the source of this program, `src/config.rs:212:13`, which
+no user must read (T-172). They hold no sentence of Toutui and no road back.
+And `grep -c 'configuration'` of the log of that run gave **0**, therefore the
+fault reached no log at all: `the_program_stops_with_words` writes the whole
+report to the log, and this road did not use it.
+
+#### The correction
+
+`src/main.rs` gives that report to `the_program_stops_with_words`, in the shape
+of T-265:
+
+```rust
+let app_login = match AppLogin::new().await {
+    Ok(app_login) => app_login,
+    Err(report) => the_program_stops_with_words(report, "", ""),
+};
+```
+
+**The login screen stands before every account**, therefore the name of the
+account and the address of the server hold no character here, and the words of
+a fault of the file of the user name neither of them (T-91).
+
+The program of the correction, of the same file and of the same directory, gave
+a screen that holds no line of the source:
+
+```text
+Toutui stops: it cannot read its configuration file.
+The program cannot read the configuration file /…/config/toutui/config.toml.
+TOML parse error at line 40, column 1
+   |
+40 | log_background_color = [40, 40, 40]
+   | ^
+missing comma between array elements, expected `,`
+ in ../…/config/toutui/config.toml
+Correct that file, or give it a different name: Toutui then makes a new file.
+Toutui changed nothing.
+```
+
+and `grep -c 'the program stops'` of the log of that run gave **1**. **The
+control of the same run**, with the file of no fault, gave the login screen with
+the field `Server address` and the footer `🦜Toutui v0.8.95 - Esc to quit.`
+
+#### The gate
+
+`tests/the_login_screen_of_a_file_that_the_program_cannot_read_says_why.rs`. The
+build of the fault is one edit of `src/main.rs`, the bare `?` back (the trap
+147), and the test then fails at `the report of the login screen goes to no
+runtime`. The binary of the fault and the binary of the correction differ (`cmp`
+says byte 25, the trap 235).
+
+#### What this item leaves open
+
+- **`Database::new().await?` of `src/main.rs` lines 126 and 131 holds a bare `?`
+  too** (a candidate, and not a measurement): a fault of the database of one of
+  those two lines gives the words of the runtime again, and T-199 gave that
+  fault a shape of its own already.
+- **A fault of `AppLogin::new` that is not the configuration file would take the
+  generic words of `the_words_of_a_program_that_stops`** (a candidate, and not a
+  measurement), and those words then name an account of no character and a
+  server of no character. `AppLogin::new` reads the configuration file alone
+  today, therefore no such report exists.
+- **A file that the program cannot make says no word on the screen** (a
+  candidate, and not a measurement; open since T-264).
+- **The row of the message says the number and not the name** (a candidate, and
+  not a measurement; open since T-264).
+- **The login screen says no word of a value of the file that the program does
+  not use** (a candidate, and not a measurement; open since T-264).
+- **The program reads the configuration file two times at its start** (a
+  candidate, and not a measurement; open since T-259).

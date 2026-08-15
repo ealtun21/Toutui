@@ -138,7 +138,22 @@ async fn main() -> Result<()> {
             let the_user_adds_an_account = logic::the_accounts::the_program_adds_an_account();
             if _database.default_usr.is_empty() || the_user_adds_an_account {
                 std::env::remove_var(logic::the_accounts::THE_PROGRAM_ADDS_AN_ACCOUNT);
-                let app_login = AppLogin::new().await?;
+                // T-267. `AppLogin::new` reads the configuration file, and it
+                // reads nothing else. The `?` of this line gave the report of
+                // that file to the runtime: the screen then held the words of
+                // the crate, a line of the source of this program, which no
+                // user must read (T-172), and no sentence of Toutui at all.
+                // The log held no word of that fault either. The words of
+                // T-265 stand on this road too.
+                //
+                // **The login screen stands before every account.** The name
+                // of an account and the address of a server therefore hold no
+                // character here, and the words of a fault of the file of the
+                // user name neither of them (T-91).
+                let app_login = match AppLogin::new().await {
+                    Ok(app_login) => app_login,
+                    Err(report) => the_program_stops_with_words(report, "", ""),
+                };
                 let terminal = ratatui::init();
                 let _app_result = app_login.run(terminal);
                 // The wait stops a fast loop. If the screen of the login comes

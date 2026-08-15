@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.96",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The login screen says why Toutui cannot read the configuration \
+             file.** Toutui reads that file before it shows the login screen. A \
+             file of a shape that is not correct, for example an array with no \
+             `]`, gave the words of a library there, and those words named a \
+             line of the source of Toutui and no road back. The log kept no \
+             word of that fault. Toutui names the file now, it gives the \
+             reason with the line and the column, and it tells you to correct \
+             that file or to give it a different name. The log keeps the whole \
+             fault.",
+        ],
+    },
+    Entry {
         version: "0.8.95",
         date: "15/08/2026",
         body: &[
