@@ -156,7 +156,15 @@ async fn main() -> Result<()> {
                 tokio::time::sleep(Duration::from_secs(1)).await;
             } else {
                 // If the database is ready, exit the loop
-                print!("\x1B[2J\x1B[1;1H"); // clear all stdout (avoid to sill have the previous print when the app is launched)
+                // The clear takes the prints of the login away, and it goes to
+                // the terminal at once: a clear that waits in the buffer of
+                // `stdout` comes out at the exit of the program, and it then
+                // takes the words of a program that stops with it. See T-265.
+                if let Err(error) =
+                    utils::startup::clear_the_screen_of_the_shell(&mut std::io::stdout())
+                {
+                    log::warn!("[main] the screen of the shell takes no clear: {}", error);
+                }
                 _database_ready = true;
                 info!("Database ready");
                 break;
@@ -204,7 +212,18 @@ async fn main() -> Result<()> {
                 }
             };
 
-            let config_file = config::load_config()?;
+            // T-265. A configuration file that the program cannot read at all
+            // gives no value of the user, therefore the program stops. The
+            // report of `?` gave the words of the crate `config` and a line of
+            // the source of this program, and the clear of the start then took
+            // those words off the screen: the user read nothing at all. These
+            // words name the file and the road back.
+            let config_file = match config::load_config() {
+                Ok(file) => file,
+                Err(report) => {
+                    the_program_stops_with_words(report, username.as_str(), server_address.as_str())
+                }
+            };
 
             // T-264. A value of the file that the program does not use took a
             // line of the log alone, and the user who wrote that value saw

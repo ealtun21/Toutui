@@ -167,6 +167,23 @@ pub fn the_words_of_a_program_that_stops(
         );
     }
 
+    // **A fault of the configuration file is not a fault of the server.** The
+    // file belongs to the user, and the user can correct it: therefore the
+    // words name that file and the road back, and they do not say that the
+    // server did anything at all (T-91). See T-265.
+    if let Some(fault) = report
+        .chain()
+        .find_map(|cause| cause.downcast_ref::<crate::config::TheConfigurationFileDidNotCome>())
+    {
+        return format!(
+            "Toutui stops: it cannot read its configuration file.\n\
+             {}\n\
+             Correct that file, or give it a different name: Toutui then makes a new file.\n\
+             Toutui changed nothing.",
+            fault
+        );
+    }
+
     let what_the_server_said = report
         .chain()
         .find_map(|cause| cause.downcast_ref::<ApiError>())
@@ -367,5 +384,45 @@ mod tests {
         let words = the_words_of_a_program_that_stops(&other, "toutuitest", "one:1");
 
         assert!(words.contains("the disk is full"), "{}", words);
+    }
+
+    /// A fault of the configuration file names that file and the road back, and
+    /// it says nothing of the server: the server answered nothing at all at
+    /// that moment. See T-265.
+    #[test]
+    fn the_words_of_a_configuration_file_that_did_not_come_name_the_file_and_the_road_back() {
+        let report = color_eyre::eyre::Report::new(crate::config::TheConfigurationFileDidNotCome {
+            path: "/home/one/.config/toutui/config.toml".to_string(),
+            reason: "TOML parse error at line 64, column 31\nunclosed array, expected `]`"
+                .to_string(),
+        });
+
+        let words = the_words_of_a_program_that_stops(&report, "toutuitest", "127.0.0.1:13399");
+
+        assert!(
+            words.contains("/home/one/.config/toutui/config.toml"),
+            "the words must name the file of the user: {}",
+            words
+        );
+        assert!(
+            words.contains("unclosed array"),
+            "the words must hold what the crate said, because it names the line: {}",
+            words
+        );
+        assert!(
+            words.contains("Correct that file"),
+            "the words must name the road back: {}",
+            words
+        );
+        assert!(words.contains("Toutui changed nothing"), "{}", words);
+
+        // **The server is not the reason.** A view never says a reason that the
+        // program does not have (T-91).
+        assert!(!words.contains("lists of the server"), "{}", words);
+        assert!(!words.contains("127.0.0.1:13399"), "{}", words);
+
+        // **No line of the source of this program.**
+        assert!(!words.contains("Location"), "{}", words);
+        assert!(!words.contains("src/"), "{}", words);
     }
 }

@@ -20955,3 +20955,195 @@ of T-157). `src/config.rs` holds four more:
   T-264, and it stays open).
 - **The line of the Library view of a library of podcasts says no place at all**
   (T-242 to T-264, and it stays open).
+
+### T-265: a configuration file that the program cannot read says why, and the words stay on the screen
+
+**The state**: corrected on 2026-08-15. The measurement is of the real program
+inside tmux, against the sandbox.
+
+#### The choice of this item
+
+T-258 to T-264 each read **one value** of the configuration file: a value that
+the program cannot read goes away alone, every other value of the user stays,
+and T-264 gave the count of them a row of the message. **No item of those seven
+measured the file itself.** A file whose shape the crate `config` refuses gives
+no value at all: the read stops at `ConfigLib::builder().build()`, before the
+first reader of a value, therefore the list of T-264 stays empty and the program
+stops. The harm of that road is larger than the harm of one value, because every
+value of the user goes away together with the program.
+
+#### The fault
+
+`load_config_from` of `src/config.rs` gave the fault of the crate `config` to
+`main` with `?`, and `main` gave it to the runtime. **That road held two faults
+together.**
+
+The first: the words. The runtime writes `Error:` and the report, and the report
+of `color_eyre` names the line of its own source. A user must read no line of the
+source of this program (T-172), and those words name no road back.
+
+The second, and the larger one: **the user reads no word at all.** `src/main.rs`
+line 159 held `print!("\x1B[2J\x1B[1;1H")` — the clear of the prints of the
+login. A `print!` holds no line, therefore the bytes of it waited in the buffer
+of `stdout`, and the first write of the screen of ratatui flushed them. A program
+that stops between that clear and that screen writes its words to `stderr` at
+once, and the buffer of `stdout` then gives the clear **at the exit**: the clear
+comes after the words, and the terminal of the user keeps nothing.
+
+#### The measurement
+
+The real program v0.8.93, inside tmux, on a screen of 160 columns and 45 rows.
+The configuration file of the sandbox took one fault of its shape:
+
+```toml
+[colors]
+background_color = [40, 40, 40
+```
+
+The whole capture of the pane after the exit, with 200 lines of the history:
+
+```text
+THE-STATUS-OF-THE-EXIT=1
+```
+
+**No word of the program, and no word of the crate.** The same run with the
+output of the program in a file gave the words that the terminal lost, and the
+order of the bytes says the reason:
+
+```text
+Error: TOML parse error at line 64, column 31
+   |
+64 | background_color = [40, 40, 40
+   |                               ^
+unclosed array, expected `]`
+ in ../../.local/share/toutui-abs-test/toutui-config/toutui/config.toml
+
+Location:
+    src/config.rs:172:22
+^[[2J^[[1;1HTHE-STATUS-OF-THE-EXIT=1
+```
+
+The clear stands **after** the words of the fault, and before the status of the
+exit: it is the last write of `stdout` of that program.
+
+#### The correction
+
+Three parts.
+
+- `TheConfigurationFileDidNotCome` of `src/config.rs` holds the path of the file
+  and what the crate said, and `load_config_from` gives that fault in the place
+  of the fault of the crate. The reason of the crate stays inside it, because it
+  names the line and the column of the file and no word of the program can give
+  that.
+- `the_words_of_a_program_that_stops` of `src/api/client/error.rs` reads that
+  fault of the chain of the report, in the shape of `TheAccountsDidNotCome` of
+  T-199, and it says the file and the road back. **A fault of the configuration
+  file is not a fault of the server**: those words name no server and no account,
+  because a view never says a reason that the program does not have (T-91).
+- `clear_the_screen_of_the_shell` of `src/utils/startup.rs` writes the clear and
+  it flushes it, and `src/main.rs` line 159 calls it. `src/main.rs` reads the
+  answer of `config::load_config()` now, and it stops with
+  `the_program_stops_with_words`.
+
+The screen of the same file, of the corrected program:
+
+```text
+Toutui stops: it cannot read its configuration file.
+The program cannot read the configuration file /home/…/toutui-config/toutui/config.toml.
+TOML parse error at line 64, column 31
+   |
+64 | background_color = [40, 40, 40
+   |                               ^
+unclosed array, expected `]`
+ in ../../.local/share/toutui-abs-test/toutui-config/toutui/config.toml
+Correct that file, or give it a different name: Toutui then makes a new file.
+Toutui changed nothing.
+THE-STATUS-OF-THE-EXIT=1
+```
+
+The line of the source stays in the log alone, where the whole report goes
+(`Location: src/config.rs:212:13`). The control of the same run, with the file of
+the sandbox again, gave the Home view after 612 milliseconds and no word of a
+fault.
+
+#### The gate
+
+Three tests, and each of them finds its own fault:
+
+- `config::tests::a_file_that_the_program_cannot_read_names_that_file`: a file of
+  an unclosed array gives a report that holds `TheConfigurationFileDidNotCome`,
+  and that fault names the path and what the crate said. A build with
+  `map_err(|e| Report::new(e))` again fails it.
+- `api::client::error::tests::the_words_of_a_configuration_file_that_did_not_come_name_the_file_and_the_road_back`:
+  the words name the file, the reason, and the road back, and they name no
+  server and no line of the source. A build with the branch removed fails it.
+- `utils::startup::tests::the_clear_of_the_start_goes_to_the_terminal_at_once`: a
+  writer that counts the flushes gets one flush. A build with `Ok(())` in the
+  place of `out.flush()` fails it.
+
+The three of them failed together with the three corrections removed, and the
+other 985 tests of the library passed.
+
+#### What this item leaves open
+
+- **The login screen of a file that the program cannot read is not measured**
+  (T-265, and it stays open): `AppLogin::new` of `src/login_app.rs` line 19 reads
+  the file with `?` too, and that road stands before the clear of line 159.
+  The words of the crate reach the terminal there, and the words of the program
+  do not. **This is a candidate and not a measurement.**
+- **The key `R` of a file that the program cannot read is not measured** (T-265,
+  and it stays open): `App::new_with_the_engine` of `src/app.rs` line 668 reads
+  the file with `?`, and a user who edits that file while the program stands can
+  give it a shape that the crate refuses. A refresh is not a start (T-205).
+- **A file that the program cannot make gives every value of the program and it
+  says no word on the screen** (T-264 and T-265, and it stays open):
+  `make_the_configuration_if_it_is_absent` gives `false` and `load_config_from`
+  gives `ConfigFile::default()` with no name of any value.
+- **The row of the message says the number and not the name** (T-264 and T-265,
+  and it stays open): a file of many faults gives one number, and the user must
+  read the log to find which values went away.
+- **The login screen says no word of a value of the file that the program does
+  not use** (T-264 and T-265, and it stays open).
+- **The program reads the configuration file two times at its start** (T-259 to
+  T-265, and it stays open).
+- **A machine of two names of the file is not measured** (T-263 to T-265, and it
+  stays open).
+- **A name of the prefix of an address is not every name of an identity of an
+  address** (T-262 to T-265, and it stays open).
+- **Two names that differ in their spaces alone are two identities** (T-261 to
+  T-265, and it stays open).
+- **A file whose every server fails is not measured** (T-259 to T-265, and it
+  stays open).
+- **The block `reader` stands on no gate of a build of the fault** (T-259 to
+  T-265, and it stays open).
+- **The words of a fault of the crate `config` are not ASD-STE100** (T-258 to
+  T-265, and it stays open): the words of the program stand above them now, and
+  the reason of the crate keeps its own words, because it names the line and the
+  column of the file.
+- **The colours of the program stand on no test of a length** (T-257 to T-265,
+  and it stays open).
+- **The panel of a description is in no test of the render** (T-253 to T-265,
+  and it stays open).
+- **The two renders of the panel of the episodes of a podcast are in no test**
+  (T-250 to T-265, and it stays open).
+- **The title of a list says no number of the line of the cursor** (T-255 to
+  T-265, and it stays open).
+- **The key `H` of the panel stands on no character of the screen** (T-254 to
+  T-265, and it stays open).
+- **The line of the view of the authors says `[1 book(s)]`** (T-252 to T-265,
+  and it stays open).
+- **The panel of a narrator says "No description available" for every narrator
+  of every library** (T-252 to T-265, and it stays open).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-265, and it stays open).
+- **The key `B` says nothing on either road** (T-248 to T-265, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters, and
+  of the view of the queue gives the Home view** (T-247 to T-265, and it stays
+  open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to T-265,
+  and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-265, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at all**
+  (T-242 to T-265, and it stays open).

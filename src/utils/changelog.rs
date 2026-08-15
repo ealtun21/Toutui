@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.94",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A configuration file that Toutui cannot read says why, and \
+             those words stay on the screen.** A file of a shape that is not \
+             correct, for example an array with no `]`, gives no value of the \
+             user at all, and Toutui stops. The words of that fault came from \
+             a library, they named a line of the source of Toutui, and they \
+             named no file and no road back. The clear of the screen of the \
+             start then came after them at the exit of the program, therefore \
+             the terminal of the user kept no word at all. Toutui names the \
+             file now, it gives the reason of the fault with the line and the \
+             column, and it says that you can correct that file or give it a \
+             different name.",
+        ],
+    },
+    Entry {
         version: "0.8.93",
         date: "15/08/2026",
         body: &[

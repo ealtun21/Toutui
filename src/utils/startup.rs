@@ -42,9 +42,63 @@ pub fn set_part(step: &str, done: usize, total: usize) {
     }
 }
 
+/// Clears the screen of the shell before the first frame, and it gives those
+/// bytes to the terminal at once. See T-265.
+///
+/// **A write of `stdout` that holds no line waits in the buffer.** The clear
+/// held no line, and the program flushed it with the first write of the screen
+/// of ratatui. A program that stops between the clear and that screen therefore
+/// wrote its words to `stderr` first, and the buffer of `stdout` then gave the
+/// clear at the exit: the terminal of the user kept **no word at all**. A
+/// configuration file that the program cannot read is that condition, and the
+/// measurement gave an empty screen and the status 1.
+pub fn clear_the_screen_of_the_shell<W: std::io::Write>(out: &mut W) -> std::io::Result<()> {
+    write!(out, "\x1B[2J\x1B[1;1H")?;
+    out.flush()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A writer that counts the bytes and the flushes of the caller.
+    #[derive(Default)]
+    struct AWriterThatCounts {
+        bytes: Vec<u8>,
+        flushes: usize,
+    }
+
+    impl std::io::Write for AWriterThatCounts {
+        fn write(&mut self, buffer: &[u8]) -> std::io::Result<usize> {
+            self.bytes.extend_from_slice(buffer);
+            Ok(buffer.len())
+        }
+
+        fn flush(&mut self) -> std::io::Result<()> {
+            self.flushes += 1;
+            Ok(())
+        }
+    }
+
+    /// The clear of the start reaches the terminal at the moment of the write.
+    /// A clear that waits in the buffer takes the words of a program that stops
+    /// away with it. See T-265.
+    #[test]
+    fn the_clear_of_the_start_goes_to_the_terminal_at_once() {
+        let mut out = AWriterThatCounts::default();
+
+        clear_the_screen_of_the_shell(&mut out).expect("the writer takes every byte");
+
+        assert_eq!(
+            String::from_utf8_lossy(&out.bytes),
+            "\x1B[2J\x1B[1;1H",
+            "the bytes of the clear must not change"
+        );
+        assert_eq!(
+            out.flushes, 1,
+            "the clear must reach the terminal before the program can stop"
+        );
+    }
 
     #[test]
     fn the_step_of_many_parts_gives_the_count() {

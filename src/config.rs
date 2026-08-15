@@ -10,6 +10,42 @@ use std::path::Path;
 /// T-122.
 pub const THE_EXAMPLE_OF_THE_CONFIGURATION: &str = include_str!("../config.example.toml");
 
+/// The fault of a configuration file that the program cannot read at all. See
+/// T-265.
+///
+/// **A value of the file that the program cannot read is not a file that the
+/// program cannot read.** T-258 to T-263 each take one value of the user away
+/// and they keep every other value; a file whose shape the crate `config`
+/// refuses gives no value at all, therefore the program stops. The words of
+/// that crate name the line and the column of the fault, and they name no file
+/// and no road back: the report of `main` said
+/// `Error: TOML parse error at line 64, column 31` with
+/// `Location: src/config.rs`, and a user must read no line of the source of
+/// this program (T-172).
+///
+/// `the_words_of_a_program_that_stops` makes the sentence of the screen out of
+/// this fault.
+#[derive(Debug)]
+pub struct TheConfigurationFileDidNotCome {
+    /// The path of the file that the program cannot read.
+    pub path: String,
+    /// What the crate `config` said of that file. It names the line and the
+    /// column, and no word of the program can give that.
+    pub reason: String,
+}
+
+impl std::fmt::Display for TheConfigurationFileDidNotCome {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "The program cannot read the configuration file {}.\n{}",
+            self.path, self.reason
+        )
+    }
+}
+
+impl std::error::Error for TheConfigurationFileDidNotCome {}
+
 #[derive(Debug, Deserialize, Default)]
 pub struct ConfigFile {
     pub colors: Colors,
@@ -166,10 +202,18 @@ pub fn load_config_from(path: &Path) -> Result<ConfigFile> {
 
     let config_path_str = path.to_string_lossy().to_string();
 
+    // T-265. The words of the crate name the line and the column of the fault,
+    // and they name no file and no road back. The fault of this program holds
+    // both, and the caller that stands in front of the user says it.
     let config = ConfigLib::builder()
         .add_source(File::with_name(&config_path_str))
         .build()
-        .map_err(|e| Report::new(e))?;
+        .map_err(|e| {
+            Report::new(TheConfigurationFileDidNotCome {
+                path: config_path_str.clone(),
+                reason: e.to_string(),
+            })
+        })?;
 
     // A block `colors` that is absent, and a key of that block that is absent,
     // take the value of the program. See T-122. A colour that the program
@@ -2140,5 +2184,42 @@ endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
             ],
             "the address and the two servers that it took away must each name themselves"
         );
+    }
+
+    /// A file whose shape the crate `config` refuses gives no value of the user
+    /// at all, therefore the fault of the program names that file and it holds
+    /// what the crate said. See T-265.
+    #[test]
+    fn a_file_that_the_program_cannot_read_names_that_file() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(&path, "[colors]\nbackground_color = [40, 40, 40\n")
+            .expect("the file of the test");
+
+        let report = load_config_from(&path).expect_err("a file of no shape stops the read");
+
+        let fault = report
+            .chain()
+            .find_map(|cause| cause.downcast_ref::<TheConfigurationFileDidNotCome>())
+            .expect("the fault of the configuration file must stand in the report");
+
+        assert_eq!(
+            fault.path,
+            path.to_string_lossy(),
+            "the fault must name the file of the user"
+        );
+        assert!(
+            fault.reason.contains("unclosed array"),
+            "the fault must hold what the crate said: {}",
+            fault.reason
+        );
+
+        let words = fault.to_string();
+        assert!(
+            words.contains("cannot read the configuration file"),
+            "{}",
+            words
+        );
+        assert!(!words.contains("Location"), "{}", words);
     }
 }

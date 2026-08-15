@@ -101,14 +101,69 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.92**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.94**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1271 of 1271** in 2.8 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1297 of 1297** in 17.9 seconds
+**1279 of 1279** in 2.8 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1305 of 1305** in 17.8 seconds
 with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
-gives no failure over its binaries in two runs.
+gives no failure over its binaries in three runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the ninety-fourth turn of 2026-08-15: a configuration file that the program cannot read says why
+
+**One release: v0.8.94**, and one item: T-265. **The road of it is no paragraph
+of "What this item leaves open"**: those paragraphs each name one value of the
+configuration file, and T-258 to T-264 read the values of that file one at a
+time. No item of those seven measured the **file** itself.
+
+**The fault.** A file whose shape the crate `config` refuses gives no value of
+the user at all: `load_config_from` stops at `ConfigLib::builder().build()`,
+before the first reader of a value, and it gave that fault to `main` with `?`.
+That road held two faults together. The words of the crate name the line and the
+column of the file, and they name no file and no road back; the report of
+`color_eyre` names a line of the source of this program, which no user must read
+(T-172). And `src/main.rs` line 159 held `print!("\x1B[2J\x1B[1;1H")`, the clear
+of the prints of the login: **a `print!` holds no line**, therefore those bytes
+waited in the buffer of `stdout` until the first write of the screen of ratatui.
+A program that stops between the two writes its words to `stderr` at once, and
+the buffer of `stdout` then gives the clear **at the exit**.
+
+**The measurement**, of the real program v0.8.93 inside tmux, on a screen of 160
+columns and 45 rows, with `background_color = [40, 40, 40` and no `]` in the file
+of the sandbox. The whole capture of the pane, with 200 lines of the history,
+held one line: `THE-STATUS-OF-THE-EXIT=1`. The same run with the output of the
+program in a file held every word of the crate, and the bytes of the clear stood
+**after** them.
+
+**The correction**, of three parts. `TheConfigurationFileDidNotCome` of
+`src/config.rs` holds the path of the file and what the crate said, and
+`load_config_from` gives that fault in the place of the fault of the crate.
+`the_words_of_a_program_that_stops` of `src/api/client/error.rs` reads it of the
+chain of the report, in the shape of `TheAccountsDidNotCome` of T-199, and it
+names no server and no account (T-91). `clear_the_screen_of_the_shell` of
+`src/utils/startup.rs` writes the clear and it flushes it, and `src/main.rs`
+reads the answer of `config::load_config()` and stops with
+`the_program_stops_with_words`.
+
+**The measurement after the correction**, of the same file and the same screen:
+
+```text
+Toutui stops: it cannot read its configuration file.
+The program cannot read the configuration file /home/…/toutui/config.toml.
+TOML parse error at line 64, column 31
+unclosed array, expected `]`
+Correct that file, or give it a different name: Toutui then makes a new file.
+Toutui changed nothing.
+```
+
+and the line of the source stayed in the log alone. **The control of the same
+run**: the file of the sandbox again gave the Home view after 612 milliseconds
+and no word of a fault.
+
+**The gate**: three tests, and each of them finds its own fault. A build with
+`map_err(|e| Report::new(e))` again, with the branch of the words removed, and
+with `Ok(())` in the place of `out.flush()`, failed the three of them together.
 
 ## The session of the ninety-third turn of 2026-08-15: the user reads the values of the configuration file that the program does not use
 
@@ -12708,45 +12763,162 @@ name is therefore no identity of the disk.
 - **The line of the Library view of a library of podcasts says no place at
   all** (T-242 to T-261, and it stays open).
 
+**The
+session of the ninety-first turn took no paragraph of "What this item
+leaves open" of the newest item, and the item of it says why: the two
+candidates of the identity of T-261 hold no place of a user that goes to a
+different server. The measurement of a third road, which no paragraph
+named, found that the name of a server and the address of an account stand
+in one space of names** (T-262).
+
+`server_key` of `src/config.rs` line 714 gives the name of the server that
+holds the address, and it gives `normalise(the address)` for an address
+that no server of the file holds. `check_shape` of
+`src/api/server/address.rs` line 24 gives an address of the prefix
+`http://` or `https://` alone, therefore a **name** of one of those two
+prefixes is a value of the same space, and `main.rs` line 267 and `app.rs`
+line 772 write that value in the column `server` of the tables `queue` and
+`downloads`.
+
+The measurement, of the real program v0.8.90 inside tmux, on a screen of
+160 columns and 45 rows. A second address of a server comes of
+`docs/harness/one_path_fails.py 13500 13399 requests.log /a/path/of/no/hit`,
+which forwards every request to the sandbox. A file with **no** block
+`[[servers]]`, the account at `http://localhost:13399`, the key `n` on the
+first line of the Home view, and the key `q`:
+
+```text
+────The queue [1 item]────
+➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+```
+
+with the row of the disk
+`toutuitest|http://localhost:13399|0|A Long Test Book`: the identity of a
+server that the file does not name is its address. The same file with one
+block of `name = "http://localhost:13399"` and of the address
+`http://127.0.0.1:13500`, and the account at that **second** address, and
+the key `q`:
+
+```text
+🔗 127.0.0.1:13500
+────The queue [1 item]────
+➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+```
+
+**The queue of one server came to the screen of a different server**, which
+the doc of `server_key` says must never happen (T-25), and
+`grep -icE "config|server|name"` of the log gave **1** — no word of the
+configuration at all. The control of the same run, with the name at `the
+server away from home`, gave
+`The queue is empty. Press n on a media to put it in the queue.`
+
+The correction drops a server whose name, with no space at its two ends and
+with small letters alone, starts with `http://` or `https://`. The check
+comes before the check of the name that stands already (T-261), and both
+come before the read of the addresses.
+- **A candidate that a former item names is not always the item of the next
+  round** (T-262): the two candidates of T-261 hold no place of a user that
+  goes to a different server, and the third road of the same space of names
+  does. **Read the candidates against the harm, and write the reason of the
+  choice in the item.**
+- **Two spaces of names that one function joins are one space of names**
+  (T-262): `unwrap_or_else` of `server_key` puts the addresses of the
+  accounts and the names of the file in one column of the disk. **Ask of a
+  fallback: which values of the user can the two roads of it give
+  together?**
+- **The class of a correction of a name is the prefix, and not the whole
+  name** (T-262): a name of the prefix `http://` that no account holds is
+  no identity of another server today, and a login of tomorrow makes it
+  one. A name that **holds** an address inside it starts with no prefix of
+  an address, therefore it stays, and a test of that road guards the user
+  who names a server with words.
+- **A name of the prefix of an address is not every name of an identity of
+  an address** (T-262, and it stays open): a login screen of a version that
+  takes an address of no prefix opens that road again. **This is a
+  candidate and not a measurement.**
+- **Two names that differ in their spaces alone are two identities** (T-261
+  and T-262, and it stays open).
+- **One address that two servers of the file hold is not measured** (T-261
+  and T-262, and it stays open).
+- **A file whose every server fails is not measured** (T-259 to T-262, and
+  it stays open).
+- **The program reads the configuration file two times at its start**
+  (T-259 to T-262, and it stays open).
+- **The block `reader` stands on no gate of a build of the fault** (T-259
+  to T-262, and it stays open).
+- **The words of a fault of the crate `config` are not ASD-STE100** (T-258
+  to T-262, and it stays open).
+- **The user sees no word of a value of the file that the program cannot
+  read** (T-258 to T-262, and it stays open).
+- **The colours of the program stand on no test of a length** (T-257 to
+  T-262, and it stays open).
+- **The panel of a description is in no test of the render** (T-253 to
+  T-262, and it stays open).
+- **The two renders of the panel of the episodes of a podcast are in no
+  test** (T-250 to T-262, and it stays open).
+- **The title of a list says no number of the line of the cursor** (T-255
+  to T-262, and it stays open).
+- **The key `H` of the panel stands on no character of the screen** (T-254
+  to T-262, and it stays open).
+- **The line of the view of the authors says `[1 book(s)]`** (T-252 to
+  T-262, and it stays open).
+- **The panel of a narrator says "No description available" for every
+  narrator of every library** (T-252 to T-262, and it stays open).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-262, and it stays open).
+- **The key `B` says nothing on either road** (T-248 to T-262, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters,
+  and of the view of the queue gives the Home view** (T-247 to T-262, and
+  it stays open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
+  T-262, and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-262, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at
+  all** (T-242 to T-262, and it stays open).
+
 ## The prompt for the next session
-**This session took the paragraph of one address that two servers of the file
-hold of "What this item leaves open" of the newest item**, which T-262 left with
-the reason "a correction of it takes an address of the user away". That reason
-reads the cost of the correction, and not the harm of the fault. A file of the
-server `work` with the addresses `http://127.0.0.1:13500` and
-`http://localhost:13399`, and of the server `home` with the second of them, gave
-the real program v0.8.91 **two faults on one screen**: the queue of the server
-`work` came to the screen of the account of the server `home`, and the header of
-that account said `🔗 127.0.0.1:13500` — the program of one server asked the
-address of a different server. The log said no word of the configuration at all.
-The item is **T-263**, and it holds the release v0.8.92.
+**This session took no paragraph of "What this item leaves open" of the newest
+item, and the item of it says why**: those paragraphs each name one value of the
+configuration file, and T-258 to T-264 read the values of that file one at a
+time. **No item of those seven measured the file itself.** A file whose shape
+the crate `config` refuses gives no value of the user at all: the read stops
+before the first reader of a value, and the program stops. The real program
+v0.8.93, with `background_color = [40, 40, 40` and no `]` in the file of the
+sandbox, gave a pane of tmux of **one line**: `THE-STATUS-OF-THE-EXIT=1`. The
+words of the fault went to `stderr`, and the clear of the screen of the start,
+which held no line and therefore waited in the buffer of `stdout`, came out at
+the exit and it took them away. The item is **T-265**, and it holds the release
+v0.8.94.
 
 Three things are worth the room:
 
-1. **A candidate that a former item left with a reason is not a candidate that a
-   measurement closed.** The reason of T-262 read the cost of the correction,
-   and not the harm of the user. **Ask of every reason of a candidate: does it
-   name the harm of the user, or the work of the round?**
+1. **A sweep of the values of a file is not a sweep of the file.** Seven items
+   each read one value of the configuration file, and the road that gives **no**
+   value stood beside them for seven rounds. **Ask of a list of candidates that
+   all hold one shape: which road of that same source does no candidate name?**
 
-2. **A fault of one value can hold two roads of harm.** One address of two
-   servers takes the identity of the place of the user on the disk **and** the
-   address that the program asks. **A measurement that finds the first road must
-   read the other users of that same value**: the header of the screen said the
-   second road with no key at all.
+2. **A write of `stdout` that holds no line is a write that no user sees.** The
+   words of a program that stops go to `stderr` at once, and a buffer of
+   `stdout` that flushes at the exit stands after them. **A measurement of those
+   words must read the screen of the terminal, and not the output of a file**:
+   the file held every word, and the pane of tmux held one line.
 
-3. **A value that two rows of the user claim belongs to neither of them.** The
-   first row of the file keeps the name (T-261), because the user of the second
-   row keeps a name of their own. No user of an address of two servers keeps an
-   address of their own, therefore that address goes away from the two of them,
-   and the address of the login screen gives the identity again.
+3. **The words of a library belong inside the words of the program.** The reason
+   of the crate names the line and the column of the file, and no word of the
+   program can give that: the sentence of the program stands above it, and it
+   names the file and the road back.
 
-The gates of v0.8.92, under `nice -n 19 ionice -c 3` with `-j 16`:
-`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say
-nothing, and `cargo nextest run` gives 1271 of 1271 in 2.8 seconds with 26
-skipped.
+The gates of v0.8.94, under `nice -n 19 ionice -c 3` with `-j 16`:
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
+`cargo nextest run` gives 1279 of 1279 in 2.8 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives 1305 of 1305 in 17.8 seconds with
+the sandbox up, and `cargo test -j 16 --no-fail-fast` passed three times.
+
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.93**; `Cargo.toml` is at 0.8.93. The
+> AlbanDAVID/Toutui. Newest release **v0.8.94**; `Cargo.toml` is at 0.8.94. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -12755,7 +12927,7 @@ skipped.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-264 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-265 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -13389,7 +13561,135 @@ skipped.
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in ninety-five sessions of ninety-six.
+>    this shape found a fault in ninety-six sessions of ninety-seven.
+>    **The
+>    session of the ninety-fourth turn took no paragraph of "What this item
+>    leaves open" of the newest item: those paragraphs each name one value of
+>    the configuration file, and T-258 to T-264 read the values of that file
+>    one at a time. No item of those seven measured the **file** itself, and a
+>    file whose shape the crate refuses gives no value of the user at all**
+>    (T-265).
+>
+>    `load_config_from` of `src/config.rs` gave the fault of the crate `config`
+>    to `main` with `?`, and that road held two faults together. The words of
+>    the crate name the line and the column of the file, and they name no file
+>    and no road back; the report of `color_eyre` names a line of the source of
+>    this program, which no user must read (T-172). And `src/main.rs` line 159
+>    held `print!("\x1B[2J\x1B[1;1H")`, the clear of the prints of the login: a
+>    `print!` holds no line, therefore those bytes waited in the buffer of
+>    `stdout`, and the first write of the screen of ratatui flushed them. **A
+>    program that stops between that clear and that screen writes its words to
+>    `stderr` at once, and the buffer of `stdout` then gives the clear at the
+>    exit.**
+>
+>    The measurement, of the real program v0.8.93 inside tmux, on a screen of
+>    160 columns and 45 rows. The configuration file of the sandbox took one
+>    fault of its shape: `background_color = [40, 40, 40` with no `]`. The whole
+>    capture of the pane, with 200 lines of the history, held one line:
+>
+>    ```text
+>    THE-STATUS-OF-THE-EXIT=1
+>    ```
+>
+>    The same run with the output of the program in a file gave the words that
+>    the terminal lost, and the order of the bytes said the reason: the clear
+>    stands **after** `Error: TOML parse error at line 64, column 31` and after
+>    `Location: src/config.rs:172:22`, and before the status of the exit.
+>
+>    The correction holds three parts.
+>    `TheConfigurationFileDidNotCome` of `src/config.rs` holds the path of the
+>    file and what the crate said, and `load_config_from` gives that fault in
+>    the place of the fault of the crate.
+>    `the_words_of_a_program_that_stops` of `src/api/client/error.rs` reads it
+>    of the chain of the report, in the shape of `TheAccountsDidNotCome` of
+>    T-199, and it names no server and no account, because a fault of the file
+>    of the user is no fault of the server (T-91).
+>    `clear_the_screen_of_the_shell` of `src/utils/startup.rs` writes the clear
+>    and it flushes it. The screen of the same file then said:
+>
+>    ```text
+>    Toutui stops: it cannot read its configuration file.
+>    The program cannot read the configuration file /home/…/toutui/config.toml.
+>    TOML parse error at line 64, column 31
+>    unclosed array, expected `]`
+>    Correct that file, or give it a different name: Toutui then makes a new file.
+>    Toutui changed nothing.
+>    ```
+>
+>    and the line of the source stayed in the log alone. The control of the same
+>    run, with the file of the sandbox again, gave the Home view after 612
+>    milliseconds and no word of a fault.
+>    - **A sweep of the values of a file is not a sweep of the file** (T-265):
+>      seven items each read one value of the configuration file, and the road
+>      that gives **no** value stood beside them for seven rounds. **Ask of a
+>      list of candidates that all hold one shape: which road of that same
+>      source does no candidate name?**
+>    - **A write of `stdout` that holds no line is a write that no user sees**
+>      (T-265): the words of a fault go to `stderr` at once, and a buffer of
+>      `stdout` that flushes at the exit stands after them. **A measurement of
+>      the words of a program that stops must read the screen of the terminal,
+>      and not the output of a file**: the file held every word, and the pane of
+>      tmux held one line.
+>    - **The words of a library belong inside the words of the program** (T-265):
+>      the reason of the crate names the line and the column of the file, and no
+>      word of the program can give that, therefore the sentence of the program
+>      stands above it and it names the file and the road back.
+>    - **The login screen of a file that the program cannot read is not
+>      measured** (T-265, and it stays open): `AppLogin::new` of
+>      `src/login_app.rs` line 19 reads the file with `?` too, and that road
+>      stands before the clear of line 159. **This is a candidate and not a
+>      measurement.**
+>    - **The key `R` of a file that the program cannot read is not measured**
+>      (T-265, and it stays open): `App::new_with_the_engine` of `src/app.rs`
+>      line 668 reads the file with `?`, and a refresh is not a start (T-205).
+>    - **A file that the program cannot make says no word on the screen** (T-264
+>      and T-265, and it stays open).
+>    - **The row of the message says the number and not the name** (T-264 and
+>      T-265, and it stays open).
+>    - **The login screen says no word of a value of the file that the program
+>      does not use** (T-264 and T-265, and it stays open).
+>    - **The program reads the configuration file two times at its start**
+>      (T-259 to T-265, and it stays open).
+>    - **A machine of two names of the file is not measured** (T-263 to T-265,
+>      and it stays open).
+>    - **A name of the prefix of an address is not every name of an identity of
+>      an address** (T-262 to T-265, and it stays open).
+>    - **Two names that differ in their spaces alone are two identities** (T-261
+>      to T-265, and it stays open).
+>    - **A file whose every server fails is not measured** (T-259 to T-265, and
+>      it stays open).
+>    - **The block `reader` stands on no gate of a build of the fault** (T-259
+>      to T-265, and it stays open).
+>    - **The words of a fault of the crate `config` are not ASD-STE100** (T-258
+>      to T-265, and it stays open).
+>    - **The colours of the program stand on no test of a length** (T-257 to
+>      T-265, and it stays open).
+>    - **The panel of a description is in no test of the render** (T-253 to
+>      T-265, and it stays open).
+>    - **The two renders of the panel of the episodes of a podcast are in no
+>      test** (T-250 to T-265, and it stays open).
+>    - **The title of a list says no number of the line of the cursor** (T-255
+>      to T-265, and it stays open).
+>    - **The key `H` of the panel stands on no character of the screen** (T-254
+>      to T-265, and it stays open).
+>    - **The line of the view of the authors says `[1 book(s)]`** (T-252 to
+>      T-265, and it stays open).
+>    - **The panel of a narrator says "No description available" for every
+>      narrator of every library** (T-252 to T-265, and it stays open).
+>    - **The keys of the sweep of T-247 that hold a playback are not measured**
+>      (T-248 to T-265, and it stays open).
+>    - **The key `B` says nothing on either road** (T-248 to T-265, and it stays
+>      open).
+>    - **The key `h` of the view of the bookmarks, of the view of the chapters,
+>      and of the view of the queue gives the Home view** (T-247 to T-265, and
+>      it stays open).
+>    - **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
+>      T-265, and it stays open).
+>    - **The lines of the view of the bookmarks hold no place of the user**
+>      (T-229 to T-265, and it stays open).
+>    - **The line of the Library view of a library of podcasts says no place at
+>      all** (T-242 to T-265, and it stays open).
+>
 >    **The
 >    session of the ninety-third turn took the candidate "The user sees no word
 >    of a value of the file that the program cannot read", which stood open from
@@ -13609,124 +13909,9 @@ skipped.
 >    - **The line of the Library view of a library of podcasts says no place at
 >      all** (T-242 to T-263, and it stays open).
 >
->    **The
->    session of the ninety-first turn took no paragraph of "What this item
->    leaves open" of the newest item, and the item of it says why: the two
->    candidates of the identity of T-261 hold no place of a user that goes to a
->    different server. The measurement of a third road, which no paragraph
->    named, found that the name of a server and the address of an account stand
->    in one space of names** (T-262).
->
->    `server_key` of `src/config.rs` line 714 gives the name of the server that
->    holds the address, and it gives `normalise(the address)` for an address
->    that no server of the file holds. `check_shape` of
->    `src/api/server/address.rs` line 24 gives an address of the prefix
->    `http://` or `https://` alone, therefore a **name** of one of those two
->    prefixes is a value of the same space, and `main.rs` line 267 and `app.rs`
->    line 772 write that value in the column `server` of the tables `queue` and
->    `downloads`.
->
->    The measurement, of the real program v0.8.90 inside tmux, on a screen of
->    160 columns and 45 rows. A second address of a server comes of
->    `docs/harness/one_path_fails.py 13500 13399 requests.log /a/path/of/no/hit`,
->    which forwards every request to the sandbox. A file with **no** block
->    `[[servers]]`, the account at `http://localhost:13399`, the key `n` on the
->    first line of the Home view, and the key `q`:
->
->    ```text
->    ────The queue [1 item]────
->    ➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
->    ```
->
->    with the row of the disk
->    `toutuitest|http://localhost:13399|0|A Long Test Book`: the identity of a
->    server that the file does not name is its address. The same file with one
->    block of `name = "http://localhost:13399"` and of the address
->    `http://127.0.0.1:13500`, and the account at that **second** address, and
->    the key `q`:
->
->    ```text
->    🔗 127.0.0.1:13500
->    ────The queue [1 item]────
->    ➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
->    ```
->
->    **The queue of one server came to the screen of a different server**, which
->    the doc of `server_key` says must never happen (T-25), and
->    `grep -icE "config|server|name"` of the log gave **1** — no word of the
->    configuration at all. The control of the same run, with the name at `the
->    server away from home`, gave
->    `The queue is empty. Press n on a media to put it in the queue.`
->
->    The correction drops a server whose name, with no space at its two ends and
->    with small letters alone, starts with `http://` or `https://`. The check
->    comes before the check of the name that stands already (T-261), and both
->    come before the read of the addresses.
->    - **A candidate that a former item names is not always the item of the next
->      round** (T-262): the two candidates of T-261 hold no place of a user that
->      goes to a different server, and the third road of the same space of names
->      does. **Read the candidates against the harm, and write the reason of the
->      choice in the item.**
->    - **Two spaces of names that one function joins are one space of names**
->      (T-262): `unwrap_or_else` of `server_key` puts the addresses of the
->      accounts and the names of the file in one column of the disk. **Ask of a
->      fallback: which values of the user can the two roads of it give
->      together?**
->    - **The class of a correction of a name is the prefix, and not the whole
->      name** (T-262): a name of the prefix `http://` that no account holds is
->      no identity of another server today, and a login of tomorrow makes it
->      one. A name that **holds** an address inside it starts with no prefix of
->      an address, therefore it stays, and a test of that road guards the user
->      who names a server with words.
->    - **A name of the prefix of an address is not every name of an identity of
->      an address** (T-262, and it stays open): a login screen of a version that
->      takes an address of no prefix opens that road again. **This is a
->      candidate and not a measurement.**
->    - **Two names that differ in their spaces alone are two identities** (T-261
->      and T-262, and it stays open).
->    - **One address that two servers of the file hold is not measured** (T-261
->      and T-262, and it stays open).
->    - **A file whose every server fails is not measured** (T-259 to T-262, and
->      it stays open).
->    - **The program reads the configuration file two times at its start**
->      (T-259 to T-262, and it stays open).
->    - **The block `reader` stands on no gate of a build of the fault** (T-259
->      to T-262, and it stays open).
->    - **The words of a fault of the crate `config` are not ASD-STE100** (T-258
->      to T-262, and it stays open).
->    - **The user sees no word of a value of the file that the program cannot
->      read** (T-258 to T-262, and it stays open).
->    - **The colours of the program stand on no test of a length** (T-257 to
->      T-262, and it stays open).
->    - **The panel of a description is in no test of the render** (T-253 to
->      T-262, and it stays open).
->    - **The two renders of the panel of the episodes of a podcast are in no
->      test** (T-250 to T-262, and it stays open).
->    - **The title of a list says no number of the line of the cursor** (T-255
->      to T-262, and it stays open).
->    - **The key `H` of the panel stands on no character of the screen** (T-254
->      to T-262, and it stays open).
->    - **The line of the view of the authors says `[1 book(s)]`** (T-252 to
->      T-262, and it stays open).
->    - **The panel of a narrator says "No description available" for every
->      narrator of every library** (T-252 to T-262, and it stays open).
->    - **The keys of the sweep of T-247 that hold a playback are not measured**
->      (T-248 to T-262, and it stays open).
->    - **The key `B` says nothing on either road** (T-248 to T-262, and it stays
->      open).
->    - **The key `h` of the view of the bookmarks, of the view of the chapters,
->      and of the view of the queue gives the Home view** (T-247 to T-262, and
->      it stays open).
->    - **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
->      T-262, and it stays open).
->    - **The lines of the view of the bookmarks hold no place of the user**
->      (T-229 to T-262, and it stays open).
->    - **The line of the Library view of a library of podcasts says no place at
->      all** (T-242 to T-262, and it stays open).
->
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the ninetieth and every turn before it, the item of each, and the
+>    the ninety-first and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
@@ -14165,7 +14350,13 @@ skipped.
 > not use: the row of the message says the number of them at the start of the
 > program and at the key `R`, the log keeps the name and the reason of each of
 > them, and the login and the cache of the ebooks read that file and say
-> nothing** (T-264).
+> nothing** (T-264), and **a configuration file that the program cannot read at
+> all stops the program with words of its own: those words name the file, they
+> hold the reason of the crate because it names the line and the column, they
+> name the road back, and they say nothing of the server; and the clear of the
+> screen of the start goes to the terminal at the moment of its write, because a
+> clear that waits in the buffer of `stdout` comes out at the exit and it takes
+> the words of a program that stops with it** (T-265).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
