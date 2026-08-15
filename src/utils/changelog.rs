@@ -41,6 +41,28 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.88",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **One server of the configuration file that the program cannot \
+             read does not take the other servers of the user away.** A line \
+             such as `priority = 300` in one address of one server gave a \
+             program with no `[[servers]]` block at all: the queue and the \
+             downloads of the user then went away, because the name of a \
+             server is the identity of their place on the disk. The program \
+             reads each server of the file apart now, and the log names the \
+             server of the fault.",
+            "- **An address of a server that the program cannot read does not \
+             take the other addresses of that server away.** A server has more \
+             than one address, and one of them answers.",
+            "- **A value of the block `[reader]` that the program cannot read \
+             takes the value of the program alone, and the log names that \
+             value.** A line such as `ebook_cache_mb = -1` gave the limit of \
+             the program, of one gigabyte, with no word at all.",
+        ],
+    },
+    Entry {
         version: "0.8.87",
         date: "15/08/2026",
         body: &[

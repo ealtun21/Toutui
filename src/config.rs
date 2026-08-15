@@ -164,11 +164,15 @@ pub fn load_config_from(path: &Path) -> Result<ConfigFile> {
     // of the user stay. See T-258.
     let colors = the_colours_of_the_file(&config);
     // A configuration file that an older version made has no `servers`
-    // block. An empty list is correct in that condition.
-    let servers: Vec<ServerConfig> = config.get("servers").unwrap_or_default();
+    // block. An empty list is correct in that condition. A server of that list
+    // that the program cannot read goes away alone, and every other server of
+    // the user stays. See T-259.
+    let servers = the_servers_of_the_file(&config);
     // A configuration file of an older version has no block `reader`. Every
-    // value of that block then takes the value of the program. See T-72.
-    let reader: ReaderConfig = config.get("reader").unwrap_or_default();
+    // value of that block then takes the value of the program. See T-72. A
+    // value of that block that the program cannot read takes the value of the
+    // program alone. See T-259.
+    let reader = the_reader_of_the_file(&config);
 
     Ok(ConfigFile {
         colors,
@@ -433,6 +437,144 @@ fn the_colours_of_the_file(config: &ConfigLib) -> Colors {
             program.player_background_color,
         ),
     }
+}
+
+/// Gives one value of the configuration file, and it names a value that the
+/// program cannot read.
+///
+/// **A block of `serde` is one value, and one value is one fault** (T-258 and
+/// T-259). This function reads one key of one block, therefore a value that the
+/// program cannot read takes the value of the program alone.
+///
+/// A key that the file does not hold takes the value of the program in silence:
+/// a file of an older version is not a fault of the user (T-122).
+fn the_value_of_the_file<T>(config: &ConfigLib, key: &str, of_the_program: T) -> T
+where
+    T: for<'a> Deserialize<'a>,
+{
+    match config.get::<T>(key) {
+        Ok(value) => value,
+        // The key is absent. That is not a fault of the user. See T-122.
+        Err(config::ConfigError::NotFound(_)) => of_the_program,
+        Err(error) => {
+            log::warn!(
+                "[config] the program cannot read {}: {}. \
+                 The value of the program stays.",
+                key,
+                error
+            );
+            of_the_program
+        }
+    }
+}
+
+/// Reads the block `reader` of the configuration file, one value at a time.
+///
+/// See T-259. `config.get("reader")` read the whole block as one value: a user
+/// who wrote `ebook_cache_mb = -1` lost every value of the block, and the cache
+/// of the ebooks then held one gigabyte for a limit of 512 megabytes that the
+/// user asked for, with no word at all.
+fn the_reader_of_the_file(config: &ConfigLib) -> ReaderConfig {
+    let program = ReaderConfig::default();
+
+    ReaderConfig {
+        ebook_cache_mb: the_value_of_the_file(
+            config,
+            "reader.ebook_cache_mb",
+            program.ebook_cache_mb,
+        ),
+    }
+}
+
+/// One server of the block `servers`, as the file gives it.
+///
+/// The addresses stay values that the program did not read yet, because it
+/// reads each address of a server apart. See `the_servers_of_the_file`.
+#[derive(Debug, Deserialize)]
+struct TheRowOfAServer {
+    name: String,
+    endpoints: Vec<config::Value>,
+}
+
+/// Reads the block `servers` of the configuration file, one server at a time
+/// and one address at a time.
+///
+/// See T-259. `config.get("servers")` read the whole list as one value:
+/// **one address of one server that the program cannot read took every server
+/// of the user away**. The name of a server is the identity of the place of the
+/// user on the disk (`server_key`), therefore the queue and the downloads of
+/// that user went away with the block, and the log said no word of it.
+///
+/// The rule of one server:
+///
+/// - A server with no name, or with no list of addresses, belongs to no pool:
+///   the name is the identity, and the program cannot ask an address that it
+///   cannot read. That server goes away, and the log names its place.
+/// - An address that the program cannot read goes away, and every other address
+///   of that server stays: a server has more than one address, and one of them
+///   answers.
+/// - A server that keeps no address belongs to no pool.
+fn the_servers_of_the_file(config: &ConfigLib) -> Vec<ServerConfig> {
+    let rows: Vec<config::Value> = match config.get("servers") {
+        Ok(rows) => rows,
+        // The block is absent. A file of an older version holds none. See
+        // T-122.
+        Err(config::ConfigError::NotFound(_)) => return Vec::new(),
+        Err(error) => {
+            log::warn!(
+                "[config] the program cannot read the block servers: {}. \
+                 The program uses the address of the login screen.",
+                error
+            );
+            return Vec::new();
+        }
+    };
+
+    let mut servers = Vec::new();
+
+    for (place, row) in rows.into_iter().enumerate() {
+        let row: TheRowOfAServer = match row.try_deserialize() {
+            Ok(row) => row,
+            Err(error) => {
+                log::warn!(
+                    "[config] the program cannot read the server {} of the block servers: {}. \
+                     That server goes away, and every other server stays.",
+                    place + 1,
+                    error
+                );
+                continue;
+            }
+        };
+
+        let mut endpoints = Vec::new();
+        for address in row.endpoints {
+            match address.try_deserialize::<EndpointConfig>() {
+                Ok(endpoint) => endpoints.push(endpoint),
+                Err(error) => log::warn!(
+                    "[config] the program cannot read an address of the server {}: {}. \
+                     That address goes away, and every other address of it stays.",
+                    row.name,
+                    error
+                ),
+            }
+        }
+
+        if endpoints.is_empty() {
+            log::warn!(
+                "[config] the server {} has no address that the program can read. \
+                 That server goes away.",
+                row.name
+            );
+            continue;
+        }
+
+        servers.push(ServerConfig {
+            name: row.name,
+            endpoints,
+        });
+    }
+
+    servers
 }
 
 /// The colour that a list with no value gives.
@@ -894,6 +1036,136 @@ endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
         let config = load_config_from(&path).expect("the program must start");
 
         assert_eq!(config.colors.player_background_color, vec![80, 80, 80]);
+    }
+
+    /// **One address of one server that the program cannot read took every
+    /// server of the user away** (T-259). The name of a server is the identity
+    /// of the place of the user on the disk, therefore the queue and the
+    /// downloads of that user went away with the block, and the log said no
+    /// word of it. The server of the fault goes away alone now.
+    #[test]
+    fn a_server_that_the_program_cannot_read_keeps_the_other_servers() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[[servers]]\nname = \"the sandbox\"\n\
+             endpoints = [ { url = \"http://localhost:13399\", priority = 0 } ]\n\
+             \n[[servers]]\nname = \"the server away from home\"\n\
+             endpoints = [ { url = \"https://abs.example.com\", priority = 300 } ]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(
+            config.servers.len(),
+            1,
+            "the server of the user that the program can read must stay"
+        );
+        assert_eq!(config.servers[0].name, "the sandbox");
+        assert_eq!(
+            server_key(&config.servers, "http://localhost:13399"),
+            "the sandbox",
+            "the identity of the place of the user on the disk must stay"
+        );
+    }
+
+    /// **A server has more than one address, and one of them answers** (T-259).
+    /// An address that the program cannot read goes away, and every other
+    /// address of that server stays.
+    #[test]
+    fn an_address_that_the_program_cannot_read_keeps_the_other_addresses() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[[servers]]\nname = \"home\"\nendpoints = [\n\
+             { url = \"http://192.168.1.10:13378\", priority = 0 },\n\
+             { url = \"https://abs.example.com\", priority = 300 },\n]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(config.servers.len(), 1, "the server of the user must stay");
+        assert_eq!(
+            config.servers[0].endpoints.len(),
+            1,
+            "the address that the program can read must stay"
+        );
+        assert_eq!(
+            config.servers[0].endpoints[0].url,
+            "http://192.168.1.10:13378"
+        );
+    }
+
+    /// **A value of the block `reader` that the program cannot read takes the
+    /// value of the program** (T-259). A user who wrote `ebook_cache_mb = -1`
+    /// got the limit of the program, of one gigabyte, for the 512 megabytes
+    /// that they asked for.
+    ///
+    /// **This test passes on both builds of T-259**, and it says so: the block
+    /// `reader` holds one value today, therefore the fault of the block and the
+    /// fault of the value give the same number. The correction of that block
+    /// gives the **word** alone, and the log of the real program is the
+    /// evidence of it. A second key of the block would put this block under the
+    /// gate of `a_server_that_the_program_cannot_read_keeps_the_other_servers`.
+    #[test]
+    fn a_value_of_the_reader_that_the_program_cannot_read_takes_the_value_of_the_program() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(&path, "[reader]\nebook_cache_mb = -1\n").expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(
+            config.reader.ebook_cache_mb, 0,
+            "the value of the program comes for a value that it cannot read"
+        );
+    }
+
+    /// The guard of the rule of T-122: a block that the file does not hold is
+    /// not a fault of the user, and it says nothing. This test passes on both
+    /// builds of T-259.
+    #[test]
+    fn a_block_that_the_file_does_not_hold_takes_the_values_of_the_program() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(&path, "[colors]\nbackground_color = [1, 2, 3]\n")
+            .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert!(config.servers.is_empty());
+        assert_eq!(config.reader.ebook_cache_mb, 0);
+    }
+
+    /// **A server of the file that the program can read reaches the pool**
+    /// (T-259). The correction must take no server away that stands.
+    #[test]
+    fn the_servers_of_the_file_that_the_program_reads_stay() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[reader]\nebook_cache_mb = 512\n\n\
+             [[servers]]\nname = \"home\"\nendpoints = [\n\
+             { url = \"http://192.168.1.10:13378\", priority = 0 },\n\
+             { url = \"https://abs.example.com\", priority = 1 },\n]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(config.reader.ebook_cache_mb, 512);
+        assert_eq!(config.servers.len(), 1);
+        assert_eq!(config.servers[0].endpoints.len(), 2);
+        assert_eq!(
+            pool_for_address(&config.servers, "https://abs.example.com").len(),
+            2,
+            "the pool of the user must hold the two addresses of that server"
+        );
     }
 
     /// **A user who builds the program has no configuration file**, and the

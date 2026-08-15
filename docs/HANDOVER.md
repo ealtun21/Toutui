@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.87.** The item T-258 belongs to this session. The
+**The newest release is v0.8.88.** The item T-259 belongs to this session. The
+item T-258 belongs to the session before it. The
 item T-257 belongs to the session before it. The
 item T-256 belongs to the session before it. The
 item T-255 belongs to the session before it. The
@@ -103,6 +104,92 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its 40 binaries in two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the eighty-eighth turn of 2026-08-15: one server of the file does not take the other servers away
+
+**One release: v0.8.88**, and one item: T-259. **The road of it is the paragraph
+of the two blocks of "What this item leaves open" of T-258**:
+`config.get("reader").unwrap_or_default()` and
+`config.get("servers").unwrap_or_default()` each take the whole block away for
+one value that the program cannot read, and neither of them says a word.
+
+**The measurement found that the fault of the block `servers` reaches the queue
+and the downloads of the user.** The block is a list of servers, and each server
+holds a list of addresses: `priority` is a `u8`, therefore the line
+`priority = 300` of **one address of one server** gives an error of the whole
+`get`, and `unwrap_or_default` then gives a program with no `[[servers]]` block
+at all. **The name of a server is the identity of the place of the user on the
+disk**: `server_key` gives the address itself when the file names no server of
+that address, and `main.rs` line 267 and `app.rs` line 772 write that value in
+the column `server` of the tables `queue` and `downloads`.
+
+The real program v0.8.87 inside tmux, on a screen of 160 columns and 45 rows,
+against the sandbox. A file with one server of the address of the account, the
+key `n` on the first line of the Home view, and the key `q`:
+
+```text
+─────────────────────The queue [1 item]─────────────────────
+➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+```
+
+and the row of the disk `toutuitest|the sandbox|0|A Long Test Book`. The same
+file with a **second** server of one address of `priority = 300`, the same row
+of the disk, and the key `q` of the next start:
+
+```text
+────The queue is empty. Press n on a media to put it in the queue.────
+```
+
+`grep -icE "config|server|priorit"` of the log gave **1**, and that one line is
+`[main][api] The pool has 1 address(es).` — the line that the good file gives
+too. **The program said no word of the block that it lost.** The block `reader`
+gave the same shape with one value: `ebook_cache_mb = -1` gave
+`the cache of the ebooks holds 1073741824 byte(s) at the most` for the 536870912
+bytes of the file, with no line of the configuration at all.
+
+**The correction**: `the_value_of_the_file`, `the_reader_of_the_file`,
+`TheRowOfAServer`, and `the_servers_of_the_file` of `src/config.rs`. The program
+reads the block `servers` as `Vec<config::Value>`, and it reads each server of
+that list apart with `Value::try_deserialize`; the addresses of a server stay
+values that it did not read yet, therefore it reads each address apart too. A
+server with no name belongs to no pool, an address that the program cannot read
+goes away and every other address of that server stays, and a server that keeps
+no address belongs to no pool. The same file of the two faults then gives the
+queue of the user back, and three lines of the log.
+
+**The build of the fault**: the two lines of `load_config_from` back to
+`config.get(...).unwrap_or_default()`, and the two tests of the servers fail
+(`left: 0 right: 1`, two times).
+
+**The trap 232: a block of one key stands under no gate of a build of the
+fault.** The block `reader` holds `ebook_cache_mb` alone, therefore the fault of
+the block and the fault of the value give the same number, and no test of a
+value can tell the two builds apart. The correction of that block gives the
+**word** alone, and the log of the real program is the evidence of it. **The
+head of such a test must say that it passes on both builds**, and a reader who
+does not find that sentence must not count the test as a gate.
+
+### What this session leaves open
+
+**The words of a fault of the crate `config` are not ASD-STE100** (T-258 and
+T-259): the three lines of the log hold the sentence of the crate, and
+`invalid type: 64-bit unsigned integer` is not a sentence of this fork.
+
+**The user sees no word of a value of the file that the program cannot read**
+(T-258 and T-259): the lines go to the log alone, and the first frame holds no
+message of them. A user whose queue came back has no way to know that a server
+of their file went away.
+
+**The program reads the configuration file two times at its start** (T-259): the
+log of the measurement holds each of the three lines of the fault two times,
+before the first frame. **This is a candidate and not a measurement**: T-204
+says that the render reads no disk, and this is a read of the start.
+
+The gates of v0.8.88: `cargo clippy --all-targets -- -D warnings` and
+`cargo fmt --check` say nothing, `cargo nextest run` gives **1257 of 1257** in
+2.8 seconds with 26 skipped, `cargo nextest run --run-ignored all` gives
+**1283 of 1283** in 17.4 seconds with the sandbox up, and
+`cargo test -j 16 --no-fail-fast` gives no failure in three runs.
 
 ## The session of the eighty-seventh turn of 2026-08-15: one colour of the file does not take the other colours away
 
@@ -11722,49 +11809,141 @@ the right side of `App::render_list`.
 - **The line of the Library view of a library of podcasts says no place at
   all** (T-242 to T-255, and it stays open).
 
+**The
+session of the eighty-fifth turn took the paragraph of the cursor of "What
+this item leaves open" of the newest item: that paragraph said that the bar
+of the scroll of a list reads the offset of the panel and not the place of
+the cursor, and the measurement of a view of 57 episodes found that the
+cursor crosses the whole of the panel and no character of the bar moves**
+(T-256).
+
+T-255 gave the bar of a list the **offset** of the `ListState` of ratatui —
+the first line that the panel draws. That offset does not change while the
+cursor moves inside the rows of the panel. **The title of T-255 is "the
+list of a view says where the cursor of the user stands", and the offset is
+not the place of the cursor.**
+
+The measurement, of the real program v0.8.84 inside tmux, on a screen of
+160 columns and 45 rows. The library `Podcasts`, the key `Tab`, the cursor
+on "Letters of Two Brides", and the key `l`: the view of its 57 episodes,
+whose panel holds 18 rows (the rows 4 to 21 of the screen):
+
+```text
+───────────────Episodes [57 items]───────────────
+➤ 3%  Letter 1                                  █    the first frame, and
+      Letter 2                                  █    17 presses of the key
+  ✓   Letter 3                                  █    `j` after it
+```
+
+The first frame gave the cursor at the line 1 and the thumb at the rows 4
+to 9, and 17 presses of the key `j` took the cursor to the line 18 — the
+last row of the panel — and the thumb held the rows 4 to 9 again.
+
+The correction is `the_track` of `TheList` and
+`the_place_of_the_bar(selected, offset, the_track)` of
+`src/logic/the_scroll_of_a_list.rs`, and the new module
+`src/ui/the_list_of_a_view.rs` holds the whole render of a list.
+- **A correction that ships with no test is a correction that the next
+  round can lose** (T-253 to T-256): the first paragraph of "What this item
+  leaves open" of three rounds asked for a test of the render, and each of
+  those rounds passed it by. **Count what a render of `App` reads of
+  `App`**: `App::render_list` read `self.config.colors` and nothing else,
+  therefore a free function of `&Colors`, of the title, of the items, and
+  of the `&mut ListState` draws the same characters, and a test of it needs
+  a `Buffer::empty` of a `Rect` and no terminal at all.
+- **A value that a correction gives the screen must be the value that the
+  title of the item promises** (T-256): T-255 says "where the cursor of the
+  user stands", and it gave the bar the offset of the panel. **Read the
+  title of the item against the line of the correction.**
+- **A measurement of a bar of a scroll needs a list of a length near the
+  rows of its panel** (T-256, the trap 230): the 500 lines of `ManyPods` in
+  18 rows give one row of the track for about 28 lines, therefore this
+  correction changes no character of that view for 27 presses of the key
+  `j`.
+- **The state of a bar counts the lines of the list and not the offsets of
+  the panel** (T-256): a state of the offsets takes the thumb to the foot
+  of the track one panel before the last line of the list.
+- **The panel of a description is in no test of the render** (T-253 to
+  T-256, and it stays open): `render_a_description` is a private method of
+  `App` still, and the module of T-256 gives the shape of that correction.
+- **The two renders of the panel of the episodes of a podcast are in no
+  test** (T-250 to T-256, and it stays open): the road is open now, because
+  `render_the_list` of the new module draws into a `Buffer` with no
+  terminal.
+- **The title of a list says no number of the line of the cursor** (T-255
+  and T-256, and it stays open): the title says `Episodes [57 items]`, and
+  the bar gives the part of the list and not the number.
+- **`App::alternate_colors` reads the disk for each line of each frame**
+  (T-256, and it stays open): that function calls `load_config()` for every
+  item of the list, and T-204 says that the render of the program reads no
+  disk. **This is a candidate and not a measurement.**
+- **The key `H` of the panel stands on no character of the screen** (T-254
+  to T-256, and it stays open).
+- **The line of the view of the authors says `[1 book(s)]`** (T-252 to
+  T-256, and it stays open).
+- **The panel of a narrator says "No description available" for every
+  narrator of every library** (T-252 to T-256, and it stays open).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-256, and it stays open).
+- **The key `B` says nothing on either road** (T-248 to T-256, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters,
+  and of the view of the queue gives the Home view** (T-247 to T-256, and
+  it stays open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
+  T-256, and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-256, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at
+  all** (T-242 to T-256, and it stays open).
+
 ## The prompt for the next session
-**This session took the paragraph of the colours of "What this item leaves
-open" of the newest item**, and that paragraph said that the configuration says
-nothing of a colour that holds no three numbers. The measurement of that file
-found a second fault of the same line of the source, and it is larger than the
-candidate: `load_config_from` of `src/config.rs` read the whole block of the
-colours as one value, therefore **one number above 255 of one colour took every
-colour of the user away**. The real program v0.8.86 inside tmux, of a
-`config.toml` that held `background_color = [200, 0, 0]` and
-`list_selected_background_color = [80, 80, 300]`, drew `48;2;40;40;40` and
-`grep -icE "colou?r"` of its log gave **0**: the program said no word of it, on
-the screen and in the log. The item is **T-258**, and it holds one release,
-v0.8.87.
+**This session took the paragraph of the two blocks of "What this item leaves
+open" of the newest item**, and that paragraph said that
+`config.get("reader")` and `config.get("servers")` of `load_config_from` each
+take the whole block away for one value that the program cannot read. The
+measurement found that the fault of the block `servers` reaches the disk of the
+user: the block is a list of servers and each server holds a list of addresses,
+therefore the line `priority = 300` of **one address of one server** gave a
+program with no `[[servers]]` block at all. **The name of a server is the
+identity of the place of the user on the disk**, therefore the queue of the
+real program v0.8.87 inside tmux went from `The queue [1 item]` to
+`The queue is empty.` with the row of the disk as it stood, and
+`grep -icE "config|server|priorit"` of its log gave **1** — the line
+`[main][api] The pool has 1 address(es).`, which the good file gives too. The
+item is **T-259**, and it holds one release, v0.8.88.
 
 Three things are worth the room:
 
-1. **A default of a field of `serde` reaches no value that the program cannot
-   read.** T-122 gave `Colors` the attribute `#[serde(default)]` for a key that
-   the file does not hold, and that attribute corrected that road alone. **A
-   block that the program reads as one value is one fault**, and a fault of one
-   key of it is a fault of every key of it.
+1. **A block of `serde` that holds a list is two faults and not one.** T-258
+   read each key of a block apart, and that correction reaches no list: a list
+   needs each row of it apart **and** each list inside a row. The correction of
+   this round reads each server apart and each address of a server apart, and a
+   server that keeps no address belongs to no pool.
 
-2. **A paragraph of "What this item leaves open" can name the smaller of two
-   faults.** The candidate said "the user gets a colour that they did not ask
-   for", and the measurement of the same three lines of the source found that
-   the user loses every colour. **Measure the line that the paragraph names,
-   and not the condition alone.**
+2. **A fault of the configuration file can reach the disk of the user.**
+   `server_key` gives the name of the server of an address, and `main.rs` line
+   267 and `app.rs` line 772 write that value in the column `server` of the
+   tables `queue` and `downloads`. A block that goes away therefore changes the
+   identity of the account. **Ask of a value of the file: does a table of the
+   database hold it?**
 
-3. **A measurement of a colour needs a colour that the program does not hold.**
-   The line `list_background_color = [50, 50]` gives `(50, 50, 50)` of
-   `rgb_parts`, and the colour of the program of that key is `[50, 50, 50]`
-   too: that line changes no character of the screen on either build. The red
-   of `background_color` gave the number of this round.
+3. **A block of one key stands under no gate of a build of the fault** (the
+   trap 232). The block `reader` holds `ebook_cache_mb` alone, therefore the
+   fault of the block and the fault of the value give the same number, and no
+   test of a value can tell the two builds apart. The correction of it gives
+   the **word** alone. **The head of such a test must say that it passes on
+   both builds.**
 
-The gates of v0.8.87, under `nice -n 19 ionice -c 3` with `-j 16`:
+The gates of v0.8.88, under `nice -n 19 ionice -c 3` with `-j 16`:
 `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say
-nothing, `cargo nextest run` gives 1252 of 1252 in 2.7 seconds,
-`cargo nextest run --run-ignored all` gives 1278 of 1278 in 17.3 seconds with
+nothing, `cargo nextest run` gives 1257 of 1257 in 2.8 seconds,
+`cargo nextest run --run-ignored all` gives 1283 of 1283 in 17.4 seconds with
 the sandbox up, and `cargo test -j 16 --no-fail-fast` gives no fault in three
 runs.
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.87**; `Cargo.toml` is at 0.8.87. The
+> AlbanDAVID/Toutui. Newest release **v0.8.88**; `Cargo.toml` is at 0.8.88. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -12402,6 +12581,108 @@ runs.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in ninety sessions of ninety-one.
 >    **The
+>    session of the eighty-eighth turn took the paragraph of the two blocks of
+>    "What this item leaves open" of the newest item: that paragraph said that
+>    `config.get("reader")` and `config.get("servers")` each take the whole
+>    block away for one value that the program cannot read, and the measurement
+>    of the block of the servers found that the queue and the downloads of the
+>    user go away with it** (T-259).
+>
+>    `load_config_from` of `src/config.rs` read each of the two blocks as one
+>    value. The block `servers` is a **list** of servers, and each server holds
+>    a **list** of addresses: `priority` is a `u8`, therefore the line
+>    `priority = 300` of one address of one server gave a program with no
+>    `[[servers]]` block at all. **The name of a server is the identity of the
+>    place of the user on the disk**: `server_key` gives the address itself when
+>    the file names no server of that address, and `main.rs` line 267 and
+>    `app.rs` line 772 write that value in the column `server` of the tables
+>    `queue` and `downloads`.
+>
+>    The measurement, of the real program v0.8.87 inside tmux, on a screen of
+>    160 columns and 45 rows. A file with one server of the address of the
+>    account, the key `n` on the first line of the Home view, and the key `q`:
+>
+>    ```text
+>    ─────────────The queue [1 item]─────────────
+>    ➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+>    ```
+>
+>    and the row of the disk `toutuitest|the sandbox|0|A Long Test Book`. The
+>    same file with a **second** server of one address of `priority = 300`, and
+>    the key `q` of the next start of the program:
+>
+>    ```text
+>    ────The queue is empty. Press n on a media to put it in the queue.────
+>    ```
+>
+>    `grep -icE "config|server|priorit"` of the log gave **1**, and that line is
+>    `[main][api] The pool has 1 address(es).` — the line of the good file too.
+>    The block `reader` gave the same shape with one value:
+>    `ebook_cache_mb = -1` gave a cache of 1073741824 bytes for the 536870912
+>    bytes of the file, with no line of the configuration at all.
+>
+>    The correction is `the_value_of_the_file`, `the_reader_of_the_file`,
+>    `TheRowOfAServer`, and `the_servers_of_the_file` of `src/config.rs`: the
+>    program reads each server of the list apart and each address of a server
+>    apart, and the log names the server, the address, and the value that it
+>    cannot read.
+>    - **A block of `serde` that holds a list is two faults and not one**
+>      (T-259): T-258 read each key of a block apart, and a list needs each row
+>      of it apart **and** each list inside a row. One number of one address of
+>      one server took every server of the user away.
+>    - **A fault of the configuration file can reach the disk of the user**
+>      (T-259): the name of a server is the identity of the place of the user,
+>      therefore the queue and the downloads went away with the block. **Ask of
+>      a value of the file: does a table of the database hold it?**
+>    - **A block of one key stands under no gate of a build of the fault**
+>      (T-259, the trap 232): the block `reader` holds `ebook_cache_mb` alone,
+>      therefore the fault of the block and the fault of the value give the same
+>      number. The correction of it gives the **word** alone, and the head of
+>      such a test must say that it passes on both builds.
+>    - **The program reads the configuration file two times at its start**
+>      (T-259, and it stays open): the log holds each of the three lines of the
+>      fault two times, before the first frame. **This is a candidate and not a
+>      measurement.**
+>    - **The words of a fault of the crate `config` are not ASD-STE100** (T-258
+>      and T-259, and it stays open): the log holds the sentence of the crate.
+>    - **The user sees no word of a value of the file that the program cannot
+>      read** (T-258 and T-259, and it stays open): the lines go to the log
+>      alone, and a user whose queue came back has no way to know that a server
+>      of their file went away.
+>    - **A file whose every server fails is not measured** (T-259, and it stays
+>      open): `pool_for_address` reads the servers for the address of the
+>      account alone.
+>    - **The colours of the program stand on no test of a length** (T-257 to
+>      T-259, and it stays open): 22 places call `rgb_parts`, and no gate of
+>      this repository says which of the two a new render takes.
+>    - **The panel of a description is in no test of the render** (T-253 to
+>      T-259, and it stays open): `render_a_description` is a private method of
+>      `App` still, and the module of T-256 gives the shape of that correction.
+>    - **The two renders of the panel of the episodes of a podcast are in no
+>      test** (T-250 to T-259, and it stays open).
+>    - **The title of a list says no number of the line of the cursor** (T-255
+>      to T-259, and it stays open).
+>    - **The key `H` of the panel stands on no character of the screen** (T-254
+>      to T-259, and it stays open).
+>    - **The line of the view of the authors says `[1 book(s)]`** (T-252 to
+>      T-259, and it stays open).
+>    - **The panel of a narrator says "No description available" for every
+>      narrator of every library** (T-252 to T-259, and it stays open).
+>    - **The keys of the sweep of T-247 that hold a playback are not
+>      measured** (T-248 to T-259, and it stays open).
+>    - **The key `B` says nothing on either road** (T-248 to T-259, and it
+>      stays open).
+>    - **The key `h` of the view of the bookmarks, of the view of the chapters,
+>      and of the view of the queue gives the Home view** (T-247 to T-259, and
+>      it stays open).
+>    - **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
+>      T-259, and it stays open).
+>    - **The lines of the view of the bookmarks hold no place of the user**
+>      (T-229 to T-259, and it stays open).
+>    - **The line of the Library view of a library of podcasts says no place
+>      at all** (T-242 to T-259, and it stays open).
+>
+>    **The
 >    session of the eighty-seventh turn took the paragraph of the colours of
 >    "What this item leaves open" of the newest item: that paragraph said that
 >    the configuration says nothing of a colour that holds no three numbers,
@@ -12571,97 +12852,9 @@ runs.
 >    - **The line of the Library view of a library of podcasts says no place
 >      at all** (T-242 to T-257, and it stays open).
 >
->    **The
->    session of the eighty-fifth turn took the paragraph of the cursor of "What
->    this item leaves open" of the newest item: that paragraph said that the bar
->    of the scroll of a list reads the offset of the panel and not the place of
->    the cursor, and the measurement of a view of 57 episodes found that the
->    cursor crosses the whole of the panel and no character of the bar moves**
->    (T-256).
->
->    T-255 gave the bar of a list the **offset** of the `ListState` of ratatui —
->    the first line that the panel draws. That offset does not change while the
->    cursor moves inside the rows of the panel. **The title of T-255 is "the
->    list of a view says where the cursor of the user stands", and the offset is
->    not the place of the cursor.**
->
->    The measurement, of the real program v0.8.84 inside tmux, on a screen of
->    160 columns and 45 rows. The library `Podcasts`, the key `Tab`, the cursor
->    on "Letters of Two Brides", and the key `l`: the view of its 57 episodes,
->    whose panel holds 18 rows (the rows 4 to 21 of the screen):
->
->    ```text
->    ───────────────Episodes [57 items]───────────────
->    ➤ 3%  Letter 1                                  █    the first frame, and
->          Letter 2                                  █    17 presses of the key
->      ✓   Letter 3                                  █    `j` after it
->    ```
->
->    The first frame gave the cursor at the line 1 and the thumb at the rows 4
->    to 9, and 17 presses of the key `j` took the cursor to the line 18 — the
->    last row of the panel — and the thumb held the rows 4 to 9 again.
->
->    The correction is `the_track` of `TheList` and
->    `the_place_of_the_bar(selected, offset, the_track)` of
->    `src/logic/the_scroll_of_a_list.rs`, and the new module
->    `src/ui/the_list_of_a_view.rs` holds the whole render of a list.
->    - **A correction that ships with no test is a correction that the next
->      round can lose** (T-253 to T-256): the first paragraph of "What this item
->      leaves open" of three rounds asked for a test of the render, and each of
->      those rounds passed it by. **Count what a render of `App` reads of
->      `App`**: `App::render_list` read `self.config.colors` and nothing else,
->      therefore a free function of `&Colors`, of the title, of the items, and
->      of the `&mut ListState` draws the same characters, and a test of it needs
->      a `Buffer::empty` of a `Rect` and no terminal at all.
->    - **A value that a correction gives the screen must be the value that the
->      title of the item promises** (T-256): T-255 says "where the cursor of the
->      user stands", and it gave the bar the offset of the panel. **Read the
->      title of the item against the line of the correction.**
->    - **A measurement of a bar of a scroll needs a list of a length near the
->      rows of its panel** (T-256, the trap 230): the 500 lines of `ManyPods` in
->      18 rows give one row of the track for about 28 lines, therefore this
->      correction changes no character of that view for 27 presses of the key
->      `j`.
->    - **The state of a bar counts the lines of the list and not the offsets of
->      the panel** (T-256): a state of the offsets takes the thumb to the foot
->      of the track one panel before the last line of the list.
->    - **The panel of a description is in no test of the render** (T-253 to
->      T-256, and it stays open): `render_a_description` is a private method of
->      `App` still, and the module of T-256 gives the shape of that correction.
->    - **The two renders of the panel of the episodes of a podcast are in no
->      test** (T-250 to T-256, and it stays open): the road is open now, because
->      `render_the_list` of the new module draws into a `Buffer` with no
->      terminal.
->    - **The title of a list says no number of the line of the cursor** (T-255
->      and T-256, and it stays open): the title says `Episodes [57 items]`, and
->      the bar gives the part of the list and not the number.
->    - **`App::alternate_colors` reads the disk for each line of each frame**
->      (T-256, and it stays open): that function calls `load_config()` for every
->      item of the list, and T-204 says that the render of the program reads no
->      disk. **This is a candidate and not a measurement.**
->    - **The key `H` of the panel stands on no character of the screen** (T-254
->      to T-256, and it stays open).
->    - **The line of the view of the authors says `[1 book(s)]`** (T-252 to
->      T-256, and it stays open).
->    - **The panel of a narrator says "No description available" for every
->      narrator of every library** (T-252 to T-256, and it stays open).
->    - **The keys of the sweep of T-247 that hold a playback are not measured**
->      (T-248 to T-256, and it stays open).
->    - **The key `B` says nothing on either road** (T-248 to T-256, and it stays
->      open).
->    - **The key `h` of the view of the bookmarks, of the view of the chapters,
->      and of the view of the queue gives the Home view** (T-247 to T-256, and
->      it stays open).
->    - **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
->      T-256, and it stays open).
->    - **The lines of the view of the bookmarks hold no place of the user**
->      (T-229 to T-256, and it stays open).
->    - **The line of the Library view of a library of podcasts says no place at
->      all** (T-242 to T-256, and it stays open).
->
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the eighty-second and every turn before it, the item of each, and the
+>    the eighty-fifth and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
@@ -13074,7 +13267,13 @@ runs.
 > file apart: a colour that the file does not hold takes the colour of the
 > program in silence, a colour that the program cannot read and a colour that
 > holds no three numbers each take the colour of the program and a line of the
-> log, and every other colour of the user stays** (T-258).
+> log, and every other colour of the user stays** (T-258), and **the program
+> reads each server of the configuration file apart and each address of a
+> server apart: a server with no name belongs to no pool, an address that the
+> program cannot read goes away and every other address of that server stays, a
+> server that keeps no address belongs to no pool, and a value of the block
+> `reader` that the program cannot read takes the value of the program alone**
+> (T-259).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

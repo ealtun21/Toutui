@@ -19686,3 +19686,247 @@ guard of the rule of T-122, which passes on both builds).
   to T-258, and it stays open).
 - **The line of the Library view of a library of podcasts says no place at
   all** (T-242 to T-258, and it stays open).
+
+---
+
+### T-259: the program reads each server of the configuration file apart, and each value of the block `reader` apart
+
+**The state**: corrected on 2026-08-15. The measurement is of the real program
+inside tmux, against the sandbox.
+
+#### What T-258 left open
+
+T-258 left this paragraph of its own "What this item leaves open": "**The block
+`reader` and the block `servers` hold the same shape** (T-258, and it stays
+open): `config.get("reader").unwrap_or_default()` and
+`config.get("servers").unwrap_or_default()` each take the whole block away for
+one value that the program cannot read, and neither of them says a word. **This
+is a candidate and not a measurement.**" This item takes that paragraph, and the
+measurement of it found that the fault of the block `servers` reaches the queue
+and the downloads of the user.
+
+#### The fault
+
+`load_config_from` of `src/config.rs` read each of the two blocks as one value:
+
+```rust
+let servers: Vec<ServerConfig> = config.get("servers").unwrap_or_default();
+let reader: ReaderConfig = config.get("reader").unwrap_or_default();
+```
+
+**A block of `serde` is one value, and one value is one fault** (the rule of
+T-258). The block `servers` is a list of servers, and each server holds a list
+of addresses: therefore **one number of one address of one server takes every
+server of the user away**. `priority` is a `u8`, therefore the line
+`priority = 300` of one address does this.
+
+**The name of a server is the identity of the place of the user on the disk.**
+`server_key` of `src/config.rs` gives the name of the server of an address, and
+the address itself when the file names no such server. `main.rs` line 267 and
+`app.rs` line 772 write that value in the column `server` of the tables `queue`
+and `downloads`. A block of servers that goes away therefore changes the
+identity of the account: **the queue and the downloads of the user go away with
+it**, and the pool of the addresses loses every address after the first one
+(T-97 and T-128).
+
+The block `reader` holds one value, `ebook_cache_mb`. That value is a `u64`,
+therefore the line `ebook_cache_mb = -1` gives the limit of the program, of one
+gigabyte, for the 512 megabytes that the user asked for.
+
+#### The measurement
+
+The real program v0.8.87, inside tmux, against the sandbox on :13399, on a
+screen of 160 columns and 45 rows. The account of the sandbox holds the address
+`http://localhost:13399`.
+
+**The block of one server that the program reads.** `config.toml` of the sandbox
+took:
+
+```toml
+[[servers]]
+name = "the sandbox"
+endpoints = [
+  { url = "http://localhost:13399", priority = 0 },
+]
+```
+
+The key `n` on the first line of the Home view, and the key `q`:
+
+```text
+─────────────────────The queue [1 item]─────────────────────
+➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+```
+
+and the row of the disk:
+
+```text
+toutuitest|the sandbox|0|A Long Test Book
+```
+
+**One address of a second server that the program cannot read.** The same file,
+and one block more:
+
+```toml
+[[servers]]
+name = "the server away from home"
+endpoints = [
+  { url = "https://abs.example.com", priority = 300 },
+]
+```
+
+The row of the disk stays as it stands, and the key `q` of the next start of the
+program gives:
+
+```text
+────The queue is empty. Press n on a media to put it in the queue.────
+```
+
+**The queue of the user went away**, because the identity of the account is
+`http://localhost:13399` now and the row of the disk holds `the sandbox`.
+`grep -icE "config|server|priorit"` of the log gave **1**, and that one line is
+`[main][api] The pool has 1 address(es).` — the same line that the good file
+gives. **The program said no word of the block that it lost**, on the screen and
+in the log.
+
+**The value of the block `reader` that the program cannot read.** The file of
+the start of the sandbox with `ebook_cache_mb = -1`:
+
+```text
+[INFO] - [main][cache] the cache of the ebooks holds 1073741824 byte(s) at the most.
+```
+
+The user asked for 536870912 bytes, and the log of the program held no other
+line of the configuration at all.
+
+#### The correction
+
+`the_value_of_the_file`, `the_reader_of_the_file`, `TheRowOfAServer`, and
+`the_servers_of_the_file` of `src/config.rs`.
+
+`the_servers_of_the_file` reads the block as `Vec<config::Value>`, and it then
+reads each server of that list apart with `Value::try_deserialize`. The
+addresses of a server stay values that the program did not read yet, therefore
+it reads each address apart too. The rule of one server:
+
+- A server with no name, or with no list of addresses, belongs to no pool: the
+  name is the identity, and the program cannot ask an address that it cannot
+  read. That server goes away, and the log names its place in the file.
+- An address that the program cannot read goes away, and every other address of
+  that server stays: **a server has more than one address, and one of them
+  answers.**
+- A server that keeps no address belongs to no pool.
+
+`the_value_of_the_file` reads one key of one block, and `the_reader_of_the_file`
+calls it for `reader.ebook_cache_mb`. A key that the file does not hold takes the
+value of the program in silence (T-122), and every other fault takes the value of
+the program and a line of the log.
+
+#### The measurement after the correction
+
+The real program v0.8.88, of the same file of the two faults together
+(`priority = 300` of the second server, and `ebook_cache_mb = -1`):
+
+```text
+─────────────────────The queue [1 item]─────────────────────
+➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+```
+
+and the log:
+
+```text
+[WARN] - [config] the program cannot read an address of the server the server
+away from home: invalid type: 64-bit unsigned integer `300`, expected an
+unsigned 8 bit integer for key `priority`. That address goes away, and every
+other address of it stays.
+[WARN] - [config] the server the server away from home has no address that the
+program can read. That server goes away.
+[WARN] - [config] the program cannot read reader.ebook_cache_mb: invalid type:
+64-bit integer `-1`, expected an unsigned 64 bit or less integer for key
+`reader.ebook_cache_mb`. The value of the program stays.
+```
+
+The queue of the user stays, the server that the program reads keeps its
+identity, and the log names each of the three faults.
+
+#### The build of the fault
+
+The two lines of `load_config_from` back to `config.get(...).unwrap_or_default()`,
+and the two tests of the servers fail:
+
+```text
+a_server_that_the_program_cannot_read_keeps_the_other_servers ... FAILED
+  left: 0   right: 1
+an_address_that_the_program_cannot_read_keeps_the_other_addresses ... FAILED
+  left: 0   right: 1
+```
+
+#### The tests
+
+Five tests of `src/config.rs`:
+`a_server_that_the_program_cannot_read_keeps_the_other_servers`,
+`an_address_that_the_program_cannot_read_keeps_the_other_addresses`,
+`the_servers_of_the_file_that_the_program_reads_stay`,
+`a_value_of_the_reader_that_the_program_cannot_read_takes_the_value_of_the_program`,
+and `a_block_that_the_file_does_not_hold_takes_the_values_of_the_program` (the
+guard of the rule of T-122).
+
+**The two last tests pass on both builds, and the head of each of them says so.**
+The block `reader` holds one value today, therefore the fault of the block and
+the fault of the value give the same number: the correction of that block gives
+the **word** alone, and the log of the real program above is the evidence of it.
+
+#### What this item leaves open
+
+- **The block `reader` stands on no gate of a build of the fault** (T-259, and
+  it stays open): the block holds one key, therefore no test of a value can tell
+  the two builds apart, and the correction of it stands on the measurement of
+  the real program alone. **A second key of that block puts it under the gate of
+  the servers at once.**
+- **The program reads the configuration file two times at its start** (T-259,
+  and it stays open): the log of the measurement holds each of the three lines
+  of the fault two times, before the first frame. **This is a candidate and not
+  a measurement**: T-204 says that the render reads no disk, and this is a read
+  of the start and not of the render.
+- **The words of a fault of the crate `config` are not ASD-STE100** (T-258 and
+  T-259, and it stays open): the three lines of the log above hold the sentence
+  of the crate, and `invalid type: 64-bit unsigned integer` is not a sentence of
+  this fork.
+- **The user sees no word of a value of the file that the program cannot read**
+  (T-258 and T-259, and it stays open): the lines go to the log alone, and the
+  first frame holds no message of them. A user whose queue came back has no way
+  to know that a server of their file went away.
+- **A server of the file that names no address of the account belongs to no
+  measurement** (T-259, and it stays open): `pool_for_address` reads the servers
+  of the file for the address of the account alone, therefore a second server
+  that the program cannot read changes the identity of the account only when the
+  first server holds that address. **This is the road of the measurement above,
+  and the road of a file whose every server fails is not measured.**
+- **The colours of the program stand on no test of a length** (T-257 to T-259,
+  and it stays open): 22 places call `rgb_parts`, and no gate of this repository
+  says which of the two a new render takes.
+- **The panel of a description is in no test of the render** (T-253 to T-259,
+  and it stays open): `render_a_description` is a private method of `App` still,
+  and the module of T-256 gives the shape of that correction.
+- **The two renders of the panel of the episodes of a podcast are in no test**
+  (T-250 to T-259, and it stays open).
+- **The title of a list says no number of the line of the cursor** (T-255 to
+  T-259, and it stays open).
+- **The key `H` of the panel stands on no character of the screen** (T-254 to
+  T-259, and it stays open).
+- **The line of the view of the authors says `[1 book(s)]`** (T-252 to T-259,
+  and it stays open).
+- **The panel of a narrator says "No description available" for every narrator
+  of every library** (T-252 to T-259, and it stays open).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-259, and it stays open).
+- **The key `B` says nothing on either road** (T-248 to T-259, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters, and
+  of the view of the queue gives the Home view** (T-247 to T-259, and it stays
+  open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to T-259,
+  and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-259, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at all**
+  (T-242 to T-259, and it stays open).
