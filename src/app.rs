@@ -76,6 +76,12 @@ pub const THE_LISTS_STAND_IN_TWO_VIEWS: &str =
     "The Home view and the Library view show the collections and the playlists. \
      Press h to go back.";
 
+/// The words of the key `A` in a view that adds no podcast to the library.
+/// See T-248, and `THE_SERIES_STAND_IN_TWO_VIEWS` for the rule.
+pub const THE_NEW_PODCAST_STANDS_IN_TWO_VIEWS: &str =
+    "The Home view and the Library view add a podcast to the library. \
+     Press h to go back.";
+
 /// The views of the application. The type has no field, therefore a copy
 /// costs nothing, and a test can name a view in a list.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -5199,10 +5205,22 @@ impl App {
     /// cannot hold a podcast. The server asks iTunes, therefore the search
     /// needs the network of the server.
     pub fn look_for_a_podcast(&mut self) {
+        // **The view of the episodes of a podcast belongs to a library of
+        // podcasts, and this key needs no line** (T-248): the key `L` of the
+        // scan, the key `E` of the new episodes, the key `d` of the downloads
+        // of the server, and the key `R` of the same group of the table each do
+        // their work in that view, and this key alone did nothing there.
         if !matches!(
             self.view_state,
-            AppView::Home | AppView::Library | AppView::SearchBook | AppView::NewPodcast
+            AppView::Home
+                | AppView::Library
+                | AppView::SearchBook
+                | AppView::NewPodcast
+                | AppView::PodcastEpisode
         ) {
+            // **A key that does nothing must say why** (T-79 and T-247). The
+            // table of the keys of the program promises this key in every view.
+            crate::logic::message::say(THE_NEW_PODCAST_STANDS_IN_TWO_VIEWS);
             return;
         }
 

@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.77",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key `A` that adds a podcast to the library did nothing \
+             in the view of the episodes of a podcast, and it said nothing.** \
+             The table of the key `?` promises that key in the group \"The \
+             library and the server\", beside the key `L` of the scan, the \
+             key `E` of the new episodes, and the key `d` of the downloads of \
+             the server, which each do their work in that view. The key `A` \
+             works now in the view of the episodes: that view belongs to a \
+             library of podcasts, and the key needs no line of a list. In \
+             every other view the key says which two views add a podcast, and \
+             it names the key that goes back to them.",
+        ],
+    },
+    Entry {
         version: "0.8.76",
         date: "15/08/2026",
         body: &[

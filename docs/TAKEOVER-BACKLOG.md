@@ -17976,3 +17976,131 @@ of `show_the_names` with no word. Each of the three failed the test.
 - **The line of the Library view of a library of podcasts says no place at all**
   (T-242 to T-247, and it stays open): a podcast holds more than one episode,
   and the line of it names no episode (T-221).
+
+### T-248: the key of a new podcast reaches the view of the episodes
+
+**This item measures the first paragraph of "What this item leaves open" of
+T-247** — the keys `u`, `w`, `x`, `y`, `z`, `A`, `B`, `I`, `Y`, `Z`, and `K` of
+the view of the episodes of a podcast, which the sweep of T-247 saw give no word
+of the screen. Ten of the eleven keys hold no fault: `w`, `x`, `y`, `z`, and `Z`
+are letters that the program binds in no view at all and that the table of the
+key `?` promises in no group; `u` (−10 seconds), `I` (the speed down), and `Y`
+(stop the playback) are keys of the player, and no playback stood in that run;
+`B` writes the row of the keys of the player of the disk (T-204); and `K` moves
+the description of the panel one line, and `scroll_offset` stood at 0 already.
+**The eleventh key holds the fault.**
+
+#### The fault
+
+The group "The library and the server" of the table of the key `?`
+(`src/ui/keys.rs:110`) promises five keys:
+
+```text
+  ▌ The library and the server
+     R               Ask the server for every list again
+     L               The server examines the library
+     A               Add a podcast to the library
+     E               The server gets the new episodes of the feed
+     d               The episodes that the server downloads, and the queue
+```
+
+Four of the five do their work in the view of the episodes of a podcast: the key
+`E` of that view said `The server gets 16 episode(s).` in the sweep of T-247, and
+`get_the_new_episodes` names `AppView::PodcastEpisode` in a branch of its own
+(`src/app.rs`, `podcast_of_the_episodes`). **`App::look_for_a_podcast` held
+`AppView::Home | AppView::Library | AppView::SearchBook | AppView::NewPodcast`
+and an early `return` with no word**, therefore the key `A` of every other view
+gave no field, no message, and no line of the log. The view of the episodes of a
+podcast is the view of a library of podcasts, and this key needs no line of any
+list: it asks the user for a name, and it then asks the server.
+
+#### The measurement
+
+The real program v0.8.76, inside tmux, against the sandbox (podman on :13399).
+The row of the account took `name_selected_lib='Podcasts'` and
+`id_selected_lib='ad96fe2b-9f45-477d-82e5-f5ccfe5d324a'` before the start (the
+trap 203 and the trap 204), and it took `Books` again at the end (the trap 198).
+
+The key `Tab` gave `Library [2 items]` (`Letters of Two Brides` and
+`Arthur Gordon Pym`), and the key `l` gave `Episodes [57 items]`:
+
+```text
+  A | view=Episodes [57 items] | log 11->11 | no field, no message
+```
+
+**The two controls of the same run** (the trap 206):
+
+- The key `V` of that same view said `The podcast "Letters of Two Brides" has no
+  bookmark. Press b while an episode plays.` (T-223), therefore the row of the
+  message of that view does its work.
+- The key `A` of the Library view of that same library opened the field
+  `┌The name of the podcast (Enter, or Esc)┐`, therefore the key does its work
+  where the guard holds it. **That field draws over the panel of the
+  description, near the foot of the screen**: a `head -8` of the capture of tmux
+  missed it, and the first reading of this control said that the key does
+  nothing in the Library view too. **A poll of a field of this program must read
+  the whole screen** (the trap 149 for the row of the player, and now for a
+  field).
+
+#### The correction
+
+`App::look_for_a_podcast` takes `AppView::PodcastEpisode` in its list of the
+views, and the early `return` of every other view says
+`THE_NEW_PODCAST_STANDS_IN_TWO_VIEWS` (`src/app.rs`), in the words of T-247:
+
+```text
+The Home view and the Library view add a podcast to the library. Press h to go back.
+```
+
+The measurement of the corrected program v0.8.77, of the same run: the key `A` of
+`Episodes [57 items]` opened the field `The name of the podcast (Enter, or Esc)`,
+the key `Esc` gave that same view back, and the key `A` of the view of the queue
+said the sentence above.
+
+`tests/the_key_of_a_new_podcast_reaches_the_view_of_the_episodes.rs` holds the
+rule. **The offline mode of T-25 is the value of that test**: the sentence
+`The server does not answer.` of `look_for_a_podcast` stands after the guard of
+the view and before the field of the text, therefore a view that reaches it is a
+view that the key holds, and the test needs no terminal and no server. The test
+presses the key with `App::handle_key` and it reads
+`toutui::logic::message::for_the_screen`; it holds the view of the queue, the
+view of the bookmarks, and the view of the chapters for the sentence, and the
+Library view and a library of books for the two controls.
+
+**Two builds of the fault**, one edit at a time (the trap 147):
+`AppView::PodcastEpisode` out of the list of the views (the key of the view of
+the episodes then said the sentence of a view that adds no podcast), and the
+`say` out of the early return (the key of the view of the queue then said
+nothing). Each of the two failed the test.
+
+#### What this item leaves open
+
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248, and it stays open): the keys `u`, `I`, and `Y` of the view of the
+  episodes gave no word because no media played. A sweep of those three keys
+  with a playback of an episode is a road of its own, and the key `Y` of a view
+  that holds no playback says nothing at all.
+- **The key `B` says nothing on either road** (T-248, and it stays open): it
+  writes the row of the keys of the player of the disk and the player of the
+  screen then holds one line more or one line fewer, and a user of a view with
+  no playback sees no change at all.
+- **The key `h` of the view of the bookmarks, of the view of the chapters, and
+  of the view of the queue gives the Home view** (T-247 to T-248, and it stays
+  open): the run of this item pressed `V` of the view of the episodes and then
+  `h`, and the screen gave `Home [17 items]`.
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to T-248,
+  and it stays open).
+- **A media of the queue that no playback of this program moves keeps the place
+  of the moment of the key `q`** (T-230 to T-248, and it stays open), and the
+  panel of a line of that view is not measured.
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-248, and it stays open).
+- **The line and the panel of the view of the authors, of the view of the
+  narrators, of the view of the series itself, and of the view of the lists name
+  no one media** (T-243 to T-248, and it stays open).
+- **The view of the queue of the offline mode is not measured** (T-230 to
+  T-248).
+- **The box of the places of the account goes old while the program stands**
+  (T-241 to T-248, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at all**
+  (T-242 to T-248, and it stays open).

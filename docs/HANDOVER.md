@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.76.** The item T-247 belongs to this session. The
+**The newest release is v0.8.77.** The item T-248 belongs to this session. The
+item T-247 belongs to the session before it. The
 item T-246 belongs to the session before it. The
 item T-245 belongs to the session before it. The
 item T-244 belongs to the session before it. The
@@ -91,6 +92,75 @@ warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
 the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no
 failure in two runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the seventy-seventh turn of 2026-08-15: the key of a new podcast reaches the view of the episodes
+
+**One release: v0.8.77**, and one item: T-248 of the key `A` that adds a podcast
+to the library. **The road of it is the first paragraph of "What this item
+leaves open" of T-247**: the keys `u`, `w`, `x`, `y`, `z`, `A`, `B`, `I`, `Y`,
+`Z`, and `K` of the view of the episodes of a podcast gave no word of the screen
+in the sweep of that item, and each of them is a road of its own.
+
+**A read of the source of the eleven keys, before any tmux at all, cut them to
+one.** A `grep` of `KeyCode::Char` of `src/` said that `w`, `x`, `y`, `z`, and
+`Z` are letters that the program binds in no view, and the table of the key `?`
+promises them in no group: they are free letters, and they hold no fault. The
+keys `u` (−10 seconds), `I` (the speed down), and `Y` (stop the playback) are
+keys of the player, and no playback stood in the run of T-247. The key `B`
+writes the row of the keys of the player of the disk (T-204), and the key `K`
+moves the description of the panel one line, and `scroll_offset` stood at 0.
+
+**The eleventh key holds the fault.** The group "The library and the server" of
+the table (`src/ui/keys.rs:110`) promises the key `R` of a new read of the
+lists, the key `L` of the scan, the key `A` of a new podcast, the key `E` of
+the new episodes of the feed, and the key `d` of the downloads of the server.
+**Four of the five do their work in the view of the episodes of a podcast**: the
+key `E` of that view said `The server gets 16 episode(s).` in the sweep of
+T-247, and `get_the_new_episodes` names `AppView::PodcastEpisode` in a branch of
+its own. `App::look_for_a_podcast` held
+`Home | Library | SearchBook | NewPodcast` and an early `return` with no word.
+
+The measurement, of the library `Podcasts` of the sandbox: the key `Tab` gave
+`Library [2 items]`, the key `l` gave `Episodes [57 items]` of `Letters of Two
+Brides`, and the key `A` there gave no field, no message, and no line of the log
+at all — the log held 11 lines before the key and 11 lines after it. **The two
+controls of the same run** (the trap 206): the key `V` of that same view said
+`The podcast "Letters of Two Brides" has no bookmark. Press b while an episode
+plays.` (T-223), therefore the row of the message of that view does its work;
+and the key `A` of the Library view of that same library opened the field
+`The name of the podcast (Enter, or Esc)`, therefore the key does its work where
+the guard holds it.
+
+The correction: `App::look_for_a_podcast` takes `AppView::PodcastEpisode` in its
+list of the views, and the early `return` of every other view says
+`THE_NEW_PODCAST_STANDS_IN_TWO_VIEWS` of `src/app.rs` — `The Home view and the
+Library view add a podcast to the library. Press h to go back.` — in the words
+of T-247. **Why the work and not the words alone**: the view of the episodes
+belongs to a library of podcasts, the key needs no line of any list, and the
+four other keys of its group of the table reach that view already. The corrected
+program v0.8.77 opened the field in `Episodes [57 items]`, the key `Esc` gave
+that view back, and the key `A` of the view of the queue said the sentence.
+
+The test is
+`tests/the_key_of_a_new_podcast_reaches_the_view_of_the_episodes.rs`, of an
+`App` of the address of a port that nothing listens on, of `App::handle_key`,
+and of `toutui::logic::message::for_the_screen`, in one function. **The offline
+mode of T-25 is the value of it**: the sentence `The server does not answer.` of
+`look_for_a_podcast` stands after the guard of the view and before the field of
+the text, therefore a view that reaches it is a view that the key holds, and the
+test needs no terminal and no server. **Two builds of the fault fail it**:
+`AppView::PodcastEpisode` out of the list of the views, and the `say` out of the
+early return.
+
+### The trap of this session
+
+**The trap 222: a poll of a field of this program must read the whole screen.**
+The field of the name of a podcast draws over the panel of the description, near
+the foot of the screen, and not at the top of it. A `head -8` of the capture of
+tmux of the control of the Library view therefore said that the key `A` does
+nothing there either, and the whole capture of the same run said that it opens
+the field. The trap 149 holds the same rule for the row of the player, which
+says `▶ 3:14 / 30:00` and no word `Playing`.
 
 ## The session of the seventy-sixth turn of 2026-08-15: the keys of the views of the library say why
 
@@ -6647,8 +6717,8 @@ episodes for a podcast that is missing **54**, therefore it stays outside.
 nice -n 19 ionice -c 3 cargo clippy --all-targets -j 16 -- -D warnings
 nice -n 19 ionice -c 3 cargo fmt --check
 ALSA_CONFIG_PATH=<a real null asound file> nice -n 19 ionice -c 3 cargo nextest run -j 16
-    # 1087 of 1087 in 2.3 s, and cargo nextest run --run-ignored all gives 1112
-    # of 1112 with the sandbox up, in 18.1 s of wall clock: one test waits 16 s
+    # 1231 of 1231 in 3.2 s, and cargo nextest run --run-ignored all gives 1257
+    # of 1257 with the sandbox up, in 17.3 s of wall clock: one test waits 16 s
     # for the time limit of the send of a book (T-119), and one waits 15 s for
     # the time limit of a request
 ALSA_CONFIG_PATH=<the same file> nice -n 19 ionice -c 3 cargo test -j 16 --no-fail-fast
@@ -10272,43 +10342,86 @@ others.**
 - **The lines of the view of the bookmarks hold no place of the user**
   (T-229 to T-244, and it stays open).
 
+ **The
+ session of the seventy-fourth turn took the first paragraph of "What this
+ item leaves open" of the newest item: that paragraph held a fault, and it
+ named the wrong box for it. The measurement of the right box found the
+ same fault in a second view, and worse there** (T-245).
+
+ T-244 said that the view of the episodes of a search holds no place of the
+ user because `App::all_ids_pod_ep_search` takes no write of any road. **The
+ render of that view writes that box at each frame**
+ (`src/ui/tui.rs:2175`), with the titles, the subtitles, the seasons, the
+ numbers, the authors, the descriptions, the durations, and the lengths.
+ **The one list of that view with no list of the library behind it is the
+ list of the places** of T-229.
+
+ The measurement, of the library `Podcasts` of two podcasts: the user opened
+ `Letters of Two Brides` (no place of any line), the key `h`, they opened
+ `Arthur Gordon Pym` (`22% Chapter 00`, `74% Chapter 01`, `89% Chapter 02`),
+ the key `h`, and they opened `Letters of Two Brides` a second time. That
+ view said `22% Letter 1`, `74% Letter 2`, and `89% Letter 3`, and the panel
+ of the first line said `Progress: 22%, 28m left, Not finished` — the place
+ of an episode of one podcast beside the length of an episode of the other
+ one. **The control of the same run** (the trap 206): the first open of that
+ same podcast said no percent at all.
+ - **A paragraph that stays open names a candidate, and the box that it
+   names may be the wrong one** (T-245). **Read the source of the paragraph
+   before you take its word for the road.**
+ - **Ask of every list of a view which list of the library holds it**
+   (T-245): a program that makes one request for one media (T-126) shows
+   the answer of another media for ever when the list of that view lives in
+   the answer alone.
+ - **A value that is wrong is worse than a value that is missing** (T-245).
+ - **The keys of the view of the episodes of a search read
+   `ids_pod_ep_search`** (T-244 to T-245, and it stays open): the key of the
+   playback, the key `D`, and the key `X` of a line of that view are not
+   measured.
+ - **A media of the queue that no playback of this program moves keeps the
+   place of the moment of the key `q`** (T-230 to T-245, and it stays open),
+   and the panel of a line of that view is not measured.
+ - **The lines of the view of the bookmarks hold no place of the user**
+   (T-229 to T-245, and it stays open).
+ - **The line of the Library view of a library of podcasts says no place at
+   all** (T-242 to T-245, and it stays open).
+
 ## The prompt for the next session
 **This session took the first paragraph of "What this item leaves open" of the
-newest item, and that paragraph held no fault at all.** T-246 said that the keys
-`n`, `m`, `M`, `N`, `V`, and `@` of the view of the episodes of a podcast of a
-search are not measured. The measurement of the six of them, of the line
-`Letter 3` of `Letters of Two Brides` of the sandbox, gave the sentence of each
-key, and the server took the change of the key `M` and of the key `N` on that
-one episode and on no other. **The round then took the next condition of that
-same view: a sweep of every key of it.** The table of the key `?` promises the
-key `s`, the key `a`, the key `v`, and the key `c` in every view, and the four
-of them gave no view, no message, and no line of the log outside the Home view,
-the Library view, and the view of the search. The item is **T-247**, and it
-holds one release, v0.8.76.
+newest item.** T-247 named eleven keys of the view of the episodes of a podcast
+that gave no word of the screen: `u`, `w`, `x`, `y`, `z`, `A`, `B`, `I`, `Y`,
+`Z`, and `K`. **A read of the source of each of them, before any tmux at all,
+cut the eleven to one**: five of them are letters that the program binds in no
+view and that the table of the key `?` promises in no group, three of them are
+keys of the player and no playback stood, one writes the row of the keys of the
+player, and one moves the description of a panel. **The eleventh is the key `A`,
+"Add a podcast to the library"**, and it did nothing and said nothing there,
+while the four other keys of its group of the table do their work in that view.
+The item is **T-248**, and it holds one release, v0.8.77.
 
 Three things are worth the room:
 
-1. **The table of the keys of a program is a text of the user.** The rule of
-   T-118 and of T-143 — a text must not promise a function that the program does
-   not have — holds for that table as it holds for a footer of a view. **Ask of
-   every key of that table: which views hold it, and what does it say in the
-   views that do not?**
-2. **A sweep of the keys of a view must wait the whole life of a message** (the
-   trap 220). A message lives six seconds (T-59), and a step of 1.6 seconds gave
-   the message of the key `e` to the keys `f` and `g`. **A key that looks as if
-   it speaks in such a sweep is a key of no measurement at all.**
-3. **A sweep of the keys of a view changes the server** (the trap 221). The key
-   `E` of that view asked the server for the new episodes of the podcast, and
-   the sandbox then held 27 episodes where it holds 11. Read what each key of a
-   sweep does before you press it, and give the sandbox back in the same round.
-   Twenty-three sessions of twenty-three took a paragraph of "What this item
+1. **A read of the source of every key of a paragraph, before the measurement,
+   is the cheapest part of such a round.** Eleven keys of a sweep of 6.5 seconds
+   each cost more than a minute of tmux and they hold one fault; a `grep` of
+   `KeyCode::Char` said in seconds which of them exist at all, and a read of the
+   guard of each said which of them a view can reach.
+2. **A poll of a field of this program must read the whole screen** (the trap
+   222). The field of the name of a podcast draws over the panel of the
+   description, near the foot of the screen: a `head -8` of the capture of tmux
+   said that the control of the Library view does nothing either, and the whole
+   capture then said that it opens the field.
+3. **A key of a group of the table that four of its five keys hold is a key of
+   that view.** The correction gave the key `A` the view of the episodes,
+   because that view belongs to a library of podcasts and the key needs no line
+   of any list; every other view takes the sentence of T-247.
+   Twenty-four sessions of twenty-four took a paragraph of "What this item
    leaves open".
 
 This prompt names the state of the program on 2026-08-16.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.76**; `Cargo.toml` is at 0.8.76. The
+> AlbanDAVID/Toutui. Newest release **v0.8.77**; `Cargo.toml` is at 0.8.77. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -10317,7 +10430,7 @@ This prompt names the state of the program on 2026-08-16.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-247 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-248 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -10732,7 +10845,10 @@ This prompt names the state of the program on 2026-08-16.
 > `PATCH /api/me/progress/:id` with `{"isFinished": false}` before **each** run
 > gives the same condition every time. **A poll of the row of the player must
 > read the whole screen** (the trap 149): that row says `▶ 3:14 / 30:00`, and no
-> word `Playing` stands in it.
+> word `Playing` stands in it. **A poll of a field of this program must read the
+> whole screen too** (the trap 222): the field of the name of a podcast of the
+> key `A` draws over the panel of the description, near the foot of the screen,
+> and a `head -8` of the capture of tmux said that the key does nothing at all.
 >
 > **A script that writes the prompt of this file must anchor on the heading at
 > the start of a line** (the trap 208): the text
@@ -10825,7 +10941,7 @@ This prompt names the state of the program on 2026-08-16.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-247 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-248 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
@@ -10942,6 +11058,69 @@ This prompt names the state of the program on 2026-08-16.
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in eighty-five sessions of eighty-six.
+>    **The
+>    session of the seventy-seventh turn took the first paragraph of "What
+>    this item leaves open" of the newest item: that paragraph named eleven
+>    keys of one view, and ten of them held no fault. The eleventh one is a
+>    key of the table that does nothing and that says nothing** (T-248).
+>
+>    T-247 named the keys `u`, `w`, `x`, `y`, `z`, `A`, `B`, `I`, `Y`, `Z`,
+>    and `K` of the view of the episodes of a podcast. **A read of the source
+>    of each of them, before the measurement, cut the eleven to one**: `w`,
+>    `x`, `y`, `z`, and `Z` are letters that the program binds in no view at
+>    all and that the table of the key `?` promises in no group; `u`, `I`,
+>    and `Y` are keys of the player, and no playback stood in that run; `B`
+>    writes the row of the keys of the player of the disk; and `K` moves the
+>    description of the panel one line, and `scroll_offset` stood at 0.
+>
+>    **The eleventh key is `A`, "Add a podcast to the library" of the group
+>    "The library and the server" of the table.** Four of the five keys of
+>    that group do their work in the view of the episodes — the key `E` of
+>    that view said `The server gets 16 episode(s).` in the sweep of T-247 —
+>    and `App::look_for_a_podcast` held
+>    `Home | Library | SearchBook | NewPodcast` and an early `return` with no
+>    word. The measurement, of the library `Podcasts` of the sandbox: the key
+>    `Tab`, the key `l`, and `Episodes [57 items]` of `Letters of Two
+>    Brides`; the key `A` there gave no field, no message, and no line of the
+>    log at all (11 lines before it and 11 after it). **The two controls of
+>    the same run** (the trap 206): the key `V` of that same view said `The
+>    podcast "Letters of Two Brides" has no bookmark.`, and the key `A` of
+>    the Library view of that same library opened the field `The name of the
+>    podcast (Enter, or Esc)`.
+>    - **A read of the source of every key of a paragraph, before the
+>      measurement, is the cheapest part of such a round** (T-248): eleven
+>      keys of a sweep of 6.5 seconds each cost more than a minute of tmux
+>      and they hold one fault, and a `grep` of `KeyCode::Char` said in
+>      seconds which five of them exist at all.
+>    - **A poll of a field of this program must read the whole screen** (the
+>      trap 149, and now the trap 222): the field of the name of a podcast
+>      draws over the panel of the description, near the foot of the screen,
+>      and a `head -8` of the capture of tmux said that the control of the
+>      Library view does nothing either.
+>    - **A key of a group of the table that four of its five keys hold is a
+>      key of that view** (T-248): the correction gave the key the view of
+>      the episodes, because that view belongs to a library of podcasts and
+>      the key needs no line of any list, and it gave every other view the
+>      sentence of T-247.
+>    - **The offline mode of T-25 gives a test of a key that opens a field**
+>      (T-248): the sentence `The server does not answer.` stands after the
+>      guard of the view and before the field, therefore a view that reaches
+>      it is a view that the key holds, and the test needs no terminal.
+>    - **The keys `u`, `I`, and `Y` of that view with a playback are not
+>      measured** (T-248, and it stays open), and **the key `B` says nothing
+>      on either road** (T-248, and it stays open).
+>    - **The key `h` of the view of the bookmarks, of the view of the
+>      chapters, and of the view of the queue gives the Home view** (T-247 to
+>      T-248, and it stays open).
+>    - **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
+>      T-248, and it stays open).
+>    - **The view of the queue of the offline mode is not measured** (T-230
+>      to T-248), and the panel of a line of that view is not measured.
+>    - **The lines of the view of the bookmarks hold no place of the user**
+>      (T-229 to T-248, and it stays open).
+>    - **The line of the Library view of a library of podcasts says no place
+>      at all** (T-242 to T-248, and it stays open).
+>
 >    **The
 >    session of the seventy-sixth turn took the first paragraph of "What this
 >    item leaves open" of the newest item: that paragraph held no fault at
@@ -11069,52 +11248,9 @@ This prompt names the state of the program on 2026-08-16.
 >    - **The line of the Library view of a library of podcasts says no place
 >      at all** (T-242 to T-246, and it stays open).
 >
->    **The
->    session of the seventy-fourth turn took the first paragraph of "What this
->    item leaves open" of the newest item: that paragraph held a fault, and it
->    named the wrong box for it. The measurement of the right box found the
->    same fault in a second view, and worse there** (T-245).
->
->    T-244 said that the view of the episodes of a search holds no place of the
->    user because `App::all_ids_pod_ep_search` takes no write of any road. **The
->    render of that view writes that box at each frame**
->    (`src/ui/tui.rs:2175`), with the titles, the subtitles, the seasons, the
->    numbers, the authors, the descriptions, the durations, and the lengths.
->    **The one list of that view with no list of the library behind it is the
->    list of the places** of T-229.
->
->    The measurement, of the library `Podcasts` of two podcasts: the user opened
->    `Letters of Two Brides` (no place of any line), the key `h`, they opened
->    `Arthur Gordon Pym` (`22% Chapter 00`, `74% Chapter 01`, `89% Chapter 02`),
->    the key `h`, and they opened `Letters of Two Brides` a second time. That
->    view said `22% Letter 1`, `74% Letter 2`, and `89% Letter 3`, and the panel
->    of the first line said `Progress: 22%, 28m left, Not finished` — the place
->    of an episode of one podcast beside the length of an episode of the other
->    one. **The control of the same run** (the trap 206): the first open of that
->    same podcast said no percent at all.
->    - **A paragraph that stays open names a candidate, and the box that it
->      names may be the wrong one** (T-245). **Read the source of the paragraph
->      before you take its word for the road.**
->    - **Ask of every list of a view which list of the library holds it**
->      (T-245): a program that makes one request for one media (T-126) shows
->      the answer of another media for ever when the list of that view lives in
->      the answer alone.
->    - **A value that is wrong is worse than a value that is missing** (T-245).
->    - **The keys of the view of the episodes of a search read
->      `ids_pod_ep_search`** (T-244 to T-245, and it stays open): the key of the
->      playback, the key `D`, and the key `X` of a line of that view are not
->      measured.
->    - **A media of the queue that no playback of this program moves keeps the
->      place of the moment of the key `q`** (T-230 to T-245, and it stays open),
->      and the panel of a line of that view is not measured.
->    - **The lines of the view of the bookmarks hold no place of the user**
->      (T-229 to T-245, and it stays open).
->    - **The line of the Library view of a library of podcasts says no place at
->      all** (T-242 to T-245, and it stays open).
->
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the seventy-third and every turn before it, the item of each, and the sweeps
+>    the seventy-fourth and every turn before it, the item of each, and the sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
 >    says nothing at all (T-174), the rule of the line of a view for the six
@@ -11478,7 +11614,10 @@ This prompt names the state of the program on 2026-08-16.
 > the narrators, and of the collections and of the playlists do their work in
 > the Home view, in the Library view, and in the view of the search, and in
 > every other view each of them names the two views that hold that list and the
-> key that goes back to them** (T-247).
+> key that goes back to them** (T-247), and **the key that adds a podcast to the
+> library does its work in the view of the episodes of a podcast: that view
+> belongs to a library of podcasts and the key needs no line of any list, and
+> every other view takes the sentence of T-247** (T-248).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
