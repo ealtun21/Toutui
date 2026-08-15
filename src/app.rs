@@ -59,6 +59,23 @@ pub enum TheLineOfNoMedia {
 pub const THE_EPISODES_DID_NOT_COME: &str =
     "This line holds no episode. Press h, and then l for the episodes again.";
 
+/// The words of the key `s` in a view that holds no series of the library.
+/// See T-247.
+///
+/// **The table of the keys of the program promises this key in every view**:
+/// the group "The views" of it names the keys `s`, `a`, `v`, and `c` beside the
+/// keys `Tab` and `/`, which every view holds. The four keys do their work in
+/// the Home view, in the Library view, and in the view of the search alone, and
+/// they did nothing and said nothing in every other view (T-79 and T-143).
+pub const THE_SERIES_STAND_IN_TWO_VIEWS: &str =
+    "The Home view and the Library view show the series of the library. Press h to go back.";
+
+/// The words of the key `c` in a view that holds no list of the library.
+/// See T-247, and `THE_SERIES_STAND_IN_TWO_VIEWS` for the rule.
+pub const THE_LISTS_STAND_IN_TWO_VIEWS: &str =
+    "The Home view and the Library view show the collections and the playlists. \
+     Press h to go back.";
+
 /// The views of the application. The type has no field, therefore a copy
 /// costs nothing, and a test can name a view in a list.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -2449,7 +2466,12 @@ impl App {
                         self.view_state = AppView::Series;
                     }
                 }
-                _ => {}
+                // **A key that does nothing must say why** (T-79 and T-247).
+                // The table of the keys of the program promises this key in
+                // every view, and the sweep of the view of the episodes of a
+                // podcast of 2026-08-15 measured no word of the screen and no
+                // line of the log.
+                _ => crate::logic::message::say(THE_SERIES_STAND_IN_TWO_VIEWS),
             },
 
             // show the collections and the playlists
@@ -2459,7 +2481,8 @@ impl App {
                     self.scroll_offset = 0;
                     self.view_state = AppView::Lists;
                 }
-                _ => {}
+                // The same rule as the key `s` above. See T-247.
+                _ => crate::logic::message::say(THE_LISTS_STAND_IN_TWO_VIEWS),
             },
 
             KeyCode::Char('/') => {
@@ -4030,6 +4053,9 @@ impl App {
             self.view_state,
             AppView::Home | AppView::Library | AppView::SearchBook | AppView::Authors
         ) {
+            // **A key that does nothing must say why** (T-79 and T-247). The
+            // table of the keys of the program promises this key in every view.
+            crate::logic::message::say(&kind.message_of_a_view_that_holds_no_list());
             return;
         }
 

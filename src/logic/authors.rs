@@ -65,6 +65,26 @@ impl Kind {
         }
     }
 
+    /// Gives the sentence for a view that does not hold this list. See T-247.
+    ///
+    /// **The table of the keys promises this key in every view**, and the key
+    /// did nothing and said nothing outside the Home view, the Library view,
+    /// and the view of the search. The sentence names the key of the view that
+    /// the user sees (T-170 and T-183).
+    pub fn message_of_a_view_that_holds_no_list(&self) -> String {
+        match self {
+            Kind::Authors => {
+                "The Home view and the Library view show the authors of the library. \
+                 Press h to go back."
+            }
+            Kind::Narrators => {
+                "The Home view and the Library view show the narrators of the library. \
+                 Press h to go back."
+            }
+        }
+        .to_string()
+    }
+
     /// Gives the filter of the library for one line of the list.
     ///
     /// **The two filters do not take the same value.** The filter of an author

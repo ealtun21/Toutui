@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.76",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Four keys of the table of the keys did nothing, and they \
+             said nothing.** The table of the key `?` promises the key `s` \
+             for the series of the library, the key `a` for the authors, the \
+             key `v` for the narrators, and the key `c` for the collections \
+             and the playlists, and it promises them in every view. The four \
+             keys did their work in the Home view, in the Library view, and \
+             in the view of the search alone: a user who pressed one of them \
+             in the view of the episodes of a podcast, or in the view of the \
+             queue, got no view, no message, and no line of the log at all. \
+             Each of the four keys says now which two views hold that list, \
+             and it names the key that goes back to them.",
+        ],
+    },
+    Entry {
         version: "0.8.75",
         date: "15/08/2026",
         body: &[
