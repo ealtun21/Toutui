@@ -54,6 +54,68 @@ fn the_address_that_answered() -> &'static std::sync::Mutex<Option<String>> {
     })
 }
 
+/// The message of the login screen of this process. See T-270.
+///
+/// **The message of that screen made a road through the disk**: every fault of
+/// the login wrote the column `login_err` of the table `others` with
+/// `let _ = update_login_err(...)`, and the render read that column again at
+/// each frame. A disk that took no write of that column therefore gave a login
+/// screen with no word at all: the measurement of 2026-08-16 wrote a wrong
+/// password of the sandbox, the server refused it, and the screen said nothing.
+///
+/// The box holds the message of this process, and the render reads it first. The
+/// disk keeps the message for the **process after this one**, because a token
+/// that the server refused starts the program again (T-123): that road is the
+/// one reason of the column.
+fn the_message_of_this_process() -> &'static std::sync::Mutex<Option<String>> {
+    static MESSAGE: std::sync::OnceLock<std::sync::Mutex<Option<String>>> =
+        std::sync::OnceLock::new();
+    MESSAGE.get_or_init(|| std::sync::Mutex::new(None))
+}
+
+/// Says a sentence on the login screen. See T-270.
+///
+/// The sentence goes to the box of this process **and** to the disk. A disk that
+/// refuses the write takes a line of the log, and the screen says the sentence.
+pub fn say_on_the_login_screen(value: &str) {
+    if let Ok(mut place) = the_message_of_this_process().lock() {
+        *place = Some(value.to_string());
+    }
+
+    if let Err(error) = update_login_err(value) {
+        error!(
+            "[auth_input] the disk did not take the message of the login screen: {}. \
+             This screen says it, and a program that starts again does not.",
+            error
+        );
+    }
+}
+
+/// Gives the sentence that the login screen must show. See T-270.
+///
+/// The box of this process comes first, and the disk after it: the disk holds
+/// the sentence of the process before this one, and that sentence belongs to the
+/// first frame of a program that started again (T-123).
+pub fn the_message_of_the_login_screen() -> String {
+    if let Ok(place) = the_message_of_this_process().lock() {
+        if let Some(value) = place.as_ref() {
+            return value.clone();
+        }
+    }
+
+    match get_others() {
+        Ok(Some(value)) => value.login_err,
+        Ok(None) => String::new(),
+        Err(error) => {
+            info!(
+                "[auth_input] the program did not read the message of the login screen: {}",
+                error
+            );
+            String::new()
+        }
+    }
+}
+
 /// The name of the variable of the environment that holds the address of the
 /// login screen. See T-123.
 ///
@@ -119,7 +181,7 @@ pub fn the_program_needs_a_new_token(
         });
     }
 
-    let _ = update_login_err("The token is not valid. Log in again.");
+    say_on_the_login_screen("The token is not valid. Log in again.");
 
     info!(
         "[auth] the server refused the token of {}. The login screen comes again.",
@@ -350,14 +412,12 @@ impl AppLogin {
             let view = field_view(&field.input, inner_width, field.mask);
 
             // The message of the login stands inside the frame. See T-134.
-            let message = match get_others() {
-                Ok(Some(value)) => value.login_err,
-                Ok(None) => "".to_string(),
-                Err(e) => {
-                    info!("ERROR: Failed to get login error: {}", e);
-                    "".to_string()
-                }
-            };
+            //
+            // **The message comes of the box of this process**, and of the disk
+            // when that box holds nothing: a disk that takes no write of the
+            // column `login_err` gave a login screen with no word at all. See
+            // T-270.
+            let message = the_message_of_the_login_screen();
 
             let the_text_tells_what_to_write =
                 view.text.is_empty() && !field.placeholder.is_empty();
@@ -395,7 +455,7 @@ impl AppLogin {
 
                         match check_the_address(&written) {
                             Ok(address) => {
-                                let _ = update_login_err("");
+                                say_on_the_login_screen("");
                                 fields[ADDRESS_FIELD].input =
                                     Input::default().with_value(address.clone());
 
@@ -409,7 +469,7 @@ impl AppLogin {
                                 current_index += 1;
                             }
                             Err(message) => {
-                                let _ = update_login_err(message.as_str());
+                                say_on_the_login_screen(message.as_str());
                             }
                         }
 
@@ -424,7 +484,7 @@ impl AppLogin {
                     let written = fields[current_index].input.value().to_string();
 
                     if written.is_empty() {
-                        let _ = update_login_err(match current_index {
+                        say_on_the_login_screen(match current_index {
                             1 => "Write your username.",
                             _ => "Write your password.",
                         });
@@ -432,7 +492,7 @@ impl AppLogin {
                         continue;
                     }
 
-                    let _ = update_login_err("");
+                    say_on_the_login_screen("");
 
                     if current_index < fields.len() - 1 {
                         // The loop takes the second field here. It takes the
@@ -447,7 +507,7 @@ impl AppLogin {
                 event::Event::Key(KeyEvent {
                     code: KeyCode::Esc, ..
                 }) => {
-                    let _ = update_login_err("");
+                    say_on_the_login_screen("");
                     clean_exit();
                 }
 
@@ -509,7 +569,7 @@ impl AppLogin {
             match outcome {
                 Ok(Ok(())) => {
                     info!("[auth_process] Login successful");
-                    let _ = update_login_err("");
+                    say_on_the_login_screen("");
                 }
                 Ok(Err(error)) => {
                     error!("[auth_process] Login failed: {}", error);
@@ -520,11 +580,11 @@ impl AppLogin {
                     // other messages of this view are "The address must start
                     // with http:// or https://" and "… does not answer. Is the
                     // server running?". See T-92.
-                    let _ = update_login_err(error.as_str());
+                    say_on_the_login_screen(error.as_str());
                 }
                 Err(_) => {
                     error!("[auth_process] The login thread stopped");
-                    let _ = update_login_err("The login stopped. Try it again.");
+                    say_on_the_login_screen("The login stopped. Try it again.");
                 }
             }
 

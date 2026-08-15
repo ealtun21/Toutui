@@ -6388,7 +6388,11 @@ impl App {
             self.username
         );
 
-        let _ = crate::db::crud::update_login_err(
+        // The program starts again with `exec`, therefore the disk is the one
+        // carrier of this sentence: a disk that refuses the write takes a line
+        // of the log, and the login screen of the program after this one says
+        // nothing. See T-270.
+        crate::logic::auth::auth_input::say_on_the_login_screen(
             crate::logic::the_accounts::the_text_of_an_account_that_is_gone(&self.username)
                 .as_str(),
         );

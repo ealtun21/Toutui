@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.99",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The login screen says why the login failed, also when the \
+             database of Toutui takes no write.** Every message of that screen \
+             — a password that the server refused, an address with no \
+             `http://`, a field with no character, and the token that the \
+             server no longer accepts — made a road through the database. A \
+             database that took no write of that one column therefore gave you \
+             a login screen with no word at all: you wrote a wrong password, \
+             the server refused it, and the screen said nothing. Toutui keeps \
+             the message of the login screen now, and the screen says it. The \
+             log names the database when it refuses that write.",
+        ],
+    },
+    Entry {
         version: "0.8.98",
         date: "16/08/2026",
         body: &[

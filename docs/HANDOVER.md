@@ -115,6 +115,62 @@ gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
 
+## The session of the ninety-ninth turn of 2026-08-16: a message of the login screen that the disk did not take says nothing at all
+
+**One release: v0.8.99**, and one item: T-270. **The road of it is the candidate
+"`update_login_err` of `the_program_needs_a_new_token` takes `let _ =`" of "What
+this item leaves open"**, which T-269 left open. A sweep of that name found nine
+other call sites of the same shape in `src/logic/auth/auth_input.rs` and one in
+`src/app.rs`: **every** message of the login screen took that road, and not the
+message of the token alone.
+
+The message of that screen made a whole road through the disk. Each fault wrote
+the column `login_err` of the table `others` with `let _ = update_login_err(...)`,
+and the loop of the screen read that column again with `get_others()` at each
+frame. A disk that takes no write of that one column therefore gave the user a
+login screen with **no word at all**: no sentence of a wrong password, of an
+address with no `http://`, of a field with no character, of a login that stopped,
+of the token of T-123, and of an account that stands in no row of the disk
+(T-159).
+
+**The three conditions of the disk of this fork each hide that fault**: the lock
+of T-199 and the `chmod 444` of T-206 stop the read of `get_others` too, and the
+`ALTER TABLE` of T-203 takes the whole table away. **A trigger of SQLite of one
+column is the road of it** (T-213).
+
+The measurement, of the real program v0.8.98 inside tmux, on a screen of 160
+columns and 45 rows, against the sandbox, with a `XDG_CONFIG_HOME` that holds no
+account (the trap 135):
+
+```bash
+sqlite3 "$CFG/toutui/db.sqlite3" "CREATE TRIGGER the_disk_takes_no_message \
+    BEFORE UPDATE OF login_err ON others \
+    BEGIN SELECT RAISE(ABORT, 'the disk takes no message of the login screen'); END;"
+```
+
+The trigger stands **after** the first frame, because the migration of
+`Database::new` writes before it (the trap 171). The keys then gave
+`http://localhost:13399`, `toutuitest`, and `the-wrong-password`, with more than
+300 milliseconds between a text and its `Enter` (the trap 194). The whole capture
+of the pane held the three lines of the field of the address and nothing else. The
+control of the same build and of the same keys, with no trigger at all, held one
+line more: `The server refused the username or the password.` The log of the run
+of the trigger held `[auth_process] Login failed: …` and **no word of the disk at
+all**.
+
+The correction is a box of the process, `the_message_of_this_process`, in the
+shape of `the_address_that_answered` of T-92, and two functions on it:
+`say_on_the_login_screen(value)` writes the box **and** the disk and it says the
+fault of a write in the log, and `the_message_of_the_login_screen()` gives the box
+first and the disk after it. The ten call sites take the first, and the render
+takes the second. **The disk keeps the column**, because the message of T-123
+belongs to the process after this one: that road holds an `exec`, and the box of
+this process goes away with it.
+
+The program of the same trigger then said `The server refused the username or the
+password.`, and the log held three lines of `[auth_input] the disk did not take
+the message of the login screen: …`
+
 ## The session of the ninety-eighth turn of 2026-08-16: an account that the database keeps after a token that the server refused says why
 
 **One release: v0.8.98**, and one item: T-269. **The road of it is the candidate
@@ -13582,41 +13638,111 @@ again at the key `R`, with no row of a message at all.
 - **The line of the Library view of a library of podcasts says no place at
   all** (T-242 to T-266, and it stays open).
 
+### The session of the ninety-sixth turn of 2026-08-15 (T-267)
+
+**The
+session of the ninety-sixth turn took the candidate "The login screen of a
+file that the program cannot read is not measured" of "What this item leaves
+open" of the newest item, which T-265 and T-266 each left open. T-265 gave that
+file a fault of its own and it corrected the reader that stands after the
+login, and T-266 corrected the road of the key `R`. The login screen is the
+third reader of that file, and it stood before both of them** (T-267).
+
+`AppLogin::new` of `src/login_app.rs` line 19 reads the file with
+`load_config()?`, and `src/main.rs` line 141 held
+`let app_login = AppLogin::new().await?;`. **A bare `?` gives the report to the
+runtime of Rust**, and `the_program_stops_with_words` of `src/main.rs` then does
+no work at all.
+
+The measurement, of the real program v0.8.95 inside tmux, on a screen of 160
+columns and 45 rows. The condition is a `XDG_CONFIG_HOME` of a database that
+holds no account (the trap 135), with a `config.toml` of one fault of its
+shape: `background_color = [40, 40, 40` with no `]`. The whole capture of the
+pane held the words of the runtime, and nothing else:
+
+```text
+Error: The program cannot read the configuration file /…/config/toutui/config.toml.
+TOML parse error at line 40, column 1
+missing comma between array elements, expected `,`
+
+Location:
+    src/config.rs:212:13
+```
+
+**Three faults stand there together.** The words name a line of the source of
+this program, which no user must read (T-172). They hold no sentence of Toutui
+and no road back. And `grep -c 'configuration'` of the log of that run gave
+**0**, therefore the fault reached no log at all.
+
+The correction gives that report to `the_program_stops_with_words`, with a name
+of the account of no character and an address of the server of no character:
+the login screen stands before every account, and the words of a fault of the
+file of the user name neither of them (T-91). The program of the same file and
+of the same directory then said
+
+```text
+Toutui stops: it cannot read its configuration file.
+The program cannot read the configuration file /…/config/toutui/config.toml.
+TOML parse error at line 40, column 1
+missing comma between array elements, expected `,`
+Correct that file, or give it a different name: Toutui then makes a new file.
+Toutui changed nothing.
+```
+
+and `grep -c 'the program stops'` of the log gave **1**. The control of the
+same run, with the file of no fault, gave the login screen with the field
+`Server address`.
+- **A correction of one round makes the road of the round after it, and one
+  source can hold that road more than one time** (T-267): T-265 corrected the
+  first reader of the file, T-266 the second, and this round the third. **Ask
+  of a correction: how many callers hold that same road, and which of them did
+  the round before this one not reach?**
+- **A bare `?` of `main` is the words of the runtime** (T-267): those words
+  name a line of the source of this program, they hold no sentence of the
+  program, and they reach no log. **A sweep of every `?` of `src/main.rs` is
+  the road of that shape**, and `Database::new().await?` of the lines 126 and
+  131 holds it still.
+- **`Database::new().await?` of `src/main.rs` lines 126 and 131 holds a bare
+  `?`** (T-267, and it stays open): T-199 gave a fault of the accounts a shape
+  of its own, and those two lines give it to the runtime.
+- **A fault of `AppLogin::new` that is not the configuration file names an
+  account of no character and a server of no character** (T-267, and it stays
+  open): that function reads the configuration file alone today.
+- **Every candidate of the list of the turn below stays open** (T-229 to
+  T-267): the block has a limit of size, therefore this turn names the new
+  candidates alone and it does not repeat that list.
+
 ## The prompt for the next session
-**This session took the candidate "Every other `?` of `src/main.rs` that leaves
-the function"**, which T-268 left open. `src/main.rs` held
-`the_program_needs_a_new_token(&username, &server_address)
-.map_err(color_eyre::eyre::Report::msg)?` two times: at the start of a session,
-when the first request of `App::new` came back with 401, and on the road of the
-key `R`. That function gives `Err` only when `remove_the_account` fails, and
-**that removal is the one road of the fault of T-123**. The real program v0.8.97,
-against the sandbox behind `docs/harness/a_status_of_one_path.py` with the status
-401 for `/api/libraries`, and with a trigger of SQLite of
-`BEFORE DELETE ON users`, gave a pane of tmux of `Error: The account toutuitest
-stays in the database: the disk takes no removal of the account` and a `Location:`
-of a file of the standard library of Rust, and nothing else. No user must read
-such a line (T-172), those words hold no sentence of Toutui and no road back, and
-`grep -c 'the program stops'` of the log of that run gave 0. The item is
-**T-269**, and it holds the release v0.8.98.
+**This session took the candidate "`update_login_err` of
+`the_program_needs_a_new_token` takes `let _ =`"**, which T-269 left open. A
+sweep of that name found ten call sites of that shape: **every** message of the
+login screen made a road through the disk, and the loop of that screen read the
+column `login_err` of the table `others` again at each frame. The real program
+v0.8.98, with a trigger of SQLite of `BEFORE UPDATE OF login_err ON others`
+(T-213) and a `XDG_CONFIG_HOME` that holds no account, took the address of the
+sandbox, the account `toutuitest`, and a wrong password: the server refused it,
+and the screen said **nothing at all**. The control of the same run said `The
+server refused the username or the password.` The correction is a box of the
+process for that message, in the shape of `the_address_that_answered` of T-92,
+and the disk keeps the column for the process after this one (T-123). The item is
+**T-270**, and it holds the release v0.8.99.
 
 Two things are worth the room:
 
-1. **A `chmod 444` and the lock of T-199 each hide a write of a row that fails
-   alone.** The two of them stop every write of the database together, and the
-   migration of `Database::new` and the read of the accounts stand before this
-   removal. **A trigger of one statement of one table is the road of that
-   condition** (T-213).
+1. **The lock of T-199, the `chmod 444` of T-206, and the `ALTER TABLE` of T-203
+   each hide a fault of a message.** The two first stop the read of `get_others`
+   too, therefore the screen holds no message on either road, and the third takes
+   the whole table away. **A trigger of one column is the road of a write of one
+   value that fails alone** (T-213).
 
-2. **A status of 401 is not a status of 500.** `docs/harness/one_path_fails.py`
-   answers 500 alone, and the road of a token that the server refuses needs 401:
-   `docs/harness/a_status_of_one_path.py` takes the status of its command line.
+2. **A value that a program writes to the disk and that it reads back at each
+   frame is a value that the disk can take away.** Ask of such a road: which
+   process needs that value, and does the box of this process hold it already?
 
-The gates of v0.8.98, under `nice -n 19 ionice -c 3` with `-j 16`:
+The gates of v0.8.99, under `nice -n 19 ionice -c 3` with `-j 16`:
 `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
-`cargo nextest run` gives 1283 of 1283 in 4.4 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives 1309 of 1309 in 17.4 seconds with
-the sandbox up, and `cargo test -j 16 --no-fail-fast` passed three times over its
-152 binaries.
+`cargo nextest run` gives 1284 of 1284 in 3.1 seconds with 26 skipped, and
+`cargo test -j 16 --no-fail-fast` passed two times over its 153 binaries.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
@@ -14282,7 +14408,65 @@ the sandbox up, and `cargo test -j 16 --no-fail-fast` passed three times over it
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in ninety-eight sessions of ninety-nine.
+>    this shape found a fault in ninety-nine sessions of one hundred.
+>    **The
+>    session of the ninety-ninth turn took the candidate "`update_login_err` of
+>    `the_program_needs_a_new_token` takes `let _ =`" of "What this item leaves
+>    open" of the newest item, which T-269 left open. A sweep of that name found
+>    ten call sites of that shape: every message of the login screen made a road
+>    through the disk** (T-270).
+>
+>    Each fault of that screen wrote the column `login_err` of the table `others`
+>    with `let _ = update_login_err(...)`, and the loop of the screen read that
+>    column again with `get_others()` at each frame
+>    (`src/logic/auth/auth_input.rs`). The sentences of that road are the wrong
+>    password, the address with no `http://`, the field with no character, the
+>    login that stopped, the token of T-123, and the account that stands in no row
+>    of the disk (T-159).
+>
+>    The measurement, of the real program v0.8.98 inside tmux, on a screen of 160
+>    columns and 45 rows, against the sandbox, with a `XDG_CONFIG_HOME` that holds
+>    no account (the trap 135). The condition is a trigger of SQLite of one column
+>    (T-213), and it stands **after** the first frame, because the migration of
+>    `Database::new` writes before it (the trap 171):
+>
+>    ```bash
+>    sqlite3 "$CFG/toutui/db.sqlite3" "CREATE TRIGGER the_disk_takes_no_message \
+>        BEFORE UPDATE OF login_err ON others \
+>        BEGIN SELECT RAISE(ABORT, 'the disk takes no message of the login screen'); END;"
+>    ```
+>
+>    The keys gave `http://localhost:13399`, `toutuitest`, and
+>    `the-wrong-password`. The whole capture of the pane held the three lines of
+>    the field of the address and **nothing else**. The control of the same build
+>    and of the same keys, with no trigger at all, held one line more: `The server
+>    refused the username or the password.` The log of the run of the trigger held
+>    `[auth_process] Login failed: …` and no word of the disk at all.
+>
+>    The correction is a box of the process, in the shape of
+>    `the_address_that_answered` of T-92, and two functions on it:
+>    `say_on_the_login_screen(value)` writes the box and the disk and it says the
+>    fault of a write in the log, and `the_message_of_the_login_screen()` gives the
+>    box first and the disk after it. The disk keeps the column, because the
+>    message of T-123 belongs to the process after this one: that road holds an
+>    `exec`. The program of the same trigger then said the sentence of the server,
+>    and the log held three lines of the fault of the disk.
+>    - **The lock of T-199, the `chmod 444` of T-206, and the `ALTER TABLE` of
+>      T-203 each hide a fault of a message** (T-270): the two first stop the read
+>      of `get_others` too, therefore the screen holds no message on either road.
+>      **A trigger of one column is the road of a write of one value that fails
+>      alone** (T-213).
+>    - **A value that a program writes to the disk and that it reads back at each
+>      frame is a value that the disk can take away** (T-270). Ask of such a road:
+>      which process needs that value, and does the box of this process hold it
+>      already?
+>    - **A message of the login screen that reaches no disk reaches no program
+>      after this one** (T-270, and it stays open): the sentence of T-123 and the
+>      sentence of an account that is gone (T-159) each stand on the road of an
+>      `exec`. **This is a candidate and not a measurement.**
+>    - **Every candidate of the list of the turns below stays open** (T-229 to
+>      T-270): the block has a limit of size, therefore this turn names the new
+>      candidates alone and it does not repeat that list.
 >    **The
 >    session of the ninety-eighth turn took the candidate "Every other `?` of
 >    `src/main.rs` that leaves the function" of "What this item leaves open" of
@@ -14433,81 +14617,10 @@ the sandbox up, and `cargo test -j 16 --no-fail-fast` passed three times over it
 >    - **Every candidate of the list of the turn below stays open** (T-229 to
 >      T-268): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
->    **The
->    session of the ninety-sixth turn took the candidate "The login screen of a
->    file that the program cannot read is not measured" of "What this item leaves
->    open" of the newest item, which T-265 and T-266 each left open. T-265 gave that
->    file a fault of its own and it corrected the reader that stands after the
->    login, and T-266 corrected the road of the key `R`. The login screen is the
->    third reader of that file, and it stood before both of them** (T-267).
->
->    `AppLogin::new` of `src/login_app.rs` line 19 reads the file with
->    `load_config()?`, and `src/main.rs` line 141 held
->    `let app_login = AppLogin::new().await?;`. **A bare `?` gives the report to the
->    runtime of Rust**, and `the_program_stops_with_words` of `src/main.rs` then does
->    no work at all.
->
->    The measurement, of the real program v0.8.95 inside tmux, on a screen of 160
->    columns and 45 rows. The condition is a `XDG_CONFIG_HOME` of a database that
->    holds no account (the trap 135), with a `config.toml` of one fault of its
->    shape: `background_color = [40, 40, 40` with no `]`. The whole capture of the
->    pane held the words of the runtime, and nothing else:
->
->    ```text
->    Error: The program cannot read the configuration file /…/config/toutui/config.toml.
->    TOML parse error at line 40, column 1
->    missing comma between array elements, expected `,`
->
->    Location:
->        src/config.rs:212:13
->    ```
->
->    **Three faults stand there together.** The words name a line of the source of
->    this program, which no user must read (T-172). They hold no sentence of Toutui
->    and no road back. And `grep -c 'configuration'` of the log of that run gave
->    **0**, therefore the fault reached no log at all.
->
->    The correction gives that report to `the_program_stops_with_words`, with a name
->    of the account of no character and an address of the server of no character:
->    the login screen stands before every account, and the words of a fault of the
->    file of the user name neither of them (T-91). The program of the same file and
->    of the same directory then said
->
->    ```text
->    Toutui stops: it cannot read its configuration file.
->    The program cannot read the configuration file /…/config/toutui/config.toml.
->    TOML parse error at line 40, column 1
->    missing comma between array elements, expected `,`
->    Correct that file, or give it a different name: Toutui then makes a new file.
->    Toutui changed nothing.
->    ```
->
->    and `grep -c 'the program stops'` of the log gave **1**. The control of the
->    same run, with the file of no fault, gave the login screen with the field
->    `Server address`.
->    - **A correction of one round makes the road of the round after it, and one
->      source can hold that road more than one time** (T-267): T-265 corrected the
->      first reader of the file, T-266 the second, and this round the third. **Ask
->      of a correction: how many callers hold that same road, and which of them did
->      the round before this one not reach?**
->    - **A bare `?` of `main` is the words of the runtime** (T-267): those words
->      name a line of the source of this program, they hold no sentence of the
->      program, and they reach no log. **A sweep of every `?` of `src/main.rs` is
->      the road of that shape**, and `Database::new().await?` of the lines 126 and
->      131 holds it still.
->    - **`Database::new().await?` of `src/main.rs` lines 126 and 131 holds a bare
->      `?`** (T-267, and it stays open): T-199 gave a fault of the accounts a shape
->      of its own, and those two lines give it to the runtime.
->    - **A fault of `AppLogin::new` that is not the configuration file names an
->      account of no character and a server of no character** (T-267, and it stays
->      open): that function reads the configuration file alone today.
->    - **Every candidate of the list of the turn below stays open** (T-229 to
->      T-267): the block has a limit of size, therefore this turn names the new
->      candidates alone and it does not repeat that list.
 >
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the ninety-fifth and every turn before it, the item of each, and the
+>    the ninety-sixth and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
@@ -14968,7 +15081,11 @@ the sandbox up, and `cargo test -j 16 --no-fail-fast` passed three times over it
 > the row of that account is the one road of the fault of a token that the server
 > does not accept, therefore a database that refuses that removal stops the
 > program, and the words name the account, the database, the reason, the server,
-> and the road back** (T-269).
+> and the road back** (T-269), and **a message of the login screen that the disk
+> did not take says nothing at all: the box of the process holds that message and
+> the render reads that box, the disk keeps it for the program after this one
+> because a token that the server refused starts the program again, and a write
+> that the disk refused takes a line of the log** (T-270).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

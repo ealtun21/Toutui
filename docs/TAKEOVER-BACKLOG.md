@@ -21651,3 +21651,146 @@ the server.
   not a measurement; open since T-264).
 - **The program reads the configuration file two times at its start** (a
   candidate, and not a measurement; open since T-259).
+
+### T-270: a message of the login screen that the disk did not take says nothing at all
+
+**The state**: corrected on 2026-08-16, in v0.8.99. The measurement is of the
+real program inside tmux, against the sandbox.
+
+#### The choice of this item
+
+T-269 left this open: **`update_login_err` of `the_program_needs_a_new_token`
+takes `let _ =`**. A sweep of that name found nine other call sites of the same
+shape in `src/logic/auth/auth_input.rs` and one in `src/app.rs`: **every**
+message of the login screen took that road, and not the message of the token
+alone.
+
+#### The fault
+
+The message of the login screen made a whole road through the disk. Each fault
+of that screen wrote the column `login_err` of the table `others` with
+`let _ = update_login_err(...)`, and the loop of the screen read that column
+again with `get_others()` at each frame (`src/logic/auth/auth_input.rs` line
+415). The messages of that road are
+
+- `The server refused the username or the password.` and every other sentence of
+  `auth_process`;
+- `The address must start with http:// or https://` and the other sentences of
+  `check_the_address`;
+- `Write your username.` and `Write your password.`;
+- `The login stopped. Try it again.`;
+- `The token is not valid. Log in again.` of T-123;
+- the sentence of an account that stands in no row of the disk (T-159), of
+  `src/app.rs`.
+
+A disk that takes no write of that one column therefore gave the user a login
+screen with **no word at all**, and no line of the log named it. The three
+conditions of the disk of this fork each hide the fault: the lock of T-199 and
+the `chmod 444` of T-206 stop the read of `get_others` too, therefore the screen
+holds no message on either road, and the `ALTER TABLE` of T-203 takes the whole
+table away.
+
+#### The measurement
+
+The real program v0.8.98, inside tmux, on a screen of 160 columns and 45 rows,
+against the sandbox (podman, port 13399). The condition is a trigger of SQLite of
+one column (T-213), and the login screen needs a `XDG_CONFIG_HOME` that holds no
+account (the trap 135):
+
+```bash
+sqlite3 "$CFG/toutui/db.sqlite3" "CREATE TRIGGER the_disk_takes_no_message \
+    BEFORE UPDATE OF login_err ON others \
+    BEGIN SELECT RAISE(ABORT, 'the disk takes no message of the login screen'); END;"
+```
+
+The trigger stands **after** the first frame of the login screen, because
+`Database::new` writes its migration before that frame (the trap 171). The keys
+then gave `http://localhost:13399`, `toutuitest`, and `the-wrong-password`, with
+more than 300 milliseconds between a text and its `Enter` (the trap 194). The
+whole capture of the pane:
+
+```text
+                    ┌Server address──────────────────────────────┐
+                    │http://localhost:13399                      │
+                    └───────────────🦜Toutui v0.8.98 - Esc to quit┘
+```
+
+The screen says nothing. The control of the same build and of the same keys, with
+no trigger at all, held one line more:
+
+```text
+The server refused the username or the password.
+```
+
+The log of the run of the trigger held `[auth_process] Login failed: The server
+refused the username or the password.` and **no word of the disk at all**: the
+ten call sites each threw the fault away with `let _ =`.
+
+#### The correction
+
+`src/logic/auth/auth_input.rs` takes a box of the process,
+`the_message_of_this_process`, in the shape of `the_address_that_answered` of
+T-92. Two functions stand on it:
+
+- `say_on_the_login_screen(value)` writes the box **and** the disk, and a write
+  that the disk refused takes a line of the log;
+- `the_message_of_the_login_screen()` gives the box first, and the disk when the
+  box holds nothing.
+
+The ten call sites of `let _ = update_login_err(...)` take the first function,
+and the render takes the second.
+
+**The disk keeps the column**, because the message of T-123 belongs to the
+process **after** this one: a token that the server refused starts the program
+again with `exec`, and the box of this process goes away with it. The box holds
+nothing at the first frame of such a program, therefore that program reads the
+sentence of the disk.
+
+The program of the same trigger and of the same keys then said
+
+```text
+The server refused the username or the password.
+```
+
+and the log held three lines of
+
+```text
+[ERROR] [auth_input] the disk did not take the message of the login screen: the
+disk takes no message of the login screen. This screen says it, and a program
+that starts again does not.
+```
+
+#### The test
+
+`tests/the_message_of_the_login_screen_that_the_disk_refused.rs`. It needs no
+sandbox and no network: a trigger of SQLite refuses the write of one column, and
+every other read and every other write of the program answers. The three roads of
+one function (the box belongs to the process, therefore two test functions of one
+module fight for it — T-144 and T-157): the disk of the process before this one,
+the write that the disk refused, and the disk that answers again. The build with
+the read of the box removed fails at the second road, with `left: "The token is
+not valid. Log in again."`.
+
+#### What this item leaves open
+
+- **A message of the login screen that reaches no disk reaches no program after
+  this one** (a candidate, and not a measurement): the sentence of T-123 and the
+  sentence of an account that is gone (T-159) each stand on the road of an
+  `exec`, therefore a disk that refuses that write gives the new program a login
+  screen with no word. The log names it now, and the screen of the new program
+  does not.
+- **The `?` of `ApiClient::new(...)` of `src/main.rs` is a bare `?` still** (a
+  candidate, and not a measurement; open since T-269).
+- **The keys of the terminal and of the render of `src/main.rs` each hold a bare
+  `?`** (a candidate, and not a measurement; open since T-269).
+- **A fault of the removal of the account that comes on the road of the key `R`
+  is not measured** (a candidate, and not a measurement; open since T-269).
+- **A fault of `AppLogin::new` that is not the configuration file names an
+  account of no character and a server of no character** (a candidate, and not a
+  measurement; open since T-267).
+- **A file that the program cannot make says no word on the screen** (a
+  candidate, and not a measurement; open since T-264).
+- **The row of the message says the number and not the name** (a candidate, and
+  not a measurement; open since T-264).
+- **The program reads the configuration file two times at its start** (a
+  candidate, and not a measurement; open since T-259).
