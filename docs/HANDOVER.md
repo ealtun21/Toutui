@@ -10113,7 +10113,11 @@ This prompt names the state of the program on 2026-08-16.
 > **the line of the view of the queue names the time that is left of its media:
 > the row of the place of that view holds the place of the user in seconds, a
 > media that the user did not begin keeps the length of it, and a media that
-> came to its end keeps the length too** (T-234).
+> came to its end keeps the length too** (T-234), and
+> **a message of the server holds the place of the user of each media that it
+> names: the row of a live message of the view of the queue holds the three
+> values of the row of the request, and a message that gives no place leaves
+> the line with the length of its media** (T-235).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
