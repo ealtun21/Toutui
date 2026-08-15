@@ -169,6 +169,66 @@ pub fn spawn_the_watch_of_the_terminal(
     })
 }
 
+/// The line of the log of a terminal of the login screen that went away.
+///
+/// **The login screen stands before every account**, therefore this program
+/// holds no name of an account, no address of a server, and no session of the
+/// server here. The words say that, because a maintainer who reads
+/// `the_line_of_a_terminal_that_went_away` of the line above expects a session
+/// that closes, and this road closes none.
+pub fn the_line_of_a_terminal_of_the_login_screen_that_went_away() -> String {
+    String::from(
+        "[the terminal] the terminal of this program went away, and no signal came with it. \
+         Toutui stops: the login screen of a terminal that no process holds gives no screen \
+         and no key, and it keeps a whole processor. The user has no account on this screen, \
+         therefore Toutui closes no session of the server and it sends no place.",
+    )
+}
+
+/// Starts the task that watches the terminal of the login screen. See T-272.
+///
+/// **The login screen holds a loop of its own**, and that loop stands inside
+/// `crossterm::event::read`, which reads no byte and which counts no event for
+/// a terminal that gives the end of its input. The watch of
+/// `spawn_the_watch_of_the_terminal` cannot hold this road: it needs the client
+/// of the server, the name of an account, and the name of a server, and the
+/// login screen stands before every one of them.
+///
+/// **A terminal of this screen that went away takes the road of the key `Esc`**:
+/// the program wrote no row of an account, it holds no session of the server,
+/// and it therefore stops with no request at all.
+///
+/// The caller stops this task at the end of the login screen, because the watch
+/// of `spawn_the_watch_of_the_terminal` holds the road after it, and that one
+/// closes the session of the server.
+pub fn spawn_the_watch_of_the_terminal_of_the_login_screen() -> tokio::task::JoinHandle<()> {
+    tokio::spawn(async move {
+        let mut watch = TheWatchOfTheTerminal::new();
+
+        loop {
+            // The first look comes before the first wait, and the probe is
+            // `window_size` and not `size`. See the comments of
+            // `spawn_the_watch_of_the_terminal` above.
+            match watch.look(crossterm::terminal::window_size()) {
+                TheAnswerOfTheWatch::TheTerminalStays => {}
+
+                TheAnswerOfTheWatch::ThisProgramHasNoTerminal => {}
+
+                TheAnswerOfTheWatch::TheTerminalWentAway => {
+                    log::error!(
+                        "{}",
+                        the_line_of_a_terminal_of_the_login_screen_that_went_away()
+                    );
+
+                    crate::utils::exit_app::clean_exit();
+                }
+            }
+
+            tokio::time::sleep(THE_TIME_BETWEEN_TWO_LOOKS).await;
+        }
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -21959,3 +21959,118 @@ pass, and `cargo nextest run` gives 1287 of 1287.
   candidate of T-267 to T-269 closes here.
 - **A fault of the removal of the account that comes on the road of the key `R`
   is not measured** (a candidate, and not a measurement; open since T-269).
+
+### T-272: the login screen of a terminal that went away stops
+
+**The state**: corrected on 2026-08-16, in v0.8.101. The measurement is of the
+real program inside tmux, against the sandbox.
+
+#### The choice of this item
+
+T-271 left one candidate open: the login screen of a terminal that went away.
+The watch of T-271 starts after the login, and it needs the client of the
+server, the name of an account, and the name of a server. The login screen
+stands before every one of them, therefore the watch of T-271 cannot reach it.
+
+#### The fault
+
+`AppLogin::run` (`src/login_app.rs:31-36`) loops
+`while !self.should_exit { terminal.draw(...)? }`. The draw calls `render_auth`
+(`src/ui/login_tui.rs:17`), which holds `let _ = self.auth()`. `auth()`
+(`src/logic/auth/auth_input.rs:405-520`) holds a loop with a bare blocking
+`crossterm::event::read()?` and no `poll` at all. For a terminal that gives the
+end of its input, that call reads no byte, it counts no event, and it waits
+again. `should_exit` stays `false`.
+
+#### The measurement
+
+The harness `docs/harness/the_terminal_of_the_program_goes_away.py` (the same
+harness of T-271), inside tmux, a screen of 160 columns and 45 rows, a
+`XDG_CONFIG_HOME` that holds no account (the trap 135). The harness sets
+`SIGHUP` to `SIG_IGN` and it then `exec`s the program.
+
+The screen held the login screen (`Server address`). `tmux kill-session` took
+the terminal away with no signal. 5 seconds after: 34.1 percent of one
+processor. 34 seconds after: 71.7 percent. The program never stopped.
+`/proc/PID/fd/0 -> /dev/pts/5 (deleted)`, and the same for the fd 1.
+
+`strace -f -tt`, started through the harness so that it takes the ignored
+disposition (`python3 harness.py strace -f -tt -o FILE ./target/debug/toutui`;
+a strace of a program that it did not start gives `Operation not permitted`,
+the trap 136), named the loop: `read(0, "", 1024) = 0` came **1607222 times
+between 01:04:04.939959 and 01:04:16.613077**, that is 11.7 seconds. No
+`epoll_wait` of the shape of T-271 stood in that trace: this loop is
+`crossterm::event::read` and not `crossterm::event::poll`.
+
+#### The correction
+
+`src/utils/the_terminal_that_went_away.rs` holds a second function,
+`spawn_the_watch_of_the_terminal_of_the_login_screen()`, that takes no argument
+at all, and a line of the log,
+`the_line_of_a_terminal_of_the_login_screen_that_went_away()`. It holds the same
+`TheWatchOfTheTerminal`, the same probe `crossterm::terminal::window_size()`,
+the same first look before the first wait, and the same second between two looks
+(each a rule of T-271). On `TheTerminalWentAway` it writes the line and it calls
+`crate::utils::exit_app::clean_exit()`. It closes **no** session: the login
+screen holds no account, no client of the server, and no session, therefore a
+request of that road names nothing.
+
+The words of the log say that, because the line of T-271 says that it closes the
+session of the server, and a maintainer reads the two of them.
+
+`src/main.rs` starts the task before `app_login.run(terminal)`, and it calls
+`.abort()` after that line, because the watch of T-271 holds the road after the
+login and that one closes the session of the server.
+
+The same condition, the corrected program: the program stopped after **65
+milliseconds**, and `grep -c 'the terminal]'` of the log gave **1**, with the
+line of the login screen.
+
+The control of the road after the login, of the same build and of the same
+harness: a real login of `toutuitest` against the sandbox came up (the Home view
+of the library `Podcasts`), `tmux kill-session` then stopped the program after
+**565 milliseconds**, `grep -c 'the terminal]'` gave **1**, and that line held
+`closes the session of the server` — the line of T-271. Therefore the `.abort()`
+stops the watch of the login screen alone.
+
+A second control: a real login of the corrected build with no harness at all
+came up in about two seconds, and the program stood at 6.2 percent of one
+processor.
+
+#### The test
+
+`tests/the_login_screen_of_a_terminal_that_went_away_stops.rs` holds two
+functions. The first reads `src/main.rs` and it holds the three lines and their
+sequence: the start of the watch, `app_login.run(terminal)`, and the `.abort()`.
+The second reads the block of the new function of the watch, and it holds the
+probe `window_size`, the absence of `sync_session_from_database`, the
+`clean_exit`, the first look before the first wait, and the words of the line of
+the log.
+
+A build with the call of the watch replaced by `tokio::spawn(async {})`:
+`the_login_screen_holds_the_watch_of_its_terminal` fails.
+
+#### What this item leaves open
+
+- **`let _ = self.auth()` of `src/ui/login_tui.rs` line 17 drops every fault of
+  the login screen** (a candidate, and not a measurement): `AppLogin::run` then
+  draws again with no word and with `should_exit` at `false`. A terminal that
+  gives a real fault, and not the end of its input, therefore holds a loop of no
+  wait at all, and this item did not measure that road.
+- **`let _app_result = app_login.run(terminal)` of `src/main.rs` drops the fault
+  of the loop of the login screen too** (a candidate, and not a measurement).
+- **The column `elapsed_time` of the table `listening_session`** (a candidate,
+  and not a measurement; open since T-271): `update_elapsed_time` writes it at
+  each sync of every playback with `let _ =`, and no road of the program reads
+  that value.
+- **The `?` of `ApiClient::new(...)` of `src/main.rs` is a bare `?` still** (a
+  candidate, and not a measurement; open since T-269).
+- **The keys of the terminal and of the render of `src/main.rs`
+  (`terminal.draw(...)?`, `crossterm::event::poll(...)?`,
+  `crossterm::event::read()?`, `terminal.clear()?`) each hold a bare `?`** (a
+  candidate, and not a measurement; open since T-269).
+- **A fault of the removal of the account that comes on the road of the key `R`
+  is not measured** (a candidate, and not a measurement; open since T-269).
+- **The child of T-62 that reads a PDF, and every other process of this program
+  that has no terminal** (a candidate, and not a measurement): this item did not
+  measure a terminal that goes away for those.

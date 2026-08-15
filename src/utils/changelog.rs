@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.101",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The login screen stops when its terminal goes away.** Toutui \
+             v0.8.100 looks at its terminal each second, and that look starts \
+             after you log in. A program that stood on the login screen when \
+             its terminal went away therefore stayed for ever, it kept a whole \
+             processor, and it gave no screen and it took no key. Toutui looks \
+             at the terminal of the login screen now too. That screen holds no \
+             account, therefore Toutui closes no session of the server there: \
+             it stops, and the log says why.",
+        ],
+    },
+    Entry {
         version: "0.8.100",
         date: "16/08/2026",
         body: &[

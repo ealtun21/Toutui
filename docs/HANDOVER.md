@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.100.** The item T-271 belongs to this session. The
+**The newest release is v0.8.101.** The item T-272 belongs to this session. The
+item T-271 belongs to the session before it. The
 item T-270 belongs to the session before it. The
 item T-269 belongs to the session before it. The
 item T-268 belongs to the session before it. The
@@ -13840,41 +13841,125 @@ same run, with the file of no fault, gave the login screen with the field
   T-267): the block has a limit of size, therefore this turn names the new
   candidates alone and it does not repeat that list.
 
+
+### The session of the ninety-eighth turn of 2026-08-16 (T-269)
+
+**The
+session of the ninety-eighth turn took the candidate "Every other `?` of
+`src/main.rs` that leaves the function" of "What this item leaves open" of
+the newest item, which T-268 left open. T-267 and T-268 each took one read of
+the start; this turn took the two call sites of the token that the server
+refuses** (T-269).
+
+`src/main.rs` held
+`logic::auth::auth_input::the_program_needs_a_new_token(&username,
+&server_address).map_err(color_eyre::eyre::Report::msg)?` two times: one at
+the start of a session, when the first request of `App::new` came back with
+401, and one on the road of the key `R`. That function gives `Err` only when
+`remove_the_account` fails, and **that removal is the one road of the fault of
+T-123**: a row that stays sends the login screen to the same answer of the
+server for ever.
+
+The measurement, of the real program v0.8.97 inside tmux, on a screen of 160
+columns and 45 rows, against the sandbox. The condition of the 401 is
+`docs/harness/a_status_of_one_path.py` of this round, and the condition of the
+database that takes no removal is a trigger of SQLite of
+`BEFORE DELETE ON users` (T-213). The whole capture of the pane:
+
+```text
+Error: The account toutuitest stays in the database: the disk takes no removal of the account
+Location:
+    /home/…/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+THE-STATUS-OF-THE-EXIT=1
+```
+
+**Three faults stand there together.** The words name a line of a file of the
+standard library of Rust, which no user must read (T-172). They hold no
+sentence of Toutui and no road back. And `grep -c 'the program stops'` of the
+log of that run gave **0**: that log stopped at
+`[main][api] The pool has 1 address(es).`, and it held no word of the token
+and no word of the removal.
+
+The correction is a type `TheAccountDidNotGoAway` of `src/db/mod.rs`, a branch
+of `the_words_of_a_program_that_stops`, and the two call sites of
+`src/main.rs`. The program of the same condition then said
+
+```text
+Toutui stops: it did not remove an account of its database.
+The account toutuitest stays in the database: the disk takes no removal of the account
+The server http://127.0.0.1:13510 did not accept the token of that account, therefore Toutui must remove that row and show the login screen.
+Toutui changed nothing. Correct the database, and start Toutui again.
+```
+
+and the log of that run gave **1**. The control of the same run, with no
+trigger at all, removed the row and it gave the login screen with `The token
+is not valid. Log in again.`
+- **A `chmod 444` and the lock of T-199 each hide a write of a row that fails
+  alone** (T-269): the two of them stop every write of the database together,
+  and the migration of `Database::new` and the read of the accounts stand
+  before this removal. **A trigger of one statement of one table is the road of
+  that condition** (T-213).
+- **A status of 401 is not a status of 500** (T-269):
+  `docs/harness/one_path_fails.py` answers 500 alone, and the road of a token
+  that the server refuses needs 401.
+  `docs/harness/a_status_of_one_path.py` takes the status of its command line.
+- **The `?` of `ApiClient::new(...)` of `src/main.rs`** (T-269, and it stays
+  open): a pool that gives no client stops the program with the words of the
+  runtime. **This is a candidate and not a measurement.**
+- **The keys of the terminal and of the render of `src/main.rs`
+  (`terminal.draw(...)?`, `crossterm::event::poll(...)?`,
+  `crossterm::event::read()?`, `terminal.clear()?`) each hold a bare `?`**
+  (T-269, and it stays open): a terminal that goes away is the road of those.
+- **A fault of the removal of the account on the road of the key `R` is not
+  measured** (T-269, and it stays open): the correction stands on both roads,
+  and the measurement drove the road of the start alone.
+- **`update_login_err` of `the_program_needs_a_new_token` takes `let _ =`**
+  (T-269, and it stays open).
+- **A fault of `AppLogin::new` that is not the configuration file names an
+  account of no character and a server of no character** (T-267 to T-269, and
+  it stays open).
+- **Every candidate of the list of the turns below stays open** (T-229 to
+  T-269): the block has a limit of size, therefore this turn names the new
+  candidates alone and it does not repeat that list.
+
 ## The prompt for the next session
-**This session took the candidate "`update_login_err` of
-`the_program_needs_a_new_token` takes `let _ =`"**, which T-269 left open. A
-sweep of that name found ten call sites of that shape: **every** message of the
-login screen made a road through the disk, and the loop of that screen read the
-column `login_err` of the table `others` again at each frame. The real program
-v0.8.98, with a trigger of SQLite of `BEFORE UPDATE OF login_err ON others`
-(T-213) and a `XDG_CONFIG_HOME` that holds no account, took the address of the
-sandbox, the account `toutuitest`, and a wrong password: the server refused it,
-and the screen said **nothing at all**. The control of the same run said `The
-server refused the username or the password.` The correction is a box of the
-process for that message, in the shape of `the_address_that_answered` of T-92,
-and the disk keeps the column for the process after this one (T-123). The item is
-**T-270**, and it holds the release v0.8.99.
+**This session took the candidate "The login screen of a terminal that went
+away"**, which T-271 left open. T-271 gave the program a watch of its terminal,
+and that watch starts after the login: it needs the client of the server, the
+name of an account, and the name of a server, and the login screen stands before
+every one of them. The real program v0.8.100 inside tmux, with a
+`XDG_CONFIG_HOME` that holds no account and with
+`docs/harness/the_terminal_of_the_program_goes_away.py`, stood on the login
+screen at **71.7 percent** of one processor 34 seconds after `tmux kill-session`,
+and it never stopped: `strace -f -tt` counted **1607222** calls of
+`read(0, "", 1024) = 0` in 11.7 seconds, inside `crossterm::event::read` of the
+loop of `AppLogin::auth`. The correction is a second watch that takes no argument
+at all and that closes no session, and three lines of `src/main.rs`: the task
+starts before `app_login.run(terminal)` and `.abort()` stops it after that line.
+The corrected program stopped after **65 ms**. The item is **T-272**, and it
+holds the release v0.8.101.
 
 Two things are worth the room:
 
-1. **The lock of T-199, the `chmod 444` of T-206, and the `ALTER TABLE` of T-203
-   each hide a fault of a message.** The two first stop the read of `get_others`
-   too, therefore the screen holds no message on either road, and the third takes
-   the whole table away. **A trigger of one column is the road of a write of one
-   value that fails alone** (T-213).
+1. **A correction of a loop of the screen holds one loop of the screen alone.**
+   T-271 corrected the loop of the application, and the login screen holds a loop
+   of its own, with a different call of crossterm. Ask of every correction of
+   this shape: which other loop of this program stands on the same road, and what
+   does that loop hold that this one does not?
 
-2. **A value that a program writes to the disk and that it reads back at each
-   frame is a value that the disk can take away.** Ask of such a road: which
-   process needs that value, and does the box of this process hold it already?
+2. **A watch of the same terminal must not stand two times.** The watch of T-271
+   closes the session of the server and it sends the place of the user, and a
+   second watch that closes none takes that place with it. The `.abort()` is
+   therefore a part of the correction and not a tidiness of it.
 
-The gates of v0.8.99, under `nice -n 19 ionice -c 3` with `-j 16`:
+The gates of v0.8.101, under `nice -n 19 ionice -c 3` with `-j 16`:
 `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
-`cargo nextest run` gives 1284 of 1284 in 3.1 seconds with 26 skipped, and
-`cargo test -j 16 --no-fail-fast` passed two times over its 153 binaries.
+`cargo nextest run` gives 1289 of 1289 in 3.0 seconds with 26 skipped, and
+`cargo test -j 16 --no-fail-fast` passed three times over its 154 binaries.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.100**; `Cargo.toml` is at 0.8.100. The
+> AlbanDAVID/Toutui. Newest release **v0.8.101**; `Cargo.toml` is at 0.8.101. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -14559,6 +14644,70 @@ The gates of v0.8.99, under `nice -n 19 ionice -c 3` with `-j 16`:
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred sessions of one hundred and one.
 >    **The
+>    session of the hundred and first turn took the candidate "The login screen
+>    of a terminal that went away" of "What this item leaves open" of the newest
+>    item, which T-271 left open. The watch of T-271 starts after the login, and
+>    it needs the client of the server, the name of an account, and the name of
+>    a server: the login screen stands before every one of them** (T-272).
+>
+>    `AppLogin::run` of `src/login_app.rs` loops
+>    `while !self.should_exit { terminal.draw(...)? }`, the draw calls
+>    `render_auth` of `src/ui/login_tui.rs` line 17, which holds
+>    `let _ = self.auth()`, and the loop of `auth()` of
+>    `src/logic/auth/auth_input.rs` holds a bare blocking
+>    `crossterm::event::read()?` with **no `poll` at all**.
+>
+>    The measurement, of the real program v0.8.100 inside tmux, on a screen of
+>    160 columns and 45 rows, with a `XDG_CONFIG_HOME` that holds no account
+>    (the trap 135) and with
+>    `docs/harness/the_terminal_of_the_program_goes_away.py`. The screen held
+>    `Server address`, and `tmux kill-session` took the terminal away with no
+>    signal. The program stood at **34.1 percent** of one processor after five
+>    seconds and at **71.7 percent** after 34 seconds, with
+>    `/proc/PID/fd/0 -> /dev/pts/5 (deleted)`, and it never stopped.
+>    `strace -f -tt` named the loop:
+>
+>    ```text
+>    read(0, "", 1024)       = 0
+>    ```
+>
+>    **1607222 reads of no byte in 11.7 seconds.** No `epoll_wait` of the shape
+>    of T-271 stood in that trace: this loop is `crossterm::event::read` and not
+>    `crossterm::event::poll`.
+>
+>    The correction is
+>    `spawn_the_watch_of_the_terminal_of_the_login_screen()` of
+>    `src/utils/the_terminal_that_went_away.rs`, which takes **no argument at
+>    all**, and three lines of `src/main.rs`: the task starts before
+>    `app_login.run(terminal)`, and `.abort()` stops it after that line. It
+>    closes **no** session, because the login screen holds no account, no client
+>    of the server, and no session, and its line of the log says that. The
+>    corrected program stopped after **65 ms**, and `grep -c 'the terminal]'` of
+>    the log gave 1. The control of the road after the login, of the same build
+>    and of the same harness, stopped after **565 ms** with the line of T-271,
+>    which holds `closes the session of the server`: therefore the `.abort()`
+>    stops the watch of the login screen alone.
+>    - **A strace of a program that it did not start gives `Operation not
+>      permitted`** (T-272, and the trap 136): the harness of the terminal
+>      `exec`s the program of its command line, therefore
+>      `python3 harness.py strace -f -tt -o FILE ./target/debug/toutui` gives a
+>      strace that takes the ignored disposition of `SIGHUP` too.
+>    - **A watch of the same terminal must not stand two times** (T-272): the
+>      watch of T-271 closes the session of the server, and a second watch that
+>      closes none takes the place of the user with it.
+>    - **`let _ = self.auth()` of `src/ui/login_tui.rs` line 17 drops every
+>      fault of the login screen** (T-272, and it stays open): a terminal that
+>      gives a real fault, and not the end of its input, holds a loop of no wait
+>      at all, and this turn did not measure that road.
+>      `let _app_result = app_login.run(terminal)` of `src/main.rs` drops the
+>      fault of that loop too. **This is a candidate and not a measurement.**
+>    - **The child of T-62 that reads a PDF, and every other process of this
+>      program that has no terminal** (T-272, and it stays open): this turn
+>      measured no terminal that goes away for those.
+>    - **Every candidate of the list of the turns below stays open** (T-229 to
+>      T-271): the block has a limit of size, therefore this turn names the new
+>      candidates alone and it does not repeat that list.
+>    **The
 >    session of the hundredth turn looked for a condition that no measurement has
 >    reached, and it found three programs of the sessions of 2026-08-15 that
 >    stood on this machine at that moment: each with
@@ -14678,84 +14827,6 @@ The gates of v0.8.99, under `nice -n 19 ionice -c 3` with `-j 16`:
 >    - **Every candidate of the list of the turns below stays open** (T-229 to
 >      T-270): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
->    **The
->    session of the ninety-eighth turn took the candidate "Every other `?` of
->    `src/main.rs` that leaves the function" of "What this item leaves open" of
->    the newest item, which T-268 left open. T-267 and T-268 each took one read of
->    the start; this turn took the two call sites of the token that the server
->    refuses** (T-269).
->
->    `src/main.rs` held
->    `logic::auth::auth_input::the_program_needs_a_new_token(&username,
->    &server_address).map_err(color_eyre::eyre::Report::msg)?` two times: one at
->    the start of a session, when the first request of `App::new` came back with
->    401, and one on the road of the key `R`. That function gives `Err` only when
->    `remove_the_account` fails, and **that removal is the one road of the fault of
->    T-123**: a row that stays sends the login screen to the same answer of the
->    server for ever.
->
->    The measurement, of the real program v0.8.97 inside tmux, on a screen of 160
->    columns and 45 rows, against the sandbox. The condition of the 401 is
->    `docs/harness/a_status_of_one_path.py` of this round, and the condition of the
->    database that takes no removal is a trigger of SQLite of
->    `BEFORE DELETE ON users` (T-213). The whole capture of the pane:
->
->    ```text
->    Error: The account toutuitest stays in the database: the disk takes no removal of the account
->    Location:
->        /home/…/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
->    THE-STATUS-OF-THE-EXIT=1
->    ```
->
->    **Three faults stand there together.** The words name a line of a file of the
->    standard library of Rust, which no user must read (T-172). They hold no
->    sentence of Toutui and no road back. And `grep -c 'the program stops'` of the
->    log of that run gave **0**: that log stopped at
->    `[main][api] The pool has 1 address(es).`, and it held no word of the token
->    and no word of the removal.
->
->    The correction is a type `TheAccountDidNotGoAway` of `src/db/mod.rs`, a branch
->    of `the_words_of_a_program_that_stops`, and the two call sites of
->    `src/main.rs`. The program of the same condition then said
->
->    ```text
->    Toutui stops: it did not remove an account of its database.
->    The account toutuitest stays in the database: the disk takes no removal of the account
->    The server http://127.0.0.1:13510 did not accept the token of that account, therefore Toutui must remove that row and show the login screen.
->    Toutui changed nothing. Correct the database, and start Toutui again.
->    ```
->
->    and the log of that run gave **1**. The control of the same run, with no
->    trigger at all, removed the row and it gave the login screen with `The token
->    is not valid. Log in again.`
->    - **A `chmod 444` and the lock of T-199 each hide a write of a row that fails
->      alone** (T-269): the two of them stop every write of the database together,
->      and the migration of `Database::new` and the read of the accounts stand
->      before this removal. **A trigger of one statement of one table is the road of
->      that condition** (T-213).
->    - **A status of 401 is not a status of 500** (T-269):
->      `docs/harness/one_path_fails.py` answers 500 alone, and the road of a token
->      that the server refuses needs 401.
->      `docs/harness/a_status_of_one_path.py` takes the status of its command line.
->    - **The `?` of `ApiClient::new(...)` of `src/main.rs`** (T-269, and it stays
->      open): a pool that gives no client stops the program with the words of the
->      runtime. **This is a candidate and not a measurement.**
->    - **The keys of the terminal and of the render of `src/main.rs`
->      (`terminal.draw(...)?`, `crossterm::event::poll(...)?`,
->      `crossterm::event::read()?`, `terminal.clear()?`) each hold a bare `?`**
->      (T-269, and it stays open): a terminal that goes away is the road of those.
->    - **A fault of the removal of the account on the road of the key `R` is not
->      measured** (T-269, and it stays open): the correction stands on both roads,
->      and the measurement drove the road of the start alone.
->    - **`update_login_err` of `the_program_needs_a_new_token` takes `let _ =`**
->      (T-269, and it stays open).
->    - **A fault of `AppLogin::new` that is not the configuration file names an
->      account of no character and a server of no character** (T-267 to T-269, and
->      it stays open).
->    - **Every candidate of the list of the turns below stays open** (T-229 to
->      T-269): the block has a limit of size, therefore this turn names the new
->      candidates alone and it does not repeat that list.
->
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
 >    the ninety-seventh and every turn before it, the item of each, and the

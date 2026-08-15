@@ -181,7 +181,23 @@ async fn main() -> Result<()> {
                     Err(report) => the_program_stops_with_words(report, "", ""),
                 };
                 let terminal = ratatui::init();
+                // T-272. The loop of the login screen stands inside
+                // `crossterm::event::read`, and that call reads no byte and it
+                // counts no event for a terminal that gives the end of its
+                // input: a login screen whose terminal went away holds a whole
+                // processor for ever, and the `?` of that call reaches nothing.
+                // The watch of T-271 cannot hold this road, because it needs the
+                // client of the server, the name of an account, and the name of
+                // a server, and the login screen stands before every one of
+                // them.
+                let the_watch_of_the_login_screen =
+                    utils::the_terminal_that_went_away::spawn_the_watch_of_the_terminal_of_the_login_screen();
                 let _app_result = app_login.run(terminal);
+                // The watch of T-271 holds the road after the login, and that
+                // one closes the session of the server. Two watches of one
+                // terminal give the road of this one to a program that holds a
+                // session, therefore this task stops here.
+                the_watch_of_the_login_screen.abort();
                 // The wait stops a fast loop. If the screen of the login comes
                 // back at once, for example because the terminal gives an error,
                 // this loop would use a full processor without it.
