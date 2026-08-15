@@ -19930,3 +19930,188 @@ the **word** alone, and the log of the real program above is the evidence of it.
   T-259, and it stays open).
 - **The line of the Library view of a library of podcasts says no place at all**
   (T-242 to T-259, and it stays open).
+
+### T-260: a server of the configuration file with a name of no character keeps the place of the user
+
+**The state**: corrected on 2026-08-15. The measurement is of the real program
+inside tmux, against the sandbox.
+
+#### What T-259 left open
+
+T-259 left this paragraph of its own "What this item leaves open": "**A server
+of the file that names no address of the account belongs to no measurement**
+(T-259, and it stays open): `pool_for_address` reads the servers of the file for
+the address of the account alone, therefore a second server that the program
+cannot read changes the identity of the account only when the first server holds
+that address." This item takes a server that the program **does** read, and
+whose name holds no character. The measurement of it found the same road as
+T-259 — the queue and the downloads of the user go away — and this time the log
+said no word at all.
+
+#### The fault
+
+`the_servers_of_the_file` of `src/config.rs` reads each server of the block
+`servers` apart since T-259, and the struct `TheRowOfAServer` holds
+`name: String`. **`serde` reads `name = ""` with no fault**, therefore that
+server reached the pool.
+
+**The name of a server is the identity of the place of the user on the disk.**
+`server_key` of `src/config.rs` gives the name of the server that holds the
+address of the account, and `src/main.rs` line 267 and `src/app.rs` line 772
+write that value in the column `server` of the tables `queue` and `downloads` of
+`db.sqlite3`. A name of no character therefore gives an identity of no
+character.
+
+The doc comment of `the_servers_of_the_file` said the rule already: "A server
+with no name, or with no list of addresses, belongs to no pool: the name is the
+identity". **The code did not hold that rule.**
+
+#### The measurement
+
+The real program v0.8.88, inside tmux, against the sandbox on the port 13399, on
+a screen of 160 columns and 45 rows.
+
+**The name that the file gives.** `config.toml` of the sandbox with one server:
+
+```toml
+[[servers]]
+name = "the sandbox"
+endpoints = [
+  { url = "http://localhost:13399", priority = 0 },
+]
+```
+
+The key `n` on the first line of the Home view, and then the key `q`:
+
+```text
+────The queue [1 item]────
+➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+```
+
+and the row of the disk `toutuitest|'the sandbox'|A Long Test Book`.
+
+**The name of no character.** The same file with `name = ""`, and the row of the
+disk at `server = 'http://localhost:13399'`, which is the identity that a file
+with no block `[[servers]]` gives. The key `q`:
+
+```text
+────The queue is empty. Press n on a media to put it in the queue.────
+```
+
+The row stayed on the disk, and the user lost it. `grep -icE 'config|server|name'`
+of the log gave **1**, and that one line is `[app] the answer of the account
+holds the position of 30 media of 32.` — **no word of the configuration at
+all**. T-259 wrote a line of the log for its fault; this fault wrote none,
+because `serde` reads the row with no error.
+
+**The collision.** The same file with `name = ""`, and a row of the disk whose
+column `server` holds `''`. That value is the DEFAULT of the column, and it is
+the identity of a row that no server names. The key `q`:
+
+```text
+────The queue [1 item]────
+➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+```
+
+**The place of one server went to a different server.** The doc of `server_key`
+states that rule of T-25: "Two servers then never have the same identity, and
+the application does not send the position of one server to a different server."
+Two servers of a name of no character break it.
+
+#### The correction
+
+`the_servers_of_the_file` of `src/config.rs` drops a row whose `name.trim()`
+holds no character, and the log names the place of that server:
+
+```text
+[config] the server 1 of the block servers has a name of no character. A name
+is the identity of the place of the user, therefore that server goes away and
+the program uses the address of the login screen.
+```
+
+A server that goes away gives the behaviour of a file with no block
+`[[servers]]`: `pool_for_address` gives the pool of the address of the account,
+and `server_key` gives that address. The place of the user stays where it
+stands.
+
+#### The verification
+
+The corrected build, the same file (`name = ""`) and the same row of the disk
+(`server = 'http://localhost:13399'`). The key `q`:
+
+```text
+────The queue [1 item]────
+➤ 50% 1. 📕 A Long Test Book — Long Author  (15m left)
+```
+
+and the log held the WARN line above **two times**, which is the evidence of the
+open candidate of T-259: the program reads the configuration file two times at
+its start.
+
+#### The build of the fault
+
+`if row.name.trim().is_empty() && false` of `the_servers_of_the_file`, which
+keeps every other line of the file. The four tests of `src/config.rs` then fail,
+and `two_servers_of_no_name_hold_two_identities` says `left: "" right: ""`.
+
+#### The tests
+
+- `a_server_of_no_name_keeps_the_place_of_the_user`
+- `a_server_of_a_name_of_spaces_keeps_the_place_of_the_user`
+- `a_server_of_no_name_keeps_the_other_servers`
+- `two_servers_of_no_name_hold_two_identities`
+
+#### What this item leaves open
+
+- **A name that two servers of the file share is not measured** (T-260): the
+  program reads no two names of the block together, therefore a file that names
+  two servers `home` gives one identity to two servers still. **This is a
+  candidate and not a measurement.**
+- **A file whose every server fails is not measured** (T-259 and T-260, and it
+  stays open): `pool_for_address` reads the servers of the file for the address
+  of the account alone.
+- **The program reads the configuration file two times at its start** (T-259 and
+  T-260, and it stays open): the WARN line of the verification above came two
+  times, which is the evidence of that candidate of T-259. T-204 says that the
+  render reads no disk, and this is a read of the start and not of the render.
+- **The block `reader` stands on no gate of a build of the fault** (T-259 and
+  T-260, and it stays open): the block holds one key, therefore no test of a
+  value can tell the two builds apart. **A second key of that block puts it
+  under the gate of the servers at once.**
+- **The words of a fault of the crate `config` are not ASD-STE100** (T-258 to
+  T-260, and it stays open): the lines of the log hold the sentence of the
+  crate, and `invalid type: 64-bit unsigned integer` is not a sentence of this
+  fork.
+- **The user sees no word of a value of the file that the program cannot read**
+  (T-258 to T-260, and it stays open): the lines go to the log alone, and the
+  first frame holds no message of them. A user whose queue came back has no way
+  to know that a server of their file went away.
+- **The colours of the program stand on no test of a length** (T-257 to T-260,
+  and it stays open): 22 places call `rgb_parts`, and no gate of this repository
+  says which of the two a new render takes.
+- **The panel of a description is in no test of the render** (T-253 to T-260,
+  and it stays open): `render_a_description` is a private method of `App` still,
+  and the module of T-256 gives the shape of that correction.
+- **The two renders of the panel of the episodes of a podcast are in no test**
+  (T-250 to T-260, and it stays open).
+- **The title of a list says no number of the line of the cursor** (T-255 to
+  T-260, and it stays open).
+- **The key `H` of the panel stands on no character of the screen** (T-254 to
+  T-260, and it stays open).
+- **The line of the view of the authors says `[1 book(s)]`** (T-252 to T-260,
+  and it stays open).
+- **The panel of a narrator says "No description available" for every narrator
+  of every library** (T-252 to T-260, and it stays open).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-260, and it stays open).
+- **The key `B` says nothing on either road** (T-248 to T-260, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters, and
+  of the view of the queue gives the Home view** (T-247 to T-260, and it stays
+  open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to T-260,
+  and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-260, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at all**
+  (T-242 to T-260, and it stays open).

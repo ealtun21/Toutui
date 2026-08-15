@@ -41,6 +41,25 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.89",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A server of the configuration file with a name of no \
+             character does not take the queue and the downloads of the user \
+             away.** The name of a server is the identity of the place of that \
+             user on the disk. A line `name = \"\"` gave an identity of no \
+             character: the queue and the downloads of the user went away, and \
+             the program said no word at all. Such a server goes away now, the \
+             address of the login screen gives the identity again, and the log \
+             names the server.",
+            "- **Two servers of the configuration file never hold the same \
+             identity.** Two servers with a name of no character each held the \
+             identity of no character, therefore the place of the user of one \
+             server went to the other server.",
+        ],
+    },
+    Entry {
         version: "0.8.88",
         date: "15/08/2026",
         body: &[

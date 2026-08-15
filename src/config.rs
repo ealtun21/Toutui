@@ -546,6 +546,23 @@ fn the_servers_of_the_file(config: &ConfigLib) -> Vec<ServerConfig> {
             }
         };
 
+        // T-260. A name of no character is no name. `serde` reads `name = ""`
+        // with no fault at all, and `server_key` then gives `""` for the
+        // identity of the place of the user: the queue and the downloads of
+        // that user go away, and the column `server` of those tables holds
+        // `''` for a row of a server that no file names — therefore the place
+        // of one server goes to a different server (T-25). A server of no name
+        // goes away, and the address of the account then gives the identity.
+        if row.name.trim().is_empty() {
+            log::warn!(
+                "[config] the server {} of the block servers has a name of no character. \
+                 A name is the identity of the place of the user, therefore that server \
+                 goes away and the program uses the address of the login screen.",
+                place + 1
+            );
+            continue;
+        }
+
         let mut endpoints = Vec::new();
         for address in row.endpoints {
             match address.try_deserialize::<EndpointConfig>() {
@@ -1098,6 +1115,117 @@ endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
             config.servers[0].endpoints[0].url,
             "http://192.168.1.10:13378"
         );
+    }
+
+    /// **A name of no character is no name** (T-260). `serde` reads
+    /// `name = ""` with no fault, therefore the server reached the pool and
+    /// `server_key` gave `""` for the identity of the place of the user: the
+    /// queue and the downloads of that user went away, and the log said no
+    /// word at all. The server of no name goes away now, and the address of
+    /// the account gives the identity again.
+    #[test]
+    fn a_server_of_no_name_keeps_the_place_of_the_user() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[[servers]]\nname = \"\"\n\
+             endpoints = [ { url = \"http://localhost:13399\", priority = 0 } ]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert!(
+            config.servers.is_empty(),
+            "a server of no name must belong to no pool"
+        );
+        assert_eq!(
+            server_key(&config.servers, "http://localhost:13399"),
+            "http://localhost:13399",
+            "the address of the account must give the identity of the place of the user"
+        );
+    }
+
+    /// **A name of spaces alone is a name of no character** (T-260): the user
+    /// cannot tell it from an empty name in the file, and it gives the same
+    /// identity of no word on the disk.
+    #[test]
+    fn a_server_of_a_name_of_spaces_keeps_the_place_of_the_user() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[[servers]]\nname = \"   \"\n\
+             endpoints = [ { url = \"http://localhost:13399\", priority = 0 } ]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert!(
+            config.servers.is_empty(),
+            "a server of a name of spaces must belong to no pool"
+        );
+    }
+
+    /// **A server of no name goes away alone** (T-260). The rule of T-259
+    /// holds: every other server of the user stays, and it keeps the identity
+    /// of the place of that user.
+    #[test]
+    fn a_server_of_no_name_keeps_the_other_servers() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[[servers]]\nname = \"\"\n\
+             endpoints = [ { url = \"https://abs.example.com\", priority = 0 } ]\n\
+             \n[[servers]]\nname = \"the sandbox\"\n\
+             endpoints = [ { url = \"http://localhost:13399\", priority = 0 } ]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        assert_eq!(
+            config.servers.len(),
+            1,
+            "the server of the user that holds a name must stay"
+        );
+        assert_eq!(
+            server_key(&config.servers, "http://localhost:13399"),
+            "the sandbox",
+            "the identity of the place of the user must stay"
+        );
+    }
+
+    /// **Two servers of no name held one identity** (T-260, and the rule of
+    /// T-25): `server_key` gave `""` for the address of each of them,
+    /// therefore the place of one server went to a different server. Each of
+    /// them gives its own address now.
+    #[test]
+    fn two_servers_of_no_name_hold_two_identities() {
+        let place = tempfile::tempdir().expect("a directory of a test");
+        let path = place.path().join("config.toml");
+        std::fs::write(
+            &path,
+            "[[servers]]\nname = \"\"\n\
+             endpoints = [ { url = \"http://first:13378\", priority = 0 } ]\n\
+             \n[[servers]]\nname = \"\"\n\
+             endpoints = [ { url = \"http://second:13378\", priority = 0 } ]\n",
+        )
+        .expect("the file of the test");
+
+        let config = load_config_from(&path).expect("the program must start");
+
+        let first = server_key(&config.servers, "http://first:13378");
+        let second = server_key(&config.servers, "http://second:13378");
+        assert_ne!(
+            first, second,
+            "two servers must never hold the same identity of the place of the user"
+        );
+        assert_eq!(first, "http://first:13378");
+        assert_eq!(second, "http://second:13378");
     }
 
     /// **A value of the block `reader` that the program cannot read takes the
