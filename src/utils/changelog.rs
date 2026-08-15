@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.81",
+        date: "15/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key that moves the panel of a description down went past \
+             the last line of the text, and the panel then held no line at \
+             all.** One press of that key took a description of one line away, \
+             and the user cannot tell such a panel from a media whose \
+             description the server did not give. The program measures the \
+             length of the text now: the key stops at the last line of the \
+             panel, and the panel of the changelog stops at the oldest entry \
+             of it.",
+        ],
+    },
+    Entry {
         version: "0.8.80",
         date: "15/08/2026",
         body: &[

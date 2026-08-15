@@ -761,6 +761,35 @@ impl App {
     }
 }
 
+/// The panel of a description of every view. See T-252.
+impl App {
+    /// Draws the panel of a description, and it keeps the scroll of the user
+    /// inside the text of that panel.
+    ///
+    /// **A panel that scrolled past its last line holds no line at all**, and
+    /// the user cannot tell it from a media whose description the server did
+    /// not give (T-252). The fourteen panels of this file each read
+    /// `self.scroll_offset`, and the key `J` moved that value with no limit.
+    ///
+    /// The render is the one road to the length of the text: it holds the text
+    /// and the size of the panel, and the key of the user holds neither.
+    /// Therefore this function keeps the largest scroll of the panel in the box
+    /// of `crate::logic::the_scroll_of_a_panel`, and the key reads that box.
+    fn render_a_description(&self, area: Rect, buf: &mut Buffer, text: &str) {
+        let scroll = crate::logic::the_scroll_of_a_panel::the_scroll_of_the_render(
+            self.scroll_offset,
+            text,
+            area.width,
+            area.height,
+        );
+
+        Paragraph::new(text.to_string())
+            .scroll((scroll, 0))
+            .wrap(Wrap { trim: true })
+            .render(area, buf);
+    }
+}
+
 /// The authors of the library. See T-24.
 impl App {
     /// AppView::Authors rendering
@@ -817,10 +846,11 @@ impl App {
             .selected()
             .and_then(|index| all.get(index))
         {
-            Paragraph::new(crate::api::libraries::get_authors::description_of(one))
-                .scroll((self.scroll_offset, 0))
-                .wrap(Wrap { trim: true })
-                .render(item_area, buf);
+            self.render_a_description(
+                item_area,
+                buf,
+                &crate::api::libraries::get_authors::description_of(one),
+            );
         }
     }
 }
@@ -1132,10 +1162,7 @@ impl App {
                 one.description_plain.clone()
             };
 
-            Paragraph::new(text)
-                .scroll((self.scroll_offset, 0))
-                .wrap(Wrap { trim: true })
-                .render(item_area, buf);
+            self.render_a_description(item_area, buf, &text);
         }
     }
 }
@@ -1624,10 +1651,7 @@ impl App {
             .left_aligned()
             .render(item_area1, buf);
 
-            Paragraph::new(series.description_for_the_screen())
-                .scroll((self.scroll_offset, 0))
-                .wrap(Wrap { trim: true })
-                .render(item_area2, buf);
+            self.render_a_description(item_area2, buf, &series.description_for_the_screen());
         }
     }
 
@@ -1692,10 +1716,7 @@ impl App {
             .left_aligned()
             .render(item_area1, buf);
 
-            Paragraph::new(book.description_for_the_screen())
-                .scroll((self.scroll_offset, 0))
-                .wrap(Wrap { trim: true })
-                .render(item_area2, buf);
+            self.render_a_description(item_area2, buf, &book.description_for_the_screen());
         }
     }
 
@@ -1782,10 +1803,7 @@ impl App {
             .left_aligned()
             .render(item_area1, buf);
 
-            Paragraph::new(list.description.clone())
-                .scroll((self.scroll_offset, 0))
-                .wrap(Wrap { trim: true })
-                .render(item_area2, buf);
+            self.render_a_description(item_area2, buf, &list.description.clone());
         }
     }
 
@@ -1858,10 +1876,7 @@ impl App {
             .left_aligned()
             .render(item_area1, buf);
 
-            Paragraph::new(entry.description.clone())
-                .scroll((self.scroll_offset, 0))
-                .wrap(Wrap { trim: true })
-                .render(item_area2, buf);
+            self.render_a_description(item_area2, buf, &entry.description.clone());
         }
     }
 
@@ -2569,10 +2584,7 @@ impl App {
     // description of the book or podcast `Home`
     fn render_desc_home(&self, area: Rect, buf: &mut Buffer) {
         if let Some(series) = self.selected_home_series() {
-            Paragraph::new(series.description_for_the_screen())
-                .scroll((self.scroll_offset, 0))
-                .wrap(Wrap { trim: true })
-                .render(area, buf);
+            self.render_a_description(area, buf, &series.description_for_the_screen());
             return;
         }
 
@@ -2590,10 +2602,7 @@ impl App {
                 _content = at(&self.desc_cnt_list, selected).to_string();
             }
 
-            Paragraph::new(_content.clone())
-                .scroll((self.scroll_offset, 0))
-                .wrap(Wrap { trim: true })
-                .render(area, buf);
+            self.render_a_description(area, buf, &_content.clone());
         }
     }
 
@@ -2667,10 +2676,7 @@ impl App {
         };
 
         if let Some(text) = text {
-            Paragraph::new(text)
-                .scroll((self.scroll_offset, 0))
-                .wrap(Wrap { trim: true })
-                .render(area, buf);
+            self.render_a_description(area, buf, &text);
         }
     }
 
@@ -2804,15 +2810,14 @@ impl App {
                 // **The panel of an episode says the description of that
                 // episode when the episode holds no subtitle** (T-251). The
                 // program collected `descs_pod_ep` and no render read it.
-                Paragraph::new(
-                    crate::logic::the_panel_of_a_line::the_description_of_a_podcast(
+                self.render_a_description(
+                    area,
+                    buf,
+                    &crate::logic::the_panel_of_a_line::the_description_of_a_podcast(
                         at(&self.subtitles_pod_ep, selected),
                         at(&self.descs_pod_ep, selected),
                     ),
-                )
-                .scroll((self.scroll_offset, 0))
-                .wrap(Wrap { trim: true })
-                .render(area, buf);
+                );
             } else {
                 log::error!(
                     "render_desc_pod_ep: Index {} out of bounds for subtitles_pod_ep (len={})!",
@@ -2832,15 +2837,14 @@ impl App {
         if let Some(selected) = list_state.selected() {
             // The view of the episodes of a search holds the same panel. See
             // T-251, and T-246 for the lists of that view.
-            Paragraph::new(
-                crate::logic::the_panel_of_a_line::the_description_of_a_podcast(
+            self.render_a_description(
+                area,
+                buf,
+                &crate::logic::the_panel_of_a_line::the_description_of_a_podcast(
                     at(&self.subtitles_pod_ep_search, selected),
                     at(&self.descs_pod_ep_search, selected),
                 ),
-            )
-            .scroll((self.scroll_offset, 0))
-            .wrap(Wrap { trim: true })
-            .render(area, buf);
+            );
         }
     }
 
@@ -2889,10 +2893,7 @@ impl App {
     // description of the book or podcast `SearchBook`
     fn render_desc_search_book(&self, area: Rect, buf: &mut Buffer, list_state: &ListState) {
         if let Some(selected) = list_state.selected() {
-            Paragraph::new(at(&self.desc_library_search_book, selected).to_string())
-                .scroll((self.scroll_offset, 0))
-                .wrap(Wrap { trim: true })
-                .render(area, buf);
+            self.render_a_description(area, buf, at(&self.desc_library_search_book, selected));
         }
     }
 
@@ -2948,16 +2949,10 @@ Uninstall:
                     .render(area, buf);
             }
             Some(2) => {
-                Paragraph::new(self.changelog.clone())
-                    .scroll((self.scroll_offset, 0))
-                    .wrap(Wrap { trim: true })
-                    .render(area, buf);
+                self.render_a_description(area, buf, &self.changelog.clone());
             }
             Some(3) => {
-                Paragraph::new(instructions)
-                    .scroll((self.scroll_offset, 0))
-                    .wrap(Wrap { trim: true })
-                    .render(area, buf);
+                self.render_a_description(area, buf, instructions);
             }
             // The cache of the ebooks. See T-77.
             Some(4) => {

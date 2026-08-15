@@ -18548,3 +18548,169 @@ other by the number of the line: ["The one complete novel of Edgar Allan Poe."]
   T-251, and it stays open).
 - **The line of the Library view of a library of podcasts says no place at all**
   (T-242 to T-251, and it stays open).
+
+### T-252: the panel of a description stops at its last line
+
+**The state**: corrected on 2026-08-15. The measurement is of the real program
+inside tmux, against the sandbox.
+
+#### What T-251 left open
+
+T-251 left the panel of a description with no scroll bar: "the description of
+`Arthur Gordon Pym` of this measurement is longer than the panel of a screen of
+45 rows, and the user gets no word of how much of it is left." **The program
+knew no length of that text at all**, and that is the fault of this item.
+
+#### The fault
+
+Fourteen panels of `src/ui/tui.rs` drew a description with
+`Paragraph::new(text).scroll((self.scroll_offset, 0)).wrap(Wrap { trim: true })`.
+The key `J` of `src/app.rs` did `self.scroll_offset += 1`, with no limit at all,
+and no render read the length of the text. A panel that scrolled past its last
+line therefore held no line at all, and the user cannot tell it from a media
+whose description the server did not give: the words "No description available"
+of T-249 go away with the text.
+
+#### The measurement
+
+The real program v0.8.80, inside tmux, against the sandbox. The library `Books`,
+the view of the authors (the key `Tab` and then the key `a`), and the author
+`Lewis Carroll`. The sandbox held no description for any of its nine authors,
+therefore one request made the condition (the section 17 of
+`docs/TEST-SERVER.md`):
+
+```text
+PATCH /api/authors/312c42ff-e800-4b29-9974-d2d899d0bba9
+{"description":"<p>Charles Lutwidge Dodgson wrote under the name Lewis Carroll.</p>"}
+```
+
+The panel of that author, of one line in a panel of four rows:
+
+```text
+─────────────────────The authors [9 items]──────────────────────
+  Huge Author [1 book(s)]
+➤ Lewis Carroll [1 book(s)]
+
+Charles Lutwidge Dodgson wrote under the name Lewis Carroll.
+```
+
+One press of the key `J` took that line away. 23 presses after it changed
+nothing more. The key `H` gave the line back, therefore the text stood in the
+program the whole time and the panel of the user held nothing:
+
+```text
+─────────────────────The authors [9 items]──────────────────────
+  Huge Author [1 book(s)]
+➤ Lewis Carroll [1 book(s)]
+
+
+```
+
+**The control of that same run**: the same author with no press of `J` gave the
+line, and the eight authors of no description each gave "No description
+available".
+
+#### The correction
+
+A new module `src/logic/the_scroll_of_a_panel.rs` holds the length of the text
+and the size of the panel together, in one place:
+
+- `the_number_of_the_lines(text, width)`: a pure count of the lines of a text in
+  a panel of `Wrap { trim: true }`.
+- `the_last_scroll(text, width, rows)`: the lines less the rows.
+- `the_scroll_of_the_render(now, text, width, rows)`: the render keeps the
+  scroll inside the text, and it writes the last scroll of that panel in a box
+  of the process (`AtomicU16`).
+- `the_scroll_after_one_step_down(now)`: the key reads that box.
+- `inside_the_text(scroll, last) -> scroll.min(last)`, a private function, holds
+  the correction of the two roads together.
+
+A new method `App::render_a_description(area, buf, text)` of `src/ui/tui.rs`
+took the place of the fourteen panels. The key `J` of `src/app.rs` calls
+`the_scroll_after_one_step_down`.
+
+**The render is the one road to the length of the text**: it holds the text and
+the size of the panel, and the key of the user holds neither. One panel stands
+on the screen at one moment, therefore one box holds the value.
+
+The measurement of the correction, of that same view: 25 presses of the key `J`
+keep the line of `Lewis Carroll` on the panel. And the panel of the changelog of
+the view "About and changelog" of the settings (the key `S`, two presses of the
+key `j`, and the key `l`) — the longest text of the program — moves with the key
+`J`, and it stops at its last line:
+
+```text
+Changelog Toutui v0.1.0-beta (02/21/2025)
+Fixed:
+
+First release.
+
+Changed:
+
+First release.
+
+Enjoy!
+
+####
+```
+
+4030 presses of the key `J` stand there, three presses of the key `K` go back
+three lines, and the key `H` gives the first line.
+
+#### The build of the fault
+
+The trap 147: one edit of `inside_the_text` — `let _ = last; scroll` in the
+place of `scroll.min(last)` — and the test
+`the_key_that_moves_the_panel_down_stops_at_the_last_line` of that module then
+fails:
+
+```text
+thread '...' panicked at src/logic/the_scroll_of_a_panel.rs:196:9:
+assertion `left == right` failed
+  left: 1
+ right: 0
+```
+
+#### The tests
+
+Three functions of the module `logic::the_scroll_of_a_panel::tests`. **The test
+of the box stays in one function**, because a box of the process holds one value
+for the whole binary of the test.
+
+#### What this item leaves open
+
+- **The panel of a description holds no scroll bar** (T-249 to T-252, and it
+  stays open): the program measures the length of the text now, therefore the
+  value of that measurement can reach the screen too, and the user gets no word
+  of how much of the text is left.
+- **The footer of a view promises no key of the panel** (T-252, and it stays
+  open): the footer of the view of the authors says
+  `j/k: move  l: the books of this author  h: back  ?: every key  Q: quit`, and
+  the keys `J`, `K`, and `H` of the panel stand in no footer of the program.
+- **The line of the view of the authors says `[1 book(s)]`** (T-252, and it
+  stays open): the title of that same view says `The authors [9 items]` with
+  `crate::ui::keys::items`, and the words `book(s)` are not ASD-STE100.
+- **The panel of a narrator says "No description available" for every narrator
+  of every library** (T-252, and it stays open): a narrator holds no row of its
+  own on the server, therefore the answer gives no description at all and the
+  panel can never say another thing.
+- **The two renders of the panel of the episodes of a podcast are in no test**
+  (T-250 to T-252, and it stays open).
+- **The panel of the view of the authors and the panel of the view of the
+  narrators are measured now** (T-249 to T-252, and this item closed it).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-252, and it stays open): the keys `u`, `I`, and `Y` of the view of
+  the episodes.
+- **The key `B` says nothing on either road** (T-248 to T-252, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters, and
+  of the view of the queue gives the Home view** (T-247 to T-252, and it stays
+  open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to T-252,
+  and it stays open).
+- **The view of the queue of the offline mode is not measured** (T-230 to
+  T-252), and the panel of a line of that view is not measured.
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-252, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at all**
+  (T-242 to T-252, and it stays open).

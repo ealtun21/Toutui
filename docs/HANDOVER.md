@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.80.** The item T-251 belongs to this session. The
+**The newest release is v0.8.81.** The item T-252 belongs to this session. The
+item T-251 belongs to the session before it. The
 item T-250 belongs to the session before it. The
 item T-249 belongs to the session before it. The
 item T-248 belongs to the session before it. The
@@ -95,6 +96,69 @@ warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
 the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no
 failure in two runs. **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the eighty-first turn of 2026-08-15: the panel of a description stops at its last line
+
+**One release: v0.8.81**, and one item: T-252. **The road of it is the paragraph
+of the scroll bar of "What this item leaves open" of T-251**: "the description
+of `Arthur Gordon Pym` of this measurement is longer than the panel of a screen
+of 45 rows, and the user gets no word of how much of it is left." **The program
+knew no length of that text at all**, and that is a fault of the screen and not
+a value that is missing.
+
+**Fourteen panels of `src/ui/tui.rs` drew a description with
+`.scroll((self.scroll_offset, 0))`, and the key `J` of `src/app.rs` did
+`self.scroll_offset += 1` with no limit.** A panel that scrolled past its last
+line therefore held no line at all, and the user cannot tell such a panel from a
+media whose description the server did not give: the words "No description
+available" of T-249 go away with the text.
+
+The measurement, of the real program v0.8.80 inside tmux against the sandbox.
+The library `Books`, the view of the authors (the key `Tab` and then the key
+`a`), and the author `Lewis Carroll`. **No author of the sandbox held a
+description**, therefore one `PATCH /api/authors/:id` made the condition (the
+section 17 of `docs/TEST-SERVER.md`), and the eight authors of no description
+are the control of the same run:
+
+```text
+➤ Lewis Carroll [1 book(s)]                 ➤ Lewis Carroll [1 book(s)]
+
+Charles Lutwidge Dodgson wrote under the      (the panel holds no line)
+name Lewis Carroll.
+```
+
+The panel on the left is the first frame, and the panel on the right is one
+press of the key `J`. 23 presses after it changed nothing more, and the key `H`
+gave the line back: **the text stood in the program the whole time**.
+
+The correction is a new module `src/logic/the_scroll_of_a_panel.rs`. It counts
+the lines of a text in a panel of `Wrap { trim: true }`, it gives the largest
+scroll of that panel, and it holds that value in a box of the process: **the
+render is the one road to the length of the text**, because it holds the text
+and the size of the panel and the key of the user holds neither. One panel
+stands on the screen at one moment, therefore one box holds the value. A new
+method `App::render_a_description` took the place of the fourteen panels.
+
+The measurement of the correction: 25 presses of the key `J` keep the line of
+that author, and the panel of the changelog of the settings — the longest text
+of the program — moves with the key `J` and it stops at the entry of v0.1.0-beta.
+
+**What this session leaves open** stands in the item T-252 of
+`docs/TAKEOVER-BACKLOG.md`. The first of it: **the panel of a description holds
+no scroll bar**, and the program measures the length of the text now, therefore
+the value of that measurement can reach the screen too.
+
+**The trap 223: the longest panel of a description is the changelog, and it
+stands under the list of the settings.** The key `S`, two presses of the key
+`j`, and the key `l` give the line "About and changelog", and the panel of that
+text then draws in the lower part of the same screen: the list of the settings
+stays above it. A measurement of that panel therefore reads the rows 21 to 44 of
+a screen of 45 rows, and no view of its own comes.
+
+**The trap 224: a measurement of a long scroll needs many presses and time.**
+`for i in $(seq 1 4000); do press J; done` fills the buffer of tmux faster than
+the program reads it, therefore a `sleep` of five seconds belongs after such a
+loop. The changelog of v0.8.81 takes about 3000 lines in a panel of 22 rows.
 
 ## The session of the eightieth turn of 2026-08-15: the panel of an episode says the description of that episode
 
@@ -10768,38 +10832,106 @@ offline.`
  - **The line of the Library view of a library of podcasts says no place
    at all** (T-242 to T-248, and it stays open).
 
+**The session of the seventy-eighth turn took no paragraph of the newest item:
+the three that stood open each need a playback inside tmux, and the round
+took a value of the words for the user that stands in seven views**
+(T-249).
+
+**"N/A" is a value of a field, and a description is a panel of its own.**
+The words of `NOT_AVAILABLE` stand beside a label — the line of the view
+says `Author: LibriVox - Year: N/A - Duration: 1h30m`, and that label tells
+the user which value the server does not have. **The panel of the
+description holds no label at all**, therefore `N/A` alone stands on a line
+of the screen and it says nothing (the rule of T-91 and of T-174).
+
+**Nine functions of six files make that panel, and they gave three
+different answers for the same condition.** The view of the search, the
+Library view, and the view of the collections and of the playlists said
+`No description available`; the Home view, the view of the episodes of a
+podcast, and the Home view of a library of podcasts said `N/A`; and the
+view of the books of a series said nothing at all.
+
+The measurement, of the real program inside tmux against the sandbox. One
+book of no description, `A Long Test Book`, in two views of one run:
+
+```text
+────────Search result [1 item]────────    ────────Home [35 items]────────
+➤ 50% A Long Test Book                    ➤ 50% A Long Test Book
+Author: Long Author - Year: N/A - …       Author: Long Author - Year: N/A …
+Progress: 50%, 15m left, Not finished     Progress: 50%, 15m left, Not fin…
+No description available                  N/A
+```
+
+The view of the episodes of `Letters of Two Brides` said `N/A` for every
+one of its 57 episodes, and the server gives `""` for the subtitle and for
+the description of each of them. The panel of the second book of
+`The Test Chronicles`, whose description is `<p> </p>`, held no line at
+all.
+- **A value of the program that stands in more than one view is a sweep of
+  its own** (T-249): no round before this one asked "what does each of the
+  nine makers of this panel give for the same condition?", and the answer
+  was three different things and one of them was nothing. **Ask it of every
+  value that more than one view holds.**
+- **A default of a field is not a default of a panel** (T-249):
+  `NOT_AVAILABLE` is right beside a label and wrong on a line of its own,
+  therefore one shared helper needs two words and not one.
+- **A field of a struct that a fallback of another view reads must hold the
+  value of the server alone** (T-249 and T-43): the words of the program in
+  `SeriesBookView::description` hid the description of the book after it,
+  and the road is a function of the screen beside the field.
+- **`collect_descs_pod_cnt_list` reaches no panel of the screen** (T-249,
+  and it stays open): the render of the Home view of a library of podcasts
+  reads `subtitles_pod_cnt_list`, therefore that box keeps its `N/A` and no
+  user sees it. **A box that the render never reads is a road of its own.**
+- **The panel of the view of the authors and the panel of the view of the
+  narrators are not measured** (T-249, and it stays open).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-249, and it stays open): the keys `u`, `I`, and `Y` of the
+  view of the episodes, with a playback of an episode.
+- **The key `B` says nothing on either road** (T-248 to T-249, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters,
+  and of the view of the queue gives the Home view** (T-247 to T-249, and
+  it stays open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
+  T-249, and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-249, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at
+  all** (T-242 to T-249, and it stays open).
+
 ## The prompt for the next session
-**This session took the first paragraph of "What this item leaves open" of the
-newest item**, and that paragraph named the same panel of a second view: the
-view of the episodes of a podcast read the subtitle of the episode alone. **That
-paragraph also said that the sandbox gives no condition of the fault, and it was
-wrong**: the second podcast of that same library holds a description of the
-server and no subtitle of an episode, and one `PATCH` of the sandbox gave one
-episode the show notes of its own. The item is **T-251**, and it holds one
-release, v0.8.80.
+**This session took the paragraph of the scroll bar of "What this item leaves
+open" of the newest item**, and that paragraph named a value that the program
+does not have: no render of the fourteen panels of a description read the length
+of its text. The key that moves such a panel down therefore had no limit, and
+one press of it took a description of one line off the screen. The item is
+**T-252**, and it holds one release, v0.8.81.
 
 Three things are worth the room:
 
-1. **A paragraph that says "the sandbox holds no condition of that fault" is a
-   paragraph to measure, and not one to believe.** T-250 read the podcasts of
-   the shelves of the Home view and it wrote that sentence; the library holds
-   two podcasts, and the second one held the condition. **Ask the server for
-   every item of the library before you write that the sandbox holds nothing.**
+1. **A paragraph that asks for a value on the screen can name a fault of the
+   work.** T-251 asked for a scroll bar, which is a value for the user; the
+   measurement of that panel found that the panel loses the whole text. **Ask of
+   every paragraph of "what a view does not say": what does the program not
+   know?**
 
-2. **A field of the answer that no collector reads is the other half of "which
-   render reads this box?"** T-250 asked the first half. `episode.description`
-   stood in the struct of the API of this fork since the fork began, no
-   collector took it, and the panel of an episode therefore could not say the
-   show notes of that episode even if the render had read every box it holds.
+2. **A key that writes a value and a render that reads it are two roads of one
+   rule.** `self.scroll_offset` grew at the key and it fell to 0 at the keys `j`
+   and `k`, and no line of the program held the limit of it. The render is the
+   one road to that limit, because it alone holds the text and the size of the
+   panel. **Ask of every value that a key writes: which line of the program says
+   the largest value of it?**
 
-3. **A list of a view holds one value for each line** (the rule of T-24).
-   `collect_descs_pod_ep` gave one value for a view of 57 lines. The test of the
-   correction says the number of the lines before it says the words, and the
-   build of the fault stopped there.
+3. **One shape of four lines in fourteen places is one road of the program.**
+   The fourteen panels each held
+   `.scroll((self.scroll_offset, 0)).wrap(Wrap { trim: true })`, therefore one
+   method took the place of the fourteen and one correction reached every view.
+   **Count the copies of a shape before you correct one of them.**
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.80**; `Cargo.toml` is at 0.8.80. The
+> AlbanDAVID/Toutui. Newest release **v0.8.81**; `Cargo.toml` is at 0.8.81. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -10808,7 +10940,7 @@ Three things are worth the room:
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-251 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-252 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -11435,7 +11567,82 @@ Three things are worth the room:
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in eighty-five sessions of eighty-six.
+>    this shape found a fault in eighty-six sessions of eighty-seven.
+>    **The
+>    session of the eighty-first turn took the paragraph of the scroll bar of
+>    "What this item leaves open" of the newest item: that paragraph asked for a
+>    value on the screen, and the measurement of that panel found that the panel
+>    loses the whole of its text** (T-252).
+>
+>    T-251 wrote that the description of `Arthur Gordon Pym` is longer than the
+>    panel of a screen of 45 rows and that the user gets no word of how much of
+>    it is left. **The program knew no length of that text at all.** Fourteen
+>    panels of `src/ui/tui.rs` drew a description with
+>    `.scroll((self.scroll_offset, 0))`, and the key `J` of `src/app.rs` did
+>    `self.scroll_offset += 1` with no limit: a panel that scrolled past its last
+>    line held no line at all, and the user cannot tell such a panel from a media
+>    whose description the server did not give (the words of T-249 go away with
+>    the text).
+>
+>    The measurement, of the real program inside tmux. The library `Books`, the
+>    view of the authors (the key `Tab` and then the key `a`), and the author
+>    `Lewis Carroll`. **No author of the sandbox held a description**, therefore
+>    one `PATCH /api/authors/:id` made the condition (the section 17 of
+>    `docs/TEST-SERVER.md`), and the eight authors of no description are the
+>    control of the same run (the trap 206):
+>
+>    ```text
+>    ➤ Lewis Carroll [1 book(s)]           ➤ Lewis Carroll [1 book(s)]
+>
+>    Charles Lutwidge Dodgson wrote        (the panel holds no line)
+>    under the name Lewis Carroll.
+>    ```
+>
+>    The panel on the left is the first frame, and the panel on the right is one
+>    press of the key `J`. 23 presses after it changed nothing more, and the key
+>    `H` gave the line back: the text stood in the program the whole time.
+>
+>    The correction is `src/logic/the_scroll_of_a_panel.rs`, and
+>    `App::render_a_description` took the place of the fourteen panels.
+>    - **A paragraph that asks for a value on the screen can name a fault of the
+>      work** (T-252): T-251 asked for a scroll bar, and the measurement found
+>      that the panel loses the text. **Ask of every paragraph of "what a view
+>      does not say": what does the program not know?**
+>    - **A key that writes a value and a render that reads it are two roads of
+>      one rule** (T-252): the render is the one road to the limit of a scroll,
+>      because it alone holds the text and the size of the panel. **Ask of every
+>      value that a key writes: which line of the program says the largest value
+>      of it?**
+>    - **One shape of four lines in fourteen places is one road of the program**
+>      (T-252): one method took the place of the fourteen, and one correction
+>      reached every view. **Count the copies of a shape before you correct one
+>      of them.**
+>    - **The panel of a description holds no scroll bar** (T-249 to T-252, and it
+>      stays open): the program measures the length of the text now, therefore
+>      that value can reach the screen too.
+>    - **The footer of a view promises no key of the panel** (T-252, and it stays
+>      open): the keys `J`, `K`, and `H` stand in no footer of the program.
+>    - **The line of the view of the authors says `[1 book(s)]`** (T-252, and it
+>      stays open): the title of that same view says `The authors [9 items]`.
+>    - **The panel of a narrator says "No description available" for every
+>      narrator of every library** (T-252, and it stays open): the server gives
+>      no description of a narrator at all.
+>    - **The two renders of the panel of the episodes of a podcast are in no
+>      test** (T-250 to T-252, and it stays open).
+>    - **The keys of the sweep of T-247 that hold a playback are not measured**
+>      (T-248 to T-252, and it stays open).
+>    - **The key `B` says nothing on either road** (T-248 to T-252, and it stays
+>      open).
+>    - **The key `h` of the view of the bookmarks, of the view of the chapters,
+>      and of the view of the queue gives the Home view** (T-247 to T-252, and it
+>      stays open).
+>    - **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
+>      T-252, and it stays open).
+>    - **The lines of the view of the bookmarks hold no place of the user**
+>      (T-229 to T-252, and it stays open).
+>    - **The line of the Library view of a library of podcasts says no place at
+>      all** (T-242 to T-252, and it stays open).
+>
 >    **The
 >    session of the eightieth turn took the first paragraph of "What this item
 >    leaves open" of the newest item: that paragraph named the same panel of a
@@ -11575,78 +11782,10 @@ Three things are worth the room:
 >    - **The line of the Library view of a library of podcasts says no place at
 >      all** (T-242 to T-250, and it stays open).
 >
->    **The
->    session of the seventy-eighth turn took no paragraph of the newest item:
->    the three that stood open each need a playback inside tmux, and the round
->    took a value of the words for the user that stands in seven views**
->    (T-249).
->
->    **"N/A" is a value of a field, and a description is a panel of its own.**
->    The words of `NOT_AVAILABLE` stand beside a label — the line of the view
->    says `Author: LibriVox - Year: N/A - Duration: 1h30m`, and that label tells
->    the user which value the server does not have. **The panel of the
->    description holds no label at all**, therefore `N/A` alone stands on a line
->    of the screen and it says nothing (the rule of T-91 and of T-174).
->
->    **Nine functions of six files make that panel, and they gave three
->    different answers for the same condition.** The view of the search, the
->    Library view, and the view of the collections and of the playlists said
->    `No description available`; the Home view, the view of the episodes of a
->    podcast, and the Home view of a library of podcasts said `N/A`; and the
->    view of the books of a series said nothing at all.
->
->    The measurement, of the real program inside tmux against the sandbox. One
->    book of no description, `A Long Test Book`, in two views of one run:
->
->    ```text
->    ────────Search result [1 item]────────    ────────Home [35 items]────────
->    ➤ 50% A Long Test Book                    ➤ 50% A Long Test Book
->    Author: Long Author - Year: N/A - …       Author: Long Author - Year: N/A …
->    Progress: 50%, 15m left, Not finished     Progress: 50%, 15m left, Not fin…
->    No description available                  N/A
->    ```
->
->    The view of the episodes of `Letters of Two Brides` said `N/A` for every
->    one of its 57 episodes, and the server gives `""` for the subtitle and for
->    the description of each of them. The panel of the second book of
->    `The Test Chronicles`, whose description is `<p> </p>`, held no line at
->    all.
->    - **A value of the program that stands in more than one view is a sweep of
->      its own** (T-249): no round before this one asked "what does each of the
->      nine makers of this panel give for the same condition?", and the answer
->      was three different things and one of them was nothing. **Ask it of every
->      value that more than one view holds.**
->    - **A default of a field is not a default of a panel** (T-249):
->      `NOT_AVAILABLE` is right beside a label and wrong on a line of its own,
->      therefore one shared helper needs two words and not one.
->    - **A field of a struct that a fallback of another view reads must hold the
->      value of the server alone** (T-249 and T-43): the words of the program in
->      `SeriesBookView::description` hid the description of the book after it,
->      and the road is a function of the screen beside the field.
->    - **`collect_descs_pod_cnt_list` reaches no panel of the screen** (T-249,
->      and it stays open): the render of the Home view of a library of podcasts
->      reads `subtitles_pod_cnt_list`, therefore that box keeps its `N/A` and no
->      user sees it. **A box that the render never reads is a road of its own.**
->    - **The panel of the view of the authors and the panel of the view of the
->      narrators are not measured** (T-249, and it stays open).
->    - **The keys of the sweep of T-247 that hold a playback are not measured**
->      (T-248 to T-249, and it stays open): the keys `u`, `I`, and `Y` of the
->      view of the episodes, with a playback of an episode.
->    - **The key `B` says nothing on either road** (T-248 to T-249, and it stays
->      open).
->    - **The key `h` of the view of the bookmarks, of the view of the chapters,
->      and of the view of the queue gives the Home view** (T-247 to T-249, and
->      it stays open).
->    - **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to
->      T-249, and it stays open).
->    - **The lines of the view of the bookmarks hold no place of the user**
->      (T-229 to T-249, and it stays open).
->    - **The line of the Library view of a library of podcasts says no place at
->      all** (T-242 to T-249, and it stays open).
 >
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the seventy-seventh and every turn before it, the item of each, and the
+>    the seventy-eighth and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
@@ -12027,7 +12166,10 @@ Three things are worth the room:
 > podcast says the description of that episode: the list of the descriptions
 > holds one value for each episode, the description of the podcast belongs to an
 > episode of no description of its own, and the subtitle of the episode stands
-> above the two of them** (T-251).
+> above the two of them** (T-251), and **the panel of a description stops at its
+> last line: the render of a panel is the one road to the length of its text,
+> the key that moves the panel down reads the value that the render measured,
+> and a panel that scrolled past its last line holds no line at all** (T-252).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

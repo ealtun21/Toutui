@@ -2582,7 +2582,18 @@ impl App {
                 self.scroll_offset = 0;
             }
             // scroll up into description section
-            KeyCode::Char('J') => self.scroll_offset += 1,
+            //
+            // **The key stops at the last line of the text of the panel**
+            // (T-252). It moved `scroll_offset` with no limit before, therefore
+            // one press took the whole of a description of one line away and
+            // the panel then held no line at all. The render of the panel wrote
+            // the largest scroll of that panel at the frame before this key.
+            KeyCode::Char('J') => {
+                self.scroll_offset =
+                    crate::logic::the_scroll_of_a_panel::the_scroll_after_one_step_down(
+                        self.scroll_offset,
+                    )
+            }
             // go start description section
             KeyCode::Char('H') => self.scroll_offset = 0,
             KeyCode::Char('k') | KeyCode::Up => {

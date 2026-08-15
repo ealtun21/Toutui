@@ -1116,3 +1116,43 @@ curl -X PATCH -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/js
 **That road is the second client of the account of a measurement of a live
 message**: the server sends `user_updated` after each of the two requests, and
 the log of the program says `[live] user_updated: the position of 27 media.`
+
+## 17. The description of an author, for T-252
+
+**No author of the sandbox held a description**, therefore the panel of the view
+of the authors and of the view of the narrators said "No description available"
+for every line, and a measurement of the scroll of that panel had no text to
+move. One request of the server makes the condition, and it stays in the
+sandbox:
+
+```bash
+A=312c42ff-e800-4b29-9974-d2d899d0bba9        # Lewis Carroll, of the library Books
+curl -X PATCH -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"description":"<p>Charles Lutwidge Dodgson wrote under the name Lewis Carroll.</p>"}' \
+  "http://localhost:13399/api/authors/$A"
+```
+
+**The identity of an author changes with a scan of the library**, therefore a
+measurement takes it of the server first:
+
+```bash
+L=1b090ea8-91c5-4591-ac9d-716985e61faf        # the library Books
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:13399/api/libraries/$L/authors" | python3 -c 'import sys,json
+for a in json.load(sys.stdin)["authors"]:
+    if a["name"] == "Lewis Carroll": print(a["id"])'
+```
+
+**The other eight authors of that library hold no description**, and they are
+therefore the control of such a measurement: the panel of each of them says
+"No description available".
+
+**A narrator holds no description at all.**
+`GET /api/libraries/:id/narrators` gives the identity, the name, and the number
+of the books of each narrator, and no field of a description. The sandbox holds
+`A Test Narrator` of two books and `Jonathan Davis` of one book.
+
+**The longest text of the panels of the program is the changelog**: the key `S`,
+two presses of the key `j`, and the key `l` give the view "About and changelog",
+and the panel of that view holds every entry of the fork and every entry of the
+project before it.
