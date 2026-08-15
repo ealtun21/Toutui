@@ -1,4 +1,20 @@
-//! The scroll of the panel of a description. See T-252 and T-253.
+//! The scroll of the panel of a description. See T-252, T-253, and T-254.
+//!
+//! **The bar of the scroll names the two keys that move the panel** (T-254).
+//! The measurement of 2026-08-15, of the real program inside tmux: the view
+//! "About and changelog" of the settings drew the bar of T-253 at the right of
+//! its text, and no character of the screen said which key moves that panel.
+//! The list of every key (the key `?`) holds "J / K: Scroll the description
+//! down and up", and the footer of that view said
+//! "j/k: move  l: take the line  h: back  Tab: home  R: refresh  ?: every key
+//! Q: quit".
+//!
+//! **The footer of the two views that hold the longest lists has no room for
+//! those words.** `FOOTER_OF_A_LIBRARY_OF_BOOKS` holds 116 characters and the
+//! gate of this repository takes 130 (`every_footer_fits_in_eighty_columns`),
+//! and a measurement of the Home view in 60 columns filled the two rows of
+//! `FOOTER_HEIGHT` exactly. Therefore the letters stand at the two ends of the
+//! bar itself: they cost no row and no column, and they come with the bar.
 //!
 //! **A panel that holds more text than its rows says so** (T-253). The
 //! measurement of 2026-08-15, of the real program inside tmux: the view
@@ -133,6 +149,9 @@ pub struct ThePanel {
     /// The bar of the scroll stands beside the text. A panel of one character
     /// holds the bar or the text, and the text comes first.
     the_bar_comes: bool,
+    /// The letters of the two keys stand at the two ends of the bar. A bar of
+    /// few rows holds the letters or the track, and the track comes first.
+    the_letters_come: bool,
 }
 
 impl ThePanel {
@@ -144,7 +163,23 @@ impl ThePanel {
     pub fn the_bar_comes(&self) -> bool {
         self.the_bar_comes
     }
+
+    /// Says that the letters of the two keys stand at the two ends of the bar.
+    ///
+    /// **This is the one line of the correction of T-254**: a build with
+    /// `false` in the place of `self.the_letters_come` gives the bar that names
+    /// no key again.
+    pub fn the_letters_come(&self) -> bool {
+        self.the_letters_come
+    }
 }
+
+/// The smallest number of the rows of a bar that holds the letters of the keys.
+///
+/// The two letters take one row each, and the track of the bar keeps two rows:
+/// a bar of fewer rows says the key and it loses the place of the user in the
+/// text, and that place is the work of T-253.
+const THE_ROWS_OF_THE_LETTERS: u16 = 4;
 
 /// Gives everything that the render of a panel of a description needs, and it
 /// keeps the largest scroll of that panel for the key.
@@ -166,6 +201,11 @@ pub fn the_panel_of_the_render(now: u16, text: &str, width: u16, rows: u16) -> T
     // first.
     let the_bar_comes = width >= 2 && the_last_scroll(text, width, rows) > 0;
 
+    // **The letters of the keys stand at the two ends of the bar** (T-254). A
+    // bar of few rows keeps its track, because the place of the user in the
+    // text is the work of T-253.
+    let the_letters_come = the_bar_comes && rows >= THE_ROWS_OF_THE_LETTERS;
+
     let width_of_the_text = if the_bar_comes { width - 1 } else { width };
 
     let lines = the_number_of_the_lines(text, width_of_the_text);
@@ -179,8 +219,17 @@ pub fn the_panel_of_the_render(now: u16, text: &str, width: u16, rows: u16) -> T
         last,
         lines,
         the_bar_comes,
+        the_letters_come,
     }
 }
+
+/// The letter of the key that moves the panel up. It stands at the top of the
+/// bar of the scroll. See T-254.
+pub const THE_LETTER_OF_THE_KEY_UP: &str = "K";
+
+/// The letter of the key that moves the panel down. It stands at the foot of
+/// the bar of the scroll. See T-254.
+pub const THE_LETTER_OF_THE_KEY_DOWN: &str = "J";
 
 /// Gives the scroll after one press of the key that moves the panel down.
 ///
@@ -314,5 +363,46 @@ mod tests {
         assert_eq!(narrow.width_of_the_text, 1);
         assert!(!narrow.the_bar_comes());
         assert_eq!(narrow.last, 2);
+    }
+
+    /// The letters of the keys at the two ends of the bar. See T-254.
+    ///
+    /// **The parts of this test stay in one function**, because the box of the
+    /// process holds one value for the whole binary of the test.
+    #[test]
+    fn the_bar_of_the_scroll_names_the_keys_that_move_the_panel() {
+        // The panel of the measurement of T-254: the changelog of the settings
+        // in a panel of many rows. The bar comes, and it names the two keys.
+        let long = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10";
+        let panel = the_panel_of_the_render(0, long, 80, 4);
+        assert!(panel.the_bar_comes());
+        assert!(panel.the_letters_come());
+
+        // A text that ends inside the panel takes no bar, therefore it names no
+        // key at all.
+        let short = the_panel_of_the_render(0, "A book.", 80, 4);
+        assert!(!short.the_bar_comes());
+        assert!(!short.the_letters_come());
+
+        // **A bar of few rows keeps its track**: the two letters take one row
+        // each, and a bar of three rows would then hold one row of the place of
+        // the user. The bar of such a panel comes, and it names no key.
+        for rows in 1..THE_ROWS_OF_THE_LETTERS {
+            let small = the_panel_of_the_render(0, long, 80, rows);
+            assert!(small.the_bar_comes(), "{} rows", rows);
+            assert!(!small.the_letters_come(), "{} rows", rows);
+        }
+
+        // The letter of the key that moves the panel up stands at the top of
+        // the bar, and the letter of the key that moves it down stands at the
+        // foot of it. The keys of `App` are `K` and `J`.
+        assert_eq!(THE_LETTER_OF_THE_KEY_UP, "K");
+        assert_eq!(THE_LETTER_OF_THE_KEY_DOWN, "J");
+
+        // A panel of one character holds the text alone, therefore it names no
+        // key.
+        let narrow = the_panel_of_the_render(0, long, 1, 40);
+        assert!(!narrow.the_bar_comes());
+        assert!(!narrow.the_letters_come());
     }
 }

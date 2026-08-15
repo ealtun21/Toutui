@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.83",
+        date: "15/08/2026",
+        body: &[
+            "Added:",
+            "- **The bar of the scroll of a panel names the two keys that move \
+             that panel.** The letter of the key that moves the panel up \
+             stands at the top of the bar, and the letter of the key that \
+             moves it down stands at the foot of it. A bar of few rows keeps \
+             the whole of its track, and it takes no letter.",
+        ],
+    },
+    Entry {
         version: "0.8.82",
         date: "15/08/2026",
         body: &[

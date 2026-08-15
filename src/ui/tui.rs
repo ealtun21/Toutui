@@ -780,6 +780,10 @@ impl App {
     /// of the scroll stands at the right of the text, and it takes one
     /// character of the width. A panel that holds the whole of its text takes
     /// no bar and it keeps the whole width.
+    ///
+    /// **The two ends of the bar name the keys that move the panel** (T-254):
+    /// the letter of the key that moves it up stands at the top of the bar, and
+    /// the letter of the key that moves it down stands at the foot of it.
     fn render_a_description(&self, area: Rect, buf: &mut Buffer, text: &str) {
         let panel = crate::logic::the_scroll_of_a_panel::the_panel_of_the_render(
             self.scroll_offset,
@@ -806,9 +810,23 @@ impl App {
             let mut state =
                 ScrollbarState::new(usize::from(panel.last)).position(usize::from(panel.scroll));
 
+            // **The two ends of the bar name the keys that move the panel**
+            // (T-254). The footer of the Home view and of the Library view
+            // holds 116 of the 130 characters of the gate of the footers,
+            // therefore those words fit in no footer. A bar of few rows keeps
+            // its track and it takes no letter.
+            let (up, down) = if panel.the_letters_come() {
+                (
+                    Some(crate::logic::the_scroll_of_a_panel::THE_LETTER_OF_THE_KEY_UP),
+                    Some(crate::logic::the_scroll_of_a_panel::THE_LETTER_OF_THE_KEY_DOWN),
+                )
+            } else {
+                (None, None)
+            };
+
             Scrollbar::new(ScrollbarOrientation::VerticalRight)
-                .begin_symbol(None)
-                .end_symbol(None)
+                .begin_symbol(up)
+                .end_symbol(down)
                 .track_symbol(Some("│"))
                 .thumb_symbol("█")
                 .render(bar_area, buf, &mut state);

@@ -18874,3 +18874,149 @@ the two of them that called `the_scroll_of_the_render` call
   T-253, and it stays open).
 - **The line of the Library view of a library of podcasts says no place at all**
   (T-242 to T-253, and it stays open).
+
+### T-254: the bar of the scroll of a panel names the keys that move it
+
+**The state**: corrected on 2026-08-15. The measurement is of the real program
+inside tmux, against the sandbox.
+
+#### What T-253 left open
+
+T-253 left this paragraph of its own "What this item leaves open": "**The footer
+of a view promises no key of the panel** (T-252 and T-253, and it stays open):
+the keys `J`, `K`, and `H` stand in no footer of the program, and a user who
+sees the bar of the scroll now gets no word of the key that moves it."
+
+The first paragraph of that same list asks for a test of the render, and it
+stays open: `render_a_description` is a private method of `App`, and no test of
+this repository draws a frame of the program into a buffer. This item takes the
+paragraph of the user and not the paragraph of the gate.
+
+#### The fault
+
+T-253 gave the panel of a description a bar of the scroll. **The bar says that
+the panel holds more text, and no character of the screen says which key moves
+that panel.** The user therefore sees a bar that they cannot use.
+
+The program holds the words already: the list of every key (the key `?`) says
+`J / K   Scroll the description down and up` and `H   The description goes to
+its top`. That list is one key away from every view, and the footer of the view
+is the fast road of a key. No footer of the program named the panel at all.
+
+#### The measurement
+
+The real program v0.8.82, inside tmux, against the sandbox, on a screen of 160
+columns and 45 rows. The view "About and changelog" of the settings (the key
+`S`, two presses of the key `j`, and the key `l`):
+
+```text
+AlbanDAVID wrote Toutui and archived it. This repository continues        █
+that work. https://github.com/AlbanDAVID/Toutui                           │
+                                                                          │
+...
+                                       j/k: move  l: take the line  h: back  Tab: home  R: refresh  ?: every key  Q: quit
+```
+
+**The bar stands at the right of the text, and the footer of that view names
+seven keys and no key of the panel.** The control of the same run: the key `?`
+of that same program gave the two lines of `J / K` and of `H`, therefore the
+program knows those keys and the view does not say them.
+
+#### Why the words go to the bar and not to the footer
+
+The footer is the place where a view names its keys (T-143), and **the footer of
+the two views that hold the longest lists has no room**:
+
+- `FOOTER_OF_A_LIBRARY_OF_BOOKS` and `FOOTER_OF_A_LIBRARY_OF_PODCASTS` each hold
+  116 characters, and the gate `every_footer_fits_in_eighty_columns` of
+  `src/ui/keys.rs` takes 130. The words `  J/K: the description` hold 22, and
+  116 + 22 = 138.
+- A measurement of the Home view of the real program in **60 columns**: that
+  footer of 116 characters fills the two rows of `FOOTER_HEIGHT` exactly, with
+  no row left. A longer footer goes to a third row, and the layout of
+  `the_areas_of_a_view` cuts that row away. The user of a narrow terminal would
+  then lose `Q: quit`.
+
+The two views of that footer are the Home view and the Library view, and each of
+them draws a panel of a description. **The footer that most needs the words is
+the footer that holds none.**
+
+**The bar itself costs no row and no column.** It stands in the panel already
+when the text is longer than the rows of it, and `Scrollbar` of ratatui holds a
+symbol at each of its two ends. The letters therefore come with the bar and they
+go with it: a panel that holds the whole of its text says nothing at all, which
+is right, because the key does nothing there.
+
+#### The correction
+
+`the_panel_of_the_render` of `src/logic/the_scroll_of_a_panel.rs` gives
+`the_letters_come()`, and `App::render_a_description` of `src/ui/tui.rs` reads
+it: `begin_symbol` takes `K` and `end_symbol` takes `J`.
+
+**A bar of few rows keeps the whole of its track.** The two letters take one row
+each, therefore a bar of three rows or fewer would hold one row of the place of
+the user, and that place is the work of T-253. The letters come at four rows and
+above.
+
+The frame after the correction, of the same view of the same program:
+
+```text
+AlbanDAVID wrote Toutui and archived it. This repository continues        K
+that work. https://github.com/AlbanDAVID/Toutui                           █
+                                                                          │
+...
+- AlbanDAVID (the original project), ealtun21                             J
+```
+
+The control of the same run: the panel of the Home view says "No description
+available", and it holds no bar and no letter.
+
+#### The build of the fault
+
+`false && self.the_letters_come` in `ThePanel::the_letters_come` gives
+`assertion failed: panel.the_letters_come()` of
+`src/logic/the_scroll_of_a_panel.rs`, in the test
+`the_bar_of_the_scroll_names_the_keys_that_move_the_panel`.
+
+#### The tests
+
+One new function of the module `logic::the_scroll_of_a_panel::tests`. **The
+parts of that test stay in one function**, because the box of the process holds
+one value for the whole binary of the test. The four tests of T-252 and of T-253
+stay.
+
+#### What this item leaves open
+
+- **The bar of the scroll of the panel is in no test of the render** (T-253 and
+  T-254, and it stays open): the correction of the screen stands on the
+  measurement of tmux alone, as the corrections of T-250 to T-253 do.
+  `render_a_description` is a private method of `App`, and no test of this
+  repository draws a frame of the program into a buffer. **A test of that shape
+  would close the two renders of the panel of the episodes of a podcast too.**
+- **The key `H` of the panel stands on no character of the screen** (T-254, and
+  it stays open): the bar names the two keys that move the panel one line, and
+  the key that gives the top of the text back has no room at the ends of a bar
+  of two ends. The list of the key `?` names it.
+- **The list of a view holds no bar of the scroll** (T-253 and T-254, and it
+  stays open): the Library view of 2056 items draws `render_list` and not
+  `render_a_description`, and that list says the number of its items in the
+  title alone.
+- **The line of the view of the authors says `[1 book(s)]`** (T-252 to T-254,
+  and it stays open).
+- **The panel of a narrator says "No description available" for every narrator
+  of every library** (T-252 to T-254, and it stays open).
+- **The two renders of the panel of the episodes of a podcast are in no test**
+  (T-250 to T-254, and it stays open).
+- **The keys of the sweep of T-247 that hold a playback are not measured**
+  (T-248 to T-254, and it stays open).
+- **The key `B` says nothing on either road** (T-248 to T-254, and it stays
+  open).
+- **The key `h` of the view of the bookmarks, of the view of the chapters, and
+  of the view of the queue gives the Home view** (T-247 to T-254, and it stays
+  open).
+- **`take_the_episodes_of_the_line` writes no `ids_pod_ep`** (T-246 to T-254,
+  and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user** (T-229 to
+  T-254, and it stays open).
+- **The line of the Library view of a library of podcasts says no place at all**
+  (T-242 to T-254, and it stays open).
