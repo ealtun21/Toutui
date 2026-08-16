@@ -214,9 +214,14 @@ fn the_two_panels_and_the_view_of_the_key_f_hold_one_rule() {
         "the view of the key f and the two panels of the stack must call that one function"
     );
 
-    // The last row of the panel 2 is the direction, and the first row of the
-    // panel 3 is the line that removes the filter.
-    assert_eq!(of_the_sequence.last(), Some(&Row::Direction));
+    // The last row of the panel 2 is the row of the whole library (T-324), the
+    // row of the direction stands before it, and the first row of the panel 3
+    // is the line that removes the filter.
+    assert_eq!(of_the_sequence.last(), Some(&Row::TheWholeLibrary));
+    assert_eq!(
+        of_the_sequence.get(of_the_sequence.len() - 2),
+        Some(&Row::Direction)
+    );
     assert_eq!(of_the_filter.first(), Some(&Row::NoFilter));
 }
 

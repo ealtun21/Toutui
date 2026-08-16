@@ -1020,7 +1020,10 @@ impl App {
         let library_query = format!(
             "{}{}",
             crate::logic::sort_filter::query(&library_sort, library_desc, &library_filter),
-            if is_podcast { "" } else { "&collapseseries=1" }
+            // **The mode of the whole library takes the parameter away**
+            // (T-324): the user then reads every book of every series in one
+            // list, and `group_library` keeps those books apart.
+            crate::logic::library_view::the_group_of_the_request(is_podcast)
         );
 
         // init for `Home` (continue listening)
@@ -1550,10 +1553,12 @@ impl App {
         // **A filter of one series is the exception**: the user asked the
         // server for the books of that series, and every book then takes a
         // line of its own. See T-318.
+        // **The mode of the whole library is the second road to a book of a
+        // series** (T-324).
         let library_rows = group_library(
             &ids_library,
             &series,
-            crate::logic::sort_filter::is_a_filter_of_one_series(&library_filter),
+            crate::logic::library_view::the_books_stand_apart(&library_filter),
         );
 
         // The lines of the Home view: a line for the name of each shelf, and
@@ -4645,7 +4650,7 @@ impl App {
         self.library_rows = group_library(
             &self.ids_library,
             &self.series,
-            crate::logic::sort_filter::is_a_filter_of_one_series(&self.library_filter),
+            crate::logic::library_view::the_books_stand_apart(&self.library_filter),
         );
 
         // The key `G` waits for the end of the library. The new lines stand
@@ -7066,8 +7071,21 @@ impl App {
 
         let of_the_old = self.the_sequence_of_the_library();
 
+        // **The mode of the whole library holds no row of the account**
+        // (T-324): it lives in the process, therefore it takes no write of the
+        // disk and it needs no road back of a write that failed.
+        if matches!(row, Row::TheWholeLibrary) {
+            crate::logic::library_view::the_whole_library::keep(
+                !crate::logic::library_view::the_whole_library::stands(),
+            );
+
+            self.must_refresh = true;
+            return;
+        }
+
         match row {
             Row::Title(_) | Row::Note(_) => return,
+            Row::TheWholeLibrary => return,
             Row::Sort { field, .. } => {
                 // The same field a second time changes the direction. The
                 // user then needs one key for "the newest first".

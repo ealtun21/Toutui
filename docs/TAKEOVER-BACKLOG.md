@@ -29637,3 +29637,139 @@ and the bar of the seek of the panel 7 (no drag).
 6 of the gallery and the facts of the design of the panel 5 (T-319), the mode
 of the whole library that sends `collapseseries=0` (T-318), and the digit `7`,
 the drag of the bar, and the buttons of the band (T-322).
+
+## T-324 — Every book of every series takes a line of the Library view
+
+**The part of the stage 5 of the road of the panels that its round left open**
+(`### 0. The road of the panels (T-316 to T-323)` of `docs/HANDOVER.md`): "the
+mode of the whole library that sends `collapseseries=0` stays open, because the
+user has no key that gives every book of every series in one list".
+
+**The data of this item is the program itself**: no proxy, no book of a
+harness, and no change of the sandbox. The library of the row of the account
+comes of a `sqlite3` of `name_selected_lib` and of `id_selected_lib` (the trap
+203 and the trap 204).
+
+### The fault
+
+**The measurement of the server, of the library `Books` of the sandbox**, with
+a token of `POST /login` (the trap 193):
+
+```text
+GET /api/libraries/<Books>/items?limit=500&collapseseries=0 → total 22, results 22
+GET /api/libraries/<Books>/items?limit=500&collapseseries=1 → total 18, results 18
+```
+
+The four books that the second answer does not hold: `The Test Chronicles
+Volume 2`, `The Test Chronicles Volume 3`, `Second Series Volume 2`, and
+`Second Series Volume 3`.
+
+**The real program v0.8.153 inside tmux**, of the Library view of that library
+at 160 columns and 45 rows, with the key `Tab`:
+
+```text
+╔4 Library [18 items] ════════════════════════════════════════════════════╗
+║    Title                                 Author               Time  Done║
+║    A Book Of Many Hours                  Many Hours Author    8h00   57%║
+║    A Second Book Of Many Hours           Many Hours Author    8h00     -║
+║    The Test Chronicles [3 books]                                        ║
+║    Second Series [3 books]                                              ║
+║    Multi File Test Book                  Test Author            1m     -║
+```
+
+**Four books of the library stand in no row of the list at all**, the columns
+`Author`, `Time`, and `Done` of a row of a series hold no character, and the
+title of the view says 18 for a library of 22. The panel 2 of the sequence held
+eight rows — the seven fields and the direction — and **no row of the user gave
+every book of every series in one list**. The key `l` of a row of a series
+opens `AppView::SeriesBook` (T-22), therefore the books are not lost; they
+stand in no **list of the library**, therefore no sequence of the server and no
+filter of the server reaches them there.
+
+### The correction
+
+**The parameter of the server alone changes no screen** (the trap of T-318):
+`group_library` collapses the answer again on the side of the program.
+Therefore the mode writes the request **and** the rows.
+
+Four files, and no new one:
+
+- `src/logic/library_view.rs` holds `the_group_of_the_request`,
+  `the_books_stand_apart`, and the module `the_whole_library` of the mode.
+- `src/logic/sort_filter.rs` holds `Row::TheWholeLibrary`, its place after
+  `Row::Direction`, and its line.
+- `src/ui/the_panels_of_the_stack.rs` gives the panel 2 that same row.
+- `src/app.rs` reads the two functions at the request of the items and at the
+  two call sites of `group_library`, and
+  `apply_the_row_of_the_sequence_or_the_filter` takes the row.
+
+**The mode lives in the process and not in the row of the account.**
+`App::keep_the_state_of_the_application_before` runs **after**
+`App::new_with_the_engine` writes the request of the items, therefore a field of
+`App` and `TheStateThatARefreshKeeps` reach no query at all: the mode of T-323
+is a mode of the render alone, and this one is a mode of a request. A log out
+and a change of the account each start a new process
+(`App::start_the_program_with_this_account`), therefore the mode of the start
+comes back with that process and the module needs no `forget`.
+
+### The corrected program
+
+The same harness, with the key `2` of the panel 2, eight keys `j`, and the key
+`l` on the row `Every book of a series`:
+
+```text
+┌4 Library [22 items] ────────────────────────────────────────────────────┐
+│    A Second Book Of Many Hours           Many Hours Author    8h00     -│
+│  ✓ The Test Chronicles Volume 3          Series Author         <1m  done│
+│    The Test Chronicles Volume 2          Series Author         <1m   41%│
+│  ✓ The Test Chronicles Volume 1          Series Author         <1m  done│
+│  ✓ Second Series Volume 3                Series Author         <1m  done│
+│  ✓ Second Series Volume 2                Series Author         <1m  done│
+│  ✓ Second Series Volume 1                Series Author         <1m  done│
+│    Multi File Test Book                  Test Author            1m     -│
+```
+
+The panel 2 of that same frame:
+
+```text
+║    The direction: the smallest…║
+║➤ ✓ Every book of a series      ║
+```
+
+**The control of the same run**: the key `R` kept the mark `✓` and the mode,
+and the key `l` a second time gave `4 Library [18 items]` and a row with no
+mark. **A library of podcasts holds no such row**: the panel 2 of the library
+`Podcasts` of the sandbox held the three fields of a podcast and the direction,
+and no row of the mode.
+
+### The trap of this item
+
+**The mark says the state, and the words do not.** The first form of the row
+said `The books of a series: one line for the series` and `The books of a
+series: one line for each book`, and **the panel 2 holds 30 columns for a
+line**: the two sentences each reached the screen as `The books of a series:
+one…`. A row that says one text for the two states of the program says nothing
+at all. The row takes the mark `✓` of the rows of the filter and of the
+sequence instead, and `Every book of a series` is 24 columns.
+
+### The gate
+
+`tests/the_library_holds_every_book_of_a_series.rs`, of two tests. **The build
+of the fault** (the trap 147), of five edits of one line each — `if !is_podcast
+&& false` of `sort_filter::rows`, the same of `the_rows_of_the_sequence`,
+`(the_whole_library::stands() && false)` of `the_group_of_the_request`, the same
+of `the_books_stand_apart`, and `mark(… && false)` of the line of the row —
+made **five of the five** fail.
+`tests/the_panels_of_the_sequence_and_of_the_filter.rs` and the two tests of
+`src/ui/the_panels_of_the_stack.rs` read the new row of the panel 2.
+
+### What this item leaves open
+
+- **The mode holds no row of the account**, therefore it is not the mode of the
+  start of the next program. A user who wants the whole library at every start
+  needs a column of `users` and a migration of the database.
+- **The Home view keeps its groups**: the shelves come of the personalized view
+  and not of the request of the items, therefore the mode reaches no shelf.
+- **The row of a series keeps its empty columns** in the mode of the start: the
+  answer of the server holds no author, no length, and no place of the user for
+  a group of books (T-321).

@@ -4,7 +4,13 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.150.** The item T-318 belongs to this session. The
+**The newest release is v0.8.154.** The item T-324 belongs to this session. The
+item T-323 belongs to the session before it. The
+item T-322 belongs to the session before it. The
+item T-319 belongs to the session before it. The
+item T-318 belongs to the session before it. The
+item T-321 belongs to the session before it. The
+item T-316 belongs to the session before it. The
 item T-320 belongs to the session before it. The
 item T-317 belongs to the session before it. The
 item T-315 belongs to the session before it. The
@@ -154,14 +160,103 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.139**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.154**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1374 of 1374** in 3.2 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1400 of 1400** in 44.7 seconds
+**1449 of 1449** in 3.0 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1475 of 1475** in 18.1 seconds
 with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
-gives no failure over its binaries in two runs.
+gives no failure over its 40 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and fifty-fourth turn of 2026-08-16: every book of every series takes a line of the Library view
+
+**The item: T-324**, and the release **v0.8.154**. It is the part of the stage 5
+of the road of the panels that the round of T-318 left open: "the mode of the
+whole library that sends `collapseseries=0` stays open, because the user has no
+key that gives every book of every series in one list". **The eight stages of
+the road of the panels are done**, therefore a round now takes a part that a
+stage left open, and this is the first of them.
+
+**A book of a series stood in no row of the Library view.** The request of the
+items holds `&collapseseries=1`, therefore the server answers with one item for
+the whole series. The measurement of the server, of the library `Books` of the
+sandbox: `collapseseries=0` gives 22 items and `collapseseries=1` gives 18, and
+the four books `The Test Chronicles Volume 2`, `The Test Chronicles Volume 3`,
+`Second Series Volume 2`, and `Second Series Volume 3` are the difference.
+
+**The real program v0.8.153 inside tmux**, at 160 columns and 45 rows, of the
+Library view of that library:
+
+```text
+╔4 Library [18 items] ════════════════════════════════════════════════════╗
+║    Title                                 Author               Time  Done║
+║    A Second Book Of Many Hours           Many Hours Author    8h00     -║
+║    The Test Chronicles [3 books]                                        ║
+║    Second Series [3 books]                                              ║
+```
+
+The columns `Author`, `Time`, and `Done` of a row of a series hold no character
+at all, the title says 18 for a library of 22, and the panel 2 of the sequence
+held the seven fields and the direction and **no row that gives every book of
+every series in one list**. The key `l` of a row of a series opens
+`AppView::SeriesBook` (T-22), therefore no book is lost; a book of a series
+stands in no **list of the library**, therefore no sequence and no filter of the
+server reaches it there.
+
+**The data of this item is the program itself**: no proxy, no book of a
+harness, and no change of the sandbox. The library of the row of the account
+comes of a `sqlite3` of `name_selected_lib` and of `id_selected_lib` (the trap
+203 and the trap 204).
+
+**The corrected program of the same harness**, with the key `2`, eight keys `j`,
+and the key `l` on the row `Every book of a series`:
+
+```text
+┌4 Library [22 items] ────────────────────────────────────────────────────┐
+│  ✓ The Test Chronicles Volume 3          Series Author         <1m  done│
+│    The Test Chronicles Volume 2          Series Author         <1m   41%│
+│  ✓ The Test Chronicles Volume 1          Series Author         <1m  done│
+│  ✓ Second Series Volume 3                Series Author         <1m  done│
+```
+
+and the panel 2 of that same frame said `➤ ✓ Every book of a series`. **The
+control of the same run**: the key `R` kept the mark and the mode, and the key
+`l` a second time gave `4 Library [18 items]` and a row with no mark. **The
+panel 2 of the library `Podcasts` held no such row.**
+
+**The correction is four files, and no new one.** `src/logic/library_view.rs`
+holds `the_group_of_the_request`, `the_books_stand_apart`, and the module
+`the_whole_library` of the mode; `src/logic/sort_filter.rs` holds
+`Row::TheWholeLibrary` after `Row::Direction`;
+`src/ui/the_panels_of_the_stack.rs` gives the panel 2 that same row; and
+`src/app.rs` reads the two functions at the request of the items and at the two
+call sites of `group_library`.
+
+**The mode lives in the process and not in the row of the account**, because
+`App::keep_the_state_of_the_application_before` runs **after**
+`App::new_with_the_engine` writes the request of the items: the mode of T-323 is
+a mode of the render alone, and a field of `App` therefore reaches no query at
+all. A log out and a change of the account each start a new process, therefore
+the mode of the start comes back with that process.
+
+`tests/the_library_holds_every_book_of_a_series.rs` holds the gate, of two
+tests. **The build of the fault** (the trap 147), of five edits of one line
+each, made **five of the five** fail.
+
+**The trap of this item**: **the mark says the state, and the words do not.**
+The first form of the row said `The books of a series: one line for the series`
+and `… one line for each book`, and **a line of the panel 2 holds 30 columns**:
+the two sentences each reached the screen as `The books of a series: one…`, and
+a row that says one text for the two states of the program says nothing at all.
+
+### What this turn leaves open
+
+- **The mode holds no row of the account**, therefore it is not the mode of the
+  start of the next program. A column of `users` and a migration of the database
+  are the road.
+- **The Home view keeps its groups**: its shelves come of the personalized view
+  and not of the request of the items.
 
 ## The session of the hundred and fifty-third turn of 2026-08-16: the key `z` hides the panels 1 to 3
 
@@ -11306,7 +11401,7 @@ measurement can hold.
 | 2 | **T-320** | The frame of the panels, the focus, and the narrow terminal — **done, v0.8.146**; the two lines of the footer stay open |
 | 3 | **T-316** | The harness of a click, the capture, and a click of a row — **done, v0.8.147**; the targets of the regions of the stages after it stay open |
 | 4 | **T-321** | The list of the panel 4 becomes a table of a header — **done, v0.8.148**; the sequence of a click of a word of the header belongs to T-318 |
-| 5 | **T-318** | The panels 2 and 3, and a series that opens into its books — **done, v0.8.149 and v0.8.150**; the mode of the whole library that sends `collapseseries=0` stays open |
+| 5 | **T-318** | The panels 2 and 3, and a series that opens into its books — **done, v0.8.149 and v0.8.150**; the mode of the whole library is **done too, v0.8.154** (T-324) |
 | 6 | **T-319** | The panel 5 of one cover, and the panel 6 of the gallery — the panel 5 is **done, v0.8.151**; the panel 6 of the gallery stays open |
 | 7 | **T-322** | The band of the player, its bar of the seek, and the click of it — **done, v0.8.152**; the digit `7`, the drag, and the buttons of the design stay open |
 | 8 | **T-323** | The mode that hides the panels 1 to 3, and the last sweep — **done, v0.8.153**; the sweep names the regions of the mouse that no stage reached |
@@ -11445,11 +11540,11 @@ footer of the panel 4 names the key `f`.
    `4 Library [1 item]`. `group_library` now takes
    `the_books_stand_apart`, and
    `crate::logic::sort_filter::is_a_filter_of_one_series` gives it.
-   **The mode of the whole library that sends `collapseseries=0` stays
-   open**, and the trap of that work stands in the item T-318 of
-   `docs/TAKEOVER-BACKLOG.md`: the parameter of the server alone changes no
-   screen, because `group_library` collapses the answer again on the side of
-   the program.
+   **The mode of the whole library is done, v0.8.154** (T-324): the row
+   `Every book of a series` of the panel 2 and of the view of the key `f`
+   takes the parameter `collapseseries=1` out of the request **and** it gives
+   `group_library` the rule that the books stand apart, because the parameter
+   of the server alone changes no screen.
 3. **The filter of the server is not every filter that a user wants.** The
    item names "added first", and the sequence of that name stands; it also
    names the media that you did not start and the media of the disk, and
@@ -21557,6 +21652,101 @@ that promises a function that the program does not have (T-118).
     columns takes no key**, because the keys of a panel belong to the shape
     of three columns alone (T-320).
 
+## The session of the hundred and fifty-second turn of 2026-08-16: the band of the player, of the block of the prompt
+
+  **The session of the hundred and fifty-second turn took the stage 7 of
+  the road of the panels** (T-322), the band of the player. **It left the
+  digit `7`, the drag of the bar, and the buttons of the design open.**
+
+  **The three rows of the player stood in the air.** The real program
+  v0.8.151 inside tmux, of the Home view of the library `Books` of the
+  sandbox at 160 columns and 45 rows, with the key `l` of the book of eight
+  hours `A Book Of Many Hours` (three chapters, the section 6i of
+  `docs/TEST-SERVER.md`) and `TOUTUI_AUDIO_DEVICE=null`:
+
+  ```text
+                 A Book Of Many Hours by Many Hours Author | The hours of the start
+             ▶ 1:14:07 / 8:00:00 | Elapsed: 1:14:07 | Left: 6:45:53 (15%) | Speed: 1.00x
+    Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I: spd +/− | o/i: vol +/− | t: sleep | Y: quit
+  ```
+
+  The rows held no border, no title, and no number of a panel, therefore no
+  key and no click of the user could name them, and **the band held no bar
+  at all**: a screen of 160 columns said the place of the user in `(15%)`,
+  and the place of the user in the chapter stood nowhere. **The one control
+  of a place of a media was the pair of keys `p` and `u` of ten seconds**,
+  and a book of eight hours needed 2880 of them.
+
+  **The data of this stage is the program itself**: no proxy, no book of a
+  harness, and no change of the library — a `PATCH /api/me/progress/:id`
+  with `{"isFinished": false}` and then `{"currentTime": 3860}` gives the
+  same place before each run (the trap 148). The correction is six files,
+  and `src/ui/the_band_of_the_player.rs` is new: every function of it is
+  pure, and it holds `the_rows_of_the_band`, `the_parts_of_the_band`,
+  `the_parts_of_the_seek`, `the_bar_of_the_seek`, `the_second_of_a_column`,
+  `a_bar_of_a_part`, and the three functions of the chapter of a place.
+  `src/ui/player_tui.rs` holds `render_the_band`, which took the place of
+  `render_player`; `src/ui/frame.rs` holds `a_band`; `src/ui/tui.rs` holds
+  `the_five_areas`, `the_area_of_the_band`, and
+  `App::render_the_band_of_the_player`; `src/ui/the_mouse.rs` holds
+  `TheTarget::TheBarOfTheSeek` and `TheTarget::TheBandOfThePlayer`; and
+  `src/app.rs` holds `App::the_playback_goes_to`.
+
+  **The corrected program** of the same harness:
+
+  ```text
+  ┌ Player ────────────────────────────────────────────────────────────────┐
+  │ ▶ A Book Of Many Hours  Many Hours Author  Chapter 1 of 3: The hours…  Speed 1.00x │
+  │ 1:46:15 ├█████████████████████▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░┤ 8:00:00 │
+  │ Book    █████████░░░░░░░░░░░░  22%  Chapter ███████████░░░░░░░░░  63%   │
+  │            Spc: pause/play | p/u: +/−10s | … | t: sleep | Y: quit       │
+  └────────────────────────────────────────────────────────────────────────┘
+  ```
+
+  **The click of the bar**, of `docs/harness/click.sh` at the column 80 of
+  the row 39 with the playback at a pause: the row of the seek went from
+  `1:46:25` to **`3:56:32`**, the row of the words went to `Chapter 2 of 3:
+  The hours of the middle`, the bar of the book went from 22 percent to 49,
+  and the message said **`The playback goes to 3:56:32.`** **The control of
+  the same run**: a click of the column 80 of the row 41, which is the row
+  of the buttons of that band, moved no playback and wrote no message.
+  **The wheel over the band**, at a pause: one step down took the place from
+  `4:13:55` to `4:14:05`, and two steps up took it to `4:13:45`. **The key
+  `B`**: the band went from six rows to five and the list of the panel 4
+  grew by one line. **The four widths**: 160, 100, and 84 columns hold the
+  two bars, and 40 columns hold the bar of the **book alone** of 22 cells,
+  because a half of 37 columns leaves 3 cells for a bar.
+
+  `tests/the_band_of_the_player_holds_its_bar.rs` holds the gate, of four
+  tests, and five more stand inside `src/ui/the_band_of_the_player.rs`.
+  `tests/the_panel_of_the_player_stands_on_four_rows.rs`, the gate of T-312,
+  reads the band now. **The build of the fault** (the trap 147), of four
+  edits of one line each — `if areas.the_bar_of_the_seek.contains(point) &&
+  false`, `|| true` of `the_parts_of_the_seek`, `if the_buttons_stand &&
+  false` of `the_rows_of_the_band`, and `&& position < chapter.end && false`
+  of `the_chapter_of_the_place` — made **four of the four** fail.
+
+  **The trap of this item**: **the bar of the seek and the click of it must
+  be exact opposites, and two divisions that each take the floor of their
+  answer are not.** `cell × length / width` is the first second of the cell,
+  and the bar of that second then holds `width × second / length` cells,
+  which is the cell **before** it for every cell whose second is not a whole
+  number: the user clicked a cell and the bar painted the cell at the left
+  of the pointer. The answer goes up (`div_ceil`).
+
+  **A second trap of the same shape**: **a band that writes the columns of
+  its own parts alone leaves the cells between them to the view under it.**
+  The view of the statistics draws no layout of `the_areas_of_a_view`, and
+  the row of the seek of that view said `23:44:39,├` with the `2` and the
+  `,` of the view under it. `Clear` of the area of the band is the road.
+  - **The digit `7` and the focus of the band stay open**: every key of the
+    player works in every view already, therefore a focus of the band would
+    hold no key of its own (T-118 and T-79).
+  - **A drag of the bar, the buttons `[Space Pause]` of the design, and the
+    wheel over `Speed` and over `Volume` stay open** too, and **the Reader
+    view reserves no row of the band**: it draws a layout of its own, and
+    one line of the book stands under the band.
+
 ## The prompt for the next session
 
 
@@ -22274,7 +22464,13 @@ that promises a function that the program does not have (T-118).
 > `\n## The prompt for the next session\n` or on the **last** hit, and
 > **`grep -c '^## The prompt for the next session' docs/HANDOVER.md` must answer
 > 1 before the commit**. **Every line of that block starts with `> `**, and the
-> block is the last part of the file.
+> block is the last part of the file. **The script that moves a turn out of the
+> block needs that same anchor** (the round of the hundred and fifty-fourth):
+> a search of the words `## The prompt for the next session` inside a line put
+> the turn of the round before it in the middle of a bullet of the rules, 8200
+> lines above the heading. `line == "## The prompt for the next session"` of
+> **every** line, with a count of 1, is the road, and a copy of the file before
+> the script gives the road back.
 >
 > **The loop of a measurement belongs in a file of `bash`**
 > (the trap 143 and the trap 152): the shell of the `Bash` tool of this harness is
@@ -22499,21 +22695,93 @@ that promises a function that the program does not have (T-118).
 >    **The eight stages are done** (v0.8.145 to v0.8.153), **and no stage of
 >    the road of the panels stays.** What stays is the part of a stage that
 >    its round left open, and each of those parts is a round of its own:
->    of the stage 5, the mode of the whole library that sends
->    `collapseseries=0`, because the user has no key that gives every book of
->    every series in one list; of the stage 6, the **panel 6 of the gallery**
->    and the facts of the design of the panel 5; of the stage 7, the digit
->    `7`, the drag of the bar, and the buttons of the band; and of the stage
->    8, **the regions of the map of the mouse that no stage reached** — the
->    item T-323 of `docs/TAKEOVER-BACKLOG.md` names every one of them, and
->    **each of them is a candidate and not an item.** The turn of the stage 8
->    below holds the trap of the whole road.
+>    of the stage 6, the **panel 6 of the gallery** and the facts of the
+>    design of the panel 5; of the stage 7, the digit `7`, the drag of the
+>    bar, and the buttons of the band; and of the stage 8, **the regions of
+>    the map of the mouse that no stage reached** — the item T-323 of
+>    `docs/TAKEOVER-BACKLOG.md` names every one of them, and **each of them
+>    is a candidate and not an item.** **The part of the stage 5, the mode of
+>    the whole library, is done** (T-324, v0.8.154), and the turn of it below
+>    holds the road of a part of a stage.
 >    **A round takes the part that gives the user the most**, and that section
 >    holds three decisions that a round must not take alone. Read it first.
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
+>   **The session of the hundred and fifty-fourth turn took the part of the
+>   stage 5 that its round left open** (T-324): the mode of the whole library.
+>   **The eight stages are done**, therefore a round now takes a part that a
+>   stage left open, and this was the first of them.
+>
+>   **A book of a series stood in no row of the Library view.** The request of
+>   the items holds `&collapseseries=1`, therefore the server answers with one
+>   item for the whole series. The measurement of the server, of the library
+>   `Books` of the sandbox: `collapseseries=0` gives 22 items and
+>   `collapseseries=1` gives 18, and the four books `The Test Chronicles
+>   Volume 2`, `The Test Chronicles Volume 3`, `Second Series Volume 2`, and
+>   `Second Series Volume 3` are the difference. **The real program v0.8.153
+>   inside tmux**, at 160 columns and 45 rows, of the Library view of that
+>   library:
+>
+>   ```text
+>   ╔4 Library [18 items] ════════════════════════════════════════════════════╗
+>   ║    Title                                 Author               Time  Done║
+>   ║    A Second Book Of Many Hours           Many Hours Author    8h00     -║
+>   ║    The Test Chronicles [3 books]                                        ║
+>   ║    Second Series [3 books]                                              ║
+>   ```
+>
+>   The columns `Author`, `Time`, and `Done` of a row of a series hold no
+>   character at all, the title said 18 for a library of 22, and the panel 2
+>   of the sequence held the seven fields and the direction and **no row that
+>   gives every book of every series in one list**. **The data of this item is
+>   the program itself**: no proxy, no book of a harness, and no change of the
+>   sandbox — the library of the row of the account comes of a `sqlite3` of
+>   `name_selected_lib` and of `id_selected_lib` (the trap 203 and the trap
+>   204).
+>
+>   **The corrected program of the same harness**, with the key `2`, eight
+>   keys `j`, and the key `l` on the row `Every book of a series`:
+>
+>   ```text
+>   ┌4 Library [22 items] ────────────────────────────────────────────────────┐
+>   │  ✓ The Test Chronicles Volume 3          Series Author         <1m  done│
+>   │    The Test Chronicles Volume 2          Series Author         <1m   41%│
+>   │  ✓ The Test Chronicles Volume 1          Series Author         <1m  done│
+>   │  ✓ Second Series Volume 3                Series Author         <1m  done│
+>   ```
+>
+>   and the panel 2 of that same frame said `➤ ✓ Every book of a series`.
+>   **The control of the same run**: the key `R` kept the mark and the mode,
+>   and the key `l` a second time gave `4 Library [18 items]` and a row with
+>   no mark. **The panel 2 of the library `Podcasts` held no such row.**
+>
+>   **The correction is four files, and no new one.**
+>   `src/logic/library_view.rs` holds `the_group_of_the_request`,
+>   `the_books_stand_apart`, and the module `the_whole_library` of the mode;
+>   `src/logic/sort_filter.rs` holds `Row::TheWholeLibrary` after
+>   `Row::Direction`; `src/ui/the_panels_of_the_stack.rs` gives the panel 2
+>   that same row; and `src/app.rs` reads the two functions at the request of
+>   the items and at the two call sites of `group_library`.
+>   `tests/the_library_holds_every_book_of_a_series.rs` holds the gate, of two
+>   tests, and **the build of the fault** (the trap 147), of five edits of one
+>   line each, made **five of the five** fail.
+>
+>   **The trap of this item**: **the mark says the state, and the words do
+>   not.** The first form of the row said `The books of a series: one line for
+>   the series` and `… one line for each book`, and **a line of the panel 2
+>   holds 30 columns**: the two sentences each reached the screen as `The
+>   books of a series: one…`, and a row that says one text for the two states
+>   of the program says nothing at all.
+>   - **The mode holds no row of the account**, therefore it is not the mode
+>     of the start of the next program: a column of `users` and a migration of
+>     the database are the road. **A field of `App` is no road at all**,
+>     because `App::keep_the_state_of_the_application_before` runs after
+>     `App::new_with_the_engine` writes the request of the items.
+>   - **The Home view keeps its groups**: its shelves come of the personalized
+>     view and not of the request of the items.
+>
 >   **The session of the hundred and fifty-third turn took the stage 8 of the
 >   road of the panels** (T-323), the mode that hides the panels 1 to 3.
 >   **That stage is the last of the eight, and the road of the panels is
@@ -22593,99 +22861,6 @@ that promises a function that the program does not have (T-118).
 >     nothing**, as the digits 1 to 5 do: the keys of a panel belong to the
 >     shape of three columns alone (T-320), and the footer of such a screen
 >     names none of them.
->
->   **The session of the hundred and fifty-second turn took the stage 7 of
->   the road of the panels** (T-322), the band of the player. **It left the
->   digit `7`, the drag of the bar, and the buttons of the design open.**
->
->   **The three rows of the player stood in the air.** The real program
->   v0.8.151 inside tmux, of the Home view of the library `Books` of the
->   sandbox at 160 columns and 45 rows, with the key `l` of the book of eight
->   hours `A Book Of Many Hours` (three chapters, the section 6i of
->   `docs/TEST-SERVER.md`) and `TOUTUI_AUDIO_DEVICE=null`:
->
->   ```text
->                  A Book Of Many Hours by Many Hours Author | The hours of the start
->              ▶ 1:14:07 / 8:00:00 | Elapsed: 1:14:07 | Left: 6:45:53 (15%) | Speed: 1.00x
->     Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I: spd +/− | o/i: vol +/− | t: sleep | Y: quit
->   ```
->
->   The rows held no border, no title, and no number of a panel, therefore no
->   key and no click of the user could name them, and **the band held no bar
->   at all**: a screen of 160 columns said the place of the user in `(15%)`,
->   and the place of the user in the chapter stood nowhere. **The one control
->   of a place of a media was the pair of keys `p` and `u` of ten seconds**,
->   and a book of eight hours needed 2880 of them.
->
->   **The data of this stage is the program itself**: no proxy, no book of a
->   harness, and no change of the library — a `PATCH /api/me/progress/:id`
->   with `{"isFinished": false}` and then `{"currentTime": 3860}` gives the
->   same place before each run (the trap 148). The correction is six files,
->   and `src/ui/the_band_of_the_player.rs` is new: every function of it is
->   pure, and it holds `the_rows_of_the_band`, `the_parts_of_the_band`,
->   `the_parts_of_the_seek`, `the_bar_of_the_seek`, `the_second_of_a_column`,
->   `a_bar_of_a_part`, and the three functions of the chapter of a place.
->   `src/ui/player_tui.rs` holds `render_the_band`, which took the place of
->   `render_player`; `src/ui/frame.rs` holds `a_band`; `src/ui/tui.rs` holds
->   `the_five_areas`, `the_area_of_the_band`, and
->   `App::render_the_band_of_the_player`; `src/ui/the_mouse.rs` holds
->   `TheTarget::TheBarOfTheSeek` and `TheTarget::TheBandOfThePlayer`; and
->   `src/app.rs` holds `App::the_playback_goes_to`.
->
->   **The corrected program** of the same harness:
->
->   ```text
->   ┌ Player ────────────────────────────────────────────────────────────────┐
->   │ ▶ A Book Of Many Hours  Many Hours Author  Chapter 1 of 3: The hours…  Speed 1.00x │
->   │ 1:46:15 ├█████████████████████▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░┤ 8:00:00 │
->   │ Book    █████████░░░░░░░░░░░░  22%  Chapter ███████████░░░░░░░░░  63%   │
->   │            Spc: pause/play | p/u: +/−10s | … | t: sleep | Y: quit       │
->   └────────────────────────────────────────────────────────────────────────┘
->   ```
->
->   **The click of the bar**, of `docs/harness/click.sh` at the column 80 of
->   the row 39 with the playback at a pause: the row of the seek went from
->   `1:46:25` to **`3:56:32`**, the row of the words went to `Chapter 2 of 3:
->   The hours of the middle`, the bar of the book went from 22 percent to 49,
->   and the message said **`The playback goes to 3:56:32.`** **The control of
->   the same run**: a click of the column 80 of the row 41, which is the row
->   of the buttons of that band, moved no playback and wrote no message.
->   **The wheel over the band**, at a pause: one step down took the place from
->   `4:13:55` to `4:14:05`, and two steps up took it to `4:13:45`. **The key
->   `B`**: the band went from six rows to five and the list of the panel 4
->   grew by one line. **The four widths**: 160, 100, and 84 columns hold the
->   two bars, and 40 columns hold the bar of the **book alone** of 22 cells,
->   because a half of 37 columns leaves 3 cells for a bar.
->
->   `tests/the_band_of_the_player_holds_its_bar.rs` holds the gate, of four
->   tests, and five more stand inside `src/ui/the_band_of_the_player.rs`.
->   `tests/the_panel_of_the_player_stands_on_four_rows.rs`, the gate of T-312,
->   reads the band now. **The build of the fault** (the trap 147), of four
->   edits of one line each — `if areas.the_bar_of_the_seek.contains(point) &&
->   false`, `|| true` of `the_parts_of_the_seek`, `if the_buttons_stand &&
->   false` of `the_rows_of_the_band`, and `&& position < chapter.end && false`
->   of `the_chapter_of_the_place` — made **four of the four** fail.
->
->   **The trap of this item**: **the bar of the seek and the click of it must
->   be exact opposites, and two divisions that each take the floor of their
->   answer are not.** `cell × length / width` is the first second of the cell,
->   and the bar of that second then holds `width × second / length` cells,
->   which is the cell **before** it for every cell whose second is not a whole
->   number: the user clicked a cell and the bar painted the cell at the left
->   of the pointer. The answer goes up (`div_ceil`).
->
->   **A second trap of the same shape**: **a band that writes the columns of
->   its own parts alone leaves the cells between them to the view under it.**
->   The view of the statistics draws no layout of `the_areas_of_a_view`, and
->   the row of the seek of that view said `23:44:39,├` with the `2` and the
->   `,` of the view under it. `Clear` of the area of the band is the road.
->   - **The digit `7` and the focus of the band stay open**: every key of the
->     player works in every view already, therefore a focus of the band would
->     hold no key of its own (T-118 and T-79).
->   - **A drag of the bar, the buttons `[Space Pause]` of the design, and the
->     wheel over `Speed` and over `Volume` stay open** too, and **the Reader
->     view reserves no row of the band**: it draws a layout of its own, and
->     one line of the book stands under the band.
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -22772,6 +22947,13 @@ that promises a function that the program does not have (T-118).
 > them again. **The mode is not the mode of the start**, a refresh keeps it, and
 > **a screen under 120 columns takes no key `z`**, as it takes no digit of a
 > panel (T-323).
+> **The mode of the whole library lives in the process and not in the row of
+> the account**, because `App::keep_the_state_of_the_application_before` runs
+> after `App::new_with_the_engine` writes the request of the items; **the row
+> `Every book of a series` stands in the panel 2 and in the view of the key
+> `f` of a library of books alone**, because a library of podcasts holds no
+> series; and **the mark says the state and the words do not**, because a line
+> of the panel 2 holds 30 columns (T-324).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
@@ -22846,7 +23028,10 @@ that promises a function that the program does not have (T-118).
 > in it, and it did the same work, and the block then held **80001** bytes with
 > **two** turns in it; the round of the hundred and fifty-third found it at
 > 80609 bytes with two turns in it, and it did the same work, and the block
-> then held about 81000 bytes with **two** turns in it.
+> then held about 81000 bytes with **two** turns in it; the round of the
+> hundred and fifty-fourth found it at 81000 bytes with two turns in it, and
+> it did the same work, and the block then held **80374** bytes with **two**
+> turns in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

@@ -239,6 +239,12 @@ pub enum Row {
     Sort { field: String, label: String },
     /// The line that changes the direction.
     Direction,
+    /// The line that gives every book of every series a line of its own.
+    /// See T-324.
+    ///
+    /// A library of podcasts holds no series, therefore that library holds no
+    /// such line.
+    TheWholeLibrary,
     /// The line that removes the filter.
     NoFilter,
     /// A choice of the filter.
@@ -272,6 +278,13 @@ pub fn rows(is_podcast: bool, filters: &[FilterChoice], note: Option<String>) ->
     }
 
     out.push(Row::Direction);
+
+    // **A library of podcasts holds no series** (T-324), therefore the request
+    // of that library takes no `collapseseries` and this line says nothing to
+    // its user.
+    if !is_podcast {
+        out.push(Row::TheWholeLibrary);
+    }
 
     out.push(Row::Title("The filter".to_string()));
     out.push(Row::NoFilter);
@@ -315,6 +328,19 @@ pub fn line_of(row: &Row, field: &str, desc: bool, filter: &str) -> String {
             } else {
                 "  The direction: the smallest first".to_string()
             }
+        }
+        Row::TheWholeLibrary => {
+            // **The mark says the state, and the words do not** (T-324): the
+            // panel 2 of the stack holds 32 columns, and the two sentences of
+            // the first form of this row (`The books of a series: one line for
+            // the series` and `… one line for each book`) each reached the
+            // screen as `The books of a series: one…`. A row that says one text
+            // for the two states of the program says nothing at all.
+            format!(
+                "{}{}",
+                mark(crate::logic::library_view::the_whole_library::stands()),
+                "Every book of a series"
+            )
         }
         Row::NoFilter => format!("{}{}", mark(filter.is_empty()), "No filter"),
         Row::Filter { label, value } => format!("{}{}", mark(value == filter), label),

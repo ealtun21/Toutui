@@ -71,6 +71,13 @@ pub fn the_rows_of_the_sequence(is_podcast: bool) -> Vec<Row> {
         .collect();
 
     out.push(Row::Direction);
+
+    // **A library of podcasts holds no series** (T-324), and the row of the
+    // whole library therefore stands for a library of books alone.
+    if !is_podcast {
+        out.push(Row::TheWholeLibrary);
+    }
+
     out
 }
 
@@ -255,18 +262,25 @@ mod tests {
     fn the_two_panels_hold_the_rows_of_the_view_of_the_key_f() {
         let of_the_books = the_rows_of_the_sequence(false);
 
-        // Seven fields of a library of books, and the direction after them.
-        assert_eq!(of_the_books.len(), sort_filter::SORTS_OF_BOOKS.len() + 1);
-        assert_eq!(of_the_books.last(), Some(&Row::Direction));
+        // Seven fields of a library of books, the direction after them, and the
+        // row of the whole library at the end (T-324).
+        assert_eq!(of_the_books.len(), sort_filter::SORTS_OF_BOOKS.len() + 2);
+        assert_eq!(of_the_books.last(), Some(&Row::TheWholeLibrary));
+        assert_eq!(
+            of_the_books.get(of_the_books.len() - 2),
+            Some(&Row::Direction)
+        );
 
         // A library of podcasts holds the three fields of a podcast, and no
         // field of a book: a field that the server does not know gives a
-        // sequence that no one specified.
+        // sequence that no one specified. **It holds no series either** (T-324),
+        // therefore the row of the whole library stands in no panel of it.
         let of_the_podcasts = the_rows_of_the_sequence(true);
         assert_eq!(
             of_the_podcasts.len(),
             sort_filter::SORTS_OF_PODCASTS.len() + 1
         );
+        assert!(!of_the_podcasts.contains(&Row::TheWholeLibrary));
 
         // The panel 3 holds the line of no filter and the three places of the
         // user.
@@ -313,8 +327,9 @@ mod tests {
         let of_the_sequence = the_height_of_a_panel(the_rows_of_the_sequence(false).len());
         let of_the_filter = the_height_of_a_panel(the_rows_of_the_filter().len());
 
-        // Seven fields and the direction, and two rows of the border.
-        assert_eq!(of_the_sequence, 10);
+        // Seven fields, the direction, the row of the whole library (T-324),
+        // and two rows of the border.
+        assert_eq!(of_the_sequence, 11);
         // No filter and the three places of the user, and two rows of the
         // border.
         assert_eq!(of_the_filter, 6);

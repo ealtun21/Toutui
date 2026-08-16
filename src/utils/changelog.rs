@@ -41,6 +41,26 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.154",
+        date: "16/08/2026",
+        body: &[
+            "Added:",
+            "- **The Library view can show every book of every series.** The \
+             program asked the server for the library with the books of a \
+             series in one group, therefore a book of a series stood in no \
+             row of the list at all: the library `Books` of the test server \
+             holds 22 books, and the list said `Library [18 items]`. The row \
+             `Every book of a series` of the panel 2 of the sequence, and of \
+             the view of the key `f`, gives every book a line of its own, \
+             with its author, its length, and your place in it.",
+            "- **A refresh keeps this mode.** The key `R` asks the server \
+             again, and the list stays as you made it.",
+            "Note:",
+            "- A library of podcasts holds no series, therefore it holds no \
+             such row.",
+        ],
+    },
+    Entry {
         version: "0.8.153",
         date: "16/08/2026",
         body: &[

@@ -102,6 +102,76 @@ pub fn group_library(
     rows
 }
 
+/// Says if every book of a series takes a line of its own. See T-318 and
+/// T-324.
+///
+/// **The two roads to a book of a series are one rule**: the filter of one
+/// series asks the server for the books of that series alone (T-318), and the
+/// mode of the whole library asks for every item of the library with no group
+/// at all (T-324). A call site that reads one of them and not the other gives a
+/// list that hides a book.
+pub fn the_books_stand_apart(filter: &str) -> bool {
+    the_whole_library::stands() || crate::logic::sort_filter::is_a_filter_of_one_series(filter)
+}
+
+/// The part of the request of the items that groups the books of a series.
+/// See T-22 and T-324.
+///
+/// The text starts with `&`, because the caller writes `limit` and `page`
+/// before it.
+///
+/// **A library of podcasts holds no series**, therefore that request takes no
+/// parameter at all, and **the mode of the whole library takes the parameter
+/// away**: the answer of the server then holds one item for each book.
+pub fn the_group_of_the_request(is_podcast: bool) -> &'static str {
+    if is_podcast || the_whole_library::stands() {
+        ""
+    } else {
+        "&collapseseries=1"
+    }
+}
+
+/// The mode of the whole library. See T-324.
+///
+/// **A book of a series stands in no row of the Library view**, because the
+/// request of the items holds `collapseseries=1` and the answer of the server
+/// then gives one item for the whole series. The measurement of 2026-08-16, of
+/// the library `Books` of the sandbox: the server holds 22 books,
+/// `collapseseries=0` gives 22 rows, `collapseseries=1` gives 18, and the four
+/// books that go away are `The Test Chronicles Volume 2`,
+/// `The Test Chronicles Volume 3`, `Second Series Volume 2`, and `Second Series
+/// Volume 3`. The list of the program said `4 Library [18 items]`, and the user
+/// had **no key at all** that gives every book of every series in one list.
+///
+/// **The parameter of the server alone changes no screen** (the trap of T-318):
+/// [`group_library`] collapses the answer again on the side of the program,
+/// therefore the mode writes the request **and** the rows.
+///
+/// **The mode lives in the process and not in the row of the account**, in the
+/// same way as `crate::logic::library_pages`. The key of the mode makes the
+/// application again (`must_refresh`), and
+/// `App::keep_the_state_of_the_application_before` runs **after**
+/// `App::new_with_the_engine` writes the request of the items: a field of `App`
+/// therefore reaches no query at all. **The mode is not the mode of the start**,
+/// and a log out and a change of the account each start a new process
+/// (`App::start_the_program_with_this_account`), therefore the mode of the start
+/// comes back with that process and this module needs no `forget`.
+pub mod the_whole_library {
+    use std::sync::atomic::{AtomicBool, Ordering};
+
+    static STANDS: AtomicBool = AtomicBool::new(false);
+
+    /// Says if every book of every series takes a line of its own.
+    pub fn stands() -> bool {
+        STANDS.load(Ordering::Relaxed)
+    }
+
+    /// Writes the mode.
+    pub fn keep(yes: bool) {
+        STANDS.store(yes, Ordering::Relaxed);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
