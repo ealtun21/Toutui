@@ -15009,6 +15009,69 @@ with the reason of `rbook` in the log.
   T-275): the block has a limit of size, therefore this turn names the new
   candidates alone and it does not repeat that list.
 
+**The
+session of the hundred and thirteenth turn took the candidate
+"`TooManyEntries` and `BookTooLarge` of `ReaderError` name their numbers
+and no key at all", which T-281 opened and which T-282 and T-283 each
+left open** (T-284).
+
+T-282 and T-283 each left that candidate open with the words "those two
+faults come at the open of the book, and the view of the reader does not
+stand at that moment". **That reading is wrong, and this turn measured
+it**: `get_the_book` of `src/app.rs` writes
+`self.view_state = AppView::Reader` **before** it starts the task that
+opens the book. **A reading of the source that a turn before this one
+wrote is a candidate too, and not a fact** (T-284).
+
+The measurement, of the real program v0.8.112 inside tmux against the
+sandbox, with the two new harnesses above. Each book went into the cache
+of the ebooks of the account `toutuitest` under the name of the item of
+`Alice in Wonderland`, and the keys `Tab`, 15 keys `j`, and `e` gave
+
+```text
+This book holds too many files. It has 4201 files, and the limit is 4096 files.
+This book is too large. It has 269486151 bytes, and the limit is 268435456 bytes.
+```
+
+and `grep -c reader` of each log gave 0: **no line of the reader at
+all**.
+
+Four faults. Neither sentence named a key, and the key `h` is the one key
+of each: the keys `n` and `p` do no work of either, because the reader
+holds no book at all (T-170). Neither road took a line of the log, and
+the name of the file of that book stands in no view. The sentence of the
+size said a wall of digits, while the bar of a download says "1.2 MB"
+already. And the arms of `Display` named the constants of that one file,
+while `src/logic/reader/pdf.rs` makes the same two values with a limit of
+512 megabytes and one of 5000 pages (T-91).
+
+The correction is four files. A new `crate::ui::keys::megabytes`, of the
+private function of `src/ui/tui.rs`, gives **one form of a size** to the
+whole program; the two values carry their limit; the two arms say the
+sizes in megabytes and each names the key `h` and the file of the log;
+and the four roads of the two readers each write that line. The corrected
+program said `It has 257.0 MB, and the limit of the reader is 256.0 MB.
+Press h to leave the book. The file of the log holds the name of the
+file.` The controls: the key `h` gave the Library view, and the good book
+of that name read with no line of the reader in the log.
+- **A size that the user reads is a size in megabytes** (T-284): ask it
+  of every message of `src/` that names a number of bytes.
+- **The noun of `TooManyEntries` of the road of the PDF is "file", and
+  that road counts pages.** It reaches no user today, because the child
+  of T-274 gives the parent an exit code and `the_fault_of_the_code`
+  takes the arm `_` of that code. **This is a candidate and not a
+  measurement.**
+- **`cargo test -j 16 --no-fail-fast` failed two tests of one run of
+  five of this turn** (T-284): `set_part` and `step` of
+  `src/utils/startup.rs` read one box of the process, and two test
+  functions of that module held it. The correction is one function, of
+  the rule of T-144 and of T-157. **Sweep `src/` for a second such pair:
+  a module of a `static` and of more than one `#[test]` that writes it.
+  This is a candidate and not a measurement.**
+- **Every candidate of the list of the turns below stays open** (T-229 to
+  T-283): the block has a limit of size, therefore this turn names the new
+  candidates alone and it does not repeat that list.
+
 ## The session of the hundred and sixth turn of 2026-08-16: a chapter that the book did not give says why
 
 **One release: v0.8.106**, and one item: T-277. **The road of it is the
@@ -16332,6 +16395,59 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 >    this shape found a fault in one hundred and four sessions of one hundred
 >    and five.
 >    **The
+>    session of the hundred and fifteenth turn took the candidate
+>    "`ReaderError::TheArchiveGaveNoChapter` names the key `n` alone, while
+>    the keys `p` and `h` each do their work of that fault too", which T-285
+>    opened** (T-286).
+>
+>    The measurement, of the real program v0.8.114 inside tmux against the
+>    sandbox. **The data of that fault is a book, and it needs no proxy at
+>    all**: the new harness `docs/harness/a_book_of_a_damaged_chapter.py`
+>    writes an EPUB of three chapters, and 64 bytes of the deflate stream of
+>    the second chapter take the value of their own complement. The central
+>    directory and the local header keep every number, therefore `rbook`
+>    opens the book and the read of the chapter 2 alone fails. The
+>    measurement of T-277 did that work with a hand on the real book of the
+>    sandbox; this harness writes it in 3294 bytes. The book went in the
+>    cache of the ebooks of `toutuitest` under the name of the item of
+>    `Alice in Wonderland`, and the keys `Tab`, 15 keys `j`, and `e` gave the
+>    view of the reader at `chapter 2 of 3` with the sentence of that fault,
+>    which named the key `n` alone.
+>
+>    **The three keys of the view each did the work of that fault**: the key
+>    `n` gave `chapter 3 of 3` with its text, the key `p` gave
+>    `chapter 1 of 3` with its text, and the key `h` gave the Library view.
+>    The sibling arm `ChapterAbsent` of the same enum — a fault of the same
+>    class — named all three already.
+>
+>    The correction is one file. The arm now says `Press n for the chapter
+>    after this one, or p for the chapter before it. Press h to leave the
+>    book. The file of the log holds more.` The corrected program said that
+>    sentence on four rows, and the three controls held.
+>    - **A key that a sibling arm names is not a key of this arm** (T-286):
+>      the road of the key `X` of T-285 does no work of this fault. The key
+>      `h`, then the key `X`, took the copy of the disk away, and **the press
+>      of the key `e` after it gave the same screen of the same damaged
+>      book**, with no request of the server and with no file back on the
+>      disk. **The reader holds the book of the memory over the key `h`**,
+>      therefore a book that a second program changes on the disk does not
+>      reach the reader of this program. **This is a candidate and not a
+>      measurement.**
+>    - **The line of the log of that fault says `the archive gave no chapter
+>      1 of the book`, while the header of the same screen says `chapter 2 of
+>      3`** (T-286): the log holds the index of the program and the view
+>      holds the number of the user (the rule of T-283). **Ask it of every
+>      line of the log of `src/logic/reader/`. This is a candidate and not a
+>      measurement.**
+>    - **The log held two lines of that one fault, 256 milliseconds apart,
+>      for one press of a key** (T-286), while the rule of T-277 says that
+>      the render of a chapter that gave a fault does not start again. **This
+>      is a candidate and not a measurement.**
+>    - **Every candidate of the list of the turn below stays open** (T-229 to
+>      T-285): the block has a limit of size, therefore this turn names the
+>      new candidates alone and it does not repeat that list.
+>
+>    **The
 >    session of the hundred and fourteenth turn took no candidate of the list.
 >    It read the arms of `Display` of `ReaderError` that the four turns before
 >    it did not touch, and `NotAnEpub` gave one sentence and nothing else:
@@ -16401,69 +16517,6 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 >    - **Every candidate of the list of the turn below stays open** (T-229 to
 >      T-284): the block has a limit of size, therefore this turn names the
 >      new candidates alone and it does not repeat that list.
->
->    **The
->    session of the hundred and thirteenth turn took the candidate
->    "`TooManyEntries` and `BookTooLarge` of `ReaderError` name their numbers
->    and no key at all", which T-281 opened and which T-282 and T-283 each
->    left open** (T-284).
->
->    T-282 and T-283 each left that candidate open with the words "those two
->    faults come at the open of the book, and the view of the reader does not
->    stand at that moment". **That reading is wrong, and this turn measured
->    it**: `get_the_book` of `src/app.rs` writes
->    `self.view_state = AppView::Reader` **before** it starts the task that
->    opens the book. **A reading of the source that a turn before this one
->    wrote is a candidate too, and not a fact** (T-284).
->
->    The measurement, of the real program v0.8.112 inside tmux against the
->    sandbox, with the two new harnesses above. Each book went into the cache
->    of the ebooks of the account `toutuitest` under the name of the item of
->    `Alice in Wonderland`, and the keys `Tab`, 15 keys `j`, and `e` gave
->
->    ```text
->    This book holds too many files. It has 4201 files, and the limit is 4096 files.
->    This book is too large. It has 269486151 bytes, and the limit is 268435456 bytes.
->    ```
->
->    and `grep -c reader` of each log gave 0: **no line of the reader at
->    all**.
->
->    Four faults. Neither sentence named a key, and the key `h` is the one key
->    of each: the keys `n` and `p` do no work of either, because the reader
->    holds no book at all (T-170). Neither road took a line of the log, and
->    the name of the file of that book stands in no view. The sentence of the
->    size said a wall of digits, while the bar of a download says "1.2 MB"
->    already. And the arms of `Display` named the constants of that one file,
->    while `src/logic/reader/pdf.rs` makes the same two values with a limit of
->    512 megabytes and one of 5000 pages (T-91).
->
->    The correction is four files. A new `crate::ui::keys::megabytes`, of the
->    private function of `src/ui/tui.rs`, gives **one form of a size** to the
->    whole program; the two values carry their limit; the two arms say the
->    sizes in megabytes and each names the key `h` and the file of the log;
->    and the four roads of the two readers each write that line. The corrected
->    program said `It has 257.0 MB, and the limit of the reader is 256.0 MB.
->    Press h to leave the book. The file of the log holds the name of the
->    file.` The controls: the key `h` gave the Library view, and the good book
->    of that name read with no line of the reader in the log.
->    - **A size that the user reads is a size in megabytes** (T-284): ask it
->      of every message of `src/` that names a number of bytes.
->    - **The noun of `TooManyEntries` of the road of the PDF is "file", and
->      that road counts pages.** It reaches no user today, because the child
->      of T-274 gives the parent an exit code and `the_fault_of_the_code`
->      takes the arm `_` of that code. **This is a candidate and not a
->      measurement.**
->    - **`cargo test -j 16 --no-fail-fast` failed two tests of one run of
->      five of this turn** (T-284): `set_part` and `step` of
->      `src/utils/startup.rs` read one box of the process, and two test
->      functions of that module held it. The correction is one function, of
->      the rule of T-144 and of T-157. **Sweep `src/` for a second such pair:
->      a module of a `static` and of more than one `#[test]` that writes it.
->      This is a candidate and not a measurement.**
->    - **Every candidate of the list of the turns below stays open** (T-229 to
->      T-283): the block has a limit of size, therefore this turn names the new
->      candidates alone and it does not repeat that list.
 >
 >    **The turns before these two stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item

@@ -17,6 +17,13 @@
 //!    and `render_for` of the same frame wrote `Reading…` over it before the
 //!    draw.
 //!
+//! T-286 holds the same condition, and it reads the keys of that sentence. The
+//! measurement, of the real program v0.8.114 inside tmux against the sandbox,
+//! pressed the three keys of the view of the reader on this fault: the key `n`
+//! gave the chapter after it and the key `p` gave the chapter before it, and
+//! each of the two read at once, and the key `h` gave the Library view. The
+//! sentence named the key `n` alone.
+//!
 //! These tests need no network and no sandbox. The book comes from
 //! `tests/data/alice.epub` of this repository.
 
@@ -124,23 +131,40 @@ fn a_chapter_that_the_archive_did_not_give_holds_the_reason() {
         "the user reads the reason of the machine: {sentence}"
     );
     assert!(
-        sentence.contains("Press n"),
-        "the sentence names the key that does the work of that fault: {sentence}"
-    );
-    assert!(
         !sentence.contains("This chapter is absent."),
         "the archive holds this chapter: {sentence}"
     );
 
-    // The control of the same book: every other chapter reads. The book is
-    // good, and one file of it is not.
-    let text = book
+    // **The sentence names the three keys of the view of the reader** (T-286).
+    // The measurement pressed each of the three on this fault, and each of them
+    // did its work: a sentence of a fault must name a key that does the work of
+    // that fault (T-170).
+    for key in ["Press n", "or p for", "Press h to leave the book"] {
+        assert!(
+            sentence.contains(key),
+            "the sentence names the key {key} of the view of the reader: {sentence}"
+        );
+    }
+
+    // The control of the same book: the chapter after the damaged one and the
+    // chapter before it each read. The book is good, and one file of it is not,
+    // therefore the keys `n` and `p` of the sentence each do their work.
+    let after = book
         .chapter_xhtml(THE_CHAPTER_OF_THE_MEASUREMENT + 1)
         .expect("the chapter after the damaged one reads");
 
     assert!(
-        text.len() > 1000,
+        after.len() > 1000,
         "the chapter after the damaged one holds its text"
+    );
+
+    let before = book
+        .chapter_xhtml(THE_CHAPTER_OF_THE_MEASUREMENT - 1)
+        .expect("the chapter before the damaged one reads");
+
+    assert!(
+        before.len() > 1000,
+        "the chapter before the damaged one holds its text"
     );
 }
 
@@ -198,10 +222,19 @@ async fn the_screen_of_a_chapter_that_gave_a_fault_says_why() {
         words.contains("corrupt deflate stream"),
         "the screen holds the reason of the machine: {words}"
     );
-    assert!(
-        words.contains("Press n for the next chapter"),
-        "the screen names the key that does the work of that fault: {words}"
-    );
+    // **The screen names the three keys of the view of the reader** (T-286).
+    // The wrap of the paragraph puts a sentence of this length on three rows,
+    // and `the_words_of` gives the whole of it as one line.
+    for key in [
+        "Press n for the chapter after this one",
+        "or p for the chapter before it",
+        "Press h to leave the book",
+    ] {
+        assert!(
+            words.contains(key),
+            "the screen names the key {key} of the view of the reader: {words}"
+        );
+    }
 
     // The message stays. The fault of T-277 wrote `Reading…` over it in the
     // frame after it.

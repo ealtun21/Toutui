@@ -23869,3 +23869,129 @@ where one test function touches that box, and a module where every such test
 takes one `static LOCK: Mutex<()>` first — the shape of the correction of
 T-144, of T-157, and of T-284. `src/utils/startup.rs` was the one module of
 that fault, and T-284 corrected it. **This candidate is closed.**
+
+### T-286: a chapter that the archive did not give names the keys of its view
+
+**The state**: corrected on 2026-08-16, in v0.8.115. The measurement is of the
+real program v0.8.114 inside tmux against the sandbox.
+
+#### The choice of this item
+
+T-285 left open the candidate "`ReaderError::TheArchiveGaveNoChapter` names the
+key `n` alone, while the keys `p` and `h` each do their work of that fault too,
+and `ReaderError::ChapterAbsent` of the same file names all three."
+
+#### The fault
+
+The arm of `TheArchiveGaveNoChapter` of the `Display` of `ReaderError` in
+`src/logic/reader/book.rs` said
+
+```text
+The book gave no text of this chapter. The other chapters can be good.
+The machine said: {reason}. The file of the log holds more.
+Press n for the next chapter.
+```
+
+It named the key `n` alone. The sibling arm `ChapterAbsent` of the same enum —
+a fault of one chapter of a book whose other chapters can be good, therefore a
+fault of the same class — names the keys `n`, `p`, and `h`. The rule is T-170:
+a sentence of a fault must name a key that does the work of that fault.
+
+#### The new harness
+
+`docs/harness/a_book_of_a_damaged_chapter.py`. **The data of this fault is a
+book, and it needs no proxy at all.** It writes an EPUB of three chapters, and
+64 bytes of the deflate stream of the second chapter, 200 bytes after the start
+of the data of that entry, take the value of their own complement (XOR 0xFF).
+The central directory and the local header keep every number, therefore `rbook`
+opens the book and the spine of it holds three chapters, and the read of the
+chapter 2 alone fails. The measurement of T-277 did that work with a hand on
+the real book of the sandbox; this harness writes the book. The stream of that
+chapter holds **1476 bytes**, and the whole book is **3294 bytes**.
+
+#### The measurement
+
+The real program v0.8.114 inside tmux (session `check`, 160x45) against the
+sandbox (podman `abs-test` on :13399), the account `toutuitest`, the library
+`Books`, the book `Alice in Wonderland` (the item
+`8fda6e43-0728-46ad-98bc-4c8634e299ad`). The damaged book went in the cache of
+the ebooks of that account under the name of that item, and the good file of
+that name went to the scratchpad for the road back. The keys `Tab`, 15 keys
+`j`, and `e` gave the view of the reader.
+
+The header said `The Book Of A Damaged Chapter — chapter 2 of 3 — 50%`, and the
+screen said, on three rows:
+
+```text
+The book gave no text of this chapter. The other chapters can be good. The
+machine said: [CannotRead - `Resource { key: Value("/OEBPS/c2.xhtml"), kind:
+ResourceKind("") }`]: corrupt deflate stream. The file of the log holds more.
+Press n for the next chapter.
+```
+
+and the log held one line of the reader:
+
+```text
+[reader] the archive gave no chapter 1 of the book: [CannotRead - `Resource { key: Value("/OEBPS/c2.xhtml"), kind: ResourceKind("") }`]: corrupt deflate stream
+```
+
+The three keys of the view, each on that fault: the key `n` gave
+`chapter 3 of 3` and the text "Chapter Three" at once, the key `p` gave
+`chapter 1 of 3` and the text "Chapter One" at once, and the key `h` gave the
+Library view. **Each of the three did its work, and the sentence named one of
+them.**
+
+#### The measurement of the key `X`
+
+The key `h`, then the key `X` on the line of that media, said
+`Removed the ebook of "Alice in Wonderland" of 3 kB. It held no local copy of
+the audio.`, and the file of the cache went away. The press of the key `e`
+after it gave **the same screen of the same damaged book**, with no request of
+the server at all, and no file came back to the disk. The log then said, every
+15 seconds:
+`[cache] the time of .../8fda6e43-....epub did not change: No such file or
+directory (os error 2)`.
+
+**Therefore the key `X` does no work of this fault, and the sentence names it
+not.** That is the difference from T-285: there the reader held no book at all,
+and the road of the key `X` gave the book of the server back.
+
+#### The correction
+
+One file, `src/logic/reader/book.rs`. The arm now says
+
+```text
+The book gave no text of this chapter. The other chapters can be good. The
+machine said: {reason}. Press n for the chapter after this one, or p for the
+chapter before it. Press h to leave the book. The file of the log holds more.
+```
+
+The corrected program v0.8.115 said that sentence on four rows of the same
+screen, and the three controls held: the key `n` gave `chapter 3 of 3` with its
+text, the key `p` gave `chapter 1 of 3` with its text, and the key `h` gave the
+Library view.
+
+The test is `tests/a_chapter_that_did_not_come_says_why.rs`, which holds the
+condition of T-277 already: the two test functions of it now read the three
+keys of the sentence and of the screen, and the first one reads the chapter
+before the damaged one too, as a control of the key `p`. A build with the
+correction removed failed both of them.
+
+#### The candidates that this turn leaves open
+
+Each of these is a candidate, and not a measurement.
+
+1. **The reader holds the book of the memory over the key `h`.** The key `X`
+   took the copy of the disk away, and the key `e` after it opened that same
+   book again with no request of the server, and the log said that the cache
+   reads a file that is not there every 15 seconds. **A book that a second
+   program changes on the disk therefore does not reach the reader of this
+   program.**
+2. **The line of the log of that fault says `the archive gave no chapter 1 of
+   the book`, while the header of the same screen says `chapter 2 of 3`.** The
+   log holds the index of the program and the view holds the number of the
+   user (the rule of T-283).
+3. **The log held two lines of that one fault, 256 milliseconds apart, for one
+   press of a key.**
+4. **The three forms of a size of T-285 stay open**, and the two messages of
+   `--update` of `src/update/install.rs` stay open.

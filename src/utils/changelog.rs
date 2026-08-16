@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.115",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A chapter that the book did not give now names the keys of \
+             the reader.** The sentence of that fault named the key `n` \
+             alone. The other chapters of such a book can be good: the \
+             sentence now names the key `p` for the chapter before this one \
+             and the key `h` that leaves the book, and each of the three \
+             keys does its work.",
+        ],
+    },
+    Entry {
         version: "0.8.114",
         date: "16/08/2026",
         body: &[

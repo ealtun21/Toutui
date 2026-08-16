@@ -229,11 +229,26 @@ impl fmt::Display for ReaderError {
                  Press h to leave the book. The file of the log holds more.",
                 index + 1
             ),
+            // **The sentence names the three keys of the view of the reader**
+            // (T-286): the key `n` gives the chapter after this one, the key
+            // `p` gives the chapter before it, and the key `h` leaves the book.
+            // The measurement of T-286 pressed each of the three on this fault,
+            // and each of them did its work. The sentence named the key `n`
+            // alone, while the arm of `ChapterAbsent` of this same file — a
+            // fault of one chapter of a book whose other chapters can be good,
+            // therefore a fault of the same class — named all three (T-170).
+            //
+            // **It names no key `X`**: the reader holds the book of the memory
+            // over the key `h`, therefore the key `X` of the view before it
+            // removes the copy of the disk and the key `e` after that opens the
+            // book of the memory again, with no request of the server at all.
+            // That key does no work of this fault (T-286).
             ReaderError::TheArchiveGaveNoChapter(reason) => write!(
                 f,
                 "The book gave no text of this chapter. The other chapters can \
-                 be good. The machine said: {reason}. The file of the log holds \
-                 more. Press n for the next chapter."
+                 be good. The machine said: {reason}. Press n for the chapter \
+                 after this one, or p for the chapter before it. Press h to \
+                 leave the book. The file of the log holds more."
             ),
             // **The program measured that the chapter passed the limit, and it
             // did not measure the size of it** (T-281): the writer stops at the
