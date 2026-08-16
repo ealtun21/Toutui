@@ -190,6 +190,14 @@ pub fn for_the_screen(view: AppView) -> Option<String> {
 /// key `Q: quit` stood outside the screen at the end of the third row. A wrap
 /// of `trim: true` takes the spaces of the start of a new row away, and it
 /// keeps every space that stands inside a row.
+///
+/// **The last character of a row takes one column of that row** (T-307). The
+/// count of the panel of a description holds that rule of ratatui already
+/// (T-306), and this count of a message did not: a message of the Han script,
+/// of Hiragana, or of Katakana therefore said that it needs one row more than
+/// the render of ratatui takes, and the box of the message then stood one row
+/// higher than the text of it. [`the_room_of_a_word`] is the one place of that
+/// rule now, and the two counts of a wrap of this program read it together.
 pub fn the_rows_of_a_message(text: &str, width: u16) -> u16 {
     if text.trim().is_empty() || width == 0 {
         return 0;
@@ -213,22 +221,31 @@ pub fn the_rows_of_a_message(text: &str, width: u16) -> u16 {
         }
 
         let length = the_columns_of(word);
+        let room = the_room_of_a_word(word);
 
-        if column == 0 {
-            column = length;
-        } else if column + spaces + length <= width {
+        // The word stands at the end of the row that the word before it holds.
+        if column > 0 && column + spaces + room <= width {
             column += spaces + length;
-        } else {
+            spaces = after;
+            continue;
+        }
+
+        // The word takes a row of its own.
+        if column > 0 {
             rows = rows.saturating_add(1);
+        }
+
+        if room <= width {
             column = length;
+        } else {
+            // A word that is longer than the width goes over more than one row.
+            let (lines, last) = the_lines_of_one_word(word, width);
+
+            rows = rows.saturating_add(u16::try_from(lines - 1).unwrap_or(u16::MAX));
+            column = last;
         }
 
         spaces = after;
-
-        while column > width {
-            rows = rows.saturating_add(1);
-            column -= width;
-        }
     }
 
     rows
@@ -299,6 +316,72 @@ pub fn in_the_rows(text: &str, width: u16, rows: u16) -> String {
     }
 
     String::new()
+}
+
+/// Gives the columns that a word needs at the end of a row.
+///
+/// **The last character of a row takes one column of the row** (T-306): a
+/// measurement of 2026-08-16 of the `Paragraph` of ratatui 0.30 with
+/// `Wrap { trim: true }` gave two words of eighteen columns of the Han script
+/// on one row of **36** columns, and two words of eighteen columns of ASCII on
+/// **two** rows of that same width. Four words of the Han script stood on one
+/// row of 74 columns, and four words of ASCII needed 75. The rule of the crate
+/// is therefore the same at each number of the words: it draws the last
+/// character of a row while one column of that row stays, and the terminal
+/// then cuts the right half of a character of two columns.
+///
+/// This program does not choose that rule, and it must have the number of the
+/// rows that the screen has: the largest scroll of the key `J` (T-252), the bar
+/// of the scroll (T-253), and the rows of the box of a message (T-299) each
+/// come of that number, and a count of its own gives the panel of no line again
+/// and the box of a message that stands above its text.
+///
+/// **The two counts of a wrap of this program read this one rule** (T-307):
+/// `the_number_of_the_lines` of `crate::logic::the_scroll_of_a_panel` and
+/// [`the_rows_of_a_message`] each measure a `Paragraph` of `Wrap { trim: true }`
+/// of ratatui, therefore the rule of that crate stands in one place.
+pub(crate) fn the_room_of_a_word(word: &str) -> usize {
+    let size = the_columns_of(word);
+
+    let of_the_last = word
+        .chars()
+        .next_back()
+        .map(|character| {
+            let mut buffer = [0u8; 4];
+
+            the_columns_of(character.encode_utf8(&mut buffer))
+        })
+        .unwrap_or(1);
+
+    size.saturating_sub(of_the_last.saturating_sub(1))
+}
+
+/// Gives the number of the lines that one word takes alone in a panel of
+/// `width` columns, and the columns of the last of those lines.
+///
+/// **A character of two columns that meets the last column of a row stays
+/// outside that row** (T-305), because a half of a character is no character.
+/// A division of the columns of the word by the columns of the panel therefore
+/// says a number that the screen does not have: a panel of 79 columns holds 39
+/// characters of the Han script, which is 78 columns, and one column of every
+/// row of such a word stays empty.
+pub(crate) fn the_lines_of_one_word(word: &str, width: usize) -> (usize, usize) {
+    let mut count = 1usize;
+    let mut length = 0usize;
+    let mut buffer = [0u8; 4];
+
+    for character in word.chars() {
+        let columns = the_columns_of(character.encode_utf8(&mut buffer));
+
+        if length > 0 && length + columns > width {
+            count += 1;
+            length = 0;
+        }
+
+        length += columns;
+    }
+
+    (count, length)
 }
 
 /// The number of the columns of the terminal that a text takes.

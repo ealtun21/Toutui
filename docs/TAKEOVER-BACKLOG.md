@@ -26806,3 +26806,107 @@ drew, for eight texts at every width from 20 to 200 columns.
   count of a wrap, with rules of its own. No measurement asked whether the two
   agree with ratatui together. **This is a candidate and not a measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to T-305).
+
+### T-307: the box of a message counts the columns of its text
+
+#### The fault
+
+**`the_rows_of_a_message` of `src/logic/message.rs` is the second count of a
+wrap of this program.** The box of the message of a view stands on the rows
+that this count gives (T-299), and `in_the_rows` cuts the end of a message
+that needs more rows than the screen holds. T-305 gave that function
+`the_columns_of` (the crate `unicode-width`), but T-306 found a second rule of
+ratatui that it did not hold: **the last character of a row takes one column
+of that row**, because the crate draws the last character while one column of
+that row stays. T-306 gave that rule to the count of the panel of a
+description alone. A message of the Han script, of Hiragana, or of Katakana
+therefore said that it needs one row more than the render of ratatui takes.
+
+#### The measurement
+
+Of the real program v0.8.135 inside tmux against the sandbox on `:13399`, the
+account `toutuitest`, a terminal of 40 columns and 45 rows. **The data of the
+fault is the text of the server**: it needs no proxy, no book of a harness,
+and no build of the fault of the source.
+`PATCH /api/items/040e9d69-1211-44fb-ad29-3ece26936d91/media` gave the book
+"The Test Chronicles Volume 3" of the library `Books` the title
+`日本語書籍説明 日本語書籍説明 日本語書籍説明` — three words of seven
+characters, of fourteen columns each. The keys `/`, `日本語書籍説明`, and
+`Enter` gave the view of the search; the key `D` wrote the row of the download
+with that title (the sentence of the key `X` reads the title of the download
+row and not the title of the server); and the key `X` then said
+`Removed the local copy of "日本語書籍説明 日本語書籍説明 日本語書籍説明".`
+
+```text
+(the row 39)
+(the row 40)  Removed the local copy of "日本語書籍説
+(the row 41)       日本語書籍説明 日本語書籍説明".
+(the row 42)
+(the row 43) j/k: move  l: play or open  h: back  /:
+```
+
+**The numbers.** The count of the program said **3** rows; the render of
+ratatui took **2**. The box therefore stood on the rows 40, 41, and 42 of the
+screen, the last row of it held no character, and the row 39 of the list of
+the view went away for nothing. The last row of a message stands above the
+footer (T-299) and that message stood one row over it.
+
+**The control of the same run**: the same book and the same keys with the
+title `ABCDEFGHIJKLMN ABCDEFGHIJKLMN ABCDEFGHIJKLMN` — three words of fourteen
+characters, of the same fourteen columns — took the rows 40, 41, and 42, every
+row of it held characters, and its last row stood above the footer.
+
+**The corrected program**, of the same keys and the same Japanese title, put
+the two rows of the message at 41 and 42, directly above the footer.
+
+#### The correction
+
+Two files.
+
+- `src/logic/message.rs`: the two rules of the wrap of ratatui —
+  `the_room_of_a_word` and `the_lines_of_one_word` — moved out of
+  `src/logic/the_scroll_of_a_panel.rs` into `src/logic/message.rs`, beside
+  `the_columns_of`, and they are `pub(crate)` now. `the_rows_of_a_message`
+  fits a word at the end of a row with `the_room_of_a_word`, and it walks the
+  characters of a word that is longer than the width with
+  `the_lines_of_one_word`, in the place of a division of the columns by the
+  width. `the_number_of_the_lines` of the panel calls the two functions at
+  their new place, therefore the two counts of a wrap of this program read one
+  rule now, and the rule of the crate stands in one place.
+- The new `tests/the_box_of_a_message_counts_its_columns.rs` holds the gate:
+  it draws a `Paragraph` of `Wrap { trim: true }` into a `Buffer` with no
+  terminal at all (T-256), and it asserts that the count of the program is the
+  number of the rows that ratatui drew — for the two sentences of the
+  measurement at every width from 20 to 120 columns, and for words of the Han
+  script of every length from 1 to 8 characters, for the words of the control
+  of ASCII, for the two of them together, and for the two spaces of a footer
+  (T-302), at the widths of 20 to 200 columns of a step of seven.
+
+A sweep of that shape with a `Buffer` of a fixed height of 250 rows took 455
+seconds; a buffer of the rows that the text can need takes 1.9 seconds.
+
+**The build of the fault**: `column + spaces + the_columns_of(word)` in the
+place of `column + spaces + room` gave 4 rows where ratatui drew 3.
+
+#### What this turn leaves open
+
+- **The message of the settings library reaches nobody.** `src/app.rs:3061`
+  says `The program shows the library "<the name>" now.`, and it then writes
+  `must_refresh = true`; the loop of `src/main.rs` calls
+  `logic::message::forget()` on that road, which is the shape of the trap 234
+  of the key `R`. A measurement of 2026-08-16 pressed `S`, `j`, `l`, and `l`
+  of the real program at 40 columns, and no character of the screen said that
+  sentence. **This is a candidate and not a measurement.**
+- **`the_lines_of_one_line` of `src/logic/the_scroll_of_a_panel.rs` counts one
+  space between two words** (`length + 1 + room <= width`), and T-302 measured
+  that a wrap of `trim: true` keeps every space that stands inside a row. A
+  description of the server that holds two spaces between two words therefore
+  takes a number of the rows that the panel does not count. **This is a
+  candidate and not a measurement.**
+- **The marks of a line count the characters still.** `fill` of
+  `src/ui/marks.rs:111` reads `mark.chars().count()`, and a mark of the East
+  Asian Width "Ambiguous" takes one column or two, and the terminal decides.
+  This candidate came of T-306 and it stays open. **This is a candidate and
+  not a measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to
+  T-306).

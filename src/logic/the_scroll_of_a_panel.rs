@@ -107,7 +107,7 @@ fn the_lines_of_one_line(line: &str, width: usize) -> usize {
 
     for word in line.split_whitespace() {
         let size = crate::logic::message::the_columns_of(word);
-        let room = the_room_of_a_word(word, size);
+        let room = crate::logic::message::the_room_of_a_word(word);
 
         // The word stands at the end of the line that the word before it holds.
         if length > 0 && length + 1 + room <= width {
@@ -126,71 +126,13 @@ fn the_lines_of_one_line(line: &str, width: usize) -> usize {
         }
 
         // A word that is longer than the panel goes over more than one line.
-        let (lines, last) = the_lines_of_one_word(word, width);
+        let (lines, last) = crate::logic::message::the_lines_of_one_word(word, width);
 
         count += lines - 1;
         length = last;
     }
 
     count
-}
-
-/// Gives the columns that a word needs at the end of a row.
-///
-/// **The last character of a row takes one column of the row** (T-306): a
-/// measurement of 2026-08-16 of the `Paragraph` of ratatui 0.30 with
-/// `Wrap { trim: true }` gave two words of eighteen columns of the Han script
-/// on one row of **36** columns, and two words of eighteen columns of ASCII on
-/// **two** rows of that same width. Four words of the Han script stood on one
-/// row of 74 columns, and four words of ASCII needed 75. The rule of the crate
-/// is therefore the same at each number of the words: it draws the last
-/// character of a row while one column of that row stays, and the terminal
-/// then cuts the right half of a character of two columns.
-///
-/// This program does not choose that rule, and it must have the number of the
-/// rows that the screen has: the largest scroll of the key `J` (T-252) and the
-/// bar of the scroll (T-253) each come of that number, and a count of its own
-/// gives the panel of no line again.
-fn the_room_of_a_word(word: &str, size: usize) -> usize {
-    let of_the_last = word
-        .chars()
-        .next_back()
-        .map(|character| {
-            let mut buffer = [0u8; 4];
-
-            crate::logic::message::the_columns_of(character.encode_utf8(&mut buffer))
-        })
-        .unwrap_or(1);
-
-    size.saturating_sub(of_the_last.saturating_sub(1))
-}
-
-/// Gives the number of the lines that one word takes alone in a panel of
-/// `width` columns, and the columns of the last of those lines.
-///
-/// **A character of two columns that meets the last column of a row stays
-/// outside that row** (T-305), because a half of a character is no character.
-/// A division of the columns of the word by the columns of the panel therefore
-/// says a number that the screen does not have: a panel of 79 columns holds 39
-/// characters of the Han script, which is 78 columns, and one column of every
-/// row of such a word stays empty.
-fn the_lines_of_one_word(word: &str, width: usize) -> (usize, usize) {
-    let mut count = 1usize;
-    let mut length = 0usize;
-    let mut buffer = [0u8; 4];
-
-    for character in word.chars() {
-        let columns = crate::logic::message::the_columns_of(character.encode_utf8(&mut buffer));
-
-        if length > 0 && length + columns > width {
-            count += 1;
-            length = 0;
-        }
-
-        length += columns;
-    }
-
-    (count, length)
 }
 
 /// Gives the largest scroll of a panel that holds this text.

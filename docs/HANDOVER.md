@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.135.** The item T-306 belongs to this session. The
+**The newest release is v0.8.136.** The item T-307 belongs to this session. The
+item T-306 belongs to the session before it. The
 item T-305 belongs to the session before it. The
 item T-303 belongs to the session before it. The
 item T-302 belongs to the session before it. The
@@ -150,6 +151,115 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its binaries in two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and thirty-sixth turn of 2026-08-16: the box of a message counts the columns of its text
+
+**The item: T-307**, and the release **v0.8.136**.
+
+**The candidate came of T-306.** That item gave the count of the panel of a
+description the rule of the last character of a row, and it left one line open:
+`the_number_of_the_lines` is not the one count of a wrap of this program.
+`the_rows_of_a_message` of `src/logic/message.rs` (T-299) holds the second
+count, with rules of its own, and no measurement had asked whether the two
+agree with ratatui together. **They did not.**
+
+**The box of a message counts the columns of its text.** The box of the message
+of a view stands on the rows that `the_rows_of_a_message` gives (T-299), and
+`in_the_rows` cuts the end of a message that needs more rows than the screen
+holds. T-305 gave that function `the_columns_of`, and it did not hold the
+second rule of ratatui that T-306 measured: **the last character of a row takes
+one column of that row**, because the crate draws that character while one
+column of the row stays. A message of the Han script, of Hiragana, or of
+Katakana therefore said that it needs one row more than the render takes.
+
+**The measurement.** The real program v0.8.135 inside tmux against the sandbox
+with the account `toutuitest` and a terminal of **40** columns. The data of this
+fault is the text of the server, therefore it needs no proxy, no book of a
+harness, and no build of the fault of the source. A
+`PATCH /api/items/040e9d69-1211-44fb-ad29-3ece26936d91/media` gave the book
+`The Test Chronicles Volume 3` of the library `Books` the title
+`日本語書籍説明 日本語書籍説明 日本語書籍説明` — three words of seven
+characters, of fourteen columns each. The keys `/`, `日本語書籍説明`, and
+`Enter` gave the view of the search, the key `D` wrote the row of the download
+with that title, and the key `X` said
+`Removed the local copy of "日本語書籍説明 日本語書籍説明 日本語書籍説明".`
+
+```text
+(the row 39)
+(the row 40)  Removed the local copy of "日本語書籍説
+(the row 41)       日本語書籍説明 日本語書籍説明".
+(the row 42)
+(the row 43) j/k: move  l: play or open  h: back  /:
+```
+
+**The count of the program said three rows and the render of ratatui took
+two.** The box therefore stood on the rows 40, 41, and 42, the last row of it
+held no character, and the row 39 of the list of the view went away for
+nothing. The last row of a message stands above the footer (T-299), and that
+message stood one row over it.
+
+**The control of the same run.** The same book and the same keys with the title
+`ABCDEFGHIJKLMN ABCDEFGHIJKLMN ABCDEFGHIJKLMN` — three words of fourteen
+characters, of the same fourteen columns — took the rows 40, 41, and 42, every
+row of it held characters, and its last row stood above the footer. **The
+corrected program**, of the same keys and the same title of Japanese, put the
+two rows of the message at 41 and 42, directly above the footer.
+
+**The sentence of the key `X` reads the title of the row of the download**, and
+not the title of the server: the first run of this measurement gave the title
+of an older download, and the key `D` before the key `X` gives the row of the
+title of the moment.
+
+**The correction is two files.** `src/logic/message.rs`: `the_room_of_a_word`
+and `the_lines_of_one_word` moved out of `src/logic/the_scroll_of_a_panel.rs`
+and they stand beside `the_columns_of` now, and they are `pub(crate)`.
+`the_rows_of_a_message` fits a word at the end of a row with the first one, and
+it walks the characters of a word that is longer than the width with the second
+one, in the place of a division of the columns by the width.
+`the_number_of_the_lines` of the panel calls the two of them at their new
+place: **the two counts of a wrap of this program read one rule now, and the
+rule of the crate stands in one place.** The new
+`tests/the_box_of_a_message_counts_its_columns.rs` holds the gate: it draws a
+`Paragraph` of `Wrap { trim: true }` into a `Buffer` with no terminal at all
+(T-256), and it asserts that the count of the program is the number of the rows
+that ratatui drew — for the two sentences of the measurement at every width
+from 20 to 120 columns, and for words of the Han script of every length from 1
+to 8 characters, for the words of the control of ASCII, for the two of them
+together, and for the two spaces of a footer (T-302), at the widths of 20 to
+200 columns of a step of seven. **The build of the fault**
+(`column + spaces + the_columns_of(word)` in the place of
+`column + spaces + room`) said 4 rows where ratatui drew 3.
+
+**A gate that draws with ratatui needs a `Buffer` of the rows of its text.**
+The first form of that gate held a buffer of a fixed height of 250 rows, and it
+took **455 seconds** of the run of the tests. A buffer of the rows that the
+text can need — the columns of the text over the width, and one row for each
+word — takes **1.9 seconds**. **A buffer that is shorter than the text cuts the
+render**, and the gate then says a number that ratatui did not draw: the first
+form of the small buffer failed at a text of 30 rows in a buffer of 27.
+
+**The disk of this machine filled while this session wrote the handover** (the
+trap 150). `target/debug/incremental` held 21 gigabytes, `python3` truncated
+`docs/HANDOVER.md` to no byte at all, and the compile of one test then said
+`No space left on device`. **A write of a large file of this repository must
+write a new file and move it over the old one** (`os.replace`), and not open
+the old one for a write: a write that fails then leaves the file of the start.
+`git restore docs/HANDOVER.md` gave the file back, the removal of
+`target/debug/incremental` gave 19 gigabytes back, and `CARGO_INCREMENTAL=0`
+keeps it away.
+
+**The gates**: `cargo clippy --all-targets -- -D warnings` and
+`cargo fmt --check` say nothing, `cargo nextest run` gives **1370 of 1370** in
+2.8 seconds, `cargo nextest run --run-ignored all` gives **1396 of 1396** in
+27.6 seconds with the sandbox up, and two runs of `cargo test -j 16
+--no-fail-fast` give no failure over the 183 binaries.
+
+**What this turn leaves open.** Three candidates, and none of them holds a
+measurement: the message of the settings library that `must_refresh` forgets
+before the first frame (the shape of the trap 234), the one space that
+`the_lines_of_one_line` counts between two words while T-302 measured that a
+wrap keeps every space inside a row, and the marks of a line of
+`src/ui/marks.rs:111` that count the characters still.
 
 ## The session of the hundred and thirty-fifth turn of 2026-08-16: the panel of a description counts the columns of its text
 
@@ -18577,6 +18687,94 @@ whole of its title at 80.
   T-302, and T-304). **This is a candidate and not a measurement.**
 
 
+### The turn of the hundred and thirty-fifth, of 2026-08-16 (T-306)
+
+**The session of the hundred and thirty-fifth turn took a candidate of the
+sweep that T-305 opened — the counts of the characters that the correction
+of T-305 did not reach — and the measurement of it gave the fault**
+(T-306). **It left the marks of a line open**, and it found a road of
+ratatui that this program does not choose and that no count of this program
+says.
+
+**The panel of a description counts the columns of its text.**
+`the_lines_of_one_line` of `src/logic/the_scroll_of_a_panel.rs` measured
+every word with `word.chars().count()`. That function is the one road to
+the length of the text of a panel (T-252): the largest scroll of the keys
+`J` and `K` (T-252) and the bar of the scroll of the panel (T-253) each
+come of that number. A description of the Han script, of Hiragana, or of
+Katakana therefore takes twice the rows that the program counts, and the
+panel says that it holds a text that the screen cut.
+
+The measurement, of the real program v0.8.134 inside tmux against the
+sandbox with the account `toutuitest` and a terminal of 80 columns. **The
+data of this fault is the text of the server**, therefore it needs no
+proxy, no book of a harness, and no build of the fault of the source:
+`PATCH /api/items/8fda6e43-…/media` with `{"metadata":{"description": …}}`
+gave `Alice in Wonderland` a description of 118 words of
+`日本語書籍説明文段` (nine characters, eighteen columns) and the word
+`THEENDOFTHETEXT` after them, and the keys `/`, `Alice`, and `Enter` of the
+Home view gave the view of the search. **The cause, in numbers**: the panel
+of that view holds 18 rows and 78 columns of text and it drew **four** words
+of every row, therefore the text takes **30** rows; the old rule fitted
+**seven** words of nine characters in a row and it counted **17**, which is
+fewer than the 18 rows of the panel; `the_last_scroll` gave 0, **no bar of
+the scroll came**, and **forty presses of the key `J` changed no character
+of the screen**. `THEENDOFTHETEXT` stood on the row 30, and twelve rows of
+that description had no road at all. **The control of the same run**: a
+description of 118 words of `ABCDEFGHIJKLMNOPQR` (eighteen characters,
+eighteen columns) — the same number of columns and a different number of
+characters — gave the bar of the scroll at once, the key `J` moved the
+panel, and `THEENDOFTHETEXT` stood on the last row of it.
+
+**The second measurement is of ratatui itself**, with a `Paragraph` of
+`Wrap { trim: true }` drawn into a `Buffer` with no terminal at all. **The
+last character of a row takes one column of that row**: two words of
+eighteen columns of the Han script stood on one row of **36** columns and
+two words of eighteen columns of ASCII needed two rows of that same width,
+and four words of the Han script stood on one row of **74** columns while
+four words of ASCII needed **75**. The crate draws the last character of a
+row while one column of that row stays, and the terminal then cuts the
+right half of a character of two columns. **This program does not choose
+that rule, and it must have the number of the rows that the screen has**,
+therefore the count holds it.
+
+The correction is two files. `src/logic/the_scroll_of_a_panel.rs`:
+`the_lines_of_one_line` measures every word with
+`crate::logic::message::the_columns_of` (T-305), the new
+`the_room_of_a_word` gives the columns that a word needs at the end of a
+row, and the new `the_lines_of_one_word` walks the characters of a word
+that is longer than the panel.
+`tests/the_panel_of_a_description_counts_its_columns.rs` holds the gate: it
+draws a `Paragraph` of `Wrap { trim: true }` into a `Buffer` (T-256) and it
+asserts that the count of the program is the number of the rows that
+ratatui drew, for eight texts at every width from 20 to 200 columns. **The
+build of the fault** (`word.chars().count()` in the place of
+`the_columns_of(word)`) said 15 rows where ratatui drew 30. **The corrected
+program**, of the same keys and the same description of Japanese, gave the
+bar of the scroll, the key `J` moved the panel, and `THEENDOFTHETEXT` stood
+on the last row of it — the screen of the control of ASCII, character for
+character.
+- **The marks of a line count the characters still** (T-305 and T-306):
+  `fill` of `src/ui/marks.rs:111` reads `mark.chars().count()`, and a mark
+  of the East Asian Width "Ambiguous" takes one column or two, and the
+  terminal decides. **This is a candidate and not a measurement.**
+- **A word that is longer than the panel takes the road of ratatui that
+  overflows the area** (T-306): a `Paragraph` of 3 columns drew two
+  characters of the Han script on one row, which is four columns. That is a
+  fault of the crate and not of this program, and **a description of
+  Japanese holds no space at all**, therefore a real description of
+  Japanese takes that road for the whole of its text. **This is a candidate
+  and not a measurement.**
+- **`the_number_of_the_lines` is not the one count of a wrap of this
+  program** (T-306): `the_rows_of_a_message` of `src/logic/message.rs`
+  (T-299) holds a second count of a wrap, with rules of its own, and no
+  measurement asked whether the two agree with ratatui together. **This is
+  a candidate and not a measurement.**
+- **The four titles of a fixed text stand outside the gate of T-304**, and
+  the rule of the columns does not close that candidate: the longest of
+  the four holds 28 characters of ASCII, which is 28 columns. **This is a
+  candidate and not a measurement.**
+
 ## The prompt for the next session
 
 
@@ -19196,7 +19394,13 @@ whole of its title at 80.
 >
 > **The disk of this machine can fill while a session runs** (the trap 150):
 > `target/debug/incremental` held 78 gigabytes and `target/debug/deps` held 117,
-> and `cargo clippy` then said `No space left on device`. The removal of
+> and `cargo clippy` then said `No space left on device`. **The round of
+> 2026-08-16 met it again at 21 gigabytes of `target/debug/incremental`, and a
+> `python3` that opened `docs/HANDOVER.md` for a write truncated that file to no
+> byte at all** (the trap 243): a write of a large file of this repository must
+> write a new file and move it over the old one (`os.replace`), because a write
+> that fails then leaves the file of the start, and `git restore
+> docs/HANDOVER.md` is the road back. The removal of
 > `target/debug/incremental` alone gives the room back and it keeps every
 > artefact of the dependencies, and `CARGO_INCREMENTAL=0` keeps it away. **Do not
 > run `cargo clean`**: the rebuild of the dependencies costs more than the room.
@@ -19314,15 +19518,15 @@ whole of its title at 80.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-306 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-307 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1368 tests in 2.8 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1394 of 1394** with the sandbox up, in about 20 seconds. **Run that
+> Baseline: **1370 tests in 2.8 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1396 of 1396** with the sandbox up, in about 28 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -19432,91 +19636,88 @@ whole of its title at 80.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and seven sessions of one hundred
 >    and eight.
->   **The session of the hundred and thirty-fifth turn took a candidate of the
->   sweep that T-305 opened — the counts of the characters that the correction
->   of T-305 did not reach — and the measurement of it gave the fault**
->   (T-306). **It left the marks of a line open**, and it found a road of
->   ratatui that this program does not choose and that no count of this program
->   says.
+>   **The session of the hundred and thirty-sixth turn took the candidate of
+>   the sweep that T-306 opened — the second count of a wrap of this program —
+>   and the measurement of it gave the fault** (T-307). **It left three
+>   candidates open**, and one of them is a message of the program that
+>   reaches nobody at all.
 >
->   **The panel of a description counts the columns of its text.**
->   `the_lines_of_one_line` of `src/logic/the_scroll_of_a_panel.rs` measured
->   every word with `word.chars().count()`. That function is the one road to
->   the length of the text of a panel (T-252): the largest scroll of the keys
->   `J` and `K` (T-252) and the bar of the scroll of the panel (T-253) each
->   come of that number. A description of the Han script, of Hiragana, or of
->   Katakana therefore takes twice the rows that the program counts, and the
->   panel says that it holds a text that the screen cut.
+>   **The box of a message counts the columns of its text.**
+>   `the_rows_of_a_message` of `src/logic/message.rs` is the second count of a
+>   wrap of this program: the box of the message of a view stands on the rows
+>   that this count gives (T-299), and `in_the_rows` cuts the end of a message
+>   that needs more rows than the screen holds. T-305 gave that function
+>   `the_columns_of`, and T-306 found a second rule of ratatui that it did not
+>   hold: **the last character of a row takes one column of that row**,
+>   because the crate draws the last character while one column of that row
+>   stays. T-306 gave that rule to the count of the panel of a description
+>   alone, therefore a message of the Han script, of Hiragana, or of Katakana
+>   said that it needs one row more than the render takes.
 >
->   The measurement, of the real program v0.8.134 inside tmux against the
->   sandbox with the account `toutuitest` and a terminal of 80 columns. **The
->   data of this fault is the text of the server**, therefore it needs no
->   proxy, no book of a harness, and no build of the fault of the source:
->   `PATCH /api/items/8fda6e43-…/media` with `{"metadata":{"description": …}}`
->   gave `Alice in Wonderland` a description of 118 words of
->   `日本語書籍説明文段` (nine characters, eighteen columns) and the word
->   `THEENDOFTHETEXT` after them, and the keys `/`, `Alice`, and `Enter` of the
->   Home view gave the view of the search. **The cause, in numbers**: the panel
->   of that view holds 18 rows and 78 columns of text and it drew **four** words
->   of every row, therefore the text takes **30** rows; the old rule fitted
->   **seven** words of nine characters in a row and it counted **17**, which is
->   fewer than the 18 rows of the panel; `the_last_scroll` gave 0, **no bar of
->   the scroll came**, and **forty presses of the key `J` changed no character
->   of the screen**. `THEENDOFTHETEXT` stood on the row 30, and twelve rows of
->   that description had no road at all. **The control of the same run**: a
->   description of 118 words of `ABCDEFGHIJKLMNOPQR` (eighteen characters,
->   eighteen columns) — the same number of columns and a different number of
->   characters — gave the bar of the scroll at once, the key `J` moved the
->   panel, and `THEENDOFTHETEXT` stood on the last row of it.
+>   The measurement, of the real program v0.8.135 inside tmux against the
+>   sandbox with the account `toutuitest` and a terminal of **40** columns.
+>   **The data of this fault is the text of the server**, therefore it needs
+>   no proxy, no book of a harness, and no build of the fault of the source:
+>   `PATCH /api/items/040e9d69-…/media` gave the book
+>   `The Test Chronicles Volume 3` the title
+>   `日本語書籍説明 日本語書籍説明 日本語書籍説明` (three words of seven
+>   characters, of fourteen columns each), the keys `/`, `日本語書籍説明`, and
+>   `Enter` gave the view of the search, the key `D` wrote the row of the
+>   download with that title, and the key `X` said
+>   `Removed the local copy of "…".` **The sentence of the key `X` reads the
+>   title of the row of the download and not the title of the server**,
+>   therefore a title that changed needs a `D` before the `X`. **The cause, in
+>   numbers**: the count of the program said **3** rows and the render of
+>   ratatui took **2**, therefore the box stood on the rows 40, 41, and 42,
+>   the last row of it held no character, and **the row 39 of the list went
+>   away for nothing** — the last row of a message stands above the footer
+>   (T-299), and that message stood one row over it. **The control of the same
+>   run**: the title `ABCDEFGHIJKLMN ABCDEFGHIJKLMN ABCDEFGHIJKLMN` — three
+>   words of fourteen characters, of the same fourteen columns — took the rows
+>   40, 41, and 42, every row of it held characters, and its last row stood
+>   above the footer.
 >
->   **The second measurement is of ratatui itself**, with a `Paragraph` of
->   `Wrap { trim: true }` drawn into a `Buffer` with no terminal at all. **The
->   last character of a row takes one column of that row**: two words of
->   eighteen columns of the Han script stood on one row of **36** columns and
->   two words of eighteen columns of ASCII needed two rows of that same width,
->   and four words of the Han script stood on one row of **74** columns while
->   four words of ASCII needed **75**. The crate draws the last character of a
->   row while one column of that row stays, and the terminal then cuts the
->   right half of a character of two columns. **This program does not choose
->   that rule, and it must have the number of the rows that the screen has**,
->   therefore the count holds it.
->
->   The correction is two files. `src/logic/the_scroll_of_a_panel.rs`:
->   `the_lines_of_one_line` measures every word with
->   `crate::logic::message::the_columns_of` (T-305), the new
->   `the_room_of_a_word` gives the columns that a word needs at the end of a
->   row, and the new `the_lines_of_one_word` walks the characters of a word
->   that is longer than the panel.
->   `tests/the_panel_of_a_description_counts_its_columns.rs` holds the gate: it
->   draws a `Paragraph` of `Wrap { trim: true }` into a `Buffer` (T-256) and it
->   asserts that the count of the program is the number of the rows that
->   ratatui drew, for eight texts at every width from 20 to 200 columns. **The
->   build of the fault** (`word.chars().count()` in the place of
->   `the_columns_of(word)`) said 15 rows where ratatui drew 30. **The corrected
->   program**, of the same keys and the same description of Japanese, gave the
->   bar of the scroll, the key `J` moved the panel, and `THEENDOFTHETEXT` stood
->   on the last row of it — the screen of the control of ASCII, character for
->   character.
->   - **The marks of a line count the characters still** (T-305 and T-306):
->     `fill` of `src/ui/marks.rs:111` reads `mark.chars().count()`, and a mark
->     of the East Asian Width "Ambiguous" takes one column or two, and the
->     terminal decides. **This is a candidate and not a measurement.**
->   - **A word that is longer than the panel takes the road of ratatui that
->     overflows the area** (T-306): a `Paragraph` of 3 columns drew two
->     characters of the Han script on one row, which is four columns. That is a
->     fault of the crate and not of this program, and **a description of
->     Japanese holds no space at all**, therefore a real description of
->     Japanese takes that road for the whole of its text. **This is a candidate
+>   The correction is two files. `src/logic/message.rs`: `the_room_of_a_word`
+>   and `the_lines_of_one_word` moved out of
+>   `src/logic/the_scroll_of_a_panel.rs` and they stand beside
+>   `the_columns_of` now, `the_rows_of_a_message` fits a word at the end of a
+>   row with the first one and it walks the characters of a word that is
+>   longer than the width with the second one, and `the_number_of_the_lines`
+>   of the panel calls the two of them at their new place — **the two counts
+>   of a wrap of this program read one rule now**.
+>   `tests/the_box_of_a_message_counts_its_columns.rs` holds the gate: it
+>   draws a `Paragraph` of `Wrap { trim: true }` into a `Buffer` (T-256) and
+>   it asserts that the count of the program is the number of the rows that
+>   ratatui drew. **The build of the fault**
+>   (`column + spaces + the_columns_of(word)` in the place of
+>   `column + spaces + room`) said 4 rows where ratatui drew 3. **The
+>   corrected program**, of the same keys and the same title of Japanese, put
+>   the two rows of the message at 41 and 42, directly above the footer.
+>   - **A gate that draws with ratatui needs a `Buffer` of the rows of its
+>     text** (T-307): the first form of this gate held a buffer of a fixed
+>     height of 250 rows and it took **455 seconds**, and a buffer of the rows
+>     that the text can need takes **1.9 seconds**. A buffer that is shorter
+>     than the text cuts the render, and the gate then says a number that
+>     ratatui did not draw.
+>   - **The message of the settings library reaches nobody** (T-307):
+>     `src/app.rs:3061` says `The program shows the library "…" now.` and it
+>     then writes `must_refresh = true`, and the loop of `src/main.rs` calls
+>     `logic::message::forget()` on that road — the shape of the trap 234 of
+>     the key `R`. The keys `S`, `j`, `l`, and `l` of the real program at 40
+>     columns gave no character of that sentence. **This is a candidate and
+>     not a measurement.**
+>   - **`the_lines_of_one_line` of `src/logic/the_scroll_of_a_panel.rs` counts
+>     one space between two words** (T-307): the rule is
+>     `length + 1 + room <= width`, and T-302 measured that a wrap of
+>     `trim: true` keeps every space that stands inside a row. A description
+>     of the server that holds two spaces between two words therefore takes a
+>     number of the rows that the panel does not count. **This is a candidate
 >     and not a measurement.**
->   - **`the_number_of_the_lines` is not the one count of a wrap of this
->     program** (T-306): `the_rows_of_a_message` of `src/logic/message.rs`
->     (T-299) holds a second count of a wrap, with rules of its own, and no
->     measurement asked whether the two agree with ratatui together. **This is
->     a candidate and not a measurement.**
->   - **The four titles of a fixed text stand outside the gate of T-304**, and
->     the rule of the columns does not close that candidate: the longest of
->     the four holds 28 characters of ASCII, which is 28 columns. **This is a
->     candidate and not a measurement.**
+>   - **The marks of a line count the characters still** (T-305, T-306, and
+>     T-307): `fill` of `src/ui/marks.rs:111` reads `mark.chars().count()`,
+>     and a mark of the East Asian Width "Ambiguous" takes one column or two,
+>     and the terminal decides. **This is a candidate and not a
+>     measurement.**
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -19983,7 +20184,10 @@ whole of its title at 80.
 > the last character of a row takes one column of that row because the crate
 > draws it while one column of that row stays, and the largest scroll of the
 > keys `J` and `K` and the bar of the scroll each come of that number**
-> (T-306).
+> (T-306), and **the box of a message counts the columns of its text: the two
+> counts of a wrap of this program read one rule of ratatui, which stands in
+> `src/logic/message.rs` beside the measure of the columns, and a message
+> therefore stands on the rows that the render draws it on** (T-307).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
@@ -20019,7 +20223,9 @@ whole of its title at 80.
 > that round took a second turn out, and the block then held 94320 bytes
 > with **one** turn in it; the round of the hundred and thirty-fifth found it
 > at 94314 bytes with one turn in it, and it did the same work, and the block
-> then held 95022 bytes with **one** turn in it. **A turn of many
+> then held 95022 bytes with **one** turn in it; the round of the hundred and
+> thirty-sixth found it at 95022 bytes with one turn in it, and it did the same
+> work, and the block then held 94995 bytes with **one** turn in it. **A turn of many
 > numbers is a turn that takes two turns out**, and **a block that stands above
 > 99000 bytes with one turn in it needs a part of the list of "Do not open these
 > again" in a section of its own, outside the block.**

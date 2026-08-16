@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.136",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The box of a message counts the columns of its text.** The \
+             program said that a message of the Han script, of Hiragana, or of \
+             Katakana needs one row more than the screen draws it on: the box \
+             of that message then stood one row above its text, the last row \
+             of the box held no character, and one row of the view went away \
+             for nothing. The count of a message and the count of a panel read \
+             one rule of the wrap now, and a message stands on the rows that \
+             it needs.",
+        ],
+    },
+    Entry {
         version: "0.8.135",
         date: "16/08/2026",
         body: &[
