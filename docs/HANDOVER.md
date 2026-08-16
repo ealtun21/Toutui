@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.129.** The item T-300 belongs to this session. The
+**The newest release is v0.8.130.** The item T-301 belongs to this session. The
+item T-300 belongs to the session before it. The
 item T-299 belongs to the session before it. The
 item T-298 belongs to the session before it. The
 item T-297 belongs to the session before it. The
@@ -145,6 +146,115 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its binaries in two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and thirtieth turn of 2026-08-16: the footer of the reader stands on the rows that it needs
+
+**The item: T-301**, and the release **v0.8.130**.
+
+**The candidate came of T-300.** That item left two of them open, and this one
+took the second: the keys at the foot of the reader stand in a `Paragraph` of
+two rows with no `wrap`, therefore a terminal that is narrower than those texts
+loses the keys of the road back.
+
+**The read of the source gave more than the candidate said.** The four texts of
+the keys stood in `src/ui/reader_tui.rs` as literals of the `render`, and each
+of them held a `\n` of its own. Every other footer of every other view of this
+program stands in `src/ui/keys.rs`, where `every_footer_fits_in_eighty_columns`
+holds two rules — a footer holds one line and no `\n`, and it holds no more
+than 130 characters — and `App::render_footer` of `src/ui/tui.rs` draws it with
+`.wrap(Wrap { trim: true })`. **The footer of the reader broke the three of
+them, and no test read those four literals at all.**
+
+**The measurement needed no proxy, no harness of a book, and no change of the
+sandbox: the data of this fault is the size of the terminal.** The real program
+v0.8.129 inside tmux, a terminal of 40 columns and 30 rows, the account
+`toutuitest`, and the keys `/`, `Alice in Wonderland`, `Enter`, and `e` on the
+copy of the cache of the ebooks. The two rows at the foot of the screen said
+
+```text
+j/k: line  Space/b: screen  n/p: chapter
+ s: send the position  ?: every key  h:
+```
+
+The keys `t: contents`, `g/G: start/end`, and `Q: quit` went away, and
+`h: leave the book` stood at `h:`. The key `t` then opened the contents of the
+book, and the one row of that view said
+`j/k: move  l/Enter: go to the chapter  t`: **the whole of `h: leave the book`
+went away, and the contents of a book hold no other road out.**
+
+A control of the same run: the key `t` gave the contents and it gave the text
+back, and the key `n` gave the chapter 4 of 14 at 9% on the line at the top.
+The keys did their work, and the footer alone said nothing.
+
+**The decision: the footer of the reader is a footer of this program, and it
+stands on the rows that it needs.** A wrap of two rows corrects nothing at 40
+columns — two rows of 40 columns hold 80 cells, and the footer of the reader
+holds 133 characters. The footer therefore takes the rows of its wrap and it
+grows over the text of the book, which is the rule of T-299 for the row of the
+message of a view. The body of the reader scrolls, therefore those rows cost
+the user no word of the book, and a list would lose a line. The footer holds no
+more than one half of the rows of the reader, and a footer that needs more
+loses its end to three points; and it holds no fewer than **two** rows, because
+the reader held two rows at every width already, and a body that grows by one
+row at 160 columns is a change that no fault asks for.
+
+**The correction is two files.** `src/ui/keys.rs` holds the four texts as
+`FOOTER_OF_THE_READER`, `FOOTER_OF_THE_READER_OF_PAGES`,
+`FOOTER_OF_THE_CONTENTS`, and `FOOTER_OF_THE_PAGES`, each of them one line with
+no `\n`, under the new gate `every_footer_of_the_reader_holds_one_line` (one
+line, 160 characters, and the key of the road back in each of the four).
+`src/ui/reader_tui.rs` holds `footer_of(contents_open, holds_pages)`, the pure
+`the_rows_of_the_footer(text, width, rows_of_the_reader)` — out of
+`crate::logic::message::the_rows_of_a_message`, clamped to
+`[2, rows_of_the_reader / 2]` — and `draw_the_footer(area, buf, keys)` with
+`crate::logic::message::in_the_rows` and the wrap; `render` reads the rows
+before its `Layout`.
+
+**The corrected program**, of the same book and of the same keys, held every
+key on four rows at 40 columns:
+
+```text
+j/k: line  Space/b: screen  n/p: chapter
+t: contents  g/G: start/end  s: send the
+  position  ?: every key  h: leave the
+              book  Q: quit
+```
+
+and the footer of the contents stood on two rows with the whole of
+`h: leave the book`. At 80 columns the footer kept its two rows and every key,
+and at 160 columns it held every key in one row of the two.
+
+**The test** is `the_footer_of_the_reader_never_loses_the_road_back` of
+`src/ui/reader_tui.rs`: the four footers at 40, 80, 100, and 160 columns, the
+rows in `[2, half of the reader]`, and `draw_the_footer` into a `Buffer` with
+no terminal at all — every word of the text stands on that screen with no three
+points. **Three builds of the fault**: the `.wrap` removed
+(`the footer of 40 columns lost "t:"`), a `the_rows_of_the_footer` of
+`.min(THE_ROWS_OF_THE_FOOTER)` (the same test), and the `\n` back in
+`FOOTER_OF_THE_READER` (the gate of `src/ui/keys.rs`).
+
+**The gates**: `cargo clippy --all-targets -- -D warnings`, `cargo fmt
+--check`, **1359 tests of nextest in 2.8 seconds**, **1385 of 1385** of
+`--run-ignored all` with the sandbox in 17 seconds, and two runs of
+`cargo test -j 16 --no-fail-fast` with no failure.
+
+**The road back of the measurement: none.** It wrote no place of a media, no
+row of the database, and no file of the disk. The reader keeps the chapter of a
+book that it read already, therefore the runs moved `Alice in Wonderland` from
+the chapter 3 to the chapter 5 of 14, and nothing else changed.
+
+### What this turn leaves open
+
+- **The footer of the reader counts characters and not columns** (T-301):
+  `the_rows_of_a_message` counts one column for each character, and the four
+  texts hold ASCII alone. It is the class of the line at the top of T-300.
+- **The footers of the other views hold two rows and no more** (T-301): a
+  terminal of 40 columns holds 80 cells in them, and the gate of those footers
+  allows 130 characters. **A measurement of a footer of a view of a list at 40
+  columns did not run.**
+- **A terminal of 40 columns is a measurement of its own** (T-301): the fault
+  of this turn needed no proxy, no book of a harness, and no change of the
+  sandbox — the size of the terminal was the whole of the data.
 
 ## The session of the hundred and twenty-ninth turn of 2026-08-16: the line at the top of the reader keeps the place of the user
 
@@ -16234,6 +16344,65 @@ account.`
   handler of this program waits for no server. **This is a candidate and
   not a measurement.**
 
+**The session of the hundred and twenty-seventh turn took the candidate
+"the road `AfterALogOut::ThisAccountStarts` loses the words of its log out
+too", which T-297 left open, and the measurement of it gave the fault**
+(T-298).
+
+**A log out of the account that starts the program says nothing to the
+user.** The key `l` gives the start to the first account that stays, and
+the program starts again with `exec`: the box of the message goes away
+with the process, and that program holds an account, therefore it draws no
+login screen and the disk of T-270 reaches nobody.
+
+The measurement, of the real program v0.8.126 inside tmux against the
+sandbox. **The data of this fault is the database of the program, and it
+needs no proxy at all.** The keys `S`, `Enter`, and `a` of the account
+`toutuitest` gave the login screen, and the address
+`http://localhost:13399`, the name `toutuilimited`, and the password
+`toutuilimited` gave a second account: **a login writes the mark of the
+account of the start**, therefore `toutuilimited` then started the
+program. The keys `S`, `Enter`, `j`, `l`, and `l` logged out of it. The
+log said `the log out of toutuilimited took 1 row(s) of the account and 0
+place(s) of the user.` and `the account toutuitest starts the program.`,
+the Home view of `toutuitest` came, and **six polls of the whole screen,
+one every 0.8 seconds, found no word of that log out at all**. A control
+of the same run:
+`TOUTUI_THE_WORDS_OF_THE_START=…` on the command line of
+`start_the_program` drew that sentence on the **row 43** of the Home view,
+therefore the road of the environment works and the program did not take
+it.
+
+**The decision: a variable of the environment carries the words over the
+`exec`.** The disk of T-270 belongs to the login screen alone. And **a
+variable of the environment stays over every `exec` after it**, therefore
+every start of the program again writes it, and a start that carries no
+words writes it empty: without that rule the words of one log out would
+come back at the key `c` and at a token that the server refused.
+
+The correction is five files. `src/logic/message.rs` holds
+`THE_WORDS_OF_THE_START`, the pure `the_words_of_the_start`, and
+`say_the_words_of_the_start`. `src/logic/the_accounts.rs` holds
+`TheWorkOfALogOut`, `the_work_of_a_log_out`, and
+`the_variables_of_a_start`. `src/app.rs` reads that work, and
+`start_the_program_with_this_account` takes the words beside the name.
+`src/utils/exit_app.rs` holds the pure `the_environment_of_a_start`.
+`src/main.rs` says the words before the first frame, above the values of
+the file of T-264. **The corrected program**, of the same keys, held
+`The program removed the account toutuilimited.` on the row 43 of the Home
+view of `toutuitest` at every one of the six polls, and the build of the
+fault (`start_the_program_with_this_account(&name, "")`) said nothing at
+any of them.
+- **The row of the message of a view now draws the sentence of a log out
+  with the copies of the disk of T-297, and that sentence is about 180
+  characters** (T-298): T-278 gave that row more than one row, and a
+  measurement of this sentence on this road did not run. **This is a
+  candidate and not a measurement.**
+- **The words of a start reach no user when `exec` fails** (T-298): the
+  loop of `src/main.rs` then says `request.message`, which names the
+  system and not the log out. **This is a candidate and not a
+  measurement.**
+
 ## The session of the hundred and sixth turn of 2026-08-16: a chapter that the book did not give says why
 
 **One release: v0.8.106**, and one item: T-277. **The road of it is the
@@ -17497,7 +17666,7 @@ log out** (T-200).
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.129**; `Cargo.toml` is at 0.8.129. The
+> AlbanDAVID/Toutui. Newest release **v0.8.130**; `Cargo.toml` is at 0.8.130. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -17965,6 +18134,13 @@ log out** (T-200).
 >          ./target/debug/toutui"
 > ```
 >
+> **The size of the terminal is data of a fault, and it needs no harness at
+> all** (T-301). `COLUMNS_OF_THE_SCREEN=40` of `docs/harness/drive.sh` gives
+> the narrowest terminal that this fork measures, and the fault of T-301 came
+> of it with no proxy, no book of a harness, and no change of the sandbox at
+> all. **Every widget of a fixed number of rows and every `Paragraph` with no
+> `wrap` is a candidate of that width.**
+>
 > **A `ps` of the machine at the start of a round is a measurement of its own**
 > (T-271): three programs of the round of 2026-08-15 stood at 131 percent of one
 > processor for three hours each, and `ps -o pid,pcpu,etime -C toutui` named
@@ -18340,7 +18516,73 @@ log out** (T-200).
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and seven sessions of one hundred
 >    and eight.
->    **The session of the hundred and twenty-ninth turn took the candidate
+>    **The session of the hundred and thirtieth turn took the candidate "the
+>    keys at the foot of the reader stand in a `Paragraph` of two rows with no
+>    `wrap`", which T-300 left open, and the measurement of it gave the fault**
+>    (T-301).
+>
+>    **A narrow terminal took the road back out of the reader.** The keys at the
+>    foot of the reader stood in `src/ui/reader_tui.rs` as four literals of the
+>    `render`, each of them with a `\n` of its own, in a `Paragraph` of a `Rect`
+>    of two rows with **no wrap at all**. The two rows of the text of a chapter
+>    hold 69 and 63 characters, and the one row of the contents of a book holds
+>    77 of them. **That footer stood outside the gate of the footers of this
+>    program**: every other footer stands in `src/ui/keys.rs`, where
+>    `every_footer_fits_in_eighty_columns` holds two rules — one line with no
+>    `\n`, and no more than 130 characters — and `App::render_footer` of
+>    `src/ui/tui.rs` draws it with `.wrap(Wrap { trim: true })`. The reader broke
+>    the three of them, and no test read those four literals.
+>
+>    The measurement, of the real program v0.8.129 inside tmux against the
+>    sandbox with the account `toutuitest`. **The data of this fault is the size
+>    of the terminal, and it needs no proxy and no book of a harness at all**: a
+>    terminal of **40 columns** and 30 rows, and the keys `/`,
+>    `Alice in Wonderland`, `Enter`, and `e` on the copy of the cache of the
+>    ebooks. The two rows at the foot said `j/k: line  Space/b: screen  n/p:
+>    chapter` and ` s: send the position  ?: every key  h:` — **the keys
+>    `t: contents`, `g/G: start/end`, and `Q: quit` went away, and
+>    `h: leave the book` stood at `h:`.** The key `t` then gave the contents, and
+>    the one row of that view said `j/k: move  l/Enter: go to the chapter  t`:
+>    **the whole of `h: leave the book` went away there**, and the contents of a
+>    book hold no other road out. A control of the same run: the key `t` gave the
+>    contents and it gave the text back, and the key `n` gave the chapter 4 of 14
+>    at 9% on the line at the top, therefore the keys did their work and the
+>    footer alone said nothing.
+>
+>    **The decision: the footer of the reader is a footer of this program, and it
+>    stands on the rows that it needs.** A wrap of two rows corrects nothing at
+>    40 columns: two rows of 40 columns hold 80 cells, and the footer of the
+>    reader holds 133 characters. The footer therefore takes the rows of its wrap
+>    and it grows over the text of the book — the body of the reader scrolls,
+>    therefore those rows cost the user no word of the book, and a list would
+>    lose a line. It holds no more than one half of the rows of the reader, and a
+>    footer that needs more loses its end to three points (the rule of T-299);
+>    and it holds no fewer than **two** rows, because the reader held two rows at
+>    every width already.
+>
+>    The correction is two files. `src/ui/keys.rs` holds the four texts, as
+>    `FOOTER_OF_THE_READER`, `FOOTER_OF_THE_READER_OF_PAGES`,
+>    `FOOTER_OF_THE_CONTENTS`, and `FOOTER_OF_THE_PAGES`, each of them one line
+>    with no `\n`, under the gate `every_footer_of_the_reader_holds_one_line`.
+>    `src/ui/reader_tui.rs` holds `footer_of`, the pure
+>    `the_rows_of_the_footer` (out of `crate::logic::message::the_rows_of_a_message`,
+>    clamped to `[2, the rows of the reader / 2]`), and
+>    `draw_the_footer(area, buf, keys)` with `in_the_rows` and the wrap; `render`
+>    reads the rows before its `Layout`. **The corrected program**, of the same
+>    book and of the same keys, held every key on **four** rows at 40 columns,
+>    on **two** rows at 80 columns, and on **one** row of the two at 160.
+>    - **The footer of the reader counts characters and not columns** (T-301):
+>      `the_rows_of_a_message` counts one column for each character, and the four
+>      texts hold ASCII alone — therefore this is no fault of these texts today,
+>      and it is the class of the line at the top of T-300. **This is a candidate
+>      and not a measurement.**
+>    - **The footers of the other views hold two rows and no more** (T-301): a
+>      terminal of 40 columns holds 80 cells in them, and the gate of those
+>      footers allows 130 characters. A measurement of a footer of a view of a
+>      list at 40 columns did not run. **This is a candidate and not a
+>      measurement.**
+>
+>>    **The session of the hundred and twenty-ninth turn took the candidate
 >    "the row of the message of the reader is a different widget", which T-299
 >    left open. A read of that widget found no fault — the reader with no book
 >    draws its message into the whole of its area with a `wrap` — and the sweep
@@ -18461,65 +18703,6 @@ log out** (T-200).
 >      **This is a candidate and not a measurement.**
 >    - **The words of a start reach no user when `exec` fails** (T-298 and
 >      T-299). **This is a candidate and not a measurement.**
->
->    **The session of the hundred and twenty-seventh turn took the candidate
->    "the road `AfterALogOut::ThisAccountStarts` loses the words of its log out
->    too", which T-297 left open, and the measurement of it gave the fault**
->    (T-298).
->
->    **A log out of the account that starts the program says nothing to the
->    user.** The key `l` gives the start to the first account that stays, and
->    the program starts again with `exec`: the box of the message goes away
->    with the process, and that program holds an account, therefore it draws no
->    login screen and the disk of T-270 reaches nobody.
->
->    The measurement, of the real program v0.8.126 inside tmux against the
->    sandbox. **The data of this fault is the database of the program, and it
->    needs no proxy at all.** The keys `S`, `Enter`, and `a` of the account
->    `toutuitest` gave the login screen, and the address
->    `http://localhost:13399`, the name `toutuilimited`, and the password
->    `toutuilimited` gave a second account: **a login writes the mark of the
->    account of the start**, therefore `toutuilimited` then started the
->    program. The keys `S`, `Enter`, `j`, `l`, and `l` logged out of it. The
->    log said `the log out of toutuilimited took 1 row(s) of the account and 0
->    place(s) of the user.` and `the account toutuitest starts the program.`,
->    the Home view of `toutuitest` came, and **six polls of the whole screen,
->    one every 0.8 seconds, found no word of that log out at all**. A control
->    of the same run:
->    `TOUTUI_THE_WORDS_OF_THE_START=…` on the command line of
->    `start_the_program` drew that sentence on the **row 43** of the Home view,
->    therefore the road of the environment works and the program did not take
->    it.
->
->    **The decision: a variable of the environment carries the words over the
->    `exec`.** The disk of T-270 belongs to the login screen alone. And **a
->    variable of the environment stays over every `exec` after it**, therefore
->    every start of the program again writes it, and a start that carries no
->    words writes it empty: without that rule the words of one log out would
->    come back at the key `c` and at a token that the server refused.
->
->    The correction is five files. `src/logic/message.rs` holds
->    `THE_WORDS_OF_THE_START`, the pure `the_words_of_the_start`, and
->    `say_the_words_of_the_start`. `src/logic/the_accounts.rs` holds
->    `TheWorkOfALogOut`, `the_work_of_a_log_out`, and
->    `the_variables_of_a_start`. `src/app.rs` reads that work, and
->    `start_the_program_with_this_account` takes the words beside the name.
->    `src/utils/exit_app.rs` holds the pure `the_environment_of_a_start`.
->    `src/main.rs` says the words before the first frame, above the values of
->    the file of T-264. **The corrected program**, of the same keys, held
->    `The program removed the account toutuilimited.` on the row 43 of the Home
->    view of `toutuitest` at every one of the six polls, and the build of the
->    fault (`start_the_program_with_this_account(&name, "")`) said nothing at
->    any of them.
->    - **The row of the message of a view now draws the sentence of a log out
->      with the copies of the disk of T-297, and that sentence is about 180
->      characters** (T-298): T-278 gave that row more than one row, and a
->      measurement of this sentence on this road did not run. **This is a
->      candidate and not a measurement.**
->    - **The words of a start reach no user when `exec` fails** (T-298): the
->      loop of `src/main.rs` then says `request.message`, which names the
->      system and not the log out. **This is a candidate and not a
->      measurement.**
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -18953,7 +19136,13 @@ log out** (T-200).
 > loses its end to three points** (T-299), and **the line at the top of the
 > reader keeps the place of the user: the place of the user stands whole while
 > one column stays for it, and the title takes the room after it and it loses
-> its end to three points** (T-300).
+> its end to three points** (T-300), and **the footer of the reader
+> stands on the rows that it needs: the footer of the reader is a footer of
+> this program, therefore its four texts stand in `src/ui/keys.rs` under a
+> gate, they hold one line and no `\n`, and the `Paragraph` of them wraps over
+> the rows that the wrap needs — no fewer than two, no more than one half of
+> the rows of the reader, and three points for an end that no row holds**
+> (T-301).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
@@ -18975,7 +19164,10 @@ log out** (T-200).
 > same work, and the block then held 99820 bytes; the round of the hundred and
 > twenty-first found it at 99081 bytes with one turn in it, and it took that turn
 > out and it wrote its own; the round of the hundred and twenty-third found it at
-> 99422 bytes with one turn in it, and it did the same work. **A turn of many
+> 99422 bytes with one turn in it, and it did the same work; the round of the
+> hundred and thirtieth found it at 97083 bytes with three turns in it, and it
+> took the oldest one out and it wrote its own, and the block then held 98173
+> bytes with three turns in it. **A turn of many
 > numbers is a turn that takes two turns out**, and **a block that stands above
 > 99000 bytes with one turn in it needs a part of the list of "Do not open these
 > again" in a section of its own, outside the block.**
