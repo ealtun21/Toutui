@@ -23995,3 +23995,135 @@ Each of these is a candidate, and not a measurement.
    press of a key.**
 4. **The three forms of a size of T-285 stay open**, and the two messages of
    `--update` of `src/update/install.rs` stay open.
+
+### T-287: a line of the log of the reader says the number of the user
+
+**The state**: corrected on 2026-08-16, in v0.8.116. The measurement is of the
+real program v0.8.115 inside tmux against the sandbox.
+
+#### The choice of this item
+
+T-286 left open the candidate "The line of the log of that fault says `the
+archive gave no chapter 1 of the book`, while the header of the same screen says
+`chapter 2 of 3`: the log holds the index of the program and the view holds the
+number of the user (the rule of T-283). Ask it of every line of the log of
+`src/logic/reader/`."
+
+#### The sweep
+
+`src/logic/reader/` holds 35 lines of the log. The three lines of
+`src/logic/reader/session.rs` that name a chapter say `chapter + 1` already, and
+no line of `src/logic/reader/pdf.rs` and of `src/logic/reader/pdf_of_a_child.rs`
+names a page of the user. **Two lines of `src/logic/reader/book.rs` said the
+index of the program**, and each of them stands beside a sibling that says
+`index + 1`:
+
+1. `chapter_bytes`, the arm of a read of the archive that failed:
+   `"[reader] the archive gave no chapter {index} of the book: {fault}"`. The
+   two arms above it — the manifest that holds no file of the chapter (T-282)
+   and the chapter that is larger than the limit (T-281) — each say `index + 1`.
+2. `no_such_chapter`: `"[reader] the book holds {count} chapters, and the
+   program asked for the chapter {asked}"`. `asked` is the index of the spine.
+
+#### The measurement
+
+The two books of the harnesses of T-286 and of T-283 went into the cache of the
+ebooks of the account `toutuitest`, under the name of the item of `Alice in
+Wonderland`
+(`$XDG_DATA_HOME/toutui/downloads/toutuitest/8fda6e43-0728-46ad-98bc-4c8634e299ad.epub`),
+and the good file of that name went to the scratchpad for the road back. **The
+data of this fault is a book, and it needs no proxy at all.** The keys `Tab`, 15
+keys `j`, and `e` gave the view of the reader, and the key `p` after them gave
+the chapter of the fault.
+
+The screen of `docs/harness/a_book_of_a_damaged_chapter.py`:
+
+```text
+The Book Of A Damaged Chapter — chapter 2 of 3 — 50%
+The book gave no text of this chapter. The other chapters can be good. …
+```
+
+and the one line of the log of that same key press:
+
+```text
+[reader] the archive gave no chapter 1 of the book: [CannotRead - `Resource
+{ key: Value("/OEBPS/c2.xhtml"), kind: ResourceKind("") }`]: corrupt deflate
+stream
+```
+
+The screen of `docs/harness/a_book_of_no_chapter.py`:
+
+```text
+The Book Of No Chapter — this book holds no chapter
+This book names no chapter. …
+```
+
+and the one line of the log of it:
+
+```text
+[reader] the book holds 0 chapters, and the program asked for the chapter 0
+```
+
+**No book of any user holds a chapter 0.** The header of the view of the reader
+calls the index 0 "chapter 1" (the rule of T-283), therefore the one fault of
+one key press read two different numbers in two places, and a user who takes the
+log to a maintainer names a chapter that no screen of the program showed.
+
+#### The correction
+
+One file, `src/logic/reader/book.rs`, and two lines: `index + 1` and
+`asked + 1`. **No sentence of a user changed**: the two views of the measurement
+said the same words after the correction as before it.
+
+#### The test
+
+`tests/the_log_of_the_reader_says_the_number_of_the_user.rs`. The crate `log`
+holds a logger of the process, therefore **the parts of this test stay in one
+function** (the shape of T-144 and of T-157): the test takes that slot with
+`log::set_boxed_logger`, it keeps every line in a `Mutex<Vec<String>>`, and it
+reads the lines that came after each call of `Book::chapter_xhtml`.
+
+The book of the damaged chapter of the measurement stands at
+`tests/data/hostile/14-a-book-of-a-damaged-chapter.epub` (3294 bytes), and the
+book of no chapter is `tests/data/hostile/12-a-book-of-no-chapter.epub` of
+T-283. The test needs no network and no sandbox.
+
+The build of the fault, of each of the two lines apart:
+
+```text
+the line must say the chapter 2 of the user, and it says: [reader] the archive
+gave no chapter 1 of the book: …
+
+the line must say the chapter 1 of the user, and it says: [reader] the book
+holds 0 chapters, and the program asked for the chapter 0
+```
+
+#### The controls
+
+1. The corrected program said `[reader] the archive gave no chapter 2 of the
+   book` while the header of the same screen said `chapter 2 of 3`, and
+   `[reader] the book holds 0 chapters, and the program asked for the chapter 1`
+   for the book of no chapter.
+2. The two sentences of the user did not change.
+3. The good book of `Alice in Wonderland` read at that same key `e`, and the log
+   held no line of the reader at all.
+
+#### What this item closes and what stays open
+
+- **The candidate 3 of T-286 closes.** T-286 read "the log held two lines of
+  that one fault, 256 milliseconds apart, for one press of a key". The
+  measurement of this round of the same book gave **one** line of the reader for
+  each press: the second line, 256 milliseconds after it, is
+  `[WARN] stop_parsing for XML5 not implemented, full speed ahead!` of the crate
+  of the render of the chapter after the fault. The rule of T-277 — the render
+  of a chapter that gave a fault does not start again — holds.
+- **The candidate 1 of T-286 stays open**: the reader holds the book of the
+  memory over the key `h`, therefore the key `X` of T-285 does no work of a
+  damaged chapter while the program stands.
+- **The three forms of a size of T-285 stay open**, and the two messages of
+  `--update` of `src/update/install.rs` stay open.
+- **A new candidate**: `no_such_chapter` writes its line at every road to
+  `ReaderError::NoSuchChapter`, and `chapter_bytes` calls it three times for one
+  read. A book of no chapter gave one line of it in this measurement; a road
+  that calls it two times for one key would say the fault two times. **This is a
+  candidate and not a measurement.**

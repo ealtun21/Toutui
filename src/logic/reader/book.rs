@@ -660,9 +660,18 @@ impl Book {
     /// roads to [`ReaderError::NoSuchChapter`] wrote none at all, and the arms
     /// beside them each write one already. The value carries the number of the
     /// chapters of the book, because the sentence of the user says it.
+    ///
+    /// **The line of the log says the number of the user** (T-287): `asked` is
+    /// the index of the chapter in the spine, and the header of the reader
+    /// calls the index 0 "chapter 1". A line of the index alone names a
+    /// chapter that the user cannot find, and the chapter 0 is a chapter that
+    /// no book of any user has.
     fn no_such_chapter(&self, asked: usize) -> ReaderError {
         let count = self.chapter_count();
-        info!("[reader] the book holds {count} chapters, and the program asked for the chapter {asked}");
+        info!(
+            "[reader] the book holds {count} chapters, and the program asked for the chapter {}",
+            asked + 1
+        );
 
         ReaderError::NoSuchChapter { asked, count }
     }
@@ -714,8 +723,17 @@ impl Book {
             // stream of that file, and a disk that gave no byte of it each come
             // to this arm. The program therefore says what the machine said,
             // and it names none of the three (T-91).
+            //
+            // **The line of the log says the number of the user** (T-287): the
+            // two arms above say `index + 1` already, and this arm said the
+            // index. The screen of that fault says "chapter 2 of 3" while this
+            // line said "no chapter 1 of the book", for the one press of one
+            // key.
             Err(fault) => {
-                info!("[reader] the archive gave no chapter {index} of the book: {fault}");
+                info!(
+                    "[reader] the archive gave no chapter {} of the book: {fault}",
+                    index + 1
+                );
 
                 Err(ReaderError::TheArchiveGaveNoChapter(fault.to_string()))
             }

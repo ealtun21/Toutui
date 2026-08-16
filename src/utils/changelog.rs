@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.116",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The file of the log now says the number of the chapter that \
+             you read.** Two lines of the log of the reader said the number \
+             of the list of the program, and that number is one less than the \
+             number of the screen: a fault of the chapter 2 of a book said \
+             \"no chapter 1 of the book\", and a book that names no chapter \
+             said \"the chapter 0\". No book holds a chapter 0. The two lines \
+             now say the number that you read at the top of the reader.",
+        ],
+    },
+    Entry {
         version: "0.8.115",
         date: "16/08/2026",
         body: &[
