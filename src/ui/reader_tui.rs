@@ -113,9 +113,12 @@ pub fn the_line_that_stands(title: &str, the_place: &str, width: u16) -> String 
         return format!("{title}{the_place}");
     }
 
+    // **A character is not a column** (T-305): the title of a book comes of the
+    // server, therefore a character of two columns reaches this line, and
+    // `crate::logic::message::the_columns_of` is the one measure of it.
     let columns = usize::from(width);
-    let letters = title.chars().count();
-    let place = the_place.chars().count();
+    let letters = crate::logic::message::the_columns_of(title);
+    let place = crate::logic::message::the_columns_of(the_place);
 
     if letters + place <= columns {
         return format!("{title}{the_place}");
@@ -127,10 +130,14 @@ pub fn the_line_that_stands(title: &str, the_place: &str, width: u16) -> String 
         return crate::logic::message::in_one_row(the_place, width);
     }
 
-    // One column stays for the three points of the title.
-    let kept: String = title.chars().take(columns - place - 1).collect();
+    // The room after the place holds the title and the three points of it.
+    let room = width - u16::try_from(place).unwrap_or(u16::MAX);
 
-    format!("{}…{}", kept.trim_end(), the_place)
+    format!(
+        "{}{}",
+        crate::logic::message::in_one_row(title, room),
+        the_place
+    )
 }
 
 /// Gives the footer of the reader.

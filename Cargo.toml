@@ -1,6 +1,6 @@
 [package]
 name = "toutui"
-version = "0.8.133"
+version = "0.8.134"
 edition = "2021"
 description = "A TUI client of Audiobookshelf for Linux and macOS."
 license = "GPL-3.0-or-later"
@@ -35,6 +35,20 @@ ratatui = "0.30"
 # itself, therefore it takes the feature `crossterm`. Both give crossterm
 # 0.29, and the tree holds one copy only.
 tui-input = { version = "0.15", default-features = false, features = ["crossterm"] }
+# The number of the columns of the terminal that a text takes. See T-305.
+#
+# A character is not a column: a character of the Han script, of Hiragana, or of
+# Katakana takes two columns of the terminal, and a mark of a combination takes
+# none. `str::chars().count()` therefore gives a number that the screen does not
+# have, and a text that the program measured with it is wider than the room that
+# it has.
+#
+# ratatui measures every text with this crate, therefore the program that draws
+# with ratatui must measure with it too, or the two disagree.
+#
+# The crate is pure Rust and it has no dependency at all. `tui-input` and
+# `ratatui` each hold it already, therefore this line adds no crate to the tree.
+unicode-width = "0.2"
 # The cover art. See T-23.
 #
 # The default features `chafa-dyn` and `chafa-static` need the C library chafa.

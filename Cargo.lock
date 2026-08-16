@@ -4166,7 +4166,7 @@ dependencies = [
 
 [[package]]
 name = "toutui"
-version = "0.8.133"
+version = "0.8.134"
 dependencies = [
  "chrono",
  "clap",
@@ -4200,6 +4200,7 @@ dependencies = [
  "tempfile",
  "tokio",
  "tui-input",
+ "unicode-width",
  "wiremock",
 ]
 

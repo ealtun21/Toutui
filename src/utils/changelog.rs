@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.134",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A character is not a column.** The program measured every text \
+             of the screen with a number of characters, and a character of the \
+             Han script, of Hiragana, or of Katakana takes two columns of the \
+             terminal: a title, a message, and the line at the top of the \
+             reader were therefore wider than the room that they had, and the \
+             screen cut them a second time. A terminal of 40 columns said \
+             \"und nothing for \u{65e5}\u{672c}\u{8a9e}\u{65e5}\u{672c}\u{8a9e}\u{65e5}\u{672c}\u{8a9e}\u{2026}\" for a search of \
+             eighteen characters of Japanese, and the start of that title went \
+             away. The program measures the columns of a text now, with the \
+             same rule that the screen has.",
+        ],
+    },
+    Entry {
         version: "0.8.133",
         date: "16/08/2026",
         body: &[

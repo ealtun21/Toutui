@@ -26540,3 +26540,149 @@ function.
   every count of this program. **This is a candidate and not a measurement.**
 - **`App::search_mode` is never true** (T-303). This candidate stays open.
 - **Every candidate of the turns before this one stays open** (T-229 to T-303).
+
+### T-305: a character is not a column
+
+#### The fault
+
+**The program measured every text of the screen with a number of characters,
+and the screen has a number of columns.** A character of the Han script, of
+Hiragana, or of Katakana takes **two** columns of the terminal, and a mark of a
+combination takes none. `str::chars().count()` therefore gives a number that
+the screen does not have, and a text that the program cut to that number is
+wider than the room that it has. The screen then cuts it a second time, and
+the rules of T-299, of T-300, and of T-304 — the rules that say **which** part
+of a text the user can spare — go away.
+
+Three functions of this program held that count, and a character of two
+columns reaches each of them:
+
+- `in_one_row` of `src/logic/message.rs`, the one maker of a text of one row
+  (T-304). The title of a view goes through it.
+- `the_line_that_stands` of `src/ui/reader_tui.rs`, the line at the top of the
+  reader (T-300). The title of a book comes of the server.
+- `the_rows_of_a_message` of `src/logic/message.rs`, the count of the rows of a
+  message (T-299 and T-302). A message names a media.
+
+#### The measurement
+
+Of the real program v0.8.133 inside tmux against the sandbox, with the account
+`toutuitest`. **The data of this fault is the size of the terminal** (T-301)
+and the text of the user, therefore it needs no proxy, no book of a harness,
+and no change of the sandbox at all: `COLUMNS_OF_THE_SCREEN=40` and
+`ROWS_OF_THE_SCREEN=30` of `docs/harness/drive.sh`, and the keys `/`, eighteen
+characters of Japanese (`日本語` six times), and `Enter` of the Home view.
+
+The header of the view of the search said:
+
+```text
+und nothing for "日本語日本語日本語…────
+```
+
+**The cause, in numbers.** `the_title_of_the_search` of
+`src/logic/search/mod.rs:119` gave
+`The server found nothing for "日本語日本語日本語日本語日本語日本語". Press / to
+write other words.` — 30 characters of ASCII, 18 characters of Japanese, and 32
+characters of ASCII after them, which is 80 characters and 98 columns.
+`in_one_row(title, 40)` counted the characters: it kept the first 39 of them
+and it wrote the three points, which is **40 characters** and **49 columns**.
+The screen holds 40, therefore ratatui took the road of a title that it must
+cut (T-304): `offset = (49 − 40) / 2 = 4`, the area of the title is `40 − 4 =
+36` columns, and the right-aligned draw of it kept the last 36 columns —
+`und nothing for "日本語日本語日本語…`, the string of the screen character for
+character, with the four columns that stayed holding the `─` of the border.
+The start that went away, `The server fo`, names the view.
+
+**The control of the same run**: the keys `/`, eighteen characters of ASCII
+(`abcdefghijklmnopqr`), and `Enter`, of the same count of characters, gave
+`The server found nothing for "abcdefghi…` — the whole start of the title, and
+the three points at the end of it. The two queries hold the same number of
+characters and a different number of columns, therefore the count of the
+characters is the cause and nothing else is.
+
+#### The decision
+
+**`crate::logic::message::the_columns_of` is the one measure of a text of this
+program.** It is the crate `unicode-width`, which is the crate that ratatui
+measures every text that it draws with: a program that draws with ratatui must
+measure with that same crate, or the number of the program and the number of
+the screen disagree.
+
+That crate stands in the tree already — `html2text`, `ratatui-core`, and
+`tui-input` each hold it, and the tree holds one copy of it (v0.2.2).
+`Cargo.toml` names it now, therefore this line adds no crate at all. It is pure
+Rust and it has no dependency of its own: `cargo tree -i openssl-sys` still
+finds nothing, and `cargo tree -i cc` still finds `libsqlite3-sys` and `ring`
+only.
+
+**A character of two columns that meets the last column of a row stays outside
+the row.** A half of a character is no character, therefore the row of 40
+columns keeps 39 of them and one space stays at the end of it.
+
+#### The correction
+
+Four files.
+
+- `Cargo.toml` names `unicode-width`, with the reason.
+- `src/logic/message.rs` holds the new pure `the_columns_of`, `in_one_row`
+  keeps the characters that stand in the columns of the row, and
+  `the_rows_of_a_message` measures each word with the same function.
+- `src/ui/reader_tui.rs`: `the_line_that_stands` measures the title and the
+  place with `the_columns_of`, and it gives the room after the place to
+  `in_one_row`.
+- `tests/a_character_is_not_a_column.rs` holds the gate.
+
+**The corrected program**, of the same keys, said `The server found nothing for
+"日本語日…` at **39** and at **40** columns, `The server found nothing for
+"日本語日本…` at **41**, and the whole of its title at **80**.
+
+#### The gate
+
+`tests/a_character_is_not_a_column.rs`, two functions.
+
+`a_text_of_one_row_never_stands_wider_than_its_row` sweeps every width from 0
+to twice the title of the measurement and it asserts that
+`the_columns_of(in_one_row(title, width)) <= width`; it holds the three strings
+of the corrected program at 39, 40, and 41 columns; it sweeps every width from
+1 to 120 of `the_line_that_stands` and it asserts the same rule and that the
+place of the user stands whole while one column stays for it (T-300); and it
+asserts that `the_rows_of_a_message` of the same count of characters gives one
+row of ASCII and two rows of Japanese.
+
+`the_columns_of_a_text_come_of_one_function` reads every file of Rust of
+`src/` and it asserts that `src/logic/message.rs` alone names the crate
+`unicode-width`: **a second count of the characters for a width of the screen
+gives this fault again.**
+
+**Two builds of the fault** (the trap 147), each of one edit that keeps every
+other line. `in_one_row` back to `text.chars().count()` and
+`text.chars().take(width - 1)` gave `the row of 32 columns took 33 columns:
+The server found nothing for "日…`. `the_line_that_stands` back to
+`title.chars().count()` and `the_place.chars().count()` gave `the line of 29
+columns took 47 columns: 日本語日本語日本語日本語日本語日本語 3/12 · 41%`.
+
+#### The gates of the round
+
+`cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,
+`cargo nextest run` (1368 of 1368, 26 skipped), `cargo nextest run --run-ignored
+all` with the sandbox up (1394 of 1394), and `cargo test -j 16 --no-fail-fast`
+three times with no fault.
+
+#### What this turn leaves open
+
+- **The marks of a line count the characters too.** `fill` of
+  `src/ui/marks.rs:111` reads `mark.chars().count()`, and the marks of this
+  program are `▶`, `✓`, and the numbers of a percent. A mark of the East Asian
+  Width "Ambiguous" takes one column or two, and the terminal decides. **This
+  is a candidate and not a measurement.**
+- **The header of the screen counts the characters too.**
+  `src/ui/keys.rs:1057` reads `"👋 toutuitest".chars().count()`, and an emoji
+  takes two columns. The name of the account comes of the server. **This is a
+  candidate and not a measurement.**
+- **The four titles of a fixed text stand outside the gate of T-304.** That
+  candidate of T-304 stays open, and the rule of the columns does not close
+  it: the longest of the four holds 28 characters of ASCII, which is 28
+  columns.
+- **`App::search_mode` is never true** (T-303). This candidate stays open.
+- **Every candidate of the turns before this one stays open** (T-229 to
+  T-304).

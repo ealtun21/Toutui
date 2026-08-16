@@ -201,15 +201,18 @@ pub fn the_rows_of_a_message(text: &str, width: u16) -> u16 {
     let mut spaces = 0usize;
 
     for part in text.split_inclusive(char::is_whitespace) {
+        // **A character is not a column** (T-305): the wrap of ratatui measures
+        // every word with the crate `unicode-width`, therefore this count of
+        // the rows measures with it too.
         let word = part.trim_end();
-        let after = part.chars().count() - word.chars().count();
+        let after = the_columns_of(part) - the_columns_of(word);
 
         if word.is_empty() {
             spaces += after;
             continue;
         }
 
-        let length = word.chars().count();
+        let length = the_columns_of(word);
 
         if column == 0 {
             column = length;
@@ -298,12 +301,38 @@ pub fn in_the_rows(text: &str, width: u16, rows: u16) -> String {
     String::new()
 }
 
+/// The number of the columns of the terminal that a text takes.
+///
+/// **A character is not a column** (T-305). A character of the Han script, of
+/// Hiragana, or of Katakana takes two columns, and a mark of a combination
+/// takes none. `str::chars().count()` therefore gives a number that the screen
+/// does not have.
+///
+/// **This is the one measure of a text of this program.** ratatui measures
+/// every text that it draws with the crate `unicode-width`, therefore a program
+/// that draws with ratatui must measure with that same crate, or the number of
+/// the program and the number of the screen disagree.
+///
+/// The measurement of 2026-08-16, of the real program at 40 columns: the title
+/// `The server found nothing for "日本語日本語日本語日本語日本語日本語". Press /
+/// to write other words.` gave 40 characters to a screen of 40 columns, those
+/// 40 characters took 49 columns, and ratatui then cut 13 columns of the start
+/// of the title away.
+pub fn the_columns_of(text: &str) -> usize {
+    unicode_width::UnicodeWidthStr::width(text)
+}
+
 /// Makes the text that must stand in one row of a width of columns.
 ///
 /// **A text of one row keeps its start** (T-304, and the rule of T-299 and of
 /// T-300): the start of a title of a view names the view and the number of its
 /// lines, therefore the end is the part that the user can spare, and the three
 /// points then say that the screen cut it.
+///
+/// **The width is a number of columns and not a number of characters** (T-305):
+/// the text keeps the characters that stand in the room that [`the_columns_of`]
+/// measures. A character of two columns that meets the last column of the row
+/// therefore stays outside the row, and the row keeps one space of the end.
 ///
 /// A width of 0 gives no character at all, and a width of 1 gives the three
 /// points alone. The function is pure, therefore a test needs no screen.
@@ -314,7 +343,7 @@ pub fn in_one_row(text: &str, width: u16) -> String {
 
     let width = usize::from(width);
 
-    if text.chars().count() <= width {
+    if the_columns_of(text) <= width {
         return text.to_string();
     }
 
@@ -322,7 +351,21 @@ pub fn in_one_row(text: &str, width: u16) -> String {
         return "…".to_string();
     }
 
-    let kept: String = text.chars().take(width - 1).collect();
+    // The three points take one column of the row.
+    let room = width - 1;
+    let mut kept = String::new();
+    let mut columns = 0usize;
+
+    for letter in text.chars() {
+        let of_the_letter = unicode_width::UnicodeWidthChar::width(letter).unwrap_or(0);
+
+        if columns + of_the_letter > room {
+            break;
+        }
+
+        kept.push(letter);
+        columns += of_the_letter;
+    }
 
     format!("{}…", kept.trim_end())
 }
