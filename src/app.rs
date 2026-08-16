@@ -625,6 +625,19 @@ pub struct App {
     /// `z` gives the 34 columns of the stack to the panel 4 of the list, and
     /// the same key gives the stack back.
     pub the_stack_is_hidden: bool,
+    /// The width of a cell of the panel 6 of the gallery, in the list
+    /// `crate::ui::the_panel_of_the_gallery::THE_WIDTHS_OF_A_CELL`. See T-327.
+    ///
+    /// **The keys `+` and `-` of the design move the user through that list**,
+    /// and the width of a cell decides every other number of the grid.
+    pub the_size_of_a_cell_of_the_gallery: usize,
+    /// The grid of the panel 6 of the last frame. See T-327.
+    ///
+    /// **The render writes it, and the handler of the mouse reads it**, in the
+    /// same way as `the_areas_of_the_mouse`: the grid holds a row for each cell
+    /// of the screen, therefore it stands beside those areas and not inside
+    /// them, which every frame copies.
+    pub the_gallery_of_the_last_frame: crate::ui::the_panel_of_the_gallery::TheGallery,
     /// The line of the user in the panel 1 of the views. See T-320.
     pub the_line_of_the_views: ListState,
     /// The line of the user in the panel 2 of the sequence. See T-318.
@@ -703,6 +716,12 @@ pub struct TheStateThatARefreshKeeps {
     /// again, and a user who hid the stack and who then asked the server for
     /// the list again would get the busy screen back with no key of their own.
     pub the_stack_is_hidden: bool,
+    /// The width of a cell of the panel 6 of the gallery. See T-327.
+    ///
+    /// **A refresh must keep this size**, for the reason of the mode of the
+    /// stack above it: a user who made the cells large and who then asked the
+    /// server for the list again would get the small cells back.
+    pub the_size_of_a_cell_of_the_gallery: usize,
     /// The line of the user in the panel 2 of the sequence. See T-318.
     pub the_line_of_the_sequence: ListState,
     /// The line of the user in the panel 3 of the filter. See T-318.
@@ -741,6 +760,7 @@ impl App {
             sleep_choice: self.sleep_choice,
             the_panel_of_the_focus: self.the_panel_of_the_focus,
             the_stack_is_hidden: self.the_stack_is_hidden,
+            the_size_of_a_cell_of_the_gallery: self.the_size_of_a_cell_of_the_gallery,
             the_line_of_the_sequence: self.the_line_of_the_sequence,
             the_line_of_the_filter: self.the_line_of_the_filter,
         }
@@ -756,6 +776,7 @@ impl App {
         self.sleep_choice = of_the_old.sleep_choice;
         self.the_panel_of_the_focus = of_the_old.the_panel_of_the_focus;
         self.the_stack_is_hidden = of_the_old.the_stack_is_hidden;
+        self.the_size_of_a_cell_of_the_gallery = of_the_old.the_size_of_a_cell_of_the_gallery;
         self.the_line_of_the_sequence = of_the_old.the_line_of_the_sequence;
         self.the_line_of_the_filter = of_the_old.the_line_of_the_filter;
     }
@@ -2153,6 +2174,10 @@ impl App {
             // mode that hides it is a mode of the user and not the mode of the
             // start.
             the_stack_is_hidden: false,
+            the_size_of_a_cell_of_the_gallery:
+                crate::ui::the_panel_of_the_gallery::THE_WIDTH_OF_THE_START,
+            the_gallery_of_the_last_frame: crate::ui::the_panel_of_the_gallery::TheGallery::default(
+            ),
             the_line_of_the_views: {
                 let mut of_the_views = ListState::default();
                 of_the_views.select(Some(0));
@@ -2316,6 +2341,10 @@ impl App {
         // description and they move no line: the key `l` falls through to the
         // handler of the view, which plays that media, and that is the button
         // `[l Play]` of `docs/mockups/mockup-1.md`.
+        if self.the_panel_of_the_focus == ThePanel::TheGallery {
+            return self.the_key_of_the_panel_of_the_gallery(key);
+        }
+
         if self.the_panel_of_the_focus == ThePanel::TheCover {
             return self.the_key_of_the_panel_of_the_cover(key);
         }
@@ -2573,6 +2602,169 @@ impl App {
         }
     }
 
+    /// The keys of the panel 6 of the gallery. See T-327.
+    ///
+    /// **The gallery is the list of the panel 4 and no list of its own**,
+    /// therefore the keys `j` and `k` of it move the cursor of that list: one
+    /// key moves one **row of the grid**, because a row of the grid is what the
+    /// user sees. The key `l` falls through to the handler of the view, which
+    /// plays the media of the cursor.
+    ///
+    /// **The keys `+` and `-` are the buttons `[+ bigger]` and `[- smaller]`
+    /// of the design**, and they change the width of a cell.
+    fn the_key_of_the_panel_of_the_gallery(&mut self, key: KeyEvent) -> bool {
+        use crate::ui::the_panel_of_the_gallery::THE_WIDTHS_OF_A_CELL;
+
+        match key.code {
+            KeyCode::Char('j') | KeyCode::Down => {
+                self.the_cursor_of_the_gallery_moves(true);
+                true
+            }
+            KeyCode::Char('k') | KeyCode::Up => {
+                self.the_cursor_of_the_gallery_moves(false);
+                true
+            }
+            // **The key `+` of most keyboards needs the modifier of the
+            // shift**, and the key `=` of that same place gives the same
+            // character with no modifier: the two of them make the cells
+            // larger.
+            KeyCode::Char('+') | KeyCode::Char('=') => {
+                self.the_size_of_a_cell_of_the_gallery = (self.the_size_of_a_cell_of_the_gallery
+                    + 1)
+                .min(THE_WIDTHS_OF_A_CELL.len() - 1);
+                true
+            }
+            KeyCode::Char('-') => {
+                self.the_size_of_a_cell_of_the_gallery =
+                    self.the_size_of_a_cell_of_the_gallery.saturating_sub(1);
+                true
+            }
+            KeyCode::Char('h') | KeyCode::Left => {
+                self.the_panel_of_the_focus = crate::ui::frame::ThePanel::TheList;
+                true
+            }
+            _ => false,
+        }
+    }
+
+    /// Moves the cursor of the list one row of the grid of the gallery, forward
+    /// or back. See T-327.
+    ///
+    /// **A row of the grid is the step of this key**: the keys `j` and `k` of
+    /// the panel 4 move one line, and the same keys of the panel 6 move one row
+    /// of the covers, which is what the user sees in that panel.
+    fn the_cursor_of_the_gallery_moves(&mut self, forward: bool) {
+        let steps = self.the_gallery_of_the_last_frame.the_columns.max(1);
+
+        for _ in 0..steps {
+            if forward {
+                self.select_next();
+            } else {
+                self.select_previous();
+            }
+        }
+
+        // A move of the cursor takes the panel of the description back to its
+        // first line, as the keys `j` and `k` of the panel 4 do.
+        self.scroll_offset = 0;
+    }
+
+    /// The line of the list of the view of a cell of the gallery of the last
+    /// frame. See T-327.
+    fn the_line_of_a_cell_of_the_gallery(&self, column: u16, row: u16) -> Option<usize> {
+        let the_media = self
+            .the_gallery_of_the_last_frame
+            .the_cell_of_a_point(column, row)?
+            .the_media;
+
+        self.the_media_of_the_gallery()
+            .get(the_media)
+            .map(|media| media.the_line)
+    }
+
+    /// The media of the gallery of the panel 6, in the sequence of the list of
+    /// the view. See T-327.
+    ///
+    /// **A row of the list that names no media gives no cell**: the name of a
+    /// shelf of the Home view and the line of a series each hold more than one
+    /// media, or none at all, therefore a cover of one of them would say the
+    /// cover of a media that the row does not name. The field `the_line` of
+    /// each media carries the line of the list, so that a click of a cell moves
+    /// the cursor to the row of that media.
+    ///
+    /// **The Home view and the Library view are the two views of the frame of
+    /// the panels** (T-320), therefore every other view gives no media at all.
+    pub fn the_media_of_the_gallery(
+        &self,
+    ) -> Vec<crate::ui::the_panel_of_the_gallery::AMediaOfTheGallery> {
+        use crate::ui::the_panel_of_the_gallery::AMediaOfTheGallery;
+
+        let of_a_media =
+            |the_line: usize,
+             id: Option<&String>,
+             row: &crate::ui::the_table_of_a_view::ARowOfTheTable| {
+                AMediaOfTheGallery {
+                    the_line,
+                    id: id.cloned().unwrap_or_default(),
+                    title: row.title.clone(),
+                    done: row.done.clone(),
+                }
+            };
+
+        match self.view_state {
+            AppView::Library => {
+                let rows = self.library_table_rows();
+
+                self.library_rows
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, row)| row.series().is_none())
+                    .filter_map(|(the_line, row)| {
+                        rows.get(the_line).map(|of_the_table| {
+                            of_a_media(the_line, self.ids_library.get(row.item()), of_the_table)
+                        })
+                    })
+                    .collect()
+            }
+            AppView::Home => {
+                let rows = self.home_table_rows();
+
+                self.home_rows
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(the_line, row)| match row {
+                        HomeRow::Media { item } => rows.get(the_line).map(|of_the_table| {
+                            of_a_media(the_line, self._ids_cnt_list.get(*item), of_the_table)
+                        }),
+                        HomeRow::Shelf { .. } | HomeRow::Series { .. } => None,
+                    })
+                    .collect()
+            }
+            _ => Vec::new(),
+        }
+    }
+
+    /// The place of the media of the cursor of the list in the media of the
+    /// gallery. See T-327.
+    ///
+    /// **A cursor that stands on a row of no media gives the media after it**:
+    /// the name of a shelf of the Home view stands above the media of that
+    /// shelf, therefore the grid then shows the covers of the shelf that the
+    /// user reads.
+    pub fn the_media_of_the_cursor_of_the_gallery(
+        &self,
+        the_media: &[crate::ui::the_panel_of_the_gallery::AMediaOfTheGallery],
+    ) -> usize {
+        let Some(the_line) = self.the_line_of_the_list_of_the_view() else {
+            return 0;
+        };
+
+        the_media
+            .iter()
+            .position(|media| media.the_line >= the_line)
+            .unwrap_or(the_media.len().saturating_sub(1))
+    }
+
     /// Says if a panel of the frame stood on the last frame. See T-318 and
     /// T-319.
     ///
@@ -2601,6 +2793,11 @@ impl App {
             }
             crate::ui::frame::ThePanel::TheCover => {
                 self.the_areas_of_the_mouse.the_panel_of_the_cover
+            }
+            // **A column that is not tall draws no panel 6** (T-327), and a
+            // digit that named it would then do nothing (T-79).
+            crate::ui::frame::ThePanel::TheGallery => {
+                self.the_areas_of_the_mouse.the_panel_of_the_gallery
             }
             _ => return true,
         };
@@ -2852,6 +3049,20 @@ impl App {
                 TheTarget::ThePanelOfTheCover => {
                     self.the_panel_of_the_focus = crate::ui::frame::ThePanel::TheCover;
                 }
+                // **A click of a cell of the gallery moves the cursor of the
+                // list to the media of that cell** (T-327), which is the work
+                // that the section of the mouse of `docs/mockups/mockup-1.md`
+                // gives it. A click beside every cell gives the panel the focus
+                // alone, as a click of the border of a panel does.
+                TheTarget::ThePanelOfTheGallery => {
+                    self.the_panel_of_the_focus = crate::ui::frame::ThePanel::TheGallery;
+
+                    if let Some(the_line) =
+                        self.the_line_of_a_cell_of_the_gallery(the_report.column, the_report.row)
+                    {
+                        self.the_cursor_of_the_view_goes_to(the_line);
+                    }
+                }
                 // **A click of the bar of the seek moves the playback to the
                 // second of that cell** (T-322). The keys `p` and `u` of this
                 // program move by ten seconds, therefore a book of eight hours
@@ -2906,6 +3117,13 @@ impl App {
                     // and a wheel that moved the list under a panel of another
                     // media would say the words of a media that the picture
                     // does not show.
+                    // **The wheel over the panel 6 moves the cursor of the
+                    // list one row of the grid** (T-327), which is the work of
+                    // the keys `j` and `k` of that panel: the wheel of a panel
+                    // does the work of the keys of that panel.
+                    TheTarget::ThePanelOfTheGallery => {
+                        self.the_cursor_of_the_gallery_moves(forward);
+                    }
                     TheTarget::ThePanelOfTheCover => {
                         self.scroll_offset = if forward {
                             crate::logic::the_scroll_of_a_panel::the_scroll_after_one_step_down(

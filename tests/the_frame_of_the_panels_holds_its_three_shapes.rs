@@ -157,8 +157,14 @@ fn the_digits_name_the_panels_that_the_frame_draws() {
     // **The panel 5 of the cover comes with T-319**, and the digit of it names
     // that panel now.
     assert_eq!(ThePanel::of_the_digit('5'), Some(ThePanel::TheCover));
+    // **The panel 6 of the gallery comes with T-327**, and the digit of it
+    // names that panel now.
+    assert_eq!(ThePanel::of_the_digit('6'), Some(ThePanel::TheGallery));
 
-    for digit in ['0', '6', '7', '8', '9'] {
+    // **The band of the player holds no digit** (T-322): every key of the
+    // player works in every view of this program already, therefore a focus of
+    // the band would hold no key of its own.
+    for digit in ['0', '7', '8', '9'] {
         assert_eq!(
             ThePanel::of_the_digit(digit),
             None,

@@ -69,6 +69,7 @@ pub const GROUPS: &[Group] = &[
             key("3", "The focus goes to the panel 3 of the filter"),
             key("4", "The focus goes to the panel 4 of the list"),
             key("5", "The focus goes to the panel 5 of the cover"),
+            key("6", "The focus goes to the panel 6 of the gallery"),
             key("Ctrl+h", "The focus goes to the panel at the left"),
             key("Ctrl+l", "The focus goes to the panel at the right"),
             key("Ctrl+j", "The focus goes to the panel below"),
@@ -78,7 +79,15 @@ pub const GROUPS: &[Group] = &[
                 "The panel 1 opens a view, the panels 2 and 3 act",
             ),
             key("h / ←", "A panel of the stack gives the focus back"),
-            key("j / k", "The panel 5 moves the description of the media"),
+            key(
+                "j / k",
+                "The panel 5 moves the description, the panel 6 the cursor",
+            ),
+            // **The keys `+` and `-` are the buttons `[+ bigger]` and
+            // `[- smaller]` of the design** (T-327). The key `+` of most
+            // keyboards needs the modifier of the shift, and the key `=` of
+            // that same place gives the same character with no modifier.
+            key("+ / = / -", "The panel 6 changes the size of a cell"),
             // **The stack of the panels 1 to 3 goes away with one key**
             // (T-323): the section (f) of `docs/mockups/mockup-1.md` names the
             // cost of a screen that is always full, and the panel 4 of the
@@ -553,6 +562,13 @@ pub fn the_footer_of_a_panel(
         // `l` plays it, which is the key of the list of the view.
         ThePanel::TheCover => "j/k: the description  l: play or open  h: the list  \
                 4/Ctrl+h: the list  ?: every key  Q: quit"
+            .to_string(),
+        // **The footer of the panel 6 names the keys of the gallery** (T-327):
+        // the keys `j` and `k` move the cursor of the list one row of the grid,
+        // the keys `+` and `-` change the size of a cell, and the key `l` plays
+        // the media of the cell of the cursor.
+        ThePanel::TheGallery => "j/k: a row of the grid  +/-: the size of a cell  \
+                l: play or open  h: the list  ?: every key  Q: quit"
             .to_string(),
         ThePanel::TheList if the_stack_stands => {
             format!("{of_the_view}  f: sequence  1/Ctrl+h: the panels  z: hide them")

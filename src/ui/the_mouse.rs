@@ -88,6 +88,13 @@ pub struct TheAreasOfTheMouse {
     /// A view that draws no cover, and a terminal that is too narrow for one,
     /// gives `Rect::default()` here.
     pub the_panel_of_the_cover: Rect,
+    /// The whole block of the panel 6 of the gallery, with its border. See
+    /// T-327.
+    ///
+    /// A frame that draws no gallery, which is every frame of a column that is
+    /// not tall and every view outside the Home view and the Library view,
+    /// gives `Rect::default()` here.
+    pub the_panel_of_the_gallery: Rect,
     /// The whole band of the player, with its border. See T-322.
     ///
     /// A frame that draws no band, which is every frame of a program that plays
@@ -125,6 +132,13 @@ pub enum TheTarget {
     /// holds one media, which is the media of the cursor of the list already,
     /// therefore a click of it moves the cursor of no list.
     ThePanelOfTheCover,
+    /// The panel 6 of the gallery of the covers. See T-327.
+    ///
+    /// **The cell of the media under the pointer comes of `App`**: the plan of
+    /// the grid holds a row for each media of the list, therefore it is no
+    /// value of a struct that every frame copies. `App::the_media_of_a_cell`
+    /// reads it.
+    ThePanelOfTheGallery,
     /// The bar of the seek of the band of the player. `the_second` is the
     /// second of the media that the cell under the pointer holds. See T-322.
     ///
@@ -252,6 +266,14 @@ pub fn the_target_of_a_point(
         return TheTarget::ThePanelOfTheCover;
     }
 
+    // **The panel 6 stands under the panel 5, in the same column** (T-327), in
+    // the same way as the panels 2 and 3 under the panel 1. A frame that drew
+    // no gallery holds `Rect::default()` here, which holds no cell of the
+    // screen at all.
+    if the_stack_stands && areas.the_panel_of_the_gallery.contains(point) {
+        return TheTarget::ThePanelOfTheGallery;
+    }
+
     // **The bar of the seek comes before the band that holds it** (T-322), in
     // the same way as the row of the header before the panel 4: a click of the
     // bar names a second of the media, and a click of the band beside it names
@@ -339,6 +361,7 @@ mod tests {
             the_lines: 500,
             the_header_of_the_list: Rect::default(),
             the_panel_of_the_cover: Rect::default(),
+            the_panel_of_the_gallery: Rect::default(),
             the_band_of_the_player: Rect::default(),
             the_bar_of_the_seek: Rect::default(),
             the_length_of_the_media: 0,

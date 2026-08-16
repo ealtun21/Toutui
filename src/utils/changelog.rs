@@ -41,6 +41,28 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.157",
+        date: "16/08/2026",
+        body: &[
+            "Added:",
+            "- **The panel 6 of the gallery of the covers.** The column at the \
+             right of the list holds a grid of the covers of the media around \
+             your cursor, with your place and a short title under each of \
+             them. The cell of the cursor takes the border of the focus, \
+             therefore the grid and the panel of the cover say one media.",
+            "- **The keys of that panel.** The digit `6` gives it the focus, \
+             the keys `j` and `k` then move the cursor one row of the grid, \
+             and the keys `+` and `-` make the cells larger and smaller. A \
+             click of a cell takes the cursor to that media, and the wheel \
+             over the panel moves the grid.",
+            "Note:",
+            "- The gallery stands in the Home view and in the Library view of \
+             a screen of 120 columns and more, which are the views of the \
+             frame of the panels. A column that has no room for the two \
+             panels gives every row to the panel of the cover.",
+        ],
+    },
+    Entry {
         version: "0.8.156",
         date: "16/08/2026",
         body: &[

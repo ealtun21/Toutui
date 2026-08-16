@@ -38,13 +38,14 @@
 //! heavy border `═║`, and every other panel takes a light border `─│`. A
 //! terminal of a theme of a low contrast still says where the focus is.
 //!
-//! **The stages until this one draw five of the seven panels**, therefore
-//! [`ThePanel`] holds five values: the views (T-320), the sequence and the
-//! filter (T-318), the list (T-320), and the cover (T-319). The panel 6 of the
-//! gallery comes with the rest of T-319, and the panel 7 of the player comes
-//! with T-322. **A key of a panel that no stage drew is a key that does
-//! nothing**, and that is a fault of its own (T-79), therefore the digits of
-//! those two panels are not keys of this program yet.
+//! **The stages until this one draw six of the seven panels**, therefore
+//! [`ThePanel`] holds six values: the views (T-320), the sequence and the
+//! filter (T-318), the list (T-320), the cover (T-319), and the gallery
+//! (T-327). The panel 7 of the player comes with T-322, and it takes no focus:
+//! every key of the player works in every view of this program already. **A key
+//! of a panel that no stage drew is a key that does nothing**, and that is a
+//! fault of its own (T-79), therefore the digit `7` is not a key of this
+//! program yet.
 
 use ratatui::{
     layout::{Constraint, Layout, Rect},
@@ -133,8 +134,8 @@ pub fn the_stack_and_the_work(
 
 /// A panel of the frame that holds the focus of the user.
 ///
-/// **Two of the seven panels of the design stand today**, and the five others
-/// come with the stages after this one. See the head of this module.
+/// **Six of the seven panels of the design stand today**, and the band of the
+/// player takes no focus at all. See the head of this module.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum ThePanel {
     /// The panel 1: the list of the views of the program, with the key of each.
@@ -148,6 +149,9 @@ pub enum ThePanel {
     TheList,
     /// The panel 5: the cover of the media, and the words of it. See T-319.
     TheCover,
+    /// The panel 6: the gallery of the covers of the media around the cursor.
+    /// See T-327.
+    TheGallery,
 }
 
 impl ThePanel {
@@ -159,6 +163,7 @@ impl ThePanel {
             Self::TheFilter => 3,
             Self::TheList => 4,
             Self::TheCover => 5,
+            Self::TheGallery => 6,
         }
     }
 
@@ -171,6 +176,7 @@ impl ThePanel {
             '3' => Some(Self::TheFilter),
             '4' => Some(Self::TheList),
             '5' => Some(Self::TheCover),
+            '6' => Some(Self::TheGallery),
             _ => None,
         }
     }
@@ -181,7 +187,7 @@ impl ThePanel {
         match self {
             Self::TheViews | Self::TheSequence | Self::TheFilter => self,
             Self::TheList => Self::TheViews,
-            Self::TheCover => Self::TheList,
+            Self::TheCover | Self::TheGallery => Self::TheList,
         }
     }
 
@@ -196,7 +202,7 @@ impl ThePanel {
         match self {
             Self::TheViews | Self::TheSequence | Self::TheFilter => Self::TheList,
             Self::TheList => Self::TheCover,
-            Self::TheCover => Self::TheCover,
+            Self::TheCover | Self::TheGallery => self,
         }
     }
 
@@ -210,7 +216,10 @@ impl ThePanel {
         match self {
             Self::TheViews => Self::TheSequence,
             Self::TheSequence => Self::TheFilter,
-            Self::TheFilter | Self::TheList | Self::TheCover => self,
+            Self::TheFilter | Self::TheList | Self::TheGallery => self,
+            // **The panel 6 of the gallery stands under the panel 5 of the
+            // cover**, in the column at the right (T-327).
+            Self::TheCover => Self::TheGallery,
         }
     }
 
@@ -220,6 +229,7 @@ impl ThePanel {
             Self::TheFilter => Self::TheSequence,
             Self::TheSequence => Self::TheViews,
             Self::TheViews | Self::TheList | Self::TheCover => self,
+            Self::TheGallery => Self::TheCover,
         }
     }
 
@@ -515,10 +525,12 @@ mod tests {
         assert_eq!(ThePanel::of_the_digit('4'), Some(ThePanel::TheList));
         assert_eq!(ThePanel::of_the_digit('5'), Some(ThePanel::TheCover));
 
-        // **The two panels that no stage drew hold no digit** (T-79): a key
-        // that does nothing is a fault of its own. The panel 6 of the gallery
-        // comes with the rest of T-319, and the panel 7 with T-322.
-        for digit in ['6', '7', '0', '8', '9'] {
+        assert_eq!(ThePanel::of_the_digit('6'), Some(ThePanel::TheGallery));
+
+        // **The band of the player holds no digit** (T-79 and T-322): a key
+        // that does nothing is a fault of its own, and every key of the player
+        // works in every view of this program already.
+        for digit in ['7', '0', '8', '9'] {
             assert_eq!(
                 ThePanel::of_the_digit(digit),
                 None,
@@ -541,8 +553,16 @@ mod tests {
         assert_eq!(ThePanel::TheCover.at_the_right(), ThePanel::TheCover);
         assert_eq!(ThePanel::TheCover.at_the_left(), ThePanel::TheList);
         assert!(!ThePanel::TheCover.is_of_the_stack());
-        assert_eq!(ThePanel::TheCover.below(), ThePanel::TheCover);
+
+        // **The panel 6 of the gallery stands under the panel 5 of the cover**
+        // (T-327), in the column at the right.
+        assert_eq!(ThePanel::TheCover.below(), ThePanel::TheGallery);
         assert_eq!(ThePanel::TheCover.above(), ThePanel::TheCover);
+        assert_eq!(ThePanel::TheGallery.above(), ThePanel::TheCover);
+        assert_eq!(ThePanel::TheGallery.below(), ThePanel::TheGallery);
+        assert_eq!(ThePanel::TheGallery.at_the_left(), ThePanel::TheList);
+        assert_eq!(ThePanel::TheGallery.at_the_right(), ThePanel::TheGallery);
+        assert!(!ThePanel::TheGallery.is_of_the_stack());
 
         for of_the_stack in [
             ThePanel::TheViews,

@@ -173,20 +173,20 @@ fn the_digit_of_the_panel_of_the_cover_names_it() {
     assert_eq!(ThePanel::TheCover.the_number(), 5);
 
     // **The panel 5 stands at the right of the panel 4**, and the panel at the
-    // right of it is that panel itself: the panel 6 of the gallery comes with
-    // the rest of T-319.
+    // right of it is that panel itself: the panel 6 of the gallery stands under
+    // it and not beside it (T-327).
     assert_eq!(ThePanel::TheList.at_the_right(), ThePanel::TheCover);
     assert_eq!(ThePanel::TheCover.at_the_right(), ThePanel::TheCover);
     assert_eq!(ThePanel::TheCover.at_the_left(), ThePanel::TheList);
 
-    // The panel 5 stands in no stack, therefore the keys `Ctrl+j` and `Ctrl+k`
-    // move no focus there.
+    // The panel 5 stands in no stack of the first column, and the panel 6 of
+    // the gallery stands under it in the column at the right (T-327).
     assert!(!ThePanel::TheCover.is_of_the_stack());
-    assert_eq!(ThePanel::TheCover.below(), ThePanel::TheCover);
+    assert_eq!(ThePanel::TheCover.below(), ThePanel::TheGallery);
     assert_eq!(ThePanel::TheCover.above(), ThePanel::TheCover);
 
-    // **The digit 6 of the gallery is no key of this program yet** (T-79).
-    assert_eq!(ThePanel::of_the_digit('6'), None);
+    // **The digit 6 names the panel 6 of the gallery** (T-327).
+    assert_eq!(ThePanel::of_the_digit('6'), Some(ThePanel::TheGallery));
 }
 
 /// The footer of the panel 5 names the keys of that panel, and the view of the
@@ -225,11 +225,14 @@ fn the_words_of_the_keys_of_the_panel_of_the_cover_stand() {
         "the view of the key ? must name the digit of the panel 5"
     );
     assert!(
-        text.contains("The panel 5 moves the description of the media"),
+        text.contains("The panel 5 moves the description"),
         "the view of the key ? must name the keys j and k of the panel 5"
     );
-    // **The panel 6 of the gallery holds no key yet** (T-79).
-    assert!(!text.contains("panel 6"), "{text}");
+    // **The panel 6 of the gallery holds its keys now** (T-327).
+    assert!(
+        text.contains("The focus goes to the panel 6 of the gallery"),
+        "the view of the key ? must name the digit of the panel 6"
+    );
 }
 
 /// A click of the panel 5 names that panel, and a click of it on a screen of

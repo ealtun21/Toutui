@@ -30047,3 +30047,170 @@ entities and not the media failed three.
   today.** Those views draw no panel 4 and no panel 5 of the frame (T-320),
   their lists of a row hold no narrator, no genre, and no ebook, and the answers
   behind them are answers of their own.
+
+## T-327 — The panel 6 of the gallery of the covers
+
+**The last stage of the road of the panels that no round built.** The design of
+`docs/mockups/mockup-1.txt` holds seven panels, and the sweep of T-323 of the
+regions of the map of the mouse named this one: "the whole of the panel 6 of
+the gallery (no area of it stands in the code at all)".
+
+### The fault
+
+**The column at the right held one panel, and the rows that the panel 5 did
+not use held no character at all.** The measurement of the real program
+v0.8.156 inside tmux, of the Library view of the library `Large` of the sandbox
+at 160 columns and 45 rows. Every one of the 2056 items of that library carries
+`coverPath: null`, therefore the panel 5 said three facts over three rows and
+it left **35 rows of no character at all**:
+
+```text
+┌5 Cover ────────────────────────────────────────┐
+│Time      0m                                    │
+│Files     1 file, 0.0 MB                        │
+│No description available                        │
+│                                                │
+│                                     … 35 rows …│
+└────────────────────────────────────────────────┘
+```
+
+**No digit, no key, and no click of the user could name that space**: the
+digit `6` of the design gave `ThePanel::of_the_digit('6') == None`, and the
+test `the_digits_name_the_panels_that_the_frame_draws` of
+`tests/the_frame_of_the_panels_holds_its_three_shapes.rs` held that value as a
+rule of the program.
+
+**The data of this item is the program itself**: no proxy, no book of a
+harness, and no change of the sandbox — the library of the row of the account
+comes of a `sqlite3` of `name_selected_lib` and of `id_selected_lib` (the trap
+203 and the trap 204).
+
+### The correction
+
+The corrected program of the same harness, of the library `Books` of the
+sandbox, with the cursor on the first row of the list:
+
+```text
+┌6 Gallery ──────────────────────────────────────┐
+│  ╔════════╗ ┌────────┐ ┌────────┐ ┌────────┐   │
+│  ║        ║ │        │ │        │ │        │   │
+│  ║        ║ │        │ │        │ │        │   │
+│  ║        ║ │        │ │        │ │        │   │
+│  ║        ║ │        │ │        │ │        │   │
+│  ║  done  ║ │    -   │ │  done  │ │    -   │   │
+│  ╚════════╝ └────────┘ └────────┘ └────────┘   │
+│  A Book Of… A Book Of… A Book Of… A Very La…   │
+│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐   │
+│  │        │ │        │ │        │ │        │   │
+│  │        │ │        │ │        │ │        │   │
+│  │        │ │        │ │        │ │        │   │
+│  │        │ │        │ │        │ │        │   │
+│  │   90%  │ │    -   │ │  done  │ │   50%  │   │
+│  └────────┘ └────────┘ └────────┘ └────────┘   │
+│  A Big Boo… A Book Th… A Huge Bo… A Long Te…   │
+└────────────────────────────────────────────────┘
+```
+
+**The picture of a cover stands inside the box, and `tmux capture-pane` with no
+`-e` gives no character of it.** The cover of `A Long Test Book` of the sandbox
+is 400 pixels by 400 of one red, therefore the halfblocks of that picture are
+cells of a background of red and of no letter: the same capture with `-e` gave
+`48;2;254;0;0` on four rows of that panel, and the log of the program said
+`[cover] the item 9a671047-… gives 420 bytes` beside it. **A cell of no
+character is not a cell of no picture** (the trap of this round).
+
+**The controls of the same run**: the key `6` gave `╔6 Gallery ══╗` with the
+footer `j/k: a row of the grid  +/-: the size of a cell  l: play or open
+h: the list  ?: every key  Q: quit`; two presses of the key `+` gave two cells
+of 20 columns and one press of the key `-` gave three of 14; a click of the
+fourth cell of the first row moved the cursor of the list to
+`➤ A Very Large Book`; a click of the bottom border of the panel moved nothing;
+and one step of the wheel over the panel moved the cursor four lines, which is
+one row of the grid. **A screen of 100 columns draws no gallery at all**, and
+the digit `6` of it does nothing: the frame of the panels stands at 120 columns
+and more (T-320).
+
+### The files
+
+**Six files, and one new one.**
+
+- `src/ui/the_panel_of_the_gallery.rs` is the new module, and every function of
+  it is pure: `the_two_panels` divides the column at the right between the
+  panel 5 and the panel 6, `plan_the_gallery` gives the box, the picture, the
+  row of the place, and the row of the title of each cell, and
+  `TheGallery::the_cell_of_a_point` gives the cell of a click.
+- `src/ui/frame.rs` gives `ThePanel` the value `TheGallery`, the digit `6`, and
+  the movement of the focus: the panel 6 stands **under** the panel 5, therefore
+  `below` and `above` join the two of them and `at_the_right` does not.
+- `src/ui/tui.rs` holds `App::render_the_gallery` beside `App::render_covers`,
+  which divides the column before it draws the panel 5.
+- `src/app.rs` holds `the_size_of_a_cell_of_the_gallery`, which a refresh keeps,
+  `the_gallery_of_the_last_frame`, which the handler of the mouse reads,
+  `App::the_media_of_the_gallery`, and the keys and the clicks of the panel.
+- `src/ui/the_mouse.rs` holds the area of the panel and the target
+  `ThePanelOfTheGallery`.
+- `src/ui/keys.rs` holds the footer of the panel 6 and the two lines of the view
+  of the key `?`.
+
+`tests/the_panel_of_the_gallery_shows_the_media_of_the_list.rs` holds the gate,
+of four tests, beside the four tests of the new module. **The build of the
+fault** (the trap 147), of four edits of one line each, made each of the four
+tests of the gate fail, and one of them made a test of the module fail too:
+
+| The edit | The test that failed |
+|---|---|
+| `let of_the_gallery = if true { of_the_share } else { … };` | `the_column_holds_the_two_panels_and_no_row_that_no_part_uses` |
+| `let the_first = if true { 0 } else { … };` | `the_grid_holds_the_media_around_the_cursor_of_the_list`, and `the_grid_holds_the_cells_of_the_media_around_the_cursor` of the module |
+| The arm `'6' => Some(Self::TheGallery)` goes away | `the_digit_of_the_gallery_names_the_panel_and_the_focus_moves_to_it` |
+| `ThePanel::TheCover \| ThePanel::TheGallery => "j/k: the description …"` | `the_footer_of_the_gallery_names_the_keys_of_the_gallery` |
+
+### The traps of this item
+
+- **A panel that holds a part of a row of the grid holds rows that no cell
+  uses.** The first form of this panel took 40 percent of the column, and the
+  measurement of the real program then gave one row of four cells and **five
+  rows of no character at all** under it — the fault of the panel 5 in a
+  smaller form. `the_two_panels` takes whole rows of the grid alone now, and
+  `THE_SHARE_OF_THE_GALLERY` is a limit and not a share.
+- **The rows of a picture come of the form of a cell of the terminal, and not
+  of the mockup.** The boxes of `docs/mockups/mockup-1.txt` hold one row of a
+  picture, which no cover can use: a cell of a terminal is about two times
+  higher than it is wide, therefore a square picture of eight columns needs
+  about four rows. `the_rows_of_a_picture` reads the `FontSize` of the picker,
+  and the log of the measurement said `a font of 10 by 20 pixels`.
+- **A cell of no character is not a cell of no picture** (above): a measurement
+  of this panel needs `tmux capture-pane -p -e` and a `grep` of the colour, or
+  the log of the store of the covers.
+- **A row of the list that names no media must give no cell.** The name of a
+  shelf of the Home view and the line of a series each hold more than one
+  media, or none at all, therefore `App::the_media_of_the_gallery` walks the
+  rows of the list and it keeps the rows of a media alone. The field `the_line`
+  of each media carries the line of the list, so that a click of a cell moves
+  the cursor to the row of that media and not to the cell of its own number.
+- **The key `+` of most keyboards needs the modifier of the shift**, and the
+  key `=` of that same place gives the same character with no modifier: the two
+  of them make the cells larger. **`every_key_of_the_handler_stands_in_the_list`
+  of `src/ui/keys.rs` found the key `=`** with no line of the view of the key
+  `?`, and it found `+` and `-` with no such line because those two characters
+  stand in other texts of that view.
+- **`no_key_stands_two_times_in_one_group` of that same file** then found two
+  lines of `j / k` in the group of the panels: the line of the panel 5 and the
+  line of the panel 6 are one line now.
+
+### What stays open
+
+- **The buttons `[+ bigger]` and `[- smaller]` of the title of the design.**
+  The title of the panel says `6 Gallery` and no button, for the reason of
+  T-322: a `[ ]` of the design that no click reads promises a function that the
+  program does not have (T-118). The round that gives those buttons a click
+  gives them the words too.
+- **The mark `◉ ⇕` of the title of the design** stands in no panel of this
+  program, and it belongs to the round that gives every panel that mark.
+- **The gallery of a view outside the Home view and the Library view.** The
+  panel 6 belongs to the frame of the panels, therefore the view of a search,
+  the view of a series, and the view of a collection keep the column that they
+  had.
+- **The regions of the map of the mouse of T-323 that stay** hold the picture
+  of the panel 5, the buttons of the facts of it, the bar of the progress of
+  it, the whole status bar, the buttons of the panel 7, the box of the message,
+  and the row of the downloads.

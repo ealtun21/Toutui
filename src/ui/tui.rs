@@ -684,11 +684,28 @@ impl App {
     /// of T-320 gives it the border of a panel now, and the words of the media
     /// fill the rows that the picture leaves.
     fn render_covers(&mut self, panel: Option<Rect>, buf: &mut Buffer) -> Option<(Rect, Rect)> {
-        let Some(panel) = panel else {
+        let Some(column) = panel else {
             // **A frame that draws no panel takes no click of it** (T-316): the
             // areas of the last frame are the screen that the user clicked.
             self.the_areas_of_the_mouse.the_panel_of_the_cover = Rect::default();
+            self.render_the_gallery(None, buf);
             return None;
+        };
+
+        // **The panel 6 of the gallery stands under the panel 5 of the cover**
+        // (T-327), and it belongs to the frame of the panels: the Home view and
+        // the Library view are the two views that hold that frame, therefore
+        // every other view keeps the column that it had.
+        let of_a_cell = crate::ui::the_panel_of_the_gallery::THE_WIDTHS_OF_A_CELL
+            [self.the_size_of_a_cell_of_the_gallery];
+        let (panel, gallery) = if self.the_frame_of_the_panels_stands() {
+            crate::ui::the_panel_of_the_gallery::the_two_panels(
+                column,
+                of_a_cell,
+                cover::picker().font_size(),
+            )
+        } else {
+            (column, None)
         };
 
         let it_holds_the_focus =
@@ -773,9 +790,116 @@ impl App {
             }
         }
 
+        self.render_the_gallery(gallery, buf);
+
         parts
             .the_words_stand_here()
             .then_some((parts.facts, parts.description))
+    }
+
+    /// Draws the panel 6 of the gallery of the covers. See T-327.
+    ///
+    /// **The gallery is the list of the panel 4 and no list of its own**: the
+    /// grid holds the media around the cursor, the cell of the cursor takes the
+    /// heavy border of the focus, and a click of a cell moves that cursor.
+    ///
+    /// **A panel that the frame did not draw takes no click of it** (T-316),
+    /// therefore the area of no panel and the grid of no cell go in the state of
+    /// the last frame together.
+    fn render_the_gallery(&mut self, panel: Option<Rect>, buf: &mut Buffer) {
+        use crate::ui::the_panel_of_the_gallery::{plan_the_gallery, TheGallery};
+
+        let Some(panel) = panel else {
+            self.the_areas_of_the_mouse.the_panel_of_the_gallery = Rect::default();
+            self.the_gallery_of_the_last_frame = TheGallery::default();
+            return;
+        };
+
+        let it_holds_the_focus =
+            self.the_panel_of_the_focus == crate::ui::frame::ThePanel::TheGallery;
+        let block = crate::ui::frame::a_panel(
+            crate::ui::frame::ThePanel::TheGallery.the_number(),
+            "Gallery",
+            it_holds_the_focus,
+        );
+        let inside = block.inner(panel);
+        block.render(panel, buf);
+
+        self.the_areas_of_the_mouse.the_panel_of_the_gallery = panel;
+
+        let the_media = self.the_media_of_the_gallery();
+        let the_cursor = self.the_media_of_the_cursor_of_the_gallery(&the_media);
+        let of_a_cell = crate::ui::the_panel_of_the_gallery::THE_WIDTHS_OF_A_CELL
+            [self.the_size_of_a_cell_of_the_gallery];
+        let font = cover::picker().font_size();
+
+        let plan = plan_the_gallery(inside, of_a_cell, font, the_media.len(), the_cursor);
+        let api = std::sync::Arc::clone(&self.api);
+
+        for cell in &plan.cells {
+            let Some(media) = the_media.get(cell.the_media) else {
+                continue;
+            };
+
+            // **The cell of the cursor says which media the panel 5 shows**:
+            // the two panels of the column then say one media, and a user who
+            // reads the facts of the panel 5 finds its cover in the grid.
+            let of_the_cursor = cell.the_media == the_cursor;
+            let border = if of_the_cursor {
+                Block::new()
+                    .borders(Borders::ALL)
+                    .border_type(ratatui::widgets::BorderType::Double)
+                    .border_style(
+                        Style::default()
+                            .fg(crate::ui::theme::THE_ACCENT)
+                            .add_modifier(Modifier::BOLD),
+                    )
+            } else {
+                Block::new()
+                    .borders(Borders::ALL)
+                    .border_style(crate::ui::theme::a_quiet_text())
+            };
+            border.render(cell.the_box, buf);
+
+            // The picture keeps the form of the cover, therefore it stands in
+            // the middle of the rows that the cell gives it.
+            if !media.id.is_empty() && !cover::no_picture_comes(&media.id) {
+                let form = self.covers.form_of(&media.id).unwrap_or(1.0);
+                let area = cover::box_of_the_picture(cell.the_picture, font, form);
+
+                if area.width > 0 && area.height > 0 {
+                    if let Some(picture) = self.covers.picture(&api, &media.id) {
+                        StatefulImage::default().render(area, buf, picture);
+                    }
+                }
+            }
+
+            // **The place of the user stands inside the box and the title under
+            // it**, in the words of the design.
+            Paragraph::new(crate::logic::message::in_one_row(
+                &media.done,
+                cell.the_place.width,
+            ))
+            .alignment(Alignment::Center)
+            .render(cell.the_place, buf);
+
+            let of_the_title = if of_the_cursor {
+                Style::default()
+                    .fg(crate::ui::theme::THE_ACCENT)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default()
+            };
+
+            Paragraph::new(crate::logic::message::in_one_row(
+                &media.title,
+                cell.the_title.width,
+            ))
+            .style(of_the_title)
+            .render(cell.the_title, buf);
+        }
+
+        self.the_gallery_of_the_last_frame = plan;
     }
 
     /// The three areas of the work of a view of a list, with the panel 5 of the
