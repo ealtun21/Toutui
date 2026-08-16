@@ -496,10 +496,6 @@ impl Reader {
         self.sends_the_place() && wants_to_send(self.sent, self.position(), self.sent_at.elapsed())
     }
 
-    /// Tells if the reader must send the place before it goes away.
-    ///
-    /// The user leaves the book, or stops the program. The place must go to
-    /// the server then, whatever the time of the last send.
     /// Tells if the book is a PDF. One chapter of such a book is one page, and
     /// the screen says "page" and not "chapter". See T-54.
     pub fn holds_pages(&self) -> bool {
@@ -517,6 +513,12 @@ impl Reader {
         page.pictures.first().cloned()
     }
 
+    /// Tells if the reader must send the place before it goes away.
+    ///
+    /// The user leaves the book, or stops the program. The place must go to the
+    /// server then, whatever the time of the last send. The key `h` reads this
+    /// rule, and the box of the place that waits reads it for the key `Q` and
+    /// for the terminal that went away (T-292).
     pub fn wants_to_send_at_the_end(&self) -> bool {
         self.sends_the_place() && self.sent != Some(self.position())
     }

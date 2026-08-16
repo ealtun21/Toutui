@@ -1005,6 +1005,12 @@ async fn main() -> Result<()> {
                 // when the place changed and 30 seconds went by. See T-10.
                 app.send_the_place_of_the_reader_if_it_is_time();
 
+                // The reader holds no table of the disk, therefore the place of
+                // the user reaches the two roads of a program that stops — the
+                // key `Q` and the terminal that went away — through the box of
+                // the process alone. See T-292.
+                app.say_the_place_of_the_reader_that_waits();
+
                 // A second window of this account removes the books of the
                 // cache of the ebooks with no key of this window, and the
                 // removal of that window cannot see the book that this window

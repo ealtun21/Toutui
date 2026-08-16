@@ -109,10 +109,11 @@ pub fn the_line_of_a_terminal_that_went_away() -> String {
 /// **The task stands on a thread of the runtime**, therefore the loop of the
 /// screen that never comes back holds it nowhere.
 ///
-/// A terminal that went away takes the road of the key `Q`:
-/// `sync_session_from_database` closes the session of the server, it sends the
-/// place of the user, and it stops the program. The user reads no word of it,
-/// because the screen of the user is the terminal that went away (T-177).
+/// A terminal that went away takes the road of the key `Q`: the place of the
+/// book of the reader goes to the server (T-292), and
+/// `sync_session_from_database` then closes the session of the server, it sends
+/// the place of the audio, and it stops the program. The user reads no word of
+/// it, because the screen of the user is the terminal that went away (T-177).
 pub fn spawn_the_watch_of_the_terminal(
     api: std::sync::Arc<crate::api::client::ApiClient>,
     username: String,
@@ -146,6 +147,17 @@ pub fn spawn_the_watch_of_the_terminal(
 
                 TheAnswerOfTheWatch::TheTerminalWentAway => {
                     log::error!("{}", the_line_of_a_terminal_that_went_away());
+
+                    // The place of the reader goes before the process ends.
+                    // The reader holds no table of the disk, therefore a
+                    // terminal that went away takes every line that the user
+                    // read with it. See T-292.
+                    crate::logic::reader::the_place_that_waits::
+                        the_place_of_the_reader_goes_to_the_server(
+                            &api,
+                            "the terminal that went away",
+                        )
+                        .await;
 
                     crate::logic::sync_session::sync_session_from_database::
                         sync_session_from_database(

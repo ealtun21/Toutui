@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.121",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Your place in a book now goes to the server when you stop the \
+             program with the key \"Q\".** The footer of the reader names that \
+             key, and the program sent the place of the audio alone: every line \
+             that you read went away with the program, and the server kept the \
+             place of the chapter before it on all of your machines. The place \
+             of the book now goes to the server before the program stops. A \
+             terminal that goes away takes the same road.",
+        ],
+    },
+    Entry {
         version: "0.8.120",
         date: "16/08/2026",
         body: &[

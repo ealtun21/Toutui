@@ -24762,3 +24762,147 @@ assertion `left == right` failed: a request that stands is no place of the serve
   the round found this one road in the reader. **Ask it of every
   `tokio::spawn` of `src/app.rs` whose caller writes a state before the task
   runs.**
+
+### T-292: the place of a book of a program that stops goes to the server
+
+**The reader holds no table of the disk.** The audio playback keeps the place
+of the user in the row of `listening_session` (T-201) and in the table
+`pending_progress` (T-212): a program that stops gives that place to the
+server, and a program that dies leaves it for the program after it. The reader
+keeps its place in the `App` alone, therefore the view of the reader goes away
+with the process, and the place of the user goes away with the view.
+
+**The program stops on two roads, and neither of them holds the `App`.** The
+key `Q` stands in the general arm of the keys, because the reader gives that
+key away (T-52) and the footer of the view of the reader names it — `Q: quit`.
+That arm spawned one task:
+
+```rust
+            KeyCode::Char('Q') | KeyCode::Esc => {
+                …
+                tokio::spawn(async move {
+                    sync_session_from_database(&api, username, server_key, true, "Q").await;
+                });
+            }
+```
+
+`sync_session_from_database` reads the rows of `listening_session` of the
+account, and it stops the program with `clean_exit`. **It asks the reader
+nothing at all.** The watch of the terminal that went away (T-271) called that
+same function, from a task that never saw an `App`.
+
+#### The measurement
+
+The real program v0.8.120, inside tmux with `docs/harness/drive.sh`, against
+the sandbox. The account stood at the address of the sandbox, and no proxy took
+part: **the data of this fault is the place of a book on the server itself.**
+The server held `Alice in Wonderland`
+(`8fda6e43-0728-46ad-98bc-4c8634e299ad`) at
+`ebookLocation epubcfi(/6/6!/4/2/14/1:698)` and `ebookProgress 0`. The key `/`
+and the word `Alice` gave the view of the search, the key `e` opened the reader
+at `Alice's Adventures in Wonderland — chapter 3 of 14 — 4%`, and two presses
+of the key `n` gave `chapter 5 of 14 — 16%`. The keys came inside 30 seconds,
+therefore the rule of the time of the send did not run.
+
+| The road | v0.8.120 | The correction |
+|---|---|---|
+| The key `Q` | `epubcfi(/6/6!/4/2/14/1:698)`, `ebookProgress 0`, `lastUpdate 1786850155712` — **no change at all** | `epubcfi(/6/10!/4/2/2/1:0)`, `ebookProgress 0.15643986516830732` |
+| The terminal that went away | `epubcfi(/6/6!/4/2/14/1:698)`, `ebookProgress 0` — **no change at all** | `epubcfi(/6/10!/4/2/2/1:0)`, `ebookProgress 0.15643986516830732` |
+
+The log of v0.8.120 at the key `Q` held two lines, and no word of the reader in
+either of them:
+
+```text
+[handle_key] The database holds no session to close
+App successfully quit
+```
+
+**The key `h` of the same run sent that place at once.** The control of the
+measurement gave `The server has the place of the book.` on the screen and
+`epubcfi(/6/10!/4/2/2/1:0)` at `ebookProgress 0.15643986516830732` on the
+server, therefore the send of the reader works and the roads of the end alone
+hold the fault.
+
+The measurement of the terminal used
+`docs/harness/the_terminal_of_the_program_goes_away.py` and a
+`tmux kill-session` (the trap 103 and T-271), with the same book and the same
+two presses of the key `n`. The build of the fault of that road, of one
+`if false { … }` around the new call (the trap 147), gave the log of the watch
+and the place of chapter 3 on the server:
+
+```text
+[the terminal] the terminal of this program went away, and no signal came with it. …
+App successfully quit
+```
+
+**The user read two chapters and stopped the program with the key that the view
+names, and the server kept the place of chapter 3 on every machine of that
+account.**
+
+#### The correction
+
+The place of the reader reaches the two roads of the end through a box of the
+process, because neither of them holds an `App`.
+`src/logic/reader/the_place_that_waits.rs` holds that box, the struct
+`ThePlaceOfTheReader` of the identity of the media, of the location, and of the
+part of the book, and the function
+`the_place_of_the_reader_goes_to_the_server(api, handle_key)`.
+
+- The loop of `src/main.rs` calls `App::say_the_place_of_the_reader_that_waits`
+  at each turn, beside the rule of the time of T-291. The `App` writes the box
+  when `wants_to_send_at_the_end` says that the server holds a different place,
+  and it writes `None` in every other condition: a reader whose place the
+  server took, and a program with no reader, leave nothing behind them. **A
+  place that this program did not read must not go to the server** (T-76 and
+  T-178), therefore `the_sentence_of_a_place_that_stays_here` guards the write
+  of the box too.
+- **The caller awaits the send.** `clean_exit` gives the process to the machine
+  at the line after it, therefore a `tokio::spawn` of that request would never
+  run. The send stands inside the task of the key `Q`, before
+  `sync_session_from_database`, and inside the arm of the watch of the terminal
+  before that same call.
+- **The program says no word of this send** (T-177): the screen of the user
+  goes away with the process on both roads. The log holds the answer, and a
+  place that the server did not take stays in the box, because a second road of
+  the end can meet it.
+
+#### The test
+
+`tests/a_place_of_a_book_of_a_program_that_stops_goes_to_the_server.rs`, of one
+function (T-144 and T-157). A host of `wiremock` gives the answer of the
+server, and `received_requests` says the path and the body of the request. The
+test needs no sandbox and no terminal.
+
+The four parts of the correction each have a build of the fault that fails it
+(the trap 147):
+
+| The line that goes away | The words of the fault |
+|---|---|
+| the call of the arm of the key `Q` | `the key \`Q\` must send the place of the reader before the sync stops the program` |
+| the call of the arm of the terminal that went away | `a terminal that went away must send the place of the reader before the sync` |
+| `app.say_the_place_of_the_reader_that_waits()` of the loop | `the loop of the application must say which place of the reader no machine holds` |
+| `say_the_place_that_waits(None)` after the answer `Ok` | `assertion \`left == right\` failed: a place that the server took must leave the box` |
+
+The three tests of the roads read a **block** of the source and not a window of
+a number of characters (the trap 209): each block starts at the arm of its road
+and it ends at the call of `sync_session_from_database` of that same arm.
+
+#### What this item leaves open
+
+- **The place of the reader of a program that dies reaches no machine at all.**
+  The correction holds the two roads where the program stops of its own will. A
+  program that takes `SIGKILL`, and a machine that stops, leave the box of the
+  process with the place in it: the reader has no table of the disk, therefore
+  no program after it can read that place. **The row of `pending_progress` of
+  T-212 is the shape of the answer, and this is a candidate and not a
+  measurement.**
+- **A place of the reader that the server did not take at the end goes away
+  with the program.** The box keeps it for a second road of the end, and no
+  second road comes: the log says the fault and the user reads no word of it.
+  **This is a candidate and not a measurement.**
+- **The reader sends the place of a book that the user left, at the key `Q` of
+  a view that is not the reader.** `self.reader` stays after the key `h`
+  (`src/app.rs` changes the view alone), therefore a book whose send failed at
+  the key `h` goes to the server at the key `Q`. The measurement of this round
+  did not ask what happens when the user opens a second book after that.
+  **This is a candidate and not a measurement.**

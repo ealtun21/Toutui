@@ -2573,6 +2573,16 @@ impl App {
                 self.player.send(crate::player::engine::PlayerCommand::Stop);
 
                 tokio::spawn(async move {
+                    // **The place of the reader goes before the process ends.**
+                    // The reader holds no table of the disk, and the footer of
+                    // that view names this key: a user who read a book and who
+                    // pressed `Q` lost every line of that reading. The send
+                    // stands inside this task, because `clean_exit` of the sync
+                    // below gives the process to the machine. See T-292.
+                    crate::logic::reader::the_place_that_waits::
+                        the_place_of_the_reader_goes_to_the_server(&api, "Q")
+                        .await;
+
                     sync_session_from_database(&api, username, server_key, true, "Q").await;
                 });
             }
@@ -6962,6 +6972,52 @@ impl App {
 
             crate::logic::message::say(text.as_str());
         });
+    }
+
+    /// Says which place of the reader no machine holds. See T-292.
+    ///
+    /// The loop of the application calls this for each turn. **The reader has
+    /// no table of the disk**: the key `Q` and the terminal that went away each
+    /// stop the program from a road that holds no `App`, therefore that place
+    /// reaches the two roads of the end through the box of the process alone.
+    pub fn say_the_place_of_the_reader_that_waits(&self) {
+        crate::logic::reader::the_place_that_waits::say_the_place_that_waits(
+            self.the_place_of_the_reader_that_waits(),
+        );
+    }
+
+    /// Gives the place of the reader that the server does not hold. See T-292.
+    fn the_place_of_the_reader_that_waits(
+        &self,
+    ) -> Option<crate::logic::reader::the_place_that_waits::ThePlaceOfTheReader> {
+        let reader = self.reader.as_ref()?;
+
+        // A reader whose place the server holds already leaves nothing behind
+        // it, and the send of the end then asks the server nothing at all.
+        if !reader.wants_to_send_at_the_end() {
+            return None;
+        }
+
+        // **A place that this program did not read must not go to the server.**
+        // The book of another file of the item holds one road (T-76), and a
+        // read of the place that came back with a fault holds the other one
+        // (T-178). The road of the end says no word, therefore it takes the
+        // place of neither of them.
+        if crate::logic::reader::session::the_sentence_of_a_place_that_stays_here(
+            reader.the_place_of_the_book(),
+        )
+        .is_some()
+        {
+            return None;
+        }
+
+        Some(
+            crate::logic::reader::the_place_that_waits::ThePlaceOfTheReader {
+                item_id: reader.item_id.clone(),
+                location: reader.location_text(),
+                fraction: reader.fraction(),
+            },
+        )
     }
 
     /// Takes the place that the server took, and gives it to the reader.

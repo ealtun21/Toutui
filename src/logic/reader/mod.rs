@@ -14,6 +14,8 @@
 //!    line, and the task that renders.
 //! 5. [`cache`] holds the files of the ebooks of the disk at or below a limit.
 //!    See T-67.
+//! 6. [`the_place_that_waits`] holds the place of the reader that no machine
+//!    holds, for the two roads of a program that stops. See T-292.
 //!
 //! Every function of [`position`] is pure. The other two parts read the file
 //! and they must run in a task, and never on the thread that draws.
@@ -26,6 +28,7 @@ pub mod pdf_of_a_child;
 pub mod position;
 pub mod render;
 pub mod session;
+pub mod the_place_that_waits;
 
 pub use book::{Book, ReaderError, TocItem};
 pub use position::{fraction, from_ebook_location, from_fraction, to_ebook_location, Position};

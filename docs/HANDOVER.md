@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.120.** The item T-291 belongs to this session. The
+**The newest release is v0.8.121.** The item T-292 belongs to this session. The
+item T-291 belongs to the session before it. The
 item T-290 belongs to the session before it. The
 item T-289 belongs to the session before it. The
 item T-288 belongs to the session before it. The
@@ -136,6 +137,77 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and twenty-first turn of 2026-08-16: the place of a book of a program that stops goes to the server
+
+**The item: T-292.** T-291 left the candidate "the place of an open reader at
+the key `Q` is not measured", and the measurement of that condition gave the
+fault, on two roads.
+
+**One release: v0.8.121.**
+
+**The reader holds no table of the disk.** The audio playback keeps the place of
+the user in the row of `listening_session` (T-201) and in the table
+`pending_progress` (T-212), therefore a program that stops gives that place to
+the server, and a program that dies leaves it for the program after it. The
+reader keeps its place in the `App` alone.
+
+**The program stops on two roads, and neither of them holds the `App`.** The arm
+of the key `Q` of `src/app.rs` spawned `sync_session_from_database` alone, and
+that function reads the rows of the audio: it asks the reader nothing. The watch
+of the terminal that went away (T-271) called that same function from a task
+that never saw an `App`. The reader gives the key `Q` away to the general arm
+(T-52), and the footer of the view of the reader names it: `Q: quit`.
+
+The measurement, of the real program v0.8.120 inside tmux against the sandbox,
+**needed no proxy at all**: the data of the fault is the place of a book on the
+server itself. The server held `Alice in Wonderland` at
+`ebookLocation epubcfi(/6/6!/4/2/14/1:698)` and `ebookProgress 0`, the key `e`
+opened the reader at `chapter 3 of 14 — 4%`, and two presses of the key `n` gave
+`chapter 5 of 14 — 16%` inside 30 seconds, therefore the rule of the time of the
+send did not run.
+
+| The road | v0.8.120 | The correction |
+|---|---|---|
+| The key `Q` | `epubcfi(/6/6!/4/2/14/1:698)`, `ebookProgress 0`, the same `lastUpdate` | `epubcfi(/6/10!/4/2/2/1:0)`, `0.15643986516830732` |
+| The terminal that went away | `epubcfi(/6/6!/4/2/14/1:698)`, `ebookProgress 0` | `epubcfi(/6/10!/4/2/2/1:0)`, `0.15643986516830732` |
+
+The log of v0.8.120 at the key `Q` held `[handle_key] The database holds no
+session to close` and `App successfully quit`, and no word of the reader. **The
+key `h` of the control of the same run sent that place at once**
+(`The server has the place of the book.`), therefore the send of the reader
+works and the roads of the end alone hold the fault. The road of the terminal
+used `docs/harness/the_terminal_of_the_program_goes_away.py` and a
+`tmux kill-session` (the trap 103), and a build of the fault of one
+`if false { … }` around the new call (the trap 147) gave the place of chapter 3
+on the server again.
+
+The correction is a box of the process, of the shape of `opened_book` of T-10:
+`src/logic/reader/the_place_that_waits.rs` holds it, the struct
+`ThePlaceOfTheReader`, and `the_place_of_the_reader_goes_to_the_server`. The
+loop of `src/main.rs` writes that box at each turn when
+`wants_to_send_at_the_end` says that the server holds a different place, and it
+writes `None` in every other condition; the guard
+`the_sentence_of_a_place_that_stays_here` of T-76 and of T-178 stands on that
+write too. **The two roads of the end await the send** before
+`sync_session_from_database`, because `clean_exit` gives the process to the
+machine at the line after it. The program says no word of that send (T-177), and
+a place that the server did not take stays in the box for a second road.
+
+The test is `tests/a_place_of_a_book_of_a_program_that_stops_goes_to_the_server.rs`,
+of one function (T-144 and T-157), with a host of `wiremock` and
+`received_requests`. The four parts of the correction each have a build of the
+fault that fails it: the call of the arm of the key `Q`, the call of the arm of
+the terminal, `app.say_the_place_of_the_reader_that_waits()` of the loop, and
+`say_the_place_that_waits(None)` after the answer `Ok`. The three tests of the
+roads read a **block** of the source, from the arm of the road to the call of
+`sync_session_from_database` of that same arm, and not a window of a number of
+characters (the trap 209).
+
+The gates of v0.8.121: `cargo clippy --all-targets -- -D warnings` clean,
+`cargo fmt --check` clean, `cargo nextest run` 1342 of 1342 in 2.7 seconds,
+`cargo nextest run --run-ignored all` 1368 of 1368 with the sandbox up in 17.1
+seconds, and `cargo test -j 16 --no-fail-fast` clean.
 
 ## The session of the hundred and twentieth turn of 2026-08-16: a place that the server did not take goes to the server again
 
@@ -15539,6 +15611,89 @@ book of that same name read with no line of the reader in the log.
   T-284): the block has a limit of size, therefore this turn names the
   new candidates alone and it does not repeat that list.
 
+
+### The turn of the hundred and twentieth of 2026-08-16: a place of a book that the server did not take goes to the server again
+
+**The session of the hundred and twentieth turn took the candidate "A place
+of the reader that the server did not take stays sent", which T-290 opened,
+and the measurement of it gave the fault** (T-291).
+
+`send_the_place_of_the_reader` of `src/app.rs` said that the place went to
+the server **before** the request:
+`reader.the_place_went_to_the_server()` stood above the `tokio::spawn` of
+the `PATCH`, and it wrote `sent = Some(self.position())`. **The two rules of
+the send each ask `sent != Some(position())`**: `wants_to_send` of the rule
+of the time of 30 seconds, and `wants_to_send_at_the_end` of the key `h`
+that leaves the book. A request that the server refused therefore took that
+place out of both of them. **The program said the fault one time, and it
+sent that place never again.**
+
+The measurement, of the real program v0.8.119 inside tmux against the
+sandbox, with `one_method_fails.py 13500 13399 requests.log
+PATCH:/api/me/progress/8fda6e43-…` and the account at that one address (the
+trap 129). The server held `Alice in Wonderland` at
+`ebookLocation toutui:12:300` and `ebookProgress 0.6`, the reader of the key
+`e` opened at `chapter 13 of 14`, and the key `n` gave `chapter 14 of 14`.
+The key `s` then gave one `500 PATCH`, and the screen said
+`The server did not take the place: The server reported a fault. Status
+500.` **45 seconds in the book gave no second request, and the key `h` gave
+none**, and `GET /api/me/progress/…` said `toutui:12:300` again: the user
+read chapter 14 of 14, and the server kept chapter 13 on every machine of
+that account.
+
+The correction holds three files. `the_place_went_to_the_server` became two
+functions: `the_place_goes_to_the_server` writes `sent_at` alone and it
+holds the rule of the time while the request stands, and
+`the_place_went_to_the_server(place)` writes `sent`. A box of the process of
+the shape of `opened_book` of T-10 carries the answer of the server back to
+the loop, and **it holds the identity of the media**, because the user can
+open a different book while the request stands. The task writes that box on
+`Ok(())` alone. **The place of the send is not the place of this moment**:
+the user reads more lines while the request stands. The corrected program of
+the same condition gave a `PATCH` at the key `s`, a second one at 45
+seconds, and a third one at the key `h`; and with a proxy that forwards
+every request, one `PATCH` at the key `s`, none in 75 seconds on the same
+line, none at the key `h`, and the server then held
+`epubcfi(/6/28!/4/2/2/1:0)` at `ebookProgress 0.8277488992014371`.
+- **A place of the reader that the key `h` did not send has no table of the
+   disk** (T-291). The audio playback keeps such a place in `pending_progress`
+   (T-212), and the reader has no such table: the view of the reader goes away
+   with the place. **This is a candidate and not a measurement.**
+- **The place of an open reader at the key `Q` is not measured** (T-291): the
+   sweep of this round asked the three roads of the send and not the end of
+   the program. **This is a candidate and not a measurement.**
+- **The shape of T-291 is the shape of T-212 and of T-207**: a caller that
+   says that a value is safe before the machine took it. **Ask it of every
+   `tokio::spawn` of `src/app.rs` whose caller writes a state before the task
+   runs.**
+- **A percent of the server and a length of the program still come of two
+   different lengths** (T-290). A sweep found the shape at three display
+   sites: the row and the live branches of `the_place_of_the_panel` of
+   `src/logic/the_panel_of_a_line.rs` take the percent of
+   `mediaProgress.progress` and they make the time that is left of the length
+   of the metadata of the item, and the line of the view of the queue takes
+   the percent of the row and the time of `entry.duration` of the disk. **It
+   holds a decision**: the line of a media says the percent of the server
+   (T-241 and T-242). **This is a candidate and not a measurement.**
+- **`convert_seconds` holds no guard of a length of 0** (T-290).
+   `convert_seconds_for_prg` holds the guard of T-289 already, and its
+   neighbour holds none: a sweep names `collect_personalized_view.rs`,
+   `collect_personalized_view_pod.rs`, `collect_lists.rs`,
+   `collect_series.rs`, and `collect_get_all_books.rs` as the roads of a
+   `duration` of `unwrap_or(0.0)` that reaches a panel as `Duration: 0m`, and
+   **the sum of the lengths of a series and of a collection holds the same
+   shape**. **This is a candidate and not a measurement.**
+- **The reader accepts five keys that no footer of it names** (T-290): `Esc`
+   leaves the book, and `Esc`, `?`, and `Q` work while the table of contents
+   stands, and the key `e` of the ebooks of the media stands in no footer at
+   all. The rule of T-143 is the other way. **This is a candidate and not a
+   measurement.**
+- **The dead arm of a render stays open** (T-289): a render that holds an arm
+   that no road reaches promises a fault that the program does not have. **Ask
+   it of every arm of `src/` that no test and no measurement can reach.**
+- **The line of `src/player/engine/hls_file.rs:248` stays open** (T-288). It
+   needs the book of xHE-AAC of the sandbox.
+
 ## The session of the hundred and sixth turn of 2026-08-16: a chapter that the book did not give says why
 
 **One release: v0.8.106**, and one item: T-277. **The road of it is the
@@ -16352,67 +16507,10 @@ its `✓`.
 
 ## The prompt for the next session
 
-**This session read the candidate "`ChapterTooLarge` of `ReaderError` says
-`This chapter is too large.`"**, which T-274 opened and which T-278 and T-280
-each left open.
-
-`ReaderError::ChapterTooLarge` of `src/logic/reader/book.rs` gave one constant
-sentence. Three faults of it. It named no number, and
-`ReaderError::BookTooLarge` of the same file names the size of the file and the
-limit of the book already. It named no key, and the view of the reader holds
-`n` for the chapter after this one, `p` for the chapter before it, and `h` to
-leave the book, and each of the three does the work of that fault (T-170). And
-the arm took no line of the log at all, while the arm beside it, of a chapter
-that the archive did not give, writes one already.
-
-The measurement, of the real program v0.8.109 inside tmux against the sandbox.
-**The data of this fault is a book, and it needs no proxy at all**: the new
-harness `docs/harness/a_book_of_a_chapter_that_is_too_large.py` writes an EPUB
-of three chapters whose second chapter holds 9437361 bytes of plain text, over
-the `MAX_CHAPTER_BYTES` of 8388608. The text of it repeats, therefore the
-deflate of the zip gives an archive of 56923 bytes, far under the
-`MAX_BOOK_BYTES` of 256 megabytes: the book reaches the read of the chapter and
-not the guard of the size of the file. That book went into the cache of the
-ebooks of the account `toutuitest` under the name of the item of `Alice in
-Wonderland`. The keys `Tab`, 15 keys `j`, `e`, and `p` gave
-
-```text
-                          This chapter is too large.
-```
-
-and the log held 14 lines before the key and 14 lines after it: **no line of
-the reader at all**.
-
-The correction is two edits of the same file. The arm
-`Err(_) if writer.hit_limit` of `chapter_bytes` writes a line of the log that
-names the chapter and the limit. The arm of `Display` says that the chapter has
-**more than** the limit of bytes, because `CappedWriter` stops the copy at that
-limit and the size of the whole chapter is a fact that the program does not
-have (T-91), and it names the keys `n`, `p`, and `h` and the file of the log.
-The corrected program of the same condition said that sentence on three rows,
-and the log held two lines of the reader. The item is **T-281**, and it holds
-the release v0.8.110.
-
-Two things are worth the room:
-
-1. **The two sentences of the same file that this item did not correct.**
-   `ChapterAbsent` and `NoSuchChapter` name no key of the view of the reader,
-   and neither arm of `chapter_bytes` writes a line of the log.
-2. **A guard of a size gives the number of the guard, and not the number of
-   the thing.** `TooManyEntries` and `BookTooLarge` name their numbers and no
-   key at all, and those two faults come at the open of the book, where the
-   view of the reader does not stand. Ask: which view holds those words, and
-   which key does the work of that fault?
-
-The gates of v0.8.110, under `nice -n 19 ionice -c 3` with `-j 16`:
-`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
-`cargo nextest run` gives 1322 of 1322 in 2.6 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives 1348 of 1348 with the sandbox up,
-and `cargo test -j 16 --no-fail-fast` passed in three runs.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.120**; `Cargo.toml` is at 0.8.120. The
+> AlbanDAVID/Toutui. Newest release **v0.8.121**; `Cargo.toml` is at 0.8.121. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -16421,7 +16519,7 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-290 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-292 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -17123,15 +17221,15 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-291 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-292 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1341 tests in 2.8 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1367 of 1367** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1342 tests in 2.7 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1368 of 1368** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -17241,91 +17339,83 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and four sessions of one hundred
 >    and five.
->    **The session of the hundred and twentieth turn took the candidate "A place
->    of the reader that the server did not take stays sent", which T-290 opened,
->    and the measurement of it gave the fault** (T-291).
+>    **The session of the hundred and twenty-first turn took the candidate "The
+>    place of an open reader at the key `Q` is not measured", which T-291
+>    opened, and the measurement of it gave the fault** (T-292).
 >
->    `send_the_place_of_the_reader` of `src/app.rs` said that the place went to
->    the server **before** the request:
->    `reader.the_place_went_to_the_server()` stood above the `tokio::spawn` of
->    the `PATCH`, and it wrote `sent = Some(self.position())`. **The two rules of
->    the send each ask `sent != Some(position())`**: `wants_to_send` of the rule
->    of the time of 30 seconds, and `wants_to_send_at_the_end` of the key `h`
->    that leaves the book. A request that the server refused therefore took that
->    place out of both of them. **The program said the fault one time, and it
->    sent that place never again.**
+>    **The reader holds no table of the disk.** The audio playback keeps the
+>    place of the user in the row of `listening_session` (T-201) and in the
+>    table `pending_progress` (T-212), therefore a program that stops gives that
+>    place to the server. The reader keeps its place in the `App` alone, and the
+>    view of the reader goes away with the process. **The program stops on two
+>    roads, and neither of them holds the `App`**: the arm of the key `Q` of
+>    `src/app.rs`, which the footer of the reader names (`Q: quit`), and the
+>    watch of the terminal that went away (T-271). Each of them called
+>    `sync_session_from_database` alone, and that function reads the rows of the
+>    audio: **it asks the reader nothing at all.**
 >
->    The measurement, of the real program v0.8.119 inside tmux against the
->    sandbox, with `one_method_fails.py 13500 13399 requests.log
->    PATCH:/api/me/progress/8fda6e43-…` and the account at that one address (the
->    trap 129). The server held `Alice in Wonderland` at
->    `ebookLocation toutui:12:300` and `ebookProgress 0.6`, the reader of the key
->    `e` opened at `chapter 13 of 14`, and the key `n` gave `chapter 14 of 14`.
->    The key `s` then gave one `500 PATCH`, and the screen said
->    `The server did not take the place: The server reported a fault. Status
->    500.` **45 seconds in the book gave no second request, and the key `h` gave
->    none**, and `GET /api/me/progress/…` said `toutui:12:300` again: the user
->    read chapter 14 of 14, and the server kept chapter 13 on every machine of
->    that account.
+>    The measurement, of the real program v0.8.120 inside tmux against the
+>    sandbox, and **it needed no proxy at all**: the data of the fault is the
+>    place of a book on the server itself. The server held `Alice in Wonderland`
+>    at `ebookLocation epubcfi(/6/6!/4/2/14/1:698)` and `ebookProgress 0`, the
+>    key `e` opened the reader at `chapter 3 of 14 — 4%`, and two presses of the
+>    key `n` gave `chapter 5 of 14 — 16%` inside 30 seconds, therefore the rule
+>    of the time did not run. The key `Q` then left the server at
+>    `epubcfi(/6/6!/4/2/14/1:698)` with the same `lastUpdate`, and the log held
+>    `[handle_key] The database holds no session to close` and
+>    `App successfully quit` and **no word of the reader**. The key `h` of the
+>    control of the same run gave `The server has the place of the book.` and
+>    `epubcfi(/6/10!/4/2/2/1:0)` at `ebookProgress 0.15643986516830732`. The
+>    road of the terminal, with
+>    `docs/harness/the_terminal_of_the_program_goes_away.py` and a
+>    `tmux kill-session`, gave the same fault.
 >
->    The correction holds three files. `the_place_went_to_the_server` became two
->    functions: `the_place_goes_to_the_server` writes `sent_at` alone and it
->    holds the rule of the time while the request stands, and
->    `the_place_went_to_the_server(place)` writes `sent`. A box of the process of
->    the shape of `opened_book` of T-10 carries the answer of the server back to
->    the loop, and **it holds the identity of the media**, because the user can
->    open a different book while the request stands. The task writes that box on
->    `Ok(())` alone. **The place of the send is not the place of this moment**:
->    the user reads more lines while the request stands. The corrected program of
->    the same condition gave a `PATCH` at the key `s`, a second one at 45
->    seconds, and a third one at the key `h`; and with a proxy that forwards
->    every request, one `PATCH` at the key `s`, none in 75 seconds on the same
->    line, none at the key `h`, and the server then held
->    `epubcfi(/6/28!/4/2/2/1:0)` at `ebookProgress 0.8277488992014371`.
+>    The correction is a box of the process, of the shape of `opened_book` of
+>    T-10, in `src/logic/reader/the_place_that_waits.rs`: the loop of
+>    `src/main.rs` writes the place of the reader at each turn when
+>    `wants_to_send_at_the_end` says that the server holds a different place,
+>    and the two roads of the end **await** the send before
+>    `sync_session_from_database`, because `clean_exit` gives the process to the
+>    machine at the line after it. **The program says no word of that send**
+>    (T-177): the screen goes away with the process on both roads. The corrected
+>    program gave `epubcfi(/6/10!/4/2/2/1:0)` at `ebookProgress
+>    0.15643986516830732` on each of the two roads.
+>    - **The place of the reader of a program that dies reaches no machine at
+>      all** (T-292). The correction holds the two roads where the program stops
+>      of its own will; a `SIGKILL` and a machine that stops leave the box of the
+>      process with the place in it, and the reader has no table of the disk for
+>      the program after it. **The row of `pending_progress` of T-212 is the
+>      shape of the answer, and this is a candidate and not a measurement.**
+>    - **A place of the reader that the server did not take at the end goes away
+>      with the program** (T-292): the box keeps it for a second road of the end,
+>      and no second road comes. **This is a candidate and not a measurement.**
+>    - **`self.reader` stays after the key `h`** (T-292), therefore a book whose
+>      send failed at that key goes to the server at the key `Q` of another view.
+>      The round did not ask what happens when the user opens a second book after
+>      that. **This is a candidate and not a measurement.**
 >    - **A place of the reader that the key `h` did not send has no table of the
->      disk** (T-291). The audio playback keeps such a place in `pending_progress`
->      (T-212), and the reader has no such table: the view of the reader goes away
->      with the place. **This is a candidate and not a measurement.**
->    - **The place of an open reader at the key `Q` is not measured** (T-291): the
->      sweep of this round asked the three roads of the send and not the end of
->      the program. **This is a candidate and not a measurement.**
->    - **The shape of T-291 is the shape of T-212 and of T-207**: a caller that
->      says that a value is safe before the machine took it. **Ask it of every
->      `tokio::spawn` of `src/app.rs` whose caller writes a state before the task
->      runs.**
+>      disk** (T-291). **This is a candidate and not a measurement.**
+>    - **The shape of T-291 and of T-292 is the shape of T-212 and of T-207**: a
+>      caller that says that a value is safe before the machine took it. **Ask it
+>      of every `tokio::spawn` of `src/app.rs` whose caller writes a state before
+>      the task runs.**
 >    - **A percent of the server and a length of the program still come of two
->      different lengths** (T-290). A sweep found the shape at three display
->      sites: the row and the live branches of `the_place_of_the_panel` of
->      `src/logic/the_panel_of_a_line.rs` take the percent of
->      `mediaProgress.progress` and they make the time that is left of the length
->      of the metadata of the item, and the line of the view of the queue takes
->      the percent of the row and the time of `entry.duration` of the disk. **It
->      holds a decision**: the line of a media says the percent of the server
->      (T-241 and T-242). **This is a candidate and not a measurement.**
->    - **`convert_seconds` holds no guard of a length of 0** (T-290).
->      `convert_seconds_for_prg` holds the guard of T-289 already, and its
->      neighbour holds none: a sweep names `collect_personalized_view.rs`,
->      `collect_personalized_view_pod.rs`, `collect_lists.rs`,
->      `collect_series.rs`, and `collect_get_all_books.rs` as the roads of a
->      `duration` of `unwrap_or(0.0)` that reaches a panel as `Duration: 0m`, and
->      **the sum of the lengths of a series and of a collection holds the same
->      shape**. **This is a candidate and not a measurement.**
+>      different lengths** (T-290): the row and the live branches of
+>      `the_place_of_the_panel` of `src/logic/the_panel_of_a_line.rs`, and the
+>      line of the view of the queue. It holds a decision (T-241 and T-242).
+>      **This is a candidate and not a measurement.**
+>    - **`convert_seconds` holds no guard of a length of 0** (T-290), and
+>      `convert_seconds_for_prg` holds the guard of T-289 already. A sweep names
+>      `collect_personalized_view.rs`, `collect_personalized_view_pod.rs`,
+>      `collect_lists.rs`, `collect_series.rs`, and `collect_get_all_books.rs`.
+>      **This is a candidate and not a measurement.**
 >    - **The reader accepts five keys that no footer of it names** (T-290): `Esc`
 >      leaves the book, and `Esc`, `?`, and `Q` work while the table of contents
->      stands, and the key `e` of the ebooks of the media stands in no footer at
->      all. The rule of T-143 is the other way. **This is a candidate and not a
->      measurement.**
->    - **The dead arm of a render stays open** (T-289): a render that holds an arm
->      that no road reaches promises a fault that the program does not have. **Ask
->      it of every arm of `src/` that no test and no measurement can reach.**
->    - **The line of `src/player/engine/hls_file.rs:248` stays open** (T-288). It
->      needs the book of xHE-AAC of the sandbox.
->    - **The heading `## The prompt for the next session` of this file holds 58
->      lines of the turn of T-281 that no `>` marks** (T-291). The archive of that
->      turn stands in `## The turns before the three newest ones` already, and
->      `toutui-loop` reads the `>` lines alone, therefore those lines cost the
->      block nothing. **A round that touches that part of the file takes them
->      away.**
+>      stands, and the key `e` stands in no footer at all. The rule of T-143 is
+>      the other way. **This is a candidate and not a measurement.**
+>    - **The dead arm of a render stays open** (T-289), and **the line of
+>      `src/player/engine/hls_file.rs:248` stays open** (T-288): that one needs
+>      the book of xHE-AAC of the sandbox.
 >    - **Every candidate of the turns before this one stays open** (T-229 to
 >      T-290): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
@@ -17872,7 +17962,11 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > of a book that the server did not take goes to the server again: the reader
 > says that the server holds a place when the answer of the server comes back,
 > and the rule of the time and the key that leaves the book each send that
-> place again** (T-291).
+> place again** (T-291), and **the place of a book of a program that stops goes
+> to the server: the reader holds no table of the disk, therefore the loop of
+> the application writes that place in a box of the process, and the key `Q` and
+> the terminal that went away each await that send before the program stops**
+> (T-292).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
@@ -17891,8 +17985,10 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > found it at 98675 bytes with two turns in it, and it took one turn out and it
 > wrote its own, and the block then held 97245 bytes; the round of the hundred
 > and seventeenth turn found it at 98191 bytes with two turns in it, it did the
-> same work, and the block then held 99820 bytes. **A turn of many numbers is a
-> turn that takes two turns out.**
+> same work, and the block then held 99820 bytes; the round of the hundred and
+> twenty-first found it at 99081 bytes with one turn in it, and it took that turn
+> out and it wrote its own. **A turn of many numbers is a turn that takes two
+> turns out.**
 > A fact that a later round needs belongs in `docs/TAKEOVER-BACKLOG.md` or in a
 > section of this file that stands outside the block, and not in the block.
 >
