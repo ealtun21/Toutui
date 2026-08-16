@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.119.** The item T-290 belongs to this session. The
+**The newest release is v0.8.120.** The item T-291 belongs to this session. The
+item T-290 belongs to the session before it. The
 item T-289 belongs to the session before it. The
 item T-288 belongs to the session before it. The
 item T-287 belongs to the session before it. The
@@ -135,6 +136,94 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and twentieth turn of 2026-08-16: a place that the server did not take goes to the server again
+
+**The item: T-291.** T-290 left the candidate "a place of the reader that the
+server did not take stays sent", and the measurement of that condition gave the
+fault.
+
+**One release: v0.8.120.**
+
+`App::send_the_place_of_the_reader` of `src/app.rs` said that the place went to
+the server **before** the request. `reader.the_place_went_to_the_server()` stood
+above the `tokio::spawn` of the `PATCH`, and that function wrote
+`sent = Some(self.position())`.
+
+The reader sends the place of the user on three roads: the rule of the time of
+`TIME_BETWEEN_SENDS` of 30 seconds, the key `s`, and the key `h` that leaves the
+book. **The two rules of the send each ask `sent != Some(position())`**:
+`wants_to_send` gives `false` at once when `sent == Some(now)`, and
+`wants_to_send_at_the_end` is `self.sends_the_place() && self.sent !=
+Some(self.position())`. A request that the server refused therefore took the
+place of the user out of both of them. The program said the fault one time, and
+it sent that place never again.
+
+The measurement, of the real program v0.8.119 inside tmux against the sandbox,
+with `docs/harness/one_method_fails.py 13500 13399 requests.log
+PATCH:/api/me/progress/8fda6e43-0728-46ad-98bc-4c8634e299ad` and the account at
+that one address (the trap 129). The server held `Alice in Wonderland` at
+`ebookLocation toutui:12:300` and `ebookProgress 0.6`. The reader of the key `e`
+opened at `chapter 13 of 14`, the key `n` gave `chapter 14 of 14`, and the key
+`s` gave one `500 PATCH`:
+
+```text
+   0.002 the proxy holds the port 13500, and it fails PATCH /api/me/progress/8fda6e43-…
+  43.780 --- GET /api/me/progress/8fda6e43-…
+  47.179 500 PATCH /api/me/progress/8fda6e43-…
+  72.066 500 PATCH /api/me/progress/8fda6e43-…
+```
+
+The two lines of the status 500 are the two presses of the key `s`. After the
+second one the program stood in the book for 45 seconds, which is longer than
+the 30 seconds of the rule of the time, and it sent no request. The key `h` sent
+no request. `GET /api/me/progress/8fda6e43-…` of the sandbox then said
+`ebookLocation toutui:12:300` and `ebookProgress 0.6`: **the user read chapter
+14 of 14, and the server kept chapter 13 on every machine of that account.**
+
+The screen of that moment said the fault one time:
+
+```text
+Alice's Adventures in Wonderland — chapter 14 of 14 — 83%
+       s: send the position  ?: every key  h: leave the book  Q: quit
+   The server did not take the place: The server reported a fault. Status 500.
+```
+
+**The correction holds three files.**
+`the_place_went_to_the_server` of `src/logic/reader/session.rs` became two
+functions: `the_place_goes_to_the_server` writes `sent_at` alone, and it holds
+the rule of the time while the request stands, and
+`the_place_went_to_the_server(place)` writes `sent`.
+`src/logic/reader/mod.rs` holds a box of the process of the shape of
+`opened_book` of T-10, of the type `Arc<Mutex<Option<(String, Position)>>>`: the
+screen is not asynchronous, therefore the task of the send writes the answer of
+the server there and the loop of `src/main.rs` gives it to the reader at the
+next frame. **The box holds the identity of the media**, because the user can
+open a different book while the request stands. The task writes that box on
+`Ok(())` alone. **The place of the send is not the place of this moment**: the
+user reads more lines while the request stands, and the server holds no place of
+those lines.
+
+The measurement of the corrected program, of the same condition: the key `s`
+gave one `500 PATCH`, 45 seconds in the book gave a second one, and the key `h`
+gave a third one. **The regression, with a proxy that forwards every request**:
+the key `s` gave one `PATCH`, 75 seconds on the same line gave no second one,
+the key `h` gave none, and the server then held
+`ebookLocation epubcfi(/6/28!/4/2/2/1:0)` at
+`ebookProgress 0.8277488992014371`.
+
+`tests/a_place_of_a_book_that_the_server_did_not_take_goes_again.rs`, of one
+function (T-144 and T-157), holds the rule. It needs no sandbox and no server:
+the fault stands in the two rules of the send and in the box of the process. The
+build of the fault, of the one line `self.sent = Some(self.position());` back in
+`the_place_goes_to_the_server` (the trap 147), failed it with
+`assertion left == right failed: a request that stands is no place of the
+server`.
+
+The gates of v0.8.120: `cargo clippy --all-targets -- -D warnings` clean,
+`cargo fmt --check` clean, `cargo nextest run` 1341 of 1341 in 2.8 seconds,
+`cargo nextest run --run-ignored all` 1367 of 1367 with the sandbox up in 17.2
+seconds, and `cargo test -j 16 --no-fail-fast` clean on three runs.
 
 ## The session of the hundred and nineteenth turn of 2026-08-16: a percent of the whole length is not the mark of the end
 
@@ -16165,6 +16254,101 @@ gives no text at all, as a place of 0 gives none; and the difference takes
   T-288): the block has a limit of size, therefore this turn names the new
   candidates alone and it does not repeat that list.
 
+**The session of the hundred and nineteenth turn took the candidate "A
+percent of the server and a length of the program can disagree", which
+T-289 opened, and the measurement of it gave a different fault** (T-290).
+
+`of_progress` of `src/ui/marks.rs` writes the mark at the start of every
+line of a list that holds one media, and it gave the mark `✓` of a media
+that the user finished to every percent above 99:
+`Ok(_) => fill(FINISHED)`. **The field `isFinished` of the server is the one
+truth of a media that the user finished**, and the percent of that same row
+can stand at 100 beside `Not finished`.
+
+**The two values of one row of the server go apart, and this program makes
+that row.** The measurement of the API of the sandbox with `curl` alone: the
+server clamps `progress` at 1 and it never takes that value down, a `PATCH`
+of `{"progress": N}` alone leaves `isFinished` where it stood, and a later
+`PATCH` of `{"currentTime": N}` alone leaves `progress` at 1. The one road
+back is `{"isFinished": true}` and then `{"isFinished": false}`, which takes
+the percent and the place to 0 together.
+`update_media_progress2_pod` and `..._book` of
+`src/api/me/update_media_progress.rs` send the place of the end in one
+request and the mark of the end in a second one, therefore a program that
+dies between the two of them, a second request that the server refused, and
+a client of another kind that writes `progress` alone each leave that row at
+100 percent and not finished for ever.
+
+The measurement, of the real program v0.8.118 inside tmux against the
+sandbox, of the episode `Chapter 01` of the podcast `Arthur Gordon Pym` of
+the library `Podcasts`, whose row of the server held `progress: 1`,
+`currentTime: 300`, and `isFinished: false`. One frame said three things of
+that one media:
+
+```text
+  ▌ Continue Listening
+➤ ✓   Chapter 01
+  89% Chapter 02
+[Arthur Gordon Pym] - Author: LibriVox - Episode: 1 - Duration: 22m
+Progress: 100%, 17m left, Not finished
+```
+
+The line said that the user finished the media, the panel of that same line
+said `Not finished`, and the shelf above the two of them is the shelf of the
+media that the user did **not** finish. **The control of the same run**:
+`Letter 57`, whose row says `isFinished: true`, held the mark `✓`.
+
+The correction is one file. The mark of the end comes of the field of the
+server alone; a percent of 100 or more gives the mark `100`, and a percent
+of less than zero joins a percent that is no number. **The mark holds four
+columns and one of them is the space between the mark and the title**
+(T-44), therefore `100%` does not fit and the number goes with no sign of
+the percent — that is the reason the old code held the arm at all. The
+corrected program of the same condition said `➤ 100 Chapter 01` above
+`89% Chapter 02`, every title stood at the same column, and `Letter 57` kept
+its `✓`.
+- **A percent of the server and a length of the program still come of two
+  different lengths** (T-290). A sweep of the round found the shape at three
+  display sites: the row and the live branches of
+  `the_place_of_the_panel` of `src/logic/the_panel_of_a_line.rs` take the
+  percent of `mediaProgress.progress` and they make the time that is left of
+  the length of the metadata of the item, and the line of the view of the
+  queue takes the percent of the row and the time of `entry.duration` of the
+  disk. The branch of the media that plays is the one branch that makes both
+  numbers of one length. **It holds a decision**: the line of a media says
+  the percent of the server (T-241 and T-242), therefore a panel that makes
+  its own percent would say a value that the line above it does not. **This
+  is a candidate and not a measurement.**
+- **`convert_seconds` holds no guard of a length of 0** (T-290).
+  `convert_seconds_for_prg` holds the guard of T-289 already, and its
+  neighbour holds none: a sweep names `collect_personalized_view.rs`,
+  `collect_personalized_view_pod.rs`, `collect_lists.rs`,
+  `collect_series.rs`, and `collect_get_all_books.rs` as the roads of a
+  `duration` of `unwrap_or(0.0)` that reaches a panel as `Duration: 0m`, and
+  **the sum of the lengths of a series and of a collection holds the same
+  shape**. The panel of the measurement of T-289 said `Duration: N/A` for an
+  episode of no `audioFile`, therefore at least one of those roads holds a
+  guard already. **This is a candidate and not a measurement.**
+- **A place of the reader that the server did not take stays sent** (T-290):
+  `send_the_place_of_the_reader` of `src/app.rs` calls
+  `reader.the_place_went_to_the_server()` **before** the request, therefore a
+  write that the server refused says the fault one time and the program then
+  sends that place never again. **The rule of T-212 is the same shape.**
+  **This is a candidate and not a measurement.**
+- **The reader accepts five keys that no footer of it names** (T-290): `Esc`
+  leaves the book, and `Esc`, `?`, and `Q` work while the table of contents
+  stands, and the key `e` of the ebooks of the media stands in no footer at
+  all. The rule of T-143 is the other way. **This is a candidate and not a
+  measurement.**
+- **The dead arm of a render stays open** (T-289): a render that holds an arm
+  that no road reaches promises a fault that the program does not have. **Ask
+  it of every arm of `src/` that no test and no measurement can reach.**
+- **The line of `src/player/engine/hls_file.rs:248` stays open** (T-288). It
+  needs the book of xHE-AAC of the sandbox.
+- **Every candidate of the turns before this one stays open** (T-229 to
+  T-289): the block has a limit of size, therefore this turn names the new
+  candidates alone and it does not repeat that list.
+
 
 ## The prompt for the next session
 
@@ -16228,7 +16412,7 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.119**; `Cargo.toml` is at 0.8.119. The
+> AlbanDAVID/Toutui. Newest release **v0.8.120**; `Cargo.toml` is at 0.8.120. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -16946,8 +17130,8 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1340 tests in 2.6 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1366 of 1366** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1341 tests in 2.8 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1367 of 1367** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -17057,71 +17241,67 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and four sessions of one hundred
 >    and five.
->    **The session of the hundred and nineteenth turn took the candidate "A
->    percent of the server and a length of the program can disagree", which
->    T-289 opened, and the measurement of it gave a different fault** (T-290).
+>    **The session of the hundred and twentieth turn took the candidate "A place
+>    of the reader that the server did not take stays sent", which T-290 opened,
+>    and the measurement of it gave the fault** (T-291).
 >
->    `of_progress` of `src/ui/marks.rs` writes the mark at the start of every
->    line of a list that holds one media, and it gave the mark `✓` of a media
->    that the user finished to every percent above 99:
->    `Ok(_) => fill(FINISHED)`. **The field `isFinished` of the server is the one
->    truth of a media that the user finished**, and the percent of that same row
->    can stand at 100 beside `Not finished`.
+>    `send_the_place_of_the_reader` of `src/app.rs` said that the place went to
+>    the server **before** the request:
+>    `reader.the_place_went_to_the_server()` stood above the `tokio::spawn` of
+>    the `PATCH`, and it wrote `sent = Some(self.position())`. **The two rules of
+>    the send each ask `sent != Some(position())`**: `wants_to_send` of the rule
+>    of the time of 30 seconds, and `wants_to_send_at_the_end` of the key `h`
+>    that leaves the book. A request that the server refused therefore took that
+>    place out of both of them. **The program said the fault one time, and it
+>    sent that place never again.**
 >
->    **The two values of one row of the server go apart, and this program makes
->    that row.** The measurement of the API of the sandbox with `curl` alone: the
->    server clamps `progress` at 1 and it never takes that value down, a `PATCH`
->    of `{"progress": N}` alone leaves `isFinished` where it stood, and a later
->    `PATCH` of `{"currentTime": N}` alone leaves `progress` at 1. The one road
->    back is `{"isFinished": true}` and then `{"isFinished": false}`, which takes
->    the percent and the place to 0 together.
->    `update_media_progress2_pod` and `..._book` of
->    `src/api/me/update_media_progress.rs` send the place of the end in one
->    request and the mark of the end in a second one, therefore a program that
->    dies between the two of them, a second request that the server refused, and
->    a client of another kind that writes `progress` alone each leave that row at
->    100 percent and not finished for ever.
+>    The measurement, of the real program v0.8.119 inside tmux against the
+>    sandbox, with `one_method_fails.py 13500 13399 requests.log
+>    PATCH:/api/me/progress/8fda6e43-…` and the account at that one address (the
+>    trap 129). The server held `Alice in Wonderland` at
+>    `ebookLocation toutui:12:300` and `ebookProgress 0.6`, the reader of the key
+>    `e` opened at `chapter 13 of 14`, and the key `n` gave `chapter 14 of 14`.
+>    The key `s` then gave one `500 PATCH`, and the screen said
+>    `The server did not take the place: The server reported a fault. Status
+>    500.` **45 seconds in the book gave no second request, and the key `h` gave
+>    none**, and `GET /api/me/progress/…` said `toutui:12:300` again: the user
+>    read chapter 14 of 14, and the server kept chapter 13 on every machine of
+>    that account.
 >
->    The measurement, of the real program v0.8.118 inside tmux against the
->    sandbox, of the episode `Chapter 01` of the podcast `Arthur Gordon Pym` of
->    the library `Podcasts`, whose row of the server held `progress: 1`,
->    `currentTime: 300`, and `isFinished: false`. One frame said three things of
->    that one media:
->
->    ```text
->      ▌ Continue Listening
->    ➤ ✓   Chapter 01
->      89% Chapter 02
->    [Arthur Gordon Pym] - Author: LibriVox - Episode: 1 - Duration: 22m
->    Progress: 100%, 17m left, Not finished
->    ```
->
->    The line said that the user finished the media, the panel of that same line
->    said `Not finished`, and the shelf above the two of them is the shelf of the
->    media that the user did **not** finish. **The control of the same run**:
->    `Letter 57`, whose row says `isFinished: true`, held the mark `✓`.
->
->    The correction is one file. The mark of the end comes of the field of the
->    server alone; a percent of 100 or more gives the mark `100`, and a percent
->    of less than zero joins a percent that is no number. **The mark holds four
->    columns and one of them is the space between the mark and the title**
->    (T-44), therefore `100%` does not fit and the number goes with no sign of
->    the percent — that is the reason the old code held the arm at all. The
->    corrected program of the same condition said `➤ 100 Chapter 01` above
->    `89% Chapter 02`, every title stood at the same column, and `Letter 57` kept
->    its `✓`.
+>    The correction holds three files. `the_place_went_to_the_server` became two
+>    functions: `the_place_goes_to_the_server` writes `sent_at` alone and it
+>    holds the rule of the time while the request stands, and
+>    `the_place_went_to_the_server(place)` writes `sent`. A box of the process of
+>    the shape of `opened_book` of T-10 carries the answer of the server back to
+>    the loop, and **it holds the identity of the media**, because the user can
+>    open a different book while the request stands. The task writes that box on
+>    `Ok(())` alone. **The place of the send is not the place of this moment**:
+>    the user reads more lines while the request stands. The corrected program of
+>    the same condition gave a `PATCH` at the key `s`, a second one at 45
+>    seconds, and a third one at the key `h`; and with a proxy that forwards
+>    every request, one `PATCH` at the key `s`, none in 75 seconds on the same
+>    line, none at the key `h`, and the server then held
+>    `epubcfi(/6/28!/4/2/2/1:0)` at `ebookProgress 0.8277488992014371`.
+>    - **A place of the reader that the key `h` did not send has no table of the
+>      disk** (T-291). The audio playback keeps such a place in `pending_progress`
+>      (T-212), and the reader has no such table: the view of the reader goes away
+>      with the place. **This is a candidate and not a measurement.**
+>    - **The place of an open reader at the key `Q` is not measured** (T-291): the
+>      sweep of this round asked the three roads of the send and not the end of
+>      the program. **This is a candidate and not a measurement.**
+>    - **The shape of T-291 is the shape of T-212 and of T-207**: a caller that
+>      says that a value is safe before the machine took it. **Ask it of every
+>      `tokio::spawn` of `src/app.rs` whose caller writes a state before the task
+>      runs.**
 >    - **A percent of the server and a length of the program still come of two
->      different lengths** (T-290). A sweep of the round found the shape at three
->      display sites: the row and the live branches of
->      `the_place_of_the_panel` of `src/logic/the_panel_of_a_line.rs` take the
->      percent of `mediaProgress.progress` and they make the time that is left of
->      the length of the metadata of the item, and the line of the view of the
->      queue takes the percent of the row and the time of `entry.duration` of the
->      disk. The branch of the media that plays is the one branch that makes both
->      numbers of one length. **It holds a decision**: the line of a media says
->      the percent of the server (T-241 and T-242), therefore a panel that makes
->      its own percent would say a value that the line above it does not. **This
->      is a candidate and not a measurement.**
+>      different lengths** (T-290). A sweep found the shape at three display
+>      sites: the row and the live branches of `the_place_of_the_panel` of
+>      `src/logic/the_panel_of_a_line.rs` take the percent of
+>      `mediaProgress.progress` and they make the time that is left of the length
+>      of the metadata of the item, and the line of the view of the queue takes
+>      the percent of the row and the time of `entry.duration` of the disk. **It
+>      holds a decision**: the line of a media says the percent of the server
+>      (T-241 and T-242). **This is a candidate and not a measurement.**
 >    - **`convert_seconds` holds no guard of a length of 0** (T-290).
 >      `convert_seconds_for_prg` holds the guard of T-289 already, and its
 >      neighbour holds none: a sweep names `collect_personalized_view.rs`,
@@ -17129,15 +17309,7 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 >      `collect_series.rs`, and `collect_get_all_books.rs` as the roads of a
 >      `duration` of `unwrap_or(0.0)` that reaches a panel as `Duration: 0m`, and
 >      **the sum of the lengths of a series and of a collection holds the same
->      shape**. The panel of the measurement of T-289 said `Duration: N/A` for an
->      episode of no `audioFile`, therefore at least one of those roads holds a
->      guard already. **This is a candidate and not a measurement.**
->    - **A place of the reader that the server did not take stays sent** (T-290):
->      `send_the_place_of_the_reader` of `src/app.rs` calls
->      `reader.the_place_went_to_the_server()` **before** the request, therefore a
->      write that the server refused says the fault one time and the program then
->      sends that place never again. **The rule of T-212 is the same shape.**
->      **This is a candidate and not a measurement.**
+>      shape**. **This is a candidate and not a measurement.**
 >    - **The reader accepts five keys that no footer of it names** (T-290): `Esc`
 >      leaves the book, and `Esc`, `?`, and `Q` work while the table of contents
 >      stands, and the key `e` of the ebooks of the media stands in no footer at
@@ -17148,8 +17320,14 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 >      it of every arm of `src/` that no test and no measurement can reach.**
 >    - **The line of `src/player/engine/hls_file.rs:248` stays open** (T-288). It
 >      needs the book of xHE-AAC of the sandbox.
+>    - **The heading `## The prompt for the next session` of this file holds 58
+>      lines of the turn of T-281 that no `>` marks** (T-291). The archive of that
+>      turn stands in `## The turns before the three newest ones` already, and
+>      `toutui-loop` reads the `>` lines alone, therefore those lines cost the
+>      block nothing. **A round that touches that part of the file takes them
+>      away.**
 >    - **Every candidate of the turns before this one stays open** (T-229 to
->      T-289): the block has a limit of size, therefore this turn names the new
+>      T-290): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
 >
 >    **The turns before this one stand in `## The turns before the three
@@ -17690,7 +17868,11 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > past it says `0m left`** (T-289), and **a percent of the whole length is not
 > the mark of the end: the field `isFinished` of the server is the one truth of
 > a media that the user finished, and a media at the whole of its length that
-> the user did not finish keeps the mark of its place** (T-290).
+> the user did not finish keeps the mark of its place** (T-290), and **a place
+> of a book that the server did not take goes to the server again: the reader
+> says that the server holds a place when the answer of the server comes back,
+> and the rule of the time and the key that leaves the book each send that
+> place again** (T-291).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

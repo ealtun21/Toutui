@@ -995,6 +995,11 @@ async fn main() -> Result<()> {
                     }
                 }
 
+                // A place that the server took is a place that the reader
+                // sends no second time. The task of the send writes it, and
+                // this call gives it to the reader. See T-291.
+                app.take_the_place_that_the_server_took();
+
                 // The reader sends the place of the user to the server while
                 // they read. The rule of the time lives in the reader: it sends
                 // when the place changed and 30 seconds went by. See T-10.

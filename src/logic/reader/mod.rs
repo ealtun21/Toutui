@@ -48,3 +48,33 @@ pub fn opened_book() -> OpenedBook {
 pub fn take_the_opened_book() -> Option<Result<Reader, String>> {
     opened_book().lock().ok()?.take()
 }
+
+/// The place where the task of the send says that the server took the place.
+///
+/// The value holds the identity of the media and the place of the user, because
+/// the user can open a different book while the request stands.
+type ThePlaceThatTheServerTook = std::sync::Arc<std::sync::Mutex<Option<(String, Position)>>>;
+
+/// Gives the place that the task of the send writes.
+///
+/// **A place that the server did not take must go to the server again**
+/// (T-291), therefore the reader says that a place is safe when the answer of
+/// the server comes back, and not before it. The screen is not asynchronous,
+/// therefore the task writes the place here and the loop of the application
+/// gives it to the reader at the next frame.
+pub fn the_place_of_the_server() -> ThePlaceThatTheServerTook {
+    static PLACE: std::sync::OnceLock<ThePlaceThatTheServerTook> = std::sync::OnceLock::new();
+    std::sync::Arc::clone(PLACE.get_or_init(|| std::sync::Arc::new(std::sync::Mutex::new(None))))
+}
+
+/// Says that the server took the place of a media.
+pub fn say_that_the_server_took_the_place(item_id: String, place: Position) {
+    if let Ok(mut box_of_the_place) = the_place_of_the_server().lock() {
+        *box_of_the_place = Some((item_id, place));
+    }
+}
+
+/// Takes the place that the server took, one time.
+pub fn take_the_place_that_the_server_took() -> Option<(String, Position)> {
+    the_place_of_the_server().lock().ok()?.take()
+}

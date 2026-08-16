@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.120",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The reader now sends your place in a book again when the \
+             server did not take it.** The program said that your place was on \
+             the server before the server answered. A request that failed \
+             therefore took that place away: the program said the fault one \
+             time, and it sent that place never again — not after 30 seconds, \
+             and not when you left the book with the key \"h\". Your place now \
+             goes to the server again on both roads, and the program says that \
+             the server holds it only when the server answers.",
+        ],
+    },
+    Entry {
         version: "0.8.119",
         date: "16/08/2026",
         body: &[

@@ -24609,3 +24609,156 @@ of the end: "✓   ", and the panel of that same line says "Not finished"
   a measurement.**
 - **The line of `src/player/engine/hls_file.rs:248` stays open** (T-288), and
   every candidate of the turns before this one stays open.
+
+### T-291: a place that the server did not take goes to the server again
+
+`App::send_the_place_of_the_reader` of `src/app.rs` said that the place went to
+the server before the request:
+
+```rust
+        // The reader remembers the place that it sent. It then sends nothing
+        // while the user reads the same line.
+        if let Some(reader) = self.reader.as_mut() {
+            reader.the_place_went_to_the_server();
+        }
+
+        crate::logic::message::say("The place of the book goes to the server…");
+
+        tokio::spawn(async move {
+            let text = match api
+                .patch_json(&format!("/api/me/progress/{}", item_id), &body)
+                .await
+            {
+                Ok(()) => "The server has the place of the book.".to_string(),
+                Err(error) => format!("The server did not take the place: {}", error),
+            };
+            crate::logic::message::say(text.as_str());
+        });
+```
+
+`the_place_went_to_the_server` of `src/logic/reader/session.rs` set
+`self.sent = Some(self.position())`. The reader sends on three roads: the rule
+of the time of `TIME_BETWEEN_SENDS` (30 seconds), the key `s`, and the key `h`
+that leaves the book. The two rules of the send are `wants_to_send` (which
+returns false at once when `sent == Some(now)`) and
+`wants_to_send_at_the_end` (`self.sends_the_place() &&
+self.sent != Some(self.position())`). Therefore a request that the server
+refused took that place out of both rules. The program said the fault one
+time, and it sent that place never again.
+
+#### The measurement of the real program
+
+Of the real program v0.8.119 inside tmux against the sandbox on the port
+13399. `docs/harness/one_method_fails.py 13500 13399 requests.log
+PATCH:/api/me/progress/8fda6e43-0728-46ad-98bc-4c8634e299ad`. The account of
+the sandbox held the one address `http://127.0.0.1:13500` (the trap 129). The
+media is `Alice in Wonderland`, id `8fda6e43-0728-46ad-98bc-4c8634e299ad`, of
+the library `Books`. The server held `ebookLocation toutui:12:300` and
+`ebookProgress 0.6`, and the reader of the key `e` opened at `Alice's
+Adventures in Wonderland — chapter 13 of 14 — 83%`. The user pressed `n`, and
+the screen said `chapter 14 of 14`. The user then pressed `s`.
+
+The log of the proxy of the round of the fault, of two presses of the key `s`:
+
+```text
+   0.002 the proxy holds the port 13500, and it fails PATCH /api/me/progress/8fda6e43-0728-46ad-98bc-4c8634e299ad
+  43.780 --- GET /api/me/progress/8fda6e43-0728-46ad-98bc-4c8634e299ad
+  47.179 500 PATCH /api/me/progress/8fda6e43-0728-46ad-98bc-4c8634e299ad
+  72.066 500 PATCH /api/me/progress/8fda6e43-0728-46ad-98bc-4c8634e299ad
+```
+
+Between the second `s` at 72.066 and the key `h`, the program stood in the
+book for 45 seconds, which is longer than the 30 seconds of the rule of the
+time. It sent no second request. The key `h` sent no request.
+`GET /api/me/progress/<the id>` of the sandbox then said `ebookLocation
+toutui:12:300` and `ebookProgress 0.6` — the place of chapter 13.
+
+The screen of the moment of the fault said:
+
+```text
+⚠ toutuitest: the server reports a fault                       📖 Books (book)              🦜 Toutui v0.8.119
+🔗 127.0.0.1:13500 reports a fault                                              R: ask the server again
+Alice's Adventures in Wonderland — chapter 14 of 14 — 83%
+                          s: send the position  ?: every key  h: leave the book  Q: quit
+        The server did not take the place: The server reported a fault. Status 500.
+```
+
+| The moment | v0.8.119 | the correction |
+|---|---|---|
+| the key `s` | `500 PATCH /api/me/progress/…` | the same |
+| the words of the program | `The server did not take the place: The server reported a fault. Status 500.` | the same |
+| 45 seconds in the book after that key | no request at all | a second `PATCH` |
+| the key `h` that leaves the book | no request at all | a third `PATCH` |
+| the server after it | `toutui:12:300`, the place of chapter 13 | the place of chapter 14 |
+
+#### The correction
+
+Three files.
+
+1. `src/logic/reader/session.rs`: `the_place_went_to_the_server(&mut self)`
+   became two functions. `the_place_goes_to_the_server(&mut self)` writes
+   `sent_at` alone, and it holds the rule of the time while the request
+   stands. `the_place_went_to_the_server(&mut self, place: Position)` writes
+   `sent`. A new `the_place_that_the_server_holds(&self) -> Option<Position>`
+   gives that value.
+2. `src/logic/reader/mod.rs`: a box of the process of the shape of
+   `opened_book` of T-10, of the type
+   `Arc<Mutex<Option<(String, Position)>>>`, with
+   `say_that_the_server_took_the_place` and
+   `take_the_place_that_the_server_took`. The screen is not asynchronous,
+   therefore the task of the send writes the answer of the server there and
+   the loop takes it at the next frame. **The box holds the identity of the
+   media**, because the user can open a different book while the request
+   stands, and a place of one book says nothing of another one.
+3. `src/app.rs`: the task calls `say_that_the_server_took_the_place(item_id,
+   place)` on `Ok(())` alone, and the new
+   `App::take_the_place_that_the_server_took` gives that place to the reader
+   when the identity agrees. `src/main.rs` calls it in the loop, before
+   `send_the_place_of_the_reader_if_it_is_time`.
+
+**The place of the send is not the place of this moment.** The task holds the
+place that it sent, because the user reads more lines while the request
+stands, and the server holds no place of those lines.
+
+#### The measurement of the corrected program
+
+Of the same condition: the key `s` gave one `500 PATCH`, 45 seconds in the
+book gave a second one, and the key `h` gave a third one.
+
+The regression, with a proxy that forwards every request: the key `s` gave
+one `PATCH`, 75 seconds on the same line gave no second one, the key `h` gave
+none, and the server then held `ebookLocation epubcfi(/6/28!/4/2/2/1:0)` at
+`ebookProgress 0.8277488992014371`.
+
+#### The test, and the build of the fault
+
+`tests/a_place_of_a_book_that_the_server_did_not_take_goes_again.rs`, of one
+function (T-144 and T-157). It needs no sandbox and no server: the fault
+stands in the two rules of the send and in the box of the process. The build
+of the fault, of the one line `self.sent = Some(self.position());` back in
+`the_place_goes_to_the_server` (the trap 147), failed it:
+
+```text
+thread 'a_place_that_the_server_did_not_take_goes_again' panicked at tests/a_place_of_a_book_that_the_server_did_not_take_goes_again.rs:89:5:
+assertion `left == right` failed: a request that stands is no place of the server
+  left: Some(Position { spine: 1, line: 0 })
+ right: None
+```
+
+#### What this item leaves open
+
+- **A place of a book that the key `h` did not send has no table of the
+  disk.** The audio playback keeps a place that reached no machine in the
+  table `pending_progress` (T-212), and the reader has no such table: a send
+  at the key `h` that the server refuses says the fault, and the view of the
+  reader goes away with the place. **This is a candidate and not a
+  measurement.**
+- **A place that the reader sends at the end of the program is not
+  measured.** The key `Q` closes the session of the playback, and the sweep
+  of this round did not ask what it does with the place of an open reader.
+  **This is a candidate and not a measurement.**
+- **The shape of this item is the shape of T-212 and of T-207**: a caller
+  that says that a value is safe before the machine took it. The sweep of
+  the round found this one road in the reader. **Ask it of every
+  `tokio::spawn` of `src/app.rs` whose caller writes a state before the task
+  runs.**

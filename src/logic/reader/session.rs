@@ -521,10 +521,32 @@ impl Reader {
         self.sends_the_place() && self.sent != Some(self.position())
     }
 
-    /// Says that the place went to the server.
-    pub fn the_place_went_to_the_server(&mut self) {
-        self.sent = Some(self.position());
+    /// Gives the place that the server holds, if the server took one.
+    ///
+    /// A reader whose send the server refused holds no place here, therefore
+    /// the rule of the time and the key that leaves the book send again. See
+    /// T-291.
+    pub fn the_place_that_the_server_holds(&self) -> Option<Position> {
+        self.sent
+    }
+
+    /// Says that the place of the user goes to the server now.
+    ///
+    /// The time of the send stops the next request of the rule of the time
+    /// while this one stands. **The place stays unsent**: a request that the
+    /// server did not take must come again, therefore `sent` waits for the
+    /// answer of the server. See T-291.
+    pub fn the_place_goes_to_the_server(&mut self) {
         self.sent_at = std::time::Instant::now();
+    }
+
+    /// Says that the server took a place of this book.
+    ///
+    /// The task of the send gives the place that it sent, and not the place of
+    /// this moment: the user can read more lines while the request stands, and
+    /// the server holds no place of those lines. See T-291.
+    pub fn the_place_went_to_the_server(&mut self, place: Position) {
+        self.sent = Some(place);
     }
 
     /// Says on the disk that a program of this account reads this book now.

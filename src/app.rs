@@ -6930,12 +6930,15 @@ impl App {
         let item_id = reader.item_id.clone();
         let location = reader.location_text();
         let part = reader.fraction();
+        let place = reader.position();
         let api = std::sync::Arc::clone(&self.api);
 
-        // The reader remembers the place that it sent. It then sends nothing
-        // while the user reads the same line.
+        // The time of the send stops a second request while this one stands.
+        // **The reader remembers no place here**: a place that the server did
+        // not take must go again, at the rule of the time and at the key that
+        // leaves the book. See T-291.
         if let Some(reader) = self.reader.as_mut() {
-            reader.the_place_went_to_the_server();
+            reader.the_place_goes_to_the_server();
         }
 
         crate::logic::message::say("The place of the book goes to the server…");
@@ -6950,12 +6953,35 @@ impl App {
                 .patch_json(&format!("/api/me/progress/{}", item_id), &body)
                 .await
             {
-                Ok(()) => "The server has the place of the book.".to_string(),
+                Ok(()) => {
+                    crate::logic::reader::say_that_the_server_took_the_place(item_id, place);
+                    "The server has the place of the book.".to_string()
+                }
                 Err(error) => format!("The server did not take the place: {}", error),
             };
 
             crate::logic::message::say(text.as_str());
         });
+    }
+
+    /// Takes the place that the server took, and gives it to the reader.
+    ///
+    /// The loop of the application calls this for each turn. The reader then
+    /// sends nothing while the user reads the same line, and it sends again
+    /// when the server did not take the place. See T-291.
+    pub fn take_the_place_that_the_server_took(&mut self) {
+        let Some((item_id, place)) = crate::logic::reader::take_the_place_that_the_server_took()
+        else {
+            return;
+        };
+
+        // The user can open a different book while the request stands, and the
+        // place of one book says nothing of another one.
+        if let Some(reader) = self.reader.as_mut() {
+            if reader.item_id == item_id {
+                reader.the_place_went_to_the_server(place);
+            }
+        }
     }
 
     /// Gives the line that the user selected in the view `Library`.
