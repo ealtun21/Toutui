@@ -38,12 +38,13 @@
 //! heavy border `═║`, and every other panel takes a light border `─│`. A
 //! terminal of a theme of a low contrast still says where the focus is.
 //!
-//! **This stage draws two of the seven panels**, therefore [`ThePanel`] holds
-//! two values. The panel 2 of the sequence and the panel 3 of the filter come
-//! with T-318, the panels 5 and 6 of the covers come with T-319, and the panel
-//! 7 of the player comes with T-322. **A key of a panel that no stage drew is a
-//! key that does nothing**, and that is a fault of its own (T-79), therefore
-//! the digits of those five panels are not keys of this program yet.
+//! **The stages until this one draw four of the seven panels**, therefore
+//! [`ThePanel`] holds four values: the views (T-320), the sequence and the
+//! filter (T-318), and the list (T-320). The panels 5 and 6 of the covers come
+//! with T-319, and the panel 7 of the player comes with T-322. **A key of a
+//! panel that no stage drew is a key that does nothing**, and that is a fault
+//! of its own (T-79), therefore the digits of those three panels are not keys
+//! of this program yet.
 
 use ratatui::{
     layout::{Constraint, Layout, Rect},
@@ -127,6 +128,10 @@ pub fn the_stack_and_the_work(area: Rect, shape: TheShape) -> (Option<Rect>, Rec
 pub enum ThePanel {
     /// The panel 1: the list of the views of the program, with the key of each.
     TheViews,
+    /// The panel 2: the sequence of the library. See T-318.
+    TheSequence,
+    /// The panel 3: the filter of the library. See T-318.
+    TheFilter,
     /// The panel 4: the list of the view. This is the panel of the start.
     #[default]
     TheList,
@@ -137,6 +142,8 @@ impl ThePanel {
     pub fn the_number(self) -> u8 {
         match self {
             Self::TheViews => 1,
+            Self::TheSequence => 2,
+            Self::TheFilter => 3,
             Self::TheList => 4,
         }
     }
@@ -146,6 +153,8 @@ impl ThePanel {
     pub fn of_the_digit(digit: char) -> Option<Self> {
         match digit {
             '1' => Some(Self::TheViews),
+            '2' => Some(Self::TheSequence),
+            '3' => Some(Self::TheFilter),
             '4' => Some(Self::TheList),
             _ => None,
         }
@@ -155,7 +164,7 @@ impl ThePanel {
     /// column is that panel itself.
     pub fn at_the_left(self) -> Self {
         match self {
-            Self::TheViews => Self::TheViews,
+            Self::TheViews | Self::TheSequence | Self::TheFilter => self,
             Self::TheList => Self::TheViews,
         }
     }
@@ -164,9 +173,37 @@ impl ThePanel {
     /// column is that panel itself.
     pub fn at_the_right(self) -> Self {
         match self {
-            Self::TheViews => Self::TheList,
+            Self::TheViews | Self::TheSequence | Self::TheFilter => Self::TheList,
             Self::TheList => Self::TheList,
         }
+    }
+
+    /// The panel under this one, in the stack of the first column. See T-318.
+    ///
+    /// **The stack of the three panels needs a key that goes down and a key
+    /// that goes up**: `Ctrl+h` and `Ctrl+l` move between the columns, and the
+    /// panels 1, 2, and 3 stand in one column. The panel under the last panel
+    /// of a column is that panel itself.
+    pub fn below(self) -> Self {
+        match self {
+            Self::TheViews => Self::TheSequence,
+            Self::TheSequence => Self::TheFilter,
+            Self::TheFilter | Self::TheList => self,
+        }
+    }
+
+    /// The panel above this one, in the stack of the first column. See T-318.
+    pub fn above(self) -> Self {
+        match self {
+            Self::TheFilter => Self::TheSequence,
+            Self::TheSequence => Self::TheViews,
+            Self::TheViews | Self::TheList => self,
+        }
+    }
+
+    /// Tells if this panel stands in the stack of the first column.
+    pub fn is_of_the_stack(self) -> bool {
+        matches!(self, Self::TheViews | Self::TheSequence | Self::TheFilter)
     }
 }
 
@@ -427,11 +464,13 @@ mod tests {
     #[test]
     fn the_focus_moves_between_the_panels_that_stand() {
         assert_eq!(ThePanel::of_the_digit('1'), Some(ThePanel::TheViews));
+        assert_eq!(ThePanel::of_the_digit('2'), Some(ThePanel::TheSequence));
+        assert_eq!(ThePanel::of_the_digit('3'), Some(ThePanel::TheFilter));
         assert_eq!(ThePanel::of_the_digit('4'), Some(ThePanel::TheList));
 
-        // **The five panels that no stage drew hold no digit** (T-79): a key
+        // **The three panels that no stage drew hold no digit** (T-79): a key
         // that does nothing is a fault of its own.
-        for digit in ['2', '3', '5', '6', '7', '0', '8', '9'] {
+        for digit in ['5', '6', '7', '0', '8', '9'] {
             assert_eq!(
                 ThePanel::of_the_digit(digit),
                 None,
@@ -443,11 +482,36 @@ mod tests {
         assert_eq!(ThePanel::default(), ThePanel::TheList);
 
         // The movement stops at the ends, and it never gives a panel that the
-        // program does not draw.
+        // program does not draw. **The three panels of the stack stand in one
+        // column**, therefore the panel at the right of each of them is the
+        // list, and the panel at the left of each of them is itself.
         assert_eq!(ThePanel::TheList.at_the_left(), ThePanel::TheViews);
-        assert_eq!(ThePanel::TheViews.at_the_left(), ThePanel::TheViews);
-        assert_eq!(ThePanel::TheViews.at_the_right(), ThePanel::TheList);
         assert_eq!(ThePanel::TheList.at_the_right(), ThePanel::TheList);
+
+        for of_the_stack in [
+            ThePanel::TheViews,
+            ThePanel::TheSequence,
+            ThePanel::TheFilter,
+        ] {
+            assert!(of_the_stack.is_of_the_stack());
+            assert_eq!(of_the_stack.at_the_left(), of_the_stack);
+            assert_eq!(of_the_stack.at_the_right(), ThePanel::TheList);
+        }
+
+        assert!(!ThePanel::TheList.is_of_the_stack());
+
+        // **The stack of the three panels needs a key that goes down and a key
+        // that goes up** (T-318), and each of them stops at the end.
+        assert_eq!(ThePanel::TheViews.below(), ThePanel::TheSequence);
+        assert_eq!(ThePanel::TheSequence.below(), ThePanel::TheFilter);
+        assert_eq!(ThePanel::TheFilter.below(), ThePanel::TheFilter);
+        assert_eq!(ThePanel::TheFilter.above(), ThePanel::TheSequence);
+        assert_eq!(ThePanel::TheSequence.above(), ThePanel::TheViews);
+        assert_eq!(ThePanel::TheViews.above(), ThePanel::TheViews);
+
+        // The panel 4 stands in a column of its own, therefore it moves nowhere.
+        assert_eq!(ThePanel::TheList.below(), ThePanel::TheList);
+        assert_eq!(ThePanel::TheList.above(), ThePanel::TheList);
     }
 
     /// Every line of the panel 1 holds the width of that panel, and it names a

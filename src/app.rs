@@ -606,6 +606,10 @@ pub struct App {
     pub the_panel_of_the_focus: crate::ui::frame::ThePanel,
     /// The line of the user in the panel 1 of the views. See T-320.
     pub the_line_of_the_views: ListState,
+    /// The line of the user in the panel 2 of the sequence. See T-318.
+    pub the_line_of_the_sequence: ListState,
+    /// The line of the user in the panel 3 of the filter. See T-318.
+    pub the_line_of_the_filter: ListState,
     /// The areas of the last frame that a report of the mouse can name. See
     /// T-316.
     ///
@@ -664,6 +668,18 @@ pub struct TheStateThatARefreshKeeps {
     pub sleep: Option<crate::logic::sleep_timer::Timer>,
     /// The choice of the timer, in minutes.
     pub sleep_choice: Option<u64>,
+    /// The panel of the frame that holds the focus. See T-318.
+    ///
+    /// **The key `l` of the panel 2 and of the panel 3 makes the application
+    /// again**, because the sequence and the filter belong to the request of
+    /// the items: a focus that went back to the panel 4 with that new
+    /// application would give the user the panel of the list after every choice
+    /// of a sequence, and the direction of that sequence is one key more.
+    pub the_panel_of_the_focus: crate::ui::frame::ThePanel,
+    /// The line of the user in the panel 2 of the sequence. See T-318.
+    pub the_line_of_the_sequence: ListState,
+    /// The line of the user in the panel 3 of the filter. See T-318.
+    pub the_line_of_the_filter: ListState,
 }
 
 /// Init app
@@ -696,6 +712,9 @@ impl App {
         TheStateThatARefreshKeeps {
             sleep: self.sleep,
             sleep_choice: self.sleep_choice,
+            the_panel_of_the_focus: self.the_panel_of_the_focus,
+            the_line_of_the_sequence: self.the_line_of_the_sequence,
+            the_line_of_the_filter: self.the_line_of_the_filter,
         }
     }
 
@@ -707,6 +726,9 @@ impl App {
     ) {
         self.sleep = of_the_old.sleep;
         self.sleep_choice = of_the_old.sleep_choice;
+        self.the_panel_of_the_focus = of_the_old.the_panel_of_the_focus;
+        self.the_line_of_the_sequence = of_the_old.the_line_of_the_sequence;
+        self.the_line_of_the_filter = of_the_old.the_line_of_the_filter;
     }
 
     /// Makes the application state.
@@ -2073,6 +2095,16 @@ impl App {
                 of_the_views.select(Some(0));
                 of_the_views
             },
+            the_line_of_the_sequence: {
+                let mut of_the_sequence = ListState::default();
+                of_the_sequence.select(Some(0));
+                of_the_sequence
+            },
+            the_line_of_the_filter: {
+                let mut of_the_filter = ListState::default();
+                of_the_filter.select(Some(0));
+                of_the_filter
+            },
             the_areas_of_the_mouse: crate::ui::the_mouse::TheAreasOfTheMouse::default(),
             // **The mouse of the start stands** (T-316): the terminal takes the
             // request of the capture with the raw mode and the alternate
@@ -2117,11 +2149,26 @@ impl App {
         if key.modifiers.contains(KeyModifiers::CONTROL) {
             match key.code {
                 KeyCode::Char('h') => {
-                    self.the_panel_of_the_focus = self.the_panel_of_the_focus.at_the_left();
+                    self.the_focus_goes_to(self.the_panel_of_the_focus.at_the_left(), |of| {
+                        of.at_the_left()
+                    });
                     return true;
                 }
                 KeyCode::Char('l') => {
-                    self.the_panel_of_the_focus = self.the_panel_of_the_focus.at_the_right();
+                    self.the_focus_goes_to(self.the_panel_of_the_focus.at_the_right(), |of| {
+                        of.at_the_right()
+                    });
+                    return true;
+                }
+                // **The three panels of the stack stand in one column**
+                // (T-318), therefore that column needs a key that goes down and
+                // a key that goes up.
+                KeyCode::Char('j') => {
+                    self.the_focus_goes_to(self.the_panel_of_the_focus.below(), |of| of.below());
+                    return true;
+                }
+                KeyCode::Char('k') => {
+                    self.the_focus_goes_to(self.the_panel_of_the_focus.above(), |of| of.above());
                     return true;
                 }
                 _ => return false,
@@ -2129,13 +2176,28 @@ impl App {
         }
 
         // **A digit of a panel that the frame draws moves the focus**, and a
-        // digit of one of the five panels that no stage drew is no key of this
-        // program at all (T-79).
+        // digit of one of the three panels that no stage drew is no key of this
+        // program at all (T-79). **A panel of the stack that this frame did not
+        // draw takes no digit either**: a terminal that is not tall loses the
+        // panel 3 first and the panel 2 after it.
         if let KeyCode::Char(digit) = key.code {
             if let Some(panel) = ThePanel::of_the_digit(digit) {
+                if !self.a_panel_of_the_stack_stands(panel) {
+                    return false;
+                }
+
                 self.the_panel_of_the_focus = panel;
                 return true;
             }
+        }
+
+        // The keys of the panel 2 of the sequence and of the panel 3 of the
+        // filter. See T-318.
+        if matches!(
+            self.the_panel_of_the_focus,
+            ThePanel::TheSequence | ThePanel::TheFilter
+        ) {
+            return self.the_key_of_a_panel_of_the_stack(key);
         }
 
         if self.the_panel_of_the_focus != ThePanel::TheViews {
@@ -2195,6 +2257,110 @@ impl App {
         }
     }
 
+    /// A click of a row of the panel 2 or of the panel 3: it moves the line of
+    /// the user, and it takes that row. See T-318.
+    ///
+    /// **A click of the border of the panel gives the focus and no row**: the
+    /// user asked for the focus, and the border holds no line at all.
+    fn the_click_of_a_row_of_a_panel_of_the_stack(
+        &mut self,
+        the_panel: crate::ui::frame::ThePanel,
+        the_line: Option<usize>,
+    ) {
+        let Some(the_line) = the_line else {
+            return;
+        };
+
+        self.the_line_of_a_panel_of_the_stack_goes_to(the_panel, the_line);
+        self.the_key_of_a_row_of_a_panel_of_the_stack(the_panel);
+    }
+
+    /// Gives the focus to a panel, and it goes past a panel that this frame did
+    /// not draw. See T-318.
+    ///
+    /// **A stack that is not tall loses the panel 3 first and the panel 2 after
+    /// it**, and the focus must not stand on a panel that holds no cell of the
+    /// screen: the keys of such a panel would do the work of a list that the
+    /// user cannot see (T-79). The movement therefore takes the next panel of
+    /// the same direction, and it keeps the focus where it stands when no panel
+    /// of that direction stands at all.
+    fn the_focus_goes_to(
+        &mut self,
+        to: crate::ui::frame::ThePanel,
+        of_the_next: fn(crate::ui::frame::ThePanel) -> crate::ui::frame::ThePanel,
+    ) {
+        let of_the_start = self.the_panel_of_the_focus;
+        let mut to = to;
+
+        // The stack holds three panels, therefore three steps reach every one
+        // of them and the loop ends.
+        for _ in 0..3 {
+            if self.a_panel_of_the_stack_stands(to) {
+                self.the_panel_of_the_focus = to;
+                return;
+            }
+
+            let after = of_the_next(to);
+
+            if after == to {
+                break;
+            }
+
+            to = after;
+        }
+
+        self.the_panel_of_the_focus = of_the_start;
+    }
+
+    /// The keys of the panel 2 of the sequence and of the panel 3 of the
+    /// filter. See T-318.
+    ///
+    /// The keys are the keys of the panel 1: `j`, `k`, `g`, and `G` move the
+    /// line of the user, `l` and `Enter` take that line, and `h` gives the
+    /// focus back to the panel 4 of the list.
+    fn the_key_of_a_panel_of_the_stack(&mut self, key: KeyEvent) -> bool {
+        use crate::ui::frame::ThePanel;
+
+        let the_panel = self.the_panel_of_the_focus;
+
+        match key.code {
+            KeyCode::Char('j') | KeyCode::Down => {
+                self.the_line_of_a_panel_of_the_stack_moves(the_panel, true);
+                true
+            }
+            KeyCode::Char('k') | KeyCode::Up => {
+                self.the_line_of_a_panel_of_the_stack_moves(the_panel, false);
+                true
+            }
+            KeyCode::Char('g') | KeyCode::Home => {
+                self.the_line_of_a_panel_of_the_stack_goes_to(the_panel, 0);
+                true
+            }
+            KeyCode::Char('G') | KeyCode::End => {
+                let last = self
+                    .the_rows_of_a_panel_of_the_stack(the_panel)
+                    .len()
+                    .saturating_sub(1);
+                self.the_line_of_a_panel_of_the_stack_goes_to(the_panel, last);
+                true
+            }
+            // **The key `h` gives the focus back to the panel of the list**,
+            // and it takes no view away (the trap 210).
+            KeyCode::Char('h') | KeyCode::Left => {
+                self.the_panel_of_the_focus = ThePanel::TheList;
+                true
+            }
+            // **The focus stays on the panel** after the work of a row: the
+            // user of a sequence often wants the direction of it after, and the
+            // list of the view comes back with the request of the items.
+            KeyCode::Char('l') | KeyCode::Right | KeyCode::Enter => {
+                self.the_key_of_a_row_of_a_panel_of_the_stack(the_panel);
+                true
+            }
+            _ => false,
+        }
+    }
+
     /// Moves the line of the user of the panel 1 of the views, forward or back.
     /// See T-320.
     ///
@@ -2211,6 +2377,122 @@ impl App {
         } else {
             of_the_line.saturating_sub(1)
         }));
+    }
+
+    /// The rows of the panel 2 of the sequence, of the library that stands.
+    /// See T-318.
+    ///
+    /// **A field of a library of books has no meaning in a library of
+    /// podcasts**, therefore the panel names the fields of the library that the
+    /// user reads and no field more (`sort_filter::sorts_of`).
+    pub fn the_rows_of_the_panel_2(&self) -> Vec<crate::logic::sort_filter::Row> {
+        crate::ui::the_panels_of_the_stack::the_rows_of_the_sequence(self.is_podcast)
+    }
+
+    /// The rows of the panel of the stack that a key or a click names. See
+    /// T-318.
+    pub fn the_rows_of_a_panel_of_the_stack(
+        &self,
+        the_panel: crate::ui::frame::ThePanel,
+    ) -> Vec<crate::logic::sort_filter::Row> {
+        if the_panel == crate::ui::frame::ThePanel::TheSequence {
+            self.the_rows_of_the_panel_2()
+        } else {
+            crate::ui::the_panels_of_the_stack::the_rows_of_the_filter()
+        }
+    }
+
+    /// The line of the user of the panel 2 or of the panel 3. See T-318.
+    pub fn the_line_of_a_panel_of_the_stack(
+        &self,
+        the_panel: crate::ui::frame::ThePanel,
+    ) -> ListState {
+        if the_panel == crate::ui::frame::ThePanel::TheSequence {
+            self.the_line_of_the_sequence
+        } else {
+            self.the_line_of_the_filter
+        }
+    }
+
+    /// Says if the panel 2 or the panel 3 stood on the last frame. See T-318.
+    ///
+    /// **The areas of the last frame are the screen that the user sees**, and a
+    /// panel that the frame did not draw holds no cell of it at all: a stack
+    /// that is not tall loses the panel 3 first and the panel 2 after it,
+    /// therefore the digit of such a panel names a panel that this program does
+    /// not draw, and it must do nothing (T-79).
+    pub fn a_panel_of_the_stack_stands(&self, the_panel: crate::ui::frame::ThePanel) -> bool {
+        let area = match the_panel {
+            crate::ui::frame::ThePanel::TheSequence => {
+                self.the_areas_of_the_mouse.the_panel_of_the_sequence
+            }
+            crate::ui::frame::ThePanel::TheFilter => {
+                self.the_areas_of_the_mouse.the_panel_of_the_filter
+            }
+            _ => return true,
+        };
+
+        area.height > 0 && area.width > 0
+    }
+
+    /// Moves the line of the user of the panel 2 or of the panel 3, forward or
+    /// back. See T-318.
+    ///
+    /// **The key `j` of that panel and one step of the wheel of the mouse over
+    /// it do the same work** (T-316), therefore the rule of the end of that
+    /// list stands in one place.
+    fn the_line_of_a_panel_of_the_stack_moves(
+        &mut self,
+        the_panel: crate::ui::frame::ThePanel,
+        forward: bool,
+    ) {
+        let last = self
+            .the_rows_of_a_panel_of_the_stack(the_panel)
+            .len()
+            .saturating_sub(1);
+
+        let of_the_line = self.the_line_of_a_panel_of_the_stack(the_panel);
+        let of_the_line = of_the_line.selected().unwrap_or(0);
+
+        let to = if forward {
+            (of_the_line + 1).min(last)
+        } else {
+            of_the_line.saturating_sub(1)
+        };
+
+        self.the_line_of_a_panel_of_the_stack_goes_to(the_panel, to);
+    }
+
+    /// Puts the line of the user of the panel 2 or of the panel 3 on a line.
+    /// See T-318.
+    pub fn the_line_of_a_panel_of_the_stack_goes_to(
+        &mut self,
+        the_panel: crate::ui::frame::ThePanel,
+        line: usize,
+    ) {
+        if the_panel == crate::ui::frame::ThePanel::TheSequence {
+            self.the_line_of_the_sequence.select(Some(line));
+        } else {
+            self.the_line_of_the_filter.select(Some(line));
+        }
+    }
+
+    /// Takes the line of the user of the panel 2 or of the panel 3. See T-318.
+    ///
+    /// **The work of the row is the work of the same row of the view of the key
+    /// `f`** (`App::apply_the_row_of_the_sequence_or_the_filter`): the two
+    /// roads write one field of the request of the items, therefore the program
+    /// holds one rule for them.
+    fn the_key_of_a_row_of_a_panel_of_the_stack(&mut self, the_panel: crate::ui::frame::ThePanel) {
+        let rows = self.the_rows_of_a_panel_of_the_stack(the_panel);
+        let of_the_line = self.the_line_of_a_panel_of_the_stack(the_panel);
+
+        let Some(row) = of_the_line.selected().and_then(|line| rows.get(line)) else {
+            return;
+        };
+
+        let row = row.clone();
+        self.apply_the_row_of_the_sequence_or_the_filter(&row);
     }
 
     /// The line of the user in the list of the view that stands now, and `None`
@@ -2352,6 +2634,27 @@ impl App {
                         self.the_line_of_the_views.select(Some(the_line));
                     }
                 }
+                // **A click of a row of the panel 2 or of the panel 3 takes
+                // that row** (T-318): the list of those two panels is short,
+                // every row of it is a line of the user, and the work of a row
+                // is the request of the items again. A click that moved the
+                // cursor and did nothing more would need a second click of a
+                // key, and the row of the panel 1 gives the view of its line at
+                // one click already.
+                TheTarget::ThePanelOfTheSequence { the_line } => {
+                    self.the_panel_of_the_focus = crate::ui::frame::ThePanel::TheSequence;
+                    self.the_click_of_a_row_of_a_panel_of_the_stack(
+                        crate::ui::frame::ThePanel::TheSequence,
+                        the_line,
+                    );
+                }
+                TheTarget::ThePanelOfTheFilter { the_line } => {
+                    self.the_panel_of_the_focus = crate::ui::frame::ThePanel::TheFilter;
+                    self.the_click_of_a_row_of_a_panel_of_the_stack(
+                        crate::ui::frame::ThePanel::TheFilter,
+                        the_line,
+                    );
+                }
                 TheTarget::TheListOfTheView { the_line } => {
                     self.the_panel_of_the_focus = crate::ui::frame::ThePanel::TheList;
 
@@ -2377,6 +2680,21 @@ impl App {
                     TheTarget::ThePanelOfTheViews { .. } => {
                         self.the_line_of_the_views_moves(forward)
                     }
+                    // **The wheel of the panel 2 and of the panel 3 moves the
+                    // line of the user and it takes no row** (T-318): a wheel
+                    // that made a request of the items at every step would ask
+                    // the server for every sequence between the first one and
+                    // the one that the user wants.
+                    TheTarget::ThePanelOfTheSequence { .. } => self
+                        .the_line_of_a_panel_of_the_stack_moves(
+                            crate::ui::frame::ThePanel::TheSequence,
+                            forward,
+                        ),
+                    TheTarget::ThePanelOfTheFilter { .. } => self
+                        .the_line_of_a_panel_of_the_stack_moves(
+                            crate::ui::frame::ThePanel::TheFilter,
+                            forward,
+                        ),
                     TheTarget::TheListOfTheView { .. } => {
                         if forward {
                             self.select_next();
@@ -6509,17 +6827,30 @@ impl App {
     /// every list of the library comes from that request. Therefore the
     /// program makes the application again, in the same way as the key `R`.
     pub fn apply_the_sequence_or_the_filter(&mut self) {
-        use crate::logic::sort_filter::Row;
-
         let Some(index) = self.list_state_sort_filter.selected() else {
             return;
         };
 
         let rows = self.sort_filter_rows();
 
-        let Some(row) = rows.get(index) else {
+        let Some(row) = rows.get(index).cloned() else {
             return;
         };
+
+        self.apply_the_row_of_the_sequence_or_the_filter(&row);
+    }
+
+    /// Takes one row of the sequence or of the filter.
+    ///
+    /// **The view of the key `f` and the panels 2 and 3 of the stack give the
+    /// same row to this function** (T-318): the two roads write one field of
+    /// the request of the items, therefore the program holds one rule for them
+    /// and no second road.
+    pub fn apply_the_row_of_the_sequence_or_the_filter(
+        &mut self,
+        row: &crate::logic::sort_filter::Row,
+    ) {
+        use crate::logic::sort_filter::Row;
 
         let of_the_old = self.the_sequence_of_the_library();
 

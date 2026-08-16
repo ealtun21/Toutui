@@ -11123,8 +11123,8 @@ measurement can hold.
 | 2 | **T-320** | The frame of the panels, the focus, and the narrow terminal — **done, v0.8.146**; the two lines of the footer stay open |
 | 3 | **T-316** | The harness of a click, the capture, and a click of a row — **done, v0.8.147**; the targets of the regions of the stages after it stay open |
 | 4 | **T-321** | The list of the panel 4 becomes a table of a header — **done, v0.8.148**; the sequence of a click of a word of the header belongs to T-318 |
-| 5 | **T-318** | The panels 2 and 3, and a series that opens into its books — **the next stage** |
-| 6 | **T-319** | The panel 5 of one cover, and the panel 6 of the gallery |
+| 5 | **T-318** | The panels 2 and 3, and a series that opens into its books — **the panels 2 and 3 are done, v0.8.149**; a series that opens into its books stays open, and it is the next work |
+| 6 | **T-319** | The panel 5 of one cover, and the panel 6 of the gallery — **the next stage, after the series of T-318** |
 | 7 | **T-322** | The panel 7, the band of the player |
 | 8 | **T-323** | The mode that hides the panels 1 to 3, and the last sweep |
 
@@ -11237,15 +11237,18 @@ group `The filter` with `✓ No filter`, the group `Your position` of three line
 did not start**), and the group `The tags`. **The first half of the item of the
 maintainer stands, and it works.**
 
-**Three things stay open.**
+**The round of the hundred and forty-ninth turn of 2026-08-16 took the panels
+2 and 3 of the stack** (v0.8.149), and the item of `docs/TAKEOVER-BACKLOG.md`
+holds the two screens. **The item 1 below is closed with it**: the panel 2 and
+the panel 3 say the sequence and the filter of the list beside that list, the
+header of a screen that draws no stack says the same two values, and the
+footer of the panel 4 names the key `f`.
 
-1. **The view says nothing of itself.** The header of the Library view says
-   `Library [500 items of 2056]` and no word of the sequence that stands, and
-   **the footer of that view names no key `f`**: the capture of 2026-08-16
-   gave `j/k: move  l: play or open  Tab: home/library  S-Tab: the next
-   library  /: search  R: refresh  ?: every key  Q: quit`. The key exists and
-   the user cannot find it. That is the rule of T-143 in reverse, and it is a
-   fault of the words of the user of the item 2 below.
+**Two things stay open, and three more came with the measurement.**
+
+1. ~~**The view says nothing of itself.**~~ **Done, v0.8.149.** The header of
+   the Library view said `Library [500 items of 2056]` and no word of the
+   sequence, and the footer named no key `f`.
 2. **A series opens into no book.** `src/app.rs:943` writes
    `&collapseseries=1` for **every** library of books, with no choice of the
    user at all, therefore the Library view holds the row `The Test Chronicles
@@ -20926,12 +20929,74 @@ nothing and the cell stays empty. And **a click of the row of the header opens
 the view of the sequence and of the filter**, because the sequence of one column
 belongs to T-318 and a click that does nothing at all is the fault of T-79.
 
+## The session of the hundred and forty-seventh turn of 2026-08-16: the mouse, the capture, and a click of a row, of the block of the prompt
+
+  **The session of the hundred and forty-seventh turn took the stage 3 of the
+  road of the panels** (T-316), the mouse. **It left the targets of the
+  regions of the stages after it open.**
+
+  **The mouse, the capture, and a click of a row.** The measurement of the
+  real program v0.8.146 inside tmux, of the Home view of the library `Large`
+  at 160 columns and 45 rows, with the new harness `docs/harness/click.sh`:
+  twelve reports of the mouse — a click of the row of `Large Book 0006`, a
+  click of the line `Collections` of the panel 1, and five steps of the wheel
+  — and **the screen did not change at all**. The control of that same run:
+  the key `j` after those reports moved the cursor to `Large Book 0002`, and
+  the program stood, therefore `crossterm` made an `Event::Mouse` of each
+  report and the loop of `src/main.rs` read the `Event::Key` alone.
+
+  **The data of this stage is the program itself**: no proxy, no change of
+  the sandbox, and no book of a harness. The correction is seven files:
+  `src/ui/the_mouse.rs` is new (`TheAreasOfTheMouse`, `TheTarget`,
+  `the_line_of_a_row`, `the_target_of_a_point`, and the two sentences of the
+  key), `src/utils/the_terminal_of_the_program.rs` holds
+  `the_program_reads_the_mouse(bool)`, `src/utils/exit_app.rs` gives the
+  mouse back to the terminal, `src/main.rs` gives `Event::Mouse` to
+  `App::handle_the_mouse`, `src/app.rs` holds the three fields and the four
+  methods of it and the key `Ctrl+o` before every view, `src/ui/tui.rs` and
+  `src/ui/the_list_of_a_view.rs` write the areas of the last frame, and
+  `src/ui/keys.rs` holds the group `The mouse`.
+
+  **The corrected program** of the same harness: a click of the row 10 gave
+  `➤ Large Book 0006`, a click of the panel 1 gave `╔1 Views ═╗┌4 Home ─┐`
+  with `➤ Queue` on the row of the pointer, and the key `Ctrl+o` stopped the
+  mouse and started it again. **The mouse reaches every view of a list**: at
+  100 columns, where the frame draws no stack, a click of the row of
+  `Large Book 0002` gave that book, and a click of the row 9 of the view of
+  the keys gave the line of that row.
+
+  `tests/the_mouse_of_the_program_reaches_its_panels.rs` holds the gate, of
+  five tests, and two more stand inside `src/ui/the_mouse.rs`. **The build of
+  the fault** (the trap 147) — the dispatch of `Event::Mouse` of
+  `src/main.rs` removed, `if false &&` on the arm of the list of
+  `the_target_of_a_point`, and the three keys of the group of the mouse taken
+  out of `src/ui/keys.rs` — made five of the seven fail.
+
+  **The trap of this item** (the trap 209 again, and the rule of the width of
+  T-301): `ui::keys::tests::the_view_gives_a_line_for_every_key` holds every
+  line of the view of the key `?` to 76 characters, and the line
+  `Shift+Click  Most terminals give the selection of the text while the mouse
+  stands` stood above it. **A new group of that view needs the words of a
+  narrow terminal**, and the gate says so before tmux does.
+  - **The targets of the regions of the stages after this one stay open**
+    (T-316): a click of the panel of the covers, of the panel of the
+    description, of the row of the player, and of the footer names nothing,
+    and the drag of the bar of the player belongs to T-322, which draws that
+    bar. **Each stage adds the targets of its own region**, which is the rule
+    of the sequence of the stages.
+  - **The report of a move of the pointer and the report of a release do
+    nothing**, and the button at the right and the button of the middle do
+    nothing.
+  - **No setting of `config.toml` holds the choice of a user who wants the
+    mouse off at every start**: the mouse of the start stands, and the key
+    `Ctrl+o` is the road back for that session alone.
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.148**; `Cargo.toml` is at 0.8.148. The
+> AlbanDAVID/Toutui. Newest release **v0.8.149**; `Cargo.toml` is at 0.8.149. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -21739,8 +21804,8 @@ belongs to T-318 and a click that does nothing at all is the fault of T-79.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1412 tests in 3.0 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1438 of 1438** with the sandbox up, in about 20 seconds. **Run that
+> Baseline: **1419 tests in 3.0 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1445 of 1445** with the sandbox up, in about 18 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -21865,74 +21930,85 @@ belongs to T-318 and a click that does nothing at all is the fault of T-79.
 >    T-320 the frame of the panels, T-316 the mouse, T-321 the table, T-318
 >    the panels of the sequence and of the filter, T-319 the covers, T-322 the
 >    band of the player, and T-323 the mode that hides the stack at the left.
->    **The stages 1, 2, 3, and 4 are done** (v0.8.145, v0.8.146, v0.8.147, and
->    v0.8.148), and **T-318, the panels 2 and 3 of the sequence and of the
->    filter with a series that opens into its books, is the next one**.
+>    **The stages 1, 2, 3, and 4 are done** (v0.8.145, v0.8.146, v0.8.147,
+>    and v0.8.148), and **the panels 2 and 3 of T-318 came with v0.8.149**.
+>    **A series that opens into its books is the part of T-318 that stays**,
+>    and it is the next work: `src/app.rs` writes `&collapseseries=1` for
+>    every library of books with no choice of the user at all, therefore the
+>    row `The Test Chronicles [3 books]` can never hold the three books of
+>    it. The stage 6, T-319, comes after it.
 >    **A round takes the next stage that is not finished**, and that section
 >    holds three decisions that a round must not take alone. Read it first.
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
->   **The session of the hundred and forty-seventh turn took the stage 3 of the
->   road of the panels** (T-316), the mouse. **It left the targets of the
->   regions of the stages after it open.**
+>   **The session of the hundred and forty-ninth turn took a part of the
+>   stage 5 of the road of the panels** (T-318), the panels 2 and 3 of the
+>   sequence and of the filter. **It left five parts of that item open, and a
+>   series that opens into its books is the first of them.**
 >
->   **The mouse, the capture, and a click of a row.** The measurement of the
->   real program v0.8.146 inside tmux, of the Home view of the library `Large`
->   at 160 columns and 45 rows, with the new harness `docs/harness/click.sh`:
->   twelve reports of the mouse — a click of the row of `Large Book 0006`, a
->   click of the line `Collections` of the panel 1, and five steps of the wheel
->   — and **the screen did not change at all**. The control of that same run:
->   the key `j` after those reports moved the cursor to `Large Book 0002`, and
->   the program stood, therefore `crossterm` made an `Event::Mouse` of each
->   report and the loop of `src/main.rs` read the `Event::Key` alone.
+>   **The stack of 34 columns held the panel 1 alone, and the screen said no
+>   word of the sequence and no word of the filter.** The measurement of the
+>   real program v0.8.148 inside tmux, of the Library view of the library
+>   `Large` of the sandbox at 160 columns and 45 rows: the panel 1 held 14
+>   lines, **the 20 rows under the last of them held nothing at all**, the
+>   header of the panel 4 said `4 Library [500 items of 2056]` and no more, and
+>   **the footer named no key `f`**. The key `f` gave a view of the whole
+>   screen, and that view hides the list that it describes.
 >
->   **The data of this stage is the program itself**: no proxy, no change of
->   the sandbox, and no book of a harness. The correction is seven files:
->   `src/ui/the_mouse.rs` is new (`TheAreasOfTheMouse`, `TheTarget`,
->   `the_line_of_a_row`, `the_target_of_a_point`, and the two sentences of the
->   key), `src/utils/the_terminal_of_the_program.rs` holds
->   `the_program_reads_the_mouse(bool)`, `src/utils/exit_app.rs` gives the
->   mouse back to the terminal, `src/main.rs` gives `Event::Mouse` to
->   `App::handle_the_mouse`, `src/app.rs` holds the three fields and the four
->   methods of it and the key `Ctrl+o` before every view, `src/ui/tui.rs` and
->   `src/ui/the_list_of_a_view.rs` write the areas of the last frame, and
->   `src/ui/keys.rs` holds the group `The mouse`.
+>   **The data of this stage is the program itself**: no proxy, no book of a
+>   harness, and no change of the sandbox. The correction is seven files.
+>   `src/ui/the_panels_of_the_stack.rs` is new, and every function of it is
+>   pure: `the_rows_of_the_sequence`, `the_rows_of_the_filter`,
+>   `the_three_panels` (which loses the panel 3 first and the panel 2 after
+>   it), `the_name_of_a_filter`, and
+>   `the_words_of_the_sequence_and_the_filter`. `src/ui/frame.rs` holds
+>   `TheSequence` and `TheFilter` with the digits `2` and `3`, `below()`, and
+>   `above()`; `src/ui/the_mouse.rs` holds the two targets;
+>   `src/ui/tui.rs` divides the stack in three and it writes the words of the
+>   sequence in the header of a screen that draws no stack; `src/app.rs` holds
+>   the keys, the two arms of the mouse, and
+>   `apply_the_row_of_the_sequence_or_the_filter`, which is the one function of
+>   the view of the key `f` and of the two panels; and `src/ui/keys.rs` gives
+>   `the_footer_of_a_panel` a `ThePanel` and no `bool`.
 >
->   **The corrected program** of the same harness: a click of the row 10 gave
->   `➤ Large Book 0006`, a click of the panel 1 gave `╔1 Views ═╗┌4 Home ─┐`
->   with `➤ Queue` on the row of the pointer, and the key `Ctrl+o` stopped the
->   mouse and started it again. **The mouse reaches every view of a list**: at
->   100 columns, where the frame draws no stack, a click of the row of
->   `Large Book 0002` gave that book, and a click of the row 9 of the view of
->   the keys gave the line of that row.
+>   **The corrected program** of the same harness: the key `2` and the keys
+>   `j j l` gave `╔2 Sequence ═╗` with `➤ ✓ The author` and the header
+>   `4 Library [500 items of 2056] — The author, the largest first`; a second
+>   `l` of that same row turned the direction; the key `Ctrl+j` and the keys
+>   `j j l` gave `╔3 Filter ═╗` with `➤ ✓ The media that you started`; a click
+>   of `docs/harness/click.sh` at the column 12 of the row 32 gave
+>   `➤ ✓ The year`; at 100 columns the header said
+>   `⇅ The sequence of the server ▣ No filter`; and at 22 rows the panel 3 went
+>   away and **the digit `3` did nothing at all**.
 >
->   `tests/the_mouse_of_the_program_reaches_its_panels.rs` holds the gate, of
->   five tests, and two more stand inside `src/ui/the_mouse.rs`. **The build of
->   the fault** (the trap 147) — the dispatch of `Event::Mouse` of
->   `src/main.rs` removed, `if false &&` on the arm of the list of
->   `the_target_of_a_point`, and the three keys of the group of the mouse taken
->   out of `src/ui/keys.rs` — made five of the seven fail.
+>   `tests/the_panels_of_the_sequence_and_of_the_filter.rs` holds the gate, of
+>   four tests, and five more stand inside `src/ui/`. **The build of the
+>   fault** (the trap 147) — `let room = 0;` of `the_three_panels`,
+>   `'2' if false =>` of `of_the_digit`, `if false &&` on the arm of the panel
+>   2 of `the_target_of_a_point`, the words `f: sequence` and the key `Ctrl+j`
+>   of `src/ui/keys.rs` taken out, and `if false &&` on the guard of the header
+>   of `src/ui/tui.rs` — made **seven of the ten** fail.
 >
->   **The trap of this item** (the trap 209 again, and the rule of the width of
->   T-301): `ui::keys::tests::the_view_gives_a_line_for_every_key` holds every
->   line of the view of the key `?` to 76 characters, and the line
->   `Shift+Click  Most terminals give the selection of the text while the mouse
->   stands` stood above it. **A new group of that view needs the words of a
->   narrow terminal**, and the gate says so before tmux does.
->   - **The targets of the regions of the stages after this one stay open**
->     (T-316): a click of the panel of the covers, of the panel of the
->     description, of the row of the player, and of the footer names nothing,
->     and the drag of the bar of the player belongs to T-322, which draws that
->     bar. **Each stage adds the targets of its own region**, which is the rule
->     of the sequence of the stages.
->   - **The report of a move of the pointer and the report of a release do
->     nothing**, and the button at the right and the button of the middle do
->     nothing.
->   - **No setting of `config.toml` holds the choice of a user who wants the
->     mouse off at every start**: the mouse of the start stands, and the key
->     `Ctrl+o` is the road back for that session alone.
+>   **The trap of this item**: **the key `l` of the panel 2 makes the
+>   application again** (`must_refresh`, the road of the key `R`), and every
+>   field of a new application starts at its first value. The first measurement
+>   gave the sequence of the author, the focus then went back to the panel 4,
+>   and the key `l` after two keys `j` **started a playback of
+>   `Large Book 0003`**; `PATCH /api/me/progress/:id` with
+>   `{"isFinished": false}` gave the sandbox its condition back.
+>   `TheStateThatARefreshKeeps` of T-135 holds the focus of the panel and the
+>   line of each of the two panels now.
+>   - **A series opens into no book** (T-318): `src/app.rs` writes
+>     `&collapseseries=1` for every library of books, with no choice of the
+>     user at all. **That is the next part of this stage.**
+>   - **A click of a word of the header of the table does not sort by that
+>     column** (T-321), **the panel 3 holds no author, no series, no narrator,
+>     and no tag** (they come of `GET /api/libraries/:id/filterdata`, which the
+>     view of the key `f` asks for), **the two panels hold no digit of a row**
+>     (the decision 1), and **no line of the panel 2 says the number of the
+>     media of a filter**.
 >
 >   **The session of the hundred and forty-eighth turn took the stage 4 of the
 >   road of the panels** (T-321), the table. **It left the sequence of a click
@@ -22062,6 +22138,10 @@ belongs to T-318 and a click that does nothing at all is the fault of T-79.
 > And **the decisions of T-201 to T-321 stand in
 > `## The decisions of T-201 to T-321 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-310).
+> **The panels 2 and 3 of the stack hold the rows of the view of the key `f`
+> and no row of their own, and the authors, the series, the narrators, and the
+> tags stay in that view**: those rows come of a request that the start of the
+> program does not make (T-318).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
@@ -22125,7 +22205,9 @@ belongs to T-318 and a click that does nothing at all is the fault of T-79.
 > **one** turn in it, and **it took no turn out at all**: the block stood far
 > under the line of 99000, therefore that round wrote its own turn beside the
 > turn of the frame of T-320, and the block then held **73514** bytes with
-> **two** turns in it. **A block that stands under 80000 bytes holds two
+> **two** turns in it; the round of the hundred and forty-ninth found it at
+> 74608 bytes with two turns in it, and it took the oldest of the two out and
+> it wrote its own. **A block that stands under 80000 bytes holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions
 > grows with every round

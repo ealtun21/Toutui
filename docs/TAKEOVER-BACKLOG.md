@@ -28598,3 +28598,313 @@ therefore says that the columns do not agree while they do.
 - **The views of a search, of a collection, of the episodes of a podcast, and
   of the queue hold no table**: the panel 4 stands for the Home view and the
   Library view alone (T-320), and a stage of the road gives it to the others.
+
+## T-318 — The panels 2 and 3 of the stack, the sequence and the filter
+
+**The stage 5 of the road of the panels** (`docs/mockups/mockup-1.txt`, which
+the maintainer chose on 2026-08-16). The stage 2 (T-320) gave the stack of 34
+columns its panel 1 of the views, and the stages 3 and 4 gave the panel 4 the
+mouse and its table. **The stack held that one panel alone**, and the design
+gives it three.
+
+**This is the work of a feature and not the work of a fault**, therefore the
+rule "show the fault before you correct it" does not hold: the rule of this
+item is the rule of the measurement, and the screens of the real program
+inside tmux stand below.
+
+**This round took a part of the item, and it left five parts open.** The
+section "What stays open" below names each of them.
+
+### The screen before the change
+
+The real program **v0.8.148** inside tmux, of the Library view of the library
+`Large` of the sandbox, at 160 columns and 45 rows, with
+`docs/harness/drive.sh`:
+
+```text
+┌1 Views ────────────────────────┐╔4 Library [500 items of 2056] ═══════════════════════════════════════════╗
+│➤ Home                       Tab│║    Title                                Author               Time  Done ║
+│  Library                    Tab│║➤   Large Book 2056                                            <1m     -█║
+│  Sequence and filter          f│║    Large Book 2055                                            <1m     -│║
+│  Authors                      a│║    Large Book 2054                                            <1m     -│║
+│  Narrators                    v│║    Large Book 2053                                            <1m     -│║
+│  Collections                  c│║    Large Book 2052                                            <1m     -│║
+│  Queue                        q│║    Large Book 2051                                            <1m     -│║
+│  Downloads                    d│║    Large Book 2050                                            <1m     -│║
+│  Chapters                     C│║    Large Book 2049                                            <1m     -│║
+│  Bookmarks                    V│║    Large Book 2048                                            <1m     -│║
+│  Sessions                     W│║    Large Book 2047                                            <1m     -│║
+│  Statistics                   T│║    Large Book 2046                                            <1m     -│║
+│  Settings                     S│║    Large Book 2045                                            <1m     -│║
+│  Every key                    ?│║    Large Book 2044                                            <1m     -│║
+│                                │║    Large Book 2043                                            <1m     -│║
+│                                │║    Large Book 2042                                            <1m     -│║
+│                                │║    Large Book 2041                                            <1m     -│║
+│                                │╚═════════════════════════════════════════════════════════════════════════╝
+│                                │Author: N/A - Year: N/A - Duration: 0m
+│                                │Progress:  N/A%,   N/A
+│                                │
+│                                │No description available
+│                                │
+…
+└────────────────────────────────┘
+
+     j/k: move  l: play or open  Tab: home/library  S-Tab: the next library  /: search  R: refresh  ?: every key  Q: quit  1/Ctrl+h: the panel of the views
+```
+
+**The panel 1 held 14 lines, and the 20 rows under the last of them held
+nothing at all.** The header of the panel 4 said `4 Library [500 items of
+2056]`, and **no word of the sequence that stands and no word of the filter
+that stands**. **The footer named no key `f`.**
+
+The key `f` gave the view of the sequence and of the filter, and that view
+takes the whole screen:
+
+```text
+────────────────────────The sequence and the filter — The sequence of the server────────────────────────
+  ▌ The sequence
+➤   The title
+    The title, with no "A" and no "The"
+    The author
+…
+```
+
+**A user who reads the sequence of the list loses the list while they read
+it**, and a user who does not press that key reads no sequence at all.
+
+### The data of this stage
+
+**The program itself.** No proxy, no book of a harness, and no change of the
+sandbox. `COLUMNS_OF_THE_SCREEN` and `ROWS_OF_THE_SCREEN` of
+`docs/harness/drive.sh` give each shape of the frame, and
+`docs/harness/click.sh` gives the click.
+
+### The correction
+
+Seven files.
+
+**`src/ui/the_panels_of_the_stack.rs` is new**, and every function of it is
+pure: `THE_SMALLEST_PANEL_OF_THE_VIEWS` (5 rows),
+`the_rows_of_the_sequence`, `the_rows_of_the_filter`, `the_height_of_a_panel`,
+`the_lines_of_a_panel`, `the_three_panels`, `the_name_of_a_filter`, and
+`the_words_of_the_sequence_and_the_filter`.
+
+**The two panels hold the rows of the view of the key `f` and no row of their
+own** (T-118 in reverse): a panel that names a sequence which the request of
+the items does not send is a text that promises a function that the program
+does not have. The panel 2 therefore holds
+`crate::logic::sort_filter::sorts_of` and the line of the direction, and the
+panel 3 holds the line of no filter and the three places of the user.
+
+`src/ui/frame.rs`: `ThePanel` holds `TheSequence` (2) and `TheFilter` (3), with
+the digits of them, `below()`, `above()`, and `is_of_the_stack()`.
+
+`src/ui/the_mouse.rs`: six areas more, and the targets
+`ThePanelOfTheSequence` and `ThePanelOfTheFilter`.
+
+`src/ui/tui.rs`: `the_stack_of_the_panels` divides the stack in three,
+`render_a_panel_of_the_stack` draws the panel 2 and the panel 3, and
+`render_header` writes the words of the sequence and of the filter for a
+screen that draws no stack.
+
+`src/app.rs`: `the_line_of_the_sequence` and `the_line_of_the_filter`, the keys
+`2`, `3`, `Ctrl+j`, and `Ctrl+k`, the keys `j`, `k`, `g`, `G`, `l`, and `h` of
+the two panels, the two arms of the mouse,
+`apply_the_row_of_the_sequence_or_the_filter` (which is the one function of the
+view of the key `f` and of the two panels), and three fields more of
+`TheStateThatARefreshKeeps`.
+
+`src/ui/keys.rs`: the group `The panels` holds four keys more, and
+`the_footer_of_a_panel` takes a `ThePanel` and no `bool`: each panel of the
+focus therefore names the work of its own key `l`, and the footer of the panel
+4 names `f: sequence`.
+
+`src/ui/mod.rs`: the module.
+
+### The screen after the change
+
+The same harness, at 160 columns and 45 rows:
+
+```text
+┌1 Views ────────────────────────┐╔4 Library [500 items of 2056] ═══════════════════════════════════════════╗
+│➤ Home                       Tab│║    Title                                Author               Time  Done ║
+│  Library                    Tab│║➤   Large Book 2056                                            <1m     -█║
+…
+│  Every key                    ?│║    Large Book 2043                                            <1m     -│║
+│                                │╚═════════════════════════════════════════════════════════════════════════╝
+│                                │Author: N/A - Year: N/A - Duration: 0m
+│                                │Progress:  N/A%,   N/A
+│                                │
+│                                │No description available
+└────────────────────────────────┘
+┌2 Sequence ─────────────────────┐
+│➤   The title                   │
+│    The title, with no "A" and… │
+│    The author                  │
+│    The time when the book came │
+│    The year                    │
+│    The length                  │
+│    The size on the disk        │
+│    The direction: the smallest…│
+└────────────────────────────────┘
+┌3 Filter ───────────────────────┐
+│➤ ✓ No filter                   │
+│    The media that you finished │
+│    The media that you started  │
+│    The media that you did not… │
+└────────────────────────────────┘
+
+     j/k: move  l: play or open  Tab: home/library  S-Tab: the next library  /: search  R: refresh  ?: every key  Q: quit  f: sequence  1/Ctrl+h: the panels
+```
+
+### The measurement of the keys
+
+**The key `2` and the keys `j j l`** gave the sequence of the author. The
+border of the panel 2 is heavy, the mark stands on the row of the choice, and
+the header of the panel 4 names that choice:
+
+```text
+┌1 Views ────────────────────────┐┌4 Library [500 items of 2056] — The author, the largest first ───────────┐
+…
+╔2 Sequence ═════════════════════╗
+║    The title                   ║
+║    The title, with no "A" and… ║
+║➤ ✓ The author                  ║
+║    The time when the book came ║
+║    The year                    ║
+║    The length                  ║
+║    The size on the disk        ║
+║    The direction: the largest… ║
+╚════════════════════════════════╝
+```
+
+**A second `l` on that same row turned the direction**, and the header then
+said `— The author` and the last row of the panel said
+`The direction: the smallest…`. **"The newest first" is therefore two keys of
+one row**, and not a key of a row and a key of another one.
+
+**The key `Ctrl+j` and the keys `j j l`** gave the filter of the media that the
+user started. The library `Large` holds no such media, and the panel 4 said
+the word of that:
+
+```text
+┌1 Views ────────────────────────┐───────────────────────────────────────────
+│➤ Home                       Tab│  No media of this library agrees with the filter.
+│  Library                    Tab│      Press f for the sequence and the filter.
+…
+╔3 Filter ═══════════════════════╗
+║    No filter                   ║
+║    The media that you finished ║
+║➤ ✓ The media that you started  ║
+║    The media that you did not… ║
+╚════════════════════════════════╝
+
+          j/k: move  l: this filter  h: the list  4/Ctrl+l: the list  ?: every key  Q: quit
+```
+
+**A click of `docs/harness/click.sh` at the column 12 of the row 32** gave
+`➤ ✓ The year` of the panel 2 and the header `— The year` of the panel 4: the
+row of a panel of the stack takes one click, because every row of it is a row
+of the user and the work of it is the request of the items again.
+
+### The two shapes that draw no panel 2 and no panel 3
+
+**At 100 columns the frame draws no stack** (`the_shape_of` gives
+`TwoColumns`), and the second row of the header then holds the words (the
+decision 3 of the road of the panels):
+
+```text
+👋 Connected as toutuitest                 📖 Large (book)                        🦜 Toutui v0.8.148
+🔗 localhost:13399            ⇅ The sequence of the server ▣ No filter
+────────────────Library [500 items of 2056]────────────────
+➤     Large Book 2056                                     █
+```
+
+**At 160 columns and 22 rows the panel 3 goes away**, the panel 2 stands, and
+the panel 1 keeps the rows that stay:
+
+```text
+┌1 Views ────────────────────────┐╔4 Library [500 items of 2056] ═══════════════…
+│➤ Home                       Tab│║    Title                                Author…
+│  Library                    Tab│║➤   Large Book 2056                           …
+│  Sequence and filter          f│║    Large Book 2055                           …
+│  Authors                      a│║    Large Book 2054                           …
+│  Narrators                    v│║    Large Book 2053                           …
+└────────────────────────────────┘║    Large Book 2052                           …
+┌2 Sequence ─────────────────────┐║    Large Book 2051                           …
+│➤   The title                   │║    Large Book 2050                           …
+│    The title, with no "A" and… │║    Large Book 2049                           …
+│    The author                  │║    Large Book 2048                           …
+│    The time when the book came │║    Large Book 2047                           …
+│    The year                    │║    Large Book 2046                           …
+│    The length                  │║    Large Book 2045                           …
+│    The size on the disk        │╚══════════════════════════════════════════════…
+│    The direction: the smallest…│Author: N/A - Year: N/A - Duration: 0m
+└────────────────────────────────┘Progress:  N/A%,   N/A
+```
+
+**The digit `3` of that screen did nothing at all**: the footer did not change,
+and the program stood. A key of a panel that the frame did not draw is the
+fault of T-79, therefore `App::a_panel_of_the_stack_stands` reads the areas of
+the last frame and it refuses that digit.
+
+### The trap of this item
+
+**The key `l` of the panel 2 makes the application again.** The sequence and
+the filter belong to the request of the items, therefore
+`apply_the_row_of_the_sequence_or_the_filter` writes `must_refresh` and the
+loop of `src/main.rs` takes the road of the key `R`: **every field of the new
+application starts at its first value**.
+
+The first measurement of this item therefore gave the sequence of the author,
+and the focus went back to the panel 4 and the cursor of the panel 2 went back
+to its first line. **The key `Ctrl+j` after it reached no panel**, the keys
+`j j` moved the list of the library, and **the key `l` after them started a
+playback of `Large Book 0003`** — a book of one second, which the null device
+finished at once. `PATCH /api/me/progress/:id` with `{"isFinished": false}`
+gave the sandbox its condition back.
+
+`TheStateThatARefreshKeeps` of T-135 is the road: the panel of the focus and
+the line of each of the two panels stand in it now, and the application that a
+key `l` makes reads them back.
+
+### The gate
+
+`tests/the_panels_of_the_sequence_and_of_the_filter.rs` holds four tests, three
+more stand inside `src/ui/the_panels_of_the_stack.rs`, and `src/ui/frame.rs`
+and `src/ui/the_mouse.rs` each hold one more.
+
+**The build of the fault** (the trap 147), of five edits that keep every other
+line: `let room = 0;` of `the_three_panels`, `'2' if false =>` of
+`of_the_digit`, `if false &&` on the arm of the panel 2 of
+`the_target_of_a_point`, the words `f: sequence` and the key `Ctrl+j` of
+`src/ui/keys.rs` taken out, and `if false &&` on the guard of the header of
+`src/ui/tui.rs`. **Seven of the ten tests then failed.** The three that stood
+are the tests of the rows of the two panels, which no edit of that build
+touched.
+
+The gates: `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,
+**1419 tests in 3.0 seconds**, **1445 of 1445 with the sandbox up**, and
+`cargo test -j 16 --no-fail-fast`.
+
+### What stays open
+
+1. **A series opens into no book.** `src/app.rs` writes `&collapseseries=1` for
+   every library of books, with no choice of the user at all: the Library view
+   holds the row `The Test Chronicles [3 books]` and it can never hold the
+   three books of it in the list. The work is a mode of the view that sends
+   `collapseseries=0`, and the key of it belongs beside the key `f`.
+2. **A click of a word of the header of the table does not sort by that
+   column** (T-321): that click opens the view of the key `f`, and the map of
+   the mouse of the design gives `Title`, `Author`, `Time`, and `Done` the
+   sequence of that column. The geometry of that row stands already.
+3. **The panel 3 holds the three places of the user, and no author, no series,
+   no narrator, and no tag**: those rows come of
+   `GET /api/libraries/:id/filterdata`, which the view of the key `f` asks for,
+   and a panel of the start that made that request would give every start of
+   the program one request more.
+4. **The panel 2 and the panel 3 hold no digit of a row**: the decision 1 of
+   the road of the panels took the column of the digit of the panel 2 away,
+   because the digits 1 to 7 belong to the focus of a panel.
+5. **No line of the panel 2 says the number of the media of a filter**, and the
+   design gives that number to the status bar alone.

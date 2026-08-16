@@ -54,6 +54,20 @@ pub struct TheAreasOfTheMouse {
     pub the_offset_of_the_views: usize,
     /// The number of the lines of the panel 1.
     pub the_views: usize,
+    /// The whole block of the panel 2 of the sequence, with its border. See
+    /// T-318.
+    pub the_panel_of_the_sequence: Rect,
+    /// The rows of the lines of the panel 2, inside its border.
+    pub the_lines_of_the_sequence: Rect,
+    /// The number of the lines of the panel 2.
+    pub the_sequences: usize,
+    /// The whole block of the panel 3 of the filter, with its border. See
+    /// T-318.
+    pub the_panel_of_the_filter: Rect,
+    /// The rows of the lines of the panel 3, inside its border.
+    pub the_lines_of_the_filter: Rect,
+    /// The number of the lines of the panel 3.
+    pub the_filters: usize,
     /// The whole block of the list of the view, with its border.
     pub the_panel_of_the_list: Rect,
     /// The rows of the lines of the list of the view, inside its border.
@@ -78,6 +92,10 @@ pub enum TheTarget {
     /// `None` says that the point stands on the border of the panel or under
     /// its last line.
     ThePanelOfTheViews { the_line: Option<usize> },
+    /// The panel 2 of the sequence. See T-318.
+    ThePanelOfTheSequence { the_line: Option<usize> },
+    /// The panel 3 of the filter. See T-318.
+    ThePanelOfTheFilter { the_line: Option<usize> },
     /// The list of the view, which is the panel 4 of the frame of the panels.
     TheListOfTheView { the_line: Option<usize> },
     /// The row of the header of the table of the panel 4. See T-321.
@@ -136,6 +154,29 @@ pub fn the_target_of_a_point(
                 row,
             )
             .filter(|_| areas.the_lines_of_the_views.contains(point)),
+        };
+    }
+
+    // **The panels 2 and 3 stand under the panel 1, in the same column**
+    // (T-318). A panel that the frame did not draw holds `Rect::default()`,
+    // which holds no cell of the screen at all, therefore a stack that lost
+    // the panel 3 gives its clicks to no panel.
+    if the_stack_stands && areas.the_panel_of_the_sequence.contains(point) {
+        return TheTarget::ThePanelOfTheSequence {
+            the_line: the_line_of_a_row(
+                areas.the_lines_of_the_sequence,
+                0,
+                areas.the_sequences,
+                row,
+            )
+            .filter(|_| areas.the_lines_of_the_sequence.contains(point)),
+        };
+    }
+
+    if the_stack_stands && areas.the_panel_of_the_filter.contains(point) {
+        return TheTarget::ThePanelOfTheFilter {
+            the_line: the_line_of_a_row(areas.the_lines_of_the_filter, 0, areas.the_filters, row)
+                .filter(|_| areas.the_lines_of_the_filter.contains(point)),
         };
     }
 
@@ -211,6 +252,12 @@ mod tests {
             the_lines_of_the_views: Rect::new(1, 3, 32, 18),
             the_offset_of_the_views: 0,
             the_views: 14,
+            the_panel_of_the_sequence: Rect::default(),
+            the_lines_of_the_sequence: Rect::default(),
+            the_sequences: 0,
+            the_panel_of_the_filter: Rect::default(),
+            the_lines_of_the_filter: Rect::default(),
+            the_filters: 0,
             the_panel_of_the_list: Rect::new(34, 2, 70, 20),
             the_lines_of_the_list: Rect::new(35, 3, 66, 18),
             the_offset_of_the_list: 0,
@@ -270,6 +317,55 @@ mod tests {
         assert_eq!(
             the_target_of_a_point(&of_a_table, true, 60, 4),
             TheTarget::TheListOfTheView { the_line: Some(0) }
+        );
+
+        // **The panels 2 and 3 stand under the panel 1 of the same column**
+        // (T-318): the stack of 34 columns holds the views of the row 2 to the
+        // row 21, the sequence of the row 22 to the row 31, and the filter of
+        // the row 32 to the row 37.
+        let of_the_stack = TheAreasOfTheMouse {
+            the_panel_of_the_sequence: Rect::new(0, 22, 34, 10),
+            the_lines_of_the_sequence: Rect::new(1, 23, 32, 8),
+            the_sequences: 8,
+            the_panel_of_the_filter: Rect::new(0, 32, 34, 6),
+            the_lines_of_the_filter: Rect::new(1, 33, 32, 4),
+            the_filters: 4,
+            ..areas
+        };
+
+        assert_eq!(
+            the_target_of_a_point(&of_the_stack, true, 10, 23),
+            TheTarget::ThePanelOfTheSequence { the_line: Some(0) }
+        );
+        assert_eq!(
+            the_target_of_a_point(&of_the_stack, true, 10, 30),
+            TheTarget::ThePanelOfTheSequence { the_line: Some(7) }
+        );
+        // A click on the border of the panel 2 names that panel and no line.
+        assert_eq!(
+            the_target_of_a_point(&of_the_stack, true, 0, 22),
+            TheTarget::ThePanelOfTheSequence { the_line: None }
+        );
+        assert_eq!(
+            the_target_of_a_point(&of_the_stack, true, 10, 33),
+            TheTarget::ThePanelOfTheFilter { the_line: Some(0) }
+        );
+        assert_eq!(
+            the_target_of_a_point(&of_the_stack, true, 10, 36),
+            TheTarget::ThePanelOfTheFilter { the_line: Some(3) }
+        );
+
+        // **A stack that lost the panel 3 takes no click of it** (T-79): the
+        // areas of that frame hold `Rect::default()`, which holds no cell of
+        // the screen at all.
+        let of_no_filter = TheAreasOfTheMouse {
+            the_panel_of_the_filter: Rect::default(),
+            the_lines_of_the_filter: Rect::default(),
+            ..of_the_stack
+        };
+        assert_eq!(
+            the_target_of_a_point(&of_no_filter, true, 10, 33),
+            TheTarget::Nothing
         );
 
         // A point that no panel holds.

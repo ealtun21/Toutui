@@ -140,19 +140,21 @@ fn the_border_of_the_panel_of_the_focus_holds_another_shape() {
 /// The digits name the panels that the frame draws, and no other panel. See
 /// T-320.
 ///
-/// **A key that does nothing is a fault of its own** (T-79), therefore the five
-/// panels of the design that no stage drew hold no digit: the panel 2 of the
-/// sequence and the panel 3 of the filter come with T-318, the panels 5 and 6
-/// of the covers come with T-319, and the panel 7 of the player comes with
-/// T-322.
+/// **A key that does nothing is a fault of its own** (T-79), therefore the
+/// three panels of the design that no stage drew hold no digit: the panels 5
+/// and 6 of the covers come with T-319, and the panel 7 of the player comes
+/// with T-322. The panel 2 of the sequence and the panel 3 of the filter came
+/// with T-318.
 ///
 /// **The parts of this test stay in one function.**
 #[test]
 fn the_digits_name_the_panels_that_the_frame_draws() {
     assert_eq!(ThePanel::of_the_digit('1'), Some(ThePanel::TheViews));
+    assert_eq!(ThePanel::of_the_digit('2'), Some(ThePanel::TheSequence));
+    assert_eq!(ThePanel::of_the_digit('3'), Some(ThePanel::TheFilter));
     assert_eq!(ThePanel::of_the_digit('4'), Some(ThePanel::TheList));
 
-    for digit in ['0', '2', '3', '5', '6', '7', '8', '9'] {
+    for digit in ['0', '5', '6', '7', '8', '9'] {
         assert_eq!(
             ThePanel::of_the_digit(digit),
             None,
@@ -243,7 +245,8 @@ fn the_keys_of_the_frame_stand_in_the_list_of_the_keys_and_in_the_footer() {
     // narrow terminal names no panel at all.
     let of_the_view = toutui::ui::keys::FOOTER_OF_A_LIBRARY_OF_BOOKS;
 
-    let of_no_frame = toutui::ui::keys::the_footer_of_a_panel(of_the_view, false, false);
+    let of_no_frame =
+        toutui::ui::keys::the_footer_of_a_panel(of_the_view, false, ThePanel::TheList);
     assert_eq!(
         of_no_frame, of_the_view,
         "the footer of a screen that holds no frame is the footer of the view"
@@ -251,7 +254,7 @@ fn the_keys_of_the_frame_stand_in_the_list_of_the_keys_and_in_the_footer() {
 
     // The panel 4 holds the focus: the footer of the view stands, and it names
     // the key of the panel of the views beside it.
-    let of_the_list = toutui::ui::keys::the_footer_of_a_panel(of_the_view, true, false);
+    let of_the_list = toutui::ui::keys::the_footer_of_a_panel(of_the_view, true, ThePanel::TheList);
     assert!(of_the_list.starts_with(of_the_view));
     assert!(of_the_list.contains('1') && of_the_list.contains("Ctrl+h"));
 
@@ -259,7 +262,8 @@ fn the_keys_of_the_frame_stand_in_the_list_of_the_keys_and_in_the_footer() {
     // panel**: the key `l` of that moment opens a view and it plays no media,
     // and a footer that said `l: play or open` would name a work that the key
     // does not do.
-    let of_the_views = toutui::ui::keys::the_footer_of_a_panel(of_the_view, true, true);
+    let of_the_views =
+        toutui::ui::keys::the_footer_of_a_panel(of_the_view, true, ThePanel::TheViews);
     assert!(
         of_the_views.contains("l: open the view"),
         "the footer of the panel of the views must name the work of the key l: {of_the_views:?}"

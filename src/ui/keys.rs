@@ -50,21 +50,28 @@ pub const GROUPS: &[Group] = &[
         // have (T-118), and a footer must not promise a key that the view does
         // not hold (T-143).
         //
-        // **The five panels of the design that no stage drew hold no digit**
-        // (T-79): the panel 2 of the sequence and the panel 3 of the filter come
-        // with T-318, the panels 5 and 6 of the covers come with T-319, and the
+        // **The three panels of the design that no stage drew hold no digit**
+        // (T-79): the panels 5 and 6 of the covers come with T-319, and the
         // panel 7 of the player comes with T-322.
+        //
+        // **A stack that is not tall loses the panel 3 first and the panel 2
+        // after it** (T-318), and the digit of a panel that the frame did not
+        // draw does nothing at all.
         name: "The panels (a screen of 120 columns and more, Home and Library)",
         keys: &[
             key("1", "The focus goes to the panel 1 of the views"),
+            key("2", "The focus goes to the panel 2 of the sequence"),
+            key("3", "The focus goes to the panel 3 of the filter"),
             key("4", "The focus goes to the panel 4 of the list"),
             key("Ctrl+h", "The focus goes to the panel at the left"),
             key("Ctrl+l", "The focus goes to the panel at the right"),
+            key("Ctrl+j", "The focus goes to the panel below"),
+            key("Ctrl+k", "The focus goes to the panel above"),
             key(
                 "l / → / Enter",
-                "The panel of the views opens the view of the line",
+                "The panel 1 opens a view, the panels 2 and 3 act",
             ),
-            key("h / ←", "The panel of the views gives the focus back"),
+            key("h / ←", "A panel of the stack gives the focus back"),
         ],
     },
     Group {
@@ -493,22 +500,38 @@ pub const FOOTER_OF_A_LIBRARY_OF_PODCASTS: &str = "j/k: move  l: the episodes  \
 /// the keys `j`, `k`, and `l` of the panel 1 move its lines and they open a
 /// view, therefore a footer that said `l: play or open` at that moment would
 /// name a work that the key does not do.
+///
+/// **The panel 2 of the sequence and the panel 3 of the filter hold the same
+/// keys as the panel 1** (T-318), and the key `l` of them takes the line and it
+/// opens no view: the footer of each of the three panels therefore names the
+/// work of its own key `l`.
 pub fn the_footer_of_a_panel(
     of_the_view: &str,
     the_frame_stands: bool,
-    the_views_hold_the_focus: bool,
+    the_focus: crate::ui::frame::ThePanel,
 ) -> String {
+    use crate::ui::frame::ThePanel;
+
     if !the_frame_stands {
         return of_the_view.to_string();
     }
 
-    if the_views_hold_the_focus {
-        return "j/k: move  l: open the view  h: the list  \
+    match the_focus {
+        ThePanel::TheViews => "j/k: move  l: open the view  h: the list  \
                 4/Ctrl+l: the list  ?: every key  Q: quit"
-            .to_string();
+            .to_string(),
+        ThePanel::TheSequence => "j/k: move  l: this sequence  h: the list  \
+                4/Ctrl+l: the list  ?: every key  Q: quit"
+            .to_string(),
+        ThePanel::TheFilter => "j/k: move  l: this filter  h: the list  \
+                4/Ctrl+l: the list  ?: every key  Q: quit"
+            .to_string(),
+        // **The footer of the panel 4 names the key `f` of the sequence and of
+        // the filter** (T-318): the key stood in the panel 1 and in no footer,
+        // and a user who cannot find a key has no key at all (the rule of T-143
+        // in reverse).
+        ThePanel::TheList => format!("{of_the_view}  f: sequence  1/Ctrl+h: the panels"),
     }
-
-    format!("{of_the_view}  1/Ctrl+h: the panel of the views")
 }
 
 /// The footer of the view of the search.

@@ -1539,7 +1539,7 @@ impl App {
         let text_render_footer = crate::ui::keys::the_footer_of_a_panel(
             of_the_view,
             self.the_stack_of_the_panels_stands(),
-            self.the_panel_of_the_focus == crate::ui::frame::ThePanel::TheViews,
+            self.the_panel_of_the_focus,
         );
         let text_render_footer = text_render_footer.as_str();
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
@@ -1661,7 +1661,7 @@ impl App {
         let text_render_footer = crate::ui::keys::the_footer_of_a_panel(
             of_the_view,
             self.the_stack_of_the_panels_stands(),
-            self.the_panel_of_the_focus == crate::ui::frame::ThePanel::TheViews,
+            self.the_panel_of_the_focus,
         );
         let text_render_footer = text_render_footer.as_str();
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
@@ -2548,6 +2548,39 @@ impl App {
             .centered()
             .render(area, buf);
 
+        // **The header keeps the words of the sequence and of the filter for a
+        // screen that draws no stack** (T-318, and the decision 3 of the road
+        // of the panels): the panel 2 and the panel 3 say those two values at
+        // 120 columns and up, and a terminal under that width held no word of
+        // them at all — the user read them in the view of the key `f` alone,
+        // and that view hides the list that it describes.
+        //
+        // The words stand on the second row of the header, at the middle, under
+        // the name of the library.
+        if !self.the_stack_of_the_panels_stands()
+            && matches!(self.view_state, AppView::Home | AppView::Library)
+            && !self.is_offline
+        {
+            let of_the_server = match crate::logic::sort_filter::from_the_server::state() {
+                crate::logic::sort_filter::from_the_server::State::Ready(choices) => choices,
+                _ => Vec::new(),
+            };
+
+            Paragraph::new(format!(
+                "\n{}",
+                crate::ui::the_panels_of_the_stack::the_words_of_the_sequence_and_the_filter(
+                    self.is_podcast,
+                    &self.library_sort,
+                    self.library_desc,
+                    &self.library_filter,
+                    &of_the_server,
+                )
+            ))
+            .not_bold()
+            .centered()
+            .render(area, buf);
+        }
+
         // **The address of the pool, and not the address of the login.** A pool
         // of two addresses moves between them, and the header named the address
         // that the user gave at the login for ever. See T-105 and T-107.
@@ -2666,10 +2699,11 @@ impl App {
     /// whole area back for a narrow terminal and it draws nothing at all: the
     /// screen of a terminal under 120 columns is the screen of today.
     ///
-    /// **The panel 1 alone stands in the stack today.** The panel 2 of the
-    /// sequence and the panel 3 of the filter come with T-318, and they divide
-    /// this column with it: a panel of a title and of no line at all is a text
-    /// that promises a function that the program does not have (T-118).
+    /// **The stack holds three panels** (T-318): the panel 1 of the views, the
+    /// panel 2 of the sequence, and the panel 3 of the filter. A stack that is
+    /// too short loses the panel 3 first and the panel 2 after it, and the
+    /// panel 1 keeps the rows that it needs
+    /// (`the_panels_of_the_stack::the_three_panels`).
     fn the_stack_of_the_panels(&mut self, main_area: Rect, buf: &mut Buffer) -> Rect {
         let (stack, work) = crate::ui::frame::the_stack_and_the_work(
             main_area,
@@ -2683,9 +2717,38 @@ impl App {
             // no cell of that screen at all.
             self.the_areas_of_the_mouse.the_panel_of_the_views = Rect::default();
             self.the_areas_of_the_mouse.the_lines_of_the_views = Rect::default();
+            self.the_areas_of_the_mouse.the_panel_of_the_sequence = Rect::default();
+            self.the_areas_of_the_mouse.the_lines_of_the_sequence = Rect::default();
+            self.the_areas_of_the_mouse.the_panel_of_the_filter = Rect::default();
+            self.the_areas_of_the_mouse.the_lines_of_the_filter = Rect::default();
 
             return work;
         };
+
+        let of_the_sequence = self.the_rows_of_the_panel_2();
+        let of_the_filter = crate::ui::the_panels_of_the_stack::the_rows_of_the_filter();
+
+        let (stack, the_sequence, the_filter) =
+            crate::ui::the_panels_of_the_stack::the_three_panels(
+                stack,
+                crate::ui::the_panels_of_the_stack::the_height_of_a_panel(of_the_sequence.len()),
+                crate::ui::the_panels_of_the_stack::the_height_of_a_panel(of_the_filter.len()),
+            );
+
+        self.render_a_panel_of_the_stack(
+            the_sequence,
+            crate::ui::frame::ThePanel::TheSequence,
+            "Sequence",
+            &of_the_sequence,
+            buf,
+        );
+        self.render_a_panel_of_the_stack(
+            the_filter,
+            crate::ui::frame::ThePanel::TheFilter,
+            "Filter",
+            &of_the_filter,
+            buf,
+        );
 
         let it_holds_the_focus =
             self.the_panel_of_the_focus == crate::ui::frame::ThePanel::TheViews;
@@ -2737,6 +2800,90 @@ impl App {
         self.the_areas_of_the_mouse.the_views = crate::ui::frame::THE_VIEWS.len();
 
         work
+    }
+
+    /// Draws the panel 2 of the sequence or the panel 3 of the filter, and it
+    /// writes the areas of that panel for the mouse. See T-318.
+    ///
+    /// **A panel with no area holds no cell of the screen at all**: the stack
+    /// of a terminal that is not tall loses the panel 3 first and the panel 2
+    /// after it, and a click of the mouse and a digit of the focus then name
+    /// nothing (T-79).
+    fn render_a_panel_of_the_stack(
+        &mut self,
+        area: Option<Rect>,
+        the_panel: crate::ui::frame::ThePanel,
+        name: &str,
+        rows: &[crate::logic::sort_filter::Row],
+        buf: &mut Buffer,
+    ) {
+        let Some(area) = area else {
+            self.the_areas_of_a_panel_of_the_stack(the_panel, Rect::default(), Rect::default(), 0);
+            return;
+        };
+
+        let it_holds_the_focus = self.the_panel_of_the_focus == the_panel;
+
+        let block = crate::ui::frame::a_panel(the_panel.the_number(), name, it_holds_the_focus);
+        let inner = block.inner(area);
+        block.render(area, buf);
+
+        let lines: Vec<ListItem> = crate::ui::the_panels_of_the_stack::the_lines_of_a_panel(
+            rows,
+            inner.width,
+            &self.library_sort,
+            self.library_desc,
+            &self.library_filter,
+        )
+        .into_iter()
+        .map(ListItem::new)
+        .collect();
+
+        // **The row of the cursor of a panel that does not hold the focus is
+        // quiet** (the section (c) of `docs/mockups/mockup-1.md`): one accent
+        // alone stands on the screen, and it belongs to the panel of the focus.
+        let of_the_cursor = if it_holds_the_focus {
+            Style::new()
+                .bg(crate::ui::theme::THE_ACCENT)
+                .fg(Color::Black)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::new().add_modifier(Modifier::BOLD)
+        };
+
+        let mut of_the_render = self.the_line_of_a_panel_of_the_stack(the_panel);
+
+        StatefulWidget::render(
+            List::new(lines)
+                .highlight_style(of_the_cursor)
+                .highlight_symbol("➤ ")
+                .highlight_spacing(HighlightSpacing::Always),
+            inner,
+            buf,
+            &mut of_the_render,
+        );
+
+        self.the_areas_of_a_panel_of_the_stack(the_panel, area, inner, rows.len());
+    }
+
+    /// Writes the areas of the last frame of the panel 2 or of the panel 3.
+    /// See T-318.
+    fn the_areas_of_a_panel_of_the_stack(
+        &mut self,
+        the_panel: crate::ui::frame::ThePanel,
+        area: Rect,
+        inner: Rect,
+        lines: usize,
+    ) {
+        if the_panel == crate::ui::frame::ThePanel::TheSequence {
+            self.the_areas_of_the_mouse.the_panel_of_the_sequence = area;
+            self.the_areas_of_the_mouse.the_lines_of_the_sequence = inner;
+            self.the_areas_of_the_mouse.the_sequences = lines;
+        } else {
+            self.the_areas_of_the_mouse.the_panel_of_the_filter = area;
+            self.the_areas_of_the_mouse.the_lines_of_the_filter = inner;
+            self.the_areas_of_the_mouse.the_filters = lines;
+        }
     }
 
     fn render_list(

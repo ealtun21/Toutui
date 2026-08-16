@@ -41,6 +41,39 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.149",
+        date: "16/08/2026",
+        body: &[
+            "Added:",
+            "- **The panel of the sequence and the panel of the filter stand \
+             beside the list now.** A terminal of 120 columns or more shows \
+             them under the panel of the views, at the left of the screen: \
+             the panel 2 holds the sequences of the library and the direction \
+             of them, and the panel 3 holds the places of your media. A mark \
+             says the choice that stands, therefore you read the sequence and \
+             the filter of the list while you read the list.",
+            "- **The keys `2` and `3` give the focus to those two panels**, \
+             and the keys `Ctrl+j` and `Ctrl+k` move the focus down and up in \
+             the stack. The keys `j`, `k`, `g`, and `G` move the line of the \
+             panel, the key `l` takes that line, and the key `h` gives the \
+             focus back to the list. A click of a row of a panel takes that \
+             row too.",
+            "- **The key `l` of a sequence that stands turns the direction of \
+             it**, therefore \"the newest first\" is one key.",
+            "- **A terminal that is not wide keeps the words of the sequence \
+             and of the filter in its header**, under the name of the \
+             library.",
+            "Changed:",
+            "- **The footer of the Home view and of the Library view names \
+             the key `f` of the sequence and of the filter.** That key stood \
+             in the panel of the views and in no footer.",
+            "- **A change of the sequence keeps the focus of the panel and \
+             the line of it.** The program asks the server again for a new \
+             sequence, and the focus went back to the list at each of those \
+             requests.",
+        ],
+    },
+    Entry {
         version: "0.8.148",
         date: "16/08/2026",
         body: &[
