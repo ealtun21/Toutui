@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.122.** The item T-293 belongs to this session. The
+**The newest release is v0.8.123.** The item T-294 belongs to this session. The
+item T-293 belongs to the session before it. The
 item T-292 belongs to the session before it. The
 item T-291 belongs to the session before it. The
 item T-290 belongs to the session before it. The
@@ -130,14 +131,90 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.122**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.123**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1342 of 1342** in 2.8 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1368 of 1368** in 17.1 seconds
+**1345 of 1345** in 2.9 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1371 of 1371** in 17.1 seconds
 with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
-gives no failure over its 152 binaries.
+gives no failure over its 153 binaries in four runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and twenty-third turn of 2026-08-16: the place of a book of a program that dies waits on the disk
+
+**The item: T-294.** T-292 and T-293 each left the candidate "the place of the
+reader of a program that dies reaches no machine at all. The box of the process
+goes away with a `SIGKILL` and with a machine that stops, and the row of
+`pending_progress` of T-212 is the shape of the answer", and the measurement of
+that condition gave the fault.
+
+**One release: v0.8.123.**
+
+**A box of the process goes away with the process.** T-292 gave the reader
+`src/logic/reader/the_place_that_waits.rs`, and T-293 gave that box one place
+for each media. The two roads of the end of T-292 hold a program that stops of
+its own will: the key `Q`, and the terminal that went away (T-271). A `SIGKILL`,
+a machine that stops, and a program that the machine killed for the memory hold
+neither of the two. **The head of that module said the fault itself**: "The
+reader holds no table of the disk, therefore that place goes away with this
+program."
+
+The measurement, of the real program v0.8.122 inside tmux against the sandbox,
+with `docs/harness/one_method_fails.py 13500 13399 requests.log
+PATCH:/api/me/progress` and the one address `http://127.0.0.1:13500` of the
+account (the trap 129). `Alice in Wonderland`
+(`8fda6e43-0728-46ad-98bc-4c8634e299ad`) stood at `ebookLocation
+toutui:the-place-of-the-start` and `ebookProgress 0`. The key `/` and the word
+`Alice`, the key `e`, two presses of the key `n` (`chapter 4 of 14 — 9%`), and
+the key `h` gave `The server did not take the place: The server reported a
+fault. Status 500.` A `kill -9` of that program then took the box away with no
+road of the end at all.
+
+| The program | The disk after the `kill -9` | The server after the start of the program after it |
+|---|---|---|
+| v0.8.122 | **no table of the reader at all** | **`toutui:the-place-of-the-start`, `ebookProgress 0`** |
+| The correction | one row of `pending_ebook_progress`, at `epubcfi(/6/8!/4/2/2/1:0)` and `fraction 0.09163083371618239` | `epubcfi(/6/8!/4/2/2/1:0)`, `ebookProgress 0.09163083371618239` |
+
+**The user read two chapters, the program died, and the server kept the place of
+the start on every machine of that account.**
+
+The correction is five files:
+
+1. `src/db/migrate.rs`: the version 10 of the schema makes
+   `pending_ebook_progress`, of `id_item`, `username`, `server`, `location`,
+   `fraction`, and `updated_at`. **The row of `pending_progress` of the audio
+   holds a moment in seconds, a length, and the mark of the end, and the request
+   of a book holds none of the three.** The key holds no episode, because a book
+   has none.
+2. `src/db/crud.rs`: `PendingEbookProgress`, `insert_pending_ebook_progress`,
+   `get_pending_ebook_progress`, and `delete_pending_ebook_progress`.
+3. `src/logic/reader/the_place_that_waits.rs`:
+   `the_place_of_this_book_waits_on_the_disk`,
+   `the_place_of_this_book_waits_no_more_on_the_disk`, and
+   `the_places_of_the_disk_go_to_the_server`. Each of the three **reads the
+   answer of its call of `crate::db::the_work_of_the_disk`** (T-207 and T-203),
+   and the words of a fault name the disk and the media (T-211).
+4. `src/app.rs`: the `Err` arm of the task of `send_the_place_of_the_reader`
+   writes the row, its `Ok` arm removes it, and the start of the program calls
+   the flush of that table after `flush_pending_progress`, before the lists and
+   before the first frame.
+5. `src/utils/the_terminal_that_went_away.rs`: the road of the terminal gives
+   the account and the server to the send of the end.
+
+**The road back of the corrected program**, of the same account and the same
+address: the proxy of the port 13500 came back with a rule that no request of
+the program holds, therefore `server_key` did not change. The log of the start
+then said `1 place(s) of a book wait for the server` and `the place of the book
+of the media 8fda6e43-… that waited on the disk went to the server`, and
+`SELECT count(*) FROM pending_ebook_progress` gave 0.
+
+The test is
+`tests/a_place_of_a_book_of_a_program_that_dies_waits_on_the_disk.rs`, of one
+function (T-144 and T-157), with a host of `wiremock` and a `tempfile::tempdir`
+of `XDG_CONFIG_HOME`. Two builds of the fault (the trap 147) fail it: the write
+of the disk of the `Err` arm gives `a place that the server refused must wait on
+the disk, and the disk held []`, and the removal of the row of the flush gives
+`a place that the server took must leave the disk`.
 
 ## The session of the hundred and twenty-second turn of 2026-08-16: the place of a book that the reader left stays for the end
 
@@ -16624,12 +16701,258 @@ machine at the line after it. **The program says no word of that send**
 program gave `epubcfi(/6/10!/4/2/2/1:0)` at `ebookProgress
 0.15643986516830732` on each of the two roads.
 
+## The session of the hundred and twenty-second turn of 2026-08-16: the place of a book that the reader left must not go away with a second book
+
+**The session of the hundred and twenty-second turn took the candidate
+"`self.reader` stays after the key `h`, and the round did not ask what
+happens when the user opens a second book after that", which T-292
+opened, and the measurement of it gave the fault** (T-293).
+
+**The box of the process of T-292 held one place for the whole program.**
+`App::say_the_place_of_the_reader_that_waits` of `src/app.rs` wrote that
+box at each turn of the loop of `src/main.rs`, and it wrote `None` when
+`self.reader` is `None` or when the reader wants no send. `get_the_book`
+of `src/app.rs` writes `self.reader = None` at its first line, before the
+task that opens the book runs. Therefore a user who left a book with the
+key `h` while the server refused that place, and who then opened a second
+book, lost the place of the first book at the next turn of the loop, and
+the program then stopped with no word of it.
+
+The measurement, of the real program v0.8.121 inside tmux against the
+sandbox, with `docs/harness/one_method_fails.py 13500 13399 requests.log
+PATCH:/api/me/progress` and the one address `http://127.0.0.1:13500` of
+the account (the trap 129). **The two books of the sandbox that hold an
+EPUB**: `Alice in Wonderland` (`8fda6e43-0728-46ad-98bc-4c8634e299ad`) and
+`A Long Test Book` (`9a671047-6146-4003-8510-d215db074a9c`), each at
+`ebookLocation toutui:the-place-of-the-start`. The key `/` and the word
+`Alice`, the key `e`, two presses of the key `n` (`chapter 4 of 14 — 9%`),
+and the key `h` gave `The server did not take the place: The server
+reported a fault. Status 500.` **The control of the same run**, of that
+one book, gave one line of the log at the key `Q`, of the media
+8fda6e43-… at `epubcfi(/6/8!/4/2/2/1:0)`. **The road of the fault**, of
+the same keys and then the key `e` of the second book and the key `h` of
+it, gave **one** line of the log at the key `Q`, of the media 9a671047-…
+alone, and the log of the proxy held no `PATCH` of Alice at all: the place
+of two chapters of Alice went away.
+
+The correction is two files. The box of
+`src/logic/reader/the_place_that_waits.rs` became a `Vec`, of one place
+for each media; `the_place_of_the_reader_goes_to_the_server` sends the
+place of each book, and a book whose place the server refuses stops no
+other book; and the new
+`the_loop_says_the_place_of_the_reader(place, the_book_of_the_server)`
+holds the decision of the loop, therefore a test calls it with no `App`.
+`src/app.rs` gives that function the place of the reader and
+`the_book_whose_place_the_server_holds`, and **a reader that went away is
+neither of the two**. The corrected program gave two lines of the log at
+the key `Q`. **The regression of the road of the user**: a proxy that
+forwards every request took the place of the proxy of the status 500
+before the key `Q`, and the server then held `epubcfi(/6/8!/4/2/2/1:0)` at
+`ebookProgress 0.09163083371618239` for Alice and
+`epubcfi(/6/6!/4/2/2/1:0)` at `ebookProgress 0.023925914837164403` for the
+second book.
+- **The box of the places has no limit of size** (T-293): a user who opens
+  many books whose places the server refuses gives the box one place for
+  each of them, and no road takes them out while the program stands.
+  **This is a candidate and not a measurement.**
+- **The place of the reader of a program that dies reaches no machine at
+  all** (T-292). The correction holds the two roads where the program stops
+  of its own will; a `SIGKILL` and a machine that stops leave the box of the
+  process with the place in it, and the reader has no table of the disk for
+  the program after it. **The row of `pending_progress` of T-212 is the
+  shape of the answer, and this is a candidate and not a measurement.**
+- **A place of the reader that the server did not take at the end goes away
+  with the program** (T-292): the box keeps it for a second road of the end,
+  and no second road comes. **This is a candidate and not a measurement.**
+- **A place of the reader that the key `h` did not send has no table of the
+  disk** (T-291). **This is a candidate and not a measurement.**
+- **The shape of T-291 and of T-292 is the shape of T-212 and of T-207**: a
+  caller that says that a value is safe before the machine took it. **Ask it
+  of every `tokio::spawn` of `src/app.rs` whose caller writes a state before
+  the task runs.**
+- **A percent of the server and a length of the program still come of two
+  different lengths** (T-290): the row and the live branches of
+  `the_place_of_the_panel` of `src/logic/the_panel_of_a_line.rs`, and the
+  line of the view of the queue. It holds a decision (T-241 and T-242).
+  **This is a candidate and not a measurement.**
+- **`convert_seconds` holds no guard of a length of 0** (T-290), and
+  `convert_seconds_for_prg` holds the guard of T-289 already. A sweep names
+  `collect_personalized_view.rs`, `collect_personalized_view_pod.rs`,
+  `collect_lists.rs`, `collect_series.rs`, and `collect_get_all_books.rs`.
+  **This is a candidate and not a measurement.**
+- **The reader accepts five keys that no footer of it names** (T-290): `Esc`
+  leaves the book, and `Esc`, `?`, and `Q` work while the table of contents
+  stands, and the key `e` stands in no footer at all. The rule of T-143 is
+  the other way. **This is a candidate and not a measurement.**
+- **The dead arm of a render stays open** (T-289), and **the line of
+  `src/player/engine/hls_file.rs:248` stays open** (T-288): that one needs
+  the book of xHE-AAC of the sandbox.
+- **Every candidate of the turns before this one stays open** (T-229 to
+  T-290): the block has a limit of size, therefore this turn names the new
+  candidates alone and it does not repeat that list.
+
+
+## The decisions of T-124 to T-200 that do not open again
+
+**This section stood in the block of the prompt, and the block reached its
+limit of size** (T-294): it held 99948 bytes with one turn in it, and the
+driver dies above 131072. The words are the words of the block, and the rule
+of each of them does not change. The block above holds the decisions of T-201
+and up, and the list of "Do not open these again" of it names this section.
+
+The program holds more than one account (T-124), the episodes of a podcast come
+when the user opens that podcast (T-126), **a request tries an address that
+holds the state `Down`** (T-128), **the refresh keeps the engine of the
+playback** (T-131), **a listening session belongs to one program** (T-140),
+**the limit of the cache of the ebooks comes of the file at the moment of the
+use** (T-142), **a close removes the row of that session alone** (T-145), **a
+media of a playback that did not start goes back to the front of the queue and
+the queue stops there** (T-146), **the disk is the truth of the queue**
+(T-147), **one program writes the files of one download** (T-148), **a
+download takes the address of the pool and it holds a limit of time** (T-149),
+**the key `X` takes the disk of a download and it takes no file of a download
+that runs** (T-150), **the key `X` of the queue says one sentence on both of
+its roads** (T-151), **an offline playback keeps its place for the server at
+each second** (T-152), **the cache of the ebooks keeps the book that a second
+window reads, and the cache may then stand above its limit** (T-153), and **the
+key `D` on a media that this program downloads already changes no byte of that
+download and it names this program** (T-154), and **the view of the accounts
+reads the disk at the moment of the use, and the mark of the account of the
+start never stands on nobody** (T-155), and **the key `X` removes no file of a
+media that a program of this account plays from the disk** (T-156), and **a
+playback of an account that stands in no row of the disk starts at once, and no
+wait of a playback stands longer than 30 seconds** (T-158), and **the program
+reads the accounts of the disk after every key, and a program whose account
+stands in no row starts again** (T-159), and **a line of the Home view whose
+media leaves the shelf Continue Listening goes to nobody, and the message
+names that media** (T-160), and **the cursor of the view of the queue holds a
+media and not a number of a line** (T-161), and **the line of the view of the
+chapters holds the playback that the user opened** (T-162), and **the key `b`
+of the view of the bookmarks writes a place of the media of that view alone**
+(T-163), and **a message that a rule of the loop writes belongs to its own
+view, and the answer of a key belongs to no view and it stands above them all**
+(T-164), and **the line of the view of the lists holds a collection or a
+playlist and not a number of a line** (T-165), and **the line of the view of
+the downloads of the server holds an episode of a podcast and not a number of a
+line** (T-166), and **a playback that did not start says why: the three faults
+of `play_media` each say one sentence, and that sentence names what the server
+said** (T-167), and **a request of a key that did not come back says why: the
+box of that fault belongs to the podcast or to the page of its own request**
+(T-168), and **the two views of the collections and of the playlists say what
+the server said, and the box of that fault belongs to one library** (T-169),
+and **the Home view, the view of the series, and the Library view each say what
+the server said of their own request of the start, and the sentence of a fault
+names a key that does the work of that fault** (T-170), and **an address that
+answers with a fault keeps the state `Down`, because a second address of the
+same server can answer that request, and the header of the program says that
+the server reports a fault and not that it does not answer** (T-171), and **a
+server that reports a fault at the first request of the program does not start
+the offline mode of T-25: the program says what the server said, and it stops
+with no line of its own source** (T-172), and **a login of an account that
+reaches no library writes no row of the database and it says that the server
+gave no library** (T-173), and **no screen of a field holds the lock of the
+standard output, because a hook of a panic of another thread writes to it**
+(T-174), and **a key that reads a state of the server writes nothing when that
+read came back with a fault: the status 404 is the answer of a media that
+never played, and every other fault stops the write** (T-175), and **the
+program reads the id, the name, and the media type of a library, and every
+other field of that answer takes a default** (T-176), and **the program reads
+the media of a position of `mediaProgress`, and every other field of that row
+takes a default: a row that names no media belongs to no line of any view,
+therefore it takes a line of the log and no word for the user** (T-177), and
+**the reader writes no place of a book whose place the server did not give:
+the status 404 is the answer of a book that the user never opened, and every
+other fault stops the send and says so** (T-178), and **a size of 0 of
+`metadata.size` is a size that the server did not give: the end of the answer is
+then the end of the file, a file of the disk with no `.part` needs no second
+request, and the bar of that download names no total** (T-179), and **a length of 0 of
+`duration` of an audio file is a length that the server did not give: the
+position of the user belongs to the first file of no length, a book of one
+file takes the length of the media of the session of its playback, and the row
+of the player says `N/A` for a length that the program does not have**
+(T-180), and **a file of `media.audioFiles` with no `ino` has no address,
+therefore the program makes no plan of that download and it names that file;
+and a book whose files do not each hold an `index` takes the sequence of the
+answer of the server** (T-181), and **a `currentTime` that the answer of the
+session does not hold is not the place 0: the program asks the server for the
+place of that media, the status 404 is the answer of a media that never
+played, and every other fault stops the playback; and a session that the
+answer of the server does not name is no session, therefore that playback does
+not start and the program says that the session of the server has no
+identity** (T-182), and **the program reads each device of an e-reader of
+`POST /api/authorize` apart: a device with no name, or with a name of no
+character, belongs to no line of the view and it takes a line of the log, and
+every other device of the server stays** (T-183), and **the position of a media
+of a live message holds the whole account: that list takes the place of the list
+before it, the key `R` empties it, and a message that holds no `mediaProgress`
+reaches neither list of that box — the message `init` is that message** (T-184),
+and **the store of the covers holds a value of the server for each item of the
+account, therefore the key `R` empties it: a request of a cover that came back
+with a fault is not an item with no cover, the status 404 is that item, and a
+fault stays in the store until that key because the render asks for a cover at
+each frame** (T-185), and **the name of a whole book belongs to a whole book: a
+download that fails leaves no part of a book on the disk, the key `X` reaches
+the `.part` of a program that died in the middle, and the limit of the cache of
+the ebooks counts the whole books alone** (T-186), and **the copy of the disk of
+a download is the book of the server: a file that left that book leaves the disk
+and the database with the next press of the key `D`, and a program of this
+account that plays that file from the disk keeps its bytes until the end of it**
+(T-187), and **the flush of the positions of the disk writes no place that it
+did not read: the status 404 of the read is the media that never played, a
+moment of 0 is a moment that the server did not give, every other fault keeps
+the row of the disk for the next attempt, and the read takes the path of the
+media of that row** (T-188), and **a place that the server did not take waits on
+the disk: the status 404 of a media that the server does not hold and the status
+400 of a request that the server refused are the two faults that mean "never",
+and every other fault keeps that place for a later attempt** (T-189), and **a
+shelf of the Home view with no name keeps its media: the line of it holds the
+identity of that shelf, and a shelf of neither takes a name of the program**
+(T-190), and **the program reads each library of the answer apart: a library
+with no name keeps its line and that line holds the id, and a library with no
+id or with no media type belongs to no line, because the program cannot ask
+the server for the media of it** (T-191), and **a collection, a playlist, and
+a media of one of them with no identity belong to no line: that id is the
+address of six keys, and a line of no address gives a request of no address**
+(T-192), and **a body of the audio that stops in the middle is not the end of
+the file: the size of the header `Content-Range` is the truth of the length,
+a body that stops before it takes the road of a connection that stopped, and a
+playlist of the type `VOD` that holds no `#EXT-X-ENDLIST` is a playlist that
+stopped** (T-193), and **a stream of the server that stopped before its last
+part is not the end of the media: the playlist is the truth of the length of
+that stream, a body of a part that is no whole number of packets of 188 bytes
+is a body that stopped, a body that did not come takes the twenty attempts of
+a part that did not come, and the program writes the place that it reached and
+it says why the media stopped** (T-194), and **a part of a stream that holds no
+packet of the audio is not a part of silence: the stream stops at that part, the
+program writes the place that the parts before it give, and a first part with no
+audio stops the playback before it starts and it names that part** (T-195), and
+**a body of an ebook that ends early and that looks whole is no book of the
+disk: the size of the file of the answer of the item is the truth of the length
+of a body that names none, a size of 0 is a size that the server did not give
+and the program then counts no byte, and the request of that size stands before
+the download** (T-196), and **a panic of a thread that is not the main thread
+stops the program: a program that lost a thread says that it does the work of
+that thread, the hook writes the fault in the log because the terminal of the
+user goes away with the next command of the shell, and a panic that a caller
+expects stops nothing** (T-197), and **a body of a cover that stopped is not
+the end of the picture: the store takes the fault and not the bytes of a part,
+and the log names the fault and the key `R`** (T-198), and **a fault of the
+database of the program is not a database with no account: a login that writes
+no row of the account is a login that failed and it says so, a read of the
+accounts that failed stops the program with words that name the database, and a
+read that failed keeps the account of the program and takes a line of the log**
+(T-199), and **a function of the database that got no connection gives a fault
+and it writes no word for the user: the rows of a download come together or the
+download is no download of this program, and a log out that removed no row is no
+log out** (T-200).
+
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.121**; `Cargo.toml` is at 0.8.121. The
+> AlbanDAVID/Toutui. Newest release **v0.8.123**; `Cargo.toml` is at 0.8.123. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -16638,7 +16961,7 @@ program gave `epubcfi(/6/10!/4/2/2/1:0)` at `ebookProgress
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-292 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-294 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -17340,7 +17663,7 @@ program gave `epubcfi(/6/10!/4/2/2/1:0)` at `ebookProgress
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-292 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-294 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
@@ -17458,92 +17781,94 @@ program gave `epubcfi(/6/10!/4/2/2/1:0)` at `ebookProgress
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and five sessions of one hundred
 >    and six.
->    **The session of the hundred and twenty-second turn took the candidate
->    "`self.reader` stays after the key `h`, and the round did not ask what
->    happens when the user opens a second book after that", which T-292
->    opened, and the measurement of it gave the fault** (T-293).
+>    **The session of the hundred and twenty-third turn took the candidate
+>    "the place of the reader of a program that dies reaches no machine at
+>    all", which T-292 and T-293 each left open, and the measurement of it
+>    gave the fault** (T-294).
 >
->    **The box of the process of T-292 held one place for the whole program.**
->    `App::say_the_place_of_the_reader_that_waits` of `src/app.rs` wrote that
->    box at each turn of the loop of `src/main.rs`, and it wrote `None` when
->    `self.reader` is `None` or when the reader wants no send. `get_the_book`
->    of `src/app.rs` writes `self.reader = None` at its first line, before the
->    task that opens the book runs. Therefore a user who left a book with the
->    key `h` while the server refused that place, and who then opened a second
->    book, lost the place of the first book at the next turn of the loop, and
->    the program then stopped with no word of it.
+>    **A box of the process goes away with the process.** T-292 gave the
+>    reader `src/logic/reader/the_place_that_waits.rs`, and T-293 gave that
+>    box one place for each media. The two roads of the end of T-292 hold a
+>    program that stops of its own will: the key `Q`, and the terminal that
+>    went away. A `SIGKILL`, a machine that stops, and a program that the
+>    machine killed for the memory hold neither of the two. The head of that
+>    module said the fault itself: "The reader holds no table of the disk,
+>    therefore that place goes away with this program."
 >
->    The measurement, of the real program v0.8.121 inside tmux against the
+>    The measurement, of the real program v0.8.122 inside tmux against the
 >    sandbox, with `docs/harness/one_method_fails.py 13500 13399 requests.log
 >    PATCH:/api/me/progress` and the one address `http://127.0.0.1:13500` of
->    the account (the trap 129). **The two books of the sandbox that hold an
->    EPUB**: `Alice in Wonderland` (`8fda6e43-0728-46ad-98bc-4c8634e299ad`) and
->    `A Long Test Book` (`9a671047-6146-4003-8510-d215db074a9c`), each at
->    `ebookLocation toutui:the-place-of-the-start`. The key `/` and the word
->    `Alice`, the key `e`, two presses of the key `n` (`chapter 4 of 14 — 9%`),
->    and the key `h` gave `The server did not take the place: The server
->    reported a fault. Status 500.` **The control of the same run**, of that
->    one book, gave one line of the log at the key `Q`, of the media
->    8fda6e43-… at `epubcfi(/6/8!/4/2/2/1:0)`. **The road of the fault**, of
->    the same keys and then the key `e` of the second book and the key `h` of
->    it, gave **one** line of the log at the key `Q`, of the media 9a671047-…
->    alone, and the log of the proxy held no `PATCH` of Alice at all: the place
->    of two chapters of Alice went away.
+>    the account (the trap 129). `Alice in Wonderland`
+>    (`8fda6e43-0728-46ad-98bc-4c8634e299ad`) at `ebookLocation
+>    toutui:the-place-of-the-start`. The key `/` and the word `Alice`, the key
+>    `e`, two presses of the key `n` (`chapter 4 of 14 — 9%`), and the key `h`
+>    gave `The server did not take the place: The server reported a fault.
+>    Status 500.` A `kill -9` of that program then took the box away with no
+>    road of the end at all, and **no table of `db.sqlite3` held one row of
+>    that media**. The server of the start of the program after it still held
+>    `toutui:the-place-of-the-start` at `ebookProgress 0`: **the user read two
+>    chapters, and the place of the start stood on every machine of that
+>    account.**
 >
->    The correction is two files. The box of
->    `src/logic/reader/the_place_that_waits.rs` became a `Vec`, of one place
->    for each media; `the_place_of_the_reader_goes_to_the_server` sends the
->    place of each book, and a book whose place the server refuses stops no
->    other book; and the new
->    `the_loop_says_the_place_of_the_reader(place, the_book_of_the_server)`
->    holds the decision of the loop, therefore a test calls it with no `App`.
->    `src/app.rs` gives that function the place of the reader and
->    `the_book_whose_place_the_server_holds`, and **a reader that went away is
->    neither of the two**. The corrected program gave two lines of the log at
->    the key `Q`. **The regression of the road of the user**: a proxy that
->    forwards every request took the place of the proxy of the status 500
->    before the key `Q`, and the server then held `epubcfi(/6/8!/4/2/2/1:0)` at
->    `ebookProgress 0.09163083371618239` for Alice and
->    `epubcfi(/6/6!/4/2/2/1:0)` at `ebookProgress 0.023925914837164403` for the
->    second book.
->    - **The box of the places has no limit of size** (T-293): a user who opens
->      many books whose places the server refuses gives the box one place for
->      each of them, and no road takes them out while the program stands.
->      **This is a candidate and not a measurement.**
->    - **The place of the reader of a program that dies reaches no machine at
->      all** (T-292). The correction holds the two roads where the program stops
->      of its own will; a `SIGKILL` and a machine that stops leave the box of the
->      process with the place in it, and the reader has no table of the disk for
->      the program after it. **The row of `pending_progress` of T-212 is the
->      shape of the answer, and this is a candidate and not a measurement.**
->    - **A place of the reader that the server did not take at the end goes away
->      with the program** (T-292): the box keeps it for a second road of the end,
->      and no second road comes. **This is a candidate and not a measurement.**
->    - **A place of the reader that the key `h` did not send has no table of the
->      disk** (T-291). **This is a candidate and not a measurement.**
->    - **The shape of T-291 and of T-292 is the shape of T-212 and of T-207**: a
->      caller that says that a value is safe before the machine took it. **Ask it
->      of every `tokio::spawn` of `src/app.rs` whose caller writes a state before
->      the task runs.**
+>    The correction is five files. `src/db/migrate.rs` holds the version 10 of
+>    the schema, and it makes `pending_ebook_progress` of `id_item`,
+>    `username`, `server`, `location`, `fraction`, and `updated_at`: **the row
+>    of `pending_progress` of the audio holds a moment in seconds, a length,
+>    and the mark of the end, and the request of a book holds none of the
+>    three.** `src/db/crud.rs` holds `PendingEbookProgress` and the three
+>    functions of that table. `the_place_that_waits.rs` holds
+>    `the_place_of_this_book_waits_on_the_disk`,
+>    `the_place_of_this_book_waits_no_more_on_the_disk`, and
+>    `the_places_of_the_disk_go_to_the_server`, and each of the three **reads
+>    the answer of its call of `crate::db::the_work_of_the_disk`** (T-207).
+>    `src/app.rs` writes the row at the `Err` arm of the task of
+>    `send_the_place_of_the_reader`, it removes the row at the `Ok` arm of it
+>    (T-211), and the start of the program calls the flush of that table after
+>    `flush_pending_progress` and before the lists.
+>    `src/utils/the_terminal_that_went_away.rs` gives the account and the
+>    server to the send of the end. **The corrected program**, of the same
+>    keys and the same `kill -9`, left one row of the disk at
+>    `epubcfi(/6/8!/4/2/2/1:0)`, and the start of the program after it said
+>    `1 place(s) of a book wait for the server` and it gave that place to the
+>    server at `ebookProgress 0.09163083371618239`, and the table then held no
+>    row.
+>    - **A program that dies inside the write of the row of the disk still
+>      loses that place** (T-294): the window is the moment between the answer
+>      of the server and the write. The audio playback of T-212 holds the same
+>      window. **This is a candidate and not a measurement.**
+>    - **A row of `pending_ebook_progress` of an account that logged out stays
+>      on the disk** (T-294): the log out of T-200 removes the rows of the
+>      account, and this round did not ask whether it names this table. **This
+>      is a candidate and not a measurement.**
+>    - **The offline mode writes no place of a book at all** (T-294): a user
+>      who reads a book of the cache of the ebooks while the server is away
+>      gives the reader a place that no request can take. **This is a
+>      candidate and not a measurement.**
+>    - **`self.should_exit` of `src/app.rs` takes no write of any road**
+>      (T-294): `src/main.rs` reads it to leave the loop of the screen, and the
+>      arm of the key `Q` stops the process with the `clean_exit` of the sync
+>      alone. **This is a candidate and not a measurement.**
+>    - **`move_the_media_of_the_list` of `src/app.rs` writes the new sequence
+>      of a list in `self.lists` before the server took it** (T-294, and the
+>      shape of T-291 and of T-207): a `PATCH` that fails asks the server for
+>      the list again, and a second fault of that read leaves the screen with a
+>      sequence that no server holds. **This is a candidate and not a
+>      measurement.**
+>    - **The reader accepts five keys that no footer of it names** (T-290, and
+>      a read of the source of T-294 confirms each): `Esc` of the reading view
+>      (`src/app.rs:6855`), and `Esc`, `?`, and `Q` while the table of contents
+>      stands, and the key `e` (`src/app.rs:6918`) in none of the four footers
+>      of `src/ui/reader_tui.rs`. **This is a candidate and not a measurement.**
+>    - **The box of the places has no limit of size** (T-293), and the table of
+>      the disk now holds one row for each of them too. **This is a candidate
+>      and not a measurement.**
 >    - **A percent of the server and a length of the program still come of two
->      different lengths** (T-290): the row and the live branches of
->      `the_place_of_the_panel` of `src/logic/the_panel_of_a_line.rs`, and the
->      line of the view of the queue. It holds a decision (T-241 and T-242).
->      **This is a candidate and not a measurement.**
->    - **`convert_seconds` holds no guard of a length of 0** (T-290), and
->      `convert_seconds_for_prg` holds the guard of T-289 already. A sweep names
->      `collect_personalized_view.rs`, `collect_personalized_view_pod.rs`,
->      `collect_lists.rs`, `collect_series.rs`, and `collect_get_all_books.rs`.
->      **This is a candidate and not a measurement.**
->    - **The reader accepts five keys that no footer of it names** (T-290): `Esc`
->      leaves the book, and `Esc`, `?`, and `Q` work while the table of contents
->      stands, and the key `e` stands in no footer at all. The rule of T-143 is
->      the other way. **This is a candidate and not a measurement.**
->    - **The dead arm of a render stays open** (T-289), and **the line of
->      `src/player/engine/hls_file.rs:248` stays open** (T-288): that one needs
->      the book of xHE-AAC of the sandbox.
+>      different lengths** (T-290), and **`convert_seconds` holds no guard of a
+>      length of 0** (T-290). **The dead arm of a render stays open** (T-289),
+>      and **the line of `src/player/engine/hls_file.rs:248` stays open**
+>      (T-288): that one needs the book of xHE-AAC of the sandbox.
 >    - **Every candidate of the turns before this one stays open** (T-229 to
->      T-290): the block has a limit of size, therefore this turn names the new
+>      T-293): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
 >
 >    **The turns before this one stand in `## The turns before the three
@@ -17598,151 +17923,10 @@ program gave `epubcfi(/6/10!/4/2/2/1:0)` at `ebookProgress
 > `episodes` of the search stays outside until a measurement gives one hit of it
 > (T-113). The words of a book of a scan of T-116 stay as they are. **The list of
 > the devices of an e-reader comes from `POST /api/authorize`** (T-119). The
-> program holds more than one account (T-124), the episodes of a podcast come
-> when the user opens that podcast (T-126), **a request tries an address that
-> holds the state `Down`** (T-128), **the refresh keeps the engine of the
-> playback** (T-131), **a listening session belongs to one program** (T-140),
-> **the limit of the cache of the ebooks comes of the file at the moment of the
-> use** (T-142), **a close removes the row of that session alone** (T-145), **a
-> media of a playback that did not start goes back to the front of the queue and
-> the queue stops there** (T-146), **the disk is the truth of the queue**
-> (T-147), **one program writes the files of one download** (T-148), **a
-> download takes the address of the pool and it holds a limit of time** (T-149),
-> **the key `X` takes the disk of a download and it takes no file of a download
-> that runs** (T-150), **the key `X` of the queue says one sentence on both of
-> its roads** (T-151), **an offline playback keeps its place for the server at
-> each second** (T-152), **the cache of the ebooks keeps the book that a second
-> window reads, and the cache may then stand above its limit** (T-153), and **the
-> key `D` on a media that this program downloads already changes no byte of that
-> download and it names this program** (T-154), and **the view of the accounts
-> reads the disk at the moment of the use, and the mark of the account of the
-> start never stands on nobody** (T-155), and **the key `X` removes no file of a
-> media that a program of this account plays from the disk** (T-156), and **a
-> playback of an account that stands in no row of the disk starts at once, and no
-> wait of a playback stands longer than 30 seconds** (T-158), and **the program
-> reads the accounts of the disk after every key, and a program whose account
-> stands in no row starts again** (T-159), and **a line of the Home view whose
-> media leaves the shelf Continue Listening goes to nobody, and the message
-> names that media** (T-160), and **the cursor of the view of the queue holds a
-> media and not a number of a line** (T-161), and **the line of the view of the
-> chapters holds the playback that the user opened** (T-162), and **the key `b`
-> of the view of the bookmarks writes a place of the media of that view alone**
-> (T-163), and **a message that a rule of the loop writes belongs to its own
-> view, and the answer of a key belongs to no view and it stands above them all**
-> (T-164), and **the line of the view of the lists holds a collection or a
-> playlist and not a number of a line** (T-165), and **the line of the view of
-> the downloads of the server holds an episode of a podcast and not a number of a
-> line** (T-166), and **a playback that did not start says why: the three faults
-> of `play_media` each say one sentence, and that sentence names what the server
-> said** (T-167), and **a request of a key that did not come back says why: the
-> box of that fault belongs to the podcast or to the page of its own request**
-> (T-168), and **the two views of the collections and of the playlists say what
-> the server said, and the box of that fault belongs to one library** (T-169),
-> and **the Home view, the view of the series, and the Library view each say what
-> the server said of their own request of the start, and the sentence of a fault
-> names a key that does the work of that fault** (T-170), and **an address that
-> answers with a fault keeps the state `Down`, because a second address of the
-> same server can answer that request, and the header of the program says that
-> the server reports a fault and not that it does not answer** (T-171), and **a
-> server that reports a fault at the first request of the program does not start
-> the offline mode of T-25: the program says what the server said, and it stops
-> with no line of its own source** (T-172), and **a login of an account that
-> reaches no library writes no row of the database and it says that the server
-> gave no library** (T-173), and **no screen of a field holds the lock of the
-> standard output, because a hook of a panic of another thread writes to it**
-> (T-174), and **a key that reads a state of the server writes nothing when that
-> read came back with a fault: the status 404 is the answer of a media that
-> never played, and every other fault stops the write** (T-175), and **the
-> program reads the id, the name, and the media type of a library, and every
-> other field of that answer takes a default** (T-176), and **the program reads
-> the media of a position of `mediaProgress`, and every other field of that row
-> takes a default: a row that names no media belongs to no line of any view,
-> therefore it takes a line of the log and no word for the user** (T-177), and
-> **the reader writes no place of a book whose place the server did not give:
-> the status 404 is the answer of a book that the user never opened, and every
-> other fault stops the send and says so** (T-178), and **a size of 0 of
-> `metadata.size` is a size that the server did not give: the end of the answer is
-> then the end of the file, a file of the disk with no `.part` needs no second
-> request, and the bar of that download names no total** (T-179), and **a length of 0 of
-> `duration` of an audio file is a length that the server did not give: the
-> position of the user belongs to the first file of no length, a book of one
-> file takes the length of the media of the session of its playback, and the row
-> of the player says `N/A` for a length that the program does not have**
-> (T-180), and **a file of `media.audioFiles` with no `ino` has no address,
-> therefore the program makes no plan of that download and it names that file;
-> and a book whose files do not each hold an `index` takes the sequence of the
-> answer of the server** (T-181), and **a `currentTime` that the answer of the
-> session does not hold is not the place 0: the program asks the server for the
-> place of that media, the status 404 is the answer of a media that never
-> played, and every other fault stops the playback; and a session that the
-> answer of the server does not name is no session, therefore that playback does
-> not start and the program says that the session of the server has no
-> identity** (T-182), and **the program reads each device of an e-reader of
-> `POST /api/authorize` apart: a device with no name, or with a name of no
-> character, belongs to no line of the view and it takes a line of the log, and
-> every other device of the server stays** (T-183), and **the position of a media
-> of a live message holds the whole account: that list takes the place of the list
-> before it, the key `R` empties it, and a message that holds no `mediaProgress`
-> reaches neither list of that box — the message `init` is that message** (T-184),
-> and **the store of the covers holds a value of the server for each item of the
-> account, therefore the key `R` empties it: a request of a cover that came back
-> with a fault is not an item with no cover, the status 404 is that item, and a
-> fault stays in the store until that key because the render asks for a cover at
-> each frame** (T-185), and **the name of a whole book belongs to a whole book: a
-> download that fails leaves no part of a book on the disk, the key `X` reaches
-> the `.part` of a program that died in the middle, and the limit of the cache of
-> the ebooks counts the whole books alone** (T-186), and **the copy of the disk of
-> a download is the book of the server: a file that left that book leaves the disk
-> and the database with the next press of the key `D`, and a program of this
-> account that plays that file from the disk keeps its bytes until the end of it**
-> (T-187), and **the flush of the positions of the disk writes no place that it
-> did not read: the status 404 of the read is the media that never played, a
-> moment of 0 is a moment that the server did not give, every other fault keeps
-> the row of the disk for the next attempt, and the read takes the path of the
-> media of that row** (T-188), and **a place that the server did not take waits on
-> the disk: the status 404 of a media that the server does not hold and the status
-> 400 of a request that the server refused are the two faults that mean "never",
-> and every other fault keeps that place for a later attempt** (T-189), and **a
-> shelf of the Home view with no name keeps its media: the line of it holds the
-> identity of that shelf, and a shelf of neither takes a name of the program**
-> (T-190), and **the program reads each library of the answer apart: a library
-> with no name keeps its line and that line holds the id, and a library with no
-> id or with no media type belongs to no line, because the program cannot ask
-> the server for the media of it** (T-191), and **a collection, a playlist, and
-> a media of one of them with no identity belong to no line: that id is the
-> address of six keys, and a line of no address gives a request of no address**
-> (T-192), and **a body of the audio that stops in the middle is not the end of
-> the file: the size of the header `Content-Range` is the truth of the length,
-> a body that stops before it takes the road of a connection that stopped, and a
-> playlist of the type `VOD` that holds no `#EXT-X-ENDLIST` is a playlist that
-> stopped** (T-193), and **a stream of the server that stopped before its last
-> part is not the end of the media: the playlist is the truth of the length of
-> that stream, a body of a part that is no whole number of packets of 188 bytes
-> is a body that stopped, a body that did not come takes the twenty attempts of
-> a part that did not come, and the program writes the place that it reached and
-> it says why the media stopped** (T-194), and **a part of a stream that holds no
-> packet of the audio is not a part of silence: the stream stops at that part, the
-> program writes the place that the parts before it give, and a first part with no
-> audio stops the playback before it starts and it names that part** (T-195), and
-> **a body of an ebook that ends early and that looks whole is no book of the
-> disk: the size of the file of the answer of the item is the truth of the length
-> of a body that names none, a size of 0 is a size that the server did not give
-> and the program then counts no byte, and the request of that size stands before
-> the download** (T-196), and **a panic of a thread that is not the main thread
-> stops the program: a program that lost a thread says that it does the work of
-> that thread, the hook writes the fault in the log because the terminal of the
-> user goes away with the next command of the shell, and a panic that a caller
-> expects stops nothing** (T-197), and **a body of a cover that stopped is not
-> the end of the picture: the store takes the fault and not the bytes of a part,
-> and the log names the fault and the key `R`** (T-198), and **a fault of the
-> database of the program is not a database with no account: a login that writes
-> no row of the account is a login that failed and it says so, a read of the
-> accounts that failed stops the program with words that name the database, and a
-> read that failed keeps the account of the program and takes a line of the log**
-> (T-199), and **a function of the database that got no connection gives a fault
-> and it writes no word for the user: the rows of a download come together or the
-> download is no download of this program, and a log out that removed no row is no
-> log out** (T-200), and **a playback that keeps no place does not start: the row
+> program holds more than one account (T-124). **The decisions of T-124 to
+> T-200 stand in `## The decisions of T-124 to T-200 that do not open again` of
+> `docs/HANDOVER.md`, outside this block, and each of them holds** (T-294).
+> And **a playback that keeps no place does not start: the row
 > of `listening_session` is the one copy of the place of the user for a program
 > that dies and the row of the player reads it, therefore a playback whose session
 > reached no disk closes the session of the server and it says why** (T-201), and
@@ -18092,7 +18276,11 @@ program gave `epubcfi(/6/10!/4/2/2/1:0)` at `ebookProgress
 > to the server: the reader holds no table of the disk, therefore the loop of
 > the application writes that place in a box of the process, and the key `Q` and
 > the terminal that went away each await that send before the program stops**
-> (T-292).
+> (T-292), and **the place of a book of a program that dies waits on the disk:
+> the table `pending_ebook_progress` of the version 10 of the schema holds the
+> place that the server refused, the start of the program after it sends every
+> row of that table, and a place that the server took leaves the disk**
+> (T-294).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
@@ -18113,8 +18301,11 @@ program gave `epubcfi(/6/10!/4/2/2/1:0)` at `ebookProgress
 > and seventeenth turn found it at 98191 bytes with two turns in it, it did the
 > same work, and the block then held 99820 bytes; the round of the hundred and
 > twenty-first found it at 99081 bytes with one turn in it, and it took that turn
-> out and it wrote its own. **A turn of many numbers is a turn that takes two
-> turns out.**
+> out and it wrote its own; the round of the hundred and twenty-third found it at
+> 99422 bytes with one turn in it, and it did the same work. **A turn of many
+> numbers is a turn that takes two turns out**, and **a block that stands above
+> 99000 bytes with one turn in it needs a part of the list of "Do not open these
+> again" in a section of its own, outside the block.**
 > A fact that a later round needs belongs in `docs/TAKEOVER-BACKLOG.md` or in a
 > section of this file that stands outside the block, and not in the block.
 >
