@@ -165,13 +165,6 @@ pub fn footer_of(contents_open: bool, holds_pages: bool) -> &'static str {
     }
 }
 
-/// The smallest number of rows of the footer of the reader.
-///
-/// The reader held two rows for its footer at every width, and a terminal that
-/// holds every key in one row keeps those two rows: a body of the book that
-/// grows by one row at 160 columns is a change that no fault asks for.
-const THE_ROWS_OF_THE_FOOTER: u16 = 2;
-
 /// Gives the number of rows of the footer of the reader.
 ///
 /// **The footer of the reader stands on the rows that it needs** (T-301). The
@@ -190,11 +183,10 @@ const THE_ROWS_OF_THE_FOOTER: u16 = 2;
 ///
 /// The function is pure, therefore a test needs no screen.
 pub fn the_rows_of_the_footer(text: &str, width: u16, rows_of_the_reader: u16) -> u16 {
-    let room = (rows_of_the_reader / 2).max(1);
-
-    crate::logic::message::the_rows_of_a_message(text, width)
-        .max(THE_ROWS_OF_THE_FOOTER)
-        .min(room.max(THE_ROWS_OF_THE_FOOTER).min(rows_of_the_reader))
+    // **The footer of every view of this program holds one rule** (T-302): the
+    // reader held this rule alone, and the footer of a list then lost its end
+    // at 40 columns.
+    crate::ui::keys::the_rows_of_a_footer(text, width, rows_of_the_reader)
 }
 
 /// Draws the footer of the reader.
@@ -393,7 +385,8 @@ mod tests {
                     // and it never holds fewer rows than the reader held before
                     // T-301.
                     assert!(
-                        (THE_ROWS_OF_THE_FOOTER..=rows_of_the_reader / 2).contains(&rows),
+                        (crate::ui::keys::THE_SMALLEST_FOOTER..=rows_of_the_reader / 2)
+                            .contains(&rows),
                         "the footer of {width} columns takes {rows} rows"
                     );
 
@@ -436,7 +429,10 @@ mod tests {
 
         // A width of 0 and a reader of no row give no panic at all, and a
         // reader that holds no row gives the footer none of them.
-        assert_eq!(the_rows_of_the_footer(keys, 0, 28), THE_ROWS_OF_THE_FOOTER);
+        assert_eq!(
+            the_rows_of_the_footer(keys, 0, 28),
+            crate::ui::keys::THE_SMALLEST_FOOTER
+        );
         assert_eq!(the_rows_of_the_footer(keys, 40, 0), 0);
         assert_eq!(the_rows_of_the_footer(keys, 40, 1), 1);
     }

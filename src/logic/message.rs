@@ -182,6 +182,14 @@ pub fn for_the_screen(view: AppView) -> Option<String> {
 /// The count follows the rule of `Wrap { trim: true }` of ratatui: a break comes
 /// at a space, and a word that is longer than the width takes rows of its own.
 /// The function is pure, therefore a test needs no screen. See T-297 and T-299.
+///
+/// **The spaces between two words keep their width** (T-302). The count read
+/// one space between two words, and every footer of this program holds **two**
+/// of them: the count then said that the footer of the Home view needs three
+/// rows of a terminal of 40 columns, and the render of ratatui took four. The
+/// key `Q: quit` stood outside the screen at the end of the third row. A wrap
+/// of `trim: true` takes the spaces of the start of a new row away, and it
+/// keeps every space that stands inside a row.
 pub fn the_rows_of_a_message(text: &str, width: u16) -> u16 {
     if text.trim().is_empty() || width == 0 {
         return 0;
@@ -190,18 +198,29 @@ pub fn the_rows_of_a_message(text: &str, width: u16) -> u16 {
     let width = usize::from(width);
     let mut rows = 1u16;
     let mut column = 0usize;
+    let mut spaces = 0usize;
 
-    for word in text.split_whitespace() {
+    for part in text.split_inclusive(char::is_whitespace) {
+        let word = part.trim_end();
+        let after = part.chars().count() - word.chars().count();
+
+        if word.is_empty() {
+            spaces += after;
+            continue;
+        }
+
         let length = word.chars().count();
 
         if column == 0 {
             column = length;
-        } else if column + 1 + length <= width {
-            column += 1 + length;
+        } else if column + spaces + length <= width {
+            column += spaces + length;
         } else {
             rows = rows.saturating_add(1);
             column = length;
         }
+
+        spaces = after;
 
         while column > width {
             rows = rows.saturating_add(1);

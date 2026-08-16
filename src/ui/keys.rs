@@ -568,6 +568,101 @@ pub const FOOTER_OF_THE_LISTS_THAT_TAKE_A_MEDIA: &str =
 pub const FOOTER_OF_THE_DEVICES_OF_AN_EREADER: &str =
     "j/k: move  l: send the book  h: back  ?: every key  Q: quit";
 
+/// The footer of the view of the accounts.
+///
+/// **The text held a `\n` and it stood in `src/ui/tui.rs`** (T-302), therefore
+/// the gate of this module never read it, and the row of that `\n` did the work
+/// of the wrap. The words of the log out stand in the text of the view
+/// (`THE_ACCOUNTS`): the footer names the keys.
+pub const FOOTER_OF_THE_ACCOUNTS: &str = "h: back, a: add an account, \
+     c: this account starts, l/→: log out, Tab: home, R: refresh, Q/Esc: quit.";
+
+/// The footer of the view that chooses the library. See T-302.
+pub const FOOTER_OF_THE_LIBRARY_OF_THE_USER: &str =
+    "h: back, l/→: change library, Tab: home, R: refresh, Q/Esc: quit.";
+
+/// The footer of the view of the statistics of the user.
+///
+/// The text stood in `render_stats` of `src/ui/tui.rs`, therefore the gate of
+/// this module never read it. See T-302.
+pub const FOOTER_OF_THE_STATISTICS: &str =
+    "j/k: move  T: ask the server again  h: back  ?: every key  Q: quit";
+
+/// The footer of the view of the sessions of the user. See T-302.
+pub const FOOTER_OF_THE_SESSIONS: &str =
+    "j/k: move  W: ask the server again  h: back  ?: every key  Q: quit";
+
+/// The footer of the view that adds a podcast to the library. See T-302.
+pub const FOOTER_OF_A_NEW_PODCAST: &str =
+    "j/k: move  l: add the podcast  A: other words  h: back  ?: every key  Q: quit";
+
+/// Every footer of a view of this program, for the gates of this module.
+///
+/// **A footer that stands outside this list stands outside every gate**
+/// (T-302): the footers of the statistics, of the sessions, of a new podcast,
+/// of the accounts, and of the library of the user stood in `src/ui/tui.rs`,
+/// and two of them held a `\n` that did the work of the wrap. The footers of a
+/// `footer_with` stand in the gates beside this list, because that function
+/// makes its text of the view.
+pub const THE_FOOTERS_OF_THE_VIEWS: &[&str] = &[
+    FOOTER_OF_THE_KEYS,
+    FOOTER_OF_THE_SEARCH,
+    FOOTER_OF_THE_DOWNLOADS,
+    FOOTER_OF_A_LIBRARY_OF_BOOKS,
+    FOOTER_OF_A_LIBRARY_OF_PODCASTS,
+    FOOTER_OF_A_LIST,
+    FOOTER_OF_A_LIST_OF_MEDIA,
+    FOOTER_OF_A_FAULT,
+    FOOTER_OF_THE_LISTS_THAT_TAKE_A_MEDIA,
+    FOOTER_OF_THE_LISTS,
+    FOOTER_OF_THE_MEDIA_OF_A_LIST,
+    FOOTER_OF_THE_DEVICES_OF_AN_EREADER,
+    FOOTER_OF_THE_STATISTICS,
+    FOOTER_OF_THE_SESSIONS,
+    FOOTER_OF_A_NEW_PODCAST,
+    FOOTER_OF_THE_ACCOUNTS,
+    FOOTER_OF_THE_LIBRARY_OF_THE_USER,
+    FOOTER_OF_THE_READER,
+    FOOTER_OF_THE_READER_OF_PAGES,
+    FOOTER_OF_THE_CONTENTS,
+    FOOTER_OF_THE_PAGES,
+];
+
+/// The smallest number of rows of a footer.
+///
+/// Every view of this program held two rows for its footer at every width, and
+/// a terminal that holds every key in one row keeps those two rows: a view that
+/// grows by one row at 160 columns is a change that no fault asks for.
+pub const THE_SMALLEST_FOOTER: u16 = 2;
+
+/// Gives the number of rows that a footer needs.
+///
+/// **A footer stands on the rows that it needs** (T-301 for the reader, and
+/// T-302 for every other view). The footer of a view held two rows at every
+/// width, and a terminal of 40 columns holds 80 cells in them: the Home view of
+/// the measurement of 2026-08-16 said `j/k: move  l: play or open  Tab:
+/// home/library  S-Tab: the next library` and no more, therefore the user read
+/// no key of the search, of the refresh, of the table of the keys, and of the
+/// quit.
+///
+/// That is the rule of T-299 for the row of the message of a view: the text
+/// takes the rows that its wrap needs, and it grows over the view. A list of a
+/// view loses a line, and no line of a list goes out of the reach of the user,
+/// because the key `j` moves the list.
+///
+/// **The footer must not take the view**: it holds no more than one half of the
+/// rows of the view, and a footer that needs more than that loses its end to
+/// three points (`crate::logic::message::in_the_rows`).
+///
+/// The function is pure, therefore a test needs no screen.
+pub fn the_rows_of_a_footer(text: &str, width: u16, rows_of_the_view: u16) -> u16 {
+    let room = (rows_of_the_view / 2).max(1);
+
+    crate::logic::message::the_rows_of_a_message(text, width)
+        .max(THE_SMALLEST_FOOTER)
+        .min(room.max(THE_SMALLEST_FOOTER).min(rows_of_the_view))
+}
+
 /// The text of the Home view that holds no shelf. See T-103.
 pub const THE_HOME_VIEW_WITH_NO_LINE: &str = "The server gave no shelf for this library.\n\
      Press Tab for the Library, and R to ask the server again.";
@@ -809,6 +904,18 @@ pub const THE_TEXTS_OF_THE_VIEWS: &[&str] = &[
 mod tests {
     use super::*;
 
+    /// The footers that a view makes with `footer_with`, for the gates of the
+    /// footers. See T-302.
+    fn the_footers_that_a_view_makes() -> [String; 5] {
+        [
+            footer_with("play it now", Some("take it out")),
+            footer_with("go to the place", Some("remove the bookmark")),
+            footer_with("go to the chapter", None),
+            footer_with("read this book", None),
+            footer_with("write this value in config.toml", None),
+        ]
+    }
+
     /// One line of a view is "1 item", and not "1 items". See T-85.
     #[test]
     fn the_title_of_a_view_names_one_line_in_the_singular() {
@@ -1017,48 +1124,97 @@ mod tests {
     /// terminal of 80 columns, on two rows. See T-90 and T-109.
     #[test]
     fn every_footer_fits_in_eighty_columns() {
-        /// The largest number of characters of a footer.
-        ///
-        /// The area holds two rows of the width of the terminal. A terminal of
-        /// 80 columns therefore holds 160 cells, and this value leaves room for
-        /// the words that the wrap moves to the second row.
-        const THE_WIDEST_FOOTER: usize = 130;
-
-        let footers = [
-            FOOTER_OF_THE_KEYS,
-            FOOTER_OF_THE_SEARCH,
-            FOOTER_OF_THE_DOWNLOADS,
-            FOOTER_OF_A_LIBRARY_OF_BOOKS,
-            FOOTER_OF_A_LIBRARY_OF_PODCASTS,
-            FOOTER_OF_A_LIST,
-            FOOTER_OF_A_LIST_OF_MEDIA,
-            FOOTER_OF_A_FAULT,
-            FOOTER_OF_THE_LISTS_THAT_TAKE_A_MEDIA,
-            FOOTER_OF_THE_LISTS,
-            FOOTER_OF_THE_MEDIA_OF_A_LIST,
-        ];
+        // **The gate measures the rows of the wrap, and not a count of
+        // characters** (T-302). A count of 130 characters stood here before,
+        // and it said nothing of the widths that the wrap of the words meets.
+        let footers: Vec<String> = THE_FOOTERS_OF_THE_VIEWS
+            .iter()
+            .map(|one| one.to_string())
+            .chain(the_footers_that_a_view_makes())
+            .collect();
 
         for footer in footers {
-            let width = footer.chars().count();
-            assert!(
-                width <= THE_WIDEST_FOOTER,
-                "the footer of {} characters is too wide: {}",
-                width,
-                footer
-            );
             assert!(
                 !footer.contains('\n'),
-                "a footer holds one line: {}",
+                "a footer holds one line, and the wrap of the view makes its rows: {}",
+                footer
+            );
+
+            let rows = the_rows_of_a_footer(&footer, 80, 45);
+
+            assert!(
+                rows <= THE_SMALLEST_FOOTER,
+                "the footer takes {} rows of a terminal of 80 columns: {}",
+                rows,
                 footer
             );
         }
+    }
 
-        assert!(
-            footer_with("play it now", Some("take it out"))
-                .chars()
-                .count()
-                <= THE_WIDEST_FOOTER
+    /// A footer that is longer than two rows of the terminal takes the rows
+    /// that it needs.
+    ///
+    /// **The measurement of T-302**, of the real program v0.8.130 inside tmux
+    /// against the sandbox, in a terminal of 40 columns and 30 rows: the Home
+    /// view said `j/k: move  l: play or open  Tab: home/library  S-Tab: the
+    /// next library` on its two rows, and the keys `/: search`, `R: refresh`,
+    /// `?: every key`, and `Q: quit` stood outside the screen. The view of the
+    /// search lost `Q: quit`.
+    #[test]
+    fn a_footer_of_a_narrow_terminal_takes_the_rows_that_it_needs() {
+        // 116 characters. Two rows of 40 columns hold 80 cells.
+        let keys = FOOTER_OF_A_LIBRARY_OF_BOOKS;
+
+        assert_eq!(
+            the_rows_of_a_footer(keys, 40, 30),
+            4,
+            "the footer of the Home view needs four rows at 40 columns"
         );
+
+        // A terminal that holds the whole footer in two rows keeps two rows: a
+        // view that loses a line at 160 columns is a change that no fault asks
+        // for.
+        assert_eq!(the_rows_of_a_footer(keys, 80, 45), THE_SMALLEST_FOOTER);
+        assert_eq!(the_rows_of_a_footer(keys, 160, 45), THE_SMALLEST_FOOTER);
+
+        // **The footer must not take the view**: one half of the rows, and no
+        // more.
+        assert_eq!(the_rows_of_a_footer(keys, 10, 12), 6);
+
+        // A view of few rows gives the floor, and a width of 0 gives it too.
+        assert_eq!(the_rows_of_a_footer(keys, 10, 2), THE_SMALLEST_FOOTER);
+        assert_eq!(the_rows_of_a_footer(keys, 0, 30), THE_SMALLEST_FOOTER);
+    }
+
+    /// Every footer of a view stands whole in a terminal of 40 columns.
+    ///
+    /// The narrowest terminal that a measurement of this fork uses is 40
+    /// columns (T-300, T-301, and T-302). A view of 30 rows gives its footer no
+    /// more than 15 of them, therefore a footer of no more than 600 characters
+    /// stands whole there. This gate holds the class: a footer that grows past
+    /// the room of the narrowest terminal loses its end to three points, and
+    /// the user then reads no key of the road back.
+    #[test]
+    fn every_footer_of_a_view_stands_whole_in_forty_columns() {
+        /// The rows of the narrowest terminal that this fork measures.
+        const ROWS: u16 = 30;
+
+        let footers: Vec<String> = THE_FOOTERS_OF_THE_VIEWS
+            .iter()
+            .map(|one| one.to_string())
+            .chain(the_footers_that_a_view_makes())
+            .collect();
+
+        for footer in footers {
+            let rows = the_rows_of_a_footer(&footer, 40, ROWS);
+
+            assert_eq!(
+                crate::logic::message::in_the_rows(&footer, 40, rows),
+                footer,
+                "the footer loses its end in a terminal of 40 columns: {}",
+                footer
+            );
+        }
     }
 
     /// The footers of the reader hold one line, and they fit in the rows that

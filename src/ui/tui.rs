@@ -16,8 +16,12 @@ use ratatui::{
 };
 use ratatui_image::StatefulImage;
 
-/// The number of rows of the footer of every view.
-const FOOTER_HEIGHT: u16 = 2;
+/// The smallest number of rows of the footer of a view.
+///
+/// **A footer stands on the rows that it needs** (T-302): this is the floor of
+/// `crate::ui::keys::the_rows_of_a_footer`, and no view holds fewer rows than
+/// the two that every view held before.
+const FOOTER_HEIGHT: u16 = crate::ui::keys::THE_SMALLEST_FOOTER;
 
 /// The number of rows of the header of every view.
 ///
@@ -60,6 +64,10 @@ impl Widget for &mut App {
 
         // The episodes of the podcast that the user opened came. See T-126.
         self.take_the_episodes_that_came();
+
+        // The view of this frame writes the rows of its footer (T-302). A view
+        // that draws no footer keeps the two rows that every view held.
+        self.rows_of_the_footer = FOOTER_HEIGHT;
 
         match self.view_state {
             AppView::Home => self.render_home(area, buf),
@@ -119,7 +127,14 @@ impl Widget for &mut App {
 /// The row above the footer stays at every moment: `render_the_message` writes
 /// the message of the program there, and a view that takes that row loses its
 /// last line for the six seconds of a message (the trap 39).
-fn the_areas_of_a_view(area: Rect, a_media_plays: bool) -> [Rect; 3] {
+///
+/// **The footer stands on the rows that it needs** (T-302), therefore the caller
+/// measures its own text with `crate::ui::keys::the_rows_of_a_footer` and it
+/// gives the answer here. A footer of more than two rows grows upward over the
+/// work of the view, in the same way as the message of T-299: a list of the
+/// view loses a line, and the key `j` moves the list, therefore no line of it
+/// goes out of the reach of the user.
+fn the_areas_of_a_view(area: Rect, a_media_plays: bool, rows_of_the_footer: u16) -> [Rect; 3] {
     let rows_of_the_player = if a_media_plays { PLAYER_HEIGHT } else { 0 };
 
     let [header_area, main_area, _player_area, _message_area, footer_area] = Layout::vertical([
@@ -127,7 +142,7 @@ fn the_areas_of_a_view(area: Rect, a_media_plays: bool) -> [Rect; 3] {
         Constraint::Fill(1),
         Constraint::Length(rows_of_the_player),
         Constraint::Length(1),
-        Constraint::Length(FOOTER_HEIGHT),
+        Constraint::Length(rows_of_the_footer),
     ])
     .areas(area);
 
@@ -206,11 +221,14 @@ impl App {
         // screen that holds no such row draws no message.
         let rows_that_it_needs = crate::logic::message::the_rows_of_a_message(&text, area.width);
 
+        // **The footer of this frame stands on the rows that it needs**
+        // (T-302), therefore the message reads the number that the view wrote
+        // and not a fixed one.
         let Some((y, rows)) = crate::logic::message::the_place_of_a_message(
             area.y,
             area.height,
             HEADER_HEIGHT,
-            FOOTER_HEIGHT,
+            self.rows_of_the_footer.max(FOOTER_HEIGHT),
             rows_that_it_needs,
         ) else {
             return;
@@ -606,10 +624,14 @@ impl App {
         // names no key looks like a program that stopped: the user of
         // 2026-08-11 had to start the program again. See T-52.
         if self.reader.is_none() {
+            // **The footer stands on the rows that it needs** (T-302).
+            let text_render_footer = crate::ui::keys::FOOTER_OF_A_FAULT;
+            let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+
             let [header_area, main_area, footer_area] = Layout::vertical([
                 Constraint::Length(2),
                 Constraint::Fill(1),
-                Constraint::Length(2),
+                Constraint::Length(rows_of_the_footer),
             ])
             .areas(area);
 
@@ -619,7 +641,7 @@ impl App {
                 .unwrap_or_else(|| "No book is open.".to_string());
 
             self.render_header(header_area, buf);
-            App::render_footer(footer_area, buf, crate::ui::keys::FOOTER_OF_A_FAULT);
+            App::render_footer(footer_area, buf, text_render_footer);
 
             Paragraph::new(message)
                 .centered()
@@ -734,19 +756,20 @@ impl App {
 impl App {
     /// AppView::Stats rendering
     fn render_stats(&mut self, area: Rect, buf: &mut Buffer) {
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_STATISTICS;
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+
         let [header_area, main_area, footer_area] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Fill(1),
-            Constraint::Length(2),
+            Constraint::Length(rows_of_the_footer),
         ])
         .areas(area);
 
         self.render_header(header_area, buf);
-        App::render_footer(
-            footer_area,
-            buf,
-            "j/k: move  T: ask the server again  h: back  ?: every key  Q: quit",
-        );
+        App::render_footer(footer_area, buf, text_render_footer);
 
         // The task of the request writes the answer, and the screen takes it
         // here. The screen never waits for the server.
@@ -767,19 +790,20 @@ impl App {
 impl App {
     /// AppView::Sessions rendering
     fn render_sessions(&mut self, area: Rect, buf: &mut Buffer) {
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_SESSIONS;
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+
         let [header_area, main_area, footer_area] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Fill(1),
-            Constraint::Length(2),
+            Constraint::Length(rows_of_the_footer),
         ])
         .areas(area);
 
         self.render_header(header_area, buf);
-        App::render_footer(
-            footer_area,
-            buf,
-            "j/k: move  W: ask the server again  h: back  ?: every key  Q: quit",
-        );
+        App::render_footer(footer_area, buf, text_render_footer);
 
         let state = crate::logic::sessions_view::state();
 
@@ -871,11 +895,20 @@ impl App {
 impl App {
     /// AppView::Authors rendering
     fn render_authors(&mut self, area: Rect, buf: &mut Buffer) {
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        // The view holds the authors or the narrators, and the title says which
+        // list it holds. See T-73.
+        let kind = crate::logic::authors::kind();
+        let text_render_footer =
+            crate::ui::keys::footer_with(kind.work_of_the_key_that_opens(), None);
+        let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
+
         let [header_area, main_area, item_area, footer_area] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Fill(1),
             Constraint::Length(4),
-            Constraint::Length(2),
+            Constraint::Length(rows_of_the_footer),
         ])
         .areas(area);
 
@@ -903,11 +936,7 @@ impl App {
         };
 
         self.render_header(header_area, buf);
-        App::render_footer(
-            footer_area,
-            buf,
-            &crate::ui::keys::footer_with(kind.work_of_the_key_that_opens(), None),
-        );
+        App::render_footer(footer_area, buf, &text_render_footer);
         self.render_list(
             main_area,
             buf,
@@ -936,11 +965,16 @@ impl App {
 impl App {
     /// AppView::PutInAList rendering
     fn render_put_in_a_list(&mut self, area: Rect, buf: &mut Buffer) {
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_LISTS_THAT_TAKE_A_MEDIA;
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+
         let [header_area, main_area, item_area, footer_area] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Fill(1),
             Constraint::Length(4),
-            Constraint::Length(2),
+            Constraint::Length(rows_of_the_footer),
         ])
         .areas(area);
 
@@ -971,11 +1005,7 @@ impl App {
         let lines: Vec<String> = self.lists.iter().map(|list| list.line()).collect();
 
         self.render_header(header_area, buf);
-        App::render_footer(
-            footer_area,
-            buf,
-            crate::ui::keys::FOOTER_OF_THE_LISTS_THAT_TAKE_A_MEDIA,
-        );
+        App::render_footer(footer_area, buf, text_render_footer);
         self.render_list(
             main_area,
             buf,
@@ -994,11 +1024,16 @@ impl App {
 impl App {
     /// AppView::SendToEreader rendering
     fn render_the_devices_of_an_ereader(&mut self, area: Rect, buf: &mut Buffer) {
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_DEVICES_OF_AN_EREADER;
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+
         let [header_area, main_area, item_area, footer_area] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Fill(1),
             Constraint::Length(4),
-            Constraint::Length(2),
+            Constraint::Length(rows_of_the_footer),
         ])
         .areas(area);
 
@@ -1043,11 +1078,7 @@ impl App {
         };
 
         self.render_header(header_area, buf);
-        App::render_footer(
-            footer_area,
-            buf,
-            crate::ui::keys::FOOTER_OF_THE_DEVICES_OF_AN_EREADER,
-        );
+        App::render_footer(footer_area, buf, text_render_footer);
         self.render_list(
             main_area,
             buf,
@@ -1073,11 +1104,16 @@ impl App {
             self.ask_for_the_downloads();
         }
 
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_DOWNLOADS;
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+
         let [header_area, main_area, item_area, footer_area] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Fill(1),
             Constraint::Length(4),
-            Constraint::Length(2),
+            Constraint::Length(rows_of_the_footer),
         ])
         .areas(area);
 
@@ -1103,7 +1139,7 @@ impl App {
         };
 
         self.render_header(header_area, buf);
-        App::render_footer(footer_area, buf, crate::ui::keys::FOOTER_OF_THE_DOWNLOADS);
+        App::render_footer(footer_area, buf, text_render_footer);
         self.render_list(
             main_area,
             buf,
@@ -1122,11 +1158,16 @@ impl App {
 impl App {
     /// AppView::Ebooks rendering
     fn render_the_ebooks(&mut self, area: Rect, buf: &mut Buffer) {
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::footer_with("read this book", None);
+        let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
+
         let [header_area, main_area, item_area, footer_area] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Fill(1),
             Constraint::Length(4),
-            Constraint::Length(2),
+            Constraint::Length(rows_of_the_footer),
         ])
         .areas(area);
 
@@ -1149,11 +1190,7 @@ impl App {
         };
 
         self.render_header(header_area, buf);
-        App::render_footer(
-            footer_area,
-            buf,
-            &crate::ui::keys::footer_with("read this book", None),
-        );
+        App::render_footer(footer_area, buf, &text_render_footer);
         self.render_list(
             main_area,
             buf,
@@ -1177,11 +1214,16 @@ impl App {
 impl App {
     /// AppView::NewPodcast rendering
     fn render_new_podcast(&mut self, area: Rect, buf: &mut Buffer) {
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::FOOTER_OF_A_NEW_PODCAST;
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+
         let [header_area, main_area, item_area, footer_area] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Fill(1),
             Constraint::Length(4),
-            Constraint::Length(2),
+            Constraint::Length(rows_of_the_footer),
         ])
         .areas(area);
 
@@ -1212,11 +1254,7 @@ impl App {
         };
 
         self.render_header(header_area, buf);
-        App::render_footer(
-            footer_area,
-            buf,
-            "j/k: move  l: add the podcast  A: other words  h: back  ?: every key  Q: quit",
-        );
+        App::render_footer(footer_area, buf, text_render_footer);
         self.render_list(
             main_area,
             buf,
@@ -1248,10 +1286,16 @@ impl App {
 impl App {
     /// AppView::Bookmarks rendering
     fn render_bookmarks(&mut self, area: Rect, buf: &mut Buffer) {
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer =
+            crate::ui::keys::footer_with("go to the place", Some("remove the bookmark"));
+        let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
+
         let [header_area, main_area, footer_area] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Fill(1),
-            Constraint::Length(2),
+            Constraint::Length(rows_of_the_footer),
         ])
         .areas(area);
 
@@ -1296,11 +1340,7 @@ impl App {
         };
 
         self.render_header(header_area, buf);
-        App::render_footer(
-            footer_area,
-            buf,
-            &crate::ui::keys::footer_with("go to the place", Some("remove the bookmark")),
-        );
+        App::render_footer(footer_area, buf, &text_render_footer);
         self.render_list(
             main_area,
             buf,
@@ -1315,10 +1355,15 @@ impl App {
 impl App {
     /// AppView::Queue rendering
     fn render_queue(&mut self, area: Rect, buf: &mut Buffer) {
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::footer_with("play it now", Some("take it out"));
+        let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
+
         let [header_area, main_area, footer_area] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Fill(1),
-            Constraint::Length(2),
+            Constraint::Length(rows_of_the_footer),
         ])
         .areas(area);
 
@@ -1332,11 +1377,7 @@ impl App {
         };
 
         self.render_header(header_area, buf);
-        App::render_footer(
-            footer_area,
-            buf,
-            &crate::ui::keys::footer_with("play it now", Some("take it out")),
-        );
+        App::render_footer(footer_area, buf, &text_render_footer);
         self.render_list(
             main_area,
             buf,
@@ -1351,10 +1392,15 @@ impl App {
 impl App {
     /// AppView::Chapters rendering
     fn render_chapters(&mut self, area: Rect, buf: &mut Buffer) {
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::footer_with("go to the chapter", None);
+        let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
+
         let [header_area, main_area, footer_area] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Fill(1),
-            Constraint::Length(2),
+            Constraint::Length(rows_of_the_footer),
         ])
         .areas(area);
 
@@ -1373,11 +1419,7 @@ impl App {
         );
 
         self.render_header(header_area, buf);
-        App::render_footer(
-            footer_area,
-            buf,
-            &crate::ui::keys::footer_with("go to the chapter", None),
-        );
+        App::render_footer(footer_area, buf, &text_render_footer);
         self.render_list(
             main_area,
             buf,
@@ -1392,10 +1434,15 @@ impl App {
 impl App {
     /// AppView::SortFilter rendering
     fn render_sort_filter(&mut self, area: Rect, buf: &mut Buffer) {
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST;
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+
         let [header_area, main_area, footer_area] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Fill(1),
-            Constraint::Length(2),
+            Constraint::Length(rows_of_the_footer),
         ])
         .areas(area);
 
@@ -1434,7 +1481,7 @@ impl App {
         );
 
         self.render_header(header_area, buf);
-        App::render_footer(footer_area, buf, crate::ui::keys::FOOTER_OF_A_LIST);
+        App::render_footer(footer_area, buf, text_render_footer);
         self.render_list(
             main_area,
             buf,
@@ -1453,17 +1500,22 @@ impl App {
     /// footer with every key needed two lines of more than 300 characters, and
     /// a terminal of 80 columns showed a part of them only.
     fn render_keys(&mut self, area: Rect, buf: &mut Buffer) {
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_KEYS;
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+
         let [header_area, main_area, footer_area] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Fill(1),
-            Constraint::Length(2),
+            Constraint::Length(rows_of_the_footer),
         ])
         .areas(area);
 
         let lines = crate::ui::keys::lines();
 
         self.render_header(header_area, buf);
-        App::render_footer(footer_area, buf, crate::ui::keys::FOOTER_OF_THE_KEYS);
+        App::render_footer(footer_area, buf, text_render_footer);
         self.render_list(
             main_area,
             buf,
@@ -1475,7 +1527,16 @@ impl App {
 
     /// AppView::Home rendering
     fn render_home(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = if self.is_podcast {
+            crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_PODCASTS
+        } else {
+            crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_BOOKS
+        };
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+        let [header_area, main_area, footer_area] =
+            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -1495,14 +1556,6 @@ impl App {
             .filter(|row| row.is_a_line_of_the_user())
             .count();
         let render_list_title = format!("Home [{}]", crate::ui::keys::items(count));
-
-        // A library of podcasts has no series and no ebook. The footer of
-        // that library must not name a key that does nothing.
-        let text_render_footer = if self.is_podcast {
-            crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_PODCASTS
-        } else {
-            crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_BOOKS
-        };
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -1576,7 +1629,16 @@ impl App {
 
     /// AppView::Library rendering
     fn render_library(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = if self.is_podcast {
+            crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_PODCASTS
+        } else {
+            crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_BOOKS
+        };
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+        let [header_area, main_area, footer_area] =
+            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -1622,15 +1684,8 @@ impl App {
             }
         );
 
-        let mut _text_render_footer = "";
-        if self.is_podcast {
-            _text_render_footer = crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_PODCASTS
-        } else {
-            _text_render_footer = crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_BOOKS;
-        }
-
         self.render_header(header_area, buf);
-        App::render_footer(footer_area, buf, _text_render_footer);
+        App::render_footer(footer_area, buf, text_render_footer);
 
         // **A filter that hides every media is not a library with no media**,
         // and a server that does not answer is neither. See T-103 and T-91.
@@ -1666,7 +1721,12 @@ impl App {
 
     /// AppView::Series rendering: the list of the series of the library.
     fn render_series(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST;
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+        let [header_area, main_area, footer_area] =
+            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -1676,8 +1736,6 @@ impl App {
 
         let [list_area, item_area1, item_area2] =
             the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
-
-        let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST;
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -1734,7 +1792,12 @@ impl App {
 
     /// AppView::SeriesBook rendering: the books of one series.
     fn render_series_book(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA;
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+        let [header_area, main_area, footer_area] =
+            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -1744,8 +1807,6 @@ impl App {
 
         let [list_area, item_area1, item_area2] =
             the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
-
-        let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA;
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -1799,7 +1860,12 @@ impl App {
 
     /// AppView::Lists rendering: the collections and the playlists.
     fn render_lists(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_LISTS;
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+        let [header_area, main_area, footer_area] =
+            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -1809,9 +1875,6 @@ impl App {
 
         let [list_area, item_area1, item_area2] =
             the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
-
-        // The keys `r` and `X` of this view need a footer of its own. See T-93.
-        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_LISTS;
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -1887,7 +1950,12 @@ impl App {
     /// AppView::ListEntries rendering: the media of one collection or of one
     /// playlist.
     fn render_list_entries(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_MEDIA_OF_A_LIST;
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+        let [header_area, main_area, footer_area] =
+            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -1897,8 +1965,6 @@ impl App {
 
         let [list_area, item_area1, item_area2] =
             the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
-
-        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_MEDIA_OF_A_LIST;
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -1959,18 +2025,20 @@ impl App {
 
     /// AppView::Settings rendering
     fn render_settings(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST;
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+        let [header_area, main_area, footer_area] =
+            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
 
         let [list_area, item_area1, item_area2] =
             the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
 
         let render_list_title = "Settings";
 
-        // Every line of the settings takes the same keys.
-        let _text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST;
-
         self.render_header(header_area, buf);
-        App::render_footer(footer_area, buf, _text_render_footer);
+        App::render_footer(footer_area, buf, text_render_footer);
         self.render_list(
             list_area,
             buf,
@@ -1984,7 +2052,12 @@ impl App {
 
     /// AppView::SettingsAccount rendering
     fn render_settings_account(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_ACCOUNTS;
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+        let [header_area, main_area, footer_area] =
+            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
 
         let [list_area, item_area] =
             Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(main_area);
@@ -1993,12 +2066,6 @@ impl App {
         // a view holds and that no text names is a key that no user finds.
         // See T-124 and T-79.
         let render_list_title = "Accounts — a: add, c: this account starts, l: log out";
-        // **The area of the footer holds two rows, and 80 columns give 160
-        // cells** (T-90). The words of the log out stand in the text of the
-        // view: the footer names the keys.
-        let text_render_footer = "h: back, a: add an account, c: this account starts, \
-             l/→: log out,\n Tab: home, R: refresh, Q/Esc: quit.";
-
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
         self.render_list(
@@ -2034,11 +2101,17 @@ impl App {
 
     /// AppView::SettingsReader rendering. See T-77.
     fn render_settings_reader(&mut self, area: Rect, buf: &mut Buffer) {
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer =
+            crate::ui::keys::footer_with("write this value in config.toml", None);
+        let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
+
         let [header_area, main_area, item_area, footer_area] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Fill(1),
             Constraint::Length(5),
-            Constraint::Length(2),
+            Constraint::Length(rows_of_the_footer),
         ])
         .areas(area);
 
@@ -2052,11 +2125,7 @@ impl App {
         let title = format!("The cache of the ebooks — {} MB now", now);
 
         self.render_header(header_area, buf);
-        App::render_footer(
-            footer_area,
-            buf,
-            &crate::ui::keys::footer_with("write this value in config.toml", None),
-        );
+        App::render_footer(footer_area, buf, &text_render_footer);
         self.render_list(
             main_area,
             buf,
@@ -2072,7 +2141,12 @@ impl App {
 
     /// AppView::SettingsLibrary rendering
     fn render_settings_library(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_LIBRARY_OF_THE_USER;
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+        let [header_area, main_area, footer_area] =
+            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
 
         let [list_area, item_area] =
             Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(main_area);
@@ -2082,9 +2156,6 @@ impl App {
             "Settings Library [{}]",
             crate::ui::keys::items(items_number)
         );
-
-        let text_render_footer =
-            "h: back, l/→: change library,\n Tab: home, R: refresh, Q/Esc: quit.";
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -2130,7 +2201,12 @@ impl App {
 
     /// AppView::SearchBook rendering
     fn render_search_book(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_SEARCH;
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+        let [header_area, main_area, footer_area] =
+            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -2153,7 +2229,6 @@ impl App {
         // The keys of this view are not the keys of the Library: `h` goes back
         // to the view that the search came from, and `/` searches again. See
         // T-79.
-        let _text_render_footer = crate::ui::keys::FOOTER_OF_THE_SEARCH;
 
         if self.search_mode {
             if let Ok(query) = self.search_active() {
@@ -2293,7 +2368,7 @@ impl App {
         };
 
         self.render_header(header_area, buf);
-        App::render_footer(footer_area, buf, _text_render_footer);
+        App::render_footer(footer_area, buf, text_render_footer);
         self.render_list(
             list_area,
             buf,
@@ -2309,7 +2384,12 @@ impl App {
 
     /// AppView::PodcastEpisode
     fn render_pod_ep(&mut self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, footer_area] = the_areas_of_a_view(area, self.a_media_plays());
+        // **The footer stands on the rows that it needs** (T-302): the
+        // number of its rows is the number that the wrap of its text needs.
+        let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA;
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+        let [header_area, main_area, footer_area] =
+            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -2319,8 +2399,6 @@ impl App {
 
         let [list_area, item_area1, item_area2] =
             the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
-
-        let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA;
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -2504,11 +2582,34 @@ impl App {
     ///
     /// The text wraps now. A wide terminal draws one row, as it did before,
     /// and a terminal of 80 columns draws two.
+    /// Gives the number of rows of the footer of a view, and it keeps that
+    /// number for the message of the same frame.
+    ///
+    /// **A footer stands on the rows that it needs** (T-302). The row of the
+    /// message grows upward from the row above the footer (T-299), therefore
+    /// `render_the_message` reads the same number: a message that read the two
+    /// rows of the old footer would draw over the keys of a narrow terminal.
+    fn the_rows_of_the_footer(&mut self, keys: &str, area: Rect) -> u16 {
+        let rows = crate::ui::keys::the_rows_of_a_footer(keys, area.width, area.height);
+        self.rows_of_the_footer = rows;
+        rows
+    }
+
+    /// Draws the footer of a view.
+    ///
+    /// **A footer that needs more rows than the view gives it loses its end to
+    /// three points** (T-302, and the rule of T-299 for a message). The caller
+    /// gives the rows of `the_rows_of_the_footer`, therefore that road comes
+    /// for a view of few rows alone.
     fn render_footer(area: Rect, buf: &mut Buffer, text_render_footer: &str) {
-        Paragraph::new(text_render_footer)
-            .wrap(Wrap { trim: true })
-            .centered()
-            .render(area, buf);
+        Paragraph::new(crate::logic::message::in_the_rows(
+            text_render_footer,
+            area.width,
+            area.height,
+        ))
+        .wrap(Wrap { trim: true })
+        .centered()
+        .render(area, buf);
     }
 
     fn render_list(
@@ -3113,9 +3214,9 @@ mod tests {
             height: 18,
         };
 
-        let [header, main, footer] = the_areas_of_a_view(screen, true);
+        let [header, main, footer] = the_areas_of_a_view(screen, true, FOOTER_HEIGHT);
         let [header_of_no_playback, main_of_no_playback, footer_of_no_playback] =
-            the_areas_of_a_view(screen, false);
+            the_areas_of_a_view(screen, false, FOOTER_HEIGHT);
 
         assert_eq!(main.height, 7, "the areas of a playback do not change");
         assert_eq!(
@@ -3156,8 +3257,8 @@ mod tests {
                 height,
             };
 
-            let [_, of_a_playback, _] = the_areas_of_a_view(screen, true);
-            let [_, of_no_playback, _] = the_areas_of_a_view(screen, false);
+            let [_, of_a_playback, _] = the_areas_of_a_view(screen, true, FOOTER_HEIGHT);
+            let [_, of_no_playback, _] = the_areas_of_a_view(screen, false, FOOTER_HEIGHT);
 
             let [list_of_a_playback, ..] = the_areas_of_a_list(of_a_playback, 0);
             let [list_of_no_playback, ..] = the_areas_of_a_list(of_no_playback, PLAYER_HEIGHT);
@@ -3169,6 +3270,75 @@ mod tests {
                 height,
                 list_of_no_playback.height,
                 list_of_a_playback.height
+            );
+        }
+    }
+
+    /// **The footer of a view stands on the rows that it needs** (T-302).
+    ///
+    /// The measurement of the real program v0.8.130 inside tmux, in a terminal
+    /// of 40 columns and 30 rows: the Home view said `j/k: move  l: play or
+    /// open  Tab: home/library  S-Tab: the next library` on its two rows, and
+    /// the keys `/: search`, `R: refresh`, `?: every key`, and `Q: quit` stood
+    /// outside the screen. The user of that terminal read no road to the table
+    /// of the keys and no road out of the program.
+    ///
+    /// The footer grows upward over the work of the view, in the same way as
+    /// the message of T-299: the list of the view loses a line, and the key `j`
+    /// moves the list.
+    #[test]
+    fn the_footer_of_a_view_stands_on_the_rows_that_it_needs() {
+        let keys = crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_BOOKS;
+
+        for (width, rows_that_it_needs) in [(40u16, 4u16), (80, 2), (160, 2)] {
+            let screen = Rect {
+                x: 0,
+                y: 0,
+                width,
+                height: 30,
+            };
+
+            let rows = crate::ui::keys::the_rows_of_a_footer(keys, width, screen.height);
+
+            assert_eq!(rows, rows_that_it_needs, "the rows at {} columns", width);
+
+            let [header, main, footer] = the_areas_of_a_view(screen, false, rows);
+
+            assert_eq!(footer.height, rows_that_it_needs);
+            assert_eq!(
+                footer.y + footer.height,
+                screen.height,
+                "the footer keeps the last row of the screen"
+            );
+            assert_eq!(
+                header.height, HEADER_HEIGHT,
+                "the header of the screen keeps its rows"
+            );
+            assert_eq!(
+                main.y + main.height,
+                footer.y - 1,
+                "the row of the message stands between the view and the footer"
+            );
+
+            // Every key of the footer stands on the screen.
+            let mut buf = Buffer::empty(screen);
+            App::render_footer(footer, &mut buf, keys);
+
+            let words: String = (footer.y..footer.y + footer.height)
+                .map(|row| {
+                    (0..footer.width)
+                        .map(|column| buf[(column, row)].symbol().to_string())
+                        .collect::<String>()
+                })
+                .collect::<Vec<_>>()
+                .join(" ");
+            let words = words.split_whitespace().collect::<Vec<_>>().join(" ");
+
+            assert_eq!(
+                words,
+                keys.split_whitespace().collect::<Vec<_>>().join(" "),
+                "the footer lost its end at {} columns",
+                width
             );
         }
     }
@@ -3186,7 +3356,8 @@ mod tests {
             };
 
             for a_media_plays in [true, false] {
-                let [header, main, footer] = the_areas_of_a_view(screen, a_media_plays);
+                let [header, main, footer] =
+                    the_areas_of_a_view(screen, a_media_plays, FOOTER_HEIGHT);
 
                 assert!(header.y + header.height <= screen.height.max(1) + 1);
                 assert!(main.y >= header.y);

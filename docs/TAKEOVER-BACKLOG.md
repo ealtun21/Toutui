@@ -26059,3 +26059,176 @@ chapter 3 to the chapter 5 of 14.
   a user share the rows and the directory of the disk. **This is a candidate
   and not a measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to T-300).
+
+### T-302: the footer of a view stands on the rows that it needs
+
+#### The fault
+
+**A narrow terminal took the keys of every view off the screen.** The footer of
+a view stood in a `Rect` of **two** rows: `FOOTER_HEIGHT` of `src/ui/tui.rs` was
+2, `the_areas_of_a_view` gave the footer that number at every width, and each of
+the other fifteen render functions wrote `Constraint::Length(2)` of its own.
+`App::render_footer` drew the text with `Wrap { trim: true }`, therefore the
+words that the two rows did not hold went away with no word of a fault.
+
+A terminal of 40 columns holds **80 cells** in those two rows. The footer of the
+Home view holds 116 characters, the footer of the view of the search holds 87,
+and the footer of the view of the accounts holds 101.
+
+T-301 gave that rule to the footer of the reader, and it left this class open:
+"**The footers of the other views hold two rows and no more** (T-301): a
+terminal of 40 columns holds 80 cells in them, and the gate of those footers
+allows 130 characters. A measurement of a footer of a view of a list at 40
+columns did not run."
+
+**Five footers stood outside the gate of the footers of the program.** The
+footers of the statistics, of the sessions, and of a new podcast were literals
+of `src/ui/tui.rs`, and the footers of the accounts and of the library of the
+user were literals with a `\n` of their own — the same shape as the four texts
+of the reader of T-301. `every_footer_fits_in_eighty_columns` of
+`src/ui/keys.rs` read none of the five.
+
+#### The measurement
+
+Of the real program v0.8.130 inside tmux against the sandbox, with the account
+`toutuitest`. **The data of this fault is the size of the terminal** (T-301),
+therefore it needs no proxy, no book of a harness, and no change of the sandbox:
+`COLUMNS_OF_THE_SCREEN=40` and `ROWS_OF_THE_SCREEN=30` of
+`docs/harness/drive.sh`.
+
+The Home view, at the first frame, said on its two rows at the foot:
+
+```
+    j/k: move  l: play or open  Tab:
+  home/library  S-Tab: the next library
+```
+
+**The keys `/: search`, `R: refresh`, `?: every key`, and `Q: quit` stood
+outside the screen.** The user of that terminal read no road to the search, no
+road to the table of the keys, and no road out of the program.
+
+The key `Tab` gave the Library view, and it said the same two rows. The keys
+`/`, `alice`, and `Enter` gave the view of the search, and it said:
+
+```
+ j/k: move  l: play or open  h: back  /:
+ search again  R: refresh  ?: every key
+```
+
+**`Q: quit` went away there too.**
+
+A control of the same run: the key `?` gave the table of the keys, whose footer
+holds 41 characters, and that view said `j/k: move  h/Esc: back  ?: close  Q:
+quit` **whole**, on its two rows. The key `h` gave the view before it, and the
+key `/` gave the search — therefore the keys did their work at 40 columns, and
+the footer alone said nothing.
+
+#### The decision
+
+**The footer of a view stands on the rows that it needs.** That is the rule of
+T-299 for the row of the message of a view, and of T-301 for the footer of the
+reader: the text takes the rows that its wrap needs, and it grows upward over
+the work of the view. T-301 gave the reader that rule alone, and it wrote that
+"a list would lose a line" — a list of a view does lose a line, and **the key
+`j` moves the list**, therefore no line of it goes out of the reach of the user.
+A key of the road back that stands outside the screen has no such road.
+
+The footer holds no more than **one half** of the rows of the view, and a footer
+that needs more loses its end to three points (the rule of T-299). It holds no
+fewer than **two** rows, because every view held two rows at every width
+already: a view that loses a line at 160 columns is a change that no fault asks
+for.
+
+**Every footer of the program stands in `src/ui/keys.rs`**, where the gate reads
+it, and no footer holds a `\n`.
+
+#### The correction
+
+Five files.
+
+`src/ui/keys.rs` holds `THE_SMALLEST_FOOTER` of 2 rows and the pure
+`the_rows_of_a_footer(text, width, rows_of_the_view)`, which is the one rule of
+every footer of the program. The five texts of `src/ui/tui.rs` became
+`FOOTER_OF_THE_STATISTICS`, `FOOTER_OF_THE_SESSIONS`, `FOOTER_OF_A_NEW_PODCAST`,
+`FOOTER_OF_THE_ACCOUNTS`, and `FOOTER_OF_THE_LIBRARY_OF_THE_USER`, and the two
+last of them lost the `\n` that did the work of the wrap.
+`THE_FOOTERS_OF_THE_VIEWS` names all twenty-one of them, and the two gates read
+that list: a footer that stands outside it stands outside every gate.
+
+`src/ui/tui.rs`: `the_areas_of_a_view` takes the rows of the footer;
+`App::the_rows_of_the_footer` measures the text and keeps the answer in the
+`App`; `App::render_footer` draws with `crate::logic::message::in_the_rows`, so
+a view of few rows loses the end of its footer to three points and not in
+silence. Each of the sixteen render functions reads its footer **before** its
+`Layout`. `render_the_message` reads `self.rows_of_the_footer` and no fixed
+number: the message grows upward from the row above the footer (T-299), and a
+message of the old two rows would draw over the keys of a narrow terminal.
+
+`src/app.rs` holds the field `rows_of_the_footer`, which the render of the view
+writes at each frame.
+
+`src/ui/reader_tui.rs`: `the_rows_of_the_footer` of T-301 now calls the rule of
+`crate::ui::keys`, and the reader and every other view hold one rule.
+
+`src/logic/message.rs`: **`the_rows_of_a_message` read one space between two
+words, and every footer of this program holds two of them.** The count said that
+the footer of the Home view needs three rows of a terminal of 40 columns, and
+the render of ratatui took four: the key `Q: quit` stood outside the screen at
+the end of the third row. The count now keeps the width of the spaces that stand
+between two words, and a wrap of `trim: true` takes away the spaces of the start
+of a new row alone.
+
+#### The measurement of the corrected program
+
+Of v0.8.131, of the same keys and of the same sandbox. At **40** columns the
+Home view and the Library view each held every key on **four** rows:
+
+```
+    j/k: move  l: play or open  Tab:
+  home/library  S-Tab: the next library
+ /: search  R: refresh  ?: every key  Q:
+                  quit
+```
+
+The view of the search, the view of the bookmarks, and the view of the lists
+each held every key on **three** rows; the view of the queue held every key on
+**two**; and the table of the keys kept its two. At **80** columns and at
+**160** columns the Home view kept its **two** rows and the whole of its text.
+
+#### The build of the fault
+
+`the_rows_of_a_footer` with the correction removed (`THE_SMALLEST_FOOTER.min(
+rows_of_the_view)`) gave four failures:
+`ui::keys::tests::a_footer_of_a_narrow_terminal_takes_the_rows_that_it_needs`,
+`ui::keys::tests::every_footer_of_a_view_stands_whole_in_forty_columns`,
+`ui::reader_tui::tests::the_footer_of_the_reader_never_loses_the_road_back`, and
+`ui::tui::tests::the_footer_of_a_view_stands_on_the_rows_that_it_needs`.
+
+#### The gates
+
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` pass.
+`cargo nextest run` gives 1362 of 1362 in 2.8 seconds, and
+`cargo test -j 16 --no-fail-fast` gives 180 binaries of ok, twice.
+
+#### What this turn leaves open
+
+- **The popup of the view of the search leaves a cell of the screen behind it**
+  (T-302). The measurement above, at 39, 40, and 41 columns: the first row of
+  the footer of the view of the search said `j/k: move  l: play or op n  h:
+  back  /:` — one cell of the middle of `open` held a space, and 41 columns lost
+  two cells of two words. **The keys `?` and `h`, and `tmux refresh-client`,
+  each gave the whole row back**, therefore the buffer of ratatui holds the
+  right letters and the terminal never got them: the frame that closes the input
+  of the search leaves a cell that the diff of ratatui does not send again. The
+  row of the footer stood at the row of the message before this turn, therefore
+  no measurement saw it. **This is a candidate and not a measurement of its
+  cause.**
+- **The rule of a footer counts characters and not columns** (T-300, T-301, and
+  T-302): `the_rows_of_a_message` counts one column for each character, and the
+  texts of the footers hold ASCII alone. **This is a candidate and not a
+  measurement.**
+- **The footer of a view that holds a `Block` with a border keeps no room for
+  it**: `the_rows_of_a_footer` measures the width of the whole area. No footer
+  of this program holds a border today. **This is a candidate and not a
+  measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to T-301).

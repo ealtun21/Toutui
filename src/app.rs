@@ -573,6 +573,15 @@ pub struct App {
     /// writes it, because the render knows the height of the screen. The move
     /// then stops when the last line is visible.
     pub stats_scroll_max: u16,
+    /// The number of rows of the footer of the view of this frame.
+    ///
+    /// **A footer stands on the rows that it needs** (T-302), therefore that
+    /// number is a value of the width of the terminal and of the text of the
+    /// view. The render of the view writes it, and `render_the_message` of
+    /// `crate::ui::tui` reads it: the message grows upward from the row above
+    /// the footer (T-299), and a message that read a fixed number of rows
+    /// would draw over the keys of a narrow terminal.
+    pub rows_of_the_footer: u16,
     /// The program must start again, and the loop must first send the position
     /// of a playback that it stops. See T-139.
     ///
@@ -1988,6 +1997,7 @@ impl App {
             sessions_scroll: 0,
             sessions_scroll_max: 0,
             stats_scroll_max: 0,
+            rows_of_the_footer: crate::ui::keys::THE_SMALLEST_FOOTER,
             the_program_starts_again: None,
             audio_fault,
         })

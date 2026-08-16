@@ -41,6 +41,27 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.131",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The keys of every view now stay on the screen.** The footer of \
+             a view stood on two rows with no room for more: a terminal of 40 \
+             columns holds 80 cells in them, therefore the Home view showed \
+             \"j/k: move  l: play or open  Tab: home/library  S-Tab: the next \
+             library\" and no more, and the user read no key of the search, of \
+             the refresh, of the table of the keys, and of the quit. The footer \
+             now takes the rows that its wrap needs, and it grows over the work \
+             of the view: no more than one half of the rows, and no fewer than \
+             the two that a view held before.",
+            "- The footers of the statistics, of the sessions, of a new \
+             podcast, of the accounts, and of the library of the user stood \
+             outside the gate of the footers of the program, and two of them \
+             held a line break of their own. Every footer now stands in one \
+             place, and the gate measures the rows of its wrap.",
+        ],
+    },
+    Entry {
         version: "0.8.130",
         date: "16/08/2026",
         body: &[
