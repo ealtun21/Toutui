@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.139",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A message that holds an end of a line stands whole.** The \
+             program counted the rows of a message as one line, therefore a \
+             message that names a text of the server with an end of a line in \
+             it stood on one row: the rows after the first one had no road at \
+             all, and no three points said that the program cut the sentence.",
+        ],
+    },
+    Entry {
         version: "0.8.138",
         date: "16/08/2026",
         body: &[

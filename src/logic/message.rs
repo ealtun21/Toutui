@@ -206,12 +206,36 @@ pub fn for_the_screen(view: AppView) -> Option<String> {
 /// **The loop of this count stands in [`the_rows_of_one_line`]** (T-309): the
 /// panel of a description held a loop of its own, and it read one space between
 /// two words. The two counts of a wrap of this program are one loop now.
+///
+/// **An end of a line is a row** (T-310). This count read the whole text as one
+/// line, and a `\n` is a character of no column: a message that holds an end of
+/// a line therefore said that it needs one row, and the render of ratatui drew
+/// two. The measurement of 2026-08-16, of a book of the sandbox whose title of
+/// the server holds an end of a line: the message
+/// `"Alpha\nOMEGAEND" is now available offline.` stood on the screen as
+/// `"Alpha` alone, and the rest of the sentence had no road at all.
+/// [`the_rows_of_a_text`] is the one place of that rule now, and the panel of a
+/// description reads it too.
 pub fn the_rows_of_a_message(text: &str, width: u16) -> u16 {
     if text.trim().is_empty() || width == 0 {
         return 0;
     }
 
-    u16::try_from(the_rows_of_one_line(text, usize::from(width))).unwrap_or(u16::MAX)
+    u16::try_from(the_rows_of_a_text(text, usize::from(width))).unwrap_or(u16::MAX)
+}
+
+/// Gives the rows that a whole text takes in a wrap of `width` columns.
+///
+/// **This is the one place of the rule of the end of a line** (T-310). A
+/// `Paragraph` of ratatui holds one `Line` for each part of the text between
+/// two `\n`, and it wraps each of those lines apart: an end of a line therefore
+/// takes the text to the row after it, and a line of no character takes a row
+/// of its own. [`the_rows_of_one_line`] counts one such line, and this function
+/// adds the answers of every line of the text.
+pub(crate) fn the_rows_of_a_text(text: &str, width: usize) -> usize {
+    text.split('\n')
+        .map(|line| the_rows_of_one_line(line, width))
+        .sum()
 }
 
 /// Gives the rows that one row of a text takes in a wrap of `width` columns.

@@ -99,13 +99,14 @@ fn inside_the_text(scroll: u16, last: u16) -> u16 {
 /// `crate::logic::message::the_rows_of_one_line` is the one place of that rule
 /// now, and the two counts of a wrap of this program read it together (T-307).
 ///
+/// **An end of a line is a row** (T-310):
+/// `crate::logic::message::the_rows_of_a_text` splits the text at every `\n`
+/// and it adds the rows of each line, and the box of a message reads that same
+/// function now.
+///
 /// The function is pure, therefore a test needs no screen.
 pub fn the_number_of_the_lines(text: &str, width: u16) -> usize {
-    let width = usize::from(width.max(1));
-
-    text.split('\n')
-        .map(|line| crate::logic::message::the_rows_of_one_line(line, width))
-        .sum()
+    crate::logic::message::the_rows_of_a_text(text, usize::from(width.max(1)))
 }
 
 /// Gives the largest scroll of a panel that holds this text.

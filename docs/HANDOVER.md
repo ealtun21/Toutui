@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.138.** The item T-309 belongs to this session. The
+**The newest release is v0.8.139.** The item T-310 belongs to this session. The
+item T-309 belongs to the session before it. The
 item T-308 belongs to the session before it. The
 item T-307 belongs to the session before it. The
 item T-306 belongs to the session before it. The
@@ -145,14 +146,86 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.138**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.139**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1373 of 1373** in 2.9 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1399 of 1399** in 19.1 seconds
+**1374 of 1374** in 3.2 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1400 of 1400** in 44.7 seconds
 with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its binaries in two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and thirty-ninth turn of 2026-08-16: the box of a message counts the ends of the lines of its text
+
+**The item: T-310**, and the release **v0.8.139**.
+
+**The candidate came of T-309**, which named it and which said why no gate held
+it. The two counts of a wrap of this program read one loop since T-307 and
+T-309, and **that loop counts one line**: `the_rows_of_one_line` of
+`src/logic/message.rs` says in its own words that a caller with an end of a line
+splits its text at every `\n` and adds the answers. `the_number_of_the_lines` of
+`src/logic/the_scroll_of_a_panel.rs` did that work, and `the_rows_of_a_message`
+of the same file as the loop did **not**: it gave the whole text to that loop. A
+`\n` is a character of no column — `split_inclusive(char::is_whitespace)` gives
+it to the word before it and `the_columns_of` of it is 0 — therefore the word
+after an end of a line stood on the row of the word before it, and the count
+gave a number of the rows that is **smaller** than the number that ratatui
+draws. The box of the message of a view stands on that number (T-299).
+
+**The measurement**, of the real program v0.8.138 inside tmux against the
+sandbox on `:13399`, with the account `toutuitest` and a terminal of 80 columns
+and 45 rows. **The data of this fault is the text of the server**: no proxy, no
+book of a harness, no build of the fault of the source, and no change of the
+source at all. `PATCH /api/items/a4d8b9b2-c4a4-4e80-8ed0-07662933fa71/media`
+with `{"metadata":{"title":"Alpha\nOMEGAEND"}}` gave the book
+`A Book Of An Epub With No Container` of the library `Books`, of 5220 bytes, a
+title with an end of a line in it. The row of the account took that library with
+`sqlite3` before the start (the trap 203 and the trap 204). The key `Tab` of the
+Home view gave the Library view, and the key `D` of the first line of it
+downloaded that book. The message of the end of that download:
+
+```text
+(the row 42)
+(the row 43)                       "Alpha
+(the row 44)  j/k: move  l: play or open  Tab: home/library  S-Tab: the next
+```
+
+**The numbers.** The sentence of the program is
+`"Alpha\nOMEGAEND" is now available offline.`, and ratatui draws it on **two**
+rows. The count of the program said **one**, therefore the box of the message
+held one row: `OMEGAEND" is now available offline.` had **no road at all**, and
+no three points said that the program cut the sentence, because that count says
+that the whole message fits.
+
+**The control of the same run** (the trap 206): the key `j` gave the book after
+it, `A Book Of A Broken Epub`, whose title holds no end of a line, and the key
+`D` of that line said `"A Book Of A Broken Epub" is now available offline.` on
+one whole row of the same screen.
+
+**The correction is two files.** `src/logic/message.rs` holds the new
+`pub(crate) the_rows_of_a_text`, which splits a text at every `\n` and adds the
+rows of each line of it, and which is the one place of the rule of the end of a
+line now; `the_rows_of_a_message` calls it and it keeps its guard of a text of
+no character and of a width of 0. `src/logic/the_scroll_of_a_panel.rs`:
+`the_number_of_the_lines` calls that one place in the place of the split of its
+own. `tests/the_box_of_a_message_counts_its_lines.rs` holds the gate, and the
+build of the fault said two rows where ratatui draws three at 22 columns. **The
+corrected program**, of the same keys and the same title of the server: the
+sentence stood on its two rows, and the key `X` of the same line said
+`Removed the local copy of "Alpha` and `OMEGAEND". Removed its ebook of 1 kB.`
+on its two rows.
+
+**The sandbox went back to the state of the start**: the title of that book is
+`A Book Of An Epub With No Container` again, the two copies of the disk of the
+measurement went away with the key `X` of the program, and the row of the
+account holds the library `Large`.
+
+**The block of the prompt met the line of 99000 bytes** (T-284). The whole list
+of the decisions of T-201 to T-310 went out of it, into
+`## The decisions of T-201 to T-310 that do not open again` of this file, and a
+pointer of three lines stands in its place: the block held 98907 bytes and it
+holds 66224 now. **That list grows with every round and the turn of a round does
+not**, therefore it is the part of the block to take out again.
 
 ## The session of the hundred and thirty-eighth turn of 2026-08-16: the panel of a description counts the spaces of its text
 
@@ -19114,12 +19187,532 @@ character.
   the four holds 28 characters of ASCII, which is 28 columns. **This is a
   candidate and not a measurement.**
 
+### The turn of the hundred and thirty-eighth (T-309)
+
+  **The session of the hundred and thirty-eighth turn took the candidate
+  that T-307 opened and that T-308 left open — a count of a wrap that reads
+  one space between two words — and the measurement of it gave the fault**
+  (T-309). **It left four candidates open.**
+
+  **The panel of a description counts the spaces of its text.**
+  `the_number_of_the_lines` of `src/logic/the_scroll_of_a_panel.rs` is the
+  one road to the length of the text of a panel (T-252): the largest scroll
+  of the keys `J` and `K` (T-252) and the bar of the scroll of the panel
+  (T-253) each come of that number. Its helper `the_lines_of_one_line` read
+  **one** space between two words (`length + 1 + room <= width`), and a wrap
+  of `trim: true` keeps every space that stands inside a row (T-302).
+  `the_rows_of_a_message` of `src/logic/message.rs` held that rule since
+  T-302, and the panel held a second rule of its own: **the two counts of a
+  wrap of this program stood in two loops**, and T-307 moved the two helpers
+  of them into one file and it left the two loops apart.
+
+  The measurement, of the real program v0.8.137 inside tmux against the
+  sandbox on `:13399` with the account `toutuitest` and a terminal of **80**
+  columns and 45 rows. **The data of this fault is the text of the server**:
+  it needs no proxy, no book of a harness, no build of the fault of the
+  source, and no change of the source at all.
+  `PATCH /api/items/a4d8b9b2-c4a4-4e80-8ed0-07662933fa71/media` gave the book
+  `A Book Of An Epub With No Container` of the library `Books` a description
+  of 200 words `alpha` and the word `OMEGAEND` after them, with **three**
+  spaces between two words; the row of the account took that library with
+  `sqlite3` before the start (the trap 203 and the trap 204). The key `Tab`
+  of the Home view gave the Library view, whose panel holds 18 rows and 78
+  columns of text, and it drew **ten** words of every row. **The text takes
+  21 rows of that panel, and the program counted 16**: at 78 columns the old
+  rule fitted thirteen words of five columns in a row. Sixteen is fewer than
+  the eighteen rows of the panel, therefore `the_last_scroll` gave 0, **no
+  bar of the scroll came**, and **forty presses of the key `J` changed no
+  character of the screen**. `OMEGAEND` stood on the row 21, and no key of
+  the program reached it; three rows of the description had no road at all.
+  **The control of the same run** (the trap 206): the key `j` gave the book
+  after it, whose description holds the same 201 words with **one** space
+  between two words — that text takes 16 rows of the same panel, and
+  `OMEGAEND` stood on the last row of it at the first frame, with no key at
+  all.
+
+  The correction is two files. `src/logic/message.rs`: the loop of
+  `the_rows_of_a_message` became the new `pub(crate) the_rows_of_one_line`,
+  which is **the one place of the rule of the wrap** now, and
+  `the_rows_of_a_message` calls it and it keeps its guard of a text of no
+  character and of a width of 0; the text of one call holds no end of a line,
+  therefore a caller that has one splits its text at every `\n` and it adds
+  the answers. `src/logic/the_scroll_of_a_panel.rs`: `the_lines_of_one_line`
+  went away, and `the_number_of_the_lines` calls that one place.
+  `tests/the_panel_of_a_description_counts_its_spaces.rs` holds the gate: it
+  draws a `Paragraph` of `Wrap { trim: true }` into a `Buffer` with no
+  terminal at all (T-256), and it asserts that the count of the program is
+  the number of the rows that ratatui drew — for the description of the
+  measurement and for the control at 78 columns, and for ten texts of runs
+  of spaces at every width from 20 to 200 columns. **The sweep of T-306 held
+  single spaces alone**, and the fault stood behind them. **The build of the
+  fault** (`&line.split_whitespace().collect::<Vec<_>>().join(" ")` in the
+  place of `line`) said 16 rows where ratatui drew 21. **The corrected
+  program**, of the same keys and the same description: the bar of the
+  scroll came, the key `J` moved the panel, and `OMEGAEND` stood on the last
+  row of it.
+  - **The marks of a line count the characters still** (T-305, T-306,
+    T-307, and T-309): `fill` of `src/ui/marks.rs:111` reads
+    `mark.chars().count()`, and a mark of the East Asian Width "Ambiguous"
+    takes one column or two, and the terminal decides. **This is a
+    candidate and not a measurement.**
+  - **The two keys of `must_refresh` that say nothing at all** (T-308):
+    `show_the_books_of_the_author` (`src/app.rs:4251`) and
+    `apply_the_sequence_or_the_filter` (`src/app.rs:6161`) each change every
+    list of the screen and each say no word of what they did. The rule of
+    T-91 asks whether a key that changes the whole screen must name the
+    change. **This is a candidate and not a measurement.**
+  - **The count of the rows of a text that holds ends of a line alone has
+    no gate** (T-309): the gates of T-306, T-307, and T-309 each read the
+    rows of ratatui that hold a character, therefore a blank row of a wrap
+    stands outside them. **This is a candidate and not a measurement.**
+  - **A word of a description that is longer than the panel takes the road
+    of ratatui that overflows the area** (T-306). That is a fault of the
+    crate and not of this program, and no count of this program says what it
+    does. **This is a candidate and not a measurement.**
+
+## The decisions of T-201 to T-310 that do not open again
+
+These decisions stood in the block of the prompt of the next session until the
+round of the hundred and thirty-ninth turn, and that block met its limit of
+size (T-284 and T-310). Each of them holds, and the block names this section.
+
+**a playback that keeps no place does not start: the row
+of `listening_session` is the one copy of the place of the user for a program
+that dies and the row of the player reads it, therefore a playback whose session
+reached no disk closes the session of the server and it says why** (T-201), and
+**a read of the disk that failed is not a fact of the user: the queue of the
+process stays and a caller that did not read the disk changes nothing, and the
+wait of a playback waits for no loop and it says nothing when it did not read
+the account** (T-202), and **the downloads of a disk that said nothing are no
+fact of the user: the key `X` removes no file while the program does not know
+which program of the account holds it, a removal that did not read its database
+is no removal, the Library view of the offline mode names the disk and not the
+server, the label of a line says that the disk did not answer, and the render
+reads the row of that label with no word of the log** (T-203), and **the render
+of the program reads no disk and no call of the database of a task stands on a
+thread of the runtime: a box of the process holds the copies of the disk of the
+account and the `App` holds the row of the keys of the player, the key `B`
+writes the value that the program holds and it says why a write failed, and the
+loop of the program reads the accounts of a box that a task of one second
+fills** (T-204), and **a refresh is not a start: a read of the accounts that
+failed keeps the application of the user and it says why the screen did not
+change, the three keys that write the library and the sequence read the answer
+of their write, and the last two functions of the shape of T-200 give a fault**
+(T-205), and **a change of the queue that the disk did not take is no change:
+the queue of the program goes back to the queue of the disk, the sentence of
+the key names the read or the write and the key of the view that the user sees,
+and the keys `O` and `I` of the speed read the answer of their write before
+they send anything to the engine** (T-206), and **a write of the disk that no
+caller reads is a write that said nothing: the loop of a playback reads the
+answer of the place of each second, and a removal that the disk refused is no
+removal** (T-207), and **a key of the user pays the wait of the disk one time,
+and not one time for each call of its road** (T-208), and **a read of the row of
+the account that failed is no setting of the user: the default of such a read is
+a fact that the disk did not give, and the program says the fault** (T-209), and
+**the place of every second of a playback that the disk did not take is no place
+at all: the loop reads the answer of that write, it says the fault one time, and
+the row of the player of the screen says it while the condition stands** (T-210),
+and **a place that the server took must leave the disk: a removal that the disk
+refused is no removal, the pass of the flush stops at that fault, and the words
+of the log name the disk and the media** (T-211), and **a place that reached no
+machine keeps the row that holds it: the write of the table of the places that
+wait gives its answer, and the box of the sessions names the machine that holds
+the place** (T-212), and **the mark of the end of a media that the disk refused
+reaches the table of the places that wait with the place of the user: the loop
+reads the answer of that write, the row of the session stays when no machine took
+the mark, and the program says it on the screen** (T-213), and **the rows of a
+download go away together or they stay together: the two removals of
+`delete_download` stand in one transaction, and a rollback that the disk refused
+says that the database keeps a part of that download** (T-214), and **a copy of
+the disk that is not whole is no copy of the disk: a row of the files of a
+download names a file that goes away outside this program, therefore the playback
+asks the disk at the moment of the use, a media of a copy that is not whole takes
+the road of the server, and the offline mode of it says that the disk does not
+hold every file of that media** (T-215), and **a file of the disk that is not the
+file of its row is no file of the download: the size of the row is the size of
+the file of the server, a size of 0 is a size that the server did not give and
+that file then stands, and a media of such a file takes the road of the server**
+(T-216), and **the label of a media whose copy of the disk is not whole says what
+the disk holds: the box of the copies of the disk asks the file system at the
+start, at the key `R`, at the end of a download, and at the key `X`, and a
+download with no row of a file is a copy that is not whole** (T-217), and **the
+keys of a line of the view of the search read the lists of that view: a media of
+a page of the library that the program did not read, and a book of a series that
+the answer of the library groups, hold their keys `D`, `X`, `n`, and `m`**
+(T-218), and **the place of an episode of a podcast names that episode: the
+keys `M` and `N` read the item and the episode of the line, and a podcast holds
+no place of its own** (T-219), and **a line that holds more than one media
+names the key that opens it: a podcast of the Library view and of the view of
+the search names the key of its episodes, a line of a series of the Library
+view names the key of its books, and the keys `D`, `X`, `n`, `m`, `@`, `M`, and
+`N` of such a line say it** (T-221), and **the keys `e` and `V` of such a line
+read that line: the reader and the bookmarks take no first book of a series and
+no podcast of its episodes, and the Home view of a library of books holds a
+line of a series too** (T-222), and **the bookmarks of an episode of a podcast
+are the bookmarks of that podcast: the server names no episode in a bookmark,
+therefore the view names the podcast, the key `V` of an episode opens it, and
+the key of the place moves the playback of the episode that plays and it says
+that a bookmark of a podcast names no episode** (T-223), and **the key `b` of
+the view of the bookmarks of a podcast writes a place of the episode that the
+user opened: the queue starts a second episode of that same podcast with no key
+of the user, the identity of the item passes for it, and the key then says that
+a different episode plays and it names the key `V`** (T-224), and **the row
+of the player names the episode of a podcast: the answer of the session holds
+the name of the podcast in its title and the name of the episode in
+`displayTitle`, the row says both, and an episode whose name the server did
+not give keeps the name of the podcast alone** (T-225), and **an episode that
+left the shelf Continue Listening leaves the Home view: a row of an episode of
+the live message names that episode, the line of the Home view of a library of
+podcasts reads the identity of the podcast and of the episode together, and an
+episode whose identity the server did not give keeps its line** (T-226), and
+**the view of the chapters names the episode of a podcast: the two headers of
+that view hold the name of the podcast and the name of the episode, the
+sentence of a media that plays no more names the episode that went away, and a
+playback that stopped names no media at all** (T-227), and **the line of the
+Home view of a library of podcasts holds the place of its own episode: the key
+of that line names the episode after the item, the mark of the media that plays
+and the position of a live message each read that key, the fallback of the
+place asks the path of the episode, and the panel of that line says the percent
+of the user** (T-228), and **the line of the view of the episodes of a podcast
+holds the place of that episode: the key of the line names the episode after
+the podcast, one request of the account gives the place of every line, a
+request that gave no place leaves every title and it takes a line of the log,
+and the panel of that line says the percent** (T-229), and **the line of the
+view of the queue holds the place of its own media: the key of that line names
+the episode after the item, one request of the account at the key `q` gives
+the place of every line, a request that gave no place leaves every title and
+it takes a line of the log, and the mark stands before the number of the
+place** (T-230), and **the queue holds one media one time, because the disk
+holds one row for one media: the key `n` on a media that waits already moves
+that media to the end, and the number of the message is the number of its
+line** (T-231), and **the sentence of the key `n` names the two places of a
+media that moved, and it says that a media of the last line waits there
+already** (T-232), and **the sentence of the key `X` of the view of the queue
+names the place that the media held: that place is the place of the disk at
+the removal, and the number of the line of the view stands for the road where
+a second program of the account took that media out first** (T-233), and
+**the line of the view of the queue names the time that is left of its media:
+the row of the place of that view holds the place of the user in seconds, a
+media that the user did not begin keeps the length of it, and a media that
+came to its end keeps the length too** (T-234), and
+**a message of the server holds the place of the user of each media that it
+names: the row of a live message of the view of the queue holds the three
+values of the row of the request, and a message that gives no place leaves
+the line with the length of its media** (T-235), and **the line of an episode
+of a podcast of that view names the time that is left of that episode: the two
+views that hold an episode give the length of it as a number, a length of 0 is
+a length that the server did not give, a list of the lengths holds one value
+for each episode, and a media that the mark of its row says is finished keeps
+the length** (T-236), and **the view of the queue asks the server for the place
+of a media that came into the queue after the request of the key `q`: the loop
+of that view holds the rule, the names of the media that the request asked for
+are the condition of it, and the offline mode asks nothing at all** (T-237), and
+**the line of the view of the queue of the media that plays holds the place of
+the engine of this program: the place of the row is the place of the moment of
+the key `q`, a place of 0 of the engine is a playback that did not begin, and
+the mark of the end of the row belongs to the place of the row** (T-238), and
+**the panel of a line of a media that plays holds the place of the engine of
+this program: the percent, the time that is left, and the mark of the end come
+of that place, a place of 0 is a playback that did not begin, and a length of 0
+is a length that the server did not give** (T-239), and **the panel of a line
+holds the place of a live message of the server: the engine of this program
+comes first, the row of a message after it, and the row of the request of the
+view last, and a place that is no number or a length that the server did not
+give keeps the time of the row** (T-240), and **the panel of a book of the
+Library view and of the view of the search holds the place of the user: one
+answer of the account gives the place of every media of it and the box of that
+answer costs no request of a view, the key `R` gives a new box, and a book
+that the answer did not name played never** (T-241), and **the line of a book
+of the Library view and of the view of the search holds the mark of the
+percent: the engine of this program comes first, the row of a live message
+after it, and the row of the box of the places last, and a line that holds
+more than one media keeps the mark of the media that plays** (T-242), and
+**the line and the panel of the view of the books of a series and of the view
+of the media of a collection or of a playlist hold the place of the user: the
+function of the mark and the function of the panel each take the key of the
+media, therefore a line of an episode of a podcast holds the place of that
+episode, and a line that names more than one media keeps its line with no
+mark** (T-243), and **the panel of a line of an episode of a podcast says the
+time that is left: the row of the place of an episode holds the place of the
+user in seconds beside the percent, the length of the line of the Home view
+of a library of podcasts is the length of an episode, and an episode that the
+user did not begin names no time that is left** (T-244), and **the view of
+the episodes of a podcast holds the places of the episodes of that podcast:
+the lists of the library hold one row of places for each podcast, the key of
+a line reads the row of its line, and the render of the view of the search
+writes its own lists out of those lists — therefore a second visit of a
+podcast costs no request and it says no place of another podcast** (T-245),
+and **the keys of the view of the episodes of a podcast of a search read the
+list that the view draws: the key of the playback reads the episode of the
+line, the block of the key that opens a podcast gives the lists of that
+podcast to the view before it alone, and a playback that did not start says
+why** (T-246), and **a key of the table of the keys of the program says why a
+view holds no list of the library: the keys of the series, of the authors, of
+the narrators, and of the collections and of the playlists do their work in
+the Home view, in the Library view, and in the view of the search, and in
+every other view each of them names the two views that hold that list and the
+key that goes back to them** (T-247), and **the key that adds a podcast to the
+library does its work in the view of the episodes of a podcast: that view
+belongs to a library of podcasts and the key needs no line of any list, and
+every other view takes the sentence of T-247** (T-248), and **the panel of a
+description says why it holds no text: the words "N/A" belong to a value that
+stands beside a label, therefore every panel of the program says
+"No description available", a description of no character is no description,
+and the field of a book of a series holds the description of the server alone
+because the panel of the series reads that field as its own fallback**
+(T-249), and **the panel of a podcast of the Home view says the
+description of that podcast: the subtitle of the episode of the line comes
+first, the description of the podcast after it, and the two boxes of it hold
+the value of the server alone** (T-250), and **the panel of an episode of a
+podcast says the description of that episode: the list of the descriptions
+holds one value for each episode, the description of the podcast belongs to an
+episode of no description of its own, and the subtitle of the episode stands
+above the two of them** (T-251), and **the panel of a description stops at its
+last line: the render of a panel is the one road to the length of its text,
+the key that moves the panel down reads the value that the render measured,
+and a panel that scrolled past its last line holds no line at all** (T-252),
+and **the panel of a description says that it holds more text: the bar of
+the scroll of that panel comes when the text is longer than the rows of it,
+the bar takes one character of the width of the text, and the state of that
+bar counts the largest scroll and not the lines of the text** (T-253), and
+**the bar of the scroll of a panel names the two keys that move that panel:
+the letter of the key that moves the panel up stands at the top of the bar and
+the letter of the key that moves it down stands at the foot of it, the footer
+of a view holds no room for those words, and a bar of few rows keeps the whole
+of its track** (T-254), and **the list of a view says where the cursor of the
+user stands: the bar of the scroll of a list comes when the list holds more
+lines than the rows of the view, the number of the rows of a list is the
+number of its lines because a `List` of ratatui wraps no line, the state of
+the bar reads the offset that ratatui wrote while it drew the list, and the
+bar of a list names no key because the footer of every such view says
+`j/k: move` already** (T-255), and **the bar of the scroll of a list holds
+the line of the cursor of the user: the track of that bar counts the lines
+of the list and not the offsets of the panel, a list with no cursor keeps
+the offset because the place of the panel is the one place that it has, and
+the render of a list stands in a function that a test draws into a `Buffer`
+with no terminal at all** (T-256), and **the render of a list reads no disk
+and a colour of the configuration that holds no three numbers is a colour
+that the program does not have: the colours of a line come of the values
+that the program read at its start and at the key `R`, `rgb_parts` gives the
+last number of a colour that holds fewer than three of them, and the render
+of a list builds the lines of the list with those colours itself** (T-257), and **the program reads each colour of the configuration
+file apart: a colour that the file does not hold takes the colour of the
+program in silence, a colour that the program cannot read and a colour that
+holds no three numbers each take the colour of the program and a line of the
+log, and every other colour of the user stays** (T-258), and **the program
+reads each server of the configuration file apart and each address of a
+server apart: a server with no name belongs to no pool, an address that the
+program cannot read goes away and every other address of that server stays, a
+server that keeps no address belongs to no pool, and a value of the block
+`reader` that the program cannot read takes the value of the program alone**
+(T-259), and **a server of the configuration file with a name of no character
+belongs to no pool: the name is the identity of the place of the user on the
+disk, therefore the address of the account gives that identity again, and two
+servers never hold the same identity** (T-260), and **two servers of the
+configuration file that hold one name hold two identities: the server of the
+first block keeps the name, a server after it that repeats that name belongs
+to no pool, and the address of the account then gives the identity of that
+server** (T-261), and **a server of the
+configuration file with the name of an address belongs to no pool: the address
+of the login screen is the identity of the place of the user when no server of
+the file holds that address, therefore a name of the prefix `http://` or
+`https://` can hold the identity of a different server** (T-262), and **an
+address that more than one server of the configuration file holds belongs to
+no server: the name of the server that holds an address is the identity of the
+place of the user, therefore an address of two servers goes away from each of
+them and the address of the login screen gives the identity** (T-263), and
+**the user reads the values of the configuration file that the program does
+not use: the row of the message says the number of them at the start of the
+program and at the key `R`, the log keeps the name and the reason of each of
+them, and the login and the cache of the ebooks read that file and say
+nothing** (T-264), and **a configuration file that the program cannot read at
+all stops the program with words of its own: those words name the file, they
+hold the reason of the crate because it names the line and the column, they
+name the road back, and they say nothing of the server; and the clear of the
+screen of the start goes to the terminal at the moment of its write, because a
+clear that waits in the buffer of `stdout` comes out at the exit and it takes
+the words of a program that stops with it** (T-265), and **a refresh that
+cannot read the configuration file keeps the program of the user: the key
+`R` reads that file again and the application of the user holds the account,
+every list, and the playback already, therefore that application stays and
+the row of the message says why the screen did not change** (T-266), and **the
+login screen of a configuration file that the program cannot read says why:
+the report of that file reaches the words of a program that stops and the log,
+and those words name no account and no server, because the login screen stands
+before every account** (T-267), and **a read of the accounts that failed
+before every account says why: the two reads of `Database::new` of the start
+stand before the login screen, therefore the words of that stop name the
+database and no account at all** (T-268), and **an account that the
+database keeps after a token that the server refused says why: the removal of
+the row of that account is the one road of the fault of a token that the server
+does not accept, therefore a database that refuses that removal stops the
+program, and the words name the account, the database, the reason, the server,
+and the road back** (T-269), and **a message of the login screen that the disk
+did not take says nothing at all: the box of the process holds that message and
+the render reads that box, the disk keeps it for the program after this one
+because a token that the server refused starts the program again, and a write
+that the disk refused takes a line of the log** (T-270), and **a program whose terminal went away
+stops: the loop of the screen stands inside a call of crossterm that never
+comes back for a terminal that gives the end of its input, therefore a task of
+one second reads the `ioctl` of that terminal, and a terminal that went away
+takes the road of the key `Q` — the session of the server closes and the place
+of the user goes to the server** (T-271), and **the login screen of a terminal
+that went away stops: the watch of that screen takes no argument at all and it
+closes no session, because the login screen holds no account** (T-272), and **a
+program that has no terminal says why: the words name the terminal, the reason
+of the machine, and the road back, and the program stops with the status 1**
+(T-273), and **a disk that took no page of a PDF says why: the exit code of the
+child that reads a PDF is the one road to the fault of the user, the words of a
+book that can be damaged stay for a book that gives no page, and the disk, the
+part that did not start, and the part that took too long each say what they
+are** (T-274), and **a login screen that did not reach the terminal says why:
+the fault of that screen belongs to the answer of `AppLogin::run`, it comes
+before the fault of the frame of that loop, and the program gives the terminal
+back with words of its own** (T-275), and **a disk that gave no book says why:
+the read of the five bytes that say the form of a file holds the reason of the
+machine, the words of a book that is not an EPUB stay for a file that the disk
+gave and that no reader opens, and the reason of that reader takes a line of
+the log** (T-276), and **a chapter that the book did not give says why: the
+reason of the crate of the archive is the one reason of a chapter that gave no
+byte, the render of a chapter that gave a fault does not start again because
+that fault gives no line, and a message of a view that is longer than one line
+stands on more than one line** (T-277), and **a message of a view that is
+longer than the screen stands on more than one row: the sentence of a view
+that holds no line says what the server said, and a terminal of 80 columns is
+shorter than it** (T-278), and **a media whose data the server did not give
+says why: the status 404 of the item is the media that the server does not
+hold, and every other fault of that request says nothing at all of the book
+of that media** (T-279), and **a chapter that did not come in time says what
+the program measured: the limit of time that went by is a fact of the program
+and the reason of that limit is not, the sentence names the keys of the view
+of the reader, and the reason of a thread of a render that died stays in the
+sentence and in the log** (T-280), and **a chapter that is larger than the
+limit says what the program measured: the read stops at that limit, therefore
+the program has the number of the limit and it has no size of the whole
+chapter, and the sentence names the keys of the view of the reader and the
+file of the log** (T-281), and **a chapter that the book holds no file of
+says which chapter it is: the spine of the book names that chapter and the
+manifest of it holds no file of it, and the program has no reason of the
+archive on that road and it therefore says none** (T-282), and **a book that
+holds no chapter says so: a book of no chapter is the one road of the program
+to that fault, the line at the top of the reader says the number that the
+program measured and it names no chapter of a book that holds none, the
+sentence names the key `h` alone because the keys `n` and `p` do no work of
+that fault, and a sentence of a chapter that the book does not hold says the
+number that the user reads** (T-283), and **a book that the reader refuses at
+its open says the road back: the view of the reader with no book stands at
+that moment and the key `h` is the one key of it, the two values carry the
+limit of the reader that measured them, each road writes the name of the file
+in the log, and the program says a size in megabytes and in one form**
+(T-284), and **a file that no reader opens says the road back: the reader
+opens the copy of the book on the disk, therefore the sentence of that fault
+names the key that takes that copy away, and the reason of the archive stands
+in the log alone** (T-285), and **the panel of a line of the view of the
+episodes of a podcast holds the value of that line: the list of the lengths
+holds one value for each episode, a length that the server did not give says
+`N/A`, and a line that a list of the view does not hold keeps the panel of its
+media — no render draws the words of a machine in the place of a panel, and no
+render writes a line of the log at every frame** (T-288), and **a time that
+is left of less than zero is no time at all: a length that the program does
+not have says no time, and a place that stands at the length of the media or
+past it says `0m left`** (T-289), and **a percent of the whole length is not
+the mark of the end: the field `isFinished` of the server is the one truth of
+a media that the user finished, and a media at the whole of its length that
+the user did not finish keeps the mark of its place** (T-290), and **a place
+of a book that the server did not take goes to the server again: the reader
+says that the server holds a place when the answer of the server comes back,
+and the rule of the time and the key that leaves the book each send that
+place again** (T-291), and **the place of a book of a program that stops goes
+to the server: the reader holds no table of the disk, therefore the loop of
+the application writes that place in a box of the process, and the key `Q` and
+the terminal that went away each await that send before the program stops**
+(T-292), and **the place of a book of a program that dies waits on the disk:
+the table `pending_ebook_progress` of the version 10 of the schema holds the
+place that the server refused, the start of the program after it sends every
+row of that table, and a place that the server took leaves the disk**
+(T-294), and **a place of a book waits for no start of a program: the task of
+the clock of T-25 counts the table of the reader beside the table of the
+audio, and it sends the two of them when the server answers again** (T-295),
+and **a log out that keeps the place of the user gives that place to the
+server later: the log out takes the account and the three tables of the places
+of that account in one transaction, and its words name the number of the
+places that went away, while a token that the server refused keeps every place
+because that account comes back at once** (T-296), and **a log out that keeps
+the copies of the disk says them: the copies stay, because the key is a log out
+and a login with the same name and the same server gives them again, and the
+words of that log out name the media, the megabytes, and the road back; and a
+message of the login screen stands on the rows that it needs** (T-297), and
+**the words of a log out reach the program that starts after it: a variable of
+the environment carries a sentence over the `exec` of a start that holds an
+account, because such a program draws no login screen and the disk of T-270
+reaches nobody, and every start of the program again writes that variable so
+that no sentence of an older process comes back** (T-298), and **a message of
+a view stands on the rows that it needs: the last row of it stays above the
+footer and the rows before it grow upward over the view, the header of the
+screen keeps its rows, and a message that needs more rows than that room
+loses its end to three points** (T-299), and **the line at the top of the
+reader keeps the place of the user: the place of the user stands whole while
+one column stays for it, and the title takes the room after it and it loses
+its end to three points** (T-300), and **the footer of the reader
+stands on the rows that it needs: the footer of the reader is a footer of
+this program, therefore its four texts stand in `src/ui/keys.rs` under a
+gate, they hold one line and no `\n`, and the `Paragraph` of them wraps over
+the rows that the wrap needs — no fewer than two, no more than one half of
+the rows of the reader, and three points for an end that no row holds**
+(T-301), and **the footer of every view stands on the rows that it needs:
+every footer of the program stands in `src/ui/keys.rs` under a gate that
+measures the rows of its wrap, no footer holds a `\n`, the footer grows
+upward over the work of the view because the key `j` moves a list and a key
+of the road back that stands outside the screen has no such road, and the
+count of the rows keeps the width of the spaces that stand between two
+words** (T-302), and **a box of a field says that the screen must be drawn
+again: a box of a field makes a terminal of its own and it writes on the
+cells of the view below it, therefore the diff of ratatui sends no byte
+for a cell of the box that holds the same letter as the view after it,
+and `App::the_box_of_a_field_went_away` is the one road to the field that
+the loop of the program reads** (T-303), and **the title of a view keeps its
+start: the title of a list stands in the middle of the header of it, and
+ratatui draws a centered title that does not stand right-aligned in an area
+that it cut — therefore a title that is longer than the screen loses its start
+and its end together, and `crate::logic::message::in_one_row` is the one maker
+of a text of one row of this program** (T-304), and **a character is not a
+column: the program measures every text of the screen with
+`crate::logic::message::the_columns_of`, which is the crate `unicode-width`
+that ratatui itself measures with, because a character of the Han script, of
+Hiragana, or of Katakana takes two columns of the terminal and a count of the
+characters therefore gives a number that the screen does not have** (T-305),
+and **the panel of a description counts the columns of its text: the number
+of the lines of a text is the number of the rows that ratatui draws it on,
+the last character of a row takes one column of that row because the crate
+draws it while one column of that row stays, and the largest scroll of the
+keys `J` and `K` and the bar of the scroll each come of that number**
+(T-306), and **the box of a message counts the columns of its text: the two
+counts of a wrap of this program read one rule of ratatui, which stands in
+`src/logic/message.rs` beside the measure of the columns, and a message
+therefore stands on the rows that the render draws it on** (T-307), and **the
+words of a key that refreshes the program reach the user: the box of the
+message holds a slot that `forget` leaves, because the loop of the program
+makes the new application for that key and it forgets every message before
+the first frame of it, and the road that keeps the application of the user
+drops those words because a screen that did not change makes them a lie**
+(T-308), and **the panel of a description counts the spaces of its text: the
+two counts of a wrap of this program read one loop, which stands in
+`src/logic/message.rs` beside the measure of the columns, because a wrap of
+`trim: true` keeps every space that stands inside a row and a count of one
+space between two words therefore gives a number of the lines that is smaller
+than the number of the rows of the screen** (T-309), and **the box of a
+message counts the ends of the lines of its text: a `Paragraph` of ratatui
+wraps each line of a text apart, therefore
+`crate::logic::message::the_rows_of_a_text` splits a text at every `\n` and
+it adds the rows of each line of it, and the two counts of a wrap of this
+program read that one place** (T-310).
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.137**; `Cargo.toml` is at 0.8.137. The
+> AlbanDAVID/Toutui. Newest release **v0.8.139**; `Cargo.toml` is at 0.8.139. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -19128,7 +19721,7 @@ character.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-308 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-310 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -19869,15 +20462,15 @@ character.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-309 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-310 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1370 tests in 2.8 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1396 of 1396** with the sandbox up, in about 28 seconds. **Run that
+> Baseline: **1374 tests in 3.2 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1400 of 1400** with the sandbox up, in about 45 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -19987,82 +20580,92 @@ character.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and seven sessions of one hundred
 >    and eight.
->   **The session of the hundred and thirty-eighth turn took the candidate
->   that T-307 opened and that T-308 left open — a count of a wrap that reads
->   one space between two words — and the measurement of it gave the fault**
->   (T-309). **It left four candidates open.**
+>   **The session of the hundred and thirty-ninth turn took the candidate
+>   that T-309 left open — the count of the rows of a text that holds ends of
+>   a line — and the measurement of it gave the fault** (T-310). **It left
+>   five candidates open.**
 >
->   **The panel of a description counts the spaces of its text.**
->   `the_number_of_the_lines` of `src/logic/the_scroll_of_a_panel.rs` is the
->   one road to the length of the text of a panel (T-252): the largest scroll
->   of the keys `J` and `K` (T-252) and the bar of the scroll of the panel
->   (T-253) each come of that number. Its helper `the_lines_of_one_line` read
->   **one** space between two words (`length + 1 + room <= width`), and a wrap
->   of `trim: true` keeps every space that stands inside a row (T-302).
->   `the_rows_of_a_message` of `src/logic/message.rs` held that rule since
->   T-302, and the panel held a second rule of its own: **the two counts of a
->   wrap of this program stood in two loops**, and T-307 moved the two helpers
->   of them into one file and it left the two loops apart.
+>   **The box of a message counts the ends of the lines of its text.** The two
+>   counts of a wrap of this program read one loop since T-307 and T-309, and
+>   that loop counts **one** line: `the_rows_of_one_line` of
+>   `src/logic/message.rs` says in its own words that a caller with an end of a
+>   line splits its text at every `\n` and adds the answers.
+>   `the_number_of_the_lines` of `src/logic/the_scroll_of_a_panel.rs` did that
+>   work, and `the_rows_of_a_message` of the same file as the loop did **not**:
+>   it gave the whole text to that loop. A `\n` is a character of no column,
+>   therefore the word after an end of a line stood on the row of the word
+>   before it, and the count gave a number of the rows that is **smaller** than
+>   the number that ratatui draws. The box of the message of a view (T-299)
+>   stands on that number.
 >
->   The measurement, of the real program v0.8.137 inside tmux against the
+>   The measurement, of the real program v0.8.138 inside tmux against the
 >   sandbox on `:13399` with the account `toutuitest` and a terminal of **80**
 >   columns and 45 rows. **The data of this fault is the text of the server**:
 >   it needs no proxy, no book of a harness, no build of the fault of the
 >   source, and no change of the source at all.
->   `PATCH /api/items/a4d8b9b2-c4a4-4e80-8ed0-07662933fa71/media` gave the book
->   `A Book Of An Epub With No Container` of the library `Books` a description
->   of 200 words `alpha` and the word `OMEGAEND` after them, with **three**
->   spaces between two words; the row of the account took that library with
->   `sqlite3` before the start (the trap 203 and the trap 204). The key `Tab`
->   of the Home view gave the Library view, whose panel holds 18 rows and 78
->   columns of text, and it drew **ten** words of every row. **The text takes
->   21 rows of that panel, and the program counted 16**: at 78 columns the old
->   rule fitted thirteen words of five columns in a row. Sixteen is fewer than
->   the eighteen rows of the panel, therefore `the_last_scroll` gave 0, **no
->   bar of the scroll came**, and **forty presses of the key `J` changed no
->   character of the screen**. `OMEGAEND` stood on the row 21, and no key of
->   the program reached it; three rows of the description had no road at all.
->   **The control of the same run** (the trap 206): the key `j` gave the book
->   after it, whose description holds the same 201 words with **one** space
->   between two words — that text takes 16 rows of the same panel, and
->   `OMEGAEND` stood on the last row of it at the first frame, with no key at
->   all.
+>   `PATCH /api/items/a4d8b9b2-c4a4-4e80-8ed0-07662933fa71/media` with
+>   `{"metadata":{"title":"Alpha\nOMEGAEND"}}` gave the book
+>   `A Book Of An Epub With No Container` of the library `Books`, of 5220
+>   bytes, a title with an end of a line in it; the row of the account took
+>   that library with `sqlite3` before the start (the trap 203 and the trap
+>   204). The key `Tab` of the Home view gave the Library view, and the key `D`
+>   of the first line of it downloaded that book. The sentence of the end of
+>   that download is `"Alpha\nOMEGAEND" is now available offline.`, and ratatui
+>   draws it on **two** rows: **the count of the program said one**, therefore
+>   the box of the message held one row, the screen said `"Alpha` alone, and
+>   `OMEGAEND" is now available offline.` had **no road at all** — and no three
+>   points said that the program cut the sentence, because that count says that
+>   the whole message fits. **The control of the same run** (the trap 206): the
+>   key `j` gave the book after it, `A Book Of A Broken Epub`, whose title
+>   holds no end of a line, and the key `D` of that line said
+>   `"A Book Of A Broken Epub" is now available offline.` on one whole row.
 >
->   The correction is two files. `src/logic/message.rs`: the loop of
->   `the_rows_of_a_message` became the new `pub(crate) the_rows_of_one_line`,
->   which is **the one place of the rule of the wrap** now, and
->   `the_rows_of_a_message` calls it and it keeps its guard of a text of no
->   character and of a width of 0; the text of one call holds no end of a line,
->   therefore a caller that has one splits its text at every `\n` and it adds
->   the answers. `src/logic/the_scroll_of_a_panel.rs`: `the_lines_of_one_line`
->   went away, and `the_number_of_the_lines` calls that one place.
->   `tests/the_panel_of_a_description_counts_its_spaces.rs` holds the gate: it
->   draws a `Paragraph` of `Wrap { trim: true }` into a `Buffer` with no
->   terminal at all (T-256), and it asserts that the count of the program is
->   the number of the rows that ratatui drew — for the description of the
->   measurement and for the control at 78 columns, and for ten texts of runs
->   of spaces at every width from 20 to 200 columns. **The sweep of T-306 held
->   single spaces alone**, and the fault stood behind them. **The build of the
->   fault** (`&line.split_whitespace().collect::<Vec<_>>().join(" ")` in the
->   place of `line`) said 16 rows where ratatui drew 21. **The corrected
->   program**, of the same keys and the same description: the bar of the
->   scroll came, the key `J` moved the panel, and `OMEGAEND` stood on the last
->   row of it.
->   - **The marks of a line count the characters still** (T-305, T-306,
->     T-307, and T-309): `fill` of `src/ui/marks.rs:111` reads
->     `mark.chars().count()`, and a mark of the East Asian Width "Ambiguous"
->     takes one column or two, and the terminal decides. **This is a
->     candidate and not a measurement.**
+>   The correction is two files. `src/logic/message.rs` holds the new
+>   `pub(crate) the_rows_of_a_text`, which splits a text at every `\n` and adds
+>   the rows of each line of it, and which is **the one place of the rule of
+>   the end of a line** now; `the_rows_of_a_message` calls it and it keeps its
+>   guard of a text of no character and of a width of 0.
+>   `src/logic/the_scroll_of_a_panel.rs`: `the_number_of_the_lines` calls that
+>   one place in the place of the split of its own.
+>   `tests/the_box_of_a_message_counts_its_lines.rs` holds the gate: it draws a
+>   `Paragraph` of `Wrap { trim: true }` into a `Buffer` with no terminal at
+>   all (T-256), and it asserts that the count of the program is the number of
+>   the rows that ratatui drew — for the sentence of the measurement and for
+>   the sentence of the control at every width from 20 to 200 columns, and for
+>   a sentence of twelve words with one, two, and three ends of a line in the
+>   place of the space after each word of it, at nine widths from 20 to 160
+>   columns. **Every text of that gate ends with a word**, because the count of
+>   the rows of ratatui reads the rows that hold a character. **The build of
+>   the fault** (`the_rows_of_one_line(text, usize::from(width))` in the place
+>   of `the_rows_of_a_text(...)`) said two rows where ratatui draws three at 22
+>   columns. **The corrected program**, of the same keys and the same title of
+>   the server: the sentence stood on its two rows, and the key `X` of the same
+>   line said `Removed the local copy of "Alpha` and
+>   `OMEGAEND". Removed its ebook of 1 kB.` on its two rows.
+>   - **The marks of a line count the characters still** (T-305 to T-310):
+>     `fill` of `src/ui/marks.rs:111` reads `mark.chars().count()`, and a mark
+>     of the East Asian Width "Ambiguous" takes one column or two, and the
+>     terminal decides. **The four marks of that file are constants of this
+>     program** (`▶`, `✓`, `100`, and a percent of numbers), therefore no text
+>     of the server reaches that count and the road of a measurement of the
+>     real program stays unknown. **This is a candidate and not a
+>     measurement.**
 >   - **The two keys of `must_refresh` that say nothing at all** (T-308):
 >     `show_the_books_of_the_author` (`src/app.rs:4251`) and
 >     `apply_the_sequence_or_the_filter` (`src/app.rs:6161`) each change every
 >     list of the screen and each say no word of what they did. The rule of
 >     T-91 asks whether a key that changes the whole screen must name the
 >     change. **This is a candidate and not a measurement.**
->   - **The count of the rows of a text that holds ends of a line alone has
->     no gate** (T-309): the gates of T-306, T-307, and T-309 each read the
->     rows of ratatui that hold a character, therefore a blank row of a wrap
->     stands outside them. **This is a candidate and not a measurement.**
+>   - **A line of a list that holds an end of a line takes more than one row**
+>     (T-310): the measurement of this turn drew the title `Alpha\nOMEGAEND`
+>     of the Library view on two rows of the list, and the bar of the scroll
+>     of a list counts the lines of the list and not the rows of the screen
+>     (T-255 and T-256). **This is a candidate and not a measurement.**
+>   - **A text whose last line holds no character stands outside every gate of
+>     a wrap of this fork** (T-310): the count of the rows of ratatui of
+>     T-306, T-307, T-309, and T-310 reads the rows that hold a character. A
+>     `Buffer` of a background of a colour of its own would say where such a
+>     row stands. **This is a candidate and not a measurement.**
 >   - **A word of a description that is longer than the panel takes the road
 >     of ratatui that overflows the area** (T-306). That is a fault of the
 >     crate and not of this program, and no count of this program says what it
@@ -20123,431 +20726,9 @@ character.
 > program holds more than one account (T-124). **The decisions of T-124 to
 > T-200 stand in `## The decisions of T-124 to T-200 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-294).
-> And **a playback that keeps no place does not start: the row
-> of `listening_session` is the one copy of the place of the user for a program
-> that dies and the row of the player reads it, therefore a playback whose session
-> reached no disk closes the session of the server and it says why** (T-201), and
-> **a read of the disk that failed is not a fact of the user: the queue of the
-> process stays and a caller that did not read the disk changes nothing, and the
-> wait of a playback waits for no loop and it says nothing when it did not read
-> the account** (T-202), and **the downloads of a disk that said nothing are no
-> fact of the user: the key `X` removes no file while the program does not know
-> which program of the account holds it, a removal that did not read its database
-> is no removal, the Library view of the offline mode names the disk and not the
-> server, the label of a line says that the disk did not answer, and the render
-> reads the row of that label with no word of the log** (T-203), and **the render
-> of the program reads no disk and no call of the database of a task stands on a
-> thread of the runtime: a box of the process holds the copies of the disk of the
-> account and the `App` holds the row of the keys of the player, the key `B`
-> writes the value that the program holds and it says why a write failed, and the
-> loop of the program reads the accounts of a box that a task of one second
-> fills** (T-204), and **a refresh is not a start: a read of the accounts that
-> failed keeps the application of the user and it says why the screen did not
-> change, the three keys that write the library and the sequence read the answer
-> of their write, and the last two functions of the shape of T-200 give a fault**
-> (T-205), and **a change of the queue that the disk did not take is no change:
-> the queue of the program goes back to the queue of the disk, the sentence of
-> the key names the read or the write and the key of the view that the user sees,
-> and the keys `O` and `I` of the speed read the answer of their write before
-> they send anything to the engine** (T-206), and **a write of the disk that no
-> caller reads is a write that said nothing: the loop of a playback reads the
-> answer of the place of each second, and a removal that the disk refused is no
-> removal** (T-207), and **a key of the user pays the wait of the disk one time,
-> and not one time for each call of its road** (T-208), and **a read of the row of
-> the account that failed is no setting of the user: the default of such a read is
-> a fact that the disk did not give, and the program says the fault** (T-209), and
-> **the place of every second of a playback that the disk did not take is no place
-> at all: the loop reads the answer of that write, it says the fault one time, and
-> the row of the player of the screen says it while the condition stands** (T-210),
-> and **a place that the server took must leave the disk: a removal that the disk
-> refused is no removal, the pass of the flush stops at that fault, and the words
-> of the log name the disk and the media** (T-211), and **a place that reached no
-> machine keeps the row that holds it: the write of the table of the places that
-> wait gives its answer, and the box of the sessions names the machine that holds
-> the place** (T-212), and **the mark of the end of a media that the disk refused
-> reaches the table of the places that wait with the place of the user: the loop
-> reads the answer of that write, the row of the session stays when no machine took
-> the mark, and the program says it on the screen** (T-213), and **the rows of a
-> download go away together or they stay together: the two removals of
-> `delete_download` stand in one transaction, and a rollback that the disk refused
-> says that the database keeps a part of that download** (T-214), and **a copy of
-> the disk that is not whole is no copy of the disk: a row of the files of a
-> download names a file that goes away outside this program, therefore the playback
-> asks the disk at the moment of the use, a media of a copy that is not whole takes
-> the road of the server, and the offline mode of it says that the disk does not
-> hold every file of that media** (T-215), and **a file of the disk that is not the
-> file of its row is no file of the download: the size of the row is the size of
-> the file of the server, a size of 0 is a size that the server did not give and
-> that file then stands, and a media of such a file takes the road of the server**
-> (T-216), and **the label of a media whose copy of the disk is not whole says what
-> the disk holds: the box of the copies of the disk asks the file system at the
-> start, at the key `R`, at the end of a download, and at the key `X`, and a
-> download with no row of a file is a copy that is not whole** (T-217), and **the
-> keys of a line of the view of the search read the lists of that view: a media of
-> a page of the library that the program did not read, and a book of a series that
-> the answer of the library groups, hold their keys `D`, `X`, `n`, and `m`**
-> (T-218), and **the place of an episode of a podcast names that episode: the
-> keys `M` and `N` read the item and the episode of the line, and a podcast holds
-> no place of its own** (T-219), and **a line that holds more than one media
-> names the key that opens it: a podcast of the Library view and of the view of
-> the search names the key of its episodes, a line of a series of the Library
-> view names the key of its books, and the keys `D`, `X`, `n`, `m`, `@`, `M`, and
-> `N` of such a line say it** (T-221), and **the keys `e` and `V` of such a line
-> read that line: the reader and the bookmarks take no first book of a series and
-> no podcast of its episodes, and the Home view of a library of books holds a
-> line of a series too** (T-222), and **the bookmarks of an episode of a podcast
-> are the bookmarks of that podcast: the server names no episode in a bookmark,
-> therefore the view names the podcast, the key `V` of an episode opens it, and
-> the key of the place moves the playback of the episode that plays and it says
-> that a bookmark of a podcast names no episode** (T-223), and **the key `b` of
-> the view of the bookmarks of a podcast writes a place of the episode that the
-> user opened: the queue starts a second episode of that same podcast with no key
-> of the user, the identity of the item passes for it, and the key then says that
-> a different episode plays and it names the key `V`** (T-224), and **the row
-> of the player names the episode of a podcast: the answer of the session holds
-> the name of the podcast in its title and the name of the episode in
-> `displayTitle`, the row says both, and an episode whose name the server did
-> not give keeps the name of the podcast alone** (T-225), and **an episode that
-> left the shelf Continue Listening leaves the Home view: a row of an episode of
-> the live message names that episode, the line of the Home view of a library of
-> podcasts reads the identity of the podcast and of the episode together, and an
-> episode whose identity the server did not give keeps its line** (T-226), and
-> **the view of the chapters names the episode of a podcast: the two headers of
-> that view hold the name of the podcast and the name of the episode, the
-> sentence of a media that plays no more names the episode that went away, and a
-> playback that stopped names no media at all** (T-227), and **the line of the
-> Home view of a library of podcasts holds the place of its own episode: the key
-> of that line names the episode after the item, the mark of the media that plays
-> and the position of a live message each read that key, the fallback of the
-> place asks the path of the episode, and the panel of that line says the percent
-> of the user** (T-228), and **the line of the view of the episodes of a podcast
-> holds the place of that episode: the key of the line names the episode after
-> the podcast, one request of the account gives the place of every line, a
-> request that gave no place leaves every title and it takes a line of the log,
-> and the panel of that line says the percent** (T-229), and **the line of the
-> view of the queue holds the place of its own media: the key of that line names
-> the episode after the item, one request of the account at the key `q` gives
-> the place of every line, a request that gave no place leaves every title and
-> it takes a line of the log, and the mark stands before the number of the
-> place** (T-230), and **the queue holds one media one time, because the disk
-> holds one row for one media: the key `n` on a media that waits already moves
-> that media to the end, and the number of the message is the number of its
-> line** (T-231), and **the sentence of the key `n` names the two places of a
-> media that moved, and it says that a media of the last line waits there
-> already** (T-232), and **the sentence of the key `X` of the view of the queue
-> names the place that the media held: that place is the place of the disk at
-> the removal, and the number of the line of the view stands for the road where
-> a second program of the account took that media out first** (T-233), and
-> **the line of the view of the queue names the time that is left of its media:
-> the row of the place of that view holds the place of the user in seconds, a
-> media that the user did not begin keeps the length of it, and a media that
-> came to its end keeps the length too** (T-234), and
-> **a message of the server holds the place of the user of each media that it
-> names: the row of a live message of the view of the queue holds the three
-> values of the row of the request, and a message that gives no place leaves
-> the line with the length of its media** (T-235), and **the line of an episode
-> of a podcast of that view names the time that is left of that episode: the two
-> views that hold an episode give the length of it as a number, a length of 0 is
-> a length that the server did not give, a list of the lengths holds one value
-> for each episode, and a media that the mark of its row says is finished keeps
-> the length** (T-236), and **the view of the queue asks the server for the place
-> of a media that came into the queue after the request of the key `q`: the loop
-> of that view holds the rule, the names of the media that the request asked for
-> are the condition of it, and the offline mode asks nothing at all** (T-237), and
-> **the line of the view of the queue of the media that plays holds the place of
-> the engine of this program: the place of the row is the place of the moment of
-> the key `q`, a place of 0 of the engine is a playback that did not begin, and
-> the mark of the end of the row belongs to the place of the row** (T-238), and
-> **the panel of a line of a media that plays holds the place of the engine of
-> this program: the percent, the time that is left, and the mark of the end come
-> of that place, a place of 0 is a playback that did not begin, and a length of 0
-> is a length that the server did not give** (T-239), and **the panel of a line
-> holds the place of a live message of the server: the engine of this program
-> comes first, the row of a message after it, and the row of the request of the
-> view last, and a place that is no number or a length that the server did not
-> give keeps the time of the row** (T-240), and **the panel of a book of the
-> Library view and of the view of the search holds the place of the user: one
-> answer of the account gives the place of every media of it and the box of that
-> answer costs no request of a view, the key `R` gives a new box, and a book
-> that the answer did not name played never** (T-241), and **the line of a book
-> of the Library view and of the view of the search holds the mark of the
-> percent: the engine of this program comes first, the row of a live message
-> after it, and the row of the box of the places last, and a line that holds
-> more than one media keeps the mark of the media that plays** (T-242), and
-> **the line and the panel of the view of the books of a series and of the view
-> of the media of a collection or of a playlist hold the place of the user: the
-> function of the mark and the function of the panel each take the key of the
-> media, therefore a line of an episode of a podcast holds the place of that
-> episode, and a line that names more than one media keeps its line with no
-> mark** (T-243), and **the panel of a line of an episode of a podcast says the
-> time that is left: the row of the place of an episode holds the place of the
-> user in seconds beside the percent, the length of the line of the Home view
-> of a library of podcasts is the length of an episode, and an episode that the
-> user did not begin names no time that is left** (T-244), and **the view of
-> the episodes of a podcast holds the places of the episodes of that podcast:
-> the lists of the library hold one row of places for each podcast, the key of
-> a line reads the row of its line, and the render of the view of the search
-> writes its own lists out of those lists — therefore a second visit of a
-> podcast costs no request and it says no place of another podcast** (T-245),
-> and **the keys of the view of the episodes of a podcast of a search read the
-> list that the view draws: the key of the playback reads the episode of the
-> line, the block of the key that opens a podcast gives the lists of that
-> podcast to the view before it alone, and a playback that did not start says
-> why** (T-246), and **a key of the table of the keys of the program says why a
-> view holds no list of the library: the keys of the series, of the authors, of
-> the narrators, and of the collections and of the playlists do their work in
-> the Home view, in the Library view, and in the view of the search, and in
-> every other view each of them names the two views that hold that list and the
-> key that goes back to them** (T-247), and **the key that adds a podcast to the
-> library does its work in the view of the episodes of a podcast: that view
-> belongs to a library of podcasts and the key needs no line of any list, and
-> every other view takes the sentence of T-247** (T-248), and **the panel of a
-> description says why it holds no text: the words "N/A" belong to a value that
-> stands beside a label, therefore every panel of the program says
-> "No description available", a description of no character is no description,
-> and the field of a book of a series holds the description of the server alone
-> because the panel of the series reads that field as its own fallback**
-> (T-249), and **the panel of a podcast of the Home view says the
-> description of that podcast: the subtitle of the episode of the line comes
-> first, the description of the podcast after it, and the two boxes of it hold
-> the value of the server alone** (T-250), and **the panel of an episode of a
-> podcast says the description of that episode: the list of the descriptions
-> holds one value for each episode, the description of the podcast belongs to an
-> episode of no description of its own, and the subtitle of the episode stands
-> above the two of them** (T-251), and **the panel of a description stops at its
-> last line: the render of a panel is the one road to the length of its text,
-> the key that moves the panel down reads the value that the render measured,
-> and a panel that scrolled past its last line holds no line at all** (T-252),
-> and **the panel of a description says that it holds more text: the bar of
-> the scroll of that panel comes when the text is longer than the rows of it,
-> the bar takes one character of the width of the text, and the state of that
-> bar counts the largest scroll and not the lines of the text** (T-253), and
-> **the bar of the scroll of a panel names the two keys that move that panel:
-> the letter of the key that moves the panel up stands at the top of the bar and
-> the letter of the key that moves it down stands at the foot of it, the footer
-> of a view holds no room for those words, and a bar of few rows keeps the whole
-> of its track** (T-254), and **the list of a view says where the cursor of the
-> user stands: the bar of the scroll of a list comes when the list holds more
-> lines than the rows of the view, the number of the rows of a list is the
-> number of its lines because a `List` of ratatui wraps no line, the state of
-> the bar reads the offset that ratatui wrote while it drew the list, and the
-> bar of a list names no key because the footer of every such view says
-> `j/k: move` already** (T-255), and **the bar of the scroll of a list holds
-> the line of the cursor of the user: the track of that bar counts the lines
-> of the list and not the offsets of the panel, a list with no cursor keeps
-> the offset because the place of the panel is the one place that it has, and
-> the render of a list stands in a function that a test draws into a `Buffer`
-> with no terminal at all** (T-256), and **the render of a list reads no disk
-> and a colour of the configuration that holds no three numbers is a colour
-> that the program does not have: the colours of a line come of the values
-> that the program read at its start and at the key `R`, `rgb_parts` gives the
-> last number of a colour that holds fewer than three of them, and the render
-> of a list builds the lines of the list with those colours itself** (T-257), and **the program reads each colour of the configuration
-> file apart: a colour that the file does not hold takes the colour of the
-> program in silence, a colour that the program cannot read and a colour that
-> holds no three numbers each take the colour of the program and a line of the
-> log, and every other colour of the user stays** (T-258), and **the program
-> reads each server of the configuration file apart and each address of a
-> server apart: a server with no name belongs to no pool, an address that the
-> program cannot read goes away and every other address of that server stays, a
-> server that keeps no address belongs to no pool, and a value of the block
-> `reader` that the program cannot read takes the value of the program alone**
-> (T-259), and **a server of the configuration file with a name of no character
-> belongs to no pool: the name is the identity of the place of the user on the
-> disk, therefore the address of the account gives that identity again, and two
-> servers never hold the same identity** (T-260), and **two servers of the
-> configuration file that hold one name hold two identities: the server of the
-> first block keeps the name, a server after it that repeats that name belongs
-> to no pool, and the address of the account then gives the identity of that
-> server** (T-261), and **a server of the
-> configuration file with the name of an address belongs to no pool: the address
-> of the login screen is the identity of the place of the user when no server of
-> the file holds that address, therefore a name of the prefix `http://` or
-> `https://` can hold the identity of a different server** (T-262), and **an
-> address that more than one server of the configuration file holds belongs to
-> no server: the name of the server that holds an address is the identity of the
-> place of the user, therefore an address of two servers goes away from each of
-> them and the address of the login screen gives the identity** (T-263), and
-> **the user reads the values of the configuration file that the program does
-> not use: the row of the message says the number of them at the start of the
-> program and at the key `R`, the log keeps the name and the reason of each of
-> them, and the login and the cache of the ebooks read that file and say
-> nothing** (T-264), and **a configuration file that the program cannot read at
-> all stops the program with words of its own: those words name the file, they
-> hold the reason of the crate because it names the line and the column, they
-> name the road back, and they say nothing of the server; and the clear of the
-> screen of the start goes to the terminal at the moment of its write, because a
-> clear that waits in the buffer of `stdout` comes out at the exit and it takes
-> the words of a program that stops with it** (T-265), and **a refresh that
-> cannot read the configuration file keeps the program of the user: the key
-> `R` reads that file again and the application of the user holds the account,
-> every list, and the playback already, therefore that application stays and
-> the row of the message says why the screen did not change** (T-266), and **the
-> login screen of a configuration file that the program cannot read says why:
-> the report of that file reaches the words of a program that stops and the log,
-> and those words name no account and no server, because the login screen stands
-> before every account** (T-267), and **a read of the accounts that failed
-> before every account says why: the two reads of `Database::new` of the start
-> stand before the login screen, therefore the words of that stop name the
-> database and no account at all** (T-268), and **an account that the
-> database keeps after a token that the server refused says why: the removal of
-> the row of that account is the one road of the fault of a token that the server
-> does not accept, therefore a database that refuses that removal stops the
-> program, and the words name the account, the database, the reason, the server,
-> and the road back** (T-269), and **a message of the login screen that the disk
-> did not take says nothing at all: the box of the process holds that message and
-> the render reads that box, the disk keeps it for the program after this one
-> because a token that the server refused starts the program again, and a write
-> that the disk refused takes a line of the log** (T-270), and **a program whose terminal went away
-> stops: the loop of the screen stands inside a call of crossterm that never
-> comes back for a terminal that gives the end of its input, therefore a task of
-> one second reads the `ioctl` of that terminal, and a terminal that went away
-> takes the road of the key `Q` — the session of the server closes and the place
-> of the user goes to the server** (T-271), and **the login screen of a terminal
-> that went away stops: the watch of that screen takes no argument at all and it
-> closes no session, because the login screen holds no account** (T-272), and **a
-> program that has no terminal says why: the words name the terminal, the reason
-> of the machine, and the road back, and the program stops with the status 1**
-> (T-273), and **a disk that took no page of a PDF says why: the exit code of the
-> child that reads a PDF is the one road to the fault of the user, the words of a
-> book that can be damaged stay for a book that gives no page, and the disk, the
-> part that did not start, and the part that took too long each say what they
-> are** (T-274), and **a login screen that did not reach the terminal says why:
-> the fault of that screen belongs to the answer of `AppLogin::run`, it comes
-> before the fault of the frame of that loop, and the program gives the terminal
-> back with words of its own** (T-275), and **a disk that gave no book says why:
-> the read of the five bytes that say the form of a file holds the reason of the
-> machine, the words of a book that is not an EPUB stay for a file that the disk
-> gave and that no reader opens, and the reason of that reader takes a line of
-> the log** (T-276), and **a chapter that the book did not give says why: the
-> reason of the crate of the archive is the one reason of a chapter that gave no
-> byte, the render of a chapter that gave a fault does not start again because
-> that fault gives no line, and a message of a view that is longer than one line
-> stands on more than one line** (T-277), and **a message of a view that is
-> longer than the screen stands on more than one row: the sentence of a view
-> that holds no line says what the server said, and a terminal of 80 columns is
-> shorter than it** (T-278), and **a media whose data the server did not give
-> says why: the status 404 of the item is the media that the server does not
-> hold, and every other fault of that request says nothing at all of the book
-> of that media** (T-279), and **a chapter that did not come in time says what
-> the program measured: the limit of time that went by is a fact of the program
-> and the reason of that limit is not, the sentence names the keys of the view
-> of the reader, and the reason of a thread of a render that died stays in the
-> sentence and in the log** (T-280), and **a chapter that is larger than the
-> limit says what the program measured: the read stops at that limit, therefore
-> the program has the number of the limit and it has no size of the whole
-> chapter, and the sentence names the keys of the view of the reader and the
-> file of the log** (T-281), and **a chapter that the book holds no file of
-> says which chapter it is: the spine of the book names that chapter and the
-> manifest of it holds no file of it, and the program has no reason of the
-> archive on that road and it therefore says none** (T-282), and **a book that
-> holds no chapter says so: a book of no chapter is the one road of the program
-> to that fault, the line at the top of the reader says the number that the
-> program measured and it names no chapter of a book that holds none, the
-> sentence names the key `h` alone because the keys `n` and `p` do no work of
-> that fault, and a sentence of a chapter that the book does not hold says the
-> number that the user reads** (T-283), and **a book that the reader refuses at
-> its open says the road back: the view of the reader with no book stands at
-> that moment and the key `h` is the one key of it, the two values carry the
-> limit of the reader that measured them, each road writes the name of the file
-> in the log, and the program says a size in megabytes and in one form**
-> (T-284), and **a file that no reader opens says the road back: the reader
-> opens the copy of the book on the disk, therefore the sentence of that fault
-> names the key that takes that copy away, and the reason of the archive stands
-> in the log alone** (T-285), and **the panel of a line of the view of the
-> episodes of a podcast holds the value of that line: the list of the lengths
-> holds one value for each episode, a length that the server did not give says
-> `N/A`, and a line that a list of the view does not hold keeps the panel of its
-> media — no render draws the words of a machine in the place of a panel, and no
-> render writes a line of the log at every frame** (T-288), and **a time that
-> is left of less than zero is no time at all: a length that the program does
-> not have says no time, and a place that stands at the length of the media or
-> past it says `0m left`** (T-289), and **a percent of the whole length is not
-> the mark of the end: the field `isFinished` of the server is the one truth of
-> a media that the user finished, and a media at the whole of its length that
-> the user did not finish keeps the mark of its place** (T-290), and **a place
-> of a book that the server did not take goes to the server again: the reader
-> says that the server holds a place when the answer of the server comes back,
-> and the rule of the time and the key that leaves the book each send that
-> place again** (T-291), and **the place of a book of a program that stops goes
-> to the server: the reader holds no table of the disk, therefore the loop of
-> the application writes that place in a box of the process, and the key `Q` and
-> the terminal that went away each await that send before the program stops**
-> (T-292), and **the place of a book of a program that dies waits on the disk:
-> the table `pending_ebook_progress` of the version 10 of the schema holds the
-> place that the server refused, the start of the program after it sends every
-> row of that table, and a place that the server took leaves the disk**
-> (T-294), and **a place of a book waits for no start of a program: the task of
-> the clock of T-25 counts the table of the reader beside the table of the
-> audio, and it sends the two of them when the server answers again** (T-295),
-> and **a log out that keeps the place of the user gives that place to the
-> server later: the log out takes the account and the three tables of the places
-> of that account in one transaction, and its words name the number of the
-> places that went away, while a token that the server refused keeps every place
-> because that account comes back at once** (T-296), and **a log out that keeps
-> the copies of the disk says them: the copies stay, because the key is a log out
-> and a login with the same name and the same server gives them again, and the
-> words of that log out name the media, the megabytes, and the road back; and a
-> message of the login screen stands on the rows that it needs** (T-297), and
-> **the words of a log out reach the program that starts after it: a variable of
-> the environment carries a sentence over the `exec` of a start that holds an
-> account, because such a program draws no login screen and the disk of T-270
-> reaches nobody, and every start of the program again writes that variable so
-> that no sentence of an older process comes back** (T-298), and **a message of
-> a view stands on the rows that it needs: the last row of it stays above the
-> footer and the rows before it grow upward over the view, the header of the
-> screen keeps its rows, and a message that needs more rows than that room
-> loses its end to three points** (T-299), and **the line at the top of the
-> reader keeps the place of the user: the place of the user stands whole while
-> one column stays for it, and the title takes the room after it and it loses
-> its end to three points** (T-300), and **the footer of the reader
-> stands on the rows that it needs: the footer of the reader is a footer of
-> this program, therefore its four texts stand in `src/ui/keys.rs` under a
-> gate, they hold one line and no `\n`, and the `Paragraph` of them wraps over
-> the rows that the wrap needs — no fewer than two, no more than one half of
-> the rows of the reader, and three points for an end that no row holds**
-> (T-301), and **the footer of every view stands on the rows that it needs:
-> every footer of the program stands in `src/ui/keys.rs` under a gate that
-> measures the rows of its wrap, no footer holds a `\n`, the footer grows
-> upward over the work of the view because the key `j` moves a list and a key
-> of the road back that stands outside the screen has no such road, and the
-> count of the rows keeps the width of the spaces that stand between two
-> words** (T-302), and **a box of a field says that the screen must be drawn
-> again: a box of a field makes a terminal of its own and it writes on the
-> cells of the view below it, therefore the diff of ratatui sends no byte
-> for a cell of the box that holds the same letter as the view after it,
-> and `App::the_box_of_a_field_went_away` is the one road to the field that
-> the loop of the program reads** (T-303), and **the title of a view keeps its
-> start: the title of a list stands in the middle of the header of it, and
-> ratatui draws a centered title that does not stand right-aligned in an area
-> that it cut — therefore a title that is longer than the screen loses its start
-> and its end together, and `crate::logic::message::in_one_row` is the one maker
-> of a text of one row of this program** (T-304), and **a character is not a
-> column: the program measures every text of the screen with
-> `crate::logic::message::the_columns_of`, which is the crate `unicode-width`
-> that ratatui itself measures with, because a character of the Han script, of
-> Hiragana, or of Katakana takes two columns of the terminal and a count of the
-> characters therefore gives a number that the screen does not have** (T-305),
-> and **the panel of a description counts the columns of its text: the number
-> of the lines of a text is the number of the rows that ratatui draws it on,
-> the last character of a row takes one column of that row because the crate
-> draws it while one column of that row stays, and the largest scroll of the
-> keys `J` and `K` and the bar of the scroll each come of that number**
-> (T-306), and **the box of a message counts the columns of its text: the two
-> counts of a wrap of this program read one rule of ratatui, which stands in
-> `src/logic/message.rs` beside the measure of the columns, and a message
-> therefore stands on the rows that the render draws it on** (T-307), and **the
-> words of a key that refreshes the program reach the user: the box of the
-> message holds a slot that `forget` leaves, because the loop of the program
-> makes the new application for that key and it forgets every message before
-> the first frame of it, and the road that keeps the application of the user
-> drops those words because a screen that did not change makes them a lie**
-> (T-308), and **the panel of a description counts the spaces of its text: the
-> two counts of a wrap of this program read one loop, which stands in
-> `src/logic/message.rs` beside the measure of the columns, because a wrap of
-> `trim: true` keeps every space that stands inside a row and a count of one
-> space between two words therefore gives a number of the lines that is smaller
-> than the number of the rows of the screen** (T-309).
+> And **the decisions of T-201 to T-310 stand in
+> `## The decisions of T-201 to T-310 that do not open again` of
+> `docs/HANDOVER.md`, outside this block, and each of them holds** (T-310).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
@@ -20589,7 +20770,16 @@ character.
 > of the hundred and thirty-seventh found it at 95595 bytes with one turn in
 > it, and it did the same work; the round of the hundred and thirty-eighth
 > found it at 96034 bytes with one turn in it, and it did the same work, and
-> the block then held 96174 bytes with **one** turn in it. **A turn of many
+> the block then held 96174 bytes with **one** turn in it; the round of the
+> hundred and thirty-ninth found it at 97669 bytes with one turn in it, and it
+> did the same work, and the block then held 98907 bytes with one turn in it —
+> **at the line of 99000**, therefore that round took the whole list of the
+> decisions of T-201 to T-310 out of the block and it put it in
+> `## The decisions of T-201 to T-310 that do not open again` of this file,
+> with a pointer of three lines in its place: the block then held **66224**
+> bytes with one turn in it. **The list of the decisions grows with every round
+> and the turn of a round does not**, therefore that list is the part of the
+> block to take out again. **A turn of many
 > numbers is a turn that takes two turns out**, and **a block that stands above
 > 99000 bytes with one turn in it needs a part of the list of "Do not open these
 > again" in a section of its own, outside the block.**

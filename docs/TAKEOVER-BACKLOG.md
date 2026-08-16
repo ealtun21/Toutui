@@ -27186,3 +27186,148 @@ failure over its binaries in two runs.
   that hold a character, therefore a blank row of a wrap stands outside them.
   **This is a candidate and not a measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to T-308).
+
+### T-310: the box of a message counts the ends of the lines of its text
+
+#### The fault
+
+**The two counts of a wrap of this program read one loop** (T-307 and T-309),
+and that loop counts **one** line. `the_rows_of_one_line` of
+`src/logic/message.rs` says it in its own words: "The text of one call holds no
+end of a line: a caller that has one splits its text at every `\n` and it adds
+the answers." `the_number_of_the_lines` of `src/logic/the_scroll_of_a_panel.rs`
+did that work, and `the_rows_of_a_message` of the same file as the loop did
+**not**: it gave the whole text to `the_rows_of_one_line`.
+
+A `\n` is a character of no column: `split_inclusive(char::is_whitespace)` gives
+it to the word before it, `the_columns_of` of it is 0, and the word after an end
+of a line therefore stands on the row of the word before it. The count then gives
+a number of the rows that is **smaller** than the number that ratatui draws, and
+the box of the message of a view (T-299) stands on those rows: a message that
+holds an end of a line loses every row after its first one, and `in_the_rows`
+writes no three points, because that count says that the whole message fits.
+
+T-309 left this open as a candidate, and it named the reason that no gate held
+it: the gates of T-306, T-307, and T-309 read the rows of ratatui that hold a
+character, and each of their texts holds no end of a line at all.
+
+#### The measurement
+
+Of the real program v0.8.138 inside tmux against the sandbox on `:13399`, the
+account `toutuitest`, a terminal of 80 columns and 45 rows
+(`COLUMNS_OF_THE_SCREEN=80` and `ROWS_OF_THE_SCREEN=45` of
+`docs/harness/drive.sh`). **The data of the fault is the text of the server**:
+no proxy, no book of a harness, no build of the fault of the source, and no
+change of the source at all.
+
+The book `A Book Of An Epub With No Container` of the library `Books`, of
+5220 bytes, whose id is `a4d8b9b2-c4a4-4e80-8ed0-07662933fa71`, took the title
+`Alpha\nOMEGAEND`:
+
+```bash
+curl -X PATCH "http://localhost:13399/api/items/$ID/media" \
+    -H "Authorization: Bearer $TOK" -H 'Content-Type: application/json' \
+    -d '{"metadata":{"title":"Alpha\nOMEGAEND"}}'
+```
+
+The row of the account took that library with `sqlite3` before the start (the
+trap 203 and the trap 204). The key `Tab` of the Home view gave the Library
+view, and the first line of that list held the book. The key `D` of that line
+downloaded it, and the message of the end of that download stood on the screen:
+
+```text
+(the row 42)
+(the row 43)                       "Alpha
+(the row 44)  j/k: move  l: play or open  Tab: home/library  S-Tab: the next
+```
+
+The sentence of the program is `"Alpha\nOMEGAEND" is now available offline.`,
+and ratatui draws it on **two** rows. The count of the program said **one**,
+therefore the box of the message held one row: `OMEGAEND" is now available
+offline.` had **no road at all**, and no three points said that the program cut
+it. The user reads a sentence with no end.
+
+**The control of the same run** (the trap 206): the key `j` gave the book after
+it, `A Book Of A Broken Epub`, whose title holds no end of a line, and the key
+`D` of that line said `"A Book Of A Broken Epub" is now available offline.` on
+one whole row of the same screen.
+
+**The corrected program**, of the same keys and the same title of the server:
+
+```text
+(the row 42)                       "Alpha
+(the row 43)         OMEGAEND" is now available offline.
+(the row 44)  j/k: move  l: play or open  Tab: home/library  S-Tab: the next
+```
+
+and the key `X` of the same line, whose sentence is longer, said
+`Removed the local copy of "Alpha` and `OMEGAEND". Removed its ebook of 1 kB.`
+on its two rows.
+
+#### The correction
+
+`src/logic/message.rs` holds the new `pub(crate) the_rows_of_a_text`, which
+splits a text at every `\n` and adds the rows of each line of it, and which is
+**the one place of the rule of the end of a line** now.
+`the_rows_of_a_message` calls it and it keeps its guard of a text of no
+character and of a width of 0, and `the_number_of_the_lines` of
+`src/logic/the_scroll_of_a_panel.rs` calls it in the place of the split of its
+own.
+
+#### The gate
+
+`tests/the_box_of_a_message_counts_its_lines.rs` draws a `Paragraph` of
+`Wrap { trim: true }` into a `Buffer` with no terminal at all (T-256), and it
+asserts that the count of the program is the number of the rows that ratatui
+drew: for the sentence of the measurement and for the sentence of the control at
+every width from 20 to 200 columns, and for a sentence of twelve words with one,
+two, and three ends of a line in the place of the space after each of the words
+of it, at nine widths from 20 to 160 columns. It asserts that a text of the ends
+of the lines alone and a width of 0 each hold no row (T-299). **Every text of
+the gate ends with a word**, because the count of the rows of ratatui reads the
+rows that hold a character and a last line of no character therefore stands
+outside it.
+
+**The build of the fault** (`the_rows_of_one_line(text, usize::from(width))` in
+the place of `the_rows_of_a_text(text, usize::from(width))` of
+`the_rows_of_a_message`) said two rows where ratatui draws three at 22 columns,
+and one row where ratatui draws two at 80.
+
+#### The gates
+
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` pass.
+`cargo nextest run` gives 1374 of 1374 in 3.2 seconds, and
+`cargo nextest run --run-ignored all` gives 1400 of 1400 with the sandbox up.
+`cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure over its
+binaries in two runs.
+
+#### What this turn leaves open
+
+- **The marks of a line count the characters still.** `fill` of
+  `src/ui/marks.rs:111` reads `mark.chars().count()`, and a mark of the East
+  Asian Width "Ambiguous" takes one column or two, and the terminal decides.
+  **The four marks of that file are constants of this program** (`▶`, `✓`,
+  `100`, and a percent of numbers), therefore no text of the server reaches
+  that count and the road of a measurement of the real program stays unknown.
+  **This is a candidate and not a measurement.**
+- **The two keys of `must_refresh` that say nothing at all** (T-308):
+  `show_the_books_of_the_author` (`src/app.rs:4251`) and
+  `apply_the_sequence_or_the_filter` (`src/app.rs:6161`) each change every list
+  of the screen and each say no word of what they did. The rule of T-91 asks
+  whether a key that changes the whole screen must name the change. **This is a
+  candidate and not a measurement.**
+- **A word of a description that is longer than the panel takes the road of
+  ratatui that overflows the area** (T-306). That is a fault of the crate and
+  not of this program, and no count of this program says what it does. **This is
+  a candidate and not a measurement.**
+- **A line of a list that holds an end of a line takes more than one row**: the
+  measurement of this turn drew the title `Alpha\nOMEGAEND` of the Library view
+  on two rows of the list, and the bar of the scroll of a list counts the lines
+  of the list and not the rows of the screen (T-255 and T-256). **This is a
+  candidate and not a measurement.**
+- **A text whose last line holds no character stands outside every gate of a
+  wrap of this fork**: the count of the rows of ratatui of T-306, T-307, T-309,
+  and T-310 reads the rows that hold a character. A `Buffer` of a background of
+  a colour of its own would say where such a row stands. **This is a candidate
+  and not a measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to T-309).
