@@ -177,36 +177,106 @@ pub fn for_the_screen(view: AppView) -> Option<String> {
     None
 }
 
-/// Makes one line of a message for a screen of a width.
+/// Gives the number of rows that a message of a width needs.
 ///
-/// A message of more letters than the width would go to a second row, and the
-/// row of the message holds one row. Therefore the function cuts a long message
-/// and it names the cut with three points. The whole message stands in the log.
+/// The count follows the rule of `Wrap { trim: true }` of ratatui: a break comes
+/// at a space, and a word that is longer than the width takes rows of its own.
+/// The function is pure, therefore a test needs no screen. See T-297 and T-299.
+pub fn the_rows_of_a_message(text: &str, width: u16) -> u16 {
+    if text.trim().is_empty() || width == 0 {
+        return 0;
+    }
+
+    let width = usize::from(width);
+    let mut rows = 1u16;
+    let mut column = 0usize;
+
+    for word in text.split_whitespace() {
+        let length = word.chars().count();
+
+        if column == 0 {
+            column = length;
+        } else if column + 1 + length <= width {
+            column += 1 + length;
+        } else {
+            rows = rows.saturating_add(1);
+            column = length;
+        }
+
+        while column > width {
+            rows = rows.saturating_add(1);
+            column -= width;
+        }
+    }
+
+    rows
+}
+
+/// Gives the first row and the number of rows of a message of a view.
+///
+/// The last row of the message stays above the footer, where one row of a
+/// message stood, and the rows before it grow upward over the view (the trap
+/// 39). The header of the screen keeps its rows, therefore a message that needs
+/// more rows than that room takes the room and it loses its end.
+///
+/// A screen that holds no such row gives `None`, and the view then draws no
+/// message at all. The function is pure, therefore a test needs no screen. See
+/// T-299.
+pub fn the_place_of_a_message(
+    top: u16,
+    height: u16,
+    header: u16,
+    footer: u16,
+    rows_that_it_needs: u16,
+) -> Option<(u16, u16)> {
+    if height < footer + 1 {
+        return None;
+    }
+
+    let last = top + height - footer - 1;
+    let room = last.saturating_sub(top + header) + 1;
+    let rows = rows_that_it_needs.clamp(1, room.max(1));
+
+    Some((last.saturating_sub(rows.saturating_sub(1)), rows))
+}
+
+/// Makes the text of a message that must stand in a number of rows.
+///
+/// **A message that the screen cuts is a message that says nothing** (T-278,
+/// T-297, and T-299). The row of the message of a view held one row and no
+/// wrap, therefore the road back of a long sentence stood outside the screen.
+/// The message now takes the rows that it needs, and this function is the last
+/// limit of that growth: a message that needs more rows than the screen holds
+/// loses its end, and the three points then say that the screen cut it. The
+/// whole message stands in the log.
 ///
 /// The function is pure, therefore a test needs no screen.
-pub fn one_line(text: &str, width: u16) -> String {
-    let width = usize::from(width);
-    let letters = text.chars().count();
-
-    if width == 0 {
+pub fn in_the_rows(text: &str, width: u16, rows: u16) -> String {
+    if width == 0 || rows == 0 {
         return String::new();
     }
 
-    if letters <= width {
+    if the_rows_of_a_message(text, width) <= rows {
         return text.to_string();
     }
 
-    // Two spaces stand beside the message, therefore the cut leaves room for
-    // them and for the three points.
-    let room = width.saturating_sub(4);
+    // The room of the rows is the first cut, and the wrap of a word then takes
+    // one character at a time away.
+    let room = usize::from(width) * usize::from(rows);
+    let mut kept: Vec<char> = text.chars().take(room).collect();
 
-    if room == 0 {
-        return text.chars().take(width).collect();
+    while !kept.is_empty() {
+        let cut: String = kept.iter().collect();
+        let cut = format!("{}…", cut.trim_end());
+
+        if the_rows_of_a_message(&cut, width) <= rows {
+            return cut;
+        }
+
+        kept.pop();
     }
 
-    let kept: String = text.chars().take(room).collect();
-
-    format!("{}…", kept.trim_end())
+    String::new()
 }
 
 /// The name of the variable of the environment that carries a sentence over a
@@ -366,15 +436,20 @@ mod tests {
         assert_eq!(for_the_screen(AppView::Stats), None);
     }
 
-    /// The row of the message holds one row. A message of more letters than the
-    /// width of the screen must not go to a second row.
+    /// A message that the rows of the screen hold stays whole, and a message
+    /// that is longer than them loses its end. See T-299.
     #[test]
-    fn a_long_message_gives_one_line() {
-        assert_eq!(one_line("A short message", 40), "A short message");
+    fn a_long_message_stands_in_the_rows_that_it_has() {
+        assert_eq!(in_the_rows("A short message", 40, 1), "A short message");
         // The message holds the width exactly.
-        assert_eq!(one_line("12345", 5), "12345");
+        assert_eq!(in_the_rows("12345", 5, 1), "12345");
 
-        let long = one_line("The server does not answer, and the program waits.", 20);
+        // Two rows hold a message that one row cuts.
+        let sentence = "The server does not answer, and the program waits.";
+        assert_eq!(the_rows_of_a_message(sentence, 20), 3);
+        assert_eq!(in_the_rows(sentence, 20, 3), sentence);
+
+        let long = in_the_rows(sentence, 20, 1);
         assert!(
             long.chars().count() <= 20,
             "{} letters: {}",
@@ -384,10 +459,9 @@ mod tests {
         assert!(long.ends_with('…'), "{}", long);
         assert!(long.starts_with("The server"), "{}", long);
 
-        // A screen of no width draws nothing.
-        assert_eq!(one_line("A message", 0), "");
-        // A screen of very little width gives the letters that it holds.
-        assert_eq!(one_line("A message", 3).chars().count(), 3);
+        // A screen of no width and a screen of no row draw nothing.
+        assert_eq!(in_the_rows("A message", 0, 1), "");
+        assert_eq!(in_the_rows("A message", 20, 0), "");
     }
 
     /// A message goes away after its time. The rule is pure, therefore this test

@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.127.** The item T-298 belongs to this session. The
+**The newest release is v0.8.128.** The item T-299 belongs to this session. The
+item T-298 belongs to the session before it. The
 item T-297 belongs to the session before it. The
 item T-296 belongs to the session before it. The
 item T-295 belongs to the session before it. The
@@ -143,6 +144,86 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its binaries in two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and twenty-eighth turn of 2026-08-16: the row of the message of a view stands on the rows that it needs
+
+**The item: T-299**, and the release **v0.8.128**.
+
+**The candidate came of T-298.** T-297 gave a log out the words of the copies of
+the disk, and T-298 gave those words the third road of the log out — the program
+that starts again with another account. That item then asked whether the row of
+the message of a view holds a sentence of about 180 characters. It does not: the
+sentence is **194** characters, and that row held **one row** and no wrap.
+
+**The fault.** `App::render_the_message` of `src/ui/tui.rs` carved a `Rect` of
+`height: 1` above the footer, and `crate::logic::message::one_line` kept
+`width - 4` characters of the text and it wrote three points. T-278 gave the
+sentence of a view that holds no line more than one row, and T-297 gave the
+message of the login screen more than one row: the row of the message of every
+view stayed at one.
+
+**The measurement**, of the real program v0.8.127 inside tmux against the
+sandbox. **The data of this fault is the database of the program, and it needs
+no proxy at all.** The database held `toutuitest` with 11 rows of `downloads`,
+13 rows of `download_files`, and 19 files of 251382273 bytes (239.7 MB). The
+keys `S`, `Enter`, and `a` gave the login screen of a second window, and the
+address `http://localhost:13399`, the name `toutuilimited`, and the password
+`toutuilimited` gave a second account. A login writes the mark of the account of
+the start, therefore a `sqlite3` of `is_default_usr` gave that mark back to
+`toutuitest` before the program started again (the trap 204). The keys `S`,
+`Enter`, `l`, and `l` then logged out of `toutuitest`, which is the road
+`AfterALogOut::ThisAccountStarts` of T-298: the program started again with
+`toutuilimited`, and the Home view of it said, on its row 43, at every one of
+the six polls of 0.8 seconds, in a terminal of 160 columns:
+
+```text
+The program removed the account toutuitest. The disk keeps the copies of that account: 11 media, and 239.7 MB. Log in again with the same name and the same…
+```
+
+**The road back of that sentence stood outside the screen.**
+
+**The decision: the message stands on the rows that it needs, and it grows
+upward over the view.** That is the rule that T-297 gave the login screen
+already. The last row of the message stays where one row of a message stood,
+above the footer, therefore the footer and the row of the player keep their
+places. **The header of the screen keeps its two rows**, because the header says
+the account, the server, and the library (T-171). A message that needs more rows
+than that room loses its end to three points, and the log holds the whole of it.
+
+**The correction is three files.** `src/logic/message.rs` holds
+`the_rows_of_a_message` (the count of the rows of `Wrap { trim: true }`, moved
+here from the login screen), `the_place_of_a_message` (the first row and the
+number of rows, and `None` for a screen that holds no row above the footer), and
+`in_the_rows` (the whole text when the rows hold it, and a cut of three points
+when they do not); `one_line` went away, because no caller stays.
+`src/logic/auth/auth_input.rs` reads the count of `crate::logic::message`,
+because the two screens hold one rule. `src/ui/tui.rs` holds `HEADER_HEIGHT` of
+2 rows, `render_the_message` reads the two functions above, and
+`draw_the_row_of_the_message` holds `Wrap { trim: true }`.
+
+**The corrected program**, of the same keys and of the same two accounts, held
+the whole sentence on the rows 42 and 43 of the Home view of `toutuilimited` at
+every one of the six polls. A terminal of **80** columns held it whole on three
+rows above the footer, and the two rows of the header kept the account, the
+server, and the library.
+
+**The test**: `tests/the_message_of_a_view_stands_whole.rs` (3 tests), and the
+unit test `ui::tui::tests::the_row_of_the_message_takes_the_letters_of_the_view_away`
+grew a part that reads the wrap over three rows of a `Buffer`. **Two builds of
+the fault**: a `the_place_of_a_message` that gives `rows.min(1)` failed
+`the_rows_of_a_message_grow_upward_and_they_keep_the_header` (it gave `(42, 1)`
+for `(41, 2)`), and a `draw_the_row_of_the_message` with no `wrap` failed the
+unit test (it gave `The disk keeps the c` for the whole sentence).
+
+**The road back of the sandbox**: the copy `db.sqlite3.before-T299` gave
+`toutuitest` back, with `http://localhost:13399`, the library `Books`, the 11
+rows of `downloads`, the 13 rows of `download_files`, and the mark of the
+account of the start. The 251382273 bytes of the disk stand as they stood.
+
+**The gates**: `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,
+`cargo nextest run` (**1356 tests**), `cargo nextest run --run-ignored all`
+(**1382 of 1382** with the sandbox up), and two runs of
+`cargo test -j 16 --no-fail-fast`.
 
 ## The session of the hundred and twenty-seventh turn of 2026-08-16: the words of a log out reach the program that starts after it
 
@@ -16004,6 +16085,63 @@ line, none at the key `h`, and the server then held
 - **The line of `src/player/engine/hls_file.rs:248` stays open** (T-288). It
    needs the book of xHE-AAC of the sandbox.
 
+**The session of the hundred and twenty-fifth turn took the candidate
+"a road of the program removes the row of an account and it keeps the
+places of the user of that account", which a sweep of the roads of the
+table of T-294 gave, and the measurement of it gave the fault** (T-296).
+
+**A log out that keeps the place of the user gives that place to the
+server later.** The key `l` of the view of the accounts called
+`remove_the_account` of `src/db/crud.rs`, and that function holds one
+statement: `DELETE FROM users WHERE username = ?1`. The three tables of
+the places of the user (`pending_progress`, `pending_ebook_progress`, and
+`listening_session`) stayed, **and the name of an account is the primary
+key of `users`**: a login with the same name and the same server therefore
+finds them again, and the start of that program sends them.
+
+The measurement, of the real program v0.8.124 inside tmux against the
+sandbox, with `docs/harness/one_method_fails.py 13500 13399 requests.log
+PATCH:/api/me/progress` and the one address `http://127.0.0.1:13500` of
+the account (the trap 129). `Alice in Wonderland` stood at
+`toutui:the-place-of-the-start`: the key `/` and the word `Alice`, the key
+`e`, two presses of the key `n` (`chapter 4 of 14 — 9%`), and the key `h`
+gave `The server did not take the place: The server reported a fault.
+Status 500.` The keys `h`, `S`, `Enter`, `l`, and `l` then logged out:
+**`users` held 0 rows, and the row of the place stayed.** A second proxy
+of the same port gave the server back, the second machine of the user
+wrote `epubcfi(/6/30!/4/2/2/1:0)` at `ebookProgress 0.5` straight to the
+port 13399, and the user logged in again with the same address, the same
+name, and the same password. **The start of that program sent the place of
+the program before the log out, and the server then held
+`epubcfi(/6/8!/4/2/2/1:0)` at 0.0916.**
+
+The correction is one file, `src/db/crud.rs`.
+`the_account_and_its_places_go_away` holds the four statements of the log
+out in one transaction (T-214), and it gives the number of the rows of
+`users` and the number of the places. `the_words_of_a_log_out` names that
+number. **`remove_the_account` keeps its one statement**, because a token
+that the server refused (T-123) gives the account back at once with the
+same name and its places must stay. **The corrected program**, of the same
+keys, left no row of the three tables, it said
+`[the accounts] the log out of toutuitest took 1 row(s) of the account and
+1 place(s) of the user.`, and the server kept the place of the second
+machine. The row of the message of a log out of an account that does not
+start the program said `The program removed the account toutuitest. 1
+place of the user did not reach the server, and it went away with the
+account.`
+- **The rows of `downloads`, of `download_files`, and of `queue` of an
+  account that logged out stay on the disk, and the files of those
+  downloads stay too** (T-296). **This is a candidate and not a
+  measurement.**
+- **The words of the log out say "Start the program again." for a program
+  that does not stop** (T-296): the view of the accounts of the
+  measurement above stands, with that sentence in the row of the message.
+  **This is a candidate and not a measurement.**
+- **A place that went away with the account reaches the server of no other
+  machine** (T-296): the log out could send those places first, and a key
+  handler of this program waits for no server. **This is a candidate and
+  not a measurement.**
+
 ## The session of the hundred and sixth turn of 2026-08-16: a chapter that the book did not give says why
 
 **One release: v0.8.106**, and one item: T-277. **The road of it is the
@@ -17200,7 +17338,7 @@ log out** (T-200).
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.127**; `Cargo.toml` is at 0.8.127. The
+> AlbanDAVID/Toutui. Newest release **v0.8.128**; `Cargo.toml` is at 0.8.128. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -17209,7 +17347,7 @@ log out** (T-200).
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-298 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-299 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -17911,15 +18049,15 @@ log out** (T-200).
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-298 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-299 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1350 tests in 2.8 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1376 of 1376** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1356 tests in 2.8 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1382 of 1382** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -18027,8 +18165,69 @@ log out** (T-200).
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in one hundred and five sessions of one hundred
->    and six.
+>    this shape found a fault in one hundred and six sessions of one hundred
+>    and seven.
+>    **The session of the hundred and twenty-eighth turn took the candidate
+>    "the row of the message of a view now draws the sentence of a log out with
+>    the copies of the disk of T-297, and that sentence is about 180
+>    characters", which T-298 left open, and the measurement of it gave the
+>    fault** (T-299).
+>
+>    **A message that is longer than the screen loses its end.** The row of the
+>    message of every view held **one row** and no wrap:
+>    `App::render_the_message` of `src/ui/tui.rs` carved a `Rect` of `height: 1`
+>    above the footer, and `crate::logic::message::one_line` kept `width - 4`
+>    characters of the text and it wrote three points. The sentence of a log out
+>    that keeps the copies of the disk (T-297) is **194** characters.
+>
+>    The measurement, of the real program v0.8.127 inside tmux against the
+>    sandbox. **The data of this fault is the database of the program, and it
+>    needs no proxy at all.** The database held `toutuitest` with 11 rows of
+>    `downloads`, 13 rows of `download_files`, and 19 files of 251382273 bytes
+>    (239.7 MB). The keys `S`, `Enter`, and `a` gave the login screen of a
+>    second window, and the address `http://localhost:13399`, the name
+>    `toutuilimited`, and the password `toutuilimited` gave a second account. A
+>    login writes the mark of the account of the start, therefore a `sqlite3` of
+>    `is_default_usr` gave that mark back to `toutuitest` before the program
+>    started again (the trap 204). The keys `S`, `Enter`, `l`, and `l` then
+>    logged out of `toutuitest`, which is the road
+>    `AfterALogOut::ThisAccountStarts` of T-298: the program started again with
+>    `toutuilimited`, and the Home view of it said, on its row 43, at every one
+>    of the six polls of 0.8 seconds, in a terminal of 160 columns:
+>    `The program removed the account toutuitest. The disk keeps the copies of
+>    that account: 11 media, and 239.7 MB. Log in again with the same name and
+>    the same…` **The road back of that sentence stood outside the screen.**
+>
+>    **The decision: the message stands on the rows that it needs, and it grows
+>    upward over the view.** That is the rule that T-297 gave the login screen
+>    already. The last row of it stays where one row of a message stood, above
+>    the footer, therefore the footer and the row of the player keep their
+>    places. **The header of the screen keeps its two rows**, because the header
+>    says the account, the server, and the library (T-171). A message that needs
+>    more rows than that room loses its end to three points, and the log holds
+>    the whole of it.
+>
+>    The correction is three files. `src/logic/message.rs` holds
+>    `the_rows_of_a_message` (the count of the rows of `Wrap { trim: true }`,
+>    moved here from the login screen), `the_place_of_a_message` (the first row
+>    and the number of rows, and `None` for a screen that holds no row above the
+>    footer), and `in_the_rows` (the whole text when the rows hold it, and a cut
+>    of three points when they do not); `one_line` went away, because no caller
+>    stays. `src/logic/auth/auth_input.rs` reads the count of
+>    `crate::logic::message`, because the two screens hold one rule.
+>    `src/ui/tui.rs` holds `HEADER_HEIGHT` of 2 rows, `render_the_message` reads
+>    the two functions above, and `draw_the_row_of_the_message` holds
+>    `Wrap { trim: true }`. **The corrected program**, of the same keys, held the
+>    whole sentence on the rows 42 and 43 of the Home view of `toutuilimited` at
+>    every one of the six polls, and a terminal of **80** columns held it whole
+>    on three rows above the footer with the two rows of the header untouched.
+>    - **The row of the message of the reader is a different widget** (T-299):
+>      the `reader_message` of `src/ui/tui.rs` draws its own paragraph, and a
+>      measurement of a sentence that is longer than that row did not run.
+>      **This is a candidate and not a measurement.**
+>    - **The words of a start reach no user when `exec` fails** (T-298 and
+>      T-299). **This is a candidate and not a measurement.**
+>
 >    **The session of the hundred and twenty-seventh turn took the candidate
 >    "the road `AfterALogOut::ThisAccountStarts` loses the words of its log out
 >    too", which T-297 left open, and the measurement of it gave the fault**
@@ -18154,63 +18353,6 @@ log out** (T-200).
 >      table `users` holds the name as its primary key, therefore a
 >      measurement of it needs two servers one after the other. **This is a
 >      candidate and not a measurement.**
->
->    **The session of the hundred and twenty-fifth turn took the candidate
->    "a road of the program removes the row of an account and it keeps the
->    places of the user of that account", which a sweep of the roads of the
->    table of T-294 gave, and the measurement of it gave the fault** (T-296).
->
->    **A log out that keeps the place of the user gives that place to the
->    server later.** The key `l` of the view of the accounts called
->    `remove_the_account` of `src/db/crud.rs`, and that function holds one
->    statement: `DELETE FROM users WHERE username = ?1`. The three tables of
->    the places of the user (`pending_progress`, `pending_ebook_progress`, and
->    `listening_session`) stayed, **and the name of an account is the primary
->    key of `users`**: a login with the same name and the same server therefore
->    finds them again, and the start of that program sends them.
->
->    The measurement, of the real program v0.8.124 inside tmux against the
->    sandbox, with `docs/harness/one_method_fails.py 13500 13399 requests.log
->    PATCH:/api/me/progress` and the one address `http://127.0.0.1:13500` of
->    the account (the trap 129). `Alice in Wonderland` stood at
->    `toutui:the-place-of-the-start`: the key `/` and the word `Alice`, the key
->    `e`, two presses of the key `n` (`chapter 4 of 14 — 9%`), and the key `h`
->    gave `The server did not take the place: The server reported a fault.
->    Status 500.` The keys `h`, `S`, `Enter`, `l`, and `l` then logged out:
->    **`users` held 0 rows, and the row of the place stayed.** A second proxy
->    of the same port gave the server back, the second machine of the user
->    wrote `epubcfi(/6/30!/4/2/2/1:0)` at `ebookProgress 0.5` straight to the
->    port 13399, and the user logged in again with the same address, the same
->    name, and the same password. **The start of that program sent the place of
->    the program before the log out, and the server then held
->    `epubcfi(/6/8!/4/2/2/1:0)` at 0.0916.**
->
->    The correction is one file, `src/db/crud.rs`.
->    `the_account_and_its_places_go_away` holds the four statements of the log
->    out in one transaction (T-214), and it gives the number of the rows of
->    `users` and the number of the places. `the_words_of_a_log_out` names that
->    number. **`remove_the_account` keeps its one statement**, because a token
->    that the server refused (T-123) gives the account back at once with the
->    same name and its places must stay. **The corrected program**, of the same
->    keys, left no row of the three tables, it said
->    `[the accounts] the log out of toutuitest took 1 row(s) of the account and
->    1 place(s) of the user.`, and the server kept the place of the second
->    machine. The row of the message of a log out of an account that does not
->    start the program said `The program removed the account toutuitest. 1
->    place of the user did not reach the server, and it went away with the
->    account.`
->    - **The rows of `downloads`, of `download_files`, and of `queue` of an
->      account that logged out stay on the disk, and the files of those
->      downloads stay too** (T-296). **This is a candidate and not a
->      measurement.**
->    - **The words of the log out say "Start the program again." for a program
->      that does not stop** (T-296): the view of the accounts of the
->      measurement above stands, with that sentence in the row of the message.
->      **This is a candidate and not a measurement.**
->    - **A place that went away with the account reaches the server of no other
->      machine** (T-296): the log out could send those places first, and a key
->      handler of this program waits for no server. **This is a candidate and
->      not a measurement.**
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -18637,7 +18779,11 @@ log out** (T-200).
 > the environment carries a sentence over the `exec` of a start that holds an
 > account, because such a program draws no login screen and the disk of T-270
 > reaches nobody, and every start of the program again writes that variable so
-> that no sentence of an older process comes back** (T-298).
+> that no sentence of an older process comes back** (T-298), and **a message of
+> a view stands on the rows that it needs: the last row of it stays above the
+> footer and the rows before it grow upward over the view, the header of the
+> screen keeps its rows, and a message that needs more rows than that room
+> loses its end to three points** (T-299).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

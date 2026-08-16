@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.128",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A message that is longer than your screen now stands on more \
+             than one row.** The row of the message of a view held one row, and \
+             it cut every longer sentence with three points: the words of a log \
+             out lost the road back to the copies of the disk. The message now \
+             takes the rows that it needs, above the footer, and the header of \
+             the screen keeps its rows.",
+        ],
+    },
+    Entry {
         version: "0.8.127",
         date: "16/08/2026",
         body: &[

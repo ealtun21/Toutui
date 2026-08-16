@@ -296,34 +296,11 @@ pub fn the_row_of_the_message(size: ratatui::layout::Size) -> u16 {
 /// The count follows the rule of `Wrap { trim: true }` of ratatui: a break comes
 /// at a space, and a word that is longer than the width takes rows of its own.
 /// The function is pure, therefore a test needs no terminal.
+///
+/// **The row of the message of a view holds the same rule** (T-299), therefore
+/// the count stands in `crate::logic::message` and this screen reads it there.
 pub fn the_rows_of_the_message(text: &str, width: u16) -> u16 {
-    if text.trim().is_empty() || width == 0 {
-        return 0;
-    }
-
-    let width = width as usize;
-    let mut rows = 1u16;
-    let mut column = 0usize;
-
-    for word in text.split_whitespace() {
-        let length = word.chars().count();
-
-        if column == 0 {
-            column = length;
-        } else if column + 1 + length <= width {
-            column += 1 + length;
-        } else {
-            rows = rows.saturating_add(1);
-            column = length;
-        }
-
-        while column > width {
-            rows = rows.saturating_add(1);
-            column -= width;
-        }
-    }
-
-    rows
+    crate::logic::message::the_rows_of_a_message(text, width)
 }
 
 /// Draws one frame of the login screen.

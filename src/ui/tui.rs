@@ -19,6 +19,13 @@ use ratatui_image::StatefulImage;
 /// The number of rows of the footer of every view.
 const FOOTER_HEIGHT: u16 = 2;
 
+/// The number of rows of the header of every view.
+///
+/// The header says the account, the server, and the library, and the row of the
+/// message must not take those rows: the message grows upward over the view
+/// alone. See T-171 and T-299.
+const HEADER_HEIGHT: u16 = 2;
+
 /// The number of rows of the panel of the player.
 ///
 /// `render_player` of `src/ui/player_tui.rs` draws 4 rows at 9 rows above the end
@@ -116,7 +123,7 @@ fn the_areas_of_a_view(area: Rect, a_media_plays: bool) -> [Rect; 3] {
     let rows_of_the_player = if a_media_plays { PLAYER_HEIGHT } else { 0 };
 
     let [header_area, main_area, _player_area, _message_area, footer_area] = Layout::vertical([
-        Constraint::Length(2),
+        Constraint::Length(HEADER_HEIGHT),
         Constraint::Fill(1),
         Constraint::Length(rows_of_the_player),
         Constraint::Length(1),
@@ -172,9 +179,21 @@ fn the_areas_of_a_list(main_area: Rect, rows_that_the_player_left: u16) -> [Rect
 impl App {
     /// Draws the newest message of the program, if one is fresh.
     ///
-    /// The message takes one row above the footer. It stands after the view and
-    /// before the bar of the downloads: a download is the work that the user
-    /// waits for, therefore that bar keeps its rows.
+    /// The message stands after the view and before the bar of the downloads: a
+    /// download is the work that the user waits for, therefore that bar keeps
+    /// its rows.
+    ///
+    /// **The message stands on the rows that it needs** (T-299). The row of the
+    /// message held one row and it cut every sentence that was longer than the
+    /// screen: the measurement of 2026-08-16 logged out of the account that
+    /// starts the program, and the Home view of the account after it said
+    /// `… Log in again with the same name and the same…` at 160 columns. The
+    /// road back of that sentence stood outside the screen.
+    ///
+    /// The last row of the message stays where one row of a message stood, and
+    /// the rows before it grow upward over the view (the trap 39). The header of
+    /// the screen keeps its rows: a message that needs more rows than that room
+    /// loses its end to `in_the_rows`, and the log holds the whole of it.
     fn render_the_message(&self, area: Rect, buf: &mut Buffer) {
         // **The message names the view of the user**: a rule of the loop writes
         // a message of a view with no key of the user, and that message waits
@@ -183,17 +202,25 @@ impl App {
             return;
         };
 
-        // The row of the message stands above the two rows of the footer. A
+        // The rows of the message stand above the two rows of the footer. A
         // screen that holds no such row draws no message.
-        if area.height < FOOTER_HEIGHT + 1 {
+        let rows_that_it_needs = crate::logic::message::the_rows_of_a_message(&text, area.width);
+
+        let Some((y, rows)) = crate::logic::message::the_place_of_a_message(
+            area.y,
+            area.height,
+            HEADER_HEIGHT,
+            FOOTER_HEIGHT,
+            rows_that_it_needs,
+        ) else {
             return;
-        }
+        };
 
         let row = Rect {
             x: area.x,
-            y: area.y + area.height - FOOTER_HEIGHT - 1,
+            y,
             width: area.width,
-            height: 1,
+            height: rows,
         };
 
         let background = self.config.colors.header_background_color.clone();
@@ -209,23 +236,27 @@ impl App {
         App::draw_the_row_of_the_message(
             row,
             buf,
-            &crate::logic::message::one_line(&text, area.width),
+            &crate::logic::message::in_the_rows(&text, area.width, rows),
             style,
         );
     }
 
-    /// Draws the row of the message over the view that stands below it.
+    /// Draws the rows of the message over the view that stands below them.
     ///
-    /// **The row must hold the message and nothing else.** A `Paragraph` gives
+    /// **The rows must hold the message and nothing else.** A `Paragraph` gives
     /// its style to every cell of its area, and it writes its own text only:
     /// every letter that stood on that row before it stays. A measurement of
     /// 2026-08-11 read "CHAPTER IV.  │The Rabbit SeThe server has the place of
-    /// the book." in the reader. `Clear` takes the row away first. See T-78.
+    /// the book." in the reader. `Clear` takes the rows away first. See T-78.
+    ///
+    /// The wrap of the paragraph gives the message its second row and every row
+    /// after it, and `the_rows_of_a_message` measured them already (T-299).
     fn draw_the_row_of_the_message(row: Rect, buf: &mut Buffer, text: &str, style: Style) {
         Clear.render(row, buf);
 
         Paragraph::new(text.to_string())
             .centered()
+            .wrap(Wrap { trim: true })
             .style(style)
             .render(row, buf);
     }
@@ -3040,6 +3071,33 @@ mod tests {
             "the row holds the text of the view: \"{}\"",
             line
         );
+
+        // **The message stands on the rows that it has** (T-299). A message of
+        // more letters than the width of the screen went to the three points
+        // before, and it now wraps over the rows of its area.
+        let rows = Rect {
+            x: 0,
+            y: 0,
+            width: 20,
+            height: 3,
+        };
+
+        let mut buf = Buffer::empty(rows);
+        let sentence = "The disk keeps the copies of that account.";
+
+        App::draw_the_row_of_the_message(rows, &mut buf, sentence, Style::default());
+
+        let words: String = (0..rows.height)
+            .map(|row| {
+                (0..rows.width)
+                    .map(|column| buf[(column, row)].symbol().to_string())
+                    .collect::<String>()
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+        let words = words.split_whitespace().collect::<Vec<_>>().join(" ");
+
+        assert_eq!(words, sentence, "the message did not wrap over its rows");
     }
 
     /// **The 6 rows of the player go to the view while nothing plays.** They

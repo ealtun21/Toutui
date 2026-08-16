@@ -25668,3 +25668,114 @@ mark of the account of the start again.
   not a measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to
   T-297).
+
+### T-299: the row of the message of a view stands on the rows that it needs
+
+#### The fault
+
+**The row of the message of every view held one row, and no wrap.**
+`App::render_the_message` of `src/ui/tui.rs` carved a `Rect` of `height: 1`
+above the footer, and it cut the text with `crate::logic::message::one_line`,
+which keeps `width - 4` characters and it writes three points. T-297 gave the
+log out a sentence that names the copies of the disk, and that sentence is
+**194** characters: the road back of it stood outside the screen.
+
+#### The measurement
+
+The real program v0.8.127, inside tmux, against the sandbox on the port 13399,
+on 2026-08-16. **The data of this fault is the database of the program, and it
+needs no proxy at all.**
+
+The database held `toutuitest` with 11 rows of `downloads`, 13 rows of
+`download_files`, and 19 files of 251382273 bytes (239.7 MB). The keys `S`,
+`Enter`, and `a` gave the login screen of a second window, and the address
+`http://localhost:13399`, the name `toutuilimited`, and the password
+`toutuilimited` gave a second account. A login writes the mark of the account
+of the start, therefore a `sqlite3` of `is_default_usr` gave that mark back to
+`toutuitest` before the program started again (the trap 204: the program reads
+that row at its start). The keys `S`, `Enter`, `l`, and `l` then logged out of
+`toutuitest`, which is the road `AfterALogOut::ThisAccountStarts` of T-298: the
+program started again with `toutuilimited`, and the Home view of it said, on
+its row 43, at every one of the six polls of 0.8 seconds, in a terminal of 160
+columns:
+
+```text
+The program removed the account toutuitest. The disk keeps the copies of that account: 11 media, and 239.7 MB. Log in again with the same name and the same…
+```
+
+The log said `[the accounts] the log out of toutuitest took 1 row(s) of the
+account and 0 place(s) of the user.` and `[the accounts] the account
+toutuilimited starts the program. The program starts again.`
+
+#### The decision
+
+**The message stands on the rows that it needs, and it grows upward over the
+view.** That is the rule that T-297 gave the login screen already. The last row
+of the message stays where one row of a message stood, above the footer,
+therefore the footer and the row of the player keep their places. **The header
+of the screen keeps its two rows**: the header says the account, the server,
+and the library (T-171), and a message must not take them. A message that needs
+more rows than that room loses its end to three points, and the log holds the
+whole of it.
+
+#### The correction
+
+Three files.
+
+1. `src/logic/message.rs`: `the_rows_of_a_message(text, width)` (the count of
+   the rows of `Wrap { trim: true }`, moved here from the login screen),
+   `the_place_of_a_message(top, height, header, footer, rows_that_it_needs)`
+   (it gives the first row and the number of rows, and `None` for a screen that
+   holds no row above the footer), and `in_the_rows(text, width, rows)` (it
+   gives the whole text when the rows hold it, and it cuts with three points
+   when they do not). `one_line` went away: no caller stays.
+2. `src/logic/auth/auth_input.rs`: `the_rows_of_the_message` now reads the count
+   of `crate::logic::message`, because the two screens hold one rule.
+3. `src/ui/tui.rs`: `HEADER_HEIGHT` of 2 rows, `render_the_message` reads
+   `the_place_of_a_message` and `in_the_rows`, and
+   `draw_the_row_of_the_message` holds `Wrap { trim: true }`.
+
+#### The corrected program (measured)
+
+The same keys, of the same two accounts. At 160 columns the sentence stood
+whole on the rows 42 and 43 of the Home view of `toutuilimited`, at every one
+of the six polls. At 80 columns it stood whole on three rows above the footer,
+and the two rows of the header kept the account, the server, and the library.
+
+#### The test
+
+`tests/the_message_of_a_view_stands_whole.rs` (3 tests), and the unit test
+`ui::tui::tests::the_row_of_the_message_takes_the_letters_of_the_view_away`
+grew a part that reads the wrap over three rows of a `Buffer`. Two builds of
+the fault: a `the_place_of_a_message` that gives `rows.min(1)` failed
+`the_rows_of_a_message_grow_upward_and_they_keep_the_header` (it gave `(42, 1)`
+for `(41, 2)`), and a `draw_the_row_of_the_message` with no `wrap` failed the
+unit test (it gave `The disk keeps the c` for the whole sentence).
+
+The gates: `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,
+1356 tests of nextest, 1382 of `--run-ignored all`, and two runs of
+`cargo test -j 16 --no-fail-fast`.
+
+#### The road back of the sandbox
+
+The copy `db.sqlite3.before-T299` gave `toutuitest` back, with
+`http://localhost:13399`, the library `Books`, the 11 rows of `downloads`, the
+13 rows of `download_files`, and the mark of the account of the start.
+
+#### What this item leaves open
+
+- **The row of the message of the reader is a different widget**: the
+  `reader_message` of `src/ui/tui.rs` draws its own paragraph, and a
+  measurement of a sentence that is longer than that row did not run. **This is
+  a candidate and not a measurement.**
+- **The words of a start reach no user when `exec` fails** (T-298): the loop of
+  `src/main.rs` then says `request.message`, which names the system and not the
+  log out. **This is a candidate and not a measurement.**
+- **The rows of `queue` of an account that logged out stay** (T-297), and the
+  key of that table holds the account and the server. **This is a candidate and
+  not a measurement.**
+- **The table `downloads` holds a column `server` that is not in its key, and
+  `download_files` holds no server at all** (T-297): two servers of one name of
+  a user share the rows and the directory of the disk. **This is a candidate
+  and not a measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to T-298).
