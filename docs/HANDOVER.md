@@ -169,6 +169,151 @@ gives no failure over its 41 binaries, over two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
 
+## The session of the hundred and fifty-sixth turn of 2026-08-16: the Home view says the facts of the media
+
+**The item: T-326**, and the release **v0.8.156**. It is the part of the stage 6
+of the road of the panels that the round of T-325 left open: "the other views
+keep the two lines of today, because their lists of a row hold no narrator, no
+genre, and no ebook".
+
+**That reason held for three views and it did not hold for the fourth.** The
+Home view and the Library view are the two views that draw the panel 4 of the
+list and the panel 5 of the cover (T-320), and the answer of the personalized
+view holds the same six facts as the answer of the items of a library. The
+view of a search, the view of a collection, and the view of the episodes of a
+podcast draw no such panel, and they keep the two lines of today.
+
+### The road of this round, and what it cost
+
+**The round began with a sweep of the class of the fault of T-325**, and not
+with the road of the panels. T-325 found that the field `ebook_file_format` of
+`crate::api::libraries::get_all_books::Media` reads as `ebookFileFormat` while
+the server sends `ebookFormat`, therefore that value was `None` for every book
+of every server. **A fault of that shape is silent**: it needs no fault of a
+request and no line of the log, and no gate of this fork can see it.
+
+The sweep: a `python3` of `src/api/` took the wire name of every field of every
+struct of `Deserialize` (the `rename_all`, the `rename`, and the `alias` of
+each), thirteen `curl` of the sandbox took the keys of the answers of every
+endpoint that the program asks, and the two met each other **per struct** — a
+comparison of every name against every key hides a mismatch when a second
+endpoint sends that key. **The sweep found one fault of a user and one fault
+that no call site reads**, and the first of them is the item of this round:
+`crate::api::libraries::get_library_perso_view::Media` held **no field of the
+ebook at all**.
+
+**The second one stays a candidate**: `LibraryFile.file_name` and
+`LibraryFile.file_path` of `src/api/library_items/get_pod_ep.rs` read
+`fileName` and `filePath` of a row of `libraryFiles`, and the server nests
+those two under `metadata`, as `filename` and `path`. **No call site of the
+program reads `Root.library_files`**, therefore that fault reaches no user and
+it is no item of this fork.
+
+### The fault
+
+**The Home view drew the panel 5 of the design and it said two lines in it.**
+The measurement of the sandbox, of
+`GET /api/libraries/<Books>/personalized` for `A Long Test Book` of the shelf
+`continue-listening`: `"narratorName": "A Test Narrator"`,
+`"genres": [ "Fiction", "Adventure" ]`, `"numAudioFiles": 1`,
+`"size": 7337326`, and `"ebookFormat": "epub"`.
+
+**The real program v0.8.155 inside tmux**, at 160 columns and 45 rows, with the
+cursor on `A Long Test Book` — the same book, and the same panel, that the
+corrected program of T-325 gave eight lines of facts and a bar of the progress
+in the Library view. The panel 5 held the picture over 21 rows, two facts over
+two rows, and **15 rows of no character at all**:
+
+```text
+│      ▄                                         │
+│Author: Long Author - Year: N/A - Duration: 30m │
+│Progress: 50%, 15m left, Not finished           │
+│                                                │
+│No description available                        │
+```
+
+The line `Year: N/A` is the fault of T-114 in the words of the panel of today:
+the server gave that book no year, and the panel spent a part of a row to say
+so.
+
+**The data of this item is the program itself**: no proxy, no book of a
+harness, and no change of the sandbox — the library of the row of the account
+comes of a `sqlite3` of `name_selected_lib` and of `id_selected_lib` (the trap
+203 and the trap 204).
+
+### The correction
+
+The corrected program of the same harness, of that same row:
+
+```text
+│Author    Long Author                           │
+│Narrator  A Test Narrator                       │
+│Time      30m, 15m left                         │
+│Genre     Fiction, Adventure                    │
+│Files     1 file, 7.0 MB                        │
+│Ebook     epub                                  │
+│Progress  50%, Not finished                     │
+│████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░│
+```
+
+**The controls of the same run.** The row `A Big Book Of A Scan` said
+`Ebook     pdf` and it took no line of a series, of a narrator, and of a genre,
+because the server gave none of the three. The row `The Test Chronicles Volume
+2` said `Series    The Test Chronicles #2` and it took no line of an ebook. A
+row of the shelf `Recent Series` kept the line of today,
+`Depthless Hunger, Book - 1 book - Duration: 10m`, over its description. And
+the Home view of the library `Podcasts` kept the two lines of today,
+`[Arthur Gordon Pym] - Author: LibriVox - Episode: 1 - Duration: 22m` and
+`Progress: 22%, 17m left, Not finished`.
+
+**Four files, and no new one.**
+`src/api/libraries/get_library_perso_view.rs` gives `Media` the field
+`ebook_format` of the name of the server;
+`src/api/utils/collect_personalized_view.rs` holds
+`collect_the_facts_cnt_list`, which walks `media_entities` — the one sequence
+of the lists of the Home view; `src/app.rs` carries that list to
+`App::the_facts_home`, which holds one row for each media beside
+`_ids_cnt_list`; and `src/ui/tui.rs` gives
+`App::the_lines_of_the_facts_of_the_panel` an arm of the Home view beside the
+arm of the Library view, and `render_info_home` the argument `in_the_panel`
+that `render_info_library` holds already.
+
+`tests/the_panel_of_the_cover_of_the_home_view_says_the_facts.rs` holds the
+gate, of four tests, and **the build of the fault** (the trap 147), of three
+edits of one line each, made each of the four fail under at least one of them:
+the field of the ebook under the name of T-325 failed three, a narrator that
+never comes failed two, and a list that walks the entities and not the media
+failed three.
+
+### The traps of this round
+
+- **A shelf that holds no media must give no row.** The shelf `recent-series`
+  holds a series and the shelf `newest-authors` holds an author, and neither
+  has a media. `media_entities` of `collect_personalized_view.rs` is the one
+  sequence of the lists of the Home view for that reason, and a list of the
+  facts that walked the entities would have put the narrator of one book
+  beside the title of another.
+- **The entity of a shelf holds no size of its own.** T-325 takes `item.size`
+  over `media.size` for the Library view, because the first of the two holds
+  the ebook and the cover beside the audio. A measurement of the sandbox gives
+  the same number for `entity.size` and for `media.size` for each of the six
+  media of the shelf Continue Listening, therefore this list reads the one size
+  that the struct of the entity has and it adds no field.
+- **A global comparison of the names of the program with the keys of the server
+  hides a fault.** The first form of the sweep of this round said that 56 names
+  of the program never come from the server, and 55 of them were endpoints that
+  the sweep had not asked for. **The comparison must hold one struct against
+  the one object of the server that it reads**, and a match of the shapes gives
+  that pair with no map of a hand at all.
+
+### The gates
+
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` give
+nothing. `cargo nextest run` gives **1461 of 1461** in 3.3 seconds, and
+`cargo nextest run --run-ignored all` gives **1487 of 1487** with the sandbox
+up, in 17.9 seconds. `cargo test -j 16 --no-fail-fast` ran **two** times, and
+each of them gave the code 0.
+
 ## The session of the hundred and fifty-fifth turn of 2026-08-16: the panel 5 of the cover says the facts of the media
 
 **The item: T-325**, and the release **v0.8.155**. It is the part of the stage 6
@@ -11472,7 +11617,7 @@ measurement can hold.
 | 3 | **T-316** | The harness of a click, the capture, and a click of a row — **done, v0.8.147**; the targets of the regions of the stages after it stay open |
 | 4 | **T-321** | The list of the panel 4 becomes a table of a header — **done, v0.8.148**; the sequence of a click of a word of the header belongs to T-318 |
 | 5 | **T-318** | The panels 2 and 3, and a series that opens into its books — **done, v0.8.149 and v0.8.150**; the mode of the whole library is **done too, v0.8.154** (T-324) |
-| 6 | **T-319** | The panel 5 of one cover, and the panel 6 of the gallery — the panel 5 is **done, v0.8.151** and the facts of the design of it are **done too, v0.8.155** (T-325); the panel 6 of the gallery stays open |
+| 6 | **T-319** | The panel 5 of one cover, and the panel 6 of the gallery — the panel 5 is **done, v0.8.151**, the facts of the design of it are **done too, v0.8.155** (T-325), and those facts reach the **Home view** now, **v0.8.156** (T-326); the panel 6 of the gallery stays open |
 | 7 | **T-322** | The band of the player, its bar of the seek, and the click of it — **done, v0.8.152**; the digit `7`, the drag, and the buttons of the design stay open |
 | 8 | **T-323** | The mode that hides the panels 1 to 3, and the last sweep — **done, v0.8.153**; the sweep names the regions of the mouse that no stage reached |
 
@@ -11650,12 +11795,20 @@ shelf of four covers of a **series** already, and the gallery of the design is
 the list of the view and not a series. **The facts of the design are done,
 v0.8.155** (T-325): the series, the narrator, the genre, the number of the
 files, the size, the state of the ebook, the copy of the disk, and a bar of the
-progress each take a line of the panel of a book of the Library view. **Three
-parts of them stay open**: the facts stand **under** the picture and not beside
-it, **the day of the start of the media takes no line** (`started_at` of
-`crate::api::me::get_media_progress` holds it and no call site reads it), and
-**the other views keep the two lines of today**, because their lists of a row
-hold no narrator, no genre, and no ebook. **A click of the picture, of a button,
+progress each take a line of the panel of a book of the Library view, **and of
+a book of the Home view too** (T-325 and T-326). **Two parts of them stay
+open**: the facts stand **under** the picture and not beside it, and **the day
+of the start of the media takes no line** (`started_at` of
+`crate::api::me::get_media_progress` holds it and no call site reads it).
+
+**The third part is done, v0.8.156** (T-326). The reason that T-325 gave for
+the other views — "their lists of a row hold no narrator, no genre, and no
+ebook" — held for the view of a search and for the view of a collection, and
+it did not hold for the **Home view**: that view draws the same panel 4 and
+the same panel 5 as the Library view (T-320), and the answer of the
+personalized view holds the same six facts as the answer of the items. **The
+struct of the media of that answer held no field of the ebook at all.** The
+views that draw no panel 5 keep the two lines of today. **A click of the picture, of a button,
 and of the bar of the progress names nothing** (the map of the mouse of the
 section (e) of `docs/mockups/mockup-1.md`).
 
@@ -20179,6 +20332,81 @@ had its row back — 18 rows for 18 books — and the search view of the keys
   again and which took the two authors of the measurement away with it, and
   the library `Large` in the row of the account.
 
+## The session of the hundred and fifty-fourth turn of 2026-08-16: every book of every series takes a line of the Library view, of the block of the prompt
+
+  **The session of the hundred and fifty-fourth turn took the part of the
+  stage 5 that its round left open** (T-324): the mode of the whole library.
+  **The eight stages are done**, therefore a round now takes a part that a
+  stage left open, and this was the first of them.
+
+  **A book of a series stood in no row of the Library view.** The request of
+  the items holds `&collapseseries=1`, therefore the server answers with one
+  item for the whole series. The measurement of the server, of the library
+  `Books` of the sandbox: `collapseseries=0` gives 22 items and
+  `collapseseries=1` gives 18, and the four books `The Test Chronicles
+  Volume 2`, `The Test Chronicles Volume 3`, `Second Series Volume 2`, and
+  `Second Series Volume 3` are the difference. **The real program v0.8.153
+  inside tmux**, at 160 columns and 45 rows, of the Library view of that
+  library:
+
+  ```text
+  ╔4 Library [18 items] ════════════════════════════════════════════════════╗
+  ║    Title                                 Author               Time  Done║
+  ║    A Second Book Of Many Hours           Many Hours Author    8h00     -║
+  ║    The Test Chronicles [3 books]                                        ║
+  ║    Second Series [3 books]                                              ║
+  ```
+
+  The columns `Author`, `Time`, and `Done` of a row of a series hold no
+  character at all, the title said 18 for a library of 22, and the panel 2
+  of the sequence held the seven fields and the direction and **no row that
+  gives every book of every series in one list**. **The data of this item is
+  the program itself**: no proxy, no book of a harness, and no change of the
+  sandbox — the library of the row of the account comes of a `sqlite3` of
+  `name_selected_lib` and of `id_selected_lib` (the trap 203 and the trap
+  204).
+
+  **The corrected program of the same harness**, with the key `2`, eight
+  keys `j`, and the key `l` on the row `Every book of a series`:
+
+  ```text
+  ┌4 Library [22 items] ────────────────────────────────────────────────────┐
+  │  ✓ The Test Chronicles Volume 3          Series Author         <1m  done│
+  │    The Test Chronicles Volume 2          Series Author         <1m   41%│
+  │  ✓ The Test Chronicles Volume 1          Series Author         <1m  done│
+  │  ✓ Second Series Volume 3                Series Author         <1m  done│
+  ```
+
+  and the panel 2 of that same frame said `➤ ✓ Every book of a series`.
+  **The control of the same run**: the key `R` kept the mark and the mode,
+  and the key `l` a second time gave `4 Library [18 items]` and a row with
+  no mark. **The panel 2 of the library `Podcasts` held no such row.**
+
+  **The correction is four files, and no new one.**
+  `src/logic/library_view.rs` holds `the_group_of_the_request`,
+  `the_books_stand_apart`, and the module `the_whole_library` of the mode;
+  `src/logic/sort_filter.rs` holds `Row::TheWholeLibrary` after
+  `Row::Direction`; `src/ui/the_panels_of_the_stack.rs` gives the panel 2
+  that same row; and `src/app.rs` reads the two functions at the request of
+  the items and at the two call sites of `group_library`.
+  `tests/the_library_holds_every_book_of_a_series.rs` holds the gate, of two
+  tests, and **the build of the fault** (the trap 147), of five edits of one
+  line each, made **five of the five** fail.
+
+  **The trap of this item**: **the mark says the state, and the words do
+  not.** The first form of the row said `The books of a series: one line for
+  the series` and `… one line for each book`, and **a line of the panel 2
+  holds 30 columns**: the two sentences each reached the screen as `The
+  books of a series: one…`, and a row that says one text for the two states
+  of the program says nothing at all.
+  - **The mode holds no row of the account**, therefore it is not the mode
+    of the start of the next program: a column of `users` and a migration of
+    the database are the road. **A field of `App` is no road at all**,
+    because `App::keep_the_state_of_the_application_before` runs after
+    `App::new_with_the_engine` writes the request of the items.
+  - **The Home view keeps its groups**: its shelves come of the personalized
+    view and not of the request of the items.
+
 ## The decisions of T-124 to T-200 that do not open again
 
 **This section stood in the block of the prompt, and the block reached its
@@ -22851,23 +23079,120 @@ the whole stage 4 and the whole stage 6 with it.
 >    **The eight stages are done** (v0.8.145 to v0.8.153), **and no stage of
 >    the road of the panels stays.** What stays is the part of a stage that
 >    its round left open, and each of those parts is a round of its own:
->    of the stage 6, the **panel 6 of the gallery**, and the three parts that
+>    of the stage 6, the **panel 6 of the gallery**, and the two parts that
 >    the facts of the design of the panel 5 left open (T-325: the facts beside
->    the picture, the day of the start of the media, and the other views); of
+>    the picture, and the day of the start of the media — **the Home view is
+>    done**, T-326, and the views that draw no panel 5 keep the two lines of
+>    today); of
 >    the stage 7, the digit `7`, the drag of the bar, and the buttons of the
 >    band; and of the stage 8, **the regions of
 >    the map of the mouse that no stage reached** — the item T-323 of
 >    `docs/TAKEOVER-BACKLOG.md` names every one of them, and **each of them
 >    is a candidate and not an item.** **The part of the stage 5, the mode of
->    the whole library, is done** (T-324, v0.8.154), **and the part of the
+>    the whole library, is done** (T-324, v0.8.154), **the part of the
 >    stage 6, the facts of the design of the panel 5, is done too** (T-325,
->    v0.8.155): the two turns below hold the road of a part of a stage.
+>    v0.8.155), **and those facts reach the Home view now** (T-326,
+>    v0.8.156): the two turns below hold the road of a part of a stage.
 >    **A round takes the part that gives the user the most**, and that section
 >    holds three decisions that a round must not take alone. Read it first.
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
+>   **The session of the hundred and fifty-sixth turn took the part of the
+>   stage 6 that the round of T-325 left open** (T-326): the facts of the
+>   design in the Home view.
+>
+>   **T-325 gave those facts to the Library view alone, and its reason held
+>   for three views and not for the fourth.** That round wrote "the other views
+>   keep the two lines of today, because their lists of a row hold no
+>   narrator, no genre, and no ebook": true of a search and of a collection,
+>   and false of the Home view, which draws the same panel 4 and the same
+>   panel 5 as the Library view (T-320) and whose answer holds the same six
+>   facts. The measurement of the sandbox, of
+>   `GET /api/libraries/<Books>/personalized` for `A Long Test Book` of the
+>   shelf `continue-listening`: `"narratorName": "A Test Narrator"`,
+>   `"genres": [ "Fiction", "Adventure" ]`, `"numAudioFiles": 1`,
+>   `"size": 7337326`, and `"ebookFormat": "epub"`. **The struct of the media
+>   of that answer held no field of the ebook at all**, therefore the sixth
+>   fact could not reach the program even after the plumbing of the other
+>   five.
+>
+>   **The real program v0.8.155 inside tmux**, at 160 columns and 45 rows, of
+>   the Home view of the library `Books` of the sandbox, with the cursor on
+>   `A Long Test Book` — the same book that the corrected program of T-325
+>   gave eight lines and a bar in the Library view:
+>
+>   ```text
+>   │      ▄                                         │
+>   │Author: Long Author - Year: N/A - Duration: 30m │
+>   │Progress: 50%, 15m left, Not finished           │
+>   │                                                │
+>   │No description available                        │
+>   ```
+>
+>   **The data of this item is the program itself**: no proxy, no book of a
+>   harness, and no change of the sandbox — the library of the row of the
+>   account comes of a `sqlite3` of `name_selected_lib` and of
+>   `id_selected_lib` (the trap 203 and the trap 204).
+>
+>   **The corrected program of the same harness**, of that same row:
+>
+>   ```text
+>   │Author    Long Author                           │
+>   │Narrator  A Test Narrator                       │
+>   │Time      30m, 15m left                         │
+>   │Genre     Fiction, Adventure                    │
+>   │Files     1 file, 7.0 MB                        │
+>   │Ebook     epub                                  │
+>   │Progress  50%, Not finished                     │
+>   │████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░│
+>   ```
+>
+>   **The controls of the same run**: the row `A Big Book Of A Scan` said
+>   `Ebook     pdf` and it took no line of a series, of a narrator, and of a
+>   genre; the row `The Test Chronicles Volume 2` said
+>   `Series    The Test Chronicles #2` and no line of an ebook; a row of the
+>   shelf `Recent Series` kept the line of today,
+>   `Depthless Hunger, Book - 1 book - Duration: 10m`; and the Home view of
+>   the library `Podcasts` kept the two lines of today.
+>
+>   **The correction is four files, and no new one.**
+>   `src/api/libraries/get_library_perso_view.rs` gives `Media` the field
+>   `ebook_format` of the name of the server;
+>   `src/api/utils/collect_personalized_view.rs` holds
+>   `collect_the_facts_cnt_list`; `src/app.rs` carries that list to
+>   `App::the_facts_home`, which holds one row for each media beside
+>   `_ids_cnt_list`; and `src/ui/tui.rs` gives
+>   `App::the_lines_of_the_facts_of_the_panel` an arm of the Home view beside
+>   the arm of the Library view, and `render_info_home` the argument
+>   `in_the_panel` that `render_info_library` holds already.
+>   `tests/the_panel_of_the_cover_of_the_home_view_says_the_facts.rs` holds
+>   the gate, of four tests, and **the build of the fault** (the trap 147), of
+>   three edits of one line each, made each of the four fail under at least
+>   one of them.
+>
+>   **The trap of this item**: **a shelf that holds no media must give no
+>   row.** The shelf `recent-series` holds a series and the shelf
+>   `newest-authors` holds an author, and neither has a media.
+>   `media_entities` of `collect_personalized_view.rs` is the one sequence of
+>   the lists of the Home view for that reason, and a list of the facts that
+>   walked the entities would have put the narrator of one book beside the
+>   title of another. The gate holds a shelf of series between two shelves of
+>   media for that reason.
+>   - **The entity of a shelf holds no size of its own**: T-325 takes
+>     `item.size` over `media.size` for the Library view, and a measurement of
+>     the sandbox gives the same number for the two of them for each of the
+>     six media of the shelf Continue Listening, therefore this list reads
+>     `media.size` and it adds no field.
+>   - **A sweep of the class of T-325 stands behind this round.** Every wire
+>     name of every struct of `src/api/` met the keys of thirteen answers of
+>     the sandbox: the field of the ebook of the personalized view was the one
+>     fault of a user, and `LibraryFile.file_name` and `LibraryFile.file_path`
+>     of `src/api/library_items/get_pod_ep.rs` are a second one that no call
+>     site reads (the server nests those two under `metadata`, as `filename`
+>     and `path`). **That second one is a candidate and not an item.**
+>
 >   **The session of the hundred and fifty-fifth turn took the part of the
 >   stage 6 that its round left open** (T-325): the facts of the design of the
 >   panel 5 of the cover.
@@ -22960,79 +23285,6 @@ the whole stage 4 and the whole stage 6 with it.
 >   - **The other views keep the two lines of today**, because their lists of
 >     a row hold no narrator, no genre, and no ebook.
 >
->   **The session of the hundred and fifty-fourth turn took the part of the
->   stage 5 that its round left open** (T-324): the mode of the whole library.
->   **The eight stages are done**, therefore a round now takes a part that a
->   stage left open, and this was the first of them.
->
->   **A book of a series stood in no row of the Library view.** The request of
->   the items holds `&collapseseries=1`, therefore the server answers with one
->   item for the whole series. The measurement of the server, of the library
->   `Books` of the sandbox: `collapseseries=0` gives 22 items and
->   `collapseseries=1` gives 18, and the four books `The Test Chronicles
->   Volume 2`, `The Test Chronicles Volume 3`, `Second Series Volume 2`, and
->   `Second Series Volume 3` are the difference. **The real program v0.8.153
->   inside tmux**, at 160 columns and 45 rows, of the Library view of that
->   library:
->
->   ```text
->   ╔4 Library [18 items] ════════════════════════════════════════════════════╗
->   ║    Title                                 Author               Time  Done║
->   ║    A Second Book Of Many Hours           Many Hours Author    8h00     -║
->   ║    The Test Chronicles [3 books]                                        ║
->   ║    Second Series [3 books]                                              ║
->   ```
->
->   The columns `Author`, `Time`, and `Done` of a row of a series hold no
->   character at all, the title said 18 for a library of 22, and the panel 2
->   of the sequence held the seven fields and the direction and **no row that
->   gives every book of every series in one list**. **The data of this item is
->   the program itself**: no proxy, no book of a harness, and no change of the
->   sandbox — the library of the row of the account comes of a `sqlite3` of
->   `name_selected_lib` and of `id_selected_lib` (the trap 203 and the trap
->   204).
->
->   **The corrected program of the same harness**, with the key `2`, eight
->   keys `j`, and the key `l` on the row `Every book of a series`:
->
->   ```text
->   ┌4 Library [22 items] ────────────────────────────────────────────────────┐
->   │  ✓ The Test Chronicles Volume 3          Series Author         <1m  done│
->   │    The Test Chronicles Volume 2          Series Author         <1m   41%│
->   │  ✓ The Test Chronicles Volume 1          Series Author         <1m  done│
->   │  ✓ Second Series Volume 3                Series Author         <1m  done│
->   ```
->
->   and the panel 2 of that same frame said `➤ ✓ Every book of a series`.
->   **The control of the same run**: the key `R` kept the mark and the mode,
->   and the key `l` a second time gave `4 Library [18 items]` and a row with
->   no mark. **The panel 2 of the library `Podcasts` held no such row.**
->
->   **The correction is four files, and no new one.**
->   `src/logic/library_view.rs` holds `the_group_of_the_request`,
->   `the_books_stand_apart`, and the module `the_whole_library` of the mode;
->   `src/logic/sort_filter.rs` holds `Row::TheWholeLibrary` after
->   `Row::Direction`; `src/ui/the_panels_of_the_stack.rs` gives the panel 2
->   that same row; and `src/app.rs` reads the two functions at the request of
->   the items and at the two call sites of `group_library`.
->   `tests/the_library_holds_every_book_of_a_series.rs` holds the gate, of two
->   tests, and **the build of the fault** (the trap 147), of five edits of one
->   line each, made **five of the five** fail.
->
->   **The trap of this item**: **the mark says the state, and the words do
->   not.** The first form of the row said `The books of a series: one line for
->   the series` and `… one line for each book`, and **a line of the panel 2
->   holds 30 columns**: the two sentences each reached the screen as `The
->   books of a series: one…`, and a row that says one text for the two states
->   of the program says nothing at all.
->   - **The mode holds no row of the account**, therefore it is not the mode
->     of the start of the next program: a column of `users` and a migration of
->     the database are the road. **A field of `App` is no road at all**,
->     because `App::keep_the_state_of_the_application_before` runs after
->     `App::new_with_the_engine` writes the request of the items.
->   - **The Home view keeps its groups**: its shelves come of the personalized
->     view and not of the request of the items.
->
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -23119,6 +23371,15 @@ the whole stage 4 and the whole stage 6 with it.
 > them again. **The mode is not the mode of the start**, a refresh keeps it, and
 > **a screen under 120 columns takes no key `z`**, as it takes no digit of a
 > panel (T-323).
+> **The facts of the design of the panel 5 reach the Home view and the Library
+> view, and no other view of this program**: the two of them draw the panel 4
+> of the list and the panel 5 of the cover (T-320), and the answer of the
+> personalized view holds the same six facts as the answer of the items; the
+> view of a search, the view of a collection, and the view of the episodes of
+> a podcast keep the two lines of today, because their lists of a row hold no
+> narrator, no genre, and no ebook. **A shelf that holds no media gives no row
+> of the facts**, because `media_entities` is the one sequence of the lists of
+> the Home view (T-326).
 > **The facts of the design of the panel 5 stand under the picture and not
 > beside it**, because a picture of half the width is a picture of a quarter of
 > the cells; **a fact that the server did not give takes no line at all**,
@@ -23211,7 +23472,10 @@ the whole stage 4 and the whole stage 6 with it.
 > it did the same work, and the block then held **80374** bytes with **two**
 > turns in it; the round of the hundred and fifty-fifth found it at 80374
 > bytes with two turns in it, and it did the same work, and the block then
-> held about 81000 bytes with **two** turns in it.
+> held about 81000 bytes with **two** turns in it; the round of the hundred
+> and fifty-sixth found it at 81308 bytes with two turns in it, and it did the
+> same work, and the block then held about 83000 bytes with **two** turns in
+> it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions
