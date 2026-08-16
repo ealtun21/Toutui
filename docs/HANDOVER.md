@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.121.** The item T-292 belongs to this session. The
+**The newest release is v0.8.122.** The item T-293 belongs to this session. The
+item T-292 belongs to the session before it. The
 item T-291 belongs to the session before it. The
 item T-290 belongs to the session before it. The
 item T-289 belongs to the session before it. The
@@ -129,14 +130,88 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.100**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.122**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1287 of 1287** in 2.8 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1313 of 1313** in 17.9 seconds
+**1342 of 1342** in 2.8 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1368 of 1368** in 17.1 seconds
 with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and twenty-second turn of 2026-08-16: the place of a book that the reader left stays for the end
+
+**The item: T-293.** T-292 left the candidate "`self.reader` stays after the
+key `h`, therefore a book whose send failed at that key goes to the server at
+the key `Q` of another view. The round did not ask what happens when the user
+opens a second book after that", and the measurement of that condition gave the
+fault.
+
+**One release: v0.8.122.**
+
+**The box of the process of T-292 held one place for the whole program.**
+`App::say_the_place_of_the_reader_that_waits` of `src/app.rs` wrote that box at
+each turn of the loop of `src/main.rs`, and it wrote `None` when `self.reader`
+is `None` or when the reader wants no send. `get_the_book` of `src/app.rs`
+writes `self.reader = None` at its first line, before the task that opens the
+book runs. Therefore a user who left a book with the key `h` while the server
+refused that place, and who then opened a second book, lost the place of the
+first book at the next turn of the loop, and the program then stopped with no
+word of it.
+
+The measurement, of the real program v0.8.121 inside tmux against the sandbox,
+with `docs/harness/one_method_fails.py 13500 13399 requests.log
+PATCH:/api/me/progress` and the one address `http://127.0.0.1:13500` of the
+account (the trap 129). **The two books of the sandbox that hold an EPUB**:
+`Alice in Wonderland` (`8fda6e43-0728-46ad-98bc-4c8634e299ad`) and `A Long Test
+Book` (`9a671047-6146-4003-8510-d215db074a9c`), each at `ebookLocation
+toutui:the-place-of-the-start` and `ebookProgress 0.01`. The key `/` and the
+word `Alice` gave the view of the search, the key `e` opened the reader at
+`Alice's Adventures in Wonderland — chapter 2 of 14 — 0%`, two presses of the
+key `n` gave `chapter 4 of 14 — 9%`, and the key `h` said `The server did not
+take the place: The server reported a fault. Status 500.`
+
+| The road | What the key `Q` gave in v0.8.121 |
+|---|---|
+| one book, the control of the same run | one line of the log, of the media 8fda6e43-… at `epubcfi(/6/8!/4/2/2/1:0)` |
+| two books | **one** line of the log, of the media 9a671047-… alone, and **no `PATCH` of Alice at all** in the log of the proxy |
+
+**The place of two chapters of Alice went away.**
+
+The correction is two files. The box of
+`src/logic/reader/the_place_that_waits.rs` became a `Vec`, of one place for each
+media: `say_the_place_that_waits` replaces the place of the same media or it
+pushes a new one, `the_place_of_this_book_waits_no_more` takes one place out,
+and `the_place_of_the_reader_goes_to_the_server` sends the place of each book —
+**a book whose place the server refuses stops no other book**. The new
+`the_loop_says_the_place_of_the_reader(place, the_book_of_the_server)` holds the
+decision of the loop, therefore a test calls it with no `App`. `src/app.rs`
+gives that function the place of the reader and the new
+`the_book_whose_place_the_server_holds`, and **a reader that went away is
+neither of the two**: the box loses a place when the server takes it, and when
+the reader of that same book says that the server holds it already.
+
+The corrected program gave two lines of the log at the key `Q`. **The
+regression, of the road of the user**: the proxy of the status 500 stood while
+the key `h` of Alice failed and while the user read the second book, a proxy
+that forwards every request took its place before the key `Q`, and the server
+then held `epubcfi(/6/8!/4/2/2/1:0)` at `ebookProgress 0.09163083371618239` for
+Alice and `epubcfi(/6/6!/4/2/2/1:0)` at `ebookProgress 0.023925914837164403`
+for the second book.
+
+The test is the same file as T-292,
+`tests/a_place_of_a_book_of_a_program_that_stops_goes_to_the_server.rs`, of one
+function (T-144 and T-157), with a host of `wiremock`. **The decision of the
+loop moved out of the `App` for that test** (the trap 209 is the other road: a
+test that reads the source says nothing of the behaviour). Two builds of the
+fault fail it: the `None` arm of `the_loop_says_the_place_of_the_reader` that
+empties the whole box (`left: 0`, `right: 2`), and a send of the end of one
+place alone.
+
+The gates of v0.8.122: `cargo clippy --all-targets -- -D warnings` clean,
+`cargo fmt --check` clean, `cargo nextest run` 1342 of 1342 in 2.8 seconds,
+`cargo nextest run --run-ignored all` 1368 of 1368 with the sandbox up in 17.1
+seconds, and three runs of `cargo test -j 16 --no-fail-fast` clean.
 
 ## The session of the hundred and twenty-first turn of 2026-08-16: the place of a book of a program that stops goes to the server
 
@@ -16505,6 +16580,50 @@ its `✓`.
   candidates alone and it does not repeat that list.
 
 
+## The session of the hundred and twenty-first turn of 2026-08-16: the place of a book of a program that stops goes to the server
+
+**The session of the hundred and twenty-first turn took the candidate "The
+place of an open reader at the key `Q` is not measured", which T-291
+opened, and the measurement of it gave the fault** (T-292).
+
+**The reader holds no table of the disk.** The audio playback keeps the
+place of the user in the row of `listening_session` (T-201) and in the
+table `pending_progress` (T-212), therefore a program that stops gives that
+place to the server. The reader keeps its place in the `App` alone, and the
+view of the reader goes away with the process. **The program stops on two
+roads, and neither of them holds the `App`**: the arm of the key `Q` of
+`src/app.rs`, which the footer of the reader names (`Q: quit`), and the
+watch of the terminal that went away (T-271). Each of them called
+`sync_session_from_database` alone, and that function reads the rows of the
+audio: **it asks the reader nothing at all.**
+
+The measurement, of the real program v0.8.120 inside tmux against the
+sandbox, and **it needed no proxy at all**: the data of the fault is the
+place of a book on the server itself. The server held `Alice in Wonderland`
+at `ebookLocation epubcfi(/6/6!/4/2/14/1:698)` and `ebookProgress 0`, the
+key `e` opened the reader at `chapter 3 of 14 — 4%`, and two presses of the
+key `n` gave `chapter 5 of 14 — 16%` inside 30 seconds, therefore the rule
+of the time did not run. The key `Q` then left the server at
+`epubcfi(/6/6!/4/2/14/1:698)` with the same `lastUpdate`, and the log held
+`[handle_key] The database holds no session to close` and
+`App successfully quit` and **no word of the reader**. The key `h` of the
+control of the same run gave `The server has the place of the book.` and
+`epubcfi(/6/10!/4/2/2/1:0)` at `ebookProgress 0.15643986516830732`. The
+road of the terminal, with
+`docs/harness/the_terminal_of_the_program_goes_away.py` and a
+`tmux kill-session`, gave the same fault.
+
+The correction is a box of the process, of the shape of `opened_book` of
+T-10, in `src/logic/reader/the_place_that_waits.rs`: the loop of
+`src/main.rs` writes the place of the reader at each turn when
+`wants_to_send_at_the_end` says that the server holds a different place,
+and the two roads of the end **await** the send before
+`sync_session_from_database`, because `clean_exit` gives the process to the
+machine at the line after it. **The program says no word of that send**
+(T-177): the screen goes away with the process on both roads. The corrected
+program gave `epubcfi(/6/10!/4/2/2/1:0)` at `ebookProgress
+0.15643986516830732` on each of the two roads.
+
 ## The prompt for the next session
 
 
@@ -17425,7 +17544,7 @@ its `✓`.
 >    held three turns, and the block then stood above its limit of size**
 >    (T-284): a round that writes its own turn takes the oldest turn out, and
 >    it takes a second one out while `toutui-loop --dry-run | wc -c` gives more
->    than 100000. That section holds the turn of the hundred and seventeenth
+>    than 100000. That section holds the turn of the hundred and twenty-first
 >    and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
