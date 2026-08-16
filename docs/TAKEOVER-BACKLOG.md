@@ -27473,3 +27473,170 @@ of CI, passed two times.
   server too**, and no measurement of this fork gave either of them a text with
   an end of a line. **This is a candidate and not a measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to T-310).
+
+### T-312: the panel of the player keeps the row of its keys
+
+#### The fault
+
+**The rule of T-311 holds for one list of this program, and the panel of the
+player stands outside it.** `render_player` of `src/ui/player_tui.rs` writes
+`player_info[0]` (the title), `player_info[1]` (the author), and
+`player_info[2]` (the chapter) straight into a `Paragraph` of a format of four
+lines, and it draws that paragraph in a `Rect` of **four** rows
+(`block_height` of the same function). The four rows are: a row of nothing, the
+row of the name of the media, the row of the position, and the row of the keys
+of the player of the key `B`.
+
+The three values come from the server: `player_info.rs` of the player reads
+`state.title`, `state.author`, and `state.chapter_title` of the media of
+Audiobookshelf, and it gives them to that vector with no change. **A text of an
+end of a line takes a row of its own**, therefore every row after it moves down
+by one, and the paragraph of five lines then draws in a panel of four rows: the
+last line falls outside the area, and **the row of the keys of the player goes
+away**. The user who asked for that row with the key `B` sees no key of the
+player at all, and no word says why.
+
+The candidate stood open at T-311, in these words: "The row of the player and
+the header of the screen hold a title of the server too, and no measurement of
+this fork gave either of them a text with an end of a line."
+
+#### The measurement
+
+Of the real program v0.8.140 inside tmux against the sandbox on `:13399`, the
+account `toutuitest`, a terminal of **80** columns and 45 rows
+(`COLUMNS_OF_THE_SCREEN=80` of `docs/harness/drive.sh`), with
+`is_show_key_bindings` of the row of the account at 1. **The data of the fault
+is the text of the server**: it needs no proxy, no build of the fault of the
+source, and no change of the source at all.
+
+```bash
+curl -X PATCH .../api/items/6ba57b9a-acb5-44f9-b2b6-39ad9107b420/media \
+    -d '{"metadata":{"title":"Alpha\nOMEGAEND"}}'
+```
+
+That is the book of eight hours `A Book Of Many Hours` of the library `Books`,
+and the row of the account took that library with `sqlite3` before the start
+(the trap 203 and the trap 204). The key `Tab` of the Home view gave the
+Library view, nine keys `j` gave the book, and the key `l` played it with
+`TOUTUI_AUDIO_DEVICE=null`. The screen of the 45 rows then held:
+
+```text
+38                                      Alpha
+39              OMEGAEND by Many Hours Author | The hours of the end
+40    ▶ 6:59:40 / 8:00:00 | Elapsed: 6:59:40 | Left: 1:00:20 (87%) | Speed: 1.0
+41
+```
+
+The panel stands at the lines 37 to 40 (`area.height - 9`, and four rows).
+**The row of the keys of the player had no row of the screen at all.**
+
+**The control of the same run** (the trap 206): the same book, of the same
+keys, with the title of the server back at `A Book Of Many Hours`:
+
+```text
+38        A Book Of Many Hours by Many Hours Author | The hours of the end
+39    ▶ 7:12:38 / 8:00:00 | Elapsed: 7:12:38 | Left: 47:22 (90%) | Speed: 1.00x
+40   Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I: spd +/− | o/i: vo
+```
+
+The row of the position moved from the line 39 to the line 40, and the row of
+the keys went away.
+
+**The list of that same view holds the rule already** (T-311): the line of the
+book said `➤ 85% Alpha OMEGAEND` on one row of the panel, and the panel of the
+player of the same title held two rows for it. The fault is therefore the
+render of the player alone.
+
+#### The correction
+
+`src/ui/player_tui.rs`: `render_player` gives the title, the author, and the
+chapter to `crate::logic::message::in_one_line` of T-311 before the format.
+That function is the one place of the rule of a row of this program now: every
+end of a line takes one space, a `\r\n` takes one space together, a run of them
+takes one space together, and a text of no end of a line keeps its own place in
+the memory.
+
+`tests/the_panel_of_the_player_stands_on_four_rows.rs` holds the gate: it draws
+the real `render_player` into a `Buffer` of ratatui with no terminal (T-256),
+of 80 columns and 45 rows, and it reads the four rows of the panel — the whole
+title on the row of the name, no row that holds `OMEGAEND` alone, the row of
+the position where it stood, and the row of the keys of the player inside the
+panel. The second test holds the author, a `\r\n` of the chapter, and a run of
+three ends of a line, and each of the three keeps the four rows. Each test
+holds the control of a title of no end of a line.
+
+**The build of the fault** (`let title = &player_info[0];` and the two lines of
+the author and of the chapter, in the place of the calls of `in_one_line`)
+said `the row of the name holds no whole title: "                    Alpha"`
+and `the row of the position of "The hours of the end" says: "     Author |
+The hours of the end"`.
+
+**The corrected program**, of the same keys and the same title of the server:
+
+```text
+38           Alpha OMEGAEND by Many Hours Author | The hours of the end
+39    ▶ 7:36:32 / 8:00:00 | Elapsed: 7:36:32 | Left: 23:28 (95%) | Speed: 1.00x
+40   Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I: spd +/− | o/i: vo
+```
+
+#### The gates
+
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` pass.
+`cargo nextest run` gives 1379 of 1379 tests in 2.9 seconds, and the run before
+the correction gave 1377. `cargo test -j 16 --no-fail-fast`, the gate of CI,
+passed two times. `cargo nextest run --run-ignored all` gives 1405 of 1405 with
+the sandbox up. **The first run of it failed**, and the fault was the sandbox
+and not the program: a title of the server that a measurement changes stays in
+the rows of the listening sessions of that server, therefore a round that
+changes a title must take those rows away with
+`DELETE /api/sessions/:id` too.
+
+#### What this turn leaves open
+
+- **The header of the screen holds a text of the server too** (T-311):
+  `self.lib_name_type` of `src/app.rs` is `format!("📖 {} ({})", the name of
+  the library, the type of the media)`, and `src/ui/tui.rs` gives it to a
+  `Paragraph` with no `in_one_line`. **The name of a library belongs to an
+  administrator of the server** (the section 4 of `docs/T-24-coverage.md`),
+  therefore the data of that fault costs a `POST /api/libraries` of the
+  sandbox. **This is a candidate and not a measurement.**
+- **The header of the reader takes the columns and not the ends of the lines**
+  (T-312): `the_line_that_stands` of `src/ui/reader_tui.rs` gives the title of
+  the book to `in_one_row`, which cuts a text by its columns and which says
+  nothing of a `\n`. The title of an EPUB comes of the book and of the server,
+  and `docs/harness/a_book_of_a_long_title.py` writes a book of a title of a
+  command line already. **This is a candidate and not a measurement.**
+- **The panels of the views hold the author, the series, and the name of an
+  episode of the server** (T-312): `render_info_home`, `render_info_library`,
+  `render_info_search_book`, and `the_panel_of_an_episode` of `src/ui/tui.rs`
+  each write those fields into a `Paragraph` of a `Wrap`, and a `Wrap` keeps an
+  end of a line. `sessions_tui.rs` and `stats_tui.rs` do the same work with a
+  `Line`. The count of the rows of the panel of T-309 reads those texts. **The
+  run of `cargo nextest run --run-ignored all` of this round saw one of them**:
+  the rows of the listening sessions of the server held the title of the
+  measurement, and the view of the statistics drew it as `AlphaOMEGAEND` — a
+  `Line` of ratatui gives an end of a line **no** column at all, therefore the
+  two words of the two lines join with no space between them, and that is a
+  different fault of the same class from the two rows of a `ListItem` (T-311).
+  **This is a candidate and not a measurement**: the view came of a test and
+  not of the keys of the real program.
+- **The title of the block of a list takes no such rule** (T-311):
+  `in_one_row(title, area.width)` of `render_the_list` says nothing of an end
+  of a line, and a title of a view can hold a text of the server — the name of
+  an author of `Search result [2 items, with the books of <the author>]`.
+  **This is a candidate and not a measurement.**
+- **The marks of a line count the characters still** (T-305 to T-311): `fill`
+  of `src/ui/marks.rs:111` reads `mark.chars().count()`. **The four marks of
+  that file are constants of this program**, therefore no text of the server
+  reaches that count. **This is a candidate and not a measurement.**
+- **The two keys of `must_refresh` that say nothing at all** (T-308):
+  `show_the_books_of_the_author` and `apply_the_sequence_or_the_filter` of
+  `src/app.rs` each change every list of the screen and each say no word of
+  what they did. **This is a candidate and not a measurement.**
+- **A text whose last line holds no character stands outside every gate of a
+  wrap of this fork** (T-310). **This is a candidate and not a measurement.**
+- **A word of a description that is longer than the panel takes the road of
+  ratatui that overflows the area** (T-306). **This is a candidate and not a
+  measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to
+  T-311).

@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.141",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The panel of the player keeps the row of its keys.** The \
+             title, the author, and the chapter of a media come from the \
+             server, and a text of one of them can hold an end of a line. The \
+             panel of the player has four rows, therefore that end of a line \
+             took a row of its own and the row of the keys of the player then \
+             stood outside the panel: no user saw it.",
+        ],
+    },
+    Entry {
         version: "0.8.140",
         date: "16/08/2026",
         body: &[

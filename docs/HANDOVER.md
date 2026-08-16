@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.140.** The item T-311 belongs to this session. The
+**The newest release is v0.8.141.** The item T-312 belongs to this session. The
+item T-311 belongs to the session before it. The
 item T-310 belongs to the session before it. The
 item T-309 belongs to the session before it. The
 item T-308 belongs to the session before it. The
@@ -155,6 +156,105 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its binaries in two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and forty-first turn of 2026-08-16: the panel of the player keeps the row of its keys
+
+**The item: T-312**, and the release **v0.8.141**.
+
+**The candidate came of T-311**, which named the row of the player and the
+header of the screen as two places that hold a title of the server and that no
+measurement of this fork had reached. `render_player` of
+`src/ui/player_tui.rs` writes `player_info[0]` (the title), `player_info[1]`
+(the author), and `player_info[2]` (the chapter) straight into a `Paragraph` of
+a format of **four** lines, and it draws that paragraph in a `Rect` of **four**
+rows: a row of nothing, the row of the name of the media, the row of the
+position, and the row of the keys of the player of the key `B`. The three
+values come from the server, therefore **a text of an end of a line takes a row
+of its own**, every row after it moves down by one, and the paragraph of five
+lines then draws in a panel of four rows: **the row of the keys of the player
+falls outside the area**, and the user who asked for it with the key `B` sees
+no key of the player and no word of a reason.
+
+**The measurement**, of the real program v0.8.140 inside tmux against the
+sandbox on `:13399`, with the account `toutuitest` and a terminal of 80 columns
+and 45 rows, and with `is_show_key_bindings` of the row of the account at 1.
+**The data of this fault is the text of the server**: no proxy, no book of a
+harness, no build of the fault of the source, and no change of the source at
+all. `PATCH /api/items/6ba57b9a-acb5-44f9-b2b6-39ad9107b420/media` with
+`{"metadata":{"title":"Alpha\nOMEGAEND"}}` gave the book of eight hours
+`A Book Of Many Hours` of the library `Books` a title with an end of a line in
+it; the row of the account took that library with `sqlite3` before the start
+(the trap 203 and the trap 204). The key `Tab`, nine keys `j`, and the key `l`
+played it with `TOUTUI_AUDIO_DEVICE=null`:
+
+```text
+(the row 38)                             Alpha
+(the row 39)         OMEGAEND by Many Hours Author | The hours of the end
+(the row 40)   ▶ 6:53:47 / 8:00:00 | Elapsed: ... | Left: ... (86%) | Speed: 1.0
+(the row 41)
+```
+
+**The row of the keys of the player had no row of the screen at all.**
+
+**The control of the same run** (the trap 206): the same book, of the same
+keys, with the title of the server back at `A Book Of Many Hours`, gave the row
+of the position at the row 39 and, at the row 40,
+`Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I: spd +/− | o/i: vo`.
+**The list of that same view held the rule already** (T-311): the line of the
+book said `➤ 85% Alpha OMEGAEND` on one row, therefore the fault is the render
+of the player alone.
+
+**The correction is one file.** `src/ui/player_tui.rs`: `render_player` gives
+the title, the author, and the chapter to `crate::logic::message::in_one_line`
+of T-311 before the format.
+`tests/the_panel_of_the_player_stands_on_four_rows.rs` holds the gate: it draws
+the real `render_player` into a `Buffer` of ratatui with no terminal (T-256),
+of 80 columns and 45 rows, and it reads the four rows of the panel — the whole
+title on the row of the name, no row that holds `OMEGAEND` alone, the row of
+the position where it stood, and the row of the keys inside the panel; the
+second test holds the author, a `\r\n` of the chapter, and a run of three ends
+of a line, and each test holds the control of a title of no end of a line.
+**The build of the fault** (`let title = &player_info[0];` and the two lines of
+the author and of the chapter, in the place of the calls of `in_one_line`) said
+`the row of the name holds no whole title: "                    Alpha"`. **The
+corrected program**, of the same keys and the same title of the server, gave
+the whole title on the row 38, the position on the row 39, and the keys of the
+player on the row 40.
+
+**The gates**: clippy and fmt pass; `cargo nextest run` gives 1379 of 1379 in
+2.9 seconds (1377 before); `cargo nextest run --run-ignored all` gives 1405 of
+1405 with the sandbox up; and `cargo test -j 16 --no-fail-fast`, the gate of
+CI, passed two times.
+
+**The first run of the tests of the sandbox failed, and the fault was the
+sandbox and not the program**: a title of the server that a measurement changes
+stays in the rows of the **listening sessions** of that server, therefore
+`the_statistics_against_the_sandbox` read the title of the measurement.
+`DELETE /api/sessions/:id` of the two rows gave the run back at 1405 of 1405.
+**A round that changes a title of the sandbox takes those rows away too.** That
+run drew the title in the view of the statistics as `AlphaOMEGAEND` — **a
+`Line` of ratatui gives an end of a line no column at all**, therefore the two
+words join with no space between them, which is a different fault of the same
+class from the two rows of a `ListItem` of T-311. It came of a test and not of
+the keys of the real program, therefore it stays a candidate.
+
+**The sandbox went back to the state of the start**: the title of that book is
+`A Book Of Many Hours` again, its place went back with
+`PATCH /api/me/progress/:id` and `{"isFinished": false}`, and the row of the
+account holds the library `Large`.
+
+**A read of `src/` of a subagent named the places of the same class**: the
+header of the screen (`lib_name_type` of `src/app.rs`), the header of the
+reader (`the_line_that_stands` of `src/ui/reader_tui.rs`, which calls
+`in_one_row` and not `in_one_line`), the panels of the views of
+`src/ui/tui.rs`, and the lines of `sessions_tui.rs` and of `stats_tui.rs`.
+**Each of them is a candidate and not an item**, and T-312 of
+`docs/TAKEOVER-BACKLOG.md` holds the list.
+
+**The block of the prompt held 66900 bytes with one turn in it**, far under the
+line of 99000 (T-284). The round took the turn of T-311 out of it, in the same
+words, into `## The turns before the three newest ones` of this file, and it
+wrote its own: the candidates of T-311 stand whole inside the turn of T-312.
 
 ## The session of the hundred and fortieth turn of 2026-08-16: the rows of a list hold one line each
 
@@ -312,7 +412,7 @@ account holds the library `Large`.
 
 **The block of the prompt met the line of 99000 bytes** (T-284). The whole list
 of the decisions of T-201 to T-311 went out of it, into
-`## The decisions of T-201 to T-311 that do not open again` of this file, and a
+`## The decisions of T-201 to T-312 that do not open again` of this file, and a
 pointer of three lines stands in its place: the block held 98907 bytes and it
 holds 66224 now. **That list grows with every round and the turn of a round does
 not**, therefore it is the part of the block to take out again.
@@ -18620,6 +18720,105 @@ whole sentence then stood on three rows at 80 columns.
     T-91 asks whether a key that changes the whole screen must name the
     change. **This is a candidate and not a measurement.**
 
+## The session of the hundred and fortieth turn of 2026-08-16: the rows of a list hold one line each, of the block of the prompt
+
+**The session of the hundred and fortieth turn took the candidate that
+T-310 left open — a line of a list that holds an end of a line — and the
+measurement of it gave the fault** (T-311). **It left six candidates
+open.**
+
+**The rows of a list hold one line each.** `render_the_list` of
+`src/ui/the_list_of_a_view.rs` is the one function that draws the 24
+lists of this program, and it gave the text of each line to
+`ListItem::new` with no change. A `ListItem` of a text that holds a `\n`
+takes the rows of the ends of the lines of that text, and every rule of a
+list then fails together: the mark of the line and the sign `➤` of the
+cursor stand on the first row alone, therefore the row after it reads as
+a media of its own that the library does not hold; and
+`the_list_of_the_render` of `src/logic/the_scroll_of_a_list.rs` says in
+its own words that **one line of the list takes one row of the panel**,
+therefore the bar of the scroll counts the lines and not the rows, and a
+list that stands whole in its panel by that count loses its last line
+with no character of a bar to say that the line is there.
+
+The measurement, of the real program v0.8.139 inside tmux against the
+sandbox on `:13399` with the account `toutuitest` and a terminal of
+**80** columns and 45 rows. **The data of this fault is the text of the
+server**: it needs no proxy, no book of a harness, no build of the fault
+of the source, and no change of the source at all.
+`PATCH /api/items/a4d8b9b2-c4a4-4e80-8ed0-07662933fa71/media` with
+`{"metadata":{"title":"Alpha\nOMEGAEND"}}` gave the book
+`A Book Of An Epub With No Container` of the library `Books` a title with
+an end of a line; the row of the account took that library with `sqlite3`
+before the start (the trap 203 and the trap 204). The key `Tab` of the
+Home view gave the Library view: the header said `Library [18 items]`,
+the panel holds **18** rows, and the screen held `➤ ✓   Alpha` and, under
+it, a row `  OMEGAEND` of **no mark** — and the book of the last line,
+`One File With No Decoder`, had **no row and no bar of the scroll at
+all**. **17 of the 18 books of the library reached the user.** The scroll
+of ratatui itself holds: 17 presses of the key `j` reached that last book
+and the list moved by one line, therefore **the fault is the render of
+the rows and not the offset of the list**. **The control of the same
+run** (the trap 206): the book after it, `A Book Of A Broken Epub`, whose
+title holds no end of a line, stood on one row.
+
+The correction is two files. `src/logic/message.rs` holds the new
+`pub fn in_one_line(text: &str) -> Cow<'_, str>`, which is **the one
+place of the rule of a row of a list** now: every end of a line takes one
+space, a `\r\n` takes one space together, a run of them takes one space
+together, and a text of no end of a line keeps its own place in the
+memory, because the render of a list of 2056 items reads it for every
+line of every frame. `src/ui/the_list_of_a_view.rs`: `render_the_list`
+calls it for the text of each `ListItem`.
+`tests/a_row_of_a_list_stands_on_one_row.rs` holds the gate: it draws the
+real `render_the_list` into a `Buffer` of ratatui with no terminal
+(T-256), of 80 columns and 19 rows, and it reads the rows of that buffer
+— the 18 lines of the measurement (the whole title on one row, no row
+that holds `OMEGAEND` alone, the last line of the list keeps its row, and
+no bar comes), and the three shapes of an end of a line with a run of
+three of them. **The build of the fault** (`ListItem::new(line.clone())`
+in the place of the call of `in_one_line`) said
+`the first row of the panel holds no whole title: "➤ ✓   Alpha"`. **The
+corrected program**, of the same keys and the same title of the server:
+the row said `➤ ✓   Alpha OMEGAEND`, and `✓   One File With No Decoder`
+had its row back — 18 rows for 18 books — and the search view of the keys
+`/`, `Alpha`, `Enter` gave that one row too.
+- **The title of the block of a list takes no such rule** (T-311):
+  `in_one_row(title, area.width)` of `render_the_list` cuts a title by
+  its columns and it says nothing of an end of a line, and a title of a
+  view can hold a text of the server — the name of an author of
+  `Search result [2 items, with the books of <the author>]`. `Line::raw`
+  of ratatui holds one line, and the road of a `\n` in it is unknown.
+  **This is a candidate and not a measurement.**
+- **The row of the player and the header of the screen hold a title of
+  the server too** (T-311), and no measurement of this fork gave either
+  of them a text with an end of a line. **This is a candidate and not a
+  measurement.**
+- **The marks of a line count the characters still** (T-305 to T-311):
+  `fill` of `src/ui/marks.rs:111` reads `mark.chars().count()`, and a
+  mark of the East Asian Width "Ambiguous" takes one column or two, and
+  the terminal decides. **The four marks of that file are constants of
+  this program** (`▶`, `✓`, `100`, and a percent of numbers), therefore
+  no text of the server reaches that count and the road of a measurement
+  of the real program stays unknown. **This is a candidate and not a
+  measurement.**
+- **The two keys of `must_refresh` that say nothing at all** (T-308):
+  `show_the_books_of_the_author` (`src/app.rs:4251`) and
+  `apply_the_sequence_or_the_filter` (`src/app.rs:6161`) each change
+  every list of the screen and each say no word of what they did. The
+  rule of T-91 asks whether a key that changes the whole screen must name
+  the change. **This is a candidate and not a measurement.**
+- **A text whose last line holds no character stands outside every gate
+  of a wrap of this fork** (T-310): the count of the rows of ratatui of
+  T-306, T-307, T-309, and T-310 reads the rows that hold a character. A
+  `Buffer` of a background of a colour of its own would say where such a
+  row stands. **This is a candidate and not a measurement.**
+- **A word of a description that is longer than the panel takes the road
+  of ratatui that overflows the area** (T-306). That is a fault of the
+  crate and not of this program, and no count of this program says what
+  it does. **This is a candidate and not a measurement.**
+
+
 ## The decisions of T-124 to T-200 that do not open again
 
 **This section stood in the block of the prompt, and the block reached its
@@ -19452,7 +19651,7 @@ character.
     crate and not of this program, and no count of this program says what it
     does. **This is a candidate and not a measurement.**
 
-## The decisions of T-201 to T-311 that do not open again
+## The decisions of T-201 to T-312 that do not open again
 
 These decisions stood in the block of the prompt of the next session until the
 round of the hundred and thirty-ninth turn, and that block met its limit of
@@ -19894,14 +20093,19 @@ takes the rows of the ends of the lines of its text, therefore
 `crate::logic::message::in_one_line` gives every end of a line one space and
 `render_the_list` calls it for the text of each line — the mark of the line and
 the sign of the cursor stand on the first row alone, and the bar of the scroll
-counts the lines of the list and not the rows of the panel** (T-311).
+counts the lines of the list and not the rows of the panel** (T-311), and
+**the panel of the player keeps the row of its keys: the title, the author, and
+the chapter of the media come from the server and the panel holds four rows,
+therefore `render_player` gives each of the three to
+`crate::logic::message::in_one_line` and a text of an end of a line takes no row
+of the row of the keys** (T-312).
 
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.140**; `Cargo.toml` is at 0.8.140. The
+> AlbanDAVID/Toutui. Newest release **v0.8.141**; `Cargo.toml` is at 0.8.141. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -19910,7 +20114,7 @@ counts the lines of the list and not the rows of the panel** (T-311).
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-311 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-312 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -19938,7 +20142,12 @@ counts the lines of the list and not the rows of the panel** (T-311).
 > in less than one second**, therefore a measurement inside a download needs
 > `docs/harness/slow_body.py` (the trap 116). **`podman stop -t 0 abs-test` takes
 > the server away**, and the program then starts in the offline mode with the
-> media of the disk (T-152). **A book of the library that changes needs no proxy
+> media of the disk (T-152). **A title of the server that a measurement changes
+> stays in the rows of the listening sessions of that server**, therefore a
+> round that gives a media a title of its own takes those rows away with
+> `DELETE /api/sessions/:id` at the end: `cargo nextest run --run-ignored all`
+> reads them (`the_statistics_against_the_sandbox`), and the round of the
+> hundred and forty-first met that failure. **A book of the library that changes needs no proxy
 > at all**: a `mv` of one file of `$ABS/audiobooks/<the author>/<the book>/` and
 > `POST /api/items/:id/scan` give a book of one file fewer in some seconds, and a
 > `mv` back with a second scan gives the book of the start with the same `ino` of
@@ -20651,14 +20860,14 @@ counts the lines of the list and not the rows of the panel** (T-311).
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-311 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-312 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1377 tests in 2.8 seconds**, and `cargo nextest run --run-ignored
+> Baseline: **1379 tests in 2.9 seconds**, and `cargo nextest run --run-ignored
 > all` gives **1403 of 1403** with the sandbox up, in about 45 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
@@ -20767,69 +20976,89 @@ counts the lines of the list and not the rows of the panel** (T-311).
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in one hundred and eight sessions of one hundred
->    and nine.
->   **The session of the hundred and fortieth turn took the candidate that
->   T-310 left open — a line of a list that holds an end of a line — and the
->   measurement of it gave the fault** (T-311). **It left six candidates
->   open.**
+>    this shape found a fault in one hundred and nine sessions of one hundred
+>    and ten.
+>   **The session of the hundred and forty-first turn took the candidate that
+>   T-311 left open — the row of the player that holds a title of the server —
+>   and the measurement of it gave the fault** (T-312). **It left eight
+>   candidates open.**
 >
->   **The rows of a list hold one line each.** `render_the_list` of
->   `src/ui/the_list_of_a_view.rs` is the one function that draws the 24
->   lists of this program, and it gave the text of each line to
->   `ListItem::new` with no change. A `ListItem` of a text that holds a `\n`
->   takes the rows of the ends of the lines of that text, and every rule of a
->   list then fails together: the mark of the line and the sign `➤` of the
->   cursor stand on the first row alone, therefore the row after it reads as
->   a media of its own that the library does not hold; and
->   `the_list_of_the_render` of `src/logic/the_scroll_of_a_list.rs` says in
->   its own words that **one line of the list takes one row of the panel**,
->   therefore the bar of the scroll counts the lines and not the rows, and a
->   list that stands whole in its panel by that count loses its last line
->   with no character of a bar to say that the line is there.
+>   **The panel of the player keeps the row of its keys.** `render_player` of
+>   `src/ui/player_tui.rs` writes `player_info[0]` (the title),
+>   `player_info[1]` (the author), and `player_info[2]` (the chapter) straight
+>   into a `Paragraph` of a format of four lines, and it draws that paragraph
+>   in a `Rect` of **four** rows: a row of nothing, the row of the name of the
+>   media, the row of the position, and the row of the keys of the player of
+>   the key `B`. The three values come from the server, therefore a text of an
+>   end of a line takes a row of its own, every row after it moves down by
+>   one, and the paragraph of five lines then draws in a panel of four rows:
+>   the row of the keys falls outside the area, and the user who asked for it
+>   with the key `B` sees no key of the player and no word of a reason.
 >
->   The measurement, of the real program v0.8.139 inside tmux against the
->   sandbox on `:13399` with the account `toutuitest` and a terminal of
->   **80** columns and 45 rows. **The data of this fault is the text of the
->   server**: it needs no proxy, no book of a harness, no build of the fault
->   of the source, and no change of the source at all.
->   `PATCH /api/items/a4d8b9b2-c4a4-4e80-8ed0-07662933fa71/media` with
->   `{"metadata":{"title":"Alpha\nOMEGAEND"}}` gave the book
->   `A Book Of An Epub With No Container` of the library `Books` a title with
->   an end of a line; the row of the account took that library with `sqlite3`
->   before the start (the trap 203 and the trap 204). The key `Tab` of the
->   Home view gave the Library view: the header said `Library [18 items]`,
->   the panel holds **18** rows, and the screen held `➤ ✓   Alpha` and, under
->   it, a row `  OMEGAEND` of **no mark** — and the book of the last line,
->   `One File With No Decoder`, had **no row and no bar of the scroll at
->   all**. **17 of the 18 books of the library reached the user.** The scroll
->   of ratatui itself holds: 17 presses of the key `j` reached that last book
->   and the list moved by one line, therefore **the fault is the render of
->   the rows and not the offset of the list**. **The control of the same
->   run** (the trap 206): the book after it, `A Book Of A Broken Epub`, whose
->   title holds no end of a line, stood on one row.
+>   The measurement, of the real program v0.8.140 inside tmux against the
+>   sandbox on `:13399` with the account `toutuitest`, a terminal of **80**
+>   columns and 45 rows, and `is_show_key_bindings` of the row of the account
+>   at 1. **The data of this fault is the text of the server**: it needs no
+>   proxy, no book of a harness, no build of the fault of the source, and no
+>   change of the source at all.
+>   `PATCH /api/items/6ba57b9a-acb5-44f9-b2b6-39ad9107b420/media` with
+>   `{"metadata":{"title":"Alpha\nOMEGAEND"}}` gave the book of eight hours
+>   `A Book Of Many Hours` of the library `Books` a title with an end of a
+>   line; the row of the account took that library with `sqlite3` before the
+>   start (the trap 203 and the trap 204). The key `Tab`, nine keys `j`, and
+>   the key `l` played it with `TOUTUI_AUDIO_DEVICE=null`. The panel stands at
+>   the rows 37 to 40 (`area.height - 9`, and four rows), and the screen held
+>   `Alpha` at the row 38, `OMEGAEND by Many Hours Author | The hours of the
+>   end` at the row 39, the row of the position at the row 40, and **no row of
+>   the keys of the player at all**. **The control of the same run** (the trap
+>   206): the same book, of the same keys, with the title back at
+>   `A Book Of Many Hours`, gave the position at the row 39 and
+>   `Spc: pause/play | p/u: +/−10s | ...` at the row 40. **The list of that
+>   same view held the rule already** (T-311): the line said
+>   `➤ 85% Alpha OMEGAEND` on one row.
 >
->   The correction is two files. `src/logic/message.rs` holds the new
->   `pub fn in_one_line(text: &str) -> Cow<'_, str>`, which is **the one
->   place of the rule of a row of a list** now: every end of a line takes one
->   space, a `\r\n` takes one space together, a run of them takes one space
->   together, and a text of no end of a line keeps its own place in the
->   memory, because the render of a list of 2056 items reads it for every
->   line of every frame. `src/ui/the_list_of_a_view.rs`: `render_the_list`
->   calls it for the text of each `ListItem`.
->   `tests/a_row_of_a_list_stands_on_one_row.rs` holds the gate: it draws the
->   real `render_the_list` into a `Buffer` of ratatui with no terminal
->   (T-256), of 80 columns and 19 rows, and it reads the rows of that buffer
->   — the 18 lines of the measurement (the whole title on one row, no row
->   that holds `OMEGAEND` alone, the last line of the list keeps its row, and
->   no bar comes), and the three shapes of an end of a line with a run of
->   three of them. **The build of the fault** (`ListItem::new(line.clone())`
->   in the place of the call of `in_one_line`) said
->   `the first row of the panel holds no whole title: "➤ ✓   Alpha"`. **The
->   corrected program**, of the same keys and the same title of the server:
->   the row said `➤ ✓   Alpha OMEGAEND`, and `✓   One File With No Decoder`
->   had its row back — 18 rows for 18 books — and the search view of the keys
->   `/`, `Alpha`, `Enter` gave that one row too.
+>   The correction is one file. `src/ui/player_tui.rs`: `render_player` gives
+>   the title, the author, and the chapter to
+>   `crate::logic::message::in_one_line` of T-311 before the format.
+>   `tests/the_panel_of_the_player_stands_on_four_rows.rs` holds the gate: it
+>   draws the real `render_player` into a `Buffer` of ratatui with no terminal
+>   (T-256), of 80 columns and 45 rows, and it reads the four rows of the
+>   panel — the whole title on the row of the name, no row that holds
+>   `OMEGAEND` alone, the row of the position where it stood, and the row of
+>   the keys inside the panel; the second test holds the author, a `\r\n` of
+>   the chapter, and a run of three ends of a line. **The build of the fault**
+>   (`let title = &player_info[0];` and the two lines of the author and of the
+>   chapter, in the place of the calls of `in_one_line`) said `the row of the
+>   name holds no whole title: "                    Alpha"`. **The corrected
+>   program**, of the same keys and the same title of the server, gave the
+>   whole title on the row 38, the position on the row 39, and the keys of the
+>   player on the row 40.
+>   - **The header of the screen holds a text of the server too** (T-311 and
+>     T-312): `self.lib_name_type` of `src/app.rs` is
+>     `format!("📖 {} ({})", the name of the library, the type of the media)`,
+>     and `src/ui/tui.rs` gives it to a `Paragraph` with no `in_one_line`.
+>     **The name of a library belongs to an administrator of the server**,
+>     therefore the data of that fault costs a `POST /api/libraries` of the
+>     sandbox. **This is a candidate and not a measurement.**
+>   - **The header of the reader takes the columns and not the ends of the
+>     lines** (T-312): `the_line_that_stands` of `src/ui/reader_tui.rs` gives
+>     the title of the book to `in_one_row`, which cuts a text by its columns
+>     and which says nothing of a `\n`. `docs/harness/a_book_of_a_long_title.py`
+>     writes a book of a title of a command line already. **This is a candidate
+>     and not a measurement.**
+>   - **The panels of the views hold the author, the series, and the name of
+>     an episode of the server** (T-312): `render_info_home`,
+>     `render_info_library`, `render_info_search_book`, and
+>     `the_panel_of_an_episode` of `src/ui/tui.rs` each write those fields into
+>     a `Paragraph` of a `Wrap`, and a `Wrap` keeps an end of a line;
+>     `sessions_tui.rs` and `stats_tui.rs` do the same work with a `Line`. The
+>     count of the rows of the panel of T-309 reads those texts. **The run of
+>     `cargo nextest run --run-ignored all` of this round saw one of them**:
+>     the view of the statistics drew the title of the measurement as
+>     `AlphaOMEGAEND`, because **a `Line` of ratatui gives an end of a line no
+>     column at all** and the two words then join with no space. It came of a
+>     test and not of the keys of the real program. **This is a candidate and
+>     not a measurement.**
 >   - **The title of the block of a list takes no such rule** (T-311):
 >     `in_one_row(title, area.width)` of `render_the_list` cuts a title by
 >     its columns and it says nothing of an end of a line, and a title of a
@@ -20837,10 +21066,6 @@ counts the lines of the list and not the rows of the panel** (T-311).
 >     `Search result [2 items, with the books of <the author>]`. `Line::raw`
 >     of ratatui holds one line, and the road of a `\n` in it is unknown.
 >     **This is a candidate and not a measurement.**
->   - **The row of the player and the header of the screen hold a title of
->     the server too** (T-311), and no measurement of this fork gave either
->     of them a text with an end of a line. **This is a candidate and not a
->     measurement.**
 >   - **The marks of a line count the characters still** (T-305 to T-311):
 >     `fill` of `src/ui/marks.rs:111` reads `mark.chars().count()`, and a
 >     mark of the East Asian Width "Ambiguous" takes one column or two, and
@@ -20920,8 +21145,8 @@ counts the lines of the list and not the rows of the panel** (T-311).
 > program holds more than one account (T-124). **The decisions of T-124 to
 > T-200 stand in `## The decisions of T-124 to T-200 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-294).
-> And **the decisions of T-201 to T-311 stand in
-> `## The decisions of T-201 to T-311 that do not open again` of
+> And **the decisions of T-201 to T-312 stand in
+> `## The decisions of T-201 to T-312 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-310).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
@@ -20969,11 +21194,13 @@ counts the lines of the list and not the rows of the panel** (T-311).
 > did the same work, and the block then held 98907 bytes with one turn in it —
 > **at the line of 99000**, therefore that round took the whole list of the
 > decisions of T-201 to T-311 out of the block and it put it in
-> `## The decisions of T-201 to T-311 that do not open again` of this file,
+> `## The decisions of T-201 to T-312 that do not open again` of this file,
 > with a pointer of three lines in its place: the block then held **66224**
 > bytes with one turn in it; the round of the hundred and fortieth found it at
 > 66685 bytes with one turn in it, and it did the same work, and the block then
-> held about 66900 bytes with **one** turn in it. **The list of the decisions
+> held about 66900 bytes with **one** turn in it; the round of the hundred and
+> forty-first found it at 66900 bytes with one turn in it, and it did the same
+> work. **The list of the decisions
 > grows with every round
 > and the turn of a round does not**, therefore that list is the part of the
 > block to take out again. **A turn of many

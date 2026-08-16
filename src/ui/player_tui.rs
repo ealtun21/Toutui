@@ -54,13 +54,22 @@ pub fn render_player(
         key_bindings = "Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I: spd +/− | o/i: vol +/− | t: sleep | Y: quit".to_string();
     }
 
+    // **The panel of the player holds four rows, and the title, the author, and
+    // the chapter come from the server** (T-312). A text of an end of a line
+    // takes a row of its own, therefore the row of the keys of the player goes
+    // outside the panel and no user sees it. `in_one_line` gives every end of a
+    // line one space, and the four rows then stand.
+    let title = crate::logic::message::in_one_line(&player_info[0]);
+    let author = crate::logic::message::in_one_line(&player_info[1]);
+    let chapter = crate::logic::message::in_one_line(&player_info[2]);
+
     // Create the paragraph
     let paragraph = Paragraph::new(format!(
         "\n{} by {} | {}{} \n {} {} / {} | Elapsed: {} | Left: {} ({}%) | Speed: {}x{}{}\n{}",
-        player_info[0], // Title
-        player_info[1], // Author
-        player_info[2], // Chapter
-        notice,         // The message of the engine
+        title,   // Title
+        author,  // Author
+        chapter, // Chapter
+        notice,  // The message of the engine
         match player_info[3].as_str() {
             "false" => "⏸".to_string(),
             "true" => "▶".to_string(),
