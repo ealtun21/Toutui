@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.108",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The reader says what the server said, and it does not say \
+             that a media holds no ebook.** When the key `e` gets no book, \
+             Toutui asks the server for the data of that media, to tell you \
+             what the media holds. If that second request came back with a \
+             fault, Toutui said \"The server has no ebook for this media.\" \
+             for every reason: a server that reported a fault, a server that \
+             did not answer in time, and a token that is not valid each said \
+             that your book is not there. Toutui now says what the server \
+             said, it names the key that asks again, and it writes the fault \
+             in the file of the log. A server that does not hold the media at \
+             all keeps a sentence of its own.",
+        ],
+    },
+    Entry {
         version: "0.8.107",
         date: "16/08/2026",
         body: &[

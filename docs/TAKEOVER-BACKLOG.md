@@ -22895,3 +22895,130 @@ mode at 80. That second sentence needs no server of a fault at all.
   media." for every fault of `api.get_json`, therefore a network that failed
   says that the server holds no ebook (new with this item). A candidate, and not
   a measurement.
+
+### T-279: a media whose data the server did not give says why
+
+**The state**: corrected on 2026-08-16, in v0.8.108. The measurement is of the
+real program inside tmux against the sandbox.
+
+#### The choice of this item
+
+T-278 left the candidate "`The server has no ebook for this media.` of
+`src/logic/reader/session.rs` is the answer of every fault of `api.get_json`,
+therefore a network that failed says that the server holds no ebook." This item
+reaches that candidate.
+
+#### The fault
+
+`why_the_book_did_not_come` of `src/logic/reader/session.rs:660` held
+`Err(_) => return "The server has no ebook for this media.".to_string()` at
+line 671. The endpoint of the ebook answers 404 for a media with no ebook and
+for an item that does not exist, therefore that function asks the server for
+the item at `/api/items/<the id>`. Every fault of that second request gave one
+sentence: a server that reported a fault, a server that did not answer in
+time, a token that is not valid, and a body of no JSON each said that the
+media holds no ebook. That is a reason that the program does not have (T-91).
+The arm wrote no line of the log at all.
+
+#### The measurement
+
+The real program v0.8.107, inside tmux, against the sandbox, of the book
+`Alice in Wonderland` (id 8fda6e43-0728-46ad-98bc-4c8634e299ad) of the library
+`Books`. The cache of the ebooks of that account went away with a `mv`,
+because a book of the cache costs no request. The account took the address
+`http://127.0.0.1:13511` (the trap 129). A new harness
+`docs/harness/a_status_of_some_paths.py` gave the status 404 to
+`/api/items/8fda6e43-0728-46ad-98bc-4c8634e299ad/ebook` and the status 500 to
+`/api/items/8fda6e43-0728-46ad-98bc-4c8634e299ad`, and every other request went
+to the sandbox. The keys `Tab`, 15 keys `j`, and `e` gave the screen:
+
+```text
+                    The server has no ebook for this media.
+```
+
+The book was good: the sandbox holds the EPUB of it, of 136761 bytes. The log
+of the proxy held this sequence: `500 /api/items/8fda...`,
+`404 /api/items/8fda.../ebook`, `500 /api/items/8fda...`. The log of the
+program held one line of the reader, and that line came of a different
+request (the size of the ebook); the arm of the fault wrote nothing.
+
+Why the new harness was necessary: this road needs two different statuses of
+two paths together. `one_path_fails.py` gives 500 to every rule, and
+`a_status_of_one_path.py` gives one status of its command line to every rule.
+A rule of `/api/items/<the id>` holds the path of the ebook too, therefore one
+status of that rule gives 500 to the ebook, and the road then stops at the
+guard of `ApiError::NotFound` before the second request. Two proxies one
+behind the other do not work: the answer of a rule says
+`Connection: keep-alive`, and `to_the_sandbox` of the proxy in front of it then
+waits for an end of the stream that never comes. A measurement of 2026-08-16
+with `a_status_of_one_path.py 13510 13500` in front of `one_path_fails.py
+13500 13399` gave `The server did not answer in time.` and no road at all.
+
+#### The correction
+
+A new function `pub fn the_message_of_the_item_that_did_not_come(item_id,
+fault)` of the same file. The status 404 of the item is the media that the
+server does not hold, and it gives
+`The server does not hold this media. Press h to go back.` Every other fault
+takes a line of the log
+(`[reader] the server did not give the data of the item <the id>: <the
+fault>`) and it gives a sentence that names what the server said, the key `e`
+that asks again, the file of the log, and the key `h` of the view of the
+reader. The text of a fault of the API ends with a period, therefore the
+sentence takes that period away and it gives one of its own.
+
+The corrected program of the same condition said, on two rows of a terminal of
+160 columns:
+
+```text
+The program did not get the book, and the server did not give the data of this media. The server said: The server reported a fault. Status 500. Try the key e
+                            again, or read the file of the log. Press h to go back.
+```
+
+and the log held the line
+`[reader] the server did not give the data of the item
+8fda6e43-0728-46ad-98bc-4c8634e299ad: The server reported a fault. Status
+500.`
+
+#### The controls
+
+The key `h` of that screen gave the Library view back. The same book with the
+account at the address of the sandbox gave
+`Alice's Adventures in Wonderland — chapter 3 of 14 — 4%` and the text of the
+book.
+
+#### The test
+
+`tests/a_media_of_a_server_that_gave_no_data_says_why.rs`, four functions, and
+they need no server and no disk. One of the status 500 (the message says what
+the server said, it names the key `h`, it holds no words "no ebook", and it
+holds no two periods after the fault), one of the six other faults
+(`Unreachable`, `Timeout`, `Unauthorized`, `Forbidden`, `Server(502)`, and
+`Decode`), one of the status 404 of the item, and one of the words of
+`the_message_of_the_format` that stay as they were. The build of the fault:
+the `format!` of the new function goes back to the old sentence, and the two
+first tests then fail.
+
+#### What this item leaves open
+
+- The header of the program at 80 columns writes over itself (open since
+  T-278). A candidate, and not a measurement.
+- `ChapterTooLarge` of `ReaderError` of `src/logic/reader/book.rs` says
+  "This chapter is too large." It names no size, no limit of 8 megabytes, and
+  no key, and it writes no line of the log (open since T-274). A candidate,
+  and not a measurement.
+- `Book::chapter_sizes` gives 0 for a chapter whose read failed, and it says
+  nothing (open since T-277). A candidate, and not a measurement.
+- `src/logic/reader/session.rs` gives "This chapter is too complex." for a
+  render that went past its limit of time, which is a reason that the program
+  does not have (T-91), and "This chapter did not open." drops the reason of
+  the join. Neither takes a line of the log (open since T-278). A candidate,
+  and not a measurement.
+- `the_message_of_the_format` of the same file says
+  "Try again, or read the log." for a media whose book the server holds. It
+  names no key at all, and the view of the reader holds the keys `h` and `e`
+  (new with this item). A candidate, and not a measurement.
+- The sentence of the status 404 of the item names the key `h` alone. A media
+  that the server does not hold can be a library that changed, and the key `R`
+  of the view before it asks the server again (new with this item). A
+  candidate, and not a measurement.

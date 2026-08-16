@@ -657,6 +657,11 @@ fn number_of(value: &serde_json::Value) -> Option<f64> {
 /// item that does not exist. Therefore this function asks for the item, and it
 /// names what that item holds. A request that failed for a different reason
 /// keeps its own text.
+///
+/// **A fault of the second request is not a media with no ebook** (T-279): the
+/// status 404 of that request is the media that the server does not hold, and
+/// every other fault says nothing at all of the book. Therefore the program
+/// says what the server said, and it takes a line of the log.
 async fn why_the_book_did_not_come(
     api: &Arc<ApiClient>,
     item_id: &str,
@@ -668,7 +673,7 @@ async fn why_the_book_did_not_come(
 
     let item: serde_json::Value = match api.get_json(&format!("/api/items/{}", item_id)).await {
         Ok(value) => value,
-        Err(_) => return "The server has no ebook for this media.".to_string(),
+        Err(fault) => return the_message_of_the_item_that_did_not_come(item_id, &fault),
     };
 
     let format = item["media"]["ebookFile"]["ebookFormat"]
@@ -677,6 +682,42 @@ async fn why_the_book_did_not_come(
         .unwrap_or("");
 
     the_message_of_the_format(format)
+}
+
+/// Gives the sentence for a request of the item that came back with a fault.
+///
+/// The program asks the server for the item because the endpoint of the ebook
+/// answers 404 for a media with no ebook and for an item that does not exist.
+/// The status 404 of the item is the second of those two, and it is a fact that
+/// the program has. Every other fault says nothing of the book of that media,
+/// therefore the sentence names what the server said, and the fault takes a
+/// line of the log.
+///
+/// The function writes the log and it makes the text, therefore a test of the
+/// words needs no server.
+pub fn the_message_of_the_item_that_did_not_come(
+    item_id: &str,
+    fault: &crate::api::client::error::ApiError,
+) -> String {
+    if matches!(fault, crate::api::client::error::ApiError::NotFound) {
+        return "The server does not hold this media. Press h to go back.".to_string();
+    }
+
+    warn!(
+        "[reader] the server did not give the data of the item {}: {}",
+        item_id, fault
+    );
+
+    // The text of a fault of the API ends with a period, therefore the sentence
+    // takes that period away and it gives one of its own.
+    let said = fault.to_string();
+
+    format!(
+        "The program did not get the book, and the server did not give the data \
+         of this media. The server said: {}. Try the key e again, or read the \
+         file of the log. Press h to go back.",
+        said.trim_end().trim_end_matches('.')
+    )
 }
 
 /// Gives the sentence for the form of the ebook that the media holds.

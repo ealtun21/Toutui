@@ -122,6 +122,64 @@ gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
 
+## The session of the hundred and eighth turn of 2026-08-16: a media whose data the server did not give says why
+
+**One release: v0.8.108**, and one item: T-279. **The road of it is the
+candidate "`The server has no ebook for this media.` of
+`src/logic/reader/session.rs` is the answer of every fault of `api.get_json`"
+of T-278.**
+
+`why_the_book_did_not_come` of `src/logic/reader/session.rs` held
+`Err(_) => return "The server has no ebook for this media.".to_string()`. The
+endpoint of the ebook answers 404 for a media with no ebook and for an item
+that does not exist, therefore that function asks the server for the item at
+`/api/items/<the id>`. Every fault of that second request gave one sentence: a
+server that reported a fault, a server that did not answer in time, a token
+that is not valid, and a body of no JSON each said that the media holds no
+ebook. That is a reason that the program does not have (T-91), and the arm
+wrote no line of the log at all.
+
+The measurement is of the real program v0.8.107 inside tmux against the
+sandbox, of `Alice in Wonderland` of the library `Books`. **This road needs two
+different statuses of two paths together**, and no harness of this repository
+gave that condition: a rule of `/api/items/<the id>` holds the path of the
+ebook of that item too, therefore one status of that rule stops the road at the
+guard of `ApiError::NotFound` before the second request. **Two proxies do not
+stand one behind the other** (the trap 242): the answer of a rule says
+`Connection: keep-alive`, and `to_the_sandbox` of the proxy in front of it then
+waits for an end of the stream that never comes — a measurement with
+`a_status_of_one_path.py 13510 13500` in front of
+`one_path_fails.py 13500 13399` gave `The server did not answer in time.` and
+no road at all. The new harness `docs/harness/a_status_of_some_paths.py` takes
+rules of the shape `STATUS:part-of-a-path`, and the first rule that holds a
+part of the path wins. With `404:/api/items/<the id>/ebook` and
+`500:/api/items/<the id>`, the keys `Tab`, 15 keys `j`, and `e` gave
+`The server has no ebook for this media.` **The book was good**: the sandbox
+holds the EPUB of it, of 136761 bytes.
+
+The correction is a function
+`the_message_of_the_item_that_did_not_come(item_id, fault)` of the same file.
+The status 404 of the item is the media that the server does not hold, and it
+keeps a sentence of its own. Every other fault takes a line of the log, and it
+gives a sentence that names what the server said, the key `e` that asks again,
+the file of the log, and the key `h` of the view of the reader. The corrected
+program of the same condition said `The program did not get the book, and the
+server did not give the data of this media. The server said: The server
+reported a fault. Status 500. Try the key e again, or read the file of the log.
+Press h to go back.` on two rows. The controls: the key `h` gave the Library
+view back, and the same book with the account at the address of the sandbox
+gave `Alice's Adventures in Wonderland — chapter 3 of 14 — 4%` and the text of
+the book.
+
+The test is `tests/a_media_of_a_server_that_gave_no_data_says_why.rs`, of four
+functions. It needs no network, no sandbox, and no disk.
+
+**The numbers of the gates of v0.8.108**: `cargo clippy --all-targets -- -D
+warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
+1317 of 1317 in 2.7 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives 1343 of 1343 in 17.1 seconds with
+the sandbox up, and `cargo test -j 16 --no-fail-fast` passed in two runs.
+
 ## The session of the hundred and seventh turn of 2026-08-16: a message of a view that is longer than the screen stands on more than one row
 
 **One release: v0.8.107**, and one item: T-278. **The road of it is the
@@ -14594,64 +14652,133 @@ the parent of the child that reads a PDF** (T-274, and they stay open).
 T-274): the block has a limit of size, therefore this turn names the new
 candidates alone and it does not repeat that list.
 
-## The prompt for the next session
-**This session read the candidate "Every other `Paragraph` of a message of this
-program that holds no `wrap`"**, which T-277 opened. **A sweep of the 44
-`Paragraph` of `src/ui/` found two that hold the two conditions together: no
-`wrap`, and a sentence of a fault that holds the words of the server. Both of
-them are the message of the view of the episodes of a podcast.**
+### The session of the hundred and fifth turn of 2026-08-16 (T-276)
 
-`src/ui/tui.rs` held two `Paragraph::new(no_episodes_message)`, each with
-`.centered()` and no `.wrap(...)`: one for the road of the view that a search
-opened, and one for the road that no search opened. Two of the three sentences
-of `the_reason_of_no_episode` of `src/logic/the_episodes.rs` hold 94
-characters: the sentence of a server that reported a fault, and the sentence of
-the offline mode.
+**The
+session of the hundred and fifth turn took the candidate "The three other
+values of `ReaderError` (`NotAnEpub`, `ChapterAbsent`, and
+`ChapterTooLarge`) each say one reason", which T-274 opened and which T-275
+left open. It reaches `NotAnEpub`** (T-276).
 
-The measurement, of the real program v0.8.106 inside tmux against the sandbox,
-in a terminal of 80 columns. The account took the address
-`http://127.0.0.1:13500`, and `docs/harness/one_path_fails.py` gave the status
-500 to the request of the podcast `Letters of Two Brides` of the library
-`Podcasts`. **The path of the episodes of a podcast is
-`GET /api/items/<the id of the podcast>`**, and not a path of the word
-"episodes". The keys `Tab` and `l` gave
+`Book::open` of `src/logic/reader/book.rs` began with
+`the_file_is_a_pdf(path)`, which held
+`let Ok(mut file) = std::fs::File::open(path) else { return false; };`:
+every fault of that open gave `false`. The road then reached
+`Epub::open(path).map_err(|_| ReaderError::NotAnEpub)?`, which dropped every
+reason too.
+
+The measurement, of the real program v0.8.104 inside tmux against the
+sandbox, of the book `Alice in Wonderland` of the library `Books`. The
+control came first: the key `e` gave `Alice's Adventures in Wonderland —
+chapter 3 of 14 — 4%`. The program then stopped, and `chmod 000` of the file
+of the cache of the ebooks
+(`$XDG_DATA_HOME/toutui/downloads/toutuitest/8fda6e43-...epub`, of 136761
+bytes) gave the condition of a file that the disk refuses. The key `e` of
+the same book of a new program gave the screen
 
 ```text
-The server did not give the episodes of this podcast: The server reported a faul
-                               Press h to go back.
+This file is not an EPUB.
 ```
 
-The screen gave 79 characters of a sentence of 94, and the log held the reason
-that the screen lost: `The server reported a fault. Status 500.` The same
-condition at 160 columns gave the whole sentence on one row.
+**The book was good**: the same program read chapter 3 of 14 of it 90
+seconds before. The whole log of that run held one line of the fault, and it
+came of the cache and not of the reader:
+`[cache] the time of ... did not change: Permission denied (os error 13)`.
 
-The correction is a new module `src/ui/the_message_of_a_view.rs`, with
-`pub fn render_the_message(text, area, buf)`, which holds the `.centered()`,
-the block of the border, and `.wrap(Wrap { trim: true })`. The two sites of
-`src/ui/tui.rs` call it. The corrected program of the same condition at 80
-columns said the whole sentence on three rows. The item is **T-278**, and it
-holds the release v0.8.107.
+The correction is a value `ReaderError::TheDiskGaveNoBook(String)` and a
+function `the_file_starts_as_a_pdf(path) -> io::Result<bool>`, which gives
+the fault of the disk back. A file of fewer than five bytes is no PDF and no
+fault of the disk: that read gives `io::ErrorKind::UnexpectedEof`, and the
+function then gives `false`. `the_file_is_a_pdf` stays, as
+`the_file_starts_as_a_pdf(path).unwrap_or(false)`, for the one caller of the
+download. `Epub::open` keeps `NotAnEpub`, and its reason now takes a line of
+the log. The corrected program of the same condition said `The disk did not
+give this book. The book can be good. The machine said: Permission denied
+(os error 13). Give the program permission to read the file of the book. The
+file of the log holds more. Press h to go back.` The two controls: the same
+book of a file of `chmod 644` gave chapter 3 of 14 again, and `A Book Of An
+Epub With No Container` of the same library kept `This file is not an EPUB.`
+with the reason of `rbook` in the log.
+- **A build of the fault that passes is a build that removed a different
+  line** (T-276): the first attempt took the arm of `read_exact`
+  (`Err(fault) => Err(fault)` to `Err(_) => Ok(false)`) and every test
+  passed, because the `?` of `std::fs::File::open` is the correction of this
+  item. The second attempt took the arm of `Book::open`, and the test then
+  said `a file that is not there gives the disk: Some(NotAnEpub)`.
+- **A `map_err(|_| ...)` of a crate holds more than one fault** (T-276): the
+  fault of the disk and the fault of the book each reached `NotAnEpub`. Ask
+  of every `map_err(|_|` of this program: how many roads does that one value
+  hold, and does the user read a reason that the program has?
+- **`ChapterAbsent` of `ReaderError`**: **T-277 closes it**, and the turn
+  above holds the measurement. `ChapterTooLarge` stays open.
+- **`if let Ok(data) = std::fs::metadata(path)` of `Book::open`** (T-276, and
+  it stays open) drops the fault of the disk still, and the read of the five
+  bytes reaches that condition first. **This is a candidate and not a
+  measurement.**
+- **Every candidate of the list of the turns below stays open** (T-229 to
+  T-275): the block has a limit of size, therefore this turn names the new
+  candidates alone and it does not repeat that list.
+
+## The prompt for the next session
+
+**This session read the candidate "`The server has no ebook for this media.` of
+`src/logic/reader/session.rs` is the answer of every fault of `api.get_json`"**,
+which T-278 opened. The road of the key `e` asks the server two times, and the
+second request gave one sentence for every fault.
+
+`why_the_book_did_not_come` of `src/logic/reader/session.rs` held
+`Err(_) => return "The server has no ebook for this media.".to_string()`. The
+endpoint of the ebook answers 404 for a media with no ebook and for an item
+that does not exist, therefore that function asks the server for the item at
+`/api/items/<the id>`. A server that reported a fault, a server that did not
+answer in time, a token that is not valid, and a body of no JSON each said that
+the media holds no ebook. That is a reason that the program does not have
+(T-91), and the arm wrote no line of the log at all.
+
+The measurement, of the real program v0.8.107 inside tmux against the sandbox,
+of `Alice in Wonderland` of the library `Books`. **This road needs two
+different statuses of two paths together**, and no harness of this repository
+gave that condition. The new harness `docs/harness/a_status_of_some_paths.py`
+takes rules of the shape `STATUS:part-of-a-path`, and the first rule that holds
+a part of the path wins. With `404:/api/items/<the id>/ebook` and
+`500:/api/items/<the id>`, the keys `Tab`, 15 keys `j`, and `e` gave
+
+```text
+                    The server has no ebook for this media.
+```
+
+**The book was good**: the sandbox holds the EPUB of it, of 136761 bytes.
+
+The correction is a function
+`the_message_of_the_item_that_did_not_come(item_id, fault)` of the same file.
+The status 404 of the item is the media that the server does not hold, and it
+keeps a sentence of its own. Every other fault takes a line of the log, and the
+sentence names what the server said, the key `e` that asks again, the file of
+the log, and the key `h` of the view of the reader. The item is **T-279**, and
+it holds the release v0.8.108.
 
 Two things are worth the room:
 
-1. **A sweep of one line of code over the whole of `src/ui/` is cheap, and it
-   names every site of a fault that one measurement found.** T-277 corrected
-   one `Paragraph` of the reader. The same question of the other 43 of them
-   found two more, and both of them draw the words of the server.
-2. **A harness of a path needs the path that the program asks for, and not the
-   path of the name of the work.** The first attempt used `/episodes`, and
-   every episode came: the request of the episodes of a podcast is
-   `GET /api/items/<the id>`.
+1. **A guard of one value hides every other value of a fault.** The first
+   request of that road takes the status 404 alone to the second request, and
+   the second request then read every fault as that same 404. Ask of every road
+   of this program that asks the server two times: does the answer of the
+   second request keep the reason of its own fault?
+2. **Two proxies of this repository do not stand one behind the other** (the
+   trap 242). The answer of a rule says `Connection: keep-alive`, and
+   `to_the_sandbox` of the proxy in front of it then waits for an end of the
+   stream that never comes. A condition of two statuses needs one proxy of two
+   rules, and not two proxies of one rule each.
 
-The gates of v0.8.107, under `nice -n 19 ionice -c 3` with `-j 16`:
+The gates of v0.8.108, under `nice -n 19 ionice -c 3` with `-j 16`:
 `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
-`cargo nextest run` gives 1313 of 1313 in 2.7 seconds with 26 skipped, and
-`cargo test -j 16 --no-fail-fast` passed in three runs.
-
+`cargo nextest run` gives 1317 of 1317 in 2.7 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives 1343 of 1343 with the sandbox up,
+and `cargo test -j 16 --no-fail-fast` passed in two runs.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.107**; `Cargo.toml` is at 0.8.107. The
+> AlbanDAVID/Toutui. Newest release **v0.8.108**; `Cargo.toml` is at 0.8.108. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -14660,7 +14787,7 @@ The gates of v0.8.107, under `nice -n 19 ionice -c 3` with `-j 16`:
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-269 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-279 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -14800,6 +14927,26 @@ The gates of v0.8.107, under `nice -n 19 ionice -c 3` with `-j 16`:
 > address of the sandbox back at the end. **A token of a `sqlite3` gives
 > `Failed to decrypt the token.`** (the trap 192), therefore no measurement of a
 > token that the server refuses writes that column.
+>
+> **A status of its own for each of two paths is
+> `docs/harness/a_status_of_some_paths.py`** (T-279). The two harnesses above
+> give one status to every rule, therefore a road of the program that asks the
+> server two times cannot take two statuses together: a rule of
+> `/api/items/<the id>` holds the path of the ebook of that item too. This one
+> takes rules of the shape `STATUS:part-of-a-path`, and **the first rule that
+> holds a part of the path wins**:
+>
+> ```bash
+> python3 docs/harness/a_status_of_some_paths.py 13511 13399 requests.log \
+>     404:/api/items/<the id>/ebook 500:/api/items/<the id>
+> ```
+>
+> **Two proxies of this repository do not stand one behind the other** (the trap
+> 242): the answer of a rule says `Connection: keep-alive`, and `to_the_sandbox`
+> of the proxy in front of it then waits for an end of the stream that never
+> comes. A measurement of `a_status_of_one_path.py 13510 13500` in front of
+> `one_path_fails.py 13500 13399` gave `The server did not answer in time.` and
+> no road at all.
 >
 > **A server that answers the login and that holds no library is
 > `docs/harness/no_library.py`** (T-173). It forwards every request to the
@@ -15234,8 +15381,8 @@ The gates of v0.8.107, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1309 tests in 3.0 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1335 of 1335** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1317 tests in 2.7 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1343 of 1343** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -15343,9 +15490,79 @@ The gates of v0.8.107, under `nice -n 19 ionice -c 3` with `-j 16`:
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in one hundred and two sessions of one hundred and
->    three.
+>    this shape found a fault in one hundred and three sessions of one hundred
+>    and four.
 >    **The
+>    session of the hundred and eighth turn took the candidate "`The server has
+>    no ebook for this media.` of `src/logic/reader/session.rs` is the answer of
+>    every fault of `api.get_json`", which T-278 opened** (T-279).
+>
+>    `why_the_book_did_not_come` of `src/logic/reader/session.rs` held
+>    `Err(_) => return "The server has no ebook for this media.".to_string()`.
+>    The endpoint of the ebook answers 404 for a media with no ebook and for an
+>    item that does not exist, therefore that function asks the server for the
+>    item at `/api/items/<the id>`. Every fault of that second request gave one
+>    sentence: a server that reported a fault, a server that did not answer in
+>    time, a token that is not valid, and a body of no JSON each said that the
+>    media holds no ebook. That is a reason that the program does not have
+>    (T-91), and the arm wrote no line of the log at all.
+>
+>    The measurement, of the real program v0.8.107 inside tmux against the
+>    sandbox, of `Alice in Wonderland` of the library `Books`. The cache of the
+>    ebooks of that account went away with a `mv`, because a book of the cache
+>    costs no request. The account took `http://127.0.0.1:13511` (the trap 129).
+>    **This road needs two different statuses of two paths together**:
+>    `one_path_fails.py` gives 500 to every rule, and a rule of
+>    `/api/items/<the id>` holds the path of the ebook too, therefore that rule
+>    gives 500 to the ebook and the road stops at the guard of
+>    `ApiError::NotFound` before the second request. **Two proxies of this
+>    repository do not stand one behind the other**: the answer of a rule says
+>    `Connection: keep-alive`, and `to_the_sandbox` of the proxy in front of it
+>    then waits for an end of the stream that never comes — a measurement of
+>    `a_status_of_one_path.py 13510 13500` in front of
+>    `one_path_fails.py 13500 13399` gave `The server did not answer in time.`
+>    and no road at all. The new harness
+>    `docs/harness/a_status_of_some_paths.py` gives a status of its own to each
+>    part of a path, and the keys `Tab`, 15 keys `j`, and `e` then gave
+>
+>    ```text
+>    The server has no ebook for this media.
+>    ```
+>
+>    **The book was good**: the sandbox holds the EPUB of it, of 136761 bytes,
+>    and the log of the program held no line of that arm at all.
+>
+>    The correction is a function
+>    `the_message_of_the_item_that_did_not_come(item_id, fault)` of the same
+>    file. The status 404 of the item is the media that the server does not
+>    hold, and it keeps a sentence of its own. Every other fault takes a line of
+>    the log and it gives a sentence that names what the server said, the key
+>    `e` that asks again, the file of the log, and the key `h` of the view of
+>    the reader. The corrected program of the same condition said `The program
+>    did not get the book, and the server did not give the data of this media.
+>    The server said: The server reported a fault. Status 500. Try the key e
+>    again, or read the file of the log. Press h to go back.` on two rows, and
+>    the log held the line of the reader. The controls: the key `h` gave the
+>    Library view back, and the same book with the account at the address of the
+>    sandbox gave `Alice's Adventures in Wonderland — chapter 3 of 14 — 4%` and
+>    the text of the book.
+>    - **A guard of one value hides every other value of a fault** (T-279): the
+>      first request of that road takes 404 alone to the second request, and the
+>      second request then reads every fault as that same 404. Ask of every road
+>      of this program that asks the server two times: does the answer of the
+>      second request keep the reason of its own fault?
+>    - **`the_message_of_the_format` says "Try again, or read the log."**
+>      (T-279, and it stays open) for a media whose book the server holds. It
+>      names no key at all, and the view of the reader holds the keys `h` and
+>      `e`. **This is a candidate and not a measurement.**
+>    - **The sentence of the status 404 of the item names the key `h` alone**
+>      (T-279, and it stays open): a media that the server does not hold can be
+>      a library that changed, and the key `R` of the view before it asks the
+>      server again. **This is a candidate and not a measurement.**
+>    - **Every candidate of the list of the turns below stays open** (T-229 to
+>      T-278): the block has a limit of size, therefore this turn names the new
+>      candidates alone and it does not repeat that list.
+>>    **The
 >    session of the hundred and seventh turn took the candidate "Every other
 >    `Paragraph` of a message of this program that holds no `wrap`", which
 >    T-277 opened. A sweep of the 44 `Paragraph` of `src/ui/` found two that
@@ -15502,73 +15719,9 @@ The gates of v0.8.107, under `nice -n 19 ionice -c 3` with `-j 16`:
 >      T-276): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
 >
->    **The
->    session of the hundred and fifth turn took the candidate "The three other
->    values of `ReaderError` (`NotAnEpub`, `ChapterAbsent`, and
->    `ChapterTooLarge`) each say one reason", which T-274 opened and which T-275
->    left open. It reaches `NotAnEpub`** (T-276).
->
->    `Book::open` of `src/logic/reader/book.rs` began with
->    `the_file_is_a_pdf(path)`, which held
->    `let Ok(mut file) = std::fs::File::open(path) else { return false; };`:
->    every fault of that open gave `false`. The road then reached
->    `Epub::open(path).map_err(|_| ReaderError::NotAnEpub)?`, which dropped every
->    reason too.
->
->    The measurement, of the real program v0.8.104 inside tmux against the
->    sandbox, of the book `Alice in Wonderland` of the library `Books`. The
->    control came first: the key `e` gave `Alice's Adventures in Wonderland —
->    chapter 3 of 14 — 4%`. The program then stopped, and `chmod 000` of the file
->    of the cache of the ebooks
->    (`$XDG_DATA_HOME/toutui/downloads/toutuitest/8fda6e43-...epub`, of 136761
->    bytes) gave the condition of a file that the disk refuses. The key `e` of
->    the same book of a new program gave the screen
->
->    ```text
->    This file is not an EPUB.
->    ```
->
->    **The book was good**: the same program read chapter 3 of 14 of it 90
->    seconds before. The whole log of that run held one line of the fault, and it
->    came of the cache and not of the reader:
->    `[cache] the time of ... did not change: Permission denied (os error 13)`.
->
->    The correction is a value `ReaderError::TheDiskGaveNoBook(String)` and a
->    function `the_file_starts_as_a_pdf(path) -> io::Result<bool>`, which gives
->    the fault of the disk back. A file of fewer than five bytes is no PDF and no
->    fault of the disk: that read gives `io::ErrorKind::UnexpectedEof`, and the
->    function then gives `false`. `the_file_is_a_pdf` stays, as
->    `the_file_starts_as_a_pdf(path).unwrap_or(false)`, for the one caller of the
->    download. `Epub::open` keeps `NotAnEpub`, and its reason now takes a line of
->    the log. The corrected program of the same condition said `The disk did not
->    give this book. The book can be good. The machine said: Permission denied
->    (os error 13). Give the program permission to read the file of the book. The
->    file of the log holds more. Press h to go back.` The two controls: the same
->    book of a file of `chmod 644` gave chapter 3 of 14 again, and `A Book Of An
->    Epub With No Container` of the same library kept `This file is not an EPUB.`
->    with the reason of `rbook` in the log.
->    - **A build of the fault that passes is a build that removed a different
->      line** (T-276): the first attempt took the arm of `read_exact`
->      (`Err(fault) => Err(fault)` to `Err(_) => Ok(false)`) and every test
->      passed, because the `?` of `std::fs::File::open` is the correction of this
->      item. The second attempt took the arm of `Book::open`, and the test then
->      said `a file that is not there gives the disk: Some(NotAnEpub)`.
->    - **A `map_err(|_| ...)` of a crate holds more than one fault** (T-276): the
->      fault of the disk and the fault of the book each reached `NotAnEpub`. Ask
->      of every `map_err(|_|` of this program: how many roads does that one value
->      hold, and does the user read a reason that the program has?
->    - **`ChapterAbsent` of `ReaderError`**: **T-277 closes it**, and the turn
->      above holds the measurement. `ChapterTooLarge` stays open.
->    - **`if let Ok(data) = std::fs::metadata(path)` of `Book::open`** (T-276, and
->      it stays open) drops the fault of the disk still, and the read of the five
->      bytes reaches that condition first. **This is a candidate and not a
->      measurement.**
->    - **Every candidate of the list of the turns below stays open** (T-229 to
->      T-275): the block has a limit of size, therefore this turn names the new
->      candidates alone and it does not repeat that list.
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
->    the hundred and second and every turn before it, the item of each, and the
+>    the hundred and fifth and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that
@@ -16061,7 +16214,10 @@ The gates of v0.8.107, under `nice -n 19 ionice -c 3` with `-j 16`:
 > stands on more than one line** (T-277), and **a message of a view that is
 > longer than the screen stands on more than one row: the sentence of a view
 > that holds no line says what the server said, and a terminal of 80 columns is
-> shorter than it** (T-278).
+> shorter than it** (T-278), and **a media whose data the server did not give
+> says why: the status 404 of the item is the media that the server does not
+> hold, and every other fault of that request says nothing at all of the book
+> of that media** (T-279).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
