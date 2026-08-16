@@ -4,7 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.123.** The item T-294 belongs to this session. The
+**The newest release is v0.8.125.** The item T-296 belongs to this session. The
+item T-295 belongs to the session before it. The
+item T-294 belongs to the session before it. The
 item T-293 belongs to the session before it. The
 item T-292 belongs to the session before it. The
 item T-291 belongs to the session before it. The
@@ -139,6 +141,43 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its 153 binaries in four runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and twenty-fifth turn of 2026-08-16: a log out takes the places of the user
+
+**The item: T-296**, and the release **v0.8.125**.
+
+**The candidate came of the roads of the table of T-294.** T-294 gave the reader
+`pending_ebook_progress`, and T-295 gave that table the task of the clock. This
+round asked which roads of the program remove a row of the tables of the places,
+and the log out of the key `l` of the view of the accounts holds one statement
+alone: `DELETE FROM users WHERE username = ?1`. **The name of an account is the
+primary key of `users`**, therefore a login with the same name finds every place
+of the account again, and the start of that program sends it.
+
+**A log out is not a token that the server refused.** The two roads called one
+function, `remove_the_account`, and the head of it says the rule of T-123: the
+account of a token that a session renews comes back at once with the same name,
+therefore its places must stay. The correction gives the log out a road of its
+own, and it keeps the road of T-123 as it was.
+
+The measurement stands in `docs/TAKEOVER-BACKLOG.md` under T-296, with the keys,
+the two proxies of the port 13500, the place of the second machine of the user,
+and the words of the row of the message. **The user read two chapters while the
+server refused the place, they logged out, they read to the half of the book on
+a second machine, and the log in of the program took the server back to the
+chapter 4.** The correction stands in `src/db/crud.rs`
+(`the_account_and_its_places_go_away`, `the_words_of_a_log_out`, and
+`delete_user`), and the test is
+`tests/a_log_out_takes_the_places_of_the_user.rs`.
+
+**The road back of the sandbox**: the account holds `http://localhost:13399`
+again with the library `Books`, no proxy stands on the port 13500, the second
+account of the measurement went away with the copy of the database of the start,
+and `Alice in Wonderland` stands at `epubcfi(/6/6!/4/2/14/1:698)` at
+`ebookProgress 0`.
+
+**The gates**: `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,
+`cargo nextest run` (1347 tests), and `cargo test -j 16 --no-fail-fast`.
 
 ## The session of the hundred and twenty-third turn of 2026-08-16: the place of a book of a program that dies waits on the disk
 
@@ -16989,7 +17028,7 @@ log out** (T-200).
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.124**; `Cargo.toml` is at 0.8.124. The
+> AlbanDAVID/Toutui. Newest release **v0.8.125**; `Cargo.toml` is at 0.8.125. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -17707,8 +17746,8 @@ log out** (T-200).
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1342 tests in 2.7 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1368 of 1368** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1347 tests in 2.8 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1373 of 1373** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -17818,6 +17857,63 @@ log out** (T-200).
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and five sessions of one hundred
 >    and six.
+>    **The session of the hundred and twenty-fifth turn took the candidate
+>    "a road of the program removes the row of an account and it keeps the
+>    places of the user of that account", which a sweep of the roads of the
+>    table of T-294 gave, and the measurement of it gave the fault** (T-296).
+>
+>    **A log out that keeps the place of the user gives that place to the
+>    server later.** The key `l` of the view of the accounts called
+>    `remove_the_account` of `src/db/crud.rs`, and that function holds one
+>    statement: `DELETE FROM users WHERE username = ?1`. The three tables of
+>    the places of the user (`pending_progress`, `pending_ebook_progress`, and
+>    `listening_session`) stayed, **and the name of an account is the primary
+>    key of `users`**: a login with the same name and the same server therefore
+>    finds them again, and the start of that program sends them.
+>
+>    The measurement, of the real program v0.8.124 inside tmux against the
+>    sandbox, with `docs/harness/one_method_fails.py 13500 13399 requests.log
+>    PATCH:/api/me/progress` and the one address `http://127.0.0.1:13500` of
+>    the account (the trap 129). `Alice in Wonderland` stood at
+>    `toutui:the-place-of-the-start`: the key `/` and the word `Alice`, the key
+>    `e`, two presses of the key `n` (`chapter 4 of 14 — 9%`), and the key `h`
+>    gave `The server did not take the place: The server reported a fault.
+>    Status 500.` The keys `h`, `S`, `Enter`, `l`, and `l` then logged out:
+>    **`users` held 0 rows, and the row of the place stayed.** A second proxy
+>    of the same port gave the server back, the second machine of the user
+>    wrote `epubcfi(/6/30!/4/2/2/1:0)` at `ebookProgress 0.5` straight to the
+>    port 13399, and the user logged in again with the same address, the same
+>    name, and the same password. **The start of that program sent the place of
+>    the program before the log out, and the server then held
+>    `epubcfi(/6/8!/4/2/2/1:0)` at 0.0916.**
+>
+>    The correction is one file, `src/db/crud.rs`.
+>    `the_account_and_its_places_go_away` holds the four statements of the log
+>    out in one transaction (T-214), and it gives the number of the rows of
+>    `users` and the number of the places. `the_words_of_a_log_out` names that
+>    number. **`remove_the_account` keeps its one statement**, because a token
+>    that the server refused (T-123) gives the account back at once with the
+>    same name and its places must stay. **The corrected program**, of the same
+>    keys, left no row of the three tables, it said
+>    `[the accounts] the log out of toutuitest took 1 row(s) of the account and
+>    1 place(s) of the user.`, and the server kept the place of the second
+>    machine. The row of the message of a log out of an account that does not
+>    start the program said `The program removed the account toutuitest. 1
+>    place of the user did not reach the server, and it went away with the
+>    account.`
+>    - **The rows of `downloads`, of `download_files`, and of `queue` of an
+>      account that logged out stay on the disk, and the files of those
+>      downloads stay too** (T-296). **This is a candidate and not a
+>      measurement.**
+>    - **The words of the log out say "Start the program again." for a program
+>      that does not stop** (T-296): the view of the accounts of the
+>      measurement above stands, with that sentence in the row of the message.
+>      **This is a candidate and not a measurement.**
+>    - **A place that went away with the account reaches the server of no other
+>      machine** (T-296): the log out could send those places first, and a key
+>      handler of this program waits for no server. **This is a candidate and
+>      not a measurement.**
+>
 >    **The session of the hundred and twenty-fourth turn took the candidate
 >    "a row of `pending_ebook_progress` reaches the server at the start of a
 >    program alone", which a sweep of the task of T-25 gave, and the
@@ -17865,103 +17961,16 @@ log out** (T-200).
 >    - **A place of a book that waits reaches no view of the user at all**
 >      (T-295), while the header of the offline mode says the number of the
 >      positions that wait. **This is a candidate and not a measurement.**
->
->    **The session of the hundred and twenty-third turn took the candidate
->    "the place of the reader of a program that dies reaches no machine at
->    all", which T-292 and T-293 each left open, and the measurement of it
->    gave the fault** (T-294).
->
->    **A box of the process goes away with the process.** T-292 gave the
->    reader `src/logic/reader/the_place_that_waits.rs`, and T-293 gave that
->    box one place for each media. The two roads of the end of T-292 hold a
->    program that stops of its own will: the key `Q`, and the terminal that
->    went away. A `SIGKILL`, a machine that stops, and a program that the
->    machine killed for the memory hold neither of the two. The head of that
->    module said the fault itself: "The reader holds no table of the disk,
->    therefore that place goes away with this program."
->
->    The measurement, of the real program v0.8.122 inside tmux against the
->    sandbox, with `docs/harness/one_method_fails.py 13500 13399 requests.log
->    PATCH:/api/me/progress` and the one address `http://127.0.0.1:13500` of
->    the account (the trap 129). `Alice in Wonderland`
->    (`8fda6e43-0728-46ad-98bc-4c8634e299ad`) at `ebookLocation
->    toutui:the-place-of-the-start`. The key `/` and the word `Alice`, the key
->    `e`, two presses of the key `n` (`chapter 4 of 14 — 9%`), and the key `h`
->    gave `The server did not take the place: The server reported a fault.
->    Status 500.` A `kill -9` of that program then took the box away with no
->    road of the end at all, and **no table of `db.sqlite3` held one row of
->    that media**. The server of the start of the program after it still held
->    `toutui:the-place-of-the-start` at `ebookProgress 0`: **the user read two
->    chapters, and the place of the start stood on every machine of that
->    account.**
->
->    The correction is five files. `src/db/migrate.rs` holds the version 10 of
->    the schema, and it makes `pending_ebook_progress` of `id_item`,
->    `username`, `server`, `location`, `fraction`, and `updated_at`: **the row
->    of `pending_progress` of the audio holds a moment in seconds, a length,
->    and the mark of the end, and the request of a book holds none of the
->    three.** `src/db/crud.rs` holds `PendingEbookProgress` and the three
->    functions of that table. `the_place_that_waits.rs` holds
->    `the_place_of_this_book_waits_on_the_disk`,
->    `the_place_of_this_book_waits_no_more_on_the_disk`, and
->    `the_places_of_the_disk_go_to_the_server`, and each of the three **reads
->    the answer of its call of `crate::db::the_work_of_the_disk`** (T-207).
->    `src/app.rs` writes the row at the `Err` arm of the task of
->    `send_the_place_of_the_reader`, it removes the row at the `Ok` arm of it
->    (T-211), and the start of the program calls the flush of that table after
->    `flush_pending_progress` and before the lists.
->    `src/utils/the_terminal_that_went_away.rs` gives the account and the
->    server to the send of the end. **The corrected program**, of the same
->    keys and the same `kill -9`, left one row of the disk at
->    `epubcfi(/6/8!/4/2/2/1:0)`, and the start of the program after it said
->    `1 place(s) of a book wait for the server` and it gave that place to the
->    server at `ebookProgress 0.09163083371618239`, and the table then held no
->    row.
->    - **A program that dies inside the write of the row of the disk still
->      loses that place** (T-294): the window is the moment between the answer
->      of the server and the write. The audio playback of T-212 holds the same
->      window. **This is a candidate and not a measurement.**
->    - **A row of `pending_ebook_progress` of an account that logged out stays
->      on the disk** (T-294): the log out of T-200 removes the rows of the
->      account, and this round did not ask whether it names this table. **This
->      is a candidate and not a measurement.**
->    - **The offline mode writes no place of a book at all** (T-294): a user
->      who reads a book of the cache of the ebooks while the server is away
->      gives the reader a place that no request can take. **This is a
->      candidate and not a measurement.**
->    - **`self.should_exit` of `src/app.rs` takes no write of any road**
->      (T-294): `src/main.rs` reads it to leave the loop of the screen, and the
->      arm of the key `Q` stops the process with the `clean_exit` of the sync
->      alone. **This is a candidate and not a measurement.**
->    - **`move_the_media_of_the_list` of `src/app.rs` writes the new sequence
->      of a list in `self.lists` before the server took it** (T-294, and the
->      shape of T-291 and of T-207): a `PATCH` that fails asks the server for
->      the list again, and a second fault of that read leaves the screen with a
->      sequence that no server holds. **This is a candidate and not a
->      measurement.**
->    - **The reader accepts five keys that no footer of it names** (T-290, and
->      a read of the source of T-294 confirms each): `Esc` of the reading view
->      (`src/app.rs:6855`), and `Esc`, `?`, and `Q` while the table of contents
->      stands, and the key `e` (`src/app.rs:6918`) in none of the four footers
->      of `src/ui/reader_tui.rs`. **This is a candidate and not a measurement.**
->    - **The box of the places has no limit of size** (T-293), and the table of
->      the disk now holds one row for each of them too. **This is a candidate
->      and not a measurement.**
->    - **A percent of the server and a length of the program still come of two
->      different lengths** (T-290), and **`convert_seconds` holds no guard of a
->      length of 0** (T-290). **The dead arm of a render stays open** (T-289),
->      and **the line of `src/player/engine/hls_file.rs:248` stays open**
->      (T-288): that one needs the book of xHE-AAC of the sandbox.
 >    - **Every candidate of the turns before this one stays open** (T-229 to
->      T-293): the block has a limit of size, therefore this turn names the new
->      candidates alone and it does not repeat that list.
+>      T-295): the block has a limit of size, therefore these turns name the
+>      new candidates alone and they do not repeat that list.
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
 >    (T-284): a round that writes its own turn takes the oldest turn out, and
 >    it takes a second one out while `toutui-loop --dry-run | wc -c` gives more
->    than 100000. That section holds the turn of the hundred and twenty-first
+>    than 100000. That section holds the turn of the hundred and twenty-third
 >    and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
@@ -18367,7 +18376,12 @@ log out** (T-200).
 > row of that table, and a place that the server took leaves the disk**
 > (T-294), and **a place of a book waits for no start of a program: the task of
 > the clock of T-25 counts the table of the reader beside the table of the
-> audio, and it sends the two of them when the server answers again** (T-295).
+> audio, and it sends the two of them when the server answers again** (T-295),
+> and **a log out that keeps the place of the user gives that place to the
+> server later: the log out takes the account and the three tables of the places
+> of that account in one transaction, and its words name the number of the
+> places that went away, while a token that the server refused keeps every place
+> because that account comes back at once** (T-296).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
