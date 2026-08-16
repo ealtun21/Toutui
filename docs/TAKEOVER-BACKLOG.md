@@ -26686,3 +26686,123 @@ three times with no fault.
 - **`App::search_mode` is never true** (T-303). This candidate stays open.
 - **Every candidate of the turns before this one stays open** (T-229 to
   T-304).
+
+### T-306: the panel of a description counts the columns of its text
+
+#### The fault
+
+**`the_number_of_the_lines` measured every word with a number of characters,
+and the panel has a number of columns.** `the_lines_of_one_line` of
+`src/logic/the_scroll_of_a_panel.rs` measured every word of the text of a panel
+with `word.chars().count()`. That function is the one road to the length of the
+text of a panel (T-252): the largest scroll of the keys `J` and `K` (T-252) and
+the bar of the scroll of the panel (T-253) each come of that number. T-305
+corrected the three makers of a text of one row, and it left this count.
+
+#### The measurement
+
+Of the real program v0.8.134 inside tmux against the sandbox, with the account
+`toutuitest` and a terminal of 80 columns (`COLUMNS_OF_THE_SCREEN=80` and
+`ROWS_OF_THE_SCREEN=45` of `docs/harness/drive.sh`). **The data of this fault
+is the text of the server**, therefore it needs no proxy and no book of a
+harness: `PATCH /api/items/8fda6e43-0728-46ad-98bc-4c8634e299ad/media` with
+`{"metadata":{"description": …}}` gave `Alice in Wonderland` a description of
+118 words of `日本語書籍説明文段` (nine characters, eighteen columns) and the
+word `THEENDOFTHETEXT` after them. The keys `/`, `Alice`, and `Enter` of the
+Home view gave the view of the search.
+
+The panel of that view holds 18 rows and 78 columns of text, and it drew
+**four** words of every row:
+
+```text
+日本語書籍説明文段 日本語書籍説明文段 日本語書籍説明文段 日本語書籍説明文段
+```
+
+**The cause, in numbers.** The text takes **30** rows of that panel, and the
+program counted **17**: at 78 columns the old rule fitted seven words of nine
+characters in a row. 17 is fewer than the 18 rows of the panel, therefore
+`the_last_scroll` gave 0, **no bar of the scroll came**, and **forty presses of
+the key `J` changed no character of the screen**. `THEENDOFTHETEXT` stood on
+the row 30, and no key of the program reached it. Twelve rows of the
+description had no road at all.
+
+**The control of the same run**: the same panel and the same keys, with a
+description of 118 words of `ABCDEFGHIJKLMNOPQR` (eighteen characters, eighteen
+columns) and the same word after them — the same number of columns. The bar of
+the scroll came at once, the key `J` moved the panel, and `THEENDOFTHETEXT`
+stood on the last row of it. The two descriptions hold the same number of
+columns and a different number of characters, therefore the count of the
+characters is the fault.
+
+#### The second measurement
+
+Of ratatui itself, with a `Paragraph` of `Wrap { trim: true }` drawn into a
+`Buffer` with no terminal at all. **The last character of a row takes one
+column of that row**: two words of eighteen columns of the Han script stood on
+one row of 36 columns, and two words of eighteen columns of ASCII needed two
+rows of that same width; four words of the Han script stood on one row of 74
+columns, and four words of ASCII needed 75. The rule holds at each number of
+the words: the crate draws the last character of a row while one column of that
+row stays, and the terminal then cuts the right half of a character of two
+columns. This program does not choose that rule, and it must have the number of
+the rows that the screen has, therefore the count holds it.
+
+**A word that is longer than the panel takes a different road of the crate, and
+that road overflows the area**: a `Paragraph` of 3 columns drew two characters
+of the Han script on one row, which is four columns, and the rows of one word
+of nine characters of the Han script held 1, 2, 1, 2, 1, and 2 characters. No
+count of this program says what that road does, and the gate of this item
+therefore asks only for the words that are shorter than the panel.
+
+#### The decision
+
+**A word is measured in columns, and not in characters, at the room that stays
+in a row.** `the_number_of_the_lines` must agree with the wrap that ratatui
+itself draws, for the reason of T-305: a program that draws with ratatui must
+count what ratatui counts, or the number of the program and the number of the
+screen disagree. A word that is longer than the panel needs a walk of its own
+characters, because a character of two columns that meets the last column of a
+row stays outside that row.
+
+#### The correction
+
+Two files. `src/logic/the_scroll_of_a_panel.rs`: `the_lines_of_one_line`
+measures every word with `crate::logic::message::the_columns_of` (T-305), the
+new `the_room_of_a_word` gives the columns that a word needs at the end of a
+row, and the new `the_lines_of_one_word` walks the characters of a word that is
+longer than the panel.
+
+**The corrected program**, of the same keys and the same description of
+Japanese: the bar of the scroll came, the key `J` moved the panel, and
+`THEENDOFTHETEXT` stood on the last row of it — the screen of the control of
+ASCII, character for character.
+
+#### The gate
+
+`tests/the_panel_of_a_description_counts_its_columns.rs` draws a `Paragraph` of
+`Wrap { trim: true }` into a `Buffer` with no terminal at all (T-256), and it
+asserts that the count of the program is the number of the rows that ratatui
+drew, for eight texts at every width from 20 to 200 columns.
+
+**The build of the fault** (`word.chars().count()` in the place of
+`the_columns_of(word)`) said 15 rows where ratatui drew 30.
+
+#### What this turn leaves open
+
+- **`fill` of `src/ui/marks.rs:111` still reads `mark.chars().count()`**, and a
+  mark of the East Asian Width "Ambiguous" takes one column or two, and the
+  terminal decides. T-305 left this open, and this round did not measure it.
+  **This is a candidate and not a measurement.**
+- **The four titles of a fixed text stand outside the gate of T-304**, and the
+  rule of the columns of this round does not close that candidate. **This is a
+  candidate and not a measurement.**
+- **A word of a description that is longer than the panel takes the road of
+  ratatui that overflows the area.** That is a fault of the crate and not of
+  this program, and **a description of Japanese holds no space at all** —
+  therefore a real description of Japanese takes that road for the whole of its
+  text. **This is a candidate and not a measurement.**
+- **`the_number_of_the_lines` is not the one count of a wrap of this program**:
+  `the_rows_of_a_message` of `src/logic/message.rs` (T-299) holds a second
+  count of a wrap, with rules of its own. No measurement asked whether the two
+  agree with ratatui together. **This is a candidate and not a measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to T-305).

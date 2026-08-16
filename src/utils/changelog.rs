@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.135",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The panel of a description counts the columns of its text.** \
+             The program measured the length of the text of a panel with a \
+             number of characters, and a description of the Han script, of \
+             Hiragana, or of Katakana therefore took twice the rows that the \
+             program counted: a description of 30 rows in a panel of 18 rows \
+             showed no bar of the scroll at all, the key J moved nothing, and \
+             the last 12 rows of that text had no road. The panel counts the \
+             columns of its text now, and the bar and the two keys give the \
+             whole of it.",
+        ],
+    },
+    Entry {
         version: "0.8.134",
         date: "16/08/2026",
         body: &[
