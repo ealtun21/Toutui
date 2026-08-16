@@ -17456,49 +17456,60 @@ program gave `epubcfi(/6/10!/4/2/2/1:0)` at `ebookProgress
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in one hundred and four sessions of one hundred
->    and five.
->    **The session of the hundred and twenty-first turn took the candidate "The
->    place of an open reader at the key `Q` is not measured", which T-291
->    opened, and the measurement of it gave the fault** (T-292).
+>    this shape found a fault in one hundred and five sessions of one hundred
+>    and six.
+>    **The session of the hundred and twenty-second turn took the candidate
+>    "`self.reader` stays after the key `h`, and the round did not ask what
+>    happens when the user opens a second book after that", which T-292
+>    opened, and the measurement of it gave the fault** (T-293).
 >
->    **The reader holds no table of the disk.** The audio playback keeps the
->    place of the user in the row of `listening_session` (T-201) and in the
->    table `pending_progress` (T-212), therefore a program that stops gives that
->    place to the server. The reader keeps its place in the `App` alone, and the
->    view of the reader goes away with the process. **The program stops on two
->    roads, and neither of them holds the `App`**: the arm of the key `Q` of
->    `src/app.rs`, which the footer of the reader names (`Q: quit`), and the
->    watch of the terminal that went away (T-271). Each of them called
->    `sync_session_from_database` alone, and that function reads the rows of the
->    audio: **it asks the reader nothing at all.**
+>    **The box of the process of T-292 held one place for the whole program.**
+>    `App::say_the_place_of_the_reader_that_waits` of `src/app.rs` wrote that
+>    box at each turn of the loop of `src/main.rs`, and it wrote `None` when
+>    `self.reader` is `None` or when the reader wants no send. `get_the_book`
+>    of `src/app.rs` writes `self.reader = None` at its first line, before the
+>    task that opens the book runs. Therefore a user who left a book with the
+>    key `h` while the server refused that place, and who then opened a second
+>    book, lost the place of the first book at the next turn of the loop, and
+>    the program then stopped with no word of it.
 >
->    The measurement, of the real program v0.8.120 inside tmux against the
->    sandbox, and **it needed no proxy at all**: the data of the fault is the
->    place of a book on the server itself. The server held `Alice in Wonderland`
->    at `ebookLocation epubcfi(/6/6!/4/2/14/1:698)` and `ebookProgress 0`, the
->    key `e` opened the reader at `chapter 3 of 14 — 4%`, and two presses of the
->    key `n` gave `chapter 5 of 14 — 16%` inside 30 seconds, therefore the rule
->    of the time did not run. The key `Q` then left the server at
->    `epubcfi(/6/6!/4/2/14/1:698)` with the same `lastUpdate`, and the log held
->    `[handle_key] The database holds no session to close` and
->    `App successfully quit` and **no word of the reader**. The key `h` of the
->    control of the same run gave `The server has the place of the book.` and
->    `epubcfi(/6/10!/4/2/2/1:0)` at `ebookProgress 0.15643986516830732`. The
->    road of the terminal, with
->    `docs/harness/the_terminal_of_the_program_goes_away.py` and a
->    `tmux kill-session`, gave the same fault.
+>    The measurement, of the real program v0.8.121 inside tmux against the
+>    sandbox, with `docs/harness/one_method_fails.py 13500 13399 requests.log
+>    PATCH:/api/me/progress` and the one address `http://127.0.0.1:13500` of
+>    the account (the trap 129). **The two books of the sandbox that hold an
+>    EPUB**: `Alice in Wonderland` (`8fda6e43-0728-46ad-98bc-4c8634e299ad`) and
+>    `A Long Test Book` (`9a671047-6146-4003-8510-d215db074a9c`), each at
+>    `ebookLocation toutui:the-place-of-the-start`. The key `/` and the word
+>    `Alice`, the key `e`, two presses of the key `n` (`chapter 4 of 14 — 9%`),
+>    and the key `h` gave `The server did not take the place: The server
+>    reported a fault. Status 500.` **The control of the same run**, of that
+>    one book, gave one line of the log at the key `Q`, of the media
+>    8fda6e43-… at `epubcfi(/6/8!/4/2/2/1:0)`. **The road of the fault**, of
+>    the same keys and then the key `e` of the second book and the key `h` of
+>    it, gave **one** line of the log at the key `Q`, of the media 9a671047-…
+>    alone, and the log of the proxy held no `PATCH` of Alice at all: the place
+>    of two chapters of Alice went away.
 >
->    The correction is a box of the process, of the shape of `opened_book` of
->    T-10, in `src/logic/reader/the_place_that_waits.rs`: the loop of
->    `src/main.rs` writes the place of the reader at each turn when
->    `wants_to_send_at_the_end` says that the server holds a different place,
->    and the two roads of the end **await** the send before
->    `sync_session_from_database`, because `clean_exit` gives the process to the
->    machine at the line after it. **The program says no word of that send**
->    (T-177): the screen goes away with the process on both roads. The corrected
->    program gave `epubcfi(/6/10!/4/2/2/1:0)` at `ebookProgress
->    0.15643986516830732` on each of the two roads.
+>    The correction is two files. The box of
+>    `src/logic/reader/the_place_that_waits.rs` became a `Vec`, of one place
+>    for each media; `the_place_of_the_reader_goes_to_the_server` sends the
+>    place of each book, and a book whose place the server refuses stops no
+>    other book; and the new
+>    `the_loop_says_the_place_of_the_reader(place, the_book_of_the_server)`
+>    holds the decision of the loop, therefore a test calls it with no `App`.
+>    `src/app.rs` gives that function the place of the reader and
+>    `the_book_whose_place_the_server_holds`, and **a reader that went away is
+>    neither of the two**. The corrected program gave two lines of the log at
+>    the key `Q`. **The regression of the road of the user**: a proxy that
+>    forwards every request took the place of the proxy of the status 500
+>    before the key `Q`, and the server then held `epubcfi(/6/8!/4/2/2/1:0)` at
+>    `ebookProgress 0.09163083371618239` for Alice and
+>    `epubcfi(/6/6!/4/2/2/1:0)` at `ebookProgress 0.023925914837164403` for the
+>    second book.
+>    - **The box of the places has no limit of size** (T-293): a user who opens
+>      many books whose places the server refuses gives the box one place for
+>      each of them, and no road takes them out while the program stands.
+>      **This is a candidate and not a measurement.**
 >    - **The place of the reader of a program that dies reaches no machine at
 >      all** (T-292). The correction holds the two roads where the program stops
 >      of its own will; a `SIGKILL` and a machine that stops leave the box of the
@@ -17508,10 +17519,6 @@ program gave `epubcfi(/6/10!/4/2/2/1:0)` at `ebookProgress
 >    - **A place of the reader that the server did not take at the end goes away
 >      with the program** (T-292): the box keeps it for a second road of the end,
 >      and no second road comes. **This is a candidate and not a measurement.**
->    - **`self.reader` stays after the key `h`** (T-292), therefore a book whose
->      send failed at that key goes to the server at the key `Q` of another view.
->      The round did not ask what happens when the user opens a second book after
->      that. **This is a candidate and not a measurement.**
 >    - **A place of the reader that the key `h` did not send has no table of the
 >      disk** (T-291). **This is a candidate and not a measurement.**
 >    - **The shape of T-291 and of T-292 is the shape of T-212 and of T-207**: a
