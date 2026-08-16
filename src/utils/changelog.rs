@@ -41,6 +41,17 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.160",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The words of the key `z` name the three panels.** The footer, \
+             the message of the key, and the view of the key `?` said `1 to \
+             3`, which reads as `1 and 3`: a user looked for a panel 2 that \
+             stood. The words now say `the panels 1, 2, and 3`.",
+        ],
+    },
+    Entry {
         version: "0.8.159",
         date: "16/08/2026",
         body: &[
@@ -170,7 +181,7 @@ const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
         date: "16/08/2026",
         body: &[
             "Added:",
-            "- **The key `z` hides the panels 1 to 3, and it gives them \
+            "- **The key `z` hides the panels 1, 2, and 3, and it gives them \
              back.** The screen of the design is always full: the stack of \
              the views, of the sequence, and of the filter takes 34 columns \
              at the left, and a user who wants a small and quiet screen \
@@ -185,7 +196,8 @@ const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
              again, and the screen stays quiet.",
             "Fixed:",
             "- **The footer names no key of a panel that went away.** With \
-             the panels hidden, the footer says `z: the panels 1 to 3` and \
+             the panels hidden, the footer says `z: the panels 1, 2, and 3` \
+             and \
              no digit of them, and the digit `1` does nothing: a key that \
              moves the focus to a panel that you cannot see is a key of no \
              work. The digits `4` and `5` of the list and of the cover keep \

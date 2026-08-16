@@ -88,11 +88,16 @@ pub const GROUPS: &[Group] = &[
             // keyboards needs the modifier of the shift, and the key `=` of
             // that same place gives the same character with no modifier.
             key("+ / = / -", "The panel 6 changes the size of a cell"),
-            // **The stack of the panels 1 to 3 goes away with one key**
+            // **The stack of the panels 1, 2, and 3 goes away with one key**
             // (T-323): the section (f) of `docs/mockups/mockup-1.md` names the
             // cost of a screen that is always full, and the panel 4 of the
             // list takes the 34 columns of the stack.
-            key("z", "Hide the panels 1 to 3, and show them again"),
+            //
+            // **The words name the three panels, and they say no `1 to 3`**
+            // (T-330): the maintainer read `1 to 3` as the panels 1 and 3, and
+            // they then looked for a panel 2 that stood. A list of three names
+            // takes two commas and the word `and`.
+            key("z", "Hide the panels 1, 2, and 3, and show them again"),
         ],
     },
     Group {
@@ -573,7 +578,7 @@ pub fn the_footer_of_a_panel(
         ThePanel::TheList if the_stack_stands => {
             format!("{of_the_view}  f: sequence  1/Ctrl+h: the panels  z: hide them")
         }
-        ThePanel::TheList => format!("{of_the_view}  f: sequence  z: the panels 1 to 3"),
+        ThePanel::TheList => format!("{of_the_view}  f: sequence  z: the panels 1, 2, and 3"),
     }
 }
 

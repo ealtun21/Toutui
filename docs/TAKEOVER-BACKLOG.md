@@ -30503,6 +30503,59 @@ number of a list of three takes two commas and the word `and`**, and no `to`.
 and it looks for `1, 2, and 3`; a test of the changelog holds the same words.
 **No test may look for `1 to 3` after this part.**
 
+#### The part 1 is done, v0.8.160, of the round of the hundred and sixtieth turn
+
+**The measurement of the real program v0.8.159 inside tmux**, at 160 columns
+and 45 rows, of the Home view of the library `Large` of the sandbox, with the
+key `z` and then the key `?`. **The data of this part is the program itself**:
+no proxy, no book of a harness, and no change of the sandbox.
+
+```text
+The panels 1 to 3 are hidden. Press the key z for them.
+j/k: move  …  Q: quit  f: sequence  z: the panels 1 to 3
+  z               Hide the panels 1 to 3, and show them again
+```
+
+**The corrected program v0.8.160 of the same harness**, of the same three
+places, and of the second press of the key `z` for the message of the road
+back:
+
+```text
+The panels 1, 2, and 3 are hidden. Press the key z for them.
+j/k: move  …  Q: quit  f: sequence  z: the panels 1, 2, and 3
+  z               Hide the panels 1, 2, and 3, and show them again
+The panels 1, 2, and 3 stand again.
+```
+
+**The controls of the same run**: the footer of the mode that **keeps** the
+stack said `1/Ctrl+h: the panels  z: hide them` before the correction and
+after it, therefore the correction moved no row of the screen that stood; and
+the key `z` of the corrected program hid the stack and gave it back, therefore
+the words alone changed.
+
+**The correction is four files, and no new one.** `src/ui/keys.rs` holds the
+footer of the panel 4 with the stack away and the line of the key `z` of the
+group `The panels` of the view of the key `?`; `src/app.rs` holds the two
+messages of the press of the key; and `src/utils/changelog.rs` holds the entry
+of v0.8.153, which named the key when the round of T-323 gave it.
+
+**The gate is `tests/the_words_of_the_key_z_name_the_three_panels.rs`, of four
+tests**, and three tests of
+`tests/the_stack_of_the_panels_goes_away_with_one_key.rs` took the new words
+too. **The first test of the new file is a sweep**: it reads
+`src/ui/keys.rs`, `src/app.rs`, and `src/utils/changelog.rs` line by line and
+it holds that no line of the three says `panels 1 to 3` at all, therefore a
+fifth place of a later round cannot say those words with no gate to stop it.
+**The build of the fault** (the trap 147), of a `str.replace` of
+`panels 1, 2, and 3` to `panels 1 to 3` over the three files, made **seven**
+tests fail.
+
+**The trap of this part.** **A changelog entry that quotes the fault meets the
+sweep of its own item**: the first words of the entry of v0.8.160 said "the
+view of the key `?` said `the panels 1 to 3`", and the sweep then failed on
+the file that holds it. The entry says `1 to 3` with no word `panels` before
+it, which keeps the meaning for the user and it keeps the sweep whole.
+
 ### The part 2 — The words of the filters lose the empty words
 
 **The fault.** The panel 3 says `The media that you finished`, `The media that

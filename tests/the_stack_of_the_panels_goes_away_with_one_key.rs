@@ -32,8 +32,8 @@
 //! ║    Title                             Author       Time    Done║ │Author: N/A              │
 //! ║➤ ✓ A Book Of An Epub With No Container              <1m   done║ │Progress: 100%, Finished │
 //! ╚═══════════════════════════════════════════════════════════════╝ └─────────────────────────┘
-//!                       The panels 1 to 3 are hidden. Press the key z for them.
-//!   j/k: move  …  Q: quit  f: sequence  z: the panels 1 to 3
+//!                       The panels 1, 2, and 3 are hidden. Press the key z for them.
+//!   j/k: move  …  Q: quit  f: sequence  z: the panels 1, 2, and 3
 //! ```
 //!
 //! The panel 4 grew from 73 columns to 93 and the panel 5 from 48 to 62, **the
@@ -126,7 +126,9 @@ fn the_footer_of_the_panel_of_the_list_names_the_key_of_the_stack() {
         !with_no_stack.contains("1/Ctrl+h"),
         "the footer of the mode that hides the stack must promise no digit of it: {with_no_stack}"
     );
-    assert!(with_no_stack.contains("z: the panels 1 to 3"));
+    // **The words name the three panels** (T-330): `1 to 3` reads as the panels
+    // 1 and 3, and the maintainer then looked for a panel 2 that stood.
+    assert!(with_no_stack.contains("z: the panels 1, 2, and 3"));
 
     // **A screen that holds no frame of the panels names no panel at all**
     // (T-320): the key `z` does nothing there, therefore the footer of the view
@@ -153,7 +155,7 @@ fn the_view_of_every_key_names_the_key_of_the_stack() {
         .find(|key| key.key == "z")
         .expect("the group of the panels names the key z");
 
-    assert!(the_key.what.contains("Hide the panels 1 to 3"));
+    assert!(the_key.what.contains("Hide the panels 1, 2, and 3"));
 }
 
 /// The key of the mode, the focus of a panel that goes away, and the mode that
@@ -183,8 +185,8 @@ fn the_key_of_the_mode_holds_its_three_rules() {
     assert!(the_key.contains("self.the_stack_is_hidden = !self.the_stack_is_hidden;"));
     assert!(the_key.contains("self.the_panel_of_the_focus.is_of_the_stack()"));
     assert!(the_key.contains("self.the_panel_of_the_focus = ThePanel::TheList;"));
-    assert!(the_key.contains("The panels 1 to 3 are hidden."));
-    assert!(the_key.contains("The panels 1 to 3 stand again."));
+    assert!(the_key.contains("The panels 1, 2, and 3 are hidden."));
+    assert!(the_key.contains("The panels 1, 2, and 3 stand again."));
 
     // 2. The panel 1 reads the area of the last frame, as the panels 2, 3, and
     // 5 do: the digit of a panel that the key `z` took away does nothing.

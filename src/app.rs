@@ -2299,10 +2299,10 @@ impl App {
 
             if self.the_stack_is_hidden {
                 crate::logic::message::say(
-                    "The panels 1 to 3 are hidden. Press the key z for them.",
+                    "The panels 1, 2, and 3 are hidden. Press the key z for them.",
                 );
             } else {
-                crate::logic::message::say("The panels 1 to 3 stand again.");
+                crate::logic::message::say("The panels 1, 2, and 3 stand again.");
             }
 
             return true;

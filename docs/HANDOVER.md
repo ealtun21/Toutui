@@ -165,14 +165,90 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.158**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.160**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1474 of 1474** in 3.8 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1500 of 1500** in 17.7 seconds
+**1483 of 1483** in 3.0 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1509 of 1509** in 61.5 seconds
 with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
-gives no failure over its 42 binaries, over two runs.
+gives no failure over its 207 binaries, over two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and sixtieth turn of 2026-08-16: the words of the key `z` name the three panels
+
+**The item: T-330, the part 1**, and the release **v0.8.160**. It is the first
+of the five parts of the second report of the maintainer of 2026-08-16, and the
+five come in the sequence of that report: one part is one round and one commit,
+with a gate of its own.
+
+**This round found the work of the round before it in the tree and not in a
+commit.** The correction of T-329, its gate of five tests, its entry of the
+changelog, its bump of `Cargo.toml` and of `Cargo.lock`, and its handover stood
+with `git status` and no commit at all. **The first work of this round was
+therefore the gate of T-329 and the release of v0.8.159**: the three gates
+passed, the build of the fault of T-329 (one line that gives the centred column
+back) made the five tests of it fail, and the tag went to the remote. **A round
+that starts must read `git status` before it takes an item**: the work of a
+round that did not commit is whole, and a round that takes a new item over it
+puts the two of them in one commit.
+
+**The fault of the part 1.** The user hid the panels 1, 2, and 3 with the key
+`z`, and every word of the program then said `1 to 3`. **`1 to 3` reads as `1
+and 3`**: the maintainer read that the panel 2 stood, and they looked for it on
+a screen that did not hold it.
+
+**The data of this part is the program itself**: no proxy, no book of a
+harness, and no change of the sandbox.
+
+**The real program v0.8.159 inside tmux**, at 160 columns and 45 rows, of the
+Home view of the library `Large` of the sandbox, with the key `z` and then the
+key `?`:
+
+```text
+The panels 1 to 3 are hidden. Press the key z for them.
+j/k: move  …  Q: quit  f: sequence  z: the panels 1 to 3
+  z               Hide the panels 1 to 3, and show them again
+```
+
+**The corrected program of the same harness**, of those three places and of the
+second press of the key `z`:
+
+```text
+The panels 1, 2, and 3 are hidden. Press the key z for them.
+j/k: move  …  Q: quit  f: sequence  z: the panels 1, 2, and 3
+  z               Hide the panels 1, 2, and 3, and show them again
+The panels 1, 2, and 3 stand again.
+```
+
+**The controls of the same run**: the footer of the mode that **keeps** the
+stack said `1/Ctrl+h: the panels  z: hide them` before the correction and after
+it, therefore the correction moved no row of the screen that stood; and the key
+`z` of the corrected program hid the stack and gave it back, therefore the
+words alone changed.
+
+**The correction is four files, and no new one.** `src/ui/keys.rs` holds the
+footer of the panel 4 with the stack away and the line of the key `z` of the
+group `The panels` of the view of the key `?`; `src/app.rs` holds the two
+messages of the press of the key; and `src/utils/changelog.rs` holds the entry
+of v0.8.153, which named the key when the round of T-323 gave it.
+
+**The gate is `tests/the_words_of_the_key_z_name_the_three_panels.rs`, of four
+tests**, and three tests of
+`tests/the_stack_of_the_panels_goes_away_with_one_key.rs` took the new words
+too. **The first test of the new file is a sweep**: it reads `src/ui/keys.rs`,
+`src/app.rs`, and `src/utils/changelog.rs` line by line and it holds that no
+line of the three says `panels 1 to 3` at all, therefore a fifth place of a
+later round cannot say those words with no gate to stop it. **The build of the
+fault** (the trap 147), of a `str.replace` of `panels 1, 2, and 3` to
+`panels 1 to 3` over the three files, made **seven** tests fail.
+
+**The trap of this part.** **A changelog entry that quotes the fault meets the
+sweep of its own item**: the first words of the entry of v0.8.160 said "the
+view of the key `?` said `the panels 1 to 3`", and the sweep then failed on the
+file that holds it. The entry says `1 to 3` with no word `panels` before it,
+which keeps the meaning for the user and it keeps the sweep whole.
+
+**The next round takes the part 2 of T-330**, the words of the filters.
 
 ## The session of the hundred and fifty-ninth turn of 2026-08-16: the words of the sequence leave the address of the server
 
@@ -11743,7 +11819,7 @@ the maintainer gave it after that road finished its eight stages.
 
 | The part | What it gives | Where the design stands |
 |---|---|---|
-| T-330.1 | The words of the key `z` say `the panels 1, 2, and 3` and not `1 to 3` | `src/ui/keys.rs:576` and `:95`, `src/app.rs:2302`, `src/utils/changelog.rs` |
+| T-330.1 | The words of the key `z` say `the panels 1, 2, and 3` and not `1 to 3` — **done, v0.8.160** | `src/ui/keys.rs:576` and `:95`, `src/app.rs:2302`, `src/utils/changelog.rs` |
 | T-330.2 | The filters lose the empty words: `No filter`, `Finished`, `Started, not finished`, `Not started` | The panel 3, the view of the key `f`, and the second row of the header |
 | T-330.3 | The picture of the panel 5 takes every row that the facts and the description leave | `the_parts_of_the_panel` of `src/ui/the_panel_of_the_cover.rs` |
 | T-330.4 | The cell of the gallery holds the picture and its border alone | The panel 6 (T-327) |
@@ -11752,7 +11828,8 @@ the maintainer gave it after that road finished its eight stages.
 
 **The five parts of T-330 come in that sequence**, because the words are small
 and safe and the Chapters view is large: **one part is one round and one
-commit, with a gate of its own**.
+commit, with a gate of its own**. **The part 1 is done, v0.8.160**, and the
+next round takes the part 2, the words of the filters.
 
 **T-331 starts at a spec** in `docs/superpowers/specs/` and not at code: it
 changes the meaning of the keys `h` and `l` of a view, it takes the table of
@@ -13986,6 +14063,93 @@ start needs `ls target/debug/toutui` before every other diagnosis** (with the
     `no_key_stands_two_times_in_one_group` then found two lines of `j / k`
     in the group of the panels.
 
+
+### The turn of the hundred and fifty-eighth: the day of the start of the media (T-328)
+
+  **The session of the hundred and fifty-eighth turn took the last part of
+  the stage 6 that a round can build** (T-328): the panel of the cover says
+  the day when the user started the media.
+
+  **The round of T-325 named that part and it could not build it.** The
+  design holds the line `Started  14 Aug 2026` of the panel 5, between the
+  line of the time and the line of the genre, and that round read the answer
+  of the items of a library: **that answer holds no day of a start at all.**
+  The measurement of the sandbox of 2026-08-16, of
+  `GET /api/libraries/<Books>/items`, gave 19 keys of an item, and no key of
+  a place of the user among them.
+
+  **The answer of the account holds that day for every media that the
+  account played**, and `crate::api::me::get_media_progress::Root` reads
+  `startedAt` since T-127:
+
+  ```json
+  "libraryItemId": "9a671047-6146-4003-8510-d215db074a9c",
+  "progress": 0.5,
+  "startedAt": 1786905843790
+  ```
+
+  31 rows of that answer held a day, therefore **the value stood in the
+  memory of the program at every frame and no call site read it.**
+
+  **The real program v0.8.157 inside tmux**, at 160 columns and 45 rows, of
+  the Library view of the library `Books` of the sandbox, with the cursor on
+  `A Long Test Book`:
+
+  ```text
+  |Time      30m, 15m left                         |
+  |Genre     Fiction, Adventure                    |
+  ```
+
+  **The data of this item is the program itself**: no proxy, no book of a
+  harness, and no change of the sandbox — the library of the row of the
+  account comes of a `sqlite3` of `name_selected_lib` and of
+  `id_selected_lib` (the trap 203 and the trap 204).
+
+  **The corrected program of the same harness**, of that same row:
+
+  ```text
+  |Time      30m, 15m left                         |
+  |Started   16 Aug 2026                           |
+  |Genre     Fiction, Adventure                    |
+  ```
+
+  **The controls of the same run**: the Home view of that same book of the
+  shelf `Continue Listening` said the same line; the row
+  `Alice in Wonderland`, which the account started on the 10th of August and
+  never played, said `Started   10 Aug 2026` over
+  `Progress  0%, Not finished`; and the row `A Book Of A Broken Epub`, which
+  the answer of the account does not name at all, said no line of a day and
+  no line of a place, because a media that the box of the places does not
+  hold played never (T-127).
+
+  **The correction is five files, and no new one.**
+  `src/api/utils/collect_get_media_progress.rs` holds `the_day_of_the_start`,
+  which gives the words of the design (`%-d %b %Y`) in the time of the
+  machine of the user, and no words at all for a day of 0 and for a number
+  that no moment holds; `src/logic/the_positions.rs` puts that value in the
+  box of the places of the account, **after** the three values that stood
+  there; `src/app.rs` holds `App::the_day_of_the_start_of_the_home_view`,
+  `App::the_day_of_the_start_of_the_library`, and
+  `App::the_day_of_the_start_of_this_media`, which reads the box;
+  `src/logic/the_facts_of_a_media.rs` gives `TheMediaOfThePanel` the field
+  `the_day_of_the_start` and the line `Started`; and `src/ui/tui.rs` carries
+  the value of the selected row of the two views.
+  `tests/the_panel_of_the_cover_says_the_day_of_the_start.rs` holds the gate,
+  of four tests, and **the build of the fault** (the trap 147), of four edits
+  of one line each, made each of the four fail.
+
+  **The traps of this item.**
+  - **A struct of a test that takes a new field breaks the gates of the
+    rounds before it**: three tests of two files of `tests/` and two tests of
+    `src/logic/the_facts_of_a_media.rs` hold a literal of
+    `TheMediaOfThePanel`, and `the_facts_of_the_server_each_take_a_line`
+    compares the whole list of the lines. `cargo clippy --all-targets` names
+    the literals of `src/`, and `cargo nextest run` names the test of the
+    list.
+  - **A day of a start is not a place of a user**: the row of a media that
+    the account started and never played holds `startedAt` and
+    `progress: 0`, therefore the line of the day and the line of the place
+    are two facts and not one.
 
 ## The session of the hundred and forty-ninth turn of 2026-08-16: the panels 2 and 3 of the sequence and of the filter, of the block of the prompt
 
@@ -23610,14 +23774,89 @@ together.
 >    of the panel 5 are done** (T-325, v0.8.155), **they reach the Home view
 >    too** (T-326, v0.8.156), **and the panel 6 of the gallery is done**
 >    (T-327, v0.8.157), **and the day of the start of the media is done**
->    (T-328, v0.8.158): the two turns below hold the road of a part of a
->    stage.
+>    (T-328, v0.8.158): the road of a part of a stage stands in the turns
+>    below and in the section of the turns before them.
 >    **A round takes the part that gives the user the most**, and that section
 >    holds three decisions that a round must not take alone. Read it first.
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
+>   **The session of the hundred and sixtieth turn took the part 1 of the
+>   second report of the maintainer** (T-330.1, v0.8.160): the words of the
+>   key `z` name the three panels.
+>
+>   **The round found the work of the round before it in the tree and not in
+>   a commit**: the correction of T-329, its gate of five tests, its entry of
+>   the changelog, and its handover stood with no commit at all. **The first
+>   work of this round was therefore the gate of T-329 and the release of
+>   v0.8.159**: the three gates passed, the build of the fault of T-329 (one
+>   line that gives the centred column back) made the five tests fail, and
+>   the tag went to the remote. **A round that starts must read `git status`
+>   before it takes an item**: the work of a round that did not commit is
+>   whole, and a round that takes a new item over it loses the two of them in
+>   one commit.
+>
+>   **The fault of T-330.1.** The user hid the panels 1, 2, and 3 with the
+>   key `z`, and every word of the program then said `1 to 3`. **`1 to 3`
+>   reads as `1 and 3`**: the maintainer read that the panel 2 stood, and
+>   they looked for it on a screen that did not hold it.
+>
+>   **The data of this part is the program itself**: no proxy, no book of a
+>   harness, and no change of the sandbox.
+>
+>   **The real program v0.8.159 inside tmux**, at 160 columns and 45 rows, of
+>   the Home view of the library `Large` of the sandbox, with the key `z` and
+>   then the key `?`:
+>
+>   ```text
+>   The panels 1 to 3 are hidden. Press the key z for them.
+>   j/k: move  …  Q: quit  f: sequence  z: the panels 1 to 3
+>     z               Hide the panels 1 to 3, and show them again
+>   ```
+>
+>   **The corrected program of the same harness**, of those three places and
+>   of the second press of the key `z`:
+>
+>   ```text
+>   The panels 1, 2, and 3 are hidden. Press the key z for them.
+>   j/k: move  …  Q: quit  f: sequence  z: the panels 1, 2, and 3
+>     z               Hide the panels 1, 2, and 3, and show them again
+>   The panels 1, 2, and 3 stand again.
+>   ```
+>
+>   **The controls of the same run**: the footer of the mode that **keeps**
+>   the stack said `1/Ctrl+h: the panels  z: hide them` before the correction
+>   and after it, therefore the correction moved no row that stood; and the
+>   key `z` of the corrected program hid the stack and gave it back.
+>
+>   **The correction is four files, and no new one**: `src/ui/keys.rs` (the
+>   footer of the panel 4 with the stack away, and the line of the key `z` of
+>   the view of the key `?`), `src/app.rs` (the two messages of the press),
+>   and `src/utils/changelog.rs` (the entry of v0.8.153, which named the key).
+>
+>   **The gate is `tests/the_words_of_the_key_z_name_the_three_panels.rs`, of
+>   four tests**, and three tests of
+>   `tests/the_stack_of_the_panels_goes_away_with_one_key.rs` took the new
+>   words too. **The first test of the new file is a sweep**: it reads the
+>   three files line by line and it holds that no line of them says
+>   `panels 1 to 3` at all, therefore a fifth place of a later round cannot
+>   say those words with no gate to stop it. **The build of the fault** (the
+>   trap 147), of a `str.replace` over the three files, made **seven** tests
+>   fail.
+>
+>   **The trap of this part.** **A changelog entry that quotes the fault
+>   meets the sweep of its own item**: the entry of v0.8.160 said "the view
+>   of the key `?` said `the panels 1 to 3`", and the sweep then failed on
+>   the file that holds it. The entry says `1 to 3` with no word `panels`
+>   before it, which keeps the meaning for the user and it keeps the sweep
+>   whole.
+>
+>   **The next round takes the part 2 of T-330**, the words of the filters:
+>   `No filter`, `Finished`, `Started, not finished`, and `Not started`, at
+>   the panel 3, at the view of the key `f`, and at the second row of the
+>   header of T-329.
+>
 >   **The session of the hundred and fifty-ninth turn took a condition that no
 >   measurement had reached** (T-329): the words of the sequence and of the
 >   filter wrote on the address of the server.
@@ -23696,98 +23935,13 @@ together.
 >   - **`str::len` is not the width of a row** (the trap 245): the words of
 >     the measurement hold 60 columns and 66 bytes.
 >
->   **The session of the hundred and fifty-eighth turn took the last part of
->   the stage 6 that a round can build** (T-328): the panel of the cover says
->   the day when the user started the media.
->
->   **The round of T-325 named that part and it could not build it.** The
->   design holds the line `Started  14 Aug 2026` of the panel 5, between the
->   line of the time and the line of the genre, and that round read the answer
->   of the items of a library: **that answer holds no day of a start at all.**
->   The measurement of the sandbox of 2026-08-16, of
->   `GET /api/libraries/<Books>/items`, gave 19 keys of an item, and no key of
->   a place of the user among them.
->
->   **The answer of the account holds that day for every media that the
->   account played**, and `crate::api::me::get_media_progress::Root` reads
->   `startedAt` since T-127:
->
->   ```json
->   "libraryItemId": "9a671047-6146-4003-8510-d215db074a9c",
->   "progress": 0.5,
->   "startedAt": 1786905843790
->   ```
->
->   31 rows of that answer held a day, therefore **the value stood in the
->   memory of the program at every frame and no call site read it.**
->
->   **The real program v0.8.157 inside tmux**, at 160 columns and 45 rows, of
->   the Library view of the library `Books` of the sandbox, with the cursor on
->   `A Long Test Book`:
->
->   ```text
->   |Time      30m, 15m left                         |
->   |Genre     Fiction, Adventure                    |
->   ```
->
->   **The data of this item is the program itself**: no proxy, no book of a
->   harness, and no change of the sandbox — the library of the row of the
->   account comes of a `sqlite3` of `name_selected_lib` and of
->   `id_selected_lib` (the trap 203 and the trap 204).
->
->   **The corrected program of the same harness**, of that same row:
->
->   ```text
->   |Time      30m, 15m left                         |
->   |Started   16 Aug 2026                           |
->   |Genre     Fiction, Adventure                    |
->   ```
->
->   **The controls of the same run**: the Home view of that same book of the
->   shelf `Continue Listening` said the same line; the row
->   `Alice in Wonderland`, which the account started on the 10th of August and
->   never played, said `Started   10 Aug 2026` over
->   `Progress  0%, Not finished`; and the row `A Book Of A Broken Epub`, which
->   the answer of the account does not name at all, said no line of a day and
->   no line of a place, because a media that the box of the places does not
->   hold played never (T-127).
->
->   **The correction is five files, and no new one.**
->   `src/api/utils/collect_get_media_progress.rs` holds `the_day_of_the_start`,
->   which gives the words of the design (`%-d %b %Y`) in the time of the
->   machine of the user, and no words at all for a day of 0 and for a number
->   that no moment holds; `src/logic/the_positions.rs` puts that value in the
->   box of the places of the account, **after** the three values that stood
->   there; `src/app.rs` holds `App::the_day_of_the_start_of_the_home_view`,
->   `App::the_day_of_the_start_of_the_library`, and
->   `App::the_day_of_the_start_of_this_media`, which reads the box;
->   `src/logic/the_facts_of_a_media.rs` gives `TheMediaOfThePanel` the field
->   `the_day_of_the_start` and the line `Started`; and `src/ui/tui.rs` carries
->   the value of the selected row of the two views.
->   `tests/the_panel_of_the_cover_says_the_day_of_the_start.rs` holds the gate,
->   of four tests, and **the build of the fault** (the trap 147), of four edits
->   of one line each, made each of the four fail.
->
->   **The traps of this item.**
->   - **A struct of a test that takes a new field breaks the gates of the
->     rounds before it**: three tests of two files of `tests/` and two tests of
->     `src/logic/the_facts_of_a_media.rs` hold a literal of
->     `TheMediaOfThePanel`, and `the_facts_of_the_server_each_take_a_line`
->     compares the whole list of the lines. `cargo clippy --all-targets` names
->     the literals of `src/`, and `cargo nextest run` names the test of the
->     list.
->   - **A day of a start is not a place of a user**: the row of a media that
->     the account started and never played holds `startedAt` and
->     `progress: 0`, therefore the line of the day and the line of the place
->     are two facts and not one.
->
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
 >    (T-284): a round that writes its own turn takes the oldest turn out, and
 >    it takes a second one out while `toutui-loop --dry-run | wc -c` gives more
->    than 100000. That section holds the turn of the hundred and forty-fourth
+>    than 100000. That section holds the turn of the hundred and fifty-eighth
 >    and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
@@ -24007,7 +24161,9 @@ together.
 > the block then held about **84000** bytes with **two** turns in it; the round
 > of the hundred and fifty-ninth found it at 85141 bytes with two turns in it,
 > and it did the same work, and the block then held **82818** bytes with **two**
-> turns in it.
+> turns in it; the round of the hundred and sixtieth found it at 84750 bytes
+> with two turns in it, and it did the same work, and the block then held about
+> **84400** bytes with **two** turns in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions
