@@ -151,7 +151,20 @@ impl fmt::Display for ReaderError {
                  be good. The machine said: {reason}. The file of the log holds \
                  more. Press n for the next chapter."
             ),
-            ReaderError::ChapterTooLarge => write!(f, "This chapter is too large."),
+            // **The program measured that the chapter passed the limit, and it
+            // did not measure the size of it** (T-281): the writer stops at the
+            // limit, therefore "more than" is the one number that this program
+            // has, and a size of the whole chapter is a fact that it does not
+            // have (T-91). The sentence names the three keys of the view of the
+            // reader, because a sentence of a fault must name a key that does
+            // the work of that fault (T-170).
+            ReaderError::ChapterTooLarge => write!(
+                f,
+                "This chapter has more than {MAX_CHAPTER_BYTES} bytes, and that \
+                 is the limit of one chapter. Press n for the chapter after this \
+                 one, or p for the chapter before it. Press h to leave the book. \
+                 The file of the log holds more."
+            ),
         }
     }
 }
@@ -537,7 +550,17 @@ impl Book {
             // The archive wraps the fault of the writer in its own error.
             // Therefore the flag of the writer, and not the error, tells why
             // the copy stopped.
-            Err(_) if writer.hit_limit => Err(ReaderError::ChapterTooLarge),
+            // **A fault that the user reads takes a line of the log** (T-281):
+            // the arm below writes one already, and this arm wrote none at all.
+            Err(_) if writer.hit_limit => {
+                info!(
+                    "[reader] the chapter {} of the book has more than {} bytes, \
+                     and that is the limit of one chapter",
+                    index + 1,
+                    MAX_CHAPTER_BYTES
+                );
+                Err(ReaderError::ChapterTooLarge)
+            }
             // **The crate of the archive holds the one reason here** (T-277): a
             // file of the chapter that the archive does not hold, a damaged
             // stream of that file, and a disk that gave no byte of it each come
@@ -764,9 +787,26 @@ mod tests {
         let book = Book::open(&path).expect("the archive of the bomb must open");
         assert_eq!(1, book.chapter_count());
         assert_eq!(Err(ReaderError::ChapterTooLarge), book.chapter_xhtml(0));
-        assert_eq!(
-            "This chapter is too large.",
-            ReaderError::ChapterTooLarge.to_string()
+        // **The sentence says what the program measured, and it names the keys
+        // of the view** (T-281). The measurement of 2026-08-16, of the real
+        // program v0.8.109 against a book whose second chapter holds 9437361
+        // bytes: the screen said "This chapter is too large." and the log held
+        // no line of the reader at all.
+        let text = ReaderError::ChapterTooLarge.to_string();
+        assert!(
+            text.contains(&MAX_CHAPTER_BYTES.to_string()),
+            "the sentence must name the limit: {text}"
+        );
+        assert!(
+            text.contains("more than"),
+            "the program measured no size of the whole chapter: {text}"
+        );
+        for key in ["Press n ", "or p ", "Press h "] {
+            assert!(text.contains(key), "the sentence must name {key}: {text}");
+        }
+        assert!(
+            text.contains("file of the log"),
+            "the sentence must name the log: {text}"
         );
         // The size of the chapter is 0, therefore the part of the book that
         // the user read stays a number that the program can use.

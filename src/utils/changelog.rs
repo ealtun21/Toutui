@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.110",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The reader says what it measured for a chapter that is too \
+             large, and it gives you a road.** A chapter that is larger than \
+             the limit of 8 megabytes gave the sentence \"This chapter is too \
+             large.\" That sentence named no size and no limit, it named no \
+             key of the view of the reader, and the fault took no line of the \
+             file of the log. Toutui now says that the chapter has more than \
+             the limit of bytes, because it stops the read at that limit and \
+             it does not measure the whole chapter. The sentence names the \
+             keys `n`, `p`, and `h` of the view of the reader, and the fault \
+             now writes a line in the log.",
+        ],
+    },
+    Entry {
         version: "0.8.109",
         date: "16/08/2026",
         body: &[

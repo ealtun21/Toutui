@@ -4,7 +4,12 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.105.** The item T-276 belongs to this session. The
+**The newest release is v0.8.110.** The item T-281 belongs to this session. The
+item T-280 belongs to the session before it. The
+item T-279 belongs to the session before it. The
+item T-278 belongs to the session before it. The
+item T-277 belongs to the session before it. The
+item T-276 belongs to the session before it. The
 item T-275 belongs to the session before it. The
 item T-274 belongs to the session before it. The
 item T-273 belongs to the session before it. The
@@ -121,6 +126,75 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and tenth turn of 2026-08-16: a chapter that is too large says what the program measured
+
+**One release: v0.8.110**, and one item: T-281. **The road of it is the
+candidate "`ChapterTooLarge` of `ReaderError` says `This chapter is too
+large.`" of T-274**, which T-278 and T-280 each left open.
+
+Three faults of one sentence. `ReaderError::ChapterTooLarge` of
+`src/logic/reader/book.rs` gave the constant sentence `This chapter is too
+large.` It named no number, and `ReaderError::BookTooLarge` of the same file
+names the size of the file and the limit of the book already: the user could
+not know whether the book is hostile or the limit of the program is low. It
+named no key, and the view of the reader holds `n` for the chapter after this
+one, `p` for the chapter before it, and `h` to leave the book, and each of the
+three does the work of that fault (T-170). And the arm took no line of the log
+at all, while the arm beside it, of a chapter that the archive did not give,
+writes one already.
+
+The measurement, of the real program v0.8.109 inside tmux against the sandbox.
+**The data of this fault is a book, and it needs no proxy at all.** The new
+harness `docs/harness/a_book_of_a_chapter_that_is_too_large.py` writes an EPUB
+of three chapters whose second chapter holds 9437361 bytes of plain text, over
+the `MAX_CHAPTER_BYTES` of 8388608. The text of it repeats, therefore the
+deflate of the zip gives an archive of 56923 bytes, far under the
+`MAX_BOOK_BYTES` of 256 megabytes: the book reaches the read of the chapter and
+not the guard of the size of the file. That book went into the cache of the
+ebooks of the account `toutuitest`, under the name of the item of `Alice in
+Wonderland`, because a book of the cache costs no request of the server, and
+the good file of that name went to the scratchpad for the road back.
+
+The keys `Tab`, 15 keys `j`, and `e` gave chapter 3 of the book — **the reader
+keeps the chapter of a book of a name that it read already**, therefore the run
+opened at the chapter of the round before it — and the key `p` then gave `This
+chapter is too large.` on one row. The file of the log held 14 lines before the
+key and 14 lines after it: no line of the reader at all.
+
+The correction is two edits of the same file, and no new road of the program.
+The arm `Err(_) if writer.hit_limit` of `chapter_bytes` writes a line of the
+log that names the chapter and the limit, beside the arm that writes one
+already. The arm of `Display` says `This chapter has more than 8388608 bytes,
+and that is the limit of one chapter. Press n for the chapter after this one,
+or p for the chapter before it. Press h to leave the book. The file of the log
+holds more.` **The program measured that the chapter passed the limit, and it
+did not measure the size of it**: `CappedWriter` stops the copy at
+`MAX_CHAPTER_BYTES`, therefore "more than" is the one number that this program
+has, and the size of the whole chapter is a fact that it does not have (T-91).
+
+The corrected program of the same condition said that sentence on three rows,
+and the log held two lines of the reader: one of the pass of `chapter_sizes` at
+the open of the book, and one of the render of that chapter. The controls of
+the same run: the key `n` gave `chapter 3 of 3` and the text of it, the key `p`
+twice gave `chapter 1 of 3` and the text of it, and the key `h` gave the
+Library view. The control of the good book: the file of `Alice in Wonderland`
+back in the cache gave `Alice's Adventures in Wonderland — chapter 2 of 14 —
+0%` and the text of the book, with no line of the reader in the log.
+
+The test is `tests/a_chapter_that_is_too_large_says_why.rs`, of two functions,
+with no network and no terminal, and the test
+`the_zip_bomb_gives_the_message_of_a_chapter_that_is_too_large` of
+`src/logic/reader/book.rs` holds the same rule against the real zip bomb of the
+hostile files. The build of the fault, with the `write!` of the correction
+replaced by the constant sentence of before it, failed with `the sentence must
+name the limit: This chapter is too large.`
+
+The gates of v0.8.110, under `nice -n 19 ionice -c 3` with `-j 16`:
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
+`cargo nextest run` gives 1322 of 1322 in 2.8 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives 1348 of 1348 in 17.1 seconds with
+the sandbox up, and `cargo test -j 16 --no-fail-fast` passed in three runs.
 
 ## The session of the hundred and ninth turn of 2026-08-16: a chapter that did not come in time says what the program measured
 
@@ -242,56 +316,6 @@ warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
 1317 of 1317 in 2.7 seconds with 26 skipped,
 `cargo nextest run --run-ignored all` gives 1343 of 1343 in 17.1 seconds with
 the sandbox up, and `cargo test -j 16 --no-fail-fast` passed in two runs.
-
-## The session of the hundred and seventh turn of 2026-08-16: a message of a view that is longer than the screen stands on more than one row
-
-**One release: v0.8.107**, and one item: T-278. **The road of it is the
-candidate "Every other `Paragraph` of a message of this program that holds no
-`wrap`" of T-277.** A sweep of the 44 `Paragraph` of `src/ui/` found two that
-hold the two conditions together: no `wrap`, and a sentence of a fault that
-holds the words of the server. Both of them are the message of the view of the
-episodes of a podcast.
-
-`src/ui/tui.rs` held two `Paragraph::new(no_episodes_message)`, each with
-`.centered()` and no `.wrap(...)`: one for the road of the view that a search
-opened, and one for the road that no search opened. `no_episodes_message` is
-`format!("{}\nPress h to go back.", the_reason_of_no_episode(...))` of
-`src/logic/the_episodes.rs`, and two of the three sentences of that function
-hold 94 characters: the sentence of a server that reported a fault, and the
-sentence of the offline mode.
-
-The measurement, of the real program v0.8.106 inside tmux against the sandbox,
-in a terminal of **80 columns**. The account took the address
-`http://127.0.0.1:13500` (the trap 129), and
-`docs/harness/one_path_fails.py 13500 13399 requests.log /api/items/9fa45bd1-66bc-4c17-ba49-a5a6a5ec8806`
-gave the status 500 to the request of the podcast `Letters of Two Brides` of
-the library `Podcasts`. **The path of the episodes of a podcast is
-`GET /api/items/<the id of the podcast>`**, and not a path of the word
-"episodes": the first attempt of the harness used `/episodes`, and every
-episode came. The keys `Tab` and `l` gave
-
-```text
-The server did not give the episodes of this podcast: The server reported a faul
-                               Press h to go back.
-```
-
-The screen gave 79 characters of a sentence of 94, and the log held the reason
-that the screen lost: `The server reported a fault. Status 500.` The same
-condition at 160 columns gave the whole sentence on one row.
-
-The correction is a new module `src/ui/the_message_of_a_view.rs`, with
-`pub fn render_the_message(text, area, buf)`, which holds the `.centered()`,
-the block of the border, and `.wrap(Wrap { trim: true })`. The two sites of
-`src/ui/tui.rs` call it. The corrected program of the same condition at 80
-columns said the whole sentence on three rows, and it kept the key `h`. The
-control: the same podcast with the sandbox answering gave `Episodes [57 items]`
-and the list of the letters.
-
-The two tests of the new module draw the real widget into a
-`ratatui::buffer::Buffer` with no terminal at all: one of the sentence of the
-status 500 at the widths 40, 60, and 80, and one of the sentence of the offline
-mode at 80. The build of the fault, with the `.wrap(...)` line removed, gave
-`The server did not give the episodes of` at 40 columns.
 
 ## The session of the hundred and fifth turn of 2026-08-16: a disk that gave no book says why
 
@@ -14782,71 +14806,119 @@ The gates of v0.8.106, under `nice -n 19 ionice -c 3` with `-j 16`:
 `cargo nextest run --run-ignored all` gives 1337 of 1337 in 17.4 seconds with
 the sandbox up, and `cargo test -j 16 --no-fail-fast` passed in two runs.
 
-## The prompt for the next session
+## The session of the hundred and seventh turn of 2026-08-16: a message of a view that is longer than the screen stands on more than one row
 
-**This session read the candidate "`This chapter is too complex.` of
-`src/logic/reader/session.rs` is the message of a render that went past its
-limit of time"**, which T-278 opened. The item holds the arm beside it too:
-`This chapter did not open.` for a render whose thread died.
+**One release: v0.8.107**, and one item: T-278. **The road of it is the
+candidate "Every other `Paragraph` of a message of this program that holds no
+`wrap`" of T-277.** A sweep of the 44 `Paragraph` of `src/ui/` found two that
+hold the two conditions together: no `wrap`, and a sentence of a fault that
+holds the words of the server. Both of them are the message of the view of the
+episodes of a podcast.
 
-`Reader::render_for` held the answer of
-`tokio::time::timeout(TIME_FOR_ONE_CHAPTER, work)` in three arms, and the two
-arms of a render that did not come back each held a constant sentence. Three
-faults of the sentence of the limit of time. The program measured a time of
-five seconds, and it did not measure the chapter: a machine that is busy and a
-disk that is slow give that same limit, therefore "too complex" is a reason
-that the program does not have (T-91). The sentence named no key, and the
-footer of that view says `n/p: chapter` and `h: leave the book`. And the arm
-took no line of the log at all. The arm beside it dropped the `JoinError`,
-which holds the reason of the thread that died.
+`src/ui/tui.rs` held two `Paragraph::new(no_episodes_message)`, each with
+`.centered()` and no `.wrap(...)`: one for the road of the view that a search
+opened, and one for the road that no search opened. `no_episodes_message` is
+`format!("{}\nPress h to go back.", the_reason_of_no_episode(...))` of
+`src/logic/the_episodes.rs`, and two of the three sentences of that function
+hold 94 characters: the sentence of a server that reported a fault, and the
+sentence of the offline mode.
 
-The measurement, of the real program v0.8.108 inside tmux against the sandbox.
-**The data of a fault of the reader is a book, and it needs no proxy at all**:
-the new harness `docs/harness/a_book_of_a_deep_chapter.py` writes an EPUB of
-three chapters whose second chapter holds 40000 nested `<div>` in 440214 bytes.
-That is far under `MAX_CHAPTER_BYTES` of 8 megabytes, therefore the book
-reaches the render and not the guard of the size, and the head of
-`src/logic/reader/render.rs` names the road: the time of `html2text` grows with
-the square of the depth of the tags. The book went into the cache of the ebooks
-of the account `toutuitest` under the name of the item of `Alice in
-Wonderland`, because a book of the cache costs no request of the server. The
-keys `Tab`, 15 keys `j`, and `e` gave `Reading…`, and a poll of one second gave
+The measurement, of the real program v0.8.106 inside tmux against the sandbox,
+in a terminal of **80 columns**. The account took the address
+`http://127.0.0.1:13500` (the trap 129), and
+`docs/harness/one_path_fails.py 13500 13399 requests.log /api/items/9fa45bd1-66bc-4c17-ba49-a5a6a5ec8806`
+gave the status 500 to the request of the podcast `Letters of Two Brides` of
+the library `Podcasts`. **The path of the episodes of a podcast is
+`GET /api/items/<the id of the podcast>`**, and not a path of the word
+"episodes": the first attempt of the harness used `/episodes`, and every
+episode came. The keys `Tab` and `l` gave
 
 ```text
-                              This chapter is too complex.
+The server did not give the episodes of this podcast: The server reported a faul
+                               Press h to go back.
 ```
 
-at the sixth second, with **no line of the reader in the log at all**.
+The screen gave 79 characters of a sentence of 94, and the log held the reason
+that the screen lost: `The server reported a fault. Status 500.` The same
+condition at 160 columns gave the whole sentence on one row.
 
-The correction is two functions of the same file, each of which writes the log
-and makes the text. The corrected program of the same condition said the
-sentence of the limit of time on three rows, with the two conditions that can
-give that limit and neither of them as a fact, the keys `n`, `p`, and `h`, and
-the file of the log; and the log held **one** line of the reader, still one 15
-seconds later. The item is **T-280**, and it holds the release v0.8.109.
+The correction is a new module `src/ui/the_message_of_a_view.rs`, with
+`pub fn render_the_message(text, area, buf)`, which holds the `.centered()`,
+the block of the border, and `.wrap(Wrap { trim: true })`. The two sites of
+`src/ui/tui.rs` call it. The corrected program of the same condition at 80
+columns said the whole sentence on three rows, and it kept the key `h`. The
+control: the same podcast with the sandbox answering gave `Episodes [57 items]`
+and the list of the letters.
+
+The two tests of the new module draw the real widget into a
+`ratatui::buffer::Buffer` with no terminal at all: one of the sentence of the
+status 500 at the widths 40, 60, and 80, and one of the sentence of the offline
+mode at 80. The build of the fault, with the `.wrap(...)` line removed, gave
+`The server did not give the episodes of` at 40 columns.
+
+## The prompt for the next session
+
+**This session read the candidate "`ChapterTooLarge` of `ReaderError` says
+`This chapter is too large.`"**, which T-274 opened and which T-278 and T-280
+each left open.
+
+`ReaderError::ChapterTooLarge` of `src/logic/reader/book.rs` gave one constant
+sentence. Three faults of it. It named no number, and
+`ReaderError::BookTooLarge` of the same file names the size of the file and the
+limit of the book already. It named no key, and the view of the reader holds
+`n` for the chapter after this one, `p` for the chapter before it, and `h` to
+leave the book, and each of the three does the work of that fault (T-170). And
+the arm took no line of the log at all, while the arm beside it, of a chapter
+that the archive did not give, writes one already.
+
+The measurement, of the real program v0.8.109 inside tmux against the sandbox.
+**The data of this fault is a book, and it needs no proxy at all**: the new
+harness `docs/harness/a_book_of_a_chapter_that_is_too_large.py` writes an EPUB
+of three chapters whose second chapter holds 9437361 bytes of plain text, over
+the `MAX_CHAPTER_BYTES` of 8388608. The text of it repeats, therefore the
+deflate of the zip gives an archive of 56923 bytes, far under the
+`MAX_BOOK_BYTES` of 256 megabytes: the book reaches the read of the chapter and
+not the guard of the size of the file. That book went into the cache of the
+ebooks of the account `toutuitest` under the name of the item of `Alice in
+Wonderland`. The keys `Tab`, 15 keys `j`, `e`, and `p` gave
+
+```text
+                          This chapter is too large.
+```
+
+and the log held 14 lines before the key and 14 lines after it: **no line of
+the reader at all**.
+
+The correction is two edits of the same file. The arm
+`Err(_) if writer.hit_limit` of `chapter_bytes` writes a line of the log that
+names the chapter and the limit. The arm of `Display` says that the chapter has
+**more than** the limit of bytes, because `CappedWriter` stops the copy at that
+limit and the size of the whole chapter is a fact that the program does not
+have (T-91), and it names the keys `n`, `p`, and `h` and the file of the log.
+The corrected program of the same condition said that sentence on three rows,
+and the log held two lines of the reader. The item is **T-281**, and it holds
+the release v0.8.110.
 
 Two things are worth the room:
 
-1. **The arm `Ok(Err(_))` of `render_for` is dead code in the real program.** A
-   `JoinError` of `spawn_blocking` comes of a panic of that thread, and the
-   hook of T-197 stops the whole program for a panic of a thread that is not
-   the main thread. The words of that arm therefore cannot be measured against
-   the real program. The Opus decoder holds an `ExpectedPanic` guard for
-   exactly this reason (T-17), and whether the render of one chapter deserves
-   that guard too is the first candidate of this turn.
-2. **A limit of time measures a time and nothing else.** A message of a limit
-   that names a reason of the thing that it waited for is a reason that the
-   program does not have. Ask it of every such message of `src/`.
+1. **The two sentences of the same file that this item did not correct.**
+   `ChapterAbsent` and `NoSuchChapter` name no key of the view of the reader,
+   and neither arm of `chapter_bytes` writes a line of the log.
+2. **A guard of a size gives the number of the guard, and not the number of
+   the thing.** `TooManyEntries` and `BookTooLarge` name their numbers and no
+   key at all, and those two faults come at the open of the book, where the
+   view of the reader does not stand. Ask: which view holds those words, and
+   which key does the work of that fault?
 
-The gates of v0.8.109, under `nice -n 19 ionice -c 3` with `-j 16`:
+The gates of v0.8.110, under `nice -n 19 ionice -c 3` with `-j 16`:
 `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
-`cargo nextest run` gives 1320 of 1320 in 2.6 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives 1346 of 1346 with the sandbox up,
-and `cargo test -j 16 --no-fail-fast` passed in two runs.
+`cargo nextest run` gives 1322 of 1322 in 2.6 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives 1348 of 1348 with the sandbox up,
+and `cargo test -j 16 --no-fail-fast` passed in three runs.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.109**; `Cargo.toml` is at 0.8.109. The
+> AlbanDAVID/Toutui. Newest release **v0.8.110**; `Cargo.toml` is at 0.8.110. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -15037,6 +15109,23 @@ and `cargo test -j 16 --no-fail-fast` passed in two runs.
 > `PATCH /api/me/progress/:id` at the end: **the reader keeps the chapter of a
 > book of a name that it read already**, therefore a second run of such a
 > measurement opens at the chapter of the run before it.
+>
+> **A book of a chapter that is larger than the limit is
+> `docs/harness/a_book_of_a_chapter_that_is_too_large.py`** (T-281). The
+> harness above holds the render for longer than its limit of time; this one
+> meets the guard of the size. `MAX_CHAPTER_BYTES` of
+> `src/logic/reader/book.rs` is 8388608 bytes, and `MAX_BOOK_BYTES` is 256
+> megabytes: a chapter of plain text of 9 megabytes therefore passes the first
+> limit, and the text of it repeats, therefore the deflate of the zip gives an
+> archive of 56923 bytes that stands far under the second one. The book holds
+> three chapters, and the first and the third read at once, therefore the keys
+> `n` and `p` hold a control of the same run:
+>
+> ```bash
+> python3 docs/harness/a_book_of_a_chapter_that_is_too_large.py /the/path/of/the.epub 9
+> ```
+>
+> **The rules of the road back of the harness above hold for this book too.**
 >
 > **A server that answers the login and that holds no library is
 > `docs/harness/no_library.py`** (T-173). It forwards every request to the
@@ -15583,6 +15672,65 @@ and `cargo test -j 16 --no-fail-fast` passed in two runs.
 >    this shape found a fault in one hundred and three sessions of one hundred
 >    and four.
 >    **The
+>    session of the hundred and tenth turn took the candidate
+>    "`ChapterTooLarge` of `ReaderError` says `This chapter is too large.`",
+>    which T-274 opened and which T-278 and T-280 each left open** (T-281).
+>
+>    `ReaderError::ChapterTooLarge` of `src/logic/reader/book.rs` gave one
+>    constant sentence: `This chapter is too large.` Three faults of it. It
+>    named no number, and `ReaderError::BookTooLarge` of the same file names
+>    the size of the file and the limit of the book already. It named no key,
+>    and the view of the reader holds `n`, `p`, and `h`, and each of the three
+>    does the work of that fault (T-170). And the arm took no line of the log
+>    at all, while the arm beside it, of a chapter that the archive did not
+>    give, writes one already.
+>
+>    The measurement, of the real program v0.8.109 inside tmux against the
+>    sandbox. **The data of the fault is a book, and it needs no proxy at
+>    all**: the new harness
+>    `docs/harness/a_book_of_a_chapter_that_is_too_large.py` writes an EPUB of
+>    three chapters whose second chapter holds 9437361 bytes of plain text,
+>    over the `MAX_CHAPTER_BYTES` of 8388608, in an archive of 56923 bytes.
+>    That book went into the cache of the ebooks of the account `toutuitest`
+>    under the name of the item of `Alice in Wonderland`. The keys `Tab`, 15
+>    keys `j`, `e`, and `p` gave
+>
+>    ```text
+>    This chapter is too large.
+>    ```
+>
+>    and the log held 14 lines before the key and 14 lines after it: **no line
+>    of the reader at all**.
+>
+>    The correction is two edits of the same file. The arm
+>    `Err(_) if writer.hit_limit` of `chapter_bytes` writes a line of the log
+>    that names the chapter and the limit. The arm of `Display` says that the
+>    chapter has **more than** the limit of bytes, because `CappedWriter`
+>    stops the copy at that limit and the size of the whole chapter is a fact
+>    that the program does not have (T-91), and it names the keys `n`, `p`,
+>    and `h` and the file of the log. The corrected program of the same
+>    condition said that sentence on three rows, and the log held two lines of
+>    the reader: one of the pass of `chapter_sizes` at the open of the book,
+>    and one of the render. The controls: the key `n` gave chapter 3 and its
+>    text, the key `p` twice gave chapter 1 and its text, the key `h` gave the
+>    Library view, and the good book of that name gave
+>    `Alice's Adventures in Wonderland — chapter 2 of 14` with no line of the
+>    reader in the log.
+>    - **`ChapterAbsent` and `NoSuchChapter` of `ReaderError`** (T-281, and
+>      they stay open) name no key of the view of the reader, and neither arm
+>      of `chapter_bytes` writes a line of the log. **The two sentences of the
+>      same file that this item did not correct. This is a candidate and not a
+>      measurement.**
+>    - **`TooManyEntries` and `BookTooLarge` name their numbers and no key at
+>      all** (T-281, and they stay open): those two faults come at the open of
+>      the book, and the view of the reader does not stand at that moment.
+>      **Ask: which view holds those words, and which key does the work of
+>      that fault? This is a candidate and not a measurement.**
+>    - **Every candidate of the list of the turns below stays open** (T-229 to
+>      T-280): the block has a limit of size, therefore this turn names the new
+>      candidates alone and it does not repeat that list.
+>
+>    **The
 >    session of the hundred and ninth turn took the candidate "`This chapter is
 >    too complex.` of `src/logic/reader/session.rs` is the message of a render
 >    that went past its limit of time", which T-278 opened, and it holds the arm
@@ -15717,77 +15865,7 @@ and `cargo test -j 16 --no-fail-fast` passed in two runs.
 >    - **Every candidate of the list of the turns below stays open** (T-229 to
 >      T-278): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
->>    **The
->    session of the hundred and seventh turn took the candidate "Every other
->    `Paragraph` of a message of this program that holds no `wrap`", which
->    T-277 opened. A sweep of the 44 `Paragraph` of `src/ui/` found two that
->    hold the two conditions together: no `wrap`, and a sentence of a fault
->    that holds the words of the server. Both of them are the message of the
->    view of the episodes of a podcast** (T-278).
->
->    `src/ui/tui.rs` held two `Paragraph::new(no_episodes_message)`, each with
->    `.centered()` and no `.wrap(...)`: one for the road of the view that a
->    search opened (`self.is_from_search_pod`), and one for the road that no
->    search opened. `no_episodes_message` is
->    `format!("{}\nPress h to go back.", the_reason_of_no_episode(...))` of
->    `src/logic/the_episodes.rs`, and two of the three sentences of that
->    function hold 94 characters: the sentence of a server that reported a
->    fault, and the sentence of the offline mode.
->
->    The measurement, of the real program v0.8.106 inside tmux against the
->    sandbox, in a terminal of **80 columns**. The account took the address
->    `http://127.0.0.1:13500` (the trap 129), and
->    `docs/harness/one_path_fails.py 13500 13399 requests.log /api/items/9fa45bd1-66bc-4c17-ba49-a5a6a5ec8806`
->    gave the status 500 to the request of the podcast `Letters of Two Brides`
->    of the library `Podcasts`. **The path of the episodes of a podcast is
->    `GET /api/items/<the id of the podcast>`**, and not a path of the word
->    "episodes": the first attempt of the harness used `/episodes`, and every
->    episode came. The keys `Tab` and `l` gave
->
->    ```text
->    The server did not give the episodes of this podcast: The server reported a faul
->                                   Press h to go back.
->    ```
->
->    The screen gave 79 characters of a sentence of 94, and the log held the
->    reason that the screen lost: `The server reported a fault. Status 500.`
->    The same condition at 160 columns gave the whole sentence on one row.
->
->    The correction is a new module `src/ui/the_message_of_a_view.rs`, with
->    `pub fn render_the_message(text, area, buf)`, which holds the
->    `.centered()`, the block of the border, and `.wrap(Wrap { trim: true })`.
->    The two sites of `src/ui/tui.rs` call it. The corrected program of the
->    same condition at 80 columns said the whole sentence on three rows, and it
->    kept the key `h`. The control: the same podcast with the sandbox answering
->    gave `Episodes [57 items]` and the list of the letters. The two tests of
->    the new module draw the real widget into a `ratatui::buffer::Buffer` with
->    no terminal at all, at the widths 40, 60, and 80.
->    - **The header of the program at 80 columns wrote over itself** (T-278,
->      and it stays open): the screen said
->      `⚠ toutuitest: the server reports a faults (podcast)`, and the name of
->      the library lost its first characters. **This is a candidate and not a
->      measurement.**
->    - **`ChapterTooLarge` of `ReaderError`** (T-274, and it stays open) says
->      `This chapter is too large.`: it names no size, no limit of 8 megabytes,
->      and no key, and that arm of `src/logic/reader/book.rs` writes no line of
->      the log at all. **This is a candidate and not a measurement.**
->    - **`This chapter is too complex.` of `src/logic/reader/session.rs`**
->      (T-278, and it stays open) is the message of a render that went past its
->      limit of time. A limit of time that went by can be a disk that is slow,
->      therefore that is a reason that the program does not have (T-91), and it
->      takes no line of the log. `This chapter did not open.` of the same file
->      drops the reason of the join. **This is a candidate and not a
->      measurement.**
->    - **`The server has no ebook for this media.` of
->      `src/logic/reader/session.rs`** (T-278, and it stays open) is the answer
->      of every fault of `api.get_json`, therefore a network that failed says
->      that the server holds no ebook. **This is a candidate and not a
->      measurement.**
->    - **Every candidate of the list of the turns below stays open** (T-229 to
->      T-277): the block has a limit of size, therefore this turn names the new
->      candidates alone and it does not repeat that list.
->
->    **The turns before those three stand in `## The turns before the three
+>>    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
 >    the hundred and fifth and every turn before it, the item of each, and the
 >    sweeps
@@ -16289,7 +16367,11 @@ and `cargo test -j 16 --no-fail-fast` passed in two runs.
 > the program measured: the limit of time that went by is a fact of the program
 > and the reason of that limit is not, the sentence names the keys of the view
 > of the reader, and the reason of a thread of a render that died stays in the
-> sentence and in the log** (T-280).
+> sentence and in the log** (T-280), and **a chapter that is larger than the
+> limit says what the program measured: the read stops at that limit, therefore
+> the program has the number of the limit and it has no size of the whole
+> chapter, and the sentence names the keys of the view of the reader and the
+> file of the log** (T-281).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

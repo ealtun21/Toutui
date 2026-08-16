@@ -23165,3 +23165,132 @@ the sentence is the one of before the correction: This chapter did not open.
   `⚠ toutuitest: the server reports a faults (podcast)`, and the name of the
   library lost its first characters (open since T-278). A candidate, and not a
   measurement.
+
+### T-281: a chapter that is too large says what the program measured
+
+**Status: corrected in v0.8.110.**
+
+`ReaderError::ChapterTooLarge` of `src/logic/reader/book.rs` gave the sentence
+`This chapter is too large.` Three faults of that one sentence:
+
+1. **It names no number.** `ReaderError::BookTooLarge` of the same file names
+   the size of the file and the limit of the book. The sentence of the chapter
+   names neither, therefore the user cannot know whether the book is hostile or
+   the limit of the program is low.
+2. **It names no key.** The view of the reader holds `n` for the chapter after
+   this one, `p` for the chapter before it, and `h` to leave the book, and each
+   of the three does the work of this fault (T-170).
+   `ReaderError::TheArchiveGaveNoChapter` of the same file names the key `n`
+   already.
+3. **The arm takes no line of the log** (T-177). The arm beside it, of a chapter
+   that the archive did not give, writes one already at
+   `src/logic/reader/book.rs`.
+
+The candidate stood open since T-274, and T-278 and T-280 named it again.
+
+#### The measurement
+
+Of the real program v0.8.109 inside tmux against the sandbox, on 2026-08-16.
+**The data of this fault is a book, and it needs no proxy at all.** The new
+harness `docs/harness/a_book_of_a_chapter_that_is_too_large.py` writes an EPUB
+of three chapters whose second chapter holds **9437361 bytes** of plain text,
+over the `MAX_CHAPTER_BYTES` of 8388608. The text repeats, therefore the
+deflate of the zip gives an archive of **56923 bytes**, far under the
+`MAX_BOOK_BYTES` of 256 megabytes: the book reaches the read of the chapter and
+not the guard of the size of the file. The first and the third chapter read at
+once, therefore the keys `n` and `p` hold a control of the same run.
+
+The book went in the cache of the ebooks of the account `toutuitest`, at
+`$XDG_DATA_HOME/toutui/downloads/toutuitest/8fda6e43-0728-46ad-98bc-4c8634e299ad.epub`
+(the item of `Alice in Wonderland`), because a book of the cache costs no
+request of the server. The good file of that name went to the scratchpad for
+the road back.
+
+The keys `Tab`, 15 keys `j`, and `e` gave chapter 3 of the book — **the reader
+keeps the chapter of a book of a name that it read already**, therefore the run
+opened at the chapter of the round before it — and the key `p` then gave
+
+```text
+The Large Book — chapter 2 of 3 — 50%
+                          This chapter is too large.
+```
+
+The file of the log held **14 lines before the key and 14 lines after it**: no
+line of the reader at all.
+
+#### The correction
+
+Two edits of `src/logic/reader/book.rs`, and no new road of the program.
+
+1. The arm `Err(_) if writer.hit_limit` of `chapter_bytes` writes a line of the
+   log that names the chapter and the limit, beside the arm that writes one
+   already.
+2. The arm `ReaderError::ChapterTooLarge` of `Display` says
+   `This chapter has more than 8388608 bytes, and that is the limit of one
+   chapter. Press n for the chapter after this one, or p for the chapter before
+   it. Press h to leave the book. The file of the log holds more.`
+
+**The program measured that the chapter passed the limit, and it did not
+measure the size of it**: `CappedWriter` stops the copy at `MAX_CHAPTER_BYTES`,
+therefore "more than" is the one number that this program has, and the size of
+the whole chapter is a fact that it does not have (T-91).
+
+The corrected program of the same condition said that sentence on three rows,
+and the log held **two** lines of the reader:
+
+```text
+[reader] the chapter 2 of the book has more than 8388608 bytes, and that is the limit of one chapter
+[reader] the chapter 2 of the book has more than 8388608 bytes, and that is the limit of one chapter
+```
+
+One of them comes of the pass of `chapter_sizes` at the open of the book, and
+one of the render of that chapter.
+
+The controls of the same run: the key `n` gave `chapter 3 of 3` and the text of
+it, the key `p` twice gave `chapter 1 of 3` and the text of it, and the key `h`
+gave the Library view. The control of the good book: the file of `Alice in
+Wonderland` back in the cache gave
+`Alice's Adventures in Wonderland — chapter 2 of 14 — 0%` and the text of the
+book, with no line of the reader in the log.
+
+#### The test
+
+`tests/a_chapter_that_is_too_large_says_why.rs`, two functions, no network and
+no terminal, and the test
+`the_zip_bomb_gives_the_message_of_a_chapter_that_is_too_large` of
+`src/logic/reader/book.rs` holds the same rule against the real zip bomb of the
+hostile files. The build of the fault, with the `write!` of the correction
+replaced by the constant sentence of before it, failed:
+
+```text
+the sentence must name the limit: This chapter is too large.
+```
+
+#### What this item leaves open
+
+- **The arm `Ok(Err(_))` of `render_for` is dead code in the real program**
+  (open since T-280). A `JoinError` of `spawn_blocking` comes of a panic of that
+  thread, and the hook of T-197 stops the whole program for a panic of a thread
+  that is not the main thread. **Ask: does the render of one chapter deserve an
+  `ExpectedPanic` guard, as the Opus decoder holds one (T-17)?** A candidate,
+  and not a measurement.
+- `ReaderError::ChapterAbsent` says `This chapter is absent.` and
+  `ReaderError::NoSuchChapter(index)` says `This book has no chapter {index}.`
+  Neither of them names a key of the view of the reader, and neither arm of
+  `chapter_bytes` writes a line of the log. **The two sentences of the same
+  file that this item did not correct.** A candidate, and not a measurement.
+- `ReaderError::TooManyEntries` and `ReaderError::BookTooLarge` name their
+  numbers and no key at all. Those two faults come at the open of the book, and
+  the view of the reader does not stand at that moment. **Ask: which view holds
+  those words, and which key does the work of that fault?** A candidate, and
+  not a measurement.
+- `the_message_of_the_format` says "Try again, or read the log." for a media
+  whose book the server holds. It names no key at all (open since T-279). A
+  candidate, and not a measurement.
+- The sentence of the status 404 of the item names the key `h` alone, and the
+  key `R` of the view before it asks the server again (open since T-279). A
+  candidate, and not a measurement.
+- The header of the program at 80 columns wrote over itself: the screen said
+  `⚠ toutuitest: the server reports a faults (podcast)`, and the name of the
+  library lost its first characters (open since T-278). A candidate, and not a
+  measurement.
