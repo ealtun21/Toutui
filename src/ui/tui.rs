@@ -576,12 +576,18 @@ impl App {
     }
 
     /// Every line of the facts of the design, for the panel 5 of the cover.
-    /// See T-325.
+    /// See T-325 and T-326.
     ///
-    /// **The facts of the design belong to a book of the Library view**, and
-    /// the other views of this program keep the two lines of `Author: … -
-    /// Year: … - Duration: …` and `Progress: …`: the lists of a row of those
-    /// views hold no narrator, no genre, and no ebook, therefore a panel of the
+    /// **The facts of the design belong to a book of the Library view and to a
+    /// book of the Home view.** The two views draw the panel 4 of the list and
+    /// the panel 5 of the cover, and the answer of the personalized view holds
+    /// the same six facts as the answer of the items of a library: a panel of
+    /// the Home view that said `Author: … - Year: N/A - Duration: 30m` over two
+    /// rows, with 15 rows of no character under it, was the fault of T-326.
+    ///
+    /// The other views of this program keep the two lines of today: the lists
+    /// of a row of a search, of a collection, and of the episodes of a podcast
+    /// hold no narrator, no genre, and no ebook, therefore a panel of the
     /// design there would say the same two lines over more rows.
     ///
     /// `width` is the width of the inside of the panel, and it gives the bar of
@@ -591,40 +597,69 @@ impl App {
     /// facts of the design do not reach, and the panel then keeps the rows that
     /// it held before this stage.
     fn the_lines_of_the_facts_of_the_panel(&self, width: u16) -> Option<Vec<String>> {
-        if self.view_state != AppView::Library || self.is_podcast {
+        // **A library of podcasts holds no fact of this design**: its lists of
+        // a row hold the episode and not the narrator, the genre, or the ebook.
+        if self.is_podcast {
             return None;
         }
 
         // A line of a series says the number of the books and the whole length,
-        // and no book of it stands under the cursor.
-        if self.selected_library_series().is_some() {
-            return None;
-        }
+        // and no book of it stands under the cursor. The two views each hold
+        // such a line: the Library view groups the books of a series, and the
+        // shelf `recent-series` of the Home view is a shelf of series.
+        let (facts, length, of_the_disk, author, year, place) = match self.view_state {
+            AppView::Library => {
+                if self.selected_library_series().is_some() {
+                    return None;
+                }
 
-        let selected = self.selected_library_item()?;
-        let facts = self.the_facts_library.get(selected)?;
+                let selected = self.selected_library_item()?;
 
-        let length = self
-            .duration_library
-            .get(selected)
-            .map(|seconds| convert_seconds(vec![*seconds]))
+                (
+                    self.the_facts_library.get(selected)?,
+                    self.duration_library.get(selected).copied(),
+                    at(&self.ids_library, selected),
+                    at(&self.auth_names_library, selected),
+                    at(&self.published_year_library, selected),
+                    self.the_place_of_the_panel_of_the_library(selected),
+                )
+            }
+            AppView::Home => {
+                if self.selected_home_series().is_some() {
+                    return None;
+                }
+
+                let selected = self.selected_home_item()?;
+
+                (
+                    self.the_facts_home.get(selected)?,
+                    self.duration_cnt_list.get(selected).copied(),
+                    at(&self._ids_cnt_list, selected),
+                    at(&self.auth_names_cnt_list, selected),
+                    at(&self.pub_year_cnt_list, selected),
+                    self.the_place_of_the_panel_of_the_home_view(selected),
+                )
+            }
+            _ => return None,
+        };
+
+        let length = length
+            .map(|seconds| convert_seconds(vec![seconds]))
             .and_then(|words| words.first().cloned())
             .unwrap_or_default();
 
         // **The label of the copy of the disk holds the words of a line of many
         // facts**: it starts with ` - `, because it stands after the length in
         // the line of today. A line of one fact takes the words alone.
-        let of_the_disk = the_copy_of_the_disk(at(&self.ids_library, selected))
+        let of_the_disk = the_copy_of_the_disk(of_the_disk)
             .trim_start()
             .trim_start_matches("- ");
-
-        let place = self.the_place_of_the_panel_of_the_library(selected);
 
         Some(crate::logic::the_facts_of_a_media::the_lines_of_the_facts(
             &crate::logic::the_facts_of_a_media::TheMediaOfThePanel {
                 facts,
-                author: at(&self.auth_names_library, selected),
-                year: at(&self.published_year_library, selected),
+                author,
+                year,
                 length: &length,
                 of_the_disk,
                 percent: &place.percent,
@@ -1758,7 +1793,7 @@ impl App {
             Some(&self.home_table_rows()),
             &mut self.list_state_cnt_list.clone(),
         );
-        self.render_info_home(item_area1, buf);
+        self.render_info_home(item_area1, buf, the_words_of_the_panel.is_some());
         self.render_desc_home(item_area2, buf);
     }
 
@@ -3243,8 +3278,20 @@ impl App {
     }
 
     // info about the book or podacst for `Home`
-    fn render_info_home(&self, area: Rect, buf: &mut Buffer) {
+    fn render_info_home(&self, area: Rect, buf: &mut Buffer, in_the_panel: bool) {
         let duration_cnt_list_conv = convert_seconds(self.duration_cnt_list.clone());
+
+        // **The facts of the design stand in the panel 5 alone** (T-325 and
+        // T-326): the area under the list holds three rows in the layout of a
+        // list, and a list of ten facts does not read there.
+        if in_the_panel {
+            if let Some(lines) = self.the_lines_of_the_facts_of_the_panel(area.width) {
+                Paragraph::new(lines.join("\n"))
+                    .left_aligned()
+                    .render(area, buf);
+                return;
+            }
+        }
 
         // A line of a series tells the number of the books and the whole
         // length, in the same way as the Library view. See T-22.

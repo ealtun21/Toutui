@@ -86,6 +86,54 @@ pub async fn collect_desc_cnt_list(continue_listening: &[Root]) -> Vec<String> {
         .collect()
 }
 
+/// The facts of the panel 5 of the cover, one for each media of the shelves.
+/// See T-326.
+///
+/// **The answer of the personalized view holds the same six facts as the
+/// answer of the items of a library**, and the Home view read none of them:
+/// `narratorName`, `seriesName`, and `genres` of the metadata, and
+/// `numAudioFiles`, `size`, and `ebookFormat` of the media. The panel 5 of a
+/// book of the Library view therefore said eight facts and a bar, and the
+/// panel of that same book of the Home view said two lines.
+///
+/// The list walks [`media_entities`], which is the one sequence of the lists
+/// of the Home view, therefore the number of a media of
+/// [`collect_titles_cnt_list`] is the number of a media of this list.
+pub async fn collect_the_facts_cnt_list(
+    continue_listening: &[Root],
+) -> Vec<crate::logic::the_facts_of_a_media::TheFactsOfAMedia> {
+    media_entities(continue_listening)
+        .map(|(_, media)| {
+            let metadata = media.metadata.as_ref();
+
+            crate::logic::the_facts_of_a_media::TheFactsOfAMedia {
+                // **A text of no letter is not a value** (T-114), and a fact
+                // of no value takes no line of the panel.
+                series: metadata
+                    .and_then(|metadata| metadata.series_name.clone())
+                    .unwrap_or_default(),
+                narrator: metadata
+                    .and_then(|metadata| metadata.narrator_name.clone())
+                    .unwrap_or_default(),
+                genre: metadata
+                    .and_then(|metadata| metadata.genres.as_ref())
+                    .map(|genres| genres.join(", "))
+                    .unwrap_or_default(),
+                files: media.num_audio_files.unwrap_or_default(),
+                // **The entity of a shelf holds no size of its own**: the
+                // answer of the items gives `item.size` beside `media.size`,
+                // and T-325 takes the first of the two because it holds the
+                // ebook and the cover. A measurement of the sandbox of
+                // 2026-08-16 gives the same number for the two of them for
+                // each of the six media of the shelf Continue Listening,
+                // therefore this list reads the one size that the entity has.
+                size: media.size.unwrap_or_default(),
+                the_ebook: media.ebook_format.clone().unwrap_or_default(),
+            }
+        })
+        .collect()
+}
+
 /// collect ID of the library item
 pub async fn collect_ids_cnt_list(continue_listening: &[Root]) -> Vec<String> {
     media_entities(continue_listening)

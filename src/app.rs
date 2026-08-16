@@ -174,6 +174,13 @@ pub struct App {
     pub pub_year_cnt_list: Vec<String>,
     pub duration_cnt_list: Vec<f64>,
     pub desc_cnt_list: Vec<String>,
+
+    /// The facts of the panel 5 of the cover, one for each media of the Home
+    /// view. See T-326.
+    ///
+    /// The number of a media of this list is the number of a media of
+    /// `_ids_cnt_list` and of every other list of the Home view.
+    pub the_facts_home: Vec<crate::logic::the_facts_of_a_media::TheFactsOfAMedia>,
     pub _ids_cnt_list: Vec<String>,
     pub titles_library: Vec<String>,
     pub ids_library: Vec<String>,
@@ -1038,6 +1045,8 @@ impl App {
         let mut pub_year_cnt_list: Vec<String> = Vec::new();
         let mut duration_cnt_list: Vec<f64> = Vec::new();
         let mut desc_cnt_list: Vec<String> = Vec::new();
+        let mut the_facts_home: Vec<crate::logic::the_facts_of_a_media::TheFactsOfAMedia> =
+            Vec::new();
         let mut _ids_cnt_list: Vec<String> = Vec::new();
         let mut ids_ep_cnt_list: Vec<String> = Vec::new();
         let mut subtitles_pod_cnt_list: Vec<String> = Vec::new();
@@ -1299,6 +1308,7 @@ impl App {
             pub_year_cnt_list = collect_pub_year_cnt_list(&shelves).await;
             duration_cnt_list = collect_duration_cnt_list(&shelves).await;
             desc_cnt_list = collect_desc_cnt_list(&shelves).await;
+            the_facts_home = collect_the_facts_cnt_list(&shelves).await;
             _ids_cnt_list = collect_ids_cnt_list(&shelves).await;
         }
 
@@ -1971,6 +1981,7 @@ impl App {
             pub_year_cnt_list,
             duration_cnt_list,
             desc_cnt_list,
+            the_facts_home,
             _ids_cnt_list,
             view_state,
             titles_library,

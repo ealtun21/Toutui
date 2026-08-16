@@ -29914,3 +29914,136 @@ the rows of the facts of the panel — made **five of the five** fail.
   lines after them go away with no word. The measurement of the round stands at
   39 rows inside the border; a panel of 16 rows holds eight rows of the facts
   and no description at all.
+
+## T-326 — The panel 5 of the Home view says the facts of the design
+
+**The part of the stage 6 of the road of the panels that the round of T-325
+left open** (`### 0. The road of the panels (T-316 to T-323)` of
+`docs/HANDOVER.md`): "the other views keep the two lines of today, because
+their lists of a row hold no narrator, no genre, and no ebook".
+
+**That reason held for the view of a search and for the view of a collection,
+and it did not hold for the Home view.** The Home view and the Library view are
+the two views that draw the panel 4 of the list and the panel 5 of the cover
+(T-320), and the answer of the personalized view holds the same six facts as
+the answer of the items of a library.
+
+### The fault
+
+**The Home view drew the panel 5 of the design and it said two lines in it.**
+The measurement of the sandbox of 2026-08-16, of
+`GET /api/libraries/<Books>/personalized` for `A Long Test Book` of the shelf
+`continue-listening`:
+
+```json
+"narratorName": "A Test Narrator",
+"genres": [ "Fiction", "Adventure" ],
+"numAudioFiles": 1,
+"size": 7337326,
+"ebookFormat": "epub"
+```
+
+and `"seriesName": "The Test Chronicles #2"` for the second book of the series
+of that same shelf. **The struct of the media of that answer held no field of
+the ebook at all**: `crate::api::libraries::get_library_perso_view::Media` gave
+the number of the tracks, the number of the files, the number of the chapters,
+the length, and the size, and no `ebook_format` beside them. The sixth fact
+therefore could not reach the program even after the plumbing of the other
+five.
+
+**The real program v0.8.155 inside tmux**, at 160 columns and 45 rows, of the
+Home view of the library `Books` of the sandbox, with the cursor on
+`A Long Test Book` — the same book, and the same panel, that the corrected
+program of T-325 gave eight lines of facts and a bar of the progress in the
+Library view. The panel 5 held the picture over 21 rows, two facts over two
+rows, and **15 rows of no character at all**:
+
+```text
+│      ▄                                         │
+│Author: Long Author - Year: N/A - Duration: 30m │
+│Progress: 50%, 15m left, Not finished           │
+│                                                │
+│No description available                        │
+```
+
+The line `Year: N/A` is the fault of T-114 in the words of the panel of today:
+the server gave that book no year, and the panel spent a part of a row to say
+so.
+
+**The data of this item is the program itself**: no proxy, no book of a
+harness, and no change of the sandbox — the library of the row of the account
+comes of a `sqlite3` of `name_selected_lib` and of `id_selected_lib` (the trap
+203 and the trap 204).
+
+### The correction
+
+The corrected program of the same harness, of that same row:
+
+```text
+│Author    Long Author                           │
+│Narrator  A Test Narrator                       │
+│Time      30m, 15m left                         │
+│Genre     Fiction, Adventure                    │
+│Files     1 file, 7.0 MB                        │
+│Ebook     epub                                  │
+│Progress  50%, Not finished                     │
+│████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░│
+```
+
+**The controls of the same run.** The row `A Big Book Of A Scan` said
+`Ebook     pdf` and it took no line of a series, of a narrator, and of a genre,
+because the server gave none of the three. The row `The Test Chronicles Volume
+2` said `Series    The Test Chronicles #2` and it took no line of an ebook. A
+row of the shelf `Recent Series` kept the line of today,
+`Depthless Hunger, Book - 1 book - Duration: 10m`, over its description. And
+the Home view of the library `Podcasts` kept the two lines of today,
+`[Arthur Gordon Pym] - Author: LibriVox - Episode: 1 - Duration: 22m` and
+`Progress: 22%, 17m left, Not finished`.
+
+**The correction is four files, and no new one.**
+`src/api/libraries/get_library_perso_view.rs` gives `Media` the field
+`ebook_format` of the name of the server; `src/api/utils/collect_personalized_view.rs`
+holds `collect_the_facts_cnt_list`, which walks `media_entities` — the one
+sequence of the lists of the Home view; `src/app.rs` carries that list to
+`App::the_facts_home`, which holds one row for each media beside
+`_ids_cnt_list`; and `src/ui/tui.rs` gives
+`App::the_lines_of_the_facts_of_the_panel` an arm of the Home view beside the
+arm of the Library view, and `render_info_home` the argument `in_the_panel`
+that `render_info_library` holds already.
+
+`tests/the_panel_of_the_cover_of_the_home_view_says_the_facts.rs` holds the
+gate, of four tests, and **the build of the fault** (the trap 147), of three
+edits of one line each, made each of the four fail under at least one of them:
+the field of the ebook under the name of T-325 (`ebook_file_format`) failed
+three, a narrator that never comes failed two, and a list that walks the
+entities and not the media failed three.
+
+### The traps of this item
+
+- **The entity of a shelf holds no size of its own.** T-325 takes `item.size`
+  over `media.size` for the Library view, because the first of the two holds
+  the ebook and the cover beside the audio. A measurement of the sandbox of
+  2026-08-16 gives the same number for `entity.size` and for `media.size` for
+  each of the six media of the shelf Continue Listening, therefore this list
+  reads the one size that the struct of the entity has and it adds no field.
+- **A shelf that holds no media must give no row.** The shelf `recent-series`
+  holds a series and the shelf `newest-authors` holds an author, and neither
+  has a media. `media_entities` of `collect_personalized_view.rs` is the one
+  sequence of the lists of the Home view for that reason, and a list of the
+  facts that walked the entities would have put the narrator of one book beside
+  the title of another. The gate holds a shelf of series between two shelves of
+  media for that reason, and the build of the fault of `.take(2)` shows it.
+- **The Home view holds a line of a series too**, in the shelf `recent-series`,
+  and that line keeps the words of today: the panel of it says the number of the
+  books and the whole length, and no book of it stands under the cursor.
+
+### What stays open
+
+- **The facts stand under the picture and not beside it**, and **the day of the
+  start of the media takes no line**: the two parts of T-325 that its round left
+  open stay open, and they hold for the two views together now.
+- **The view of a search, the view of a collection, the view of a book of a
+  series, and the view of the episodes of a podcast keep the two lines of
+  today.** Those views draw no panel 4 and no panel 5 of the frame (T-320),
+  their lists of a row hold no narrator, no genre, and no ebook, and the answers
+  behind them are answers of their own.

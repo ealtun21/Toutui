@@ -53,6 +53,18 @@ pub struct Media {
     pub num_chapters: Option<i64>,
     pub duration: Option<f64>,
     pub size: Option<i64>,
+
+    /// The kind of the file of the ebook of the media: `epub`, `pdf`, and so
+    /// on. A media of no ebook holds no value.
+    ///
+    /// **The answer of this path holds this field and the struct had no field
+    /// of it at all** (T-326), therefore the panel of a media of the Home view
+    /// could say no word of the ebook of it. The name of the server is
+    /// `ebookFormat`, and `rename_all = "camelCase"` reads this name as that
+    /// one: see T-325 for the field of the same name of the answer of the
+    /// items, which held the name `ebook_file_format` and gave `None` for
+    /// every book of every server.
+    pub ebook_format: Option<String>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]

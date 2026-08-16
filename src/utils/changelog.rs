@@ -41,6 +41,29 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.156",
+        date: "16/08/2026",
+        body: &[
+            "Added:",
+            "- **The Home view says the facts of the media too.** The panel of \
+             the cover gave those facts in the Library view alone: the same \
+             book of the Home view said the author, the year, the length, and \
+             your place over two rows, and 15 rows of that panel held nothing \
+             at all. The series, the narrator, the genre, the number of the \
+             files, the size, the kind of the ebook, and the bar of the \
+             progress now stand there too.",
+            "Fixed:",
+            "- **The program reads the kind of the ebook of a book of the Home \
+             view.** The answer of the server holds it, and the program had no \
+             place at all to keep it.",
+            "Note:",
+            "- A fact that the server did not give takes no line, therefore a \
+             book of no series and no narrator says nothing of either. A \
+             library of podcasts and a line of a series keep the words that \
+             they held before.",
+        ],
+    },
+    Entry {
         version: "0.8.155",
         date: "16/08/2026",
         body: &[
