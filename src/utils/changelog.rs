@@ -41,6 +41,28 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.151",
+        date: "16/08/2026",
+        body: &[
+            "Added:",
+            "- **The panel of the cover has a frame, and it holds the words \
+             of the media now.** The picture stood in the air, with no \
+             border, no title, and no number, and the rows under it held \
+             nothing at all. It is the panel 5 of the design now: the picture \
+             stands at the top of it, and the author, the year, the length, \
+             your place, and the description of the media stand under it.",
+            "- **A media that the server holds with no cover fills that panel \
+             with words.** Such a media gave a column of 50 columns and 41 \
+             rows with no character in it at all.",
+            "- **The list holds four lines more**, because the facts and the \
+             description of the media left the column of the list.",
+            "- **The key `5` gives the focus to the panel of the cover**, and \
+             a click of that panel does the same. The keys `j` and `k` of \
+             that focus move the description, the key `l` plays the media, \
+             and the key `h` gives the focus back to the list.",
+        ],
+    },
+    Entry {
         version: "0.8.150",
         date: "16/08/2026",
         body: &[

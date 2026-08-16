@@ -28995,3 +28995,238 @@ with the sandbox up**, and three runs of `cargo test -j 16 --no-fail-fast`.
    the digits 1 to 7 belong to the focus of a panel.
 5. **No line of the panel 2 says the number of the media of a filter**, and the
    design gives that number to the status bar alone.
+
+## T-319 — The panel 5 of the cover, and the words of the media inside it
+
+**The stage 6 of the road of the panels** (`docs/mockups/mockup-1.txt`, which
+the maintainer chose on 2026-08-16). The four items of the maintainer name "the
+covers that fill the space that they have", and this round took the panel 5 of
+that design: the frame of the column of the covers, and the words of the media
+inside it. **The panel 6 of the gallery stays open.**
+
+### The fault, of the real program v0.8.150 inside tmux
+
+The Library view of the library `Books` of the sandbox, at 160 columns and 45
+rows, with the cursor on `Alice in Wonderland`. `cover::split_for_covers` gives
+the columns 110 to 160 to the covers, and that area held a picture and nothing
+else:
+
+```text
+│  Every key                    ?│║    Second Series [3 books]             █║       ▀▀▀▀▀▀▀▄▄▄▄▀▄▄▄▀▀▄▀▀▀▄▄▄▄▄▄
+│                                │║    Multi File Test Book      1m     -  █║       ▀▄▄▄▄▄▀▀▀▄▄▀▀▀▄▄▄▄▄▄▀▄▀▀▄▄▄▄
+│                                │║➤   Alice in Wonderland      <1m     -  █║       ▀▀▄▀▀▀▄▀▀▄▀▀▀▀▀▀▀▄▄▄▄▄▄▄▄▄▄▄
+│                                │╚════════════════════════════════════════╝        ▀▀▀▀▄▀▄▀▀▄▀▀▄▄▄▄▀▀▀▄▀▀▄▄▀ ▄▄
+│                                │Author: Lewis Carroll - Year: N/A - Duration: 0m  ▀▄▄▄▄▄▀▀▄▀▀▀▄▄▄▀▀▀▀▄▄▄▀▀▀▀▀▀▀
+│                                │Progress: 0%,  Not finished                       ▀▄▄▄▀▀▀▀▀▄▄▄▄▄▄▀▄▄▄▄▄▀▀▀▀▀▄▄
+│                                │                                                   ▀▄▄▀▀▄▄▀▀▀▀▀▀▀▀▀▀▀▀▀▄▄▄▄▄▄▄
+│                                │No description available                          ▀▀▀▀▄▄▄▄▀▀▄▄▄▄▀▀▀▀▀▄▄▄▄▄▄▄▀▀
+└────────────────────────────────┘                                                  ▀▄▄▄▄▄▀▀▀▀▀▀▀▀▄▄▄▄▄▄▄▀▄▄▀▄▄▀
+```
+
+**The picture stood in the air.** It had no border, no title, and no number of a
+panel, therefore no key and no click of the user could name it: the mouse of
+T-316 gave a click of that region to nothing at all, and the digits of T-320
+named the panels 1 to 4 alone. **The nine rows under the picture held no
+character at all** (the rows 34 to 42 of the screen), and the words of the media
+stood at the left of it, under the list, where they took four rows of the list
+away.
+
+**A media that the server holds with no cover gave a column of nothing.** The
+same measurement with the cursor on `A Book Of An Epub With No Container`, which
+is the first row of that library and the row of the start:
+
+```text
+│                                │╚═════════════════════════════════════════╝
+│                                │Author: N/A - Year: N/A - Duration: 0m
+│                                │Progress: 100%, 0m left, Finished
+│                                │
+│                                │No description available
+└────────────────────────────────┘
+```
+
+The 50 columns and the 41 rows of the column of the covers held **no character
+at all**, which is 2050 cells of the screen of the user with no work. `curl` of
+`GET /api/libraries/:id/items` says which media of the sandbox give that
+condition: 12 of the 22 items of the library `Books` hold `coverPath: null`, and
+**every one of the 2056 items of the library `Large` holds it too**, therefore
+the fault stands for the whole of the largest library of the sandbox.
+
+The log of the program says the same thing in one line:
+
+```text
+[cover] the item a4d8b9b2-c4a4-4e80-8ed0-07662933fa71 has no cover
+```
+
+### The data of the fault
+
+**The data of this stage is the program itself**: no proxy, no book of a
+harness, and no change of the sandbox. `docs/harness/drive.sh` at
+`COLUMNS_OF_THE_SCREEN=160` and `ROWS_OF_THE_SCREEN=45`, with the library
+`Books` of the sandbox in the row of the account (the trap 203), and
+`docs/harness/click.sh` for the click of the panel.
+
+### The correction
+
+**Six files.** `src/ui/the_panel_of_the_cover.rs` is new, and every function of
+it is pure: `the_parts_of_the_panel` divides the inside of the panel 5 into the
+picture, the facts, and the description, and `ThePartsOfThePanel::the_words_stand_here`
+says whether the panel took the words of the media.
+
+- **The picture keeps 55 percent of the height** (`THE_SHARE_OF_THE_COVER`), and
+  the words keep the rows that stay: three rows of the facts
+  (`THE_ROWS_OF_THE_FACTS`, which is the number that `the_areas_of_a_list` of
+  `src/ui/tui.rs` gave them under the list) and the rest for the description.
+- **A panel under 13 rows holds the picture alone**
+  (`THE_SMALLEST_PANEL_OF_THE_WORDS`, which is `MIN_HEIGHT_FOR_COVER` of 8 plus
+  the three rows of the facts plus the two rows that a description needs), and
+  the words then stay under the list, where they stood before this stage.
+- **A media that the server holds with no cover gives every row of the panel to
+  the words**: `cover::no_picture_comes` of `src/ui/cover.rs` reads the store of
+  the covers, and it gives `true` for the two states that no second request asks
+  for — the answer 404 (`CoverBytes::NoCover`) and the request that failed
+  (`CoverBytes::Fault`). **The answer while the state is not known is `false`**,
+  because a panel that took the rows of the picture away for one frame would
+  move the words of the media at the frame after it.
+
+`src/ui/tui.rs` holds the rest: `render_covers` draws the block
+`crate::ui::frame::a_panel(5, "Cover", …)`, it draws the picture inside
+`parts.cover` alone, and it gives the areas of the facts and of the description
+back; `the_areas_of_a_list_and_the_panel` then gives the whole column of the
+list to the list when the panel took the words. The eight views that hold a
+cover panel take one line of change each. `src/ui/frame.rs` holds
+`ThePanel::TheCover` with the digit `5`, and `at_the_right` of the panel 4 is
+that panel now. `src/ui/the_mouse.rs` holds `the_panel_of_the_cover` and
+`TheTarget::ThePanelOfTheCover`. `src/app.rs` holds
+`the_key_of_the_panel_of_the_cover`, the two arms of the mouse, and
+`a_panel_of_the_frame_stands`, which was `a_panel_of_the_stack_stands` and which
+reads the area of the panel 5 too. `src/ui/keys.rs` holds the footer of that
+panel and its two lines of the view of the key `?`.
+
+### The corrected program, of the same harness
+
+The Library view of the library `Books`, with the cursor on `Alice in
+Wonderland`:
+
+```text
+│                                │║    Multi File Test Book       Test Author    1m    -║ │              ▄▄▄▀▀▄▄▄▄▄▄▄▄▄
+│                                │║    One Chapter Book           Test Author   <1m  20%║ │              ▄▀▀▀▀▀▀▀▀▀▀▀▀▀
+│                                │║➤   Alice in Wonderland        Lewis Carroll <1m    -║ │               ▀▀▀▀▀▀▀▀▀▀▀▀▀
+│                                │║    Depthless Hunger, Book [1 book]                  ║ │               ▄▄▄▄▄▄▄▄▄▄▄▄▄
+│                                │║  ✓ One File With No Decoder   Decoder Test   30m done║ │          ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+│                                │║                                                     ║ │Author: Lewis Carroll - Year: N/A - Duration: 0m│
+│                                │║                                                     ║ │Progress: 0%,  Not finished                     │
+│                                │║                                                     ║ │                                                │
+│                                │║                                                     ║ │No description available                        │
+```
+
+**The list of the panel 4 grew from 16 lines to 20**, because the facts and the
+description left the column of the list.
+
+**A media with no cover**, of the same view with the cursor on the first row:
+
+```text
+┌1 Views ────────────────────────┐╔4 Library [18 items] ═══════════════════╗ ┌5 Cover ────────────────────────────────────────┐
+│➤ Home                       Tab│║    Title              Author Time  Done║ │Author: N/A - Year: N/A - Duration: 0m          │
+│  Library                    Tab│║➤ ✓ A Book Of An Epub With No…  <1m done║ │Progress: 100%, 0m left, Finished               │
+│  Sequence and filter          f│║    A Book Of A Broken Epub     <1m    -║ │                                                │
+│  Authors                      a│║  ✓ A Book Of An Epub That Na…  <1m done║ │No description available                        │
+```
+
+**A podcast of the library `Podcasts` fills that panel with its description**,
+which is the road that the words of this stage were made for:
+
+```text
+┌5 Cover ────────────────────────────────────────┐
+│Author: LibriVox                                │
+│                                                │
+│                                                │
+│Letters of Two Brides is an epistolary novel.   │
+│The two brides are Louise de Chaulieu (Madame   │
+│Gaston) and Renée de Maucombe (Madame           │
+│l'Estorade). The women became friends during    │
+│their education at a convent and upon leaving   │
+│began a life-long correspondence. For a 17 year │
+│period, they exchange letters describing their  │
+│lives.                                          │
+```
+
+**The key `5` gives the panel the focus**, and the shape of the border says so
+(T-320):
+
+```text
+┌4 Library [18 items] ────────────────────────────────────────────────────┐ ╔5 Cover ════════════════════════════════════════╗
+```
+
+with the footer
+
+```text
+j/k: the description  l: play or open  h: the list  4/Ctrl+h: the list  ?: every key  Q: quit
+```
+
+**The keys `j` and `k` of that focus move the description.** The same harness at
+24 rows, of the podcast `Letters of Two Brides`, before the key `5` and after
+three keys `j`:
+
+```text
+│Letters of Two Brides is an        K│   →   ║Gaston) and Renée de Maucombe      K║
+│epistolary novel. The two brides   █│       ║(Madame l'Estorade). The women     │║
+```
+
+The key `h` gave the focus back to the panel 4, and the footer of the view came
+again. **A click of `docs/harness/click.sh` at the column 130 of the row 20**
+gave the panel the focus and the same footer, and **two steps of the wheel over
+that panel moved the description two lines** at 24 rows.
+
+**The three shapes of the frame of T-320 hold** (the decision 3 of the road of
+the panels). At 100 columns the frame draws no stack, and the panel 5 stands
+beside the list with 38 columns of its own; at 40 columns the covers go away
+with the second column, and the facts and the description stay under the list,
+which is the screen of today.
+
+### The gate
+
+`tests/the_panel_of_the_cover_holds_the_words.rs` holds six tests, and five more
+stand inside `src/ui/the_panel_of_the_cover.rs` and `src/ui/frame.rs`.
+
+**The build of the fault** (the trap 147), of five edits that keep every other
+line: `if !a_picture_comes && false` and
+`if inside.height < THE_SMALLEST_PANEL_OF_THE_WORDS || true` of
+`the_parts_of_the_panel`, `'5' if false => Some(Self::TheCover)` of
+`of_the_digit`, the words `j/k: the description` and the line `key("5", …)` of
+`src/ui/keys.rs` taken out, and `if the_stack_stands && false &&` on the arm of
+the panel 5 of `the_target_of_a_point`. **Eleven of the eleven tests failed**,
+and 1423 of the 1434 passed.
+
+### The trap of this item
+
+**A picture that the program did not ask for yet is not a media with no cover.**
+The first form of `no_picture_comes` read `CoverArt::picture(…).is_some()`, and
+that value is `false` for every media at the frame of its first request: the
+panel then said the words of the media on the whole column, and the picture came
+one frame later and it moved every word of it. The store of the covers holds
+four states, and the two that no second request asks for are the two states of
+this rule.
+
+### What stays open of this stage
+
+1. **The panel 6 of the gallery.** The design gives the column of the covers a
+   grid of the covers of the rows around the cursor, with the percent and a
+   short title under each cell, and the keys `+` and `-` for the size of a cell.
+   `cover::plan_covers` holds a shelf of four covers of a **series** already,
+   and the gallery of the design is the list of the view and not a series.
+2. **The facts of the design.** The mockup names the series, the narrator, the
+   time that is left, the day of the start, the genre, the number of the files,
+   the state of the ebook, and a bar of the progress, each on a line of its own
+   at the right of the picture. The panel says the two rows of the panel of a
+   line of today, which the eight views of a cover hold already: a panel of the
+   design needs a collector of the facts of every one of those views, and that
+   is a round of its own.
+3. **The buttons of the mouse of the panel 5.** The map of the mouse of
+   `docs/mockups/mockup-1.md` gives a click of the picture the playback, a click
+   of a button the work of its key, and a click of the bar of the progress the
+   place of the media. A click of the panel gives it the focus alone today.
+4. **The panel 5 of a screen of two columns takes no key.** The frame draws it
+   at 100 columns, and the keys of a panel belong to the shape of three columns
+   alone (T-320), therefore a click of it there names nothing. **That is the
+   rule of T-320 and not a fault of this item**, and the round that opens the
+   keys of the panels to the shape of two columns must take every panel with it.

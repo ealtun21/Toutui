@@ -50,9 +50,14 @@ pub const GROUPS: &[Group] = &[
         // have (T-118), and a footer must not promise a key that the view does
         // not hold (T-143).
         //
-        // **The three panels of the design that no stage drew hold no digit**
-        // (T-79): the panels 5 and 6 of the covers come with T-319, and the
-        // panel 7 of the player comes with T-322.
+        // **The two panels of the design that no stage drew hold no digit**
+        // (T-79): the panel 6 of the gallery comes with the rest of T-319, and
+        // the panel 7 of the player comes with T-322.
+        //
+        // **The digit of the panel 5 does nothing for a view that draws no
+        // cover** (T-319), and `App::a_panel_of_the_frame_stands` is that
+        // rule: a terminal that is not wide, a media that the server holds
+        // with no cover, and `TOUTUI_NO_COVERS` each take that panel away.
         //
         // **A stack that is not tall loses the panel 3 first and the panel 2
         // after it** (T-318), and the digit of a panel that the frame did not
@@ -63,6 +68,7 @@ pub const GROUPS: &[Group] = &[
             key("2", "The focus goes to the panel 2 of the sequence"),
             key("3", "The focus goes to the panel 3 of the filter"),
             key("4", "The focus goes to the panel 4 of the list"),
+            key("5", "The focus goes to the panel 5 of the cover"),
             key("Ctrl+h", "The focus goes to the panel at the left"),
             key("Ctrl+l", "The focus goes to the panel at the right"),
             key("Ctrl+j", "The focus goes to the panel below"),
@@ -72,6 +78,7 @@ pub const GROUPS: &[Group] = &[
                 "The panel 1 opens a view, the panels 2 and 3 act",
             ),
             key("h / ←", "A panel of the stack gives the focus back"),
+            key("j / k", "The panel 5 moves the description of the media"),
         ],
     },
     Group {
@@ -530,6 +537,12 @@ pub fn the_footer_of_a_panel(
         // the filter** (T-318): the key stood in the panel 1 and in no footer,
         // and a user who cannot find a key has no key at all (the rule of T-143
         // in reverse).
+        // **The footer of the panel 5 names the keys of that panel** (T-319):
+        // the keys `j` and `k` move the description of the media, and the key
+        // `l` plays it, which is the key of the list of the view.
+        ThePanel::TheCover => "j/k: the description  l: play or open  h: the list  \
+                4/Ctrl+h: the list  ?: every key  Q: quit"
+            .to_string(),
         ThePanel::TheList => format!("{of_the_view}  f: sequence  1/Ctrl+h: the panels"),
     }
 }

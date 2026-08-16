@@ -552,14 +552,38 @@ impl App {
         }
     }
 
-    /// Draws the panel of the covers.
+    /// Draws the panel 5 of the cover, and it gives the area of the facts of
+    /// the media and the area of the description of it. See T-319.
     ///
-    /// The function draws nothing when the screen is too narrow, because
-    /// `split_for_covers` then gives no panel.
-    fn render_covers(&mut self, panel: Option<Rect>, buf: &mut Buffer) {
+    /// The function draws nothing and it gives `None` when the screen is too
+    /// narrow, because `split_for_covers` then gives no panel. It gives `None`
+    /// for a panel that is not tall too: the words of the media then stay under
+    /// the list, where they stood before this stage.
+    ///
+    /// **The panel of the covers of T-23 stood in the air**: it had no border,
+    /// no title, and no number, therefore no key and no click of the user could
+    /// name it, and the rows under the picture held nothing at all. The frame
+    /// of T-320 gives it the border of a panel now, and the words of the media
+    /// fill the rows that the picture leaves.
+    fn render_covers(&mut self, panel: Option<Rect>, buf: &mut Buffer) -> Option<(Rect, Rect)> {
         let Some(panel) = panel else {
-            return;
+            // **A frame that draws no panel takes no click of it** (T-316): the
+            // areas of the last frame are the screen that the user clicked.
+            self.the_areas_of_the_mouse.the_panel_of_the_cover = Rect::default();
+            return None;
         };
+
+        let it_holds_the_focus =
+            self.the_panel_of_the_focus == crate::ui::frame::ThePanel::TheCover;
+        let block = crate::ui::frame::a_panel(
+            crate::ui::frame::ThePanel::TheCover.the_number(),
+            "Cover",
+            it_holds_the_focus,
+        );
+        let inside = block.inner(panel);
+        block.render(panel, buf);
+
+        self.the_areas_of_the_mouse.the_panel_of_the_cover = panel;
 
         let playback = self.player.state();
         let playing = if playback.status == PlaybackStatus::Stopped || playback.item_id.is_empty() {
@@ -585,26 +609,62 @@ impl App {
             .or(selected.first().map(|id| id.as_str()))
             .and_then(|id| self.covers.form_of(id));
 
-        let plan = cover::plan_covers(
-            panel,
-            cover::picker().font_size(),
-            playing.is_some(),
-            selected.len(),
-            large,
-        );
+        // **A picture that never comes must take no row of the screen**
+        // (T-319): the server holds some media with no cover at all, and the
+        // panel of those media held 50 columns and 41 rows of nothing.
+        let a_picture_comes = playing
+            .iter()
+            .chain(selected.iter())
+            .any(|id| !cover::no_picture_comes(id));
+
+        let parts =
+            crate::ui::the_panel_of_the_cover::the_parts_of_the_panel(inside, a_picture_comes);
 
         let api = std::sync::Arc::clone(&self.api);
 
-        if let (Some(area), Some(id)) = (plan.playing, playing.as_deref()) {
-            if let Some(picture) = self.covers.picture(&api, id) {
-                StatefulImage::default().render(area, buf, picture);
+        if let Some(area) = parts.cover {
+            let plan = cover::plan_covers(
+                area,
+                cover::picker().font_size(),
+                playing.is_some(),
+                selected.len(),
+                large,
+            );
+
+            if let (Some(area), Some(id)) = (plan.playing, playing.as_deref()) {
+                if let Some(picture) = self.covers.picture(&api, id) {
+                    StatefulImage::default().render(area, buf, picture);
+                }
+            }
+
+            for (area, id) in plan.shelf.iter().zip(selected.iter()) {
+                if let Some(picture) = self.covers.picture(&api, id) {
+                    StatefulImage::default().render(*area, buf, picture);
+                }
             }
         }
 
-        for (area, id) in plan.shelf.iter().zip(selected.iter()) {
-            if let Some(picture) = self.covers.picture(&api, id) {
-                StatefulImage::default().render(*area, buf, picture);
-            }
+        parts
+            .the_words_stand_here()
+            .then_some((parts.facts, parts.description))
+    }
+
+    /// The three areas of the work of a view of a list, with the panel 5 of the
+    /// cover beside it. See T-319.
+    ///
+    /// **The words of a media stand in one place of one frame**: a panel 5 that
+    /// says the facts and the description takes them away from the area under
+    /// the list, and the list then holds every row of its column. A panel that
+    /// is too small for them, and a screen that draws no panel at all, leave
+    /// them under the list.
+    fn the_areas_of_a_list_and_the_panel(
+        &self,
+        main_area: Rect,
+        the_words: Option<(Rect, Rect)>,
+    ) -> [Rect; 3] {
+        match the_words {
+            Some((facts, description)) => [main_area, facts, description],
+            None => the_areas_of_a_list(main_area, self.the_rows_that_the_player_left()),
         }
     }
 }
@@ -1559,10 +1619,10 @@ impl App {
         // would then stand over the list.
         let (main_area, cover_panel) =
             cover::split_for_covers(main_area, main_area.width, cover::picker().font_size());
-        self.render_covers(cover_panel, buf);
+        let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
-            the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
+            self.the_areas_of_a_list_and_the_panel(main_area, the_words_of_the_panel);
 
         // Every line starts with a mark: the media that plays, a media that
         // the user finished, or the part that the user heard. See T-44.
@@ -1679,10 +1739,10 @@ impl App {
         // reads, and not the width of the screen** (T-320).
         let (main_area, cover_panel) =
             cover::split_for_covers(main_area, main_area.width, cover::picker().font_size());
-        self.render_covers(cover_panel, buf);
+        let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
-            the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
+            self.the_areas_of_a_list_and_the_panel(main_area, the_words_of_the_panel);
 
         // Every book of a series gives one line. See T-22.
         let lines = self.library_lines();
@@ -1768,10 +1828,10 @@ impl App {
         // description. It is always visible. See T-23.
         let (main_area, cover_panel) =
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
-        self.render_covers(cover_panel, buf);
+        let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
-            the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
+            self.the_areas_of_a_list_and_the_panel(main_area, the_words_of_the_panel);
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -1839,10 +1899,10 @@ impl App {
         // description. It is always visible. See T-23.
         let (main_area, cover_panel) =
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
-        self.render_covers(cover_panel, buf);
+        let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
-            the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
+            self.the_areas_of_a_list_and_the_panel(main_area, the_words_of_the_panel);
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -1912,10 +1972,10 @@ impl App {
         // description. It is always visible. See T-23.
         let (main_area, cover_panel) =
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
-        self.render_covers(cover_panel, buf);
+        let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
-            the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
+            self.the_areas_of_a_list_and_the_panel(main_area, the_words_of_the_panel);
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -2002,10 +2062,10 @@ impl App {
         // description. It is always visible. See T-23.
         let (main_area, cover_panel) =
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
-        self.render_covers(cover_panel, buf);
+        let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
-            the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
+            self.the_areas_of_a_list_and_the_panel(main_area, the_words_of_the_panel);
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -2258,10 +2318,10 @@ impl App {
         // description. It is always visible. See T-23.
         let (main_area, cover_panel) =
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
-        self.render_covers(cover_panel, buf);
+        let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
-            the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
+            self.the_areas_of_a_list_and_the_panel(main_area, the_words_of_the_panel);
 
         let from_the_server = crate::logic::search::from_the_server::answer_for(&self.search_query);
 
@@ -2441,10 +2501,10 @@ impl App {
         // description. It is always visible. See T-23.
         let (main_area, cover_panel) =
             cover::split_for_covers(main_area, area.width, cover::picker().font_size());
-        self.render_covers(cover_panel, buf);
+        let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
-            the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
+            self.the_areas_of_a_list_and_the_panel(main_area, the_words_of_the_panel);
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);

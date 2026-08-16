@@ -153,8 +153,11 @@ fn the_digits_name_the_panels_that_the_frame_draws() {
     assert_eq!(ThePanel::of_the_digit('2'), Some(ThePanel::TheSequence));
     assert_eq!(ThePanel::of_the_digit('3'), Some(ThePanel::TheFilter));
     assert_eq!(ThePanel::of_the_digit('4'), Some(ThePanel::TheList));
+    // **The panel 5 of the cover comes with T-319**, and the digit of it names
+    // that panel now.
+    assert_eq!(ThePanel::of_the_digit('5'), Some(ThePanel::TheCover));
 
-    for digit in ['0', '5', '6', '7', '8', '9'] {
+    for digit in ['0', '6', '7', '8', '9'] {
         assert_eq!(
             ThePanel::of_the_digit(digit),
             None,

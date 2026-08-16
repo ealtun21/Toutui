@@ -2189,7 +2189,7 @@ impl App {
         // panel 3 first and the panel 2 after it.
         if let KeyCode::Char(digit) = key.code {
             if let Some(panel) = ThePanel::of_the_digit(digit) {
-                if !self.a_panel_of_the_stack_stands(panel) {
+                if !self.a_panel_of_the_frame_stands(panel) {
                     return false;
                 }
 
@@ -2205,6 +2205,17 @@ impl App {
             ThePanel::TheSequence | ThePanel::TheFilter
         ) {
             return self.the_key_of_a_panel_of_the_stack(key);
+        }
+
+        // The keys of the panel 5 of the cover. See T-319.
+        //
+        // **The panel holds one media, and that media is the media of the
+        // cursor of the list already**, therefore the keys of it move the
+        // description and they move no line: the key `l` falls through to the
+        // handler of the view, which plays that media, and that is the button
+        // `[l Play]` of `docs/mockups/mockup-1.md`.
+        if self.the_panel_of_the_focus == ThePanel::TheCover {
+            return self.the_key_of_the_panel_of_the_cover(key);
         }
 
         if self.the_panel_of_the_focus != ThePanel::TheViews {
@@ -2299,10 +2310,10 @@ impl App {
         let of_the_start = self.the_panel_of_the_focus;
         let mut to = to;
 
-        // The stack holds three panels, therefore three steps reach every one
+        // The frame holds five panels, therefore five steps reach every one
         // of them and the loop ends.
-        for _ in 0..3 {
-            if self.a_panel_of_the_stack_stands(to) {
+        for _ in 0..5 {
+            if self.a_panel_of_the_frame_stands(to) {
                 self.the_panel_of_the_focus = to;
                 return;
             }
@@ -2421,20 +2432,65 @@ impl App {
         }
     }
 
-    /// Says if the panel 2 or the panel 3 stood on the last frame. See T-318.
+    /// The keys of the panel 5 of the cover. See T-319.
+    ///
+    /// It gives `true` when it did the work of the key, and the handler then
+    /// stops.
+    ///
+    /// **The keys `j` and `k` of this panel move the description**, which is
+    /// the work of the keys `J` and `K` of the view: the panel holds the
+    /// description of the media now, therefore the keys of the panel of the
+    /// focus must move it. The keys `J`, `K`, and `H` of the view keep their
+    /// work at every panel, because a user who knows them must not lose them.
+    fn the_key_of_the_panel_of_the_cover(&mut self, key: KeyEvent) -> bool {
+        match key.code {
+            KeyCode::Char('j') | KeyCode::Down => {
+                self.scroll_offset =
+                    crate::logic::the_scroll_of_a_panel::the_scroll_after_one_step_down(
+                        self.scroll_offset,
+                    );
+                true
+            }
+            KeyCode::Char('k') | KeyCode::Up => {
+                self.scroll_offset = self.scroll_offset.saturating_sub(1);
+                true
+            }
+            KeyCode::Char('g') | KeyCode::Home => {
+                self.scroll_offset = 0;
+                true
+            }
+            // **The key `h` gives the focus back to the panel of the list**,
+            // and it takes no view away: the key `h` of a view of a media gives
+            // the view before it (the trap 210), and a panel of the frame is
+            // not a view.
+            KeyCode::Char('h') | KeyCode::Left => {
+                self.the_panel_of_the_focus = crate::ui::frame::ThePanel::TheList;
+                true
+            }
+            _ => false,
+        }
+    }
+
+    /// Says if a panel of the frame stood on the last frame. See T-318 and
+    /// T-319.
     ///
     /// **The areas of the last frame are the screen that the user sees**, and a
     /// panel that the frame did not draw holds no cell of it at all: a stack
-    /// that is not tall loses the panel 3 first and the panel 2 after it,
-    /// therefore the digit of such a panel names a panel that this program does
-    /// not draw, and it must do nothing (T-79).
-    pub fn a_panel_of_the_stack_stands(&self, the_panel: crate::ui::frame::ThePanel) -> bool {
+    /// that is not tall loses the panel 3 first and the panel 2 after it, and a
+    /// view of a media with no cover, a terminal that is not wide, and
+    /// `TOUTUI_NO_COVERS` each take the panel 5 away. The digit of such a panel
+    /// names a panel that this program does not draw, and it must do nothing
+    /// (T-79).
+    pub fn a_panel_of_the_frame_stands(&self, the_panel: crate::ui::frame::ThePanel) -> bool {
         let area = match the_panel {
             crate::ui::frame::ThePanel::TheSequence => {
                 self.the_areas_of_the_mouse.the_panel_of_the_sequence
             }
             crate::ui::frame::ThePanel::TheFilter => {
                 self.the_areas_of_the_mouse.the_panel_of_the_filter
+            }
+            crate::ui::frame::ThePanel::TheCover => {
+                self.the_areas_of_the_mouse.the_panel_of_the_cover
             }
             _ => return true,
         };
@@ -2678,6 +2734,14 @@ impl App {
                 // user to the view that holds every sequence and every filter
                 // of the program today, which is the work of the key `f`.
                 TheTarget::TheHeaderOfTheList => self.show_the_sequence_and_the_filter(),
+                // **A click of the panel 5 gives it the focus and nothing
+                // else** (T-319): the panel holds the media of the cursor of
+                // the list already, therefore a click of it moves the cursor of
+                // no list, and the keys `j` and `k` of the focus then move the
+                // description of that media.
+                TheTarget::ThePanelOfTheCover => {
+                    self.the_panel_of_the_focus = crate::ui::frame::ThePanel::TheCover;
+                }
                 TheTarget::Nothing => {}
             },
             MouseEventKind::ScrollDown | MouseEventKind::ScrollUp => {
@@ -2713,6 +2777,21 @@ impl App {
                         // description back to its first line, as the keys `j`
                         // and `k` do.
                         self.scroll_offset = 0;
+                    }
+                    // **The wheel over the panel 5 moves the description of
+                    // the media** (T-319), which is the work of the keys `J`
+                    // and `K` of the view: the panel holds that description,
+                    // and a wheel that moved the list under a panel of another
+                    // media would say the words of a media that the picture
+                    // does not show.
+                    TheTarget::ThePanelOfTheCover => {
+                        self.scroll_offset = if forward {
+                            crate::logic::the_scroll_of_a_panel::the_scroll_after_one_step_down(
+                                self.scroll_offset,
+                            )
+                        } else {
+                            self.scroll_offset.saturating_sub(1)
+                        };
                     }
                     // The wheel over the row of the header moves no list: that
                     // row holds one line and no cursor at all.

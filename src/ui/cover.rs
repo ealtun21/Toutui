@@ -203,6 +203,37 @@ pub fn covers_are_on() -> bool {
     std::env::var_os("TOUTUI_NO_COVERS").is_none()
 }
 
+/// Tells if a picture of this media can still come. See T-319.
+///
+/// **The panel 5 of the design gives the rows of a picture that never comes to
+/// the words of the media**, therefore the render must know the state of the
+/// store of this cover before it divides the panel.
+///
+/// The answer is `true` while the state is not known: a media of the first
+/// frame asked the server nothing yet, and a panel that took the rows of the
+/// picture away for one frame would move the words of the media at the frame
+/// after it.
+///
+/// The two states that give `false` are the two states of a picture that no
+/// second request asks for (see [`CoverBytes`]): the server that answered 404,
+/// and the request that came back with a fault. **The key `R` empties that
+/// store**, therefore the picture of a fault comes back at that key with the
+/// rows that it needs.
+pub fn no_picture_comes(id: &str) -> bool {
+    if !covers_are_on() || id.is_empty() {
+        return true;
+    }
+
+    let Ok(map) = store().read() else {
+        return false;
+    };
+
+    matches!(
+        map.get(id),
+        Some(CoverBytes::NoCover) | Some(CoverBytes::Fault)
+    )
+}
+
 /// Asks the server for one cover, if nothing asked for it before.
 ///
 /// The function gives the answer at once and does the work in a task,

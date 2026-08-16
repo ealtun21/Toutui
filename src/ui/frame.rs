@@ -38,13 +38,13 @@
 //! heavy border `═║`, and every other panel takes a light border `─│`. A
 //! terminal of a theme of a low contrast still says where the focus is.
 //!
-//! **The stages until this one draw four of the seven panels**, therefore
-//! [`ThePanel`] holds four values: the views (T-320), the sequence and the
-//! filter (T-318), and the list (T-320). The panels 5 and 6 of the covers come
-//! with T-319, and the panel 7 of the player comes with T-322. **A key of a
-//! panel that no stage drew is a key that does nothing**, and that is a fault
-//! of its own (T-79), therefore the digits of those three panels are not keys
-//! of this program yet.
+//! **The stages until this one draw five of the seven panels**, therefore
+//! [`ThePanel`] holds five values: the views (T-320), the sequence and the
+//! filter (T-318), the list (T-320), and the cover (T-319). The panel 6 of the
+//! gallery comes with the rest of T-319, and the panel 7 of the player comes
+//! with T-322. **A key of a panel that no stage drew is a key that does
+//! nothing**, and that is a fault of its own (T-79), therefore the digits of
+//! those two panels are not keys of this program yet.
 
 use ratatui::{
     layout::{Constraint, Layout, Rect},
@@ -135,6 +135,8 @@ pub enum ThePanel {
     /// The panel 4: the list of the view. This is the panel of the start.
     #[default]
     TheList,
+    /// The panel 5: the cover of the media, and the words of it. See T-319.
+    TheCover,
 }
 
 impl ThePanel {
@@ -145,6 +147,7 @@ impl ThePanel {
             Self::TheSequence => 2,
             Self::TheFilter => 3,
             Self::TheList => 4,
+            Self::TheCover => 5,
         }
     }
 
@@ -156,6 +159,7 @@ impl ThePanel {
             '2' => Some(Self::TheSequence),
             '3' => Some(Self::TheFilter),
             '4' => Some(Self::TheList),
+            '5' => Some(Self::TheCover),
             _ => None,
         }
     }
@@ -166,15 +170,22 @@ impl ThePanel {
         match self {
             Self::TheViews | Self::TheSequence | Self::TheFilter => self,
             Self::TheList => Self::TheViews,
+            Self::TheCover => Self::TheList,
         }
     }
 
     /// The panel at the right of this one. The panel at the right of the last
     /// column is that panel itself.
+    ///
+    /// **The panel 5 of the cover stands at the right of the panel 4** (T-319),
+    /// and a view that draws no cover holds no such panel: the caller reads
+    /// `App::a_panel_of_the_frame_stands` before it moves the focus, therefore
+    /// a key that names a panel of no cell at all does nothing (T-79).
     pub fn at_the_right(self) -> Self {
         match self {
             Self::TheViews | Self::TheSequence | Self::TheFilter => Self::TheList,
-            Self::TheList => Self::TheList,
+            Self::TheList => Self::TheCover,
+            Self::TheCover => Self::TheCover,
         }
     }
 
@@ -188,7 +199,7 @@ impl ThePanel {
         match self {
             Self::TheViews => Self::TheSequence,
             Self::TheSequence => Self::TheFilter,
-            Self::TheFilter | Self::TheList => self,
+            Self::TheFilter | Self::TheList | Self::TheCover => self,
         }
     }
 
@@ -197,7 +208,7 @@ impl ThePanel {
         match self {
             Self::TheFilter => Self::TheSequence,
             Self::TheSequence => Self::TheViews,
-            Self::TheViews | Self::TheList => self,
+            Self::TheViews | Self::TheList | Self::TheCover => self,
         }
     }
 
@@ -467,10 +478,12 @@ mod tests {
         assert_eq!(ThePanel::of_the_digit('2'), Some(ThePanel::TheSequence));
         assert_eq!(ThePanel::of_the_digit('3'), Some(ThePanel::TheFilter));
         assert_eq!(ThePanel::of_the_digit('4'), Some(ThePanel::TheList));
+        assert_eq!(ThePanel::of_the_digit('5'), Some(ThePanel::TheCover));
 
-        // **The three panels that no stage drew hold no digit** (T-79): a key
-        // that does nothing is a fault of its own.
-        for digit in ['5', '6', '7', '0', '8', '9'] {
+        // **The two panels that no stage drew hold no digit** (T-79): a key
+        // that does nothing is a fault of its own. The panel 6 of the gallery
+        // comes with the rest of T-319, and the panel 7 with T-322.
+        for digit in ['6', '7', '0', '8', '9'] {
             assert_eq!(
                 ThePanel::of_the_digit(digit),
                 None,
@@ -486,7 +499,15 @@ mod tests {
         // column**, therefore the panel at the right of each of them is the
         // list, and the panel at the left of each of them is itself.
         assert_eq!(ThePanel::TheList.at_the_left(), ThePanel::TheViews);
-        assert_eq!(ThePanel::TheList.at_the_right(), ThePanel::TheList);
+
+        // **The panel 5 of the cover stands at the right of the panel 4**
+        // (T-319), and the panel at the right of it is that panel itself.
+        assert_eq!(ThePanel::TheList.at_the_right(), ThePanel::TheCover);
+        assert_eq!(ThePanel::TheCover.at_the_right(), ThePanel::TheCover);
+        assert_eq!(ThePanel::TheCover.at_the_left(), ThePanel::TheList);
+        assert!(!ThePanel::TheCover.is_of_the_stack());
+        assert_eq!(ThePanel::TheCover.below(), ThePanel::TheCover);
+        assert_eq!(ThePanel::TheCover.above(), ThePanel::TheCover);
 
         for of_the_stack in [
             ThePanel::TheViews,

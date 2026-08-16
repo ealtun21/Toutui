@@ -52,6 +52,9 @@ fn the_areas_of_the_measurement() -> TheAreasOfTheMouse {
         the_offset_of_the_list: 0,
         the_lines: 20,
         the_header_of_the_list: Rect::default(),
+        // The panel 5 of the cover comes with T-319, and this measurement
+        // stands before it.
+        the_panel_of_the_cover: Rect::default(),
     }
 }
 
@@ -172,6 +175,7 @@ fn a_panel_that_the_frame_did_not_draw_takes_no_click() {
         the_offset_of_the_list: 0,
         the_lines: 20,
         the_header_of_the_list: Rect::default(),
+        the_panel_of_the_cover: Rect::default(),
     };
 
     // The measurement of tmux: a click of the column 5 of the row 6 gave

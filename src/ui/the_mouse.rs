@@ -81,6 +81,12 @@ pub struct TheAreasOfTheMouse {
     /// A view that draws no table gives `Rect::default()` here, and that value
     /// holds no cell of the screen at all.
     pub the_header_of_the_list: Rect,
+    /// The whole block of the panel 5 of the cover, with its border. See
+    /// T-319.
+    ///
+    /// A view that draws no cover, and a terminal that is too narrow for one,
+    /// gives `Rect::default()` here.
+    pub the_panel_of_the_cover: Rect,
 }
 
 /// The place of the screen that a report of the mouse names.
@@ -100,6 +106,13 @@ pub enum TheTarget {
     TheListOfTheView { the_line: Option<usize> },
     /// The row of the header of the table of the panel 4. See T-321.
     TheHeaderOfTheList,
+    /// The panel 5 of the cover, and the words of the media inside it. See
+    /// T-319.
+    ///
+    /// **A click of that panel gives it the focus and nothing else**: the panel
+    /// holds one media, which is the media of the cursor of the list already,
+    /// therefore a click of it moves the cursor of no list.
+    ThePanelOfTheCover,
 }
 
 /// The line of a list that stands on a row of the screen, and `None` for a row
@@ -199,6 +212,19 @@ pub fn the_target_of_a_point(
         };
     }
 
+    // **The panel 5 comes after the panel 4**, because the two of them hold no
+    // cell together: `cover::split_for_covers` leaves one column between them.
+    // See T-319.
+    //
+    // **The focus of a panel belongs to the shape of three columns alone**
+    // (T-320), and `the_stack_stands` is that shape: a screen of two columns
+    // draws the panel 5 and it takes no key of a panel at all, therefore a
+    // click that gave it the focus would show a border of a focus that no key
+    // of the user can use (T-79).
+    if the_stack_stands && areas.the_panel_of_the_cover.contains(point) {
+        return TheTarget::ThePanelOfTheCover;
+    }
+
     TheTarget::Nothing
 }
 
@@ -263,6 +289,7 @@ mod tests {
             the_offset_of_the_list: 0,
             the_lines: 500,
             the_header_of_the_list: Rect::default(),
+            the_panel_of_the_cover: Rect::default(),
         };
 
         // A click on a line of the panel 1.

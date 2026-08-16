@@ -163,6 +163,30 @@ gives no failure over its binaries in two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
 
+## The session of the hundred and fifty-first turn of 2026-08-16: the panel 5 of the cover, and the words of the media inside it
+
+**The item: T-319**, and the release **v0.8.151**. It is the stage 6 of the road
+of the panels, and it holds the panel 5 alone: **the panel 6 of the gallery
+stays open.**
+
+**The column of the covers held a picture and nothing else.** The real program
+v0.8.150 inside tmux, of the Library view of the library `Books` of the sandbox
+at 160 columns and 45 rows: the picture stood in the air with no border, no
+title, and no number of a panel, the nine rows under it held no character at
+all, and the words of the media stood under the list, where they took four rows
+of the list away. **A media that the server holds with no cover gave 50 columns
+and 41 rows of nothing.**
+
+**The correction is six files**, and `src/ui/the_panel_of_the_cover.rs` is new.
+The item T-319 of `docs/TAKEOVER-BACKLOG.md` holds the two screens, the trap of
+the store of the covers, and the four parts of the stage that stay open.
+
+**The gates**: `cargo clippy --all-targets -- -D warnings` and `cargo fmt
+--check` give nothing, `cargo nextest run` gives **1434 of 1434** in 3.0
+seconds, `cargo nextest run --run-ignored all` gives **1460 of 1460** in 17.7
+seconds with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of
+CI) gave no failure over three runs.
+
 ## The session of the hundred and fiftieth turn of 2026-08-16: a filter of one series gives the books of that series
 
 **The item: T-318**, and the release **v0.8.150**. It is the rest of the stage 5
@@ -469,7 +493,20 @@ account holds the library `Large`.
 
 **The block of the prompt met the line of 99000 bytes** (T-284). The whole list
 of the decisions of T-201 to T-311 went out of it, into
-`## The decisions of T-201 to T-321 that do not open again` of this file, and a
+`## The decisions of T-201 to T-321 that do not open again
+
+**T-319: the panel 5 of the cover.** The block `5 Cover` holds the picture at 55
+percent of its height, the three rows of the facts of the media, and the
+description of it, and those words leave the area under the list: **the words of
+a media stand in one place of one frame**, therefore a panel that says them
+takes them away from the column of the list, and a panel under 13 rows says that
+it has no room and it leaves them where they stood. **A media that the server
+holds with no cover gives every row of the panel to the words**, and **a picture
+that the program did not ask for yet is not such a media**: `no_picture_comes`
+of `src/ui/cover.rs` reads `CoverBytes::NoCover` and `CoverBytes::Fault` alone,
+which are the two states that no second request asks for, and every other state
+keeps the rows of the picture — a panel that took them away for one frame moved
+every word of the media at the frame after it.` of this file, and a
 pointer of three lines stands in its place: the block held 98907 bytes and it
 holds 66224 now. **That list grows with every round and the turn of a round does
 not**, therefore it is the part of the block to take out again.
@@ -11175,8 +11212,8 @@ measurement can hold.
 | 3 | **T-316** | The harness of a click, the capture, and a click of a row — **done, v0.8.147**; the targets of the regions of the stages after it stay open |
 | 4 | **T-321** | The list of the panel 4 becomes a table of a header — **done, v0.8.148**; the sequence of a click of a word of the header belongs to T-318 |
 | 5 | **T-318** | The panels 2 and 3, and a series that opens into its books — **done, v0.8.149 and v0.8.150**; the mode of the whole library that sends `collapseseries=0` stays open |
-| 6 | **T-319** | The panel 5 of one cover, and the panel 6 of the gallery — **the next stage** |
-| 7 | **T-322** | The panel 7, the band of the player |
+| 6 | **T-319** | The panel 5 of one cover, and the panel 6 of the gallery — the panel 5 is **done, v0.8.151**; the panel 6 of the gallery stays open |
+| 7 | **T-322** | The panel 7, the band of the player — **the next stage** |
 | 8 | **T-323** | The mode that hides the panels 1 to 3, and the last sweep |
 
 **Every stage keeps the rules of this file**: drive the real program inside
@@ -11323,19 +11360,40 @@ footer of the panel 4 names the key `f`.
    names the media that you did not start and the media of the disk, and
    section 4 of `docs/T-24-coverage.md` says which of those the server gives.
 
-**T-319: the covers fill the space that they have.** `split_for_covers`
-(`src/ui/cover.rs:502`) gives the panel `PANEL_PERCENT` of 40 percent of the
-width, clamped between `PANEL_MIN_WIDTH` of 22 and `PANEL_MAX_WIDTH` of 72,
-and it gives no panel at all under `MIN_WIDTH_FOR_COVER` of 84 columns. **The
-panel holds one cover of one media**, and the capture of 2026-08-16 at 160
-columns and 45 rows gave about **17** rows of the screen with no character in
-them at all, under the panel of the description. The work: one large
-cover for the media of the row when one row stands, and **a grid of covers
-that fits as many of them as the terminal carries without a cover that no one
-can read**. The arithmetic of the tiles belongs in the item: the number of the
-columns and of the rows of the tiles at 160, at 80, and at **40** columns
-(T-301 names 40 as the narrowest terminal of this fork), and the road back to
-a list for a terminal that draws no image.
+**T-319: the panel 5 of the cover stands — done, v0.8.151.** The round of the
+hundred and fifty-first turn took this stage, and the item T-319 of
+`docs/TAKEOVER-BACKLOG.md` holds the screen of the real program before it and
+after it. **The column of the covers held a picture and nothing else**: no
+border, no title, and no number of a panel, therefore no key and no click of
+the user could name it, the nine rows under the picture held no character at
+all, and **a media that the server holds with no cover gave 50 columns and 41
+rows of nothing** — 12 of the 22 items of the library `Books` of the sandbox
+hold `coverPath: null`, and every one of the 2056 items of the library `Large`
+holds it too.
+
+What stands now: the block `5 Cover` of the frame of T-320, the picture at 55
+percent of the height of it, the facts of the media and the description of it
+under the picture, and **every row of the panel for the words when no picture
+comes** (`cover::no_picture_comes` reads the store of the covers, and it gives
+`true` for the answer 404 and for a request that failed alone). **The list of
+the panel 4 grew from 16 lines to 20**, because the words left the column of
+the list. The digit `5`, a click of the panel, the keys `j` and `k` of the
+description, and the wheel over it stand, and a panel under 13 rows holds the
+picture alone and it leaves the words under the list.
+
+**What stays open of this item.** The **panel 6 of the gallery**: a grid of the
+covers of the rows around the cursor, with the percent and a short title under
+each cell, and the keys `+` and `-` for the size of a cell — the arithmetic of
+the tiles belongs in that round, at 160, at 80, and at **40** columns (T-301
+names 40 as the narrowest terminal of this fork). `cover::plan_covers` holds a
+shelf of four covers of a **series** already, and the gallery of the design is
+the list of the view and not a series. **The facts of the design** stay open
+too: the mockup names the series, the narrator, the time that is left, the day
+of the start, the genre, the number of the files, the state of the ebook, and a
+bar of the progress, each on a line of its own at the right of the picture, and
+the panel says the two rows of the panel of a line of today. **A click of the
+picture, of a button, and of the bar of the progress names nothing** (the map
+of the mouse of the section (e) of `docs/mockups/mockup-1.md`).
 
 **T-320: the frame of the panels.** `the_areas_of_a_view` and
 `the_areas_of_a_list` of `src/ui/tui.rs` give the areas of today; the design
@@ -13182,6 +13240,75 @@ start needs `ls target/debug/toutui` before every other diagnosis** (with the
   nothing, because the agent reads the whole file at the start of a round.
 
 ## The turns before the three newest ones
+
+## The session of the hundred and forty-ninth turn of 2026-08-16: the panels 2 and 3 of the sequence and of the filter, of the block of the prompt
+
+  **The session of the hundred and forty-ninth turn took a part of the
+  stage 5 of the road of the panels** (T-318), the panels 2 and 3 of the
+  sequence and of the filter. **It left five parts of that item open, and a
+  series that opens into its books is the first of them.**
+
+  **The stack of 34 columns held the panel 1 alone, and the screen said no
+  word of the sequence and no word of the filter.** The measurement of the
+  real program v0.8.148 inside tmux, of the Library view of the library
+  `Large` of the sandbox at 160 columns and 45 rows: the panel 1 held 14
+  lines, **the 20 rows under the last of them held nothing at all**, the
+  header of the panel 4 said `4 Library [500 items of 2056]` and no more, and
+  **the footer named no key `f`**. The key `f` gave a view of the whole
+  screen, and that view hides the list that it describes.
+
+  **The data of this stage is the program itself**: no proxy, no book of a
+  harness, and no change of the sandbox. The correction is seven files.
+  `src/ui/the_panels_of_the_stack.rs` is new, and every function of it is
+  pure: `the_rows_of_the_sequence`, `the_rows_of_the_filter`,
+  `the_three_panels` (which loses the panel 3 first and the panel 2 after
+  it), `the_name_of_a_filter`, and
+  `the_words_of_the_sequence_and_the_filter`. `src/ui/frame.rs` holds
+  `TheSequence` and `TheFilter` with the digits `2` and `3`, `below()`, and
+  `above()`; `src/ui/the_mouse.rs` holds the two targets;
+  `src/ui/tui.rs` divides the stack in three and it writes the words of the
+  sequence in the header of a screen that draws no stack; `src/app.rs` holds
+  the keys, the two arms of the mouse, and
+  `apply_the_row_of_the_sequence_or_the_filter`, which is the one function of
+  the view of the key `f` and of the two panels; and `src/ui/keys.rs` gives
+  `the_footer_of_a_panel` a `ThePanel` and no `bool`.
+
+  **The corrected program** of the same harness: the key `2` and the keys
+  `j j l` gave `╔2 Sequence ═╗` with `➤ ✓ The author` and the header
+  `4 Library [500 items of 2056] — The author, the largest first`; a second
+  `l` of that same row turned the direction; the key `Ctrl+j` and the keys
+  `j j l` gave `╔3 Filter ═╗` with `➤ ✓ The media that you started`; a click
+  of `docs/harness/click.sh` at the column 12 of the row 32 gave
+  `➤ ✓ The year`; at 100 columns the header said
+  `⇅ The sequence of the server ▣ No filter`; and at 22 rows the panel 3 went
+  away and **the digit `3` did nothing at all**.
+
+  `tests/the_panels_of_the_sequence_and_of_the_filter.rs` holds the gate, of
+  four tests, and five more stand inside `src/ui/`. **The build of the
+  fault** (the trap 147) — `let room = 0;` of `the_three_panels`,
+  `'2' if false =>` of `of_the_digit`, `if false &&` on the arm of the panel
+  2 of `the_target_of_a_point`, the words `f: sequence` and the key `Ctrl+j`
+  of `src/ui/keys.rs` taken out, and `if false &&` on the guard of the header
+  of `src/ui/tui.rs` — made **seven of the ten** fail.
+
+  **The trap of this item**: **the key `l` of the panel 2 makes the
+  application again** (`must_refresh`, the road of the key `R`), and every
+  field of a new application starts at its first value. The first measurement
+  gave the sequence of the author, the focus then went back to the panel 4,
+  and the key `l` after two keys `j` **started a playback of
+  `Large Book 0003`**; `PATCH /api/me/progress/:id` with
+  `{"isFinished": false}` gave the sandbox its condition back.
+  `TheStateThatARefreshKeeps` of T-135 holds the focus of the panel and the
+  line of each of the two panels now.
+  - **A series opens into no book** (T-318): `src/app.rs` writes
+    `&collapseseries=1` for every library of books, with no choice of the
+    user at all. **That is the next part of this stage.**
+  - **A click of a word of the header of the table does not sort by that
+    column** (T-321), **the panel 3 holds no author, no series, no narrator,
+    and no tag** (they come of `GET /api/libraries/:id/filterdata`, which the
+    view of the key `f` asks for), **the two panels hold no digit of a row**
+    (the decision 1), and **no line of the panel 2 says the number of the
+    media of a filter**.
 
 ## The session of the hundred and forty-eighth turn of 2026-08-16: the list of the panel 4 becomes a table of a header, of the block of the prompt
 
@@ -21132,7 +21259,7 @@ belongs to T-318 and a click that does nothing at all is the fault of T-79.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.149**; `Cargo.toml` is at 0.8.149. The
+> AlbanDAVID/Toutui. Newest release **v0.8.151**; `Cargo.toml` is at 0.8.151. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -21940,8 +22067,8 @@ belongs to T-318 and a click that does nothing at all is the fault of T-79.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1419 tests in 3.0 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1445 of 1445** with the sandbox up, in about 18 seconds. **Run that
+> Baseline: **1434 tests in 3.0 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1460 of 1460** with the sandbox up, in about 18 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -22066,85 +22193,19 @@ belongs to T-318 and a click that does nothing at all is the fault of T-79.
 >    T-320 the frame of the panels, T-316 the mouse, T-321 the table, T-318
 >    the panels of the sequence and of the filter, T-319 the covers, T-322 the
 >    band of the player, and T-323 the mode that hides the stack at the left.
->    **The stages 1, 2, 3, 4, and 5 are done** (v0.8.145, v0.8.146, v0.8.147,
->    v0.8.148, v0.8.149, and v0.8.150). **The stage 6, T-319, the covers that
->    fill the space that they have, is the next work.** Of the stage 5 there
->    stays the mode of the whole library that sends `collapseseries=0`: the
->    user has no key that gives every book of every series in one list, and
->    the turn of that stage below holds the trap of that work.
+>    **The stages 1, 2, 3, 4, 5, and 6 are done** (v0.8.145, v0.8.146, v0.8.147,
+>    v0.8.148, v0.8.149, v0.8.150, and v0.8.151). **The stage 7, T-322, the
+>    band of the player, is the next work.** Of the stage 5 there stays the
+>    mode of the whole library that sends `collapseseries=0`: the user has no
+>    key that gives every book of every series in one list. Of the stage 6
+>    there stays the **panel 6 of the gallery**, and the turn of that stage
+>    below holds the trap of each of them.
 >    **A round takes the next stage that is not finished**, and that section
 >    holds three decisions that a round must not take alone. Read it first.
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
->   **The session of the hundred and forty-ninth turn took a part of the
->   stage 5 of the road of the panels** (T-318), the panels 2 and 3 of the
->   sequence and of the filter. **It left five parts of that item open, and a
->   series that opens into its books is the first of them.**
->
->   **The stack of 34 columns held the panel 1 alone, and the screen said no
->   word of the sequence and no word of the filter.** The measurement of the
->   real program v0.8.148 inside tmux, of the Library view of the library
->   `Large` of the sandbox at 160 columns and 45 rows: the panel 1 held 14
->   lines, **the 20 rows under the last of them held nothing at all**, the
->   header of the panel 4 said `4 Library [500 items of 2056]` and no more, and
->   **the footer named no key `f`**. The key `f` gave a view of the whole
->   screen, and that view hides the list that it describes.
->
->   **The data of this stage is the program itself**: no proxy, no book of a
->   harness, and no change of the sandbox. The correction is seven files.
->   `src/ui/the_panels_of_the_stack.rs` is new, and every function of it is
->   pure: `the_rows_of_the_sequence`, `the_rows_of_the_filter`,
->   `the_three_panels` (which loses the panel 3 first and the panel 2 after
->   it), `the_name_of_a_filter`, and
->   `the_words_of_the_sequence_and_the_filter`. `src/ui/frame.rs` holds
->   `TheSequence` and `TheFilter` with the digits `2` and `3`, `below()`, and
->   `above()`; `src/ui/the_mouse.rs` holds the two targets;
->   `src/ui/tui.rs` divides the stack in three and it writes the words of the
->   sequence in the header of a screen that draws no stack; `src/app.rs` holds
->   the keys, the two arms of the mouse, and
->   `apply_the_row_of_the_sequence_or_the_filter`, which is the one function of
->   the view of the key `f` and of the two panels; and `src/ui/keys.rs` gives
->   `the_footer_of_a_panel` a `ThePanel` and no `bool`.
->
->   **The corrected program** of the same harness: the key `2` and the keys
->   `j j l` gave `╔2 Sequence ═╗` with `➤ ✓ The author` and the header
->   `4 Library [500 items of 2056] — The author, the largest first`; a second
->   `l` of that same row turned the direction; the key `Ctrl+j` and the keys
->   `j j l` gave `╔3 Filter ═╗` with `➤ ✓ The media that you started`; a click
->   of `docs/harness/click.sh` at the column 12 of the row 32 gave
->   `➤ ✓ The year`; at 100 columns the header said
->   `⇅ The sequence of the server ▣ No filter`; and at 22 rows the panel 3 went
->   away and **the digit `3` did nothing at all**.
->
->   `tests/the_panels_of_the_sequence_and_of_the_filter.rs` holds the gate, of
->   four tests, and five more stand inside `src/ui/`. **The build of the
->   fault** (the trap 147) — `let room = 0;` of `the_three_panels`,
->   `'2' if false =>` of `of_the_digit`, `if false &&` on the arm of the panel
->   2 of `the_target_of_a_point`, the words `f: sequence` and the key `Ctrl+j`
->   of `src/ui/keys.rs` taken out, and `if false &&` on the guard of the header
->   of `src/ui/tui.rs` — made **seven of the ten** fail.
->
->   **The trap of this item**: **the key `l` of the panel 2 makes the
->   application again** (`must_refresh`, the road of the key `R`), and every
->   field of a new application starts at its first value. The first measurement
->   gave the sequence of the author, the focus then went back to the panel 4,
->   and the key `l` after two keys `j` **started a playback of
->   `Large Book 0003`**; `PATCH /api/me/progress/:id` with
->   `{"isFinished": false}` gave the sandbox its condition back.
->   `TheStateThatARefreshKeeps` of T-135 holds the focus of the panel and the
->   line of each of the two panels now.
->   - **A series opens into no book** (T-318): `src/app.rs` writes
->     `&collapseseries=1` for every library of books, with no choice of the
->     user at all. **That is the next part of this stage.**
->   - **A click of a word of the header of the table does not sort by that
->     column** (T-321), **the panel 3 holds no author, no series, no narrator,
->     and no tag** (they come of `GET /api/libraries/:id/filterdata`, which the
->     view of the key `f` asks for), **the two panels hold no digit of a row**
->     (the decision 1), and **no line of the panel 2 says the number of the
->     media of a filter**.
->
 >   **The session of the hundred and fiftieth turn took the rest of the stage
 >   5 of the road of the panels** (T-318), a series that opens into its books.
 >   **The claim of the item before it was half false, and the measurement said
@@ -22206,6 +22267,90 @@ belongs to T-318 and a click that does nothing at all is the fault of T-79.
 >     view of the key `f` asks for), **the two panels hold no digit of a row**
 >     (the decision 1), and **no line of the panel 2 says the number of the
 >     media of a filter**.
+>
+>   **The session of the hundred and fifty-first turn took the stage 6 of the
+>   road of the panels** (T-319), the panel 5 of the cover. **It left the
+>   panel 6 of the gallery open, and that panel is the rest of this stage.**
+>
+>   **The column of the covers held a picture and nothing else.** The
+>   measurement of the real program v0.8.150 inside tmux, of the Library view
+>   of the library `Books` of the sandbox at 160 columns and 45 rows, with the
+>   cursor on `Alice in Wonderland`: `cover::split_for_covers` gives the
+>   columns 110 to 160 to the covers, **the picture stood in the air** with no
+>   border, no title, and no number of a panel, **the nine rows under it held
+>   no character at all**, and the words of the media stood under the list, at
+>   the left of it, where they took four rows of the list away. **A media that
+>   the server holds with no cover gave 50 columns and 41 rows of nothing**:
+>   12 of the 22 items of that library hold `coverPath: null`, and **every one
+>   of the 2056 items of the library `Large` holds it too**.
+>
+>   **The data of this stage is the program itself**: no proxy, no book of a
+>   harness, and no change of the sandbox. The correction is six files.
+>   `src/ui/the_panel_of_the_cover.rs` is new, and every function of it is
+>   pure: `the_parts_of_the_panel` divides the inside of the panel 5 into the
+>   picture (55 percent of the height), the three rows of the facts, and the
+>   description, and `the_words_stand_here` says whether the panel took the
+>   words. **A panel under 13 rows holds the picture alone**, and the words
+>   then stay under the list. **A media that the server holds with no cover
+>   gives every row to the words**: `cover::no_picture_comes` reads the store
+>   of the covers, and it gives `true` for `CoverBytes::NoCover` and for
+>   `CoverBytes::Fault` alone. `src/ui/tui.rs` draws the block of the panel and
+>   it gives the two areas back, and `the_areas_of_a_list_and_the_panel` then
+>   gives the whole column to the list; `src/ui/frame.rs` holds
+>   `ThePanel::TheCover` with the digit `5`; `src/ui/the_mouse.rs` holds
+>   `TheTarget::ThePanelOfTheCover`; `src/app.rs` holds
+>   `the_key_of_the_panel_of_the_cover` and `a_panel_of_the_frame_stands`,
+>   which was `a_panel_of_the_stack_stands`; and `src/ui/keys.rs` holds the
+>   footer of the panel and its two lines of the view of the key `?`.
+>
+>   **The corrected program** of the same harness: the panel
+>   `┌5 Cover ─────┐` holds the picture, `Author: Lewis Carroll - Year: N/A -
+>   Duration: 0m`, `Progress: 0%, Not finished`, and the description, and
+>   **the list of the panel 4 grew from 16 lines to 20**. A podcast of the
+>   library `Podcasts` filled that panel with 11 lines of its description. The
+>   key `5` gave `╔5 Cover ═══╗` against `┌4 Library [18 items] ───┐` with the
+>   footer `j/k: the description  l: play or open  h: the list  4/Ctrl+h: the
+>   list`; three keys `j` of that focus moved the description of `Letters of
+>   Two Brides` two lines at 24 rows; the key `h` gave the focus back; a click
+>   of `docs/harness/click.sh` at the column 130 of the row 20 gave the panel
+>   the focus; and two steps of the wheel over it moved the description. At
+>   100 columns the panel stands with 38 columns and no stack beside it, and
+>   at 40 columns the covers go away with the second column.
+>
+>   `tests/the_panel_of_the_cover_holds_the_words.rs` holds the gate, of six
+>   tests, and five more stand inside `src/ui/`. **The build of the fault**
+>   (the trap 147) — `if !a_picture_comes && false` and
+>   `if inside.height < THE_SMALLEST_PANEL_OF_THE_WORDS || true` of
+>   `the_parts_of_the_panel`, `'5' if false =>` of `of_the_digit`, the words
+>   `j/k: the description` and the line `key("5", …)` of `src/ui/keys.rs`
+>   taken out, and `if the_stack_stands && false &&` on the arm of the panel 5
+>   of `the_target_of_a_point` — made **eleven of the eleven** fail.
+>
+>   **The trap of this item**: **a picture that the program did not ask for
+>   yet is not a media with no cover.** The first form of `no_picture_comes`
+>   read `CoverArt::picture(…).is_some()`, and that value is `false` for every
+>   media at the frame of its first request: the panel then said the words on
+>   the whole column, and the picture came one frame later and it moved every
+>   word of it. The store of the covers holds four states, and the two that no
+>   second request asks for are the two states of this rule.
+>   - **The panel 6 of the gallery is the part of this stage that stays
+>     open**: a grid of the covers of the rows around the cursor, with the
+>     percent and a short title under each cell, and the keys `+` and `-` for
+>     the size of a cell. `cover::plan_covers` holds a shelf of four covers of
+>     a **series** already, and the gallery of the design is the list of the
+>     view and not a series.
+>   - **The facts of the design stay open too**: the mockup names the series,
+>     the narrator, the time that is left, the day of the start, the genre,
+>     the number of the files, the state of the ebook, and a bar of the
+>     progress, each on a line of its own at the right of the picture, and the
+>     panel says the two rows of the panel of a line of today. A panel of the
+>     design needs a collector of the facts of every one of the eight views of
+>     a cover, and that is a round of its own.
+>   - **A click of the picture, of a button, and of the bar of the progress
+>     names nothing** (the map of the mouse of the section (e) of
+>     `docs/mockups/mockup-1.md`), and **the panel 5 of a screen of two
+>     columns takes no key**, because the keys of a panel belong to the shape
+>     of three columns alone (T-320).
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
@@ -22271,6 +22416,12 @@ belongs to T-318 and a click that does nothing at all is the fault of T-79.
 > `AppView::SeriesBook`, and that road stands since T-22**, therefore a round
 > that reads "a series opens into no book" measures the program before it
 > believes it (T-318).
+> **The panel 5 of the cover holds the picture, the facts of the media, and the
+> description of it, and the words of that panel leave the column of the
+> list**; **a media that the server holds with no cover gives every row of that
+> panel to the words**, and **a picture that the program did not ask for yet is
+> not such a media** — `cover::no_picture_comes` reads the two states of the
+> store that no second request asks for, and no other value (T-319).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
@@ -22338,7 +22489,10 @@ belongs to T-318 and a click that does nothing at all is the fault of T-79.
 > 74608 bytes with two turns in it, and it took the oldest of the two out and
 > it wrote its own; the round of the hundred and fiftieth found it at 75710
 > bytes with two turns in it, and it did the same work, and the block then
-> held about 75000 bytes with **two** turns in it. **A block that stands under 80000 bytes holds two
+> held about 75000 bytes with **two** turns in it; the round of the hundred and
+> fifty-first found it at 75400 bytes with two turns in it, and it did the same
+> work, and the block then held about 77000 bytes with **two** turns in it.
+> **A block that stands under 80000 bytes holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions
 > grows with every round
