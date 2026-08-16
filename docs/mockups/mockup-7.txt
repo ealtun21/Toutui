@@ -1,0 +1,45 @@
+  Connected as toutuitest                                                 Books (book)                                                             Toutui v0.9.0
+  localhost:13399                                                   ⇅ The title  ▣ No filter
+┌1 Views ◉───────────────────────┐┌4 Chapters ◉ ⇕────────────────────────────────────────────────────┐┌5 Cover ◉ ⇕─────────────────────────────────────────────┐
+│ Home                       Tab ││ Counterfeit Soul: Bootstrap   Nyverin Orlyth   70 ch, 11h39m     ││  ▛▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▜                │
+│ Library                  S-Tab ││                                                                  ││  ▌     ░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░      ▐                │
+│ Sequence and filter          f ││ Book  ████│████│░░░░│░░░░░│░░░░░│░░░░│░░░░░│░░░░│░░░░░│░░░  17%  ││  ▌                                    ▐                │
+│ Authors                      a ││ Ch 12 ███████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  14%  ││  ▌          THE  KINGKILLER           ▐                │
+│ Narrators                    v ││                                                                  ││  ▌             CHRONICLE              ▐                │
+│ Collections                  c ││   #  Title                           Start    Length             ││  ▌           ▔▔▔▔▔▔▔▔▔▔▔▔▔            ▐                │
+│ Queue                        q ││  10  The Salt of the Road            1:31:44   10m26s            ││  ▌                                    ▐                │
+│ Downloads                    d ││  11  Ash and Salt                    1:42:10    9m12s            ││  ▌          Patrick Rothfuss          ▐                │
+│ Chapters                     C ││ ▸12  Carrion Bloom                   1:51:22    7m50s ▶          ││  ▌                                    ▐                │
+│ Bookmarks                    V ││  13  The Long Wake                   1:59:12   11m03s            ││  ▌     ░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░      ▐                │
+│ Sessions                     W ││  14  A Door of Green Glass           2:10:15    8m41s            ││  ▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▟                │
+│ Statistics                   T ││  15  The Second Bell                 2:18:56   12m18s            ││                                                        │
+│ Settings                     , ││  16  What the River Kept             2:31:14    9m57s            ││ Series    The Kingkiller Chronicle #0.6                │
+│ Search                       / ││  17  The House of No Names           2:41:11   10m44s            ││ Author    Patrick Rothfuss                             │
+│ Every key                    ? ││  18  Carrion Bloom, Again            2:51:55    8m02s            ││ Narrator  Nick Podehl, Patrick Rothfuss                │
+└────────────────────────────────┘│  19  The Quiet Market                2:59:57   13m26s            ││ Year      2023                                         │
+┌2 Sequence──────────────────────┐│  20  A Knife of Cold Water           3:13:23    7m19s            ││ Time      4h15m, 4h15m left                            │
+│ ▸ The title                    ││  21  The Fourth Door                 3:20:42   11m51s            ││ Started   13 Aug 2026                                  │
+│   The title, with no "A"       ││  22  Salt, and Then the Sea          3:32:33    9m08s            ││ Progress  0%, Not started                              │
+│   The author                   ││  23  The Long Wake, Again            3:41:41   10m35s            ││ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │
+│   The time when the book came  ││  24  What the River Took             3:52:16    8m27s            │└────────────────────────────────────────────────────────┘
+│   The year                     ││  25  The House of Many Names         4:00:43   12m02s            │┌6 Gallery ◉ ⇕───────────────────────────────────────────┐
+│   The length                   ││  26  A Door of Red Glass             4:12:45    9m39s            ││  ┏━━━━━━━━┓ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐│
+│   The size on the disk         ││  27  The Third Bell                  4:22:24   11m14s            ││  ┃▓▒░▒▓█▒░┃ │░▒▓█▓▒░▒│ │▒▓█░▒▓█░│ │█▓▒░█▓▒░│ │▓█▒░▓█▒░││
+│   The smallest first           ││  28  The Quiet Market, Again         4:33:38    8m56s            ││  ┃▒░▓█▒░▓█┃ │▓░▒█▓░▒█│ │░▓▒█░▓▒█│ │▒█▓░▒█▓░│ │█░▓▒█░▓▒││
+│   Every book of a series       ││  29  A Knife of Warm Water           4:42:34   10m11s            ││  ┃░▓▒█░▓▒█┃ │▒█▓░▒█▓░│ │█░▓▒█░▓▒│ │▓▒░█▓▒░█│ │░▒█▓░▒█▓││
+└────────────────────────────────┘│  30  The Fifth Door                  4:52:45    9m23s            ││  ┗━━━━━━━━┛ └────────┘ └────────┘ └────────┘ └────────┘│
+┌3 Filter────────────────────────┐│  31  A Bell of Cold Iron             5:02:08   10m47s            ││  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐│
+│ ▸ No filter                    ││  32  The Sixth Door                  5:12:55    8m33s            ││  │▒▓█░▒▓█░│ │█▓▒░█▓▒░│ │▓█▒░▓█▒░│ │░█▓▒░█▓▒│ │▓▒░▒▓█▒░││
+│   Finished                     ││  33  What the Sea Gave Back          5:21:28   11m40s            ││  │░▓▒█░▓▒█│ │▒█▓░▒█▓░│ │█░▓▒█░▓▒│ │▒░▓█▒░▓█│ │▒░▓█▒░▓█││
+│   Started, not finished        ││                                                                  ││  │█░▓▒█░▓▒│ │▓▒░█▓▒░█│ │░▒█▓░▒█▓│ │▓█░▒▓█░▒│ │░▓▒█░▓▒█││
+│   Not started                  ││ ▸ = the cursor   ▶ = the chapter that plays now   │ = a boundary ││  └────────┘ └────────┘ └────────┘ └────────┘ └────────┘│
+└────────────────────────────────┘└──────────────────────────────────────────────────────────────────┘└────────────────────────────────────────────────────────┘
+┌7 Player ◉ ↔──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  ▶ Counterfeit Soul: Bootstrap   Nyverin Orlyth      Chapter 12 of 70: Carrion Bloom            Speed 1.30x   Volume 70%   Sleep 25m                         │
+│  1:59:12  ├██████████████████████▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░┤  11:39:26      │
+│  Book  ████████████│░░░░░│░░░░░░░░░│░░░░░░░│░░░░░░░░░░░░│░░░░░░░░  17%     Chapter  ████████░░░░░░░░░░░░░░░░░░░░░░░░  14%                                    │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+  Chapter keys   j/k a chapter   Enter play it   g/G the ends   h the list   R refresh   ? every key   Q quit
+  Mouse   click a row to play that chapter   click the bar of the book to move to that place   the wheel moves the list
+
+

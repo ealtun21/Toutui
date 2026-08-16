@@ -36,3 +36,18 @@ The other four mockups stay in this directory. They hold ideas that the road
 can take later, and each of them says what it gives up: the two bars of the
 position of `mockup-3`, the rail of the covers of `mockup-4`, the series of a
 column of `mockup-2`, and the query that narrows a grid of `mockup-5`.
+
+## The two mockups of 2026-08-16, of the second report of the maintainer
+
+**The maintainer read the program v0.8.158 and they asked for two views of a
+new shape.** These two mockups keep the panels of `mockup-1` and they change
+the view inside the panel 4 alone.
+
+| The file | The view | The one idea |
+|---|---|---|
+| `mockup-6` | Home | Every shelf of the server is a band of covers, with `j`/`k` for a shelf and `h`/`l` for a cover. The table of 55 rows goes away. |
+| `mockup-7` | Chapters | The two bars of `mockup-3` over a table of the number, the title, the start, and the length. `Enter` plays a chapter. |
+
+`docs/TAKEOVER-BACKLOG.md` holds the work of the two of them: T-330 is the
+sweep of the words and the pictures, which holds the Chapters view of
+`mockup-7`, and T-331 is the new Home view of `mockup-6`.

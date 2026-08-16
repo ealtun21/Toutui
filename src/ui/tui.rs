@@ -2957,39 +2957,6 @@ impl App {
             .centered()
             .render(area, buf);
 
-        // **The header keeps the words of the sequence and of the filter for a
-        // screen that draws no stack** (T-318, and the decision 3 of the road
-        // of the panels): the panel 2 and the panel 3 say those two values at
-        // 120 columns and up, and a terminal under that width held no word of
-        // them at all — the user read them in the view of the key `f` alone,
-        // and that view hides the list that it describes.
-        //
-        // The words stand on the second row of the header, at the middle, under
-        // the name of the library.
-        if !self.the_stack_of_the_panels_stands()
-            && matches!(self.view_state, AppView::Home | AppView::Library)
-            && !self.is_offline
-        {
-            let of_the_server = match crate::logic::sort_filter::from_the_server::state() {
-                crate::logic::sort_filter::from_the_server::State::Ready(choices) => choices,
-                _ => Vec::new(),
-            };
-
-            Paragraph::new(format!(
-                "\n{}",
-                crate::ui::the_panels_of_the_stack::the_words_of_the_sequence_and_the_filter(
-                    self.is_podcast,
-                    &self.library_sort,
-                    self.library_desc,
-                    &self.library_filter,
-                    &of_the_server,
-                )
-            ))
-            .not_bold()
-            .centered()
-            .render(area, buf);
-        }
-
         // **The address of the pool, and not the address of the login.** A pool
         // of two addresses moves between them, and the header named the address
         // that the user gave at the login for ever. See T-105 and T-107.
@@ -3016,6 +2983,15 @@ impl App {
             Some(_) => format!("{}\n🔇 No sound device: no media can play", connection),
             None => connection,
         };
+
+        // The columns of the row of the address, which is the second row of
+        // this paragraph and the neighbour at the left of the words of the
+        // sequence and of the filter. See T-329.
+        let the_columns_of_the_address = connection
+            .lines()
+            .nth(1)
+            .map(crate::logic::message::the_columns_of)
+            .unwrap_or(0);
 
         Paragraph::new(connection)
             .not_bold()
@@ -3052,6 +3028,11 @@ impl App {
             self.update_msg.clone()
         };
 
+        // The columns of the notice, which is the neighbour at the right of the
+        // words. The paragraph carries a space of its own at the left of it.
+        let the_columns_of_the_notice =
+            crate::logic::message::the_columns_of(&notice) + usize::from(!notice.is_empty());
+
         Paragraph::new(format!(
             "{}\n {}",
             crate::ui::keys::the_name_of_the_program(VERSION, area.width),
@@ -3059,6 +3040,88 @@ impl App {
         ))
         .right_aligned()
         .render(area, buf);
+
+        // **The header keeps the words of the sequence and of the filter for a
+        // screen that draws no stack** (T-318, and the decision 3 of the road
+        // of the panels): the panel 2 and the panel 3 say those two values at
+        // 120 columns and up, and a terminal under that width held no word of
+        // them at all — the user read them in the view of the key `f` alone,
+        // and that view hides the list that it describes.
+        //
+        // **The words come after the two parts beside them** (T-329), because
+        // they take the room that those two leave: the address of the server
+        // stands at the left of this row and the notice of the key `R` stands
+        // at the right of it, and a centred paragraph over the whole area wrote
+        // on the letters of the address at every width under 80 columns and at
+        // 84 columns with a sequence of its own.
+        if !self.the_stack_of_the_panels_stands()
+            && matches!(self.view_state, AppView::Home | AppView::Library)
+            && !self.is_offline
+        {
+            let of_the_server = match crate::logic::sort_filter::from_the_server::state() {
+                crate::logic::sort_filter::from_the_server::State::Ready(choices) => choices,
+                _ => Vec::new(),
+            };
+
+            let the_words =
+                crate::ui::the_panels_of_the_stack::the_words_of_the_sequence_and_the_filter(
+                    self.is_podcast,
+                    &self.library_sort,
+                    self.library_desc,
+                    &self.library_filter,
+                    &of_the_server,
+                );
+
+            App::draw_the_words_of_the_sequence(
+                area,
+                buf,
+                &the_words,
+                the_columns_of_the_address,
+                the_columns_of_the_notice,
+            );
+        }
+    }
+
+    /// Draws the words of the sequence and of the filter on the second row of
+    /// the header, between the address at the left and the notice at the right.
+    ///
+    /// **This function stands beside `render_header` and not inside it** for the
+    /// reason of `draw_the_row_of_the_message`: a test of it needs a `Buffer`
+    /// and no `App`, no terminal, and no server at all. See T-329.
+    ///
+    /// `at_the_left` and `at_the_right` are the columns of the two neighbours of
+    /// the words on that row.
+    fn draw_the_words_of_the_sequence(
+        area: Rect,
+        buf: &mut Buffer,
+        the_words: &str,
+        at_the_left: usize,
+        at_the_right: usize,
+    ) {
+        if area.height < 2 {
+            return;
+        }
+
+        let Some(column) = crate::ui::the_panels_of_the_stack::the_column_of_the_words(
+            area.width,
+            u16::try_from(at_the_left).unwrap_or(u16::MAX),
+            u16::try_from(at_the_right).unwrap_or(u16::MAX),
+            u16::try_from(crate::logic::message::the_columns_of(the_words)).unwrap_or(u16::MAX),
+        ) else {
+            return;
+        };
+
+        let row = Rect {
+            x: area.x.saturating_add(column),
+            y: area.y.saturating_add(1),
+            width: area.width.saturating_sub(column),
+            height: 1,
+        };
+
+        Paragraph::new(the_words.to_string())
+            .not_bold()
+            .left_aligned()
+            .render(row, buf);
     }
 
     /// Draws the footer of a view.
@@ -3933,6 +3996,86 @@ mod tests {
         let words = the_label_of_a_download(&a_download(1_048_576, 2_097_152, 1));
 
         assert!(words.contains("1.0 MB / 2.0 MB"), "{words}");
+    }
+
+    /// The words of the sequence and of the filter must leave every letter of
+    /// the address of the server. See T-329.
+    ///
+    /// A measurement of the real program v0.8.158 at 84 columns read the second
+    /// row of the header:
+    ///
+    /// ```text
+    /// 🔗 localhost:13399title, the largest first ▣ The media that you finished
+    /// ```
+    ///
+    /// A `Paragraph` of the whole area writes its text at the middle of that
+    /// area, and the address of the row before it holds those columns already.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn the_words_of_the_sequence_leave_the_address_whole() {
+        let area = Rect {
+            x: 0,
+            y: 0,
+            width: 84,
+            height: 3,
+        };
+
+        let mut buf = Buffer::empty(area);
+
+        // The header wrote the address of the server on the second row.
+        buf.set_string(0, 1, "🔗 localhost:13399", Style::default());
+
+        App::draw_the_words_of_the_sequence(
+            area,
+            &mut buf,
+            "⇅ The title, the largest first ▣ The media that you finished",
+            18,
+            0,
+        );
+
+        let row: String = (0..area.width)
+            .map(|column| buf[(column, 1)].symbol().to_string())
+            .collect();
+
+        // **A mark of two columns takes two cells of the buffer**, and the
+        // second of them holds no symbol at all: a row that this test joins
+        // therefore holds one space more than the screen (the trap 245).
+        assert!(
+            row.contains(
+                "localhost:13399  ⇅ The title, the largest first ▣ The media that you finished"
+            ),
+            "the address stays whole, and the words stand beside it: {row:?}"
+        );
+
+        // A row that has no room for the whole of the words holds none of them,
+        // and the address of it stays whole.
+        let narrow = Rect {
+            x: 0,
+            y: 0,
+            width: 60,
+            height: 3,
+        };
+
+        let mut buf = Buffer::empty(narrow);
+        buf.set_string(0, 1, "🔗 localhost:13399", Style::default());
+
+        App::draw_the_words_of_the_sequence(
+            narrow,
+            &mut buf,
+            "⇅ The title, the largest first ▣ The media that you finished",
+            18,
+            0,
+        );
+
+        let row: String = (0..narrow.width)
+            .map(|column| buf[(column, 1)].symbol().to_string())
+            .collect();
+
+        assert!(
+            row.trim_end().ends_with("localhost:13399"),
+            "a narrow row holds the address alone: {row:?}"
+        );
     }
 
     /// The row of the message must hold the message and nothing else.

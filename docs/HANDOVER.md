@@ -4,7 +4,12 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.154.** The item T-324 belongs to this session. The
+**The newest release is v0.8.159.** The item T-329 belongs to this session. The
+item T-328 belongs to the session before it. The
+item T-327 belongs to the session before it. The
+item T-326 belongs to the session before it. The
+item T-325 belongs to the session before it. The
+item T-324 belongs to the session before it. The
 item T-323 belongs to the session before it. The
 item T-322 belongs to the session before it. The
 item T-319 belongs to the session before it. The
@@ -168,6 +173,82 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its 42 binaries, over two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and fifty-ninth turn of 2026-08-16: the words of the sequence leave the address of the server
+
+**The item: T-329**, and the release **v0.8.159**. It is a condition of the
+program that no measurement had reached: the status bar of the design holds
+three parts on one row, and the round of T-318 gave that row a third part with
+no rule of a neighbour at all.
+
+**This is the fault of T-115 one row below.** The round of 2026-08-12 measured
+the **first** row of the header, where the account and the library met at 60
+columns and the user read `👋 Connected as toutuitestBooks (book)`. The
+**second** row holds the address of the server at the left, the words of the
+sequence and of the filter in the middle, and the notice of the key `R` at the
+right, and every one of them is a `Paragraph` over the whole area.
+
+**The data of this item is the program itself**: no proxy, no book of a
+harness, and no change of the sandbox — the sequence and the filter of the
+account come of a `sqlite3` of `library_sort`, of `library_desc`, and of
+`library_filter`, which is the write of the key `f`.
+
+**The real program v0.8.158 inside tmux**, of the Home view of the library
+`Books` of the sandbox, with the sequence "the title, the largest first" and
+the filter "the media that you finished". The second row of the header:
+
+```text
+| 84 | 🔗 localhost:13399title, the largest first ▣ The media that you finished |
+| 90 | 🔗 localhost:13399he title, the largest first ▣ The media that you finished |
+```
+
+**84 to 119 columns is the shape of two columns**, which is the one shape that
+the decision 3 of the road of the panels gives those words. The same row, of
+the sequence of the server, which is the value of the start of every account,
+broke at every width under 80:
+
+```text
+| 60 | 🔗 localhost:13399quence of the server ▣ No filter |
+| 70 | 🔗 localhost:13399he sequence of the server ▣ No filter |
+```
+
+**The corrected program of the same harness**:
+
+```text
+| 60 | 🔗 localhost:13399 |
+| 70 | 🔗 localhost:13399  ⇅ The sequence of the server ▣ No filter |
+| 84 | 🔗 localhost:13399  ⇅ The title, the largest first ▣ The media that you finished |
+```
+
+**The four rows of 80, 84, 100, and 119 columns hold the mark `⇅` at the same
+column as the program before this item** — 20, 22, 30, and 39 — therefore the
+correction moved no screen that stood.
+
+**The correction is two files, and no new one.**
+`src/ui/the_panels_of_the_stack.rs` holds `the_column_of_the_words`, which is
+pure, and `src/ui/tui.rs` holds `App::draw_the_words_of_the_sequence`, which
+stands beside `render_header` for the reason of `draw_the_row_of_the_message`.
+`tests/the_words_of_the_header_do_not_meet_the_address.rs` holds four tests and
+`ui::tui::tests::the_words_of_the_sequence_leave_the_address_whole` holds the
+fifth. **The build of the fault**, of one line that gives the centred column
+back, made each of the five fail.
+
+**The decisions.** The words keep the middle of the row while the middle is
+free, therefore every screen that stood before this item stands in the same
+shape. They stand beside the part at the left with a gap of two columns when
+the middle is not free, and two columns is the gap that the row of 80 columns
+held already. **A row that has no room for the whole of the words holds none of
+them**: a text that the row cuts says nothing to the user (T-91), and the view
+of the key `f` holds those two values at every width of the screen already.
+
+**The traps of this round.** A mark of two columns takes two cells of a
+`Buffer`, and the second of them holds no symbol: a row that a test joins cell
+by cell therefore holds one space more than the screen. `grep -bo` and
+`awk index` do not agree on the place of a mark of a capture of tmux — the
+column of the screen comes of a `python3` that sums the width of each
+character. And `target/debug/deps` held 17749 files at the start of this round:
+the rule of the three newest hashes of every stem removed 14302 of them and it
+gave 295 gigabytes back (the trap 244).
 
 ## The session of the hundred and fifty-eighth turn of 2026-08-16: the panel of the cover says the day of the start
 
@@ -11652,6 +11733,39 @@ that file, or the test `every_key_of_the_handler_stands_in_the_list` fails.
 
 ## What is open
 
+### 0.a The second report of the maintainer of 2026-08-16 (T-330 and T-331)
+
+**The maintainer read the program v0.8.158 and they gave six points.** Five of
+them are **T-330**, a sweep of the words and of the pictures, and the sixth is
+**T-331**, a new Home view. `docs/TAKEOVER-BACKLOG.md` holds the evidence of
+each part. **This report comes above the road of the panels below**, because
+the maintainer gave it after that road finished its eight stages.
+
+| The part | What it gives | Where the design stands |
+|---|---|---|
+| T-330.1 | The words of the key `z` say `the panels 1, 2, and 3` and not `1 to 3` | `src/ui/keys.rs:576` and `:95`, `src/app.rs:2302`, `src/utils/changelog.rs` |
+| T-330.2 | The filters lose the empty words: `No filter`, `Finished`, `Started, not finished`, `Not started` | The panel 3, the view of the key `f`, and the second row of the header |
+| T-330.3 | The picture of the panel 5 takes every row that the facts and the description leave | `the_parts_of_the_panel` of `src/ui/the_panel_of_the_cover.rs` |
+| T-330.4 | The cell of the gallery holds the picture and its border alone | The panel 6 (T-327) |
+| T-330.5 | The Chapters view of the two bars and of the table of the times | `docs/mockups/mockup-7.txt` and `mockup-7.md` |
+| T-331 | The Home view of the bands of covers, one band for each shelf of the server | `docs/mockups/mockup-6.txt` and `mockup-6.md` |
+
+**The five parts of T-330 come in that sequence**, because the words are small
+and safe and the Chapters view is large: **one part is one round and one
+commit, with a gate of its own**.
+
+**T-331 starts at a spec** in `docs/superpowers/specs/` and not at code: it
+changes the meaning of the keys `h` and `l` of a view, it takes the table of
+the Home view away, and the tests of every item from T-316 to T-329 that
+measure that table each need a new measurement. The four questions that the
+spec must answer stand in the item T-331 of `docs/TAKEOVER-BACKLOG.md`.
+
+**The mockups are written already**, on 2026-08-16, outside the loop:
+`docs/mockups/mockup-6.txt`, `mockup-6.md`, `mockup-7.txt`, `mockup-7.md`, and
+the two lines of `docs/mockups/README.md`. **A round of T-330 or of T-331 must
+not write in `docs/mockups/`**, and it must not change a decision of those two
+notes: the maintainer approved them.
+
 ### 0. The road of the panels (T-316 to T-323)
 
 **The maintainer chose the mockup 1, the panels, on 2026-08-16.**
@@ -13767,6 +13881,111 @@ start needs `ls target/debug/toutui` before every other diagnosis** (with the
   nothing, because the agent reads the whole file at the start of a round.
 
 ## The turns before the three newest ones
+
+### The turn of the hundred and fifty-seventh: the panel 6 of the gallery (T-327)
+
+  **The session of the hundred and fifty-seventh turn took the last panel
+  of the design that no round built** (T-327): the panel 6 of the gallery
+  of the covers.
+
+  **The column at the right held one panel, and the rows that the panel 5
+  did not use held no character at all.** The sweep of T-323 of the regions
+  of the map of the mouse named it: "the whole of the panel 6 of the
+  gallery (no area of it stands in the code at all)". **The real program
+  v0.8.156 inside tmux**, at 160 columns and 45 rows, of the Library view
+  of the library `Large` of the sandbox, whose 2056 items each carry
+  `coverPath: null`:
+
+  ```text
+  ┌5 Cover ────────────────────────────────────────┐
+  │Time      0m                                    │
+  │Files     1 file, 0.0 MB                        │
+  │No description available                        │
+  │                                                │
+  │                                     … 35 rows …│
+  └────────────────────────────────────────────────┘
+  ```
+
+  **No digit, no key, and no click of the user could name that space**:
+  `ThePanel::of_the_digit('6')` gave `None`, and a test of
+  `tests/the_frame_of_the_panels_holds_its_three_shapes.rs` held that value
+  as a rule of the program.
+
+  **The data of this item is the program itself**: no proxy, no book of a
+  harness, and no change of the sandbox — the library of the row of the
+  account comes of a `sqlite3` of `name_selected_lib` and of
+  `id_selected_lib` (the trap 203 and the trap 204).
+
+  **The corrected program of the same harness**, of the library `Books` of
+  the sandbox, with the cursor on the first row of the list:
+
+  ```text
+  ┌6 Gallery ──────────────────────────────────────┐
+  │  ╔════════╗ ┌────────┐ ┌────────┐ ┌────────┐   │
+  │  ║        ║ │        │ │        │ │        │   │
+  │  ║        ║ │        │ │        │ │        │   │
+  │  ║        ║ │        │ │        │ │        │   │
+  │  ║  done  ║ │    -   │ │  done  │ │    -   │   │
+  │  ╚════════╝ └────────┘ └────────┘ └────────┘   │
+  │  A Book Of… A Book Of… A Book Of… A Very La…   │
+  │  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐   │
+  │  │        │ │        │ │        │ │        │   │
+  │  │        │ │        │ │        │ │        │   │
+  │  │        │ │        │ │        │ │        │   │
+  │  │   90%  │ │    -   │ │  done  │ │   50%  │   │
+  │  └────────┘ └────────┘ └────────┘ └────────┘   │
+  │  A Big Boo… A Book Th… A Huge Bo… A Long Te…   │
+  └────────────────────────────────────────────────┘
+  ```
+
+  **The controls of the same run**: the key `6` gave `╔6 Gallery ══╗` with
+  the footer `j/k: a row of the grid  +/-: the size of a cell  l: play or
+  open  h: the list  ?: every key  Q: quit`; two presses of `+` gave two
+  cells of 20 columns and one press of `-` gave three of 14; a click of the
+  fourth cell of the first row moved the cursor to `➤ A Very Large Book`; a
+  click of the border of the panel moved nothing; one step of the wheel
+  over the panel moved the cursor four lines, which is one row of the grid;
+  and a screen of 100 columns drew no gallery and its key `6` did nothing.
+
+  **The correction is six files, and one new one.**
+  `src/ui/the_panel_of_the_gallery.rs` is the new module, and every
+  function of it is pure: `the_two_panels` divides the column at the right,
+  `plan_the_gallery` gives the box, the picture, the row of the place, and
+  the row of the title of each cell, and `TheGallery::the_cell_of_a_point`
+  gives the cell of a click. `src/ui/frame.rs` gives `ThePanel` the value
+  `TheGallery`, the digit `6`, and the movement of the focus; `src/ui/tui.rs`
+  holds `App::render_the_gallery`; `src/app.rs` holds
+  `the_size_of_a_cell_of_the_gallery`, which a refresh keeps,
+  `the_gallery_of_the_last_frame`, `App::the_media_of_the_gallery`, and the
+  keys and the clicks; `src/ui/the_mouse.rs` holds the area and the target;
+  and `src/ui/keys.rs` holds the footer and the two lines of the view of the
+  key `?`. `tests/the_panel_of_the_gallery_shows_the_media_of_the_list.rs`
+  holds the gate, of four tests, beside the four tests of the new module,
+  and **the build of the fault** (the trap 147), of four edits of one line
+  each, made each of the four fail.
+
+  **The traps of this item.**
+  - **A panel that holds a part of a row of the grid holds rows that no
+    cell uses.** The first form of this panel took 40 percent of the
+    column, and the real program then gave one row of four cells and five
+    rows of no character at all under it — the fault of the panel 5 in a
+    smaller form. `THE_SHARE_OF_THE_GALLERY` is a limit and not a share.
+  - **A cell of no character is not a cell of no picture.** The cover of
+    `A Long Test Book` of the sandbox is 400 pixels by 400 of one red,
+    therefore the halfblocks of it are cells of a background of red and of
+    no letter: `tmux capture-pane -p` said nothing and
+    `tmux capture-pane -p -e` said `48;2;254;0;0` on four rows.
+  - **The rows of a picture come of the `FontSize` of the picker and not of
+    the mockup.** The boxes of `docs/mockups/mockup-1.txt` hold one row of
+    a picture, which no cover can use.
+  - **A row of the list that names no media must give no cell**, and
+    `AMediaOfTheGallery::the_line` carries the line of the list so that a
+    click of a cell moves the cursor to the row of that media.
+  - **`every_key_of_the_handler_stands_in_the_list` of `src/ui/keys.rs`
+    found the key `=`** with no line of the view of the key `?`, and
+    `no_key_stands_two_times_in_one_group` then found two lines of `j / k`
+    in the group of the panels.
+
 
 ## The session of the hundred and forty-ninth turn of 2026-08-16: the panels 2 and 3 of the sequence and of the filter, of the block of the prompt
 
@@ -23341,6 +23560,23 @@ together.
 >
 > ### The work, in the sequence of its value
 >
+> 0.a **The second report of the maintainer of 2026-08-16** (T-330 and T-331),
+>    which stands in `### 0.a The second report of the maintainer of
+>    2026-08-16 (T-330 and T-331)` of `## What is open` of
+>    `docs/HANDOVER.md`, outside this block. **This report comes above every
+>    other item of this list.** T-330 is a sweep of five parts, **in this
+>    sequence, one part for one round and one commit**: the words of the key
+>    `z` say `the panels 1, 2, and 3`; the words of the filters become `No
+>    filter`, `Finished`, `Started, not finished`, and `Not started`; the
+>    picture of the panel 5 takes every row that the facts and the description
+>    leave; the cell of the gallery holds the picture and its border alone,
+>    with no percentage and no title; and the Chapters view takes the two bars
+>    and the table of `docs/mockups/mockup-7.txt`. T-331 is the new Home view
+>    of the bands of covers of `docs/mockups/mockup-6.txt`, **and it starts at
+>    a spec in `docs/superpowers/specs/` and not at code**. **The mockups of
+>    the two of them are written already** (`mockup-6` and `mockup-7`, of
+>    2026-08-16): **a round must not write in `docs/mockups/`.**
+>
 > 0. **The four items that the maintainer gave on 2026-08-16** (T-316 to
 >    T-319), which stand in `### 0. The road of the panels (T-316 to T-323)`
 >    of `## What is open` of `docs/HANDOVER.md`, outside this
@@ -23382,6 +23618,84 @@ together.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
+>   **The session of the hundred and fifty-ninth turn took a condition that no
+>   measurement had reached** (T-329): the words of the sequence and of the
+>   filter wrote on the address of the server.
+>
+>   **The status bar of the design holds three parts on one row, and each of
+>   them is a `Paragraph` over the whole area.** That is the fault of T-115,
+>   which the round of 2026-08-12 measured on the **first** row of the header
+>   (`👋 Connected as toutuitestBooks (book)` at 60 columns). The round of
+>   T-318 gave the **second** row a third part — the words of the sequence and
+>   of the filter, between the address at the left and the notice of the key
+>   `R` at the right — and it gave that part no rule of a neighbour at all.
+>
+>   **The data of this item is the program itself**: no proxy, no book of a
+>   harness, and no change of the sandbox — the sequence and the filter of the
+>   account come of a `sqlite3` of `library_sort`, of `library_desc`, and of
+>   `library_filter`, which is the write of the key `f` (the trap 203 and the
+>   trap 204).
+>
+>   **The real program v0.8.158 inside tmux**, of the Home view of the library
+>   `Books` of the sandbox, with the sequence "the title, the largest first"
+>   and the filter "the media that you finished". The second row of the
+>   header:
+>
+>   ```text
+>   | 84 | 🔗 localhost:13399title, the largest first ▣ The media that you finished |
+>   | 90 | 🔗 localhost:13399he title, the largest first ▣ The media that you finished |
+>   ```
+>
+>   **84 to 119 columns is the shape of two columns**, which is the one shape
+>   that the decision 3 of the road of the panels gives those words. The same
+>   row, of the sequence of the server and of no filter, which is the value of
+>   the start of every account, broke at every width under 80:
+>
+>   ```text
+>   | 60 | 🔗 localhost:13399quence of the server ▣ No filter |
+>   | 70 | 🔗 localhost:13399he sequence of the server ▣ No filter |
+>   ```
+>
+>   **The corrected program of the same harness**:
+>
+>   ```text
+>   | 60 | 🔗 localhost:13399 |
+>   | 70 | 🔗 localhost:13399  ⇅ The sequence of the server ▣ No filter |
+>   | 84 | 🔗 localhost:13399  ⇅ The title, the largest first ▣ The media that you finished |
+>   ```
+>
+>   **The controls of the same run**: the four rows of 80, 84, 100, and 119
+>   columns hold the mark `⇅` at the same column as the program before this
+>   item — 20, 22, 30, and 39 — therefore the correction moved no screen that
+>   stood; the key `z` of a screen of 160 columns takes the stack away and the
+>   words then stand at the middle of the row, whole; and a screen of 160
+>   columns with the stack draws no such words at all, because the panel 2 and
+>   the panel 3 hold them.
+>
+>   **The correction is two files, and no new one.**
+>   `src/ui/the_panels_of_the_stack.rs` holds `the_column_of_the_words`, which
+>   is pure: it takes the width of the row, the columns of the two parts
+>   beside the words, and the columns of the words, and it gives the column
+>   where they start or `None`. `src/ui/tui.rs` holds
+>   `App::draw_the_words_of_the_sequence`, which stands beside `render_header`
+>   and not inside it for the reason of `draw_the_row_of_the_message`: a test
+>   of it needs a `Buffer` and no `App`, no terminal, and no server at all.
+>   `tests/the_words_of_the_header_do_not_meet_the_address.rs` holds four
+>   tests and `ui::tui::tests::the_words_of_the_sequence_leave_the_address_whole`
+>   holds the fifth, and **the build of the fault** (the trap 147), of one line
+>   that gives the centred column back, made each of the five fail.
+>
+>   **The traps of this item.**
+>   - **A mark of two columns takes two cells of a `Buffer`, and the second of
+>     them holds no symbol at all**: a row that a test joins cell by cell
+>     therefore holds one space more than the screen, and an assertion of
+>     `starts_with` of the whole row fails for a program that is right.
+>   - **`grep -bo` and `awk index` do not agree on the place of a mark of a
+>     capture of tmux**: the column of the screen comes of a `python3` that
+>     sums the width of each character, and of no count of bytes.
+>   - **`str::len` is not the width of a row** (the trap 245): the words of
+>     the measurement hold 60 columns and 66 bytes.
+>
 >   **The session of the hundred and fifty-eighth turn took the last part of
 >   the stage 6 that a round can build** (T-328): the panel of the cover says
 >   the day when the user started the media.
@@ -23466,108 +23780,6 @@ together.
 >     the account started and never played holds `startedAt` and
 >     `progress: 0`, therefore the line of the day and the line of the place
 >     are two facts and not one.
->
->   **The session of the hundred and fifty-seventh turn took the last panel
->   of the design that no round built** (T-327): the panel 6 of the gallery
->   of the covers.
->
->   **The column at the right held one panel, and the rows that the panel 5
->   did not use held no character at all.** The sweep of T-323 of the regions
->   of the map of the mouse named it: "the whole of the panel 6 of the
->   gallery (no area of it stands in the code at all)". **The real program
->   v0.8.156 inside tmux**, at 160 columns and 45 rows, of the Library view
->   of the library `Large` of the sandbox, whose 2056 items each carry
->   `coverPath: null`:
->
->   ```text
->   ┌5 Cover ────────────────────────────────────────┐
->   │Time      0m                                    │
->   │Files     1 file, 0.0 MB                        │
->   │No description available                        │
->   │                                                │
->   │                                     … 35 rows …│
->   └────────────────────────────────────────────────┘
->   ```
->
->   **No digit, no key, and no click of the user could name that space**:
->   `ThePanel::of_the_digit('6')` gave `None`, and a test of
->   `tests/the_frame_of_the_panels_holds_its_three_shapes.rs` held that value
->   as a rule of the program.
->
->   **The data of this item is the program itself**: no proxy, no book of a
->   harness, and no change of the sandbox — the library of the row of the
->   account comes of a `sqlite3` of `name_selected_lib` and of
->   `id_selected_lib` (the trap 203 and the trap 204).
->
->   **The corrected program of the same harness**, of the library `Books` of
->   the sandbox, with the cursor on the first row of the list:
->
->   ```text
->   ┌6 Gallery ──────────────────────────────────────┐
->   │  ╔════════╗ ┌────────┐ ┌────────┐ ┌────────┐   │
->   │  ║        ║ │        │ │        │ │        │   │
->   │  ║        ║ │        │ │        │ │        │   │
->   │  ║        ║ │        │ │        │ │        │   │
->   │  ║  done  ║ │    -   │ │  done  │ │    -   │   │
->   │  ╚════════╝ └────────┘ └────────┘ └────────┘   │
->   │  A Book Of… A Book Of… A Book Of… A Very La…   │
->   │  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐   │
->   │  │        │ │        │ │        │ │        │   │
->   │  │        │ │        │ │        │ │        │   │
->   │  │        │ │        │ │        │ │        │   │
->   │  │   90%  │ │    -   │ │  done  │ │   50%  │   │
->   │  └────────┘ └────────┘ └────────┘ └────────┘   │
->   │  A Big Boo… A Book Th… A Huge Bo… A Long Te…   │
->   └────────────────────────────────────────────────┘
->   ```
->
->   **The controls of the same run**: the key `6` gave `╔6 Gallery ══╗` with
->   the footer `j/k: a row of the grid  +/-: the size of a cell  l: play or
->   open  h: the list  ?: every key  Q: quit`; two presses of `+` gave two
->   cells of 20 columns and one press of `-` gave three of 14; a click of the
->   fourth cell of the first row moved the cursor to `➤ A Very Large Book`; a
->   click of the border of the panel moved nothing; one step of the wheel
->   over the panel moved the cursor four lines, which is one row of the grid;
->   and a screen of 100 columns drew no gallery and its key `6` did nothing.
->
->   **The correction is six files, and one new one.**
->   `src/ui/the_panel_of_the_gallery.rs` is the new module, and every
->   function of it is pure: `the_two_panels` divides the column at the right,
->   `plan_the_gallery` gives the box, the picture, the row of the place, and
->   the row of the title of each cell, and `TheGallery::the_cell_of_a_point`
->   gives the cell of a click. `src/ui/frame.rs` gives `ThePanel` the value
->   `TheGallery`, the digit `6`, and the movement of the focus; `src/ui/tui.rs`
->   holds `App::render_the_gallery`; `src/app.rs` holds
->   `the_size_of_a_cell_of_the_gallery`, which a refresh keeps,
->   `the_gallery_of_the_last_frame`, `App::the_media_of_the_gallery`, and the
->   keys and the clicks; `src/ui/the_mouse.rs` holds the area and the target;
->   and `src/ui/keys.rs` holds the footer and the two lines of the view of the
->   key `?`. `tests/the_panel_of_the_gallery_shows_the_media_of_the_list.rs`
->   holds the gate, of four tests, beside the four tests of the new module,
->   and **the build of the fault** (the trap 147), of four edits of one line
->   each, made each of the four fail.
->
->   **The traps of this item.**
->   - **A panel that holds a part of a row of the grid holds rows that no
->     cell uses.** The first form of this panel took 40 percent of the
->     column, and the real program then gave one row of four cells and five
->     rows of no character at all under it — the fault of the panel 5 in a
->     smaller form. `THE_SHARE_OF_THE_GALLERY` is a limit and not a share.
->   - **A cell of no character is not a cell of no picture.** The cover of
->     `A Long Test Book` of the sandbox is 400 pixels by 400 of one red,
->     therefore the halfblocks of it are cells of a background of red and of
->     no letter: `tmux capture-pane -p` said nothing and
->     `tmux capture-pane -p -e` said `48;2;254;0;0` on four rows.
->   - **The rows of a picture come of the `FontSize` of the picker and not of
->     the mockup.** The boxes of `docs/mockups/mockup-1.txt` hold one row of
->     a picture, which no cover can use.
->   - **A row of the list that names no media must give no cell**, and
->     `AMediaOfTheGallery::the_line` carries the line of the list so that a
->     click of a cell moves the cursor to the row of that media.
->   - **`every_key_of_the_handler_stands_in_the_list` of `src/ui/keys.rs`
->     found the key `=`** with no line of the view of the key `?`, and
->     `no_key_stands_two_times_in_one_group` then found two lines of `j / k`
->     in the group of the panels.
 >
 >
 >    **The turns before this one stand in `## The turns before the three
@@ -23665,6 +23877,14 @@ together.
 > started takes no line at all**, which is the rule of T-325; and **the line
 > takes no road of T-239 and of T-240**, because a live message of the server
 > names no day of a start (T-328).
+> **The words of the sequence and of the filter of the status bar keep the
+> middle of the row while the middle is free**, therefore every screen that
+> stood before T-329 stands in the same shape; **they stand beside the part at
+> the left with a gap of two columns** when the middle is not free, and two
+> columns is the gap that the row of 80 columns held already; and **a row that
+> has no room for the whole of them holds none of them**, because a text that
+> the row cuts says nothing to the user (T-91) and the view of the key `f`
+> holds those two values at every width of the screen already (T-329).
 > **The panel 6 of the gallery holds whole rows of its grid alone**, because a
 > panel of a part of a row holds rows of the screen that no cell uses; **the
 > rows of a picture of a cell come of the `FontSize` of the picker and not of
@@ -23784,7 +24004,10 @@ together.
 > two turns in it, and it did the same work, and the block then held **84390**
 > bytes with **two** turns in it; the round of the hundred and fifty-eighth
 > found it at 85334 bytes with two turns in it, and it did the same work, and
-> the block then held about **84000** bytes with **two** turns in it.
+> the block then held about **84000** bytes with **two** turns in it; the round
+> of the hundred and fifty-ninth found it at 85141 bytes with two turns in it,
+> and it did the same work, and the block then held **82818** bytes with **two**
+> turns in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

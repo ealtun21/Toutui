@@ -30339,3 +30339,296 @@ that no click reads promises a function that the program does not have (T-118).
 The facts stand **under** the picture and not beside it, which is a decision of
 T-325 that does not open again. **Every named part of the stage 6 that a round
 can build is done.**
+
+## T-329: the words of the sequence write on the address of the server
+
+**The status bar of the design holds three parts on one row, and each of them
+is a paragraph of its own over the whole area.** That is the fault of T-115,
+which the round of 2026-08-12 measured on the **first** row of the header: the
+account at the left and the library in the middle met at 60 columns, and the
+user read `👋 Connected as toutuitestBooks (book)`. The round of T-318 gave the
+**second** row of that header a third part, the words of the sequence and of
+the filter, and it gave that part no rule of a neighbour at all.
+
+**The data of this item is the program itself**: no proxy, no book of a
+harness, and no change of the sandbox — the sequence and the filter of the
+account come of a `sqlite3` of `library_sort`, of `library_desc`, and of
+`library_filter`, which is the write of the key `f` (the trap 203 and the trap
+204), and the library of it comes of `name_selected_lib` and of
+`id_selected_lib`.
+
+### The fault
+
+**The real program v0.8.158 inside tmux**, of the Home view of the library
+`Books` of the sandbox, at 45 rows, with the sequence "the title, the largest
+first" and the filter "the media that you finished". The second row of the
+header:
+
+```text
+| The width | The row |
+|---|---|
+| 84 | 🔗 localhost:13399title, the largest first ▣ The media that you finished |
+| 90 | 🔗 localhost:13399he title, the largest first ▣ The media that you finished |
+```
+
+**84 to 119 columns is the shape of two columns of the design**, which is the
+one shape that the decision 3 of the road of the panels gives those words: the
+user of that shape read no gap, no mark `⇅`, and no first word of the sequence.
+
+The same row, of the sequence of the server and of no filter, which is the
+value of the start of every account:
+
+```text
+| 40 | 🔗 localhost:13399the server ▣ No filte |
+| 50 | 🔗 localhost:13399e of the server ▣ No filter |
+| 60 | 🔗 localhost:13399quence of the server ▣ No filter |
+| 70 | 🔗 localhost:13399he sequence of the server ▣ No filter |
+| 80 | 🔗 localhost:13399  ⇅ The sequence of the server ▣ No filter |
+```
+
+**The words are 40 columns wide and the address is 18**, therefore a screen of
+80 columns centres them at the column 20 and the two of them just miss each
+other. Every width under 80 gave the address over the start of the words, and
+**a longer sequence moved that line up into the shape of two columns**: the 60
+columns of the words of the measurement above collide at 84 and at 90.
+
+### The correction
+
+**Two files, and no new one.** `src/ui/the_panels_of_the_stack.rs` holds
+`the_column_of_the_words`, which is pure: it takes the width of the row, the
+columns of the two parts beside the words, and the columns of the words, and it
+gives the column where they start or `None`. The rules of it:
+
+- **The words keep the middle of the row while the middle is free**, therefore
+  every screen that stood before this item stands in the same shape.
+- **They stand beside the part at the left, with a gap of two columns**, when
+  the middle is not free. Two columns is the gap that the row of 80 columns
+  held before this item.
+- **A row that has no room for the whole of the words holds none of them**: a
+  text that the row cuts says nothing to the user (T-91), and the view of the
+  key `f` holds those two values at every width of the screen already.
+
+`src/ui/tui.rs` holds `App::draw_the_words_of_the_sequence`, which stands
+beside `render_header` and not inside it for the reason of
+`draw_the_row_of_the_message`: a test of it needs a `Buffer` and no `App`, no
+terminal, and no server at all. `render_header` measures the second row of the
+connection and the notice of the key `R`, and it draws the words **after** the
+two of them.
+
+### The program after the correction
+
+The same harness, of the same account:
+
+```text
+| The width | The row |
+|---|---|
+| 60 | 🔗 localhost:13399 |
+| 84 | 🔗 localhost:13399  ⇅ The title, the largest first ▣ The media that you finished |
+| 100 | 🔗 localhost:13399  ⇅ The title, the largest first ▣ The media that you finished |
+```
+
+And of the sequence of the server, whose words are 40 columns:
+
+```text
+| 40 | 🔗 localhost:13399 |
+| 60 | 🔗 localhost:13399 |
+| 70 | 🔗 localhost:13399  ⇅ The sequence of the server ▣ No filter |
+| 80 | 🔗 localhost:13399  ⇅ The sequence of the server ▣ No filter |
+| 84 | 🔗 localhost:13399    ⇅ The sequence of the server ▣ No filter |
+| 100 | 🔗 localhost:13399            ⇅ The sequence of the server ▣ No filter |
+| 119 | 🔗 localhost:13399                     ⇅ The sequence of the server ▣ No filter |
+```
+
+**The four rows of 84, 100, 119, and 80 columns hold the mark `⇅` at the same
+column as the program before this item** — 22, 30, 39, and 20 — therefore the
+correction moved no screen that stood.
+
+**The controls of the same run**: the key `z` of a screen of 160 columns takes
+the stack away, and the words then stand at the middle of the row, whole; a
+screen of 160 columns with the stack draws no such words at all, because the
+panel 2 and the panel 3 hold them.
+
+### The gate
+
+`tests/the_words_of_the_header_do_not_meet_the_address.rs` holds four tests,
+and `ui::tui::tests::the_words_of_the_sequence_leave_the_address_whole` holds
+the fifth, of a `Buffer` of 84 columns that holds the address already. **The
+build of the fault** (the trap 147), of one line that gives the centred column
+back before every other line of the function, made each of the five fail.
+
+### The traps of this item
+
+- **A mark of two columns takes two cells of the buffer, and the second of them
+  holds no symbol**: a row that a test joins cell by cell therefore holds one
+  space more than the screen, and an assertion of `starts_with` of the whole row
+  fails for a program that is right.
+- **`str::len` is not the width of a row** (the trap 245): the marks `⇅` and `▣`
+  take three bytes and one column each, therefore the words of the measurement
+  hold 60 columns and 66 bytes.
+- **`grep -bo` and `awk index` do not agree on the place of a mark of a capture
+  of tmux**: the column of the screen comes of a `python3` that sums the width
+  of each character, and of no count of bytes.
+
+### What stays open
+
+**The regions of the map of the mouse of T-323 that stay** hold the picture of
+the panel 5, the buttons of the facts of it, the bar of the progress of it, the
+whole status bar, the buttons of the panel 7, the box of the message, and the
+row of the downloads. **This item corrects the words of that status bar and it
+gives it no click**, which is a part of its own.
+
+## T-330 — The sweep of the words and the pictures, of the report of the maintainer of 2026-08-16
+
+**The maintainer read the program v0.8.158 and they gave six points.** Five of
+them are this item, and the sixth is T-331. **The five parts come in this
+sequence**, because the words are small and safe and the Chapters view is
+large: a round takes one part, it gives that part a gate of its own, and it
+commits it alone.
+
+### The part 1 — The words of the key `z` say the three panels
+
+**The fault.** The user hid the panels 1, 2, and 3 with the key `z`, and the
+footer said `z: the panels 1 to 3`. **`1 to 3` reads as `1 and 3`**: the
+maintainer read that the panels 1 and 3 were away, while all the three of them
+were away.
+
+**The correction.** The words become `the panels 1, 2, and 3` at each of the
+four places: `src/ui/keys.rs:576` (the footer of the list, with the stack
+away), `src/ui/keys.rs:95` (the line of the key `z` of the view of the key
+`?`), `src/app.rs:2302` (the message of the press of the key), and
+`src/utils/changelog.rs` (the entry of the release that named the key). **A
+number of a list of three takes two commas and the word `and`**, and no `to`.
+
+**The gate.** A test of `keys.rs` reads the footer of the stack that is hidden
+and it looks for `1, 2, and 3`; a test of the changelog holds the same words.
+**No test may look for `1 to 3` after this part.**
+
+### The part 2 — The words of the filters lose the empty words
+
+**The fault.** The panel 3 says `The media that you finished`, `The media that
+you started`, and `The media that you did not finish`. **A line of the panel 3
+holds 30 columns** (T-324), and `The media that` takes 14 of them and it says
+nothing: every row of that panel is a media.
+
+**The correction.** The four values become `No filter`, `Finished`, `Started,
+not finished`, and `Not started`, at the panel 3, at the view of the key `f`,
+and at the second row of the header (T-329). **`Started, not finished` is not
+`Started`**, because the filter of the server gives the media that the user
+started and did not finish, and a word that says less than the filter does is a
+word that lies.
+
+**The gate.** The test of the words of the filter of `the_panels_of_the_stack`
+holds the four values; the test of the header of T-329 measures the row with
+the longest of them.
+
+### The part 3 — The picture of the panel 5 takes every free row
+
+**The fault.** The screen of the maintainer of 2026-08-16, of 45 rows, held a
+picture of the panel 5 of 5 rows over 14 rows of the facts and 6 empty rows.
+**`THE_SHARE_OF_THE_COVER` gives the picture a share of the height of the
+panel** (`src/ui/the_panel_of_the_cover.rs`, the function
+`the_parts_of_the_panel`), therefore a tall panel gives the picture few rows and
+it leaves the rest empty.
+
+**The correction.** The rule turns: **the facts and the description keep the
+rows that they need, and every row that stays goes to the picture.** The
+picture keeps the shape of the cover (`cover::box_of_the_picture`), therefore a
+wide panel does not make a wide picture: the rows that the shape does not use
+stay empty at the two sides, and not under it.
+
+**The gate.** A test of `the_parts_of_the_panel` of a panel of 22 rows, of 8
+rows of facts and 3 of a description, gives a picture of 11 rows and not of 8.
+**The build of the fault** (the trap 147): a share of 40% that comes back makes
+that test fail.
+
+### The part 4 — The gallery of the panel 6 holds pictures and borders alone
+
+**The fault.** A cell of the panel 6 holds the picture, a row of the
+percentage, and a row of the title (T-327). The maintainer read that as noise:
+**the panel 5 says the facts of the media of the cursor already**, and the
+gallery is the picture.
+
+**The correction.** The cell holds the picture and a border of one line, and
+nothing else. **The border of the cell of the cursor is heavy and bright, and
+the border of every other cell is thin and dim** — a colour alone is not the
+mark of the focus, which is a decision of `mockup-1`. The rows that the words
+gave back go to the pictures, therefore a panel of the same height holds a
+larger cell or one row more of them.
+
+**The gate.** A test of the plan of the cells reads the buffer of the panel and
+it finds no digit of a percentage and no letter of a title; a test of the
+border reads the two shapes of it.
+
+### The part 5 — The Chapters view of the two bars and of the table
+
+**The design is `docs/mockups/mockup-7.txt`, and its note holds every rule.**
+
+**The fault.** The Chapters view says the number and the title of each chapter,
+it says no time at all, and no key of it plays a chapter: the user reads the
+list and they then move the media with the keys `P` and `U` of the player.
+
+**The correction.** Two bars stand over the table — the bar of the whole book,
+with a mark `│` at each boundary of a chapter, and the bar of the chapter of
+the cursor under it. Each row of the table says the number, the title, the
+start of the chapter in the whole book, and the length of the chapter. **A
+press of `Enter`, and a click on a row, plays that chapter.** The mark `▸` is
+the cursor and the mark `▶` is the chapter that plays now.
+
+**The traps of this part.**
+- **A book of 70 chapters and a bar of 52 columns**: two boundaries of the same
+  column take one mark. A bar that draws a mark for each chapter is a bar of
+  marks alone.
+- **A book of no chapters** keeps the two bars and it says `This book has no
+  chapters.` in place of the table.
+- **The bar drops its marks under 40 columns**, because the marks then stand
+  beside each other with no space at all.
+
+**The gate.** A test of the pure function of the bar, of a book of 70 chapters
+in 52 columns, of a book of 3 chapters in 52 columns, and of a book of no
+chapter at all; a test of the row of the table of a chapter of 7m50s at
+1:51:22; and a test of the key `Enter` of the view.
+
+## T-331 — The new Home view of the bands of covers
+
+**The design is `docs/mockups/mockup-6.txt`, and `docs/mockups/mockup-6.md`
+holds every rule, the narrow screen, the terminal with no pictures, and the map
+of the mouse.** The maintainer approved the five decisions of that note on
+2026-08-16.
+
+**The fault.** The Home view is one table of 55 rows, with a row of a title
+over each shelf. That table says the same four columns for the shelf `Continue
+Listening` of 4 media that the user plays now and for the shelf `Discover` of
+the media that the user never saw, and the covers of those media stand in the
+panel 6 alone, far from the row.
+
+**The correction.** Every shelf becomes a band of covers with the title of the
+shelf over it. **The shelves come of the server**
+(`GET /api/libraries/<id>/personalized`) **in the sequence that the server
+gives**, and the program holds no list of its own and no setting of its own.
+**The keys `j` and `k` move to the shelf above and under, the keys `h` and `l`
+move along the covers of one shelf, and `Enter` plays or opens.** A cell holds
+the picture and its border alone. **The table of today goes away**, and no key
+turns between the two shapes.
+
+**This item needs a spec of its own before any code**, in
+`docs/superpowers/specs/`, because it changes the meaning of the keys `h` and
+`l` of a view, it changes the shape of the whole Home view, and the tests of
+the Home view of every item from T-316 to T-329 measure the table.
+
+**The parts that the spec must answer.**
+- **The keys `h` and `l` of the Home view play no media now**, and the key `l`
+  plays in every other view. The spec says what the footer of the Home view
+  says, and it says if the key `l` keeps a second meaning of "play" while the
+  cursor stands on a cover.
+- **The band asks for many covers at one time.** The store of the covers holds
+  the bytes of each media (`src/ui/cover.rs`), and 5 bands of 6 cells is 30
+  requests at the start of the view. The spec says how many the program asks
+  for, and when.
+- **A terminal with no protocol of pictures** keeps the bands and the keys, and
+  the cell then holds the title of the media, cut to the width of the cell.
+- **The tests of the Home view that measure the table** each need a new
+  measurement, and the spec names them.
+
+**The mockups are complete already**: `mockup-6.txt`, `mockup-6.md`, and the
+two lines of `docs/mockups/README.md`. **A round of this item must not write
+in `docs/mockups/`**, and it starts at the spec.

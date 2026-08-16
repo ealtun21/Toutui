@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.159",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The words of the sequence and of the filter no longer write on \
+             the address of your server.** A terminal of 84 columns read \
+             `localhost:13399title, the largest first`, with no gap and no \
+             first word. The words now stand beside the address, and they keep \
+             the middle of the row while the middle is free.",
+            "Note:",
+            "- A row that has no room for the whole of those words holds none \
+             of them. The key `f` gives the sequence and the filter at every \
+             width of your screen.",
+        ],
+    },
+    Entry {
         version: "0.8.158",
         date: "16/08/2026",
         body: &[

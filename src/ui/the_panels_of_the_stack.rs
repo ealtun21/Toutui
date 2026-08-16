@@ -249,6 +249,67 @@ pub fn the_words_of_the_sequence_and_the_filter(
     )
 }
 
+/// The columns between the words of the header and the part beside them.
+///
+/// **The header holds three parts on one row, and each of them writes its own
+/// letters only** (T-115). A gap of two columns is the gap that the row of the
+/// address held at 80 columns before T-329, therefore a screen that stood
+/// stands in the same shape.
+pub const THE_GAP_OF_THE_WORDS: u16 = 2;
+
+/// The column where the words of the sequence and of the filter start, and
+/// `None` for a row that has no room for them. See T-329.
+///
+/// **The row of the address is not the row of the words alone.** The second row
+/// of the header holds the address of the server at the left, the words of the
+/// sequence and of the filter in the middle, and the notice of the key `R` at
+/// the right, and every one of them is a paragraph of its own over the whole
+/// area: a part that is too long therefore writes on the letters of its
+/// neighbour, which is the fault of T-115 one row below. The measurement of the
+/// real program v0.8.158 at 84 columns read
+/// `🔗 localhost:13399title, the largest first ▣ The media that you finished`,
+/// with no gap, no mark `⇅`, and no first word.
+///
+/// **The words keep the middle of the row while the middle is free**, therefore
+/// every screen that stood before this correction stands in the same shape.
+/// They stand beside the address when the middle is not free, and **a row with
+/// no room for the whole of them holds none of them**: a text that the row cuts
+/// says nothing to the user (T-91), and the view of the key `f` holds those two
+/// values for every width of the screen already.
+///
+/// `at_the_left` and `at_the_right` are the columns of the two parts beside the
+/// words, and `the_words` is the columns of the words themselves
+/// (`crate::logic::message::the_columns_of`, and not the bytes of the text —
+/// the marks `⇅` and `▣` take three bytes and one column each).
+pub fn the_column_of_the_words(
+    width: u16,
+    at_the_left: u16,
+    at_the_right: u16,
+    the_words: u16,
+) -> Option<u16> {
+    let first = at_the_left.saturating_add(THE_GAP_OF_THE_WORDS);
+    let after_the_last = width.saturating_sub(at_the_right.saturating_add(THE_GAP_OF_THE_WORDS));
+
+    // A row whose two neighbours meet holds no word at all, and
+    // `saturating_sub` gives 0 for the width that is too small.
+    let the_room = after_the_last.saturating_sub(first);
+
+    if the_words == 0 || the_words > the_room {
+        return None;
+    }
+
+    // The middle of the whole row, which is the place that `Paragraph::centered`
+    // gives. A row of an odd number of free columns keeps the rule of ratatui,
+    // which puts the extra column at the right.
+    let of_the_middle = width.saturating_sub(the_words) / 2;
+
+    if of_the_middle >= first && of_the_middle.saturating_add(the_words) <= after_the_last {
+        return Some(of_the_middle);
+    }
+
+    Some(first)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
