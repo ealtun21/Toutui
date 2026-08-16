@@ -163,6 +163,57 @@ pub fn the_description_of_a_podcast(the_subtitle: &str, the_description: &str) -
     crate::utils::values_of_the_server::a_description_or_nothing(Some(the_description))
 }
 
+/// The text of the panel of one line of the view of the episodes of a podcast.
+/// See T-288.
+///
+/// **A line that the lists of the view do not hold says the words of a value
+/// that the program does not have**, and it says no word of a program to the
+/// user. The two panels of that view said different things for one condition:
+/// the panel of the view of a search read every list with `at`, and the panel
+/// of the view of the library held three branches of the length of its lists.
+/// Each of those branches drew `Error: Episode info rendering mismatch.` or
+/// `Error: Episode data unavailable or index out of bounds.` in the place of
+/// the panel, and it wrote one line of the log **at every frame**.
+///
+/// The measurement of 2026-08-16, of the real program v0.8.116 against the
+/// sandbox: a podcast of 11 episodes whose first episode lost its `audioFile`
+/// gave 10 lengths for 11 lines, the last line drew that second sentence, and
+/// the log held 35 lines of it in nine seconds.
+///
+/// **The name and the author belong to the podcast**, therefore they hold no
+/// line: the old code made a copy of each of them for every line, and the
+/// number of those copies was the number of the lengths.
+pub fn the_panel_of_an_episode(
+    title_of_the_podcast: &str,
+    author: &str,
+    episodes: &[String],
+    durations: &[String],
+    line: usize,
+    of_the_disk: &str,
+    place: &ThePlaceOfThePanel,
+) -> String {
+    format!(
+        "[{}] - Author: {} - Episode: {} - Duration: {}{}\nProgress: {}%, {} {}",
+        title_of_the_podcast.trim(),
+        author.trim(),
+        the_value_of_the_line(episodes, line),
+        the_value_of_the_line(durations, line),
+        of_the_disk,
+        place.percent,
+        place.the_time_that_is_left,
+        place.the_end,
+    )
+}
+
+/// The value of one line of a list of the view, or the words of a value that
+/// the program does not have. See T-288.
+fn the_value_of_the_line(list: &[String], line: usize) -> &str {
+    list.get(line)
+        .map(|value| value.as_str())
+        .unwrap_or(crate::utils::values_of_the_server::NOT_AVAILABLE)
+        .trim()
+}
+
 /// The time that is left of the place of a live message of the server.
 /// See T-240.
 ///

@@ -2694,118 +2694,79 @@ impl App {
 
     // info about the podcast for `PodcastEpisode`
     fn render_info_pod_ep(&self, area: Rect, buf: &mut Buffer, list_state: &ListState) {
-        // Check if source vectors for podcast title/author are empty before accessing index 0
-        if self.titles_pod.is_empty() || self.authors_pod_ep.is_empty() {
-            log::error!("render_info_pod_ep: titles_pod or authors_pod_ep is empty. Cannot render episode info.");
-            // Render placeholder text or handle appropriately
-            Paragraph::new("Error: Podcast metadata missing.")
-                .wrap(Wrap { trim: true })
-                .left_aligned()
-                .render(area, buf);
-            return; // Exit the function early
-        }
+        let Some(selected) = list_state.selected() else {
+            return;
+        };
 
-        let n = self.durations_pod_ep.len();
-        // Now safe to access index 0 as we've checked they are not empty
-        let duplicated_titles = vec![at(&self.titles_pod, 0).to_string(); n];
-        let duplicated_authors = vec![at(&self.authors_pod_ep, 0).to_string(); n];
+        let of_the_disk = self
+            .ids_pod_ep
+            .get(selected)
+            .map(|id| the_copy_of_the_disk(id))
+            .unwrap_or("");
 
-        if let Some(selected) = list_state.selected() {
-            log::debug!(
-                "render_info_pod_ep: selected={}, titles_pod.len={}, authors_pod_ep.len={}, durations_pod_ep.len={}, episodes_pod_ep.len={}, duplicated_titles.len={}, duplicated_authors.len={}",
-                selected,
-                self.titles_pod.len(), // Should be >= 1 here
-                self.authors_pod_ep.len(), // Should be >= 1 here
-                self.durations_pod_ep.len(),
-                self.episodes_pod_ep.len(),
-                duplicated_titles.len(), // Will be n
-                duplicated_authors.len() // Will be n
-            );
+        // **The panel of a line of this view said nothing of the place of the
+        // user** (T-229).
+        //
+        // **The panel of an episode says the time that is left too** (T-244):
+        // the length of the episode stands in `the_lengths_of_the_episodes`
+        // (T-236) and the place of the user in seconds stands in
+        // `pod_ep_places`.
+        //
+        // **The panel of a media that plays reads the engine of this program**
+        // (T-239).
+        let place = self.the_place_of_the_panel_of_the_episodes(selected);
 
-            // Check if episode-specific vectors are valid for the selected index
-            if selected < self.episodes_pod_ep.len() && selected < self.durations_pod_ep.len() {
-                // Also check duplicated vectors, though their length depends on n (durations_pod_ep.len())
-                if selected < duplicated_titles.len() && selected < duplicated_authors.len() {
-                    let of_the_disk = self
-                        .ids_pod_ep
-                        .get(selected)
-                        .map(|id| the_copy_of_the_disk(id))
-                        .unwrap_or("");
-
-                    // **The panel of a line of this view said nothing of the
-                    // place of the user** (T-229).
-                    //
-                    // **The panel of an episode says the time that is left too**
-                    // (T-244): the length of the episode stands in
-                    // `the_lengths_of_the_episodes` (T-236) and the place of the
-                    // user in seconds stands in `pod_ep_places`.
-                    //
-                    // **The panel of a media that plays reads the engine of
-                    // this program** (T-239).
-                    let place = self.the_place_of_the_panel_of_the_episodes(selected);
-
-                    Paragraph::new(format!(
-                        "[{}] - Author: {} - Episode: {} - Duration: {}{}\nProgress: {}%, {} {}",
-                        at(&duplicated_titles, selected).trim(),
-                        at(&duplicated_authors, selected).trim(),
-                        at(&self.episodes_pod_ep, selected).trim(),
-                        at(&self.durations_pod_ep, selected).trim(),
-                        of_the_disk,
-                        place.percent,
-                        place.the_time_that_is_left,
-                        place.the_end,
-                    ))
-                    .wrap(Wrap { trim: true })
-                    .left_aligned()
-                    .render(area, buf);
-                } else {
-                    log::error!("render_info_pod_ep: Index {} out of bounds for duplicated title/author vectors (len={})!", selected, duplicated_titles.len());
-                    Paragraph::new("Error: Episode info rendering mismatch.")
-                        .wrap(Wrap { trim: true })
-                        .left_aligned()
-                        .render(area, buf);
-                }
-            } else {
-                log::error!("render_info_pod_ep: Index {} out of bounds for episode/duration vectors (ep_len={}, dur_len={})!", selected, self.episodes_pod_ep.len(), self.durations_pod_ep.len());
-                Paragraph::new("Error: Episode data unavailable or index out of bounds.")
-                    .wrap(Wrap { trim: true })
-                    .left_aligned()
-                    .render(area, buf);
-            }
-        }
+        // **A line that the lists of this view do not hold says the words of a
+        // value that the program does not have** (T-288). This road held three
+        // branches of the length of its lists, and each of them drew the words
+        // of a program in the place of the panel and wrote one line of the log
+        // at every frame.
+        Paragraph::new(crate::logic::the_panel_of_a_line::the_panel_of_an_episode(
+            at(&self.titles_pod, 0),
+            at(&self.authors_pod_ep, 0),
+            &self.episodes_pod_ep,
+            &self.durations_pod_ep,
+            selected,
+            of_the_disk,
+            &place,
+        ))
+        .wrap(Wrap { trim: true })
+        .left_aligned()
+        .render(area, buf);
     }
     // info about the podcast for `PodcastEpisode` (from search)
     fn render_info_pod_ep_search(&self, area: Rect, buf: &mut Buffer, list_state: &ListState) {
-        let n = self.durations_pod_ep_search.len();
-        let duplicated_titles_search = vec![at(&self.titles_pod_search, 0).to_string(); n];
-        let duplicated_authors_search = vec![at(&self.authors_pod_ep_search, 0).to_string(); n];
-        if let Some(selected) = list_state.selected() {
-            let of_the_disk = self
-                .ids_pod_ep_search
-                .get(selected)
-                .map(|id| the_copy_of_the_disk(id))
-                .unwrap_or("");
+        let Some(selected) = list_state.selected() else {
+            return;
+        };
 
-            // The panel of this view says the place of the user too. See
-            // T-229, T-239 for the media that plays, and T-244 for the time that
-            // is left.
-            let place = self.the_place_of_the_panel_of_the_episodes_of_a_search(selected);
+        let of_the_disk = self
+            .ids_pod_ep_search
+            .get(selected)
+            .map(|id| the_copy_of_the_disk(id))
+            .unwrap_or("");
 
-            Paragraph::new(format!(
-                "[{}] - Author: {} - Episode: {} - Duration: {}{}\nProgress: {}%, {} {}",
-                at(&duplicated_titles_search, selected).trim(),
-                at(&duplicated_authors_search, selected).trim(),
-                at(&self.episodes_pod_ep_search, selected).trim(),
-                at(&self.durations_pod_ep_search, selected).trim(),
-                of_the_disk,
-                place.percent,
-                place.the_time_that_is_left,
-                place.the_end,
-            ))
-            .wrap(Wrap { trim: true })
-            .left_aligned()
-            .render(area, buf);
-        }
+        // The panel of this view says the place of the user too. See
+        // T-229, T-239 for the media that plays, and T-244 for the time that
+        // is left.
+        let place = self.the_place_of_the_panel_of_the_episodes_of_a_search(selected);
+
+        // **The two panels of this view say one thing for one condition**
+        // (T-288): the copy of the name of the podcast of this road stood in a
+        // list of the length of the lengths of the episodes, therefore a line
+        // above that length lost the name of its podcast too.
+        Paragraph::new(crate::logic::the_panel_of_a_line::the_panel_of_an_episode(
+            at(&self.titles_pod_search, 0),
+            at(&self.authors_pod_ep_search, 0),
+            &self.episodes_pod_ep_search,
+            &self.durations_pod_ep_search,
+            selected,
+            of_the_disk,
+            &place,
+        ))
+        .wrap(Wrap { trim: true })
+        .left_aligned()
+        .render(area, buf);
     }
 
     // desc of the podcast for `PodcastEpisode`

@@ -167,25 +167,28 @@ pub async fn collect_titles_pod(item: &Root) -> Vec<String> {
     titles_pod
 }
 
-// collect duration
+/// The length of each episode of a podcast, as a text.
+///
+/// **The list holds one value for each episode** (T-288). This function pushed
+/// a value for an episode of an audio file alone: an episode with no audio file
+/// therefore took the length of the episode after it, and the last line of the
+/// view held no value at all. The measurement of 2026-08-16, of a podcast of 11
+/// episodes whose first episode lost its `audioFile`: the panel of the first
+/// line said `Duration: 22m` for an episode of 5 minutes, and the panel of the
+/// last line said `Error: Episode data unavailable or index out of bounds.`
+///
+/// **A length of 0 is a length that the server did not give** (T-180), and an
+/// episode with no audio file holds no length. Each of them gives the words of
+/// a value that the server did not give, beside the label `Duration:` (T-249).
 pub async fn collect_durations_pod_ep(item: &Root) -> Vec<String> {
-    let mut durations = Vec::new();
-
-    if let Some(media) = &item.media {
-        if let Some(episodes) = &media.episodes {
-            for episode in episodes {
-                if let Some(audio_file) = &episode.audio_file {
-                    if let Some(duration) = audio_file.duration {
-                        durations.push(duration);
-                    } else {
-                        durations.push(0.0);
-                    }
-                }
-            }
-        }
-    }
-
-    convert_seconds(durations)
+    the_lengths_of_the_episodes(item)
+        .await
+        .into_iter()
+        .map(|length| match length {
+            Some(length) => convert_seconds(vec![length]).remove(0),
+            None => crate::utils::values_of_the_server::NOT_AVAILABLE.to_string(),
+        })
+        .collect()
 }
 
 /// Gives the length of each episode of a podcast, in seconds. See T-236.
@@ -199,10 +202,12 @@ pub async fn collect_durations_pod_ep(item: &Root) -> Vec<String> {
 /// episode of no audio file holds no length. Each of them gives `None`, and the
 /// media of that line says no time.
 ///
-/// **The list holds one value for each episode**: `collect_durations_pod_ep`
-/// pushes a value for an episode of an audio file alone, therefore an episode
-/// with no audio file takes the length of the episode after it. The lists of
-/// this view stand one against the other by the number of the line (T-24).
+/// **The list holds one value for each episode**, and the lists of this view
+/// stand one against the other by the number of the line (T-24).
+/// `collect_durations_pod_ep` reads this function now, and it therefore holds
+/// that rule too: it pushed a value for an episode of an audio file alone, and
+/// an episode with no audio file then took the length of the episode after it
+/// (T-288).
 pub async fn the_lengths_of_the_episodes(item: &Root) -> Vec<Option<f64>> {
     let Some(episodes) = item
         .media

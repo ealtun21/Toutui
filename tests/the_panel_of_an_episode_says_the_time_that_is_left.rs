@@ -86,12 +86,18 @@ fn the_panel_of_an_episode_says_the_time_that_is_left() {
 
     let screen = std::fs::read_to_string("src/ui/tui.rs").expect("the source of the screen");
 
-    for head in [
-        "fn render_info_home(",
-        "fn render_info_pod_ep(",
-        "fn render_info_pod_ep_search(",
+    // **The two panels of the view of the episodes of a podcast stand in one
+    // function now** (T-288): `the_panel_of_an_episode` of
+    // `src/logic/the_panel_of_a_line.rs` holds the format of both of them, and
+    // the two roads of `src/ui/tui.rs` call it.
+    let panels = std::fs::read_to_string("src/logic/the_panel_of_a_line.rs")
+        .expect("the source of the panel of a line");
+
+    for (source, head) in [
+        (&screen, "fn render_info_home("),
+        (&panels, "pub fn the_panel_of_an_episode("),
     ] {
-        let block = the_block_of(&screen, head);
+        let block = the_block_of(source, head);
 
         assert!(
             block.contains("Progress: {}%, {} {}"),
@@ -101,6 +107,17 @@ fn the_panel_of_an_episode_says_the_time_that_is_left() {
         assert!(
             block.contains("place.the_time_that_is_left"),
             "the panel of an episode of `{}` says no time that is left",
+            head
+        );
+    }
+
+    for head in ["fn render_info_pod_ep(", "fn render_info_pod_ep_search("] {
+        let block = the_block_of(&screen, head);
+
+        assert!(
+            block.contains("the_panel_of_an_episode("),
+            "the panel of an episode of `{}` must read the one function of that \
+             panel (T-288)",
             head
         );
     }

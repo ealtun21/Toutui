@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.117",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The view of the episodes of a podcast now says the length of \
+             each episode.** The program made one length for each episode that \
+             holds an audio file, and not one length for each episode: an \
+             episode with no audio file therefore took the length of the \
+             episode after it, and the last line of the view got no length at \
+             all. The panel of that last line said \"Error: Episode data \
+             unavailable or index out of bounds.\", and the program wrote one \
+             line of the file of the log at every frame of the screen. An \
+             episode of a length that the server does not give now says \
+             \"N/A\", and the panel of every line says the values of that \
+             line.",
+        ],
+    },
+    Entry {
         version: "0.8.116",
         date: "16/08/2026",
         body: &[

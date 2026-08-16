@@ -24127,3 +24127,187 @@ holds 0 chapters, and the program asked for the chapter 0
   read. A book of no chapter gave one line of it in this measurement; a road
   that calls it two times for one key would say the fault two times. **This is a
   candidate and not a measurement.**
+
+### T-288: the panel of a line of the view of the episodes holds the value of that line
+
+**The state**: corrected on 2026-08-16, in v0.8.117. The measurement is of the
+real program v0.8.116 inside tmux against the sandbox.
+
+#### The choice of this item
+
+T-287 left open the candidate "A line of a log that a user takes to a maintainer
+is a word for the user too: ask it of every line of the log of `src/` that names
+a number of a list". The sweep of the 352 lines of the log of `src/` found one
+candidate of that shape (`src/player/engine/hls_file.rs:248`, "The reader starts
+at the part {first}", where `first` is the index of the segment and the sibling
+line two lines below it says `first + 1`) — and it found **two lines of the log
+that no rule of this fork allows at all**:
+
+```text
+render_info_pod_ep: Index {} out of bounds for duplicated title/author vectors (len={})!
+render_info_pod_ep: Index {} out of bounds for episode/duration vectors (ep_len={}, dur_len={})!
+```
+
+Those two lines stand in the **render** of `src/ui/tui.rs`, and each of them
+draws a sentence for the user beside itself:
+
+```text
+Error: Podcast metadata missing.
+Error: Episode info rendering mismatch.
+Error: Episode data unavailable or index out of bounds.
+```
+
+Three sentences of a program for the user, in the words of a machine, with no
+key of a road back (T-284) and with a reason that the user cannot use (T-91).
+**The twin of that render for the view of a search holds no such branch at
+all**: `render_info_pod_ep_search` reads every list with `at`, which gives
+`N/A`.
+
+#### The road to the fault
+
+The two lists of that view do not hold the same number of values.
+`collect_episodes_pod_ep` of `src/api/utils/collect_get_pod_ep.rs` pushes one
+value for **each episode**, and `collect_durations_pod_ep` of that same file
+pushed one value for **each episode that holds an audio file**:
+
+```rust
+for episode in episodes {
+    if let Some(audio_file) = &episode.audio_file {
+        …
+    }
+}
+```
+
+`the_lengths_of_the_episodes` of that same file obeys the rule of T-24 already
+(T-236 gave it that rule), and its own doc comment named this fault of its
+neighbour and left it standing.
+
+#### The measurement
+
+**The data of this fault is one field of one row of one answer.**
+`docs/harness/a_field_of_one_row_goes_away.py` takes it away:
+
+```bash
+python3 docs/harness/a_field_of_one_row_goes_away.py 13506 13399 requests.log \
+    /api/items/b793354b-9841-480a-bd09-41923596517e media.episodes 0 audioFile
+```
+
+The account took `http://127.0.0.1:13506` in `users.server_address` of the
+database of the program (the trap 129), and a copy of that file gave the address
+of the sandbox back. The row of the account took the library `Podcasts` with a
+`sqlite3` before the start (the trap 203 and the trap 204). The podcast
+`Arthur Gordon Pym` of that library holds 11 episodes, of 305, 1319, 2336, 1280,
+1099, 1033, 1215, 937, 1016, 1116, and 699 seconds.
+
+The keys `Tab`, `j`, and `l` gave the view of its episodes. The panel of the
+first line:
+
+```text
+➤ 22% Chapter 00
+[Arthur Gordon Pym] - Author: LibriVox - Episode: 0 - Duration: 22m
+```
+
+`Chapter 00` is 305 seconds long, which is 5 minutes. The panel said the length
+of `Chapter 01`. Ten keys `j` gave the last line:
+
+```text
+➤     Chapter 10
+Error: Episode data unavailable or index out of bounds.
+```
+
+**That road writes one line of the log at every frame.** The log held 35 lines
+of `render_info_pod_ep: Index 10 out of bounds for episode/duration vectors
+(ep_len=11, dur_len=10)!` in nine seconds, and the count grows while the cursor
+stands on that line.
+
+#### The correction
+
+Two files.
+
+1. `src/api/utils/collect_get_pod_ep.rs`: `collect_durations_pod_ep` reads
+   `the_lengths_of_the_episodes` now, therefore it gives one value for each
+   episode. **A length of 0 and an episode with no audio file are each a length
+   that the server did not give** (T-180), and the words of such a value beside
+   the label `Duration:` are `N/A` (T-249).
+2. `src/logic/the_panel_of_a_line.rs`: `the_panel_of_an_episode` holds the
+   format of the panel of both roads of that view, and it reads every list with
+   the words of a value that the program does not have. The two renders of
+   `src/ui/tui.rs` call it, and the three branches of the length of the lists,
+   the three sentences of a program, and the two lines of the log of every frame
+   go away. **The name of the podcast and the name of the author belong to the
+   podcast**, therefore they hold no line: the old code made a copy of each of
+   them for every line, and the number of those copies was the number of the
+   lengths — a line above that number therefore lost the name of its podcast
+   too.
+
+The corrected program of the same condition said `Duration: N/A` for the first
+line and
+
+```text
+[Arthur Gordon Pym] - Author: LibriVox - Episode: 10 - Duration: 12m
+```
+
+for the last one, and the log held **no** line of that render at all.
+
+#### The controls
+
+1. **The control of the same run** (the trap 206): the same corrected program
+   against the sandbox with no proxy said `Duration: 5m` for the first line and
+   `Duration: 12m` for the last one.
+2. The view kept its 11 lines, its cursor, and its footer on both roads.
+
+#### The test, and the build of the fault
+
+`tests/the_panel_of_an_episode_holds_the_value_of_its_line.rs`. The parts of it
+stay in one function (T-144 and T-157), and it needs no server and no screen.
+Two builds of the fault each fail it:
+
+```text
+the lists of the view of the episodes stand one against the other by the number
+of the line (T-24): …
+  left: 3
+ right: 4
+
+a line that a list of this view does not hold keeps the panel of its media, and
+the value of that list says N/A (T-249)
+  left: "… - Episode: 3 - Duration: Error: Episode data unavailable or index out
+         of bounds.\nProgress: 22%, 5m left, Not finished"
+```
+
+`tests/the_panel_of_an_episode_says_the_time_that_is_left.rs` reads the source
+with the block of a function (the trap 209), and the format of that panel moved
+out of `src/ui/tui.rs`: that test reads the new function now, and it reads that
+the two renders call it.
+
+#### What this item closes and what stays open
+
+- **The candidate 2 of T-287 closes.** T-287 read "`no_such_chapter` writes its
+  line at every road to `ReaderError::NoSuchChapter`, and `chapter_bytes` calls
+  it three times for one read". A sweep of `src/logic/reader/book.rs` gave the
+  answer: the three call sites of `chapter_bytes` are `?` and `return Err(…)`,
+  therefore each of them leaves the function at once and one call of
+  `chapter_bytes` writes 0 or 1 lines of that fault. `chapter_xhtml` holds the
+  two roads of a PDF and of an EPUB apart in the same way. **No road of the
+  program says that fault two times for one key.**
+- **The candidate 1 of T-287 stays open in part**: the sweep of the lines of the
+  log of `src/` that name a number of a list found one candidate that stays,
+  `src/player/engine/hls_file.rs:248`. **The name of a part of a stream is the
+  value of every other line of that file** (`part.name`, of the form
+  `output-7.ts`), therefore the road of that line is the name and not a number
+  of one more. **This is a candidate and not a measurement**, and it needs the
+  book of xHE-AAC of the sandbox.
+- **A new candidate**: the panel of the first line of that measurement said
+  `Progress: 22%, -1m left, Not finished`. A time that is left of **less than
+  zero** is no time at all, and the place of that line came of a percent of the
+  server with a length that the program does not have. **This is a candidate and
+  not a measurement.**
+- **A new candidate**: `render_desc_pod_ep` of `src/ui/tui.rs` holds the last
+  branch of this shape — a `log::error!` of every frame beside
+  `Error: Episode description unavailable.` — and its twin of the view of a
+  search holds none. The measurement of this round did not reach it, because
+  `subtitles_pod_ep` held one value for each episode. **This is a candidate and
+  not a measurement.**
+- **The candidate 1 of T-286 stays open**: the reader holds the book of the
+  memory over the key `h`.
+- **The three forms of a size of T-285 stay open**, and the two messages of
+  `--update` of `src/update/install.rs` stay open.

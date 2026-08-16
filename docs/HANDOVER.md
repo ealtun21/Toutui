@@ -133,6 +133,67 @@ gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
 
+## The session of the hundred and seventeenth turn of 2026-08-16: the panel of a line of the view of the episodes holds the value of that line
+
+**The item: T-288.** T-287 left the candidate "a line of a log that a user takes
+to a maintainer is a word for the user too: ask it of every line of the log of
+`src/` that names a number of a list".
+
+**One release: v0.8.117.**
+
+The sweep of the 352 lines of the log of `src/` found one candidate of the shape
+of T-287 (`src/player/engine/hls_file.rs:248`), and it found two lines that no
+rule of this fork allows at all — `render_info_pod_ep: Index {} out of bounds
+for episode/duration vectors (ep_len={}, dur_len={})!` of the **render** of
+`src/ui/tui.rs`, each with a sentence of a program for the user beside it:
+`Error: Podcast metadata missing.`, `Error: Episode info rendering mismatch.`,
+and `Error: Episode data unavailable or index out of bounds.` The twin of that
+render for the view of a search holds no such branch: it reads every list with
+`at`, which gives `N/A`.
+
+The measurement, of the real program v0.8.116 inside tmux against the sandbox.
+**The data of that fault is one field of one row of one answer**:
+`docs/harness/a_field_of_one_row_goes_away.py 13506 13399 requests.log
+/api/items/b793354b-9841-480a-bd09-41923596517e media.episodes 0 audioFile`.
+The podcast `Arthur Gordon Pym` of the library `Podcasts` holds 11 episodes, and
+the first of them lost its audio file. The keys `Tab`, `j`, and `l` gave the
+view, and the panel of the first line said `Duration: 22m` for an episode of 305
+seconds. Ten keys `j` gave the last line:
+
+```text
+➤     Chapter 10
+Error: Episode data unavailable or index out of bounds.
+```
+
+The log held 35 lines of that fault in nine seconds, because the render writes
+one of them at every frame.
+
+The road of the fault: `collect_episodes_pod_ep` pushes one value for each
+episode, and `collect_durations_pod_ep` pushed one value for each episode **that
+holds an audio file**. `the_lengths_of_the_episodes` of that same file obeys the
+rule of T-24 already (T-236), and its own doc comment named this fault of its
+neighbour and left it standing.
+
+The correction is two files. `collect_durations_pod_ep` reads
+`the_lengths_of_the_episodes` now, and a length of 0 or an episode of no audio
+file gives `N/A` (T-180 and T-249). `the_panel_of_an_episode` of
+`src/logic/the_panel_of_a_line.rs` holds the format of both roads of that view,
+and it reads every list with the words of a value that the program does not
+have. The corrected program of the same condition said `Duration: N/A` for the
+first line and `Episode: 10 - Duration: 12m` for the last one, and the log held
+no line of that render at all. The control of the same run: the same program
+against the sandbox with no proxy said `5m` and `12m`.
+
+The test is `tests/the_panel_of_an_episode_holds_the_value_of_its_line.rs`, and
+two builds of the fault each fail it.
+`tests/the_panel_of_an_episode_says_the_time_that_is_left.rs` reads the source
+with the block of a function (the trap 209), and the format of that panel moved
+out of `src/ui/tui.rs`: that test reads the new function now.
+
+**The gates**: `cargo clippy --all-targets -- -D warnings` and
+`cargo fmt --check` say nothing, and `cargo nextest run` gives **1336 of 1336**
+in 2.6 seconds with 26 skipped.
+
 ## The session of the hundred and sixteenth turn of 2026-08-16: a line of the log of the reader says the number of the user
 
 **The item: T-287.** T-286 left the candidate "the line of the log of that
@@ -15687,6 +15748,116 @@ its text and with no line of the reader in the log.
   T-282): the block has a limit of size, therefore this turn names the new
   candidates alone and it does not repeat that list.
 
+
+### The turn of the hundred and fifteenth of 2026-08-16, in the words of the prompt of that round (T-286)
+
+**The
+session of the hundred and fifteenth turn took the candidate
+"`ReaderError::TheArchiveGaveNoChapter` names the key `n` alone, while
+the keys `p` and `h` each do their work of that fault too", which T-285
+opened** (T-286).
+
+The measurement, of the real program v0.8.114 inside tmux against the
+sandbox. **The data of that fault is a book, and it needs no proxy at
+all**: the new harness `docs/harness/a_book_of_a_damaged_chapter.py`
+writes an EPUB of three chapters, and 64 bytes of the deflate stream of
+the second chapter take the value of their own complement. The central
+directory and the local header keep every number, therefore `rbook`
+opens the book and the read of the chapter 2 alone fails. The
+measurement of T-277 did that work with a hand on the real book of the
+sandbox; this harness writes it in 3294 bytes. The book went in the
+cache of the ebooks of `toutuitest` under the name of the item of
+`Alice in Wonderland`, and the keys `Tab`, 15 keys `j`, and `e` gave the
+view of the reader at `chapter 2 of 3` with the sentence of that fault,
+which named the key `n` alone.
+
+**The three keys of the view each did the work of that fault**: the key
+`n` gave `chapter 3 of 3` with its text, the key `p` gave
+`chapter 1 of 3` with its text, and the key `h` gave the Library view.
+The sibling arm `ChapterAbsent` of the same enum — a fault of the same
+class — named all three already.
+
+The correction is one file. The arm now says `Press n for the chapter
+after this one, or p for the chapter before it. Press h to leave the
+book. The file of the log holds more.` The corrected program said that
+sentence on four rows, and the three controls held.
+- **A key that a sibling arm names is not a key of this arm** (T-286):
+  the road of the key `X` of T-285 does no work of this fault. The key
+  `h`, then the key `X`, took the copy of the disk away, and **the press
+  of the key `e` after it gave the same screen of the same damaged
+  book**, with no request of the server and with no file back on the
+  disk. **The reader holds the book of the memory over the key `h`**,
+  therefore a book that a second program changes on the disk does not
+  reach the reader of this program. **This is a candidate and not a
+  measurement.**
+- **The line of the log of that fault says `the archive gave no chapter
+  1 of the book`, while the header of the same screen says `chapter 2 of
+  3`** (T-286): the log holds the index of the program and the view
+  holds the number of the user (the rule of T-283). **Ask it of every
+  line of the log of `src/logic/reader/`. This is a candidate and not a
+  measurement.**
+- **The log held two lines of that one fault, 256 milliseconds apart,
+  for one press of a key** (T-286), while the rule of T-277 says that
+  the render of a chapter that gave a fault does not start again. **This
+  is a candidate and not a measurement.**
+- **Every candidate of the list of the turn below stays open** (T-229 to
+  T-285): the block has a limit of size, therefore this turn names the
+  new candidates alone and it does not repeat that list.
+
+
+### The turn of the hundred and sixteenth of 2026-08-16, in the words of the prompt of that round (T-287)
+
+**The
+session of the hundred and sixteenth turn took the candidate "The line of
+the log of that fault says `the archive gave no chapter 1 of the book`,
+while the header of the same screen says `chapter 2 of 3`", which T-286
+opened** (T-287).
+
+The sweep, of the 35 lines of the log of `src/logic/reader/`. The three
+lines of `session.rs` that name a chapter say `chapter + 1` already, and
+no line of `pdf.rs` and of `pdf_of_a_child.rs` names a page of the user.
+**Two lines of `book.rs` said the index of the program**, and each of them
+stands beside a sibling that says `index + 1`: the arm of a read of the
+archive that failed, and `no_such_chapter`.
+
+The measurement, of the real program v0.8.115 inside tmux against the
+sandbox. **The data of that fault is a book, and it needs no proxy at
+all**: the book of `docs/harness/a_book_of_a_damaged_chapter.py` and the
+book of `docs/harness/a_book_of_no_chapter.py` each went in the cache of
+the ebooks of `toutuitest` under the name of the item of `Alice in
+Wonderland`, and the keys `Tab`, 15 keys `j`, `e`, and `p` gave the view
+of the reader. The screen said `chapter 2 of 3` and the log of that same
+key press said `the archive gave no chapter 1 of the book`, and the book
+of no chapter gave `the book holds 0 chapters, and the program asked for
+the chapter 0`. **No book of any user holds a chapter 0.**
+
+The correction is one file and two lines, `index + 1` and `asked + 1`.
+**No sentence of a user changed**: the two views said the same words after
+the correction as before it, and the good book of `Alice in Wonderland`
+read with no line of the reader in the log. The test takes the slot of the
+logger of the crate `log` with `log::set_boxed_logger`, therefore **the
+parts of it stay in one function**.
+- **The candidate 3 of T-286 closes** (T-287): T-286 read "the log held
+  two lines of that one fault, 256 milliseconds apart, for one press of a
+  key". The measurement of this round of that same book gave **one** line
+  of the reader for each press, and the second line 256 milliseconds after
+  it is `[WARN] stop_parsing for XML5` of the crate of the render of the
+  chapter after the fault. **The rule of T-277 holds.**
+- **A line of a log that a user takes to a maintainer is a word for the
+  user too** (T-287): the rule of the number of T-283 held the sentence of
+  the screen alone, and two lines of the log of the same faults said a
+  different number. **Ask it of every line of the log of `src/` that names
+  a number of a list: a page, a line, a file, a part of a stream, and a
+  chapter.** **This is a candidate and not a measurement.**
+- **`no_such_chapter` writes its line at every road to
+  `ReaderError::NoSuchChapter`, and `chapter_bytes` calls it three times
+  for one read** (T-287). A book of no chapter gave one line of it; a road
+  that calls it two times for one key would say the fault two times.
+  **This is a candidate and not a measurement.**
+- **Every candidate of the list of the turn below stays open** (T-229 to
+  T-286): the block has a limit of size, therefore this turn names the
+  new candidates alone and it does not repeat that list.
+
 ## The prompt for the next session
 
 **This session read the candidate "`ChapterTooLarge` of `ReaderError` says
@@ -16579,114 +16750,87 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 >    this shape found a fault in one hundred and four sessions of one hundred
 >    and five.
 >    **The
->    session of the hundred and sixteenth turn took the candidate "The line of
->    the log of that fault says `the archive gave no chapter 1 of the book`,
->    while the header of the same screen says `chapter 2 of 3`", which T-286
->    opened** (T-287).
+>    session of the hundred and seventeenth turn took the candidate "A line of
+>    a log that a user takes to a maintainer is a word for the user too: ask
+>    it of every line of the log of `src/` that names a number of a list",
+>    which T-287 opened** (T-288).
 >
->    The sweep, of the 35 lines of the log of `src/logic/reader/`. The three
->    lines of `session.rs` that name a chapter say `chapter + 1` already, and
->    no line of `pdf.rs` and of `pdf_of_a_child.rs` names a page of the user.
->    **Two lines of `book.rs` said the index of the program**, and each of them
->    stands beside a sibling that says `index + 1`: the arm of a read of the
->    archive that failed, and `no_such_chapter`.
+>    The sweep, of the 352 lines of the log of `src/`. It found one candidate
+>    of the shape of T-287 (`src/player/engine/hls_file.rs:248` says "The
+>    reader starts at the part {first}", and `first` is the index of the
+>    segment while the line two below it says `first + 1`) — and it found
+>    **two lines of the log that no rule of this fork allows at all**:
+>    `render_info_pod_ep: Index {} out of bounds for episode/duration vectors
+>    (ep_len={}, dur_len={})!` of the **render** of `src/ui/tui.rs`, each with
+>    a sentence for the user beside it: `Error: Podcast metadata missing.`,
+>    `Error: Episode info rendering mismatch.`, and `Error: Episode data
+>    unavailable or index out of bounds.` **The twin of that render for the
+>    view of a search holds no such branch at all**: it reads every list with
+>    `at`, which gives `N/A`.
 >
->    The measurement, of the real program v0.8.115 inside tmux against the
->    sandbox. **The data of that fault is a book, and it needs no proxy at
->    all**: the book of `docs/harness/a_book_of_a_damaged_chapter.py` and the
->    book of `docs/harness/a_book_of_no_chapter.py` each went in the cache of
->    the ebooks of `toutuitest` under the name of the item of `Alice in
->    Wonderland`, and the keys `Tab`, 15 keys `j`, `e`, and `p` gave the view
->    of the reader. The screen said `chapter 2 of 3` and the log of that same
->    key press said `the archive gave no chapter 1 of the book`, and the book
->    of no chapter gave `the book holds 0 chapters, and the program asked for
->    the chapter 0`. **No book of any user holds a chapter 0.**
+>    The measurement, of the real program v0.8.116 inside tmux against the
+>    sandbox. **The data of that fault is one field of one row of one
+>    answer**: `docs/harness/a_field_of_one_row_goes_away.py 13506 13399
+>    requests.log /api/items/b793354b-9841-480a-bd09-41923596517e
+>    media.episodes 0 audioFile` took the audio file of the first episode of
+>    the podcast `Arthur Gordon Pym` of the library `Podcasts` away. The
+>    account took `http://127.0.0.1:13506` (the trap 129), and a `sqlite3` of
+>    `name_selected_lib` gave the library before the start (the trap 203 and
+>    the trap 204). The keys `Tab`, `j`, and `l` gave the view of the 11
+>    episodes, and the panel of the first line said `Duration: 22m` for an
+>    episode of 305 seconds — the length of the episode after it. Ten keys `j`
+>    gave the last line, and the panel of it said `Error: Episode data
+>    unavailable or index out of bounds.` **The log held 35 lines of that one
+>    fault in nine seconds**, because the render writes one of them at every
+>    frame.
 >
->    The correction is one file and two lines, `index + 1` and `asked + 1`.
->    **No sentence of a user changed**: the two views said the same words after
->    the correction as before it, and the good book of `Alice in Wonderland`
->    read with no line of the reader in the log. The test takes the slot of the
->    logger of the crate `log` with `log::set_boxed_logger`, therefore **the
->    parts of it stay in one function**.
->    - **The candidate 3 of T-286 closes** (T-287): T-286 read "the log held
->      two lines of that one fault, 256 milliseconds apart, for one press of a
->      key". The measurement of this round of that same book gave **one** line
->      of the reader for each press, and the second line 256 milliseconds after
->      it is `[WARN] stop_parsing for XML5` of the crate of the render of the
->      chapter after the fault. **The rule of T-277 holds.**
->    - **A line of a log that a user takes to a maintainer is a word for the
->      user too** (T-287): the rule of the number of T-283 held the sentence of
->      the screen alone, and two lines of the log of the same faults said a
->      different number. **Ask it of every line of the log of `src/` that names
->      a number of a list: a page, a line, a file, a part of a stream, and a
->      chapter.** **This is a candidate and not a measurement.**
->    - **`no_such_chapter` writes its line at every road to
->      `ReaderError::NoSuchChapter`, and `chapter_bytes` calls it three times
->      for one read** (T-287). A book of no chapter gave one line of it; a road
->      that calls it two times for one key would say the fault two times.
->      **This is a candidate and not a measurement.**
->    - **Every candidate of the list of the turn below stays open** (T-229 to
->      T-286): the block has a limit of size, therefore this turn names the
->      new candidates alone and it does not repeat that list.
->    **The
->    session of the hundred and fifteenth turn took the candidate
->    "`ReaderError::TheArchiveGaveNoChapter` names the key `n` alone, while
->    the keys `p` and `h` each do their work of that fault too", which T-285
->    opened** (T-286).
+>    The road of the fault: `collect_episodes_pod_ep` pushes one value for
+>    each episode, and `collect_durations_pod_ep` pushed one value for each
+>    episode **that holds an audio file**. `the_lengths_of_the_episodes` of
+>    that same file obeys the rule of T-24 already (T-236), and its own doc
+>    comment named this fault of its neighbour and left it standing.
 >
->    The measurement, of the real program v0.8.114 inside tmux against the
->    sandbox. **The data of that fault is a book, and it needs no proxy at
->    all**: the new harness `docs/harness/a_book_of_a_damaged_chapter.py`
->    writes an EPUB of three chapters, and 64 bytes of the deflate stream of
->    the second chapter take the value of their own complement. The central
->    directory and the local header keep every number, therefore `rbook`
->    opens the book and the read of the chapter 2 alone fails. The
->    measurement of T-277 did that work with a hand on the real book of the
->    sandbox; this harness writes it in 3294 bytes. The book went in the
->    cache of the ebooks of `toutuitest` under the name of the item of
->    `Alice in Wonderland`, and the keys `Tab`, 15 keys `j`, and `e` gave the
->    view of the reader at `chapter 2 of 3` with the sentence of that fault,
->    which named the key `n` alone.
->
->    **The three keys of the view each did the work of that fault**: the key
->    `n` gave `chapter 3 of 3` with its text, the key `p` gave
->    `chapter 1 of 3` with its text, and the key `h` gave the Library view.
->    The sibling arm `ChapterAbsent` of the same enum — a fault of the same
->    class — named all three already.
->
->    The correction is one file. The arm now says `Press n for the chapter
->    after this one, or p for the chapter before it. Press h to leave the
->    book. The file of the log holds more.` The corrected program said that
->    sentence on four rows, and the three controls held.
->    - **A key that a sibling arm names is not a key of this arm** (T-286):
->      the road of the key `X` of T-285 does no work of this fault. The key
->      `h`, then the key `X`, took the copy of the disk away, and **the press
->      of the key `e` after it gave the same screen of the same damaged
->      book**, with no request of the server and with no file back on the
->      disk. **The reader holds the book of the memory over the key `h`**,
->      therefore a book that a second program changes on the disk does not
->      reach the reader of this program. **This is a candidate and not a
+>    The correction is two files. `collect_durations_pod_ep` reads
+>    `the_lengths_of_the_episodes` now, therefore it gives one value for each
+>    episode, and a length of 0 or an episode of no audio file gives `N/A`
+>    (T-180 and T-249). `the_panel_of_an_episode` of
+>    `src/logic/the_panel_of_a_line.rs` holds the format of both roads of that
+>    view, and it reads every list with the words of a value that the program
+>    does not have: the three branches, the three sentences of a program, and
+>    the two lines of the log of every frame go away. The corrected program of
+>    the same condition said `Duration: N/A` for the first line and
+>    `Episode: 10 - Duration: 12m` for the last one, and the log held no line
+>    of that render at all. **The control of the same run**: the same program
+>    against the sandbox with no proxy said `5m` and `12m`.
+>    - **The candidate 2 of T-287 closes** (T-288): the three call sites of
+>      `no_such_chapter` of `chapter_bytes` are `?` and `return Err(…)`,
+>      therefore one call of that function writes 0 or 1 lines of that fault.
+>      **No road of the program says that fault two times for one key.**
+>    - **The line of `src/player/engine/hls_file.rs:248` stays open** (T-288).
+>      **The name of a part of a stream is the value of every other line of
+>      that file** (`part.name`, of the form `output-7.ts`), therefore the
+>      road of that line is the name and not a number of one more. It needs
+>      the book of xHE-AAC of the sandbox. **This is a candidate and not a
 >      measurement.**
->    - **The line of the log of that fault says `the archive gave no chapter
->      1 of the book`, while the header of the same screen says `chapter 2 of
->      3`** (T-286): the log holds the index of the program and the view
->      holds the number of the user (the rule of T-283). **Ask it of every
->      line of the log of `src/logic/reader/`. This is a candidate and not a
+>    - **The panel of the first line of that measurement said `Progress: 22%,
+>      -1m left, Not finished`** (T-288). A time that is left of **less than
+>      zero** is no time at all. **This is a candidate and not a
 >      measurement.**
->    - **The log held two lines of that one fault, 256 milliseconds apart,
->      for one press of a key** (T-286), while the rule of T-277 says that
->      the render of a chapter that gave a fault does not start again. **This
->      is a candidate and not a measurement.**
->    - **Every candidate of the list of the turn below stays open** (T-229 to
->      T-285): the block has a limit of size, therefore this turn names the
+>    - **`render_desc_pod_ep` of `src/ui/tui.rs` holds the last branch of this
+>      shape** (T-288): a `log::error!` of every frame beside `Error: Episode
+>      description unavailable.`, and its twin of the view of a search holds
+>      none. **Ask it of every render of `src/ui/` that holds a branch of the
+>      length of a list. This is a candidate and not a measurement.**
+>    - **Every candidate of the turns before this one stays open** (T-229 to
+>      T-287): the block has a limit of size, therefore this turn names the
 >      new candidates alone and it does not repeat that list.
 >
->    **The turns before these two stand in `## The turns before the three
+>    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
 >    (T-284): a round that writes its own turn takes the oldest turn out, and
 >    it takes a second one out while `toutui-loop --dry-run | wc -c` gives more
->    than 100000. That section holds the turn of the hundred and fourteenth and
+>    than 100000. That section holds the turn of the hundred and sixteenth and
 >    every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
@@ -17208,7 +17352,12 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > (T-284), and **a file that no reader opens says the road back: the reader
 > opens the copy of the book on the disk, therefore the sentence of that fault
 > names the key that takes that copy away, and the reason of the archive stands
-> in the log alone** (T-285).
+> in the log alone** (T-285), and **the panel of a line of the view of the
+> episodes of a podcast holds the value of that line: the list of the lengths
+> holds one value for each episode, a length that the server did not give says
+> `N/A`, and a line that a list of the view does not hold keeps the panel of its
+> media — no render draws the words of a machine in the place of a panel, and no
+> render writes a line of the log at every frame** (T-288).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
@@ -17225,7 +17374,10 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > the round of 2026-08-16 found the block at 105283 bytes with three turns in
 > it, and it took two turns out; the round of the hundred and sixteenth turn
 > found it at 98675 bytes with two turns in it, and it took one turn out and it
-> wrote its own, and the block then held 97245 bytes.
+> wrote its own, and the block then held 97245 bytes; the round of the hundred
+> and seventeenth turn found it at 98191 bytes with two turns in it, it did the
+> same work, and the block then held 99820 bytes. **A turn of many numbers is a
+> turn that takes two turns out.**
 > A fact that a later round needs belongs in `docs/TAKEOVER-BACKLOG.md` or in a
 > section of this file that stands outside the block, and not in the block.
 >
