@@ -375,8 +375,11 @@ fn the_label_of_a_download(item: &DownloadProgress) -> String {
 }
 
 /// Changes a number of bytes to a text in megabytes.
+///
+/// The function stands in `crate::ui::keys` since T-284, because the reader
+/// says a size too and it holds no part of this file.
 fn megabytes(bytes: u64) -> String {
-    format!("{:.1} MB", bytes as f64 / 1_048_576.0)
+    crate::ui::keys::megabytes(bytes)
 }
 
 /// Makes a text shorter. The function adds a full stop character.

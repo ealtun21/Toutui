@@ -142,7 +142,19 @@ impl Pdf {
     pub fn of_the_file(path: &Path) -> Result<Pdf, ReaderError> {
         if let Ok(data) = std::fs::metadata(path) {
             if data.is_file() && data.len() > MAX_BOOK_BYTES {
-                return Err(ReaderError::BookTooLarge(data.len()));
+                // **The value carries the limit of this module** (T-284): the
+                // limit of `src/logic/reader/book.rs` is 256 megabytes, and
+                // this one is 512. A sentence of the constant of that file
+                // would say a number that this program did not measure (T-91).
+                warn!(
+                    "[pdf] the book holds {} bytes, and the limit is {MAX_BOOK_BYTES} bytes",
+                    data.len()
+                );
+
+                return Err(ReaderError::BookTooLarge {
+                    size: data.len(),
+                    limit: MAX_BOOK_BYTES,
+                });
             }
         }
 
@@ -169,7 +181,18 @@ impl Pdf {
         }
 
         if numbers.len() > MAX_PAGES {
-            return Err(ReaderError::TooManyEntries(numbers.len()));
+            // **The value carries the limit of this module** (T-284), for the
+            // reason of the size above: the limit of the manifest of an EPUB is
+            // 4096 files, and this one is 5000 pages.
+            warn!(
+                "[pdf] the book holds {} pages, and the limit is {MAX_PAGES} pages",
+                numbers.len()
+            );
+
+            return Err(ReaderError::TooManyEntries {
+                count: numbers.len(),
+                limit: MAX_PAGES,
+            });
         }
 
         let mut pages: Vec<Page> = Vec::with_capacity(numbers.len());

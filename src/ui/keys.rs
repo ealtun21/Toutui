@@ -185,6 +185,17 @@ pub fn counted(count: usize, name: &str) -> String {
     format!("{} {}s", count, name)
 }
 
+/// Gives a number of bytes as a text in megabytes.
+///
+/// **A size that the user reads is a size in megabytes** (T-284): the reader
+/// said "It has 269486151 bytes, and the limit is 268435456 bytes", and the
+/// user of a terminal counts no digits. The bar of a download of the same
+/// program says "1.2 MB" already, therefore every view of this program says a
+/// size in this one form.
+pub fn megabytes(bytes: u64) -> String {
+    format!("{:.1} MB", bytes as f64 / 1_048_576.0)
+}
+
 /// Gives the number of the lines of a view, for the title of that view.
 ///
 /// **One line is "1 item", and not "1 items".** A measurement of 2026-08-11 read

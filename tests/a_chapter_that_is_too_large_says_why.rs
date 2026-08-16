@@ -55,8 +55,10 @@ use toutui::logic::reader::book::{ReaderError, MAX_CHAPTER_BYTES};
 fn the_sentence_says_what_the_program_measured() {
     let text = ReaderError::ChapterTooLarge.to_string();
 
+    // The limit stands in megabytes since T-284: a wall of digits says nothing
+    // to the user of a terminal.
     assert!(
-        text.contains(&MAX_CHAPTER_BYTES.to_string()),
+        text.contains(&toutui::ui::keys::megabytes(MAX_CHAPTER_BYTES as u64)),
         "the sentence must name the limit of one chapter: {text}"
     );
     assert!(

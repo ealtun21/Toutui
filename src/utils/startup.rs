@@ -100,14 +100,18 @@ mod tests {
         );
     }
 
+    /// **The parts of this test stay in one function.** `set_part` and `step`
+    /// read one box of the process, therefore two test functions of this module
+    /// fight for that box: `cargo test` gives every test of one binary a thread,
+    /// and the two tests of before this one failed together on the run of
+    /// 2026-08-16 while `cargo nextest run`, which gives each test a process,
+    /// passed every time. See T-144, T-157, and T-284.
     #[test]
-    fn the_step_of_many_parts_gives_the_count() {
+    fn the_step_of_the_start_says_the_part_and_its_count() {
         set_part("the position of each book", 3, 12);
         assert_eq!(step(), "the position of each book (3 of 12)");
-    }
 
-    #[test]
-    fn one_part_gives_no_count() {
+        // One part of one part gives no count at all.
         set_part("the libraries", 1, 1);
         assert_eq!(step(), "the libraries");
     }

@@ -75,12 +75,22 @@ pub enum ReaderError {
     /// book of the user is not the reason. The text is one sentence that says
     /// what did not happen. See T-274.
     ThePartThatReadsAPdfFailed(String),
-    /// The file is larger than [`MAX_BOOK_BYTES`]. The number is the size of
-    /// the file in bytes.
-    BookTooLarge(u64),
-    /// The archive holds more than [`MAX_ENTRIES`] entries. The number is the
-    /// count.
-    TooManyEntries(usize),
+    /// The file is larger than the limit of the reader that measured it.
+    /// `size` is the size of the file in bytes, and `limit` is that limit.
+    ///
+    /// **The value carries the limit** (T-284): this module holds a
+    /// [`MAX_BOOK_BYTES`] of 256 megabytes and `src/logic/reader/pdf.rs` holds
+    /// one of 512 megabytes, therefore a sentence that names the constant of
+    /// this file says a number that the program did not measure (T-91).
+    BookTooLarge { size: u64, limit: u64 },
+    /// The book holds more entries than the limit of the reader that measured
+    /// it. `count` is the count, and `limit` is that limit.
+    ///
+    /// **The value carries the limit** (T-284), for the reason of
+    /// [`ReaderError::BookTooLarge`]: this module holds a [`MAX_ENTRIES`] of
+    /// 4096 files of a manifest, and `src/logic/reader/pdf.rs` holds a
+    /// `MAX_PAGES` of 5000 pages.
+    TooManyEntries { count: usize, limit: usize },
     /// The book has no chapter with this number. `asked` is the index of the
     /// chapter in the spine, and `count` is the number of chapters that the
     /// book holds.
@@ -143,15 +153,29 @@ impl fmt::Display for ReaderError {
                 "The program did not read this PDF. The book can be good. \
                  {reason} The file of the log holds more. Press h to go back."
             ),
-            ReaderError::BookTooLarge(size) => write!(
+            // **The sentence says the size in megabytes, and it names the key
+            // `h`** (T-284): the user of a terminal counts no digits of
+            // 269486151, and the view of the reader with no book holds the key
+            // `h` alone — no key of this program makes a book smaller, and the
+            // sentence must name a key that does the work of the fault
+            // (T-170).
+            ReaderError::BookTooLarge { size, limit } => write!(
                 f,
-                "This book is too large. It has {size} bytes, and the limit is {MAX_BOOK_BYTES} bytes."
+                "This book is too large. It has {}, and the limit of the reader \
+                 is {}. Press h to leave the book. The file of the log holds \
+                 the name of the file.",
+                crate::ui::keys::megabytes(*size),
+                crate::ui::keys::megabytes(*limit)
             ),
-            ReaderError::TooManyEntries(count) => write!(
+            // **The sentence names the key `h`** (T-284), for the reason of
+            // the arm above it.
+            ReaderError::TooManyEntries { count, limit } => write!(
                 f,
-                "This book holds too many files. It has {}, and the limit is {}.",
+                "This book holds too many files. It has {}, and the limit of \
+                 the reader is {}. Press h to leave the book. The file of the \
+                 log holds the name of the file.",
                 crate::ui::keys::counted(*count, "file"),
-                crate::ui::keys::counted(MAX_ENTRIES, "file")
+                crate::ui::keys::counted(*limit, "file")
             ),
             // **The sentence says what the program measured** (T-283): the book
             // holds no chapter at all, and the program has no reason of that
@@ -203,12 +227,16 @@ impl fmt::Display for ReaderError {
             // have (T-91). The sentence names the three keys of the view of the
             // reader, because a sentence of a fault must name a key that does
             // the work of that fault (T-170).
+            //
+            // The size stands in megabytes since T-284, for the reason of the
+            // arm of `BookTooLarge`.
             ReaderError::ChapterTooLarge => write!(
                 f,
-                "This chapter has more than {MAX_CHAPTER_BYTES} bytes, and that \
-                 is the limit of one chapter. Press n for the chapter after this \
-                 one, or p for the chapter before it. Press h to leave the book. \
-                 The file of the log holds more."
+                "This chapter has more than {}, and that is the limit of one \
+                 chapter. Press n for the chapter after this one, or p for the \
+                 chapter before it. Press h to leave the book. The file of the \
+                 log holds more.",
+                crate::ui::keys::megabytes(MAX_CHAPTER_BYTES as u64)
             ),
         }
     }
@@ -374,7 +402,19 @@ impl Book {
         // almost nothing, and it stops a very large file at once.
         if let Ok(data) = std::fs::metadata(path) {
             if data.is_file() && data.len() > MAX_BOOK_BYTES {
-                return Err(ReaderError::BookTooLarge(data.len()));
+                // **The road takes a line of the log** (T-284): the sentence of
+                // the user says the two sizes, and the name of the file of that
+                // book stands in no view at all.
+                info!(
+                    "[reader] the book {} holds {} bytes, and the limit is {MAX_BOOK_BYTES} bytes",
+                    path.display(),
+                    data.len()
+                );
+
+                return Err(ReaderError::BookTooLarge {
+                    size: data.len(),
+                    limit: MAX_BOOK_BYTES,
+                });
             }
         }
 
@@ -396,7 +436,17 @@ impl Book {
         // A book names each of its files one time, thus the two counts agree.
         let entries = epub.manifest().len();
         if entries > MAX_ENTRIES {
-            return Err(ReaderError::TooManyEntries(entries));
+            // **The road takes a line of the log** (T-284), for the reason of
+            // the limit of the size above.
+            info!(
+                "[reader] the manifest of the book {} names {entries} files, and the limit is {MAX_ENTRIES} files",
+                path.display()
+            );
+
+            return Err(ReaderError::TooManyEntries {
+                count: entries,
+                limit: MAX_ENTRIES,
+            });
         }
 
         let spine_len = epub.spine().len();
@@ -867,18 +917,28 @@ mod tests {
     fn it_refuses_a_book_that_is_too_large() {
         // A file of 256 megabytes on the disk is too slow for a test.
         // Therefore the test writes a small file and it looks at the message.
-        let error = ReaderError::BookTooLarge(300 * 1024 * 1024);
+        //
+        // **The sentence says the size in megabytes** (T-284): the measurement
+        // of 2026-08-16 read "It has 269486151 bytes, and the limit is
+        // 268435456 bytes", and the user of a terminal counts no digits.
+        let error = ReaderError::BookTooLarge {
+            size: 300 * 1024 * 1024,
+            limit: MAX_BOOK_BYTES,
+        };
         let text = error.to_string();
         assert!(text.starts_with("This book is too large."));
-        assert!(text.contains("314572800"));
+        assert!(text.contains("300.0 MB"), "{text}");
+        assert!(text.contains("256.0 MB"), "{text}");
+        assert!(!text.contains("314572800"), "{text}");
+        assert!(text.contains("Press h "), "{text}");
     }
 
     #[test]
     fn every_message_is_short_and_it_ends_with_a_full_stop() {
         let messages = [
             ReaderError::NotAnEpub.to_string(),
-            ReaderError::BookTooLarge(1).to_string(),
-            ReaderError::TooManyEntries(1).to_string(),
+            ReaderError::BookTooLarge { size: 1, limit: 2 }.to_string(),
+            ReaderError::TooManyEntries { count: 1, limit: 2 }.to_string(),
             ReaderError::NoSuchChapter { asked: 1, count: 3 }.to_string(),
             ReaderError::NoSuchChapter { asked: 0, count: 0 }.to_string(),
             ReaderError::ChapterAbsent(1).to_string(),
@@ -905,8 +965,9 @@ mod tests {
         // bytes: the screen said "This chapter is too large." and the log held
         // no line of the reader at all.
         let text = ReaderError::ChapterTooLarge.to_string();
+        // The limit stands in megabytes since T-284.
         assert!(
-            text.contains(&MAX_CHAPTER_BYTES.to_string()),
+            text.contains(&crate::ui::keys::megabytes(MAX_CHAPTER_BYTES as u64)),
             "the sentence must name the limit: {text}"
         );
         assert!(

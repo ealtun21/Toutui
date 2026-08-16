@@ -23571,3 +23571,182 @@ network.
   candidate, and not a measurement.
 - The header of the program at 80 columns wrote over itself (open since
   T-278). A candidate, and not a measurement.
+
+### T-284: a book that the reader refuses says the road back
+
+**Status: corrected in v0.8.113.**
+
+`ReaderError::BookTooLarge` and `ReaderError::TooManyEntries` of
+`src/logic/reader/book.rs` gave one sentence of numbers alone:
+
+```text
+This book is too large. It has {size} bytes, and the limit is {MAX_BOOK_BYTES} bytes.
+This book holds too many files. It has {count}, and the limit is {MAX_ENTRIES}.
+```
+
+T-281 opened this candidate, and T-282 and T-283 each left it open with the
+words "those two faults come at the open of the book, and the view of the
+reader does not stand at that moment". **That reading is wrong, and this item
+measured it**: `get_the_book` of `src/app.rs` writes
+`self.view_state = AppView::Reader` **before** it starts the task that opens
+the book, therefore the view of the reader stands at the moment of each of
+these two faults.
+
+#### The road
+
+`Book::open` holds the two limits before it reads one chapter:
+
+```rust
+if data.is_file() && data.len() > MAX_BOOK_BYTES { … }
+let entries = epub.manifest().len();
+if entries > MAX_ENTRIES { … }
+```
+
+Each of them gives its value to `get_the_book`, which calls `error.to_string()`
+and writes that string in `App::reader_message`. `render_reader` of
+`src/ui/tui.rs` draws that message in the view of the reader with no book, in a
+block of the title "The reader of the ebook", with the footer
+`FOOTER_OF_A_FAULT` — `h/Esc: back  ?: every key  Q: quit`.
+
+**A second road of each value stands in `src/logic/reader/pdf.rs`**, and
+neither of the two reaches the user: the child of T-274 gives the parent an
+exit code, and `the_fault_of_the_code` takes the arm `_` of those codes and it
+gives `ThePartThatReadsAPdfFailed`.
+
+#### The measurement
+
+Of the real program v0.8.112 inside tmux against the sandbox (podman on
+:13399), on 2026-08-16. **The data of each fault is a book, and neither needs a
+proxy at all.** Two new harnesses:
+
+- `docs/harness/a_book_of_too_many_files.py` writes an EPUB whose manifest
+  names **4201 files**, in an archive of **1211260 bytes** — far under the
+  limit of the size, therefore the book meets the limit of the count alone.
+- `docs/harness/a_book_that_is_too_large.py` writes an EPUB of **269486151
+  bytes**. The padding of it takes no deflate (`ZIP_STORED`), because the limit
+  reads the size of the file of the disk.
+
+Each book went into the cache of the ebooks of the account `toutuitest`, under
+the name of the item of `Alice in Wonderland`
+(`8fda6e43-0728-46ad-98bc-4c8634e299ad`). The keys `Tab`, 15 keys `j`, and `e`
+gave
+
+```text
+This book holds too many files. It has 4201 files, and the limit is 4096 files.
+                       h/Esc: back  ?: every key  Q: quit
+
+This book is too large. It has 269486151 bytes, and the limit is 268435456 bytes.
+                       h/Esc: back  ?: every key  Q: quit
+```
+
+The log held **10 lines before the key and 17 lines after it** for the first
+book, and 10 and 16 for the second, and `grep -c reader` of each of the two
+gave **0**: no line of the reader at all.
+
+#### The four faults
+
+1. **Neither sentence names a key**, and the footer of that view says
+   `h/Esc: back`. The key `h` is the one key of these two faults: no key of
+   this program makes a book smaller, and no key of it takes a file out of a
+   manifest. The keys `n` and `p` of the view of the reader do no work of
+   either, because the reader holds no book at all. See T-170.
+2. **Neither road takes a line of the log**, and the name of the file of that
+   book stands in no view of the user. The two arms beside them, of a book that
+   no reader opens and of a disk that gave no byte, each write one already.
+3. **The sentence of the size says a wall of digits.** The user of a terminal
+   counts no digits of 269486151, and the bar of a download of this same
+   program says "1.2 MB" already.
+4. **The arms of `Display` named the constants of this one file.**
+   `src/logic/reader/pdf.rs` makes `BookTooLarge` with a limit of **512**
+   megabytes and `TooManyEntries` with a limit of **5000 pages**, and the
+   sentence of each of the two said 256 megabytes and 4096 files. A sentence of
+   that road would say a number that the program did not measure (T-91).
+
+#### The correction
+
+Four files.
+
+1. `src/ui/keys.rs`: a new `pub fn megabytes(bytes: u64) -> String`, of the
+   private function of `src/ui/tui.rs`. **The program says a size in one form.**
+2. `src/ui/tui.rs`: the private `megabytes` calls that one.
+3. `src/logic/reader/book.rs`: `BookTooLarge` becomes `{ size, limit }` and
+   `TooManyEntries` becomes `{ count, limit }`, therefore each value carries the
+   limit of the reader that measured it. The two arms of `Display` say the
+   sizes in megabytes, and each of them names the key `h` and the file of the
+   log. The two roads of `Book::open` each write a line of the log with the name
+   of the file. The arm of `ChapterTooLarge` says its limit in megabytes too.
+4. `src/logic/reader/pdf.rs`: the two roads give their own limits, and each of
+   them writes a line of the log.
+
+The corrected program of the same two conditions said
+
+```text
+This book holds too many files. It has 4201 files, and the limit of the reader
+is 4096 files. Press h to leave the book. The file of the log holds the name of
+the file.
+
+This book is too large. It has 257.0 MB, and the limit of the reader is
+256.0 MB. Press h to leave the book. The file of the log holds the name of the
+file.
+```
+
+and the log of each run held **one** line of the reader:
+
+```text
+[reader] the manifest of the book /home/…/8fda6e43-….epub names 4201 files, and the limit is 4096 files
+[reader] the book /home/…/8fda6e43-….epub holds 269486151 bytes, and the limit is 268435456 bytes
+```
+
+#### The controls
+
+The key `h` of the screen of the fault gave the Library view. The good book of
+that same name gave
+`Alice's Adventures in Wonderland — chapter 3 of 14 — 4%` with its text, and
+`grep -c reader` of that log gave **0**.
+
+The build of the fault, with the two constant sentences put back and every
+other line kept, failed **four** tests, and
+`the_sentence_of_a_book_of_too_many_files_says_the_two_numbers` passed there:
+the count and the limit stood in that sentence already, and the road back did
+not.
+
+#### The test
+
+`tests/a_book_that_the_reader_refuses_says_the_road_back.rs` holds six: the
+real book of `tests/data/hostile/13-a-book-of-too-many-files.epub` through
+`Book::open`, the two sentences of the numbers, the key and the log of each of
+the two, the limit of a value of the reader of the PDF, and the one form of a
+size of this program. The file of the test holds the files of its spine alone,
+in **23610 bytes**, because `Book::open` counts the manifest of the OPF and it
+opens no file of it: the third argument `the-spine-alone` of the harness gives
+that book. No test needs the network.
+
+#### What this item leaves open
+
+- **The noun of `TooManyEntries` of the road of the PDF is "file", and that
+  road counts pages.** It reaches no user today, because the child of T-274
+  gives the parent an exit code and the code of that fault takes the arm `_`.
+  A candidate, and not a measurement.
+- **The arm `Ok(Err(_))` of `render_for` is dead code in the real program**
+  (open since T-280). A candidate, and not a measurement.
+- **A number of a sentence of a fault is the number that the user reads, and
+  not the index of the program** (open since T-282), and **a size that the user
+  reads is a size in megabytes** (T-284). Ask both of every message of `src/`
+  that names a number.
+- `the_message_of_the_format` says "Try again, or read the log." for a media
+  whose book the server holds. It names no key at all (open since T-279). A
+  candidate, and not a measurement.
+- The sentence of the status 404 of the item names the key `h` alone, and the
+  key `R` of the view before it asks the server again (open since T-279). A
+  candidate, and not a measurement.
+- The header of the program at 80 columns wrote over itself (open since
+  T-278). A candidate, and not a measurement.
+- **Two test functions of `src/utils/startup.rs` held one box of the process**,
+  and `cargo test -j 16 --no-fail-fast` failed them on one run of five of this
+  turn, together with
+  `utils::exit_app::tests::the_hook_gives_the_terminal_back_for_a_panic_that_no_caller_expects`:
+  the panic of the race went through the hook that the second test installs.
+  `cargo nextest run` passed every time. The correction is one test function,
+  of the rule of T-144 and of T-157. **Sweep `src/` for a second such pair: a
+  module of a `static` and of more than one `#[test]` that writes it.** A
+  candidate, and not a measurement.

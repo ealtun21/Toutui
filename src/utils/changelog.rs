@@ -41,6 +41,30 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.113",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A book that the reader refuses now says the road back.** A \
+             book that is larger than the limit of the reader, and a book that \
+             holds more files than that limit, each gave one sentence of \
+             numbers alone: the sentence named no key, and the fault took no \
+             line of the file of the log. Toutui now names the key `h` of the \
+             screen that you see, and it writes the name of the file of that \
+             book in the log.",
+            "- **Toutui now says a size in megabytes.** The reader said \"It \
+             has 269486151 bytes, and the limit is 268435456 bytes\". It now \
+             says 257.0 MB and 256.0 MB, in the form that the bar of a \
+             download uses already. The sentence of a chapter that is too \
+             large says its limit in the same form.",
+            "- **The sentence of a book that the reader refuses now names the \
+             limit of the reader that measured that book.** The reader of a \
+             PDF holds a limit of 512 megabytes and a limit of 5000 pages, and \
+             the sentence of each fault named the limits of the reader of an \
+             EPUB book.",
+        ],
+    },
+    Entry {
         version: "0.8.112",
         date: "16/08/2026",
         body: &[
