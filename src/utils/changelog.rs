@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.138",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The panel of a description reaches the last line of its \
+             text.** The program counted one space between two words, and a \
+             description of the server can hold more of them: the panel then \
+             said that it holds the whole of its text, no bar of the scroll \
+             came, and the key J moved nothing. The last lines of such a \
+             description had no road at all.",
+        ],
+    },
+    Entry {
         version: "0.8.137",
         date: "16/08/2026",
         body: &[

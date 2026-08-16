@@ -91,48 +91,21 @@ fn inside_the_text(scroll: u16, last: u16) -> u16 {
 /// characters gives a number of the lines that the screen does not have, and
 /// the panel then says that it holds a text that it cut.
 ///
+/// **The spaces between two words keep their width** (T-309). This count read
+/// one space between two words, and a description of the server can hold two
+/// of them or more: the count then gives a number of the lines that is smaller
+/// than the number of the rows that ratatui draws, and the last lines of the
+/// description have no road at all.
+/// `crate::logic::message::the_rows_of_one_line` is the one place of that rule
+/// now, and the two counts of a wrap of this program read it together (T-307).
+///
 /// The function is pure, therefore a test needs no screen.
 pub fn the_number_of_the_lines(text: &str, width: u16) -> usize {
     let width = usize::from(width.max(1));
 
     text.split('\n')
-        .map(|line| the_lines_of_one_line(line, width))
+        .map(|line| crate::logic::message::the_rows_of_one_line(line, width))
         .sum()
-}
-
-/// Gives the number of the lines that one line of the text takes.
-fn the_lines_of_one_line(line: &str, width: usize) -> usize {
-    let mut count = 1usize;
-    let mut length = 0usize;
-
-    for word in line.split_whitespace() {
-        let size = crate::logic::message::the_columns_of(word);
-        let room = crate::logic::message::the_room_of_a_word(word);
-
-        // The word stands at the end of the line that the word before it holds.
-        if length > 0 && length + 1 + room <= width {
-            length += 1 + size;
-            continue;
-        }
-
-        // The word takes a line of its own.
-        if length > 0 {
-            count += 1;
-        }
-
-        if room <= width {
-            length = size;
-            continue;
-        }
-
-        // A word that is longer than the panel goes over more than one line.
-        let (lines, last) = crate::logic::message::the_lines_of_one_word(word, width);
-
-        count += lines - 1;
-        length = last;
-    }
-
-    count
 }
 
 /// Gives the largest scroll of a panel that holds this text.

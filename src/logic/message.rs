@@ -202,13 +202,32 @@ pub fn for_the_screen(view: AppView) -> Option<String> {
 /// the render of ratatui takes, and the box of the message then stood one row
 /// higher than the text of it. [`the_room_of_a_word`] is the one place of that
 /// rule now, and the two counts of a wrap of this program read it together.
+///
+/// **The loop of this count stands in [`the_rows_of_one_line`]** (T-309): the
+/// panel of a description held a loop of its own, and it read one space between
+/// two words. The two counts of a wrap of this program are one loop now.
 pub fn the_rows_of_a_message(text: &str, width: u16) -> u16 {
     if text.trim().is_empty() || width == 0 {
         return 0;
     }
 
-    let width = usize::from(width);
-    let mut rows = 1u16;
+    u16::try_from(the_rows_of_one_line(text, usize::from(width))).unwrap_or(u16::MAX)
+}
+
+/// Gives the rows that one row of a text takes in a wrap of `width` columns.
+///
+/// **This is the one place of the rule of the wrap of ratatui** (T-309). The
+/// box of a message of a view (T-299) and the panel of a description (T-252)
+/// each count the rows of a text, and the panel held a rule of its own: it read
+/// **one** space between two words, and a wrap of `trim: true` keeps every
+/// space that stands inside a row (T-302). A description of the server that
+/// holds two spaces between two words therefore took more rows than the panel
+/// counted, and the last lines of it had no road at all.
+///
+/// The text of one call holds no end of a line: a caller that has one splits
+/// its text at every `\n` and it adds the answers.
+pub(crate) fn the_rows_of_one_line(text: &str, width: usize) -> usize {
+    let mut rows = 1usize;
     let mut column = 0usize;
     let mut spaces = 0usize;
 
@@ -236,7 +255,7 @@ pub fn the_rows_of_a_message(text: &str, width: u16) -> u16 {
 
         // The word takes a row of its own.
         if column > 0 {
-            rows = rows.saturating_add(1);
+            rows += 1;
         }
 
         if room <= width {
@@ -245,7 +264,7 @@ pub fn the_rows_of_a_message(text: &str, width: u16) -> u16 {
             // A word that is longer than the width goes over more than one row.
             let (lines, last) = the_lines_of_one_word(word, width);
 
-            rows = rows.saturating_add(u16::try_from(lines - 1).unwrap_or(u16::MAX));
+            rows += lines - 1;
             column = last;
         }
 

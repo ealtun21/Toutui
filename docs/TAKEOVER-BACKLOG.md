@@ -27067,3 +27067,122 @@ Some("The program shows the library \"Podcasts\" now.")`.
   candidate and not a measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to
   T-307).
+
+### T-309: the panel of a description counts the spaces of its text
+
+#### The fault
+
+**`the_number_of_the_lines` of `src/logic/the_scroll_of_a_panel.rs` is the one
+road to the length of the text of a panel (T-252), and its helper
+`the_lines_of_one_line` read one space between two words**
+(`length + 1 + room <= width`). A wrap of `trim: true` keeps every space that
+stands inside a row, and it takes away the spaces of the start of a new row
+alone (T-302). `the_rows_of_a_message` of `src/logic/message.rs` held that rule
+since T-302; the panel held a second rule of its own. The largest scroll of the
+keys `J` and `K` (T-252) and the bar of the scroll of the panel (T-253) each
+come of that number. T-307 left this open as a candidate.
+
+#### The measurement
+
+Of the real program v0.8.137 inside tmux against the sandbox on `:13399`, the
+account `toutuitest`, a terminal of 80 columns and 45 rows
+(`COLUMNS_OF_THE_SCREEN=80` and `ROWS_OF_THE_SCREEN=45` of
+`docs/harness/drive.sh`). **The data of the fault is the text of the server**:
+no proxy, no book of a harness, no build of the fault of the source, and no
+change of the source at all.
+
+`PATCH /api/items/a4d8b9b2-c4a4-4e80-8ed0-07662933fa71/media` gave the book
+`A Book Of An Epub With No Container` of the library `Books` a description of
+200 words `alpha` and the word `OMEGAEND` after them, with **three** spaces
+between two words. The row of the account took the library `Books` with
+`sqlite3` before the start (the trap 203 and the trap 204). The key `Tab` of the
+Home view gave the Library view, whose panel holds 18 rows and 78 columns of
+text, and it drew ten words of every row:
+
+```text
+alpha   alpha   alpha   alpha   alpha   alpha   alpha   alpha   alpha   alpha
+```
+
+**The numbers.** The text takes **21** rows of that panel, and the program
+counted **16**: at 78 columns the old rule fitted thirteen words of five columns
+in a row. Sixteen is fewer than the eighteen rows of the panel, therefore
+`the_last_scroll` gave 0, **no bar of the scroll came**, and **forty presses of
+the key `J` changed no character of the screen**. `OMEGAEND` stood on the row
+21, and no key of the program reached it. Three rows of the description had no
+road at all.
+
+**The control of the same run** (the trap 206): the key `j` gave the book after
+it, `A Book Of A Broken Epub`, whose description holds the same 201 words with
+**one** space between two words. That text takes 16 rows of the same panel, and
+`OMEGAEND` stood on the last row of it at the first frame, with no key at all.
+
+#### The decision
+
+**A count of a wrap of this program must hold every rule of the wrap of ratatui,
+and one place must hold that count.** T-307 moved `the_room_of_a_word` and
+`the_lines_of_one_word` into `src/logic/message.rs`, and it left the two loops
+of the count apart; a rule that stands in two loops goes into one of them alone.
+
+#### The correction
+
+Two files.
+
+- `src/logic/message.rs`: the loop of `the_rows_of_a_message` became the new
+  `pub(crate) fn the_rows_of_one_line(text: &str, width: usize) -> usize`, which
+  is the one place of the rule of the wrap now. `the_rows_of_a_message` calls
+  it, and it keeps its guard of a text of no character and of a width of 0. The
+  text of one call holds no end of a line: a caller that has one splits its text
+  at every `\n` and it adds the answers.
+- `src/logic/the_scroll_of_a_panel.rs`: `the_lines_of_one_line` went away, and
+  `the_number_of_the_lines` calls `crate::logic::message::the_rows_of_one_line`
+  for every line of its text.
+
+**The corrected program**, of the same keys and the same description: the bar of
+the scroll came, the key `J` moved the panel, and `OMEGAEND` stood on the last
+row of it.
+
+#### The gate
+
+The new `tests/the_panel_of_a_description_counts_its_spaces.rs`. It draws a
+`Paragraph` of `Wrap { trim: true }` into a `Buffer` with no terminal at all
+(T-256), and it asserts that the count of the program is the number of the rows
+that ratatui drew: for the description of the measurement and for the control at
+78 columns, and for ten texts of runs of spaces at every width from 20 to 200
+columns. The sweep of T-306 held single spaces alone, and the fault stood behind
+them. A text of ends of a line alone stands outside the sweep, because the count
+of the rows of ratatui reads the rows that hold a character.
+
+**The build of the fault** (`&line.split_whitespace().collect::<Vec<_>>().join(" ")`
+in the place of `line`, which is the old rule of one space) said 16 rows where
+ratatui drew 21.
+
+#### The gates
+
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` pass.
+`cargo nextest run` gives 1373 of 1373 in 2.9 seconds, and
+`cargo nextest run --run-ignored all` gives 1399 of 1399 in 19.1 seconds with
+the sandbox up. `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no
+failure over its binaries in two runs.
+
+#### What this turn leaves open
+
+- **The marks of a line count the characters still.** `fill` of
+  `src/ui/marks.rs:111` reads `mark.chars().count()`, and a mark of the East
+  Asian Width "Ambiguous" takes one column or two, and the terminal decides.
+  This candidate came of T-306 and T-307 and it stays open. **This is a
+  candidate and not a measurement.**
+- **The two keys of `must_refresh` that say nothing at all** (T-308):
+  `show_the_books_of_the_author` (`src/app.rs:4251`) and
+  `apply_the_sequence_or_the_filter` (`src/app.rs:6161`) each change every list
+  of the screen and each say no word of what they did. The rule of T-91 asks
+  whether a key that changes the whole screen must name the change. **This is a
+  candidate and not a measurement.**
+- **A word of a description that is longer than the panel takes the road of
+  ratatui that overflows the area** (T-306). That is a fault of the crate and
+  not of this program, and no count of this program says what it does. **This is
+  a candidate and not a measurement.**
+- **The count of the rows of a text that holds ends of a line alone has no
+  gate**: the gates of T-306, T-307, and T-309 each read the rows of ratatui
+  that hold a character, therefore a blank row of a wrap stands outside them.
+  **This is a candidate and not a measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to T-308).
