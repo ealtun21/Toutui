@@ -907,7 +907,7 @@ impl App {
         let lib_name_type = if is_offline {
             "📴 Offline: the media on the disk".to_string()
         } else {
-            format!("📖 {} ({})", library_name, media_type)
+            crate::ui::keys::the_name_of_the_library(&library_name, &media_type)
         };
 
         // init is_podcast

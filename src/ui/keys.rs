@@ -338,6 +338,23 @@ pub fn the_name_of_the_program(version: &str, width: u16) -> String {
     format!("🦜 Toutui v{}", version)
 }
 
+/// The name of the library at the middle of the header.
+///
+/// **The name of a library is a text of the server**, and an administrator of it
+/// gives that name: `PATCH /api/libraries/:id` of Audiobookshelf takes a name
+/// that holds an end of a line, and the answer of `GET /api/libraries` then
+/// gives it back to every client. The header of the screen holds **two** rows,
+/// and `render_header` of `src/ui/tui.rs` draws this text in a `Paragraph` with
+/// no wrap: an end of a line in it therefore puts every character after it on
+/// the second row of the header, beside the row of the connection. See T-314.
+pub fn the_name_of_the_library(name: &str, media_type: &str) -> String {
+    format!(
+        "📖 {} ({})",
+        crate::logic::message::in_one_line(name),
+        crate::logic::message::in_one_line(media_type)
+    )
+}
+
 /// The notice at the right of the header for a server that does not answer.
 ///
 /// The program still holds the lists of the server, therefore it is not in the

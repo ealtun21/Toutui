@@ -27765,3 +27765,121 @@ the row 3 `Alpha OMEGAEND — chapter 3 of 3 — 89%`, and the contents then hel
   measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to
   T-312).
+
+### T-314: the name of the library at the header of the screen keeps one line
+
+**The fault, in `src/app.rs` and `src/ui/tui.rs`.** The name of a library is a
+text of the Audiobookshelf server, and an administrator of that server gives
+it. `App::new` (`src/app.rs:907`) made `format!("📖 {} ({})", library_name,
+media_type)`, and `render_header` (`src/ui/tui.rs:2498`) draws that text in a
+`Paragraph` with **no wrap**, bold and centered, in the area of the header.
+**The header holds two rows**: the row of the account and of the address of
+the server stands at the left, and the name of the program and the notice
+stand at the right. An end of a line in the name of the library therefore
+puts every character after it on the second row of the header, at the
+middle, beside the address of the server.
+
+This candidate came of T-311 and T-312, and it stood open in the prompt of
+the round before this one.
+
+**The data of the fault needs no proxy, no build of the fault of the source,
+and no change of the source at all: one request of the API gives it.**
+`PATCH /api/libraries/b4473d74-5499-46a0-abd9-9a8a84427bf6` of the sandbox,
+with the body `{"name":"Alpha\nOMEGAEND"}` and a Bearer token of `POST
+/login`, renamed the library `Empty` of the sandbox. The server accepted
+that name, and `GET /api/libraries` gave it back with the end of a line in
+it. A `sqlite3` of `name_selected_lib` and of `id_selected_lib` of `users` of
+`$ABS/toutui-config/toutui/db.sqlite3` gave that library to the row of the
+account before the start (the trap 203 and the trap 204).
+
+**The measurement**, of the real program v0.8.142 inside tmux with
+`docs/harness/drive.sh`, against the sandbox on `:13399` with the account
+`toutuitest`, of a terminal of **80** columns and 45 rows. The first frame
+came after 405 milliseconds. The two rows at the top of the screen held
+
+```text
+👋 Connected as toutuitest          📖 Alpha                  🦜 Toutui v0.8.142
+🔗 localhost:13399               OMEGAEND (book)
+```
+
+The row of the address of the server holds the word `OMEGAEND` and the type
+of the media, and no row of the screen says the whole name of the library.
+
+**The control of the same run** (the trap 206): the same library of the same
+keys, with the name `AlphaOMEGAEND` of one line, gave
+
+```text
+👋 Connected as toutuitest   📖 AlphaOMEGAEND (book)          🦜 Toutui v0.8.142
+🔗 localhost:13399
+```
+
+**The correction is two files.** `src/ui/keys.rs` holds a new function
+`the_name_of_the_library(name, media_type)`, which gives the two texts of the
+server to `crate::logic::message::in_one_line` of T-311 before it makes the
+text of the header. `src/app.rs` calls that function in the place of its
+`format!`.
+
+**The gate** is `tests/the_header_of_the_screen_keeps_one_line.rs`, of two
+tests. The first reads the text that `the_name_of_the_library` makes, for an
+end of a line of `\n`, of `\r\n`, and of the type of the media, and for the
+control of a name of one line. The second draws that text with the widget of
+`render_header` (a `Paragraph` of no wrap, bold, and centered) into a
+`Buffer` of ratatui of 80 columns and two rows, with no terminal (T-256), and
+it reads the two rows. The tests need no network and no sandbox. **The build
+of the fault** (the trap 147) — a `format!` of the two texts with no
+`in_one_line` in the place of the correction — made the two tests fail, and
+the first said `the name of the library holds more than one line: "📖
+Alpha\nOMEGAEND (book)"`.
+
+**The corrected program**, of the same library of two lines and the same
+keys, gave the row 0 `📖 Alpha OMEGAEND (book)` and the row 1 with the
+address of the server alone.
+
+**The road back**: `PATCH /api/libraries/...` with the name `Empty` again,
+and a `sqlite3` that gave the library `Large`
+(`8f8436ca-37a4-4081-80a1-b051a56eb0a2`) back to the row of the account.
+
+**What this turn leaves open.**
+
+- **The panels of the views hold the author, the series, and the name of an
+  episode of the server** (T-312): `render_info_home`, `render_info_library`,
+  `render_info_search_book`, and `the_panel_of_an_episode` of `src/ui/tui.rs`
+  each write those fields into a `Paragraph` of a `Wrap`, and a `Wrap` keeps an
+  end of a line; `sessions_tui.rs` and `stats_tui.rs` do the same work with a
+  `Line`, and a `Line` of ratatui gives an end of a line **no** column at all.
+  **This is a candidate and not a measurement.**
+- **The title of the block of a list takes no such rule** (T-311):
+  `in_one_row(title, area.width)` of `render_the_list` says nothing of an end
+  of a line, and a title of a view can hold a text of the server — the name of
+  an author of `Search result [2 items, with the books of <the author>]`.
+  **This is a candidate and not a measurement.**
+- **The name of the author of the reader closes** (T-313): a `grep` of
+  `author` over `src/ui/reader_tui.rs` gives no line of code at all, therefore
+  no view of the reader draws that field and the text of the server reaches no
+  row of the screen. `Reader::open_with_the_title` keeps it for a view that
+  does not exist yet.
+- **The title of a block and the panel of a description read no end of a
+  line** (this round): a sweep of `src/ui/tui.rs` named 28 places where a text
+  of the server goes into a `Paragraph` of a `Wrap`, into a `Line`, or into
+  the title of a block with no `in_one_line` — the descriptions of every view
+  at `src/ui/tui.rs:856`, the name of a series at 1776 and at 2649, the name
+  of an author at 1841, 2006, 2711, 2796, and 2981, and the titles of the
+  blocks at 990, 1821, 1979, 1412, and 2290. **The name of a media and the
+  name of an author come of the metadata of an item**, therefore a
+  `PATCH /api/items/:id/media` of the sandbox gives the data of each of them.
+  **This is a candidate and not a measurement.**
+- **The marks of a line count the characters still** (T-305 to T-311): `fill`
+  of `src/ui/marks.rs:111` reads `mark.chars().count()`. **The four marks of
+  that file are constants of this program**, therefore no text of the server
+  reaches that count. **This is a candidate and not a measurement.**
+- **The two keys of `must_refresh` that say nothing at all** (T-308):
+  `show_the_books_of_the_author` and `apply_the_sequence_or_the_filter` of
+  `src/app.rs` each change every list of the screen and each say no word of
+  what they did. **This is a candidate and not a measurement.**
+- **A text whose last line holds no character stands outside every gate of a
+  wrap of this fork** (T-310). **This is a candidate and not a measurement.**
+- **A word of a description that is longer than the panel takes the road of
+  ratatui that overflows the area** (T-306). **This is a candidate and not a
+  measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to
+  T-313).

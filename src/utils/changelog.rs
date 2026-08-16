@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.143",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The name of the library at the top of the screen keeps one \
+             line.** An administrator of the server gives that name, and it \
+             can hold an end of a line. The area at the top of the screen has \
+             two rows, therefore that end of a line put the second part of the \
+             name on the row of the address of the server, and no row of the \
+             screen said the whole name of the library. The name now stands on \
+             one row, and the two parts of it hold one space between them.",
+        ],
+    },
+    Entry {
         version: "0.8.142",
         date: "16/08/2026",
         body: &[
