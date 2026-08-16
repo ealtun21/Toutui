@@ -163,6 +163,68 @@ gives no failure over its binaries in two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
 
+## The session of the hundred and fifty-third turn of 2026-08-16: the key `z` hides the panels 1 to 3
+
+**The item: T-323**, and the release **v0.8.153**. It is the stage 8 of the road
+of the panels, and the last of the eight stages of the mockup 1.
+
+**The screen of the design is always full**, and the section (f) of
+`docs/mockups/mockup-1.md` names that cost in its own words: a user who wants a
+small and quiet screen finds it busy, and the answer is a key that hides the
+panels 1, 2, and 3 and that gives their columns to the list. **The real program
+v0.8.152 inside tmux**, of the Library view of the library `Books` of the
+sandbox at 160 columns and 45 rows: the stack held 34 columns of the 160, the
+panel 4 of the list held 73, the panel 5 of the cover held 48, and **the key
+`z` did nothing and it said nothing at all.**
+
+**The corrected program of the same harness**, after the key `z`: the panel 4
+went from 73 columns to 93 and the panel 5 from 48 to 62, the second row of the
+header took `⇅ The sequence of the server ▣ No filter`, the message said
+`The panels 1 to 3 are hidden. Press the key z for them.`, and the footer said
+`f: sequence  z: the panels 1 to 3`. **The digit `1` of that mode does
+nothing** (T-79), and two keys `j` after it moved the list of the panel 4.
+**The digit `5` still gives the panel 5 the focus.** The key `z` a second time
+gave the stack back with the line of the cursor where it stood, and the key `R`
+of a refresh kept the mode.
+
+**The correction is four files, and no new one.** `src/ui/frame.rs`:
+`the_stack_and_the_work` takes `the_user_hid_the_stack`. `src/app.rs`: the
+field `the_stack_is_hidden` of `App`, the two predicates
+`the_frame_of_the_panels_stands` and `the_stack_of_the_panels_stands`, the key
+`z` of `the_key_of_a_panel` before the digits, the arm `ThePanel::TheViews` of
+`a_panel_of_the_frame_stands`, and the mode inside
+`TheStateThatARefreshKeeps`. `src/ui/tui.rs` gives the mode to the layout and
+it moves five call sites to the first predicate. `src/ui/keys.rs` holds the key
+`z` of the view of the key `?` and the third argument of
+`the_footer_of_a_panel`.
+
+**The trap of this item: the frame of the panels is not the stack of the
+panels, and one predicate cannot hold the two of them.**
+`the_stack_of_the_panels_stands` was the one predicate of six call sites — the
+footer, the border of the panel 4, the target of a click, the gate of every key
+of a panel, the words of the header, and the stack itself. A mode that took
+that one predicate away gave a screen with no border of the panel 4, no table
+of the header of T-321, no digit `5`, and no click of a panel at all.
+
+**The last sweep of the map of the mouse stands in the item T-323 of
+`docs/TAKEOVER-BACKLOG.md`**: the program reads the button at the left, the
+wheel up, and the wheel down, and the button at the right, the button of the
+middle, a move, a release, a drag, and a double click each reach the arm `_`
+and do nothing. The regions of the design that the program does not reach at
+all: the whole status bar, the button of the direction of the panel 2, the
+genre and the field of the text of the panel 3, the mark of a series of the
+panel 4, the picture and the buttons and the bar of the panel 5, the whole
+panel 6, the buttons and the words `Volume` and `Speed` of the panel 7, the box
+of the message, the row of the downloads, the row of the words of the keys, and
+the menu of a click of the button at the right. **Every row of that sweep is a
+candidate and not an item.**
+
+`tests/the_stack_of_the_panels_goes_away_with_one_key.rs` holds four tests, and
+the build of the fault of five edits of one line each made **four of the four**
+fail. Every gate passes: 1447 of 1447 with nextest in 3.9 seconds, 1473 of 1473
+with `--run-ignored all` in 17.9 seconds, `cargo test -j 16 --no-fail-fast`
+over 200 binaries with no failure in two runs, clippy, and fmt.
+
 ## The session of the hundred and fifty-second turn of 2026-08-16: the band of the player holds its bar of the seek
 
 **The item: T-322**, and the release **v0.8.152**. It is the stage 7 of the road
@@ -11247,7 +11309,7 @@ measurement can hold.
 | 5 | **T-318** | The panels 2 and 3, and a series that opens into its books — **done, v0.8.149 and v0.8.150**; the mode of the whole library that sends `collapseseries=0` stays open |
 | 6 | **T-319** | The panel 5 of one cover, and the panel 6 of the gallery — the panel 5 is **done, v0.8.151**; the panel 6 of the gallery stays open |
 | 7 | **T-322** | The band of the player, its bar of the seek, and the click of it — **done, v0.8.152**; the digit `7`, the drag, and the buttons of the design stay open |
-| 8 | **T-323** | The mode that hides the panels 1 to 3, and the last sweep — **the next stage** |
+| 8 | **T-323** | The mode that hides the panels 1 to 3, and the last sweep — **done, v0.8.153**; the sweep names the regions of the mouse that no stage reached |
 
 **Every stage keeps the rules of this file**: drive the real program inside
 tmux before the change and after it, put the two screens in the item of
@@ -11499,13 +11561,29 @@ bar of the chapter; and a row of the buttons of every key of the player.
 **The keys of the player stand in `src/ui/player_tui.rs` already** (the key
 `B`), therefore this stage moves them and it does not invent them.
 
-**T-323: the mode that hides the panels 1 to 3, and the last sweep of the
-mouse.** The design note names the cost of a screen that is always full: a
-user who wants a small and quiet screen finds it busy. **The answer is a key
-that hides the stack at the left and that gives its 34 columns to the panel
-4**, and that mode is not the mode of the start. The last sweep reads the map
-of the mouse of `docs/mockups/mockup-1.md` section (e) and it names every
-region that no stage before it reached.
+**T-323: the mode that hides the panels 1 to 3 stands — done, v0.8.153.** The
+round of the hundred and fifty-third turn took this stage, the last of the
+eight, and the item T-323 of `docs/TAKEOVER-BACKLOG.md` holds the screen of the
+real program before it and after it. **The key `z` gives the 34 columns of the
+stack to the panel 4 of the list**, and that mode is not the mode of the start:
+on a screen of 160 columns the list goes from 73 columns to 93 and the panel of
+the cover from 48 to 62, the second row of the header takes the words of the
+sequence and of the filter, and the key `R` of a refresh keeps the mode.
+**The frame of the panels is not the stack of the panels**, and that is the
+trap of this stage: the panels 4 and 5 keep their border, their digit, their
+footer, and their click while the stack is away.
+
+**The last sweep of the map of the mouse of the section (e) of
+`docs/mockups/mockup-1.md` stands in that item too**, and **every row of it is
+a candidate and not an item**: no row stands as work of this fork until a
+measurement of the real program stands behind it. The program reads the button
+at the left, the wheel up, and the wheel down alone. The regions of the design
+that it does not reach: the whole status bar, the button of the direction of
+the panel 2, the genre and the field of the text of the panel 3, the mark of a
+series of the panel 4, the picture and the buttons and the bar of the panel 5,
+the whole panel 6, the buttons and the words `Volume` and `Speed` of the panel
+7, the box of the message, the row of the downloads, the row of the words of
+the keys, and the menu of a click of the button at the right.
 
 **Five mockups of the whole screen stand in `docs/mockups/`**, one of each of
 five lineages of a TUI (the panels of lazygit, the columns of yazi, the player
@@ -21392,12 +21470,99 @@ that promises a function that the program does not have (T-118).
     (the decision 1), and **no line of the panel 2 says the number of the
     media of a filter**.
 
+
+## The session of the hundred and fifty-first turn of 2026-08-16: the panel 5 of the cover, of the block of the prompt
+
+  **The session of the hundred and fifty-first turn took the stage 6 of the
+  road of the panels** (T-319), the panel 5 of the cover. **It left the
+  panel 6 of the gallery open, and that panel is the rest of this stage.**
+
+  **The column of the covers held a picture and nothing else.** The
+  measurement of the real program v0.8.150 inside tmux, of the Library view
+  of the library `Books` of the sandbox at 160 columns and 45 rows, with the
+  cursor on `Alice in Wonderland`: `cover::split_for_covers` gives the
+  columns 110 to 160 to the covers, **the picture stood in the air** with no
+  border, no title, and no number of a panel, **the nine rows under it held
+  no character at all**, and the words of the media stood under the list, at
+  the left of it, where they took four rows of the list away. **A media that
+  the server holds with no cover gave 50 columns and 41 rows of nothing**:
+  12 of the 22 items of that library hold `coverPath: null`, and **every one
+  of the 2056 items of the library `Large` holds it too**.
+
+  **The data of this stage is the program itself**: no proxy, no book of a
+  harness, and no change of the sandbox. The correction is six files.
+  `src/ui/the_panel_of_the_cover.rs` is new, and every function of it is
+  pure: `the_parts_of_the_panel` divides the inside of the panel 5 into the
+  picture (55 percent of the height), the three rows of the facts, and the
+  description, and `the_words_stand_here` says whether the panel took the
+  words. **A panel under 13 rows holds the picture alone**, and the words
+  then stay under the list. **A media that the server holds with no cover
+  gives every row to the words**: `cover::no_picture_comes` reads the store
+  of the covers, and it gives `true` for `CoverBytes::NoCover` and for
+  `CoverBytes::Fault` alone. `src/ui/tui.rs` draws the block of the panel and
+  it gives the two areas back, and `the_areas_of_a_list_and_the_panel` then
+  gives the whole column to the list; `src/ui/frame.rs` holds
+  `ThePanel::TheCover` with the digit `5`; `src/ui/the_mouse.rs` holds
+  `TheTarget::ThePanelOfTheCover`; `src/app.rs` holds
+  `the_key_of_the_panel_of_the_cover` and `a_panel_of_the_frame_stands`,
+  which was `a_panel_of_the_stack_stands`; and `src/ui/keys.rs` holds the
+  footer of the panel and its two lines of the view of the key `?`.
+
+  **The corrected program** of the same harness: the panel
+  `┌5 Cover ─────┐` holds the picture, `Author: Lewis Carroll - Year: N/A -
+  Duration: 0m`, `Progress: 0%, Not finished`, and the description, and
+  **the list of the panel 4 grew from 16 lines to 20**. A podcast of the
+  library `Podcasts` filled that panel with 11 lines of its description. The
+  key `5` gave `╔5 Cover ═══╗` against `┌4 Library [18 items] ───┐` with the
+  footer `j/k: the description  l: play or open  h: the list  4/Ctrl+h: the
+  list`; three keys `j` of that focus moved the description of `Letters of
+  Two Brides` two lines at 24 rows; the key `h` gave the focus back; a click
+  of `docs/harness/click.sh` at the column 130 of the row 20 gave the panel
+  the focus; and two steps of the wheel over it moved the description. At
+  100 columns the panel stands with 38 columns and no stack beside it, and
+  at 40 columns the covers go away with the second column.
+
+  `tests/the_panel_of_the_cover_holds_the_words.rs` holds the gate, of six
+  tests, and five more stand inside `src/ui/`. **The build of the fault**
+  (the trap 147) — `if !a_picture_comes && false` and
+  `if inside.height < THE_SMALLEST_PANEL_OF_THE_WORDS || true` of
+  `the_parts_of_the_panel`, `'5' if false =>` of `of_the_digit`, the words
+  `j/k: the description` and the line `key("5", …)` of `src/ui/keys.rs`
+  taken out, and `if the_stack_stands && false &&` on the arm of the panel 5
+  of `the_target_of_a_point` — made **eleven of the eleven** fail.
+
+  **The trap of this item**: **a picture that the program did not ask for
+  yet is not a media with no cover.** The first form of `no_picture_comes`
+  read `CoverArt::picture(…).is_some()`, and that value is `false` for every
+  media at the frame of its first request: the panel then said the words on
+  the whole column, and the picture came one frame later and it moved every
+  word of it. The store of the covers holds four states, and the two that no
+  second request asks for are the two states of this rule.
+  - **The panel 6 of the gallery is the part of this stage that stays
+    open**: a grid of the covers of the rows around the cursor, with the
+    percent and a short title under each cell, and the keys `+` and `-` for
+    the size of a cell. `cover::plan_covers` holds a shelf of four covers of
+    a **series** already, and the gallery of the design is the list of the
+    view and not a series.
+  - **The facts of the design stay open too**: the mockup names the series,
+    the narrator, the time that is left, the day of the start, the genre,
+    the number of the files, the state of the ebook, and a bar of the
+    progress, each on a line of its own at the right of the picture, and the
+    panel says the two rows of the panel of a line of today. A panel of the
+    design needs a collector of the facts of every one of the eight views of
+    a cover, and that is a round of its own.
+  - **A click of the picture, of a button, and of the bar of the progress
+    names nothing** (the map of the mouse of the section (e) of
+    `docs/mockups/mockup-1.md`), and **the panel 5 of a screen of two
+    columns takes no key**, because the keys of a panel belong to the shape
+    of three columns alone (T-320).
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.152**; `Cargo.toml` is at 0.8.152. The
+> AlbanDAVID/Toutui. Newest release **v0.8.153**; `Cargo.toml` is at 0.8.153. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -21406,7 +21571,7 @@ that promises a function that the program does not have (T-118).
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-317 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-323 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -22192,7 +22357,7 @@ that promises a function that the program does not have (T-118).
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-322 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-324 and
 > up), and name that item in the commit.
 >
 > **`String::find` gives the index of a byte and not the column of the screen**
@@ -22205,8 +22370,8 @@ that promises a function that the program does not have (T-118).
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1443 tests in 3.0 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1469 of 1469** with the sandbox up, in about 18 seconds. **Run that
+> Baseline: **1447 tests in 3.9 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1473 of 1473** with the sandbox up, in about 18 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -22314,8 +22479,8 @@ that promises a function that the program does not have (T-118).
 > ### The work, in the sequence of its value
 >
 > 0. **The four items that the maintainer gave on 2026-08-16** (T-316 to
->    T-319), which stand in `### 0. The four items of the maintainer of
->    2026-08-16` of `## What is open` of `docs/HANDOVER.md`, outside this
+>    T-319), which stand in `### 0. The road of the panels (T-316 to T-323)`
+>    of `## What is open` of `docs/HANDOVER.md`, outside this
 >    block: **the mouse everywhere** (T-316), **the theme of the terminal of
 >    the user** (T-317), **the modes of a filter and of a sequence of the
 >    Library view, and a series that opens into its books** (T-318), and **the
@@ -22331,103 +22496,104 @@ that promises a function that the program does not have (T-118).
 >    T-320 the frame of the panels, T-316 the mouse, T-321 the table, T-318
 >    the panels of the sequence and of the filter, T-319 the covers, T-322 the
 >    band of the player, and T-323 the mode that hides the stack at the left.
->    **The stages 1, 2, 3, 4, 5, 6, and 7 are done** (v0.8.145 to v0.8.152).
->    **The stage 8, T-323, the mode that hides the panels 1 to 3, and the last
->    sweep, is the next work.** Of the stage 5 there stays the mode of the
->    whole library that sends `collapseseries=0`: the user has no key that
->    gives every book of every series in one list. Of the stage 6 there stays
->    the **panel 6 of the gallery**, and of the stage 7 there stay the digit
->    `7`, the drag of the bar, and the buttons of the design; the turns of the
->    stages 6 and 7 below hold the trap of each of them.
->    **A round takes the next stage that is not finished**, and that section
+>    **The eight stages are done** (v0.8.145 to v0.8.153), **and no stage of
+>    the road of the panels stays.** What stays is the part of a stage that
+>    its round left open, and each of those parts is a round of its own:
+>    of the stage 5, the mode of the whole library that sends
+>    `collapseseries=0`, because the user has no key that gives every book of
+>    every series in one list; of the stage 6, the **panel 6 of the gallery**
+>    and the facts of the design of the panel 5; of the stage 7, the digit
+>    `7`, the drag of the bar, and the buttons of the band; and of the stage
+>    8, **the regions of the map of the mouse that no stage reached** — the
+>    item T-323 of `docs/TAKEOVER-BACKLOG.md` names every one of them, and
+>    **each of them is a candidate and not an item.** The turn of the stage 8
+>    below holds the trap of the whole road.
+>    **A round takes the part that gives the user the most**, and that section
 >    holds three decisions that a round must not take alone. Read it first.
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
->   **The session of the hundred and fifty-first turn took the stage 6 of the
->   road of the panels** (T-319), the panel 5 of the cover. **It left the
->   panel 6 of the gallery open, and that panel is the rest of this stage.**
+>   **The session of the hundred and fifty-third turn took the stage 8 of the
+>   road of the panels** (T-323), the mode that hides the panels 1 to 3.
+>   **That stage is the last of the eight, and the road of the panels is
+>   therefore finished**: what stays is the part of a stage that its round
+>   left open, and the list of those parts stands above.
 >
->   **The column of the covers held a picture and nothing else.** The
->   measurement of the real program v0.8.150 inside tmux, of the Library view
->   of the library `Books` of the sandbox at 160 columns and 45 rows, with the
->   cursor on `Alice in Wonderland`: `cover::split_for_covers` gives the
->   columns 110 to 160 to the covers, **the picture stood in the air** with no
->   border, no title, and no number of a panel, **the nine rows under it held
->   no character at all**, and the words of the media stood under the list, at
->   the left of it, where they took four rows of the list away. **A media that
->   the server holds with no cover gave 50 columns and 41 rows of nothing**:
->   12 of the 22 items of that library hold `coverPath: null`, and **every one
->   of the 2056 items of the library `Large` holds it too**.
+>   **The screen of the design is always full**, and the section (f) of
+>   `docs/mockups/mockup-1.md` names that cost in its own words: a user who
+>   wants a small and quiet screen finds it busy, and the answer is a key
+>   that hides the panels 1, 2, and 3 and that gives their columns to the
+>   list. **The real program v0.8.152 inside tmux**, of the Library view of
+>   the library `Books` of the sandbox at 160 columns and 45 rows: the stack
+>   held 34 columns of the 160, the panel 4 of the list held 73, the panel 5
+>   of the cover held 48, and **the key `z` did nothing and it said nothing
+>   at all.** **The data of this stage is the program itself**: no proxy, no
+>   book of a harness, and no change of the sandbox — the library of the row
+>   of the account comes of a `sqlite3` of `name_selected_lib` and of
+>   `id_selected_lib` (the trap 203 and the trap 204).
 >
->   **The data of this stage is the program itself**: no proxy, no book of a
->   harness, and no change of the sandbox. The correction is six files.
->   `src/ui/the_panel_of_the_cover.rs` is new, and every function of it is
->   pure: `the_parts_of_the_panel` divides the inside of the panel 5 into the
->   picture (55 percent of the height), the three rows of the facts, and the
->   description, and `the_words_stand_here` says whether the panel took the
->   words. **A panel under 13 rows holds the picture alone**, and the words
->   then stay under the list. **A media that the server holds with no cover
->   gives every row to the words**: `cover::no_picture_comes` reads the store
->   of the covers, and it gives `true` for `CoverBytes::NoCover` and for
->   `CoverBytes::Fault` alone. `src/ui/tui.rs` draws the block of the panel and
->   it gives the two areas back, and `the_areas_of_a_list_and_the_panel` then
->   gives the whole column to the list; `src/ui/frame.rs` holds
->   `ThePanel::TheCover` with the digit `5`; `src/ui/the_mouse.rs` holds
->   `TheTarget::ThePanelOfTheCover`; `src/app.rs` holds
->   `the_key_of_the_panel_of_the_cover` and `a_panel_of_the_frame_stands`,
->   which was `a_panel_of_the_stack_stands`; and `src/ui/keys.rs` holds the
->   footer of the panel and its two lines of the view of the key `?`.
+>   **The corrected program of the same harness**, after the key `z`: the
+>   panel 4 went from 73 columns to 93 and the panel 5 from 48 to 62, the
+>   second row of the header took `⇅ The sequence of the server ▣ No
+>   filter`, the message said `The panels 1 to 3 are hidden. Press the key z
+>   for them.`, and the footer said `f: sequence  z: the panels 1 to 3`.
+>   **The digit `1` of that mode does nothing** (T-79), and two keys `j`
+>   after it moved the list of the panel 4. **The digit `5` still gives the
+>   panel 5 the focus**, with the border `╔5 Cover ═══╗` against
+>   `┌4 Library [18 items] ───┐`. The key `z` a second time gave the stack
+>   back with the line of the cursor where it stood, and the key `R` of a
+>   refresh kept the mode.
 >
->   **The corrected program** of the same harness: the panel
->   `┌5 Cover ─────┐` holds the picture, `Author: Lewis Carroll - Year: N/A -
->   Duration: 0m`, `Progress: 0%, Not finished`, and the description, and
->   **the list of the panel 4 grew from 16 lines to 20**. A podcast of the
->   library `Podcasts` filled that panel with 11 lines of its description. The
->   key `5` gave `╔5 Cover ═══╗` against `┌4 Library [18 items] ───┐` with the
->   footer `j/k: the description  l: play or open  h: the list  4/Ctrl+h: the
->   list`; three keys `j` of that focus moved the description of `Letters of
->   Two Brides` two lines at 24 rows; the key `h` gave the focus back; a click
->   of `docs/harness/click.sh` at the column 130 of the row 20 gave the panel
->   the focus; and two steps of the wheel over it moved the description. At
->   100 columns the panel stands with 38 columns and no stack beside it, and
->   at 40 columns the covers go away with the second column.
+>   **The correction is four files, and no new one.** `src/ui/frame.rs`:
+>   `the_stack_and_the_work` takes `the_user_hid_the_stack`. `src/app.rs`:
+>   the field `the_stack_is_hidden` of `App`, which is `false` at the start;
+>   the two predicates `the_frame_of_the_panels_stands` and
+>   `the_stack_of_the_panels_stands`; the key `z` of `the_key_of_a_panel`
+>   **before** the digits, because a focus that stands on a panel of the
+>   stack must reach that key too; the arm `ThePanel::TheViews` of
+>   `a_panel_of_the_frame_stands`; and the mode inside
+>   `TheStateThatARefreshKeeps`. `src/ui/tui.rs` gives the mode to the
+>   layout and it moves five call sites to the first predicate.
+>   `src/ui/keys.rs` holds the key `z` of the view of the key `?` and the
+>   third argument of `the_footer_of_a_panel`.
 >
->   `tests/the_panel_of_the_cover_holds_the_words.rs` holds the gate, of six
->   tests, and five more stand inside `src/ui/`. **The build of the fault**
->   (the trap 147) — `if !a_picture_comes && false` and
->   `if inside.height < THE_SMALLEST_PANEL_OF_THE_WORDS || true` of
->   `the_parts_of_the_panel`, `'5' if false =>` of `of_the_digit`, the words
->   `j/k: the description` and the line `key("5", …)` of `src/ui/keys.rs`
->   taken out, and `if the_stack_stands && false &&` on the arm of the panel 5
->   of `the_target_of_a_point` — made **eleven of the eleven** fail.
+>   `tests/the_stack_of_the_panels_goes_away_with_one_key.rs` holds the
+>   gate, of four tests. **The build of the fault** (the trap 147), of five
+>   edits of one line each — `(the_user_hid_the_stack && false)` of
+>   `the_stack_and_the_work`, `&& false &&` on the focus of the key `z`,
+>   `the_stack_stands || true` of the footer, the line `key("z", …)` of
+>   `src/ui/keys.rs` taken out, and the arm `ThePanel::TheViews` of
+>   `a_panel_of_the_frame_stands` taken out — made **four of the four**
+>   fail.
 >
->   **The trap of this item**: **a picture that the program did not ask for
->   yet is not a media with no cover.** The first form of `no_picture_comes`
->   read `CoverArt::picture(…).is_some()`, and that value is `false` for every
->   media at the frame of its first request: the panel then said the words on
->   the whole column, and the picture came one frame later and it moved every
->   word of it. The store of the covers holds four states, and the two that no
->   second request asks for are the two states of this rule.
->   - **The panel 6 of the gallery is the part of this stage that stays
->     open**: a grid of the covers of the rows around the cursor, with the
->     percent and a short title under each cell, and the keys `+` and `-` for
->     the size of a cell. `cover::plan_covers` holds a shelf of four covers of
->     a **series** already, and the gallery of the design is the list of the
->     view and not a series.
->   - **The facts of the design stay open too**: the mockup names the series,
->     the narrator, the time that is left, the day of the start, the genre,
->     the number of the files, the state of the ebook, and a bar of the
->     progress, each on a line of its own at the right of the picture, and the
->     panel says the two rows of the panel of a line of today. A panel of the
->     design needs a collector of the facts of every one of the eight views of
->     a cover, and that is a round of its own.
->   - **A click of the picture, of a button, and of the bar of the progress
->     names nothing** (the map of the mouse of the section (e) of
->     `docs/mockups/mockup-1.md`), and **the panel 5 of a screen of two
->     columns takes no key**, because the keys of a panel belong to the shape
->     of three columns alone (T-320).
+>   **The trap of this item**: **the frame of the panels is not the stack of
+>   the panels, and one predicate cannot hold the two of them.**
+>   `the_stack_of_the_panels_stands` was the one predicate of six call sites
+>   — the footer, the border of the panel 4, the target of a click, the gate
+>   of every key of a panel, the words of the header, and the stack itself.
+>   A mode that took that one predicate away gave a screen with **no border
+>   of the panel 4, no table of the header of T-321, no digit `5`, and no
+>   click of a panel at all**: the key of a quiet screen would have taken
+>   the whole stage 4 and the whole stage 6 with it.
+>   - **The last sweep of the map of the mouse stands in the item T-323 of
+>     `docs/TAKEOVER-BACKLOG.md`.** The program reads the button at the
+>     left, the wheel up, and the wheel down; the button at the right, the
+>     button of the middle, a move, a release, a drag, and a double click
+>     each reach the arm `_` and they do nothing, and **`crossterm` sends no
+>     kind of a double click at all**. The regions of the design that the
+>     program does not reach: the whole status bar, the button of the
+>     direction of the panel 2, the genre and the field of the text of the
+>     panel 3, the mark of a series of the panel 4, the picture and the
+>     buttons and the bar of the panel 5, the whole panel 6, the buttons and
+>     the words `Volume` and `Speed` of the panel 7, the box of the message,
+>     the row of the downloads, the row of the words of the keys, and the
+>     menu of a click of the button at the right.
+>   - **The key `z` of a screen under 120 columns does nothing and it says
+>     nothing**, as the digits 1 to 5 do: the keys of a panel belong to the
+>     shape of three columns alone (T-320), and the footer of such a screen
+>     names none of them.
+>
 >   **The session of the hundred and fifty-second turn took the stage 7 of
 >   the road of the panels** (T-322), the band of the player. **It left the
 >   digit `7`, the drag of the bar, and the buttons of the design open.**
@@ -22598,6 +22764,14 @@ that promises a function that the program does not have (T-118).
 > click therefore goes up; and **the row of the buttons keeps the words of
 > today**, because a `[ ]` of the design that no click reads promises a function
 > that the program does not have (T-322).
+> **The frame of the panels is not the stack of the panels**: the key `z` hides
+> the panels 1, 2, and 3 alone, and the panel 4 of the list and the panel 5 of
+> the cover keep their border, their digit, their footer, and their click while
+> the stack is away — `App::the_frame_of_the_panels_stands` holds the first rule
+> and `App::the_stack_of_the_panels_stands` holds the second, and no round joins
+> them again. **The mode is not the mode of the start**, a refresh keeps it, and
+> **a screen under 120 columns takes no key `z`**, as it takes no digit of a
+> panel (T-323).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
@@ -22670,7 +22844,9 @@ that promises a function that the program does not have (T-118).
 > work, and the block then held about 77000 bytes with **two** turns in it; the
 > round of the hundred and fifty-second found it at 77492 bytes with two turns
 > in it, and it did the same work, and the block then held **80001** bytes with
-> **two** turns in it.
+> **two** turns in it; the round of the hundred and fifty-third found it at
+> 80609 bytes with two turns in it, and it did the same work, and the block
+> then held about 81000 bytes with **two** turns in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions
