@@ -27883,3 +27883,137 @@ and a `sqlite3` that gave the library `Large`
   measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to
   T-313).
+
+### T-315: the panel of a media keeps the line of the place of the user
+
+**The fault, in `src/ui/tui.rs`.** The name of an author is a text of the
+Audiobookshelf server, and a user of that server gives it. Six panels of that
+file wrote it into a `Paragraph` of a `Wrap` with an end of a line of their
+own between the line of the media and the line of the place of the user:
+`"Author: {} - Year: {} - Duration: {}{}\nProgress: {}%, {} {}"` of the Home
+view, of the Library view, and of the view of a search, `"Author: {} -
+Duration: {}{}\nProgress: ..."` of a book of a series, `"{} - Author: {} -
+Duration: {}{}\nProgress: ..."` of an entry of a list, and `"[{}] - Author:
+{} - Episode: {} - Duration: {}{}\nProgress: ..."` of an episode of a
+podcast.
+
+**The panel of a media holds two rows in a terminal that is not tall.**
+`the_areas_of_a_list` (`src/ui/tui.rs:171`) gives the list every row that it
+can and the panel `Constraint::Length(2)` while
+`main_area.height - the rows of the player <= 12`, and
+`Constraint::Length(3)` above that. An author whose name holds an end of a
+line therefore gives the text of the panel **three** lines, and the row of
+the place of the user goes off the area.
+
+This candidate came of T-314, which left `28 more places of src/ui/tui.rs
+with no in_one_line` open, and the panel of a media is the one of them where
+the end of a line of the server takes a row that a row of this program needs.
+
+**The data of the fault needs no proxy, no harness of a book, and no build of
+the fault of the source: one request of the API gives it.**
+`PATCH /api/items/a4d8b9b2-c4a4-4e80-8ed0-07662933fa71/media` of the sandbox,
+with the body `{"metadata":{"authors":[{"name":"Alpha\nOMEGAEND"}]}}` and a
+Bearer token of `POST /login`, gave the book `A Book Of An Epub With No
+Container` an author of two lines. The server accepted that name, and
+`GET /api/libraries/1b090ea8-.../items` then gave
+`media.metadata.authorName` as `'Alpha\nOMEGAEND'`. A `sqlite3` of
+`name_selected_lib` and of `id_selected_lib` of `users` gave the library
+`Books` to the row of the account before the start (the trap 203 and the trap
+204). **A `PATCH` of the metadata moves the book in the list of the server**:
+the book stood at the row 1 before the request and at the row 4 after it.
+
+**The measurement**, of the real program v0.8.143 inside tmux with
+`docs/harness/drive.sh`, against the sandbox on `:13399` with the account
+`toutuitest`, of a terminal of 80 columns and **18** rows. The first frame
+came after 204 milliseconds. The keys `Tab` and three `j` gave that book of
+the Library view, and the two rows of the panel under the list held
+
+```text
+Author: Alpha
+OMEGAEND - Year: N/A - Duration: 0m
+```
+
+**No row of the screen said the place of the user.** The same run of the same
+program at 80 columns and **45** rows gave the panel three rows, and the row
+of the place then stood: the fault belongs to the terminal that is not tall,
+which is the terminal of a pane of tmux and of a window of a phone.
+
+**The control of the same run** (the trap 206): the same book of the same
+keys at 80 columns and 18 rows, with the author `AlphaOMEGAEND` of one line,
+held
+
+```text
+Author: AlphaOMEGAEND - Year: N/A - Duration: 0m
+Progress: 100%, 0m left, Finished
+```
+
+**The correction** is two files. `src/ui/keys.rs` holds a new function
+`the_panel_of_a_media(of_the_media, of_the_place)`, which gives the two texts
+to `crate::logic::message::in_one_line` of T-311 and which then joins them
+with one end of a line: the text of the panel therefore holds two lines and
+no more. The six panels of `src/ui/tui.rs` call that function in the place of
+their `format!` of one text.
+
+`tests/the_panel_of_a_media_keeps_its_two_lines.rs` holds the gate, of two
+tests. The first reads the text of the function for an end of a line of
+`\n`, of `\r\n`, and of the line of the place of the user, and it counts the
+lines of it. The second draws that text with the widget of the six panels (a
+`Paragraph` of a `Wrap` of `trim`, at the left) into a `Buffer` of ratatui of
+80 columns and **two** rows, with no terminal (T-256), and it reads the two
+rows. The tests need no network and no sandbox. **The build of the fault**
+(the trap 147) — a `format!("{}\n{}", of_the_media, of_the_place)` with no
+`in_one_line` in the place of the correction — made the two tests fail, and
+the first said `the panel of the media holds more than two lines: "Author:
+Alpha\nOMEGAEND - Year: N/A - Duration: 0m\nProgress: 100%, 0m left,
+Finished"`.
+
+**The corrected program**, of the same book of two lines and the same keys at
+80 columns and 18 rows, gave
+
+```text
+Author: Alpha OMEGAEND - Year: N/A - Duration: 0m
+Progress: 100%, 0m left, Finished
+```
+
+**The road back**: `PATCH /api/items/a4d8b9b2-.../media` with
+`{"metadata":{"authors":[]}}`, which gave the book its author of nothing
+again — the sandbox took the two authors of the measurement away by itself,
+and `GET /api/libraries/1b090ea8-.../authors` then held the nine authors of
+the start. A `sqlite3` gave the library `Large`
+(`8f8436ca-37a4-4081-80a1-b051a56eb0a2`) back to the row of the account.
+
+**What this turn leaves open.**
+
+- **The line of a series of a view reads no end of a line** (this round): the
+  `Paragraph` of `src/ui/tui.rs:1776` and of 2649 holds
+  `"{} - {} - Duration: {}"` with the name of a series of the server, and a
+  `PATCH /api/items/:id/media` with `metadata.seriesName` gives the data of
+  it. That line is **one** line of a panel of two rows or of three, therefore
+  an end of a line in it takes a row and it loses no text: the fault of it is
+  smaller than the fault of this item, and it is a fault of the same class.
+  **This is a candidate and not a measurement.**
+- **The titles of the blocks hold a text of the server with no rule of a
+  line** (T-314): `src/ui/tui.rs:990`, 1412, 1821, 1979, and 2290. **A `Line`
+  of ratatui gives an end of a line no column at all**, therefore the two
+  words of such a title join with no space between them, and
+  `in_one_row(title, area.width)` says nothing of it. **This is a candidate
+  and not a measurement.**
+- **The panels of the descriptions of every view keep every end of a line**
+  (T-314, `src/ui/tui.rs:856`): a description of the server holds ends of
+  lines of its own already, and that panel scrolls. **The rule of one line
+  does not hold there**, and this candidate closes.
+- **The two keys of `must_refresh` that say nothing at all** (T-308):
+  `show_the_books_of_the_author` and `apply_the_sequence_or_the_filter` of
+  `src/app.rs` each change every list of the screen and each say no word of
+  what they did. **This is a candidate and not a measurement.**
+- **The marks of a line count the characters still** (T-305 to T-311): `fill`
+  of `src/ui/marks.rs:111` reads `mark.chars().count()`, and the four marks
+  of that file are constants of this program. **This is a candidate and not a
+  measurement.**
+- **A text whose last line holds no character stands outside every gate of a
+  wrap of this fork** (T-310). **This is a candidate and not a measurement.**
+- **A word of a description that is longer than the panel takes the road of
+  ratatui that overflows the area** (T-306). **This is a candidate and not a
+  measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to
+  T-314).

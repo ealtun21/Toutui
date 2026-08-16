@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.144",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The panel of a media keeps the line of your place in it.** A \
+             user of the server gives the name of an author, and it can hold \
+             an end of a line. That panel has two rows in a terminal that is \
+             not tall, therefore such a name took a row more, and the line of \
+             your place went off the screen. The name of the author now stands \
+             on one row, and the two parts of it hold one space between them. \
+             The six panels of a media take the same rule.",
+        ],
+    },
+    Entry {
         version: "0.8.143",
         date: "16/08/2026",
         body: &[

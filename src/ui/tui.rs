@@ -1836,17 +1836,22 @@ impl App {
             // Home view of that same run said the place of the user.
             let place = self.the_place_of_the_panel_of_a_series_book(book);
 
-            Paragraph::new(format!(
-                "Author: {} - Duration: {}{}\nProgress: {}%, {} {}",
-                book.author,
-                convert_seconds(vec![book.duration])
-                    .first()
-                    .cloned()
-                    .unwrap_or_default(),
-                of_the_disk,
-                place.percent,               // percentage progression
-                place.the_time_that_is_left, // time left
-                place.the_end,               // is finished
+            Paragraph::new(crate::ui::keys::the_panel_of_a_media(
+                &format!(
+                    "Author: {} - Duration: {}{}",
+                    book.author,
+                    convert_seconds(vec![book.duration])
+                        .first()
+                        .cloned()
+                        .unwrap_or_default(),
+                    of_the_disk,
+                ),
+                &format!(
+                    "Progress: {}%, {} {}",
+                    place.percent,               // percentage progression
+                    place.the_time_that_is_left, // time left
+                    place.the_end,               // is finished
+                ),
             ))
             .wrap(Wrap { trim: true })
             .left_aligned()
@@ -1996,22 +2001,27 @@ impl App {
             // Home view of that same run said the place of the user.
             let place = self.the_place_of_the_panel_of_a_list_entry(entry);
 
-            Paragraph::new(format!(
-                "{} - Author: {} - Duration: {}{}\nProgress: {}%, {} {}",
-                if entry.is_episode() {
-                    "Episode"
-                } else {
-                    "Book"
-                },
-                entry.author,
-                convert_seconds(vec![entry.duration])
-                    .first()
-                    .cloned()
-                    .unwrap_or_default(),
-                of_the_disk,
-                place.percent,               // percentage progression
-                place.the_time_that_is_left, // time left
-                place.the_end,               // is finished
+            Paragraph::new(crate::ui::keys::the_panel_of_a_media(
+                &format!(
+                    "{} - Author: {} - Duration: {}{}",
+                    if entry.is_episode() {
+                        "Episode"
+                    } else {
+                        "Book"
+                    },
+                    entry.author,
+                    convert_seconds(vec![entry.duration])
+                        .first()
+                        .cloned()
+                        .unwrap_or_default(),
+                    of_the_disk,
+                ),
+                &format!(
+                    "Progress: {}%, {} {}",
+                    place.percent,               // percentage progression
+                    place.the_time_that_is_left, // time left
+                    place.the_end,               // is finished
+                ),
             ))
             .wrap(Wrap { trim: true })
             .left_aligned()
@@ -2683,16 +2693,19 @@ impl App {
                 // `App::the_place_of_the_panel_of_the_home_view`.
                 let place = self.the_place_of_the_panel_of_the_home_view(selected);
 
-                Paragraph::new(format!(
-                    "[{}] - Author: {} - Episode: {} - Duration: {}{}\nProgress: {}%, {} {}",
-                    at(&self.titles_pod_cnt_list, selected),
-                    at(&self.authors_pod_cnt_list, selected),
-                    at(&self.nums_ep_pod_cnt_list, selected),
-                    at(&self.durations_pod_cnt_list, selected),
-                    of_the_disk,
-                    place.percent,
-                    place.the_time_that_is_left,
-                    place.the_end,
+                Paragraph::new(crate::ui::keys::the_panel_of_a_media(
+                    &format!(
+                        "[{}] - Author: {} - Episode: {} - Duration: {}{}",
+                        at(&self.titles_pod_cnt_list, selected),
+                        at(&self.authors_pod_cnt_list, selected),
+                        at(&self.nums_ep_pod_cnt_list, selected),
+                        at(&self.durations_pod_cnt_list, selected),
+                        of_the_disk,
+                    ),
+                    &format!(
+                        "Progress: {}%, {} {}",
+                        place.percent, place.the_time_that_is_left, place.the_end,
+                    ),
                 ))
                 .wrap(Wrap { trim: true })
                 .left_aligned()
@@ -2706,15 +2719,20 @@ impl App {
                 // `▶ 4:13:12 / 8:00:00 | Left: 3:46:48 (53%)`.
                 let place = self.the_place_of_the_panel_of_the_home_view(selected);
 
-                Paragraph::new(format!(
-                    "Author: {} - Year: {} - Duration: {}{}\nProgress: {}%, {} {}",
-                    at(&self.auth_names_cnt_list, selected),
-                    at(&self.pub_year_cnt_list, selected),
-                    at(&duration_cnt_list_conv, selected),
-                    of_the_disk,
-                    place.percent,               // percentage progression
-                    place.the_time_that_is_left, // time left
-                    place.the_end,               // is finished
+                Paragraph::new(crate::ui::keys::the_panel_of_a_media(
+                    &format!(
+                        "Author: {} - Year: {} - Duration: {}{}",
+                        at(&self.auth_names_cnt_list, selected),
+                        at(&self.pub_year_cnt_list, selected),
+                        at(&duration_cnt_list_conv, selected),
+                        of_the_disk,
+                    ),
+                    &format!(
+                        "Progress: {}%, {} {}",
+                        place.percent,               // percentage progression
+                        place.the_time_that_is_left, // time left
+                        place.the_end,               // is finished
+                    ),
                 ))
                 .wrap(Wrap { trim: true })
                 .left_aligned()
@@ -2791,15 +2809,20 @@ impl App {
                 // end.
                 let place = self.the_place_of_the_panel_of_the_library(selected);
 
-                Paragraph::new(format!(
-                    "Author: {} - Year: {} - Duration: {}{}\nProgress: {}%, {} {}",
-                    at(&self.auth_names_library, selected),
-                    at(&self.published_year_library, selected),
-                    at(&duration_library_conv, selected),
-                    of_the_disk,
-                    place.percent,               // percentage progression
-                    place.the_time_that_is_left, // time left
-                    place.the_end,               // is finished
+                Paragraph::new(crate::ui::keys::the_panel_of_a_media(
+                    &format!(
+                        "Author: {} - Year: {} - Duration: {}{}",
+                        at(&self.auth_names_library, selected),
+                        at(&self.published_year_library, selected),
+                        at(&duration_library_conv, selected),
+                        of_the_disk,
+                    ),
+                    &format!(
+                        "Progress: {}%, {} {}",
+                        place.percent,               // percentage progression
+                        place.the_time_that_is_left, // time left
+                        place.the_end,               // is finished
+                    ),
                 ))
                 .wrap(Wrap { trim: true })
                 .left_aligned()
@@ -2976,15 +2999,20 @@ impl App {
                 // rule of this view: the two panels take one function.
                 let place = self.the_place_of_the_panel_of_the_search_book(selected);
 
-                Paragraph::new(format!(
-                    "Author: {} - Year: {} - Duration: {}{}\nProgress: {}%, {} {}",
-                    at(&self.auth_names_search_book, selected),
-                    at(&self.published_year_library_search_book, selected),
-                    at(&duration_library_search_book_conv, selected),
-                    of_the_disk,
-                    place.percent,               // percentage progression
-                    place.the_time_that_is_left, // time left
-                    place.the_end,               // is finished
+                Paragraph::new(crate::ui::keys::the_panel_of_a_media(
+                    &format!(
+                        "Author: {} - Year: {} - Duration: {}{}",
+                        at(&self.auth_names_search_book, selected),
+                        at(&self.published_year_library_search_book, selected),
+                        at(&duration_library_search_book_conv, selected),
+                        of_the_disk,
+                    ),
+                    &format!(
+                        "Progress: {}%, {} {}",
+                        place.percent,               // percentage progression
+                        place.the_time_that_is_left, // time left
+                        place.the_end,               // is finished
+                    ),
                 ))
                 .wrap(Wrap { trim: true })
                 .left_aligned()

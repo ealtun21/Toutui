@@ -355,6 +355,26 @@ pub fn the_name_of_the_library(name: &str, media_type: &str) -> String {
     )
 }
 
+/// The two lines of the panel of a media.
+///
+/// **A text of the server puts the place of the user off the screen** (T-315).
+/// The panel of a media stands under the list, and `the_areas_of_a_list` of
+/// `src/ui/tui.rs` gives it **two** rows in a terminal that is not tall. The
+/// first line of it names the author, the year, and the length of the media,
+/// and the second line names the place of the user. An author of a name of two
+/// lines therefore gives that area three lines, and the row of the place goes
+/// away.
+///
+/// This function holds the rule of T-311 for the two lines: a text of the
+/// server keeps one line, and every end of a line of it becomes one space.
+pub fn the_panel_of_a_media(of_the_media: &str, of_the_place: &str) -> String {
+    format!(
+        "{}\n{}",
+        crate::logic::message::in_one_line(of_the_media),
+        crate::logic::message::in_one_line(of_the_place)
+    )
+}
+
 /// The notice at the right of the header for a server that does not answer.
 ///
 /// The program still holds the lists of the server, therefore it is not in the

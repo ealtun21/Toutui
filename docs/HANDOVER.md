@@ -4,7 +4,10 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.141.** The item T-312 belongs to this session. The
+**The newest release is v0.8.144.** The item T-315 belongs to this session. The
+item T-314 belongs to the session before it. The
+item T-313 belongs to the session before it. The
+item T-312 belongs to the session before it. The
 item T-311 belongs to the session before it. The
 item T-310 belongs to the session before it. The
 item T-309 belongs to the session before it. The
@@ -412,7 +415,7 @@ account holds the library `Large`.
 
 **The block of the prompt met the line of 99000 bytes** (T-284). The whole list
 of the decisions of T-201 to T-311 went out of it, into
-`## The decisions of T-201 to T-314 that do not open again` of this file, and a
+`## The decisions of T-201 to T-315 that do not open again` of this file, and a
 pointer of three lines stands in its place: the block held 98907 bytes and it
 holds 66224 now. **That list grows with every round and the turn of a round does
 not**, therefore it is the part of the block to take out again.
@@ -19047,6 +19050,66 @@ had its row back — 18 rows for 18 books — and the search view of the keys
     crate and not of this program, and no count of this program says what
     it does. **This is a candidate and not a measurement.**
 
+## The session of the hundred and forty-third turn of 2026-08-16: the name of the library at the top of the screen keeps one line, of the block of the prompt
+
+**The session of the hundred and forty-third turn took the candidate that
+  T-313 left open — the header of the screen — and the measurement of it
+  gave one fault** (T-314). **It left eight candidates open.**
+
+  **The name of the library at the top of the screen keeps one line.**
+  `App::new` of `src/app.rs` made
+  `format!("📖 {} ({})", library_name, media_type)` of the answer of
+  `GET /api/libraries`, and `render_header` of `src/ui/tui.rs` draws that
+  text in a `Paragraph` with no wrap, bold and centered, in the area of the
+  header. **That area holds two rows**: the row of the account and of the
+  address of the server stands at the left of them, and the name of the
+  program and the notice stand at the right. An end of a line in the name of
+  the library therefore puts every character after it on the second row, at
+  the middle, beside the address of the server.
+
+  **The data of this fault is one request of the API**: it needs no proxy,
+  no book of a harness, and no build of the fault of the source. **The
+  server takes a name of a library that holds an end of a line**:
+  `PATCH /api/libraries/<the id>` with the body `{"name":"Alpha\nOMEGAEND"}`
+  and a `Bearer` of `POST /login` renamed the library `Empty` of the
+  sandbox, and `GET /api/libraries` then gave that name back with the end of
+  a line in it. A `sqlite3` of `name_selected_lib` and of `id_selected_lib`
+  gave that library to the row of the account before the start (the trap 203
+  and the trap 204), and an empty library needs a marker of its own for
+  `start_the_program` (the trap 197).
+
+  The measurement, of the real program v0.8.142 inside tmux against the
+  sandbox on `:13399` with the account `toutuitest`, and a terminal of
+  **80** columns and 45 rows. The first frame came after 405 milliseconds,
+  and the two rows at the top of the screen held
+  `👋 Connected as toutuitest          📖 Alpha                  🦜 Toutui v0.8.142`
+  and `🔗 localhost:13399               OMEGAEND (book)`: the row of the
+  address of the server holds the word `OMEGAEND` and the type of the media,
+  and no row of the screen says the whole name of the library. **The control
+  of the same run** (the trap 206): the same library of the same keys, with
+  the name `AlphaOMEGAEND` of one line, gave
+  `📖 AlphaOMEGAEND (book)` at the middle of the first row and the address
+  of the server alone on the second row.
+
+  The correction is two files. `src/ui/keys.rs` holds a new function
+  `the_name_of_the_library(name, media_type)`, which gives the two texts of
+  the server to `crate::logic::message::in_one_line` of T-311 before it
+  makes the text of the header, and `src/app.rs` calls that function in the
+  place of its `format!`.
+  `tests/the_header_of_the_screen_keeps_one_line.rs` holds the gate, of two
+  tests: the first reads the text of that function for an end of a line of
+  `\n`, of `\r\n`, and of the type of the media, and the second draws that
+  text with the widget of `render_header` into a `Buffer` of ratatui of 80
+  columns and two rows, with no terminal (T-256). They need no network and
+  no sandbox. **The build of the fault** (the trap 147) — a `format!` of the
+  two texts with no `in_one_line` — made the two tests fail, and the first
+  said `the name of the library holds more than one line:
+  "📖 Alpha\nOMEGAEND (book)"`. **The corrected program**, of the same
+  library of two lines and the same keys, gave
+  `📖 Alpha OMEGAEND (book)` on the first row and the address of the server
+  alone on the second one. **The road back**: the name `Empty` of that
+  library again, and the library `Large` in the row of the account.
+
 ## The decisions of T-124 to T-200 that do not open again
 
 **This section stood in the block of the prompt, and the block reached its
@@ -19879,7 +19942,7 @@ character.
     crate and not of this program, and no count of this program says what it
     does. **This is a candidate and not a measurement.**
 
-## The decisions of T-201 to T-314 that do not open again
+## The decisions of T-201 to T-315 that do not open again
 
 These decisions stood in the block of the prompt of the next session until the
 round of the hundred and thirty-ninth turn, and that block met its limit of
@@ -20338,14 +20401,20 @@ administrator of the server gives that name, the server takes a name that holds
 an end of a line, and the area of the header holds two rows, therefore
 `App::new` gives the name and the type of the media to
 `crate::ui::keys::the_name_of_the_library`, which gives each of them to
-`crate::logic::message::in_one_line`** (T-314).
+`crate::logic::message::in_one_line`** (T-314). And **the panel of a media
+keeps the line of the place of the user: that panel holds two rows in a
+terminal that is not tall, and the name of an author is a text of the server,
+therefore the six panels of `src/ui/tui.rs` give the line of the media and the
+line of the place to `crate::ui::keys::the_panel_of_a_media`, which gives each
+of them to `crate::logic::message::in_one_line` and which joins them with one
+end of a line** (T-315).
 
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.143**; `Cargo.toml` is at 0.8.143. The
+> AlbanDAVID/Toutui. Newest release **v0.8.144**; `Cargo.toml` is at 0.8.144. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -20354,7 +20423,7 @@ an end of a line, and the area of the header holds two rows, therefore
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-314 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-315 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -21119,7 +21188,7 @@ an end of a line, and the area of the header holds two rows, therefore
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-314 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-315 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
@@ -21235,78 +21304,89 @@ an end of a line, and the area of the header holds two rows, therefore
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in one hundred and ten sessions of one hundred
->    and eleven.
->   **The session of the hundred and forty-third turn took the candidate that
->   T-313 left open — the header of the screen — and the measurement of it
->   gave one fault** (T-314). **It left eight candidates open.**
+>    this shape found a fault in one hundred and eleven sessions of one hundred
+>    and twelve.
+>   **The session of the hundred and forty-fourth turn took the candidate that
+>   T-314 left open — the 28 places of `src/ui/tui.rs` that hold a text of the
+>   server with no `in_one_line` — and the measurement of one of them gave one
+>   fault** (T-315). **It left six candidates open.**
 >
->   **The name of the library at the top of the screen keeps one line.**
->   `App::new` of `src/app.rs` made
->   `format!("📖 {} ({})", library_name, media_type)` of the answer of
->   `GET /api/libraries`, and `render_header` of `src/ui/tui.rs` draws that
->   text in a `Paragraph` with no wrap, bold and centered, in the area of the
->   header. **That area holds two rows**: the row of the account and of the
->   address of the server stands at the left of them, and the name of the
->   program and the notice stand at the right. An end of a line in the name of
->   the library therefore puts every character after it on the second row, at
->   the middle, beside the address of the server.
+>   **The panel of a media keeps the line of the place of the user.** Six
+>   panels of `src/ui/tui.rs` wrote the name of an author of the server into a
+>   `Paragraph` of a `Wrap` with an end of a line of their own in the middle:
+>   `"Author: {} - Year: {} - Duration: {}{}\nProgress: {}%, {} {}"` of the
+>   Home view (2711), of the Library view (2796), and of the view of a search
+>   (2981), and the three panels of a book of a series (1841), of an entry of
+>   a list (2006), and of an episode of a podcast (2687). **That panel holds
+>   two rows in a terminal that is not tall**: `the_areas_of_a_list`
+>   (`src/ui/tui.rs:171`) gives it `Constraint::Length(2)` while
+>   `main_area.height - the rows of the player <= 12`, and
+>   `Constraint::Length(3)` above that. An author whose name holds an end of a
+>   line therefore gives the text three lines, and the row of the place of the
+>   user goes off the area.
 >
 >   **The data of this fault is one request of the API**: it needs no proxy,
->   no book of a harness, and no build of the fault of the source. **The
->   server takes a name of a library that holds an end of a line**:
->   `PATCH /api/libraries/<the id>` with the body `{"name":"Alpha\nOMEGAEND"}`
->   and a `Bearer` of `POST /login` renamed the library `Empty` of the
->   sandbox, and `GET /api/libraries` then gave that name back with the end of
->   a line in it. A `sqlite3` of `name_selected_lib` and of `id_selected_lib`
->   gave that library to the row of the account before the start (the trap 203
->   and the trap 204), and an empty library needs a marker of its own for
->   `start_the_program` (the trap 197).
+>   no book of a harness, and no build of the fault of the source.
+>   `PATCH /api/items/a4d8b9b2-0728.../media` with the body
+>   `{"metadata":{"authors":[{"name":"Alpha\nOMEGAEND"}]}}` and a `Bearer` of
+>   `POST /login` gave the book `A Book Of An Epub With No Container` of the
+>   library `Books` an author of two lines, and
+>   `GET /api/libraries/1b090ea8-.../items` then gave
+>   `media.metadata.authorName` as `'Alpha\nOMEGAEND'`. **A `PATCH` of the
+>   metadata moves the book in the list of the server**: it stood at the row 1
+>   before the request and at the row 4 after it, therefore the keys of the
+>   measurement are `Tab` and three `j`. A `sqlite3` of `name_selected_lib`
+>   and of `id_selected_lib` gave the library `Books` to the row of the
+>   account before the start (the trap 203 and the trap 204).
 >
->   The measurement, of the real program v0.8.142 inside tmux against the
->   sandbox on `:13399` with the account `toutuitest`, and a terminal of
->   **80** columns and 45 rows. The first frame came after 405 milliseconds,
->   and the two rows at the top of the screen held
->   `👋 Connected as toutuitest          📖 Alpha                  🦜 Toutui v0.8.142`
->   and `🔗 localhost:13399               OMEGAEND (book)`: the row of the
->   address of the server holds the word `OMEGAEND` and the type of the media,
->   and no row of the screen says the whole name of the library. **The control
->   of the same run** (the trap 206): the same library of the same keys, with
->   the name `AlphaOMEGAEND` of one line, gave
->   `📖 AlphaOMEGAEND (book)` at the middle of the first row and the address
->   of the server alone on the second row.
+>   The measurement, of the real program v0.8.143 inside tmux against the
+>   sandbox on `:13399` with the account `toutuitest`, and a terminal of 80
+>   columns and **18** rows. The first frame came after 204 milliseconds, and
+>   the two rows of the panel under the list held `Author: Alpha` and
+>   `OMEGAEND - Year: N/A - Duration: 0m`: **no row of the screen said the
+>   place of the user.** The same program of the same keys at **45** rows gave
+>   the panel three rows and the place then stood, therefore the fault belongs
+>   to the terminal that is not tall — the terminal of a pane of tmux and of a
+>   window of a phone. **The control of the same run** (the trap 206): the
+>   same book of the same keys at 18 rows, with the author `AlphaOMEGAEND` of
+>   one line, gave `Author: AlphaOMEGAEND - Year: N/A - Duration: 0m` and
+>   `Progress: 100%, 0m left, Finished`.
 >
 >   The correction is two files. `src/ui/keys.rs` holds a new function
->   `the_name_of_the_library(name, media_type)`, which gives the two texts of
->   the server to `crate::logic::message::in_one_line` of T-311 before it
->   makes the text of the header, and `src/app.rs` calls that function in the
->   place of its `format!`.
->   `tests/the_header_of_the_screen_keeps_one_line.rs` holds the gate, of two
->   tests: the first reads the text of that function for an end of a line of
->   `\n`, of `\r\n`, and of the type of the media, and the second draws that
->   text with the widget of `render_header` into a `Buffer` of ratatui of 80
->   columns and two rows, with no terminal (T-256). They need no network and
->   no sandbox. **The build of the fault** (the trap 147) — a `format!` of the
->   two texts with no `in_one_line` — made the two tests fail, and the first
->   said `the name of the library holds more than one line:
->   "📖 Alpha\nOMEGAEND (book)"`. **The corrected program**, of the same
->   library of two lines and the same keys, gave
->   `📖 Alpha OMEGAEND (book)` on the first row and the address of the server
->   alone on the second one. **The road back**: the name `Empty` of that
->   library again, and the library `Large` in the row of the account.
->   - **The name of the author of the reader closes** (T-313): a `grep` of
->     `author` over `src/ui/reader_tui.rs` gives no line of code at all,
->     therefore no view of the reader draws that field.
->   - **A text of the server reaches 28 more places of `src/ui/tui.rs` with no
->     `in_one_line`** (T-314): the descriptions of every view at
->     `src/ui/tui.rs:856`, the name of a series at 1776 and at 2649, the name
->     of an author at 1841, 2006, 2711, 2796, and 2981, and the titles of the
->     blocks at 990, 1821, 1979, 1412, and 2290. **A `Wrap` keeps an end of a
->     line, a `Line` of ratatui gives it no column at all, and `in_one_row` of
->     a title of a block says nothing of it.** **The name of a media and the
->     name of an author come of the metadata of an item**, therefore a
->     `PATCH /api/items/:id/media` of the sandbox gives the data of each of
->     them. **This is a candidate and not a measurement.**
+>   `the_panel_of_a_media(of_the_media, of_the_place)`, which gives the two
+>   texts to `crate::logic::message::in_one_line` of T-311 and which then
+>   joins them with one end of a line, and the six panels of `src/ui/tui.rs`
+>   call it in the place of their `format!` of one text.
+>   `tests/the_panel_of_a_media_keeps_its_two_lines.rs` holds the gate, of two
+>   tests: the first counts the lines of the text of that function, and the
+>   second draws it with the widget of the six panels into a `Buffer` of
+>   ratatui of 80 columns and **two** rows, with no terminal (T-256). They
+>   need no network and no sandbox. **The build of the fault** (the trap 147)
+>   — a `format!("{}\n{}", of_the_media, of_the_place)` — made the two tests
+>   fail, and the first said `the panel of the media holds more than two
+>   lines`. **The corrected program**, of the same book of two lines and the
+>   same keys, gave `Author: Alpha OMEGAEND - Year: N/A - Duration: 0m` and
+>   `Progress: 100%, 0m left, Finished`. **The road back**: a `PATCH` of
+>   `{"metadata":{"authors":[]}}`, which gave the book its author of nothing
+>   again and which took the two authors of the measurement away with it, and
+>   the library `Large` in the row of the account.
+>   - **The line of a series of a view reads no end of a line** (T-315): the
+>     `Paragraph` of `src/ui/tui.rs:1776` and of 2649 holds
+>     `"{} - {} - Duration: {}"` with the name of a series of the server, and
+>     a `PATCH /api/items/:id/media` with `metadata.seriesName` gives the data
+>     of it. That line is **one** line of a panel of two rows or of three,
+>     therefore an end of a line in it takes a row and it loses no text.
+>     **This is a candidate and not a measurement.**
+>   - **The titles of the blocks hold a text of the server with no rule of a
+>     line** (T-314 and T-315): `src/ui/tui.rs:990`, 1412, 1821, 1979, and
+>     2290. **A `Line` of ratatui gives an end of a line no column at all**,
+>     therefore the two words of such a title join with no space between them,
+>     and `in_one_row(title, area.width)` says nothing of it. **This is a
+>     candidate and not a measurement.**
+>   - **The panels of the descriptions of every view close** (T-315,
+>     `src/ui/tui.rs:856`): a description of the server holds ends of lines of
+>     its own already, and that panel scrolls. The rule of one line does not
+>     hold there.
 >   - **The two keys of `must_refresh` that say nothing at all** (T-308):
 >     `show_the_books_of_the_author` and `apply_the_sequence_or_the_filter` of
 >     `src/app.rs` each change every list of the screen and each say no word
@@ -21333,7 +21413,7 @@ an end of a line, and the area of the header holds two rows, therefore
 >    held three turns, and the block then stood above its limit of size**
 >    (T-284): a round that writes its own turn takes the oldest turn out, and
 >    it takes a second one out while `toutui-loop --dry-run | wc -c` gives more
->    than 100000. That section holds the turn of the hundred and forty-second
+>    than 100000. That section holds the turn of the hundred and forty-third
 >    and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
@@ -21383,8 +21463,8 @@ an end of a line, and the area of the header holds two rows, therefore
 > program holds more than one account (T-124). **The decisions of T-124 to
 > T-200 stand in `## The decisions of T-124 to T-200 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-294).
-> And **the decisions of T-201 to T-314 stand in
-> `## The decisions of T-201 to T-314 that do not open again` of
+> And **the decisions of T-201 to T-315 stand in
+> `## The decisions of T-201 to T-315 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-310).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
@@ -21432,7 +21512,7 @@ an end of a line, and the area of the header holds two rows, therefore
 > did the same work, and the block then held 98907 bytes with one turn in it —
 > **at the line of 99000**, therefore that round took the whole list of the
 > decisions of T-201 to T-311 out of the block and it put it in
-> `## The decisions of T-201 to T-314 that do not open again` of this file,
+> `## The decisions of T-201 to T-315 that do not open again` of this file,
 > with a pointer of three lines in its place: the block then held **66224**
 > bytes with one turn in it; the round of the hundred and fortieth found it at
 > 66685 bytes with one turn in it, and it did the same work, and the block then
@@ -21441,7 +21521,9 @@ an end of a line, and the area of the header holds two rows, therefore
 > work; the round of the hundred and
 > forty-second found it at 70228 bytes with one turn in it, and it did the
 > same work; the round of the hundred and forty-third found it at 69573 bytes
-> with one turn in it, and it did the same work. **The list of the decisions
+> with one turn in it, and it did the same work; the round of the hundred and
+> forty-fourth found it at 68288 bytes with one turn in it, and it did the same
+> work. **The list of the decisions
 > grows with every round
 > and the turn of a round does not**, therefore that list is the part of the
 > block to take out again. **A turn of many
