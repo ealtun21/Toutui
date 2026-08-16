@@ -25276,3 +25276,132 @@ gives `left: 0, right: 1` at the assert of the place of the book.
   header of the offline mode says the number of the positions that wait.
   **This is a candidate and not a measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to T-294).
+
+### T-296: a log out that keeps the place of the user gives that place to the server later
+
+The key `l` of the view of the accounts is the one road of the user that says
+"this program must forget this account". It called `delete_user` of
+`src/db/crud.rs`, and that function called `remove_the_account`, which holds one
+statement: `DELETE FROM users WHERE username = ?1`. **Every other table of that
+account stayed**, and three of those tables hold a place of the user that no
+machine has:
+
+- `pending_progress`, the position of a playback that the server refused
+  (T-152);
+- `pending_ebook_progress`, the place of a book that the server refused (T-294);
+- `listening_session`, the place of a program that died (T-188 and T-189).
+
+**The name of an account is the primary key of `users`**, therefore a login with
+the same name finds every one of those rows again, and the start of that program
+sends them: `flush_pending_progress` and
+`the_places_of_the_disk_go_to_the_server` of `src/logic/offline/mod.rs` read the
+rows of one name and one server. The place of the program before the log out
+then stands over the place that another machine of the user made while the
+account was away.
+
+**The road of a token that the server refused is a different road** (T-123). The
+head of `remove_the_account` says it: that account comes back at once with the
+same name and the same server, therefore its places must stay. The correction
+keeps that road as it was, and it changes the road of the log out alone.
+
+#### The measurement
+
+The real program v0.8.124, inside tmux with `docs/harness/drive.sh`, against the
+sandbox on the port 13399. The proxy
+`docs/harness/one_method_fails.py 13500 13399 requests.log
+PATCH:/api/me/progress` gave the status 500 to every write of a place, and the
+account of the sandbox held the one address `http://127.0.0.1:13500` (the trap
+129). The book: `Alice in Wonderland`, id
+8fda6e43-0728-46ad-98bc-4c8634e299ad, at `ebookLocation
+toutui:the-place-of-the-start` and `ebookProgress 0`.
+
+The keys: `/` and the word `Alice`, the key `e`, two presses of the key `n`
+(`chapter 4 of 14 — 9%`), and the key `h` said `The server did not take the
+place: The server reported a fault. Status 500.` The row of
+`pending_ebook_progress` then held `epubcfi(/6/8!/4/2/2/1:0)` at the fraction
+0.091630833716182386. The keys `h`, `S`, `Enter`, `l`, and `l` then logged out
+of the one account of the disk.
+
+A second proxy of the same port 13500, with a rule that no request of the
+program holds, gave the server back. The second machine of the user then read to
+the half of the book:
+`PATCH /api/me/progress/8fda6e43-…` with
+`{"ebookLocation":"epubcfi(/6/30!/4/2/2/1:0)","ebookProgress":0.5}` straight to
+the port 13399. The user logged in again at the login screen of the program,
+with `http://127.0.0.1:13500`, `toutuitest`, and `toutuitest`.
+
+| The program | `users` and the row of the place after the log out | The log of the start after the login | `GET /api/me/progress/8fda6e43-…` at the end |
+|---|---|---|---|
+| v0.8.124 | 0 accounts, and **the row of the place stayed** | `[reader] 1 place(s) of a book wait for the server`, and `[reader] the place of the book of the media 8fda6e43-… that waited on the disk went to the server (epubcfi(/6/8!/4/2/2/1:0)).` | **`epubcfi(/6/8!/4/2/2/1:0)`, `ebookProgress 0.0916`** |
+| The correction | 0 accounts, and 0 rows of each of the three tables | no line of a place that waits | `epubcfi(/6/30!/4/2/2/1:0)`, `ebookProgress 0.5` |
+
+**The user logged out, they read to the half of the book on a second machine,
+and the log in of the program took them back to the chapter 4.** The log of the
+corrected program says
+`[the accounts] the log out of toutuitest took 1 row(s) of the account and 1
+place(s) of the user.`
+
+**The words of the log out.** A log out of the one account of the disk gives the
+login screen, therefore no user reads that message; a log out of an account that
+does not start the program keeps the view, and the row of the message holds the
+words. The sandbox held `toutuitest` and `toutuilimited` (the key `a` of that
+view, section 14 of `docs/TEST-SERVER.md`), `toutuilimited` started the program,
+a row of `pending_ebook_progress` of `toutuitest` stood on the disk, and the two
+presses of the key `l` on the line of `toutuitest` said:
+
+```
+The program removed the account toutuitest. 1 place of the user did not reach
+the server, and it went away with the account. Start the program again.
+```
+
+#### The correction
+
+One file, `src/db/crud.rs`.
+
+1. `the_account_and_its_places_go_away(username)` holds the four statements of
+   the log out in **one transaction** (the rule of T-214: the rows go away
+   together, or they stay together), and it gives `TheRowsThatWentAway`, of the
+   number of rows of `users` and the number of the places of the user.
+   `THE_TABLES_OF_THE_PLACES` names the three tables.
+2. `the_words_of_a_log_out(username, places)` holds the words. A log out of no
+   place keeps the words of the version before this one; a log out of one place
+   or more names the number, because a place that went away with the account is
+   a fact of the user (T-118).
+3. `delete_user` calls the two of them, and it keeps the rule of T-200: a
+   removal that the disk refused gives the fault to the key of the user.
+4. `remove_the_account` keeps its one statement, and its head names the two
+   roads.
+
+#### The test
+
+`tests/a_log_out_takes_the_places_of_the_user.rs`. It needs no server: two
+accounts of a `XDG_CONFIG_HOME` of a `tempfile::tempdir` hold a row of each of
+the three tables. `delete_user` of the second account must leave no row of that
+account and every row of the first one, `remove_the_account` of the first
+account must keep its places (the road of T-123), and the words must name the
+number of the places, with `it` for one place and `they` for more of them.
+
+The build of the fault, of one edit that keeps every other line (the trap 147):
+`for table in THE_TABLES_OF_THE_PLACES.into_iter().take(0)` gives
+`left: 1, right: 0` at the assert of the position of the playback.
+
+#### What this item leaves open
+
+- **The rows of `downloads`, of `download_files`, and of `queue` of an account
+  that logged out stay on the disk, and the files of those downloads stay too**:
+  a user who logs out of an account holds the media of that account on the disk
+  for ever, and no view of the program names them. The rows hold no place that
+  goes to the server, therefore they are not the fault of this item. **This is a
+  candidate and not a measurement.**
+- **The words of the log out say "Start the program again." for a program that
+  does not stop**: the measurement above shows the view of the accounts of the
+  program that stands, with that sentence in the row of the message. A log out
+  of the one account of the disk gives the login screen with no message at all,
+  and a log out of the account that starts the program calls
+  `start_the_program_with_this_account` itself. **This is a candidate and not a
+  measurement.**
+- **A place that went away with the account reaches the server of no other
+  machine**: the log out could send those places before it removes the rows,
+  and a key handler of this program waits for no server (`src/app.rs`, the head
+  of `confirm_logout`). **This is a candidate and not a measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to T-295).

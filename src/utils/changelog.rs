@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.125",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A log out now takes your places that wait for the server with \
+             the account.** Those places stayed on your computer: if you logged \
+             in again with the same name and the same server, the program gave \
+             them to the server at its start, and they stood over the place \
+             that you made on another computer while the account was away. The \
+             message of the log out says how many of them went away with the \
+             account.",
+        ],
+    },
+    Entry {
         version: "0.8.124",
         date: "16/08/2026",
         body: &[

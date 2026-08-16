@@ -449,6 +449,13 @@ pub fn update_is_finished(value: &str, id_session: &str) -> Result<()> {
 /// the downloads, of the queue, and of the positions that wait hold the name of
 /// the account, and no key of the database removes them with this row: a login
 /// with the same name finds all of them again. See T-123.
+///
+/// **This is the road of a token that the server refused, and it is not the road
+/// of the log out** (T-296). The account of this road comes back at once with the
+/// same name and the same server, therefore the places of the user that wait for
+/// the server must stay: a token that a session renews takes no place of the user
+/// away. The log out takes the other road, in
+/// `the_account_and_its_places_go_away` below.
 pub fn remove_the_account(username: &str) -> Result<usize> {
     let conn = crate::db::migrate::open_conn()?;
 
@@ -458,18 +465,107 @@ pub fn remove_the_account(username: &str) -> Result<usize> {
     Ok(rows_deleted)
 }
 
-// Delete an user
-pub fn delete_user(username: &str) -> Result<()> {
-    // The words of a user, and not the words of the code. See T-118.
-    let message = format!(
-        "The program removed the account {}. Start the program again.",
-        username
+/// The rows that a log out took away. See T-296.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct TheRowsThatWentAway {
+    /// The number of rows of `users`. A value of 0 says that the account went
+    /// away before this call: a second program of the account logged out first.
+    pub accounts: usize,
+    /// The number of places of the user that no machine holds: the positions of
+    /// a playback that wait, the places of a book that wait, and the rows of a
+    /// listening session that no program closed.
+    pub places: usize,
+}
+
+/// The tables that hold a place of the user of one account.
+///
+/// Each row of them goes to the server at the start of a program, or at the next
+/// turn of the task of the clock. See T-152, T-188, and T-295.
+const THE_TABLES_OF_THE_PLACES: [&str; 3] = [
+    "pending_progress",
+    "pending_ebook_progress",
+    "listening_session",
+];
+
+/// Removes an account and every place of the user that waits for the server.
+///
+/// **A log out that keeps the place of the user gives that place to the server
+/// later** (T-296). The rows of the places hold the name of the account, and the
+/// name of an account is the primary key of `users`: a login with the same name
+/// therefore finds them again, and the start of that program sends them. The
+/// place of the program before the log out then stands over the place that
+/// another machine of the user made while the account was away.
+///
+/// A measurement of 2026-08-16 of the real program of the sandbox: a user read
+/// two chapters of `Alice in Wonderland` while the server refused the place
+/// (`PATCH /api/me/progress` with the status 500), and the row waited on the disk
+/// (T-294). The key `l` of the view of the accounts took the row of `users` away,
+/// and the row of the place stayed. The user then read to the half of the book on
+/// a second machine, and the server held `epubcfi(/6/30!/4/2/2/1:0)` at 0.5. The
+/// login of the same account and the same server gave that place to the start of
+/// the next program: **the server held `epubcfi(/6/8!/4/2/2/1:0)` at 0.09, and
+/// the place of the second machine went away.**
+///
+/// **The rows go away together, or they stay together** (T-214): a disk that
+/// refuses one of them keeps the account too, and the key of the user then says
+/// that the log out did nothing.
+pub fn the_account_and_its_places_go_away(username: &str) -> Result<TheRowsThatWentAway> {
+    let mut conn = crate::db::migrate::open_conn()?;
+    let work = conn.transaction()?;
+
+    let mut places = 0;
+
+    for table in THE_TABLES_OF_THE_PLACES {
+        places += work.execute(
+            &format!("DELETE FROM {} WHERE username = ?1", table),
+            params![username],
+        )?;
+    }
+
+    let accounts = work.execute("DELETE FROM users WHERE username = ?1", params![username])?;
+
+    work.commit()?;
+
+    info!(
+        "[the accounts] the log out of {} took {} row(s) of the account and {} place(s) of the user.",
+        username, accounts, places
     );
 
-    match remove_the_account(username) {
-        Ok(rows_deleted) => {
-            if rows_deleted > 0 {
-                crate::logic::message::say(message.as_str());
+    Ok(TheRowsThatWentAway { accounts, places })
+}
+
+/// The words of a log out. See T-296.
+///
+/// **A place that went away with the account is a fact of the user**: the user
+/// read a book or heard a media while the server did not answer, and no machine
+/// of that account holds that place now.
+pub fn the_words_of_a_log_out(username: &str, places: usize) -> String {
+    if places == 0 {
+        return format!(
+            "The program removed the account {}. Start the program again.",
+            username
+        );
+    }
+
+    format!(
+        "The program removed the account {}. {} of the user did not reach the server, and \
+         {} went away with the account. Start the program again.",
+        username,
+        crate::ui::keys::counted(places, "place"),
+        if places == 1 { "it" } else { "they" }
+    )
+}
+
+/// The log out of the key `l` of the view of the accounts.
+///
+/// It takes the account and every place of the user that waits for the server
+/// (T-296), and it says the words of that work.
+pub fn delete_user(username: &str) -> Result<()> {
+    match the_account_and_its_places_go_away(username) {
+        Ok(rows) => {
+            if rows.accounts > 0 {
+                // The words of a user, and not the words of the code. See T-118.
+                crate::logic::message::say(&the_words_of_a_log_out(username, rows.places));
                 info!("[delete_user] User deleted.");
             }
         }
