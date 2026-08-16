@@ -87,8 +87,10 @@ pub enum ReaderError {
     /// it. **The program has no reason of the archive on this road, and it
     /// therefore says none** (T-277): a read of the archive that failed takes
     /// the value below, because a program must never say a reason that it does
-    /// not have (T-91).
-    ChapterAbsent,
+    /// not have (T-91). The number is the index of that chapter in the spine,
+    /// and the sentence names it, because **the program measured which chapter
+    /// the book does not hold** (T-282).
+    ChapterAbsent(usize),
     /// The archive gave no byte of the chapter. The file of the chapter can be
     /// absent from the archive, and the read of a file that stands in it can
     /// fail: **the crate of the archive holds the one reason, and the text is
@@ -144,7 +146,21 @@ impl fmt::Display for ReaderError {
             ReaderError::NoSuchChapter(index) => {
                 write!(f, "This book has no chapter {index}.")
             }
-            ReaderError::ChapterAbsent => write!(f, "This chapter is absent."),
+            // **The sentence says what the program measured** (T-282): the
+            // spine of the book names this chapter, and the manifest of the
+            // same book holds no file of it. The program has no reason of the
+            // archive on this road, therefore it says none (T-91), and it
+            // names the three keys of the view of the reader, because a
+            // sentence of a fault must name a key that does the work of that
+            // fault (T-170).
+            ReaderError::ChapterAbsent(index) => write!(
+                f,
+                "This book names a chapter {}, and it holds no file of that \
+                 chapter. The other chapters can be good. Press n for the \
+                 chapter after this one, or p for the chapter before it. \
+                 Press h to leave the book. The file of the log holds more.",
+                index + 1
+            ),
             ReaderError::TheArchiveGaveNoChapter(reason) => write!(
                 f,
                 "The book gave no text of this chapter. The other chapters can \
@@ -540,9 +556,18 @@ impl Book {
             .spine()
             .get(index)
             .ok_or(ReaderError::NoSuchChapter(index))?;
-        let manifest_entry = spine_entry
-            .manifest_entry()
-            .ok_or(ReaderError::ChapterAbsent)?;
+        // **A fault that the user reads takes a line of the log** (T-282): the
+        // two arms of the copy below write one already, and this road wrote
+        // none at all.
+        let manifest_entry = spine_entry.manifest_entry().ok_or_else(|| {
+            info!(
+                "[reader] the spine of the book names the chapter {}, and the \
+                 manifest of the book holds no file of it",
+                index + 1
+            );
+
+            ReaderError::ChapterAbsent(index)
+        })?;
 
         let mut writer = CappedWriter::new(MAX_CHAPTER_BYTES);
         match manifest_entry.copy_bytes(&mut writer) {
@@ -769,7 +794,7 @@ mod tests {
             ReaderError::BookTooLarge(1).to_string(),
             ReaderError::TooManyEntries(1).to_string(),
             ReaderError::NoSuchChapter(1).to_string(),
-            ReaderError::ChapterAbsent.to_string(),
+            ReaderError::ChapterAbsent(1).to_string(),
             ReaderError::ChapterTooLarge.to_string(),
         ];
         for message in messages {
@@ -830,6 +855,7 @@ mod tests {
             "08-binary-as-xhtml.epub",
             "09-not-a-zip.epub",
             "10-empty.epub",
+            "11-a-chapter-with-no-file.epub",
         ];
         for name in names {
             let path = hostile_dir().join(name);

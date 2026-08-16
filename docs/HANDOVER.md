@@ -127,6 +127,73 @@ gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
 
+## The session of the hundred and eleventh turn of 2026-08-16: a chapter that the book holds no file of says which chapter it is
+
+**One release: v0.8.111**, and one item: T-282. **The road of it is the
+candidate "`ChapterAbsent` and `NoSuchChapter` of `ReaderError` name no key of
+the view of the reader"** of T-281, which T-274, T-278, and T-280 each left
+open.
+
+Three faults of one sentence. `ReaderError::ChapterAbsent` of
+`src/logic/reader/book.rs` gave the constant sentence `This chapter is
+absent.` It named no chapter, and the program measured which chapter of the
+spine holds no file of the manifest: the arm holds the index of it already. It
+named no key, and the view of the reader holds `n`, `p`, and `h`, and each of
+the three does the work of that fault (T-170). And the road took no line of the
+log at all, while the two arms of `copy_bytes` beside it each write one
+already.
+
+The measurement, of the real program v0.8.110 inside tmux against the sandbox.
+**The data of this fault is a book, and it needs no proxy at all.** The new
+harness `docs/harness/a_book_of_a_chapter_that_is_absent.py` writes an EPUB of
+1734 bytes whose spine names `c1`, `c2`, and `c3` and whose manifest holds the
+items `c1` and `c3` alone. `rbook` opens that book, `chapter_count` gives 3,
+and `spine_entry.manifest_entry()` of the second chapter gives `None`: **that
+is the one road to this arm**, because a damaged stream of a file that stands
+in the archive takes the arm of T-277. That book went into the cache of the
+ebooks of the account `toutuitest`, under the name of the item of `Alice in
+Wonderland`, and the good file of that name went to the scratchpad for the road
+back.
+
+The keys `Tab`, 15 keys `j`, and `e` gave chapter 3 of the book, and the key
+`p` then gave `This chapter is absent.` on one row. The file of the log held 30
+lines before the key and 30 lines after it, and `grep -c reader` of it gave 0:
+no line of the reader at all.
+
+The correction is two edits of the same file, and no new road of the program.
+`ReaderError::ChapterAbsent` takes the index of the chapter of the spine, and
+the `ok_or_else` of `chapter_bytes` writes a line of the log that names it. The
+arm of `Display` says `This book names a chapter 2, and it holds no file of
+that chapter. The other chapters can be good. Press n for the chapter after
+this one, or p for the chapter before it. Press h to leave the book. The file
+of the log holds more.` **The program measured that the spine names the chapter
+and that the manifest holds no file of it**, and it has no reason of the
+archive on this road: it therefore says none (T-91), as T-277 decided.
+
+The corrected program of the same condition said that sentence on three rows,
+and the log held the line `[reader] the spine of the book names the chapter 2,
+and the manifest of the book holds no file of it` two times: one of the pass of
+`chapter_sizes` at the open of the book, and one of the render of that chapter.
+The controls of the same run: the key `p` gave `chapter 1 of 3` and the text of
+it, the key `n` twice gave `chapter 3 of 3` and the text of it, and the key `h`
+gave the Library view. The control of the good book: the file of `Alice in
+Wonderland` back in the cache gave `Alice's Adventures in Wonderland — chapter
+3 of 14 — 2%` and the text of the book, with no line of the reader in the log.
+
+The test is `tests/a_chapter_that_the_book_holds_no_file_of_says_which.rs`, of
+two functions, with no network and no terminal, and the book of the two of them
+is the new hostile file `tests/data/hostile/11-a-chapter-with-no-file.epub`,
+which `no_hostile_file_stops_the_program` of `src/logic/reader/book.rs` names
+too. The build of the fault, with the `write!` of the correction replaced by the
+constant sentence of before it, failed on both functions with `the sentence
+names the chapter that the user reads: This chapter is absent.`
+
+The gates of v0.8.111, under `nice -n 19 ionice -c 3` with `-j 16`:
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
+`cargo nextest run` gives 1324 of 1324 in 2.6 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives 1350 of 1350 in 17.2 seconds with
+the sandbox up, and `cargo test -j 16 --no-fail-fast` passed with no failure.
+
 ## The session of the hundred and tenth turn of 2026-08-16: a chapter that is too large says what the program measured
 
 **One release: v0.8.110**, and one item: T-281. **The road of it is the
@@ -14856,6 +14923,77 @@ status 500 at the widths 40, 60, and 80, and one of the sentence of the offline
 mode at 80. The build of the fault, with the `.wrap(...)` line removed, gave
 `The server did not give the episodes of` at 40 columns.
 
+**The
+session of the hundred and eighth turn took the candidate "`The server has
+no ebook for this media.` of `src/logic/reader/session.rs` is the answer of
+every fault of `api.get_json`", which T-278 opened** (T-279).
+
+`why_the_book_did_not_come` of `src/logic/reader/session.rs` held
+`Err(_) => return "The server has no ebook for this media.".to_string()`.
+The endpoint of the ebook answers 404 for a media with no ebook and for an
+item that does not exist, therefore that function asks the server for the
+item at `/api/items/<the id>`. Every fault of that second request gave one
+sentence: a server that reported a fault, a server that did not answer in
+time, a token that is not valid, and a body of no JSON each said that the
+media holds no ebook. That is a reason that the program does not have
+(T-91), and the arm wrote no line of the log at all.
+
+The measurement, of the real program v0.8.107 inside tmux against the
+sandbox, of `Alice in Wonderland` of the library `Books`. The cache of the
+ebooks of that account went away with a `mv`, because a book of the cache
+costs no request. The account took `http://127.0.0.1:13511` (the trap 129).
+**This road needs two different statuses of two paths together**:
+`one_path_fails.py` gives 500 to every rule, and a rule of
+`/api/items/<the id>` holds the path of the ebook too, therefore that rule
+gives 500 to the ebook and the road stops at the guard of
+`ApiError::NotFound` before the second request. **Two proxies of this
+repository do not stand one behind the other**: the answer of a rule says
+`Connection: keep-alive`, and `to_the_sandbox` of the proxy in front of it
+then waits for an end of the stream that never comes — a measurement of
+`a_status_of_one_path.py 13510 13500` in front of
+`one_path_fails.py 13500 13399` gave `The server did not answer in time.`
+and no road at all. The new harness
+`docs/harness/a_status_of_some_paths.py` gives a status of its own to each
+part of a path, and the keys `Tab`, 15 keys `j`, and `e` then gave
+
+```text
+The server has no ebook for this media.
+```
+
+**The book was good**: the sandbox holds the EPUB of it, of 136761 bytes,
+and the log of the program held no line of that arm at all.
+
+The correction is a function
+`the_message_of_the_item_that_did_not_come(item_id, fault)` of the same
+file. The status 404 of the item is the media that the server does not
+hold, and it keeps a sentence of its own. Every other fault takes a line of
+the log and it gives a sentence that names what the server said, the key
+`e` that asks again, the file of the log, and the key `h` of the view of
+the reader. The corrected program of the same condition said `The program
+did not get the book, and the server did not give the data of this media.
+The server said: The server reported a fault. Status 500. Try the key e
+again, or read the file of the log. Press h to go back.` on two rows, and
+the log held the line of the reader. The controls: the key `h` gave the
+Library view back, and the same book with the account at the address of the
+sandbox gave `Alice's Adventures in Wonderland — chapter 3 of 14 — 4%` and
+the text of the book.
+- **A guard of one value hides every other value of a fault** (T-279): the
+  first request of that road takes 404 alone to the second request, and the
+  second request then reads every fault as that same 404. Ask of every road
+  of this program that asks the server two times: does the answer of the
+  second request keep the reason of its own fault?
+- **`the_message_of_the_format` says "Try again, or read the log."**
+  (T-279, and it stays open) for a media whose book the server holds. It
+  names no key at all, and the view of the reader holds the keys `h` and
+  `e`. **This is a candidate and not a measurement.**
+- **The sentence of the status 404 of the item names the key `h` alone**
+  (T-279, and it stays open): a media that the server does not hold can be
+  a library that changed, and the key `R` of the view before it asks the
+  server again. **This is a candidate and not a measurement.**
+- **Every candidate of the list of the turns below stays open** (T-229 to
+  T-278): the block has a limit of size, therefore this turn names the new
+  candidates alone and it does not repeat that list.
+
 ## The prompt for the next session
 
 **This session read the candidate "`ChapterTooLarge` of `ReaderError` says
@@ -14918,7 +15056,7 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.110**; `Cargo.toml` is at 0.8.110. The
+> AlbanDAVID/Toutui. Newest release **v0.8.111**; `Cargo.toml` is at 0.8.111. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -14927,7 +15065,7 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-280 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-282 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -15126,6 +15264,26 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > ```
 >
 > **The rules of the road back of the harness above hold for this book too.**
+>
+> **A book that names a chapter and that holds no file of it is
+> `docs/harness/a_book_of_a_chapter_that_is_absent.py`** (T-282). The two
+> harnesses above give the reader a chapter that it cannot read; this one gives
+> it a chapter that the book does not hold at all. The spine of the EPUB names
+> `c1`, `c2`, and `c3`, and the manifest of it holds the items `c1` and `c3`
+> alone: `rbook` opens that book, `chapter_count` gives 3, and
+> `spine_entry.manifest_entry()` of the second chapter gives `None`. **A
+> damaged stream of a file that stands in the archive takes a different arm**
+> (T-277), therefore this is the one road to `ReaderError::ChapterAbsent`. The
+> first and the third chapter read at once, therefore the keys `n` and `p` hold
+> a control of the same run:
+>
+> ```bash
+> python3 docs/harness/a_book_of_a_chapter_that_is_absent.py /the/path/of/the.epub
+> ```
+>
+> **The rules of the road back of the two harnesses above hold for this book
+> too**, and the same file stands at
+> `tests/data/hostile/11-a-chapter-with-no-file.epub`.
 >
 > **A server that answers the login and that holds no library is
 > `docs/harness/no_library.py`** (T-173). It forwards every request to the
@@ -15553,15 +15711,15 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-281 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-282 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1320 tests in 2.6 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1346 of 1346** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1324 tests in 2.6 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1350 of 1350** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -15672,6 +15830,70 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 >    this shape found a fault in one hundred and three sessions of one hundred
 >    and four.
 >    **The
+>    session of the hundred and eleventh turn took the candidate
+>    "`ChapterAbsent` of `ReaderError` names no key of the view of the
+>    reader", which T-274 opened and which T-278, T-280, and T-281 each left
+>    open** (T-282).
+>
+>    `ReaderError::ChapterAbsent` of `src/logic/reader/book.rs` gave one
+>    constant sentence: `This chapter is absent.` Three faults of it. It named
+>    no chapter, and the program measured which chapter of the spine holds no
+>    file of the manifest: the arm holds the index of it already. It named no
+>    key, and the view of the reader holds `n`, `p`, and `h`, and each of the
+>    three does the work of that fault (T-170). And the road took no line of
+>    the log at all, while the two arms of `copy_bytes` beside it each write
+>    one already.
+>
+>    The measurement, of the real program v0.8.110 inside tmux against the
+>    sandbox. **The data of the fault is a book, and it needs no proxy at
+>    all**: the new harness
+>    `docs/harness/a_book_of_a_chapter_that_is_absent.py` writes an EPUB of
+>    1734 bytes whose spine names `c1`, `c2`, and `c3` and whose manifest holds
+>    the items `c1` and `c3` alone. `rbook` opens that book, `chapter_count`
+>    gives 3, and `spine_entry.manifest_entry()` of the second chapter gives
+>    `None`: **that is the one road to this arm**, because a damaged stream of
+>    a file that stands in the archive takes the arm of T-277. That book went
+>    into the cache of the ebooks of the account `toutuitest` under the name of
+>    the item of `Alice in Wonderland`. The keys `Tab`, 15 keys `j`, `e`, and
+>    `p` gave
+>
+>    ```text
+>    This chapter is absent.
+>    ```
+>
+>    and the log held 30 lines before the key and 30 lines after it, and
+>    `grep -c reader` of it gave 0: **no line of the reader at all**.
+>
+>    The correction is two edits of the same file.
+>    `ReaderError::ChapterAbsent` takes the index of the chapter of the spine,
+>    and the `ok_or_else` of `chapter_bytes` writes a line of the log that
+>    names it. The arm of `Display` says that the book names that chapter and
+>    that it holds no file of it, and it names the keys `n`, `p`, and `h` and
+>    the file of the log. The program has no reason of the archive on this
+>    road, therefore it says none (T-91), as T-277 decided. The corrected
+>    program of the same condition said that sentence on three rows, and the
+>    log held two lines of the reader: one of the pass of `chapter_sizes` at
+>    the open of the book, and one of the render. The controls: the key `p`
+>    gave chapter 1 and its text, the key `n` twice gave chapter 3 and its
+>    text, the key `h` gave the Library view, and the good book of that name
+>    gave `Alice's Adventures in Wonderland — chapter 3 of 14 — 2%` with no
+>    line of the reader in the log.
+>    - **`NoSuchChapter` of `ReaderError`** (T-282, and it stays open) says
+>      `This book has no chapter {index}.` It names no key of the view of the
+>      reader, and the number of it is the index of the spine and not the
+>      number that the header of the reader shows: a book of three chapters
+>      calls the index 1 "chapter 2 of 3", and this sentence would call it
+>      "chapter 1". **The one sentence of the same file that this item did not
+>      correct. This is a candidate and not a measurement.**
+>    - **A number of a sentence of a fault is the number that the user reads,
+>      and not the index of the program** (T-282): ask of every message of
+>      `src/` that names a number of a line, of a chapter, or of a file,
+>      whether that number stands in the view that the user sees.
+>    - **Every candidate of the list of the turns below stays open** (T-229 to
+>      T-281): the block has a limit of size, therefore this turn names the new
+>      candidates alone and it does not repeat that list.
+>
+>    **The
 >    session of the hundred and tenth turn took the candidate
 >    "`ChapterTooLarge` of `ReaderError` says `This chapter is too large.`",
 >    which T-274 opened and which T-278 and T-280 each left open** (T-281).
@@ -15716,11 +15938,8 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 >    Library view, and the good book of that name gave
 >    `Alice's Adventures in Wonderland — chapter 2 of 14` with no line of the
 >    reader in the log.
->    - **`ChapterAbsent` and `NoSuchChapter` of `ReaderError`** (T-281, and
->      they stay open) name no key of the view of the reader, and neither arm
->      of `chapter_bytes` writes a line of the log. **The two sentences of the
->      same file that this item did not correct. This is a candidate and not a
->      measurement.**
+>    - **`ChapterAbsent` and `NoSuchChapter` of `ReaderError` name no key**
+>      (T-281). T-282 corrected the first of the two.
 >    - **`TooManyEntries` and `BookTooLarge` name their numbers and no key at
 >      all** (T-281, and they stay open): those two faults come at the open of
 >      the book, and the view of the reader does not stand at that moment.
@@ -15795,77 +16014,7 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 >      T-279): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
 >
->    **The
->    session of the hundred and eighth turn took the candidate "`The server has
->    no ebook for this media.` of `src/logic/reader/session.rs` is the answer of
->    every fault of `api.get_json`", which T-278 opened** (T-279).
->
->    `why_the_book_did_not_come` of `src/logic/reader/session.rs` held
->    `Err(_) => return "The server has no ebook for this media.".to_string()`.
->    The endpoint of the ebook answers 404 for a media with no ebook and for an
->    item that does not exist, therefore that function asks the server for the
->    item at `/api/items/<the id>`. Every fault of that second request gave one
->    sentence: a server that reported a fault, a server that did not answer in
->    time, a token that is not valid, and a body of no JSON each said that the
->    media holds no ebook. That is a reason that the program does not have
->    (T-91), and the arm wrote no line of the log at all.
->
->    The measurement, of the real program v0.8.107 inside tmux against the
->    sandbox, of `Alice in Wonderland` of the library `Books`. The cache of the
->    ebooks of that account went away with a `mv`, because a book of the cache
->    costs no request. The account took `http://127.0.0.1:13511` (the trap 129).
->    **This road needs two different statuses of two paths together**:
->    `one_path_fails.py` gives 500 to every rule, and a rule of
->    `/api/items/<the id>` holds the path of the ebook too, therefore that rule
->    gives 500 to the ebook and the road stops at the guard of
->    `ApiError::NotFound` before the second request. **Two proxies of this
->    repository do not stand one behind the other**: the answer of a rule says
->    `Connection: keep-alive`, and `to_the_sandbox` of the proxy in front of it
->    then waits for an end of the stream that never comes — a measurement of
->    `a_status_of_one_path.py 13510 13500` in front of
->    `one_path_fails.py 13500 13399` gave `The server did not answer in time.`
->    and no road at all. The new harness
->    `docs/harness/a_status_of_some_paths.py` gives a status of its own to each
->    part of a path, and the keys `Tab`, 15 keys `j`, and `e` then gave
->
->    ```text
->    The server has no ebook for this media.
->    ```
->
->    **The book was good**: the sandbox holds the EPUB of it, of 136761 bytes,
->    and the log of the program held no line of that arm at all.
->
->    The correction is a function
->    `the_message_of_the_item_that_did_not_come(item_id, fault)` of the same
->    file. The status 404 of the item is the media that the server does not
->    hold, and it keeps a sentence of its own. Every other fault takes a line of
->    the log and it gives a sentence that names what the server said, the key
->    `e` that asks again, the file of the log, and the key `h` of the view of
->    the reader. The corrected program of the same condition said `The program
->    did not get the book, and the server did not give the data of this media.
->    The server said: The server reported a fault. Status 500. Try the key e
->    again, or read the file of the log. Press h to go back.` on two rows, and
->    the log held the line of the reader. The controls: the key `h` gave the
->    Library view back, and the same book with the account at the address of the
->    sandbox gave `Alice's Adventures in Wonderland — chapter 3 of 14 — 4%` and
->    the text of the book.
->    - **A guard of one value hides every other value of a fault** (T-279): the
->      first request of that road takes 404 alone to the second request, and the
->      second request then reads every fault as that same 404. Ask of every road
->      of this program that asks the server two times: does the answer of the
->      second request keep the reason of its own fault?
->    - **`the_message_of_the_format` says "Try again, or read the log."**
->      (T-279, and it stays open) for a media whose book the server holds. It
->      names no key at all, and the view of the reader holds the keys `h` and
->      `e`. **This is a candidate and not a measurement.**
->    - **The sentence of the status 404 of the item names the key `h` alone**
->      (T-279, and it stays open): a media that the server does not hold can be
->      a library that changed, and the key `R` of the view before it asks the
->      server again. **This is a candidate and not a measurement.**
->    - **Every candidate of the list of the turns below stays open** (T-229 to
->      T-278): the block has a limit of size, therefore this turn names the new
->      candidates alone and it does not repeat that list.
->>    **The turns before those three stand in `## The turns before the three
+>    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
 >    the hundred and fifth and every turn before it, the item of each, and the
 >    sweeps
@@ -16371,7 +16520,10 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > limit says what the program measured: the read stops at that limit, therefore
 > the program has the number of the limit and it has no size of the whole
 > chapter, and the sentence names the keys of the view of the reader and the
-> file of the log** (T-281).
+> file of the log** (T-281), and **a chapter that the book holds no file of
+> says which chapter it is: the spine of the book names that chapter and the
+> manifest of it holds no file of it, and the program has no reason of the
+> archive on that road and it therefore says none** (T-282).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

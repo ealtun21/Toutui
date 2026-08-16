@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.111",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The reader says which chapter a book holds no file of, and it \
+             gives you a road.** A book can name a chapter and hold no file of \
+             it. The reader gave the sentence \"This chapter is absent.\" for \
+             that book: it named no chapter, it named no key of the view of \
+             the reader, and the fault took no line of the file of the log. \
+             Toutui now names the chapter, it says that the book holds no file \
+             of it, and it says that the other chapters can be good. The \
+             sentence names the keys `n`, `p`, and `h` of the view of the \
+             reader, and the fault now writes a line in the log.",
+        ],
+    },
+    Entry {
         version: "0.8.110",
         date: "16/08/2026",
         body: &[

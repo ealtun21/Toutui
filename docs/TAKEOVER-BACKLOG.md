@@ -23294,3 +23294,132 @@ the sentence must name the limit: This chapter is too large.
   `⚠ toutuitest: the server reports a faults (podcast)`, and the name of the
   library lost its first characters (open since T-278). A candidate, and not a
   measurement.
+
+### T-282: a chapter that the book holds no file of says which chapter it is
+
+**Status: corrected in v0.8.111.**
+
+`ReaderError::ChapterAbsent` of `src/logic/reader/book.rs` gave the sentence
+`This chapter is absent.` Three faults of that one sentence:
+
+1. **It names no chapter.** The spine of an EPUB names each chapter with an
+   `idref`, and the manifest of the same file names the file of each `id`. The
+   program measured **which** chapter of the spine holds no file of the
+   manifest — the arm holds the index of it — and the sentence said none of it.
+2. **It names no key.** The view of the reader holds `n` for the chapter after
+   this one, `p` for the chapter before it, and `h` to leave the book, and each
+   of the three does the work of this fault (T-170).
+   `ReaderError::TheArchiveGaveNoChapter` of the same file names the key `n`
+   already, and `ReaderError::ChapterTooLarge` of it names the three (T-281).
+3. **The road takes no line of the log** (T-177). The two arms of `copy_bytes`
+   beside it each write one already.
+
+The candidate stood open since T-274, and T-278, T-280, and T-281 each named it
+again.
+
+#### The measurement
+
+Of the real program v0.8.110 inside tmux against the sandbox, on 2026-08-16.
+**The data of this fault is a book, and it needs no proxy at all.** The new
+harness `docs/harness/a_book_of_a_chapter_that_is_absent.py` writes an EPUB of
+three chapters whose spine names `c1`, `c2`, and `c3`, and whose manifest holds
+the items `c1` and `c3` alone. The archive holds **1734 bytes**. `rbook` opens
+that book, `chapter_count` gives **3**, and `spine_entry.manifest_entry()` of
+the second chapter gives `None`: that is the one road to this arm, and no
+damage of the archive reaches it (a damaged stream takes the arm of T-277).
+The first and the third chapter read at once, therefore the keys `n` and `p`
+hold a control of the same run.
+
+The book went in the cache of the ebooks of the account `toutuitest`, at
+`$XDG_DATA_HOME/toutui/downloads/toutuitest/8fda6e43-0728-46ad-98bc-4c8634e299ad.epub`
+(the item of `Alice in Wonderland`), because a book of the cache costs no
+request of the server. The good file of that name went to the scratchpad for
+the road back, and `PATCH /api/me/progress/:id` with `{"isFinished": false}`
+gave the place of that media back before each run.
+
+The keys `Tab`, 15 keys `j`, and `e` gave chapter 3 of the book — **the reader
+keeps the chapter of a book of a name that it read already** — and the key `p`
+then gave
+
+```text
+The Book Of A Chapter That Is Absent — chapter 2 of 3 — 50%
+                                          This chapter is absent.
+```
+
+The file of the log held **30 lines before the key and 30 lines after it**, and
+`grep -c reader` of it gave **0**: no line of the reader at all.
+
+#### The correction
+
+Two edits of `src/logic/reader/book.rs`, and no new road of the program.
+
+1. `ReaderError::ChapterAbsent` takes the index of the chapter of the spine,
+   and the `ok_or_else` of `chapter_bytes` writes a line of the log that names
+   it, beside the two arms that write one already.
+2. The arm of `Display` says `This book names a chapter 2, and it holds no file
+   of that chapter. The other chapters can be good. Press n for the chapter
+   after this one, or p for the chapter before it. Press h to leave the book.
+   The file of the log holds more.`
+
+**The program measured that the spine names the chapter and that the manifest
+holds no file of it**, and it has no reason of the archive on this road: it
+therefore says none (T-91), as T-277 decided.
+
+The corrected program of the same condition said that sentence on three rows,
+and the log held the lines
+
+```text
+[reader] the spine of the book names the chapter 2, and the manifest of the book holds no file of it
+```
+
+The pass of `chapter_sizes` at the open of the book writes one of them, and the
+render of that chapter writes one.
+
+The controls of the same run: the key `p` gave `chapter 1 of 3` and the text of
+it, the key `n` twice gave `chapter 3 of 3` and the text of it, and the key `h`
+gave the Library view. The control of the good book: the file of `Alice in
+Wonderland` back in the cache gave
+`Alice's Adventures in Wonderland — chapter 3 of 14 — 2%` and the text of the
+book, with no line of the reader in the log.
+
+#### The test
+
+`tests/a_chapter_that_the_book_holds_no_file_of_says_which.rs`, two functions,
+no network and no terminal. The first reads the value and the sentence, and the
+two chapters of the same book that read are the control. The second is a
+`#[tokio::test]`: it draws the real widget `toutui::ui::reader_tui::render`
+into a `Buffer` of 100 by 30 and it does the work of the loop of the screen.
+The book of the two of them is the new hostile file
+`tests/data/hostile/11-a-chapter-with-no-file.epub`, and
+`no_hostile_file_stops_the_program` of `src/logic/reader/book.rs` names it too.
+
+The build of the fault, with the `write!` of the correction replaced by the
+constant sentence of before it and every other line kept, failed on both:
+
+```text
+the sentence names the chapter that the user reads: This chapter is absent.
+the screen says what the program measured: … This chapter is absent. …
+```
+
+#### What this item leaves open
+
+- `ReaderError::NoSuchChapter(index)` says `This book has no chapter {index}.`
+  It names no key of the view of the reader, and the number of it is the index
+  of the spine and not the number that the header of the reader shows: the
+  header of a book of three chapters calls the index 1 "chapter 2 of 3", and
+  this sentence would call it "chapter 1". **The one sentence of the same file
+  that this item did not correct.** A candidate, and not a measurement.
+- **The arm `Ok(Err(_))` of `render_for` is dead code in the real program**
+  (open since T-280). A candidate, and not a measurement.
+- `ReaderError::TooManyEntries` and `ReaderError::BookTooLarge` name their
+  numbers and no key at all (open since T-281). Those two faults come at the
+  open of the book, and the view of the reader does not stand at that moment.
+  A candidate, and not a measurement.
+- `the_message_of_the_format` says "Try again, or read the log." for a media
+  whose book the server holds. It names no key at all (open since T-279). A
+  candidate, and not a measurement.
+- The sentence of the status 404 of the item names the key `h` alone, and the
+  key `R` of the view before it asks the server again (open since T-279). A
+  candidate, and not a measurement.
+- The header of the program at 80 columns wrote over itself (open since T-278).
+  A candidate, and not a measurement.
