@@ -6980,10 +6980,40 @@ impl App {
     /// no table of the disk**: the key `Q` and the terminal that went away each
     /// stop the program from a road that holds no `App`, therefore that place
     /// reaches the two roads of the end through the box of the process alone.
+    ///
+    /// **A book that the reader no longer holds keeps its place in that box**
+    /// (T-293). The key `h` gives the view before the reader back, and the key
+    /// `e` of a second book writes `self.reader = None` at once: a program that
+    /// emptied the box for a reader that went away lost the place of the book
+    /// before it, and the user read that book for nothing. The box loses a
+    /// place when the server takes it, and when the reader of that same book
+    /// says that the server holds it already.
     pub fn say_the_place_of_the_reader_that_waits(&self) {
-        crate::logic::reader::the_place_that_waits::say_the_place_that_waits(
+        crate::logic::reader::the_place_that_waits::the_loop_says_the_place_of_the_reader(
             self.the_place_of_the_reader_that_waits(),
+            self.the_book_whose_place_the_server_holds().as_deref(),
         );
+    }
+
+    /// Gives the media of a reader that keeps no place for the road of the end.
+    /// See T-293.
+    ///
+    /// **The server holds the place of that book already**, therefore the box
+    /// of the process must lose it. A reader whose place this program did not
+    /// read (T-76 and T-178) is not that reader: the program sends no place of
+    /// it, and it therefore says nothing of the place that stands in the box.
+    fn the_book_whose_place_the_server_holds(&self) -> Option<String> {
+        let reader = self.reader.as_ref()?;
+
+        if crate::logic::reader::session::the_sentence_of_a_place_that_stays_here(
+            reader.the_place_of_the_book(),
+        )
+        .is_some()
+        {
+            return None;
+        }
+
+        (!reader.wants_to_send_at_the_end()).then(|| reader.item_id.clone())
     }
 
     /// Gives the place of the reader that the server does not hold. See T-292.

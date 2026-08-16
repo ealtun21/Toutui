@@ -24906,3 +24906,118 @@ and it ends at the call of `sync_session_from_database` of that same arm.
   the key `h` goes to the server at the key `Q`. The measurement of this round
   did not ask what happens when the user opens a second book after that.
   **This is a candidate and not a measurement.**
+
+### T-293: the place of a book that the reader left must not go away with a second book
+
+T-292 gave the reader a box of the process,
+`src/logic/reader/the_place_that_waits.rs`, that held **one** place for the
+whole program: `Arc<Mutex<Option<ThePlaceOfTheReader>>>`.
+`App::say_the_place_of_the_reader_that_waits` of `src/app.rs` wrote that box at
+each turn of the loop of `src/main.rs`, and it wrote `None` when `self.reader`
+is `None` or when the reader wants no send. `get_the_book` of `src/app.rs`
+writes `self.reader = None` at its first line, before the task that opens the
+book runs. Therefore a user who left a book with the key `h` while the server
+refused that place, and who then opened a second book, lost the place of the
+first book at the next turn of the loop, before the program stopped.
+
+#### The measurement
+
+The real program v0.8.121, inside tmux with `docs/harness/drive.sh`, against
+the sandbox on the port 13399. The proxy
+`docs/harness/one_method_fails.py 13500 13399 requests.log
+PATCH:/api/me/progress` gave the status 500 to every write of a place, and the
+account of the sandbox held the one address `http://127.0.0.1:13500` (the trap
+129). The two books: `Alice in Wonderland`, id
+8fda6e43-0728-46ad-98bc-4c8634e299ad, and `A Long Test Book`, id
+9a671047-6146-4003-8510-d215db074a9c. Both hold an EPUB. The server held each
+of them at `ebookLocation toutui:the-place-of-the-start` and
+`ebookProgress 0.01`.
+
+The road of the control, of one book: the key `/` and the word `Alice` gave the
+view of the search, the key `e` opened the reader at
+`Alice's Adventures in Wonderland — chapter 2 of 14 — 0%`, two presses of the
+key `n` gave `chapter 4 of 14 — 9%`, and the key `h` said
+`The server did not take the place: The server reported a fault. Status 500.`
+The key `Q` then gave one line of the log:
+
+```text
+[WARN] - [Q] the server did not take the place of the book of the media 8fda6e43-0728-46ad-98bc-4c8634e299ad (epubcfi(/6/8!/4/2/2/1:0)): The server reported a fault. Status 500.
+```
+
+The road of the fault, of two books: the same keys of Alice, and then the key
+`/`, the words `Long Test`, the key `e` of `A Long Test Book`, and the key `h`
+of that book.
+
+| The road | What the key `Q` gave |
+|---|---|
+| one book | one line of the log, of the media 8fda6e43-…, at `epubcfi(/6/8!/4/2/2/1:0)` |
+| two books | **one** line of the log, of the media 9a671047-… alone, at `epubcfi(/6/4!/4/2/2/1:0)`, and the log of the proxy held one `500 PATCH /api/me/progress/9a671047-…` of that key and **no `PATCH` of Alice at all** |
+
+**The place of two chapters of Alice went away.**
+
+#### The correction
+
+Two files.
+
+1. `src/logic/reader/the_place_that_waits.rs`: the box became
+   `Arc<Mutex<Vec<ThePlaceOfTheReader>>>`, one place for each media.
+   `say_the_place_that_waits(place: ThePlaceOfTheReader)` replaces the place of
+   the same media, or it pushes a new one.
+   `the_place_of_this_book_waits_no_more(item_id)` takes one place out, and
+   `the_places_that_wait()` and `the_place_of_this_book_that_waits(item_id)`
+   read the box. `the_place_of_the_reader_goes_to_the_server` sends the place
+   of each book, and it takes each place that the server took out of the box:
+   **a book whose place the server refuses stops no other book.** The new
+   `the_loop_says_the_place_of_the_reader(place, the_book_of_the_server)` holds
+   the decision of the loop, therefore a test can call it with no `App`.
+2. `src/app.rs`: `say_the_place_of_the_reader_that_waits` calls that function
+   with the place of the reader and with
+   `the_book_whose_place_the_server_holds`, a new function that names the media
+   of a reader whose place the server holds already. **A reader that went away
+   is neither of the two, and the box then keeps every place.**
+
+#### The measurement of the corrected program
+
+The same two books and the same proxy: the key `Q` gave two lines of the log,
+of Alice and of the second book.
+
+The regression, of the road of the user: the proxy of the status 500 stood
+while the key `h` of Alice failed and while the user read the second book, a
+proxy that forwards every request took its place before the key `Q`, and the
+log then held two lines:
+
+```text
+[INFO] - [Q] the place of the book of the media 8fda6e43-0728-46ad-98bc-4c8634e299ad went to the server before the program stopped (epubcfi(/6/8!/4/2/2/1:0)).
+[INFO] - [Q] the place of the book of the media 9a671047-6146-4003-8510-d215db074a9c went to the server before the program stopped (epubcfi(/6/6!/4/2/2/1:0)).
+```
+
+`GET /api/me/progress/<the id>` of the sandbox then gave
+`epubcfi(/6/8!/4/2/2/1:0)` at `ebookProgress 0.09163083371618239` for Alice,
+and `epubcfi(/6/6!/4/2/2/1:0)` at `ebookProgress 0.023925914837164403` for the
+second book.
+
+#### The test
+
+`tests/a_place_of_a_book_of_a_program_that_stops_goes_to_the_server.rs`, of one
+function (T-144 and T-157), and it needs no sandbox: a host of `wiremock` gives
+the answer of the server. Two builds of the fault (the trap 147) fail it:
+
+| The line that goes away | The words of the fault |
+|---|---|
+| the `None` arm of `the_loop_says_the_place_of_the_reader` empties the whole box | `assertion left == right failed: a reader that went away must take no place of the box with it`, `left: 0`, `right: 2` |
+| the send of the end takes one place alone (`.into_iter().take(1)`) | `the road of the end must send the place of each book, and it sent ["/api/me/progress/8fda6e43-0728-46ad-98bc-4c8634e299ad"]` |
+
+#### What this item leaves open
+
+- **The place of the reader of a program that dies reaches no machine at all.**
+  The box of the process goes away with a `SIGKILL` and with a machine that
+  stops, and the row of `pending_progress` of T-212 is the shape of the answer.
+  T-292 opened this, and it stays open. **This is a candidate and not a
+  measurement.**
+- **The box of the places has no limit of size.** A user who opens many books
+  whose places the server refuses gives the box one place for each of them, and
+  no road takes them out while the program stands. **This is a candidate and
+  not a measurement.**
+- **A place of the reader that the server did not take at the end goes away
+  with the program**, and the user reads no word of it: the log holds the fault
+  alone. **This is a candidate and not a measurement.**

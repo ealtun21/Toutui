@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.122",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The place of a book that you left no longer goes away when \
+             you open a second book.** The program kept one place for the whole \
+             of it: if the server did not take the place of a book at the \
+             moment that you left it, and you then opened a different book, the \
+             place of the first book went away before the program stopped. The \
+             program now keeps the place of each book, and it sends every one \
+             of them to the server when it stops.",
+        ],
+    },
+    Entry {
         version: "0.8.121",
         date: "16/08/2026",
         body: &[
