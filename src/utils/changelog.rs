@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.142",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The header and the contents of the reader keep one line \
+             each.** The name of a book and the name of a chapter come from \
+             the file of the book, and a maker of an EPUB can write an end of \
+             a line in one of them. The line at the top of the reader has one \
+             row, therefore that end of a line took the number of the chapter \
+             and the percent of the place of the user outside the screen; and \
+             a name of a chapter of two lines took two rows of the table of \
+             contents, and the second row of it named a chapter that the book \
+             does not hold.",
+        ],
+    },
+    Entry {
         version: "0.8.141",
         date: "16/08/2026",
         body: &[

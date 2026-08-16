@@ -27640,3 +27640,128 @@ changes a title must take those rows away with
   measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to
   T-311).
+
+### T-313: the header and the contents of the reader keep one line each
+
+**The fault, and it is two of them, in `src/ui/reader_tui.rs`.**
+
+1. `the_line_that_stands`, of `line_of_the_top`, makes the line at the top of
+   the reader: `<the title> — chapter N of M — P%`. `render` draws that line in
+   a `Paragraph` with no wrap, in a `Rect` of `Constraint::Length(1)` — **one**
+   row. The title comes of the book: for an EPUB,
+   `Reader::open_with_the_title` (`src/logic/reader/session.rs:201`) takes
+   `Book::title()` (`src/logic/reader/book.rs:518`), which is the `dc:title` of
+   the OPF. An end of a line in that title puts every character after it on a
+   second line that falls outside the area, therefore the user reads a title
+   alone and no place of their own at all.
+2. `render_contents` makes each `ListItem` of the table of contents with
+   `format!("{}{}", the space of the depth, entry.label)`, and the label comes
+   of the nav of the book. **A `List` of ratatui gives one `ListItem` the rows
+   of the ends of the lines of its text** (the rule of T-311), therefore a name
+   of a chapter of two lines takes two rows of the panel: the sign `➤` of the
+   cursor and the space of the depth stand on the first row alone, and the row
+   after it names a chapter that the book does not hold.
+
+**The data of the fault is a book**, and it needs no proxy, no change of the
+sandbox, and no build of the fault of the source. The new harness
+`docs/harness/a_book_of_an_end_of_a_line.py` writes it, and the same book
+stands at `tests/data/hostile/15-a-book-of-an-end-of-a-line.epub` (2042 bytes,
+three chapters of plain text).
+
+**A literal end of a line in the `dc:title` does not reach the program.** The
+first book of this round held a `dc:title` with a real `\n`
+(`Alpha\nOMEGAEND`), and the reader then showed
+`Alpha OMEGAEND — chapter 3 of 3 — 89%`: the parser of the XML normalizes the
+whitespace of the content of an element. **A character reference of `&#10;`
+keeps that end** (XML 1.0, section 2.11 and section 3.3.3), because a parser of
+XML gives a character reference its character and it does not normalize it.
+That is the road of the book of this harness, and it is the road of every maker
+of an EPUB that writes a title of more than one line.
+
+**The measurement**, of the real program v0.8.141 inside tmux against the
+sandbox on `:13399` with the account `toutuitest`, of a terminal of **80**
+columns and 45 rows. The book went in the cache of the ebooks of that account
+under the name of the item of `Alice in Wonderland`
+(`8fda6e43-0728-46ad-98bc-4c8634e299ad.epub`), and `sqlite3` put the library
+`Books` in the row of the account before the start (the trap 203 and the trap
+204). The keys `Tab`, 15 keys `j`, and `e` gave the reader, and the row 3 of
+the screen held
+
+```text
+Alpha
+```
+
+and no other character: no number of a chapter, no count of the chapters, and
+no percent. The key `t` then gave the panel of the contents with **four** rows
+for a book of **three** chapters:
+
+```text
+│➤   One                                                                       │
+│    Beta                                                                      │
+│  GAMMAEND                                                                    │
+│    Three                                                                     │
+```
+
+**The control of the same run** (the trap 206): the same book of the same keys,
+with the title `AlphaPLACEHOLDEROMEGAEND` and the name of the chapter `Two` of
+one line each, gave the row 3
+`AlphaPLACEHOLDEROMEGAEND — chapter 3 of 3 — 89%` and the three rows `One`,
+`Two`, and `Three` of the contents.
+
+**The correction is one file.** `src/ui/reader_tui.rs`: `the_line_that_stands`
+gives the title to `crate::logic::message::in_one_line` of T-311 before it
+measures the columns, and `render_contents` gives `entry.label` to that same
+function.
+
+**The gate** is `tests/the_reader_keeps_the_lines_of_the_book.rs`, of two
+tests. They draw the real `render` of the reader into a `Buffer` of ratatui
+with no terminal (T-256), of 80 columns and 45 rows, on the book of the
+repository, and they need no network and no sandbox. **The build of the
+fault** — the two calls of `in_one_line` in the place of a passthrough — said
+`the row of the header holds the whole title: "Alpha"` and
+`the row of the second chapter holds its whole name: "│    Beta ...│"`.
+
+**The corrected program**, of the same keys and the same book inside tmux, gave
+the row 3 `Alpha OMEGAEND — chapter 3 of 3 — 89%`, and the contents then held
+`➤   One`, `    Beta GAMMAEND`, and `    Three`.
+
+**What this turn leaves open.**
+
+- **The header of the screen holds a text of the server too** (T-311 and
+  T-312): `self.lib_name_type` of `src/app.rs` is
+  `format!("📖 {} ({})", the name of the library, the type of the media)`, and
+  `src/ui/tui.rs` gives it to a `Paragraph` with no `in_one_line`. **The name
+  of a library belongs to an administrator of the server**, therefore the data
+  of that fault costs a `POST /api/libraries` of the sandbox. **This is a
+  candidate and not a measurement.**
+- **The panels of the views hold the author, the series, and the name of an
+  episode of the server** (T-312): `render_info_home`, `render_info_library`,
+  `render_info_search_book`, and `the_panel_of_an_episode` of `src/ui/tui.rs`
+  each write those fields into a `Paragraph` of a `Wrap`, and a `Wrap` keeps an
+  end of a line; `sessions_tui.rs` and `stats_tui.rs` do the same work with a
+  `Line`, and a `Line` of ratatui gives an end of a line **no** column at all.
+  **This is a candidate and not a measurement.**
+- **The title of the block of a list takes no such rule** (T-311):
+  `in_one_row(title, area.width)` of `render_the_list` says nothing of an end
+  of a line, and a title of a view can hold a text of the server — the name of
+  an author of `Search result [2 items, with the books of <the author>]`.
+  **This is a candidate and not a measurement.**
+- **The name of the author of the reader takes the same road as its title**
+  (T-313): `Reader::open_with_the_title` writes `author: book.author()` beside
+  the title, and no view of this round read it. **This is a candidate and not a
+  measurement.**
+- **The marks of a line count the characters still** (T-305 to T-311): `fill`
+  of `src/ui/marks.rs:111` reads `mark.chars().count()`. **The four marks of
+  that file are constants of this program**, therefore no text of the server
+  reaches that count. **This is a candidate and not a measurement.**
+- **The two keys of `must_refresh` that say nothing at all** (T-308):
+  `show_the_books_of_the_author` and `apply_the_sequence_or_the_filter` of
+  `src/app.rs` each change every list of the screen and each say no word of
+  what they did. **This is a candidate and not a measurement.**
+- **A text whose last line holds no character stands outside every gate of a
+  wrap of this fork** (T-310). **This is a candidate and not a measurement.**
+- **A word of a description that is longer than the panel takes the road of
+  ratatui that overflows the area** (T-306). **This is a candidate and not a
+  measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to
+  T-312).

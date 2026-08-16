@@ -108,7 +108,19 @@ pub fn line_of_the_top(
 ///
 /// **The three points come of `crate::logic::message::in_one_row`** (T-304),
 /// which is the one maker of a text of one row of this program.
+///
+/// **The title comes of the book and it can hold an end of a line** (T-313):
+/// the `dc:title` of an EPUB holds the text of its maker, and a character
+/// reference of `&#10;` in it keeps that end through the parser of the XML.
+/// This line stands in a `Paragraph` of **one** row with no wrap, therefore an
+/// end of a line in the title takes the number of the chapter, the count of the
+/// chapters, and the percent of the place outside the area of the header, and
+/// the user then reads a title alone. `crate::logic::message::in_one_line` of
+/// T-311 gives that title one line.
 pub fn the_line_that_stands(title: &str, the_place: &str, width: u16) -> String {
+    let title = crate::logic::message::in_one_line(title);
+    let title = title.as_ref();
+
     if width == 0 {
         return format!("{title}{the_place}");
     }
@@ -278,7 +290,16 @@ fn render_contents(reader: &mut Reader, area: Rect, buf: &mut Buffer) {
             // The depth of an entry gives the space before its name. The user
             // then sees a part and its chapters.
             let space = " ".repeat(entry.depth * 2);
-            ListItem::new(format!("{}{}", space, entry.label))
+
+            // **The name of a chapter comes of the book** (T-313, and the rule
+            // of T-311): a `List` of ratatui gives one `ListItem` the rows of
+            // the ends of the lines of its text, therefore a name that holds
+            // an end of a line takes two rows of the panel — the sign `➤` of
+            // the cursor and the space of the depth stand on the first row
+            // alone, and the row after it names a chapter that the book does
+            // not hold.
+            let label = crate::logic::message::in_one_line(&entry.label);
+            ListItem::new(format!("{}{}", space, label))
         })
         .collect();
 
