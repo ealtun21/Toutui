@@ -1,0 +1,45 @@
+ 🦜 Toutui 0.8.144 │ 👤 toutuitest @ localhost:13399 │ 📚 Large (book) │ Filter: In progress │ Sort: Added ▼ │ Mouse: on │ 500 of 2056
+─ GO TO ──────────────┬─ Library · Large (book) · 500 of 2056 ────────────────────────────────────┬─ Covers · 15 of 500 ────────────────────────────────────────
+ 🏠 Home              │ Sort: [Added ▼] Title  Author  Duration  Progress                         │ ┏━━━━━━━━━━━━━━━━━┓ ┌─────────────────┐ ┌─────────────────┐
+ 📚 Library        ●  │ ───────────────────────────────────────────────────────────────────────── │ ┃░▒▓█▀▄█▓▒░▀▄█▓▒░▒┃ │▓█▄▀░▒▓█▀▄░▒▓█▄▀░│ │▀▄█▓▒░▀▄█▓▒░█▀▄▓▒│
+ 📖 Series            │       TITLE                                  AUTHOR    LENGTH  PROGRESS   │ ┃ The Hobbit      ┃ │ A Huge Book     │ │ A Big Book      │
+ 👤 Authors           │ ▶ 42% The Hobbit                             Tolkien    11h08m ████░░░░   │ ┗━████░░░  42%   ━┛ └─███████ 100%   ─┘ └─██████░  90%   ─┘
+ 🎧 Narrators         │   ✓   A Huge Book Of A Scan                  Aleman      9h12m ████████   │
+ 📦 Collections       │   90% A Big Book Of A Scan                   Bayer      14h40m ███████░   │ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+ ▶ Queue       [7]    │       A Very Large Book                      Chen        6h02m ░░░░░░░░   │ │█▓▒░▄▀█▒▓░▀▄█▒▓░▀│ │▒░▓█▀▄▒░▓█▄▀▒░▓█▀│ │▄▀▓░█▒▄▀▓░█▒▄▀▓░█│
+ 📥 Downloads   [2]   │  ▾    The Test Chronicles  [3 books]         Duval      31h30m ███░░░░░   │ │ A Very Large    │ │ Test Chron. 1   │ │ Test Chron. 2   │
+ 🔖 Bookmarks         │   ✓    ├ 1  The First Test                   Duval       9h50m ████████   │ └─░░░░░░░   0%   ─┘ └─███████ 100%   ─┘ └─███░░░░  41%   ─┘
+ 📊 Statistics        │   41%  ├ 2  The Second Test                  Duval      10h20m ███░░░░░   │
+ 🔧 Settings          │        └ 3  The Third Test                   Duval      11h20m ░░░░░░░░   │ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+──────────────────────│  ▸    The Long Sea Set     [5 books]         Egan       44h05m ██░░░░░░   │ │░▒▓█▀▄█▓▒░▀▄█▓▒░▒│ │▓█▄▀░▒▓█▀▄░▒▓█▄▀░│ │▀▄█▓▒░▀▄█▓▒░█▀▄▓▒│
+ SHOW                 │   17% Large Book 0138                        Faber       5h30m █░░░░░░░   │ │ Test Chron. 3   │ │ Long Sea 1      │ │ Large 0138      │
+ ▤ List               │   ✓   Large Book 0139                        Gomez       7h45m ████████   │ └─░░░░░░░   0%   ─┘ └─██░░░░░  22%   ─┘ └─█░░░░░░  17%   ─┘
+ ▦ Covers             │       Large Book 0140            📥          Haas        8h10m ░░░░░░░░   │
+ ▥ Both           ●   │   61% Large Book 0141                        Ito         4h55m █████░░░   │ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+──────────────────────│       Large Book 0142            🔖          Jung        6h40m ░░░░░░░░   │ │█▓▒░▄▀█▒▓░▀▄█▒▓░▀│ │▒░▓█▀▄▒░▓█▄▀▒░▓█▀│ │▄▀▓░█▒▄▀▓░█▒▄▀▓░█│
+ FILTER               │   33% Large Book 0143                        Kaur       12h15m ██░░░░░░   │ │ Large 0139      │ │ Large 0140      │ │ Large 0141      │
+ All                  │       Large Book 0144                        Lopez       3h20m ░░░░░░░░   │ └─███████ 100%   ─┘ └─░░░░░░░   0%   ─┘ └─████░░░  61%   ─┘
+ Not started          │   ✓   Large Book 0145                        Moreau      9h05m ████████   │
+ In progress      ●   │       Large Book 0146                        Nowak       7h30m ░░░░░░░░   │ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+ Finished             │   08% Large Book 0147                        Osei       13h55m █░░░░░░░   │ │░▒▓█▀▄█▓▒░▀▄█▓▒░▒│ │▓█▄▀░▒▓█▀▄░▒▓█▄▀░│ │▀▄█▓▒░▀▄█▓▒░█▀▄▓▒│
+ On disk              │ ───────────────────────────────────────────────────────────────────────── │ │ Large 0142      │ │ Large 0143      │ │ Large 0144      │
+ Has a bookmark       │ Tolkien · 2020 · 11h 08m · 19 chapters · on disk · 1 bookmark             │ └─░░░░░░░   0%   ─┘ └─██░░░░░  33%   ─┘ └─░░░░░░░   0%   ─┘
+──────────────────────│ A hobbit leaves his home and walks to a far mountain with 13 dwarves.     │
+ Click a name to go.  │ f: filter   s: sort   x: open a series   Enter: play   n: put in the queue│ Click a cover to select. Two clicks play it.
+─  NOW PLAYING  ──────┴───  The Hobbit · chapter 7 of 19  ────────────────────────────────────────┴──────────────────  QUEUE · 7 items  ────────────────────────
+ ┌────────────────┐   │ ▶  The Hobbit · There And Back Again      Speed 1.25x   Volume 70%   Sleep 25m           │ Two clicks play an item.    Clear it
+ │░▒▓█▀▄█▓▒░▀▄█▓▒░│   │    Tolkien · read by Rob Inglis · 2020 · 19 chapters                                     │ ≡ 1  The Hobbit  ch 7/19       left  6h 12m
+ │▓█▄▀░▒▓█▀▄░▒▓█▄▀│   │                                                                                          │ ≡ 2  A Big Book Of A Scan      left  1h 28m
+ │▀▄█▓▒░  THE  ▓▒░│   │ Chapter 7 of 19 · Riddles In The Dark        back: P    on: U    all: C                  │ ≡ 3  The Second Test           left  6h 05m
+ │█▓▒░▄▀ HOBBIT ▒▓│   │ CH   ▐█████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▌  08:12 / 21:40  −13:28   │ ≡ 4  Large Book 0141           left  1h 55m
+ │▒░▓█▀▄▒░▓█▄▀▒░▓█│   │                                                                                          │ ≡ 5  Large Book 0143           left  8h 12m
+ │▄▀▓░█▒▄▀▓░█▒▄▀▓░│   │ BOOK ▐█████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▌  4h 56m / 11h 08m  42%   │ ≡ 6  A Very Large Book         left  6h 02m
+ └────────────────┘   │       ───╫──╫──╫──╫──╫──╫──╫──╫──╫─╫──╫──╫──╫──╫──╫──╫──╫──╫──   click a ╫ mark          │ ≡ 7  Large Book 0147           left 12h 45m
+  The Hobbit          │ Time left 4h 55m at 1.25x · the book ends at 20:37 · drag a bar to move                  │ ────────────────────────────────────────────
+  Tolkien · Inglis    │                                                                                          │ Drag ≡ to move it. X takes it out.
+  Click for the art   │ [|◀] [◀10s] [ ▶ ‖ ] [10s▶] [▶|] [■] [1.25x − +] [Vol − +] [Sleep 25m] [Bookmark]         │ n: put at the end   Y: stop the media
+──────────────────────┴──────────────────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────
+ 📥 Downloads 2 of 3   Large Book 0140   ▐████████████████░░░░░░░░░░░░░░░░░░░░░░░░▌ 41%   14.2 MB of 34.6 MB   click to open the list
+ ▌ The bookmark is set at 08:12.                                                                                       hides in 6s   ✕ close
+ j/k move   l play or open   h back   Space pause   p/u ±10s   P/U chapter   O/I speed   o/i volume   t sleep   b mark   D save   x open a series
+ Tab home   S-Tab next library   / search   f filter   s sort   V covers   ? all the keys   Q quit  ·  Mouse: click, two clicks, wheel, drag

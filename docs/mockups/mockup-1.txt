@@ -1,0 +1,45 @@
+ ● toutuitest at localhost:13399    Library: Large (book)    500 of 2056 shown    Sort: Added first    Filter: Not finished                    Toutui v0.8.144  
+┌─1 Views ◉──────────────────────┐╔═4 Library ◉ ⇕══════════════════════════════════════════════════╗┌─5 Cover ◉ ⇕──────────────────────────────────────────────┐
+│ Home                  Tab      │║  Title                             Author            Time Done▲║│  The Second Test        [l Play] [n Queue] [h Back]      │
+│ Library             S-Tab      │║  A Big Book Of A Scan              Ada Lovelace     11h20  90%█║│ ▛▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▜  Series   Test Chronicles  2    │
+│ Series                  s      │║✓ A Huge Book Of A Scan             Alan Turing       6h05 100%█║│ ▌░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░▒▓ ▐  Author   Grace Hopper          │
+│ Authors                 a      │║  A Very Large Book                 Ada Lovelace      3h44    -█║│ ▌                      ▐  Narrator Alice Reader          │
+│ Narrators               v      │║  ▸ The Sand Sea [5 books]          Ada Lovelace     41h02   0%█║│ ▌   THE  SECOND        ▐  Time     9h40    Left 8h35     │
+│ Collections             c      │║  ▾ The Test Chronicles [3 books]   Grace Hopper     28h10  34%█║│ ▌       TEST           ▐  Started  14 Aug 2026           │
+│ Queue                   q      │║     1. The First Test              Grace Hopper      9h12 100%█║│ ▌   ▔▔▔▔▔▔▔▔▔▔▔        ▐  Genre    Science fiction       │
+│ Downloads               d      │║➤▶   2. The Second Test             Grace Hopper      9h40  11%█║│ ▌                      ▐  Files    1 file, 402 MB        │
+│ Chapters                C      │║     3. The Third Test              Grace Hopper      9h18    -█║│ ▌   Grace Hopper       ▐  Ebook    yes   [e read it]     │
+│ Bookmarks               k      │║  ▸ The Wide Road [2 books]         Alan Turing      17h55  62%│║│ ▌                      ▐                                 │
+│ Sessions                z      │║  Large Book 0001                   Ada Lovelace      8h10    -│║│ ▌ Test Chronicles  2   ▐  Progress 11%                   │
+│ Statistics              $      │║  Large Book 0002                   Ada Lovelace      7h48   4%│║│ ▌░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░▒▓ ▐  ███░░░░░░░░░░░░░░░░░░░░░░░░░░░ │
+│ Settings                ,      │║  Large Book 0003                   Alan Turing       9h01    -│║│ ▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▟  [D get it] [M done] [b mark]   │
+└────────────────────────────────┘║↓ Large Book 0004                   Grace Hopper      6h33    -│║│                                                          │
+┌─2 Sort ◉   [↑↓ turn the order]─┐║  Large Book 0005                   Ada Lovelace      5h27    -│║│  The second book of the Test Chronicles. Grace           │
+│ ▸ Added first     new→old  1   │║  Large Book 0006                   Alan Turing      12h04    -│║│  Hopper reads the long road of a test that will          │
+│   Title              a→z   2   │║↓ Large Book 0007                   Grace Hopper      4h58    -│║│  not stop. Press J or K to move this text.               │
+│   Author             a→z   3   │║  Large Book 0008                   Ada Lovelace      8h44    -│║│  Press H to go back to the first line.                   │
+│   Duration    long→short   4   │║  Large Book 0009                   Alan Turing       7h12    -│║└──────────────────────────────────────────────────────────┘
+│   Progress    most→least   5   │║  Large Book 0010                   Grace Hopper      6h50    -│║┌─6 Gallery ◉ ⇕  [+ bigger] [- smaller]────────────────────┐
+│   Series and no.     1→9   6   │║  Large Book 0011                   Ada Lovelace      9h33    -│║│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐  │
+└────────────────────────────────┘║  Large Book 0012                   Alan Turing       5h05    -│║│  │▓▒░▒▓█▒░│ │░▒▓█▓▒░▒│ │▒▓█░▒▓█░│ │█▓▒░█▓▒░│ │▓█▒░▓█▒░│  │
+┌─3 Filter ◉─────────────────────┐║  Large Book 0013                   Grace Hopper     10h21    -│║│  │  90%   │ │ done   │ │   -    │ │   0%   │ │  34%   │  │
+│ [x] Not finished        F1     │║  Large Book 0014                   Ada Lovelace      3h58    -│║│  └────────┘ └────────┘ └────────┘ └────────┘ └────────┘  │
+│ [ ] Finished            F2     │║  Large Book 0015                   Alan Turing       8h29    -│║│  A Big Boo  A Huge Bo  A Very La  The Sand   The Test    │
+│ [ ] Started             F3     │║  Large Book 0016                   Grace Hopper      7h40    -│║│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐  │
+│ [ ] On this disk        F4     │║  Large Book 0017                   Ada Lovelace      6h16    -│║│  │░█▓▒░█▓▒│ │▒░▓█▒░▓█│ │█▒▓░█▒▓░│ │▓░▒█▓░▒█│ │░▓▒█░▓▒█│  │
+│ [ ] Has an ebook        F5     │║  Large Book 0018                   Alan Turing       9h55    -│║│  │  62%   │ │   -    │ │   4%   │ │   -    │ │   -    │  │
+│ Genre  [All]            F6     │║  Large Book 0019                   Grace Hopper      5h44    -▼║│  └────────┘ └────────┘ └────────┘ └────────┘ └────────┘  │
+│ Text   [scan▏      ]     /     │║ ↓ = on this disk   ▸ = open the series   ✓ = finished         ▼║│  The Wide   Book 0001  Book 0002  Book 0003  Book 0004   │
+└────────────────────────────────┘╚════════════════════════════════════════════════════════════════╝└──────────────────────────────────────────────────────────┘
+┌─7 Player ◉ ↔─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  ▶  The Second Test   Grace Hopper                        Chapter 4 of 18: The Long Road       Speed x1.25   Volume 70%   Sleep 25m                          │
+│  1:04:12  ├████████████▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░┤  9:40:00   ↔ drag here to move      │
+│  Book       ███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  11%        Chapter  ████████████████░░░░░░░░░░░░░  54%              [F send the position]                │
+│  [Space Pause] [p -10s] [u +10s] [P chapter back] [U chapter next] [O slower] [I faster] [o vol-] [i vol+] [Y Stop] [t Timer] [B Keys]                       │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌─Message──────────────────────────────────────────────────────────────────────────────────────┐┌─Downloads 2 ◉────────────────────────────────────────────────┐
+│  The book "A Huge Book Of A Scan" is on this disk now.            [x close]                  ││  Book 0007  ███████████░░░░░░  61%  1.2 MB/s  [x stop]       │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘└──────────────────────────────────────────────────────────────┘
+  Mouse   ◉ click a title to focus   ⇕ wheel moves the list below the pointer   ↔ drag to move   [ ] click to act   click a row to pick it, two times to play
+  Library keys   j/k move   g/G ends   l play or open   ▸/Enter open the series   h back   n queue   m collection   b bookmark   M done   D get it   X remove
+  All views   Tab home   S-Tab next library   / find   s series   a authors   v narrators   c lists   q queue   d downloads   R refresh   ? all keys   Q quit

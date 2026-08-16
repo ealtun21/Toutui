@@ -1,0 +1,45 @@
+  Context  toutuitest @ localhost:13399          Library  Large (book)  ·  500 of 2056 items                                                🦜 Toutui v0.8.144  
+  View     Library table  (t table · g gallery)  Sort     ADDED ▼  newest first                                             j/k move   l play or open   h back  
+  Playing  Large Book 0417  ·  chapter 4 of 12   Time     3:14 / 30:00  ·  1.0x  ·  vol 80%                                 / search   : command   ? every key  
+  FILTERS²  [ unfinished ×]  [ format: book ×]  [ + add a filter ]   SORT¹  ADDED ▼   Click a column name to sort.  Click it again to reverse.                  
+┌─ LIBRARY  Large (book) ── 26 rows³ of 500 shown ── 2 filters on ──────────────────────────────────────────────────┐┌─ COVER⁵ ── g gallery ───────────────────┐
+│¹ TITLE                              AUTHOR               NARRATOR       SERIES          DUR PROGRESS  ADDED ▼ FLG ││       ┏━━━━━━━━━━━━━━━━━━━━━━━━┓        │
+│───────────────────────────────────────────────────────────────────────────────────────────────────────────────────││       ┃░▒▓████████████████▓▒░▒▓┃        │
+│  Large Book 0417                    A. Scan              R. Voice       —               30m ▓▓░░  62%  2h ago ▸≡ █││       ┃▒▓█░░░░░░░░░░░░░░░░░░█▓▒┃        │
+│  A Big Book Of A Scan               B. Author            L. Reader      —             12h04 ░░░░   9%  5h ago ↓  █││       ┃▓█░                  ░█▓┃        │
+│  ▾ The Test Chronicles              T. Writer            N. Speaker     3 books       24h57 ▓░░░  30%  6h ago    █││       ┃▓█░  THE SECOND      ░█▓┃        │
+│    └─ 1  The First Test             T. Writer            N. Speaker     Test #1        8h12 ▓▓▓░  71%  6h ago ↓★ █││       ┃▓█░       TEST       ░█▓┃        │
+│➤   └─ 2  The Second Test            T. Writer            N. Speaker     Test #2        7h40 ▓░░░  18%  6h ago ★  █││       ┃▓█░                  ░█▓┃        │
+│    └─ 3  The Third Test             T. Writer            N. Speaker     Test #3        9h05 ░░░░   0%  6h ago    █││       ┃▓█░  T. Writer       ░█▓┃        │
+│  A Very Large Book                  C. Maker             P. Teller      —             21h30 ▓▓░░  44%  1d ago ↓  █││       ┃▓█░  Test Chron. #2  ░█▓┃        │
+│  Large Book 0138                    A. Scan              R. Voice       —              6h18 ░░░░   3%  1d ago    █││       ┃▒▓█░░░░░░░░░░░░░░░░░░█▓▒┃        │
+│  ▸ The Old Sea Cycle                D. Salt              M. Wave        5 books       41h02 ░░░░  12%  2d ago ≡  █││       ┃░▒▓████████████████▓▒░▒▓┃        │
+│  Notes On A Long Road               E. Walker            S. Foot        —              9h44 ▓▓▓▓  88%  2d ago ↓  █││       ┗━━━━━━━━━━━━━━━━━━━━━━━━┛        │
+│  The Quiet Machine                  F. Gear              T. Bolt        —             11h09 ▓░░░  26%  3d ago    █││                                         │
+│  Large Book 0002                    A. Scan              R. Voice       —              5h55 ▓▓░░  62%  3d ago ↓  █││             The Second Test             │
+│  A Huge Book Of A Scan              B. Author            L. Reader      —             18h21 ░░░░   7%  4d ago    █││    T. Writer  ·  read by N. Speaker     │
+│  Rain On The Iron Roof              G. Storm             V. Drop        —              7h03 ▓▓░░  51%  5d ago ★  ╎││     7h40  ·  18%  ·  chapter 2 of 9     │
+│  ▸ The Small Hours                  H. Night             W. Moon        4 books       29h48 ░░░░   5%  6d ago    ╎││     ▓▓▓▓░░░░░░░░░░░░░░░░  1h22 left     │
+│  The Map Of Nowhere                 I. Path              X. Trail       —             13h37 ▓░░░  33%  1w ago ↓  ╎││                                         │
+│  Large Book 0301                    A. Scan              R. Voice       —              4h12 ▓▓▓▓  95%  1w ago    ╎││ NEXT COVERS⁵  ( g = full gallery )      │
+│  Songs For A Cold Year              J. Frost             Y. Pine        —             10h50 ▓░░░  14%  1w ago ≡  ╎││                                         │
+│  The Last Lamp Lighter              K. Flame             Z. Wick        —              8h29 ▓▓▓░  77%  2w ago ↓★ ╎││ ▛▀▀▀▀▀▀▀▀▀▀▜ ▛▀▀▀▀▀▀▀▀▀▀▜ ▛▀▀▀▀▀▀▀▀▀▀▜  │
+│  A Book Of Small Doors              L. Key               A. Lock        —              6h40 ▓░░░  21%  2w ago    ╎││ ▌Third Test▐ ▌ Bk 0417  ▐ ▌ Bk 0002  ▐  │
+│  The Long Field                     M. Grass             B. Seed        —             15h16 ▓▓░░  60%  2w ago    ╎││ ▙▄▄▄▄▄▄▄▄▄▄▟ ▙▄▄▄▄▄▄▄▄▄▄▟ ▙▄▄▄▄▄▄▄▄▄▄▟  │
+│  Large Book 0500                    A. Scan              R. Voice       —              3h08 ░░░░   2%  3w ago    ╎││                                         │
+│  Winter On The Line                 N. Track             C. Rail        —             12h55 ▓▓░░  39%  3w ago ↓  ╎││ ▛▀▀▀▀▀▀▀▀▀▀▜ ▛▀▀▀▀▀▀▀▀▀▀▜ ▛▀▀▀▀▀▀▀▀▀▀▜  │
+│  The Paper Bridge                   O. Fold              D. Crease      —              9h01 ▓▓▓░  66%  4w ago    ╎││ ▌Very Large▐ ▌ Bk 0138  ▐ ▌ Old Sea  ▐  │
+│  A Handful Of Weather               P. Cloud             E. Wind        —              7h27 ░░░░  11%  4w ago ★  ╎││ ▙▄▄▄▄▄▄▄▄▄▄▟ ▙▄▄▄▄▄▄▄▄▄▄▟ ▙▄▄▄▄▄▄▄▄▄▄▟  │
+│  The Slow Train Home                Q. Steam             F. Coal        —             16h44 ▓▓░░  48%  5w ago    ╎││                                         │
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘└─────────────────────────────────────────┘
+  The Second Test  ·  T. Writer  ·  read by N. Speaker  ·  7h40  ·  chapter 2 of 9  ·  added 6h ago  ·  not finished                                            
+  A test book of the second part. The crew go back to the cold coast and find the old light.   J/K scroll · H to top                                            
+  ▸  Large Book 0417  ch 4/12    3:14  ├────────●────────────────────────────────────────────┤  30:00   1.0x   vol 80%   sleep off   ⁴ drag to seek             
+     Space pause   p/u ±10s   P/U chapter   O/I speed   o/i volume   Y stop   t sleep timer   n queue   F send position   B hide these keys                     
+  ┌─ Message ────────────────────────────────────────────────┐                                                                                                  
+  │ OK  The position is sent to the server.                  │                                                                                                  
+  └──────────────────────────────────────────────────────────┘                                                                                                  
+  DOWNLOAD  Large Book 0002   ▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░  62%   14.2 MB of 23.0 MB   D start · X remove the copy                                                      
+  : sort added▏                                  Try:  :sort title   :filter unfinished   :series expand   :gallery   :cover off                                
+  MOUSE  ¹ click sorts, again reverses  ² click removes the filter  ³ click selects, double click plays, ▾ opens the series  ⁴ drag seeks  ⁵ click a cover      
+  j/k move   l play or open   h back   Tab home   S-Tab next library   / search   : command   s series   a authors   g gallery   ? every key   Q quit           

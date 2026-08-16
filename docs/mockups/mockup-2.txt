@@ -1,0 +1,45 @@
+🦜 Toutui  │  [ ⌂ Home ]  ▎[ 📚 Large (book) ]▕  [ 🎧 Podcasts ]  [ + ]        toutuitest @ localhost:13399   ● on line   v0.8.144
+ 📚 Large (book) › Series › The Test Chronicles › Book Two     Sort: Added first ▾    Filter: All ▾    🔍 Search /    [ ? Keys ]    🖱 Mouse on
+┌─ Views ────────────────┐┌─ Library · 500 of 2056 ────────┐┌─ The Test Chronicles · 3 ────────────┐┌─ The Test Chronicles 2 ──────────────────────────────────┐
+│ ⌂ Home                 ││  90% A Big Book Of A Scan      █│ Books in this series           31h12m││██████████████████████████████  Author                    │
+│ 📚 Large (book)       ▸││   ✓  A Huge Book Of A Scan     █│                                      ││██░░░░░░░░░░░░░░░░░░░░░░░░░░██    A. Test Writer          │
+│ 🎧 Podcasts            ││      A Very Large Book         █│   1   ✓ 100%  The Test Chronicles 1  ││██░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒░██  Read by                   │
+│                        ││▌▾ 3  The Test Chronicles  ▸    █│▌  2   ▶  42%  The Test Chronicles 2  ││██░▒                      ▒░██    Reed Aloud              │
+│─ Filter ───────────────││      Large Book 0138           █│   3      —    The Test Chronicles 3  ││██░▒                      ▒░██                            │
+│ ● All              500 ││  12% Large Book 0139           █│                                      ││██░▒                      ▒░██  Length      28h 40m       │
+│ ○ Not started      312 ││      Large Book 0140           █│ Covers · 6 of 500 · click one to open││██░▒  THE TEST            ▒░██  Series      Test #2       │
+│ ○ In progress       47 ││   ✓  Large Book 0141           █│█████████████████  █████████████████  ││██░▒  CHRONICLES          ▒░██  Chapters    24            │
+│ ○ Finished         141 ││      The Deep Field            █│██░░░░░░░░░░░░░██  ██░░░░░░░░░░░░░██  ││██░▒  BOOK TWO            ▒░██  Files       3 · 1.2 GB    │
+│ ○ On this disk       8 ││  66% The Deep Field 2          █│██░▒▒▒▒▒▒▒▒▒▒▒░██  ██░▒▒▒▒▒▒▒▒▒▒▒░██  ││██░▒                      ▒░██  Added       2026-08-02    │
+│                        ││ ▸ 8  The Long Road Cycle  ▸    ││██░▒ BIG BOOK▒░██  ██░▒HUGE BOOK▒░██  ││██░▒  A. TEST WRITER      ▒░██  Genre       Sci-fi        │
+│─ Sort ─────────────────││      Notes On A Big Scan       ││██░▒▒▒▒▒▒▒▒▒▒▒░██  ██░▒▒▒▒▒▒▒▒▒▒▒░██  ││██░▒                      ▒░██  Rating      ★★★★☆         │
+│ ● Added first       ↓  ││      Quiet Water               ││██░░░░░░░░░░░░░██  ██░░░░░░░░░░░░░██  ││██░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒░██                            │
+│ ○ Title             ↓  ││   3% Rain On The Roof          ││█████████████████  █████████████████  ││██░░░░░░░░░░░░░░░░░░░░░░░░░░██  [ ▶ Play ]  [ + Queue ]   │
+│ ○ Author            ↓  ││   ✓  Salt And Stone            ││ A Big Book   90%   A Huge Book    ✓  ││██████████████████████████████  [ ✓ Done ]  [ ↓ Get file ]│
+│ ○ Length            ↓  ││      Ships In The Night        ││█████████████████  █████████████████  ││                                                          │
+│ ○ Your place        ↓  ││ ▸ 5  The Small Hours  ▸        ││██░░░░░░░░░░░░░██  ██░░░░░░░░░░░░░██  ││ Your place   12h 03m of 28h 40m           42%            │
+│                        ││      Steady State              ││██░▒▒▒▒▒▒▒▒▒▒▒░██  ██░▒▒▒▒▒▒▒▒▒▒▒░██  ││ ▕████████████████████●──────────────────────▏ drag       │
+│─ Groups ───────────────││  88% Stone Bridge              ││██░▒ VERY BIG▒░██  ██░▒  TEST 1 ▒░██  ││                                                          │
+│ ▸ Series            88 ││      Summer Of Tests           ││██░▒▒▒▒▒▒▒▒▒▒▒░██  ██░▒▒▒▒▒▒▒▒▒▒▒░██  ││ Chapters 24 ──────────────────────────────────────────   │
+│ ▸ Authors          210 ││   ✓  Ten Short Walks           ││██░░░░░░░░░░░░░██  ██░░░░░░░░░░░░░██  ││   5  The Cold Start              09:42:10   1h 04m       │
+│ ▸ Narrators         96 ││      The Test Sampler          ││█████████████████  █████████████████  ││   6  A Long Walk                 10:46:22   1h 12m       │
+│ ▸ Collections       12 ││  41% Thin Ice                  ││ A Very Large Bk    Test Chr 1     ✓  ││ ▌ 7  The Long Road               11:58:40   1h 18m  ▶    │
+│ ▸ Playlists          5 ││      Three Blue Doors          ││█████████████████  █████████████████  ││   8  Salt Air                    13:16:55   0h 58m       │
+│                        ││ ▸ 2  Tide Tables  ▸            ││██░░░░░░░░░░░░░██  ██░░░░░░░░░░░░░██  ││   9  The Quiet House             14:14:30   1h 06m       │
+│─ More ─────────────────││      Under The Hill            ││██░▒▒▒▒▒▒▒▒▒▒▒░██  ██░▒▒▒▒▒▒▒▒▒▒▒░██  ││  10  Wide Water                  15:20:44   1h 11m       │
+│ ▸ Queue              3 ││      Very Long Winter          ││██░▒  TEST 2 ▒░██  ██░▒  TEST 3 ▒░██  ││  11  The Cold Start Again        16:31:50   1h 02m       │
+│ ▸ Downloads          1 ││   ✓  Wait For The Light        ││██░▒▒▒▒▒▒▒▒▒▒▒░██  ██░▒▒▒▒▒▒▒▒▒▒▒░██  ││  12  Green Light                 17:33:12   0h 47m       │
+│ ▸ Bookmarks         14 ││      Walk The Line             ││██░░░░░░░░░░░░░██  ██░░░░░░░░░░░░░██  ││  13  The Last Train              18:20:30   1h 15m       │
+│ ▸ Sessions             ││   7% Warm Bread                ││█████████████████  █████████████████  ││  14  Home                        19:35:44   0h 52m       │
+│ ▸ Settings             ││      West Of Here              ││ Test Chr 2   42%   Test Chr 3        ││                                                          │
+│                        ││      Wide Open Water           ││                                      ││ Files 3 · m4b · 1.2 GB · on this disk · 1 bookmark       │
+│─ Mouse ────────────────││      Winter Count              ││ g: grid on/off   e: open the series  ││ 2 sessions · last read 2026-08-15 · 3 devices            │
+│ [ ]click ▾menu ━drag   ││   ✓  Yellow House              ││                                      ││                                                          │
+└─ f: filter  s: sort ───┘└─ wheel: scroll ────────────────┘└─ h: back  l: open ───────────────────┘└─ J/K: scroll ────────────────────────────────────────────┘
+                                                                                                    ┌─ Message ──────────────────────────────────────────────┐
+                                                                                                    │ The book is in the queue. It is number 4.              │
+                                                                                                    └──────────────────────────── it closes in 6s ── [ x ] ──┘
+ ↓ Get file  Large Book 0138  ▕██████████████░░░░░░░░░░░░▏ 54%  12.4 MB/s  it ends in 0:41   [ Stop ]   [ Hide ]
+ ▶  The Test Chronicles 2 · ch 7 The Long Road      12:03:44 ▕████████████████████●──────────────────────▏ 28:40:00   1.25x   🔊 70%   💤 25m
+ [ Space pause ] [ p -10s ] [ u +10s ] [ P chapter back ] [ U chapter on ] [ O slower ] [ I faster ] [ o vol- ] [ i vol+ ] [ Y stop ] [ t sleep ] [ B hide ]
+ j/k move   h back   l open   e open the series   g grid   f filter   s sort   / search   n queue   m add   b mark   D get file   M done   ? keys   Q quit

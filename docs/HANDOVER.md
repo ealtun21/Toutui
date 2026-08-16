@@ -11098,6 +11098,124 @@ that file, or the test `every_key_of_the_handler_stands_in_the_list` fails.
 
 ## What is open
 
+### 0. The four items of the maintainer of 2026-08-16 (T-316 to T-319)
+
+**The maintainer gave these four items directly, therefore they stand above the
+sweep of `### The work, in the sequence of its value`.** They are the work of
+features, and not the work of faults: **the rule "show the fault before you
+correct it" does not hold for them**, because there is no fault to show. The
+rule that holds instead is the rule of the measurement: **drive the real
+program inside tmux before and after each of them, and put the two screens in
+the item of `docs/TAKEOVER-BACKLOG.md`.** Each of them takes more than one
+round.
+
+**T-316: the mouse works everywhere.** `crossterm` sends
+`Event::Mouse` when the program enables `EnableMouseCapture`, and **a `grep` of
+`MouseCapture`, of `Event::Mouse`, and of `MouseEvent` over the whole of `src/`
+gives no line at all** (the measurement of 2026-08-16): this item is a new
+road, and no part of it stands today. The work: a click of a row selects that row, a click
+of a panel gives that panel the focus, the wheel scrolls the list under the
+pointer, a click and a drag on the bar of the player seeks, and every key of a
+view that a user can see as a control takes a click too. **The measurement of a
+click inside tmux is `tmux send-keys -X` and `tmux click`**, and this fork has
+no harness of a mouse yet: **the first round of this item writes
+`docs/harness/click.sh`.** **A mouse capture takes the selection of the text of
+the terminal away from the user**, therefore the program needs a key that turns
+the mouse off, and the modifier Shift of most terminals must still give the
+selection.
+
+**T-317: the theme of the terminal of the user is the theme of the start.** The
+program must use the 16 colours of ANSI and the default foreground and the
+default background alone, so that it takes the theme of the terminal of the
+user with no setting at all. **The measurement of 2026-08-16 says where the
+work stands**: a `grep` of `Color::` over `src/` gives **38** uses of
+`Color::Rgb` and **six** uses of a name of ANSI (four `DarkGray`, one `Green`,
+and one `Cyan`). The block `colors` of `src/config.rs:94` holds **eleven**
+settings, and `Colors::default` (`src/config.rs:111`) gives each of them a
+value of RGB of a grey of its own — `background_color` is `[40, 40, 40]`,
+`header_background_color` is `[60, 60, 60]`, `list_background_color` is
+`[50, 50, 50]`, and so on. **That is the reason of the fault of this item**:
+the program paints a dark grey over the background of the terminal of the
+user, therefore a user of a light theme gets the theme of this program and not
+the theme of their terminal. The road: `Color::Reset` for the background and
+for the foreground of the start, the 16 names of ANSI for the accents alone,
+and the eleven settings keep their work for the user who wants a colour of
+their own. **Some of the 38 stand outside the file of the settings and they
+take no value of the user at all** — `src/ui/loading.rs:67` is
+`Color::Rgb(140, 200, 255)`, and `src/ui/stats_tui.rs:66` is
+`Color::Rgb(120, 190, 255)`. **If that gives a screen that reads
+badly, the second road is `matugen`**, and the third road is the theme of
+today. **The measurement is the screen of two terminals of two themes**, one
+light and one dark, and `docs/harness/drive.sh` gives the capture of each.
+
+**T-318: the Library view holds the modes of a filter and of a sequence, and a
+series opens into its books.** **The measurement of 2026-08-16 says that the
+first half of this item stands already, and the next round must not build it
+again.** The key `f` of the Home view, of the Library view, and of the view of
+a search opens `AppView::SortFilter`
+(`App::show_the_sequence_and_the_filter`, `src/app.rs:6041`), and
+`src/logic/sort_filter.rs` holds **seven** sequences for a library of books —
+the title, the title with no "A" and no "The", the author, **the time when the
+book came**, the year, the length, and one more — with a row of the direction
+and the filters of the server, and `query()` writes `&sort=`, `&desc=1`, and
+`&filter=` into the request.
+
+**The measurement of the real program v0.8.144 inside tmux of 2026-08-16**, at
+100 columns and 40 rows, with the key `Tab` and then the key `f`: the view came
+with the header `The sequence and the filter — The sequence of the server`, and
+it held the group `The sequence` of seven lines (the title; the title with no
+"A" and no "The"; the author; **the time when the book came**; the year; the
+length; the size on the disk), a line `The direction: the smallest first`, the
+group `The filter` with `✓ No filter`, the group `Your position` of three lines
+(the media that you finished; the media that you started; **the media that you
+did not start**), and the group `The tags`. **The first half of the item of the
+maintainer stands, and it works.**
+
+**Three things stay open.**
+
+1. **The view says nothing of itself.** The header of the Library view says
+   `Library [500 items of 2056]` and no word of the sequence that stands, and
+   **the footer of that view names no key `f`**: the capture of 2026-08-16
+   gave `j/k: move  l: play or open  Tab: home/library  S-Tab: the next
+   library  /: search  R: refresh  ?: every key  Q: quit`. The key exists and
+   the user cannot find it. That is the rule of T-143 in reverse, and it is a
+   fault of the words of the user of the item 2 below.
+2. **A series opens into no book.** `src/app.rs:943` writes
+   `&collapseseries=1` for **every** library of books, with no choice of the
+   user at all, therefore the Library view holds the row `The Test Chronicles
+   [3 books]` and it can never hold the three books of it in the list. The
+   work is a mode of the view that sends `collapseseries=0`, and the key of
+   it belongs beside the key `f`.
+3. **The filter of the server is not every filter that a user wants.** The
+   item names "added first", and the sequence of that name stands; it also
+   names the media that you did not start and the media of the disk, and
+   section 4 of `docs/T-24-coverage.md` says which of those the server gives.
+
+**T-319: the covers fill the space that they have.** `split_for_covers`
+(`src/ui/cover.rs:502`) gives the panel `PANEL_PERCENT` of 40 percent of the
+width, clamped between `PANEL_MIN_WIDTH` of 22 and `PANEL_MAX_WIDTH` of 72,
+and it gives no panel at all under `MIN_WIDTH_FOR_COVER` of 84 columns. **The
+panel holds one cover of one media**, and the capture of 2026-08-16 at 160
+columns and 45 rows gave about **17** rows of the screen with no character in
+them at all, under the panel of the description. The work: one large
+cover for the media of the row when one row stands, and **a grid of covers
+that fits as many of them as the terminal carries without a cover that no one
+can read**. The arithmetic of the tiles belongs in the item: the number of the
+columns and of the rows of the tiles at 160, at 80, and at **40** columns
+(T-301 names 40 as the narrowest terminal of this fork), and the road back to
+a list for a terminal that draws no image.
+
+**Five mockups of the whole screen stand in `docs/mockups/`**, one of each of
+five lineages of a TUI (the panels of lazygit, the columns of yazi, the player
+of ncspot, the table of k9s, and the grid of covers of television). Each
+`mockup-N.txt` is a real grid of 160 columns and 45 rows, and `mockup-N.md`
+beside it holds the lineage, the answer of each of the four items, the table
+of the colours, and the map of the mouse; `docs/mockups/README.md` holds the
+table of the five and the address of the page that shows them side by side.
+**The maintainer decides which of them the program takes, and no round starts
+T-316 to T-319 before that decision.** The four items are independent,
+therefore the answer can take a part of more than one mockup.
+
 ### 1. The book of xHE-AAC: it plays now (T-68 and T-69)
 
 **T-53 and T-63 close with T-68, and T-69 makes the file play.** The user gave the
@@ -11713,6 +11831,25 @@ answers slowly while it writes. Two answers to measure:
    of the release uses `cargo test`.
 
 ## The traps that cost time
+
+### Of a subagent
+
+**The trap 245: a subagent removed the whole of `target/`.** The round of the
+hundred and forty-fourth turn gave the five mockups of the maintainer to five
+agents, and the prompt of each of them forbade every command of cargo and of
+git. One of them took the directory of **66 gigabytes** away in the middle of a
+measurement inside tmux, and the program then said
+`env: './target/debug/toutui': No such file or directory`: the measurement of
+that moment died with no word of a reason, and the first diagnosis looked at
+the harness and at the sandbox and not at the disk. **No commit and no line of
+the source went away**, because the release v0.8.144 stood already; the cost
+was one build of every dependency.
+
+**A prompt of a subagent that forbids a command is not a control.** A round
+that gives work to an agent keeps every command of cargo, of git, of tmux, of
+podman, and of the database to itself, and **a program of tmux that does not
+start needs `ls target/debug/toutui` before every other diagnosis** (with the
+`df -h` of the trap 150 beside it).
 
 ### Of the program and of the server
 
@@ -21302,6 +21439,22 @@ end of a line** (T-315).
 > first hit of its name, and the loop stopped (the trap 208).
 >
 > ### The work, in the sequence of its value
+>
+> 0. **The four items that the maintainer gave on 2026-08-16** (T-316 to
+>    T-319), which stand in `### 0. The four items of the maintainer of
+>    2026-08-16` of `## What is open` of `docs/HANDOVER.md`, outside this
+>    block: **the mouse everywhere** (T-316), **the theme of the terminal of
+>    the user** (T-317), **the modes of a filter and of a sequence of the
+>    Library view, and a series that opens into its books** (T-318), and **the
+>    covers that fill the space that they have** (T-319). **They are the work
+>    of features and not the work of faults**, therefore the rule "show the
+>    fault before you correct it" does not hold for them: drive the real
+>    program inside tmux before and after each of them, and put the two
+>    screens in the item of `docs/TAKEOVER-BACKLOG.md`. Each of them takes
+>    more than one round. **Five mockups of the whole screen stand in
+>    `docs/mockups/`** and they wait for the decision of the maintainer, and no
+>    round starts T-316 to T-319 before that decision comes. Read that section
+>    first, and take the item 1 below while it does not come.
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and eleven sessions of one hundred
