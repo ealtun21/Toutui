@@ -915,6 +915,17 @@ async fn main() -> Result<()> {
                                     app.must_refresh = false;
 
                                     logic::message::forget();
+
+                                    // **The screen did not change, therefore
+                                    // the words of the key are a lie** (T-308).
+                                    // The key of the next library and the key
+                                    // `l` of the settings each say that the
+                                    // program shows another library now, and
+                                    // this road keeps the application of the
+                                    // user: the sentence below is the one
+                                    // answer of that key.
+                                    logic::message::forget_the_words_of_the_refresh();
+
                                     logic::message::say(if the_file_did_not_come {
                                         toutui::ui::keys::
                                             THE_REFRESH_DID_NOT_READ_THE_CONFIGURATION_FILE
@@ -989,6 +1000,16 @@ async fn main() -> Result<()> {
                                     config::say_the_values_that_the_program_does_not_use(
                                         &app.config,
                                     );
+
+                                    // **A key that refreshes the program says
+                                    // its words here** (T-308). The `forget`
+                                    // above takes away every message that the
+                                    // key wrote, therefore the two keys of a
+                                    // new library keep their sentence in a slot
+                                    // that stands outside it. The sentence
+                                    // comes last, because it is the answer of
+                                    // the key that the user pressed.
+                                    logic::message::the_words_of_the_refresh_come();
                                 }
 
                                 // A refresh makes a new application, therefore every

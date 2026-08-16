@@ -3058,12 +3058,7 @@ impl App {
                                 .cloned()
                                 .unwrap_or_default();
 
-                            crate::logic::message::say(&format!(
-                                "The program shows the library \"{}\" now.",
-                                name
-                            ));
-
-                            self.must_refresh = true;
+                            self.the_program_shows_the_library(&name);
                         }
                     }
                     AppView::SettingsAbout => {}
@@ -8826,7 +8821,24 @@ impl App {
             return;
         }
 
-        crate::logic::message::say(&format!("The program shows the library \"{}\" now.", name));
+        self.the_program_shows_the_library(&name);
+    }
+
+    /// The library of the user changed, and the whole screen must follow it.
+    ///
+    /// **The words and the mark of the refresh belong together** (T-308). The
+    /// two keys that take another library — the key of the next library and the
+    /// key `l` of the view of the settings — each said the sentence with `say`
+    /// and each then wrote `must_refresh`: the loop of `src/main.rs` makes a new
+    /// application for that mark, and it calls `crate::logic::message::forget`
+    /// before the first frame of it. **No character of that sentence ever
+    /// reached the screen.** The words go to the slot that stands outside
+    /// `forget`, and the loop gives them to the user when the new screen stands.
+    fn the_program_shows_the_library(&mut self, name: &str) {
+        crate::logic::message::say_after_the_refresh(&format!(
+            "The program shows the library \"{}\" now.",
+            name
+        ));
 
         self.must_refresh = true;
     }

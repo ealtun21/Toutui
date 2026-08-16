@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.136.** The item T-307 belongs to this session. The
+**The newest release is v0.8.137.** The item T-308 belongs to this session. The
+item T-307 belongs to the session before it. The
 item T-306 belongs to the session before it. The
 item T-305 belongs to the session before it. The
 item T-303 belongs to the session before it. The
@@ -151,6 +152,110 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its binaries in two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and thirty-seventh turn of 2026-08-16: the words of a key that refreshes the program reach the user
+
+**The item: T-308**, and the release **v0.8.137**.
+
+**The candidate came of T-307.** That item left three lines open, and one of
+them was a message of the program that reaches nobody at all: `src/app.rs:3061`
+says `The program shows the library "…" now.` and it then writes
+`must_refresh = true`, which is the shape of the trap 234 of the key `R`.
+
+**A `say` of a key that writes `must_refresh` reaches nobody.** The key writes
+the words into the box of the message, and the loop of `src/main.rs` then makes
+a new application for that mark and it calls `crate::logic::message::forget()`
+at `src/main.rs:977` before the first frame of it. T-264 met that road already,
+for the sentence of the values of the configuration file that the program does
+not use.
+
+**A sweep of `must_refresh` found two keys, and the two of them say one
+sentence**: `take_the_next_library` of `src/app.rs:8829`, which is the key
+`Shift+Tab` of the Home view and of the Library view, and the arm
+`AppView::SettingsLibrary` of `src/app.rs:3061`, which is the key `l` of the
+view `Settings Library`. The other two marks of that field —
+`show_the_books_of_the_author` and `apply_the_sequence_or_the_filter` — say
+nothing at all on that road.
+
+**The measurement.** The real program v0.8.136 inside tmux against the sandbox
+with the account `toutuitest` and a terminal of **40** columns and 45 rows. The
+data of this fault is the program itself: it needs no proxy, no book of a
+harness, no build of the fault of the source, and no change of the sandbox at
+all. The keys `S`, `j`, `l`, and `l` of the Home view took the library
+`Podcasts`: the header of the screen changed to `👋 toutuitestPodcasts
+(podcas🦜 v0.8.136`, the Library view of it stood with its two items, and **no
+frame of 40 captures of `tmux capture-pane` of a step of 0.15 seconds held one
+character of** `The program shows the library "Podcasts" now.` — which is the
+whole life of a message (six seconds) and more. The key `BTab` of the Home view
+gave the same measurement with the library `Books`.
+
+**The control of the same run** (the trap 206): `chmod 444` of
+`$XDG_CONFIG_HOME/toutui/db.sqlite3` after the first frame (T-206), and the same
+four keys. The write of the row of the library then fails, that road **returns**
+in the place of writing `must_refresh`, and the `say` of it reached the screen
+at once and it stood in 25 of 25 captures:
+
+```text
+The program did not write the library of
+   this account: the database did not
+   answer. A different program of this
+ account can hold it. Press Enter again.
+```
+
+The two roads hold one key, one view, and one `say`. The road that refreshes the
+program is the one that says nothing, therefore the refresh is the cause and
+nothing else is.
+
+**The decision.** The words of a key that refreshes the program wait outside
+`forget`. The loop cannot say them itself, because the name of the library
+belongs to the key; and the key cannot say them, because the `forget` of the
+refresh comes after it. The box of the message is the one place that both of
+them reach. **A screen that did not change makes those words a lie**, therefore
+the refresh that read no account (T-205) and the refresh that could not read the
+configuration file (T-266) each drop them and each keep the sentence that says
+why the screen stayed. **The words of the key come last**, above the sentence of
+T-264, because the answer of the key that the user pressed stands above it.
+
+**The correction is four files.** `src/logic/message.rs`: `TheMessages` holds
+`after_the_refresh`, `forget` leaves that slot, and `say_after_the_refresh`,
+`the_words_of_the_refresh_come`, and `forget_the_words_of_the_refresh` write it,
+take it, and drop it. `src/app.rs`: the new `the_program_shows_the_library`
+holds the words **and** the mark together, therefore the two cannot come apart.
+`src/main.rs`: the two calls of the loop. `src/utils/changelog.rs` and
+`Cargo.toml`: the release v0.8.137.
+
+**The corrected program**, of the same keys and the same terminal of 40 columns:
+the key `l` of the settings gave `The program shows the library "Podcasts" now.`
+on two rows directly above the footer, in 28 of 30 captures, and the key `BTab`
+gave `The program shows the library "Books" now.` in 27 of 30.
+
+**The gate** is `tests/the_words_of_a_key_that_refreshes_reach_the_user.rs`, of
+two functions: the box of the process in one of them (T-144 and T-157), and a
+read of the source in the other — **no function of `src/app.rs` that writes
+`must_refresh` says a message**, and `the_words_of_the_refresh_come()` of
+`src/main.rs` stands after the last `logic::message::forget();`. The window of
+that first rule is the whole of the enclosing function, and not a number of
+lines (the trap 209): the function before `the_program_shows_the_library` holds
+a `say` of its own eight code lines above the mark.
+
+**Two builds of the fault**, each of one edit that keeps every other line.
+`crate::logic::message::say` in the place of `say_after_the_refresh` gave
+`src/app.rs:8843: the function the_program_shows_the_library writes must_refresh
+and it says a message`. `place.after_the_refresh = None;` inside `forget` gave
+`left: None, right: Some("The program shows the library \"Podcasts\" now.")`.
+
+**The gates**: `cargo clippy --all-targets -- -D warnings` and
+`cargo fmt --check` say nothing, `cargo nextest run` gives **1372 of 1372** in
+2.9 seconds with 26 skipped, `cargo nextest run --run-ignored all` gives
+**1398 of 1398** in 27.0 seconds with the sandbox up, and
+`cargo test -j 16 --no-fail-fast` gives no failure over three runs.
+
+**What this turn leaves open**: the count of one space of
+`the_lines_of_one_line` (T-307), the marks of a line that count the characters
+still (T-305 to T-307), and **the two keys of `must_refresh` that say nothing at
+all** — `show_the_books_of_the_author` and `apply_the_sequence_or_the_filter`
+each change every list of the screen and each say no word of what they did. Each
+of the three is a candidate and not a measurement.
 
 ## The session of the hundred and thirty-sixth turn of 2026-08-16: the box of a message counts the columns of its text
 
@@ -18118,6 +18223,91 @@ whole sentence then stood on three rows at 80 columns.
   measurement of it needs two servers one after the other. **This is a
   candidate and not a measurement.**
 
+## The session of the hundred and thirty-sixth turn of 2026-08-16: the box of a message counts the columns of its text, of the block of the prompt
+
+  **The session of the hundred and thirty-sixth turn took the candidate of
+  the sweep that T-306 opened — the second count of a wrap of this program —
+  and the measurement of it gave the fault** (T-307). **It left three
+  candidates open**, and one of them is a message of the program that
+  reaches nobody at all.
+
+  **The box of a message counts the columns of its text.**
+  `the_rows_of_a_message` of `src/logic/message.rs` is the second count of a
+  wrap of this program: the box of the message of a view stands on the rows
+  that this count gives (T-299), and `in_the_rows` cuts the end of a message
+  that needs more rows than the screen holds. T-305 gave that function
+  `the_columns_of`, and T-306 found a second rule of ratatui that it did not
+  hold: **the last character of a row takes one column of that row**,
+  because the crate draws the last character while one column of that row
+  stays. T-306 gave that rule to the count of the panel of a description
+  alone, therefore a message of the Han script, of Hiragana, or of Katakana
+  said that it needs one row more than the render takes.
+
+  The measurement, of the real program v0.8.135 inside tmux against the
+  sandbox with the account `toutuitest` and a terminal of **40** columns.
+  **The data of this fault is the text of the server**, therefore it needs
+  no proxy, no book of a harness, and no build of the fault of the source:
+  `PATCH /api/items/040e9d69-…/media` gave the book
+  `The Test Chronicles Volume 3` the title
+  `日本語書籍説明 日本語書籍説明 日本語書籍説明` (three words of seven
+  characters, of fourteen columns each), the keys `/`, `日本語書籍説明`, and
+  `Enter` gave the view of the search, the key `D` wrote the row of the
+  download with that title, and the key `X` said
+  `Removed the local copy of "…".` **The sentence of the key `X` reads the
+  title of the row of the download and not the title of the server**,
+  therefore a title that changed needs a `D` before the `X`. **The cause, in
+  numbers**: the count of the program said **3** rows and the render of
+  ratatui took **2**, therefore the box stood on the rows 40, 41, and 42,
+  the last row of it held no character, and **the row 39 of the list went
+  away for nothing** — the last row of a message stands above the footer
+  (T-299), and that message stood one row over it. **The control of the same
+  run**: the title `ABCDEFGHIJKLMN ABCDEFGHIJKLMN ABCDEFGHIJKLMN` — three
+  words of fourteen characters, of the same fourteen columns — took the rows
+  40, 41, and 42, every row of it held characters, and its last row stood
+  above the footer.
+
+  The correction is two files. `src/logic/message.rs`: `the_room_of_a_word`
+  and `the_lines_of_one_word` moved out of
+  `src/logic/the_scroll_of_a_panel.rs` and they stand beside
+  `the_columns_of` now, `the_rows_of_a_message` fits a word at the end of a
+  row with the first one and it walks the characters of a word that is
+  longer than the width with the second one, and `the_number_of_the_lines`
+  of the panel calls the two of them at their new place — **the two counts
+  of a wrap of this program read one rule now**.
+  `tests/the_box_of_a_message_counts_its_columns.rs` holds the gate: it
+  draws a `Paragraph` of `Wrap { trim: true }` into a `Buffer` (T-256) and
+  it asserts that the count of the program is the number of the rows that
+  ratatui drew. **The build of the fault**
+  (`column + spaces + the_columns_of(word)` in the place of
+  `column + spaces + room`) said 4 rows where ratatui drew 3. **The
+  corrected program**, of the same keys and the same title of Japanese, put
+  the two rows of the message at 41 and 42, directly above the footer.
+  - **A gate that draws with ratatui needs a `Buffer` of the rows of its
+    text** (T-307): the first form of this gate held a buffer of a fixed
+    height of 250 rows and it took **455 seconds**, and a buffer of the rows
+    that the text can need takes **1.9 seconds**. A buffer that is shorter
+    than the text cuts the render, and the gate then says a number that
+    ratatui did not draw.
+  - **The message of the settings library reaches nobody** (T-307):
+    `src/app.rs:3061` says `The program shows the library "…" now.` and it
+    then writes `must_refresh = true`, and the loop of `src/main.rs` calls
+    `logic::message::forget()` on that road — the shape of the trap 234 of
+    the key `R`. The keys `S`, `j`, `l`, and `l` of the real program at 40
+    columns gave no character of that sentence. **This is a candidate and
+    not a measurement.**
+  - **`the_lines_of_one_line` of `src/logic/the_scroll_of_a_panel.rs` counts
+    one space between two words** (T-307): the rule is
+    `length + 1 + room <= width`, and T-302 measured that a wrap of
+    `trim: true` keeps every space that stands inside a row. A description
+    of the server that holds two spaces between two words therefore takes a
+    number of the rows that the panel does not count. **This is a candidate
+    and not a measurement.**
+  - **The marks of a line count the characters still** (T-305, T-306, and
+    T-307): `fill` of `src/ui/marks.rs:111` reads `mark.chars().count()`,
+    and a mark of the East Asian Width "Ambiguous" takes one column or two,
+    and the terminal decides. **This is a candidate and not a
+    measurement.**
+
 ## The decisions of T-124 to T-200 that do not open again
 
 **This section stood in the block of the prompt, and the block reached its
@@ -18780,7 +18970,7 @@ character.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.135**; `Cargo.toml` is at 0.8.135. The
+> AlbanDAVID/Toutui. Newest release **v0.8.137**; `Cargo.toml` is at 0.8.137. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -18789,7 +18979,7 @@ character.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-304 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-308 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -19518,7 +19708,7 @@ character.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-307 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-309 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
@@ -19636,78 +19826,70 @@ character.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and seven sessions of one hundred
 >    and eight.
->   **The session of the hundred and thirty-sixth turn took the candidate of
->   the sweep that T-306 opened — the second count of a wrap of this program —
->   and the measurement of it gave the fault** (T-307). **It left three
->   candidates open**, and one of them is a message of the program that
->   reaches nobody at all.
+>   **The session of the hundred and thirty-seventh turn took the candidate
+>   that T-307 opened — a message of the program that reaches nobody at all —
+>   and the measurement of it gave the fault** (T-308). **It left three
+>   candidates open.**
 >
->   **The box of a message counts the columns of its text.**
->   `the_rows_of_a_message` of `src/logic/message.rs` is the second count of a
->   wrap of this program: the box of the message of a view stands on the rows
->   that this count gives (T-299), and `in_the_rows` cuts the end of a message
->   that needs more rows than the screen holds. T-305 gave that function
->   `the_columns_of`, and T-306 found a second rule of ratatui that it did not
->   hold: **the last character of a row takes one column of that row**,
->   because the crate draws the last character while one column of that row
->   stays. T-306 gave that rule to the count of the panel of a description
->   alone, therefore a message of the Han script, of Hiragana, or of Katakana
->   said that it needs one row more than the render takes.
+>   **The words of a key that refreshes the program reach the user.** A `say`
+>   of a key that writes `must_refresh` reaches nobody at all: the key writes
+>   the words into the box of the message, and the loop of `src/main.rs` then
+>   makes a new application for that mark and it calls
+>   `crate::logic::message::forget()` at `src/main.rs:977` before the first
+>   frame of it. It is the shape of the trap 234 of the key `R`, which T-264
+>   met for the sentence of the configuration file. **Two keys of this program
+>   held it**, and the two of them say one sentence: `take_the_next_library`
+>   of `src/app.rs:8829` (the key `Shift+Tab` of the Home view and of the
+>   Library view) and the arm `AppView::SettingsLibrary` of `src/app.rs:3061`
+>   (the key `l` of the view `Settings Library`). The sweep that found them:
+>   `must_refresh` stands at four places of `src/app.rs`, and the other two —
+>   `show_the_books_of_the_author` and `apply_the_sequence_or_the_filter` —
+>   say nothing at all on that road.
 >
->   The measurement, of the real program v0.8.135 inside tmux against the
+>   The measurement, of the real program v0.8.136 inside tmux against the
 >   sandbox with the account `toutuitest` and a terminal of **40** columns.
->   **The data of this fault is the text of the server**, therefore it needs
->   no proxy, no book of a harness, and no build of the fault of the source:
->   `PATCH /api/items/040e9d69-…/media` gave the book
->   `The Test Chronicles Volume 3` the title
->   `日本語書籍説明 日本語書籍説明 日本語書籍説明` (three words of seven
->   characters, of fourteen columns each), the keys `/`, `日本語書籍説明`, and
->   `Enter` gave the view of the search, the key `D` wrote the row of the
->   download with that title, and the key `X` said
->   `Removed the local copy of "…".` **The sentence of the key `X` reads the
->   title of the row of the download and not the title of the server**,
->   therefore a title that changed needs a `D` before the `X`. **The cause, in
->   numbers**: the count of the program said **3** rows and the render of
->   ratatui took **2**, therefore the box stood on the rows 40, 41, and 42,
->   the last row of it held no character, and **the row 39 of the list went
->   away for nothing** — the last row of a message stands above the footer
->   (T-299), and that message stood one row over it. **The control of the same
->   run**: the title `ABCDEFGHIJKLMN ABCDEFGHIJKLMN ABCDEFGHIJKLMN` — three
->   words of fourteen characters, of the same fourteen columns — took the rows
->   40, 41, and 42, every row of it held characters, and its last row stood
->   above the footer.
+>   **The data of this fault is the program itself**: it needs no proxy, no
+>   book of a harness, no build of the fault of the source, and no change of
+>   the sandbox at all. The keys `S`, `j`, `l`, and `l` of the Home view took
+>   the library `Podcasts`: the header of the screen changed to
+>   `Podcasts (podcas`, the Library view of it stood with its two items, and
+>   **no frame of 40 captures of a step of 0.15 seconds held one character
+>   of** `The program shows the library "Podcasts" now.` — which is the whole
+>   life of a message and more. The key `BTab` of the Home view gave the same
+>   measurement with the library `Books`. **The control of the same run** (the
+>   trap 206): `chmod 444` of the database of the program after the first
+>   frame (T-206), and the same four keys. The write of the row of the library
+>   then fails, that road **returns** in the place of writing `must_refresh`,
+>   and the `say` of it stood in 25 of 25 captures. The two roads hold one
+>   key, one view, and one `say`; the road that refreshes the program is the
+>   one that says nothing.
 >
->   The correction is two files. `src/logic/message.rs`: `the_room_of_a_word`
->   and `the_lines_of_one_word` moved out of
->   `src/logic/the_scroll_of_a_panel.rs` and they stand beside
->   `the_columns_of` now, `the_rows_of_a_message` fits a word at the end of a
->   row with the first one and it walks the characters of a word that is
->   longer than the width with the second one, and `the_number_of_the_lines`
->   of the panel calls the two of them at their new place — **the two counts
->   of a wrap of this program read one rule now**.
->   `tests/the_box_of_a_message_counts_its_columns.rs` holds the gate: it
->   draws a `Paragraph` of `Wrap { trim: true }` into a `Buffer` (T-256) and
->   it asserts that the count of the program is the number of the rows that
->   ratatui drew. **The build of the fault**
->   (`column + spaces + the_columns_of(word)` in the place of
->   `column + spaces + room`) said 4 rows where ratatui drew 3. **The
->   corrected program**, of the same keys and the same title of Japanese, put
->   the two rows of the message at 41 and 42, directly above the footer.
->   - **A gate that draws with ratatui needs a `Buffer` of the rows of its
->     text** (T-307): the first form of this gate held a buffer of a fixed
->     height of 250 rows and it took **455 seconds**, and a buffer of the rows
->     that the text can need takes **1.9 seconds**. A buffer that is shorter
->     than the text cuts the render, and the gate then says a number that
->     ratatui did not draw.
->   - **The message of the settings library reaches nobody** (T-307):
->     `src/app.rs:3061` says `The program shows the library "…" now.` and it
->     then writes `must_refresh = true`, and the loop of `src/main.rs` calls
->     `logic::message::forget()` on that road — the shape of the trap 234 of
->     the key `R`. The keys `S`, `j`, `l`, and `l` of the real program at 40
->     columns gave no character of that sentence. **This is a candidate and
->     not a measurement.**
->   - **`the_lines_of_one_line` of `src/logic/the_scroll_of_a_panel.rs` counts
->     one space between two words** (T-307): the rule is
+>   The correction is four files. `src/logic/message.rs`: `TheMessages` holds
+>   `after_the_refresh`, `forget` leaves that slot, and the three new
+>   functions `say_after_the_refresh`, `the_words_of_the_refresh_come`, and
+>   `forget_the_words_of_the_refresh` write it, take it, and drop it.
+>   `src/app.rs`: the new `the_program_shows_the_library` holds the words
+>   **and** the mark together, therefore the two cannot come apart, and the
+>   two keys call it. `src/main.rs`: the words come after the `forget` of the
+>   refresh **and** after the sentence of T-264, because the answer of the key
+>   that the user pressed stands above it; and the road that keeps the
+>   application of the user (T-205 and T-266) drops them, because a screen
+>   that did not change makes those words a lie.
+>   `tests/the_words_of_a_key_that_refreshes_reach_the_user.rs` holds the gate
+>   of two functions: the box of the process in one of them (T-144 and
+>   T-157), and a read of the source in the other — **no function of
+>   `src/app.rs` that writes `must_refresh` says a message**, and
+>   `the_words_of_the_refresh_come()` of `src/main.rs` stands after the last
+>   `logic::message::forget();`. The window of that first rule is the whole of
+>   the enclosing function, and not a number of lines (the trap 209).
+>   **Two builds of the fault**: `crate::logic::message::say` in the place of
+>   `say_after_the_refresh` gave the sentence of the source, and
+>   `place.after_the_refresh = None;` inside `forget` gave `left: None`.
+>   **The corrected program**, of the same keys and the same terminal of 40
+>   columns, put the sentence on two rows directly above the footer, in 28 of
+>   30 captures.
+>   - **`the_lines_of_one_line` of `src/logic/the_scroll_of_a_panel.rs`
+>     counts one space between two words** (T-307): the rule is
 >     `length + 1 + room <= width`, and T-302 measured that a wrap of
 >     `trim: true` keeps every space that stands inside a row. A description
 >     of the server that holds two spaces between two words therefore takes a
@@ -19718,13 +19900,19 @@ character.
 >     and a mark of the East Asian Width "Ambiguous" takes one column or two,
 >     and the terminal decides. **This is a candidate and not a
 >     measurement.**
+>   - **The two keys of `must_refresh` that say nothing at all** (T-308):
+>     `show_the_books_of_the_author` (`src/app.rs:4251`) and
+>     `apply_the_sequence_or_the_filter` (`src/app.rs:6161`) each change every
+>     list of the screen and each say no word of what they did. The rule of
+>     T-91 asks whether a key that changes the whole screen must name the
+>     change. **This is a candidate and not a measurement.**
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
 >    (T-284): a round that writes its own turn takes the oldest turn out, and
 >    it takes a second one out while `toutui-loop --dry-run | wc -c` gives more
->    than 100000. That section holds the turn of the hundred and thirty-third
+>    than 100000. That section holds the turn of the hundred and thirty-sixth
 >    and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
@@ -20187,7 +20375,13 @@ character.
 > (T-306), and **the box of a message counts the columns of its text: the two
 > counts of a wrap of this program read one rule of ratatui, which stands in
 > `src/logic/message.rs` beside the measure of the columns, and a message
-> therefore stands on the rows that the render draws it on** (T-307).
+> therefore stands on the rows that the render draws it on** (T-307), and **the
+> words of a key that refreshes the program reach the user: the box of the
+> message holds a slot that `forget` leaves, because the loop of the program
+> makes the new application for that key and it forgets every message before
+> the first frame of it, and the road that keeps the application of the user
+> drops those words because a screen that did not change makes them a lie**
+> (T-308).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
@@ -20225,7 +20419,9 @@ character.
 > at 94314 bytes with one turn in it, and it did the same work, and the block
 > then held 95022 bytes with **one** turn in it; the round of the hundred and
 > thirty-sixth found it at 95022 bytes with one turn in it, and it did the same
-> work, and the block then held 94995 bytes with **one** turn in it. **A turn of many
+> work, and the block then held 94995 bytes with **one** turn in it; the round
+> of the hundred and thirty-seventh found it at 95595 bytes with one turn in
+> it, and it did the same work. **A turn of many
 > numbers is a turn that takes two turns out**, and **a block that stands above
 > 99000 bytes with one turn in it needs a part of the list of "Do not open these
 > again" in a section of its own, outside the block.**

@@ -26910,3 +26910,160 @@ place of `column + spaces + room` gave 4 rows where ratatui drew 3.
   not a measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to
   T-306).
+
+### T-308: the words of a key that refreshes the program reach the user
+
+#### The fault
+
+**A `say` of a key that writes `must_refresh` reaches nobody at all.** The key
+writes the words into the box of the message, and it then asks the loop of
+`src/main.rs` for a new application. That road makes the new `App`, and it
+calls `crate::logic::message::forget()` at `src/main.rs:977` before the first
+frame of it: the words go away before the screen holds one byte of them. It is
+the shape of the trap 234 of the key `R`, which T-264 met for the sentence of
+the values of the configuration file that the program does not use.
+
+Two keys of this program held it, and the two of them say one sentence:
+
+- `take_the_next_library` of `src/app.rs:8829` — the key of the next library
+  (`Shift+Tab`) of the Home view and of the Library view.
+- The arm `AppView::SettingsLibrary` of `src/app.rs:3061` — the key `l` of the
+  view `Settings Library`.
+
+The sweep that found them: `must_refresh` stands at four places of `src/app.rs`
+(3066, 4251, 6161, and 8831 of v0.8.136), and the two above hold a
+`crate::logic::message::say` of the line before the mark. The other two —
+`show_the_books_of_the_author` and `apply_the_sequence_or_the_filter` — say
+nothing at all on that road.
+
+#### The measurement
+
+Of the real program v0.8.136 inside tmux against the sandbox on `:13399`, with
+the account `toutuitest` and a terminal of 40 columns and 45 rows
+(`COLUMNS_OF_THE_SCREEN=40` of `docs/harness/drive.sh`). **The data of this
+fault is the program itself**: it needs no proxy, no book of a harness, no
+build of the fault of the source, and no change of the sandbox at all.
+
+The keys `S`, `j`, `l`, and `l` of the Home view took the library `Podcasts`.
+The header of the screen changed to `👋 toutuitestPodcasts (podcas🦜 v0.8.136`,
+the Library view of it stood with its two items, and **no frame held one
+character of** `The program shows the library "Podcasts" now.` — 40 captures of
+`tmux capture-pane`, of a step of 0.15 seconds, which is the whole life of a
+message (six seconds) and more.
+
+The key of the next library (`BTab`) of the Home view gave the same
+measurement: the header changed to `📖 Books (book)`, the Library view held its
+18 items, and no frame of 40 held the sentence.
+
+**The control of the same run** (the trap 206): `chmod 444` of
+`$XDG_CONFIG_HOME/toutui/db.sqlite3` after the first frame (T-206), and the
+same keys `S`, `j`, `l`, and `l`. The write of the row of the library then
+fails, that road **returns** in the place of writing `must_refresh`, and the
+`say` of it reached the screen at once and it stood in 25 of 25 captures:
+
+```text
+The program did not write the library of
+   this account: the database did not
+   answer. A different program of this
+ account can hold it. Press Enter again.
+```
+
+The two roads hold one key, one view, and one `say`. The road that refreshes
+the program is the one that says nothing, therefore the refresh is the cause
+and nothing else is.
+
+#### The decision
+
+**The words of a key that refreshes the program wait outside `forget`.** The
+loop cannot say them itself, because the name of the library belongs to the
+key; and the key cannot say them, because the `forget` of the refresh comes
+after it. The box of the message is the one place that both of them reach, and
+it therefore holds a slot that `forget` leaves alone.
+
+**A screen that did not change makes those words a lie.** The refresh that read
+no account (T-205) and the refresh that could not read the configuration file
+(T-266) each keep the application of the user and each say why the screen
+stayed. That road drops the words of the key, and its own sentence is the one
+answer of that key.
+
+**The words of the key come last.** The sentence of T-264 — the values of the
+configuration file that the program does not use — stands on the same road, and
+the answer of the key that the user pressed stands above it.
+
+#### The correction
+
+Four files.
+
+- `src/logic/message.rs`: `TheMessages` holds `after_the_refresh`, and `forget`
+  leaves that slot. The new `say_after_the_refresh` writes it,
+  `the_words_of_the_refresh_come` takes it and it says the words, and
+  `forget_the_words_of_the_refresh` takes it away.
+- `src/app.rs`: the new `the_program_shows_the_library` holds the words **and**
+  the mark together, therefore the two cannot come apart, and the two keys call
+  it.
+- `src/main.rs`: `the_words_of_the_refresh_come()` after the `forget` of the
+  refresh and after the sentence of T-264, and `forget_the_words_of_the_refresh()`
+  on the road that keeps the application of the user.
+- `src/utils/changelog.rs` and `Cargo.toml`: the release v0.8.137.
+
+**The corrected program**, of the same keys and the same terminal of 40
+columns: the key `l` of the settings gave `The program shows the library
+"Podcasts" now.` on two rows directly above the footer, in 28 of 30 captures,
+and the key `BTab` gave `The program shows the library "Books" now.` in 27 of
+30.
+
+#### The gate
+
+`tests/the_words_of_a_key_that_refreshes_reach_the_user.rs`, two functions.
+
+`the_box_of_the_message_keeps_the_words_of_a_key_that_refreshes` holds the box
+of the process, therefore its parts stay in one function (T-144 and T-157): it
+asserts that a plain `say` does not stand after a `forget`, that
+`say_after_the_refresh` does, that the slot is empty after one key, that
+`forget_the_words_of_the_refresh` gives no message, and that a text of no
+character is no message.
+
+`the_source_keeps_the_words_of_a_refresh_away_from_say` reads `src/app.rs` and
+it asserts that **no function that writes `must_refresh` says a message**, and
+it reads `src/main.rs` and it asserts that
+`the_words_of_the_refresh_come()` stands after the last
+`logic::message::forget();`. The first rule alone passes for a program that
+writes `say` at the key again, therefore the source holds the second one. The
+window of that rule is the whole of the enclosing function, and not a number of
+lines (the trap 209).
+
+**Two builds of the fault**, each of one edit that keeps every other line.
+`crate::logic::message::say` in the place of `say_after_the_refresh` inside
+`the_program_shows_the_library` gave `src/app.rs:8843: the function
+the_program_shows_the_library writes must_refresh and it says a message`.
+`place.after_the_refresh = None;` inside `forget` gave `left: None, right:
+Some("The program shows the library \"Podcasts\" now.")`.
+
+#### The gates of the round
+
+`cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,
+`cargo nextest run` (1372 of 1372, 26 skipped),
+`cargo nextest run --run-ignored all` with the sandbox up (1398 of 1398), and
+`cargo test -j 16 --no-fail-fast` three times with no fault.
+
+#### What this turn leaves open
+
+- **`the_lines_of_one_line` of `src/logic/the_scroll_of_a_panel.rs` counts one
+  space between two words** (`length + 1 + room <= width`), and T-302 measured
+  that a wrap of `trim: true` keeps every space that stands inside a row. A
+  description of the server that holds two spaces between two words therefore
+  takes a number of the rows that the panel does not count. T-307 left this
+  open, and this round did not measure it. **This is a candidate and not a
+  measurement.**
+- **The marks of a line count the characters still.** `fill` of
+  `src/ui/marks.rs:111` reads `mark.chars().count()`, and a mark of the East
+  Asian Width "Ambiguous" takes one column or two, and the terminal decides.
+  **This is a candidate and not a measurement.**
+- **The two keys of `must_refresh` that say nothing at all.**
+  `show_the_books_of_the_author` (`src/app.rs:4251`) and
+  `apply_the_sequence_or_the_filter` (`src/app.rs:6161`) each change every list
+  of the screen and each say no word of what they did. The rule of T-91 asks
+  whether a key that changes the whole screen must name the change. **This is a
+  candidate and not a measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to
+  T-307).

@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.137",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The two keys that take another library say so.** The key of \
+             the next library and the key l of the settings each changed the \
+             library and each said nothing at all: the program made its new \
+             screen for that key, and the message of the key went away before \
+             the first frame of it. The user now reads \"The program shows the \
+             library ... now.\" after the screen changed.",
+        ],
+    },
+    Entry {
         version: "0.8.136",
         date: "16/08/2026",
         body: &[

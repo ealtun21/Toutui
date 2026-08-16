@@ -73,6 +73,10 @@ struct TheMessages {
     /// The messages that belong to a view. Each view holds one, and the user
     /// reads it when they look at that view. See T-164.
     of_the_views: Vec<(AppView, Message)>,
+    /// The words of a key that makes the program refresh itself. `forget`
+    /// leaves this slot, because that refresh calls `forget` **after** the key
+    /// wrote its words. See T-308.
+    after_the_refresh: Option<String>,
 }
 
 fn box_of_the_message() -> &'static Mutex<TheMessages> {
@@ -504,6 +508,58 @@ pub fn forget() {
     if let Ok(mut place) = box_of_the_message().lock() {
         place.of_no_view = None;
         place.of_the_views.clear();
+    }
+}
+
+/// Keeps the words of a key that makes the program refresh itself. See T-308.
+///
+/// **A `say` of such a key reaches nobody.** The key writes the words, and it
+/// then asks the loop of `src/main.rs` for a new application; that road makes
+/// the new `App`, and it calls `forget` before the first frame of it. The words
+/// of the key therefore go away before the screen holds one byte of them. That
+/// is the shape of the trap 234 of the key `R` and of T-264.
+///
+/// This slot stands outside `forget`, and `the_words_of_the_refresh_come`
+/// gives the words to the user when the new screen stands.
+pub fn say_after_the_refresh(text: &str) {
+    let text = text.trim();
+
+    let Ok(mut place) = box_of_the_message().lock() else {
+        return;
+    };
+
+    place.after_the_refresh = if text.is_empty() {
+        None
+    } else {
+        Some(text.to_string())
+    };
+}
+
+/// Gives the words of `say_after_the_refresh` to the user. See T-308.
+///
+/// The loop of `src/main.rs` calls this after the `forget` of the refresh, and
+/// the slot is empty after it: one key gives one message.
+pub fn the_words_of_the_refresh_come() {
+    let words = match box_of_the_message().lock() {
+        Ok(mut place) => place.after_the_refresh.take(),
+        Err(_) => None,
+    };
+
+    if let Some(words) = words {
+        say(&words);
+    }
+}
+
+/// Takes the words of `say_after_the_refresh` away. See T-308.
+///
+/// **A screen that did not change makes those words a lie.** The refresh that
+/// found no account and the refresh that could not read the configuration file
+/// each keep the application of the user (T-205 and T-266), and each of them
+/// says why the screen stayed: the words of the key must not stand over that
+/// sentence.
+pub fn forget_the_words_of_the_refresh() {
+    if let Ok(mut place) = box_of_the_message().lock() {
+        place.after_the_refresh = None;
     }
 }
 
