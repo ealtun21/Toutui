@@ -159,7 +159,7 @@ pub const GROUPS: &[Group] = &[
         keys: &[
             key("a", "Add an account. The program starts again"),
             key("c", "Start with the account of the line. It asks one time"),
-            key("l", "Log out. The program forgets the token of the account"),
+            key("l", "Log out. The copies of the disk of the account stay"),
         ],
     },
     Group {
@@ -463,7 +463,9 @@ pub const THE_ACCOUNTS: &str = "The accounts of this program.\n\n\
     The key a adds an account: the program starts again, and it asks you for a \
     server, a name, and a password. The key c gives the start to the account of \
     the line, and the program starts again with it. The key l logs out: the \
-    program removes the account and it forgets its token.\n\n\
+    program removes the account and it forgets its token. The copies of the disk \
+    of that account stay, and a login with the same name and the same server \
+    gives them again.\n\n\
     A playback stops when the program starts again.";
 
 /// The text of the line "Library: choose the library" of the settings.

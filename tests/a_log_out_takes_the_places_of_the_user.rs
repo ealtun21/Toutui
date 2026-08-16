@@ -190,19 +190,24 @@ fn a_log_out_takes_the_places_of_the_user() {
 
     // **The words name the places that went away** (T-118): the user read that
     // media while the server did not answer, and no machine holds that place now.
-    let one = the_words_of_a_log_out("toutuilimited", 1);
+    // The copies of the disk hold a test of their own. See T-297 and
+    // `tests/a_log_out_says_the_copies_of_the_disk.rs`.
+    let no_copy = toutui::logic::download::TheCopiesThatStay::default();
+
+    let one = the_words_of_a_log_out("toutuilimited", 1, no_copy);
     assert!(one.contains("toutuilimited"), "{}", one);
     assert!(one.contains("1 place of the user"), "{}", one);
     assert!(one.contains("it went away"), "{}", one);
 
-    let three = the_words_of_a_log_out("toutuilimited", 3);
+    let three = the_words_of_a_log_out("toutuilimited", 3, no_copy);
     assert!(three.contains("3 places of the user"), "{}", three);
     assert!(three.contains("they went away"), "{}", three);
 
-    // An account that holds no place of the user keeps the words of the start.
-    let none = the_words_of_a_log_out("toutuilimited", 0);
+    // An account that holds no place of the user and no copy of the disk says
+    // that the account went away, and no more.
+    let none = the_words_of_a_log_out("toutuilimited", 0, no_copy);
     assert!(!none.contains("went away with the account"), "{}", none);
-    assert!(none.contains("Start the program again."), "{}", none);
+    assert_eq!(none, "The program removed the account toutuilimited.");
 }
 
 /// The number of rows of `listening_session` of one account.

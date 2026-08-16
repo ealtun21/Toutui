@@ -534,40 +534,88 @@ pub fn the_account_and_its_places_go_away(username: &str) -> Result<TheRowsThatW
     Ok(TheRowsThatWentAway { accounts, places })
 }
 
-/// The words of a log out. See T-296.
+/// The words of a log out. See T-296 and T-297.
 ///
 /// **A place that went away with the account is a fact of the user**: the user
 /// read a book or heard a media while the server did not answer, and no machine
 /// of that account holds that place now.
-pub fn the_words_of_a_log_out(username: &str, places: usize) -> String {
-    if places == 0 {
-        return format!(
-            "The program removed the account {}. Start the program again.",
-            username
-        );
+///
+/// **A copy of the disk that stays is a fact of the user too** (T-297). The log
+/// out keeps every download and every ebook of the cache, and no view of the
+/// program reaches them while the account is away: the words therefore say how
+/// many media stay, how many bytes they use, and the road back.
+///
+/// **The words say no "Start the program again."** (T-297). The measurement of
+/// 2026-08-16 of the real program: a log out of the one account of the program
+/// gave the login screen of a program that started again by itself, and a log out
+/// of an account that does not start the program left that program at the view of
+/// the accounts. No road of the log out asks the user for a start.
+pub fn the_words_of_a_log_out(
+    username: &str,
+    places: usize,
+    copies: crate::logic::download::TheCopiesThatStay,
+) -> String {
+    let mut words = format!("The program removed the account {}.", username);
+
+    if places > 0 {
+        words.push_str(&format!(
+            " {} of the user did not reach the server, and {} went away with the account.",
+            crate::ui::keys::counted(places, "place"),
+            if places == 1 { "it" } else { "they" }
+        ));
     }
 
-    format!(
-        "The program removed the account {}. {} of the user did not reach the server, and \
-         {} went away with the account. Start the program again.",
-        username,
-        crate::ui::keys::counted(places, "place"),
-        if places == 1 { "it" } else { "they" }
-    )
+    if copies.they_stand() {
+        // The word "media" is the same for one item and for many of them, and
+        // every other view of this program uses it. See T-297.
+        let media = if copies.media > 0 {
+            format!("{} media, and ", copies.media)
+        } else {
+            String::new()
+        };
+
+        words.push_str(&format!(
+            " The disk keeps the copies of that account: {}{}. Log in again with the same name \
+             and the same server: the key X then removes a copy.",
+            media,
+            crate::ui::keys::megabytes(copies.bytes)
+        ));
+    }
+
+    words
 }
 
 /// The log out of the key `l` of the view of the accounts.
 ///
 /// It takes the account and every place of the user that waits for the server
-/// (T-296), and it says the words of that work.
-pub fn delete_user(username: &str) -> Result<()> {
+/// (T-296), and it gives the words of that work.
+///
+/// **The caller says the words** (T-297). Two roads of the three roads of a log
+/// out start the program again: the one account of the program gives the login
+/// screen, and the account of the start gives a program of the first account that
+/// stays. The row of the message goes away with the process on each of them, and
+/// the measurement of 2026-08-16 read the login screen with no word at all.
+/// Therefore this function says nothing, and the caller puts the words on the
+/// road that the user reads.
+///
+/// A log out that found no row of the account gives no words: a second program of
+/// the account logged out first, and the caller says that already.
+pub fn delete_user(username: &str) -> Result<String> {
+    // The copies of the disk stay after the log out, therefore the count of them
+    // stands before it or after it. It stands here, with the account, because the
+    // words of the log out name them. See T-297.
+    let copies = crate::logic::download::the_copies_of_the_disk_that_stay(username);
+
     match the_account_and_its_places_go_away(username) {
         Ok(rows) => {
-            if rows.accounts > 0 {
-                // The words of a user, and not the words of the code. See T-118.
-                crate::logic::message::say(&the_words_of_a_log_out(username, rows.places));
-                info!("[delete_user] User deleted.");
+            if rows.accounts == 0 {
+                return Ok(String::new());
             }
+
+            info!("[delete_user] User deleted.");
+
+            // The words of a user, and not the words of the code. See T-118.
+            Ok(the_words_of_a_log_out(username, rows.places, copies))
         }
         // **The fault of the removal belongs to the caller** (T-200). The old
         // code said "Error connecting to the database." in the row of the
@@ -579,11 +627,9 @@ pub fn delete_user(username: &str) -> Result<()> {
                 error
             );
 
-            return Err(error);
+            Err(error)
         }
     }
-
-    Ok(())
 }
 
 // Update is_loop_break

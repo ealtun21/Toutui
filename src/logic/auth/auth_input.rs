@@ -8,7 +8,7 @@ use crossterm::event::{self, KeyCode, KeyEvent};
 use log::{error, info};
 use ratatui::text::Line;
 use ratatui::widgets::Paragraph;
-use ratatui::widgets::{Block, Borders};
+use ratatui::widgets::{Block, Borders, Wrap};
 use ratatui::Terminal;
 use ratatui::{
     layout::Rect,
@@ -278,9 +278,52 @@ pub fn the_area_of_the_field(size: ratatui::layout::Size) -> Rect {
     }
 }
 
-/// Gives the row of the message of the login.
+/// Gives the last row of the message of the login.
 pub fn the_row_of_the_message(size: ratatui::layout::Size) -> u16 {
     size.height.saturating_sub(6)
+}
+
+/// Gives the number of rows that a message of the login screen needs.
+///
+/// **A message that the screen cuts is a message that says nothing** (T-278 and
+/// T-297). The row of the message of the login screen held one row and no wrap:
+/// the measurement of 2026-08-16 of the real program logged out of the one
+/// account of the sandbox, and the login screen said
+/// `… Log in again with the same name and the same serv` at 160 columns. The
+/// road back of that sentence stood outside the screen, and a terminal of 80
+/// columns cuts much more.
+///
+/// The count follows the rule of `Wrap { trim: true }` of ratatui: a break comes
+/// at a space, and a word that is longer than the width takes rows of its own.
+/// The function is pure, therefore a test needs no terminal.
+pub fn the_rows_of_the_message(text: &str, width: u16) -> u16 {
+    if text.trim().is_empty() || width == 0 {
+        return 0;
+    }
+
+    let width = width as usize;
+    let mut rows = 1u16;
+    let mut column = 0usize;
+
+    for word in text.split_whitespace() {
+        let length = word.chars().count();
+
+        if column == 0 {
+            column = length;
+        } else if column + 1 + length <= width {
+            column += 1 + length;
+        } else {
+            rows = rows.saturating_add(1);
+            column = length;
+        }
+
+        while column > width {
+            rows = rows.saturating_add(1);
+            column -= width;
+        }
+    }
+
+    rows
 }
 
 /// Draws one frame of the login screen.
@@ -326,15 +369,26 @@ pub fn draw_the_login(frame: &mut ratatui::Frame, screen: &TheLoginScreen) {
     // cells of that row again, therefore no old message stays.
     if !screen.message.is_empty() {
         let (r, g, b) = screen.of_the_message;
+
+        // **The message stands on the rows that it needs** (T-297): the last row
+        // of it stays where one row of a message stood, and the rows before it
+        // grow upward. The field of the login keeps its place then.
+        let size = ratatui::layout::Size::new(whole.width, whole.height);
+        let last = the_row_of_the_message(size);
+        let rows = the_rows_of_the_message(screen.message, whole.width);
+        let y = last.saturating_sub(rows.saturating_sub(1));
+
         let row = Rect {
             x: 0,
-            y: the_row_of_the_message(ratatui::layout::Size::new(whole.width, whole.height)),
+            y,
             width: whole.width,
-            height: 1,
+            height: rows.min(whole.height.saturating_sub(y)),
         };
 
         frame.render_widget(
-            Paragraph::new(screen.message).style(Style::default().bg(Color::Rgb(r, g, b))),
+            Paragraph::new(screen.message)
+                .wrap(Wrap { trim: true })
+                .style(Style::default().bg(Color::Rgb(r, g, b))),
             row,
         );
     }

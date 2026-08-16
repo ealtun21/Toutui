@@ -653,6 +653,89 @@ pub fn remove_the_directory_of_the_download(key: &str, username: &str) -> u64 {
     bytes
 }
 
+/// The copies of the disk of one account that a log out leaves behind.
+///
+/// See T-297.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct TheCopiesThatStay {
+    /// The number of media of the account that the disk holds: one row of
+    /// `downloads` for each of them.
+    pub media: usize,
+    /// The bytes of the directory of the disk of that account. It holds the
+    /// audio of every download **and** the cache of the ebooks, because the two
+    /// of them stand under `downloads/<the account>`.
+    pub bytes: u64,
+}
+
+impl TheCopiesThatStay {
+    /// Says that the disk holds something of that account.
+    pub fn they_stand(&self) -> bool {
+        self.media > 0 || self.bytes > 0
+    }
+}
+
+/// Counts the copies of the disk of one account. See T-297.
+///
+/// **A log out keeps the copies of the disk, and no view of the program reaches
+/// them while the account is away**: the key `X` of a download needs an account,
+/// and the log out removes the row of it. The measurement of 2026-08-16 of the
+/// real program of the sandbox: the key `l` of the view of the accounts took the
+/// account `toutuitest` away, and 11 rows of `downloads`, 13 rows of
+/// `download_files`, 19 files, and 251382273 bytes stayed. The words of that log
+/// out said nothing of them.
+///
+/// **The copies stay, and the words say them** (T-297). The key is a log out, and
+/// the line of the table of the keys says that the program forgets the token: a
+/// removal of the media of the user is no work of that key. The road back is a
+/// login with the same name and the same server, and the measurement gave the 11
+/// rows again.
+///
+/// **The two numbers come of two places, and each of them is the truth of its
+/// own**: the rows of the database say how many media the user can play with no
+/// server, and the file system says the bytes. A read that failed takes a line of
+/// the log and it gives 0, because a read of the disk that failed is no fact of
+/// the user (T-203).
+pub fn the_copies_of_the_disk_that_stay(username: &str) -> TheCopiesThatStay {
+    let media = match crate::db::crud::the_keys_of_the_downloads(username) {
+        Ok(keys) => keys.len(),
+        Err(error) => {
+            error!(
+                "[the copies of the disk] the database did not say the downloads of {}: {}",
+                username, error
+            );
+
+            0
+        }
+    };
+
+    TheCopiesThatStay {
+        media,
+        bytes: the_bytes_of_a_directory(&downloads_base_dir(username)),
+    }
+}
+
+/// Gives the bytes of every file under a directory, at every depth.
+///
+/// A directory that the disk does not give takes no line of the log: the account
+/// of a user who made no download holds no such directory at all.
+fn the_bytes_of_a_directory(directory: &std::path::Path) -> u64 {
+    let Ok(rows) = std::fs::read_dir(directory) else {
+        return 0;
+    };
+
+    let mut bytes = 0u64;
+
+    for row in rows.flatten() {
+        match row.metadata() {
+            Ok(data) if data.is_file() => bytes += data.len(),
+            Ok(data) if data.is_dir() => bytes += the_bytes_of_a_directory(&row.path()),
+            _ => continue,
+        }
+    }
+
+    bytes
+}
+
 /// Gives a number of bytes in the form that a person reads.
 pub fn text_of_the_size(bytes: u64) -> String {
     const MEGABYTE: u64 = 1024 * 1024;

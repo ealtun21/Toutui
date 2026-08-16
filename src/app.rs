@@ -2909,20 +2909,27 @@ impl App {
                             // read "Error connecting to the database.", and the
                             // program then took the account of the line for an
                             // account that went away.
-                            if let Err(error) = delete_user(usr_to_delete.as_str()) {
-                                log::error!(
-                                    "[the accounts] the program did not remove the account {}: {}",
-                                    usr_to_delete,
-                                    error
-                                );
+                            // **The words of the log out go to the road that the
+                            // user reads** (T-297): two of the three roads below
+                            // start the program again, and the row of the message
+                            // goes away with the process.
+                            let the_words = match delete_user(usr_to_delete.as_str()) {
+                                Ok(words) => words,
+                                Err(error) => {
+                                    log::error!(
+                                        "[the accounts] the program did not remove the account {}: {}",
+                                        usr_to_delete,
+                                        error
+                                    );
 
-                                crate::logic::message::say(
-                                    "The program did not remove the account. Stop a second \
-                                     Toutui, and press the key again.",
-                                );
+                                    crate::logic::message::say(
+                                        "The program did not remove the account. Stop a second \
+                                         Toutui, and press the key again.",
+                                    );
 
-                                return;
-                            }
+                                    return;
+                                }
+                            };
 
                             // **A log out of the account that starts leaves the
                             // program with no account of a start.** The first
@@ -2950,10 +2957,14 @@ impl App {
                                     return;
                                 }
                                 crate::logic::the_accounts::AfterALogOut::TheLoginScreen => {
-                                    self.the_login_screen_comes();
+                                    self.the_login_screen_comes(&the_words);
                                     return;
                                 }
-                                crate::logic::the_accounts::AfterALogOut::TheViewOnly => {}
+                                crate::logic::the_accounts::AfterALogOut::TheViewOnly => {
+                                    if !the_words.is_empty() {
+                                        crate::logic::message::say(&the_words);
+                                    }
+                                }
                             }
 
                             let last = self.the_accounts.len().saturating_sub(1);
@@ -6439,19 +6450,26 @@ impl App {
     /// The user logged out of the one account of the program. The database
     /// holds no row of an account now, therefore the program that starts again
     /// draws the login screen of a first start.
-    pub fn the_login_screen_comes(&mut self) {
+    ///
+    /// **The words of the log out reach that screen** (T-297). The program starts
+    /// again with `exec`, therefore the row of the message of this process says
+    /// nothing to anybody: the measurement of 2026-08-16 of the real program read
+    /// the login screen of a log out, and no word of it stood there. The disk is
+    /// the one carrier of a sentence over `exec` (T-270), and
+    /// `say_on_the_login_screen` writes it.
+    pub fn the_login_screen_comes(&mut self, the_words: &str) {
         log::info!(
             "[the accounts] no account stays. The program starts again, and the login screen comes."
         );
+
+        crate::logic::auth::auth_input::say_on_the_login_screen(the_words);
 
         self.the_program_starts_again = Some(TheProgramStartsAgain {
             variables: vec![(
                 crate::logic::auth::auth_input::THE_ADDRESS_OF_THE_LOGIN.to_string(),
                 self.server_address.clone(),
             )],
-            message: "The program removed the account. Stop the program, and start it again: it \
-                      asks you for a server, a name, and a password then."
-                .to_string(),
+            message: the_words.to_string(),
         });
     }
 

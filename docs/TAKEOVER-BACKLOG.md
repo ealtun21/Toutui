@@ -25405,3 +25405,133 @@ The build of the fault, of one edit that keeps every other line (the trap 147):
   and a key handler of this program waits for no server (`src/app.rs`, the head
   of `confirm_logout`). **This is a candidate and not a measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to T-295).
+
+### T-297: a log out that keeps the copies of the disk says them
+
+#### The fault
+
+**The key `l` of the view of the accounts removes the account and every place
+of the user (T-296), and it leaves every copy of the disk of that account with
+no word at all.** The rows of `downloads` and of `download_files` stay, and
+every file of `$XDG_DATA_HOME/toutui/downloads/<the account>` stays: the audio
+of the downloads and the cache of the ebooks together. No view of the program
+reaches them while the account is away, because the key `X` of a download
+needs an account.
+
+**The words of the log out reached no user at all.** `delete_user` said them
+with `crate::logic::message::say`, and the program then started again with
+`exec`: the row of the message went away with the process, and the login
+screen that came held no word of the log out at all.
+
+#### The measurement
+
+The real program v0.8.125, inside tmux, against the sandbox on the port 13399,
+the account `toutuitest`, on 2026-08-16.
+
+Before the key: `users` held 1 row, `downloads` held 11 rows,
+`download_files` held 13 rows, and the disk held 19 files of 251382273 bytes.
+
+The keys: `S`, `Enter`, `l`, `l`. After: `users` held 0 rows, and
+`downloads`, `download_files`, and every file of the disk **stayed**: 11 rows,
+13 rows, 19 files, 251382273 bytes.
+
+The program started again by itself, and the login screen came. The screen
+held the field of the address and no word of the log out at all. The log
+said:
+
+```
+[the accounts] the log out of toutuitest took 1 row(s) of the account and 0
+place(s) of the user.
+[the accounts] no account stays. The program starts again, and the login
+screen comes.
+```
+
+A login with the same address, the same name, and the same password
+`toutuitest` gave the account and the 11 rows of `downloads` back. That is
+the road back.
+
+#### The decision
+
+**The copies of the disk stay.** The key is a log out, the table of the keys
+says that the program forgets the token, and a removal of the media of the
+user is no work of that key. The road back is a login with the same name and
+the same server. Therefore the words say the copies, and they name that road.
+
+#### The correction
+
+Four files.
+
+1. `src/logic/download/mod.rs`: `TheCopiesThatStay { media, bytes }`, its
+   method `they_stand()`, and `the_copies_of_the_disk_that_stay(username)`,
+   with the private `the_bytes_of_a_directory`. The media come of the rows of
+   `downloads`, and the bytes come of a walk of the directory of the account
+   at every depth. A read that failed takes a line of the log and gives 0
+   (the rule of T-203).
+2. `src/db/crud.rs`: `the_words_of_a_log_out(username, places, copies)` names
+   the media, the megabytes, and the road back, and it says no "Start the
+   program again." any more. `delete_user` gives the words back to the caller
+   instead of saying them.
+3. `src/app.rs`: the key handler holds the words, and
+   `the_login_screen_comes(&the_words)` writes them with
+   `say_on_the_login_screen`, which carries a sentence over `exec` through the
+   disk (the road of T-270). The view of the login screen says them in the
+   row of the message.
+4. `src/ui/keys.rs`: the line of the key `l` of the table of the keys, and
+   the text `THE_ACCOUNTS` of the view, say that the copies of the disk stay.
+
+#### The second fault of the same measurement
+
+The row of the message of the login screen held one row and no `wrap`. The
+corrected sentence stood as
+
+```
+The program removed the account toutuitest. The disk keeps the copies of
+that account: 11 media, and 239.7 MB. Log in again with the same name and
+the same serv
+```
+
+at 160 columns: the road back stood outside the screen. The correction is
+the rule of T-278 for that screen: `the_rows_of_the_message(text, width)`
+counts the rows of `Wrap { trim: true }`, and the rows of the message grow
+upward so the field of the login keeps its place. At 80 columns the whole
+sentence then stood on three rows (measured).
+
+#### The corrected program (measured)
+
+The same keys gave the login screen with:
+
+```
+The program removed the account toutuitest. The disk keeps the copies of
+that account: 11 media, and 239.7 MB. Log in again with the same name and
+the same server: the key X then removes a copy.
+```
+
+#### The test
+
+`tests/a_log_out_says_the_copies_of_the_disk.rs` (1 test) and
+`tests/the_message_of_the_login_screen_stands_whole.rs` (2 tests).
+
+The build of the fault: `if copies.they_stand() && false` gave "the words say
+the number of the media of the disk: The program removed the account
+toutuilimited."; `.min(1)` on the height of the row of the message gave the
+sentence cut at "the copies of that".
+
+#### What this item leaves open
+
+- **The road `AfterALogOut::ThisAccountStarts` also starts the program again
+  with `exec`, and the words of that log out reach no user**: the program
+  that comes has an account, therefore it draws no login screen, and this
+  program holds no road for the words of a start. **This is a candidate and
+  not a measurement.**
+- **The rows of `queue` of an account that logged out stay too, and the
+  table `queue` holds the account and the server in its key.** **This is a
+  candidate and not a measurement.**
+- **The table `downloads` holds a column `server` that is not in its primary
+  key, and `download_files` holds no server at all: two servers of one name
+  of a user therefore share the rows and the directory of the disk.** The
+  table `users` holds the name as its primary key, therefore this program
+  cannot hold the two accounts together, and a measurement of it needs two
+  servers one after the other. **This is a candidate and not a
+  measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to
+  T-296).

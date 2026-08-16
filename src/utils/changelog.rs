@@ -41,6 +41,28 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.126",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A log out now says the copies of the disk that stay on your \
+             computer.** The key l removes the account and it keeps every \
+             download and every book of the cache of that account: the disk \
+             held 239.7 MB of them in the measurement, and no word of the \
+             program said it. The message now says how many media stay, how \
+             many megabytes they use, and the road back: a login with the same \
+             name and the same server gives them again, and the key X then \
+             removes a copy.",
+            "- **The words of a log out now reach you.** The program starts \
+             again by itself after a log out of your one account, and the \
+             message of that log out went away with it: the login screen said \
+             nothing at all.",
+            "- **A message of the login screen now stands whole.** That row \
+             held one line and it cut every longer sentence at the edge of the \
+             screen. It stands on the lines that it needs now.",
+        ],
+    },
+    Entry {
         version: "0.8.125",
         date: "16/08/2026",
         body: &[
