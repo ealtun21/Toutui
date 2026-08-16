@@ -1418,6 +1418,24 @@ pub fn delete_pending_ebook_progress(username: &str, server: &str, id_item: &str
     Ok(())
 }
 
+/// Gives the number of the places of a book that wait for the given server.
+/// See T-295.
+///
+/// **A read that failed is not a count of 0** (T-203): the task of the flush
+/// reads the rows again 30 seconds later.
+pub fn count_pending_ebook_progress(username: &str, server: &str) -> Result<usize> {
+    let conn = the_connection("count_pending_ebook_progress")?;
+
+    let count = conn.query_row(
+        "SELECT COUNT(*) FROM pending_ebook_progress
+         WHERE username = ?1 AND (server = ?2 OR server = '')",
+        params![username, server],
+        |row| row.get::<_, i64>(0),
+    )?;
+
+    Ok(count as usize)
+}
+
 /// Gives the number of positions that wait for the given server.
 ///
 /// **A read that failed is not a count of 0** (T-203). The header of the offline

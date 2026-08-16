@@ -25176,3 +25176,103 @@ times.
   footers of `src/ui/reader_tui.rs`. **This is a candidate and not a
   measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to T-293).
+
+### T-295: a place of a book waits for no start of a program
+
+T-294 gave the reader a table of the disk, `pending_ebook_progress`, therefore
+a place of a book goes no more away with a program that died. **The start of
+the program after it is not the one road that sends a row of a table of the
+disk.** The background task of T-25, `spawn_flush_task` of
+`src/logic/offline/mod.rs`, wakes every 30 seconds (`FLUSH_PERIOD`) and it
+sends the positions of a playback while the program stands, and it named the
+table of the audio alone. A row of `pending_ebook_progress` therefore waited on
+the disk for the start of the next program, and no turn of that task sent it
+while the program stood.
+
+**The reader of a second book takes the rule of the time of the first book
+away.** `get_the_book` of `src/app.rs` writes `self.reader = None` at once, and
+`send_the_place_of_the_reader_if_it_is_time` needs a reader to do any work at
+all. A user who read a book while the server did not answer, who left it with
+the key `h`, and who then opened a second book held no road at all to the
+server while that program stood.
+
+#### The measurement
+
+The real program v0.8.123, inside tmux with `docs/harness/drive.sh`, against
+the sandbox on the port 13399. The proxy
+`docs/harness/one_method_fails.py 13500 13399 requests.log
+PATCH:/api/me/progress` gave the status 500 to every write of a place, and the
+account of the sandbox held the one address `http://127.0.0.1:13500` (the trap
+129). The book: `Alice in Wonderland`, id
+8fda6e43-0728-46ad-98bc-4c8634e299ad, at `ebookLocation
+toutui:the-place-of-the-start` and `ebookProgress 0`.
+
+The keys: the key `/` and the word `Alice` gave the view of the search, the key
+`e` opened the reader, one press of the key `n` gave `chapter 3 of 14 — 2%`,
+and the key `h` said
+`The server did not take the place: The server reported a fault. Status 500.`
+The row of `pending_ebook_progress` then held `epubcfi(/6/6!/4/2/2/1:0)` at the
+fraction 0.023925914837164403. The key `h` again, the key `/` and the words
+`One Chapter`, and the key `e` said
+"This media has no ebook. The key `e` needs a media with an EPUB book.", and
+the reader of Alice went away with that key. A second proxy of the same port
+13500, with a rule that no request of the program holds, then gave the server
+back at 07:29:02, and a row of `pending_progress` of the media
+d8f33299-a8b6-4f7a-8cd0-34d6d1d98f9a stood on the disk beside the row of the
+book.
+
+| The program | The log after the server answered again | The disk at 30 s, 60 s, 90 s, and 120 s | `GET /api/me/progress/8fda6e43-…` |
+|---|---|---|---|
+| v0.8.123 | `[offline] the server took the position 123s of d8f33299-…` at 07:29:29, and no line of a book | the row of the book stayed at every mark | **`toutui:the-place-of-the-start`, `ebookProgress 0`** |
+| The correction | `[reader] 1 place(s) of a book wait for the server`, `[reader] the place of the book of the media 8fda6e43-… that waited on the disk went to the server (epubcfi(/6/6!/4/2/2/1:0)).`, and `[offline] the server answers again. 1 place(s) of a book went to it.` | the table held no row after the first turn of the task | `epubcfi(/6/6!/4/2/2/1:0)`, `ebookProgress 0.023925914837164403` |
+
+**The user read two chapters, the server answered again, and every other
+machine of that account held the place of the start while the program stood.**
+
+#### The correction
+
+Two files.
+
+1. `src/db/crud.rs` holds `count_pending_ebook_progress`, of the rule of
+   `count_pending_progress`: a read that failed is not a count of 0 (T-203).
+2. `src/logic/offline/mod.rs` holds the body of one turn of the task in
+   `the_places_that_wait_go_to_the_server(api, username, server)`, and it gives
+   the number of the positions and the number of the places of a book that the
+   server took. It counts the two tables
+   (`the_disk_holds_a_position_that_waits` and
+   `the_disk_holds_a_place_of_a_book_that_waits`, and each of the two stands on
+   a thread of the disk of its own, T-204), it gives `(0, 0)` with no request at
+   all when neither of the two tables holds a row, it examines the addresses
+   when the pool holds no active address, and it then sends the positions and
+   the places of the books. `spawn_flush_task` calls it, and it says one line of
+   the log for each of the two numbers.
+
+**A row of a table of the disk that waits for the server belongs to the task of
+the clock, and not to the start of the program alone**: a reader that a second
+book took away must not stand between that row and the server.
+
+#### The test
+
+`tests/a_place_of_a_book_waits_for_no_start_of_a_program.rs`. It needs no
+sandbox: a host of `wiremock` gives the answers of the server, a row of each of
+the two tables stands in a `XDG_CONFIG_HOME` of a `tempfile::tempdir`, and one
+call of `the_places_that_wait_go_to_the_server` must give `(1, 1)`, it must
+leave the two tables empty (T-211), and the body of the `PATCH` of the book must
+hold the place of the user. A second turn against a second host must give
+`(0, 0)`, and it must send no request at all.
+
+The build of the fault, of one edit that keeps every other line (the trap 147):
+`let the_books_wait = false && the_disk_holds_a_place_of_a_book_that_waits(…)`
+gives `left: 0, right: 1` at the assert of the place of the book.
+
+#### What this item leaves open
+
+- **The box of the process of T-292 keeps the place of the book after the task
+  of the flush sent the row of the disk**: the road of the end of the program
+  then sends that same place a second time, and a user who read that book on a
+  second machine after it takes the older place. **This is a candidate and not a
+  measurement.**
+- **A place of a book that waits reaches no view of the user at all**, while the
+  header of the offline mode says the number of the positions that wait.
+  **This is a candidate and not a measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to T-294).

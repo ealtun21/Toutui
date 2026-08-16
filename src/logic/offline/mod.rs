@@ -547,11 +547,129 @@ pub async fn flush_pending_progress(api: &ApiClient, username: &str, server: &st
 /// The number of seconds between two attempts of the background task.
 const FLUSH_PERIOD: u64 = 30;
 
-/// Starts a task that sends the positions when the server answers again.
+/// Says whether the disk holds a position of a playback that waits.
+///
+/// **A read that failed is not a disk with no position that waits** (T-203),
+/// and the task of this attempt asks the disk again 30 seconds later.
+///
+/// **The work of the disk stands on a thread of its own** (T-204): a read that
+/// meets the lock of a second program of the account holds the thread that
+/// calls it for five seconds, and a thread of the runtime is the driver of the
+/// loop of the screen.
+async fn the_disk_holds_a_position_that_waits(username: &str, server: &str) -> bool {
+    let of_the_account = username.to_string();
+    let of_the_server = server.to_string();
+
+    match crate::db::the_work_of_the_disk(move || {
+        count_pending_progress(&of_the_account, &of_the_server)
+    })
+    .await
+    {
+        Some(Ok(count)) => count > 0,
+
+        Some(Err(error)) => {
+            warn!(
+                "[offline] the program did not count the positions that wait: {}. \
+                 The task asks the disk again.",
+                error
+            );
+
+            false
+        }
+
+        None => false,
+    }
+}
+
+/// Says whether the disk holds a place of a book that waits. See T-295.
+///
+/// It holds the rule of the count of the positions above.
+async fn the_disk_holds_a_place_of_a_book_that_waits(username: &str, server: &str) -> bool {
+    let of_the_account = username.to_string();
+    let of_the_server = server.to_string();
+
+    match crate::db::the_work_of_the_disk(move || {
+        crate::db::crud::count_pending_ebook_progress(&of_the_account, &of_the_server)
+    })
+    .await
+    {
+        Some(Ok(count)) => count > 0,
+
+        Some(Err(error)) => {
+            warn!(
+                "[offline] the program did not count the places of the books that wait: {}. \
+                 The task asks the disk again.",
+                error
+            );
+
+            false
+        }
+
+        None => false,
+    }
+}
+
+/// Sends every place of the disk that waits, when the server answers again.
+///
+/// It gives the number of the positions of a playback and the number of the
+/// places of a book that the server took.
+///
+/// **A place of a book waits for no start of a program** (T-295). The task of
+/// T-25 sent the positions of the playback alone, and the reader has a table of
+/// its own from T-294: a user who read a book while the server did not answer,
+/// who left that book, and who then opened a second book lost the rule of the
+/// time of the first one, and the place of it stayed on the disk while this
+/// program stood. **Every other machine of that account then held the place of
+/// the start.** A measurement of 2026-08-16 against the sandbox: the position
+/// of a playback went to the server 28 seconds after the server answered again,
+/// and the place of the book stayed on the disk for 120 seconds and longer.
+pub async fn the_places_that_wait_go_to_the_server(
+    api: &ApiClient,
+    username: &str,
+    server: &str,
+) -> (usize, usize) {
+    // The count comes from the database. A playback that ends offline writes a
+    // row, thus the task finds it without a message.
+    let the_positions_wait = the_disk_holds_a_position_that_waits(username, server).await;
+    let the_books_wait = the_disk_holds_a_place_of_a_book_that_waits(username, server).await;
+
+    if !the_positions_wait && !the_books_wait {
+        return (0, 0);
+    }
+
+    // Every address has the state `Down` after the offline mode, and the client
+    // then sends no request at all. The probe task gives an address the state
+    // `Up` again, but it waits 60 seconds. This task examines the addresses
+    // itself, thus a place goes to the server as soon as the server answers.
+    let pool = api.pool();
+
+    if pool.active().is_none() {
+        crate::api::client::probe::probe_once(api.http(), &pool).await;
+    }
+
+    let positions = if the_positions_wait {
+        flush_pending_progress(api, username, server).await
+    } else {
+        0
+    };
+
+    let books = if the_books_wait {
+        crate::logic::reader::the_place_that_waits::the_places_of_the_disk_go_to_the_server(
+            api, username, server,
+        )
+        .await
+    } else {
+        0
+    };
+
+    (positions, books)
+}
+
+/// Starts a task that sends the places when the server answers again.
 ///
 /// The user does not need to start the application again. The task tries every
-/// 30 seconds, and it does nothing when no position waits. Therefore it costs
-/// no request in the normal condition.
+/// 30 seconds, and it does nothing when no position and no place of a book
+/// waits. Therefore it costs no request in the normal condition.
 ///
 /// The caller keeps the handle, because a login that comes again holds a new
 /// token: the task of the token before it must stop. See T-123.
@@ -564,59 +682,20 @@ pub fn spawn_flush_task(
         loop {
             tokio::time::sleep(tokio::time::Duration::from_secs(FLUSH_PERIOD)).await;
 
-            // The count comes from the database. A playback that ends offline
-            // writes a row, thus the task finds it without a message.
-            //
-            // **A read that failed is not a disk with no place that waits**
-            // (T-203): the flush of this attempt reads the rows again, and it names
-            // the fault in the log.
-            // **The work of the disk stands on a thread of its own** (T-204):
-            // a read that meets the lock of a second program of the account
-            // holds the thread that calls it for five seconds, and a thread of
-            // the runtime is the driver of the loop of the screen.
-            let of_the_account = username.clone();
-            let of_the_server = server.clone();
+            let (positions, books) =
+                the_places_that_wait_go_to_the_server(&api, &username, &server).await;
 
-            let of_the_disk = crate::db::the_work_of_the_disk(move || {
-                count_pending_progress(&of_the_account, &of_the_server)
-            })
-            .await;
-
-            let Some(of_the_disk) = of_the_disk else {
-                continue;
-            };
-
-            match of_the_disk {
-                Ok(0) => continue,
-                Ok(_) => {}
-                Err(error) => {
-                    warn!(
-                        "[offline] the program did not count the positions that wait: {}. \
-                         The task asks the disk again.",
-                        error
-                    );
-
-                    continue;
-                }
-            }
-
-            // Every address has the state `Down` after the offline mode, and
-            // the client then sends no request at all. The probe task gives an
-            // address the state `Up` again, but it waits 60 seconds. This task
-            // examines the addresses itself, thus a position goes to the
-            // server as soon as the server answers.
-            let pool = api.pool();
-
-            if pool.active().is_none() {
-                crate::api::client::probe::probe_once(api.http(), &pool).await;
-            }
-
-            let sent = flush_pending_progress(&api, &username, &server).await;
-
-            if sent > 0 {
+            if positions > 0 {
                 info!(
                     "[offline] the server answers again. {} position(s) went to it.",
-                    sent
+                    positions
+                );
+            }
+
+            if books > 0 {
+                info!(
+                    "[offline] the server answers again. {} place(s) of a book went to it.",
+                    books
                 );
             }
         }

@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.124",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Your place in a book now goes to the server as soon as the \
+             server answers again.** The program sent a place that the server \
+             refused at its next start alone: if you left that book and opened \
+             a different one, your other computers held the old place while \
+             the program stood. The program now looks every 30 seconds, and it \
+             sends that place with the positions of your books that play.",
+        ],
+    },
+    Entry {
         version: "0.8.123",
         date: "16/08/2026",
         body: &[
