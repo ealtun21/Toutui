@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.146",
+        date: "16/08/2026",
+        body: &[
+            "Added:",
+            "- **A panel of the views at the left of the Home view and of the \
+             Library view.** A terminal of 120 columns or more now shows a \
+             panel with the name of every view of the program and the key of \
+             each one. The key `1` moves your position to that panel, the key \
+             `4` moves it back to the list, and the keys `Ctrl+h` and `Ctrl+l` \
+             move it to the panel at the left and at the right. The panel that \
+             holds your position has a heavy border, therefore a terminal of a \
+             theme of a low contrast still shows where you are. The keys at \
+             the foot of the screen change with the panel. A terminal that is \
+             not as wide keeps the screen that it had.",
+        ],
+    },
+    Entry {
         version: "0.8.145",
         date: "16/08/2026",
         body: &[

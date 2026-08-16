@@ -9,8 +9,8 @@ use ratatui::{
     layout::{Alignment, Constraint, Layout, Rect},
     style::{Color, Modifier, Style, Stylize},
     widgets::{
-        Block, Borders, Clear, Gauge, ListState, Paragraph, Scrollbar, ScrollbarOrientation,
-        ScrollbarState, StatefulWidget, Widget, Wrap,
+        Block, Borders, Clear, Gauge, HighlightSpacing, List, ListItem, ListState, Paragraph,
+        Scrollbar, ScrollbarOrientation, ScrollbarState, StatefulWidget, Widget, Wrap,
     },
 };
 use ratatui_image::StatefulImage;
@@ -46,6 +46,12 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// init widget for selected AppView
 impl Widget for &mut App {
     fn render(self, area: Rect, buf: &mut Buffer) {
+        // **The key handler reads the width of the screen** (T-320): the frame
+        // of the panels holds three shapes of a width, and the keys of the
+        // focus of a panel belong to the shape that draws that panel alone. The
+        // render is the one place of this program that knows that width.
+        self.the_width_of_the_screen = area.width;
+
         // A live message of the server can take a media away from the shelf of
         // Continue Listening. The render is not asynchronous, therefore the
         // lines change here and the program asks the server for nothing.
@@ -1521,19 +1527,38 @@ impl App {
     fn render_home(&mut self, area: Rect, buf: &mut Buffer) {
         // **The footer stands on the rows that it needs** (T-302): the
         // number of its rows is the number that the wrap of its text needs.
-        let text_render_footer = if self.is_podcast {
+        let of_the_view = if self.is_podcast {
             crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_PODCASTS
         } else {
             crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_BOOKS
         };
+        // **The footer names the keys of the panel that holds the focus**
+        // (T-320), and it names no panel at all in a terminal that holds no
+        // frame of the panels: a footer must not promise a key that the view
+        // does not hold (T-143).
+        let text_render_footer = crate::ui::keys::the_footer_of_a_panel(
+            of_the_view,
+            self.the_stack_of_the_panels_stands(),
+            self.the_panel_of_the_focus == crate::ui::frame::ThePanel::TheViews,
+        );
+        let text_render_footer = text_render_footer.as_str();
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
             the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
 
+        // **The stack of the panels of the frame stands at the left** (T-320),
+        // and it takes its 34 columns of a screen of three columns alone.
+        let main_area = self.the_stack_of_the_panels(main_area, buf);
+
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
+        //
+        // **The width of the work of the view is the width that this function
+        // reads, and not the width of the screen** (T-320): the stack takes 34
+        // columns away, and a panel of a cover of the width of the whole screen
+        // would then stand over the list.
         let (main_area, cover_panel) =
-            cover::split_for_covers(main_area, area.width, cover::picker().font_size());
+            cover::split_for_covers(main_area, main_area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
@@ -1570,7 +1595,7 @@ impl App {
             return;
         }
 
-        self.render_list(
+        self.render_the_list_of_the_panel_4(
             list_area,
             buf,
             &render_list_title,
@@ -1623,19 +1648,36 @@ impl App {
     fn render_library(&mut self, area: Rect, buf: &mut Buffer) {
         // **The footer stands on the rows that it needs** (T-302): the
         // number of its rows is the number that the wrap of its text needs.
-        let text_render_footer = if self.is_podcast {
+        let of_the_view = if self.is_podcast {
             crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_PODCASTS
         } else {
             crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_BOOKS
         };
+        // **The footer names the keys of the panel that holds the focus**
+        // (T-320), and it names no panel at all in a terminal that holds no
+        // frame of the panels: a footer must not promise a key that the view
+        // does not hold (T-143).
+        let text_render_footer = crate::ui::keys::the_footer_of_a_panel(
+            of_the_view,
+            self.the_stack_of_the_panels_stands(),
+            self.the_panel_of_the_focus == crate::ui::frame::ThePanel::TheViews,
+        );
+        let text_render_footer = text_render_footer.as_str();
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
             the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
 
+        // **The stack of the panels of the frame stands at the left** (T-320),
+        // and it takes its 34 columns of a screen of three columns alone.
+        let main_area = self.the_stack_of_the_panels(main_area, buf);
+
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
+        //
+        // **The width of the work of the view is the width that this function
+        // reads, and not the width of the screen** (T-320).
         let (main_area, cover_panel) =
-            cover::split_for_covers(main_area, area.width, cover::picker().font_size());
+            cover::split_for_covers(main_area, main_area.width, cover::picker().font_size());
         self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
@@ -1700,7 +1742,7 @@ impl App {
             return;
         }
 
-        self.render_list(
+        self.render_the_list_of_the_panel_4(
             list_area,
             buf,
             &render_list_title,
@@ -2614,6 +2656,69 @@ impl App {
         .render(area, buf);
     }
 
+    /// Draws the stack of the panels of the frame at the left of the work of a
+    /// view, and gives the area of the work that stays. See T-320.
+    ///
+    /// **The stack comes with the three columns alone**
+    /// (`crate::ui::frame::the_shape_of`), therefore this function gives the
+    /// whole area back for a narrow terminal and it draws nothing at all: the
+    /// screen of a terminal under 120 columns is the screen of today.
+    ///
+    /// **The panel 1 alone stands in the stack today.** The panel 2 of the
+    /// sequence and the panel 3 of the filter come with T-318, and they divide
+    /// this column with it: a panel of a title and of no line at all is a text
+    /// that promises a function that the program does not have (T-118).
+    fn the_stack_of_the_panels(&mut self, main_area: Rect, buf: &mut Buffer) -> Rect {
+        let (stack, work) = crate::ui::frame::the_stack_and_the_work(
+            main_area,
+            crate::ui::frame::the_shape_of(main_area.width),
+        );
+
+        let Some(stack) = stack else {
+            return work;
+        };
+
+        let it_holds_the_focus =
+            self.the_panel_of_the_focus == crate::ui::frame::ThePanel::TheViews;
+
+        let block = crate::ui::frame::a_panel(
+            crate::ui::frame::ThePanel::TheViews.the_number(),
+            "Views",
+            it_holds_the_focus,
+        );
+        let inner = block.inner(stack);
+        block.render(stack, buf);
+
+        let lines: Vec<ListItem> = crate::ui::frame::the_lines_of_the_views(inner.width)
+            .into_iter()
+            .map(ListItem::new)
+            .collect();
+
+        // **The row of the cursor of a panel that does not hold the focus is
+        // quiet** (the section (c) of `docs/mockups/mockup-1.md`): one accent
+        // alone stands on the screen, and it belongs to the panel of the focus.
+        let of_the_cursor = if it_holds_the_focus {
+            Style::new()
+                .bg(crate::ui::theme::THE_ACCENT)
+                .fg(Color::Black)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::new().add_modifier(Modifier::BOLD)
+        };
+
+        StatefulWidget::render(
+            List::new(lines)
+                .highlight_style(of_the_cursor)
+                .highlight_symbol("➤ ")
+                .highlight_spacing(HighlightSpacing::Always),
+            inner,
+            buf,
+            &mut self.the_line_of_the_views.clone(),
+        );
+
+        work
+    }
+
     fn render_list(
         &mut self,
         area: Rect,
@@ -2633,6 +2738,40 @@ impl App {
             area,
             buf,
             &self.config.colors,
+            render_list_title,
+            render_list_items,
+            list_state,
+        );
+    }
+
+    /// Draws the list of a view inside the panel 4 of the frame of the panels.
+    /// See T-320.
+    ///
+    /// **The panel 4 stands with the stack alone**: a terminal under 120
+    /// columns holds no frame of the panels, and the list of it therefore keeps
+    /// the block of one border at the top that it had.
+    fn render_the_list_of_the_panel_4(
+        &mut self,
+        area: Rect,
+        buf: &mut Buffer,
+        render_list_title: &str,
+        render_list_items: &[String],
+        list_state: &mut ListState,
+    ) {
+        let the_panel = if self.the_stack_of_the_panels_stands() {
+            Some((
+                crate::ui::frame::ThePanel::TheList.the_number(),
+                self.the_panel_of_the_focus == crate::ui::frame::ThePanel::TheList,
+            ))
+        } else {
+            None
+        };
+
+        crate::ui::the_list_of_a_view::render_the_list_of_a_panel(
+            area,
+            buf,
+            &self.config.colors,
+            the_panel,
             render_list_title,
             render_list_items,
             list_state,

@@ -28156,3 +28156,117 @@ greys again writes them in that file.
   and the reverse holds too. **This is a candidate and not a measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to
   T-315).
+
+---
+
+## T-320 — The frame of the panels, the focus, and the three shapes of the width
+
+**The second stage of the road of the panels.** `### 0. The road of the
+panels (T-316 to T-323)` of `docs/HANDOVER.md` names T-320 as the stage that
+follows the theme of T-317, because every other stage of the road draws
+inside the frame that this stage gives. The three decisions of that section
+belong to this item: the digits of the focus against the digits of the
+sequences, the keys of the focus beside `Tab` and `Shift+Tab` which are taken
+already, and the three shapes of the frame at 120, at 84, and at 40 columns.
+
+**The screen before this round**, of the real program v0.8.145 inside tmux
+with `docs/harness/drive.sh`, of the Library view of the library `Large`
+(500 items of 2056). The header of every width was
+`────Library [500 items of 2056]────`, with one column of a list and no stack
+of panels at all: at 160 columns the line of the list ended at the column 95
+and the panel of the covers of T-23 stood after it; at 120 columns the same
+list ended at the column 71; at 100 columns and at 40 columns the screen held
+one column too. **No frame stood at any width.**
+
+**The correction is seven files.**
+
+- `src/ui/frame.rs` is new. It holds `TheShape` (`ThreeColumns` at 120 columns
+  and up, `TwoColumns` from 84 columns, `OneColumn` under 84 columns), the
+  function `the_shape_of` that gives the shape of a width, and
+  `the_stack_and_the_work` that gives the width of the stack and of the work
+  of the view for a shape. It holds `ThePanel` of two values, and `a_panel`
+  that gives the block of a number, a name, and a border: `BorderType::Double`
+  for the panel that holds the focus and `BorderType::Plain` for every other
+  one. It holds `THE_VIEWS`, the 14 lines of the panel 1 with the key of each
+  — Home, Library, the Sequence and the filter (`f`), Authors (`a`),
+  Narrators (`v`), Collections (`c`), Queue (`q`), Downloads (`d`), Chapters
+  (`C`), Bookmarks (`V`), Sessions (`W`), Statistics (`T`), Settings (`S`),
+  Every key (`?`) — and `the_lines_of_the_views` that renders them.
+- `src/ui/mod.rs` names the new module.
+- `src/app.rs` holds the fields `the_width_of_the_screen`,
+  `the_panel_of_the_focus`, and `the_line_of_the_views`, and the methods
+  `the_stack_of_the_panels_stands` and `the_key_of_a_panel`. Both methods
+  stand before the match of `handle_key`.
+- `src/ui/tui.rs`: the render writes the width of the screen into
+  `the_width_of_the_screen`. `the_stack_of_the_panels` draws the panel 1 and
+  gives the area of the work of the view back to its caller, and
+  `render_the_list_of_the_panel_4` draws the panel 4 inside that area. The
+  Home view and the Library view call the two of them, and `split_for_covers`
+  now reads the width of the area of the work of the view and not the width
+  of the whole screen.
+- `src/ui/the_list_of_a_view.rs` holds `render_the_list_of_a_panel` beside
+  `render_the_list`.
+- `src/ui/keys.rs` holds the group
+  `The panels (a screen of 120 columns and more, Home and Library)` of six
+  keys — `1`, `4`, `Ctrl+h`, `Ctrl+l`, `l / → / Enter` of the panel of the
+  views, and `h / ←` of it — and `the_footer_of_a_panel`. **A key that
+  exists and that the user cannot find is a fault** (the rule of T-143 in
+  reverse, and the item 1 of T-318).
+- `tests/the_key_h_leaves_every_view.rs` anchored its window on the first
+  `KeyCode::Char('h') => {` of the whole file, and the new keys of the frame
+  now stand above `handle_key` with an arm of that same shape. **The window
+  then held the focus of a panel and no view at all, and the gate said that
+  the program lost a rule that it holds.** This is the trap 209 again: the
+  search now starts at `pub fn handle_key(`.
+
+**The screen after this round**, of the same harness and the same library.
+At 160 columns:
+`┌1 Views ────────────────────────┐╔4 Library [500 items of 2056] ═══...═══╗`
+— the stack of 34 columns holds the panel 1 of the 14 views with the key of
+each, the panel 4 ends at the column 109, and the panel of the covers stands
+after it. At 120 columns the frame is the same, and the panel 4 holds 50
+columns. At 100 columns the frame goes away:
+`────────────────Library [500 items of 2056]────────────────` with the
+covers, the screen of today. At 40 columns the frame and the covers both go
+away, the screen of today.
+
+**The focus**, of the same run at 160 columns. The key `1` gave
+`╔1 Views ════════╗┌4 Library ────┐`: the border of the panel 1 became heavy
+and the border of the panel 4 became light. The keys `j` `j` moved the line of
+the panel 1 from `➤ Home` to `➤ Sequence and filter`. The key `Ctrl+h` gave
+the focus to the panel 1 and the key `Ctrl+l` gave it back to the panel 4,
+and both work inside tmux. The key `l` on the line `Authors` opened the
+Authors view. The footer with the panel 4 in focus:
+`j/k: move  l: play or open  Tab: home/library  S-Tab: the next library  /: search  R: refresh  ?: every key  Q: quit  1/Ctrl+h: the panel of the views`.
+The footer with the panel 1 in focus:
+`j/k: move  l: open the view  h: the list  4/Ctrl+l: the list  ?: every key  Q: quit`.
+
+**The gate**, `tests/the_frame_of_the_panels_holds_its_three_shapes.rs` of six
+tests, and five tests inside `src/ui/frame.rs`. **The build of the fault**
+(the trap 147) was `if false && width >= THE_WIDTH_OF_THREE_COLUMNS` of
+`the_shape_of` and `it_holds_the_focus && false` of `a_panel`, and four of the
+eleven tests failed.
+
+**The gates of the whole program**: clippy and fmt are clean, and
+`cargo nextest run` gives 1400 of 1400 with 26 skipped.
+
+**Three decisions that this round took, and the reason of each.**
+
+1. **The digits 1 and 4 alone are keys.** The five panels that no stage drew
+   yet — 2 and 3 of T-318, 5 and 6 of T-319, 7 of T-322 — hold no digit,
+   because a key that does nothing is a fault of its own (T-79).
+2. **The stack holds the panel 1 alone today.** The panels 2 and 3 divide
+   that column with T-318, because a panel of a title and of no line at all
+   is a text that promises a function that the program does not have
+   (T-118).
+3. **The frame stands in the Home view and in the Library view alone, and at
+   120 columns and more alone.** Every other view and every narrower
+   terminal keeps the screen that it had.
+
+**What this stage leaves open.**
+
+- **The two lines of the keys at the foot.** The design of `docs/HANDOVER.md`
+  holds one line of the keys of the panel of the focus and one line of the
+  keys of every view; this round gives one line that changes with the focus.
+- **The panel 7 of the player inside the frame** (T-322).
+- **The panels 2 and 3 of the stack** (T-318).

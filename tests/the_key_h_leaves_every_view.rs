@@ -20,9 +20,20 @@
 fn the_key_h_names_every_view_that_it_must_leave() {
     let source = include_str!("../src/app.rs");
 
-    let start = source
-        .find("KeyCode::Char('h') => {")
-        .expect("the handler of the key h");
+    // **A window of a number of characters must anchor on the function that it
+    // reads** (the trap 209): this test read the **first** `KeyCode::Char('h')`
+    // of the whole file, and the keys of the frame of the panels of T-320 stand
+    // above `handle_key` with an arm of that same shape. The window then held
+    // the focus of a panel and no view at all, and the gate said that the
+    // program lost a rule that it holds. The search therefore starts at the
+    // handler itself.
+    let of_the_handler = source
+        .find("pub fn handle_key(")
+        .expect("the handler of the keys of the program");
+    let start = of_the_handler
+        + source[of_the_handler..]
+            .find("KeyCode::Char('h') => {")
+            .expect("the handler of the key h");
     let block = &source[start..start + 4000];
 
     // The key `h` in these three views is not a key that goes back: the Home

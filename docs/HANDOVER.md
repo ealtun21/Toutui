@@ -11118,8 +11118,8 @@ measurement can hold.
 | The stage | The item | What it gives |
 |---|---|---|
 | 1 | **T-317** | The theme of the terminal of the user — **done, v0.8.145** |
-| 2 | **T-320** | The frame of the panels, the focus, and the narrow terminal — **the next stage** |
-| 3 | **T-316** | The harness of a click, the capture, and a click of a row |
+| 2 | **T-320** | The frame of the panels, the focus, and the narrow terminal — **done, v0.8.146**; the two lines of the footer stay open |
+| 3 | **T-316** | The harness of a click, the capture, and a click of a row — **the next stage** |
 | 4 | **T-321** | The list of the panel 4 becomes a table of a header |
 | 5 | **T-318** | The panels 2 and 3, and a series that opens into its books |
 | 6 | **T-319** | The panel 5 of one cover, and the panel 6 of the gallery |
@@ -13090,1505 +13090,6 @@ start needs `ls target/debug/toutui` before every other diagnosis** (with the
   nothing, because the agent reads the whole file at the start of a round.
 
 ## The turns before the three newest ones
-
-## The session of the hundred and forty-first turn of 2026-08-16: the panel of the player keeps the row of its keys, of the block of the prompt
-
-  **The session of the hundred and forty-first turn took the candidate that
-  T-311 left open — the row of the player that holds a title of the server —
-  and the measurement of it gave the fault** (T-312). **It left eight
-  candidates open.**
-
-  **The panel of the player keeps the row of its keys.** `render_player` of
-  `src/ui/player_tui.rs` writes `player_info[0]` (the title),
-  `player_info[1]` (the author), and `player_info[2]` (the chapter) straight
-  into a `Paragraph` of a format of four lines, and it draws that paragraph
-  in a `Rect` of **four** rows: a row of nothing, the row of the name of the
-  media, the row of the position, and the row of the keys of the player of
-  the key `B`. The three values come from the server, therefore a text of an
-  end of a line takes a row of its own, every row after it moves down by
-  one, and the paragraph of five lines then draws in a panel of four rows:
-  the row of the keys falls outside the area, and the user who asked for it
-  with the key `B` sees no key of the player and no word of a reason.
-
-  The measurement, of the real program v0.8.140 inside tmux against the
-  sandbox on `:13399` with the account `toutuitest`, a terminal of **80**
-  columns and 45 rows, and `is_show_key_bindings` of the row of the account
-  at 1. **The data of this fault is the text of the server**: it needs no
-  proxy, no book of a harness, no build of the fault of the source, and no
-  change of the source at all.
-  `PATCH /api/items/6ba57b9a-acb5-44f9-b2b6-39ad9107b420/media` with
-  `{"metadata":{"title":"Alpha\nOMEGAEND"}}` gave the book of eight hours
-  `A Book Of Many Hours` of the library `Books` a title with an end of a
-  line; the row of the account took that library with `sqlite3` before the
-  start (the trap 203 and the trap 204). The key `Tab`, nine keys `j`, and
-  the key `l` played it with `TOUTUI_AUDIO_DEVICE=null`. The panel stands at
-  the rows 37 to 40 (`area.height - 9`, and four rows), and the screen held
-  `Alpha` at the row 38, `OMEGAEND by Many Hours Author | The hours of the
-  end` at the row 39, the row of the position at the row 40, and **no row of
-  the keys of the player at all**. **The control of the same run** (the trap
-  206): the same book, of the same keys, with the title back at
-  `A Book Of Many Hours`, gave the position at the row 39 and
-  `Spc: pause/play | p/u: +/−10s | ...` at the row 40. **The list of that
-  same view held the rule already** (T-311): the line said
-  `➤ 85% Alpha OMEGAEND` on one row.
-
-  The correction is one file. `src/ui/player_tui.rs`: `render_player` gives
-  the title, the author, and the chapter to
-  `crate::logic::message::in_one_line` of T-311 before the format.
-  `tests/the_panel_of_the_player_stands_on_four_rows.rs` holds the gate: it
-  draws the real `render_player` into a `Buffer` of ratatui with no terminal
-  (T-256), of 80 columns and 45 rows, and it reads the four rows of the
-  panel — the whole title on the row of the name, no row that holds
-  `OMEGAEND` alone, the row of the position where it stood, and the row of
-  the keys inside the panel; the second test holds the author, a `\r\n` of
-  the chapter, and a run of three ends of a line. **The build of the fault**
-  (`let title = &player_info[0];` and the two lines of the author and of the
-  chapter, in the place of the calls of `in_one_line`) said `the row of the
-  name holds no whole title: "                    Alpha"`. **The corrected
-  program**, of the same keys and the same title of the server, gave the
-  whole title on the row 38, the position on the row 39, and the keys of the
-  player on the row 40.
-  - **The header of the screen holds a text of the server too** (T-311 and
-    T-312): `self.lib_name_type` of `src/app.rs` is
-    `format!("📖 {} ({})", the name of the library, the type of the media)`,
-    and `src/ui/tui.rs` gives it to a `Paragraph` with no `in_one_line`.
-    **The name of a library belongs to an administrator of the server**,
-    therefore the data of that fault costs a `POST /api/libraries` of the
-    sandbox. **This is a candidate and not a measurement.**
-  - **The header of the reader takes the columns and not the ends of the
-    lines** (T-312): `the_line_that_stands` of `src/ui/reader_tui.rs` gives
-    the title of the book to `in_one_row`, which cuts a text by its columns
-    and which says nothing of a `\n`. `docs/harness/a_book_of_a_long_title.py`
-    writes a book of a title of a command line already. **This is a candidate
-    and not a measurement.**
-  - **The panels of the views hold the author, the series, and the name of
-    an episode of the server** (T-312): `render_info_home`,
-    `render_info_library`, `render_info_search_book`, and
-    `the_panel_of_an_episode` of `src/ui/tui.rs` each write those fields into
-    a `Paragraph` of a `Wrap`, and a `Wrap` keeps an end of a line;
-    `sessions_tui.rs` and `stats_tui.rs` do the same work with a `Line`. The
-    count of the rows of the panel of T-309 reads those texts. **The run of
-    `cargo nextest run --run-ignored all` of this round saw one of them**:
-    the view of the statistics drew the title of the measurement as
-    `AlphaOMEGAEND`, because **a `Line` of ratatui gives an end of a line no
-    column at all** and the two words then join with no space. It came of a
-    test and not of the keys of the real program. **This is a candidate and
-    not a measurement.**
-  - **The title of the block of a list takes no such rule** (T-311):
-    `in_one_row(title, area.width)` of `render_the_list` cuts a title by
-    its columns and it says nothing of an end of a line, and a title of a
-    view can hold a text of the server — the name of an author of
-    `Search result [2 items, with the books of <the author>]`. `Line::raw`
-    of ratatui holds one line, and the road of a `\n` in it is unknown.
-    **This is a candidate and not a measurement.**
-  - **The marks of a line count the characters still** (T-305 to T-311):
-    `fill` of `src/ui/marks.rs:111` reads `mark.chars().count()`, and a
-    mark of the East Asian Width "Ambiguous" takes one column or two, and
-    the terminal decides. **The four marks of that file are constants of
-    this program** (`▶`, `✓`, `100`, and a percent of numbers), therefore
-    no text of the server reaches that count and the road of a measurement
-    of the real program stays unknown. **This is a candidate and not a
-    measurement.**
-  - **The two keys of `must_refresh` that say nothing at all** (T-308):
-    `show_the_books_of_the_author` (`src/app.rs:4251`) and
-    `apply_the_sequence_or_the_filter` (`src/app.rs:6161`) each change
-    every list of the screen and each say no word of what they did. The
-    rule of T-91 asks whether a key that changes the whole screen must name
-    the change. **This is a candidate and not a measurement.**
-  - **A text whose last line holds no character stands outside every gate
-    of a wrap of this fork** (T-310): the count of the rows of ratatui of
-    T-306, T-307, T-309, and T-310 reads the rows that hold a character. A
-    `Buffer` of a background of a colour of its own would say where such a
-    row stands. **This is a candidate and not a measurement.**
-  - **A word of a description that is longer than the panel takes the road
-    of ratatui that overflows the area** (T-306). That is a fault of the
-    crate and not of this program, and no count of this program says what
-    it does. **This is a candidate and not a measurement.**
-
-
-The block of the prompt below has a limit of size: `toutui-loop` sends it in
-one command, and a send of more than 131072 bytes fails. The item **A
-condition of the program that no measurement has reached** of that block
-therefore holds the three newest turns alone. The turns before them stand
-here, in the words that they had in that block, with the sweeps that each of
-them left open. **Read this section at the start of a round**: a condition
-that no measurement has reached stands in it.
-
-**The session of the fifty-fifth turn took the second paragraph of the same
-section: that paragraph named three views, and the sweep of the three found
-the fault in the first one** (T-226).
-
-The rule of T-66 was **dead** for a library of podcasts. `Chapter 00` and
-`Chapter 01` of `Arthur Gordon Pym` stood together on the shelf Continue
-Listening, the user pressed the key `N` on `Chapter 01`, and the program said
-`The media is away from Continue Listening now.` The server took the value,
-its shelf then held `Chapter 00` alone, the live message came, and **the
-screen kept `Home [13 items]` with both lines**. The same key on a book of
-the same run gave `Home [34 items]` and then `Home [33 items]`.
-- **A filter that a neighbour holds with a reason can travel to a function
-  that has no such reason** (T-226). `progress_of_the_user` of
-  `src/api/live.rs` keeps the rows of the books alone and its doc says why;
-  `the_media_away_from_continue_listening`, two functions below it, held the
-  same line and its doc said nothing. **Ask of every filter: does the doc of
-  it hold the reason, or does the doc of a neighbour hold it?**
-- **A road that an item names as "measured for a book alone" is a road, and
-  not a fault** (T-226). Of the three views of T-225, the queue held no
-  fault at all (`Entry::key` names the episode already), the chapters hold a
-  fault of the **words**, and the Home view held the fault of the work.
-  **The value of such a paragraph is the sweep, and not the first
-  candidate.**
-- **A correction of one half is worse than no correction at all** (T-226).
-  The filter of `src/api/live.rs` and the reader of `src/app.rs` had to move
-  together: a correction of the filter alone would have taken **every**
-  episode of the podcast off the shelf with one press. **Ask of a correction
-  of a list: which reader compares a value of that list, and does that
-  reader name one line?**
-- **The view of the chapters names the podcast alone** (T-226, and it stays
-  open). The header says `The chapters of "Arthur Gordon Pym"`, and the
-  sentence of T-162 says `The media "Arthur Gordon Pym" does not play now.`
-  **while the row of the player of that same second says
-  `Arthur Gordon Pym — Chapter 02` plays** (T-225). `the_title_of_the_row` of
-  `src/player/integrated/player_info.rs` holds the name that those sentences
-  need. **The episodes of the sandbox give 0 chapters**
-  (`POST /api/items/:id/play/:episode` answers `chapters: []`), therefore the
-  sentence of T-162 needs a podcast whose episodes hold chapters.
-- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone**
-  (T-226, and it stays open): it gives the identity of the **podcast** for a
-  line that is one episode, and the keys `e` and `V` read it (T-222 and
-  T-223).
-- **The mark of a line of an episode comes from a different list** (T-226,
-  and it stays open): `progress_of_the_user` keeps the rows of the books
-  alone, and no measurement asked which list gives the percent of a line of
-  a library of podcasts and whether a live message reaches it.
-- **The key `X` of the view of the bookmarks of a podcast** removes a place
-  of another episode with the same words (T-223, T-224, T-225, and T-226
-  each left it open).
-
-**The session of the fifty-fourth turn took the first paragraph of the same
-section, and that paragraph named the row of the screen, the two episodes,
-and the reason** (T-225).
-
-The title of a playback of a podcast is the name of the **podcast**, and
-every episode of that podcast holds it. `Chapter 02` of `Arthur Gordon Pym`
-stood in the queue and the user played `Chapter 00`: the row of the player
-said `Arthur Gordon Pym by LibriVox | No chapter` with `▶ 1:28 / 5:05`, the
-queue then started `Chapter 02` **with no key of the user**, and the row said
-`Arthur Gordon Pym by LibriVox | No chapter` with `⏸ 0:9 / 38:56`. **The two
-rows hold the same name**, and the length was the one value that moved.
-- **A value that the server gives and that no line of `src/` reads is a
-  fault that waits** (T-225). `collect_info_item` held `displayTitle` at its
-  position 5, and no caller took it. **Ask of every value that a function of
-  `src/api/` collects: which line reads this position, and what does the
-  screen say without it?** That is the shape of `elapsed_time` of T-213 and
-  of `name_selected_lib` of T-218, in the other direction.
-- **A correction of the work of the program is no correction of the row that
-  shows it** (T-217, and T-225 again). T-224 stopped the key `b` of a second
-  episode, and the screen still said nothing of that episode.
-- **The one part of the screen that follows a media that the queue changes is
-  the row of the player** (T-225). Every list holds the line that the user
-  chose, and the queue moves the media under it with no key. **Ask of every
-  value that the queue changes: which row of the screen follows it?**
-- **The key `X` of the view of the bookmarks of a podcast** removes a place
-  of another episode with the same words (T-223, T-224, and T-225 each left
-  it open).
-- **The other views of a media that the queue changes** (T-225). **T-226
-  closed the Home view of T-160 and the view of the queue of T-161**, and
-  the view of the chapters of T-162 stays open for its words.
-- **The row of the player of an episode of a download is not measured**
-  (T-225, and it stays open): the offline mode gives no name of an episode,
-  and the row then holds the name of the row of the disk alone. **The row of
-  a download of an episode holds the name of that episode already**
-  (`the_plan_of_an_episode` of `src/logic/download/plan.rs`), therefore the
-  question is the name of the **podcast** of that row.
-- **A row of 80 columns holds little** (T-80 and T-225, and it stays open):
-  the name of the podcast and the name of the episode together can pass the
-  width of a narrow terminal, and the paragraph of that row holds no wrap.
-
-**The session of the fifty-third turn took the same road, and that paragraph
-named the condition, the guard, and the field of the correction** (T-224).
-
-The guard of T-163 asked "does the media of this view play now?" with the
-identity of the **item**, and every episode of one podcast holds the identity
-of that podcast (T-223). The user put `Chapter 02` of `Arthur Gordon Pym` in
-the queue, played `Chapter 01`, and pressed `V` at 5:06 of it; the queue then
-started `Chapter 02` **with no key of the user**, the guard passed, and the
-key `b` wrote a bookmark of the second 96 — a place of `Chapter 02` — with no
-word at all. The row of the player says `Arthur Gordon Pym by LibriVox` for
-both episodes, therefore **no part of the screen said that the episode
-changed**.
-- **A correction of one session is the measurement of the next one** (T-223
-  and T-224). T-223 gave the state of the player the field `episode_id` for
-  the key of the place, and the key `b` of that same view held the same fault
-  and it needed that same field. **Ask of every field that a correction adds:
-  which other key reads the value that this field replaces?**
-- **A guard of a state is a guard of the identity that it compares** (T-224).
-  **Ask of every comparison of an identity: how many media can that one value
-  name?**
-- **A refusal costs nothing when a key of the user gives the road back**
-  (T-224). The key `b` refuses and it names the key `V`; the key of the place
-  of T-223 keeps its work, because no key of the user can give the program
-  the episode of a bookmark. **Ask of a refusal: which key of the user makes
-  the condition go away?**
-- **The row of the player of an episode named the podcast alone** (T-224).
-  **T-225 closed it**: that row is the one place of the screen that could say
-  that the queue changed the episode, and it says the episode now.
-- **The key `X` of the view of the bookmarks of a podcast** removes a place of
-  another episode with the same words (T-223 and T-224, and it stays open).
-
-**The session of the fifty-second turn took the last paragraph of the newest
-item, and one request of `curl` answered the question of that paragraph**
-(T-223).
-
-**`POST /api/me/item/<the id of an episode>/bookmark` answers 404**, and a
-bookmark of Audiobookshelf holds `libraryItemId`, `time`, `title`, and
-`createdAt` alone: the places of every episode of one podcast stand in one
-list, and no field of them names an episode. The program said the opposite of
-that in three views. The key `V` of a line of the view of the episodes said
-"No media plays, and no media is selected." while the podcast held two places
-of the user; the key `V` of a line of the Home view of a library of podcasts
-opened `The bookmarks of "Chapter 02" [2 items]` above a place of
-`Chapter 05`; and the key of the place moved the playback of `Chapter 01`
-from 21:59 to the second 778 of `Chapter 02`.
-- **One identity can name more than one media** (T-223). Every episode of
-  one podcast holds the identity of that podcast, therefore
-  `state.item_id != bookmark.library_item_id` passed for the wrong episode.
-  The state of the player holds `episode_id` now. **Ask of every comparison
-  of `state.item_id`: does a podcast pass it for the wrong episode?**
-- **A rule of the server decides the rule of the program** (T-223). One
-  request of `curl` (the 404 of the path of an episode) gave the whole
-  decision, and no read of `src/` could give it. **Ask of a value of the
-  server: which path holds it, and what does the server answer for the other
-  path?**
-- **A function that the program cannot do must keep its work and name the
-  doubt** (T-223). A refusal of the key of the place would take the
-  bookmarks of every podcast away from the user. The user chooses the line,
-  and the words say what the program cannot know: that is the difference
-  from T-163, where the queue changed the media with **no key of the user**.
-- **The key `b` of the view of the bookmarks of a podcast was not measured**
-  (T-223). **T-224 closed it**: the guard of T-163 compared the identity of
-  the item, the queue started another episode of that same podcast with no
-  key of the user, and the key wrote a place of that other episode.
-- **The key `X` of a bookmark of a podcast removes a place of another
-  episode with the same words** (T-223, and it stays open), and **a line of
-  a bookmark names no episode at all**: the list holds the time and the name
-  of each place.
-
-**The session of the fifty-first turn took the same road, and that paragraph
-named two keys and one view** (T-222).
-
-The keys `e` of the reader and `V` of the bookmarks read `selected_item_id`,
-and that function gives the **first book** of a line of a series (T-91 and
-T-221) and the identity of the **podcast** of a line of a library of
-podcasts. The key `e` of the line `The Test Chronicles [3 books]` of the
-sandbox opened the reader of `The Test Chronicles Volume 1` with no word at
-all, and the key `V` of it opened the bookmarks of that same book. **And the
-Home view holds a line of a series too**: the shelf `recent-series` gives a
-`HomeRow::Series`, `the_line_of_no_media` of T-221 read `AppView::Library`
-alone, and the same line therefore said `This line holds no media.` in one
-view and `A series holds more than one book. Press l for its books.` in the
-other one.
-- **A correction of one session is a measurement of the next one** (T-221
-  and T-222). T-221 gave the words of a line of more than one media to the
-  Library view, and the Home view holds the same line. **Ask of a
-  correction: which other view of the program holds the line that it
-  names?**
-- **A sweep of one function of `src/` is cheaper than a sweep of one line of
-  code** (T-222). `grep -n 'selected_item_id()'` gave four callers, and two
-  of them held the fault: the fourth one is `the_line_of_no_media` itself,
-  and the first one wants the podcast that it gets. **Ask of a selector of a
-  line: which callers read it, and does each of them need one media?**
-- **A key that reads the state of the player is no key of this shape**
-  (T-222). The keys `b`, `F`, and `s` read `self.player.state()` or
-  `self.is_podcast` alone, therefore a line of more than one media reaches
-  none of them: the sweep of the keys of such a line is closed.
-- **A window of a number of characters is a test of the comments of a
-  function** (T-222, and it stays open). The words of the correction of this
-  item took one line out of a window of 1500 characters of
-  `tests/the_view_of_the_bookmarks_holds_its_media.rs`, and the gate then
-  said that the view holds no name. **Ten windows of that shape stand in eight files of
-  `tests/`**, and each of them can fail for a comment.
-- **The bookmarks of an episode of a podcast were not measured** (T-219 and
-  T-222). **T-223 closed that road**: the bookmarks of an episode are the
-  bookmarks of its podcast.
-- **A line of a shelf of the Home view can hold an author** (T-222, and it
-  stays open): the shelf `newest-authors` gives an entity with no media and
-  no book, and `group_home` drops it. A session that gives the authors a
-  line makes a third line of more than one media.
-
-**The session of the fiftieth turn took the same road**: a podcast of the
-Library view and of the view of the search holds its episodes (T-126), and a
-line of the Library view holds every book of one series (T-22). The keys `D`
-and `X` of such a line wrote **no word of the screen and no line of the log**
-(T-79), and the keys `M` and `N` of a line of a **series of a library of
-books** said "A podcast holds no place. Press l for its episodes." — the
-correction of T-219 read `selected_item_id().is_some()`, and
-`selected_library_item` gives the first book of a line of a series (T-91).
-- **A test of a state must name that state, and not a value that follows
-  it** (T-221). The predicate of a podcast is the view and the media type of
-  the library, and the identity of an item is a value that a book of a series
-  holds too.
-
-**The session of the forty-ninth turn took the same road**: the keys `M` and
-`N` of an episode of a podcast asked for the address of the place of the
-**podcast** (T-219), and a test of the gate of that session failed one run of
-thirteen because a host of a raw socket kept the body of a request in its
-socket (T-220). **No test of the fork holds a rule of a host of a raw
-socket**, and thirteen files hold thirteen copies of the same twenty lines.
-
-**The session of the forty-eighth turn took a trap of this file that four sessions carried with
-no item** (T-218): the trap 188 said that the keys `X` and `D` of a book of a
-series of the view of a search do nothing at all, and it named one cause of
-two. **A trap of this file can be an item that waits**, and the traps hold
-conditions of the program and not of the harness alone.
-
-The view of the search holds the identity, the title, the author, and the
-length of each of its lines already (T-113 and T-117), and one arm of
-`selected_download` asked `ids_library` for the place of that media: a book of
-a page that the program did not read (500 items of 2056, T-70) and a book of a
-series that `&collapseseries=1` groups each stand in no row of it. The keys `D`
-and `X` of such a line wrote **no word and no line of the log**, the key `n`
-said "This line holds no media.", and the key `m` said "This line holds no book
-and no episode." **The key `l` of that same line played the book.**
-- **A view that holds a list of its own must read that list** (T-218). **Ask
-  of every key of a view: which list does it read, and does that list belong
-  to this view or to another one?**
-- **A key of the user that does nothing at all reaches no line of the log**
-  (T-218), therefore no sweep of the words and no sweep of the log finds it:
-  the measurement of such a key is the key itself, inside tmux, on a media of
-  the condition.
-- **The `?` of one value of an arm gives the whole answer of that arm away**
-  (T-218). `Option` and `?` are the road of "this view holds no media", and a
-  value that the arm does not need must not stand on it.
-- **The other keys of the view of the search are not measured against a media
-  of a row that the library does not hold** (T-218, and it stays open): the
-  key `b` of a bookmark, the key `e` of the reader, and the key `s` of the
-  series of that media.
-- **The row of the account holds the name of one library and the id of
-  another** (T-218, and it stays open): `update_id_selected_lib` writes the id
-  alone, and no line of `src/` reads `name_selected_lib`. That is the shape of
-  `elapsed_time` of T-213.
-
-**The session of the forty-seventh turn took the last paragraph of the newest
-item, and then the last paragraph of its own item** (T-216 and T-217): a
-correction closes one road of a fault and not the fault (the rule of T-196),
-and a correction of the work of the program is no correction of the line of the
-screen. **The cheapest item of a session can come of the item of that same
-session.**
-
-`the_files_that_stand_on_the_disk` asked "does the path stand?" (T-215), and a
-file that lost its bytes stands: one `truncate` of one file of
-`Multi File Test Book` of the sandbox gave a playback of 50 seconds of a book
-of 60 with no word at all, and the program then told the **server** that the
-user finished that book (T-216). The line of that same media said
-`[Downloaded]` while the log of the same second said "0 of 3 track(s) from the
-disk" (T-217).
-- **A row of the disk that names a thing of the disk holds more than one
-  question** (T-216). "Does the path stand?" is the first one, and "does that
-  thing hold what the row says?" is the second. The row of a file holds the
-  size of the file of the server (T-181), and the program writes a file of a
-  download whole or it writes no file at all (T-186). **Ask of every row of
-  the disk: which value of the thing that it names can I compare?**
-- **A correction of the work of the program is no correction of the words of
-  the screen** (T-217). **Ask of every correction: which line of the screen
-  reads the value that this correction changed?**
-- **A default of a value that the server did not give must stay a default**
-  (T-179 and T-216): a size of 0 keeps its file, because a check of a value
-  that the program does not have takes the disk of the user away.
-- **The bytes of a file that keeps its size are not measured** (T-216, and it
-  stays open). A sum of the bytes of every file at each playback is a read of
-  the whole disk, therefore that question needs a measurement of the cost
-  before a correction.
-- **The label of a media that a second program of the account downloads now
-  is the label of a copy that is not whole** (T-217, and it stays open): the
-  `.part` of that download holds fewer bytes than the row, and the question is
-  whether that line belongs to the bar of the downloads.
-- **The offline playback of a media whose copy of the disk is not whole plays
-  nothing** (T-215, and it stays open). The sentence of it is true, and the
-  user hears no second of the files that stand.
-
-**The session of the forty-sixth turn** took the same road before it (T-214
-and T-215): a function of two statements of two tables is a function of two
-halves, and a row of the files of a download names a file of the disk that
-goes away outside this program.
-
-`delete_download` held no transaction (T-214), therefore a disk that refused
-the removal of the rows of the files of a download kept the row of its media
-away and the rows of its files on the disk. The key `X` again then said that
-the media holds no local copy, and every playback of it took the road of the
-disk for a file that went away.
-- **A trigger of SQLite fails one statement of one function** (T-214). The
-  `chmod 444` of T-206 and the lock of T-199 stop every statement of a
-  function together, and the `ALTER TABLE` of T-203 takes the table away from
-  every function of the program. **Ask of every function of the database: how
-  many statements does it hold, and do they stand in one transaction?**
-- **A read that decides the work of a key reads one table of the two**
-  (T-214). `remove_download` reads the row of `downloads` to find its work,
-  therefore a half state of the two tables made the key `X` say that the media
-  holds nothing while the row of its file stood on the disk for ever.
-- **A row of the disk that names a thing of the disk is a value of two
-  machines** (T-214 and T-215). `select_sources` read `download_files` and it
-  asked no file system, and `play_offline` compared the files of the book with
-  the rows of that same table: a book of three files whose second file went
-  away played 20 seconds of 60 with no word at all, and the offline mode of it
-  played nothing and said that the media plays from the disk. **The disk
-  answers at the moment of the use** (T-142), and one `mv` of one file is the
-  whole condition. **Ask of every row of the disk: which thing of the machine
-  does this row name, and does that thing still stand?**
-- **A file of a download that changed is not a file that went away** (T-215,
-  and T-216 closed it for the size of the row).
-- **The label `[Downloaded]` of a media whose copy of the disk is not whole
-  said nothing of that** (T-215, and T-217 closed it): the box of the copies
-  of the disk asks the file system now, and it stands outside the render.
-- **A rollback is a write** (T-207 and T-214). The rollback of the rows of a
-  download held `let _ =`: a disk that refused it left a media of the offline
-  mode with the label `[Downloaded]` and no file of the disk at all, with no
-  word for the user and no line of the log.
-- **The write of the rows of a download is no transaction** (T-214, and it
-  stays open). `the_rows_of_the_download` writes the row of the media, then one
-  row of each file, then the removal of the rows of the files that the book no
-  longer holds (T-187), and each of them stands on a connection of its own:
-  the question is whether a book of many files can leave a half state that the
-  rollback does not reach.
-- **The key `X` and the key `D` of a book of a series of the view of a search
-  do nothing at all** (the trap 188). **T-218 closed it**, and the series is
-  one cause of two: the page of the library is the other one.
-- **The session of the forty-fifth turn found that a column of one row of the
-  disk is a condition of its own** (T-213): the loop of a playback wrote the mark of the end of a media with
-`let _ =`, and a disk that refused that one write gave the next program of the
-account a book that the user finished and that the row of it says is not
-finished.
-- **A condition of two halves needs a harness that takes one half away, and a
-  row of the disk holds more than two** (T-213). The `chmod 444` of T-206 and
-  the lock of T-199 each stop **every** write of a row together, and the
-  `ALTER TABLE` of T-203 and of T-212 takes a whole **table** away: a trigger
-  `BEFORE UPDATE OF <the column>` fails one write of one row, and every other
-  read and write of the program answers. **Ask of a row of the disk: which
-  writes fill it, and can I take one of them alone?**
-- **A fault of the user needs the rule of the machine that the value reaches**
-  (T-213). The first form of that measurement lost the mark of the end of a
-  book, and the sandbox marked that book finished by its own arithmetic: the
-  log of the server says the rule — `Marking media progress as finished
-  because time remaining (5) is less than 10 seconds` — therefore the
-  measurement needed a media that the engine finishes **more** than ten
-  seconds before the length of the server (the section 6j of
-  `docs/TEST-SERVER.md`). **A measurement that the other machine forgives is
-  no measurement of the fault.**
-- **A value of the disk that this program holds in its memory too is a value
-  of two roads** (T-213). `close_and_report` reads the mark of the **memory**,
-  therefore a server that took the place took the correct mark with it and the
-  row went away with the fault inside it: the fault of the row reaches the
-  user only through the **next** program of the account. **Ask of a value of
-  the disk: which program reads it, and does this program need the disk to
-  read it at all?**
-- **The mark of the end of an offline playback needs no measurement of the
-  loop** (T-213, and T-214 read it in the source). The loop of
-  `follow_playback_offline` writes `pending_progress` at each second with the
-  mark of that second, **and it writes the mark of the end at the stop of the
-  playback**: the `remember_progress` of its last block gives `finished` of the
-  engine, and the caller reads the answer of that write (T-212). **What stays
-  open is the place of that mark while the program lives**: an offline playback
-  opens no session of the server, therefore a program that dies at the second
-  of the end writes the mark of the second before it.
-- **A column that the program writes and that no line of `src/` reads is a
-  question of its own** (T-213, and it stays open). `update_elapsed_time`
-  writes `elapsed_time` of `listening_session` at each sync, and no line
-  outside the module of the database reads it. That is the rule of T-201 in the
-  other direction.
-- **The removals of the rows of a download hold their own item now** (T-214),
-  and the writes of them stay open.
-- The session before it took the other half of the shape of T-211: **a call of
-  the database that stands after a request of the server that failed** (T-212).
-  A place that reached no machine went away with the row that held it, and the
-  box of T-207 said that the server holds a place that the server refused.
-- **The session of the thirty-eighth turn took the road that the newest item
-  left open, and it found that the condition of that road needs no harness of
-  its own** (T-206):
-a disk that the program **reads** and that takes **no write** made three keys
-of the user say the work that the program did not do.
-- **A condition of two halves needs a harness that takes one half away**
-  (T-206). The lock of `hold_the_lock.py` and a file that holds no database
-  each stop the read and the write **together**, therefore each of them hid
-  every road where the read answers and the write alone fails. `chmod 444` of
-  the file of the database is that harness, and it is one command. **Ask of a
-  resource of the program: which two things does my condition take away at
-  one time, and can I take one of them alone?**
-- **A caller that reads no answer of its write says the work that it did not
-  do** (T-206). The key `n` said `"…" is number 1 of the queue. Press q to
-  see the queue.` and the disk held **0** rows; the key `q` of that same
-  sentence then said that the queue is empty. **The program contradicted
-  itself in two seconds.** The key `X` of the view of the queue held the
-  other direction: the line went out of the view, the disk kept the media,
-  and the next read of the disk brought it back.
-- **A key that reads the row that it wrote gives the value of before**
-  (T-206). The keys `O` and `I` of the speed gave the answer of
-  `update_speed_rate` to nobody and they read that same row after it: the
-  engine took the speed of before, the screen said **nothing at all**, and
-  the log held **no line**. That is T-79 and T-174 together, and **no sweep
-  of the words for the user finds it**: the words of that key did not exist.
-  **Ask of every key: which value does it read after its write, and which
-  part of the program holds the truth of that value?**
-- **The other keys that write the disk are not measured against that
-  condition** (T-206, and it stays open): `update_is_playback` of the key of
-  the pause, `update_is_loop_break`, `update_has_played_before`,
-  `delete_the_session_of_a_playback`, and `update_download_current_time`.
-  **The question of each of them is the question of T-201**: which part of
-  the screen reads that row, and which program of the account reads it after
-  this one dies.
-- **The reads of the disk whose default is a fact of the user stay open**,
-  and the condition of T-206 reaches none of them: a disk that takes no write
-  answers every read. `get_speed_rate` gives the string
-  `Error: unable open database`, and `.parse().unwrap_or(1.0)` of its five
-  callers then gives the user the speed 1.00x with no word — **two of those
-  five stand at the start of every playback**. `get_library_sort` and
-  `get_is_show_key_bindings` hold the same shape. **The road to that
-  condition is the statement that fails of T-203**, because
-  `hold_the_lock.py` reaches no read of the start since T-199 (the trap 161).
-- **The session of the thirty-seventh turn swept the first two questions of
-  T-204 and it found that a key of the user took the whole program away**
-  (T-205): the key `R` stands in the footer of every view, the refresh makes
-  a new `App`, and the read of the accounts of that `App` met the database of
-  a second Toutui of the account. **A refresh is not a start**, and the
-  program said `Toutui changed nothing` while the account, the token, every
-  list, the queue, and the playback of the user went away with it.
-- **A correction of a caller is no correction while the callee lies**
-  (T-205, and T-200 before it). `update_library_sort` and `save_the_queue`
-  answered `Ok(())` for a connection that they did not get, and no sentence
-  of a key could reach that fault.
-- **A key of the user that touches the disk still stops the loop of the
-  screen for five seconds under the lock**, and the row of the message says
-  nothing while it waits (T-204, T-205, and T-206 each measured it and left
-  it open). The answer of `handle_key` needs `&mut App` on the thread of the
-  screen, therefore the work of the disk of a key belongs to a task of its
-  own, as the key `D` holds one already. **The question is which keys can
-  give their work to a task, and what the row of the message says at the
-  moment of the press.** The keys that a measurement reached are `X`, `B`,
-  `n`, Shift-Tab, and the key Enter of the sequence.
-- **A freeze that is longer than the busy timeout of five seconds is not the
-  render** (T-204). `strace -f -tt` of the program inside tmux says which
-  thread holds the lock, and **the answer was the driver of the runtime**: the
-  three writes of one second of the loop of the playback took it for 15
-  seconds, and the row of the player, the timer for sleep, and every key of
-  the user stopped. **Ask of every call of the database: which thread does it
-  stand on, and what waits for that thread?** The sweep of that question is
-  open: the login, the sync of a session, and the tasks of the downloads still
-  call the database on a thread of the runtime.
-- **A key of the user that writes the disk waits for that disk on the thread
-  of the screen** (T-204, and it stays open). The key `B` took five seconds,
-  and its sentence came after them: the question is whether the loop can draw
-  a frame while a key of the user waits for the database, and what the row of
-  the message says while it waits.
-- **A read of the disk that stands inside the render is a fact of the user at
-  each frame** (T-204). The row of the keys of the player went away while the
-  user turned nothing off. **A box of the process, and the disk at the moments
-  that the program needs it** (T-142), is the road; every road that **removes**
-  a file of the user keeps its own read at the moment of the use (T-203).
-- **A read of a file of the config stands inside the render too** (T-204). The
-  `strace` of that item shows `config.toml` read at every frame. A disk that
-  answers in 300 microseconds is no fault of the user today, and a disk that
-  does not answer is another condition.
-- **The session of the thirty-fifth turn took the last paragraph of the newest
-  item and it made one item of it** (T-203): T-202 named the reads of the
-  downloads, and the key `X` of a program that could not read its database
-  removed the files of a book that a second program of the account played from
-  the disk.
-- **A read of the disk that decides a removal must fail toward the disk of the
-  user** (T-203). `false` of `a_program_keeps_the_place_of_this_media`, `None`
-  of a row, and an empty list of the files each said "the user holds nothing
-  here", and the key then took the files of the user. **Ask of a read of the
-  disk: which road does the default of it take, and does that road destroy a
-  thing of the user?**
-- **A correction of a session closes a road of a measurement too** (T-203).
-  `hold_the_lock.py` reaches no read of the start now, because the correction
-  of T-199 stops the program there: a read of the start needs a statement that
-  fails. **A harness of a session can go away with the correction of the
-  session before it.**
-- **A read of the disk that stands inside the render is a read of every
-  frame** (T-203). The label `[Downloaded]` of six views comes of
-  `get_download`, therefore a fault of it wrote a line of the log at every
-  frame in the first form of the correction, and the read holds the thread of
-  the screen: the sentence of the key `X` never reached the user. **That is the
-  shape of T-185 for the disk, and it is the question of the next session:
-  which reads of the disk stand inside the render, and what does a state of the
-  `App` hold in their place?**
-- **The reads of the disk whose default is a fact of the user and that no
-  measurement has reached**: `get_library_sort` (the sequence and the filter of
-  the library of the user), `get_is_show_key_bindings`, `get_speed_rate` (each
-  of them gives the string `Error: unable open database`, the other half of the
-  sweep of T-200), and the reads of the account that give an empty text. **The
-session of the thirty-fourth turn took the sweep of one line of code that
-T-198 named, and it read that line in the other direction: the disk, and not
-a body of the server** (T-199). It found one fault of three roads.
-- **The sweep of one line of code has two directions** (T-199). T-198 asked
-  which function reads a **body of the server**; the other direction is the
-  **disk**. `grep` of `let _ = `, of `if let Ok(`, and of
-  `.unwrap_or_default()` beside a call of the database gave six lines of
-  `src/`, and three of them held the account. **The question of that sweep
-  is: which fact of the user does the program read out of a fault of its own
-  disk?** The other writes of the disk of that shape stay open — the
-  sequence, the speed, the key bindings, the rows of a session, the queue,
-  and the downloads.
-- **A condition of the fork can need no harness of Python at all** (T-199).
-  Every session since T-169 wrote a proxy for its condition. This one needed
-  six lines of `sqlite3` with `BEGIN EXCLUSIVE`
-  (`docs/harness/hold_the_lock.py`), because **rusqlite holds a busy timeout
-  of five seconds** and the fork holds the condition of two programs of one
-  account already (T-140). **Ask of a condition: does the program hold a
-  resource that a second program of the machine can take?**
-- **A comment of a file can name the rule that the line under it does not
-  hold** (T-199). `auth_process.rs` holds "**A login that keeps no token is a
-  login that failed**" in the paragraph above the write of the row, and that
-  write was `let _ =`. **The neighbour of a corrected line is the next place
-  to read**, and that is the rule of T-185 for a comment that names a
-  decision.
-- **A word for the user that the database carries cannot name a fault of the
-  database** (T-199). `update_login_err` writes the row of the message of the
-  login screen **in the database**. The correction works because the lock
-  goes away before the next frame of that screen; a lock that never goes away
-  leaves that screen with no word, and the log holds the fault. **Ask of
-  every word for the user: which part of the program carries it, and can the
-  fault take that part away?**
-- **The words of a program that stops belong to the thing that failed**
-  (T-199). The words of T-172 name the lists of the **server**, and a program
-  that did not read its own database must not say that (T-91). The fault of
-  the database holds a type of its own now
-  (`crate::db::TheAccountsDidNotCome`), and
-  `the_words_of_a_program_that_stops` reads it.
-- **A read of the disk that failed takes no word for the user, and a write
-  that failed takes one** (T-199). The read after every key runs with no key
-  of the user behind it and it holds no view of its own, therefore it takes a
-  line of the log (T-177); the login is a key of the user, therefore its
-  fault takes a sentence. **The question is whether a key of the user waits
-  for the answer.**
-- **A shape that an old item named and that no session reached is an item
-  that waits** (T-197). T-174 wrote "a panic of a thread while a view of the
-  application stands" in the road of eight sessions, and no one of them made
-  such a panic: **the condition needs a build of its own, and no server and
-  no key can make it.** One `panic!` in the loop of the playback gave the
-  whole fault in one run.
-- **A piece of the program that reacts to a fault is written for one
-  thread** (T-197). The hook of the panic gives the terminal back and it
-  calls the hook before it, and that is the work of the main thread; a
-  thread of a task then leaves a program that lives with a terminal of a
-  shell. **Ask of every such piece: which thread does this run on, and what
-  stands after it?**
-- **A sweep of one line of code over the whole of `src/` is the cheapest
-  sweep of a session, and the question of it comes of the item before it**
-  (T-198). T-196 asked which function reads a body; `grep` of `.chunk()`
-  and of `while let Ok(Some` gave four, and one of them held the fault.
-  **`while let Ok(...)` of a read of a network is the line to look for**: it
-  reads a fault as the end of the data.
-- **A word for the user that a second writer covers is no word at all**
-  (T-197). The panic wrote to the terminal, and the render drew over it at
-  the next frame. **A word of a fault that must live longer than one frame
-  belongs in the log too.**
-- **A harness that found a fault once is a question for every part of the
-  program that reads the same kind of answer** (T-196).
-  `a_body_that_ends_early_and_looks_whole.py` came of T-193 for the file of
-  the audio, and one word of its command line gave the ebook: the same
-  fault, another reader. **Ask of a new harness: which other function of
-  this program reads a body?**
-- **A correction of a fault of the user closes one road of it, and not the
-  fault** (T-196). T-186 measured a head that **names** `Content-Length`,
-  and `reqwest` then gives the fault of an incomplete message; a head that
-  names no length at all gave the same file of a part with the same name of
-  a whole book. **Read what the measurement of an old item held**, and not
-  the words of its decision (T-191).
-- **The truth of a length can stand in another answer** (T-196).
-  `metadata.size` of `GET /api/items/:id` is that number for the ebook, and
-  it is the field of T-179. **A request of the truth stands before the
-  work**, and not after it: a `.part` file that takes the name of a whole
-  book and loses it again breaks the rule of T-186 for the time of two
-  statements.
-- **A condition that an item names as open is an item of its own** (T-195).
-  T-194 wrote "a part that holds no audio still goes away with no word, and
-  no measurement made such a part", and that sentence was the whole of the
-  session after it: one harness, one measurement, and the same fault of the
-  user. **Read the last paragraph of the newest item before anything else.**
-- **A line of the log that says a fault and goes on is the shape to look
-  for** (T-195). `warn!` and `continue` stood in one arm of the loop of the
-  parts. **A line of the log is the word of a fault that belongs to no line
-  of a view** (T-177 and up), and that rule is not a rule for a condition
-  that changes what the program tells the **server**. Ask of every
-  `continue` of a loop of the audio: what does the program write when this
-  loop ends?
-- **A road of a reader that no test walks is a road of a fault** (T-195).
-  `HlsFile::open` reads the first part and the thread of the buffer reads the
-  rest, therefore **one condition holds two roads** and the correction of one
-  is not the correction of the other: the open gave a reader of no byte at
-  all, and such a reader says `finished` at its first read.
-- **A harness of a fault must not hold a fault of another item** (T-195). The
-  two harnesses of a body cut a body, and the rule of T-194 holds a body that
-  stopped already: a measurement of a part with no audio therefore needs a
-  **whole** body that holds no audio.
-- **A correction of one road of the audio is not a correction of the audio**
-  (T-194). T-193 gave `HttpFile` the truth of its length (`Content-Range`)
-  and `HlsFile` the truth of its playlist (`#EXT-X-ENDLIST`), and **the
-  parts of that playlist kept the fault**: a part that did not come stopped
-  the thread of the buffer, that thread said `finished`, and `position_now`
-  then gave the end of the **whole** media. **A shape that a measurement
-  found in one reader belongs to every reader of the same shape.**
-- **The truth of a length can stand in the container** (T-194). A part of a
-  stream names a **time** and no number of bytes, therefore the playlist
-  gives no length of it; a transport stream holds packets of 188 bytes and
-  nothing else, therefore a body whose length is no multiple of 188 is a
-  body that stopped. **`chunks_exact` of a form that frames itself is the
-  line to read**: it drops the piece that a body cut, and it gives no fault.
-- **A `return` of a fault inside a loop of attempts takes no attempt at
-  all** (T-194). `ask_for_the_bytes_with_a_limit` holds twenty attempts, and
-  the read of the body stood in the `return` of the last line of that loop:
-  a part that answered 404 took twenty requests, and a part whose body
-  stopped took one.
-- **The end of a reader is not the end of the media** (T-194).
-  `position_now` gives `end_of_the_first` at the end of the tracks, and that
-  rule comes of T-2, T-16, T-48, and T-55 — **each of those items measured a
-  file**. A stream of the server is one track of the whole media. **A rule
-  that a measurement of a file made is a rule to measure again for a media
-  of one track.**
-- **A fault of a body has two roads, and one harness held one of them**
-  (T-193). `a_body_that_stops_in_the_middle.py` keeps `Content-Length`, and
-  `reqwest` then gives the fault of an incomplete message: the program reads
-  a fault, and it can say it. **A body with no `Content-Length` and no
-  `Transfer-Encoding` ends at the close of the connection**, and the client
-  reads a **clean** end of it: no fault of the network, no fault of a
-  status, and fewer bytes than the file holds. `fill_buffer` of `HttpFile`
-  held that close as the end of the file. **The question of a body is which
-  value the program holds as the truth of the length**: `HttpFile::open`
-  reads `Content-Range`, and it never gave that size to the thread that
-  reads. **A program that holds the truth of a length in one function and
-  reads the body in another one is the shape to look for.**
-- **A value that the program sends to the server outlives the program that
-  sent it** (T-193). A book that stops is a book that the user starts again;
-  this program told the **server** that the user finished a book of 30
-  minutes after five seconds of it, and every client of that account then
-  held the book as read. **A fault of the user that reaches the server is
-  worth more than a fault of the user that stands on the screen.**
-- **The sweep of the rows of a list is closed for the answers of the server**
-  (T-190, T-191, and T-192). A sweep of every structure of `src/` that serde
-  reads gives three fields of an answer with no default and no `Option` now,
-  and no one of them stands in a row of a list: `live::Handshake.sid`,
-  `auth_process::UserInfo.token`, and
-  `get_media_progress::Root.library_item_id`. **The question of that sweep
-  was: which value of one row does the whole answer need, and what does a key
-  of the program send to the server?**
-- **A default of an address is worse than a default of a number** (T-192). A
-  size of 0, a length of 0, and a moment of 0 give a wrong line or a wrong
-  place; **an address of no character gives a request of no address**, and the
-  server answers the true `404` of a path that the program made
-  (`/api/collections//book`). **No fault of a decode names it, and no view can
-  name it**: the sentence of the program said that the server does not hold
-  the media of the user, and the media was correct.
-  **`unwrap_or_default()` of an `Option<String>` that a path holds is the
-  line to read.**
-- **A name is not an address** (T-190, T-191, and T-192). A name that the
-  server did not give takes the id of the row, and an id that the server did
-  not give takes no line at all. Ask of every value of a row: **does a key of
-  the program send this value to the server?**
-- **A decision of an old item stands only for the measurement of that item**
-  (T-191). T-176 decided that "a body that holds no name is not the answer of
-  this endpoint", and it measured a body of **one** library; T-191 measured a
-  list of five, and that decision then stopped the whole program. **Read what
-  the measurement of an old item held**, and not the words of its decision
-  alone.
-- **A default of a read of the disk is a fact of the user** (T-202). The
-  sweep of T-177 to T-192 asked which **value** a default gives; the sweep of
-  the disk asks which **fact** it gives: an empty list is "the user holds none
-  of these", and `None` is "the account stands in no row". **A read that
-  failed and that a write follows is the shape to look for**: every change of
-  the queue reads the disk and writes it again (T-147), therefore a read that
-  gave no media writes no media over the media of every program of the
-  account. **The reads of that shape that no measurement has reached**:
-  `get_all_downloads` (the offline mode of T-25 then says that the user holds
-  no media), `a_program_keeps_the_place_of_this_media` (the key `X` then takes
-  the files of a media that a program of this account plays, T-156),
-  `get_download` with its two neighbours, and `get_pending_progress` with
-  `count_pending_progress`.
-- **A word of a key that meets the database does not reach the user while a
-  second program holds it** (T-202). A message lives six seconds, and a key
-  that holds more than one call of the database waits five seconds for each of
-  them: the frame of the render then comes after those six seconds. **The
-  words of a correction of that condition reach the log alone.**
-- **A value that two parts of the program read holds two faults of the
-  user** (T-201). The row of `listening_session` holds the place of a program
-  that dies (T-140, T-145, and T-152) **and** the line of the player of the
-  screen: a write that failed took the place of the whole playback and every
-  word of the media of the screen. **Ask of a value of the disk: which part
-  of the screen reads it?** The rule of T-182 stands for a value of the disk
-  too, and a program that opened a session of the server and that plays
-  nothing closes that session. **A request that follows a wait of more than
-  five seconds meets a connection of the pool that the server closed**, and a
-  request of `Idempotent::No` takes one attempt: that condition stays open.
-- **A correction of a caller is no correction while the callee lies**
-  (T-200). T-199 corrected three callers of the database, and the sweep that
-  it left open went one level lower: 21 functions of `src/db/crud.rs` held
-  `Ok(...)` after an `else` that said nothing, therefore no correction of a
-  caller can reach them. **Ask of every correction: does the function that
-  this caller reads tell the truth?** The callers of those 21 functions are
-  not measured one by one, and **the place of a playback
-  (`update_current_time`) and the row that waits
-  (`insert_pending_progress`) hold the greatest weight**. **A read of the
-  database that gives a default is the other half of that sweep**:
-  `get_is_show_key_bindings` gives the string `Error: unable open database`.
-- **A module of the disk must write no word for the user** (T-200). "Error
-  connecting to the database." stood in the row of the message of **every**
-  view, and it named no key and no work: a message belongs to the view that
-  acted (T-164), and a fault with no view takes a line of the log (T-177).
-- **Rows that hold one thing come together** (T-200). A download holds three
-  writes, and a row of `downloads` with no row of a file gives an offline
-  playback of a book of one file (T-181 and T-187): the rows go away at the
-  first fault, the key `D` writes each of them again, and the files of the
-  disk stay because the key `X` reaches them (T-186).
-- **The sweep of a fault of the disk is closed for the account** (T-199),
-  and it is a different sweep from the one of T-186 to T-189: that one asked
-  which **value** of the server a table keeps, and this one asks what the
-  program does when the database itself says nothing. **A key of the program
-  takes five seconds for each call of the database while a second program
-  holds it, and no row of the screen says that the program waits**: that
-  condition stays open, and the busy timeout of five seconds of rusqlite
-  belongs to no measurement yet.
-- **The sweep of the values of the disk is closed** (T-186 to T-189). The
-  five tables that keep a value of the server each hold their rule now:
-  `download_files` (T-187), `downloads` (T-148, T-150), `queue` (T-147),
-  `listening_session` (T-140, T-145, T-189), and `pending_progress` (T-152,
-  T-188, T-189). **The question of a sweep of that shape was: which value of
-  the server does this table keep, which rule takes a row of it away, and
-  what does the program do with a row that the server no longer holds.**
-- **The place of the user stands between two machines, and T-188 and T-189
-  hold the two questions of such a value.** A read that decides a write is
-  the shape of T-175, and **it stands outside the keys too**: the flush of
-  the positions is no key of the user. **Which faults mean "never"?** The
-  fault of the request (400) and the media that went away (404); every other
-  fault can pass, therefore the value waits. **Where does the value stand
-  while it waits?** A value that leaves one table must reach another one
-  **before** that removal: the removal of the row of a session stands in the
-  same function as the write of it.
-- **The three shapes that found a fault before:** **a state of one process
-  that a second program cannot see** (T-142, T-147, T-148, T-150, T-153 to
-  T-167), **a program that dies in the middle of work** (T-145, T-152), and
-  **a server that does not answer, that answers with a fault, or that
-  answers with another body** (T-146, T-149, T-152, T-156, T-167 to T-178,
-  T-188, T-189). **A fourth shape came of T-175**: a key that **reads** a
-  state of the server and that then writes it. **That shape is closed for
-  the keys** (T-178) and **for the flush of the positions** (T-188). **A
-  fifth shape came of T-177**: an answer of a server of another version,
-  which holds one field fewer. **That shape is closed for the rows of a
-  list** (T-190, T-191, and T-192). **The question of that shape is the
-  question
-  of T-179, of T-180, and of T-188**: a field that the program reads with a
-  **default** gives no fault of a decode, and the program then **uses** that
-  default — `unwrap_or(0)`, `unwrap_or(0.0)`, and **every field of
-  `#[serde(default)]` of a number** are the lines to read of every such
-  answer. Six of them held a fault of the user: a size of 0 threw a whole
-  download away (T-179), a length of 0 threw the place of the user away
-  (T-180), the two fields that **name** a file threw a file of the book away
-  (T-181), a place of 0 that the server did not give started a book at its
-  first second (T-182), and **a moment of 0 of `lastUpdate` threw the place
-  of the user of the server away** (T-188). **A default of 0 that the program
-  gives back to the server is worse than a default of 0 that it keeps.**
-- **A path of an answer that holds an id needs the id of the row** (T-188).
-  The place of an episode of a podcast stands at
-  `/api/me/progress/:item/:episode` (T-182), and the flush asked for the path
-  of the item: **Audiobookshelf answers that path with the place of one
-  episode of that podcast**, therefore the program read the status 200 and
-  the moment of another media. **A wrong path that answers is worse than a
-  wrong path that fails**, and no fault of a decode names it.
-- **The parts of the program that a server of a fault has not reached**: the
-  keys `F`, `b`, `n`, `m`, `r`, `D`, and `X`. **The stream of the audio is
-  closed**: the file of a book (T-193), the playlist of HLS (T-193), the
-  parts of that playlist (T-194), and a part that holds no audio (T-195).
-  **The reader of the stream holds no condition that a measurement did not
-  reach.** **The ebook of the reader is closed for the three roads of a
-  body**: a status of a fault (T-52), a body that stops with a head that
-  names its length (T-186), and a body that ends early and that looks whole
-  (T-196). **The shape of T-174 is closed for a panic of a thread**
-  (T-197): the program stops, and the user reads the fault. **A thread that
-  comes to its end with no panic is another condition**, and no loop of the
-  program holds such a road today. **The sweep of a body that stopped is
-  closed for `src/`** (T-198): the four functions that read a body each name
-  the fault of a part now, and the cover held the last of them. **A body
-  that ends early and that looks whole needs a truth of its length**, and
-  the cover and the file of a new version hold none: no answer of the server
-  names those two sizes, therefore a program that reads such a body can name
-  nothing.
-  **The keys `M`, `N`, and `e` are
-  closed** (T-175 and T-178), **the first request of the program is closed**
-  (T-172), **the flush of the positions of the disk is closed** (T-188 and
-  T-189), and **the login screen is closed for the status of `POST /login`
-  (T-92), for a server that gives no library (T-173), and for a body of the
-  libraries that the program cannot read (T-176)**. **The send of an ebook to
-  an e-reader is closed** (T-183). **The read of the source of that same file
-  found no fault of the words, and the measurement found two faults**: a road
-  that looks safe in the source can hold a value that no answer gave, and a
-  read is not a measurement.
-- **The shape of T-177 is the answer of a server of another version**, and
-  **no structure of `src/api/` asks for a field that the program does not
-  read now**: `get_all_books.rs`, `sessions.rs`, `bookmarks.rs`,
-  `get_authors.rs`, `stats/mod.rs`, `get_all_libraries.rs` (T-176), and
-  `get_media_progress.rs` (T-177 and T-188) each give every such field a
-  default. The answers of `GET /api/items/:id` (T-179, T-180, T-181),
-  of `POST /api/items/:id/play` (T-182), of `POST /api/authorize` (T-183),
-  of the socket (T-184), and of `GET /api/me/progress/:id` (T-188) are
-  measured. The harnesses are
-  `docs/harness/a_field_of_the_answer_goes_away.py` and
-  `docs/harness/a_field_of_one_row_goes_away.py`, and the question of
-  every sweep of them is **which field does this program read, and what does
-  it do with the default of that field**. **A structure with no default is
-  the same fault of the user as a default that lies** (T-183): serde gives
-  the fault of one row to the whole answer, and a `Vec<T>` of a list of the
-  server is therefore the shape to look for. **That sweep ran over every
-  structure of `src/` that serde reads, and it is closed** (T-190, T-191,
-  and T-192): three fields of an answer hold no default and no `Option` now,
-  and no one of them stands in a row of a list — `live::Handshake.sid`,
-  `auth_process::UserInfo.token`, and
-  `get_media_progress::Root.library_item_id`, which each **are** an address
-  or hold the decision of T-177. **The neighbour of that shape is a row
-  whose `Option` of an id takes `unwrap_or_default()`** (T-192): the program
-  then sends a path of no address to the server, and the `404` of that path
-  names the media of the user.
-- **A library whose name holds no character takes the id of that library**
-  (T-191), and the words that T-176 left open are closed: the header said
-  `📖  (book)`, and it says `📖 1b090ea8-… (book)` now. **A shelf of the
-  Home view holds the same road** (T-190), and a media of a list with no id
-  holds the other one: no line at all (T-192).
-- **A program that says nothing at all is the shape of T-174**, and no sweep
-  of the words for the user finds it. **The parts of the program that no
-  measurement of that shape has reached**: a panic of a thread while a view
-  of the application stands (the screens of `src/ui/tui.rs` take no lock,
-  therefore the words of that panic must come to the terminal), and a panic
-  of the thread of the playback.
-- **The rule of the line of the view is made for six views** (T-160 the Home
-  view, T-161 the queue, T-162 the chapters, T-163 the bookmarks, T-165 the
-  collections and the playlists, and T-166 the downloads of the server), and
-  **the message of each of them belongs to its own view** (T-164). **The
-  view of the episodes of a podcast needs no such rule** (T-167): its list
-  is a photograph of the moment of the open. **The parts of the program that
-  no such measurement has reached**: the search of a library that a second
-  window changes, **the key `S` of the library of the start with two windows
-  that both hold their account**, and **the view `PutInAList` of the key
-  `m`, which keeps its number of a line by the decision of T-165**.
-- **The messages of the other views are not measured**: the view of the
-  accounts. **The reader holds one message of `say_in` now** (T-178), and
-  the rule of T-164 gave it that road: a message that a task writes with no
-  key of the user names its view, and a message of a key names no view.
-- **The shape of T-155 is a sweep that a session began and did not
-  finish**: a write of a state that names a row of the database. T-159 gave
-  the number of the rows to the caller of the library of the account, and
-  **the writes of the sequence, of the speed, of the key bindings, and of
-  the rows of a session (`id_session`) still say nothing** when their name
-  holds no row. **T-159 may have closed the road of a key to them**: a
-  program whose account stands in no row starts again after every key,
-  therefore a measurement of that sweep needs a write with no key — the
-  loop of a playback. **T-182 took one road of that sweep away**: a session
-  of no name reaches the database no more, therefore the writes of
-  `id_session` that say nothing need a row that a playback removed while
-  that playback goes on.
-- **A value of the server that the program keeps must go away with that
-  value, and a box of a value for each item of the account is the shape to
-  look for** (T-184 and T-185). The map of the positions of the live
-  messages and the store of the covers of `src/ui/cover.rs` each held such a
-  value, and each of them stood above the value of every request: the key
-  `R` empties both of them now. **A comment that names a decision is a place
-  to measure**: the store of the covers said "the key `R` does not start the
-  requests again" in its first paragraph, and that sentence was the fault.
-
-**The session of the fifty-sixth turn took the first paragraph of "What this
-item leaves open" of the newest item: that paragraph named one sentence of
-one view, and the measurement found that the fault holds three sentences of
-that view** (T-227).
-
-The three sentences of the view of the chapters read `state.title`, and that
-field is the name of the **podcast** (T-223 and T-225). The user played
-`Chapter 01` of `Arthur Gordon Pym` and pressed the key `C`: the header said
-`"Arthur Gordon Pym" holds no chapter. Press h to go back.` while the row of
-the player of that same frame said `Arthur Gordon Pym — Chapter 01` with
-`▶ 5:34 / 21:59`. The queue then started `Chapter 00` of that same podcast
-with no key of the user, the sentence of T-162 said `The media "Arthur
-Gordon Pym" does not play now.`, and two seconds after it the header said
-the same words above the row `Arthur Gordon Pym — Chapter 00`.
-- **A pure function of one view is the road to the view beside it** (T-227).
-  T-225 wrote `the_title_of_the_row` for the row of the player, and that
-  name said "the row": it hid the function from the view of the chapters for
-  one session. It stands in `src/logic/media_name.rs` now as
-  `the_name_of_the_media`. **Ask of every pure function of a correction:
-  does its name hold the view that made it?**
-- **A view of a media holds more than one sentence of the name of that
-  media** (T-227). The road of T-226 named one of the three. **Ask of a
-  fault of a name: how many sentences of that view hold it?**
-- **A sandbox can hold one road of two of one sentence** (T-227, and it
-  stays open). The episodes of the sandbox give 0 chapters, therefore the
-  header `The chapters of "<the name>" [N items]` of an **episode** reached
-  no measurement: the test holds it, and no measurement stands behind it. A
-  podcast whose episodes hold chapters gives that road, and the section 6i
-  of `docs/TEST-SERVER.md` is the shape of the work.
-- **The row of the player of an episode of a download names no episode**
-  (T-225 and T-227, and it stays open): `PlaybackRequest.episode_title` of
-  the offline playback is `None`, therefore the header of the view of the
-  chapters of the offline mode holds the same road.
-- **The other parts of the screen that read `state.title` alone are not
-  measured** (T-227). The question of every other reader of that field is
-  the question of T-225: which two media give one set of words?
-- **A row of 80 columns holds little** (T-80, T-225, T-226, and T-227, and
-  it stays open): `"Arthur Gordon Pym — Chapter 00" holds no chapter. Press
-  h to go back.` is 62 characters, and no paragraph of that row holds a
-  wrap.
-
-**The session of the fifty-seventh turn took a paragraph that two items carried without
-closing it: it named a list that gives the mark of a line, and the
-measurement found that no list gave it at all** (T-228).
-
-A line of the Home view of a library of podcasts is one episode, and the
-program read the identity of the **podcast** for it (T-223 and T-226). The
-two episodes of `Arthur Gordon Pym` of the sandbox stood at 80 percent and
-at 10 percent of the server: the two lines said **no percent at all**, the
-panel of the line said nothing of the place, and the key `l` on `Chapter 01`
-gave the mark `▶` to **both** lines. The control of the same run — the Home
-view of the library `Books` — gave `5%  A Book Of Many Hours` and
-`Progress: 5%, 7h38m left, Not finished`.
-- **A paragraph that two items carried and did not close is the cheapest
-  road of a session** (T-228). T-226 wrote it, T-227 carried it, and the
-  whole of it stood in one `grep` of the source. **Ask of the paragraphs of
-  the newest item: which of them stands in the item before it too?**
-- **A branch of one media type can hold the work of every media type**
-  (T-228). The block that reads the place of every line of the Home view
-  stood in the `else` of the books, and the branch of the podcasts held the
-  collectors alone. **Ask of every branch of a media type: which work of the
-  neighbour branch does this one not do, and does the screen say so?**
-- **A doc that names a list that does not exist is a fault that waits**
-  (T-228). `progress_of_the_user` said that "the mark of that line comes
-  from a different list", and no such list stood in `src/`. That is the rule
-  of T-226 for a filter, one level higher: **ask of every doc that names
-  another part of the program: does that part exist?**
-- **A path of an answer that holds an id needs the id of the row** (T-188
-  and T-228). The fallback of the place asked
-  `GET /api/me/progress/<the podcast>`, and that path answers with the place
-  of **one** episode of it: the fault of T-188 stood in a second caller for
-  six sessions, and `get_book_progress` went away with this item.
-- **The mark of a line of the view of the episodes of a podcast** (T-228).
-  **T-229 closed it**: no line of that view held one word of its episode.
-- **The lines of the view of the search and of the view of the lists hold
-  no place at all** (T-228, and it stays open), and no measurement says
-  whether that is a decision or a fault of the same shape.
-- **The percent of a row of a place of the sandbox goes up and it does not
-  go down** (T-228, and it stays open): the road to a row of 0 percent of an
-  episode reached no measurement, therefore a measurement of a percent
-  writes the percent that it needs and it trusts no percent of before.
-
-**The session of the fifty-eighth turn took the first paragraph of "What this item
-leaves open" of the newest item: that paragraph named one view, and the
-measurement found that no line of that view held one word of its episode**
-(T-229).
-
-The view of the episodes of a podcast is the one view that holds a line for
-each episode, and it wrapped no mark at all. The server held `Chapter 00` of
-`Arthur Gordon Pym` at 30 percent, `Chapter 01` finished, and `Chapter 02`
-at 700 seconds of 2336; the user opened that view and played `Chapter 02`,
-and the eleven lines each said the title alone while the row of the player
-of that same frame said `Arthur Gordon Pym — Chapter 02 by LibriVox` with
-`⏸ 12:21 / 38:56`. The panel of the line said nothing of the place. **The
-control of the same run** (the trap 206): the Library view of that program
-said `▶   Arthur Gordon Pym` and the Home view said `▶   Chapter 02`,
-`✓   Letter 57`, and `Progress: 0%, Not finished`.
-- **A list of a media that wraps no mark is a list that says nothing**
-  (T-229). Every other list of a media of the program wraps its title with
-  `crate::ui::marks::line`. **Ask of every list of a media: which mark does
-  this line hold, and which list of the program holds none?**
-- **A view that a task fills reads what that task collected, and no more**
-  (T-229). The task of the episodes collected seven lists of the answer of
-  the server and no place of the user, therefore no field of `App` could
-  hold a percent of that view. **Ask of every task that fills a view: which
-  value of the server does it not collect, and which line of the screen
-  needs that value?**
-- **A rule of the other machine can hide the condition of a measurement**
-  (T-229). A `PATCH` of `/api/me/progress/:item/:episode` that holds
-  `duration` beside `currentTime` leaves the percent of the row where it
-  stood, and a body of `{"progress": N}` alone writes it at once. That
-  closes one half of the road that T-228 left open (the section 16 of
-  `docs/TEST-SERVER.md`).
-- **The lines of the view of the queue, of the view of the bookmarks, and
-  of the view of the chapters hold no place of the user** (T-229). **T-230
-  closed it**: the chapters hold that place already, a line of the
-  bookmarks is one bookmark and not a media, and the queue held nothing.
-- **The lines of the view of the search and of the view of the lists hold
-  no place at all** (T-228 and T-229, and it stays open).
-- **The place of the view of the episodes is a photograph of the moment of
-  the open** (T-229, and it stays open): the program reads the episodes of
-  one podcast one time (T-167), and a live message is the one road of a
-  fresh percent without the key `R`.
-- **The view of the episodes of the offline mode is not measured** (T-229,
-  and it stays open): the task of the episodes does not run offline.
-
- **The
- session of the fifty-ninth turn took the first paragraph of "What this item
- leaves open" of the newest item: that paragraph named three views, and the
- sweep of the three found that two of them hold that place already and that
- the third one held no word of it at all** (T-230).
-
- The view of the chapters marks the chapter of the position since T-24, and
- a line of the view of the bookmarks is one bookmark of one media and not a
- media. **The view of the queue held the title, the author, and the length
- of each media and no place at all.** The server held `A Book Of Many Hours`
- at 90 percent, `A Second Book Of Many Hours` finished, and
- `A Big Book Of A Scan` at 42 percent; the user put them in the queue with
- the key `n` and pressed the key `q`, and every line said
- `N. 📕 <the title> — <the author>  (8h)`. **The control of the same run**
- (the trap 206): the Home view of that same program said
- `90% A Book Of Many Hours`, `✓   A Second Book Of Many Hours`, and
- `42% A Big Book Of A Scan`, and it said `▶   A Second Book Of Many Hours`
- for the media that played while the line of the queue of that same second
- said nothing.
- - **A view of a list can hold the place of the user already** (T-230). Two
-   of the three views of the paragraph of T-229 needed no correction at all,
-   and the sweep of the three cost less than the measurement of one. **Read
-   every view of a paragraph that names more than one, before you correct
-   the first of them.**
- - **A list whose media come of no view has no list of the places** (T-230).
-   `book_progress_cnt_list` holds the media of the Home view of the library
-   of the moment, and a media of the queue can belong to another library.
-   One `GET /api/me` of the key `q` gives the place of every media of the
-   account (T-127). **Ask of every list of the program: which list of the
-   places does it read, and does that list hold every media of it?**
- - **A message of a key can name a number that no line of the view holds**
-   (T-230, and it stays open). The key `n` on a media that stands in the
-   queue already said `"A Second Book Of Many Hours" is number 3 of the
-   queue.`, and the view of that same key said `The queue [2 items]` with
-   two lines: the memory of the process and the disk of the queue do not
-   agree on a media that goes in two times, and T-147 says that the disk is
-   the truth.
- - **The line of the queue names the length of the media and not the time
-   that is left** (T-230, and it stays open): `Entry.duration` is a number
-   of seconds, and the panel of the Home view says `48m left` already.
- - **The lines of the view of the search and of the view of the lists hold
-   no place at all** (T-228, T-229, and T-230, and it stays open).
- - **The view of the queue of the offline mode is not measured** (T-230, and
-   it stays open): the request of the places does not run offline.
-
-**The session of the sixtieth turn took the first paragraph of "What this item
-leaves open" of the newest item: that paragraph named a message of a key,
-and the measurement found that the memory of the process and the disk do
-not agree** (T-231).
-
-The key `n` on a media that stands in the queue already said
-`"A Big Book Of A Scan" is number 3 of the queue.`, and the key `q` of that
-same second said `The queue [2 items]` with two lines. The queue of the
-disk of that same moment held two rows, of the places **0 and 2**: the
-primary key of the table `queue` is the account, the server, the item, and
-the episode, and `save_the_queue` writes the rows with `INSERT OR REPLACE`.
-**The control of the same run** (the trap 206): the two keys `n` before
-that one each named the number of a line of that same view.
-- **A doc of the memory can promise a function that the disk does not
-  have** (T-231). `Queue::add` said that "a media that stands in the queue
-  already goes in a second time", and the table of that queue holds one row
-  for one media. That is the rule of T-118 one level lower: **ask of every
-  rule of a doc of the memory of the program: does the disk of it hold that
-  rule too?**
-- **A number that a key says is a number that a view must hold** (T-231).
-  The message of the key and the lines of the view came of two lists that
-  no code compares. **Ask of every message that names a number: which view
-  holds that number, and what makes the two agree?**
-- **A correction of a rule of the memory can need no migration at all**
-  (T-231): the disk of every version of this fork held the media of a
-  second key `n` at the end already, therefore the queue of the process
-  took the queue that the disk gave.
-- **The key `n` says no word of a media that moved** (T-231, and it stays
-  open): the message names the new number alone, and the program has the
-  reason of the move (T-91).
-- **The line of the view of the queue names the length of the media and not
-  the time that is left** (T-230 and T-231, and it stays open).
-- **The place of the view of the queue is a photograph of the moment of the
-  key `q`** (T-230 and T-231, and it stays open).
-
-**The session of the sixty-first turn took the first paragraph of "What this item
-leaves open" of the newest item: that paragraph named the words of a key,
-and the measurement found one sentence for three conditions** (T-232).
-
-The key `n` said `"A Long Test Book" is number 1 of the queue.`, then
-`"A Big Book Of A Scan" is number 2 of the queue.`, and then
-`"A Long Test Book" is number 2 of the queue.` **The third sentence holds
-the shape of the second one**, and the two conditions are not the same: the
-second key made a queue of 2 media of a queue of 1, and the third key made
-a queue of 2 media of a queue of 2. A user who reads the three sentences
-and who does not press the key `q` counts three media. A **fourth** key `n`
-of that same media (it stood at the last line already) said the same
-sentence again, and it changed no row of the disk at all. **The control of
-the same run** (the trap 206): the two keys `n` before the third one each
-named the number of a line of that same view.
-- **A rule that a correction gives the program is a fact that the words
-  must say** (T-232). T-231 gave the queue the rule that a media which
-  waits already moves to the end, and the sentence of that key stayed as it
-  was. **Ask of every correction: which text of the user reads the value
-  that this correction now holds?**
-- **A function that throws a value away takes a fact of the user with it**
-  (T-232). `Queue::take_the_key_out` held the place of the media of before
-  at the moment that it removed the entry, and it gave nothing. **Ask of
-  every function that removes a row or an entry: what did it know at that
-  moment, and who needs it?**
-- **A key that changes nothing must say why** (T-79, and T-232): the key
-  `n` on the media of the last line of the queue moves no row of the disk,
-  and it said the sentence of a key that put a media in.
-- **The key `X` of the view of the queue says no place of the media that it
-  took** (T-232, and it stays open): the sentence of `take_the_media` names
-  the title alone, and the program holds the number of the line.
-- **The line of the view of the queue names the length of the media and not
-  the time that is left** (T-230 to T-232, and it stays open).
-- **The place of the view of the queue is a photograph of the moment of the
-  key `q`** (T-230 to T-232, and it stays open).
-
-**The session of the sixty-second turn took the first paragraph of "What this
-item leaves open" of the newest item: that paragraph named the sentence of
-a key, and the measurement found a sentence that names the title alone**
-(T-233).
-
-The user put three books in the queue with the key `n`, pressed `q`, moved
-to the line 2, and pressed `X`. The message said
-`"A Big Book Of A Scan" is not in the queue now.` **A media that goes out
-of the queue changes the number of every media after it**: the book of the
-line 3 became the line 2 with no word at all, and the program held the
-number that went away. **The control of the same run** (the trap 206): the
-three keys `n` before it each named the number of a line of that same view.
-- **A function that gives one value of two can throw the other one away**
-   (T-233, and it is T-232 a second time). `take_the_media` computed the
-   place with `the_place_of_the_media`, it removed the entry of that place,
-   and it gave the entry alone. **Ask of every function that removes a row
-   or an entry: what did it know at that moment, and who needs it?**
-- **The place of a view is not the place of the disk** (T-233). A second
-   program of the account moves the media under the view of this one
-   (T-147), therefore the number of the line and the place of the removal
-   are two numbers. The sentence names the second one, and the number of the
-   line stands for the road where a second program took that media out
-   first. **Ask of every number that a key says: which of the two states
-   made it?**
-- **The line of the view of the queue names the length of the media and not
-   the time that is left** (T-230 to T-233): **T-234 closed it.**
-- **The place of the view of the queue is a photograph of the moment of the
-   key `q`** (T-230 to T-233, and it stays open).
-- **The lines of the view of the bookmarks hold no place of the user**
-   (T-229 to T-233, and it stays open).
-
-**The session of the sixty-third turn took the first paragraph of "What this item
-leaves open" of the newest item: that paragraph named the time of a line,
-and the measurement found a line that says the length of the whole media**
-(T-234).
-
-The user put three books in the queue with the key `n` and pressed `q`. The
-three lines said `(8h)`, `(30m)`, and `(8h)`, and the server held the three
-of them at 7200 seconds of 28800, at 900 of 1800, and at 7200 of 28800.
-**The line of the number 3 said `90%` and `(8h)` in the same words**: the
-user reads the percent of the work that is done and the length of the whole
-media, and that user must do the arithmetic to know that 6 hours stay. The
-user of this view chooses the media that comes after the media that plays,
-and a length gives no help with that choice. **The control of the same
-run** (the trap 206): the panel of the Home view of that same program, of
-that same media, said `Duration: 8h` and
-`Progress: 0%, 6h left, Not finished`.
-- **A view that says a number of a media must say the number that the user
-  needs** (T-234). The length is a fact of the media, and the time that is
-  left is a fact of the user. **Ask of every number that a view says: is it
-  a fact of the media or a fact of the user, and which of the two does that
-  view need?**
-- **A second view of the same program held the better words already**
-  (T-234). The panel of the Home view said `6h left` of the media whose
-  line of the queue said `(8h)`, and the two texts came of two functions.
-  **Ask of every text of a view: does another view of the program say this
-  same fact in better words?**
-- **A row of a box of the places can hold one value more** (T-234): the row
-  of `the_places_of_the_queue` held the percent and the mark of the end,
-  and the place in seconds cost no request at all, because `GET /api/me`
-  gives it with the percent.
-- **The place of the view of the queue is a photograph of the moment of the
-  key `q`** (T-230 to T-234, and it stays open): the request of the places
-  runs at that key alone.
-- **The lines of the view of the bookmarks hold no place of the user**
-  (T-229 to T-234, and it stays open).
-- **The lines of the view of the search and of the view of the lists hold
-  no place at all** (T-228 to T-234, and it stays open).
-
-**The
-session of the sixty-fourth turn took the first paragraph of "What this
-item leaves open" of the newest item: that paragraph named the place of a
-view, and the measurement found that a message of the server takes that
-place away** (T-235).
-
-The user put three books in the queue with the key `n` and pressed `q`.
-The three lines said `(15m left)`, `(6h left)`, and `(6h left)`. A second
-client of that same account then moved in **one** media of the queue
-(`PATCH /api/me/progress/e2b76945…` with `{"progress":0.42}`), the log said
-`[live] user_updated: the position of 27 media.`, and **every line of the
-view then said the length of its media again**: `(30m)`, `(8h)`, and
-`(8h)`. One message carries the position of every media of the account
-(T-184), therefore a message of one media reaches every line of that view.
-**The control of the same run** (the trap 206): the percent of the line 2
-moved from nothing to `42%` in that same frame — the message came, the
-render read it, and it took the percent of that message and threw the place
-of the user away.
-- **A correction of one road of a value leaves the other roads of that
-  value** (T-235). T-234 gave the row of the places a third value, and the
-  render of that same view writes a row of a message over it: that second
-  row held two values, and it therefore undid the correction at the first
-  message. **Ask of every value that a view reads: how many places write
-  it, and does each of them hold every field?**
-- **A message of one media reaches every line of a view** (T-235): the
-  message of the server carries the whole account, therefore a fault of the
-  row of a message is a fault of every line and not of one.
-- **The place of the view of the queue comes of the key `q` and of a live
-  message, and no other key and no tick asks for it again** (T-230 to
-  T-235, and it stays open): a media that no message names keeps the place
-  of the moment of that key.
-- **The lines of the view of the bookmarks hold no place of the user**
-  (T-229 to T-235, and it stays open).
-- **The lines of the view of the search and of the view of the lists hold
-  no place at all** (T-228 to T-235, and it stays open).
-
-**The
-session of the sixty-sixth turn took the first paragraph of "What this item
-leaves open" of the newest item: that paragraph named the one moment of a
-request of a view, and the measurement found a line of that view that no
-request reached** (T-237).
-
-The user put two books in the queue with the key `n` and pressed `q`, and
-the two lines said `(15m left)` and `(6h left)`. A second program of that
-same account then put a third book in the queue (one row of the table
-`queue` of `db.sqlite3`), and the user pressed the key `X` on the line 1.
-The key `X` reads the queue of the disk again (T-147), therefore the third
-book came into the open view with no key of this user, and **the line of it
-said `(8h)` with no mark of a place**, while the server held that media at
-7200 seconds of 28800 with the percent 90. **The control of the same run**
-(the trap 206): the line 1 of that same view said `(6h left)`, and the Home
-view of that same program said `90% A Book Of Many Hours`.
-- **The key that opens a view is not the one moment of that view** (T-237).
-  The request of the places runs at the key `q`, and the queue of this
-  program changes with no key of this user: the disk is the truth of the
-  queue (T-147), therefore the key `X` and the media that comes to its end
-  each bring a line that no request reached. **Ask of every view that holds
-  a value of the server for each line: can a line come into that view after
-  the request?**
-- **A rule of a loop of a view holds every road that a key cannot hold**
-  (T-237): the rule stands in `the_line_of_the_queue_holds_its_media`, which
-  runs at each frame, therefore it reaches the key `X`, the media that comes
-  to its end, and every road of a later version.
-- **A rule of a frame needs a box of what the program asked for, and not a
-  box of what the server answered** (T-237): a media that the user never
-  began stands in no row of `GET /api/me`, therefore a rule of the box of
-  the places gives one request at each frame. The names of the request go to
-  their box **before** the task of that request, and the log of a proxy said
-  it: one request after the key `X`, and no request more in six seconds.
-- **A media that stays in the queue keeps the place of the moment of the key
-  `q`** (T-230 to T-237, and it stays open): the request runs for a media
-  that came in, and a live message of the server is the one other road to a
-  newer place (T-235).
-- **The lines of the view of the bookmarks hold no place of the user**
-  (T-229 to T-237, and it stays open).
-- **The lines of the view of the search and of the view of the lists hold no
-  place at all** (T-228 to T-237, and it stays open).
-
-**The
-session of the sixty-seventh turn took the first paragraph of "What this
-item leaves open" of the newest item: that paragraph named the two roads to a
-value of the server, and the measurement found a line whose value comes of
-neither of them** (T-238).
-
-The server held `A Book Of Many Hours` at 7200 seconds of 28800. The user
-played it with the key `l` of the Home view, put it in the queue with the
-key `n`, and pressed the key `q`. The line said `(7h58m left)`, and 45
-seconds later that same line said the same words while the row of the
-player of that same frame said `▶ 1:04:23 / 8:00:00 | Left: 6:55:37`. **The
-line of the media that plays and the row of the player of one screen said
-two times of one media, and the difference was one hour.** **The control of
-the same run** (the trap 206): the mark `▶` stood on that line at each
-frame, therefore the line reads the state of the playback already.
-- **A view that says a value of a media that plays reads the engine of this
-  program** (T-238). The two roads to a value of the server — a request of
-  a key (T-230 and T-237) and a live message (T-235) — each carry the work
-  of a machine that is not this one, and neither of them names the playback
-  of this program: the server sends no message of a place to the client
-  that wrote it. **Ask of every value of a view: does this program change
-  that value itself, and does the view read it there?**
-- **A line that holds a mark of a state must read the value of that state**
-  (T-238): the mark `▶` of that line comes of `playing_media` at each
-  frame, therefore the line knew which media plays and it took the place of
-  it from a request of a key. The mark and the value stood side by side in
-  one function.
-- **A value that the program holds costs no request** (T-238):
-  `PlaybackState::position` stands in the engine at each second, and the
-  row of the player of the same screen reads it already.
-- **A place of 0 of the engine is a playback that did not begin** (T-238):
-  the screen says `Loading the media...` in that moment, and the line then
-  keeps the place of the request.
-- **A media of the queue that no playback of this program moves keeps the
-  place of the moment of the key `q`** (T-230 to T-238, and it stays open).
-- **The lines of the view of the bookmarks hold no place of the user**
-  (T-229 to T-238, and it stays open).
-- **The lines of the view of the search and of the view of the lists hold
-  no place at all** (T-228 to T-238, and it stays open).
-
-**The
-session of the sixty-eighth turn took the second paragraph of "What this
-item leaves open" of the newest item: that paragraph named a percent that
-no user can read, and the measurement found that same value with a number
-in a panel** (T-239).
-
-The server held `A Book Of Many Hours` at 10800 seconds of 28800, with the
-percent 37. The user played it with the key `l` of the Home view, and 75
-seconds later the panel of that line said `Progress: 37%, 5h left` while
-the row of the player of that same frame said
-`▶ 4:13:12 / 8:00:00 | Left: 3:46:48 (53%)`. **The difference was one hour
-and four minutes, and 16 percent.**
-- **A paragraph that says "the value stands behind no number" names a
-  second place that says it with a number** (T-239). T-238 left the percent
-  of the line of the queue open because the mark of that line says `▶` in
-  the place of the percent, and the **panel** of a line of the Home view
-  says that same value as `Progress: 37%`. **Ask of a value that a view
-  hides: which other view of this program says it?**
-- **A rule of one view is a rule of every view of that shape** (T-239): the
-  three panels that name a place of the user (the Home view, and the two
-  views of the episodes of a podcast) took one pure function together, and
-  a correction of the first one alone would have left the two others.
-- **The panel of a line reads no live message of the server** (T-239, and
-  it stays open): the line of the Home view takes the row of a message over
-  the row of the request (T-47 and T-235), and the panel of that same line
-  reads the box of the request alone.
-- **A media of the queue that no playback of this program moves keeps the
-  place of the moment of the key `q`** (T-230 to T-239, and it stays open).
-- **The lines of the view of the bookmarks hold no place of the user**
-  (T-229 to T-239, and it stays open).
-- **The lines of the view of the search and of the view of the lists hold
-  no place at all** (T-228 to T-239, and it stays open).
-
-**The
-session of the sixty-ninth turn took the first paragraph of "What this
-item leaves open" of the newest item: that paragraph named a road to a
-value that one place of a view holds and that a second place of that same
-view does not, and the measurement found the two places side by side**
-(T-240).
-
-The server held `A Book Of Many Hours` at 10800 seconds of 28800, with the
-percent 52, and no playback of the program held that media. A second
-client of that same account moved it to 21600 seconds with the percent 75,
-the log said `[live] user_updated: the position of 27 media.`, and three
-seconds later one frame of one screen said `➤ 75% A Book Of Many Hours`
-for the line and `Progress: 52%, 5h left, Not finished` for the panel of
-that same line. **The difference was 23 percent and three hours.**
-- **A line and the panel of that line are two places of one value**
-  (T-240): the line held the three roads to the place of a media — the
-  engine of this program (T-239), a live message (T-47), and the request
-  of the view — and the panel of it held one of them. **Ask of a value that
-  two parts of one view say: does each part take every road to it?**
-- **A paragraph that names a road that one function does not take is the
-  item of a round** (T-240): T-239 wrote that the panel reads no live
-  message, and the measurement of that same road found the fault in three
-  panels together.
-- **A value of a message that a view does not read is a value that the
-  program holds already** (T-240): the box of the live messages holds the
-  percent, the mark of the end, and the place in seconds of every media of
-  the account (T-184 and T-235), therefore the correction costs no request.
-- **The panel of a line of a book of the Library view and of the view of
-  the search says no place at all** (T-239 and T-240, and it stays open):
-  those two panels name the author and the year.
-- **A media of the queue that no playback of this program moves keeps the
-  place of the moment of the key `q`** (T-230 to T-240, and it stays open),
-  and the panel of a line of that view is not measured.
-- **The lines of the view of the bookmarks hold no place of the user**
-  (T-229 to T-240, and it stays open).
-- **The lines of the view of the search and of the view of the lists hold
-  no place at all** (T-228 to T-240, and it stays open).
 
 ### The turn of the seventieth: the panel of a book of the Library view (T-241)
 
@@ -17821,6 +16322,1582 @@ any of them.
    the four holds 28 characters of ASCII, which is 28 columns. **This is a
    candidate and not a measurement.**
 
+
+
+### The turn of the hundred and forty-fifth: the theme of the terminal (T-317)
+
+  **The session of the hundred and forty-fifth turn took the stage 1 of the
+  road of the panels** (T-317), because the maintainer chose the mockup 1 in
+  the turn before it. **It left two candidates open.**
+
+  **The colours of the start are the colours of the terminal of the user.**
+  `Colors::default` of `src/config.rs` gave each of the eleven settings of
+  the block `colors` a grey of RGB of its own — `background_color` was
+  `[40, 40, 40]`, `list_background_color` was `[50, 50, 50]`, and
+  `player_background_color` was `[80, 80, 80]` — and a `grep` of `Color::`
+  over `src/` gave 38 uses of `Color::Rgb` against six names of ANSI. **The
+  program therefore painted a dark grey over the terminal of every user**,
+  and a change of the theme of that terminal changed nothing at all.
+
+  **The data of this fault is the program itself**: no proxy, no book of a
+  harness, no change of the sandbox, and no build of the fault of the source.
+  The measurement is `tmux capture-pane -e` and a count of the escapes of the
+  first frame, of the real program v0.8.144 at 100 columns and 30 rows: **28
+  escapes of a background of RGB** (twelve of `48;2;40;40;40`, ten of
+  `48;2;50;50;50`, five of `48;2;60;60;60`, and one of `48;2;80;80;80`) and
+  **no escape of the background of the terminal at all**.
+
+  **The trap of this item, and it cost a whole measurement** (the trap 246):
+  the first form of the correction changed `Colors::default` alone, and the
+  measurement of the corrected program then gave **the same 28 escapes**.
+  `config.example.toml` holds the eleven greys too, and **the program writes
+  that file for a user who holds no file** (T-122), therefore
+  `Colors::default` is the value of `serde` for a key that a file does not
+  hold and it reaches **no user at all**. **A change of the theme of this
+  program is a change of two files**, and a measurement of one of them alone
+  says nothing.
+
+  The correction is four files. `src/ui/theme.rs` is new, and it holds the
+  vocabulary of the design of the mockup 1: `THE_ACCENT` (the cyan of the
+  terminal), `A_FAULT`, `AN_END_THAT_IS_GOOD`, and the three styles
+  `a_title`, `a_quiet_text`, and `a_text_of_a_fault`. **The quiet of this
+  program holds no grey at all**: `a_quiet_text` is the foreground of the
+  terminal with the modifier `DIM`, because a grey of RGB stays grey on a
+  background of a light colour and `DIM` follows the theme of the user.
+  `src/config.rs` gives the eleven settings a list of no number, and it holds
+  `Colors::the_colour_of` with eleven methods over it, each of which names
+  the colour of the terminal that its setting takes: `Color::Reset` for the
+  five backgrounds and for the letters, `Color::Cyan` for the row of the
+  cursor, and `Color::Black` for the letters on that row.
+  `config.example.toml` turns every key of the block `colors` off with a `#`,
+  and it keeps the key and a note for the user who wants a colour of their
+  own. Twelve files of `src/` call the eleven methods, and the greys and the
+  blues that stood outside the file of the settings take the three styles.
+
+  `tests/the_colours_of_the_start_are_the_colours_of_the_terminal.rs` holds
+  the gate, of three tests, and **the third of them is the gate of the trap**:
+  it reads `THE_EXAMPLE_OF_THE_CONFIGURATION` and it holds that every key of
+  the colours stands in that file and that every one of them is off. **The
+  build of the fault** (the trap 147) — the grey back in `Colors::default`
+  **and** the line of the example on again — made two of the three fail.
+  Seven tests of `src/config.rs` that named the greys of the program take the
+  new rule. **The corrected program** of the same terminal gave two escapes
+  and no RGB at all: `48;5;6` and `38;5;0`, the accent of the row of the
+  cursor and the letters on it. **The road back**: the file of the sandbox
+  keeps the keys of its block `colors` off, because that is the file that a
+  new user gets now.
+  - **The theme of a terminal of a light colour has no measurement yet**
+    (T-317): the measurement above counts the escapes that the program
+    writes, therefore it holds for every theme, but **no round has looked at
+    the screen of a light terminal with the eyes of a user.** The accent
+    `Cyan` on a background of a light colour, with the letters `Black` on it,
+    is the one pair of this item that a count of the escapes cannot judge.
+    **This is a candidate and not a measurement.**
+  - **`src/logic/reader/render.rs` keeps its two `Color::Rgb`** (T-317):
+    those two come of the CSS of the EPUB itself and not of a setting of the
+    program. **A book that names a colour of a light background gives a text
+    that no one can read on a terminal of a dark theme**, and the reverse
+    holds too. **This is a candidate and not a measurement.**
+
+
+## The session of the hundred and forty-first turn of 2026-08-16: the panel of the player keeps the row of its keys, of the block of the prompt
+
+  **The session of the hundred and forty-first turn took the candidate that
+  T-311 left open — the row of the player that holds a title of the server —
+  and the measurement of it gave the fault** (T-312). **It left eight
+  candidates open.**
+
+  **The panel of the player keeps the row of its keys.** `render_player` of
+  `src/ui/player_tui.rs` writes `player_info[0]` (the title),
+  `player_info[1]` (the author), and `player_info[2]` (the chapter) straight
+  into a `Paragraph` of a format of four lines, and it draws that paragraph
+  in a `Rect` of **four** rows: a row of nothing, the row of the name of the
+  media, the row of the position, and the row of the keys of the player of
+  the key `B`. The three values come from the server, therefore a text of an
+  end of a line takes a row of its own, every row after it moves down by
+  one, and the paragraph of five lines then draws in a panel of four rows:
+  the row of the keys falls outside the area, and the user who asked for it
+  with the key `B` sees no key of the player and no word of a reason.
+
+  The measurement, of the real program v0.8.140 inside tmux against the
+  sandbox on `:13399` with the account `toutuitest`, a terminal of **80**
+  columns and 45 rows, and `is_show_key_bindings` of the row of the account
+  at 1. **The data of this fault is the text of the server**: it needs no
+  proxy, no book of a harness, no build of the fault of the source, and no
+  change of the source at all.
+  `PATCH /api/items/6ba57b9a-acb5-44f9-b2b6-39ad9107b420/media` with
+  `{"metadata":{"title":"Alpha\nOMEGAEND"}}` gave the book of eight hours
+  `A Book Of Many Hours` of the library `Books` a title with an end of a
+  line; the row of the account took that library with `sqlite3` before the
+  start (the trap 203 and the trap 204). The key `Tab`, nine keys `j`, and
+  the key `l` played it with `TOUTUI_AUDIO_DEVICE=null`. The panel stands at
+  the rows 37 to 40 (`area.height - 9`, and four rows), and the screen held
+  `Alpha` at the row 38, `OMEGAEND by Many Hours Author | The hours of the
+  end` at the row 39, the row of the position at the row 40, and **no row of
+  the keys of the player at all**. **The control of the same run** (the trap
+  206): the same book, of the same keys, with the title back at
+  `A Book Of Many Hours`, gave the position at the row 39 and
+  `Spc: pause/play | p/u: +/−10s | ...` at the row 40. **The list of that
+  same view held the rule already** (T-311): the line said
+  `➤ 85% Alpha OMEGAEND` on one row.
+
+  The correction is one file. `src/ui/player_tui.rs`: `render_player` gives
+  the title, the author, and the chapter to
+  `crate::logic::message::in_one_line` of T-311 before the format.
+  `tests/the_panel_of_the_player_stands_on_four_rows.rs` holds the gate: it
+  draws the real `render_player` into a `Buffer` of ratatui with no terminal
+  (T-256), of 80 columns and 45 rows, and it reads the four rows of the
+  panel — the whole title on the row of the name, no row that holds
+  `OMEGAEND` alone, the row of the position where it stood, and the row of
+  the keys inside the panel; the second test holds the author, a `\r\n` of
+  the chapter, and a run of three ends of a line. **The build of the fault**
+  (`let title = &player_info[0];` and the two lines of the author and of the
+  chapter, in the place of the calls of `in_one_line`) said `the row of the
+  name holds no whole title: "                    Alpha"`. **The corrected
+  program**, of the same keys and the same title of the server, gave the
+  whole title on the row 38, the position on the row 39, and the keys of the
+  player on the row 40.
+  - **The header of the screen holds a text of the server too** (T-311 and
+    T-312): `self.lib_name_type` of `src/app.rs` is
+    `format!("📖 {} ({})", the name of the library, the type of the media)`,
+    and `src/ui/tui.rs` gives it to a `Paragraph` with no `in_one_line`.
+    **The name of a library belongs to an administrator of the server**,
+    therefore the data of that fault costs a `POST /api/libraries` of the
+    sandbox. **This is a candidate and not a measurement.**
+  - **The header of the reader takes the columns and not the ends of the
+    lines** (T-312): `the_line_that_stands` of `src/ui/reader_tui.rs` gives
+    the title of the book to `in_one_row`, which cuts a text by its columns
+    and which says nothing of a `\n`. `docs/harness/a_book_of_a_long_title.py`
+    writes a book of a title of a command line already. **This is a candidate
+    and not a measurement.**
+  - **The panels of the views hold the author, the series, and the name of
+    an episode of the server** (T-312): `render_info_home`,
+    `render_info_library`, `render_info_search_book`, and
+    `the_panel_of_an_episode` of `src/ui/tui.rs` each write those fields into
+    a `Paragraph` of a `Wrap`, and a `Wrap` keeps an end of a line;
+    `sessions_tui.rs` and `stats_tui.rs` do the same work with a `Line`. The
+    count of the rows of the panel of T-309 reads those texts. **The run of
+    `cargo nextest run --run-ignored all` of this round saw one of them**:
+    the view of the statistics drew the title of the measurement as
+    `AlphaOMEGAEND`, because **a `Line` of ratatui gives an end of a line no
+    column at all** and the two words then join with no space. It came of a
+    test and not of the keys of the real program. **This is a candidate and
+    not a measurement.**
+  - **The title of the block of a list takes no such rule** (T-311):
+    `in_one_row(title, area.width)` of `render_the_list` cuts a title by
+    its columns and it says nothing of an end of a line, and a title of a
+    view can hold a text of the server — the name of an author of
+    `Search result [2 items, with the books of <the author>]`. `Line::raw`
+    of ratatui holds one line, and the road of a `\n` in it is unknown.
+    **This is a candidate and not a measurement.**
+  - **The marks of a line count the characters still** (T-305 to T-311):
+    `fill` of `src/ui/marks.rs:111` reads `mark.chars().count()`, and a
+    mark of the East Asian Width "Ambiguous" takes one column or two, and
+    the terminal decides. **The four marks of that file are constants of
+    this program** (`▶`, `✓`, `100`, and a percent of numbers), therefore
+    no text of the server reaches that count and the road of a measurement
+    of the real program stays unknown. **This is a candidate and not a
+    measurement.**
+  - **The two keys of `must_refresh` that say nothing at all** (T-308):
+    `show_the_books_of_the_author` (`src/app.rs:4251`) and
+    `apply_the_sequence_or_the_filter` (`src/app.rs:6161`) each change
+    every list of the screen and each say no word of what they did. The
+    rule of T-91 asks whether a key that changes the whole screen must name
+    the change. **This is a candidate and not a measurement.**
+  - **A text whose last line holds no character stands outside every gate
+    of a wrap of this fork** (T-310): the count of the rows of ratatui of
+    T-306, T-307, T-309, and T-310 reads the rows that hold a character. A
+    `Buffer` of a background of a colour of its own would say where such a
+    row stands. **This is a candidate and not a measurement.**
+  - **A word of a description that is longer than the panel takes the road
+    of ratatui that overflows the area** (T-306). That is a fault of the
+    crate and not of this program, and no count of this program says what
+    it does. **This is a candidate and not a measurement.**
+
+
+The block of the prompt below has a limit of size: `toutui-loop` sends it in
+one command, and a send of more than 131072 bytes fails. The item **A
+condition of the program that no measurement has reached** of that block
+therefore holds the three newest turns alone. The turns before them stand
+here, in the words that they had in that block, with the sweeps that each of
+them left open. **Read this section at the start of a round**: a condition
+that no measurement has reached stands in it.
+
+**The session of the fifty-fifth turn took the second paragraph of the same
+section: that paragraph named three views, and the sweep of the three found
+the fault in the first one** (T-226).
+
+The rule of T-66 was **dead** for a library of podcasts. `Chapter 00` and
+`Chapter 01` of `Arthur Gordon Pym` stood together on the shelf Continue
+Listening, the user pressed the key `N` on `Chapter 01`, and the program said
+`The media is away from Continue Listening now.` The server took the value,
+its shelf then held `Chapter 00` alone, the live message came, and **the
+screen kept `Home [13 items]` with both lines**. The same key on a book of
+the same run gave `Home [34 items]` and then `Home [33 items]`.
+- **A filter that a neighbour holds with a reason can travel to a function
+  that has no such reason** (T-226). `progress_of_the_user` of
+  `src/api/live.rs` keeps the rows of the books alone and its doc says why;
+  `the_media_away_from_continue_listening`, two functions below it, held the
+  same line and its doc said nothing. **Ask of every filter: does the doc of
+  it hold the reason, or does the doc of a neighbour hold it?**
+- **A road that an item names as "measured for a book alone" is a road, and
+  not a fault** (T-226). Of the three views of T-225, the queue held no
+  fault at all (`Entry::key` names the episode already), the chapters hold a
+  fault of the **words**, and the Home view held the fault of the work.
+  **The value of such a paragraph is the sweep, and not the first
+  candidate.**
+- **A correction of one half is worse than no correction at all** (T-226).
+  The filter of `src/api/live.rs` and the reader of `src/app.rs` had to move
+  together: a correction of the filter alone would have taken **every**
+  episode of the podcast off the shelf with one press. **Ask of a correction
+  of a list: which reader compares a value of that list, and does that
+  reader name one line?**
+- **The view of the chapters names the podcast alone** (T-226, and it stays
+  open). The header says `The chapters of "Arthur Gordon Pym"`, and the
+  sentence of T-162 says `The media "Arthur Gordon Pym" does not play now.`
+  **while the row of the player of that same second says
+  `Arthur Gordon Pym — Chapter 02` plays** (T-225). `the_title_of_the_row` of
+  `src/player/integrated/player_info.rs` holds the name that those sentences
+  need. **The episodes of the sandbox give 0 chapters**
+  (`POST /api/items/:id/play/:episode` answers `chapters: []`), therefore the
+  sentence of T-162 needs a podcast whose episodes hold chapters.
+- **`selected_item_id` of the Home view reads `_ids_cnt_list` alone**
+  (T-226, and it stays open): it gives the identity of the **podcast** for a
+  line that is one episode, and the keys `e` and `V` read it (T-222 and
+  T-223).
+- **The mark of a line of an episode comes from a different list** (T-226,
+  and it stays open): `progress_of_the_user` keeps the rows of the books
+  alone, and no measurement asked which list gives the percent of a line of
+  a library of podcasts and whether a live message reaches it.
+- **The key `X` of the view of the bookmarks of a podcast** removes a place
+  of another episode with the same words (T-223, T-224, T-225, and T-226
+  each left it open).
+
+**The session of the fifty-fourth turn took the first paragraph of the same
+section, and that paragraph named the row of the screen, the two episodes,
+and the reason** (T-225).
+
+The title of a playback of a podcast is the name of the **podcast**, and
+every episode of that podcast holds it. `Chapter 02` of `Arthur Gordon Pym`
+stood in the queue and the user played `Chapter 00`: the row of the player
+said `Arthur Gordon Pym by LibriVox | No chapter` with `▶ 1:28 / 5:05`, the
+queue then started `Chapter 02` **with no key of the user**, and the row said
+`Arthur Gordon Pym by LibriVox | No chapter` with `⏸ 0:9 / 38:56`. **The two
+rows hold the same name**, and the length was the one value that moved.
+- **A value that the server gives and that no line of `src/` reads is a
+  fault that waits** (T-225). `collect_info_item` held `displayTitle` at its
+  position 5, and no caller took it. **Ask of every value that a function of
+  `src/api/` collects: which line reads this position, and what does the
+  screen say without it?** That is the shape of `elapsed_time` of T-213 and
+  of `name_selected_lib` of T-218, in the other direction.
+- **A correction of the work of the program is no correction of the row that
+  shows it** (T-217, and T-225 again). T-224 stopped the key `b` of a second
+  episode, and the screen still said nothing of that episode.
+- **The one part of the screen that follows a media that the queue changes is
+  the row of the player** (T-225). Every list holds the line that the user
+  chose, and the queue moves the media under it with no key. **Ask of every
+  value that the queue changes: which row of the screen follows it?**
+- **The key `X` of the view of the bookmarks of a podcast** removes a place
+  of another episode with the same words (T-223, T-224, and T-225 each left
+  it open).
+- **The other views of a media that the queue changes** (T-225). **T-226
+  closed the Home view of T-160 and the view of the queue of T-161**, and
+  the view of the chapters of T-162 stays open for its words.
+- **The row of the player of an episode of a download is not measured**
+  (T-225, and it stays open): the offline mode gives no name of an episode,
+  and the row then holds the name of the row of the disk alone. **The row of
+  a download of an episode holds the name of that episode already**
+  (`the_plan_of_an_episode` of `src/logic/download/plan.rs`), therefore the
+  question is the name of the **podcast** of that row.
+- **A row of 80 columns holds little** (T-80 and T-225, and it stays open):
+  the name of the podcast and the name of the episode together can pass the
+  width of a narrow terminal, and the paragraph of that row holds no wrap.
+
+**The session of the fifty-third turn took the same road, and that paragraph
+named the condition, the guard, and the field of the correction** (T-224).
+
+The guard of T-163 asked "does the media of this view play now?" with the
+identity of the **item**, and every episode of one podcast holds the identity
+of that podcast (T-223). The user put `Chapter 02` of `Arthur Gordon Pym` in
+the queue, played `Chapter 01`, and pressed `V` at 5:06 of it; the queue then
+started `Chapter 02` **with no key of the user**, the guard passed, and the
+key `b` wrote a bookmark of the second 96 — a place of `Chapter 02` — with no
+word at all. The row of the player says `Arthur Gordon Pym by LibriVox` for
+both episodes, therefore **no part of the screen said that the episode
+changed**.
+- **A correction of one session is the measurement of the next one** (T-223
+  and T-224). T-223 gave the state of the player the field `episode_id` for
+  the key of the place, and the key `b` of that same view held the same fault
+  and it needed that same field. **Ask of every field that a correction adds:
+  which other key reads the value that this field replaces?**
+- **A guard of a state is a guard of the identity that it compares** (T-224).
+  **Ask of every comparison of an identity: how many media can that one value
+  name?**
+- **A refusal costs nothing when a key of the user gives the road back**
+  (T-224). The key `b` refuses and it names the key `V`; the key of the place
+  of T-223 keeps its work, because no key of the user can give the program
+  the episode of a bookmark. **Ask of a refusal: which key of the user makes
+  the condition go away?**
+- **The row of the player of an episode named the podcast alone** (T-224).
+  **T-225 closed it**: that row is the one place of the screen that could say
+  that the queue changed the episode, and it says the episode now.
+- **The key `X` of the view of the bookmarks of a podcast** removes a place of
+  another episode with the same words (T-223 and T-224, and it stays open).
+
+**The session of the fifty-second turn took the last paragraph of the newest
+item, and one request of `curl` answered the question of that paragraph**
+(T-223).
+
+**`POST /api/me/item/<the id of an episode>/bookmark` answers 404**, and a
+bookmark of Audiobookshelf holds `libraryItemId`, `time`, `title`, and
+`createdAt` alone: the places of every episode of one podcast stand in one
+list, and no field of them names an episode. The program said the opposite of
+that in three views. The key `V` of a line of the view of the episodes said
+"No media plays, and no media is selected." while the podcast held two places
+of the user; the key `V` of a line of the Home view of a library of podcasts
+opened `The bookmarks of "Chapter 02" [2 items]` above a place of
+`Chapter 05`; and the key of the place moved the playback of `Chapter 01`
+from 21:59 to the second 778 of `Chapter 02`.
+- **One identity can name more than one media** (T-223). Every episode of
+  one podcast holds the identity of that podcast, therefore
+  `state.item_id != bookmark.library_item_id` passed for the wrong episode.
+  The state of the player holds `episode_id` now. **Ask of every comparison
+  of `state.item_id`: does a podcast pass it for the wrong episode?**
+- **A rule of the server decides the rule of the program** (T-223). One
+  request of `curl` (the 404 of the path of an episode) gave the whole
+  decision, and no read of `src/` could give it. **Ask of a value of the
+  server: which path holds it, and what does the server answer for the other
+  path?**
+- **A function that the program cannot do must keep its work and name the
+  doubt** (T-223). A refusal of the key of the place would take the
+  bookmarks of every podcast away from the user. The user chooses the line,
+  and the words say what the program cannot know: that is the difference
+  from T-163, where the queue changed the media with **no key of the user**.
+- **The key `b` of the view of the bookmarks of a podcast was not measured**
+  (T-223). **T-224 closed it**: the guard of T-163 compared the identity of
+  the item, the queue started another episode of that same podcast with no
+  key of the user, and the key wrote a place of that other episode.
+- **The key `X` of a bookmark of a podcast removes a place of another
+  episode with the same words** (T-223, and it stays open), and **a line of
+  a bookmark names no episode at all**: the list holds the time and the name
+  of each place.
+
+**The session of the fifty-first turn took the same road, and that paragraph
+named two keys and one view** (T-222).
+
+The keys `e` of the reader and `V` of the bookmarks read `selected_item_id`,
+and that function gives the **first book** of a line of a series (T-91 and
+T-221) and the identity of the **podcast** of a line of a library of
+podcasts. The key `e` of the line `The Test Chronicles [3 books]` of the
+sandbox opened the reader of `The Test Chronicles Volume 1` with no word at
+all, and the key `V` of it opened the bookmarks of that same book. **And the
+Home view holds a line of a series too**: the shelf `recent-series` gives a
+`HomeRow::Series`, `the_line_of_no_media` of T-221 read `AppView::Library`
+alone, and the same line therefore said `This line holds no media.` in one
+view and `A series holds more than one book. Press l for its books.` in the
+other one.
+- **A correction of one session is a measurement of the next one** (T-221
+  and T-222). T-221 gave the words of a line of more than one media to the
+  Library view, and the Home view holds the same line. **Ask of a
+  correction: which other view of the program holds the line that it
+  names?**
+- **A sweep of one function of `src/` is cheaper than a sweep of one line of
+  code** (T-222). `grep -n 'selected_item_id()'` gave four callers, and two
+  of them held the fault: the fourth one is `the_line_of_no_media` itself,
+  and the first one wants the podcast that it gets. **Ask of a selector of a
+  line: which callers read it, and does each of them need one media?**
+- **A key that reads the state of the player is no key of this shape**
+  (T-222). The keys `b`, `F`, and `s` read `self.player.state()` or
+  `self.is_podcast` alone, therefore a line of more than one media reaches
+  none of them: the sweep of the keys of such a line is closed.
+- **A window of a number of characters is a test of the comments of a
+  function** (T-222, and it stays open). The words of the correction of this
+  item took one line out of a window of 1500 characters of
+  `tests/the_view_of_the_bookmarks_holds_its_media.rs`, and the gate then
+  said that the view holds no name. **Ten windows of that shape stand in eight files of
+  `tests/`**, and each of them can fail for a comment.
+- **The bookmarks of an episode of a podcast were not measured** (T-219 and
+  T-222). **T-223 closed that road**: the bookmarks of an episode are the
+  bookmarks of its podcast.
+- **A line of a shelf of the Home view can hold an author** (T-222, and it
+  stays open): the shelf `newest-authors` gives an entity with no media and
+  no book, and `group_home` drops it. A session that gives the authors a
+  line makes a third line of more than one media.
+
+**The session of the fiftieth turn took the same road**: a podcast of the
+Library view and of the view of the search holds its episodes (T-126), and a
+line of the Library view holds every book of one series (T-22). The keys `D`
+and `X` of such a line wrote **no word of the screen and no line of the log**
+(T-79), and the keys `M` and `N` of a line of a **series of a library of
+books** said "A podcast holds no place. Press l for its episodes." — the
+correction of T-219 read `selected_item_id().is_some()`, and
+`selected_library_item` gives the first book of a line of a series (T-91).
+- **A test of a state must name that state, and not a value that follows
+  it** (T-221). The predicate of a podcast is the view and the media type of
+  the library, and the identity of an item is a value that a book of a series
+  holds too.
+
+**The session of the forty-ninth turn took the same road**: the keys `M` and
+`N` of an episode of a podcast asked for the address of the place of the
+**podcast** (T-219), and a test of the gate of that session failed one run of
+thirteen because a host of a raw socket kept the body of a request in its
+socket (T-220). **No test of the fork holds a rule of a host of a raw
+socket**, and thirteen files hold thirteen copies of the same twenty lines.
+
+**The session of the forty-eighth turn took a trap of this file that four sessions carried with
+no item** (T-218): the trap 188 said that the keys `X` and `D` of a book of a
+series of the view of a search do nothing at all, and it named one cause of
+two. **A trap of this file can be an item that waits**, and the traps hold
+conditions of the program and not of the harness alone.
+
+The view of the search holds the identity, the title, the author, and the
+length of each of its lines already (T-113 and T-117), and one arm of
+`selected_download` asked `ids_library` for the place of that media: a book of
+a page that the program did not read (500 items of 2056, T-70) and a book of a
+series that `&collapseseries=1` groups each stand in no row of it. The keys `D`
+and `X` of such a line wrote **no word and no line of the log**, the key `n`
+said "This line holds no media.", and the key `m` said "This line holds no book
+and no episode." **The key `l` of that same line played the book.**
+- **A view that holds a list of its own must read that list** (T-218). **Ask
+  of every key of a view: which list does it read, and does that list belong
+  to this view or to another one?**
+- **A key of the user that does nothing at all reaches no line of the log**
+  (T-218), therefore no sweep of the words and no sweep of the log finds it:
+  the measurement of such a key is the key itself, inside tmux, on a media of
+  the condition.
+- **The `?` of one value of an arm gives the whole answer of that arm away**
+  (T-218). `Option` and `?` are the road of "this view holds no media", and a
+  value that the arm does not need must not stand on it.
+- **The other keys of the view of the search are not measured against a media
+  of a row that the library does not hold** (T-218, and it stays open): the
+  key `b` of a bookmark, the key `e` of the reader, and the key `s` of the
+  series of that media.
+- **The row of the account holds the name of one library and the id of
+  another** (T-218, and it stays open): `update_id_selected_lib` writes the id
+  alone, and no line of `src/` reads `name_selected_lib`. That is the shape of
+  `elapsed_time` of T-213.
+
+**The session of the forty-seventh turn took the last paragraph of the newest
+item, and then the last paragraph of its own item** (T-216 and T-217): a
+correction closes one road of a fault and not the fault (the rule of T-196),
+and a correction of the work of the program is no correction of the line of the
+screen. **The cheapest item of a session can come of the item of that same
+session.**
+
+`the_files_that_stand_on_the_disk` asked "does the path stand?" (T-215), and a
+file that lost its bytes stands: one `truncate` of one file of
+`Multi File Test Book` of the sandbox gave a playback of 50 seconds of a book
+of 60 with no word at all, and the program then told the **server** that the
+user finished that book (T-216). The line of that same media said
+`[Downloaded]` while the log of the same second said "0 of 3 track(s) from the
+disk" (T-217).
+- **A row of the disk that names a thing of the disk holds more than one
+  question** (T-216). "Does the path stand?" is the first one, and "does that
+  thing hold what the row says?" is the second. The row of a file holds the
+  size of the file of the server (T-181), and the program writes a file of a
+  download whole or it writes no file at all (T-186). **Ask of every row of
+  the disk: which value of the thing that it names can I compare?**
+- **A correction of the work of the program is no correction of the words of
+  the screen** (T-217). **Ask of every correction: which line of the screen
+  reads the value that this correction changed?**
+- **A default of a value that the server did not give must stay a default**
+  (T-179 and T-216): a size of 0 keeps its file, because a check of a value
+  that the program does not have takes the disk of the user away.
+- **The bytes of a file that keeps its size are not measured** (T-216, and it
+  stays open). A sum of the bytes of every file at each playback is a read of
+  the whole disk, therefore that question needs a measurement of the cost
+  before a correction.
+- **The label of a media that a second program of the account downloads now
+  is the label of a copy that is not whole** (T-217, and it stays open): the
+  `.part` of that download holds fewer bytes than the row, and the question is
+  whether that line belongs to the bar of the downloads.
+- **The offline playback of a media whose copy of the disk is not whole plays
+  nothing** (T-215, and it stays open). The sentence of it is true, and the
+  user hears no second of the files that stand.
+
+**The session of the forty-sixth turn** took the same road before it (T-214
+and T-215): a function of two statements of two tables is a function of two
+halves, and a row of the files of a download names a file of the disk that
+goes away outside this program.
+
+`delete_download` held no transaction (T-214), therefore a disk that refused
+the removal of the rows of the files of a download kept the row of its media
+away and the rows of its files on the disk. The key `X` again then said that
+the media holds no local copy, and every playback of it took the road of the
+disk for a file that went away.
+- **A trigger of SQLite fails one statement of one function** (T-214). The
+  `chmod 444` of T-206 and the lock of T-199 stop every statement of a
+  function together, and the `ALTER TABLE` of T-203 takes the table away from
+  every function of the program. **Ask of every function of the database: how
+  many statements does it hold, and do they stand in one transaction?**
+- **A read that decides the work of a key reads one table of the two**
+  (T-214). `remove_download` reads the row of `downloads` to find its work,
+  therefore a half state of the two tables made the key `X` say that the media
+  holds nothing while the row of its file stood on the disk for ever.
+- **A row of the disk that names a thing of the disk is a value of two
+  machines** (T-214 and T-215). `select_sources` read `download_files` and it
+  asked no file system, and `play_offline` compared the files of the book with
+  the rows of that same table: a book of three files whose second file went
+  away played 20 seconds of 60 with no word at all, and the offline mode of it
+  played nothing and said that the media plays from the disk. **The disk
+  answers at the moment of the use** (T-142), and one `mv` of one file is the
+  whole condition. **Ask of every row of the disk: which thing of the machine
+  does this row name, and does that thing still stand?**
+- **A file of a download that changed is not a file that went away** (T-215,
+  and T-216 closed it for the size of the row).
+- **The label `[Downloaded]` of a media whose copy of the disk is not whole
+  said nothing of that** (T-215, and T-217 closed it): the box of the copies
+  of the disk asks the file system now, and it stands outside the render.
+- **A rollback is a write** (T-207 and T-214). The rollback of the rows of a
+  download held `let _ =`: a disk that refused it left a media of the offline
+  mode with the label `[Downloaded]` and no file of the disk at all, with no
+  word for the user and no line of the log.
+- **The write of the rows of a download is no transaction** (T-214, and it
+  stays open). `the_rows_of_the_download` writes the row of the media, then one
+  row of each file, then the removal of the rows of the files that the book no
+  longer holds (T-187), and each of them stands on a connection of its own:
+  the question is whether a book of many files can leave a half state that the
+  rollback does not reach.
+- **The key `X` and the key `D` of a book of a series of the view of a search
+  do nothing at all** (the trap 188). **T-218 closed it**, and the series is
+  one cause of two: the page of the library is the other one.
+- **The session of the forty-fifth turn found that a column of one row of the
+  disk is a condition of its own** (T-213): the loop of a playback wrote the mark of the end of a media with
+`let _ =`, and a disk that refused that one write gave the next program of the
+account a book that the user finished and that the row of it says is not
+finished.
+- **A condition of two halves needs a harness that takes one half away, and a
+  row of the disk holds more than two** (T-213). The `chmod 444` of T-206 and
+  the lock of T-199 each stop **every** write of a row together, and the
+  `ALTER TABLE` of T-203 and of T-212 takes a whole **table** away: a trigger
+  `BEFORE UPDATE OF <the column>` fails one write of one row, and every other
+  read and write of the program answers. **Ask of a row of the disk: which
+  writes fill it, and can I take one of them alone?**
+- **A fault of the user needs the rule of the machine that the value reaches**
+  (T-213). The first form of that measurement lost the mark of the end of a
+  book, and the sandbox marked that book finished by its own arithmetic: the
+  log of the server says the rule — `Marking media progress as finished
+  because time remaining (5) is less than 10 seconds` — therefore the
+  measurement needed a media that the engine finishes **more** than ten
+  seconds before the length of the server (the section 6j of
+  `docs/TEST-SERVER.md`). **A measurement that the other machine forgives is
+  no measurement of the fault.**
+- **A value of the disk that this program holds in its memory too is a value
+  of two roads** (T-213). `close_and_report` reads the mark of the **memory**,
+  therefore a server that took the place took the correct mark with it and the
+  row went away with the fault inside it: the fault of the row reaches the
+  user only through the **next** program of the account. **Ask of a value of
+  the disk: which program reads it, and does this program need the disk to
+  read it at all?**
+- **The mark of the end of an offline playback needs no measurement of the
+  loop** (T-213, and T-214 read it in the source). The loop of
+  `follow_playback_offline` writes `pending_progress` at each second with the
+  mark of that second, **and it writes the mark of the end at the stop of the
+  playback**: the `remember_progress` of its last block gives `finished` of the
+  engine, and the caller reads the answer of that write (T-212). **What stays
+  open is the place of that mark while the program lives**: an offline playback
+  opens no session of the server, therefore a program that dies at the second
+  of the end writes the mark of the second before it.
+- **A column that the program writes and that no line of `src/` reads is a
+  question of its own** (T-213, and it stays open). `update_elapsed_time`
+  writes `elapsed_time` of `listening_session` at each sync, and no line
+  outside the module of the database reads it. That is the rule of T-201 in the
+  other direction.
+- **The removals of the rows of a download hold their own item now** (T-214),
+  and the writes of them stay open.
+- The session before it took the other half of the shape of T-211: **a call of
+  the database that stands after a request of the server that failed** (T-212).
+  A place that reached no machine went away with the row that held it, and the
+  box of T-207 said that the server holds a place that the server refused.
+- **The session of the thirty-eighth turn took the road that the newest item
+  left open, and it found that the condition of that road needs no harness of
+  its own** (T-206):
+a disk that the program **reads** and that takes **no write** made three keys
+of the user say the work that the program did not do.
+- **A condition of two halves needs a harness that takes one half away**
+  (T-206). The lock of `hold_the_lock.py` and a file that holds no database
+  each stop the read and the write **together**, therefore each of them hid
+  every road where the read answers and the write alone fails. `chmod 444` of
+  the file of the database is that harness, and it is one command. **Ask of a
+  resource of the program: which two things does my condition take away at
+  one time, and can I take one of them alone?**
+- **A caller that reads no answer of its write says the work that it did not
+  do** (T-206). The key `n` said `"…" is number 1 of the queue. Press q to
+  see the queue.` and the disk held **0** rows; the key `q` of that same
+  sentence then said that the queue is empty. **The program contradicted
+  itself in two seconds.** The key `X` of the view of the queue held the
+  other direction: the line went out of the view, the disk kept the media,
+  and the next read of the disk brought it back.
+- **A key that reads the row that it wrote gives the value of before**
+  (T-206). The keys `O` and `I` of the speed gave the answer of
+  `update_speed_rate` to nobody and they read that same row after it: the
+  engine took the speed of before, the screen said **nothing at all**, and
+  the log held **no line**. That is T-79 and T-174 together, and **no sweep
+  of the words for the user finds it**: the words of that key did not exist.
+  **Ask of every key: which value does it read after its write, and which
+  part of the program holds the truth of that value?**
+- **The other keys that write the disk are not measured against that
+  condition** (T-206, and it stays open): `update_is_playback` of the key of
+  the pause, `update_is_loop_break`, `update_has_played_before`,
+  `delete_the_session_of_a_playback`, and `update_download_current_time`.
+  **The question of each of them is the question of T-201**: which part of
+  the screen reads that row, and which program of the account reads it after
+  this one dies.
+- **The reads of the disk whose default is a fact of the user stay open**,
+  and the condition of T-206 reaches none of them: a disk that takes no write
+  answers every read. `get_speed_rate` gives the string
+  `Error: unable open database`, and `.parse().unwrap_or(1.0)` of its five
+  callers then gives the user the speed 1.00x with no word — **two of those
+  five stand at the start of every playback**. `get_library_sort` and
+  `get_is_show_key_bindings` hold the same shape. **The road to that
+  condition is the statement that fails of T-203**, because
+  `hold_the_lock.py` reaches no read of the start since T-199 (the trap 161).
+- **The session of the thirty-seventh turn swept the first two questions of
+  T-204 and it found that a key of the user took the whole program away**
+  (T-205): the key `R` stands in the footer of every view, the refresh makes
+  a new `App`, and the read of the accounts of that `App` met the database of
+  a second Toutui of the account. **A refresh is not a start**, and the
+  program said `Toutui changed nothing` while the account, the token, every
+  list, the queue, and the playback of the user went away with it.
+- **A correction of a caller is no correction while the callee lies**
+  (T-205, and T-200 before it). `update_library_sort` and `save_the_queue`
+  answered `Ok(())` for a connection that they did not get, and no sentence
+  of a key could reach that fault.
+- **A key of the user that touches the disk still stops the loop of the
+  screen for five seconds under the lock**, and the row of the message says
+  nothing while it waits (T-204, T-205, and T-206 each measured it and left
+  it open). The answer of `handle_key` needs `&mut App` on the thread of the
+  screen, therefore the work of the disk of a key belongs to a task of its
+  own, as the key `D` holds one already. **The question is which keys can
+  give their work to a task, and what the row of the message says at the
+  moment of the press.** The keys that a measurement reached are `X`, `B`,
+  `n`, Shift-Tab, and the key Enter of the sequence.
+- **A freeze that is longer than the busy timeout of five seconds is not the
+  render** (T-204). `strace -f -tt` of the program inside tmux says which
+  thread holds the lock, and **the answer was the driver of the runtime**: the
+  three writes of one second of the loop of the playback took it for 15
+  seconds, and the row of the player, the timer for sleep, and every key of
+  the user stopped. **Ask of every call of the database: which thread does it
+  stand on, and what waits for that thread?** The sweep of that question is
+  open: the login, the sync of a session, and the tasks of the downloads still
+  call the database on a thread of the runtime.
+- **A key of the user that writes the disk waits for that disk on the thread
+  of the screen** (T-204, and it stays open). The key `B` took five seconds,
+  and its sentence came after them: the question is whether the loop can draw
+  a frame while a key of the user waits for the database, and what the row of
+  the message says while it waits.
+- **A read of the disk that stands inside the render is a fact of the user at
+  each frame** (T-204). The row of the keys of the player went away while the
+  user turned nothing off. **A box of the process, and the disk at the moments
+  that the program needs it** (T-142), is the road; every road that **removes**
+  a file of the user keeps its own read at the moment of the use (T-203).
+- **A read of a file of the config stands inside the render too** (T-204). The
+  `strace` of that item shows `config.toml` read at every frame. A disk that
+  answers in 300 microseconds is no fault of the user today, and a disk that
+  does not answer is another condition.
+- **The session of the thirty-fifth turn took the last paragraph of the newest
+  item and it made one item of it** (T-203): T-202 named the reads of the
+  downloads, and the key `X` of a program that could not read its database
+  removed the files of a book that a second program of the account played from
+  the disk.
+- **A read of the disk that decides a removal must fail toward the disk of the
+  user** (T-203). `false` of `a_program_keeps_the_place_of_this_media`, `None`
+  of a row, and an empty list of the files each said "the user holds nothing
+  here", and the key then took the files of the user. **Ask of a read of the
+  disk: which road does the default of it take, and does that road destroy a
+  thing of the user?**
+- **A correction of a session closes a road of a measurement too** (T-203).
+  `hold_the_lock.py` reaches no read of the start now, because the correction
+  of T-199 stops the program there: a read of the start needs a statement that
+  fails. **A harness of a session can go away with the correction of the
+  session before it.**
+- **A read of the disk that stands inside the render is a read of every
+  frame** (T-203). The label `[Downloaded]` of six views comes of
+  `get_download`, therefore a fault of it wrote a line of the log at every
+  frame in the first form of the correction, and the read holds the thread of
+  the screen: the sentence of the key `X` never reached the user. **That is the
+  shape of T-185 for the disk, and it is the question of the next session:
+  which reads of the disk stand inside the render, and what does a state of the
+  `App` hold in their place?**
+- **The reads of the disk whose default is a fact of the user and that no
+  measurement has reached**: `get_library_sort` (the sequence and the filter of
+  the library of the user), `get_is_show_key_bindings`, `get_speed_rate` (each
+  of them gives the string `Error: unable open database`, the other half of the
+  sweep of T-200), and the reads of the account that give an empty text. **The
+session of the thirty-fourth turn took the sweep of one line of code that
+T-198 named, and it read that line in the other direction: the disk, and not
+a body of the server** (T-199). It found one fault of three roads.
+- **The sweep of one line of code has two directions** (T-199). T-198 asked
+  which function reads a **body of the server**; the other direction is the
+  **disk**. `grep` of `let _ = `, of `if let Ok(`, and of
+  `.unwrap_or_default()` beside a call of the database gave six lines of
+  `src/`, and three of them held the account. **The question of that sweep
+  is: which fact of the user does the program read out of a fault of its own
+  disk?** The other writes of the disk of that shape stay open — the
+  sequence, the speed, the key bindings, the rows of a session, the queue,
+  and the downloads.
+- **A condition of the fork can need no harness of Python at all** (T-199).
+  Every session since T-169 wrote a proxy for its condition. This one needed
+  six lines of `sqlite3` with `BEGIN EXCLUSIVE`
+  (`docs/harness/hold_the_lock.py`), because **rusqlite holds a busy timeout
+  of five seconds** and the fork holds the condition of two programs of one
+  account already (T-140). **Ask of a condition: does the program hold a
+  resource that a second program of the machine can take?**
+- **A comment of a file can name the rule that the line under it does not
+  hold** (T-199). `auth_process.rs` holds "**A login that keeps no token is a
+  login that failed**" in the paragraph above the write of the row, and that
+  write was `let _ =`. **The neighbour of a corrected line is the next place
+  to read**, and that is the rule of T-185 for a comment that names a
+  decision.
+- **A word for the user that the database carries cannot name a fault of the
+  database** (T-199). `update_login_err` writes the row of the message of the
+  login screen **in the database**. The correction works because the lock
+  goes away before the next frame of that screen; a lock that never goes away
+  leaves that screen with no word, and the log holds the fault. **Ask of
+  every word for the user: which part of the program carries it, and can the
+  fault take that part away?**
+- **The words of a program that stops belong to the thing that failed**
+  (T-199). The words of T-172 name the lists of the **server**, and a program
+  that did not read its own database must not say that (T-91). The fault of
+  the database holds a type of its own now
+  (`crate::db::TheAccountsDidNotCome`), and
+  `the_words_of_a_program_that_stops` reads it.
+- **A read of the disk that failed takes no word for the user, and a write
+  that failed takes one** (T-199). The read after every key runs with no key
+  of the user behind it and it holds no view of its own, therefore it takes a
+  line of the log (T-177); the login is a key of the user, therefore its
+  fault takes a sentence. **The question is whether a key of the user waits
+  for the answer.**
+- **A shape that an old item named and that no session reached is an item
+  that waits** (T-197). T-174 wrote "a panic of a thread while a view of the
+  application stands" in the road of eight sessions, and no one of them made
+  such a panic: **the condition needs a build of its own, and no server and
+  no key can make it.** One `panic!` in the loop of the playback gave the
+  whole fault in one run.
+- **A piece of the program that reacts to a fault is written for one
+  thread** (T-197). The hook of the panic gives the terminal back and it
+  calls the hook before it, and that is the work of the main thread; a
+  thread of a task then leaves a program that lives with a terminal of a
+  shell. **Ask of every such piece: which thread does this run on, and what
+  stands after it?**
+- **A sweep of one line of code over the whole of `src/` is the cheapest
+  sweep of a session, and the question of it comes of the item before it**
+  (T-198). T-196 asked which function reads a body; `grep` of `.chunk()`
+  and of `while let Ok(Some` gave four, and one of them held the fault.
+  **`while let Ok(...)` of a read of a network is the line to look for**: it
+  reads a fault as the end of the data.
+- **A word for the user that a second writer covers is no word at all**
+  (T-197). The panic wrote to the terminal, and the render drew over it at
+  the next frame. **A word of a fault that must live longer than one frame
+  belongs in the log too.**
+- **A harness that found a fault once is a question for every part of the
+  program that reads the same kind of answer** (T-196).
+  `a_body_that_ends_early_and_looks_whole.py` came of T-193 for the file of
+  the audio, and one word of its command line gave the ebook: the same
+  fault, another reader. **Ask of a new harness: which other function of
+  this program reads a body?**
+- **A correction of a fault of the user closes one road of it, and not the
+  fault** (T-196). T-186 measured a head that **names** `Content-Length`,
+  and `reqwest` then gives the fault of an incomplete message; a head that
+  names no length at all gave the same file of a part with the same name of
+  a whole book. **Read what the measurement of an old item held**, and not
+  the words of its decision (T-191).
+- **The truth of a length can stand in another answer** (T-196).
+  `metadata.size` of `GET /api/items/:id` is that number for the ebook, and
+  it is the field of T-179. **A request of the truth stands before the
+  work**, and not after it: a `.part` file that takes the name of a whole
+  book and loses it again breaks the rule of T-186 for the time of two
+  statements.
+- **A condition that an item names as open is an item of its own** (T-195).
+  T-194 wrote "a part that holds no audio still goes away with no word, and
+  no measurement made such a part", and that sentence was the whole of the
+  session after it: one harness, one measurement, and the same fault of the
+  user. **Read the last paragraph of the newest item before anything else.**
+- **A line of the log that says a fault and goes on is the shape to look
+  for** (T-195). `warn!` and `continue` stood in one arm of the loop of the
+  parts. **A line of the log is the word of a fault that belongs to no line
+  of a view** (T-177 and up), and that rule is not a rule for a condition
+  that changes what the program tells the **server**. Ask of every
+  `continue` of a loop of the audio: what does the program write when this
+  loop ends?
+- **A road of a reader that no test walks is a road of a fault** (T-195).
+  `HlsFile::open` reads the first part and the thread of the buffer reads the
+  rest, therefore **one condition holds two roads** and the correction of one
+  is not the correction of the other: the open gave a reader of no byte at
+  all, and such a reader says `finished` at its first read.
+- **A harness of a fault must not hold a fault of another item** (T-195). The
+  two harnesses of a body cut a body, and the rule of T-194 holds a body that
+  stopped already: a measurement of a part with no audio therefore needs a
+  **whole** body that holds no audio.
+- **A correction of one road of the audio is not a correction of the audio**
+  (T-194). T-193 gave `HttpFile` the truth of its length (`Content-Range`)
+  and `HlsFile` the truth of its playlist (`#EXT-X-ENDLIST`), and **the
+  parts of that playlist kept the fault**: a part that did not come stopped
+  the thread of the buffer, that thread said `finished`, and `position_now`
+  then gave the end of the **whole** media. **A shape that a measurement
+  found in one reader belongs to every reader of the same shape.**
+- **The truth of a length can stand in the container** (T-194). A part of a
+  stream names a **time** and no number of bytes, therefore the playlist
+  gives no length of it; a transport stream holds packets of 188 bytes and
+  nothing else, therefore a body whose length is no multiple of 188 is a
+  body that stopped. **`chunks_exact` of a form that frames itself is the
+  line to read**: it drops the piece that a body cut, and it gives no fault.
+- **A `return` of a fault inside a loop of attempts takes no attempt at
+  all** (T-194). `ask_for_the_bytes_with_a_limit` holds twenty attempts, and
+  the read of the body stood in the `return` of the last line of that loop:
+  a part that answered 404 took twenty requests, and a part whose body
+  stopped took one.
+- **The end of a reader is not the end of the media** (T-194).
+  `position_now` gives `end_of_the_first` at the end of the tracks, and that
+  rule comes of T-2, T-16, T-48, and T-55 — **each of those items measured a
+  file**. A stream of the server is one track of the whole media. **A rule
+  that a measurement of a file made is a rule to measure again for a media
+  of one track.**
+- **A fault of a body has two roads, and one harness held one of them**
+  (T-193). `a_body_that_stops_in_the_middle.py` keeps `Content-Length`, and
+  `reqwest` then gives the fault of an incomplete message: the program reads
+  a fault, and it can say it. **A body with no `Content-Length` and no
+  `Transfer-Encoding` ends at the close of the connection**, and the client
+  reads a **clean** end of it: no fault of the network, no fault of a
+  status, and fewer bytes than the file holds. `fill_buffer` of `HttpFile`
+  held that close as the end of the file. **The question of a body is which
+  value the program holds as the truth of the length**: `HttpFile::open`
+  reads `Content-Range`, and it never gave that size to the thread that
+  reads. **A program that holds the truth of a length in one function and
+  reads the body in another one is the shape to look for.**
+- **A value that the program sends to the server outlives the program that
+  sent it** (T-193). A book that stops is a book that the user starts again;
+  this program told the **server** that the user finished a book of 30
+  minutes after five seconds of it, and every client of that account then
+  held the book as read. **A fault of the user that reaches the server is
+  worth more than a fault of the user that stands on the screen.**
+- **The sweep of the rows of a list is closed for the answers of the server**
+  (T-190, T-191, and T-192). A sweep of every structure of `src/` that serde
+  reads gives three fields of an answer with no default and no `Option` now,
+  and no one of them stands in a row of a list: `live::Handshake.sid`,
+  `auth_process::UserInfo.token`, and
+  `get_media_progress::Root.library_item_id`. **The question of that sweep
+  was: which value of one row does the whole answer need, and what does a key
+  of the program send to the server?**
+- **A default of an address is worse than a default of a number** (T-192). A
+  size of 0, a length of 0, and a moment of 0 give a wrong line or a wrong
+  place; **an address of no character gives a request of no address**, and the
+  server answers the true `404` of a path that the program made
+  (`/api/collections//book`). **No fault of a decode names it, and no view can
+  name it**: the sentence of the program said that the server does not hold
+  the media of the user, and the media was correct.
+  **`unwrap_or_default()` of an `Option<String>` that a path holds is the
+  line to read.**
+- **A name is not an address** (T-190, T-191, and T-192). A name that the
+  server did not give takes the id of the row, and an id that the server did
+  not give takes no line at all. Ask of every value of a row: **does a key of
+  the program send this value to the server?**
+- **A decision of an old item stands only for the measurement of that item**
+  (T-191). T-176 decided that "a body that holds no name is not the answer of
+  this endpoint", and it measured a body of **one** library; T-191 measured a
+  list of five, and that decision then stopped the whole program. **Read what
+  the measurement of an old item held**, and not the words of its decision
+  alone.
+- **A default of a read of the disk is a fact of the user** (T-202). The
+  sweep of T-177 to T-192 asked which **value** a default gives; the sweep of
+  the disk asks which **fact** it gives: an empty list is "the user holds none
+  of these", and `None` is "the account stands in no row". **A read that
+  failed and that a write follows is the shape to look for**: every change of
+  the queue reads the disk and writes it again (T-147), therefore a read that
+  gave no media writes no media over the media of every program of the
+  account. **The reads of that shape that no measurement has reached**:
+  `get_all_downloads` (the offline mode of T-25 then says that the user holds
+  no media), `a_program_keeps_the_place_of_this_media` (the key `X` then takes
+  the files of a media that a program of this account plays, T-156),
+  `get_download` with its two neighbours, and `get_pending_progress` with
+  `count_pending_progress`.
+- **A word of a key that meets the database does not reach the user while a
+  second program holds it** (T-202). A message lives six seconds, and a key
+  that holds more than one call of the database waits five seconds for each of
+  them: the frame of the render then comes after those six seconds. **The
+  words of a correction of that condition reach the log alone.**
+- **A value that two parts of the program read holds two faults of the
+  user** (T-201). The row of `listening_session` holds the place of a program
+  that dies (T-140, T-145, and T-152) **and** the line of the player of the
+  screen: a write that failed took the place of the whole playback and every
+  word of the media of the screen. **Ask of a value of the disk: which part
+  of the screen reads it?** The rule of T-182 stands for a value of the disk
+  too, and a program that opened a session of the server and that plays
+  nothing closes that session. **A request that follows a wait of more than
+  five seconds meets a connection of the pool that the server closed**, and a
+  request of `Idempotent::No` takes one attempt: that condition stays open.
+- **A correction of a caller is no correction while the callee lies**
+  (T-200). T-199 corrected three callers of the database, and the sweep that
+  it left open went one level lower: 21 functions of `src/db/crud.rs` held
+  `Ok(...)` after an `else` that said nothing, therefore no correction of a
+  caller can reach them. **Ask of every correction: does the function that
+  this caller reads tell the truth?** The callers of those 21 functions are
+  not measured one by one, and **the place of a playback
+  (`update_current_time`) and the row that waits
+  (`insert_pending_progress`) hold the greatest weight**. **A read of the
+  database that gives a default is the other half of that sweep**:
+  `get_is_show_key_bindings` gives the string `Error: unable open database`.
+- **A module of the disk must write no word for the user** (T-200). "Error
+  connecting to the database." stood in the row of the message of **every**
+  view, and it named no key and no work: a message belongs to the view that
+  acted (T-164), and a fault with no view takes a line of the log (T-177).
+- **Rows that hold one thing come together** (T-200). A download holds three
+  writes, and a row of `downloads` with no row of a file gives an offline
+  playback of a book of one file (T-181 and T-187): the rows go away at the
+  first fault, the key `D` writes each of them again, and the files of the
+  disk stay because the key `X` reaches them (T-186).
+- **The sweep of a fault of the disk is closed for the account** (T-199),
+  and it is a different sweep from the one of T-186 to T-189: that one asked
+  which **value** of the server a table keeps, and this one asks what the
+  program does when the database itself says nothing. **A key of the program
+  takes five seconds for each call of the database while a second program
+  holds it, and no row of the screen says that the program waits**: that
+  condition stays open, and the busy timeout of five seconds of rusqlite
+  belongs to no measurement yet.
+- **The sweep of the values of the disk is closed** (T-186 to T-189). The
+  five tables that keep a value of the server each hold their rule now:
+  `download_files` (T-187), `downloads` (T-148, T-150), `queue` (T-147),
+  `listening_session` (T-140, T-145, T-189), and `pending_progress` (T-152,
+  T-188, T-189). **The question of a sweep of that shape was: which value of
+  the server does this table keep, which rule takes a row of it away, and
+  what does the program do with a row that the server no longer holds.**
+- **The place of the user stands between two machines, and T-188 and T-189
+  hold the two questions of such a value.** A read that decides a write is
+  the shape of T-175, and **it stands outside the keys too**: the flush of
+  the positions is no key of the user. **Which faults mean "never"?** The
+  fault of the request (400) and the media that went away (404); every other
+  fault can pass, therefore the value waits. **Where does the value stand
+  while it waits?** A value that leaves one table must reach another one
+  **before** that removal: the removal of the row of a session stands in the
+  same function as the write of it.
+- **The three shapes that found a fault before:** **a state of one process
+  that a second program cannot see** (T-142, T-147, T-148, T-150, T-153 to
+  T-167), **a program that dies in the middle of work** (T-145, T-152), and
+  **a server that does not answer, that answers with a fault, or that
+  answers with another body** (T-146, T-149, T-152, T-156, T-167 to T-178,
+  T-188, T-189). **A fourth shape came of T-175**: a key that **reads** a
+  state of the server and that then writes it. **That shape is closed for
+  the keys** (T-178) and **for the flush of the positions** (T-188). **A
+  fifth shape came of T-177**: an answer of a server of another version,
+  which holds one field fewer. **That shape is closed for the rows of a
+  list** (T-190, T-191, and T-192). **The question of that shape is the
+  question
+  of T-179, of T-180, and of T-188**: a field that the program reads with a
+  **default** gives no fault of a decode, and the program then **uses** that
+  default — `unwrap_or(0)`, `unwrap_or(0.0)`, and **every field of
+  `#[serde(default)]` of a number** are the lines to read of every such
+  answer. Six of them held a fault of the user: a size of 0 threw a whole
+  download away (T-179), a length of 0 threw the place of the user away
+  (T-180), the two fields that **name** a file threw a file of the book away
+  (T-181), a place of 0 that the server did not give started a book at its
+  first second (T-182), and **a moment of 0 of `lastUpdate` threw the place
+  of the user of the server away** (T-188). **A default of 0 that the program
+  gives back to the server is worse than a default of 0 that it keeps.**
+- **A path of an answer that holds an id needs the id of the row** (T-188).
+  The place of an episode of a podcast stands at
+  `/api/me/progress/:item/:episode` (T-182), and the flush asked for the path
+  of the item: **Audiobookshelf answers that path with the place of one
+  episode of that podcast**, therefore the program read the status 200 and
+  the moment of another media. **A wrong path that answers is worse than a
+  wrong path that fails**, and no fault of a decode names it.
+- **The parts of the program that a server of a fault has not reached**: the
+  keys `F`, `b`, `n`, `m`, `r`, `D`, and `X`. **The stream of the audio is
+  closed**: the file of a book (T-193), the playlist of HLS (T-193), the
+  parts of that playlist (T-194), and a part that holds no audio (T-195).
+  **The reader of the stream holds no condition that a measurement did not
+  reach.** **The ebook of the reader is closed for the three roads of a
+  body**: a status of a fault (T-52), a body that stops with a head that
+  names its length (T-186), and a body that ends early and that looks whole
+  (T-196). **The shape of T-174 is closed for a panic of a thread**
+  (T-197): the program stops, and the user reads the fault. **A thread that
+  comes to its end with no panic is another condition**, and no loop of the
+  program holds such a road today. **The sweep of a body that stopped is
+  closed for `src/`** (T-198): the four functions that read a body each name
+  the fault of a part now, and the cover held the last of them. **A body
+  that ends early and that looks whole needs a truth of its length**, and
+  the cover and the file of a new version hold none: no answer of the server
+  names those two sizes, therefore a program that reads such a body can name
+  nothing.
+  **The keys `M`, `N`, and `e` are
+  closed** (T-175 and T-178), **the first request of the program is closed**
+  (T-172), **the flush of the positions of the disk is closed** (T-188 and
+  T-189), and **the login screen is closed for the status of `POST /login`
+  (T-92), for a server that gives no library (T-173), and for a body of the
+  libraries that the program cannot read (T-176)**. **The send of an ebook to
+  an e-reader is closed** (T-183). **The read of the source of that same file
+  found no fault of the words, and the measurement found two faults**: a road
+  that looks safe in the source can hold a value that no answer gave, and a
+  read is not a measurement.
+- **The shape of T-177 is the answer of a server of another version**, and
+  **no structure of `src/api/` asks for a field that the program does not
+  read now**: `get_all_books.rs`, `sessions.rs`, `bookmarks.rs`,
+  `get_authors.rs`, `stats/mod.rs`, `get_all_libraries.rs` (T-176), and
+  `get_media_progress.rs` (T-177 and T-188) each give every such field a
+  default. The answers of `GET /api/items/:id` (T-179, T-180, T-181),
+  of `POST /api/items/:id/play` (T-182), of `POST /api/authorize` (T-183),
+  of the socket (T-184), and of `GET /api/me/progress/:id` (T-188) are
+  measured. The harnesses are
+  `docs/harness/a_field_of_the_answer_goes_away.py` and
+  `docs/harness/a_field_of_one_row_goes_away.py`, and the question of
+  every sweep of them is **which field does this program read, and what does
+  it do with the default of that field**. **A structure with no default is
+  the same fault of the user as a default that lies** (T-183): serde gives
+  the fault of one row to the whole answer, and a `Vec<T>` of a list of the
+  server is therefore the shape to look for. **That sweep ran over every
+  structure of `src/` that serde reads, and it is closed** (T-190, T-191,
+  and T-192): three fields of an answer hold no default and no `Option` now,
+  and no one of them stands in a row of a list — `live::Handshake.sid`,
+  `auth_process::UserInfo.token`, and
+  `get_media_progress::Root.library_item_id`, which each **are** an address
+  or hold the decision of T-177. **The neighbour of that shape is a row
+  whose `Option` of an id takes `unwrap_or_default()`** (T-192): the program
+  then sends a path of no address to the server, and the `404` of that path
+  names the media of the user.
+- **A library whose name holds no character takes the id of that library**
+  (T-191), and the words that T-176 left open are closed: the header said
+  `📖  (book)`, and it says `📖 1b090ea8-… (book)` now. **A shelf of the
+  Home view holds the same road** (T-190), and a media of a list with no id
+  holds the other one: no line at all (T-192).
+- **A program that says nothing at all is the shape of T-174**, and no sweep
+  of the words for the user finds it. **The parts of the program that no
+  measurement of that shape has reached**: a panic of a thread while a view
+  of the application stands (the screens of `src/ui/tui.rs` take no lock,
+  therefore the words of that panic must come to the terminal), and a panic
+  of the thread of the playback.
+- **The rule of the line of the view is made for six views** (T-160 the Home
+  view, T-161 the queue, T-162 the chapters, T-163 the bookmarks, T-165 the
+  collections and the playlists, and T-166 the downloads of the server), and
+  **the message of each of them belongs to its own view** (T-164). **The
+  view of the episodes of a podcast needs no such rule** (T-167): its list
+  is a photograph of the moment of the open. **The parts of the program that
+  no such measurement has reached**: the search of a library that a second
+  window changes, **the key `S` of the library of the start with two windows
+  that both hold their account**, and **the view `PutInAList` of the key
+  `m`, which keeps its number of a line by the decision of T-165**.
+- **The messages of the other views are not measured**: the view of the
+  accounts. **The reader holds one message of `say_in` now** (T-178), and
+  the rule of T-164 gave it that road: a message that a task writes with no
+  key of the user names its view, and a message of a key names no view.
+- **The shape of T-155 is a sweep that a session began and did not
+  finish**: a write of a state that names a row of the database. T-159 gave
+  the number of the rows to the caller of the library of the account, and
+  **the writes of the sequence, of the speed, of the key bindings, and of
+  the rows of a session (`id_session`) still say nothing** when their name
+  holds no row. **T-159 may have closed the road of a key to them**: a
+  program whose account stands in no row starts again after every key,
+  therefore a measurement of that sweep needs a write with no key — the
+  loop of a playback. **T-182 took one road of that sweep away**: a session
+  of no name reaches the database no more, therefore the writes of
+  `id_session` that say nothing need a row that a playback removed while
+  that playback goes on.
+- **A value of the server that the program keeps must go away with that
+  value, and a box of a value for each item of the account is the shape to
+  look for** (T-184 and T-185). The map of the positions of the live
+  messages and the store of the covers of `src/ui/cover.rs` each held such a
+  value, and each of them stood above the value of every request: the key
+  `R` empties both of them now. **A comment that names a decision is a place
+  to measure**: the store of the covers said "the key `R` does not start the
+  requests again" in its first paragraph, and that sentence was the fault.
+
+**The session of the fifty-sixth turn took the first paragraph of "What this
+item leaves open" of the newest item: that paragraph named one sentence of
+one view, and the measurement found that the fault holds three sentences of
+that view** (T-227).
+
+The three sentences of the view of the chapters read `state.title`, and that
+field is the name of the **podcast** (T-223 and T-225). The user played
+`Chapter 01` of `Arthur Gordon Pym` and pressed the key `C`: the header said
+`"Arthur Gordon Pym" holds no chapter. Press h to go back.` while the row of
+the player of that same frame said `Arthur Gordon Pym — Chapter 01` with
+`▶ 5:34 / 21:59`. The queue then started `Chapter 00` of that same podcast
+with no key of the user, the sentence of T-162 said `The media "Arthur
+Gordon Pym" does not play now.`, and two seconds after it the header said
+the same words above the row `Arthur Gordon Pym — Chapter 00`.
+- **A pure function of one view is the road to the view beside it** (T-227).
+  T-225 wrote `the_title_of_the_row` for the row of the player, and that
+  name said "the row": it hid the function from the view of the chapters for
+  one session. It stands in `src/logic/media_name.rs` now as
+  `the_name_of_the_media`. **Ask of every pure function of a correction:
+  does its name hold the view that made it?**
+- **A view of a media holds more than one sentence of the name of that
+  media** (T-227). The road of T-226 named one of the three. **Ask of a
+  fault of a name: how many sentences of that view hold it?**
+- **A sandbox can hold one road of two of one sentence** (T-227, and it
+  stays open). The episodes of the sandbox give 0 chapters, therefore the
+  header `The chapters of "<the name>" [N items]` of an **episode** reached
+  no measurement: the test holds it, and no measurement stands behind it. A
+  podcast whose episodes hold chapters gives that road, and the section 6i
+  of `docs/TEST-SERVER.md` is the shape of the work.
+- **The row of the player of an episode of a download names no episode**
+  (T-225 and T-227, and it stays open): `PlaybackRequest.episode_title` of
+  the offline playback is `None`, therefore the header of the view of the
+  chapters of the offline mode holds the same road.
+- **The other parts of the screen that read `state.title` alone are not
+  measured** (T-227). The question of every other reader of that field is
+  the question of T-225: which two media give one set of words?
+- **A row of 80 columns holds little** (T-80, T-225, T-226, and T-227, and
+  it stays open): `"Arthur Gordon Pym — Chapter 00" holds no chapter. Press
+  h to go back.` is 62 characters, and no paragraph of that row holds a
+  wrap.
+
+**The session of the fifty-seventh turn took a paragraph that two items carried without
+closing it: it named a list that gives the mark of a line, and the
+measurement found that no list gave it at all** (T-228).
+
+A line of the Home view of a library of podcasts is one episode, and the
+program read the identity of the **podcast** for it (T-223 and T-226). The
+two episodes of `Arthur Gordon Pym` of the sandbox stood at 80 percent and
+at 10 percent of the server: the two lines said **no percent at all**, the
+panel of the line said nothing of the place, and the key `l` on `Chapter 01`
+gave the mark `▶` to **both** lines. The control of the same run — the Home
+view of the library `Books` — gave `5%  A Book Of Many Hours` and
+`Progress: 5%, 7h38m left, Not finished`.
+- **A paragraph that two items carried and did not close is the cheapest
+  road of a session** (T-228). T-226 wrote it, T-227 carried it, and the
+  whole of it stood in one `grep` of the source. **Ask of the paragraphs of
+  the newest item: which of them stands in the item before it too?**
+- **A branch of one media type can hold the work of every media type**
+  (T-228). The block that reads the place of every line of the Home view
+  stood in the `else` of the books, and the branch of the podcasts held the
+  collectors alone. **Ask of every branch of a media type: which work of the
+  neighbour branch does this one not do, and does the screen say so?**
+- **A doc that names a list that does not exist is a fault that waits**
+  (T-228). `progress_of_the_user` said that "the mark of that line comes
+  from a different list", and no such list stood in `src/`. That is the rule
+  of T-226 for a filter, one level higher: **ask of every doc that names
+  another part of the program: does that part exist?**
+- **A path of an answer that holds an id needs the id of the row** (T-188
+  and T-228). The fallback of the place asked
+  `GET /api/me/progress/<the podcast>`, and that path answers with the place
+  of **one** episode of it: the fault of T-188 stood in a second caller for
+  six sessions, and `get_book_progress` went away with this item.
+- **The mark of a line of the view of the episodes of a podcast** (T-228).
+  **T-229 closed it**: no line of that view held one word of its episode.
+- **The lines of the view of the search and of the view of the lists hold
+  no place at all** (T-228, and it stays open), and no measurement says
+  whether that is a decision or a fault of the same shape.
+- **The percent of a row of a place of the sandbox goes up and it does not
+  go down** (T-228, and it stays open): the road to a row of 0 percent of an
+  episode reached no measurement, therefore a measurement of a percent
+  writes the percent that it needs and it trusts no percent of before.
+
+**The session of the fifty-eighth turn took the first paragraph of "What this item
+leaves open" of the newest item: that paragraph named one view, and the
+measurement found that no line of that view held one word of its episode**
+(T-229).
+
+The view of the episodes of a podcast is the one view that holds a line for
+each episode, and it wrapped no mark at all. The server held `Chapter 00` of
+`Arthur Gordon Pym` at 30 percent, `Chapter 01` finished, and `Chapter 02`
+at 700 seconds of 2336; the user opened that view and played `Chapter 02`,
+and the eleven lines each said the title alone while the row of the player
+of that same frame said `Arthur Gordon Pym — Chapter 02 by LibriVox` with
+`⏸ 12:21 / 38:56`. The panel of the line said nothing of the place. **The
+control of the same run** (the trap 206): the Library view of that program
+said `▶   Arthur Gordon Pym` and the Home view said `▶   Chapter 02`,
+`✓   Letter 57`, and `Progress: 0%, Not finished`.
+- **A list of a media that wraps no mark is a list that says nothing**
+  (T-229). Every other list of a media of the program wraps its title with
+  `crate::ui::marks::line`. **Ask of every list of a media: which mark does
+  this line hold, and which list of the program holds none?**
+- **A view that a task fills reads what that task collected, and no more**
+  (T-229). The task of the episodes collected seven lists of the answer of
+  the server and no place of the user, therefore no field of `App` could
+  hold a percent of that view. **Ask of every task that fills a view: which
+  value of the server does it not collect, and which line of the screen
+  needs that value?**
+- **A rule of the other machine can hide the condition of a measurement**
+  (T-229). A `PATCH` of `/api/me/progress/:item/:episode` that holds
+  `duration` beside `currentTime` leaves the percent of the row where it
+  stood, and a body of `{"progress": N}` alone writes it at once. That
+  closes one half of the road that T-228 left open (the section 16 of
+  `docs/TEST-SERVER.md`).
+- **The lines of the view of the queue, of the view of the bookmarks, and
+  of the view of the chapters hold no place of the user** (T-229). **T-230
+  closed it**: the chapters hold that place already, a line of the
+  bookmarks is one bookmark and not a media, and the queue held nothing.
+- **The lines of the view of the search and of the view of the lists hold
+  no place at all** (T-228 and T-229, and it stays open).
+- **The place of the view of the episodes is a photograph of the moment of
+  the open** (T-229, and it stays open): the program reads the episodes of
+  one podcast one time (T-167), and a live message is the one road of a
+  fresh percent without the key `R`.
+- **The view of the episodes of the offline mode is not measured** (T-229,
+  and it stays open): the task of the episodes does not run offline.
+
+ **The
+ session of the fifty-ninth turn took the first paragraph of "What this item
+ leaves open" of the newest item: that paragraph named three views, and the
+ sweep of the three found that two of them hold that place already and that
+ the third one held no word of it at all** (T-230).
+
+ The view of the chapters marks the chapter of the position since T-24, and
+ a line of the view of the bookmarks is one bookmark of one media and not a
+ media. **The view of the queue held the title, the author, and the length
+ of each media and no place at all.** The server held `A Book Of Many Hours`
+ at 90 percent, `A Second Book Of Many Hours` finished, and
+ `A Big Book Of A Scan` at 42 percent; the user put them in the queue with
+ the key `n` and pressed the key `q`, and every line said
+ `N. 📕 <the title> — <the author>  (8h)`. **The control of the same run**
+ (the trap 206): the Home view of that same program said
+ `90% A Book Of Many Hours`, `✓   A Second Book Of Many Hours`, and
+ `42% A Big Book Of A Scan`, and it said `▶   A Second Book Of Many Hours`
+ for the media that played while the line of the queue of that same second
+ said nothing.
+ - **A view of a list can hold the place of the user already** (T-230). Two
+   of the three views of the paragraph of T-229 needed no correction at all,
+   and the sweep of the three cost less than the measurement of one. **Read
+   every view of a paragraph that names more than one, before you correct
+   the first of them.**
+ - **A list whose media come of no view has no list of the places** (T-230).
+   `book_progress_cnt_list` holds the media of the Home view of the library
+   of the moment, and a media of the queue can belong to another library.
+   One `GET /api/me` of the key `q` gives the place of every media of the
+   account (T-127). **Ask of every list of the program: which list of the
+   places does it read, and does that list hold every media of it?**
+ - **A message of a key can name a number that no line of the view holds**
+   (T-230, and it stays open). The key `n` on a media that stands in the
+   queue already said `"A Second Book Of Many Hours" is number 3 of the
+   queue.`, and the view of that same key said `The queue [2 items]` with
+   two lines: the memory of the process and the disk of the queue do not
+   agree on a media that goes in two times, and T-147 says that the disk is
+   the truth.
+ - **The line of the queue names the length of the media and not the time
+   that is left** (T-230, and it stays open): `Entry.duration` is a number
+   of seconds, and the panel of the Home view says `48m left` already.
+ - **The lines of the view of the search and of the view of the lists hold
+   no place at all** (T-228, T-229, and T-230, and it stays open).
+ - **The view of the queue of the offline mode is not measured** (T-230, and
+   it stays open): the request of the places does not run offline.
+
+**The session of the sixtieth turn took the first paragraph of "What this item
+leaves open" of the newest item: that paragraph named a message of a key,
+and the measurement found that the memory of the process and the disk do
+not agree** (T-231).
+
+The key `n` on a media that stands in the queue already said
+`"A Big Book Of A Scan" is number 3 of the queue.`, and the key `q` of that
+same second said `The queue [2 items]` with two lines. The queue of the
+disk of that same moment held two rows, of the places **0 and 2**: the
+primary key of the table `queue` is the account, the server, the item, and
+the episode, and `save_the_queue` writes the rows with `INSERT OR REPLACE`.
+**The control of the same run** (the trap 206): the two keys `n` before
+that one each named the number of a line of that same view.
+- **A doc of the memory can promise a function that the disk does not
+  have** (T-231). `Queue::add` said that "a media that stands in the queue
+  already goes in a second time", and the table of that queue holds one row
+  for one media. That is the rule of T-118 one level lower: **ask of every
+  rule of a doc of the memory of the program: does the disk of it hold that
+  rule too?**
+- **A number that a key says is a number that a view must hold** (T-231).
+  The message of the key and the lines of the view came of two lists that
+  no code compares. **Ask of every message that names a number: which view
+  holds that number, and what makes the two agree?**
+- **A correction of a rule of the memory can need no migration at all**
+  (T-231): the disk of every version of this fork held the media of a
+  second key `n` at the end already, therefore the queue of the process
+  took the queue that the disk gave.
+- **The key `n` says no word of a media that moved** (T-231, and it stays
+  open): the message names the new number alone, and the program has the
+  reason of the move (T-91).
+- **The line of the view of the queue names the length of the media and not
+  the time that is left** (T-230 and T-231, and it stays open).
+- **The place of the view of the queue is a photograph of the moment of the
+  key `q`** (T-230 and T-231, and it stays open).
+
+**The session of the sixty-first turn took the first paragraph of "What this item
+leaves open" of the newest item: that paragraph named the words of a key,
+and the measurement found one sentence for three conditions** (T-232).
+
+The key `n` said `"A Long Test Book" is number 1 of the queue.`, then
+`"A Big Book Of A Scan" is number 2 of the queue.`, and then
+`"A Long Test Book" is number 2 of the queue.` **The third sentence holds
+the shape of the second one**, and the two conditions are not the same: the
+second key made a queue of 2 media of a queue of 1, and the third key made
+a queue of 2 media of a queue of 2. A user who reads the three sentences
+and who does not press the key `q` counts three media. A **fourth** key `n`
+of that same media (it stood at the last line already) said the same
+sentence again, and it changed no row of the disk at all. **The control of
+the same run** (the trap 206): the two keys `n` before the third one each
+named the number of a line of that same view.
+- **A rule that a correction gives the program is a fact that the words
+  must say** (T-232). T-231 gave the queue the rule that a media which
+  waits already moves to the end, and the sentence of that key stayed as it
+  was. **Ask of every correction: which text of the user reads the value
+  that this correction now holds?**
+- **A function that throws a value away takes a fact of the user with it**
+  (T-232). `Queue::take_the_key_out` held the place of the media of before
+  at the moment that it removed the entry, and it gave nothing. **Ask of
+  every function that removes a row or an entry: what did it know at that
+  moment, and who needs it?**
+- **A key that changes nothing must say why** (T-79, and T-232): the key
+  `n` on the media of the last line of the queue moves no row of the disk,
+  and it said the sentence of a key that put a media in.
+- **The key `X` of the view of the queue says no place of the media that it
+  took** (T-232, and it stays open): the sentence of `take_the_media` names
+  the title alone, and the program holds the number of the line.
+- **The line of the view of the queue names the length of the media and not
+  the time that is left** (T-230 to T-232, and it stays open).
+- **The place of the view of the queue is a photograph of the moment of the
+  key `q`** (T-230 to T-232, and it stays open).
+
+**The session of the sixty-second turn took the first paragraph of "What this
+item leaves open" of the newest item: that paragraph named the sentence of
+a key, and the measurement found a sentence that names the title alone**
+(T-233).
+
+The user put three books in the queue with the key `n`, pressed `q`, moved
+to the line 2, and pressed `X`. The message said
+`"A Big Book Of A Scan" is not in the queue now.` **A media that goes out
+of the queue changes the number of every media after it**: the book of the
+line 3 became the line 2 with no word at all, and the program held the
+number that went away. **The control of the same run** (the trap 206): the
+three keys `n` before it each named the number of a line of that same view.
+- **A function that gives one value of two can throw the other one away**
+   (T-233, and it is T-232 a second time). `take_the_media` computed the
+   place with `the_place_of_the_media`, it removed the entry of that place,
+   and it gave the entry alone. **Ask of every function that removes a row
+   or an entry: what did it know at that moment, and who needs it?**
+- **The place of a view is not the place of the disk** (T-233). A second
+   program of the account moves the media under the view of this one
+   (T-147), therefore the number of the line and the place of the removal
+   are two numbers. The sentence names the second one, and the number of the
+   line stands for the road where a second program took that media out
+   first. **Ask of every number that a key says: which of the two states
+   made it?**
+- **The line of the view of the queue names the length of the media and not
+   the time that is left** (T-230 to T-233): **T-234 closed it.**
+- **The place of the view of the queue is a photograph of the moment of the
+   key `q`** (T-230 to T-233, and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user**
+   (T-229 to T-233, and it stays open).
+
+**The session of the sixty-third turn took the first paragraph of "What this item
+leaves open" of the newest item: that paragraph named the time of a line,
+and the measurement found a line that says the length of the whole media**
+(T-234).
+
+The user put three books in the queue with the key `n` and pressed `q`. The
+three lines said `(8h)`, `(30m)`, and `(8h)`, and the server held the three
+of them at 7200 seconds of 28800, at 900 of 1800, and at 7200 of 28800.
+**The line of the number 3 said `90%` and `(8h)` in the same words**: the
+user reads the percent of the work that is done and the length of the whole
+media, and that user must do the arithmetic to know that 6 hours stay. The
+user of this view chooses the media that comes after the media that plays,
+and a length gives no help with that choice. **The control of the same
+run** (the trap 206): the panel of the Home view of that same program, of
+that same media, said `Duration: 8h` and
+`Progress: 0%, 6h left, Not finished`.
+- **A view that says a number of a media must say the number that the user
+  needs** (T-234). The length is a fact of the media, and the time that is
+  left is a fact of the user. **Ask of every number that a view says: is it
+  a fact of the media or a fact of the user, and which of the two does that
+  view need?**
+- **A second view of the same program held the better words already**
+  (T-234). The panel of the Home view said `6h left` of the media whose
+  line of the queue said `(8h)`, and the two texts came of two functions.
+  **Ask of every text of a view: does another view of the program say this
+  same fact in better words?**
+- **A row of a box of the places can hold one value more** (T-234): the row
+  of `the_places_of_the_queue` held the percent and the mark of the end,
+  and the place in seconds cost no request at all, because `GET /api/me`
+  gives it with the percent.
+- **The place of the view of the queue is a photograph of the moment of the
+  key `q`** (T-230 to T-234, and it stays open): the request of the places
+  runs at that key alone.
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-234, and it stays open).
+- **The lines of the view of the search and of the view of the lists hold
+  no place at all** (T-228 to T-234, and it stays open).
+
+**The
+session of the sixty-fourth turn took the first paragraph of "What this
+item leaves open" of the newest item: that paragraph named the place of a
+view, and the measurement found that a message of the server takes that
+place away** (T-235).
+
+The user put three books in the queue with the key `n` and pressed `q`.
+The three lines said `(15m left)`, `(6h left)`, and `(6h left)`. A second
+client of that same account then moved in **one** media of the queue
+(`PATCH /api/me/progress/e2b76945…` with `{"progress":0.42}`), the log said
+`[live] user_updated: the position of 27 media.`, and **every line of the
+view then said the length of its media again**: `(30m)`, `(8h)`, and
+`(8h)`. One message carries the position of every media of the account
+(T-184), therefore a message of one media reaches every line of that view.
+**The control of the same run** (the trap 206): the percent of the line 2
+moved from nothing to `42%` in that same frame — the message came, the
+render read it, and it took the percent of that message and threw the place
+of the user away.
+- **A correction of one road of a value leaves the other roads of that
+  value** (T-235). T-234 gave the row of the places a third value, and the
+  render of that same view writes a row of a message over it: that second
+  row held two values, and it therefore undid the correction at the first
+  message. **Ask of every value that a view reads: how many places write
+  it, and does each of them hold every field?**
+- **A message of one media reaches every line of a view** (T-235): the
+  message of the server carries the whole account, therefore a fault of the
+  row of a message is a fault of every line and not of one.
+- **The place of the view of the queue comes of the key `q` and of a live
+  message, and no other key and no tick asks for it again** (T-230 to
+  T-235, and it stays open): a media that no message names keeps the place
+  of the moment of that key.
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-235, and it stays open).
+- **The lines of the view of the search and of the view of the lists hold
+  no place at all** (T-228 to T-235, and it stays open).
+
+**The
+session of the sixty-sixth turn took the first paragraph of "What this item
+leaves open" of the newest item: that paragraph named the one moment of a
+request of a view, and the measurement found a line of that view that no
+request reached** (T-237).
+
+The user put two books in the queue with the key `n` and pressed `q`, and
+the two lines said `(15m left)` and `(6h left)`. A second program of that
+same account then put a third book in the queue (one row of the table
+`queue` of `db.sqlite3`), and the user pressed the key `X` on the line 1.
+The key `X` reads the queue of the disk again (T-147), therefore the third
+book came into the open view with no key of this user, and **the line of it
+said `(8h)` with no mark of a place**, while the server held that media at
+7200 seconds of 28800 with the percent 90. **The control of the same run**
+(the trap 206): the line 1 of that same view said `(6h left)`, and the Home
+view of that same program said `90% A Book Of Many Hours`.
+- **The key that opens a view is not the one moment of that view** (T-237).
+  The request of the places runs at the key `q`, and the queue of this
+  program changes with no key of this user: the disk is the truth of the
+  queue (T-147), therefore the key `X` and the media that comes to its end
+  each bring a line that no request reached. **Ask of every view that holds
+  a value of the server for each line: can a line come into that view after
+  the request?**
+- **A rule of a loop of a view holds every road that a key cannot hold**
+  (T-237): the rule stands in `the_line_of_the_queue_holds_its_media`, which
+  runs at each frame, therefore it reaches the key `X`, the media that comes
+  to its end, and every road of a later version.
+- **A rule of a frame needs a box of what the program asked for, and not a
+  box of what the server answered** (T-237): a media that the user never
+  began stands in no row of `GET /api/me`, therefore a rule of the box of
+  the places gives one request at each frame. The names of the request go to
+  their box **before** the task of that request, and the log of a proxy said
+  it: one request after the key `X`, and no request more in six seconds.
+- **A media that stays in the queue keeps the place of the moment of the key
+  `q`** (T-230 to T-237, and it stays open): the request runs for a media
+  that came in, and a live message of the server is the one other road to a
+  newer place (T-235).
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-237, and it stays open).
+- **The lines of the view of the search and of the view of the lists hold no
+  place at all** (T-228 to T-237, and it stays open).
+
+**The
+session of the sixty-seventh turn took the first paragraph of "What this
+item leaves open" of the newest item: that paragraph named the two roads to a
+value of the server, and the measurement found a line whose value comes of
+neither of them** (T-238).
+
+The server held `A Book Of Many Hours` at 7200 seconds of 28800. The user
+played it with the key `l` of the Home view, put it in the queue with the
+key `n`, and pressed the key `q`. The line said `(7h58m left)`, and 45
+seconds later that same line said the same words while the row of the
+player of that same frame said `▶ 1:04:23 / 8:00:00 | Left: 6:55:37`. **The
+line of the media that plays and the row of the player of one screen said
+two times of one media, and the difference was one hour.** **The control of
+the same run** (the trap 206): the mark `▶` stood on that line at each
+frame, therefore the line reads the state of the playback already.
+- **A view that says a value of a media that plays reads the engine of this
+  program** (T-238). The two roads to a value of the server — a request of
+  a key (T-230 and T-237) and a live message (T-235) — each carry the work
+  of a machine that is not this one, and neither of them names the playback
+  of this program: the server sends no message of a place to the client
+  that wrote it. **Ask of every value of a view: does this program change
+  that value itself, and does the view read it there?**
+- **A line that holds a mark of a state must read the value of that state**
+  (T-238): the mark `▶` of that line comes of `playing_media` at each
+  frame, therefore the line knew which media plays and it took the place of
+  it from a request of a key. The mark and the value stood side by side in
+  one function.
+- **A value that the program holds costs no request** (T-238):
+  `PlaybackState::position` stands in the engine at each second, and the
+  row of the player of the same screen reads it already.
+- **A place of 0 of the engine is a playback that did not begin** (T-238):
+  the screen says `Loading the media...` in that moment, and the line then
+  keeps the place of the request.
+- **A media of the queue that no playback of this program moves keeps the
+  place of the moment of the key `q`** (T-230 to T-238, and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-238, and it stays open).
+- **The lines of the view of the search and of the view of the lists hold
+  no place at all** (T-228 to T-238, and it stays open).
+
+**The
+session of the sixty-eighth turn took the second paragraph of "What this
+item leaves open" of the newest item: that paragraph named a percent that
+no user can read, and the measurement found that same value with a number
+in a panel** (T-239).
+
+The server held `A Book Of Many Hours` at 10800 seconds of 28800, with the
+percent 37. The user played it with the key `l` of the Home view, and 75
+seconds later the panel of that line said `Progress: 37%, 5h left` while
+the row of the player of that same frame said
+`▶ 4:13:12 / 8:00:00 | Left: 3:46:48 (53%)`. **The difference was one hour
+and four minutes, and 16 percent.**
+- **A paragraph that says "the value stands behind no number" names a
+  second place that says it with a number** (T-239). T-238 left the percent
+  of the line of the queue open because the mark of that line says `▶` in
+  the place of the percent, and the **panel** of a line of the Home view
+  says that same value as `Progress: 37%`. **Ask of a value that a view
+  hides: which other view of this program says it?**
+- **A rule of one view is a rule of every view of that shape** (T-239): the
+  three panels that name a place of the user (the Home view, and the two
+  views of the episodes of a podcast) took one pure function together, and
+  a correction of the first one alone would have left the two others.
+- **The panel of a line reads no live message of the server** (T-239, and
+  it stays open): the line of the Home view takes the row of a message over
+  the row of the request (T-47 and T-235), and the panel of that same line
+  reads the box of the request alone.
+- **A media of the queue that no playback of this program moves keeps the
+  place of the moment of the key `q`** (T-230 to T-239, and it stays open).
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-239, and it stays open).
+- **The lines of the view of the search and of the view of the lists hold
+  no place at all** (T-228 to T-239, and it stays open).
+
+**The
+session of the sixty-ninth turn took the first paragraph of "What this
+item leaves open" of the newest item: that paragraph named a road to a
+value that one place of a view holds and that a second place of that same
+view does not, and the measurement found the two places side by side**
+(T-240).
+
+The server held `A Book Of Many Hours` at 10800 seconds of 28800, with the
+percent 52, and no playback of the program held that media. A second
+client of that same account moved it to 21600 seconds with the percent 75,
+the log said `[live] user_updated: the position of 27 media.`, and three
+seconds later one frame of one screen said `➤ 75% A Book Of Many Hours`
+for the line and `Progress: 52%, 5h left, Not finished` for the panel of
+that same line. **The difference was 23 percent and three hours.**
+- **A line and the panel of that line are two places of one value**
+  (T-240): the line held the three roads to the place of a media — the
+  engine of this program (T-239), a live message (T-47), and the request
+  of the view — and the panel of it held one of them. **Ask of a value that
+  two parts of one view say: does each part take every road to it?**
+- **A paragraph that names a road that one function does not take is the
+  item of a round** (T-240): T-239 wrote that the panel reads no live
+  message, and the measurement of that same road found the fault in three
+  panels together.
+- **A value of a message that a view does not read is a value that the
+  program holds already** (T-240): the box of the live messages holds the
+  percent, the mark of the end, and the place in seconds of every media of
+  the account (T-184 and T-235), therefore the correction costs no request.
+- **The panel of a line of a book of the Library view and of the view of
+  the search says no place at all** (T-239 and T-240, and it stays open):
+  those two panels name the author and the year.
+- **A media of the queue that no playback of this program moves keeps the
+  place of the moment of the key `q`** (T-230 to T-240, and it stays open),
+  and the panel of a line of that view is not measured.
+- **The lines of the view of the bookmarks hold no place of the user**
+  (T-229 to T-240, and it stays open).
+- **The lines of the view of the search and of the view of the lists hold
+  no place at all** (T-228 to T-240, and it stays open).
 
 ## The session of the hundred and sixth turn of 2026-08-16: a chapter that the book did not give says why
 
@@ -21652,78 +21729,78 @@ user at all** (T-317).
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
->   **The session of the hundred and forty-fifth turn took the stage 1 of the
->   road of the panels** (T-317), because the maintainer chose the mockup 1 in
->   the turn before it. **It left two candidates open.**
+>   **The session of the hundred and forty-sixth turn took the stage 2 of the
+>   road of the panels** (T-320), the frame. **It left three parts of that
+>   stage open.**
 >
->   **The colours of the start are the colours of the terminal of the user.**
->   `Colors::default` of `src/config.rs` gave each of the eleven settings of
->   the block `colors` a grey of RGB of its own — `background_color` was
->   `[40, 40, 40]`, `list_background_color` was `[50, 50, 50]`, and
->   `player_background_color` was `[80, 80, 80]` — and a `grep` of `Color::`
->   over `src/` gave 38 uses of `Color::Rgb` against six names of ANSI. **The
->   program therefore painted a dark grey over the terminal of every user**,
->   and a change of the theme of that terminal changed nothing at all.
+>   **The frame of the panels, the focus, and the three shapes of the width.**
+>   `the_areas_of_a_view` of `src/ui/tui.rs` gave every view one column of a
+>   list, with the panel of the covers of T-23 at the right of it. The
+>   measurement of the real program v0.8.145 inside tmux, of the Library view
+>   of the library `Large` of 500 items of 2056: at 160 columns the line of the
+>   list ended at the column 95, at 120 columns it ended at the column 71, and
+>   the header of every width was `────Library [500 items of 2056]────`. **No
+>   frame stood at any width.**
 >
->   **The data of this fault is the program itself**: no proxy, no book of a
->   harness, no change of the sandbox, and no build of the fault of the source.
->   The measurement is `tmux capture-pane -e` and a count of the escapes of the
->   first frame, of the real program v0.8.144 at 100 columns and 30 rows: **28
->   escapes of a background of RGB** (twelve of `48;2;40;40;40`, ten of
->   `48;2;50;50;50`, five of `48;2;60;60;60`, and one of `48;2;80;80;80`) and
->   **no escape of the background of the terminal at all**.
+>   **The data of this stage is the program itself**: no proxy, no book of a
+>   harness, and no change of the sandbox. `COLUMNS_OF_THE_SCREEN` of
+>   `docs/harness/drive.sh` gives each of the three shapes, and the item of
+>   `docs/TAKEOVER-BACKLOG.md` holds the screen of the real program at 160, at
+>   120, at 100, and at 40 columns, before this round and after it.
 >
->   **The trap of this item, and it cost a whole measurement** (the trap 246):
->   the first form of the correction changed `Colors::default` alone, and the
->   measurement of the corrected program then gave **the same 28 escapes**.
->   `config.example.toml` holds the eleven greys too, and **the program writes
->   that file for a user who holds no file** (T-122), therefore
->   `Colors::default` is the value of `serde` for a key that a file does not
->   hold and it reaches **no user at all**. **A change of the theme of this
->   program is a change of two files**, and a measurement of one of them alone
->   says nothing.
+>   The correction is seven files. `src/ui/frame.rs` is new: `TheShape`
+>   (`ThreeColumns` at 120 columns and up, `TwoColumns` from 84, `OneColumn`
+>   under 84), `the_shape_of`, `the_stack_and_the_work`, `ThePanel` of two
+>   values, `a_panel` (the block of a number, a name, and a border of
+>   `BorderType::Double` for the focus against `BorderType::Plain`),
+>   `THE_VIEWS` of the 14 lines of the panel 1, and `the_lines_of_the_views`.
+>   `src/app.rs` holds the fields `the_width_of_the_screen`,
+>   `the_panel_of_the_focus`, and `the_line_of_the_views`, and the two methods
+>   `the_stack_of_the_panels_stands` and `the_key_of_a_panel` before the match
+>   of `handle_key`. `src/ui/tui.rs` writes the width of the screen at each
+>   frame, it draws the stack, and **`split_for_covers` now reads the width of
+>   the work of the view and not the width of the whole screen**.
+>   `src/ui/the_list_of_a_view.rs` holds `render_the_list_of_a_panel`, and
+>   `src/ui/keys.rs` holds the group of the six keys and `the_footer_of_a_panel`.
 >
->   The correction is four files. `src/ui/theme.rs` is new, and it holds the
->   vocabulary of the design of the mockup 1: `THE_ACCENT` (the cyan of the
->   terminal), `A_FAULT`, `AN_END_THAT_IS_GOOD`, and the three styles
->   `a_title`, `a_quiet_text`, and `a_text_of_a_fault`. **The quiet of this
->   program holds no grey at all**: `a_quiet_text` is the foreground of the
->   terminal with the modifier `DIM`, because a grey of RGB stays grey on a
->   background of a light colour and `DIM` follows the theme of the user.
->   `src/config.rs` gives the eleven settings a list of no number, and it holds
->   `Colors::the_colour_of` with eleven methods over it, each of which names
->   the colour of the terminal that its setting takes: `Color::Reset` for the
->   five backgrounds and for the letters, `Color::Cyan` for the row of the
->   cursor, and `Color::Black` for the letters on that row.
->   `config.example.toml` turns every key of the block `colors` off with a `#`,
->   and it keeps the key and a note for the user who wants a colour of their
->   own. Twelve files of `src/` call the eleven methods, and the greys and the
->   blues that stood outside the file of the settings take the three styles.
+>   **The corrected program** of the same harness: at 160 and at 120 columns
+>   `┌1 Views ─┐╔4 Library [500 items of 2056] ═╗` with the covers after it, at
+>   100 columns and at 40 columns the screen of today. The key `1` gave
+>   `╔1 Views ═╗┌4 Library ─┐`, the keys `Ctrl+h` and `Ctrl+l` moved the focus
+>   back and forward, and the key `l` on the line `Authors` opened the Authors
+>   view. **The footer changes with the panel**: the panel 4 gives
+>   `… Q: quit  1/Ctrl+h: the panel of the views`, and the panel 1 gives
+>   `j/k: move  l: open the view  h: the list  4/Ctrl+l: the list …`.
 >
->   `tests/the_colours_of_the_start_are_the_colours_of_the_terminal.rs` holds
->   the gate, of three tests, and **the third of them is the gate of the trap**:
->   it reads `THE_EXAMPLE_OF_THE_CONFIGURATION` and it holds that every key of
->   the colours stands in that file and that every one of them is off. **The
->   build of the fault** (the trap 147) — the grey back in `Colors::default`
->   **and** the line of the example on again — made two of the three fail.
->   Seven tests of `src/config.rs` that named the greys of the program take the
->   new rule. **The corrected program** of the same terminal gave two escapes
->   and no RGB at all: `48;5;6` and `38;5;0`, the accent of the row of the
->   cursor and the letters on it. **The road back**: the file of the sandbox
->   keeps the keys of its block `colors` off, because that is the file that a
->   new user gets now.
->   - **The theme of a terminal of a light colour has no measurement yet**
->     (T-317): the measurement above counts the escapes that the program
->     writes, therefore it holds for every theme, but **no round has looked at
->     the screen of a light terminal with the eyes of a user.** The accent
->     `Cyan` on a background of a light colour, with the letters `Black` on it,
->     is the one pair of this item that a count of the escapes cannot judge.
->     **This is a candidate and not a measurement.**
->   - **`src/logic/reader/render.rs` keeps its two `Color::Rgb`** (T-317):
->     those two come of the CSS of the EPUB itself and not of a setting of the
->     program. **A book that names a colour of a light background gives a text
->     that no one can read on a terminal of a dark theme**, and the reverse
->     holds too. **This is a candidate and not a measurement.**
+>   `tests/the_frame_of_the_panels_holds_its_three_shapes.rs` holds the gate, of
+>   six tests, and five more stand inside `src/ui/frame.rs`. **The build of the
+>   fault** (the trap 147) — `if false && width >= THE_WIDTH_OF_THREE_COLUMNS`
+>   of `the_shape_of`, and `it_holds_the_focus && false` of `a_panel` — made
+>   four of the eleven fail.
+>
+>   **The trap of this item** (the trap 209 again):
+>   `tests/the_key_h_leaves_every_view.rs` read the **first**
+>   `KeyCode::Char('h') => {` of the whole of `src/app.rs`, and the new keys of
+>   the frame stand above `handle_key` with an arm of that same shape. The
+>   window of 4000 characters then held the focus of a panel and no view at
+>   all, and the gate said that the program lost a rule that it holds. **A
+>   window of a number of characters must anchor on the function that it
+>   reads**, therefore that search now starts at `pub fn handle_key(`.
+>   - **The two lines of the keys at the foot have no measurement yet**
+>     (T-320): the design holds one line of the keys of the panel of the focus
+>     and one line of the keys of every view, and this round gives **one** line
+>     that changes with the focus. `App::render_footer` wraps one text, and two
+>     lines of their own need the areas of the footer to divide.
+>   - **The panels 2 and 3 of the stack belong to T-318**, and the panel 7 of
+>     the player belongs to T-322: the stack holds the panel 1 alone today,
+>     because a panel of a title and of no line at all promises a function that
+>     the program does not have (T-118).
+>   - **The Authors view of the library `Large` of the sandbox said
+>     `This library has no author.`** while that library holds 2056 books of
+>     Ada Lovelace, of Alan Turing, and of Grace Hopper. **The key `a` of that
+>     view takes the same road**, therefore this is no fault of the frame at
+>     all, and no round has measured it. **This is a candidate and not a
+>     measurement.**
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item

@@ -58,6 +58,26 @@ pub fn render_the_list(
     lines: &[String],
     list_state: &mut ListState,
 ) {
+    render_the_list_of_a_panel(area, buf, colors, None, title, lines, list_state);
+}
+
+/// Draws the list of a view inside the panel 4 of the frame of the panels, or
+/// inside the block of a header alone. See T-320.
+///
+/// `the_panel` holds the number of the panel and the mark of the focus of it.
+/// **The value `None` gives the block of one border at the top**, which is the
+/// block of every view that the road of the panels did not reach yet: the stage
+/// 2 of that road draws the Home view and the Library view, and the views after
+/// them come with the stages after it.
+pub fn render_the_list_of_a_panel(
+    area: Rect,
+    buf: &mut Buffer,
+    colors: &Colors,
+    the_panel: Option<(u8, bool)>,
+    title: &str,
+    lines: &[String],
+    list_state: &mut ListState,
+) {
     // **A line of a list stands on one row of the panel** (T-311). A `ListItem`
     // of a text that holds a `\n` takes the rows of the ends of the lines of it,
     // and every rule of a list of this program then fails together: the mark of
@@ -97,13 +117,31 @@ pub fn render_the_list(
     // Author]" of 60 characters gave `he books of Many Hours Author]` and ten
     // characters of the border, and the user read no name of the view and no
     // number of its items. The three points say that the screen cut it.
-    let title = crate::logic::message::in_one_row(title, area.width);
+    // **The title of the panel 4 keeps the two corners of its border and the
+    // number of the panel**: those six columns come away before the title of
+    // the view takes what stays.
+    let of_the_title = if the_panel.is_some() {
+        area.width.saturating_sub(6)
+    } else {
+        area.width
+    };
+    let title = crate::logic::message::in_one_row(title, of_the_title);
 
-    let block = Block::new()
-        .title(Line::raw(title).centered())
-        .borders(Borders::TOP)
-        .border_style(header_style)
-        .bg(colors.list_background());
+    // **The panel 4 of the frame of the panels holds a border of four sides**
+    // (T-320), and the shape of that border says the focus of the user. The
+    // block of a view that the road of the panels did not reach keeps the one
+    // border at the top that it had.
+    let block = match the_panel {
+        Some((number, it_holds_the_focus)) => {
+            crate::ui::frame::a_panel(number, &title, it_holds_the_focus)
+                .bg(colors.list_background())
+        }
+        None => Block::new()
+            .title(Line::raw(title).centered())
+            .borders(Borders::TOP)
+            .border_style(header_style)
+            .bg(colors.list_background()),
+    };
 
     // **A list that holds more lines than its rows says so** (T-255). The block
     // draws the header of the view over the whole width, and the list and the

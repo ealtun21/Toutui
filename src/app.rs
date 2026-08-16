@@ -28,7 +28,7 @@ use crate::utils::check_update::*;
 use crate::utils::encrypt_token::*;
 use color_eyre::Result;
 use ratatui::{
-    crossterm::event::{KeyCode, KeyEvent, KeyEventKind},
+    crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers},
     widgets::ListState,
 };
 
@@ -585,6 +585,25 @@ pub struct App {
     /// the footer (T-299), and a message that read a fixed number of rows
     /// would draw over the keys of a narrow terminal.
     pub rows_of_the_footer: u16,
+    /// The width of the screen of the last frame. See T-320.
+    ///
+    /// The render writes it, because the render knows the width of the
+    /// terminal, and the key handler reads it: the frame of the panels holds
+    /// three shapes of a width (`crate::ui::frame::the_shape_of`), and the keys
+    /// of the focus of a panel belong to the shape that draws that panel alone.
+    ///
+    /// **The value before the first frame is 0**, which gives the shape of one
+    /// column: a key that comes at the first frame reaches no view at all (the
+    /// trap 214), therefore it reaches no panel either.
+    pub the_width_of_the_screen: u16,
+    /// The panel of the frame that holds the focus of the user. See T-320.
+    ///
+    /// **The panel of the start is the list of the view**, therefore every key
+    /// of this program does the work that it did before this frame until the
+    /// user moves the focus.
+    pub the_panel_of_the_focus: crate::ui::frame::ThePanel,
+    /// The line of the user in the panel 1 of the views. See T-320.
+    pub the_line_of_the_views: ListState,
     /// The program must start again, and the loop must first send the position
     /// of a playback that it stops. See T-139.
     ///
@@ -2024,12 +2043,130 @@ impl App {
             sessions_scroll_max: 0,
             stats_scroll_max: 0,
             rows_of_the_footer: crate::ui::keys::THE_SMALLEST_FOOTER,
+            the_width_of_the_screen: 0,
+            the_panel_of_the_focus: crate::ui::frame::ThePanel::default(),
+            the_line_of_the_views: {
+                let mut of_the_views = ListState::default();
+                of_the_views.select(Some(0));
+                of_the_views
+            },
             the_program_starts_again: None,
             audio_fault,
         })
     }
 
     // handle key
+    /// Says if the stack of the panels of the frame stands on the screen now.
+    /// See T-320.
+    ///
+    /// **The stack comes with the three columns alone**
+    /// (`crate::ui::frame::the_shape_of`), and it stands in the Home view and
+    /// in the Library view, which are the two views that the panel 4 of the
+    /// design holds. Every other view keeps the screen that it had.
+    pub fn the_stack_of_the_panels_stands(&self) -> bool {
+        matches!(self.view_state, AppView::Home | AppView::Library)
+            && crate::ui::frame::the_shape_of(self.the_width_of_the_screen)
+                == crate::ui::frame::TheShape::ThreeColumns
+    }
+
+    /// The keys of the frame of the panels. It gives `true` when it did the
+    /// work of the key, and the handler then stops. See T-320.
+    ///
+    /// **The digits move the focus** (the decision 1 of the road of the panels
+    /// of `docs/HANDOVER.md`): `Tab` is the Home view and the Library view
+    /// already, and `Shift+Tab` is the next library (the trap 196), therefore
+    /// neither of them can move the focus. `Ctrl+h` and `Ctrl+l` move it to the
+    /// panel at the left and at the right.
+    ///
+    /// **The keys of the list of a view belong to the panel 4 while that panel
+    /// holds the focus**, therefore this function takes `j`, `k`, `g`, `G`,
+    /// `l`, and `h` for the panel 1 alone.
+    fn the_key_of_a_panel(&mut self, key: KeyEvent) -> bool {
+        use crate::ui::frame::{ThePanel, TheWork, THE_VIEWS};
+
+        if key.modifiers.contains(KeyModifiers::CONTROL) {
+            match key.code {
+                KeyCode::Char('h') => {
+                    self.the_panel_of_the_focus = self.the_panel_of_the_focus.at_the_left();
+                    return true;
+                }
+                KeyCode::Char('l') => {
+                    self.the_panel_of_the_focus = self.the_panel_of_the_focus.at_the_right();
+                    return true;
+                }
+                _ => return false,
+            }
+        }
+
+        // **A digit of a panel that the frame draws moves the focus**, and a
+        // digit of one of the five panels that no stage drew is no key of this
+        // program at all (T-79).
+        if let KeyCode::Char(digit) = key.code {
+            if let Some(panel) = ThePanel::of_the_digit(digit) {
+                self.the_panel_of_the_focus = panel;
+                return true;
+            }
+        }
+
+        if self.the_panel_of_the_focus != ThePanel::TheViews {
+            return false;
+        }
+
+        let of_the_line = self.the_line_of_the_views.selected().unwrap_or(0);
+
+        match key.code {
+            KeyCode::Char('j') | KeyCode::Down => {
+                self.the_line_of_the_views
+                    .select(Some((of_the_line + 1).min(THE_VIEWS.len() - 1)));
+                true
+            }
+            KeyCode::Char('k') | KeyCode::Up => {
+                self.the_line_of_the_views
+                    .select(Some(of_the_line.saturating_sub(1)));
+                true
+            }
+            KeyCode::Char('g') | KeyCode::Home => {
+                self.the_line_of_the_views.select(Some(0));
+                true
+            }
+            KeyCode::Char('G') | KeyCode::End => {
+                self.the_line_of_the_views.select(Some(THE_VIEWS.len() - 1));
+                true
+            }
+            // **The key `h` gives the focus back to the panel of the list**,
+            // and it takes no view away: the key `h` of a view of a media gives
+            // the view before it (the trap 210), and a panel of the frame is
+            // not a view.
+            KeyCode::Char('h') | KeyCode::Left => {
+                self.the_panel_of_the_focus = ThePanel::TheList;
+                true
+            }
+            KeyCode::Char('l') | KeyCode::Right | KeyCode::Enter => {
+                // **The focus goes back to the panel of the list before the
+                // work of the line**: the new view holds the list of that view,
+                // and a focus that stayed on the panel 1 would take the keys
+                // `j` and `k` of it.
+                self.the_panel_of_the_focus = ThePanel::TheList;
+
+                match THE_VIEWS[of_the_line].work {
+                    TheWork::TheHomeView => self.view_state = AppView::Home,
+                    TheWork::TheLibraryView => self.view_state = AppView::Library,
+                    // The key handler of this program is the authority of the
+                    // work of a key (`src/ui/keys.rs` holds the list for the
+                    // user), therefore the line of the panel sends its key
+                    // through that handler and it holds no second road.
+                    TheWork::TheKey(of_the_view) => self.handle_key(KeyEvent::new(
+                        KeyCode::Char(of_the_view),
+                        KeyModifiers::NONE,
+                    )),
+                }
+
+                true
+            }
+            _ => false,
+        }
+    }
+
     pub fn handle_key(&mut self, key: KeyEvent) {
         if key.kind != KeyEventKind::Press {
             return;
@@ -2056,6 +2193,17 @@ impl App {
         // See T-124.
         if !matches!(key.code, KeyCode::Char('c')) {
             self.confirm_the_account_that_starts = None;
+        }
+
+        // **The keys of the frame of the panels come first, and they come for
+        // the shape that draws the stack alone** (T-320). A key of a panel that
+        // the screen does not hold is a key that does nothing, and that is a
+        // fault of its own (T-79), therefore this road opens for the Home view
+        // and for the Library view of a terminal of three columns and for
+        // nothing else. Every other view and every other width keeps every key
+        // that it had.
+        if self.the_stack_of_the_panels_stands() && self.the_key_of_a_panel(key) {
+            return;
         }
 
         match key.code {

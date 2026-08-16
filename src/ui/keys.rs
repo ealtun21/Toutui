@@ -44,6 +44,30 @@ const fn key(key: &'static str, what: &'static str) -> Key {
 /// Every key of the program.
 pub const GROUPS: &[Group] = &[
     Group {
+        // **The panels of the frame stand in the Home view and in the Library
+        // view of a terminal of 120 columns or more** (T-320), and the group
+        // says so: a text must not promise a function that the program does not
+        // have (T-118), and a footer must not promise a key that the view does
+        // not hold (T-143).
+        //
+        // **The five panels of the design that no stage drew hold no digit**
+        // (T-79): the panel 2 of the sequence and the panel 3 of the filter come
+        // with T-318, the panels 5 and 6 of the covers come with T-319, and the
+        // panel 7 of the player comes with T-322.
+        name: "The panels (a screen of 120 columns and more, Home and Library)",
+        keys: &[
+            key("1", "The focus goes to the panel 1 of the views"),
+            key("4", "The focus goes to the panel 4 of the list"),
+            key("Ctrl+h", "The focus goes to the panel at the left"),
+            key("Ctrl+l", "The focus goes to the panel at the right"),
+            key(
+                "l / → / Enter",
+                "The panel of the views opens the view of the line",
+            ),
+            key("h / ←", "The panel of the views gives the focus back"),
+        ],
+    },
+    Group {
         name: "Move in a list",
         keys: &[
             key("j / ↓", "One line down"),
@@ -434,6 +458,35 @@ pub const FOOTER_OF_A_LIBRARY_OF_BOOKS: &str = "j/k: move  l: play or open  \
 /// The footer of the Home view and of the Library view of podcasts.
 pub const FOOTER_OF_A_LIBRARY_OF_PODCASTS: &str = "j/k: move  l: the episodes  \
      Tab: home/library  S-Tab: the next library  /: search  R: refresh  ?: every key  Q: quit";
+
+/// The footer of a view that the frame of the panels holds. See T-320.
+///
+/// **A footer must not promise a key that the view does not hold** (T-143), and
+/// the frame of the panels stands at 120 columns and more: the footer of a
+/// narrow terminal therefore names no panel at all, and this function gives the
+/// text of the view back with no change.
+///
+/// **The footer of the panel that holds the focus is the footer of that panel**:
+/// the keys `j`, `k`, and `l` of the panel 1 move its lines and they open a
+/// view, therefore a footer that said `l: play or open` at that moment would
+/// name a work that the key does not do.
+pub fn the_footer_of_a_panel(
+    of_the_view: &str,
+    the_frame_stands: bool,
+    the_views_hold_the_focus: bool,
+) -> String {
+    if !the_frame_stands {
+        return of_the_view.to_string();
+    }
+
+    if the_views_hold_the_focus {
+        return "j/k: move  l: open the view  h: the list  \
+                4/Ctrl+l: the list  ?: every key  Q: quit"
+            .to_string();
+    }
+
+    format!("{of_the_view}  1/Ctrl+h: the panel of the views")
+}
 
 /// The footer of the view of the search.
 ///
