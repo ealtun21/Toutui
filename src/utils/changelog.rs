@@ -41,6 +41,26 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.147",
+        date: "16/08/2026",
+        body: &[
+            "Added:",
+            "- **The mouse works in Toutui.** A click of the button at the \
+             left moves your position to the line under the pointer, and it \
+             moves it to the panel of that line. One step of the wheel moves \
+             your position one line up or one line down, in the list under \
+             the pointer, and it needs no click first. The mouse works in \
+             every view that holds a list, and a click of a row that holds no \
+             line moves nothing.",
+            "- **The key `Ctrl+o` stops the mouse, and it starts it again.** \
+             A program that reads the mouse takes the selection of the text \
+             away from your terminal: press `Ctrl+o` to select the text \
+             again, and press it a second time for the mouse. Most terminals \
+             give the selection of the text with `Shift` and a click while \
+             the mouse works. The view of the key `?` names these keys.",
+        ],
+    },
+    Entry {
         version: "0.8.146",
         date: "16/08/2026",
         body: &[

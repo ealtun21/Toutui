@@ -68,6 +68,25 @@ pub const GROUPS: &[Group] = &[
         ],
     },
     Group {
+        // **The mouse works in every view of the program** (T-316), and the key
+        // that stops it works in every view too: a capture of the mouse takes
+        // the selection of the text of the terminal away from the user, and the
+        // road back must stand where the user is.
+        name: "The mouse",
+        keys: &[
+            key(
+                "Click",
+                "The line of the pointer, and the focus of its panel",
+            ),
+            key("Wheel", "One line up or down, in the list of the pointer"),
+            key("Ctrl+o", "Stop the mouse, and start it again"),
+            key(
+                "Shift+Click",
+                "Most terminals give the selection of the text",
+            ),
+        ],
+    },
+    Group {
         name: "Move in a list",
         keys: &[
             key("j / ↓", "One line down"),

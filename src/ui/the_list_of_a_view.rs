@@ -50,6 +50,9 @@ pub fn the_colour_of_a_line(colors: &Colors, i: usize) -> Color {
 /// **The background of each line comes of this function** (T-257): the caller
 /// gave the lines with a colour already, therefore no test of this module
 /// reached the colours of the list at all.
+/// **The function gives the rows of the lines back** (T-316): a click of the
+/// mouse names a row of the screen, and the caller must know which rows hold
+/// the lines of this list.
 pub fn render_the_list(
     area: Rect,
     buf: &mut Buffer,
@@ -57,8 +60,8 @@ pub fn render_the_list(
     title: &str,
     lines: &[String],
     list_state: &mut ListState,
-) {
-    render_the_list_of_a_panel(area, buf, colors, None, title, lines, list_state);
+) -> Rect {
+    render_the_list_of_a_panel(area, buf, colors, None, title, lines, list_state)
 }
 
 /// Draws the list of a view inside the panel 4 of the frame of the panels, or
@@ -69,6 +72,10 @@ pub fn render_the_list(
 /// block of every view that the road of the panels did not reach yet: the stage
 /// 2 of that road draws the Home view and the Library view, and the views after
 /// them come with the stages after it.
+/// **The function gives the rows of the lines back** (T-316): a report of the
+/// mouse names a column and a row of the screen, and `App` reads that area to
+/// find the line of the list under the pointer. The bar of the scroll stands
+/// outside it, therefore a click on that bar moves no cursor.
 pub fn render_the_list_of_a_panel(
     area: Rect,
     buf: &mut Buffer,
@@ -77,7 +84,7 @@ pub fn render_the_list_of_a_panel(
     title: &str,
     lines: &[String],
     list_state: &mut ListState,
-) {
+) -> Rect {
     // **A line of a list stands on one row of the panel** (T-311). A `ListItem`
     // of a text that holds a `\n` takes the rows of the ends of the lines of it,
     // and every rule of a list of this program then fails together: the mark of
@@ -195,6 +202,8 @@ pub fn render_the_list_of_a_panel(
             .thumb_symbol("█")
             .render(bar_area, buf, &mut state);
     }
+
+    list_area
 }
 
 #[cfg(test)]

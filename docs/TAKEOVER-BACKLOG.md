@@ -28270,3 +28270,133 @@ eleven tests failed.
   keys of every view; this round gives one line that changes with the focus.
 - **The panel 7 of the player inside the frame** (T-322).
 - **The panels 2 and 3 of the stack** (T-318).
+
+### T-316: the mouse
+
+**The third stage of the road of the panels.** `### 0. The road of the
+panels (T-316 to T-323)` of `docs/HANDOVER.md` names T-316 first of the road,
+and this round takes it up after the theme of T-317 and the frame of T-320:
+the panel of the views and the list of a view now stand on the screen, and a
+user with a mouse could not reach either of them.
+
+**The fault, of the real program v0.8.146** inside tmux, of the Home view of
+the library `Large`, of a terminal of 160 columns and 45 rows, with the new
+harness `docs/harness/click.sh`. Twelve reports of the mouse went to the
+program: a click of the column 60 of the row 10 (the row of
+`Large Book 0006`), a click of the column 10 of the row 10 (the line
+`Collections` of the panel 1), and five steps of the wheel down over the
+list. **The screen did not change at all.** The cursor stayed on
+`Large Book 0001`, the focus stayed on the panel 4, and the list did not
+move.
+
+**The proof that the fault stood in the loop, and not in the terminal.** The
+key `j` after those twelve reports moved the cursor to `Large Book 0002` at
+once, and the key `Esc` stops the program (the trap 69), therefore the
+program stood through every one of the twelve reports and it read the keys.
+The bytes of the mouse reached the program, `crossterm` made an
+`Event::Mouse` of each one, and the loop of `src/main.rs` read the
+`Event::Key` alone and it dropped every `Event::Mouse`. A `grep` of
+`MouseCapture`, of `Event::Mouse`, and of `MouseEvent` over the whole of
+`src/` gave no line at all: the program never asked the terminal for the
+mouse, and it never read one report of it.
+
+**The harness, `docs/harness/click.sh`, new in this round.** A session of
+tmux that no person looks at has no mouse, and `tmux click` does not exist.
+The harness writes the bytes of the report SGR of the mode 1006
+(`CSI < b ; x ; y M` for a press, and the same with a small `m` for a
+release) to the standard input of the program with `tmux send-keys -H`. Its
+functions are `click`, `press_the_button`, `release_the_button`, `drag_to`,
+`wheel_up`, `wheel_down`, and `the_row_of`. **A program that did not enable
+the capture reads those bytes too**, because the capture tells the terminal
+to send the reports and it does not change the parser of the program: that
+is why the harness measured the fault of the program of today.
+
+**The correction is seven files.**
+
+- `src/ui/the_mouse.rs` is new. It holds `TheAreasOfTheMouse` (the areas of
+  the last frame), `TheTarget` (`Nothing`, `ThePanelOfTheViews`, and
+  `TheListOfTheView`), `the_line_of_a_row`, `the_target_of_a_point`, and the
+  two sentences `THE_MOUSE_STANDS` and `THE_MOUSE_STOPPED`.
+- `src/utils/the_terminal_of_the_program.rs`:
+  `the_program_reads_the_mouse(bool)` sends `EnableMouseCapture` and
+  `DisableMouseCapture`, `the_terminal_of_the_program` asks for the capture
+  with the raw mode and the alternate screen, and
+  `the_program_gives_the_terminal_back` stops it. **A terminal that refuses
+  the request takes a line of the log and no word for the user** (T-91 and
+  T-177).
+- `src/utils/exit_app.rs`: `restore_terminal_on` gives the mouse back to the
+  terminal.
+- `src/main.rs`: the loop gives `Event::Mouse` to `App::handle_the_mouse`,
+  and it carries the change of the capture of the key `Ctrl+o`.
+- `src/app.rs` holds the fields `the_areas_of_the_mouse`,
+  `the_mouse_stands`, and `the_capture_of_the_mouse_must_change`; the
+  methods `handle_the_mouse`, `the_line_of_the_list_of_the_view`,
+  `the_cursor_of_the_view_goes_to`, and `the_line_of_the_views_moves`; and
+  the key `Ctrl+o` before every view.
+- `src/ui/tui.rs` and `src/ui/the_list_of_a_view.rs`: the render gives the
+  rows of the lines back, and it writes the areas of the last frame.
+- `src/ui/keys.rs` holds the group `The mouse` of the view of the key `?`.
+
+**The screen after this round**, of the same harness, v0.8.147. At 160
+columns: a click of the row 10 gave `➤ Large Book 0006`. A click of the line
+`Collections` of the panel 1 gave `╔1 Views ═╗┌4 Home ─┐` with `➤ Queue` on
+the row of the pointer. Three steps of the wheel over the panel 1 gave
+`➤ Bookmarks`. Five steps of the wheel over the list gave
+`➤ Large Book 0006` of `Large Book 0001`. The key `Ctrl+o` said
+`The program does not read the mouse. You can select the text of your
+terminal again. Press Ctrl+o for the mouse.`, the same click then moved
+nothing at all, and the key `Ctrl+o` again said `The program reads the
+mouse. Press Ctrl+o to stop it and to select the text of your terminal.`
+and the click then moved the cursor to `Large Book 0002`.
+
+At 100 columns, where the frame draws no stack: a click of the column 5 of
+the row 6 gave `➤ Large Book 0002`, and a click of the column 60 of the row
+8 moved nothing, because the panel of the covers stands there and no stage
+drew a target of it. The view of the keys of the key `?` at 100 columns: a
+click of the row 9 gave the line `l / → / Enter` of that row. **The mouse
+therefore reaches every view of a list, and not the Home view and the
+Library view alone.**
+
+**Five decisions that this round took alone, and the reason of each.**
+
+1. **A click of the button at the left gives the focus to the panel of the
+   pointer, and it moves the cursor to the line of the pointer.** It does
+   not open the media: a click that opened a media would give the user no
+   road to look at a line.
+2. **One step of the wheel moves one line, which is the work of the keys
+   `j` and `k`.** A wheel of three lines beside a key of one line would give
+   the user two lists of one view. The wheel needs no focus, and it moves
+   the list under the pointer.
+3. **The key of the road back is `Ctrl+o`.** A capture of the mouse takes
+   the selection of the text of the terminal away from the user, therefore
+   the key stands before every view, and the reader takes every other key
+   (T-10 and T-52). The modifier `Shift` of most terminals gives the
+   selection while the capture stands.
+4. **The cursor of a click moves with `select_next` and `select_previous`,
+   one line at a time, and it writes no line of its own.** Those two
+   functions hold every rule of every list: the name of a shelf of the Home
+   view is no line of the user (T-24), the Downloads view holds a move of
+   its own, and the list of a view goes round at its end.
+5. **The mouse of the start stands.**
+
+**The gate**, `tests/the_mouse_of_the_program_reaches_its_panels.rs` of five
+tests, and two more inside `src/ui/the_mouse.rs`. **The build of the fault**
+(the trap 147) removed the dispatch of `Event::Mouse` of `src/main.rs`, it
+gave `if false &&` to the arm of the list of `the_target_of_a_point`, and it
+took the three keys of the group of the mouse out of `src/ui/keys.rs`: five
+of the tests failed. The gate: 1407 of 1407.
+
+**What this stage leaves open.**
+
+- **The drag of the bar of the player belongs to T-322**, which draws that
+  bar.
+- **A click of the panel of the covers, of the panel of the description, of
+  the row of the player, and of the footer names nothing**: each stage
+  after this one adds the targets of its own region.
+- **The report of a move of the pointer and the report of a release do
+  nothing today.**
+- **The mouse of the start stands at every start**: a user who wants it off
+  presses `Ctrl+o` at each start, and no setting of `config.toml` holds
+  that choice yet.
+- **The click of the button at the right and the click of the middle do
+  nothing.**

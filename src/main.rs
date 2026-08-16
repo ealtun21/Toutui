@@ -645,6 +645,16 @@ async fn main() -> Result<()> {
                         let event = crossterm::event::read()?;
                         taken += 1;
 
+                        // **A report of the mouse is not a key** (T-316). The
+                        // terminal sends it when the program asks for the
+                        // capture, and the loop before this one read every one
+                        // of them and it did nothing at all: a click of the
+                        // user moved no cursor and it gave no panel the focus.
+                        if let event::Event::Mouse(the_report) = event {
+                            app.handle_the_mouse(the_report);
+                            continue;
+                        }
+
                         if let event::Event::Key(key) = event {
                             // A terminal that reports the release of a key sends
                             // two events for one press. The application must act
@@ -654,6 +664,17 @@ async fn main() -> Result<()> {
                             }
 
                             app.handle_key(key);
+
+                            // **The key `Ctrl+o` starts the reports of the
+                            // mouse and it stops them** (T-316). `App` holds no
+                            // terminal, therefore the request stands here, with
+                            // the standard output of this loop.
+                            if app.the_capture_of_the_mouse_must_change {
+                                app.the_capture_of_the_mouse_must_change = false;
+                                utils::the_terminal_of_the_program::the_program_reads_the_mouse(
+                                    app.the_mouse_stands,
+                                );
+                            }
 
                             // A box that took a text wrote on the cells of the
                             // view below it. ratatui writes the cells that changed

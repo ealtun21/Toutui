@@ -119,10 +119,47 @@ pub fn the_line_of_a_screen_that_did_not_reach_the_terminal(reason: &io::Error) 
 /// program says nothing of that here: it has one shell, and the words of the
 /// fault of the user belong to it.
 pub fn the_program_gives_the_terminal_back() {
+    // **`ratatui::try_restore` gives the raw mode and the alternate screen
+    // back, and it says nothing of the mouse** (T-316), therefore the reports
+    // of the mouse stop here.
+    the_program_reads_the_mouse(false);
+
     if let Err(reason) = ratatui::try_restore() {
         log::error!(
             "[the terminal] the program did not give the terminal back: {}. \
              The shell of the user can stay in the raw mode.",
+            reason
+        );
+    }
+}
+
+/// Asks the terminal for the reports of the mouse, or tells it to stop them.
+/// See T-316.
+///
+/// **A capture of the mouse takes the selection of the text away from the
+/// user**: the terminal gives the report of a drag to the program, and it draws
+/// no selection of its own. The key `Ctrl+o` of this program therefore stops
+/// the capture, and the modifier `Shift` of most terminals gives the selection
+/// while the capture stands.
+///
+/// **The program says nothing to the user for a terminal that refuses the
+/// request.** A terminal that sends no report of the mouse is a terminal whose
+/// user works with the keys, and every key of this program stays: a message of
+/// six seconds at the first frame would name a fault that the user has no road
+/// back for (T-91). The line of the log holds it (T-177).
+pub fn the_program_reads_the_mouse(it_reads_the_mouse: bool) {
+    let mut stdout = io::stdout();
+
+    let answer = if it_reads_the_mouse {
+        crossterm::execute!(stdout, crossterm::event::EnableMouseCapture)
+    } else {
+        crossterm::execute!(stdout, crossterm::event::DisableMouseCapture)
+    };
+
+    if let Err(reason) = answer {
+        log::warn!(
+            "[the terminal] the terminal took no request of the reports of the mouse: {}. \
+             The keys of the program do every work of the mouse.",
             reason
         );
     }
@@ -160,7 +197,13 @@ pub fn the_program_stops_for_a_screen_that_did_not_reach_the_terminal(reason: &i
 /// The function never comes back for a program that has no terminal.
 pub fn the_terminal_of_the_program() -> ratatui::DefaultTerminal {
     match ratatui::try_init() {
-        Ok(terminal) => terminal,
+        Ok(terminal) => {
+            // **The terminal sends no report of the mouse before the program
+            // asks for it** (T-316), and the program asks for it here, with the
+            // raw mode and the alternate screen of `try_init`.
+            the_program_reads_the_mouse(true);
+            terminal
+        }
         Err(reason) => {
             log::error!("{}", the_line_of_a_program_with_no_terminal(&reason));
 

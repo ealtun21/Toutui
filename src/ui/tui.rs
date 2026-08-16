@@ -2675,6 +2675,13 @@ impl App {
         );
 
         let Some(stack) = stack else {
+            // **A frame that draws no stack takes no click of a stack**
+            // (T-316): the areas of the last frame are the screen that the user
+            // clicked, therefore a panel that the frame did not draw must hold
+            // no cell of that screen at all.
+            self.the_areas_of_the_mouse.the_panel_of_the_views = Rect::default();
+            self.the_areas_of_the_mouse.the_lines_of_the_views = Rect::default();
+
             return work;
         };
 
@@ -2706,6 +2713,11 @@ impl App {
             Style::new().add_modifier(Modifier::BOLD)
         };
 
+        // **The render gets a copy of the state** (the code before T-316 did
+        // the same): the panel 1 keeps the line of the user, and ratatui writes
+        // the offset of the panel into this copy while it draws the list.
+        let mut of_the_render = self.the_line_of_the_views;
+
         StatefulWidget::render(
             List::new(lines)
                 .highlight_style(of_the_cursor)
@@ -2713,8 +2725,14 @@ impl App {
                 .highlight_spacing(HighlightSpacing::Always),
             inner,
             buf,
-            &mut self.the_line_of_the_views.clone(),
+            &mut of_the_render,
         );
+
+        // The areas that a report of the mouse reads. See T-316.
+        self.the_areas_of_the_mouse.the_panel_of_the_views = stack;
+        self.the_areas_of_the_mouse.the_lines_of_the_views = inner;
+        self.the_areas_of_the_mouse.the_offset_of_the_views = of_the_render.offset();
+        self.the_areas_of_the_mouse.the_views = crate::ui::frame::THE_VIEWS.len();
 
         work
     }
@@ -2734,12 +2752,19 @@ impl App {
         // **The colour of each line stands there too** (T-257): the colours of
         // the user come of `self.config`, which `App` read at its start and at
         // the key `R`, and no line of a frame opens `config.toml` again.
-        crate::ui::the_list_of_a_view::render_the_list(
+        let the_lines = crate::ui::the_list_of_a_view::render_the_list(
             area,
             buf,
             &self.config.colors,
             render_list_title,
             render_list_items,
+            list_state,
+        );
+
+        self.the_areas_of_the_list_of_the_mouse(
+            area,
+            the_lines,
+            render_list_items.len(),
             list_state,
         );
     }
@@ -2767,7 +2792,7 @@ impl App {
             None
         };
 
-        crate::ui::the_list_of_a_view::render_the_list_of_a_panel(
+        let the_lines = crate::ui::the_list_of_a_view::render_the_list_of_a_panel(
             area,
             buf,
             &self.config.colors,
@@ -2776,6 +2801,34 @@ impl App {
             render_list_items,
             list_state,
         );
+
+        self.the_areas_of_the_list_of_the_mouse(
+            area,
+            the_lines,
+            render_list_items.len(),
+            list_state,
+        );
+    }
+
+    /// Writes the area of the list of the view into the areas that a report of
+    /// the mouse reads. See T-316.
+    ///
+    /// **ratatui writes the offset of the list while it draws it**, therefore
+    /// this function comes after the render and it needs no second measurement
+    /// of the place of the user. That offset is the line of the list that
+    /// stands on the first row of the panel, and a click of a row therefore
+    /// needs it and the area together.
+    fn the_areas_of_the_list_of_the_mouse(
+        &mut self,
+        the_panel: Rect,
+        the_lines_of_the_list: Rect,
+        the_lines: usize,
+        list_state: &ListState,
+    ) {
+        self.the_areas_of_the_mouse.the_panel_of_the_list = the_panel;
+        self.the_areas_of_the_mouse.the_lines_of_the_list = the_lines_of_the_list;
+        self.the_areas_of_the_mouse.the_offset_of_the_list = list_state.offset();
+        self.the_areas_of_the_mouse.the_lines = the_lines;
     }
 
     // info about the book or podacst for `Home`

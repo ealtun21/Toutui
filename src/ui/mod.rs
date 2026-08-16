@@ -11,5 +11,6 @@ pub mod stats_tui;
 pub mod text_field;
 pub mod the_list_of_a_view;
 pub mod the_message_of_a_view;
+pub mod the_mouse;
 pub mod theme;
 pub mod tui;

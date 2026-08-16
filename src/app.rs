@@ -28,7 +28,9 @@ use crate::utils::check_update::*;
 use crate::utils::encrypt_token::*;
 use color_eyre::Result;
 use ratatui::{
-    crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers},
+    crossterm::event::{
+        KeyCode, KeyEvent, KeyEventKind, KeyModifiers, MouseButton, MouseEvent, MouseEventKind,
+    },
     widgets::ListState,
 };
 
@@ -604,6 +606,27 @@ pub struct App {
     pub the_panel_of_the_focus: crate::ui::frame::ThePanel,
     /// The line of the user in the panel 1 of the views. See T-320.
     pub the_line_of_the_views: ListState,
+    /// The areas of the last frame that a report of the mouse can name. See
+    /// T-316.
+    ///
+    /// **The render writes them, and the handler of the mouse reads them**: a
+    /// report of the mouse comes of the terminal after a frame, therefore the
+    /// user clicked on the screen that these areas describe. The value of the
+    /// start holds no cell at all, therefore a report that comes before the
+    /// first frame names no panel.
+    pub the_areas_of_the_mouse: crate::ui::the_mouse::TheAreasOfTheMouse,
+    /// Says if the program reads the reports of the mouse. See T-316.
+    ///
+    /// **A capture of the mouse takes the selection of the text away from the
+    /// user**, therefore the key `Ctrl+o` stops it and starts it again.
+    pub the_mouse_stands: bool,
+    /// Says that the loop must tell the terminal that
+    /// [`Self::the_mouse_stands`] changed. See T-316.
+    ///
+    /// **`App` holds no terminal**: the request of the capture stands on the
+    /// standard output, and the loop of `src/main.rs` owns it. This is the same
+    /// road as `the_screen_must_be_drawn_again` (T-89).
+    pub the_capture_of_the_mouse_must_change: bool,
     /// The program must start again, and the loop must first send the position
     /// of a playback that it stops. See T-139.
     ///
@@ -2050,6 +2073,13 @@ impl App {
                 of_the_views.select(Some(0));
                 of_the_views
             },
+            the_areas_of_the_mouse: crate::ui::the_mouse::TheAreasOfTheMouse::default(),
+            // **The mouse of the start stands** (T-316): the terminal takes the
+            // request of the capture with the raw mode and the alternate
+            // screen, and the key `Ctrl+o` stops it for a user who wants the
+            // selection of the text of their terminal.
+            the_mouse_stands: true,
+            the_capture_of_the_mouse_must_change: false,
             the_program_starts_again: None,
             audio_fault,
         })
@@ -2116,13 +2146,11 @@ impl App {
 
         match key.code {
             KeyCode::Char('j') | KeyCode::Down => {
-                self.the_line_of_the_views
-                    .select(Some((of_the_line + 1).min(THE_VIEWS.len() - 1)));
+                self.the_line_of_the_views_moves(true);
                 true
             }
             KeyCode::Char('k') | KeyCode::Up => {
-                self.the_line_of_the_views
-                    .select(Some(of_the_line.saturating_sub(1)));
+                self.the_line_of_the_views_moves(false);
                 true
             }
             KeyCode::Char('g') | KeyCode::Home => {
@@ -2167,6 +2195,198 @@ impl App {
         }
     }
 
+    /// Moves the line of the user of the panel 1 of the views, forward or back.
+    /// See T-320.
+    ///
+    /// **The key `j` of that panel and one step of the wheel of the mouse over
+    /// it do the same work** (T-316), therefore the rule of the end of that
+    /// list stands in one place.
+    fn the_line_of_the_views_moves(&mut self, forward: bool) {
+        use crate::ui::frame::THE_VIEWS;
+
+        let of_the_line = self.the_line_of_the_views.selected().unwrap_or(0);
+
+        self.the_line_of_the_views.select(Some(if forward {
+            (of_the_line + 1).min(THE_VIEWS.len() - 1)
+        } else {
+            of_the_line.saturating_sub(1)
+        }));
+    }
+
+    /// The line of the user in the list of the view that stands now, and `None`
+    /// for a view that holds no list of a cursor. See T-316.
+    ///
+    /// **A click of a row needs to know where the cursor stands**, because it
+    /// moves that cursor with the keys `j` and `k` and not with a write of its
+    /// own: `select_next` and `select_previous` hold every rule of every list
+    /// of this program — the name of a shelf of the Home view is no line of the
+    /// user (T-24), the Downloads view holds a move of its own, and the list of
+    /// a view goes round at its end. A click that wrote the line itself would
+    /// take a second road to every one of those rules.
+    pub fn the_line_of_the_list_of_the_view(&self) -> Option<usize> {
+        match self.view_state {
+            AppView::Home => self.list_state_cnt_list.selected(),
+            AppView::Library => self.list_state_library.selected(),
+            AppView::SearchBook => self.list_state_search_results.selected(),
+            AppView::PodcastEpisode => self.list_state_pod_ep.selected(),
+            AppView::Series => self.list_state_series.selected(),
+            AppView::SeriesBook => self.list_state_series_book.selected(),
+            AppView::Lists => self.list_state_lists.selected(),
+            AppView::ListEntries => self.list_state_list_entries.selected(),
+            AppView::SortFilter => self.list_state_sort_filter.selected(),
+            AppView::Chapters => self.list_state_chapters.selected(),
+            AppView::Bookmarks => self.list_state_bookmarks.selected(),
+            AppView::Queue => self.list_state_queue.selected(),
+            AppView::NewPodcast => self.list_state_new_podcast.selected(),
+            AppView::Authors => self.list_state_authors.selected(),
+            AppView::Ebooks => self.list_state_ebooks.selected(),
+            AppView::Downloads => self.list_state_downloads.selected(),
+            AppView::PutInAList => self.list_state_put_in_a_list.selected(),
+            AppView::SendToEreader => self.list_state_send_to_ereader.selected(),
+            AppView::Keys => self.list_state_keys.selected(),
+            AppView::Settings => self.list_state_settings.selected(),
+            AppView::SettingsAccount => self.list_state_settings_account.selected(),
+            AppView::SettingsLibrary => self.list_state_settings_library.selected(),
+            AppView::SettingsAbout => self.list_state_settings_about.selected(),
+            AppView::SettingsUpdateUninstall => {
+                self.list_state_settings_update_uninstall.selected()
+            }
+            AppView::SettingsReader => self.list_state_settings_reader.selected(),
+            // **The reader, the statistics, and the sessions hold no list of a
+            // cursor**: the two last ones scroll a text of their own, and the
+            // reader holds the pages of a book.
+            AppView::Reader | AppView::Stats | AppView::Sessions => None,
+        }
+    }
+
+    /// Moves the cursor of the list of the view to the line that the user
+    /// clicked. See T-316.
+    ///
+    /// **The move goes with the keys `j` and `k`**, one line at a time, for the
+    /// reason of [`Self::the_line_of_the_list_of_the_view`]. The loop stops at
+    /// the line of the click, at a line that the cursor cannot pass, and at the
+    /// end of a list that goes round.
+    fn the_cursor_of_the_view_goes_to(&mut self, the_line: usize) {
+        // The largest library of the measurement of this fork holds 2056 items.
+        // This bound stops a view of a move of its own from holding the loop of
+        // the screen for ever.
+        const THE_STEPS_OF_A_CLICK: usize = 4096;
+
+        for _ in 0..THE_STEPS_OF_A_CLICK {
+            let Some(now) = self.the_line_of_the_list_of_the_view() else {
+                return;
+            };
+
+            if now == the_line {
+                return;
+            }
+
+            let forward = now < the_line;
+
+            if forward {
+                self.select_next();
+            } else {
+                self.select_previous();
+            }
+
+            let Some(after) = self.the_line_of_the_list_of_the_view() else {
+                return;
+            };
+
+            // The cursor stands at an end of the list, and it did not move.
+            if after == now {
+                return;
+            }
+
+            // **The cursor went past the line of the click**: the name of a
+            // shelf of the Home view is no line of the user (T-24), therefore a
+            // click on such a name gives the line of the user beside it.
+            if forward != (after <= the_line) {
+                return;
+            }
+
+            // **The list of a view goes round at its end** (`select_first` of
+            // `select_next`), therefore a step that went the other way is a
+            // step over an end of the list.
+            if forward != (now < after) {
+                return;
+            }
+        }
+    }
+
+    /// The work of a report of the mouse. See T-316.
+    ///
+    /// **A click of the button at the left gives the focus to the panel of the
+    /// pointer, and it moves the cursor of that panel to the row of the
+    /// pointer.** A click on the border of a panel gives the focus alone, and a
+    /// click on a row that holds no line moves no cursor.
+    ///
+    /// **One step of the wheel moves one line**, which is the work of the keys
+    /// `j` and `k`: a wheel of three lines beside a key of one line would give
+    /// the user two lists of one view. **The wheel needs no focus**, and it
+    /// moves the list under the pointer.
+    ///
+    /// The report of a move of the pointer and the report of a release do
+    /// nothing today. The drag of the bar of the player belongs to T-322, which
+    /// draws that bar.
+    pub fn handle_the_mouse(&mut self, the_report: MouseEvent) {
+        use crate::ui::the_mouse::{the_target_of_a_point, TheTarget};
+
+        if !self.the_mouse_stands {
+            return;
+        }
+
+        let target = the_target_of_a_point(
+            &self.the_areas_of_the_mouse,
+            self.the_stack_of_the_panels_stands(),
+            the_report.column,
+            the_report.row,
+        );
+
+        match the_report.kind {
+            MouseEventKind::Down(MouseButton::Left) => match target {
+                TheTarget::ThePanelOfTheViews { the_line } => {
+                    self.the_panel_of_the_focus = crate::ui::frame::ThePanel::TheViews;
+
+                    if let Some(the_line) = the_line {
+                        self.the_line_of_the_views.select(Some(the_line));
+                    }
+                }
+                TheTarget::TheListOfTheView { the_line } => {
+                    self.the_panel_of_the_focus = crate::ui::frame::ThePanel::TheList;
+
+                    if let Some(the_line) = the_line {
+                        self.the_cursor_of_the_view_goes_to(the_line);
+                    }
+                }
+                TheTarget::Nothing => {}
+            },
+            MouseEventKind::ScrollDown | MouseEventKind::ScrollUp => {
+                let forward = the_report.kind == MouseEventKind::ScrollDown;
+
+                match target {
+                    TheTarget::ThePanelOfTheViews { .. } => {
+                        self.the_line_of_the_views_moves(forward)
+                    }
+                    TheTarget::TheListOfTheView { .. } => {
+                        if forward {
+                            self.select_next();
+                        } else {
+                            self.select_previous();
+                        }
+
+                        // A move of the cursor takes the panel of the
+                        // description back to its first line, as the keys `j`
+                        // and `k` do.
+                        self.scroll_offset = 0;
+                    }
+                    TheTarget::Nothing => {}
+                }
+            }
+            _ => {}
+        }
+    }
+
     pub fn handle_key(&mut self, key: KeyEvent) {
         if key.kind != KeyEventKind::Press {
             return;
@@ -2193,6 +2413,24 @@ impl App {
         // See T-124.
         if !matches!(key.code, KeyCode::Char('c')) {
             self.confirm_the_account_that_starts = None;
+        }
+
+        // **The key of the mouse comes before every view** (T-316): a capture
+        // of the mouse takes the selection of the text of the terminal away
+        // from the user, therefore the road back must stand in every view of
+        // the program, and in the reader too. The reader takes every other key
+        // (T-10 and T-52).
+        if key.code == KeyCode::Char('o') && key.modifiers.contains(KeyModifiers::CONTROL) {
+            self.the_mouse_stands = !self.the_mouse_stands;
+            self.the_capture_of_the_mouse_must_change = true;
+
+            crate::logic::message::say(if self.the_mouse_stands {
+                crate::ui::the_mouse::THE_MOUSE_STANDS
+            } else {
+                crate::ui::the_mouse::THE_MOUSE_STOPPED
+            });
+
+            return;
         }
 
         // **The keys of the frame of the panels come first, and they come for

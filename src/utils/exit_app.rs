@@ -7,6 +7,7 @@
 //! the screen of the application, and that has no cursor.
 
 use crossterm::cursor::Show;
+use crossterm::event::DisableMouseCapture;
 use crossterm::terminal::{disable_raw_mode, LeaveAlternateScreen};
 use std::io::{self, Write};
 use std::process;
@@ -17,7 +18,13 @@ use std::process;
 /// function writes. `restore_terminal` gives it the standard output.
 pub fn restore_terminal_on(writer: &mut impl Write) {
     let _ = disable_raw_mode();
-    let _ = crossterm::execute!(writer, Show, LeaveAlternateScreen);
+
+    // **The reports of the mouse go back to the terminal too** (T-316). A
+    // terminal that keeps the capture after the exit gives the shell of the
+    // user no selection of the text at all, and it writes the report of every
+    // move of the pointer into the line of that shell. The request to stop is
+    // safe for a terminal that never took the first one.
+    let _ = crossterm::execute!(writer, DisableMouseCapture, Show, LeaveAlternateScreen);
     let _ = writer.flush();
 }
 

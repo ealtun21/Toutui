@@ -4,7 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.145.** The item T-317 belongs to this session. The
+**The newest release is v0.8.147.** The item T-316 belongs to this session. The
+item T-320 belongs to the session before it. The
+item T-317 belongs to the session before it. The
 item T-315 belongs to the session before it. The
 item T-314 belongs to the session before it. The
 item T-313 belongs to the session before it. The
@@ -11119,8 +11121,8 @@ measurement can hold.
 |---|---|---|
 | 1 | **T-317** | The theme of the terminal of the user — **done, v0.8.145** |
 | 2 | **T-320** | The frame of the panels, the focus, and the narrow terminal — **done, v0.8.146**; the two lines of the footer stay open |
-| 3 | **T-316** | The harness of a click, the capture, and a click of a row — **the next stage** |
-| 4 | **T-321** | The list of the panel 4 becomes a table of a header |
+| 3 | **T-316** | The harness of a click, the capture, and a click of a row — **done, v0.8.147**; the targets of the regions of the stages after it stay open |
+| 4 | **T-321** | The list of the panel 4 becomes a table of a header — **the next stage** |
 | 5 | **T-318** | The panels 2 and 3, and a series that opens into its books |
 | 6 | **T-319** | The panel 5 of one cover, and the panel 6 of the gallery |
 | 7 | **T-322** | The panel 7, the band of the player |
@@ -11165,20 +11167,28 @@ program inside tmux before and after each of them, and put the two screens in
 the item of `docs/TAKEOVER-BACKLOG.md`.** Each of them takes more than one
 round.
 
-**T-316: the mouse works everywhere.** `crossterm` sends
-`Event::Mouse` when the program enables `EnableMouseCapture`, and **a `grep` of
-`MouseCapture`, of `Event::Mouse`, and of `MouseEvent` over the whole of `src/`
-gives no line at all** (the measurement of 2026-08-16): this item is a new
-road, and no part of it stands today. The work: a click of a row selects that row, a click
-of a panel gives that panel the focus, the wheel scrolls the list under the
-pointer, a click and a drag on the bar of the player seeks, and every key of a
-view that a user can see as a control takes a click too. **The measurement of a
-click inside tmux is `tmux send-keys -X` and `tmux click`**, and this fork has
-no harness of a mouse yet: **the first round of this item writes
-`docs/harness/click.sh`.** **A mouse capture takes the selection of the text of
-the terminal away from the user**, therefore the program needs a key that turns
-the mouse off, and the modifier Shift of most terminals must still give the
-selection.
+**T-316: the mouse works everywhere — the plumbing stands, v0.8.147.** The
+round of the hundred and forty-seventh turn took this stage, and the item of
+`docs/TAKEOVER-BACKLOG.md` holds the measurement of the fault and of the
+correction. **`docs/harness/click.sh` is the harness of a mouse of this fork
+now**: `tmux click` does not exist and `tmux send-keys -X` drives the copy mode
+of tmux, therefore the harness writes the bytes of the report SGR of the mode
+1006 to the standard input of the program. What stands: a click of a row moves
+the cursor to that row in **every view of a list**, a click of a panel gives
+that panel the focus, one step of the wheel moves one line of the list under
+the pointer, and **the key `Ctrl+o` stops the capture and starts it again**,
+because a capture takes the selection of the text of the terminal away from the
+user (the modifier `Shift` of most terminals gives that selection while the
+capture stands).
+
+**What stays open of this item.** A click and a drag on the bar of the player
+seeks, and that bar comes with T-322. **A click of the panel of the covers, of
+the panel of the description, of the row of the player, and of the footer names
+nothing**: each stage after this one adds the targets of its own region, which
+is the rule of the sequence of the stages. The report of a move of the pointer
+and the report of a release do nothing, the button at the right and the button
+of the middle do nothing, and **no setting of `config.toml` holds the choice of
+a user who wants the mouse off at every start**.
 
 **T-317: the theme of the terminal of the user is the theme of the start.** The
 program must use the 16 colours of ANSI and the default foreground and the
@@ -20816,7 +20826,7 @@ user at all** (T-317).
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.145**; `Cargo.toml` is at 0.8.145. The
+> AlbanDAVID/Toutui. Newest release **v0.8.147**; `Cargo.toml` is at 0.8.147. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -21308,6 +21318,27 @@ user at all** (T-317).
 >          ./target/debug/toutui"
 > ```
 >
+> **A click of the mouse is `docs/harness/click.sh`** (T-316). **A session of
+> tmux that no person looks at has no mouse**: `tmux click` does not exist, and
+> `tmux send-keys -X` drives the copy mode of tmux and not the program of the
+> pane. That harness writes the bytes of the report SGR of the mode 1006 to the
+> standard input of the program with `tmux send-keys -H`, which is what a
+> terminal that holds a mouse sends. **A program that asked for no capture reads
+> those bytes too**, because the capture tells the terminal to send the reports
+> and it does not change the parser of `crossterm`: that is how the round of
+> T-316 measured the program that did nothing with them. Give it to your shell
+> after `docs/harness/drive.sh`, and the columns and the rows start at 1:
+>
+> ```bash
+> source docs/harness/drive.sh
+> source docs/harness/click.sh
+> click 60 10 ; wheel_down 60 10 ; the_row_of "Large Book 0006"
+> ```
+>
+> **The key `Esc` stops this program** (the trap 69), therefore a program that
+> stands after a report of the mouse is the proof that `crossterm` read that
+> report whole and that it made no key of the bytes of it.
+>
 > **The size of the terminal is data of a fault, and it needs no harness at
 > all** (T-301). `COLUMNS_OF_THE_SCREEN=40` of `docs/harness/drive.sh` gives
 > the narrowest terminal that this fork measures, and the fault of T-301 came
@@ -21723,6 +21754,9 @@ user at all** (T-317).
 >    T-320 the frame of the panels, T-316 the mouse, T-321 the table, T-318
 >    the panels of the sequence and of the filter, T-319 the covers, T-322 the
 >    band of the player, and T-323 the mode that hides the stack at the left.
+>    **The stages 1, 2, and 3 are done** (v0.8.145, v0.8.146, and v0.8.147),
+>    and **T-321, the list of the panel 4 that becomes a table of a header, is
+>    the next one**.
 >    **A round takes the next stage that is not finished**, and that section
 >    holds three decisions that a round must not take alone. Read it first.
 >
@@ -21801,6 +21835,66 @@ user at all** (T-317).
 >     view takes the same road**, therefore this is no fault of the frame at
 >     all, and no round has measured it. **This is a candidate and not a
 >     measurement.**
+>
+>   **The session of the hundred and forty-seventh turn took the stage 3 of the
+>   road of the panels** (T-316), the mouse. **It left the targets of the
+>   regions of the stages after it open.**
+>
+>   **The mouse, the capture, and a click of a row.** The measurement of the
+>   real program v0.8.146 inside tmux, of the Home view of the library `Large`
+>   at 160 columns and 45 rows, with the new harness `docs/harness/click.sh`:
+>   twelve reports of the mouse — a click of the row of `Large Book 0006`, a
+>   click of the line `Collections` of the panel 1, and five steps of the wheel
+>   — and **the screen did not change at all**. The control of that same run:
+>   the key `j` after those reports moved the cursor to `Large Book 0002`, and
+>   the program stood, therefore `crossterm` made an `Event::Mouse` of each
+>   report and the loop of `src/main.rs` read the `Event::Key` alone.
+>
+>   **The data of this stage is the program itself**: no proxy, no change of
+>   the sandbox, and no book of a harness. The correction is seven files:
+>   `src/ui/the_mouse.rs` is new (`TheAreasOfTheMouse`, `TheTarget`,
+>   `the_line_of_a_row`, `the_target_of_a_point`, and the two sentences of the
+>   key), `src/utils/the_terminal_of_the_program.rs` holds
+>   `the_program_reads_the_mouse(bool)`, `src/utils/exit_app.rs` gives the
+>   mouse back to the terminal, `src/main.rs` gives `Event::Mouse` to
+>   `App::handle_the_mouse`, `src/app.rs` holds the three fields and the four
+>   methods of it and the key `Ctrl+o` before every view, `src/ui/tui.rs` and
+>   `src/ui/the_list_of_a_view.rs` write the areas of the last frame, and
+>   `src/ui/keys.rs` holds the group `The mouse`.
+>
+>   **The corrected program** of the same harness: a click of the row 10 gave
+>   `➤ Large Book 0006`, a click of the panel 1 gave `╔1 Views ═╗┌4 Home ─┐`
+>   with `➤ Queue` on the row of the pointer, and the key `Ctrl+o` stopped the
+>   mouse and started it again. **The mouse reaches every view of a list**: at
+>   100 columns, where the frame draws no stack, a click of the row of
+>   `Large Book 0002` gave that book, and a click of the row 9 of the view of
+>   the keys gave the line of that row.
+>
+>   `tests/the_mouse_of_the_program_reaches_its_panels.rs` holds the gate, of
+>   five tests, and two more stand inside `src/ui/the_mouse.rs`. **The build of
+>   the fault** (the trap 147) — the dispatch of `Event::Mouse` of
+>   `src/main.rs` removed, `if false &&` on the arm of the list of
+>   `the_target_of_a_point`, and the three keys of the group of the mouse taken
+>   out of `src/ui/keys.rs` — made five of the seven fail.
+>
+>   **The trap of this item** (the trap 209 again, and the rule of the width of
+>   T-301): `ui::keys::tests::the_view_gives_a_line_for_every_key` holds every
+>   line of the view of the key `?` to 76 characters, and the line
+>   `Shift+Click  Most terminals give the selection of the text while the mouse
+>   stands` stood above it. **A new group of that view needs the words of a
+>   narrow terminal**, and the gate says so before tmux does.
+>   - **The targets of the regions of the stages after this one stay open**
+>     (T-316): a click of the panel of the covers, of the panel of the
+>     description, of the row of the player, and of the footer names nothing,
+>     and the drag of the bar of the player belongs to T-322, which draws that
+>     bar. **Each stage adds the targets of its own region**, which is the rule
+>     of the sequence of the stages.
+>   - **The report of a move of the pointer and the report of a release do
+>     nothing**, and the button at the right and the button of the middle do
+>     nothing.
+>   - **No setting of `config.toml` holds the choice of a user who wants the
+>     mouse off at every start**: the mouse of the start stands, and the key
+>     `Ctrl+o` is the road back for that session alone.
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -21917,7 +22011,13 @@ user at all** (T-317).
 > same work; the round of the hundred and forty-third found it at 69573 bytes
 > with one turn in it, and it did the same work; the round of the hundred and
 > forty-fourth found it at 68288 bytes with one turn in it, and it did the same
-> work. **The list of the decisions
+> work; the round of the hundred and forty-seventh found it at 68638 bytes with
+> **one** turn in it, and **it took no turn out at all**: the block stood far
+> under the line of 99000, therefore that round wrote its own turn beside the
+> turn of the frame of T-320, and the block then held **73514** bytes with
+> **two** turns in it. **A block that stands under 80000 bytes holds two
+> turns**, and the turn of the stage before this one names the parts of that
+> stage which stay open. **The list of the decisions
 > grows with every round
 > and the turn of a round does not**, therefore that list is the part of the
 > block to take out again. **A turn of many
