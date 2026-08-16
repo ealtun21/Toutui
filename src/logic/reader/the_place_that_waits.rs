@@ -17,9 +17,22 @@
 //! Therefore the loop of the application writes the place of the reader in the
 //! box of this module at each turn, and the two roads of the end read that box
 //! and send it before the process goes away.
+//!
+//! **The reader has a table of the disk from T-294**,
+//! `pending_ebook_progress`. The box of the process above holds the two roads
+//! where the program stops of its own will, and it holds no road at all for a
+//! program that takes `SIGKILL` and for a machine that stops: that box goes
+//! away with the process. A place that the server refused therefore takes a row
+//! of the disk, and the start of the program after this one sends every row of
+//! it. It is the rule of `pending_progress` of the audio playback (T-152 and
+//! T-212), and the row holds the two fields of the request of a book alone.
 
 use crate::api::client::ApiClient;
-use log::{info, warn};
+use crate::db::crud::{
+    delete_pending_ebook_progress, get_pending_ebook_progress, insert_pending_ebook_progress,
+    PendingEbookProgress,
+};
+use log::{error, info, warn};
 
 /// The place of the reader for the request of the server.
 ///
@@ -138,7 +151,12 @@ pub fn the_place_of_this_book_that_waits(item_id: &str) -> Option<ThePlaceOfTheR
 /// **The program says no word of this send** (T-177): the screen of the user
 /// goes away with the process on both roads, therefore the log holds the
 /// answer of the server.
-pub async fn the_place_of_the_reader_goes_to_the_server(api: &ApiClient, handle_key: &str) {
+pub async fn the_place_of_the_reader_goes_to_the_server(
+    api: &ApiClient,
+    username: &str,
+    server: &str,
+    handle_key: &str,
+) {
     for place in the_places_that_wait() {
         let body = serde_json::json!({
             "ebookLocation": place.location,
@@ -158,16 +176,226 @@ pub async fn the_place_of_the_reader_goes_to_the_server(api: &ApiClient, handle_
 
                 // A second road of the end must not send the same place again.
                 the_place_of_this_book_waits_no_more(&place.item_id);
+
+                // **A place that the server took must leave the disk** (T-211).
+                the_place_of_this_book_waits_no_more_on_the_disk(
+                    username,
+                    server,
+                    &place.item_id,
+                    handle_key,
+                )
+                .await;
             }
 
             Err(error) => {
                 warn!(
                     "[{}] the server did not take the place of the book of the media {} ({}): {}. \
-                     The reader holds no table of the disk, therefore that place goes away with \
-                     this program.",
+                     The place waits on the disk for the program after this one.",
                     handle_key, place.item_id, place.location, error
                 );
+
+                // **The box of the process goes away with the process** (T-294).
+                the_place_of_this_book_waits_on_the_disk(username, server, &place, handle_key)
+                    .await;
             }
         }
     }
+}
+
+/// Gives the moment of now, in milliseconds.
+fn the_moment_of_now_in_milliseconds() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|since| since.as_millis() as i64)
+        .unwrap_or(0)
+}
+
+/// Writes the place of one book on the disk, for the program after this one.
+/// See T-294.
+///
+/// **A place that reached no machine keeps no row of a box of the process
+/// alone** (T-292 and T-293): a `SIGKILL` and a machine that stops each take
+/// that box away. The audio playback holds the same rule in the table
+/// `pending_progress` (T-212).
+///
+/// **The caller reads the answer of the write** (T-207): a disk that took no
+/// row wrote nothing at all, and the words of that fault name the disk and the
+/// media (T-211). The user reads no line of this fault: the road of the end
+/// takes the screen away, and the road of the key `s` and of the key `h` says
+/// the fault of the server already.
+pub async fn the_place_of_this_book_waits_on_the_disk(
+    username: &str,
+    server: &str,
+    place: &ThePlaceOfTheReader,
+    handle_key: &str,
+) {
+    let row = PendingEbookProgress {
+        id_item: place.item_id.clone(),
+        location: place.location.clone(),
+        fraction: place.fraction,
+        updated_at: the_moment_of_now_in_milliseconds(),
+    };
+
+    let of_the_account = username.to_string();
+    let of_the_server = server.to_string();
+
+    let answer = crate::db::the_work_of_the_disk(move || {
+        insert_pending_ebook_progress(&of_the_account, &of_the_server, &row)
+    })
+    .await;
+
+    match answer {
+        Some(Ok(())) => info!(
+            "[{}] the place of the book of the media {} waits on the disk ({}).",
+            handle_key, place.item_id, place.location
+        ),
+
+        Some(Err(error)) => error!(
+            "[{}] the disk did not take the place of the book of the media {} ({}): {}. That \
+             place goes away with this program.",
+            handle_key, place.item_id, place.location, error
+        ),
+
+        None => error!(
+            "[{}] the thread of the disk did not come back with the place of the book of the \
+             media {}. That place goes away with this program.",
+            handle_key, place.item_id
+        ),
+    }
+}
+
+/// Takes the place of one book off the disk. See T-294.
+///
+/// **A place that the server took must leave the disk** (T-211): a row that
+/// stays gives the server the same place at the start of the program after this
+/// one, and that place can then stand behind the place of a second client.
+pub async fn the_place_of_this_book_waits_no_more_on_the_disk(
+    username: &str,
+    server: &str,
+    item_id: &str,
+    handle_key: &str,
+) {
+    let of_the_account = username.to_string();
+    let of_the_server = server.to_string();
+    let of_the_media = item_id.to_string();
+
+    let answer = crate::db::the_work_of_the_disk(move || {
+        delete_pending_ebook_progress(&of_the_account, &of_the_server, &of_the_media)
+    })
+    .await;
+
+    match answer {
+        Some(Ok(())) => {}
+
+        Some(Err(error)) => error!(
+            "[{}] the disk keeps the place of the book of the media {}, and the server holds that \
+             place already: {}. The program after this one sends it again.",
+            handle_key, item_id, error
+        ),
+
+        None => error!(
+            "[{}] the thread of the disk did not come back with the removal of the place of the \
+             book of the media {}. The program after this one sends it again.",
+            handle_key, item_id
+        ),
+    }
+}
+
+/// Sends every place of a book that the disk kept, at the start of the program.
+/// See T-294.
+///
+/// It gives the number of the places that the server took.
+///
+/// **A read of the disk that failed is not a disk with no place that waits**
+/// (T-203), therefore that fault takes a line of the log and the places wait for
+/// the program after this one.
+///
+/// **A place that the server refuses stops no other place** (T-293): each book
+/// takes a request of its own, and a row of a book that failed stays on the disk.
+///
+/// **The program says no word of this send** (T-177): it runs before the first
+/// frame, and it holds no key of the user.
+pub async fn the_places_of_the_disk_go_to_the_server(
+    api: &ApiClient,
+    username: &str,
+    server: &str,
+) -> usize {
+    let of_the_account = username.to_string();
+    let of_the_server = server.to_string();
+
+    let waiting = match crate::db::the_work_of_the_disk(move || {
+        get_pending_ebook_progress(&of_the_account, &of_the_server)
+    })
+    .await
+    {
+        Some(Ok(waiting)) => waiting,
+
+        Some(Err(error)) => {
+            error!(
+                "[reader] the program did not read the places of the books that wait: {}. Each of \
+                 them waits for the next attempt.",
+                error
+            );
+
+            return 0;
+        }
+
+        None => {
+            error!(
+                "[reader] the thread of the disk did not come back with the places of the books \
+                 that wait. Each of them waits for the next attempt."
+            );
+
+            return 0;
+        }
+    };
+
+    if waiting.is_empty() {
+        return 0;
+    }
+
+    info!(
+        "[reader] {} place(s) of a book wait for the server",
+        waiting.len()
+    );
+
+    let mut sent = 0;
+
+    for place in waiting {
+        let body = serde_json::json!({
+            "ebookLocation": place.location,
+            "ebookProgress": place.fraction,
+        });
+
+        match api
+            .patch_json(&format!("/api/me/progress/{}", place.id_item), &body)
+            .await
+        {
+            Ok(()) => {
+                info!(
+                    "[reader] the place of the book of the media {} that waited on the disk went \
+                     to the server ({}).",
+                    place.id_item, place.location
+                );
+
+                sent += 1;
+
+                the_place_of_this_book_waits_no_more_on_the_disk(
+                    username,
+                    server,
+                    &place.id_item,
+                    "reader",
+                )
+                .await;
+            }
+
+            Err(error) => warn!(
+                "[reader] the server did not take the place of the book of the media {} ({}): {}. \
+                 That place waits on the disk.",
+                place.id_item, place.location, error
+            ),
+        }
+    }
+
+    sent
 }

@@ -66,6 +66,12 @@ const THE_SECOND_BOOK: &str = "9a671047-6146-4003-8510-d215db074a9c";
 /// The place of the user in that second book.
 const THE_PLACE_OF_THE_SECOND_BOOK: &str = "epubcfi(/6/4!/4/2/2/1:0)";
 
+/// The account and the server of the row of the disk of T-294. **The road of
+/// the end writes a row of `pending_ebook_progress` for a place that the server
+/// refuses**, therefore this test needs a database of its own.
+const THE_ACCOUNT: &str = "the-account-of-the-test";
+const THE_SERVER: &str = "http://the-server-of-the-test";
+
 fn a_client(url: &str) -> ApiClient {
     let pool = EndpointPool::new(vec![Endpoint::new(url, 0)]);
     ApiClient::new(Arc::new(pool), "the-token-of-the-test".to_string()).unwrap()
@@ -98,6 +104,13 @@ async fn a_place_of_a_book_of_a_program_that_stops_goes_to_the_server() {
     // A program with no reader, and a reader whose place the server holds
     // already, each leave no place behind them. The road of the end then asks
     // the server nothing at all.
+    // **The road of the end writes the disk from T-294**, therefore this test
+    // needs a `XDG_CONFIG_HOME` of its own: a test that writes the database of
+    // the user is a test that changes the machine of that user.
+    let directory = tempfile::tempdir().expect("a directory");
+    unsafe { std::env::set_var("XDG_CONFIG_HOME", directory.path()) };
+    std::fs::create_dir_all(directory.path().join("toutui")).expect("the directory of the program");
+
     the_place_of_this_book_waits_no_more(THE_BOOK);
     the_place_of_this_book_waits_no_more(THE_SECOND_BOOK);
 
@@ -109,7 +122,13 @@ async fn a_place_of_a_book_of_a_program_that_stops_goes_to_the_server() {
         .mount(&server)
         .await;
 
-    the_place_of_the_reader_goes_to_the_server(&a_client(&server.uri()), "Q").await;
+    the_place_of_the_reader_goes_to_the_server(
+        &a_client(&server.uri()),
+        THE_ACCOUNT,
+        THE_SERVER,
+        "Q",
+    )
+    .await;
 
     assert!(
         server
@@ -132,7 +151,13 @@ async fn a_place_of_a_book_of_a_program_that_stops_goes_to_the_server() {
     // **The road of the key `Q` and the road of the terminal that went away.**
     // The old program sent nothing here, and the place of two chapters of
     // reading went away with the process.
-    the_place_of_the_reader_goes_to_the_server(&a_client(&server.uri()), "Q").await;
+    the_place_of_the_reader_goes_to_the_server(
+        &a_client(&server.uri()),
+        THE_ACCOUNT,
+        THE_SERVER,
+        "Q",
+    )
+    .await;
 
     let requests = server
         .received_requests()
@@ -190,7 +215,13 @@ async fn a_place_of_a_book_of_a_program_that_stops_goes_to_the_server() {
 
     say_the_place_that_waits(the_place_of_the_user());
 
-    the_place_of_the_reader_goes_to_the_server(&a_client(&the_server_refuses.uri()), "Q").await;
+    the_place_of_the_reader_goes_to_the_server(
+        &a_client(&the_server_refuses.uri()),
+        THE_ACCOUNT,
+        THE_SERVER,
+        "Q",
+    )
+    .await;
 
     assert_eq!(
         the_place_of_this_book_that_waits(THE_BOOK),
@@ -230,7 +261,13 @@ async fn a_place_of_a_book_of_a_program_that_stops_goes_to_the_server() {
             .await;
     }
 
-    the_place_of_the_reader_goes_to_the_server(&a_client(&the_server_takes_them.uri()), "Q").await;
+    the_place_of_the_reader_goes_to_the_server(
+        &a_client(&the_server_takes_them.uri()),
+        THE_ACCOUNT,
+        THE_SERVER,
+        "Q",
+    )
+    .await;
 
     let the_paths: Vec<String> = the_server_takes_them
         .received_requests()

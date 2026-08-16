@@ -1316,6 +1316,108 @@ pub fn delete_pending_progress(username: &str, id_item: &str, id_pod: &str) -> R
     Ok(())
 }
 
+/// One place of a book that waits for the server. See T-294.
+///
+/// **A place of a book is not a position of a playback.** The row of
+/// `pending_progress` holds a moment in seconds, a length, and the mark of the
+/// end, and the server takes none of the three for a book of the reader: the
+/// request holds the text of `ebookLocation` and the number of `ebookProgress`
+/// alone.
+#[derive(Debug, Clone, PartialEq)]
+pub struct PendingEbookProgress {
+    /// The identity of the library item.
+    pub id_item: String,
+    /// The place of the user, in the form of the field `ebookLocation`.
+    pub location: String,
+    /// The part of the book that the user read, of 0 to 1.
+    pub fraction: f64,
+    /// The time of the local computer in milliseconds.
+    pub updated_at: i64,
+}
+
+/// The statement that writes a place of a book that waits for the server.
+const INSERT_PENDING_EBOOK: &str = "INSERT OR REPLACE INTO pending_ebook_progress
+     (id_item, username, server, location, fraction, updated_at)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6)";
+
+/// The statement that reads the places of the books that wait for the server.
+///
+/// A row of an older version has an empty server, and it belongs to the server
+/// that the user has now. It is the rule of `SELECT_PENDING`.
+const SELECT_PENDING_EBOOK: &str = "SELECT id_item, location, fraction, updated_at
+     FROM pending_ebook_progress
+     WHERE username = ?1 AND (server = ?2 OR server = '')
+     ORDER BY updated_at";
+
+/// Writes a place of a book that waits for the server. See T-294.
+///
+/// A newer place of the same book replaces the older place. The program sends
+/// the last place alone.
+pub fn insert_pending_ebook_progress(
+    username: &str,
+    server: &str,
+    place: &PendingEbookProgress,
+) -> Result<()> {
+    {
+        let conn = the_connection("insert_pending_ebook_progress")?;
+
+        conn.execute(
+            INSERT_PENDING_EBOOK,
+            params![
+                place.id_item,
+                username,
+                server,
+                place.location,
+                place.fraction,
+                place.updated_at,
+            ],
+        )?;
+    }
+
+    Ok(())
+}
+
+/// Gives every place of a book that waits for the given server, with the oldest
+/// first. See T-294.
+///
+/// **A read that failed is not a disk with no place that waits** (T-203). An
+/// empty list said "every place of a book of this account reached the server
+/// already".
+pub fn get_pending_ebook_progress(
+    username: &str,
+    server: &str,
+) -> Result<Vec<PendingEbookProgress>> {
+    let conn = the_connection("get_pending_ebook_progress")?;
+
+    let mut stmt = conn.prepare(SELECT_PENDING_EBOOK)?;
+
+    let rows = stmt.query_map(params![username, server], |row| {
+        Ok(PendingEbookProgress {
+            id_item: row.get::<_, String>(0)?,
+            location: row.get::<_, String>(1)?,
+            fraction: row.get::<_, f64>(2)?,
+            updated_at: row.get::<_, i64>(3)?,
+        })
+    })?;
+
+    Ok(rows.filter_map(|row| row.ok()).collect())
+}
+
+/// Removes a place of a book that the server has now. See T-294.
+pub fn delete_pending_ebook_progress(username: &str, server: &str, id_item: &str) -> Result<()> {
+    {
+        let conn = the_connection("delete_pending_ebook_progress")?;
+
+        conn.execute(
+            "DELETE FROM pending_ebook_progress
+             WHERE username = ?1 AND (server = ?2 OR server = '') AND id_item = ?3",
+            params![username, server, id_item],
+        )?;
+    }
+
+    Ok(())
+}
+
 /// Gives the number of positions that wait for the given server.
 ///
 /// **A read that failed is not a count of 0** (T-203). The header of the offline

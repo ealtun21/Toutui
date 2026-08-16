@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.123",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Your place in a book now stays on your computer when the \
+             server does not take it.** The program kept that place in its \
+             memory alone: a program that the machine stopped, and a computer \
+             that went off, took every line that you read with it. The program \
+             now writes that place on the disk, and it sends it to the server \
+             at the next start.",
+        ],
+    },
+    Entry {
         version: "0.8.122",
         date: "16/08/2026",
         body: &[

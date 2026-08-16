@@ -148,13 +148,15 @@ pub fn spawn_the_watch_of_the_terminal(
                 TheAnswerOfTheWatch::TheTerminalWentAway => {
                     log::error!("{}", the_line_of_a_terminal_that_went_away());
 
-                    // The place of the reader goes before the process ends.
-                    // The reader holds no table of the disk, therefore a
-                    // terminal that went away takes every line that the user
-                    // read with it. See T-292.
+                    // The place of the reader goes before the process ends. A
+                    // terminal that went away took every line that the user
+                    // read with it. See T-292, and T-294 for the place that the
+                    // server refuses.
                     crate::logic::reader::the_place_that_waits::
                         the_place_of_the_reader_goes_to_the_server(
                             &api,
+                            &username,
+                            &server,
                             "the terminal that went away",
                         )
                         .await;

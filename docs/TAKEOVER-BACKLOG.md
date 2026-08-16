@@ -25021,3 +25021,158 @@ the answer of the server. Two builds of the fault (the trap 147) fail it:
 - **A place of the reader that the server did not take at the end goes away
   with the program**, and the user reads no word of it: the log holds the fault
   alone. **This is a candidate and not a measurement.**
+
+### T-294: the place of a book of a program that dies waits on the disk
+
+T-292 gave the reader a box of the process,
+`src/logic/reader/the_place_that_waits.rs`, and T-293 gave that box one place
+for each media. **A box of the process goes away with the process.** The two
+roads of the end of T-292 hold a program that stops of its own will: the key
+`Q`, and the terminal that went away (T-271). A program that takes `SIGKILL`, a
+machine that stops, and a program that the machine killed for the memory hold
+neither of the two, and the place of the user then reached no machine at all.
+
+**The audio playback has a table of the disk for this condition, and the reader
+had none.** The head of that module said it: "The reader holds no table of the
+disk, therefore that place goes away with this program." `pending_progress`
+(T-152 and T-212) holds a position in seconds, a length, and the mark of the
+end, and none of the three belongs to a book of the reader: the request of a
+book holds the text of `ebookLocation` and the number of `ebookProgress` alone.
+
+#### The measurement
+
+The real program v0.8.122, inside tmux with `docs/harness/drive.sh`, against the
+sandbox on the port 13399. The proxy
+`docs/harness/one_method_fails.py 13500 13399 requests.log
+PATCH:/api/me/progress` gave the status 500 to every write of a place, and the
+account of the sandbox held the one address `http://127.0.0.1:13500` (the trap
+129). The book: `Alice in Wonderland`, id
+8fda6e43-0728-46ad-98bc-4c8634e299ad, at `ebookLocation
+toutui:the-place-of-the-start` and `ebookProgress 0`.
+
+The keys: the key `/` and the word `Alice` gave the view of the search, the key
+`e` opened the reader at
+`Alice's Adventures in Wonderland — chapter 2 of 14 — 0%`, two presses of the
+key `n` gave `chapter 4 of 14 — 9%`, and the key `h` said
+`The server did not take the place: The server reported a fault. Status 500.`
+A `kill -9` of that program then took the box of the process away, with no road
+of the end at all.
+
+| The program | The disk after the `kill -9` | The server after the start of the program after it |
+|---|---|---|
+| v0.8.122 | **no table of the reader at all**; every table of `db.sqlite3` held no row of that media | **`toutui:the-place-of-the-start`, `ebookProgress 0`** |
+| The correction | one row of `pending_ebook_progress`, at `epubcfi(/6/8!/4/2/2/1:0)` and `fraction 0.09163083371618239` | `epubcfi(/6/8!/4/2/2/1:0)`, `ebookProgress 0.09163083371618239` |
+
+**The user read two chapters, the program died, and the server kept the place
+of the start on every machine of that account.**
+
+The road back of the corrected program, of the same account and the same
+address: the proxy of the port 13500 came back with a rule that no request of
+the program holds, therefore the address of the account did not change and the
+key of the server (`server_key`) stayed the same. The log of the start then
+held two lines:
+
+```text
+[INFO] - [reader] 1 place(s) of a book wait for the server
+[INFO] - [reader] the place of the book of the media 8fda6e43-0728-46ad-98bc-4c8634e299ad that waited on the disk went to the server (epubcfi(/6/8!/4/2/2/1:0)).
+```
+
+and `SELECT count(*) FROM pending_ebook_progress` then gave 0.
+
+#### The correction
+
+Five files.
+
+1. `src/db/migrate.rs`: the version 10 of the schema makes
+   `pending_ebook_progress`, of `id_item`, `username`, `server`, `location`,
+   `fraction`, and `updated_at`, with the key of the media, of the account, and
+   of the server. **The key holds no episode**: a book has none. It is the rule
+   of the version 7 and of the version 8.
+2. `src/db/crud.rs`: `PendingEbookProgress`, `insert_pending_ebook_progress`
+   (an `INSERT OR REPLACE`, therefore a newer place of one book replaces the
+   older place), `get_pending_ebook_progress`, and
+   `delete_pending_ebook_progress`. The read takes the rows of one account and
+   of one server, and a row of an empty server belongs to the server of now:
+   it is the rule of `SELECT_PENDING`.
+3. `src/logic/reader/the_place_that_waits.rs`:
+   `the_place_of_this_book_waits_on_the_disk`,
+   `the_place_of_this_book_waits_no_more_on_the_disk`, and
+   `the_places_of_the_disk_go_to_the_server`. Each of the three calls
+   `crate::db::the_work_of_the_disk` and **it reads the answer of that write**
+   (T-207 and T-203): a disk that took no row takes a line of the log, and the
+   words name the disk and the media (T-211).
+   `the_place_of_the_reader_goes_to_the_server` now takes the account and the
+   server, it writes the row of a place that the server refused, and it takes
+   the row of a place that the server took away.
+4. `src/app.rs`: the `Err` arm of the task of `send_the_place_of_the_reader`
+   writes the row, its `Ok` arm removes it, and the start of the program calls
+   `the_places_of_the_disk_go_to_the_server` after
+   `flush_pending_progress`, before the lists and before the first frame.
+5. `src/utils/the_terminal_that_went_away.rs`: the road of the terminal gives
+   the account and the server to the send of the end.
+
+**A place that the server took must leave the disk** (T-211): a row that stays
+gives the server that older place at every start after this one, and it can
+then stand behind the place of a second client.
+
+#### The test
+
+`tests/a_place_of_a_book_of_a_program_that_dies_waits_on_the_disk.rs`, of one
+function (T-144 and T-157), and it needs no sandbox: a host of `wiremock` gives
+the answer of the server, and a `tempfile::tempdir` of `XDG_CONFIG_HOME` gives
+the database. It holds the road of the program that died: the server refuses
+the place, the disk takes the row, the box of the process goes away, and the
+start of the program after it sends that row and removes it. It holds the two
+rules of the key too: **a place of one server does not go to another server**,
+and **a place of one account does not go to another account.**
+
+Two builds of the fault (the trap 147) fail it:
+
+| The line that goes away | The words of the fault |
+|---|---|
+| the write of the disk of the `Err` arm of `the_place_of_the_reader_goes_to_the_server` | `assertion left == right failed: a place that the server refused must wait on the disk, and the disk held []`, `left: 0`, `right: 1` |
+| the removal of the row of the flush of the start | `a place that the server took must leave the disk` |
+
+`src/db/migrate.rs` holds two tests of the migration: a new database gets the
+table, and a database of the version 9 gets it too with a runner that runs two
+times.
+
+#### What this item leaves open
+
+- **The place of the reader of a program that dies now reaches the disk, and a
+  program that dies inside the write of that row does not.** The window is the
+  moment between the answer of the server and the write of the disk. **This is
+  a candidate and not a measurement**, and the audio playback of T-212 holds
+  the same window.
+- **The box of the places has no limit of size** (T-293): a user who opens many
+  books whose places the server refuses gives the box one place for each of
+  them, and no road takes them out while the program stands. **The table of the
+  disk now holds one row for each of them too.** **This is a candidate and not
+  a measurement.**
+- **A row of `pending_ebook_progress` of an account that logged out stays on the
+  disk.** The log out of T-200 removes the rows of the account, and the sweep of
+  this round did not ask whether it names this table. **This is a candidate and
+  not a measurement.**
+- **The offline mode writes no place of a book at all.** A user who reads a book
+  of the cache of the ebooks while the server is away gives the reader a place
+  that no request can take, and the sweep of this round did not ask where that
+  place goes. **This is a candidate and not a measurement.**
+- **`self.should_exit` of `src/app.rs` takes no write of any road.** A sweep of
+  the `tokio::spawn` of that file found the field, `src/main.rs` reads it to
+  leave the loop of the screen, and the arm of the key `Q` says
+  `Exiting the application…` and it stops the process with `clean_exit` of the
+  sync alone. **This is a candidate and not a measurement.**
+- **`move_the_media_of_the_list` of `src/app.rs` writes the new sequence of a
+  list in `self.lists` before the server took it** (the shape of T-291 and of
+  T-207): a `PATCH` that fails says the fault and it asks the server for the
+  list again, and a second fault of that read leaves the screen of the user
+  with a sequence that no server holds. **This is a candidate and not a
+  measurement.**
+- **The reader accepts five keys that no footer of it names** (T-290): a read of
+  the source of this round confirms each of them — `Esc` of the reading view
+  (`src/app.rs:6855`), and `Esc`, `?`, and `Q` while the table of contents
+  stands (`src/app.rs:6841`, `src/app.rs:6896`, and the arm of the key `Q` of
+  `src/app.rs`), and the key `e` (`src/app.rs:6918`) stands in none of the four
+  footers of `src/ui/reader_tui.rs`. **This is a candidate and not a
+  measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to T-293).

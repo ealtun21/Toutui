@@ -8,7 +8,7 @@ use rusqlite::{Connection, Result};
 use std::path::PathBuf;
 
 /// The schema version that this build of the program expects.
-pub const LATEST_VERSION: i64 = 9;
+pub const LATEST_VERSION: i64 = 10;
 
 /// Gives the full path of the database file.
 pub fn db_path() -> PathBuf {
@@ -101,10 +101,49 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
 
     if version < 9 {
         migrate_to_v9(conn)?;
+        version = 9;
         conn.execute_batch("PRAGMA user_version = 9")?;
     }
 
+    if version < 10 {
+        migrate_to_v10(conn)?;
+        conn.execute_batch("PRAGMA user_version = 10")?;
+    }
+
     Ok(())
+}
+
+/// Version 10 gives the reader a table of the disk for a place that no machine
+/// holds. See T-294.
+///
+/// **The audio playback has such a table and the reader had none.** A place of a
+/// book that the server refused stood in a box of the process alone (T-292 and
+/// T-293): a program that takes `SIGKILL`, and a machine that stops, took that
+/// box away, and the place of the user reached no machine at all.
+///
+/// The columns are the columns of the request: `location` is the text of
+/// `ebookLocation`, and `fraction` is the number of `ebookProgress`. The table
+/// `pending_progress` of the audio holds a position in seconds and a length, and
+/// a place of a book has neither of the two.
+///
+/// The key holds the account and the server, and it holds no episode: a book has
+/// no episode, and the server keeps one place of a book for one account of one
+/// server. It is the rule of the version 7 and of the version 8.
+///
+/// **The migration must be safe to run two times**, as the rule of the head of
+/// this file says.
+fn migrate_to_v10(conn: &Connection) -> Result<()> {
+    conn.execute_batch(
+        "CREATE TABLE IF NOT EXISTS pending_ebook_progress (
+            id_item      TEXT    NOT NULL,
+            username     TEXT    NOT NULL,
+            server       TEXT    NOT NULL DEFAULT '',
+            location     TEXT    NOT NULL,
+            fraction     REAL    NOT NULL,
+            updated_at   INTEGER NOT NULL,
+            PRIMARY KEY (id_item, username, server)
+        );",
+    )
 }
 
 /// Version 9 gives the listening session the program that owns it. See T-140.
@@ -522,6 +561,30 @@ mod tests {
         let conn = Connection::open_in_memory().unwrap();
         run_migrations(&conn).unwrap();
         assert_eq!(table_count(&conn, "pending_progress"), 1);
+    }
+
+    /// A new database gets the `pending_ebook_progress` table of the reader.
+    /// See T-294.
+    #[test]
+    fn migrations_add_the_pending_ebook_progress_table() {
+        let conn = Connection::open_in_memory().unwrap();
+        run_migrations(&conn).unwrap();
+        assert_eq!(table_count(&conn, "pending_ebook_progress"), 1);
+    }
+
+    /// A database of the version 9 gets the table of the reader too, and the
+    /// migration is safe to run two times. See T-294.
+    #[test]
+    fn a_database_of_the_version_9_gets_the_table_of_the_reader() {
+        let conn = Connection::open_in_memory().unwrap();
+        run_migrations(&conn).unwrap();
+        conn.execute_batch("PRAGMA user_version = 9").unwrap();
+
+        run_migrations(&conn).unwrap();
+        run_migrations(&conn).unwrap();
+
+        assert_eq!(schema_version(&conn).unwrap(), LATEST_VERSION);
+        assert_eq!(table_count(&conn, "pending_ebook_progress"), 1);
     }
 
     /// The version 5 adds a column to the table `downloads`. A database that

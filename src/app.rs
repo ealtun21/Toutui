@@ -796,6 +796,17 @@ impl App {
         // request that fails later must not stop this. See T-25.
         if !is_offline {
             crate::logic::offline::flush_pending_progress(&api, &username, &server_key).await;
+
+            // **The place of a book of a program that died waits here too**
+            // (T-294). The reader has a table of its own, because the request
+            // of a book holds the text of `ebookLocation` and the number of
+            // `ebookProgress`, and the row of `pending_progress` holds neither.
+            crate::logic::reader::the_place_that_waits::the_places_of_the_disk_go_to_the_server(
+                &api,
+                &username,
+                &server_key,
+            )
+            .await;
         }
 
         let libraries_names = collect_library_names(&all_libraries).await; // all the libraries names of the user ex : {name1, name2}
@@ -2574,13 +2585,18 @@ impl App {
 
                 tokio::spawn(async move {
                     // **The place of the reader goes before the process ends.**
-                    // The reader holds no table of the disk, and the footer of
-                    // that view names this key: a user who read a book and who
-                    // pressed `Q` lost every line of that reading. The send
-                    // stands inside this task, because `clean_exit` of the sync
-                    // below gives the process to the machine. See T-292.
+                    // The footer of that view names this key: a user who read a
+                    // book and who pressed `Q` lost every line of that reading.
+                    // The send stands inside this task, because `clean_exit` of
+                    // the sync below gives the process to the machine. See
+                    // T-292, and T-294 for the place that the server refuses.
                     crate::logic::reader::the_place_that_waits::
-                        the_place_of_the_reader_goes_to_the_server(&api, "Q")
+                        the_place_of_the_reader_goes_to_the_server(
+                            &api,
+                            &username,
+                            &server_key,
+                            "Q",
+                        )
                         .await;
 
                     sync_session_from_database(&api, username, server_key, true, "Q").await;
@@ -6942,6 +6958,8 @@ impl App {
         let part = reader.fraction();
         let place = reader.position();
         let api = std::sync::Arc::clone(&self.api);
+        let username = self.username.clone();
+        let server_key = self.server_key.clone();
 
         // The time of the send stops a second request while this one stands.
         // **The reader remembers no place here**: a place that the server did
@@ -6955,7 +6973,7 @@ impl App {
 
         tokio::spawn(async move {
             let body = serde_json::json!({
-                "ebookLocation": location,
+                "ebookLocation": &location,
                 "ebookProgress": part,
             });
 
@@ -6964,10 +6982,43 @@ impl App {
                 .await
             {
                 Ok(()) => {
+                    // **A place that the server took must leave the disk**
+                    // (T-211): a row of an attempt before this one gives the
+                    // server that older place at the start of the program after
+                    // this one. See T-294.
+                    crate::logic::reader::the_place_that_waits::
+                        the_place_of_this_book_waits_no_more_on_the_disk(
+                            &username,
+                            &server_key,
+                            &item_id,
+                            "the place of the book",
+                        )
+                        .await;
+
                     crate::logic::reader::say_that_the_server_took_the_place(item_id, place);
                     "The server has the place of the book.".to_string()
                 }
-                Err(error) => format!("The server did not take the place: {}", error),
+
+                Err(error) => {
+                    // **A place that reached no machine waits on the disk**
+                    // (T-294). The box of the process holds it for the road of
+                    // the end (T-292), and a `SIGKILL` and a machine that stops
+                    // each take that box away.
+                    crate::logic::reader::the_place_that_waits::
+                        the_place_of_this_book_waits_on_the_disk(
+                            &username,
+                            &server_key,
+                            &crate::logic::reader::the_place_that_waits::ThePlaceOfTheReader {
+                                item_id: item_id.clone(),
+                                location,
+                                fraction: part,
+                            },
+                            "the place of the book",
+                        )
+                        .await;
+
+                    format!("The server did not take the place: {}", error)
+                }
             };
 
             crate::logic::message::say(text.as_str());
