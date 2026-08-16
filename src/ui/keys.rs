@@ -418,6 +418,34 @@ pub const FOOTER_OF_A_LIST: &str =
 pub const FOOTER_OF_THE_DOWNLOADS: &str =
     "j/k: move  X: empty the queue of this podcast  h: back  ?: every key  Q: quit";
 
+/// The footer of the reader, while it shows the text of a chapter.
+///
+/// **The footer of the reader is a footer of this program** (T-301). The four
+/// texts of the reader stood in `src/ui/reader_tui.rs`, each of them with a
+/// `\n` of its own and with no wrap at all, therefore the gate of the footers
+/// of this module never read them: a terminal of 40 columns cut the first row
+/// at `n/p: chapter` and the second row at `h:`, and the user then read no key
+/// of the road back and no key of the quit.
+pub const FOOTER_OF_THE_READER: &str = "j/k: line  Space/b: screen  n/p: chapter  \
+     t: contents  g/G: start/end  s: send the position  ?: every key  \
+     h: leave the book  Q: quit";
+
+/// The footer of the reader, while it shows a page of a PDF.
+///
+/// One chapter of a PDF is one page, therefore the keys of that book name a
+/// page and not a chapter. See T-54.
+pub const FOOTER_OF_THE_READER_OF_PAGES: &str = "j/k: line  Space/b: screen  n/p: page  \
+     t: the pages  g/G: start/end  s: send the position  ?: every key  \
+     h: leave the book  Q: quit";
+
+/// The footer of the contents of a book of chapters.
+pub const FOOTER_OF_THE_CONTENTS: &str = "j/k: move  l/Enter: go to the chapter  \
+     t: back to the text  h: leave the book";
+
+/// The footer of the pages of a PDF.
+pub const FOOTER_OF_THE_PAGES: &str =
+    "j/k: move  l/Enter: go to the page  t: the pages  h: leave the book";
+
 /// The footer of a view that shows a fault and nothing else.
 ///
 /// A screen that names no key looks like a program that stopped. The user of
@@ -1031,6 +1059,58 @@ mod tests {
                 .count()
                 <= THE_WIDEST_FOOTER
         );
+    }
+
+    /// The footers of the reader hold one line, and they fit in the rows that
+    /// the reader gives them.
+    ///
+    /// **The footer of the reader is a footer of this program** (T-301), and it
+    /// stood outside the gate above: each of the four texts held a `\n` of its
+    /// own, and the `Paragraph` of the reader had no wrap at all. A terminal of
+    /// 40 columns therefore lost `t: contents`, `g/G: start/end`,
+    /// `h: leave the book`, and `Q: quit`.
+    ///
+    /// **The limit of these footers is not the 130 characters above**: the
+    /// footer of the reader takes the rows that its wrap needs (see
+    /// `the_rows_of_the_footer` of `crate::ui::reader_tui`), therefore two rows
+    /// of a terminal of 80 columns do not bind it. The narrowest terminal that
+    /// a measurement of this fork used is 40 columns (T-300 and T-301), and the
+    /// reader gives its footer four rows there: 160 cells.
+    #[test]
+    fn every_footer_of_the_reader_holds_one_line() {
+        /// The largest number of characters of a footer of the reader: four
+        /// rows of a terminal of 40 columns.
+        const THE_WIDEST_FOOTER_OF_THE_READER: usize = 160;
+
+        let footers = [
+            FOOTER_OF_THE_READER,
+            FOOTER_OF_THE_READER_OF_PAGES,
+            FOOTER_OF_THE_CONTENTS,
+            FOOTER_OF_THE_PAGES,
+        ];
+
+        for footer in footers {
+            assert!(
+                !footer.contains('\n'),
+                "a footer holds one line, and the wrap of the reader makes its rows: {}",
+                footer
+            );
+
+            let width = footer.chars().count();
+            assert!(
+                width <= THE_WIDEST_FOOTER_OF_THE_READER,
+                "the footer of {} characters is too wide: {}",
+                width,
+                footer
+            );
+
+            // The road back of the reader stands in every one of them.
+            assert!(
+                footer.contains("h: leave the book"),
+                "a footer of the reader names the key of the road back: {}",
+                footer
+            );
+        }
     }
 
     /// The names of the things that a text of this program counts.

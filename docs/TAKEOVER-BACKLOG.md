@@ -25896,3 +25896,166 @@ corrected program opened at the chapter 2 of the run before it.
   a user share the rows and the directory of the disk. **This is a candidate
   and not a measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to T-299).
+
+### T-301: the footer of the reader stands on the rows that it needs
+
+#### The fault
+
+**A narrow terminal took the road back out of the reader.** The keys at the
+foot of the reader stood in `src/ui/reader_tui.rs` as four literals of the
+`render`, each of them with a `\n` of its own, in a `Paragraph` of a `Rect` of
+two rows with **no wrap at all**:
+
+```rust
+"j/k: line  Space/b: screen  n/p: chapter  t: contents  g/G: start/end\n \
+ s: send the position  ?: every key  h: leave the book  Q: quit"
+```
+
+The two rows of that text hold 69 and 63 characters, and the footer of the
+contents of a book holds 77 of them in one row. A terminal that is narrower
+than those numbers cut the end of each row away.
+
+**That footer stood outside the gate of the footers of this program.** Every
+other footer of every other view stands in `src/ui/keys.rs`, where
+`every_footer_fits_in_eighty_columns` holds two rules — a footer holds one line
+and no `\n`, and it holds no more than 130 characters — and `App::render_footer`
+of `src/ui/tui.rs` draws it with `.wrap(Wrap { trim: true })`. The reader broke
+the three of them, and no test read those four literals at all.
+
+#### The measurement
+
+Of the real program v0.8.129 inside tmux against the sandbox on the port 13399,
+with the account `toutuitest`, on 2026-08-16. **The data of this fault is the
+size of the terminal, and it needs no proxy and no book of a harness at all.**
+
+A terminal of **40 columns** and 30 rows, and the keys `/`,
+`Alice in Wonderland`, `Enter`, and `e` opened the reader on the copy of the
+cache of the ebooks of that account. The two rows at the foot of the screen
+said:
+
+```text
+j/k: line  Space/b: screen  n/p: chapter
+ s: send the position  ?: every key  h:
+```
+
+**The keys `t: contents`, `g/G: start/end`, and `Q: quit` went away, and
+`h: leave the book` stood at `h:`.** The key `t` then opened the contents of
+the book, and the one row of that view said:
+
+```text
+j/k: move  l/Enter: go to the chapter  t
+```
+
+**The whole of `h: leave the book` went away there**, and the contents of a
+book hold no other road out.
+
+A control of the same run: the key `t` gave the contents and it gave the text
+back, and the key `n` gave the chapter 4 of 14 at 9% on the line at the top.
+The keys did their work, and the footer alone said nothing.
+
+#### The decision
+
+**The footer of the reader is a footer of this program**, and it holds the rule
+of every other footer: one line with no `\n`, a wrap, and a place in
+`src/ui/keys.rs` under a gate.
+
+**And it stands on the rows that it needs**, which is the rule of T-299 for the
+row of the message of a view. A wrap of two rows corrects nothing at 40
+columns: two rows of 40 columns hold 80 cells, and the footer of the reader
+holds 133 characters. The footer therefore takes the rows of its wrap and it
+grows over the text of the book — the body of the reader scrolls, therefore
+those rows cost the user no word of the book, and a list would lose a line.
+
+**The footer must not take the book**: it holds no more than one half of the
+rows of the reader, and a footer that needs more than that loses its end to
+three points (`crate::logic::message::in_the_rows`, of T-299). **And it holds
+no fewer than two rows**, because the reader held two rows at every width
+already: a body of the book that grows by one row at 160 columns is a change
+that no fault asks for.
+
+#### The correction
+
+Two files.
+
+1. `src/ui/keys.rs`: the four texts, as `FOOTER_OF_THE_READER`,
+   `FOOTER_OF_THE_READER_OF_PAGES`, `FOOTER_OF_THE_CONTENTS`, and
+   `FOOTER_OF_THE_PAGES`, each of them one line with no `\n`.
+2. `src/ui/reader_tui.rs`: `footer_of(contents_open, holds_pages)` gives the
+   text; the pure `the_rows_of_the_footer(text, width, rows_of_the_reader)`
+   gives the rows, out of `crate::logic::message::the_rows_of_a_message`,
+   clamped to `[2, rows_of_the_reader / 2]`; `draw_the_footer(area, buf, keys)`
+   holds `in_the_rows` and `.wrap(Wrap { trim: true })`; and `render` reads the
+   rows before its `Layout`.
+
+#### The corrected program (measured)
+
+The same book and the same keys. At **40** columns the footer of the text stood
+on four rows:
+
+```text
+j/k: line  Space/b: screen  n/p: chapter
+t: contents  g/G: start/end  s: send the
+  position  ?: every key  h: leave the
+              book  Q: quit
+```
+
+and the footer of the contents stood on two rows with the whole of
+`h: leave the book`. At **80** columns the footer kept its two rows and every
+key, and at **160** columns it held every key in one row of the two.
+
+#### The test
+
+`the_footer_of_the_reader_never_loses_the_road_back` of `src/ui/reader_tui.rs`
+takes the four footers at 40, 80, 100, and 160 columns: the rows stand in
+`[2, half of the reader]`, `draw_the_footer` writes them into a `Buffer` with
+no terminal at all, and every word of the text stands on that screen with no
+three points. It holds a reader of four rows (the footer loses its end), a
+width of 0, and a reader of no row. `every_footer_of_the_reader_holds_one_line`
+of `src/ui/keys.rs` is the gate: one line, no `\n`, 160 characters, and the key
+of the road back in each of the four.
+
+**Three builds of the fault.** The `.wrap` removed:
+`the footer of 40 columns lost "t:"`. A `the_rows_of_the_footer` of
+`.min(THE_ROWS_OF_THE_FOOTER)`: the same test fails. The `\n` back in
+`FOOTER_OF_THE_READER`: `a footer holds one line, and the wrap of the reader
+makes its rows`.
+
+The gates: `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,
+1359 tests of nextest in 2.8 seconds, 1385 of 1385 of `--run-ignored all` with
+the sandbox in 17 seconds, and two runs of `cargo test -j 16 --no-fail-fast`.
+
+#### The road back of the measurement
+
+None: the measurement wrote no place of a media, no row of the database, and no
+file of the disk. The copy of `8fda6e43-0728-46ad-98bc-4c8634e299ad.epub` of
+the cache of the ebooks is the good file of T-300, and the reader read it and
+it changed nothing of it. The reader keeps the chapter of a book that it read
+already, therefore the runs of this measurement moved that book from the
+chapter 3 to the chapter 5 of 14.
+
+#### What this item leaves open
+
+- **The footer of the reader counts characters and not columns** (T-301):
+  `the_rows_of_a_message` of `crate::logic::message` counts one column for each
+  character, and the four texts of the reader hold ASCII alone — therefore this
+  is no fault of these texts today, and it is the same class as the line at the
+  top of T-300. **This is a candidate and not a measurement.**
+- **The line at the top of the reader counts characters and not columns**
+  (T-300): a title of the characters of an East Asian language holds two
+  columns for each of them, and `the_line_that_stands` counts one. **This is a
+  candidate and not a measurement.**
+- **The footers of the other views hold two rows and no more** (T-301): a
+  terminal of 40 columns holds 80 cells in them, and the gate of those footers
+  allows 130 characters. A measurement of a footer of a view of a list at 40
+  columns did not run. **This is a candidate and not a measurement.**
+- **The words of a start reach no user when `exec` fails** (T-298): the loop of
+  `src/main.rs` then says `request.message`, which names the system and not the
+  log out. **This is a candidate and not a measurement.**
+- **The rows of `queue` of an account that logged out stay** (T-297), and the
+  key of that table holds the account and the server. **This is a candidate and
+  not a measurement.**
+- **The table `downloads` holds a column `server` that is not in its key, and
+  `download_files` holds no server at all** (T-297): two servers of one name of
+  a user share the rows and the directory of the disk. **This is a candidate
+  and not a measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to T-300).

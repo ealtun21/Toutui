@@ -150,12 +150,84 @@ fn in_one_row(text: &str, width: usize) -> String {
     format!("{}…", kept.trim_end())
 }
 
+/// Gives the footer of the reader.
+///
+/// One chapter of a PDF is one page, therefore the keys of that book name a
+/// page and not a chapter. See T-54. **The four texts stand in
+/// `crate::ui::keys`** (T-301), where the gate of the footers of this program
+/// reads them.
+pub fn footer_of(contents_open: bool, holds_pages: bool) -> &'static str {
+    match (contents_open, holds_pages) {
+        (true, false) => crate::ui::keys::FOOTER_OF_THE_CONTENTS,
+        (true, true) => crate::ui::keys::FOOTER_OF_THE_PAGES,
+        (false, false) => crate::ui::keys::FOOTER_OF_THE_READER,
+        (false, true) => crate::ui::keys::FOOTER_OF_THE_READER_OF_PAGES,
+    }
+}
+
+/// The smallest number of rows of the footer of the reader.
+///
+/// The reader held two rows for its footer at every width, and a terminal that
+/// holds every key in one row keeps those two rows: a body of the book that
+/// grows by one row at 160 columns is a change that no fault asks for.
+const THE_ROWS_OF_THE_FOOTER: u16 = 2;
+
+/// Gives the number of rows of the footer of the reader.
+///
+/// **The footer of the reader stands on the rows that it needs** (T-301). The
+/// four texts of the keys held a `\n` and no wrap, therefore a terminal of 40
+/// columns cut `h: leave the book` at `h:` and it took `Q: quit` away, and the
+/// contents of a book lost the whole of `h: leave the book`. The user then read
+/// no road out of the reader.
+///
+/// That is the rule of T-299 for the row of the message of a view: the text
+/// takes the rows that its wrap needs, and it grows over the view. The body of
+/// the reader scrolls, therefore those rows cost the user no word of the book.
+///
+/// **The footer must not take the book**: it holds no more than one half of the
+/// rows of the reader, and a footer that needs more than that loses its end to
+/// three points (`crate::logic::message::in_the_rows`).
+///
+/// The function is pure, therefore a test needs no screen.
+pub fn the_rows_of_the_footer(text: &str, width: u16, rows_of_the_reader: u16) -> u16 {
+    let room = (rows_of_the_reader / 2).max(1);
+
+    crate::logic::message::the_rows_of_a_message(text, width)
+        .max(THE_ROWS_OF_THE_FOOTER)
+        .min(room.max(THE_ROWS_OF_THE_FOOTER).min(rows_of_the_reader))
+}
+
+/// Draws the footer of the reader.
+///
+/// **The footer wraps, as the footer of every other view of this program does**
+/// (T-301, and `App::render_footer` of `crate::ui::tui`), and a footer that
+/// needs more rows than the reader gives it loses its end to three points.
+///
+/// The function takes an area and a text, therefore a test draws it into a
+/// `Buffer` with no terminal and no book at all. See T-256.
+pub fn draw_the_footer(area: Rect, buf: &mut Buffer, keys: &str) {
+    Paragraph::new(crate::logic::message::in_the_rows(
+        keys,
+        area.width,
+        area.height,
+    ))
+    .wrap(Wrap { trim: true })
+    .centered()
+    .style(Style::default().fg(Color::Rgb(120, 120, 120)))
+    .render(area, buf);
+}
+
 /// Draws the reader.
 pub fn render(reader: &mut Reader, area: Rect, buf: &mut Buffer) {
+    // **The footer comes before the layout** (T-301): the number of its rows is
+    // the number of rows that the wrap of its text needs.
+    let keys = footer_of(reader.contents_open, reader.holds_pages());
+    let rows_of_the_footer = the_rows_of_the_footer(keys, area.width, area.height);
+
     let [top, middle, bottom] = Layout::vertical([
         Constraint::Length(1),
         Constraint::Fill(1),
-        Constraint::Length(2),
+        Constraint::Length(rows_of_the_footer),
     ])
     .areas(area);
 
@@ -170,27 +242,7 @@ pub fn render(reader: &mut Reader, area: Rect, buf: &mut Buffer) {
     .style(Style::default().add_modifier(Modifier::BOLD))
     .render(top, buf);
 
-    // One chapter of a PDF is one page, therefore the keys of that book name a
-    // page and not a chapter. See T-54.
-    let keys = match (reader.contents_open, reader.holds_pages()) {
-        (true, false) => {
-            "j/k: move  l/Enter: go to the chapter  t: back to the text  h: leave the book"
-        }
-        (true, true) => "j/k: move  l/Enter: go to the page  t: the pages  h: leave the book",
-        (false, false) => {
-            "j/k: line  Space/b: screen  n/p: chapter  t: contents  g/G: start/end\n \
-             s: send the position  ?: every key  h: leave the book  Q: quit"
-        }
-        (false, true) => {
-            "j/k: line  Space/b: screen  n/p: page  t: the pages  g/G: start/end\n \
-             s: send the position  ?: every key  h: leave the book  Q: quit"
-        }
-    };
-
-    Paragraph::new(keys)
-        .centered()
-        .style(Style::default().fg(Color::Rgb(120, 120, 120)))
-        .render(bottom, buf);
+    draw_the_footer(bottom, buf, keys);
 
     if reader.contents_open {
         render_contents(reader, middle, buf);
@@ -318,6 +370,75 @@ mod tests {
         // A PDF of no page says the same of a page. See T-54.
         let text = line_of_the_top("A PDF", 0, 0, 0.0, true, 0);
         assert!(text.contains("holds no page"), "{text}");
+    }
+
+    /// **The keys of the reader stay on the screen** (T-301).
+    ///
+    /// The parts of this test stay in one function: the widths, the four
+    /// footers, and the rows of each of them are one measurement of one footer.
+    #[test]
+    fn the_footer_of_the_reader_never_loses_the_road_back() {
+        // The rows of the reader of the measurement of 2026-08-16: a terminal
+        // of 30 rows, less the two rows of the header of the program.
+        let rows_of_the_reader = 28u16;
+
+        for contents_open in [false, true] {
+            for holds_pages in [false, true] {
+                let keys = footer_of(contents_open, holds_pages);
+
+                for width in [40u16, 80, 100, 160] {
+                    let rows = the_rows_of_the_footer(keys, width, rows_of_the_reader);
+
+                    // The footer never takes more than one half of the reader,
+                    // and it never holds fewer rows than the reader held before
+                    // T-301.
+                    assert!(
+                        (THE_ROWS_OF_THE_FOOTER..=rows_of_the_reader / 2).contains(&rows),
+                        "the footer of {width} columns takes {rows} rows"
+                    );
+
+                    // The words reach the screen: the whole text stands in the
+                    // rows, therefore no key goes away.
+                    let mut buf = Buffer::empty(Rect::new(0, 0, width, rows));
+                    draw_the_footer(Rect::new(0, 0, width, rows), &mut buf, keys);
+
+                    let screen: String = (0..rows)
+                        .map(|row| {
+                            (0..width)
+                                .map(|column| buf[(column, row)].symbol())
+                                .collect::<String>()
+                        })
+                        .collect::<Vec<_>>()
+                        .join(" ");
+                    let screen: String = screen.split_whitespace().collect::<Vec<_>>().join(" ");
+
+                    for word in keys.split_whitespace() {
+                        assert!(
+                            screen.contains(word),
+                            "the footer of {width} columns lost \"{word}\": {screen}"
+                        );
+                    }
+
+                    assert!(
+                        screen.contains("h: leave the book"),
+                        "the footer of {width} columns lost the road back: {screen}"
+                    );
+                    assert!(!screen.contains('…'), "{screen}");
+                }
+            }
+        }
+
+        // A reader of few rows keeps its book: the footer loses its end to
+        // three points, and the rule of T-299 then says that the screen cut it.
+        let keys = crate::ui::keys::FOOTER_OF_THE_READER;
+        assert_eq!(the_rows_of_the_footer(keys, 40, 4), 2);
+        assert!(crate::logic::message::in_the_rows(keys, 40, 2).ends_with('…'));
+
+        // A width of 0 and a reader of no row give no panic at all, and a
+        // reader that holds no row gives the footer none of them.
+        assert_eq!(the_rows_of_the_footer(keys, 0, 28), THE_ROWS_OF_THE_FOOTER);
+        assert_eq!(the_rows_of_the_footer(keys, 40, 0), 0);
+        assert_eq!(the_rows_of_the_footer(keys, 40, 1), 1);
     }
 
     /// **The place of the user keeps its room** (T-300).

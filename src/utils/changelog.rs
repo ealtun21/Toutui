@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.130",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The keys of the reader now stay on the screen.** The keys at \
+             the foot of the reader stood on two rows with no wrap: a terminal \
+             of 40 columns cut the first row at \"n/p: chapter\" and the second \
+             row at \"h:\", therefore the user read no key of the road back and \
+             no key of the quit, and the contents of a book lost the whole of \
+             \"h: leave the book\". The footer now takes the rows that it needs, \
+             and it wraps as the footer of every other view of the program does.",
+        ],
+    },
+    Entry {
         version: "0.8.129",
         date: "16/08/2026",
         body: &[
