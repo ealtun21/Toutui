@@ -43,6 +43,21 @@
 //! **A media that the server holds with no cover gives its rows to the words**
 //! (`a_picture_comes` of that function), because a picture that never comes
 //! must take no row of the screen.
+//!
+//! ## The picture takes every free row (T-330.3)
+//!
+//! **The first form of this module gave the picture a share of the height**,
+//! and a tall panel therefore held a small picture over rows of nothing. The
+//! measurement of the real program v0.8.161 inside tmux, of 160 columns and 60
+//! rows, of `Alice in Wonderland` of the library `Books` of the sandbox: the
+//! panel held 27 rows, the picture took 14 of them, the facts took 8, the
+//! description of one line took 5, and **four rows of the screen held no
+//! character at all**.
+//!
+//! **The rule turns**: the facts and the description keep the rows that they
+//! need, and every row that stays goes to the picture. A description of many
+//! lines keeps [`THE_SMALLEST_PICTURE`] rows for the picture and it scrolls
+//! with the keys `J` and `K`.
 
 use ratatui::layout::Rect;
 
@@ -60,12 +75,14 @@ pub const THE_ROWS_OF_THE_FACTS: u16 = 3;
 /// `crate::logic::the_scroll_of_a_panel` needs a row of its own.
 pub const THE_ROWS_OF_A_DESCRIPTION: u16 = 2;
 
-/// The share of the height of the panel that the picture takes, in percent.
+/// The rows of the panel that the words never take.
 ///
-/// The design of `docs/mockups/mockup-1.txt` gives the panel 5 twenty rows of
-/// the thirty-two of its column, and twelve of those twenty rows belong to the
-/// picture. The rest of the panel holds the facts and the description.
-pub const THE_SHARE_OF_THE_COVER: u16 = 55;
+/// **The picture takes every row that the facts and the description leave**
+/// (T-330.3), therefore a description of many lines would take the picture
+/// down to nothing. The picture keeps this number of rows, and the description
+/// then scrolls with the keys `J` and `K`, which is the work of
+/// `crate::logic::the_scroll_of_a_panel`.
+pub const THE_SMALLEST_PICTURE: u16 = crate::ui::cover::MIN_HEIGHT_FOR_COVER;
 
 /// The smallest panel that holds a picture and the words of the media
 /// together.
@@ -122,11 +139,22 @@ fn nothing(of: Rect) -> Rect {
 /// no row, and the words take the whole panel: **a picture that never comes
 /// must take no row of the screen of the user.**
 ///
+/// `of_the_description` is the number of the rows that the text of the
+/// description needs at the width of the panel
+/// (`crate::logic::the_scroll_of_a_panel::the_number_of_the_lines`).
+///
+/// **The facts and the description keep the rows that they need, and every row
+/// that stays goes to the picture** (T-330.3). A share of the height gave the
+/// picture few rows of a tall panel and it left the rest of them empty: the
+/// screen of 60 rows of the measurement held a picture of 14 rows, 8 rows of
+/// the facts, one row of the description, and **four rows of nothing at all**.
+///
 /// The function is pure, therefore a test needs no terminal and no server.
 pub fn the_parts_of_the_panel(
     inside: Rect,
     a_picture_comes: bool,
     of_the_facts: u16,
+    of_the_description: u16,
 ) -> ThePartsOfThePanel {
     if inside.width == 0 || inside.height == 0 {
         return ThePartsOfThePanel {
@@ -151,16 +179,15 @@ pub fn the_parts_of_the_panel(
         };
     }
 
-    // The picture keeps its share of the height, and the words keep the rows
-    // that they need. **The facts of the design take more than three rows**
-    // (T-325), therefore the picture gives its rows to them and it never goes
-    // under the height that a cover needs.
-    let the_most = inside
-        .height
-        .saturating_sub(of_the_facts + THE_ROWS_OF_A_DESCRIPTION)
-        .max(crate::ui::cover::MIN_HEIGHT_FOR_COVER);
-    let of_the_cover = (inside.height * THE_SHARE_OF_THE_COVER / 100)
-        .clamp(crate::ui::cover::MIN_HEIGHT_FOR_COVER, the_most);
+    // **The words keep the rows that they need, and the picture takes every
+    // row that stays** (T-330.3). The picture keeps `THE_SMALLEST_PICTURE`
+    // rows, therefore a description of many lines scrolls and it does not take
+    // the picture away.
+    let the_most_of_the_words = inside.height.saturating_sub(THE_SMALLEST_PICTURE);
+    let of_the_words = of_the_facts
+        .saturating_add(of_the_description)
+        .min(the_most_of_the_words);
+    let of_the_cover = inside.height - of_the_words;
 
     let cover = Rect {
         height: of_the_cover,
@@ -210,18 +237,26 @@ mod tests {
         // of 160 by 45 stands at the column 110 and it holds 41 rows. The
         // border of the panel takes one row at each end.
         let inside = Rect::new(111, 3, 48, 39);
-        let parts = the_parts_of_the_panel(inside, true, THE_ROWS_OF_THE_FACTS);
+        let parts = the_parts_of_the_panel(
+            inside,
+            true,
+            THE_ROWS_OF_THE_FACTS,
+            THE_ROWS_OF_A_DESCRIPTION,
+        );
 
         let cover = parts
             .cover
             .expect("a picture comes, therefore it has an area");
 
-        // The picture takes its share of the height.
-        assert_eq!(cover, Rect::new(111, 3, 48, 21));
+        // **The picture takes every row that the words leave** (T-330.3).
+        assert_eq!(cover, Rect::new(111, 3, 48, 34));
 
         // The facts stand under the picture, and the description under them.
-        assert_eq!(parts.facts, Rect::new(111, 24, 48, THE_ROWS_OF_THE_FACTS));
-        assert_eq!(parts.description, Rect::new(111, 27, 48, 15));
+        assert_eq!(parts.facts, Rect::new(111, 37, 48, THE_ROWS_OF_THE_FACTS));
+        assert_eq!(
+            parts.description,
+            Rect::new(111, 40, 48, THE_ROWS_OF_A_DESCRIPTION)
+        );
         assert!(parts.the_words_stand_here());
 
         // No row of the panel goes away, and no row holds two parts.
@@ -238,7 +273,12 @@ mod tests {
     #[test]
     fn a_media_with_no_cover_gives_its_rows_to_the_words() {
         let inside = Rect::new(111, 3, 48, 39);
-        let parts = the_parts_of_the_panel(inside, false, THE_ROWS_OF_THE_FACTS);
+        let parts = the_parts_of_the_panel(
+            inside,
+            false,
+            THE_ROWS_OF_THE_FACTS,
+            THE_ROWS_OF_A_DESCRIPTION,
+        );
 
         assert_eq!(parts.cover, None);
         assert_eq!(parts.facts, Rect::new(111, 3, 48, THE_ROWS_OF_THE_FACTS));
@@ -254,7 +294,12 @@ mod tests {
     fn a_panel_that_is_not_tall_holds_the_picture_alone() {
         // One row under the smallest panel of the words.
         let inside = Rect::new(111, 3, 48, THE_SMALLEST_PANEL_OF_THE_WORDS - 1);
-        let parts = the_parts_of_the_panel(inside, true, THE_ROWS_OF_THE_FACTS);
+        let parts = the_parts_of_the_panel(
+            inside,
+            true,
+            THE_ROWS_OF_THE_FACTS,
+            THE_ROWS_OF_A_DESCRIPTION,
+        );
 
         assert_eq!(parts.cover, Some(inside));
         assert_eq!(parts.facts.height, 0);
@@ -264,7 +309,12 @@ mod tests {
         // The smallest panel of the words holds the three parts, and the
         // picture keeps the rows that a cover needs.
         let inside = Rect::new(111, 3, 48, THE_SMALLEST_PANEL_OF_THE_WORDS);
-        let parts = the_parts_of_the_panel(inside, true, THE_ROWS_OF_THE_FACTS);
+        let parts = the_parts_of_the_panel(
+            inside,
+            true,
+            THE_ROWS_OF_THE_FACTS,
+            THE_ROWS_OF_A_DESCRIPTION,
+        );
 
         assert_eq!(
             parts.cover.map(|of| of.height),
@@ -277,7 +327,12 @@ mod tests {
         // words**: the picture takes no row at all, therefore the rows of the
         // words come of no picture.
         let inside = Rect::new(111, 3, 48, 4);
-        let parts = the_parts_of_the_panel(inside, false, THE_ROWS_OF_THE_FACTS);
+        let parts = the_parts_of_the_panel(
+            inside,
+            false,
+            THE_ROWS_OF_THE_FACTS,
+            THE_ROWS_OF_A_DESCRIPTION,
+        );
 
         assert_eq!(parts.cover, None);
         assert_eq!(parts.facts.height, THE_ROWS_OF_THE_FACTS);
@@ -295,7 +350,12 @@ mod tests {
             Rect::new(10, 4, 30, 0),
         ] {
             for a_picture_comes in [true, false] {
-                let parts = the_parts_of_the_panel(inside, a_picture_comes, THE_ROWS_OF_THE_FACTS);
+                let parts = the_parts_of_the_panel(
+                    inside,
+                    a_picture_comes,
+                    THE_ROWS_OF_THE_FACTS,
+                    THE_ROWS_OF_A_DESCRIPTION,
+                );
 
                 assert_eq!(parts.cover, None);
                 assert_eq!(parts.facts.height, 0);

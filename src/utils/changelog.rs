@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.162",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The cover of the panel `5 Cover` takes every row that the \
+             facts and the description leave.** The picture took a share of \
+             the height of that panel, therefore a tall panel held a small \
+             picture over rows of nothing at all: a screen of 60 rows held a \
+             picture of 14 rows and four empty rows under the description. \
+             The picture of that same screen now takes 18 rows. A description \
+             of many lines keeps the picture on the screen, and the keys `J` \
+             and `K` move that description.",
+        ],
+    },
+    Entry {
         version: "0.8.161",
         date: "17/08/2026",
         body: &[

@@ -30676,6 +30676,77 @@ rows of facts and 3 of a description, gives a picture of 11 rows and not of 8.
 **The build of the fault** (the trap 147): a share of 40% that comes back makes
 that test fail.
 
+#### The measurement of the part 3, of 2026-08-17 — done, v0.8.162
+
+**The data of this part is the program itself**: no proxy, no book of a
+harness, and no change of the sandbox. The account takes the library `Books` of
+the sandbox with a `sqlite3` of `name_selected_lib` and of `id_selected_lib`
+(the trap 203 and the trap 204), and 15 keys `j` of the Library view give
+`Alice in Wonderland`, which is the media of that library that the server holds
+with a cover and with a narrator.
+
+**The real program v0.8.161 inside tmux, of 160 columns and 60 rows.** The
+panel 5 held 27 rows inside its border: the picture took 14 of them
+(`27 * 55 / 100`), the facts took 8, and the description of **one** line took
+5.
+
+```text
+│              ▄▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀              │   the picture: 14 rows
+│              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀              │
+│Author    Lewis Carroll                         │   the facts: 8 rows
+│Narrator  A Test Narrator                       │
+│Progress  0%, Not finished                      │
+│░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░│
+│No description available                        │   the description: 5 rows
+│                                                │   ← four rows of nothing
+│                                                │
+│                                                │
+│                                                │
+└────────────────────────────────────────────────┘
+```
+
+**The corrected program of the same harness**: the picture takes **18** rows,
+the facts take 8, the description takes 1, and **no row of the panel holds
+nothing at all**.
+
+```text
+│           ▄▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀           │   the picture: 18 rows
+│           ▀▀▀▀▀▄▄▀▀▀▄▀▀▀▄▄▀▄▀▀▀▀▀▀▀▀           │
+│Author    Lewis Carroll                         │   the facts: 8 rows
+│Narrator  A Test Narrator                       │
+│Progress  0%, Not finished                      │
+│░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░│
+│No description available                        │   the description: 1 row
+└────────────────────────────────────────────────┘
+```
+
+**The control of the same run**, of 160 columns and 45 rows: the panel of 20
+rows held a picture of 10 rows and a description of 2 rows for a text of one
+line, and the corrected program holds a picture of 11 rows and a description of
+1 row. **The rows of the facts do not move**, and the panel 6 of the gallery
+under it does not move.
+
+**The correction is two files.** `THE_SHARE_OF_THE_COVER` goes away, and
+`THE_SMALLEST_PICTURE` comes in its place: the words keep the rows that they
+need, the picture takes every row that stays, and the picture never goes under
+`cover::MIN_HEIGHT_FOR_COVER`, therefore **a description of many lines does not
+take the picture away** — the keys `J` and `K` move that description already.
+
+**The trap of this part.** **The layout needs the text of the description
+before the render of it.** `the_parts_of_the_panel` reads the rows that the
+description needs, and the eight views of `render_covers` each held a render of
+their own for that text: `App::the_description_of_the_panel` of
+`src/ui/tui.rs` names the same source for each of the eight, and the render of
+each of them stays where it stood.
+
+**The gate is `tests/the_picture_of_the_panel_takes_every_free_row.rs`, of four
+tests.** **A test of one panel cannot tell a share of the height from the rule
+of the free rows**: 55 percent of 20 rows is 11 rows, and the rule of the free
+rows gives 11 rows of that same panel too. The second test therefore reads 21
+heights of one panel, and it holds that the picture grows one row for one row
+of the panel. **The build of the fault** (the trap 147), of a share of 40 per
+cent that comes back, made **three** of the four tests fail.
+
 ### The part 4 — The gallery of the panel 6 holds pictures and borders alone
 
 **The fault.** A cell of the panel 6 holds the picture, a row of the
@@ -30767,3 +30838,52 @@ the Home view of every item from T-316 to T-329 measure the table.
 **The mockups are complete already**: `mockup-6.txt`, `mockup-6.md`, and the
 two lines of `docs/mockups/README.md`. **A round of this item must not write
 in `docs/mockups/`**, and it starts at the spec.
+
+## T-332 — Three test functions of one box of the process, and the gate of CI
+
+**The round of 2026-08-17 found this with the gate `cargo test -j 16
+--no-fail-fast` of `docs/HANDOVER.md`**, which is the gate of CI and a
+different run from `cargo nextest run`.
+
+**The fault.** `src/logic/the_scroll_of_a_panel.rs` holds the static
+`THE_LAST_SCROLL`. `the_panel_of_the_render` **writes** it and
+`the_scroll_after_one_step_down` **reads** it, and that module held **three**
+test functions which each called `the_panel_of_the_render`. `cargo test` gives
+each test a thread of one process, therefore the render of one test took the
+box that another test read.
+
+**The measurement of 2026-08-17**, of the tree of **v0.8.161 with no change at
+all**, in a worktree of `HEAD`, five runs of `cargo test -j 16 --lib
+the_scroll_of_a_panel`:
+
+```text
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured
+```
+
+`cargo nextest run` of that same tree gave **1490 of 1490**, and it gives a
+process to each test. **The gate of CI was red for the release v0.8.161**, and
+no run of nextest could say so. That is the shape of T-144 and of T-157.
+
+**The correction** joins the three test functions into one,
+`the_key_of_the_scroll_and_the_bar_of_it_read_the_same_box`, which is the rule
+of `docs/HANDOVER.md`: "A box of the process needs one test function." Three
+runs of `cargo test -j 16 --no-fail-fast` of the corrected tree gave no failure
+at all.
+
+**The gate is `tests/one_test_function_holds_the_box_of_the_scroll.rs`, of two
+tests.** The first reads the module and it holds that **one** test function of
+it names `the_panel_of_the_render` or `keep_the_last_scroll`, therefore a later
+round that writes a second one meets the gate. The second test holds the sweep
+itself: a text of two such functions gives two names, and a comment that names
+the box gives none.
+
+**The trap of this gate.** **A part of a split at `    fn ` runs to the
+function after it**, therefore it holds the doc comment of that function: the
+first form of this sweep said that
+`a_text_that_ends_inside_the_panel_takes_no_scroll` holds the box, because the
+comment of the merged test after it names `the_panel_of_the_render`. Each part
+ends at the `\n    }` of its own function now.

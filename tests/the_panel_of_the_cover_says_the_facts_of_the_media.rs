@@ -204,7 +204,7 @@ fn the_facts_of_the_design_take_the_rows_that_they_need() {
     let inside = ratatui::layout::Rect::new(111, 3, 48, 39);
 
     let of_the_design = 8;
-    let parts = the_parts_of_the_panel(inside, true, of_the_design);
+    let parts = the_parts_of_the_panel(inside, true, of_the_design, THE_ROWS_OF_A_DESCRIPTION);
 
     assert_eq!(parts.facts.height, of_the_design);
     assert!(
@@ -219,13 +219,14 @@ fn the_facts_of_the_design_take_the_rows_that_they_need() {
         inside.height
     );
 
-    // The description keeps the rows that it needs.
-    assert!(parts.description.height >= THE_ROWS_OF_A_DESCRIPTION);
+    // The description keeps the rows that it needs, and no row more: **the
+    // picture takes every row that the words leave** (T-330.3).
+    assert_eq!(parts.description.height, THE_ROWS_OF_A_DESCRIPTION);
 
     // **A panel that is not tall gives the facts the rows that it has**, and
     // the picture never goes under the height that a cover needs.
     let small = ratatui::layout::Rect::new(111, 3, 48, 16);
-    let parts = the_parts_of_the_panel(small, true, of_the_design);
+    let parts = the_parts_of_the_panel(small, true, of_the_design, THE_ROWS_OF_A_DESCRIPTION);
 
     assert_eq!(
         parts.cover.map(|of| of.height),

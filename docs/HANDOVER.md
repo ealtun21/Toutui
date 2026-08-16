@@ -1,10 +1,14 @@
-# The handover of 2026-08-16
+# The handover of 2026-08-17
 
 This document is for the next session. It says what is done, what is open, and the
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.159.** The item T-329 belongs to this session. The
+**The newest release is v0.8.162.** The items T-330.3 and T-332 belong to this
+session. The
+item T-330.2 belongs to the session before it. The
+item T-330.1 belongs to the session before it. The
+item T-329 belongs to the session before it. The
 item T-328 belongs to the session before it. The
 item T-327 belongs to the session before it. The
 item T-326 belongs to the session before it. The
@@ -165,14 +169,64 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.160**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.162**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1483 of 1483** in 3.0 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1509 of 1509** in 61.5 seconds
+**1490 of 1490** in 2.8 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1516 of 1516** in 60.4 seconds
 with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
-gives no failure over its 207 binaries, over two runs.
+gives no failure, over three runs. **That last gate was red at v0.8.161**
+(T-332), and no run of nextest could say so: a box of the process needs one
+test function.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and sixty-second turn of 2026-08-17: the picture of the panel 5 takes every free row
+
+**The items: T-330, the part 3, and T-332**, and the release **v0.8.162**.
+
+**The part 3 of the second report of the maintainer.** The panel 5 gave the
+picture a **share** of its height (`THE_SHARE_OF_THE_COVER`), therefore a tall
+panel held a small picture over rows of nothing at all. The measurement of the
+real program v0.8.161 inside tmux, of 160 columns and 60 rows, of `Alice in
+Wonderland` of the library `Books`: the panel held 27 rows, the picture took
+14 of them, the facts took 8, the description of **one** line took 5, and
+**four rows of the screen held no character at all**. The corrected program of
+the same harness gives the picture **18** rows and the description 1 row, and
+no row of the panel holds nothing. The control of the same run, of 45 rows,
+gives a picture of 11 rows in the place of 10, and the rows of the facts and
+the panel 6 of the gallery under it do not move.
+
+**The rule turns**: the facts and the description keep the rows that they need,
+and every row that stays goes to the picture. `THE_SMALLEST_PICTURE` stands in
+the place of the share, therefore **a description of many lines does not take
+the picture away** — the keys `J` and `K` move that description already.
+
+**The trap of this part.** The layout needs the **text** of the description
+before the render of it, and the eight views of `render_covers` each held a
+render of their own for that text. `App::the_description_of_the_panel` of
+`src/ui/tui.rs` names the same source for each of the eight, and the render of
+each of them stays where it stood.
+
+**The gate is `tests/the_picture_of_the_panel_takes_every_free_row.rs`, of four
+tests.** **A test of one panel cannot tell a share of the height from the rule
+of the free rows**: 55 percent of 20 rows is 11 rows, and the rule of the free
+rows gives 11 rows of that same panel too. The second test therefore reads 21
+heights of one panel, and it holds that the picture grows one row for one row
+of the panel. The build of the fault (the trap 147), of a share of 40 per cent
+that comes back, made **three** of the four tests fail.
+
+**T-332, which the gate of CI found.** `cargo test -j 16 --no-fail-fast` failed
+in this round, and a worktree of `HEAD` said that it fails at **v0.8.161 with
+no change at all**, five runs of five. `src/logic/the_scroll_of_a_panel.rs`
+holds the static `THE_LAST_SCROLL`, and **three** test functions of it called
+`the_panel_of_the_render`, which writes that box: `cargo test` gives each test
+a thread of one process. `cargo nextest run` of that same tree gave 1490 of
+1490, because it gives a process to each test. The three tests become one, and
+`tests/one_test_function_holds_the_box_of_the_scroll.rs` reads the module and
+holds that rule for the rounds after this one.
+
+**The next round takes the part 4 of T-330**, the cell of the gallery that
+holds the picture and its border alone, with no percentage and no title.
 
 ## The session of the hundred and sixtieth turn of 2026-08-16: the words of the key `z` name the three panels
 
@@ -11821,16 +11875,17 @@ the maintainer gave it after that road finished its eight stages.
 |---|---|---|
 | T-330.1 | The words of the key `z` say `the panels 1, 2, and 3` and not `1 to 3` — **done, v0.8.160** | `src/ui/keys.rs:576` and `:95`, `src/app.rs:2302`, `src/utils/changelog.rs` |
 | T-330.2 | The filters lose the empty words: `No filter`, `Finished`, `Started, not finished`, `Not started` — **done, v0.8.161** | `sort_filter::PROGRESS` of `src/logic/sort_filter.rs` |
-| T-330.3 | The picture of the panel 5 takes every row that the facts and the description leave | `the_parts_of_the_panel` of `src/ui/the_panel_of_the_cover.rs` |
+| T-330.3 | The picture of the panel 5 takes every row that the facts and the description leave — **done, v0.8.162** | `the_parts_of_the_panel` of `src/ui/the_panel_of_the_cover.rs` |
 | T-330.4 | The cell of the gallery holds the picture and its border alone | The panel 6 (T-327) |
 | T-330.5 | The Chapters view of the two bars and of the table of the times | `docs/mockups/mockup-7.txt` and `mockup-7.md` |
 | T-331 | The Home view of the bands of covers, one band for each shelf of the server | `docs/mockups/mockup-6.txt` and `mockup-6.md` |
 
 **The five parts of T-330 come in that sequence**, because the words are small
 and safe and the Chapters view is large: **one part is one round and one
-commit, with a gate of its own**. **The part 1 is done, v0.8.160, and the part
-2 is done, v0.8.161**, and the next round takes the part 3, the picture of the
-panel 5 that takes every row that the facts and the description leave.
+commit, with a gate of its own**. **The part 1 is done, v0.8.160, the part 2 is
+done, v0.8.161, and the part 3 is done, v0.8.162**, and the next round takes
+the part 4, the cell of the gallery that holds the picture and its border
+alone, with no percentage and no title.
 
 **T-331 starts at a spec** in `docs/superpowers/specs/` and not at code: it
 changes the meaning of the keys `h` and `l` of a view, it takes the table of
@@ -22876,6 +22931,84 @@ together.
  - **`str::len` is not the width of a row** (the trap 245): the words of
    the measurement hold 60 columns and 66 bytes.
 
+## The session of the hundred and sixtieth turn of 2026-08-16, in the words of its own round
+
+**The session of the hundred and sixtieth turn took the part 1 of the
+second report of the maintainer** (T-330.1, v0.8.160): the words of the
+key `z` name the three panels.
+
+**The round found the work of the round before it in the tree and not in
+a commit**: the correction of T-329, its gate of five tests, its entry of
+the changelog, and its handover stood with no commit at all. **The first
+work of this round was therefore the gate of T-329 and the release of
+v0.8.159**: the three gates passed, the build of the fault of T-329 (one
+line that gives the centred column back) made the five tests fail, and
+the tag went to the remote. **A round that starts must read `git status`
+before it takes an item**: the work of a round that did not commit is
+whole, and a round that takes a new item over it loses the two of them in
+one commit.
+
+**The fault of T-330.1.** The user hid the panels 1, 2, and 3 with the
+key `z`, and every word of the program then said `1 to 3`. **`1 to 3`
+reads as `1 and 3`**: the maintainer read that the panel 2 stood, and
+they looked for it on a screen that did not hold it.
+
+**The data of this part is the program itself**: no proxy, no book of a
+harness, and no change of the sandbox.
+
+**The real program v0.8.159 inside tmux**, at 160 columns and 45 rows, of
+the Home view of the library `Large` of the sandbox, with the key `z` and
+then the key `?`:
+
+```text
+The panels 1 to 3 are hidden. Press the key z for them.
+j/k: move  …  Q: quit  f: sequence  z: the panels 1 to 3
+  z               Hide the panels 1 to 3, and show them again
+```
+
+**The corrected program of the same harness**, of those three places and
+of the second press of the key `z`:
+
+```text
+The panels 1, 2, and 3 are hidden. Press the key z for them.
+j/k: move  …  Q: quit  f: sequence  z: the panels 1, 2, and 3
+  z               Hide the panels 1, 2, and 3, and show them again
+The panels 1, 2, and 3 stand again.
+```
+
+**The controls of the same run**: the footer of the mode that **keeps**
+the stack said `1/Ctrl+h: the panels  z: hide them` before the correction
+and after it, therefore the correction moved no row that stood; and the
+key `z` of the corrected program hid the stack and gave it back.
+
+**The correction is four files, and no new one**: `src/ui/keys.rs` (the
+footer of the panel 4 with the stack away, and the line of the key `z` of
+the view of the key `?`), `src/app.rs` (the two messages of the press),
+and `src/utils/changelog.rs` (the entry of v0.8.153, which named the key).
+
+**The gate is `tests/the_words_of_the_key_z_name_the_three_panels.rs`, of
+four tests**, and three tests of
+`tests/the_stack_of_the_panels_goes_away_with_one_key.rs` took the new
+words too. **The first test of the new file is a sweep**: it reads the
+three files line by line and it holds that no line of them says
+`panels 1 to 3` at all, therefore a fifth place of a later round cannot
+say those words with no gate to stop it. **The build of the fault** (the
+trap 147), of a `str.replace` over the three files, made **seven** tests
+fail.
+
+**The trap of this part.** **A changelog entry that quotes the fault
+meets the sweep of its own item**: the entry of v0.8.160 said "the view
+of the key `?` said `the panels 1 to 3`", and the sweep then failed on
+the file that holds it. The entry says `1 to 3` with no word `panels`
+before it, which keeps the meaning for the user and it keeps the sweep
+whole.
+
+**The next round takes the part 2 of T-330**, the words of the filters:
+`No filter`, `Finished`, `Started, not finished`, and `Not started`, at
+the panel 3, at the view of the key `f`, and at the second row of the
+header of T-329.
+
+
 
 ## The prompt for the next session
 
@@ -23862,6 +23995,90 @@ together.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
+>
+> **The session of the hundred and sixty-second turn took the part 3 of the
+> second report of the maintainer, and the gate of CI gave it a second item**
+> (T-330.3 and T-332, v0.8.162).
+>
+> **The fault of T-330.3.** The panel 5 gave the picture a **share** of its
+> height (`THE_SHARE_OF_THE_COVER` of `src/ui/the_panel_of_the_cover.rs`),
+> therefore a tall panel held a small picture over rows of nothing at all.
+>
+> **The data of this part is the program itself**: no proxy, no book of a
+> harness, and no change of the sandbox. The account takes the library `Books`
+> of the sandbox with a `sqlite3` of `name_selected_lib` and of
+> `id_selected_lib` (the trap 203 and the trap 204), and 15 keys `j` of the
+> Library view give `Alice in Wonderland`, which is the media of that library
+> that the server holds with a cover and with a narrator. **The fault needs a
+> tall terminal**: `ROWS_OF_THE_SCREEN=60` of `docs/harness/drive.sh`, because
+> the panel 6 of the gallery takes the rest of the column at 45 rows and the
+> panel 5 then has few free rows to waste.
+>
+> **The real program v0.8.161 inside tmux**, of 160 columns and 60 rows. The
+> panel held 27 rows inside its border: the picture took 14 of them, the facts
+> took 8, and the description of **one** line took 5.
+>
+> ```text
+> │              ▄▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀              │   the picture: 14 rows
+> │Author    Lewis Carroll                         │   the facts: 8 rows
+> │Progress  0%, Not finished                      │
+> │░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░│
+> │No description available                        │   the description: 5 rows
+> │                                                │   ← four rows of nothing
+> │                                                │
+> │                                                │
+> │                                                │
+> └────────────────────────────────────────────────┘
+> ```
+>
+> **The corrected program of the same harness**: the picture takes **18** rows,
+> the description takes 1, and **no row of the panel holds nothing at all**.
+>
+> **The control of the same run**, of 160 columns and 45 rows: the panel of 20
+> rows held a picture of 10 rows and a description of 2 rows for a text of one
+> line, and the corrected program holds a picture of 11 rows and a description
+> of 1 row. **The rows of the facts do not move, and the panel 6 of the gallery
+> under it does not move.**
+>
+> **The rule turns**: the facts and the description keep the rows that they
+> need, and every row that stays goes to the picture. `THE_SMALLEST_PICTURE`
+> stands in the place of the share, therefore **a description of many lines
+> does not take the picture away** — the keys `J` and `K` move that description
+> already.
+>
+> **The trap of this part.** The layout needs the **text** of the description
+> before the render of it, and the eight views of `render_covers` each held a
+> render of their own for that text. `App::the_description_of_the_panel` of
+> `src/ui/tui.rs` names the same source for each of the eight, and the render
+> of each of them stays where it stood.
+>
+> **The gate is `tests/the_picture_of_the_panel_takes_every_free_row.rs`, of
+> four tests.** **A test of one panel cannot tell a share of the height from
+> the rule of the free rows**: 55 percent of 20 rows is 11 rows, and the rule
+> of the free rows gives 11 rows of that same panel too. The second test
+> therefore reads 21 heights of one panel, and it holds that the picture grows
+> one row for one row of the panel. **The build of the fault** (the trap 147),
+> of a share of 40 per cent that comes back, made **three** of the four tests
+> fail.
+>
+> **T-332, which the gate of CI found.** `cargo test -j 16 --no-fail-fast`
+> failed in this round, and **a worktree of `HEAD` said that it fails at
+> v0.8.161 with no change at all**, five runs of five.
+> `src/logic/the_scroll_of_a_panel.rs` holds the static `THE_LAST_SCROLL`, and
+> **three** test functions of it called `the_panel_of_the_render`, which writes
+> that box: `cargo test` gives each test a thread of one process. `cargo
+> nextest run` of that same tree gave 1490 of 1490, because it gives a process
+> to each test. The three tests become one, and
+> `tests/one_test_function_holds_the_box_of_the_scroll.rs` reads the module and
+> holds that rule for the rounds after this one. **A worktree of `HEAD` with a
+> `CARGO_TARGET_DIR` of its own is the road to a gate of the tree before the
+> round**, and it takes no `git stash` and no `git checkout` of a file.
+>
+> **The next round takes the part 4 of T-330**, the cell of the panel 6 of the
+> gallery that holds the picture and its border alone: no percentage and no
+> title, the border of the cell of the cursor heavy and bright and every other
+> one thin and dim, and the rows that the words gave back go to the pictures.
+>
 >  **The session of the hundred and sixty-first turn took the part 2 of the
 >  second report of the maintainer** (T-330.2, v0.8.161): the three filters of
 >  the position say what they filter, and no word more.
@@ -23927,88 +24144,13 @@ together.
 >  `the_parts_of_the_panel` of `src/ui/the_panel_of_the_cover.rs`, and
 >  `THE_SHARE_OF_THE_COVER` that gives the picture a share of the height.
 >
->   **The session of the hundred and sixtieth turn took the part 1 of the
->   second report of the maintainer** (T-330.1, v0.8.160): the words of the
->   key `z` name the three panels.
->
->   **The round found the work of the round before it in the tree and not in
->   a commit**: the correction of T-329, its gate of five tests, its entry of
->   the changelog, and its handover stood with no commit at all. **The first
->   work of this round was therefore the gate of T-329 and the release of
->   v0.8.159**: the three gates passed, the build of the fault of T-329 (one
->   line that gives the centred column back) made the five tests fail, and
->   the tag went to the remote. **A round that starts must read `git status`
->   before it takes an item**: the work of a round that did not commit is
->   whole, and a round that takes a new item over it loses the two of them in
->   one commit.
->
->   **The fault of T-330.1.** The user hid the panels 1, 2, and 3 with the
->   key `z`, and every word of the program then said `1 to 3`. **`1 to 3`
->   reads as `1 and 3`**: the maintainer read that the panel 2 stood, and
->   they looked for it on a screen that did not hold it.
->
->   **The data of this part is the program itself**: no proxy, no book of a
->   harness, and no change of the sandbox.
->
->   **The real program v0.8.159 inside tmux**, at 160 columns and 45 rows, of
->   the Home view of the library `Large` of the sandbox, with the key `z` and
->   then the key `?`:
->
->   ```text
->   The panels 1 to 3 are hidden. Press the key z for them.
->   j/k: move  …  Q: quit  f: sequence  z: the panels 1 to 3
->     z               Hide the panels 1 to 3, and show them again
->   ```
->
->   **The corrected program of the same harness**, of those three places and
->   of the second press of the key `z`:
->
->   ```text
->   The panels 1, 2, and 3 are hidden. Press the key z for them.
->   j/k: move  …  Q: quit  f: sequence  z: the panels 1, 2, and 3
->     z               Hide the panels 1, 2, and 3, and show them again
->   The panels 1, 2, and 3 stand again.
->   ```
->
->   **The controls of the same run**: the footer of the mode that **keeps**
->   the stack said `1/Ctrl+h: the panels  z: hide them` before the correction
->   and after it, therefore the correction moved no row that stood; and the
->   key `z` of the corrected program hid the stack and gave it back.
->
->   **The correction is four files, and no new one**: `src/ui/keys.rs` (the
->   footer of the panel 4 with the stack away, and the line of the key `z` of
->   the view of the key `?`), `src/app.rs` (the two messages of the press),
->   and `src/utils/changelog.rs` (the entry of v0.8.153, which named the key).
->
->   **The gate is `tests/the_words_of_the_key_z_name_the_three_panels.rs`, of
->   four tests**, and three tests of
->   `tests/the_stack_of_the_panels_goes_away_with_one_key.rs` took the new
->   words too. **The first test of the new file is a sweep**: it reads the
->   three files line by line and it holds that no line of them says
->   `panels 1 to 3` at all, therefore a fifth place of a later round cannot
->   say those words with no gate to stop it. **The build of the fault** (the
->   trap 147), of a `str.replace` over the three files, made **seven** tests
->   fail.
->
->   **The trap of this part.** **A changelog entry that quotes the fault
->   meets the sweep of its own item**: the entry of v0.8.160 said "the view
->   of the key `?` said `the panels 1 to 3`", and the sweep then failed on
->   the file that holds it. The entry says `1 to 3` with no word `panels`
->   before it, which keeps the meaning for the user and it keeps the sweep
->   whole.
->
->   **The next round takes the part 2 of T-330**, the words of the filters:
->   `No filter`, `Finished`, `Started, not finished`, and `Not started`, at
->   the panel 3, at the view of the key `f`, and at the second row of the
->   header of T-329.
->
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
 >    (T-284): a round that writes its own turn takes the oldest turn out, and
 >    it takes a second one out while `toutui-loop --dry-run | wc -c` gives more
->    than 100000. That section holds the turn of the hundred and fifty-eighth
+>    than 100000. That section holds the turn of the hundred and sixtieth
 >    and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
@@ -24232,7 +24374,10 @@ together.
 > with two turns in it, and it did the same work, and the block then held about
 > **84400** bytes with **two** turns in it; the round of the hundred and
 > sixty-first found it at 84577 bytes with two turns in it, and it did the same
-> work, and the block then held about **83500** bytes with **two** turns in it.
+> work, and the block then held about **83500** bytes with **two** turns in it
+> the round of the hundred and sixty-second found it at 83611 bytes with two
+> turns in it, and it did the same work, and the block then held about **85000**
+> bytes with **two** turns in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

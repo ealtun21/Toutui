@@ -674,6 +674,81 @@ impl App {
         ))
     }
 
+    /// The text of the description that the panel 5 draws for the media of the
+    /// cursor. See T-330.3.
+    ///
+    /// **The picture takes every row that the facts and the description
+    /// leave**, therefore the layout of the panel needs the text before the
+    /// render of it. The eight views of `render_covers` each hold a render of
+    /// their own for that text, and this function names the same source for
+    /// each of them.
+    ///
+    /// A view that draws no such description gives an empty text, and the
+    /// picture then takes every row that the facts leave.
+    fn the_description_of_the_panel(&self) -> String {
+        match self.view_state {
+            AppView::Home => {
+                if let Some(series) = self.selected_home_series() {
+                    return series.description_for_the_screen();
+                }
+
+                let Some(selected) = self.selected_home_item() else {
+                    return String::new();
+                };
+
+                if self.is_podcast {
+                    crate::logic::the_panel_of_a_line::the_description_of_a_podcast(
+                        at(&self.subtitles_pod_cnt_list, selected),
+                        at(&self.descs_pod_cnt_list, selected),
+                    )
+                } else {
+                    at(&self.desc_cnt_list, selected).to_string()
+                }
+            }
+            AppView::Library => {
+                if let Some(series) = self.selected_library_series() {
+                    return series.description_for_the_screen();
+                }
+
+                self.selected_library_item()
+                    .and_then(|index| self.desc_library.get(index).cloned())
+                    .unwrap_or_default()
+            }
+            AppView::Series => self
+                .selected_series()
+                .map(|series| series.description_for_the_screen())
+                .unwrap_or_default(),
+            AppView::SeriesBook => self
+                .selected_series_book()
+                .map(|book| book.description_for_the_screen())
+                .unwrap_or_default(),
+            AppView::Lists => self
+                .selected_list()
+                .map(|list| list.description.clone())
+                .unwrap_or_default(),
+            AppView::ListEntries => self
+                .selected_list_entry()
+                .map(|entry| entry.description.clone())
+                .unwrap_or_default(),
+            AppView::SearchBook => self
+                .list_state_search_results
+                .selected()
+                .map(|selected| at(&self.desc_library_search_book, selected).to_string())
+                .unwrap_or_default(),
+            AppView::PodcastEpisode => self
+                .list_state_pod_ep
+                .selected()
+                .map(|selected| {
+                    crate::logic::the_panel_of_a_line::the_description_of_a_podcast(
+                        at(&self.subtitles_pod_ep, selected),
+                        at(&self.descs_pod_ep, selected),
+                    )
+                })
+                .unwrap_or_default(),
+            _ => String::new(),
+        }
+    }
+
     /// Draws the panel 5 of the cover, and it gives the area of the facts of
     /// the media and the area of the description of it. See T-319.
     ///
@@ -764,10 +839,22 @@ impl App {
             .map(|lines| lines.len() as u16)
             .unwrap_or(crate::ui::the_panel_of_the_cover::THE_ROWS_OF_THE_FACTS);
 
+        // **The picture takes every row that the facts and the description
+        // leave** (T-330.3), therefore the panel needs the rows of the text of
+        // the description before it draws anything.
+        let of_the_description = u16::try_from(
+            crate::logic::the_scroll_of_a_panel::the_number_of_the_lines(
+                &self.the_description_of_the_panel(),
+                inside.width,
+            ),
+        )
+        .unwrap_or(u16::MAX);
+
         let parts = crate::ui::the_panel_of_the_cover::the_parts_of_the_panel(
             inside,
             a_picture_comes,
             of_the_facts,
+            of_the_description,
         );
 
         let api = std::sync::Arc::clone(&self.api);
