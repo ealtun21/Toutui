@@ -160,14 +160,72 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.155**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.158**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1457 of 1457** in 3.1 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1483 of 1483** in 18.2 seconds
+**1474 of 1474** in 3.8 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1500 of 1500** in 17.7 seconds
 with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
-gives no failure over its 41 binaries, over two runs.
+gives no failure over its 42 binaries, over two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and fifty-eighth turn of 2026-08-16: the panel of the cover says the day of the start
+
+**The item: T-328**, and the release **v0.8.158**. It is the part of the stage 6
+of the road of the panels that the round of T-325 named and left open: "the day
+of the start of the media takes no line (`started_at` of
+`crate::api::me::get_media_progress` holds it and no call site reads it)".
+
+**The design names that day.** `docs/mockups/mockup-1.txt` holds the line
+`Started  14 Aug 2026` of the panel 5, between the line of the time and the line
+of the genre.
+
+**The reason that the round of T-325 could not give it.** That round read the
+answer of the items of a library, and that answer holds no day of a start at
+all: the measurement of the sandbox of 2026-08-16 gave 19 keys of an item, and
+no key of a place of the user among them. **The answer of the account holds that
+day for every media that the account played**, and
+`crate::api::me::get_media_progress::Root` reads `startedAt` since T-127: the
+value stood in the memory of the program at every frame, and no call site read
+it.
+
+**The real program v0.8.157 inside tmux**, at 160 columns and 45 rows, of the
+Library view of the library `Books` of the sandbox, with the cursor on `A Long
+Test Book`:
+
+```text
+|Time      30m, 15m left                         |
+|Genre     Fiction, Adventure                    |
+```
+
+**The corrected program of the same harness**, of that same row:
+
+```text
+|Time      30m, 15m left                         |
+|Started   16 Aug 2026                           |
+|Genre     Fiction, Adventure                    |
+```
+
+**The controls of the same run**: the Home view of that same book said the same
+line; the row `Alice in Wonderland`, which the account started and never played,
+said `Started   10 Aug 2026` over `Progress  0%, Not finished`; and the row
+`A Book Of A Broken Epub`, which the answer of the account does not name at all,
+said no line of a day and no line of a place.
+
+**The correction is five files, and no new one**, and
+`tests/the_panel_of_the_cover_says_the_day_of_the_start.rs` holds the gate of
+four tests. The build of the fault, of four edits of one line each, made each of
+the four fail. The item T-328 of `docs/TAKEOVER-BACKLOG.md` holds the two
+screens, the table of the edits, and the five decisions.
+
+**The decisions.** The day comes of the box of the places of the account and of
+no request of its own, because `GET /api/me` runs at the start already (T-110
+and T-127). The day stands **after** the three values of that box, therefore
+every reader that stood before this item reads the same three values. The day
+comes in the time of the machine of the user. A media that the user never
+started takes no line at all, which is the rule of T-325. And this line takes no
+road of T-239 and of T-240, because a live message of the server names no day of
+a start.
 
 ## The session of the hundred and fifty-sixth turn of 2026-08-16: the Home view says the facts of the media
 
@@ -11617,7 +11675,7 @@ measurement can hold.
 | 3 | **T-316** | The harness of a click, the capture, and a click of a row — **done, v0.8.147**; the targets of the regions of the stages after it stay open |
 | 4 | **T-321** | The list of the panel 4 becomes a table of a header — **done, v0.8.148**; the sequence of a click of a word of the header belongs to T-318 |
 | 5 | **T-318** | The panels 2 and 3, and a series that opens into its books — **done, v0.8.149 and v0.8.150**; the mode of the whole library is **done too, v0.8.154** (T-324) |
-| 6 | **T-319** | The panel 5 of one cover, and the panel 6 of the gallery — the panel 5 is **done, v0.8.151**, the facts of the design of it are **done too, v0.8.155** (T-325), those facts reach the **Home view** too, **v0.8.156** (T-326), and the **panel 6 of the gallery is done, v0.8.157** (T-327); the buttons of the title of the design stay open |
+| 6 | **T-319** | The panel 5 of one cover, and the panel 6 of the gallery — the panel 5 is **done, v0.8.151**, the facts of the design of it are **done too, v0.8.155** (T-325), those facts reach the **Home view** too, **v0.8.156** (T-326), the **panel 6 of the gallery is done, v0.8.157** (T-327), and the **day of the start of the media is done, v0.8.158** (T-328); the buttons of the title of the design stay open |
 | 7 | **T-322** | The band of the player, its bar of the seek, and the click of it — **done, v0.8.152**; the digit `7`, the drag, and the buttons of the design stay open |
 | 8 | **T-323** | The mode that hides the panels 1 to 3, and the last sweep — **done, v0.8.153**; the sweep names the regions of the mouse that no stage reached |
 
@@ -11805,10 +11863,12 @@ in no panel of this program. **The facts of the design are done,
 v0.8.155** (T-325): the series, the narrator, the genre, the number of the
 files, the size, the state of the ebook, the copy of the disk, and a bar of the
 progress each take a line of the panel of a book of the Library view, **and of
-a book of the Home view too** (T-325 and T-326). **Two parts of them stay
-open**: the facts stand **under** the picture and not beside it, and **the day
-of the start of the media takes no line** (`started_at` of
-`crate::api::me::get_media_progress` holds it and no call site reads it).
+a book of the Home view too** (T-325 and T-326). **The day of the start of the
+media is done too, v0.8.158** (T-328): the line `Started   16 Aug 2026` stands
+under the line of the time in the two views, and the box of the places of the
+account carries that day beside the place of the user, therefore it costs no
+request. **One part of them stays open**, and it is a decision that does not
+open again: the facts stand **under** the picture and not beside it (T-325).
 
 **The third part is done, v0.8.156** (T-326). The reason that T-325 gave for
 the other views — "their lists of a row hold no narrator, no genre, and no
@@ -21343,6 +21403,103 @@ the real program.
 - **The other views keep the two lines of today**, because their lists of
   a row hold no narrator, no genre, and no ebook.
 
+## The session of the hundred and fifty-sixth turn of 2026-08-16: the Home view says the facts of the media, of the block of the prompt
+
+  **The session of the hundred and fifty-sixth turn took the part of the
+  stage 6 that the round of T-325 left open** (T-326): the facts of the
+  design in the Home view.
+
+  **T-325 gave those facts to the Library view alone, and its reason held
+  for three views and not for the fourth.** That round wrote "the other views
+  keep the two lines of today, because their lists of a row hold no
+  narrator, no genre, and no ebook": true of a search and of a collection,
+  and false of the Home view, which draws the same panel 4 and the same
+  panel 5 as the Library view (T-320) and whose answer holds the same six
+  facts. The measurement of the sandbox, of
+  `GET /api/libraries/<Books>/personalized` for `A Long Test Book` of the
+  shelf `continue-listening`: `"narratorName": "A Test Narrator"`,
+  `"genres": [ "Fiction", "Adventure" ]`, `"numAudioFiles": 1`,
+  `"size": 7337326`, and `"ebookFormat": "epub"`. **The struct of the media
+  of that answer held no field of the ebook at all**, therefore the sixth
+  fact could not reach the program even after the plumbing of the other
+  five.
+
+  **The real program v0.8.155 inside tmux**, at 160 columns and 45 rows, of
+  the Home view of the library `Books` of the sandbox, with the cursor on
+  `A Long Test Book` — the same book that the corrected program of T-325
+  gave eight lines and a bar in the Library view:
+
+  ```text
+  │      ▄                                         │
+  │Author: Long Author - Year: N/A - Duration: 30m │
+  │Progress: 50%, 15m left, Not finished           │
+  │                                                │
+  │No description available                        │
+  ```
+
+  **The data of this item is the program itself**: no proxy, no book of a
+  harness, and no change of the sandbox — the library of the row of the
+  account comes of a `sqlite3` of `name_selected_lib` and of
+  `id_selected_lib` (the trap 203 and the trap 204).
+
+  **The corrected program of the same harness**, of that same row:
+
+  ```text
+  │Author    Long Author                           │
+  │Narrator  A Test Narrator                       │
+  │Time      30m, 15m left                         │
+  │Genre     Fiction, Adventure                    │
+  │Files     1 file, 7.0 MB                        │
+  │Ebook     epub                                  │
+  │Progress  50%, Not finished                     │
+  │████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░│
+  ```
+
+  **The controls of the same run**: the row `A Big Book Of A Scan` said
+  `Ebook     pdf` and it took no line of a series, of a narrator, and of a
+  genre; the row `The Test Chronicles Volume 2` said
+  `Series    The Test Chronicles #2` and no line of an ebook; a row of the
+  shelf `Recent Series` kept the line of today,
+  `Depthless Hunger, Book - 1 book - Duration: 10m`; and the Home view of
+  the library `Podcasts` kept the two lines of today.
+
+  **The correction is four files, and no new one.**
+  `src/api/libraries/get_library_perso_view.rs` gives `Media` the field
+  `ebook_format` of the name of the server;
+  `src/api/utils/collect_personalized_view.rs` holds
+  `collect_the_facts_cnt_list`; `src/app.rs` carries that list to
+  `App::the_facts_home`, which holds one row for each media beside
+  `_ids_cnt_list`; and `src/ui/tui.rs` gives
+  `App::the_lines_of_the_facts_of_the_panel` an arm of the Home view beside
+  the arm of the Library view, and `render_info_home` the argument
+  `in_the_panel` that `render_info_library` holds already.
+  `tests/the_panel_of_the_cover_of_the_home_view_says_the_facts.rs` holds
+  the gate, of four tests, and **the build of the fault** (the trap 147), of
+  three edits of one line each, made each of the four fail under at least
+  one of them.
+
+  **The trap of this item**: **a shelf that holds no media must give no
+  row.** The shelf `recent-series` holds a series and the shelf
+  `newest-authors` holds an author, and neither has a media.
+  `media_entities` of `collect_personalized_view.rs` is the one sequence of
+  the lists of the Home view for that reason, and a list of the facts that
+  walked the entities would have put the narrator of one book beside the
+  title of another. The gate holds a shelf of series between two shelves of
+  media for that reason.
+  - **The entity of a shelf holds no size of its own**: T-325 takes
+    `item.size` over `media.size` for the Library view, and a measurement of
+    the sandbox gives the same number for the two of them for each of the
+    six media of the shelf Continue Listening, therefore this list reads
+    `media.size` and it adds no field.
+  - **A sweep of the class of T-325 stands behind this round.** Every wire
+    name of every struct of `src/api/` met the keys of thirteen answers of
+    the sandbox: the field of the ebook of the personalized view was the one
+    fault of a user, and `LibraryFile.file_name` and `LibraryFile.file_path`
+    of `src/api/library_items/get_pod_ep.rs` are a second one that no call
+    site reads (the server nests those two under `metadata`, as `filename`
+    and `path`). **That second one is a candidate and not an item.**
+
+
 ## The decisions of T-201 to T-327 that do not open again
 
 These decisions stood in the block of the prompt of the next session until the
@@ -22262,7 +22419,7 @@ together.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.157**; `Cargo.toml` is at 0.8.157. The
+> AlbanDAVID/Toutui. Newest release **v0.8.158**; `Cargo.toml` is at 0.8.158. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -23063,7 +23220,7 @@ together.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-324 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-329 and
 > up), and name that item in the commit.
 >
 > **`String::find` gives the index of a byte and not the column of the screen**
@@ -23205,10 +23362,9 @@ together.
 >    **The eight stages are done** (v0.8.145 to v0.8.153), **and no stage of
 >    the road of the panels stays.** What stays is the part of a stage that
 >    its round left open, and each of those parts is a round of its own:
->    of the stage 6, the two parts that the facts of the design of the panel 5
->    left open (T-325: the facts beside the picture, and the day of the start
->    of the media) and the buttons `[+ bigger]` and `[- smaller]` of the title
->    of the panel 6 (T-327); of
+>    of the stage 6, the buttons `[+ bigger]` and `[- smaller]` of the title
+>    of the panel 6 (T-327) and the buttons of the facts of the panel 5, which
+>    no round builds for the reason of T-322; of
 >    the stage 7, the digit `7`, the drag of the bar, and the buttons of the
 >    band; and of the stage 8, **the regions of
 >    the map of the mouse that no stage reached** — the item T-323 of
@@ -23217,7 +23373,8 @@ together.
 >    the whole library, is done** (T-324, v0.8.154), **the facts of the design
 >    of the panel 5 are done** (T-325, v0.8.155), **they reach the Home view
 >    too** (T-326, v0.8.156), **and the panel 6 of the gallery is done**
->    (T-327, v0.8.157): the two turns below hold the road of a part of a
+>    (T-327, v0.8.157), **and the day of the start of the media is done**
+>    (T-328, v0.8.158): the two turns below hold the road of a part of a
 >    stage.
 >    **A round takes the part that gives the user the most**, and that section
 >    holds three decisions that a round must not take alone. Read it first.
@@ -23225,6 +23382,91 @@ together.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
+>   **The session of the hundred and fifty-eighth turn took the last part of
+>   the stage 6 that a round can build** (T-328): the panel of the cover says
+>   the day when the user started the media.
+>
+>   **The round of T-325 named that part and it could not build it.** The
+>   design holds the line `Started  14 Aug 2026` of the panel 5, between the
+>   line of the time and the line of the genre, and that round read the answer
+>   of the items of a library: **that answer holds no day of a start at all.**
+>   The measurement of the sandbox of 2026-08-16, of
+>   `GET /api/libraries/<Books>/items`, gave 19 keys of an item, and no key of
+>   a place of the user among them.
+>
+>   **The answer of the account holds that day for every media that the
+>   account played**, and `crate::api::me::get_media_progress::Root` reads
+>   `startedAt` since T-127:
+>
+>   ```json
+>   "libraryItemId": "9a671047-6146-4003-8510-d215db074a9c",
+>   "progress": 0.5,
+>   "startedAt": 1786905843790
+>   ```
+>
+>   31 rows of that answer held a day, therefore **the value stood in the
+>   memory of the program at every frame and no call site read it.**
+>
+>   **The real program v0.8.157 inside tmux**, at 160 columns and 45 rows, of
+>   the Library view of the library `Books` of the sandbox, with the cursor on
+>   `A Long Test Book`:
+>
+>   ```text
+>   |Time      30m, 15m left                         |
+>   |Genre     Fiction, Adventure                    |
+>   ```
+>
+>   **The data of this item is the program itself**: no proxy, no book of a
+>   harness, and no change of the sandbox — the library of the row of the
+>   account comes of a `sqlite3` of `name_selected_lib` and of
+>   `id_selected_lib` (the trap 203 and the trap 204).
+>
+>   **The corrected program of the same harness**, of that same row:
+>
+>   ```text
+>   |Time      30m, 15m left                         |
+>   |Started   16 Aug 2026                           |
+>   |Genre     Fiction, Adventure                    |
+>   ```
+>
+>   **The controls of the same run**: the Home view of that same book of the
+>   shelf `Continue Listening` said the same line; the row
+>   `Alice in Wonderland`, which the account started on the 10th of August and
+>   never played, said `Started   10 Aug 2026` over
+>   `Progress  0%, Not finished`; and the row `A Book Of A Broken Epub`, which
+>   the answer of the account does not name at all, said no line of a day and
+>   no line of a place, because a media that the box of the places does not
+>   hold played never (T-127).
+>
+>   **The correction is five files, and no new one.**
+>   `src/api/utils/collect_get_media_progress.rs` holds `the_day_of_the_start`,
+>   which gives the words of the design (`%-d %b %Y`) in the time of the
+>   machine of the user, and no words at all for a day of 0 and for a number
+>   that no moment holds; `src/logic/the_positions.rs` puts that value in the
+>   box of the places of the account, **after** the three values that stood
+>   there; `src/app.rs` holds `App::the_day_of_the_start_of_the_home_view`,
+>   `App::the_day_of_the_start_of_the_library`, and
+>   `App::the_day_of_the_start_of_this_media`, which reads the box;
+>   `src/logic/the_facts_of_a_media.rs` gives `TheMediaOfThePanel` the field
+>   `the_day_of_the_start` and the line `Started`; and `src/ui/tui.rs` carries
+>   the value of the selected row of the two views.
+>   `tests/the_panel_of_the_cover_says_the_day_of_the_start.rs` holds the gate,
+>   of four tests, and **the build of the fault** (the trap 147), of four edits
+>   of one line each, made each of the four fail.
+>
+>   **The traps of this item.**
+>   - **A struct of a test that takes a new field breaks the gates of the
+>     rounds before it**: three tests of two files of `tests/` and two tests of
+>     `src/logic/the_facts_of_a_media.rs` hold a literal of
+>     `TheMediaOfThePanel`, and `the_facts_of_the_server_each_take_a_line`
+>     compares the whole list of the lines. `cargo clippy --all-targets` names
+>     the literals of `src/`, and `cargo nextest run` names the test of the
+>     list.
+>   - **A day of a start is not a place of a user**: the row of a media that
+>     the account started and never played holds `startedAt` and
+>     `progress: 0`, therefore the line of the day and the line of the place
+>     are two facts and not one.
+>
 >   **The session of the hundred and fifty-seventh turn took the last panel
 >   of the design that no round built** (T-327): the panel 6 of the gallery
 >   of the covers.
@@ -23327,100 +23569,6 @@ together.
 >     `no_key_stands_two_times_in_one_group` then found two lines of `j / k`
 >     in the group of the panels.
 >
->   **The session of the hundred and fifty-sixth turn took the part of the
->   stage 6 that the round of T-325 left open** (T-326): the facts of the
->   design in the Home view.
->
->   **T-325 gave those facts to the Library view alone, and its reason held
->   for three views and not for the fourth.** That round wrote "the other views
->   keep the two lines of today, because their lists of a row hold no
->   narrator, no genre, and no ebook": true of a search and of a collection,
->   and false of the Home view, which draws the same panel 4 and the same
->   panel 5 as the Library view (T-320) and whose answer holds the same six
->   facts. The measurement of the sandbox, of
->   `GET /api/libraries/<Books>/personalized` for `A Long Test Book` of the
->   shelf `continue-listening`: `"narratorName": "A Test Narrator"`,
->   `"genres": [ "Fiction", "Adventure" ]`, `"numAudioFiles": 1`,
->   `"size": 7337326`, and `"ebookFormat": "epub"`. **The struct of the media
->   of that answer held no field of the ebook at all**, therefore the sixth
->   fact could not reach the program even after the plumbing of the other
->   five.
->
->   **The real program v0.8.155 inside tmux**, at 160 columns and 45 rows, of
->   the Home view of the library `Books` of the sandbox, with the cursor on
->   `A Long Test Book` — the same book that the corrected program of T-325
->   gave eight lines and a bar in the Library view:
->
->   ```text
->   │      ▄                                         │
->   │Author: Long Author - Year: N/A - Duration: 30m │
->   │Progress: 50%, 15m left, Not finished           │
->   │                                                │
->   │No description available                        │
->   ```
->
->   **The data of this item is the program itself**: no proxy, no book of a
->   harness, and no change of the sandbox — the library of the row of the
->   account comes of a `sqlite3` of `name_selected_lib` and of
->   `id_selected_lib` (the trap 203 and the trap 204).
->
->   **The corrected program of the same harness**, of that same row:
->
->   ```text
->   │Author    Long Author                           │
->   │Narrator  A Test Narrator                       │
->   │Time      30m, 15m left                         │
->   │Genre     Fiction, Adventure                    │
->   │Files     1 file, 7.0 MB                        │
->   │Ebook     epub                                  │
->   │Progress  50%, Not finished                     │
->   │████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░│
->   ```
->
->   **The controls of the same run**: the row `A Big Book Of A Scan` said
->   `Ebook     pdf` and it took no line of a series, of a narrator, and of a
->   genre; the row `The Test Chronicles Volume 2` said
->   `Series    The Test Chronicles #2` and no line of an ebook; a row of the
->   shelf `Recent Series` kept the line of today,
->   `Depthless Hunger, Book - 1 book - Duration: 10m`; and the Home view of
->   the library `Podcasts` kept the two lines of today.
->
->   **The correction is four files, and no new one.**
->   `src/api/libraries/get_library_perso_view.rs` gives `Media` the field
->   `ebook_format` of the name of the server;
->   `src/api/utils/collect_personalized_view.rs` holds
->   `collect_the_facts_cnt_list`; `src/app.rs` carries that list to
->   `App::the_facts_home`, which holds one row for each media beside
->   `_ids_cnt_list`; and `src/ui/tui.rs` gives
->   `App::the_lines_of_the_facts_of_the_panel` an arm of the Home view beside
->   the arm of the Library view, and `render_info_home` the argument
->   `in_the_panel` that `render_info_library` holds already.
->   `tests/the_panel_of_the_cover_of_the_home_view_says_the_facts.rs` holds
->   the gate, of four tests, and **the build of the fault** (the trap 147), of
->   three edits of one line each, made each of the four fail under at least
->   one of them.
->
->   **The trap of this item**: **a shelf that holds no media must give no
->   row.** The shelf `recent-series` holds a series and the shelf
->   `newest-authors` holds an author, and neither has a media.
->   `media_entities` of `collect_personalized_view.rs` is the one sequence of
->   the lists of the Home view for that reason, and a list of the facts that
->   walked the entities would have put the narrator of one book beside the
->   title of another. The gate holds a shelf of series between two shelves of
->   media for that reason.
->   - **The entity of a shelf holds no size of its own**: T-325 takes
->     `item.size` over `media.size` for the Library view, and a measurement of
->     the sandbox gives the same number for the two of them for each of the
->     six media of the shelf Continue Listening, therefore this list reads
->     `media.size` and it adds no field.
->   - **A sweep of the class of T-325 stands behind this round.** Every wire
->     name of every struct of `src/api/` met the keys of thirteen answers of
->     the sandbox: the field of the ebook of the personalized view was the one
->     fault of a user, and `LibraryFile.file_name` and `LibraryFile.file_path`
->     of `src/api/library_items/get_pod_ep.rs` are a second one that no call
->     site reads (the server nests those two under `metadata`, as `filename`
->     and `path`). **That second one is a candidate and not an item.**
->
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -23477,7 +23625,7 @@ together.
 > program holds more than one account (T-124). **The decisions of T-124 to
 > T-200 stand in `## The decisions of T-124 to T-200 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-294).
-> And **the decisions of T-201 to T-327 stand in
+> And **the decisions of T-201 to T-328 stand in
 > `## The decisions of T-201 to T-327 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-310).
 > **The panels 2 and 3 of the stack hold the rows of the view of the key `f`
@@ -23507,6 +23655,16 @@ together.
 > them again. **The mode is not the mode of the start**, a refresh keeps it, and
 > **a screen under 120 columns takes no key `z`**, as it takes no digit of a
 > panel (T-323).
+> **The day of the start of the media comes of the box of the places of the
+> account and of no request of its own**, because `GET /api/me` runs at the
+> start of the program for the permissions already (T-110 and T-127); **it
+> stands after the three values of that box**, therefore every reader that
+> stood before T-328 reads the same three values; **it comes in the time of
+> the machine of the user**, because the user reads the day when they started
+> the media and not the day of the server; **a media that the user never
+> started takes no line at all**, which is the rule of T-325; and **the line
+> takes no road of T-239 and of T-240**, because a live message of the server
+> names no day of a start (T-328).
 > **The panel 6 of the gallery holds whole rows of its grid alone**, because a
 > panel of a part of a row holds rows of the screen that no cell uses; **the
 > rows of a picture of a cell come of the `FontSize` of the picker and not of
@@ -23624,7 +23782,9 @@ together.
 > same work, and the block then held about 83000 bytes with **two** turns in
 > it; the round of the hundred and fifty-seventh found it at 83036 bytes with
 > two turns in it, and it did the same work, and the block then held **84390**
-> bytes with **two** turns in it.
+> bytes with **two** turns in it; the round of the hundred and fifty-eighth
+> found it at 85334 bytes with two turns in it, and it did the same work, and
+> the block then held about **84000** bytes with **two** turns in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions
