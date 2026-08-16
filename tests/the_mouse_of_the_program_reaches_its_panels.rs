@@ -55,6 +55,11 @@ fn the_areas_of_the_measurement() -> TheAreasOfTheMouse {
         // The panel 5 of the cover comes with T-319, and this measurement
         // stands before it.
         the_panel_of_the_cover: Rect::default(),
+        // The band of the player comes with T-322, and this measurement holds
+        // no playback.
+        the_band_of_the_player: Rect::default(),
+        the_bar_of_the_seek: Rect::default(),
+        the_length_of_the_media: 0,
     }
 }
 
@@ -176,6 +181,9 @@ fn a_panel_that_the_frame_did_not_draw_takes_no_click() {
         the_lines: 20,
         the_header_of_the_list: Rect::default(),
         the_panel_of_the_cover: Rect::default(),
+        the_band_of_the_player: Rect::default(),
+        the_bar_of_the_seek: Rect::default(),
+        the_length_of_the_media: 0,
     };
 
     // The measurement of tmux: a click of the column 5 of the row 6 gave

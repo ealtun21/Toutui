@@ -1,9 +1,7 @@
-use toutui::{api, app, config, db, logic, login_app, player, ui, utils};
+use toutui::{api, app, config, db, logic, login_app, player, utils};
 
 use crate::db::crud::*;
 use crate::db::database_struct::Database;
-use crate::player::integrated::player_info::*;
-use crate::ui::player_tui::*;
 use crate::utils::clap::*;
 use crate::utils::encrypt_token::decrypt_token;
 use crate::utils::logs::*;
@@ -582,41 +580,18 @@ async fn main() -> Result<()> {
                 // names no podcast that the user did not choose. See T-166.
                 app.the_line_of_the_downloads_holds_its_episode();
 
-                let playback = app.player.state();
-                let is_playing = playback.status != toutui::player::engine::PlaybackStatus::Stopped;
-                // **The row of the player holds the word of a disk that keeps no
-                // place of this media** (T-210): the loop of the playback writes
-                // a box of the process, and the render reads it. A message of the
-                // program lives six seconds, and this condition stands for the
-                // whole playback. The render reads no disk (T-204).
-                let player_notice =
-                    toutui::logic::playback::the_place_of_the_disk::the_notice_of_the_player(
-                        playback.notice.clone(),
-                    );
-                let player_info = player_info(app.the_speed_of_the_account, &playback);
-                let sleep = app.text_of_the_timer_for_sleep();
-
                 terminal.draw(|frame| {
-                    let bg_color_player = app.config.colors.player_background_color.clone();
                     // global background
                     let background =
                         Block::default().style(Style::default().bg(app.config.colors.background()));
 
                     frame.render_widget(background, frame.area());
 
-                    if is_playing {
-                        let area = frame.area();
-                        // render for the player (automatically refreshed)
-                        render_player(
-                            area,
-                            frame.buffer_mut(),
-                            player_info,
-                            bg_color_player,
-                            app.the_key_bindings_stand,
-                            player_notice,
-                            sleep,
-                        );
-                    }
+                    // **The band of the player belongs to the render of the
+                    // frame** (T-322): this loop drew it at 9 rows above the end
+                    // of the screen, and a view of a footer of three rows then
+                    // held two numbers of one row. `App::render` draws it under
+                    // the work of the view now, with the layout of that view.
 
                     // render widget for general app :
                     // Will be manually refresh by pressing `R`

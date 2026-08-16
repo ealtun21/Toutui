@@ -29230,3 +29230,228 @@ this rule.
    alone (T-320), therefore a click of it there names nothing. **That is the
    rule of T-320 and not a fault of this item**, and the round that opens the
    keys of the panels to the shape of two columns must take every panel with it.
+
+## T-322 — The band of the player becomes the panel 7, with its bar of the seek
+
+**The stage 7 of the road of the panels.** `docs/mockups/mockup-1.txt` gives the
+foot of the screen a band of the player of four rows: the words of the media,
+the bar of the seek with the two times at its two ends, the bar of the book
+beside the bar of the chapter, and the buttons of the keys of the player.
+
+**This is the work of a feature and not the work of a fault**, therefore the
+rule of the item is the rule of the measurement: the screen of the real program
+before the change, and the screen of it after the change.
+
+### The screen before, of the real program v0.8.151 inside tmux
+
+The library `Books` of the sandbox on a screen of **160 columns and 45 rows**,
+the Home view, the key `l` of the row `A Book Of Many Hours`, which is a book of
+eight hours with three chapters (the section 6i of `docs/TEST-SERVER.md`), and
+`TOUTUI_AUDIO_DEVICE=null`:
+
+```text
+37
+38                 A Book Of Many Hours by Many Hours Author | The hours of the start
+39             ▶ 1:14:07 / 8:00:00 | Elapsed: 1:14:07 | Left: 6:45:53 (15%) | Speed: 1.00x
+40    Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I: spd +/− | o/i: vol +/− | t: sleep | Y: quit
+41
+```
+
+**The three rows stood in the air.** The frame of T-320 gave every other part of
+the screen a border, a title, and a number of a panel; the player had none of
+the three, therefore no key and no click of the user could name it, and the row
+40 of the screen stood under the border of the panel 4 with nothing to hold it.
+
+**The band held no bar at all.** A screen of 160 columns said the place of the
+user in `(15%)`, which is a percent of two digits, and the place of the user in
+the chapter stood **nowhere**: the row said the name of the chapter and no
+number of it. **The one control of a place of the media was the pair of keys `p`
+and `u` of ten seconds**, and a book of eight hours therefore needed 2880 of
+them to reach its end.
+
+**The rows of the band were the rows of another arithmetic.** `render_player` of
+`src/ui/player_tui.rs` read the whole screen and it counted **nine rows
+backward** (`area.y + area.height - 9`), and `the_areas_of_a_view` of
+`src/ui/tui.rs` reserved `PLAYER_HEIGHT` rows of a layout of its own: the two
+agree for a footer of two rows and for no other footer, and the footer of this
+program stands on the rows that it needs since T-302.
+
+### The data of this stage
+
+**The program itself, and the sandbox as it stands.** No proxy, no book of a
+harness, and no change of the library: the book `A Book Of Many Hours` of the
+library `Books` holds eight hours and three chapters already, and
+`PATCH /api/me/progress/:id` with `{"isFinished": false}` and then
+`{"currentTime": 3860}` gives the same place of the user before each run (the
+trap 148).
+
+### The correction
+
+**Six files, and one of them is new.**
+
+`src/ui/the_band_of_the_player.rs` holds the arithmetic of the band, and every
+function of it is pure:
+
+- `the_rows_of_the_band(the_buttons_stand)` gives **6** rows with the buttons and
+  **5** without them. The key `B` takes the row of the buttons away, and the work
+  of the view then takes that row: that is the rule of T-302 for the footer.
+- `the_parts_of_the_band(inside)` gives the four rows, and a row that the band
+  has no room for is `Rect::default()`, which holds no cell of the screen at all.
+- `the_parts_of_the_seek(row, of_the_place, of_the_length)` gives the columns of
+  the time of the place, the cells of the bar, and the columns of the length. A
+  row that is too narrow for a bar of `THE_SMALLEST_BAR` cells gives `None`, and
+  the row then says the two times alone.
+- `the_bar_of_the_seek(width, position, length)` writes the cells `█`, `▒`, and
+  `░`, and **a media of no length gives a bar of no place at all** (T-180).
+- `the_second_of_a_column(the_bar, length, column)` is the **opposite** of that
+  function: it gives the smallest second of the media whose bar holds that
+  number of cells that played. A division that took the floor of the answer gave
+  the second of the cell **before** the cell of the click — `1 × 28800 / 138` is
+  208, and the bar of the second 208 of a book of 28800 seconds holds no cell
+  that played — therefore the answer goes up (`div_ceil`).
+- `the_chapter_of_the_place`, `the_place_in_the_chapter`, and
+  `the_words_of_the_chapter` give the number of the chapter of a place, the place
+  inside it, and the words `Chapter 2 of 3: The hours of the middle`. **A chapter
+  holds its start and it does not hold its end**, and a media of no chapter says
+  the words of the engine and no number that the program does not have (T-91).
+
+`src/ui/player_tui.rs` draws the band. `render_player` went away and
+`render_the_band` took its place: it takes `TheWordsOfTheBand`, which the render
+of the frame makes of the state of the playback, and it gives the cells of the
+bar of the seek back for the click of the user. **The rule of T-312 lives inside
+that function now**: `in_one_line` of the title, of the author, and of the
+chapter stood in the caller, and a test of the caller can gate nothing.
+
+`src/ui/frame.rs` holds `a_band`, which is the block of the band. **A number of a
+panel is the name of a key** (T-118): the digits 1 to 5 give the focus to the
+panels of the stack, of the list, and of the cover, and no key of this program
+gives the focus to the band, therefore the band says `Player` and no digit at
+all.
+
+`src/ui/tui.rs` draws the band inside the render of the frame.
+`the_areas_of_a_view` takes the rows of the band instead of a `bool`,
+`the_five_areas` holds the one layout of the screen, and `the_area_of_the_band`
+reads the third of the five: the band and the view therefore hold one number of
+every row. `App::render_the_band_of_the_player` writes the areas of the click.
+
+`src/ui/the_mouse.rs` holds `TheTarget::TheBarOfTheSeek { the_second }` and
+`TheTarget::TheBandOfThePlayer`, and the three fields of the areas. **The bar
+comes before the band that holds it**, as the row of the header comes before the
+panel 4, and **the band needs no `the_stack_stands`**: it takes no focus,
+therefore its bar works at 40 columns as it works at 160.
+
+`src/app.rs` holds `App::the_playback_goes_to`, which sends
+`PlayerCommand::SeekTo` and says the place. A click of the bar goes to that
+second, a click of the band beside the bar does nothing, and the wheel over the
+band moves the playback by ten seconds, which is the work of the keys `p` and
+`u`.
+
+`src/main.rs` draws the band no more.
+
+### The screen after, of the same harness
+
+```text
+37 ┌ Player ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+38 │ ▶ A Book Of Many Hours  Many Hours Author  Chapter 1 of 3: The hours of the start                                              Speed 1.00x │
+39 │ 1:46:15 ├██████████████████████████████▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░┤ 8:00:00 │
+40 │ Book    █████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  22%  Chapter ████████████████████████████████████████░░░░░░░░  63%   │
+41 │                             Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I: spd +/− | o/i: vol +/− | t: sleep | Y: quit             │
+42 └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### The measurements of the same run
+
+**The click of the bar of the seek.** `docs/harness/click.sh` at the column 80
+of the row 39, with the playback at a pause: the row of the seek went from
+`1:46:25` to **`3:56:32`**, the row of the words went from
+`Chapter 1 of 3: The hours of the start` to
+`Chapter 2 of 3: The hours of the middle`, the bar of the book went from 22
+percent to 49, and the row of the message said **`The playback goes to
+3:56:32.`** The second 14192 is the answer of `the_second_of_a_column` for the
+cell 68 of a bar of 138 cells of a book of 28800 seconds, and the gate holds
+that number.
+
+**The control of the same run.** A click of the column 80 of the row 41, which
+is the row of the buttons of the same band, moved no playback and wrote no
+message at all: the band takes no focus, therefore a click of it does nothing.
+A click of the column 80 of the row 39 of the band of **five** rows, which is
+the row of the words of that band, did the same: the bar of a band of five rows
+stands on the row 40.
+
+**The wheel over the band**, with the playback at a pause: one step down took
+the place from `4:13:55` to `4:14:05`, and two steps up then took it to
+`4:13:45`. **The key `p` of this program is +10 seconds and the key `u` is −10
+seconds** (the trap 211), and one step of the wheel down goes forward in the
+media as one step of it goes down a list.
+
+**The key `B`.** The band went from six rows to five, the row of the buttons went
+away, and the list of the panel 4 grew by one line: the line
+`✓ A Book Of An Epub With No Container` came into the shelf `Listen Again`.
+
+**The three widths.** At **160 columns** the band holds the two bars of 66 cells
+each; at **100 columns** it holds two bars of 33 cells; at **84 columns** it
+holds two bars of 25; and at **40 columns**, which is the narrowest terminal that
+this fork measures (T-301), the row of the two bars holds the bar of the **book
+alone** of 22 cells, because a half of 37 columns leaves 3 cells for a bar and a
+bar of 3 cells says nothing of a place. The bar of the seek stands at every one
+of the four widths: 40 columns leave 18 cells of it.
+
+### The gate
+
+`tests/the_band_of_the_player_holds_its_bar.rs` holds four tests, and five more
+stand inside `src/ui/the_band_of_the_player.rs`.
+`tests/the_panel_of_the_player_stands_on_four_rows.rs`, which is the gate of
+T-312, reads the band now and it holds the same rule of an end of a line.
+
+**The build of the fault** (the trap 147), of four edits of one line each:
+`if areas.the_bar_of_the_seek.contains(point) && false`,
+`if cells < usize::from(THE_SMALLEST_BAR) || … || true` of
+`the_parts_of_the_seek`, `let inside = if the_buttons_stand && false` of
+`the_rows_of_the_band`, and `… && position < chapter.end && false` of
+`the_chapter_of_the_place` — **four of the four tests failed**.
+
+### The trap of this item
+
+**The bar of the seek and the click of it must be exact opposites, and two
+divisions that each take the floor of their answer are not.** The first form of
+`the_second_of_a_column` gave `cell × length / width`, which is the first second
+of the cell; the bar of that second then held `width × second / length` cells,
+which is the cell **before** it for every cell whose second is not a whole
+number. The user clicked a cell and the bar painted the cell at the left of the
+pointer. The answer goes up, and the second of a click is then the smallest
+second whose bar holds that cell.
+
+### What stays open of this stage
+
+1. **The digit `7` and the focus of the band.** The design gives the band the
+   digit 7, and this stage gives it none: **every key of the player works in
+   every view of this program already** (`Space`, `p`, `u`, `P`, `U`, `O`, `I`,
+   `o`, `i`, `t`, and `Y`), therefore a focus of the band would hold no key of
+   its own, and a title that said `7 Player` would promise a digit that does
+   nothing (T-118 and T-79). The round that gives the band keys of its own gives
+   it the digit too.
+2. **A drag on the bar of the seek.** A click of a cell moves the playback
+   already; the report of a move of the pointer and the report of a release do
+   nothing (T-316), therefore a drag names one second and not a road of them.
+3. **The buttons of the design.** The mockup writes the row of the buttons as
+   `[Space Pause] [p -10s] [u +10s] …`, and a click of one of them does the work
+   of its key. This stage keeps the words of today, because **a `[ ]` that no
+   click reads is a text that promises a function that the program does not
+   have** (T-118).
+4. **The wheel over `Speed` and over `Volume`.** The map of the mouse of the
+   section (e) of `docs/mockups/mockup-1.md` gives the wheel over those two words
+   the keys `O`/`I` and `o`/`i`. The band gives the whole of itself to the ten
+   seconds of `p` and `u` today, and a region of its own for each of the two
+   words is the work of that round.
+5. **The bar of the chapter of a media of no chapter.** A media of no chapter
+   gives the whole row to the bar of the book, and the design holds no other
+   answer for it.
+6. **The Reader view reserves no row of the band.** The measurement of the same
+   run, with the book `Alice in Wonderland` of the key `e` and the playback of
+   `A Book Of Many Hours` beside it: the band stood over the rows 38 to 43 of the
+   reader, and **one line of the book stood under it**, at the row 44, over the
+   footer of the reader. **That is not a fault of this stage**: the player of
+   before it drew its four rows over the same place, and the border of the band
+   makes it easy to see. The reader draws a layout of its own and it does not
+   call `the_areas_of_a_view`, therefore the round that gives it the rows of the
+   band is a round of the Reader view.

@@ -2742,6 +2742,18 @@ impl App {
                 TheTarget::ThePanelOfTheCover => {
                     self.the_panel_of_the_focus = crate::ui::frame::ThePanel::TheCover;
                 }
+                // **A click of the bar of the seek moves the playback to the
+                // second of that cell** (T-322). The keys `p` and `u` of this
+                // program move by ten seconds, therefore a book of eight hours
+                // needed 2880 of them to reach its end: this is the one control
+                // of the program that names a place of a media directly.
+                TheTarget::TheBarOfTheSeek { the_second } => {
+                    self.the_playback_goes_to(f64::from(the_second));
+                }
+                // **A click of the band beside its bar does nothing**: the band
+                // takes no focus, because every key of the player works in
+                // every view of this program already.
+                TheTarget::TheBandOfThePlayer => {}
                 TheTarget::Nothing => {}
             },
             MouseEventKind::ScrollDown | MouseEventKind::ScrollUp => {
@@ -2792,6 +2804,23 @@ impl App {
                         } else {
                             self.scroll_offset.saturating_sub(1)
                         };
+                    }
+                    // **The wheel over the band of the player moves the
+                    // playback by ten seconds** (T-322), which is the work of
+                    // the keys `p` and `u`: the wheel of a panel does the work
+                    // of the keys of that panel, and the band holds no list at
+                    // all.
+                    TheTarget::TheBarOfTheSeek { .. } | TheTarget::TheBandOfThePlayer => {
+                        handle_key_player(
+                            // The key `p` of this program is +10 seconds and
+                            // the key `u` is −10 seconds (the trap 211), and
+                            // one step of the wheel down goes forward in the
+                            // media, as one step of it goes down a list.
+                            if forward { "p" } else { "u" },
+                            &self.player,
+                            self.username.as_str(),
+                            self.server_key.as_str(),
+                        );
                     }
                     // The wheel over the row of the header moves no list: that
                     // row holds one line and no cursor at all.
@@ -4281,6 +4310,25 @@ impl App {
                 self.the_media_of_the_view_of_the_chapters = of_the_player;
             }
         }
+    }
+
+    /// Moves the playback to a second of the media. See T-322.
+    ///
+    /// **A click of the bar of the seek of the band is the one control of this
+    /// program that names a place of a media directly**: the keys `p` and `u`
+    /// move by ten seconds, and the view of the chapters and the view of the
+    /// bookmarks name a place that the server holds already.
+    ///
+    /// The message says the place, because a click that gives no word looks
+    /// like a click that the program did not read (T-79).
+    pub fn the_playback_goes_to(&mut self, second: f64) {
+        self.player
+            .send(crate::player::engine::PlayerCommand::SeekTo(second));
+
+        crate::logic::message::say(&format!(
+            "The playback goes to {}.",
+            crate::player::integrated::player_info::format_time(second.max(0.0) as u32)
+        ));
     }
 
     /// Goes to the chapter that the user selected.

@@ -30,46 +30,50 @@
 //!
 //! These tests draw the real render of the player into a `Buffer` of ratatui
 //! with no terminal and no screen (T-256).
+//!
+//! **The band of T-322 holds the same rule**, and the rows of it are the words
+//! of the media, the bar of the seek, the two bars of the book and of the
+//! chapter, and the buttons: `render_the_band` gives every end of a line one
+//! space, therefore the row of the buttons stays inside the band.
 
 use ratatui::{buffer::Buffer, layout::Rect};
-use toutui::ui::player_tui::render_player;
+use toutui::ui::player_tui::{render_the_band, TheWordsOfTheBand};
+use toutui::ui::the_band_of_the_player::the_rows_of_the_band;
 
-/// The screen of the measurement: 80 columns and 45 rows.
+/// The screen of the measurement: 80 columns.
 const WIDTH: u16 = 80;
-const HEIGHT: u16 = 45;
 
-/// The panel of the player stands nine rows above the end of the screen, and it
-/// holds four rows. `render_player` of `src/ui/player_tui.rs` reads the same
-/// two numbers.
-const THE_FIRST_ROW_OF_THE_PANEL: u16 = HEIGHT - 9;
-const THE_ROWS_OF_THE_PANEL: u16 = 4;
+/// The rows of the band, inside its border. See T-322.
+const THE_ROWS_OF_THE_PANEL: u16 = the_rows_of_the_band(true) - 2;
 
-/// The eleven values of the player, with the title, the author, and the chapter
-/// of the measurement. The values after them are the numbers of the position.
-fn the_values_of_the_player(title: &str, author: &str, chapter: &str) -> Vec<String> {
-    vec![
-        title.to_string(),
-        author.to_string(),
-        chapter.to_string(),
-        "true".to_string(),
-        "6:59:40".to_string(),
-        "8:00:00".to_string(),
-        "6:59:40".to_string(),
-        "1:00:20".to_string(),
-        "87".to_string(),
-        "1.00".to_string(),
-        String::new(),
-    ]
+/// The values of the band, with the title, the author, and the chapter of the
+/// measurement.
+fn the_words_of_the_band(title: &str, author: &str, chapter: &str) -> TheWordsOfTheBand {
+    TheWordsOfTheBand {
+        title: title.to_string(),
+        author: author.to_string(),
+        chapter: chapter.to_string(),
+        it_plays: true,
+        position: 25180,
+        length: 28800,
+        the_chapter: Some((1000, 3600)),
+        speed: "1.00".to_string(),
+        volume: String::new(),
+        notice: None,
+        sleep: None,
+        the_buttons_stand: true,
+    }
 }
 
-/// Draws the panel of the player of those values, and gives its four rows.
-fn the_rows_of_the_panel(values: Vec<String>) -> Vec<String> {
-    let area = Rect::new(0, 0, WIDTH, HEIGHT);
-    let mut buf = Buffer::empty(area);
+/// Draws the band of the player of those values, and gives the rows inside its
+/// border.
+fn the_rows_of_the_panel(words: TheWordsOfTheBand) -> Vec<String> {
+    let band = Rect::new(0, 0, WIDTH, the_rows_of_the_band(true));
+    let mut buf = Buffer::empty(band);
 
-    render_player(area, &mut buf, values, vec![0, 0, 0], true, None, None);
+    render_the_band(band, &mut buf, &words, &[0, 0, 0]);
 
-    (THE_FIRST_ROW_OF_THE_PANEL..THE_FIRST_ROW_OF_THE_PANEL + THE_ROWS_OF_THE_PANEL)
+    (1..1 + THE_ROWS_OF_THE_PANEL)
         .map(|row| {
             (0..WIDTH)
                 .map(|column| buf[(column, row)].symbol())
@@ -91,29 +95,29 @@ const THE_WORDS_OF_THE_KEYS: &str = "Spc: pause/play";
 #[test]
 fn a_title_of_an_end_of_a_line_keeps_the_rows_of_the_panel() {
     // The control of the measurement: a title of no end of a line.
-    let of_the_control = the_rows_of_the_panel(the_values_of_the_player(
+    let of_the_control = the_rows_of_the_panel(the_words_of_the_band(
         "A Book Of Many Hours",
         "Many Hours Author",
         "The hours of the end",
     ));
     assert!(
-        of_the_control[1].contains("A Book Of Many Hours by Many Hours Author"),
-        "the row of the name of the control says: {:?}",
+        of_the_control[0].contains("A Book Of Many Hours  Many Hours Author"),
+        "the row of the words of the control says: {:?}",
+        of_the_control[0]
+    );
+    assert!(
+        of_the_control[1].contains("6:59:40") && of_the_control[1].contains("8:00:00"),
+        "the row of the seek of the control says: {:?}",
         of_the_control[1]
     );
     assert!(
-        of_the_control[2].contains("6:59:40 / 8:00:00"),
-        "the row of the position of the control says: {:?}",
-        of_the_control[2]
-    );
-    assert!(
         of_the_control[3].contains(THE_WORDS_OF_THE_KEYS),
-        "the row of the keys of the control says: {:?}",
+        "the row of the buttons of the control says: {:?}",
         of_the_control[3]
     );
 
     // The title of the measurement, with the end of a line in it.
-    let rows = the_rows_of_the_panel(the_values_of_the_player(
+    let rows = the_rows_of_the_panel(the_words_of_the_band(
         "Alpha\nOMEGAEND",
         "Many Hours Author",
         "The hours of the end",
@@ -122,9 +126,9 @@ fn a_title_of_an_end_of_a_line_keeps_the_rows_of_the_panel() {
     // The whole title stands on the row of the name, and the two lines of it
     // hold one space between them.
     assert!(
-        rows[1].contains("Alpha OMEGAEND by Many Hours Author"),
-        "the row of the name holds no whole title: {:?}",
-        rows[1]
+        rows[0].contains("Alpha OMEGAEND  Many Hours Author"),
+        "the row of the words holds no whole title: {:?}",
+        rows[0]
     );
 
     // **No row of the panel holds the second line of the title alone.**
@@ -133,11 +137,11 @@ fn a_title_of_an_end_of_a_line_keeps_the_rows_of_the_panel() {
         "a row of the panel holds a part of the title alone: {rows:?}"
     );
 
-    // The row of the position keeps its own row, and it did not move down.
+    // The row of the seek keeps its own row, and it did not move down.
     assert!(
-        rows[2].contains("6:59:40 / 8:00:00"),
-        "the row of the position says: {:?}",
-        rows[2]
+        rows[1].contains("6:59:40") && rows[1].contains("8:00:00"),
+        "the row of the seek says: {:?}",
+        rows[1]
     );
 
     // **The row of the keys of the player stays inside the panel.** That row is
@@ -164,12 +168,12 @@ fn the_author_and_the_chapter_take_the_rule_of_the_title() {
             "A\n\n\nChapter",
         ),
     ] {
-        let rows = the_rows_of_the_panel(the_values_of_the_player(title, author, chapter));
+        let rows = the_rows_of_the_panel(the_words_of_the_band(title, author, chapter));
 
         assert!(
-            rows[2].contains("6:59:40 / 8:00:00"),
-            "the row of the position of {chapter:?} says: {:?}",
-            rows[2]
+            rows[1].contains("6:59:40") && rows[1].contains("8:00:00"),
+            "the row of the seek of {chapter:?} says: {:?}",
+            rows[1]
         );
         assert!(
             rows[3].contains(THE_WORDS_OF_THE_KEYS),

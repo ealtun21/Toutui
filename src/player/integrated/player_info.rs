@@ -123,7 +123,7 @@ fn progress_percent(current_time: u32, total_duration: u32) -> u32 {
     percent.round().clamp(0.0, 100.0) as u32
 }
 
-fn format_time(seconds: u32) -> String {
+pub fn format_time(seconds: u32) -> String {
     let hours = seconds / 3600;
     let minutes = (seconds % 3600) / 60;
     let secs = seconds % 60;

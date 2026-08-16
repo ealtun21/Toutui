@@ -29,13 +29,14 @@ const FOOTER_HEIGHT: u16 = crate::ui::keys::THE_SMALLEST_FOOTER;
 /// alone. See T-171 and T-299.
 const HEADER_HEIGHT: u16 = 2;
 
-/// The number of rows of the panel of the player.
+/// The number of rows of the band of the player, with its row of the buttons.
 ///
-/// `render_player` of `src/ui/player_tui.rs` draws 4 rows at 9 rows above the end
-/// of the screen, therefore the panel needs 6 rows above the row of the message
-/// and the footer. **`main.rs` draws that panel for a playback only**, and the
-/// views give those rows to the work of the view while nothing plays. See T-104.
-const PLAYER_HEIGHT: u16 = 6;
+/// **The band stands on the rows that it needs** (T-322): the key `B` takes the
+/// row of the buttons away, and `App::the_rows_of_the_band` then gives one row
+/// fewer. **The render draws the band for a playback only**, and the views give
+/// those rows to the work of the view while nothing plays. See T-104.
+#[cfg(test)]
+const PLAYER_HEIGHT: u16 = crate::ui::the_band_of_the_player::the_rows_of_the_band(true);
 
 /// The number of pictures of the pages of a PDF that the render keeps. See T-54.
 const PICTURES_OF_THE_READER: usize = 8;
@@ -105,6 +106,12 @@ impl Widget for &mut App {
             AppView::SettingsUpdateUninstall => {}
         }
 
+        // **The band of the player stands under the work of the view**, and the
+        // view of this frame wrote the rows of its footer already: the layout of
+        // the band and the layout of the view therefore hold one number of every
+        // row. See T-322.
+        self.render_the_band_of_the_player(area, buf);
+
         // The message of the user stands inside the frame, above the footer. A
         // message outside the frame goes away when a view draws its row, and it
         // stays when no view draws it. See T-59 and T-42.
@@ -139,19 +146,35 @@ impl Widget for &mut App {
 /// work of the view, in the same way as the message of T-299: a list of the
 /// view loses a line, and the key `j` moves the list, therefore no line of it
 /// goes out of the reach of the user.
-fn the_areas_of_a_view(area: Rect, a_media_plays: bool, rows_of_the_footer: u16) -> [Rect; 3] {
-    let rows_of_the_player = if a_media_plays { PLAYER_HEIGHT } else { 0 };
+fn the_areas_of_a_view(area: Rect, rows_of_the_player: u16, rows_of_the_footer: u16) -> [Rect; 3] {
+    let [header_area, main_area, _band_area, _message_area, footer_area] =
+        the_five_areas(area, rows_of_the_player, rows_of_the_footer);
 
-    let [header_area, main_area, _player_area, _message_area, footer_area] = Layout::vertical([
+    [header_area, main_area, footer_area]
+}
+
+/// The area of the band of the player, with its border. See T-322.
+///
+/// **The band stood at 9 rows above the end of the screen before this stage**,
+/// and that number held no footer of more than two rows: `render_player` read
+/// the whole screen and it counted backward, therefore a view of a footer of
+/// three rows drew its band over its own last line. The band takes the area of
+/// the layout of the view now, and the two of them cannot disagree.
+fn the_area_of_the_band(area: Rect, rows_of_the_player: u16, rows_of_the_footer: u16) -> Rect {
+    the_five_areas(area, rows_of_the_player, rows_of_the_footer)[2]
+}
+
+/// The five areas of the screen of a view: the header, the work of the view,
+/// the band of the player, the row of the message, and the footer.
+fn the_five_areas(area: Rect, rows_of_the_player: u16, rows_of_the_footer: u16) -> [Rect; 5] {
+    Layout::vertical([
         Constraint::Length(HEADER_HEIGHT),
         Constraint::Fill(1),
         Constraint::Length(rows_of_the_player),
         Constraint::Length(1),
         Constraint::Length(rows_of_the_footer),
     ])
-    .areas(area);
-
-    [header_area, main_area, footer_area]
+    .areas(area)
 }
 
 /// Gives the three areas of the work of a view of a list: the lines, the row of
@@ -1604,7 +1627,7 @@ impl App {
         let text_render_footer = text_render_footer.as_str();
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
         // **The stack of the panels of the frame stands at the left** (T-320),
         // and it takes its 34 columns of a screen of three columns alone.
@@ -1677,6 +1700,20 @@ impl App {
         self.player.state().status != PlaybackStatus::Stopped
     }
 
+    /// The rows of the band of the player that the screen holds now. See T-104
+    /// and T-322.
+    ///
+    /// **The band stands on the rows that it needs** (T-322): the key `B` takes
+    /// the row of the buttons away, and the work of the view then takes that
+    /// row.
+    fn the_rows_of_the_band(&self) -> u16 {
+        if !self.a_media_plays() {
+            return 0;
+        }
+
+        crate::ui::the_band_of_the_player::the_rows_of_the_band(self.the_key_bindings_stand)
+    }
+
     /// The rows of the panel of the player that the view holds now. See T-104.
     ///
     /// The split of the work of a view is a rule of the screen (T-99), therefore
@@ -1686,7 +1723,83 @@ impl App {
             return 0;
         }
 
-        PLAYER_HEIGHT
+        crate::ui::the_band_of_the_player::the_rows_of_the_band(self.the_key_bindings_stand)
+    }
+
+    /// Draws the band of the player, and it writes the areas of the click of
+    /// the user. See T-322.
+    ///
+    /// **The band belongs to the render of the frame and not to the loop of the
+    /// program**: `src/main.rs` drew it before the view, at 9 rows above the end
+    /// of the screen, therefore the band and the layout of the view held two
+    /// numbers of one row. The view writes `self.rows_of_the_footer` before this
+    /// function runs, therefore the band reads the footer of this frame.
+    fn render_the_band_of_the_player(&mut self, area: Rect, buf: &mut Buffer) {
+        let rows = self.the_rows_of_the_band();
+
+        if rows == 0 {
+            // **A frame that draws no band takes no click of it** (T-316).
+            self.the_areas_of_the_mouse.the_band_of_the_player = Rect::default();
+            self.the_areas_of_the_mouse.the_bar_of_the_seek = Rect::default();
+            self.the_areas_of_the_mouse.the_length_of_the_media = 0;
+            return;
+        }
+
+        let state = self.player.state();
+        let position = state.position.max(0.0) as u32;
+        let length = state.duration.max(0.0) as u32;
+
+        let words = crate::ui::player_tui::TheWordsOfTheBand {
+            // **The render of the band gives every end of a line one space**
+            // (T-312), therefore these three texts of the server go to it as
+            // the server gave them.
+            title: crate::logic::media_name::the_name_of_the_media(
+                &state.title,
+                state.episode_title.as_deref(),
+            ),
+            author: state.author.clone(),
+            chapter: crate::ui::the_band_of_the_player::the_words_of_the_chapter(
+                &state.chapters,
+                state.position,
+                state.chapter_title.as_deref().unwrap_or("No chapter"),
+            ),
+            it_plays: matches!(
+                state.status,
+                PlaybackStatus::Playing | PlaybackStatus::Stalled
+            ),
+            position,
+            length,
+            the_chapter: crate::ui::the_band_of_the_player::the_place_in_the_chapter(
+                &state.chapters,
+                state.position,
+            ),
+            speed: format!(
+                "{:.2}",
+                if state.speed > 0.0 {
+                    state.speed
+                } else {
+                    self.the_speed_of_the_account
+                }
+            ),
+            volume: crate::player::integrated::player_info::the_volume_of_the_row(state.volume),
+            notice: crate::logic::playback::the_place_of_the_disk::the_notice_of_the_player(
+                state.notice.clone(),
+            ),
+            sleep: self.text_of_the_timer_for_sleep(),
+            the_buttons_stand: self.the_key_bindings_stand,
+        };
+
+        let band = the_area_of_the_band(area, rows, self.rows_of_the_footer);
+        let bar = crate::ui::player_tui::render_the_band(
+            band,
+            buf,
+            &words,
+            &self.config.colors.player_background_color.clone(),
+        );
+
+        self.the_areas_of_the_mouse.the_band_of_the_player = band;
+        self.the_areas_of_the_mouse.the_bar_of_the_seek = bar;
+        self.the_areas_of_the_mouse.the_length_of_the_media = length;
     }
 
     /// Draws the sentence of a view that holds no line. See T-103.
@@ -1726,7 +1839,7 @@ impl App {
         let text_render_footer = text_render_footer.as_str();
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
         // **The stack of the panels of the frame stands at the left** (T-320),
         // and it takes its 34 columns of a screen of three columns alone.
@@ -1822,7 +1935,7 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -1893,7 +2006,7 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -1966,7 +2079,7 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_THE_LISTS;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -2056,7 +2169,7 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_THE_MEDIA_OF_A_LIST;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -2136,7 +2249,7 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
         let [list_area, item_area1, item_area2] =
             the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
@@ -2163,7 +2276,7 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_THE_ACCOUNTS;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
         let [list_area, item_area] =
             Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(main_area);
@@ -2252,7 +2365,7 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_THE_LIBRARY_OF_THE_USER;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
         let [list_area, item_area] =
             Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(main_area);
@@ -2312,7 +2425,7 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_THE_SEARCH;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -2495,7 +2608,7 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.a_media_plays(), rows_of_the_footer);
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -3650,9 +3763,9 @@ mod tests {
             height: 18,
         };
 
-        let [header, main, footer] = the_areas_of_a_view(screen, true, FOOTER_HEIGHT);
+        let [header, main, footer] = the_areas_of_a_view(screen, PLAYER_HEIGHT, FOOTER_HEIGHT);
         let [header_of_no_playback, main_of_no_playback, footer_of_no_playback] =
-            the_areas_of_a_view(screen, false, FOOTER_HEIGHT);
+            the_areas_of_a_view(screen, 0, FOOTER_HEIGHT);
 
         assert_eq!(main.height, 7, "the areas of a playback do not change");
         assert_eq!(
@@ -3693,8 +3806,8 @@ mod tests {
                 height,
             };
 
-            let [_, of_a_playback, _] = the_areas_of_a_view(screen, true, FOOTER_HEIGHT);
-            let [_, of_no_playback, _] = the_areas_of_a_view(screen, false, FOOTER_HEIGHT);
+            let [_, of_a_playback, _] = the_areas_of_a_view(screen, PLAYER_HEIGHT, FOOTER_HEIGHT);
+            let [_, of_no_playback, _] = the_areas_of_a_view(screen, 0, FOOTER_HEIGHT);
 
             let [list_of_a_playback, ..] = the_areas_of_a_list(of_a_playback, 0);
             let [list_of_no_playback, ..] = the_areas_of_a_list(of_no_playback, PLAYER_HEIGHT);
@@ -3738,7 +3851,7 @@ mod tests {
 
             assert_eq!(rows, rows_that_it_needs, "the rows at {} columns", width);
 
-            let [header, main, footer] = the_areas_of_a_view(screen, false, rows);
+            let [header, main, footer] = the_areas_of_a_view(screen, 0, rows);
 
             assert_eq!(footer.height, rows_that_it_needs);
             assert_eq!(
@@ -3791,9 +3904,9 @@ mod tests {
                 height,
             };
 
-            for a_media_plays in [true, false] {
+            for rows_of_the_band in [PLAYER_HEIGHT, PLAYER_HEIGHT - 1, 0] {
                 let [header, main, footer] =
-                    the_areas_of_a_view(screen, a_media_plays, FOOTER_HEIGHT);
+                    the_areas_of_a_view(screen, rows_of_the_band, FOOTER_HEIGHT);
 
                 assert!(header.y + header.height <= screen.height.max(1) + 1);
                 assert!(main.y >= header.y);

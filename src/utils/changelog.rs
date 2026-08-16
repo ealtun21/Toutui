@@ -41,6 +41,35 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.152",
+        date: "16/08/2026",
+        body: &[
+            "Added:",
+            "- **The player has a frame, and a bar of the position now.** The \
+             three rows of the player stood in the air at the foot of the \
+             screen, with no border and no title, and a screen of 160 columns \
+             said your place in the book in two digits. The band says the \
+             media, the bar of the position with the time at each end, a bar \
+             of the book beside a bar of the chapter, and the keys of the \
+             player.",
+            "- **A click of the bar moves the playback to that place.** The \
+             keys `p` and `u` move by ten seconds, and a book of eight hours \
+             needs 2880 of them: this is the first control of Toutui that \
+             names a place of a media directly. One step of the wheel over \
+             the band moves the playback by ten seconds.",
+            "- **The band says the number of the chapter**, for example \
+             `Chapter 2 of 3: The hours of the middle`.",
+            "- **The key `B` gives the list one line more.** The band stands \
+             on the rows that it needs: it holds five rows with no row of the \
+             keys, and six rows with it.",
+            "Fixed:",
+            "- **The rows of the player stand where the view puts them.** The \
+             player counted nine rows back from the end of the screen, and a \
+             view of a footer of three rows therefore drew its player over \
+             its own last line.",
+        ],
+    },
+    Entry {
         version: "0.8.151",
         date: "16/08/2026",
         body: &[

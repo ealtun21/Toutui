@@ -267,6 +267,29 @@ pub fn a_panel(number: u8, name: &str, it_holds_the_focus: bool) -> Block<'stati
         .title(title)
 }
 
+/// The block of the band of the player, which holds no number. See T-322.
+///
+/// **A number of a panel is the name of a key** (T-118): the digits 1 to 5 give
+/// the focus to the panels of the stack, of the list, and of the cover, and no
+/// key of this program gives the focus to the band of the player. A band that
+/// said `7 Player` would therefore promise the digit `7`, which does nothing.
+///
+/// **The band takes no focus at all**, and the reason of it is the keys: every
+/// key of the player works in every view of this program already (`Space`, `p`,
+/// `u`, `P`, `U`, `O`, `I`, `o`, `i`, `t`, and `Y`), therefore a focus of the
+/// band would hold no key of its own. The digit `7` of the design comes with
+/// the keys of that focus, and not before them.
+pub fn a_band(name: &str) -> Block<'static> {
+    Block::new()
+        .borders(Borders::ALL)
+        .border_type(BorderType::Plain)
+        .border_style(crate::ui::theme::a_quiet_text())
+        .title(Span::styled(
+            format!(" {name} "),
+            crate::ui::theme::a_quiet_text(),
+        ))
+}
+
 /// The work of a line of the panel 1.
 ///
 /// **The key `Tab` of this program turns the Home view and the Library view one

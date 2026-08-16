@@ -23,6 +23,7 @@
 //! of the terminal after that frame, therefore the user clicked on the screen
 //! that those areas describe.
 
+use crate::ui::the_band_of_the_player::the_second_of_a_column;
 use ratatui::layout::{Position, Rect};
 
 /// The words of the key `Ctrl+o` that starts the mouse again. See T-316.
@@ -87,6 +88,17 @@ pub struct TheAreasOfTheMouse {
     /// A view that draws no cover, and a terminal that is too narrow for one,
     /// gives `Rect::default()` here.
     pub the_panel_of_the_cover: Rect,
+    /// The whole band of the player, with its border. See T-322.
+    ///
+    /// A frame that draws no band, which is every frame of a program that plays
+    /// nothing, gives `Rect::default()` here.
+    pub the_band_of_the_player: Rect,
+    /// The cells of the bar of the seek of the band, between `├` and `┤`. See
+    /// T-322.
+    pub the_bar_of_the_seek: Rect,
+    /// The length of the media that plays, in seconds. A media of no length
+    /// gives 0, and a click of the bar of it moves no playback (T-180).
+    pub the_length_of_the_media: u32,
 }
 
 /// The place of the screen that a report of the mouse names.
@@ -113,6 +125,21 @@ pub enum TheTarget {
     /// holds one media, which is the media of the cursor of the list already,
     /// therefore a click of it moves the cursor of no list.
     ThePanelOfTheCover,
+    /// The bar of the seek of the band of the player. `the_second` is the
+    /// second of the media that the cell under the pointer holds. See T-322.
+    ///
+    /// **A click of that cell moves the playback to that second**, which is the
+    /// one control of this program that names a place of a media directly: the
+    /// keys `p` and `u` move by ten seconds, and a book of eight hours then
+    /// needs 2880 of them.
+    TheBarOfTheSeek { the_second: u32 },
+    /// The band of the player, outside the bar of the seek. See T-322.
+    ///
+    /// **A click of the band does nothing**: the band takes no focus, because
+    /// every key of the player works in every view of this program already.
+    /// The wheel over it moves the playback by ten seconds, which is the work
+    /// of the keys `p` and `u`.
+    TheBandOfThePlayer,
 }
 
 /// The line of a list that stands on a row of the screen, and `None` for a row
@@ -225,6 +252,28 @@ pub fn the_target_of_a_point(
         return TheTarget::ThePanelOfTheCover;
     }
 
+    // **The bar of the seek comes before the band that holds it** (T-322), in
+    // the same way as the row of the header before the panel 4: a click of the
+    // bar names a second of the media, and a click of the band beside it names
+    // nothing at all.
+    //
+    // **The band needs no `the_stack_stands`**, because it takes no focus: it
+    // stands at every width of the screen, and a click of its bar therefore
+    // works at 40 columns as it works at 160.
+    if areas.the_bar_of_the_seek.contains(point) {
+        if let Some(the_second) = the_second_of_a_column(
+            areas.the_bar_of_the_seek,
+            areas.the_length_of_the_media,
+            column,
+        ) {
+            return TheTarget::TheBarOfTheSeek { the_second };
+        }
+    }
+
+    if areas.the_band_of_the_player.contains(point) {
+        return TheTarget::TheBandOfThePlayer;
+    }
+
     TheTarget::Nothing
 }
 
@@ -290,6 +339,9 @@ mod tests {
             the_lines: 500,
             the_header_of_the_list: Rect::default(),
             the_panel_of_the_cover: Rect::default(),
+            the_band_of_the_player: Rect::default(),
+            the_bar_of_the_seek: Rect::default(),
+            the_length_of_the_media: 0,
         };
 
         // A click on a line of the panel 1.
