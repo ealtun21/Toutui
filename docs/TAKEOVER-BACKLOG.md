@@ -24450,3 +24450,162 @@ right: ""
   stays as a candidate of a round that removes the dead branches of the render.
 - **The line of `src/player/engine/hls_file.rs:248` stays open**, and every
   candidate of the turns before this one stays open.
+
+### T-290: a percent of the whole length is not the mark of the end
+
+`of_progress` of `src/ui/marks.rs` writes the mark at the start of every line
+of a list that holds one media: the mark `▶` of the media that plays, the mark
+`✓` of a media that the user finished, and the percent of a media that the user
+started. The function read two values of the row of the server, and it gave the
+mark of the end to each of them:
+
+```rust
+if finished.trim() == "Finished" {
+    return fill(FINISHED);
+}
+
+match percent.trim().parse::<i64>() {
+    Ok(0) => fill(""),
+    Ok(value) if (1..=99).contains(&value) => fill(&format!("{}%", value)),
+    Ok(_) => fill(FINISHED),
+    Err(_) => fill(""),
+}
+```
+
+**The field `isFinished` of the server is the one truth of a media that the
+user finished, and the percent of that same row can stand at 100 beside
+`Not finished`.**
+
+#### The two values of one row go apart, and this program makes that row
+
+The measurement of the API of the sandbox, with `curl` alone. The server clamps
+`progress` at 1, and it never takes that value down:
+
+```text
+PATCH /api/me/progress/<item>/<episode> {"progress": 2.5}
+  ->  progress 1, currentTime 60, isFinished false
+PATCH /api/me/progress/<item>/<episode> {"currentTime": 300}
+  ->  progress 1, currentTime 300, isFinished false
+```
+
+A `PATCH` of `progress` alone leaves `isFinished` where it stood, and a later
+`PATCH` of `currentTime` alone leaves `progress` at 1. The one road back is
+`{"isFinished": true}` and then `{"isFinished": false}`, which takes the
+percent and the place to 0 together.
+
+**This program makes that row itself.** The note at the head of
+`src/api/me/update_media_progress.rs` holds the reason:
+`update_media_progress2_pod` and `update_media_progress2_book` send the place
+of the end in one request and the mark of the end in a second one, because the
+server reads `isFinished` beside `currentTime` by the sequence of the keys of
+the body. A program that dies between the two of them, a second request that
+the server refused, and a client of another kind that writes `progress` alone
+each leave the row of the server at 100 percent and not finished for ever.
+
+#### The measurement of the real program
+
+Of the real program v0.8.118 inside tmux against the sandbox, of the episode
+`Chapter 01` of the podcast `Arthur Gordon Pym` of the library `Podcasts`,
+whose row of the server held `progress: 1`, `currentTime: 300`, and
+`isFinished: false`. One frame of the Home view said three things of that one
+media:
+
+```text
+  ▌ Continue Listening
+➤ ✓   Chapter 01
+  89% Chapter 02
+  3%  Letter 1
+  22% Chapter 00
+      Chapter 03
+[Arthur Gordon Pym] - Author: LibriVox - Episode: 1 - Duration: 22m
+Progress: 100%, 17m left, Not finished
+```
+
+The line held the mark of a media that the user finished, the panel of that
+same line said `Not finished`, and the shelf above the two of them is the shelf
+of the media that the user did **not** finish. **The control of the same run**:
+`Letter 57`, whose row of the server says `isFinished: true`, held the mark `✓`
+of a shelf of its own.
+
+#### The correction
+
+One file, `src/ui/marks.rs`. The mark of the end comes of the field of the
+server alone; a percent of 100 or more gives the mark `100`, and a percent of
+less than zero joins a percent that is no number.
+
+**The mark holds four columns and one of them is the space between the mark and
+the title** (T-44), therefore `100%` does not fit: `fill` would give a mark of
+five columns, the title of that one line would stand one column to the right of
+every other title, and the list would look broken. The three numbers are the
+whole of the value, therefore the mark of that percent is the number with no
+sign of the percent. That is the reason the old code held the arm at all.
+
+The corrected program of the same condition:
+
+```text
+  ▌ Continue Listening
+➤ 100 Chapter 01
+  89% Chapter 02
+  3%  Letter 1
+  22% Chapter 00
+  ▌ Newest Episodes
+  ✓   Letter 57
+```
+
+The panel of that line said `Progress: 100%, 17m left, Not finished` again, the
+line and the panel now agree, and every title of the list stands at the same
+column.
+
+#### The test, and the build of the fault
+
+`tests/the_line_and_the_panel_agree_on_the_end.rs`, of one function: it holds
+the mark of the line and `the_place_of_the_panel` of that same row side by
+side, and it holds the width of every mark. Three tests of
+`src/ui/marks.rs` hold the same rules. The build of the fault, with the arm of
+the mark of the end back, failed it:
+
+```text
+the line of a media of 100 percent that the user did not finish holds the mark
+of the end: "✓   ", and the panel of that same line says "Not finished"
+```
+
+#### What stays open
+
+- **The percent of the server and the length of the program come of two
+  different lengths.** A sweep of the round found the shape at three display
+  sites: the panel of a line (`src/logic/the_panel_of_a_line.rs`, the row and
+  the live branches) takes the percent of `mediaProgress.progress` and it makes
+  the time that is left of the length of the metadata of the item, and the line
+  of the view of the queue (`src/logic/queue.rs`) takes the percent of the row
+  and the time of `entry.duration` of the disk. The branch of the media that
+  plays is the one branch that makes both numbers of one length. **This is a
+  candidate and not a measurement**, and it holds a decision: the line of a
+  media says the percent of the server (T-241 and T-242), therefore a panel
+  that makes its own percent would say a value that the line above it does not.
+- **A length that the server did not give can reach `convert_seconds` and say
+  `Duration: 0m`.** `convert_seconds_for_prg` holds the guard of T-289 already,
+  and its neighbour `convert_seconds` holds none: a sweep of the round names
+  `collect_personalized_view.rs`, `collect_personalized_view_pod.rs`,
+  `collect_lists.rs`, `collect_series.rs`, and `collect_get_all_books.rs` as the
+  roads of a `duration` of `unwrap_or(0.0)` that reaches a panel. **The sum of
+  the lengths of a series and of a collection holds the same shape**, and a
+  book of no length there takes the whole away in silence. **This is a candidate
+  and not a measurement**: the panel of the measurement of T-289 said
+  `Duration: N/A` for an episode of no `audioFile`, therefore at least one of
+  those roads holds a guard already.
+- **The reader accepts five keys that no footer of it names**: `Esc` leaves the
+  book and no reading footer says it, `Esc`, `?`, and `Q` work while the table
+  of contents stands and no footer of that state says any of them, and the key
+  `e` of the ebooks of the media stands in no footer at all. **The rule of T-143
+  is the other way** (a footer must not promise a key that the view does not
+  hold), therefore this is a candidate of the words for the user and not a
+  fault of a promise. **This is a candidate and not a measurement.**
+- **A place of the reader that the server did not take stays sent.**
+  `send_the_place_of_the_reader` of `src/app.rs` calls
+  `reader.the_place_went_to_the_server()` before the request, therefore a write
+  that the server refused says the fault one time and the program then sends
+  that place never again. **The rule of T-212 is the same shape**: a place that
+  reached no machine keeps the row that holds it. **This is a candidate and not
+  a measurement.**
+- **The line of `src/player/engine/hls_file.rs:248` stays open** (T-288), and
+  every candidate of the turns before this one stays open.

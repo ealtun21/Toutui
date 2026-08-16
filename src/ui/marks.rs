@@ -16,12 +16,59 @@ const PLAYS: &str = "▶";
 /// The mark of a media that the user finished.
 const FINISHED: &str = "✓";
 
+/// The mark of a media at the end of its length that the user did not finish.
+/// See T-290.
+///
+/// **The mark holds four columns and one of them is the space that stands
+/// between the mark and the title** (T-44), therefore `100%` does not fit: it
+/// takes the whole of the width, the title of that one line then stands one
+/// column to the right of every other title, and the list looks broken. The
+/// three numbers are the whole of the value, therefore the mark of that percent
+/// is the number with no sign of the percent.
+const THE_WHOLE_LENGTH: &str = "100";
+
 /// Gives the mark of a media that the list "Continue Listening" holds.
 ///
 /// `percent` and `finished` come from the server, in the form that
 /// `collect_progress_percentage_book` and `collect_is_finished_book` give:
 /// a number as a text, and "Finished" or "Not finished". A media that never
 /// played gives "N/A".
+///
+/// **A percent of 100 is not the mark of the end** (T-290). The field
+/// `isFinished` of the server is the one truth of a media that the user
+/// finished, and the percent of that same row can stand at 100 while the field
+/// says that the user did not finish it. The old code gave the mark `✓` to
+/// every percent above 99, therefore the line said that the user finished a
+/// media, and the panel of that same line said `Not finished` in that same
+/// frame.
+///
+/// **The two values of one row of the server go apart** (the measurement of
+/// 2026-08-16, of the real program v0.8.118 against the sandbox). The server
+/// clamps `progress` at 1 and it never takes that value down: a `PATCH` of
+/// `/api/me/progress/:item/:episode` that holds `progress` alone leaves
+/// `isFinished` where it stood, and a later `PATCH` of `currentTime` alone
+/// leaves `progress` at 1. **This program makes that row itself**:
+/// `crate::api::me::update_media_progress::update_media_progress2_pod` and
+/// `..._book` send the place of the end in one request and the mark of the end
+/// in a second one, therefore a program that dies between the two of them, or a
+/// second request that the server refused, leaves the row of the server at 100
+/// percent and not finished for ever.
+///
+/// The frame of that measurement, of the episode `Chapter 01` of the podcast
+/// `Arthur Gordon Pym`, whose row of the server held `progress: 1`,
+/// `currentTime: 300`, and `isFinished: false`:
+///
+/// ```text
+///   ▌ Continue Listening
+/// ➤ ✓   Chapter 01
+///   89% Chapter 02
+/// [Arthur Gordon Pym] - Author: LibriVox - Episode: 1 - Duration: 22m
+/// Progress: 100%, 17m left, Not finished
+/// ```
+///
+/// **The shelf `Continue Listening` holds the media that the user did not
+/// finish**, therefore the mark `✓` of that shelf says two things that do not
+/// agree, and the panel of the same line says the third one.
 pub fn of_progress(percent: &str, finished: &str, plays_now: bool) -> String {
     if plays_now {
         return fill(PLAYS);
@@ -34,9 +81,12 @@ pub fn of_progress(percent: &str, finished: &str, plays_now: bool) -> String {
     match percent.trim().parse::<i64>() {
         // A book at 0 percent is a book that the user did not start.
         Ok(0) => fill(""),
-        Ok(value) if (1..=99).contains(&value) => fill(&format!("{}%", value)),
-        Ok(_) => fill(FINISHED),
-        Err(_) => fill(""),
+        // **The percent says the place and it does not say the end** (T-290).
+        Ok(value) if value >= 100 => fill(THE_WHOLE_LENGTH),
+        Ok(value) if value > 0 => fill(&format!("{}%", value)),
+        // A percent of less than zero, and a percent that is no number, are a
+        // percent that the program does not have.
+        Ok(_) | Err(_) => fill(""),
     }
 }
 
@@ -93,6 +143,9 @@ mod tests {
             of_progress("50", "Not finished", false),
             of_progress("5", "Not finished", false),
             of_progress("100", "Finished", false),
+            of_progress("100", "Not finished", false),
+            of_progress("101", "Not finished", false),
+            of_progress("-1", "Not finished", false),
             of_progress(" N/A", " N/A", false),
             of_progress("0", "Not finished", false),
             of_progress("50", "Not finished", true),
@@ -129,10 +182,39 @@ mod tests {
         assert!(of_progress("5", "Not finished", false).contains("5%"));
     }
 
+    /// **A percent of 100 is not the mark of the end** (T-290). The field
+    /// `isFinished` of the server is the one truth of a media that the user
+    /// finished, and the row of the server holds a percent of 100 beside
+    /// `Not finished` after the program sent the place of the end and no mark
+    /// of it.
+    #[test]
+    fn a_percent_of_the_whole_length_is_not_the_mark_of_the_end() {
+        assert!(!of_progress("100", "Not finished", false).contains(FINISHED));
+        assert!(!of_progress("101", "Not finished", false).contains(FINISHED));
+        assert_eq!(
+            of_progress("100", "Not finished", false).trim(),
+            THE_WHOLE_LENGTH
+        );
+        assert_eq!(
+            of_progress("101", "Not finished", false).trim(),
+            THE_WHOLE_LENGTH
+        );
+    }
+
+    /// The mark of a media at the end of its length must not read as the mark
+    /// of a media of another percent, therefore it says the three numbers of
+    /// the value.
+    #[test]
+    fn the_mark_of_the_whole_length_says_the_number_of_the_percent() {
+        assert!(of_progress("100", "Not finished", false).starts_with("100"));
+        assert!(of_progress("99", "Not finished", false).starts_with("99%"));
+    }
+
     #[test]
     fn a_media_that_the_user_did_not_start_has_no_mark() {
         assert_eq!(of_progress("0", "Not finished", false).trim(), "");
         assert_eq!(of_progress(" N/A", " N/A", false).trim(), "");
+        assert_eq!(of_progress("-1", "Not finished", false).trim(), "");
         assert_eq!(of_library(false).trim(), "");
     }
 

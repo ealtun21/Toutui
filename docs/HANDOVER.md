@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.118.** The item T-289 belongs to this session. The
+**The newest release is v0.8.119.** The item T-290 belongs to this session. The
+item T-289 belongs to the session before it. The
 item T-288 belongs to the session before it. The
 item T-287 belongs to the session before it. The
 item T-286 belongs to the session before it. The
@@ -134,6 +135,90 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and nineteenth turn of 2026-08-16: a percent of the whole length is not the mark of the end
+
+**The item: T-290.** T-289 left the candidate "a percent of the server and a
+length of the program can disagree", and the measurement of that condition gave
+a different fault of the same frame.
+
+**One release: v0.8.119.**
+
+`of_progress` of `src/ui/marks.rs` writes the mark at the start of every line of
+a list that holds one media: `▶` for the media that plays, `✓` for a media that
+the user finished, and the percent for a media that the user started. The
+function read two values of the row of the server, and it gave the mark of the
+end to each of them: the last arm of its `match` was `Ok(_) => fill(FINISHED)`,
+therefore every percent above 99 said that the user finished the media. **The
+field `isFinished` of the server is the one truth of a media that the user
+finished.**
+
+**The two values of one row go apart, and this program makes that row.** The
+measurement of the API of the sandbox, with `curl` alone: the server clamps
+`progress` at 1 and it never takes that value down, a `PATCH` of
+`{"progress": N}` alone leaves `isFinished` where it stood, and a later `PATCH`
+of `{"currentTime": N}` alone leaves `progress` at 1. The one road back is
+`{"isFinished": true}` and then `{"isFinished": false}`, which takes the percent
+and the place to 0 together. `update_media_progress2_pod` and `..._book` of
+`src/api/me/update_media_progress.rs` send the place of the end in one request
+and the mark of the end in a second one, because the server reads `isFinished`
+beside `currentTime` by the sequence of the keys of the body: a program that
+dies between the two of them, a second request that the server refused, and a
+client of another kind that writes `progress` alone each leave the row of the
+server at 100 percent and not finished for ever.
+
+The measurement, of the real program v0.8.118 inside tmux against the sandbox,
+of the episode `Chapter 01` of the podcast `Arthur Gordon Pym` of the library
+`Podcasts`, whose row of the server held `progress: 1`, `currentTime: 300`, and
+`isFinished: false`. One frame of the Home view said three things of that one
+media:
+
+```text
+  ▌ Continue Listening
+➤ ✓   Chapter 01
+  89% Chapter 02
+  3%  Letter 1
+  22% Chapter 00
+      Chapter 03
+[Arthur Gordon Pym] - Author: LibriVox - Episode: 1 - Duration: 22m
+Progress: 100%, 17m left, Not finished
+```
+
+The line held the mark of a media that the user finished, the panel of that same
+line said `Not finished`, and the shelf above the two of them is the shelf of
+the media that the user did **not** finish. The control of the same run:
+`Letter 57`, whose row of the server says `isFinished: true`, held the mark `✓`.
+
+The correction is one file. The mark of the end comes of the field of the server
+alone; a percent of 100 or more gives the mark `100`, and a percent of less than
+zero joins a percent that is no number. **The mark holds four columns and one of
+them is the space between the mark and the title** (T-44), therefore `100%` does
+not fit: `fill` would give a mark of five columns and the title of that one line
+would stand one column to the right of every other title. That is the reason the
+old code held the arm at all. The corrected program of the same condition:
+
+```text
+  ▌ Continue Listening
+➤ 100 Chapter 01
+  89% Chapter 02
+  3%  Letter 1
+  22% Chapter 00
+  ▌ Newest Episodes
+  ✓   Letter 57
+```
+
+The test is `tests/the_line_and_the_panel_agree_on_the_end.rs`, of one function:
+it holds the mark of the line and `the_place_of_the_panel` of that same row side
+by side, and it holds the width of every mark. Three tests of `src/ui/marks.rs`
+hold the same rules. The build of the fault, with the arm of the mark of the end
+back, failed it with `the line of a media of 100 percent that the user did not
+finish holds the mark of the end: "✓   ", and the panel of that same line says
+"Not finished"`.
+
+The gates of v0.8.119: `cargo clippy --all-targets -- -D warnings` clean,
+`cargo fmt --check` clean, `cargo nextest run` 1340 of 1340 in 2.6 seconds,
+`cargo nextest run --run-ignored all` 1366 of 1366 with the sandbox up in 17.1
+seconds, and `cargo test -j 16 --no-fail-fast` clean on three runs.
 
 ## The session of the hundred and eighteenth turn of 2026-08-16: a time that is left of less than zero is no time at all
 
@@ -16002,6 +16087,85 @@ against the sandbox with no proxy said `5m` and `12m`.
   T-287): the block has a limit of size, therefore this turn names the
   new candidates alone and it does not repeat that list.
 
+## The session of the hundred and eighteenth turn of 2026-08-16: a time that is left of less than zero is no time at all
+
+**The session of the hundred and eighteenth turn took the candidate "The
+panel of the first line of that measurement said `Progress: 22%, -1m left,
+Not finished`: a time that is left of less than zero is no time at all",
+which T-288 opened** (T-289).
+
+`convert_seconds_for_prg` of `src/utils/convert_seconds.rs` writes the time
+that is left of every panel of a line of this program, and it took
+`duration - current_time` with no guard at all. **Two roads of the real
+program gave a difference of less than zero**: a length that the server did
+not give is not a length of 0 (T-180), and the three callers of `src/app.rs`
+read the length with `length.unwrap_or(0.0)`; and the place of the user can
+stand past the length of the media, because the server holds a `duration` of
+its own beside the `duration` of the audio file and the two of them do not
+agree.
+
+The measurement, of the real program v0.8.117 inside tmux against the
+sandbox, of the podcast `Arthur Gordon Pym` of the library `Podcasts`. **The
+road 1**: `docs/harness/a_field_of_one_row_goes_away.py 13506 13399
+requests.log /api/items/b793354b-9841-480a-bd09-41923596517e media.episodes 0
+audioFile` took the audio file of the first episode away, and the panel of
+that line said `Duration: N/A` and `Progress: 22%, -1m left, Not finished` —
+the panel named a length that the program does not have, and it then said a
+time made of that same length. **The road 2**: a `PATCH` of
+`/api/me/progress/<the item>/<the episode>` with `{"currentTime": 6000}` put
+the place of `Chapter 02`, of an audio file of 2336 seconds, past the length
+of that file, and the panel of that line said `Duration: 39m` and
+`Progress: 100%, -1h-1m left, Finished`. **That road holds a fault of the
+form too**: `/` and `%` of Rust go toward zero, therefore -61 minutes gave
+`-1h` and `-1m` together (the rule of T-284). **The control of the same
+run**: the second line, of a real length, said `Duration: 22m` and
+`Progress: 74%, 5m left, Not finished`.
+
+**The two neighbours of that function hold the rule already**, and that is
+the argument that this is a fault of one function and not a decision:
+`the_left_of_the_row` of `src/player/integrated/player_info.rs` takes
+`saturating_sub` and it says `N/A` for a length of 0, and
+`the_time_of_the_line` of `src/logic/queue.rs` writes the difference inside a
+guard of `place < length`.
+
+The correction is one file. A length that is NaN, or that is not more than 0,
+gives no text at all, as a place of 0 gives none; and the difference takes
+`.max(0.0)`, therefore a place at the length of the media or past it says
+`0m left,`. The corrected program of the same condition said
+`Progress: 22%,  Not finished` for the first line and
+`Progress: 100%, 0m left, Finished` for the third one, and the control said
+`Progress: 74%, 5m left, Not finished` again.
+- **The candidate 4 of T-288 closes with no correction** (T-289).
+  `render_desc_pod_ep` of `src/ui/tui.rs` holds a branch of the length of a
+  list with a `log::error!` and the sentence `Error: Episode description
+  unavailable.`, and **that arm is unreachable**: the view draws its own
+  message `This podcast has no episode.` when `titles_pod_ep` is empty (the
+  measurement of the same round, with `a_field_of_the_answer_goes_away.py`
+  taking `episodes` out of the answer of that item), and
+  `collect_titles_pod_ep` and `collect_subtitles_pod_ep` each push one value
+  for each episode. The `log::debug!` of that same function writes nothing,
+  because `src/utils/logs.rs` holds `LevelFilter::Info`. **It is dead code
+  and not a fault of the user.**
+- **A sweep of the whole of `src/ui/` found no second branch of that shape**
+  (T-289): every other render reads its lists with `at` or with `.get`.
+  **The candidate now is the dead branch itself**: a render that holds an arm
+  that no road reaches promises a fault that the program does not have, and
+  a reader of the source takes it for a condition of the user. **Ask it of
+  every arm of `src/` that no test and no measurement can reach. This is a
+  candidate and not a measurement.**
+- **A percent of the server and a length of the program can disagree**
+  (T-289): `Chapter 01` of the sandbox holds an audio file of 1319 seconds,
+  and the row of the progress of the server of that same episode says 1355.
+  The panel therefore says a percent of one length and a time of another
+  one. **This is a candidate and not a measurement.**
+- **The line of `src/player/engine/hls_file.rs:248` stays open** (T-288). It
+  needs the book of xHE-AAC of the sandbox. **This is a candidate and not a
+  measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to
+  T-288): the block has a limit of size, therefore this turn names the new
+  candidates alone and it does not repeat that list.
+
+
 ## The prompt for the next session
 
 **This session read the candidate "`ChapterTooLarge` of `ReaderError` says
@@ -16064,7 +16228,7 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.118**; `Cargo.toml` is at 0.8.118. The
+> AlbanDAVID/Toutui. Newest release **v0.8.119**; `Cargo.toml` is at 0.8.119. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -16073,7 +16237,7 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-285 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-290 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -16775,15 +16939,15 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-286 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-291 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1334 tests in 2.7 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1360 of 1360** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1340 tests in 2.6 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1366 of 1366** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -16893,80 +17057,99 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and four sessions of one hundred
 >    and five.
->    **The session of the hundred and eighteenth turn took the candidate "The
->    panel of the first line of that measurement said `Progress: 22%, -1m left,
->    Not finished`: a time that is left of less than zero is no time at all",
->    which T-288 opened** (T-289).
+>    **The session of the hundred and nineteenth turn took the candidate "A
+>    percent of the server and a length of the program can disagree", which
+>    T-289 opened, and the measurement of it gave a different fault** (T-290).
 >
->    `convert_seconds_for_prg` of `src/utils/convert_seconds.rs` writes the time
->    that is left of every panel of a line of this program, and it took
->    `duration - current_time` with no guard at all. **Two roads of the real
->    program gave a difference of less than zero**: a length that the server did
->    not give is not a length of 0 (T-180), and the three callers of `src/app.rs`
->    read the length with `length.unwrap_or(0.0)`; and the place of the user can
->    stand past the length of the media, because the server holds a `duration` of
->    its own beside the `duration` of the audio file and the two of them do not
->    agree.
+>    `of_progress` of `src/ui/marks.rs` writes the mark at the start of every
+>    line of a list that holds one media, and it gave the mark `✓` of a media
+>    that the user finished to every percent above 99:
+>    `Ok(_) => fill(FINISHED)`. **The field `isFinished` of the server is the one
+>    truth of a media that the user finished**, and the percent of that same row
+>    can stand at 100 beside `Not finished`.
 >
->    The measurement, of the real program v0.8.117 inside tmux against the
->    sandbox, of the podcast `Arthur Gordon Pym` of the library `Podcasts`. **The
->    road 1**: `docs/harness/a_field_of_one_row_goes_away.py 13506 13399
->    requests.log /api/items/b793354b-9841-480a-bd09-41923596517e media.episodes 0
->    audioFile` took the audio file of the first episode away, and the panel of
->    that line said `Duration: N/A` and `Progress: 22%, -1m left, Not finished` —
->    the panel named a length that the program does not have, and it then said a
->    time made of that same length. **The road 2**: a `PATCH` of
->    `/api/me/progress/<the item>/<the episode>` with `{"currentTime": 6000}` put
->    the place of `Chapter 02`, of an audio file of 2336 seconds, past the length
->    of that file, and the panel of that line said `Duration: 39m` and
->    `Progress: 100%, -1h-1m left, Finished`. **That road holds a fault of the
->    form too**: `/` and `%` of Rust go toward zero, therefore -61 minutes gave
->    `-1h` and `-1m` together (the rule of T-284). **The control of the same
->    run**: the second line, of a real length, said `Duration: 22m` and
->    `Progress: 74%, 5m left, Not finished`.
+>    **The two values of one row of the server go apart, and this program makes
+>    that row.** The measurement of the API of the sandbox with `curl` alone: the
+>    server clamps `progress` at 1 and it never takes that value down, a `PATCH`
+>    of `{"progress": N}` alone leaves `isFinished` where it stood, and a later
+>    `PATCH` of `{"currentTime": N}` alone leaves `progress` at 1. The one road
+>    back is `{"isFinished": true}` and then `{"isFinished": false}`, which takes
+>    the percent and the place to 0 together.
+>    `update_media_progress2_pod` and `..._book` of
+>    `src/api/me/update_media_progress.rs` send the place of the end in one
+>    request and the mark of the end in a second one, therefore a program that
+>    dies between the two of them, a second request that the server refused, and
+>    a client of another kind that writes `progress` alone each leave that row at
+>    100 percent and not finished for ever.
 >
->    **The two neighbours of that function hold the rule already**, and that is
->    the argument that this is a fault of one function and not a decision:
->    `the_left_of_the_row` of `src/player/integrated/player_info.rs` takes
->    `saturating_sub` and it says `N/A` for a length of 0, and
->    `the_time_of_the_line` of `src/logic/queue.rs` writes the difference inside a
->    guard of `place < length`.
+>    The measurement, of the real program v0.8.118 inside tmux against the
+>    sandbox, of the episode `Chapter 01` of the podcast `Arthur Gordon Pym` of
+>    the library `Podcasts`, whose row of the server held `progress: 1`,
+>    `currentTime: 300`, and `isFinished: false`. One frame said three things of
+>    that one media:
 >
->    The correction is one file. A length that is NaN, or that is not more than 0,
->    gives no text at all, as a place of 0 gives none; and the difference takes
->    `.max(0.0)`, therefore a place at the length of the media or past it says
->    `0m left,`. The corrected program of the same condition said
->    `Progress: 22%,  Not finished` for the first line and
->    `Progress: 100%, 0m left, Finished` for the third one, and the control said
->    `Progress: 74%, 5m left, Not finished` again.
->    - **The candidate 4 of T-288 closes with no correction** (T-289).
->      `render_desc_pod_ep` of `src/ui/tui.rs` holds a branch of the length of a
->      list with a `log::error!` and the sentence `Error: Episode description
->      unavailable.`, and **that arm is unreachable**: the view draws its own
->      message `This podcast has no episode.` when `titles_pod_ep` is empty (the
->      measurement of the same round, with `a_field_of_the_answer_goes_away.py`
->      taking `episodes` out of the answer of that item), and
->      `collect_titles_pod_ep` and `collect_subtitles_pod_ep` each push one value
->      for each episode. The `log::debug!` of that same function writes nothing,
->      because `src/utils/logs.rs` holds `LevelFilter::Info`. **It is dead code
->      and not a fault of the user.**
->    - **A sweep of the whole of `src/ui/` found no second branch of that shape**
->      (T-289): every other render reads its lists with `at` or with `.get`.
->      **The candidate now is the dead branch itself**: a render that holds an arm
->      that no road reaches promises a fault that the program does not have, and
->      a reader of the source takes it for a condition of the user. **Ask it of
->      every arm of `src/` that no test and no measurement can reach. This is a
->      candidate and not a measurement.**
->    - **A percent of the server and a length of the program can disagree**
->      (T-289): `Chapter 01` of the sandbox holds an audio file of 1319 seconds,
->      and the row of the progress of the server of that same episode says 1355.
->      The panel therefore says a percent of one length and a time of another
->      one. **This is a candidate and not a measurement.**
->    - **The line of `src/player/engine/hls_file.rs:248` stays open** (T-288). It
->      needs the book of xHE-AAC of the sandbox. **This is a candidate and not a
+>    ```text
+>      ▌ Continue Listening
+>    ➤ ✓   Chapter 01
+>      89% Chapter 02
+>    [Arthur Gordon Pym] - Author: LibriVox - Episode: 1 - Duration: 22m
+>    Progress: 100%, 17m left, Not finished
+>    ```
+>
+>    The line said that the user finished the media, the panel of that same line
+>    said `Not finished`, and the shelf above the two of them is the shelf of the
+>    media that the user did **not** finish. **The control of the same run**:
+>    `Letter 57`, whose row says `isFinished: true`, held the mark `✓`.
+>
+>    The correction is one file. The mark of the end comes of the field of the
+>    server alone; a percent of 100 or more gives the mark `100`, and a percent
+>    of less than zero joins a percent that is no number. **The mark holds four
+>    columns and one of them is the space between the mark and the title**
+>    (T-44), therefore `100%` does not fit and the number goes with no sign of
+>    the percent — that is the reason the old code held the arm at all. The
+>    corrected program of the same condition said `➤ 100 Chapter 01` above
+>    `89% Chapter 02`, every title stood at the same column, and `Letter 57` kept
+>    its `✓`.
+>    - **A percent of the server and a length of the program still come of two
+>      different lengths** (T-290). A sweep of the round found the shape at three
+>      display sites: the row and the live branches of
+>      `the_place_of_the_panel` of `src/logic/the_panel_of_a_line.rs` take the
+>      percent of `mediaProgress.progress` and they make the time that is left of
+>      the length of the metadata of the item, and the line of the view of the
+>      queue takes the percent of the row and the time of `entry.duration` of the
+>      disk. The branch of the media that plays is the one branch that makes both
+>      numbers of one length. **It holds a decision**: the line of a media says
+>      the percent of the server (T-241 and T-242), therefore a panel that makes
+>      its own percent would say a value that the line above it does not. **This
+>      is a candidate and not a measurement.**
+>    - **`convert_seconds` holds no guard of a length of 0** (T-290).
+>      `convert_seconds_for_prg` holds the guard of T-289 already, and its
+>      neighbour holds none: a sweep names `collect_personalized_view.rs`,
+>      `collect_personalized_view_pod.rs`, `collect_lists.rs`,
+>      `collect_series.rs`, and `collect_get_all_books.rs` as the roads of a
+>      `duration` of `unwrap_or(0.0)` that reaches a panel as `Duration: 0m`, and
+>      **the sum of the lengths of a series and of a collection holds the same
+>      shape**. The panel of the measurement of T-289 said `Duration: N/A` for an
+>      episode of no `audioFile`, therefore at least one of those roads holds a
+>      guard already. **This is a candidate and not a measurement.**
+>    - **A place of the reader that the server did not take stays sent** (T-290):
+>      `send_the_place_of_the_reader` of `src/app.rs` calls
+>      `reader.the_place_went_to_the_server()` **before** the request, therefore a
+>      write that the server refused says the fault one time and the program then
+>      sends that place never again. **The rule of T-212 is the same shape.**
+>      **This is a candidate and not a measurement.**
+>    - **The reader accepts five keys that no footer of it names** (T-290): `Esc`
+>      leaves the book, and `Esc`, `?`, and `Q` work while the table of contents
+>      stands, and the key `e` of the ebooks of the media stands in no footer at
+>      all. The rule of T-143 is the other way. **This is a candidate and not a
 >      measurement.**
+>    - **The dead arm of a render stays open** (T-289): a render that holds an arm
+>      that no road reaches promises a fault that the program does not have. **Ask
+>      it of every arm of `src/` that no test and no measurement can reach.**
+>    - **The line of `src/player/engine/hls_file.rs:248` stays open** (T-288). It
+>      needs the book of xHE-AAC of the sandbox.
 >    - **Every candidate of the turns before this one stays open** (T-229 to
->      T-288): the block has a limit of size, therefore this turn names the new
+>      T-289): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
 >
 >    **The turns before this one stand in `## The turns before the three
@@ -17501,7 +17684,13 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > holds one value for each episode, a length that the server did not give says
 > `N/A`, and a line that a list of the view does not hold keeps the panel of its
 > media — no render draws the words of a machine in the place of a panel, and no
-> render writes a line of the log at every frame** (T-288).
+> render writes a line of the log at every frame** (T-288), and **a time that
+> is left of less than zero is no time at all: a length that the program does
+> not have says no time, and a place that stands at the length of the media or
+> past it says `0m left`** (T-289), and **a percent of the whole length is not
+> the mark of the end: the field `isFinished` of the server is the one truth of
+> a media that the user finished, and a media at the whole of its length that
+> the user did not finish keeps the mark of its place** (T-290).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

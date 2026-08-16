@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.119",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A media of 100 percent that you did not finish now keeps the \
+             mark of its place.** The line of a list gave the mark of a media \
+             that you finished to every percent above 99, therefore the shelf \
+             \"Continue Listening\" held a line with the mark \"✓\", and the \
+             panel of that same line said \"Not finished\". The mark of the end \
+             now comes of the server alone, and a media at the whole of its \
+             length says \"100\".",
+        ],
+    },
+    Entry {
         version: "0.8.118",
         date: "16/08/2026",
         body: &[
