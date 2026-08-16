@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.125.** The item T-296 belongs to this session. The
+**The newest release is v0.8.126.** The item T-297 belongs to this session. The
+item T-296 belongs to the session before it. The
 item T-295 belongs to the session before it. The
 item T-294 belongs to the session before it. The
 item T-293 belongs to the session before it. The
@@ -141,6 +142,62 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its 153 binaries in four runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and twenty-sixth turn of 2026-08-16: a log out says the copies of the disk
+
+**The item: T-297**, and the release **v0.8.126**.
+
+**The candidate came of the first line that T-296 left open.** T-296 gave the
+log out the three tables of the places of the user, and it named the rows of
+`downloads`, of `download_files`, and of `queue` that stay. The measurement of
+this round gave the fault, and it gave a second fault beside it.
+
+**The sandbox held the data of the fault already**: the account `toutuitest`
+stood with 11 rows of `downloads`, 13 rows of `download_files`, 19 files, and
+**251382273 bytes** of the disk. The keys `S`, `Enter`, `l`, and `l` took the
+account away, and **every one of those rows and every one of those bytes
+stayed**. No view of the program reaches them while the account is away, because
+the key `X` of a download needs an account, and the words of that log out said
+nothing of them at all.
+
+**The words of the log out reached no user.** `delete_user` said them with
+`crate::logic::message::say`, and the road of the one account of the program
+then started the program again with `exec`: the login screen came, and it held
+the field of the address and no word at all. The disk is the one carrier of a
+sentence over `exec` (T-270), and `say_on_the_login_screen` writes it.
+
+**The decision: the copies of the disk stay.** The key is a log out, the table
+of the keys says that the program forgets the token, and a removal of the media
+of the user is no work of that key. A login with the same address, the same
+name, and the same password gave the account and the 11 rows back in the
+measurement: that is the road back, and the words name it.
+
+**The second fault came of the corrected words.** The row of the message of the
+login screen held one row and no `wrap`, therefore the new sentence stood as
+`… Log in again with the same name and the same serv` at **160** columns. The
+rule of T-278 holds for that screen too: `the_rows_of_the_message` counts the
+rows of `Wrap { trim: true }`, the rows grow upward, and the field of the login
+keeps its place. The whole sentence then stood on three rows at 80 columns.
+
+The measurement stands in `docs/TAKEOVER-BACKLOG.md` under T-297. The correction
+stands in `src/logic/download/mod.rs` (`TheCopiesThatStay` and
+`the_copies_of_the_disk_that_stay`), `src/db/crud.rs`
+(`the_words_of_a_log_out` and `delete_user`), `src/app.rs`
+(`the_login_screen_comes`), `src/logic/auth/auth_input.rs`
+(`the_rows_of_the_message` and `draw_the_login`), and `src/ui/keys.rs`. The
+tests are `tests/a_log_out_says_the_copies_of_the_disk.rs` and
+`tests/the_message_of_the_login_screen_stands_whole.rs`.
+
+**The road back of the sandbox**: the account `toutuitest` holds
+`http://localhost:13399` again with the library `Books`, the 11 downloads and
+the 251382273 bytes of the disk stand as they stood, and no proxy of this round
+ran at all — the data of this fault is the disk of the account, and it needs no
+server of a fault.
+
+**The gates**: `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,
+`cargo nextest run` (**1350 tests**), `cargo nextest run --run-ignored all`
+(**1376 of 1376** with the sandbox up), and two runs of
+`cargo test -j 16 --no-fail-fast`.
 
 ## The session of the hundred and twenty-fifth turn of 2026-08-16: a log out takes the places of the user
 
@@ -16868,6 +16925,59 @@ the port 13500, and `Alice in Wonderland` stands at
 `cargo nextest run` (1346 tests), and `cargo test -j 16 --no-fail-fast` two
 times, and each of them passed.
 
+## The session of the hundred and twenty-fourth turn of 2026-08-16: a place of a book waits for no start of a program, of the block of the prompt
+
+**The session of the hundred and twenty-fourth turn took the candidate
+   "a row of `pending_ebook_progress` reaches the server at the start of a
+   program alone", which a sweep of the task of T-25 gave, and the
+   measurement of it gave the fault** (T-295).
+
+   **A row of a table of the disk that waits for the server belongs to the
+   task of the clock, and not to the start of the program alone.** T-294 gave
+   the reader the table `pending_ebook_progress`, and `spawn_flush_task` of
+   `src/logic/offline/mod.rs` wakes every 30 seconds and it named the table
+   of the audio alone. **The reader of a second book takes the rule of the
+   time of the first book away**: `get_the_book` of `src/app.rs` writes
+   `self.reader = None` at once, and
+   `send_the_place_of_the_reader_if_it_is_time` needs a reader.
+
+   The measurement, of the real program v0.8.123 inside tmux against the
+   sandbox, with `docs/harness/one_method_fails.py 13500 13399 requests.log
+   PATCH:/api/me/progress` and the one address `http://127.0.0.1:13500` of
+   the account (the trap 129). `Alice in Wonderland` stood at
+   `toutui:the-place-of-the-start`: the key `/` and the word `Alice`, the key
+   `e`, one press of the key `n` (`chapter 3 of 14 — 2%`), and the key `h`
+   gave `The server did not take the place: The server reported a fault.
+   Status 500.`, and the key `e` of a second book (`One Chapter Book`, which
+   holds no ebook) took the reader of Alice away. A second proxy of the same
+   port, with a rule that no request of the program holds, then gave the
+   server back. **The position of a playback of the same disk went to the
+   server 28 seconds after that moment, and the place of the book stayed on
+   the disk at 30, 60, 90, and 120 seconds**, and
+   `GET /api/me/progress/8fda6e43-…` still gave the place of the start.
+
+   The correction is two files. `src/db/crud.rs` holds
+   `count_pending_ebook_progress`, of the rule of `count_pending_progress`
+   (T-203). `src/logic/offline/mod.rs` holds one turn of the task in
+   `the_places_that_wait_go_to_the_server`: it counts the two tables on a
+   thread of the disk of its own (T-204), it gives `(0, 0)` with no request
+   at all when neither of the two holds a row, it examines the addresses, and
+   it then sends the positions and the places of the books. **The corrected
+   program**, of the same keys, said
+   `[offline] the server answers again. 1 place(s) of a book went to it.` in
+   the first turn of the task after the server answered, and the table then
+   held no row.
+   - **The box of the process of T-292 keeps the place of the book after the
+     task of the flush sent the row of the disk** (T-295): the road of the
+     end of the program then sends that same place a second time. **This is a
+     candidate and not a measurement.**
+   - **A place of a book that waits reaches no view of the user at all**
+     (T-295), while the header of the offline mode says the number of the
+     positions that wait. **This is a candidate and not a measurement.**
+   - **Every candidate of the turns before this one stays open** (T-229 to
+     T-295): the block has a limit of size, therefore these turns name the
+     new candidates alone and they do not repeat that list.
+
 ## The decisions of T-124 to T-200 that do not open again
 
 **This section stood in the block of the prompt, and the block reached its
@@ -17028,7 +17138,7 @@ log out** (T-200).
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.125**; `Cargo.toml` is at 0.8.125. The
+> AlbanDAVID/Toutui. Newest release **v0.8.126**; `Cargo.toml` is at 0.8.126. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -17037,7 +17147,7 @@ log out** (T-200).
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-294 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-297 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -17739,15 +17849,15 @@ log out** (T-200).
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-294 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-297 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1347 tests in 2.8 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1373 of 1373** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1350 tests in 2.8 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1376 of 1376** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -17857,6 +17967,73 @@ log out** (T-200).
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and five sessions of one hundred
 >    and six.
+>    **The session of the hundred and twenty-sixth turn took the candidate
+>    "the rows of `downloads`, of `download_files`, and of `queue` of an account
+>    that logged out stay on the disk, and the files of those downloads stay
+>    too", which T-296 left open, and the measurement of it gave the fault**
+>    (T-297).
+>
+>    **A log out that keeps the copies of the disk says nothing of them.** The
+>    key `l` of the view of the accounts removes the account and every place of
+>    the user, and every download and every book of the cache of that account
+>    stay under `$XDG_DATA_HOME/toutui/downloads/<the account>`. **No view of
+>    the program reaches them while the account is away**, because the key `X`
+>    of a download needs an account.
+>
+>    The measurement, of the real program v0.8.125 inside tmux against the
+>    sandbox, with the account `toutuitest`. **The data of this fault is the
+>    disk of the account, and it needs no proxy at all.** Before the key:
+>    `users` 1 row, `downloads` **11** rows, `download_files` **13** rows, and
+>    **19 files of 251382273 bytes**. The keys `S`, `Enter`, `l`, and `l`: the
+>    row of `users` went away, and **every one of those rows and every one of
+>    those bytes stayed**. The program started again by itself and the login
+>    screen came, and **the words of that log out reached no user at all**: the
+>    screen held the field of the address alone, because `delete_user` said
+>    them with `crate::logic::message::say` and the row of the message goes
+>    away with the process of an `exec`. A login with the same address, the
+>    same name, and the same password gave the account and the 11 rows again.
+>
+>    **The decision: the copies of the disk stay.** The key is a log out, the
+>    table of the keys says that the program forgets the token, and a removal
+>    of the media of the user is no work of that key. The words say the copies,
+>    and they name the road back.
+>
+>    The correction is five files. `src/logic/download/mod.rs` holds
+>    `TheCopiesThatStay` and `the_copies_of_the_disk_that_stay`: the media come
+>    of the rows of `downloads`, and the bytes of a walk of the directory of
+>    the account at every depth. `src/db/crud.rs` gives
+>    `the_words_of_a_log_out` the copies, and `delete_user` gives the words
+>    back to the caller. `src/app.rs` puts them on the road that the user
+>    reads: `the_login_screen_comes` writes them with
+>    `say_on_the_login_screen`, which carries a sentence over `exec` through
+>    the disk (T-270). `src/ui/keys.rs` says that the copies stay.
+>    **The corrected program**, of the same keys, gave the login screen with
+>    `The program removed the account toutuitest. The disk keeps the copies of
+>    that account: 11 media, and 239.7 MB. Log in again with the same name and
+>    the same server: the key X then removes a copy.`
+>
+>    **The corrected words gave a second fault of the same measurement.** The
+>    row of the message of the login screen held one row and no `wrap`, and
+>    that sentence stood as `… and the same serv` at **160** columns. The rule
+>    of T-278 holds for that screen: `the_rows_of_the_message` of
+>    `src/logic/auth/auth_input.rs` counts the rows of `Wrap { trim: true }`,
+>    and the rows grow upward so the field of the login keeps its place. The
+>    whole sentence then stood on three rows at 80 columns.
+>    - **The road `AfterALogOut::ThisAccountStarts` loses the words of its log
+>      out too** (T-297): that program starts again with `exec` and it holds an
+>      account, therefore it draws no login screen, and this program holds no
+>      road for the words of a start. **This is a candidate and not a
+>      measurement.**
+>    - **The rows of `queue` of an account that logged out stay** (T-297), and
+>      the key of that table holds the account and the server. **This is a
+>      candidate and not a measurement.**
+>    - **The table `downloads` holds a column `server` that is not in its key,
+>      and `download_files` holds no server at all** (T-297): two servers of
+>      one name of a user share the rows and the directory of the disk. The
+>      table `users` holds the name as its primary key, therefore a
+>      measurement of it needs two servers one after the other. **This is a
+>      candidate and not a measurement.**
+>
 >    **The session of the hundred and twenty-fifth turn took the candidate
 >    "a road of the program removes the row of an account and it keeps the
 >    places of the user of that account", which a sweep of the roads of the
@@ -17914,63 +18091,12 @@ log out** (T-200).
 >      handler of this program waits for no server. **This is a candidate and
 >      not a measurement.**
 >
->    **The session of the hundred and twenty-fourth turn took the candidate
->    "a row of `pending_ebook_progress` reaches the server at the start of a
->    program alone", which a sweep of the task of T-25 gave, and the
->    measurement of it gave the fault** (T-295).
->
->    **A row of a table of the disk that waits for the server belongs to the
->    task of the clock, and not to the start of the program alone.** T-294 gave
->    the reader the table `pending_ebook_progress`, and `spawn_flush_task` of
->    `src/logic/offline/mod.rs` wakes every 30 seconds and it named the table
->    of the audio alone. **The reader of a second book takes the rule of the
->    time of the first book away**: `get_the_book` of `src/app.rs` writes
->    `self.reader = None` at once, and
->    `send_the_place_of_the_reader_if_it_is_time` needs a reader.
->
->    The measurement, of the real program v0.8.123 inside tmux against the
->    sandbox, with `docs/harness/one_method_fails.py 13500 13399 requests.log
->    PATCH:/api/me/progress` and the one address `http://127.0.0.1:13500` of
->    the account (the trap 129). `Alice in Wonderland` stood at
->    `toutui:the-place-of-the-start`: the key `/` and the word `Alice`, the key
->    `e`, one press of the key `n` (`chapter 3 of 14 — 2%`), and the key `h`
->    gave `The server did not take the place: The server reported a fault.
->    Status 500.`, and the key `e` of a second book (`One Chapter Book`, which
->    holds no ebook) took the reader of Alice away. A second proxy of the same
->    port, with a rule that no request of the program holds, then gave the
->    server back. **The position of a playback of the same disk went to the
->    server 28 seconds after that moment, and the place of the book stayed on
->    the disk at 30, 60, 90, and 120 seconds**, and
->    `GET /api/me/progress/8fda6e43-…` still gave the place of the start.
->
->    The correction is two files. `src/db/crud.rs` holds
->    `count_pending_ebook_progress`, of the rule of `count_pending_progress`
->    (T-203). `src/logic/offline/mod.rs` holds one turn of the task in
->    `the_places_that_wait_go_to_the_server`: it counts the two tables on a
->    thread of the disk of its own (T-204), it gives `(0, 0)` with no request
->    at all when neither of the two holds a row, it examines the addresses, and
->    it then sends the positions and the places of the books. **The corrected
->    program**, of the same keys, said
->    `[offline] the server answers again. 1 place(s) of a book went to it.` in
->    the first turn of the task after the server answered, and the table then
->    held no row.
->    - **The box of the process of T-292 keeps the place of the book after the
->      task of the flush sent the row of the disk** (T-295): the road of the
->      end of the program then sends that same place a second time. **This is a
->      candidate and not a measurement.**
->    - **A place of a book that waits reaches no view of the user at all**
->      (T-295), while the header of the offline mode says the number of the
->      positions that wait. **This is a candidate and not a measurement.**
->    - **Every candidate of the turns before this one stays open** (T-229 to
->      T-295): the block has a limit of size, therefore these turns name the
->      new candidates alone and they do not repeat that list.
->
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
 >    (T-284): a round that writes its own turn takes the oldest turn out, and
 >    it takes a second one out while `toutui-loop --dry-run | wc -c` gives more
->    than 100000. That section holds the turn of the hundred and twenty-third
+>    than 100000. That section holds the turn of the hundred and twenty-fourth
 >    and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
@@ -18381,7 +18507,11 @@ log out** (T-200).
 > server later: the log out takes the account and the three tables of the places
 > of that account in one transaction, and its words name the number of the
 > places that went away, while a token that the server refused keeps every place
-> because that account comes back at once** (T-296).
+> because that account comes back at once** (T-296), and **a log out that keeps
+> the copies of the disk says them: the copies stay, because the key is a log out
+> and a login with the same name and the same server gives them again, and the
+> words of that log out name the media, the megabytes, and the road back; and a
+> message of the login screen stands on the rows that it needs** (T-297).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
