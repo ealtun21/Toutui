@@ -25779,3 +25779,120 @@ The copy `db.sqlite3.before-T299` gave `toutuitest` back, with
   a user share the rows and the directory of the disk. **This is a candidate
   and not a measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to T-298).
+
+### T-300: the line at the top of the reader keeps the place of the user
+
+#### The fault
+
+**A long title took the place of the user outside the screen.** The line at the
+top of the reader is `line_of_the_top` of `src/ui/reader_tui.rs`, and it said
+`<the title> — chapter N of M — P%`: the title of the book came first, and the
+number of the chapter, the count of the chapters, and the percent came after
+it. That line stands in a `Paragraph` of one row with no `wrap`, therefore a
+title that fills the width of the terminal cut every number away.
+
+**The place of the user is the one part of that line that changes**, and the
+reader holds no other view of it: the footer of the reader names the keys, and
+the title stands in the view of the media already.
+
+**A long title is no book of a test.** Project Gutenberg holds the title
+`The Life and Adventures of Robinson Crusoe, of York, Mariner: Who Lived Eight
+and Twenty Years All Alone in an Uninhabited Island on the Coast of America`
+(153 characters), and a book of an Audiobookshelf library carries its subtitle
+in the same field.
+
+#### The measurement
+
+Of the real program v0.8.128 inside tmux against the sandbox, with the account
+`toutuitest`. **The data of this fault is a book, and it needs no proxy at
+all**: `docs/harness/a_book_of_a_long_title.py` writes an EPUB of three
+chapters of plain text whose `dc:title` holds the title above, and that book
+went in the cache of the ebooks of the account, at
+`$XDG_DATA_HOME/toutui/downloads/toutuitest/8fda6e43-0728-46ad-98bc-4c8634e299ad.epub`,
+because a book of the cache costs no request of the server. A copy of the good
+file of that name stood in the scratchpad for the road back.
+
+The keys `/`, `Alice in Wonderland`, `Enter`, and `e` opened the reader in a
+terminal of **80 columns**. The line at the top said
+
+```text
+The Life and Adventures of Robinson Crusoe, of York, Mariner: Who Lived Eight an
+```
+
+and the key `n` gave the chapter 2 and then the chapter 3: **the three lines
+held the same characters**, and the user read no place of their own at any of
+them. A control of the same run: the text of the body changed with each key
+(`# CHAPTER TWO. The chapter of the middle` came after the key `p`), therefore
+the keys did their work and the line alone said nothing. **A terminal of 160
+columns lost the same numbers**: the line ended at
+`… on the Coast of America — chap`.
+
+#### The decision
+
+**The place of the user keeps its room, and the title loses its end.** The
+title says what the user chose already; the place of the user is what this line
+measures. Therefore the place stands whole while one column stays for it, the
+title takes the room after it, and it loses its end to three points — the rule
+of T-299 for the part of the line that the user can spare. A place of the user
+that is wider than the whole screen loses its own end in the same way, and a
+width of 0 says that the caller has no screen and the line then holds every
+character.
+
+#### The correction
+
+One file, `src/ui/reader_tui.rs`. `line_of_the_top` takes the width of the
+screen, it builds the place of the user apart from the title, and it gives the
+two of them to the new pure `the_line_that_stands`; `in_one_row` holds the
+three points; `header` passes the width 0, because the tests of the words of
+that line need no screen; and `render` gives `top.width`.
+
+**The corrected program**, of the same book and of the same keys, said
+
+```text
+The Life and Adventures of Robinson Crusoe, of York, Mar… — chapter 2 of 3 — 33%
+The Life and Adventures of Robinson Crusoe, of York, Mar… — chapter 3 of 3 — 67%
+```
+
+at 80 columns, and it kept the number of the chapter and the percent at **40**
+columns (`The Life and Adv… — chapter 3 of 3 — 67%`) and at **160** columns too.
+
+#### The test
+
+`a_long_title_never_takes_the_place_of_the_user_away` of
+`src/ui/reader_tui.rs` gives the title of the measurement to the line at 40,
+80, 100, and 160 columns: the line stands in the width, it holds
+`chapter 2 of 3` and `50%`, it starts with the title, and it says the three
+points. It holds a book of no chapter (T-283), a title that stands and that
+loses nothing, a width that holds no room for the place of the user, and the
+widths 1 and 0. **The build of the fault** (`if width == 0 || true` of
+`the_line_that_stands`) fails it.
+
+#### The road back of the measurement
+
+The good file of `8fda6e43-0728-46ad-98bc-4c8634e299ad.epub` went back to the
+cache, and `PATCH /api/me/progress/:id` gave the place of that media back with
+`{"isFinished": false}` and then `{"ebookProgress": 0}`. **The reader keeps the
+chapter of a book of a name that it read already**, therefore the run of the
+corrected program opened at the chapter 2 of the run before it.
+
+#### What this item leaves open
+
+- **The line at the top of the reader counts characters and not columns**
+  (T-300): a title of the characters of an East Asian language holds two
+  columns for each of them, and `the_line_that_stands` counts one. **This is a
+  candidate and not a measurement.**
+- **The keys at the foot of the reader stand in a `Paragraph` of two rows with
+  no `wrap`** (T-300): a terminal that is narrower than the longest of those
+  four texts loses the keys of the road back. **This is a candidate and not a
+  measurement.**
+- **The words of a start reach no user when `exec` fails** (T-298): the loop of
+  `src/main.rs` then says `request.message`, which names the system and not the
+  log out. **This is a candidate and not a measurement.**
+- **The rows of `queue` of an account that logged out stay** (T-297), and the
+  key of that table holds the account and the server. **This is a candidate and
+  not a measurement.**
+- **The table `downloads` holds a column `server` that is not in its key, and
+  `download_files` holds no server at all** (T-297): two servers of one name of
+  a user share the rows and the directory of the disk. **This is a candidate
+  and not a measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to T-299).

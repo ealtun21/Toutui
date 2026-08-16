@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.129",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The reader now keeps the number of your chapter and your \
+             percent.** The line at the top of the reader said the title of the \
+             book first, and a long title took the number of the chapter, the \
+             count of the chapters, and the percent outside the screen: a book \
+             of the title of Robinson Crusoe of Project Gutenberg gave the same \
+             line at every chapter, at 80 columns and at 160. The place of the \
+             user now keeps its room, and the title loses its end to three \
+             points.",
+        ],
+    },
+    Entry {
         version: "0.8.128",
         date: "16/08/2026",
         body: &[

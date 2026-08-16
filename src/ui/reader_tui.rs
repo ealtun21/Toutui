@@ -39,9 +39,13 @@ pub fn text_area(area: Rect) -> Rect {
     }
 }
 
-/// Makes the line at the top of the screen.
+/// Makes the line at the top of the screen, for a screen of every width.
+///
+/// The width of 0 says that the caller has no screen: the line then holds
+/// every character, and the tests of the words of this line need no width at
+/// all.
 pub fn header(title: &str, chapter: usize, count: usize, part: f64) -> String {
-    line_of_the_top(title, chapter, count, part, false)
+    line_of_the_top(title, chapter, count, part, false, 0)
 }
 
 /// Makes the line at the top of the screen, and it names the part of the book.
@@ -49,12 +53,32 @@ pub fn header(title: &str, chapter: usize, count: usize, part: f64) -> String {
 /// One chapter of a PDF is one page. Therefore the line says "page" for such a
 /// book: a user of a PDF looks for a page, and the word "chapter" says nothing
 /// about that file. See T-54.
+///
+/// **The place of the user keeps its room, and the title loses its end**
+/// (T-300). This line stands in a `Paragraph` of one row with no `wrap`,
+/// therefore a title that fills the width of the terminal takes the number of
+/// the chapter, the count of the chapters, and the percent away. The
+/// measurement of 2026-08-16 gave a book of the title of Robinson Crusoe of
+/// Project Gutenberg (153 characters) to the reader, and the line at 80 columns
+/// said `The Life and Adventures of Robinson Crusoe, of York, Mariner: Who
+/// Lived Eight an` at the chapter 1, at the chapter 2, and at the chapter 3:
+/// the three lines held the same characters, and the user read no place of
+/// their own at all. **A terminal of 160 columns lost the same numbers.**
+///
+/// The title says what the user chose already, and the view of the media holds
+/// it too; the place of the user is what this line measures, and it is the one
+/// part of it that changes. Therefore the title takes the room that stays, and
+/// it loses its end to three points.
+///
+/// A width of 0 says that the caller has no screen, and the line then holds
+/// every character.
 pub fn line_of_the_top(
     title: &str,
     chapter: usize,
     count: usize,
     part: f64,
     holds_pages: bool,
+    width: u16,
 ) -> String {
     let part = (part * 100.0).round().clamp(0.0, 100.0) as i64;
     let word = if holds_pages { "page" } else { "chapter" };
@@ -64,18 +88,66 @@ pub fn line_of_the_top(
     // the user that a book of no chapter holds one chapter and that the reader
     // stands in it. The program measured 0, therefore the line says that the
     // book holds no chapter, and it names no number of a chapter and no part.
-    if count == 0 {
-        return format!("{title} — this book holds no {word}");
+    let the_place = if count == 0 {
+        format!(" — this book holds no {word}")
+    } else {
+        format!(" — {} {} of {} — {}%", word, chapter + 1, count, part)
+    };
+
+    the_line_that_stands(title, &the_place, width)
+}
+
+/// Puts a title and the place of the user in a width of columns.
+///
+/// **The place of the user comes first** (T-300): it stands whole while one
+/// column stays for it, and the title takes the room after it. A title that
+/// does not stand loses its end to three points, and a place of the user that
+/// is wider than the whole screen loses its end in the same way.
+///
+/// The function is pure, therefore a test needs no screen.
+pub fn the_line_that_stands(title: &str, the_place: &str, width: u16) -> String {
+    if width == 0 {
+        return format!("{title}{the_place}");
     }
 
-    format!(
-        "{} — {} {} of {} — {}%",
-        title,
-        word,
-        chapter + 1,
-        count,
-        part
-    )
+    let width = usize::from(width);
+    let letters = title.chars().count();
+    let place = the_place.chars().count();
+
+    if letters + place <= width {
+        return format!("{title}{the_place}");
+    }
+
+    // The place of the user alone is wider than the screen: no room stays for
+    // the title, and the place then loses its own end.
+    if place + 1 > width {
+        return in_one_row(the_place, width);
+    }
+
+    // One column stays for the three points of the title.
+    let kept: String = title.chars().take(width - place - 1).collect();
+
+    format!("{}…{}", kept.trim_end(), the_place)
+}
+
+/// Gives a text that stands in a width of columns, with three points for the
+/// end that goes away. See T-300.
+fn in_one_row(text: &str, width: usize) -> String {
+    if width == 0 {
+        return String::new();
+    }
+
+    if text.chars().count() <= width {
+        return text.to_string();
+    }
+
+    if width == 1 {
+        return "…".to_string();
+    }
+
+    let kept: String = text.chars().take(width - 1).collect();
+
+    format!("{}…", kept.trim_end())
 }
 
 /// Draws the reader.
@@ -93,6 +165,7 @@ pub fn render(reader: &mut Reader, area: Rect, buf: &mut Buffer) {
         reader.chapter_count(),
         reader.fraction(),
         reader.holds_pages(),
+        top.width,
     ))
     .style(Style::default().add_modifier(Modifier::BOLD))
     .render(top, buf);
@@ -243,8 +316,67 @@ mod tests {
         assert!(!text.contains("chapter 1"), "{text}");
 
         // A PDF of no page says the same of a page. See T-54.
-        let text = line_of_the_top("A PDF", 0, 0, 0.0, true);
+        let text = line_of_the_top("A PDF", 0, 0, 0.0, true, 0);
         assert!(text.contains("holds no page"), "{text}");
+    }
+
+    /// **The place of the user keeps its room** (T-300).
+    ///
+    /// The parts of this test stay in one function: the widths and the titles
+    /// are one measurement of one line.
+    #[test]
+    fn a_long_title_never_takes_the_place_of_the_user_away() {
+        // The title of Robinson Crusoe of Project Gutenberg, of the
+        // measurement of 2026-08-16.
+        let title = "The Life and Adventures of Robinson Crusoe, of York, \
+                     Mariner: Who Lived Eight and Twenty Years All Alone in an \
+                     Uninhabited Island on the Coast of America";
+        assert_eq!(title.chars().count(), 153);
+
+        for width in [40u16, 80, 100, 160] {
+            let text = line_of_the_top(title, 1, 3, 0.5, false, width);
+
+            assert!(
+                text.chars().count() <= usize::from(width),
+                "the line of {width} columns stands in them: {text}"
+            );
+            assert!(
+                text.contains("chapter 2 of 3"),
+                "the line of {width} columns holds the chapter: {text}"
+            );
+            assert!(
+                text.contains("50%"),
+                "the line of {width} columns holds the percent: {text}"
+            );
+            assert!(
+                text.starts_with("The Life"),
+                "the line of {width} columns starts with the title: {text}"
+            );
+            assert!(
+                text.contains('…'),
+                "the line of {width} columns says that the title lost its end: {text}"
+            );
+        }
+
+        // A book of no chapter says so at every width. See T-283.
+        let text = line_of_the_top(title, 0, 0, 0.0, false, 80);
+        assert!(text.contains("holds no chapter"), "{text}");
+        assert!(text.chars().count() <= 80, "{text}");
+
+        // A title that stands loses nothing at all.
+        let text = line_of_the_top("A Book", 1, 3, 0.5, false, 80);
+        assert_eq!(text, "A Book — chapter 2 of 3 — 50%");
+        assert!(!text.contains('…'), "{text}");
+
+        // A screen that holds no room for the place of the user takes the end
+        // of that place, and the title goes away with it.
+        let text = line_of_the_top(title, 1, 3, 0.5, false, 10);
+        assert_eq!(text.chars().count(), 10, "{text}");
+        assert!(text.ends_with('…'), "{text}");
+
+        // A width of 1 and a width of 0 give no panic at all.
+        assert_eq!(line_of_the_top(title, 1, 3, 0.5, false, 1), "…");
+        assert!(line_of_the_top(title, 1, 3, 0.5, false, 0).contains("chapter 2 of 3"));
     }
 
     #[test]
