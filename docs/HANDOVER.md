@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.128.** The item T-299 belongs to this session. The
+**The newest release is v0.8.129.** The item T-300 belongs to this session. The
+item T-299 belongs to the session before it. The
 item T-298 belongs to the session before it. The
 item T-297 belongs to the session before it. The
 item T-296 belongs to the session before it. The
@@ -144,6 +145,97 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its binaries in two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and twenty-ninth turn of 2026-08-16: the line at the top of the reader keeps the place of the user
+
+**The item: T-300**, and the release **v0.8.129**.
+
+**The candidate came of T-299.** That item asked whether the row of the message
+of the reader, which is a widget of its own, loses a sentence that is longer
+than it. **A read of that widget found no fault**: the reader with no book
+draws `reader_message` into the whole of its area with a `wrap`, and it
+therefore holds a long sentence already (T-284). A sweep of the same class over
+`src/ui/` — every `Paragraph::new` with no `.wrap` — then named ten sites, and
+the line at the top of the reader is the one of them that carries a value of
+the user.
+
+**The fault.** `line_of_the_top` of `src/ui/reader_tui.rs` said
+`<the title> — chapter N of M — P%`, and it stands in a `Paragraph` of one row
+with no `wrap`: the title comes first, therefore a long title takes the number
+of the chapter, the count of the chapters, and the percent outside the screen.
+**The place of the user is the one part of that line that changes**, and the
+reader holds no other view of it: the footer names the keys, and the title
+stands in the view of the media already.
+
+**The measurement**, of the real program v0.8.128 inside tmux against the
+sandbox, with the account `toutuitest`. **The data of this fault is a book, and
+it needs no proxy at all.** `docs/harness/a_book_of_a_long_title.py` writes an
+EPUB of three chapters of plain text whose `dc:title` holds the title of
+Robinson Crusoe of Project Gutenberg, of **153 characters** — a real title of a
+real library, and a book of an Audiobookshelf library carries its subtitle in
+the same field. That book went in the cache of the ebooks of the account, at
+`$XDG_DATA_HOME/toutui/downloads/toutuitest/8fda6e43-0728-46ad-98bc-4c8634e299ad.epub`,
+because a book of the cache costs no request of the server, and a copy of the
+good file of that name stood in the scratchpad for the road back.
+
+The keys `/`, `Alice in Wonderland`, `Enter`, and `e` opened the reader in a
+terminal of **80 columns**, and the line at the top said
+
+```text
+The Life and Adventures of Robinson Crusoe, of York, Mariner: Who Lived Eight an
+```
+
+at the chapter 1, at the chapter 2, and at the chapter 3: **the three lines
+held the same characters**, and the user read no place of their own at any of
+them. A control of the same run: the text of the body changed at each key
+(`# CHAPTER TWO. The chapter of the middle` came after the key `p`), therefore
+the keys did their work and the line alone said nothing. **A terminal of 160
+columns lost the same numbers**: the line ended at
+`… on the Coast of America — chap`.
+
+**The decision: the place of the user keeps its room, and the title loses its
+end.** The title says what the user chose already; the place of the user is
+what this line measures. Therefore the place stands whole while one column
+stays for it, the title takes the room after it, and it loses its end to three
+points — the rule of T-299 for the part of the line that the user can spare. A
+place of the user that is wider than the whole screen loses its own end in the
+same way, and a width of 0 says that the caller has no screen and the line then
+holds every character.
+
+**The correction is one file.** `src/ui/reader_tui.rs`: `line_of_the_top` takes
+the width of the screen, it builds the place of the user apart from the title,
+and it gives the two of them to the new pure `the_line_that_stands`;
+`in_one_row` holds the three points; `header` passes the width 0, because the
+tests of the words of that line need no screen; and `render` gives `top.width`.
+
+**The corrected program**, of the same book and of the same keys, said
+
+```text
+The Life and Adventures of Robinson Crusoe, of York, Mar… — chapter 2 of 3 — 33%
+The Life and Adventures of Robinson Crusoe, of York, Mar… — chapter 3 of 3 — 67%
+```
+
+at 80 columns, and it kept the number of the chapter and the percent at **40**
+columns (`The Life and Adv… — chapter 3 of 3 — 67%`) and at **160** columns
+too.
+
+**The test.** `a_long_title_never_takes_the_place_of_the_user_away` of
+`src/ui/reader_tui.rs` gives the title of the measurement to the line at 40,
+80, 100, and 160 columns, and it holds a book of no chapter (T-283), a title
+that stands and that loses nothing, a screen with no room for the place of the
+user, and the widths 1 and 0. **The build of the fault**
+(`if width == 0 || true` of `the_line_that_stands`) fails it.
+
+**The road back of the measurement.** The good file of
+`8fda6e43-0728-46ad-98bc-4c8634e299ad.epub` went back to the cache, and
+`PATCH /api/me/progress/:id` gave the place of that media back with
+`{"isFinished": false}` and then `{"ebookProgress": 0}`.
+
+**The gates.** `cargo clippy --all-targets -- -D warnings` and
+`cargo fmt --check` pass. `cargo nextest run` gives **1357 of 1357** in 2.8
+seconds, and `cargo nextest run --run-ignored all` gives **1383 of 1383** with
+the sandbox up, in 17 seconds. `cargo test -j 16 --no-fail-fast` passed **two**
+runs, 26 binaries each.
 
 ## The session of the hundred and twenty-eighth turn of 2026-08-16: the row of the message of a view stands on the rows that it needs
 
@@ -17178,6 +17270,73 @@ times, and each of them passed.
      T-295): the block has a limit of size, therefore these turns name the
      new candidates alone and they do not repeat that list.
 
+**The session of the hundred and twenty-sixth turn took the candidate
+"the rows of `downloads`, of `download_files`, and of `queue` of an account
+that logged out stay on the disk, and the files of those downloads stay
+too", which T-296 left open, and the measurement of it gave the fault**
+(T-297).
+
+**A log out that keeps the copies of the disk says nothing of them.** The
+key `l` of the view of the accounts removes the account and every place of
+the user, and every download and every book of the cache of that account
+stay under `$XDG_DATA_HOME/toutui/downloads/<the account>`. **No view of
+the program reaches them while the account is away**, because the key `X`
+of a download needs an account.
+
+The measurement, of the real program v0.8.125 inside tmux against the
+sandbox, with the account `toutuitest`. **The data of this fault is the
+disk of the account, and it needs no proxy at all.** Before the key:
+`users` 1 row, `downloads` **11** rows, `download_files` **13** rows, and
+**19 files of 251382273 bytes**. The keys `S`, `Enter`, `l`, and `l`: the
+row of `users` went away, and **every one of those rows and every one of
+those bytes stayed**. The program started again by itself and the login
+screen came, and **the words of that log out reached no user at all**: the
+screen held the field of the address alone, because `delete_user` said
+them with `crate::logic::message::say` and the row of the message goes
+away with the process of an `exec`. A login with the same address, the
+same name, and the same password gave the account and the 11 rows again.
+
+**The decision: the copies of the disk stay.** The key is a log out, the
+table of the keys says that the program forgets the token, and a removal
+of the media of the user is no work of that key. The words say the copies,
+and they name the road back.
+
+The correction is five files. `src/logic/download/mod.rs` holds
+`TheCopiesThatStay` and `the_copies_of_the_disk_that_stay`: the media come
+of the rows of `downloads`, and the bytes of a walk of the directory of
+the account at every depth. `src/db/crud.rs` gives
+`the_words_of_a_log_out` the copies, and `delete_user` gives the words
+back to the caller. `src/app.rs` puts them on the road that the user
+reads: `the_login_screen_comes` writes them with
+`say_on_the_login_screen`, which carries a sentence over `exec` through
+the disk (T-270). `src/ui/keys.rs` says that the copies stay.
+**The corrected program**, of the same keys, gave the login screen with
+`The program removed the account toutuitest. The disk keeps the copies of
+that account: 11 media, and 239.7 MB. Log in again with the same name and
+the same server: the key X then removes a copy.`
+
+**The corrected words gave a second fault of the same measurement.** The
+row of the message of the login screen held one row and no `wrap`, and
+that sentence stood as `… and the same serv` at **160** columns. The rule
+of T-278 holds for that screen: `the_rows_of_the_message` of
+`src/logic/auth/auth_input.rs` counts the rows of `Wrap { trim: true }`,
+and the rows grow upward so the field of the login keeps its place. The
+whole sentence then stood on three rows at 80 columns.
+- **The road `AfterALogOut::ThisAccountStarts` loses the words of its log
+  out too** (T-297): that program starts again with `exec` and it holds an
+  account, therefore it draws no login screen, and this program holds no
+  road for the words of a start. **This is a candidate and not a
+  measurement.**
+- **The rows of `queue` of an account that logged out stay** (T-297), and
+  the key of that table holds the account and the server. **This is a
+  candidate and not a measurement.**
+- **The table `downloads` holds a column `server` that is not in its key,
+  and `download_files` holds no server at all** (T-297): two servers of
+  one name of a user share the rows and the directory of the disk. The
+  table `users` holds the name as its primary key, therefore a
+  measurement of it needs two servers one after the other. **This is a
+  candidate and not a measurement.**
+
 ## The decisions of T-124 to T-200 that do not open again
 
 **This section stood in the block of the prompt, and the block reached its
@@ -17338,7 +17497,7 @@ log out** (T-200).
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.128**; `Cargo.toml` is at 0.8.128. The
+> AlbanDAVID/Toutui. Newest release **v0.8.129**; `Cargo.toml` is at 0.8.129. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -17529,6 +17688,20 @@ log out** (T-200).
 > `PATCH /api/me/progress/:id` at the end: **the reader keeps the chapter of a
 > book of a name that it read already**, therefore a second run of such a
 > measurement opens at the chapter of the run before it.
+>
+> **A book whose title is longer than the screen is
+> `docs/harness/a_book_of_a_long_title.py`** (T-300). The harnesses of a book
+> below give the reader a chapter that it cannot read; this one gives it a
+> title. The script writes an EPUB of three chapters of plain text whose
+> `dc:title` holds the title of its second argument, and with no second
+> argument it takes the title of Robinson Crusoe of Project Gutenberg (153
+> characters):
+>
+> ```bash
+> python3 docs/harness/a_book_of_a_long_title.py /the/path/of/the.epub
+> ```
+>
+> **The rules of the road back of the harnesses below hold for this book too.**
 >
 > **A book of a chapter that is larger than the limit is
 > `docs/harness/a_book_of_a_chapter_that_is_too_large.py`** (T-281). The
@@ -18165,8 +18338,69 @@ log out** (T-200).
 > ### The work, in the sequence of its value
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in one hundred and six sessions of one hundred
->    and seven.
+>    this shape found a fault in one hundred and seven sessions of one hundred
+>    and eight.
+>    **The session of the hundred and twenty-ninth turn took the candidate
+>    "the row of the message of the reader is a different widget", which T-299
+>    left open. A read of that widget found no fault — the reader with no book
+>    draws its message into the whole of its area with a `wrap` — and the sweep
+>    of the same class over `src/ui/` then named the line at the top of the
+>    reader, and the measurement of it gave the fault** (T-300).
+>
+>    **A long title took the place of the user outside the screen.** The line at
+>    the top of the reader is `line_of_the_top` of `src/ui/reader_tui.rs`, and
+>    it said `<the title> — chapter N of M — P%`: the title came first, and the
+>    number of the chapter, the count of the chapters, and the percent came
+>    after it. That line stands in a `Paragraph` of one row with no `wrap`.
+>    **The place of the user is the one part of that line that changes**, and
+>    the reader holds no other view of it.
+>
+>    The measurement, of the real program v0.8.128 inside tmux against the
+>    sandbox, with the account `toutuitest`. **The data of this fault is a book,
+>    and it needs no proxy at all**:
+>    `docs/harness/a_book_of_a_long_title.py` writes an EPUB of three chapters
+>    of plain text whose `dc:title` holds the title of Robinson Crusoe of
+>    Project Gutenberg (**153 characters**, and a book of an Audiobookshelf
+>    library carries its subtitle in the same field). That book went in the
+>    cache of the ebooks of the account, at
+>    `$XDG_DATA_HOME/toutui/downloads/toutuitest/8fda6e43-0728-46ad-98bc-4c8634e299ad.epub`,
+>    and a copy of the good file of that name stood in the scratchpad for the
+>    road back. The keys `/`, `Alice in Wonderland`, `Enter`, and `e` opened the
+>    reader in a terminal of **80 columns**, and the line at the top said
+>    `The Life and Adventures of Robinson Crusoe, of York, Mariner: Who Lived
+>    Eight an` at the chapter 1, at the chapter 2, and at the chapter 3: **the
+>    three lines held the same characters.** A control of the same run: the text
+>    of the body changed at each key (`# CHAPTER TWO. The chapter of the middle`
+>    came after the key `p`), therefore the keys did their work and the line
+>    alone said nothing. **A terminal of 160 columns lost the same numbers**:
+>    the line ended at `… on the Coast of America — chap`.
+>
+>    **The decision: the place of the user keeps its room, and the title loses
+>    its end.** The title says what the user chose already, and the view of the
+>    media holds it too; the place of the user is what this line measures.
+>    Therefore the place stands whole while one column stays for it, and the
+>    title takes the room after it and it loses its end to three points — the
+>    rule of T-299 for the part of the line that the user can spare.
+>
+>    The correction is one file. `src/ui/reader_tui.rs`: `line_of_the_top`
+>    takes the width of the screen, it builds the place of the user apart from
+>    the title, and it gives the two of them to the new pure
+>    `the_line_that_stands`; `in_one_row` holds the three points; `header`
+>    passes the width 0, because the tests of the words of that line need no
+>    screen; and `render` gives `top.width`. **The corrected program**, of the
+>    same book and of the same keys, said
+>    `The Life and Adventures of Robinson Crusoe, of York, Mar… — chapter 2 of
+>    3 — 33%` at 80 columns, and it kept the number of the chapter and the
+>    percent at **40** columns and at **160** columns too.
+>    - **The line at the top of the reader counts characters and not columns**
+>      (T-300): a title of the characters of an East Asian language holds two
+>      columns for each of them, and `the_line_that_stands` counts one. **This
+>      is a candidate and not a measurement.**
+>    - **The keys at the foot of the reader stand in a `Paragraph` of two rows
+>      with no `wrap`** (T-300): a terminal that is narrower than the longest
+>      of those four texts loses the keys of the road back. **This is a
+>      candidate and not a measurement.**
+>
 >    **The session of the hundred and twenty-eighth turn took the candidate
 >    "the row of the message of a view now draws the sentence of a log out with
 >    the copies of the disk of T-297, and that sentence is about 180
@@ -18286,73 +18520,6 @@ log out** (T-200).
 >      loop of `src/main.rs` then says `request.message`, which names the
 >      system and not the log out. **This is a candidate and not a
 >      measurement.**
->
->    **The session of the hundred and twenty-sixth turn took the candidate
->    "the rows of `downloads`, of `download_files`, and of `queue` of an account
->    that logged out stay on the disk, and the files of those downloads stay
->    too", which T-296 left open, and the measurement of it gave the fault**
->    (T-297).
->
->    **A log out that keeps the copies of the disk says nothing of them.** The
->    key `l` of the view of the accounts removes the account and every place of
->    the user, and every download and every book of the cache of that account
->    stay under `$XDG_DATA_HOME/toutui/downloads/<the account>`. **No view of
->    the program reaches them while the account is away**, because the key `X`
->    of a download needs an account.
->
->    The measurement, of the real program v0.8.125 inside tmux against the
->    sandbox, with the account `toutuitest`. **The data of this fault is the
->    disk of the account, and it needs no proxy at all.** Before the key:
->    `users` 1 row, `downloads` **11** rows, `download_files` **13** rows, and
->    **19 files of 251382273 bytes**. The keys `S`, `Enter`, `l`, and `l`: the
->    row of `users` went away, and **every one of those rows and every one of
->    those bytes stayed**. The program started again by itself and the login
->    screen came, and **the words of that log out reached no user at all**: the
->    screen held the field of the address alone, because `delete_user` said
->    them with `crate::logic::message::say` and the row of the message goes
->    away with the process of an `exec`. A login with the same address, the
->    same name, and the same password gave the account and the 11 rows again.
->
->    **The decision: the copies of the disk stay.** The key is a log out, the
->    table of the keys says that the program forgets the token, and a removal
->    of the media of the user is no work of that key. The words say the copies,
->    and they name the road back.
->
->    The correction is five files. `src/logic/download/mod.rs` holds
->    `TheCopiesThatStay` and `the_copies_of_the_disk_that_stay`: the media come
->    of the rows of `downloads`, and the bytes of a walk of the directory of
->    the account at every depth. `src/db/crud.rs` gives
->    `the_words_of_a_log_out` the copies, and `delete_user` gives the words
->    back to the caller. `src/app.rs` puts them on the road that the user
->    reads: `the_login_screen_comes` writes them with
->    `say_on_the_login_screen`, which carries a sentence over `exec` through
->    the disk (T-270). `src/ui/keys.rs` says that the copies stay.
->    **The corrected program**, of the same keys, gave the login screen with
->    `The program removed the account toutuitest. The disk keeps the copies of
->    that account: 11 media, and 239.7 MB. Log in again with the same name and
->    the same server: the key X then removes a copy.`
->
->    **The corrected words gave a second fault of the same measurement.** The
->    row of the message of the login screen held one row and no `wrap`, and
->    that sentence stood as `… and the same serv` at **160** columns. The rule
->    of T-278 holds for that screen: `the_rows_of_the_message` of
->    `src/logic/auth/auth_input.rs` counts the rows of `Wrap { trim: true }`,
->    and the rows grow upward so the field of the login keeps its place. The
->    whole sentence then stood on three rows at 80 columns.
->    - **The road `AfterALogOut::ThisAccountStarts` loses the words of its log
->      out too** (T-297): that program starts again with `exec` and it holds an
->      account, therefore it draws no login screen, and this program holds no
->      road for the words of a start. **This is a candidate and not a
->      measurement.**
->    - **The rows of `queue` of an account that logged out stay** (T-297), and
->      the key of that table holds the account and the server. **This is a
->      candidate and not a measurement.**
->    - **The table `downloads` holds a column `server` that is not in its key,
->      and `download_files` holds no server at all** (T-297): two servers of
->      one name of a user share the rows and the directory of the disk. The
->      table `users` holds the name as its primary key, therefore a
->      measurement of it needs two servers one after the other. **This is a
->      candidate and not a measurement.**
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -18783,7 +18950,10 @@ log out** (T-200).
 > a view stands on the rows that it needs: the last row of it stays above the
 > footer and the rows before it grow upward over the view, the header of the
 > screen keeps its rows, and a message that needs more rows than that room
-> loses its end to three points** (T-299).
+> loses its end to three points** (T-299), and **the line at the top of the
+> reader keeps the place of the user: the place of the user stands whole while
+> one column stays for it, and the title takes the room after it and it loses
+> its end to three points** (T-300).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
