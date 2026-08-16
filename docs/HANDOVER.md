@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.132.** The item T-303 belongs to this session. The
+**The newest release is v0.8.133.** The item T-304 belongs to this session. The
+item T-303 belongs to the session before it. The
 item T-302 belongs to the session before it. The
 item T-301 belongs to the session before it. The
 item T-300 belongs to the session before it. The
@@ -140,14 +141,92 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.132**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.133**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1364 of 1364** in 2.8 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1390 of 1390** in 23.3 seconds
+**1366 of 1366** in 2.8 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1392 of 1392** in 18.1 seconds
 with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its binaries in two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and thirty-third turn of 2026-08-16: the title of a view keeps its start
+
+**The item: T-304**, and the release **v0.8.133**.
+
+**The candidate came of T-303.** That item left "the title of a list that is
+longer than the screen loses its start" open, with a measurement of its
+condition and no measurement of its cause: a search of `hours` at 40 columns
+gave a view whose header said `he books of Many Hours Author]──────────`.
+
+**The cause.** `render_the_list` of `src/ui/the_list_of_a_view.rs` — the one
+road of every list of this program to the screen — gave its title to ratatui as
+`Line::raw(title).centered()`, at the whole width of the view. ratatui holds
+two roads for a centered title of a `Block`:
+`render_centered_titles_without_truncation` of `ratatui-widgets-0.3.2` draws a
+title that stands, and `render_centered_titles_with_truncation` draws one that
+does not. That second road takes `offset = (the title − the width) / 2`, it
+gives the title an area of `the width − offset` columns, and it then draws the
+title **right-aligned** in that area. A right-aligned line that is wider than
+its area keeps its **end**, therefore the title lost `offset` characters of its
+start and `offset` more of its end, and the border of the block stood bare in
+the columns that stayed.
+
+**The numbers of the measurement**, of the real program v0.8.132 inside tmux
+against the sandbox with the account `toutuitest`, at
+`COLUMNS_OF_THE_SCREEN=40`: the title of `the_title_of_the_search` of
+`src/logic/search/mod.rs:142` was
+`Search result [2 items, with the books of Many Hours Author]` of **60**
+characters, the screen holds **40**, `offset = (60 − 40) / 2 = 10`, the area of
+the title is **30** columns, and the last 30 characters of the title are
+`he books of Many Hours Author]` — the string of the screen, character for
+character. The ten columns after it kept the `─` of the top border. The start
+that went away, `Search result [2 items, with t`, holds the name of the view
+and the number of its items.
+
+**The decision: the title of a view keeps its start, and it loses its end to
+three points.** The start of a title names the view and the number of its
+lines; the end of it names the query or the author, which the user wrote
+themselves. That is the rule of T-299 for a message and of T-300 for the line
+at the top of the reader, for the part that the user can spare.
+**`crate::logic::message::in_one_row` is the one maker of a text of one row of
+this program**: three functions of this repository held that same rule apart —
+`in_one_row` of `src/ui/reader_tui.rs` (T-300), `shorten` of `src/ui/tui.rs`,
+and the tail of `in_the_rows` of `src/logic/message.rs` — and no title of a
+view called any of them.
+
+**The correction is four files.** `src/logic/message.rs` holds the new pure
+`in_one_row`, and its gate `a_text_of_one_row_keeps_its_start`.
+`src/ui/the_list_of_a_view.rs` calls it with `area.width` before it makes the
+`Line`, therefore ratatui never meets a title that it must cut, and its gate
+`a_title_that_is_longer_than_the_screen_keeps_its_start` draws the list into a
+`Buffer` at 39, 40, 41, and 59 columns. `src/ui/reader_tui.rs` and
+`src/ui/tui.rs` each give their own copy of that rule away.
+
+**The build of the fault**: `u16::MAX` in the place of `area.width` of that one
+call makes it a no operation and it keeps every other line, and the gate then
+said `the title lost its start at 39 columns: e books of Many Hours Author]`.
+
+**The corrected program**, of the same keys, said
+`Search result [2 items, with the books…` at **39** and at **40** columns,
+`Search result [2 items, with the books o…` at **41**, and it kept the whole of
+its title at **80**.
+
+**The gates**: `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,
+`cargo nextest run` (**1366 of 1366**, 26 skipped),
+`cargo nextest run --run-ignored all` (**1392 of 1392** with the sandbox up, in
+18.1 seconds), and two runs of `cargo test -j 16 --no-fail-fast` with no
+failure.
+
+**What this turn leaves open.** The four titles of a fixed text of `src/ui/` —
+`.title("The sessions that you played")`, `.title("Your listening time")`,
+`.title("The reader of the ebook")`, and `.title("The contents of the book")` —
+stand outside every gate, in the shape of the five footers of T-302 and of the
+four texts of T-301. The longest of them holds 28 characters, therefore each of
+them stands at 40 columns and no measurement of this turn reached a fault of
+them. A table of them in a file that a gate reads is the answer of that class.
+And the rule of a title counts characters and not columns (T-300, T-301,
+T-302, and T-304).
 
 ## The session of the hundred and thirty-second turn of 2026-08-16: a box of a field says that the screen must be drawn again
 
@@ -18029,12 +18108,88 @@ on **two** rows at 80 columns, and on **one** row of the two at 160.
   list at 40 columns did not run. **This is a candidate and not a
   measurement.**
 
+### The session of the hundred and thirty-first turn of 2026-08-16, in the words of the prompt of that round (T-302)
+
+**The session of the hundred and thirty-first turn took the candidate
+"the footers of the other views hold two rows and no more", which T-301
+left open, and the measurement of it gave the fault** (T-302). **It left
+the candidate "the popup of the view of the search leaves a cell of the
+screen behind it" open**, and that one has a measurement of its condition
+already: the round after it needs the cause alone.
+
+**A narrow terminal took the keys of every view off the screen.** The
+footer of a view stood in a `Rect` of **two** rows: `FOOTER_HEIGHT` of
+`src/ui/tui.rs` was 2, `the_areas_of_a_view` gave the footer that number
+at every width, and each of the other fifteen render functions wrote
+`Constraint::Length(2)` of its own. `App::render_footer` drew the text
+with `Wrap { trim: true }`, therefore the words that the two rows did not
+hold went away with no word of a fault. A terminal of 40 columns holds
+**80 cells** in those two rows, and the footer of the Home view holds 116
+characters. **Five footers stood outside the gate of the footers of the
+program**: the statistics, the sessions, a new podcast, the accounts, and
+the library of the user were literals of `src/ui/tui.rs`, and the two last
+of them held a `\n` of their own — the shape of the four texts of T-301.
+
+The measurement, of the real program v0.8.130 inside tmux against the
+sandbox with the account `toutuitest`. **The data of this fault is the
+size of the terminal** (T-301), therefore it needs no proxy, no book of a
+harness, and no change of the sandbox at all: `COLUMNS_OF_THE_SCREEN=40`
+and `ROWS_OF_THE_SCREEN=30` of `docs/harness/drive.sh`. The Home view said
+at its foot `j/k: move  l: play or open  Tab:` and
+`home/library  S-Tab: the next library`: **the keys `/: search`,
+`R: refresh`, `?: every key`, and `Q: quit` stood outside the screen**,
+and the user read no road to the table of the keys and no road out of the
+program. The key `Tab` gave the Library view with the same two rows, and
+the keys `/`, `alice`, and `Enter` gave the view of the search, which lost
+`Q: quit`. A control of the same run: the table of the keys, whose footer
+holds 41 characters, said `j/k: move  h/Esc: back  ?: close  Q: quit`
+whole on its two rows, and the keys `?`, `h`, and `/` each did their work
+at 40 columns — the footer alone said nothing.
+
+**The decision: the footer of a view stands on the rows that it needs.**
+That is the rule of T-299 for the row of the message and of T-301 for the
+reader. T-301 gave the reader that rule alone because "a list would lose a
+line": a list of a view does lose a line, and **the key `j` moves the
+list**, therefore no line of it goes out of the reach of the user, while a
+key of the road back that stands outside the screen has no such road. The
+footer holds no more than one half of the rows of the view and no fewer
+than two of them, and an end that no row holds goes to three points.
+**Every footer of the program stands in `src/ui/keys.rs`**, where the gate
+reads it, and no footer holds a `\n`.
+
+The correction is five files. `src/ui/keys.rs` holds `THE_SMALLEST_FOOTER`
+of 2 rows, the pure `the_rows_of_a_footer`, the five texts that came out of
+`src/ui/tui.rs`, and `THE_FOOTERS_OF_THE_VIEWS` of all twenty-one of them,
+which the two gates read. `src/ui/tui.rs`: `the_areas_of_a_view` takes the
+rows of the footer, `App::the_rows_of_the_footer` measures the text and
+keeps the answer in the `App`, `App::render_footer` draws with
+`crate::logic::message::in_the_rows`, each of the sixteen render functions
+reads its footer **before** its `Layout`, and `render_the_message` reads
+`self.rows_of_the_footer` and no fixed number. `src/app.rs` holds that
+field. `src/ui/reader_tui.rs` calls the rule of `crate::ui::keys`.
+`src/logic/message.rs`: **`the_rows_of_a_message` read one space between
+two words, and every footer of this program holds two of them** — the count
+said three rows of a terminal of 40 columns where ratatui took four, and
+`Q: quit` then stood outside the screen at the end of the third row.
+**The corrected program**, of the same keys, held every key of the Home
+view and of the Library view on **four** rows at 40 columns, every key of
+the search, of the bookmarks, and of the lists on **three**, and it kept
+**two** rows and the whole of its text at 80 and at 160 columns.
+- **The popup of the view of the search leaves a cell of the screen behind
+  it** (T-302): at 39, 40, and 41 columns the first row of the footer of
+  that view said `l: play or op n`. **The session of the hundred and
+  thirty-second turn measured the cause of it** (T-303), and this
+  candidate is closed.
+- **The rule of a footer counts characters and not columns** (T-300,
+  T-301, and T-302). **This is a candidate and not a measurement.**
+
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.132**; `Cargo.toml` is at 0.8.132. The
+> AlbanDAVID/Toutui. Newest release **v0.8.133**; `Cargo.toml` is at 0.8.133. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -18043,7 +18198,7 @@ on **two** rows at 80 columns, and on **one** row of the two at 160.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-303 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-304 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -18766,7 +18921,7 @@ on **two** rows at 80 columns, and on **one** row of the two at 160.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-304 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-305 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
@@ -18884,6 +19039,78 @@ on **two** rows at 80 columns, and on **one** row of the two at 160.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and seven sessions of one hundred
 >    and eight.
+>    **The session of the hundred and thirty-third turn took the candidate "the
+>    title of a list that is longer than the screen loses its start", which
+>    T-303 left open, and the measurement of it gave the cause** (T-304). **It
+>    left the four titles of a fixed text of `src/ui/` open**, with no
+>    measurement of a fault of them.
+>
+>    **A title that was longer than the screen lost its start and its end
+>    together.** `render_the_list` of `src/ui/the_list_of_a_view.rs` — the one
+>    road of every list of this program to the screen — gave its title to
+>    ratatui as `Line::raw(title).centered()`, and it gave that line the whole
+>    width of the view. ratatui holds two roads for a centered title of a
+>    `Block`: `render_centered_titles_without_truncation` of
+>    `ratatui-widgets-0.3.2` draws a title that stands, and
+>    `render_centered_titles_with_truncation` draws one that does not. That
+>    second road takes `offset = (the title − the width) / 2`, it gives the
+>    title an area of `the width − offset` columns, and it then draws the title
+>    **right-aligned** in that area — and a right-aligned line that is wider
+>    than its area keeps its **end**. The title therefore lost `offset`
+>    characters of its start and `offset` more of its end, and the border of the
+>    block stood bare in the columns that stayed.
+>
+>    The measurement, of the real program v0.8.132 inside tmux against the
+>    sandbox with the account `toutuitest`. **The data of this fault is the size
+>    of the terminal** (T-301), therefore it needs no proxy, no book of a
+>    harness, and no change of the sandbox at all: `COLUMNS_OF_THE_SCREEN=40`
+>    and `ROWS_OF_THE_SCREEN=30` of `docs/harness/drive.sh`, and the keys `/`,
+>    `hours`, and `Enter` of the Home view. The header of the view of the search
+>    said `he books of Many Hours Author]──────────`. **The cause, in
+>    numbers**: `the_title_of_the_search` of `src/logic/search/mod.rs:142` gave
+>    `Search result [2 items, with the books of Many Hours Author]` of **60**
+>    characters, the screen holds **40**, therefore
+>    `offset = (60 − 40) / 2 = 10`, the area of the title is `40 − 10 = 30`
+>    columns, and the right-aligned draw of it keeps the last 30 characters —
+>    `he books of Many Hours Author]`, the string of the screen character for
+>    character — while the columns 30 to 39 kept the `─` of the top border. The
+>    start that went away, `Search result [2 items, with t`, holds the name of
+>    the view and the number of its items. A control of the same run: the same
+>    view at 80 columns said the whole title with ten characters of the border
+>    on each side of it.
+>
+>    **The decision: the title of a view keeps its start, and it loses its end
+>    to three points.** The start of a title names the view and the number of
+>    its lines; the end of it names the query or the author, which the user
+>    wrote themselves. That is the rule of T-299 for a message and of T-300 for
+>    the line at the top of the reader, for the part that the user can spare.
+>    **`crate::logic::message::in_one_row` is the one maker of a text of one row
+>    of this program**: three functions of this repository held that same rule
+>    apart — `in_one_row` of `src/ui/reader_tui.rs` (T-300), `shorten` of
+>    `src/ui/tui.rs`, and the tail of `in_the_rows` of `src/logic/message.rs` —
+>    and no title of a view called any of them.
+>
+>    The correction is four files. `src/logic/message.rs` holds the new pure
+>    `in_one_row`. `src/ui/the_list_of_a_view.rs` calls it with `area.width`
+>    before it makes the `Line`, therefore ratatui never meets a title that it
+>    must cut. `src/ui/reader_tui.rs` and `src/ui/tui.rs` each give their own
+>    copy of that rule away. **The corrected program**, of the same keys, said
+>    `Search result [2 items, with the books…` at **39** and at **40** columns,
+>    `Search result [2 items, with the books o…` at **41**, and it kept the
+>    whole of its title at 80.
+>    - **The four titles of a fixed text stand outside this gate** (T-304):
+>      `.title("The sessions that you played")` of `src/ui/sessions_tui.rs:142`,
+>      `.title("Your listening time")` of `src/ui/stats_tui.rs:339`,
+>      `.title("The reader of the ebook")` of `src/ui/tui.rs:652`, and
+>      `.title("The contents of the book")` of `src/ui/reader_tui.rs:304` are
+>      literals of `src/ui/`, in the shape of the five footers of T-302 and of
+>      the four texts of T-301. The longest of them holds 28 characters,
+>      therefore each of them stands at 40 columns. **A table of them in a file
+>      that a gate reads is the answer of that class.** **This is a candidate
+>      and not a measurement.**
+>    - **The rule of a title counts characters and not columns** (T-300, T-301,
+>      T-302, and T-304). **This is a candidate and not a measurement.**
+>
 >    **The session of the hundred and thirty-second turn took the candidate "the
 >    popup of the view of the search leaves a cell of the screen behind it",
 >    which T-302 left open, and the measurement of it gave the cause** (T-303).
@@ -18957,79 +19184,6 @@ on **two** rows at 80 columns, and on **one** row of the two at 160.
 >      `render_search_book` of `src/ui/tui.rs` that calls `search_active` inside
 >      the render therefore never runs, and the key `/` of `App::handle_key` is
 >      the one road to that box. **This is a candidate and not a measurement.**
->
->    **The session of the hundred and thirty-first turn took the candidate
->    "the footers of the other views hold two rows and no more", which T-301
->    left open, and the measurement of it gave the fault** (T-302). **It left
->    the candidate "the popup of the view of the search leaves a cell of the
->    screen behind it" open**, and that one has a measurement of its condition
->    already: the round after it needs the cause alone.
->
->    **A narrow terminal took the keys of every view off the screen.** The
->    footer of a view stood in a `Rect` of **two** rows: `FOOTER_HEIGHT` of
->    `src/ui/tui.rs` was 2, `the_areas_of_a_view` gave the footer that number
->    at every width, and each of the other fifteen render functions wrote
->    `Constraint::Length(2)` of its own. `App::render_footer` drew the text
->    with `Wrap { trim: true }`, therefore the words that the two rows did not
->    hold went away with no word of a fault. A terminal of 40 columns holds
->    **80 cells** in those two rows, and the footer of the Home view holds 116
->    characters. **Five footers stood outside the gate of the footers of the
->    program**: the statistics, the sessions, a new podcast, the accounts, and
->    the library of the user were literals of `src/ui/tui.rs`, and the two last
->    of them held a `\n` of their own — the shape of the four texts of T-301.
->
->    The measurement, of the real program v0.8.130 inside tmux against the
->    sandbox with the account `toutuitest`. **The data of this fault is the
->    size of the terminal** (T-301), therefore it needs no proxy, no book of a
->    harness, and no change of the sandbox at all: `COLUMNS_OF_THE_SCREEN=40`
->    and `ROWS_OF_THE_SCREEN=30` of `docs/harness/drive.sh`. The Home view said
->    at its foot `j/k: move  l: play or open  Tab:` and
->    `home/library  S-Tab: the next library`: **the keys `/: search`,
->    `R: refresh`, `?: every key`, and `Q: quit` stood outside the screen**,
->    and the user read no road to the table of the keys and no road out of the
->    program. The key `Tab` gave the Library view with the same two rows, and
->    the keys `/`, `alice`, and `Enter` gave the view of the search, which lost
->    `Q: quit`. A control of the same run: the table of the keys, whose footer
->    holds 41 characters, said `j/k: move  h/Esc: back  ?: close  Q: quit`
->    whole on its two rows, and the keys `?`, `h`, and `/` each did their work
->    at 40 columns — the footer alone said nothing.
->
->    **The decision: the footer of a view stands on the rows that it needs.**
->    That is the rule of T-299 for the row of the message and of T-301 for the
->    reader. T-301 gave the reader that rule alone because "a list would lose a
->    line": a list of a view does lose a line, and **the key `j` moves the
->    list**, therefore no line of it goes out of the reach of the user, while a
->    key of the road back that stands outside the screen has no such road. The
->    footer holds no more than one half of the rows of the view and no fewer
->    than two of them, and an end that no row holds goes to three points.
->    **Every footer of the program stands in `src/ui/keys.rs`**, where the gate
->    reads it, and no footer holds a `\n`.
->
->    The correction is five files. `src/ui/keys.rs` holds `THE_SMALLEST_FOOTER`
->    of 2 rows, the pure `the_rows_of_a_footer`, the five texts that came out of
->    `src/ui/tui.rs`, and `THE_FOOTERS_OF_THE_VIEWS` of all twenty-one of them,
->    which the two gates read. `src/ui/tui.rs`: `the_areas_of_a_view` takes the
->    rows of the footer, `App::the_rows_of_the_footer` measures the text and
->    keeps the answer in the `App`, `App::render_footer` draws with
->    `crate::logic::message::in_the_rows`, each of the sixteen render functions
->    reads its footer **before** its `Layout`, and `render_the_message` reads
->    `self.rows_of_the_footer` and no fixed number. `src/app.rs` holds that
->    field. `src/ui/reader_tui.rs` calls the rule of `crate::ui::keys`.
->    `src/logic/message.rs`: **`the_rows_of_a_message` read one space between
->    two words, and every footer of this program holds two of them** — the count
->    said three rows of a terminal of 40 columns where ratatui took four, and
->    `Q: quit` then stood outside the screen at the end of the third row.
->    **The corrected program**, of the same keys, held every key of the Home
->    view and of the Library view on **four** rows at 40 columns, every key of
->    the search, of the bookmarks, and of the lists on **three**, and it kept
->    **two** rows and the whole of its text at 80 and at 160 columns.
->    - **The popup of the view of the search leaves a cell of the screen behind
->      it** (T-302): at 39, 40, and 41 columns the first row of the footer of
->      that view said `l: play or op n`. **The session of the hundred and
->      thirty-second turn measured the cause of it** (T-303), and this
->      candidate is closed.
->    - **The rule of a footer counts characters and not columns** (T-300,
->      T-301, and T-302). **This is a candidate and not a measurement.**
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -19480,7 +19634,12 @@ on **two** rows at 80 columns, and on **one** row of the two at 160.
 > cells of the view below it, therefore the diff of ratatui sends no byte
 > for a cell of the box that holds the same letter as the view after it,
 > and `App::the_box_of_a_field_went_away` is the one road to the field that
-> the loop of the program reads** (T-303).
+> the loop of the program reads** (T-303), and **the title of a view keeps its
+> start: the title of a list stands in the middle of the header of it, and
+> ratatui draws a centered title that does not stand right-aligned in an area
+> that it cut — therefore a title that is longer than the screen loses its start
+> and its end together, and `crate::logic::message::in_one_row` is the one maker
+> of a text of one row of this program** (T-304).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
@@ -19508,7 +19667,9 @@ on **two** rows at 80 columns, and on **one** row of the two at 160.
 > bytes with three turns in it; the round of the hundred and thirty-second
 > found it at 96488 bytes with two turns in it, and it took the oldest one out
 > and it wrote its own, and the block then held 97109 bytes with two turns in
-> it. **A turn of many
+> it; the round of the hundred and thirty-third found it at 97309 bytes with two
+> turns in it, and it did the same work, and the block then held about 97600
+> bytes with two turns in it. **A turn of many
 > numbers is a turn that takes two turns out**, and **a block that stands above
 > 99000 bytes with one turn in it needs a part of the list of "Do not open these
 > again" in a section of its own, outside the block.**
