@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.158",
+        date: "16/08/2026",
+        body: &[
+            "Added:",
+            "- **The panel of the cover says the day when you started the \
+             media.** The line `Started` stands under the line of the time, in \
+             the Home view and in the Library view. Your server holds that day \
+             for every media that you played, and no view of this program said \
+             it before.",
+            "Note:",
+            "- A media that you never started takes no such line, as every \
+             other fact of that panel: a line that says nothing costs a row of \
+             your screen.",
+        ],
+    },
+    Entry {
         version: "0.8.157",
         date: "16/08/2026",
         body: &[

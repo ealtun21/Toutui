@@ -148,6 +148,7 @@ async fn every_fact_of_the_server_takes_a_line_of_the_panel() {
         // that panel is `Progress: {}%, {} {}`.
         the_time_that_is_left: "15m left,",
         the_end: "Not finished",
+        the_day_of_the_start: "",
     };
 
     let lines = the_lines_of_the_facts(&media, 48);

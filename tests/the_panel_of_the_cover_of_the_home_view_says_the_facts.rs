@@ -213,6 +213,7 @@ async fn the_panel_of_a_media_of_the_home_view_says_every_fact() {
             percent: "50",
             the_time_that_is_left: "15m left,",
             the_end: "Not finished",
+            the_day_of_the_start: "",
         },
         48,
     );
@@ -250,6 +251,7 @@ async fn a_fact_that_the_server_did_not_give_takes_no_line() {
             percent: "90",
             the_time_that_is_left: "0m left,",
             the_end: "Not finished",
+            the_day_of_the_start: "",
         },
         48,
     );

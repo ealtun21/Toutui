@@ -8,6 +8,11 @@
 //! the state of the ebook, each on a line of its own, with a bar of the
 //! progress under them.
 //!
+//! **The day when the user started the media takes a line too** (T-328): the
+//! design names it under the line of the time, and the answer of the account is
+//! the one road to it — the answer of the items of a library holds no such
+//! field, therefore that line came one round after the six facts.
+//!
 //! ## The fault of the program before this module
 //!
 //! **The answer of the server holds every one of those facts already, and no
@@ -138,6 +143,11 @@ pub struct TheMediaOfThePanel<'a> {
 
     /// `Finished` or `Not finished`.
     pub the_end: &'a str,
+
+    /// The day when the user started the media, in the words of
+    /// `crate::api::utils::collect_get_media_progress::the_day_of_the_start`. A
+    /// media that the user never started holds no text. See T-328.
+    pub the_day_of_the_start: &'a str,
 }
 
 /// Says if the server gave this fact.
@@ -244,6 +254,13 @@ pub fn the_lines_of_the_facts(media: &TheMediaOfThePanel, width: u16) -> Vec<Str
         ),
         ("Year", a_value(media.year).map(str::to_string)),
         ("Time", the_time_of(media)),
+        // **The day of the start stands under the length of the media**, as the
+        // design gives it (T-328): the two of them say the time of the media
+        // and the time of the user beside each other.
+        (
+            "Started",
+            a_value(media.the_day_of_the_start).map(str::to_string),
+        ),
         ("Genre", a_value(&media.facts.genre).map(str::to_string)),
         ("Files", the_files_of(media.facts)),
         ("Ebook", a_value(&media.facts.the_ebook).map(str::to_string)),
@@ -289,6 +306,7 @@ mod tests {
             percent: "50",
             the_time_that_is_left: "15m left,",
             the_end: "Not finished",
+            the_day_of_the_start: "16 Aug 2026",
         }
     }
 
@@ -306,7 +324,10 @@ mod tests {
             vec![
                 "Author    Long Author".to_string(),
                 "Narrator  A Test Narrator".to_string(),
+                // The day of the start stands under the line of the time
+                // (T-328).
                 "Time      30m, 15m left".to_string(),
+                "Started   16 Aug 2026".to_string(),
                 "Genre     Fiction, Adventure".to_string(),
                 "Files     1 file, 7.0 MB".to_string(),
                 "Ebook     epub".to_string(),
@@ -336,6 +357,7 @@ mod tests {
             percent: "0",
             the_time_that_is_left: "",
             the_end: "Not finished",
+            the_day_of_the_start: "",
         };
 
         // The length of the media and the place of the user always stand.
@@ -369,6 +391,7 @@ mod tests {
             percent: "100",
             the_time_that_is_left: "0m left",
             the_end: "Finished",
+            the_day_of_the_start: "10 Aug 2026",
         };
 
         let lines = the_lines_of_the_facts(&media, 20);

@@ -8659,6 +8659,47 @@ impl App {
         )
     }
 
+    /// The day when the user started the media of the selected line of the Home
+    /// view. See T-328.
+    pub fn the_day_of_the_start_of_the_home_view(&self, selected: usize) -> String {
+        self.the_day_of_the_start_of_this_media(crate::logic::home_view::the_key_of_the_line(
+            &self._ids_cnt_list,
+            &self.ids_ep_cnt_list,
+            selected,
+        ))
+    }
+
+    /// The day when the user started the media of the selected line of the
+    /// Library view. See T-328.
+    pub fn the_day_of_the_start_of_the_library(&self, selected: usize) -> String {
+        self.the_day_of_the_start_of_this_media(
+            self.ids_library
+                .get(selected)
+                .filter(|one| !one.is_empty())
+                .map(|id| crate::logic::live::the_key_of_the_media(id, None)),
+        )
+    }
+
+    /// The day when the user started one media, from the key of that media. See
+    /// T-328.
+    ///
+    /// **The answer of the account is the one road to that day**: `startedAt`
+    /// of a row of `mediaProgress` of `GET /api/me` holds it, the answer of the
+    /// items of a library holds no such field, and the box of
+    /// `crate::logic::the_positions` therefore carries it beside the place of
+    /// the user (T-241). A live message of the server names no day of a start,
+    /// and a playback of this program starts no media that the server did not
+    /// see: the box is the value of every frame.
+    ///
+    /// **A media that the box does not name played never** (T-127), and the
+    /// panel of that line then holds no line of a day at all, which is the rule
+    /// of T-325.
+    fn the_day_of_the_start_of_this_media(&self, key: Option<String>) -> String {
+        key.and_then(|key| crate::logic::the_positions::the_place_of(&key))
+            .and_then(|row| row.get(3).cloned())
+            .unwrap_or_default()
+    }
+
     /// Gives the place of the panel of the selected line of the Library view.
     /// See T-241.
     ///

@@ -607,41 +607,44 @@ impl App {
         // and no book of it stands under the cursor. The two views each hold
         // such a line: the Library view groups the books of a series, and the
         // shelf `recent-series` of the Home view is a shelf of series.
-        let (facts, length, of_the_disk, author, year, place) = match self.view_state {
-            AppView::Library => {
-                if self.selected_library_series().is_some() {
-                    return None;
+        let (facts, length, of_the_disk, author, year, place, the_day_of_the_start) =
+            match self.view_state {
+                AppView::Library => {
+                    if self.selected_library_series().is_some() {
+                        return None;
+                    }
+
+                    let selected = self.selected_library_item()?;
+
+                    (
+                        self.the_facts_library.get(selected)?,
+                        self.duration_library.get(selected).copied(),
+                        at(&self.ids_library, selected),
+                        at(&self.auth_names_library, selected),
+                        at(&self.published_year_library, selected),
+                        self.the_place_of_the_panel_of_the_library(selected),
+                        self.the_day_of_the_start_of_the_library(selected),
+                    )
                 }
+                AppView::Home => {
+                    if self.selected_home_series().is_some() {
+                        return None;
+                    }
 
-                let selected = self.selected_library_item()?;
+                    let selected = self.selected_home_item()?;
 
-                (
-                    self.the_facts_library.get(selected)?,
-                    self.duration_library.get(selected).copied(),
-                    at(&self.ids_library, selected),
-                    at(&self.auth_names_library, selected),
-                    at(&self.published_year_library, selected),
-                    self.the_place_of_the_panel_of_the_library(selected),
-                )
-            }
-            AppView::Home => {
-                if self.selected_home_series().is_some() {
-                    return None;
+                    (
+                        self.the_facts_home.get(selected)?,
+                        self.duration_cnt_list.get(selected).copied(),
+                        at(&self._ids_cnt_list, selected),
+                        at(&self.auth_names_cnt_list, selected),
+                        at(&self.pub_year_cnt_list, selected),
+                        self.the_place_of_the_panel_of_the_home_view(selected),
+                        self.the_day_of_the_start_of_the_home_view(selected),
+                    )
                 }
-
-                let selected = self.selected_home_item()?;
-
-                (
-                    self.the_facts_home.get(selected)?,
-                    self.duration_cnt_list.get(selected).copied(),
-                    at(&self._ids_cnt_list, selected),
-                    at(&self.auth_names_cnt_list, selected),
-                    at(&self.pub_year_cnt_list, selected),
-                    self.the_place_of_the_panel_of_the_home_view(selected),
-                )
-            }
-            _ => return None,
-        };
+                _ => return None,
+            };
 
         let length = length
             .map(|seconds| convert_seconds(vec![seconds]))
@@ -665,6 +668,7 @@ impl App {
                 percent: &place.percent,
                 the_time_that_is_left: &place.the_time_that_is_left,
                 the_end: &place.the_end,
+                the_day_of_the_start: &the_day_of_the_start,
             },
             width,
         ))

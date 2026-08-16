@@ -30214,3 +30214,128 @@ tests of the gate fail, and one of them made a test of the module fail too:
   of the panel 5, the buttons of the facts of it, the bar of the progress of
   it, the whole status bar, the buttons of the panel 7, the box of the message,
   and the row of the downloads.
+
+## T-328 — The panel of the cover says the day of the start of the media
+
+**The part of the stage 6 that the round of T-325 left open** (`### 0. The road
+of the panels (T-316 to T-323)` of `docs/HANDOVER.md`): "the day of the start
+of the media takes no line (`started_at` of
+`crate::api::me::get_media_progress` holds it and no call site reads it)".
+
+**The design names that day.** `docs/mockups/mockup-1.txt` holds the line
+`Started  14 Aug 2026` of the panel 5, between the line of the time and the
+line of the genre.
+
+**The reason that the round of T-325 could not give it.** That round read the
+answer of the items of a library, and that answer holds no day of a start at
+all. The measurement of the sandbox of 2026-08-16, of
+`GET /api/libraries/<Books>/items`, gave the keys `id`, `ino`,
+`oldLibraryItemId`, `libraryId`, `folderId`, `path`, `relPath`, `isFile`,
+`mtimeMs`, `ctimeMs`, `birthtimeMs`, `addedAt`, `updatedAt`, `isMissing`,
+`isInvalid`, `mediaType`, `media`, `numFiles`, and `size`, and no key of a
+place of the user among them.
+
+**The answer of the account holds that day for every media that the account
+played.** The measurement of the same day, of `GET /api/me`, of `A Long Test
+Book`:
+
+```json
+"libraryItemId": "9a671047-6146-4003-8510-d215db074a9c",
+"progress": 0.5,
+"isFinished": false,
+"startedAt": 1786905843790
+```
+
+31 rows of that answer held a day, and `crate::api::me::get_media_progress::Root`
+reads `startedAt` since T-127: **the value stood in the memory of the program at
+every frame, and no call site read it.**
+
+**The real program v0.8.157 inside tmux**, at 160 columns and 45 rows, of the
+Library view of the library `Books` of the sandbox, with the cursor on `A Long
+Test Book`:
+
+```text
+│Author    Long Author                           │
+│Narrator  A Test Narrator                       │
+│Time      30m, 15m left                         │
+│Genre     Fiction, Adventure                    │
+│Files     1 file, 7.0 MB                        │
+│Ebook     epub                                  │
+│Progress  50%, Not finished                     │
+│████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░│
+```
+
+**The data of this item is the program itself**: no proxy, no book of a
+harness, and no change of the sandbox — the library of the row of the account
+comes of a `sqlite3` of `name_selected_lib` and of `id_selected_lib` (the trap
+203 and the trap 204).
+
+**The corrected program of the same harness**, of that same row:
+
+```text
+│Author    Long Author                           │
+│Narrator  A Test Narrator                       │
+│Time      30m, 15m left                         │
+│Started   16 Aug 2026                           │
+│Genre     Fiction, Adventure                    │
+│Files     1 file, 7.0 MB                        │
+│Ebook     epub                                  │
+│Progress  50%, Not finished                     │
+│████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░│
+```
+
+**The controls of the same run.** The Home view of that same program, of that
+same book of the shelf `Continue Listening`, said `Started   16 Aug 2026` under
+its line of the time too. The row `Alice in Wonderland`, which the account
+started on the 10th of August and never played, said `Started   10 Aug 2026`
+over `Progress  0%, Not finished`. And the row `A Book Of A Broken Epub`, which
+the answer of the account does not name at all, said `Time      0m`, `Files
+1 file, 0.2 MB`, and `Ebook     epub`, **and no line of a day and no line of a
+place**: a media that the box of the places does not hold played never (T-127).
+
+**The correction is five files, and no new one.**
+`src/api/utils/collect_get_media_progress.rs` holds `the_day_of_the_start`,
+which gives the words of the design (`%-d %b %Y`) in the time of the machine of
+the user, and no words at all for a day of 0 and for a number that no moment
+holds; `src/logic/the_positions.rs` puts that value in the box of the places of
+the account, after the three values that stood there; `src/app.rs` holds
+`App::the_day_of_the_start_of_the_home_view`,
+`App::the_day_of_the_start_of_the_library`, and
+`App::the_day_of_the_start_of_this_media`, which reads the box;
+`src/logic/the_facts_of_a_media.rs` gives `TheMediaOfThePanel` the field
+`the_day_of_the_start` and the line `Started` under the line of the time; and
+`src/ui/tui.rs` carries the value of the selected row of the two views.
+`tests/the_panel_of_the_cover_says_the_day_of_the_start.rs` holds the gate, of
+four tests, and **the build of the fault** (the trap 147), of four edits of one
+line each, made each of the four fail:
+
+| The edit | The tests that failed |
+|---|---|
+| The box of the places holds `String::new()` in place of the day | `the_box_of_the_places_holds_the_day_of_the_start` |
+| `the_day_of` gives no words at all | `the_day_of_the_start_comes_of_the_answer_of_the_account`, `the_box_of_the_places_holds_the_day_of_the_start` |
+| The panel takes `None` for the line of the day | `the_panel_says_the_day_of_the_start_under_the_time` |
+| The panel takes the day with no rule of `a_value` | `a_media_of_no_day_of_a_start_takes_no_line` |
+
+**The decisions of this item.**
+- **The day comes of the box of the places of the account and of no request of
+  its own.** `GET /api/me` runs at the start of the program for the permissions
+  of the account already (T-110 and T-127), therefore a library of 2056 items
+  costs no request for this line.
+- **The day stands after the three values of the box** and not before them: a
+  reader of the box takes the value of its own place, therefore every reader
+  that stood before this item reads the same three values.
+- **The day comes in the time of the machine of the user**, because the user
+  reads the day when they started the media and not the day of the server.
+- **A media that the user never started takes no line at all**, which is the
+  rule of T-325.
+- **A live message of the server names no day of a start**, and a playback of
+  this program starts no media that the server did not see: the box is the value
+  of every frame, and this line takes no road of T-239 and of T-240.
+
+**What stays open of the stage 6 after this item.** The buttons `[+ bigger]`
+and `[- smaller]` of the title of the panel 6 (T-327) and the buttons of the
+facts of the panel 5, which no round builds for the reason of T-322: a `[ ]`
+that no click reads promises a function that the program does not have (T-118).
+The facts stand **under** the picture and not beside it, which is a decision of
+T-325 that does not open again. **Every named part of the stage 6 that a round
+can build is done.**

@@ -65,7 +65,11 @@ pub fn the_place_of_a_media<'a>(
 ///
 /// The row holds the three values of `App::book_progress_cnt_list` and of
 /// `the_places_of_the_queue`: the percent of the user, the mark of the end, and
-/// the place of the user in seconds.
+/// the place of the user in seconds. **The day of the start of the media stands
+/// after the three of them** (T-328): the panel 5 of the design names that day,
+/// and the answer of the account is the one road to it. A reader of the box
+/// takes the value of its own place, therefore a row of three values and a row
+/// of four give the same three values to every reader that stood before T-328.
 fn box_of_the_places() -> &'static std::sync::Mutex<BTreeMap<String, Vec<String>>> {
     static PLACES: std::sync::OnceLock<std::sync::Mutex<BTreeMap<String, Vec<String>>>> =
         std::sync::OnceLock::new();
@@ -108,6 +112,7 @@ pub fn the_place_of(key: &str) -> Option<Vec<String>> {
 pub async fn the_places_of_the_account(rows: &[Root]) -> BTreeMap<String, Vec<String>> {
     use crate::api::utils::collect_get_media_progress::{
         collect_current_time_prg, collect_is_finished_book, collect_progress_percentage_book,
+        the_day_of_the_start,
     };
 
     let mut places = BTreeMap::new();
@@ -124,6 +129,7 @@ pub async fn the_places_of_the_account(rows: &[Root]) -> BTreeMap<String, Vec<St
                 collect_progress_percentage_book(row).await,
                 collect_is_finished_book(row).await,
                 collect_current_time_prg(row).await.to_string(),
+                the_day_of_the_start(row),
             ],
         );
     }
