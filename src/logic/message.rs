@@ -43,6 +43,7 @@
 //! answer of a key must come at once.
 
 use crate::app::AppView;
+use std::borrow::Cow;
 use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
@@ -452,6 +453,50 @@ pub fn the_columns_of(text: &str) -> usize {
     unicode_width::UnicodeWidthStr::width(text)
 }
 
+/// Makes the text that must stand on one line of the screen.
+///
+/// **This is the one place of the rule of a row of a list** (T-311). A `List`
+/// of ratatui gives one `ListItem` the rows of the ends of the lines of its
+/// text: a line of a list whose text holds a `\n` therefore takes two rows of
+/// the panel, and the rules of every list of this program then fail together —
+/// the mark of the line and the sign `➤` of the cursor stand on the first row
+/// alone, the row after it names a media that the library does not hold, and
+/// the count of the bar of the scroll reads the lines of the list and not the
+/// rows of the panel (T-255), therefore the last line of the list goes away
+/// with no character of a bar to say that it is there.
+///
+/// The measurement of 2026-08-16, of the Library view of 18 books of the
+/// sandbox in a panel of 18 rows: a title of the server of `Alpha\nOMEGAEND`
+/// gave the row `OMEGAEND` of no mark, and the book `One File With No Decoder`
+/// had no row and no bar at all.
+///
+/// Every end of a line takes one space, and a `\r\n` takes one space together.
+/// A text of no end of a line keeps its own place in the memory.
+///
+/// The function is pure, therefore a test needs no screen.
+pub fn in_one_line(text: &str) -> Cow<'_, str> {
+    if !text.contains(['\n', '\r']) {
+        return Cow::Borrowed(text);
+    }
+
+    let mut of_one_line = String::with_capacity(text.len());
+    let mut the_letter_before_was_an_end = false;
+
+    for letter in text.chars() {
+        if letter == '\n' || letter == '\r' {
+            if !the_letter_before_was_an_end {
+                of_one_line.push(' ');
+            }
+            the_letter_before_was_an_end = true;
+        } else {
+            of_one_line.push(letter);
+            the_letter_before_was_an_end = false;
+        }
+    }
+
+    Cow::Owned(of_one_line)
+}
+
 /// Makes the text that must stand in one row of a width of columns.
 ///
 /// **A text of one row keeps its start** (T-304, and the rule of T-299 and of
@@ -750,6 +795,34 @@ mod tests {
         assert!(!is_for_the_screen(
             Duration::from_secs(0),
             Duration::from_secs(0)
+        ));
+    }
+
+    /// A text of one line holds no end of a line. See T-311.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn a_text_of_one_line_holds_no_end_of_a_line() {
+        // The title of the server of the measurement of T-311.
+        assert_eq!(in_one_line("Alpha\nOMEGAEND"), "Alpha OMEGAEND");
+
+        // The three shapes of an end of a line each take one space, and a run
+        // of them takes one space together.
+        assert_eq!(in_one_line("three\r\nfour"), "three four");
+        assert_eq!(in_one_line("five\rsix"), "five six");
+        assert_eq!(in_one_line("seven\n\n\neight"), "seven eight");
+
+        // A text of no end of a line keeps every character of it.
+        let of_the_control = "A Book Of A Broken Epub";
+        assert_eq!(in_one_line(of_the_control), of_the_control);
+        assert_eq!(in_one_line(""), "");
+
+        // **A text of no end of a line keeps its own place in the memory**: the
+        // render of a list of 2056 items reads this function for every line of
+        // every frame.
+        assert!(matches!(
+            in_one_line(of_the_control),
+            std::borrow::Cow::Borrowed(_)
         ));
     }
 

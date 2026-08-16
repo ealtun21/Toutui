@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.140",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The lines of a list stand on one row each.** A title of the \
+             server can hold an end of a line, and the program gave that title \
+             to the list with no change: the line then took two rows of the \
+             panel, the second row of it held no mark and it read as a media \
+             that the library does not have, and the last line of the list had \
+             no row and no bar of the scroll at all.",
+        ],
+    },
+    Entry {
         version: "0.8.139",
         date: "16/08/2026",
         body: &[

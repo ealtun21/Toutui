@@ -27331,3 +27331,145 @@ binaries in two runs.
   a colour of its own would say where such a row stands. **This is a candidate
   and not a measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to T-309).
+
+### T-311: the rows of a list hold one line each
+
+#### The fault
+
+**T-310 left this open as its fourth candidate**: a line of a list that holds
+an end of a line takes more than one row. `render_the_list` of
+`src/ui/the_list_of_a_view.rs` gave the text of each line to `ListItem::new`
+with no change. A `ListItem` of a text that holds a `\n` takes the rows of the
+ends of the lines of that text, and every rule of a list then fails together:
+
+- The mark of the line (`✓`, a percent) and the sign `➤` of the cursor stand on
+  the first row alone, therefore the row after it reads as a media of its own
+  that the library does not hold.
+- `the_list_of_the_render` of `src/logic/the_scroll_of_a_list.rs` says in its
+  own words (the lines 105 to 107) that one line of the list takes one row of
+  the panel, therefore the bar of the scroll counts the lines and not the rows,
+  and a list that stands whole in its panel by that count loses its last line
+  with no character of a bar to say that the line is there.
+
+That one function serves the 24 lists of the program, and the call sites of it
+stand at `src/ui/tui.rs`.
+
+#### The measurement
+
+Of the real program v0.8.139 inside tmux against the sandbox on `:13399`, the
+account `toutuitest`, a terminal of **80** columns and 45 rows, with
+`docs/harness/drive.sh`. **The data of the fault is the text of the server**:
+no proxy, no book of a harness, no build of the fault of the source, and no
+change of the source at all.
+
+The row of the account took the library `Books` with `sqlite3` before the
+start (the trap 203 and the trap 204).
+
+```bash
+curl -X PATCH "http://localhost:13399/api/items/a4d8b9b2-c4a4-4e80-8ed0-07662933fa71/media" \
+    -H "Authorization: Bearer $TOK" -H 'Content-Type: application/json' \
+    -d '{"metadata":{"title":"Alpha\nOMEGAEND"}}'
+```
+
+That gave the book `A Book Of An Epub With No Container` a title with an end
+of a line. The key `Tab` of the Home view gave the Library view: the header
+said `Library [18 items]`, the panel holds **18** rows, and the screen held
+`➤ ✓   Alpha` and, under it, a row `  OMEGAEND` of **no mark**, and the book of
+the last line, `One File With No Decoder`, had **no row and no bar of the
+scroll at all** — 17 of the 18 books of the library reached the user. A
+capture of the colours of tmux says that the highlight of the cursor covers
+the two rows, therefore a user who stands on that line can read it; a line
+that the cursor does not hold gives the two rows the colour of the line, and
+the row `OMEGAEND` then reads as a book of its own.
+
+The scroll of ratatui itself holds: 17 presses of the key `j` reached
+`One File With No Decoder`, and the list moved by one line. **The fault is the
+render of the rows and not the offset of the list.**
+
+**The control of the same run** (the trap 206): the book after it,
+`A Book Of A Broken Epub`, whose title holds no end of a line, stood on one
+row.
+
+**The corrected program**, of the same keys and the same title of the server:
+the row said `➤ ✓   Alpha OMEGAEND` on one row, and
+`✓   One File With No Decoder` had its row back — 18 rows for 18 books. The key
+`Tab` gave the Home view, and the search view of the keys `/`, `Alpha`, `Enter`
+gave `➤ ✓   Alpha OMEGAEND` on one row too, therefore the rule reaches every
+list of the program.
+
+#### The correction
+
+The correction is two files.
+
+`src/logic/message.rs` holds the new
+`pub fn in_one_line(text: &str) -> Cow<'_, str>`, which is the one place of the
+rule of a row of a list: every end of a line takes one space, a `\r\n` takes
+one space together, a run of the ends of the lines takes one space together,
+and a text of no end of a line keeps its own place in the memory — the render
+of a list of 2056 items reads it for every line of every frame.
+
+`src/ui/the_list_of_a_view.rs`: `render_the_list` calls it for the text of
+each `ListItem`.
+
+#### The gate
+
+The new `tests/a_row_of_a_list_stands_on_one_row.rs` draws the real
+`render_the_list` into a `Buffer` of ratatui with no terminal (T-256), of 80
+columns and 19 rows, and it reads the rows of that buffer. It holds two test
+functions: the 18 lines of the measurement (the whole title on one row, no row
+that holds `OMEGAEND` alone, the last line of the list keeps its row, and no
+bar comes), and the control with the three shapes of an end of a line (`\n`,
+`\r\n`, `\r`), a run of three of them, and a count that says the rows of the
+panel that hold a character are the lines of the list. The unit test
+`a_text_of_one_line_holds_no_end_of_a_line` of `src/logic/message.rs` holds
+the rule itself.
+
+**The build of the fault** (the trap 147), one edit that keeps every other
+line: `ListItem::new(line.clone())` in the place of
+`ListItem::new(crate::logic::message::in_one_line(line).into_owned())`. Both
+test functions of the new file then failed: the first said `the first row of
+the panel holds no whole title: "➤ ✓   Alpha"`, and the second said `"➤ one"`.
+
+#### The gates
+
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` pass.
+`cargo nextest run` gives 1377 of 1377 tests in 2.8 seconds, and the run
+before the correction gave 1374. `cargo nextest run --run-ignored all` gives
+1403 of 1403 with the sandbox up. `cargo test -j 16 --no-fail-fast`, the gate
+of CI, passed two times.
+
+#### What this turn leaves open
+
+- **The title of the block of a list takes no such rule**:
+  `in_one_row(title, area.width)` of `render_the_list` cuts a title by its
+  columns and it says nothing of an end of a line, and a title of a view can
+  hold a text of the server (the name of an author of
+  `Search result [2 items, with the books of <the author>]`). `Line::raw` of
+  ratatui holds one line, and the road of a `\n` in it is unknown. **This is a
+  candidate and not a measurement.**
+- **The marks of a line count the characters still**: `fill` of
+  `src/ui/marks.rs:111` reads `mark.chars().count()`, and a mark of the East
+  Asian Width "Ambiguous" takes one column or two, and the terminal decides.
+  **The four marks of that file are constants of this program** (`▶`, `✓`,
+  `100`, and a percent of numbers), therefore no text of the server reaches
+  that count and the road of a measurement of the real program stays unknown.
+  **This is a candidate and not a measurement.**
+- **The two keys of `must_refresh` that say nothing at all** (T-308):
+  `show_the_books_of_the_author` (`src/app.rs:4251`) and
+  `apply_the_sequence_or_the_filter` (`src/app.rs:6161`) each change every list
+  of the screen and each say no word of what they did. The rule of T-91 asks
+  whether a key that changes the whole screen must name the change. **This is a
+  candidate and not a measurement.**
+- **A word of a description that is longer than the panel takes the road of
+  ratatui that overflows the area** (T-306). That is a fault of the crate and
+  not of this program, and no count of this program says what it does. **This
+  is a candidate and not a measurement.**
+- **A text whose last line holds no character stands outside every gate of a
+  wrap of this fork** (T-310): the count of the rows of ratatui of T-306,
+  T-307, T-309, and T-310 reads the rows that hold a character. A `Buffer` of a
+  background of a colour of its own would say where such a row stands. **This
+  is a candidate and not a measurement.**
+- **The row of the player and the header of the screen hold a title of the
+  server too**, and no measurement of this fork gave either of them a text with
+  an end of a line. **This is a candidate and not a measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to T-310).

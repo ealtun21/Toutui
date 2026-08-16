@@ -70,10 +70,20 @@ pub fn render_the_list(
     lines: &[String],
     list_state: &mut ListState,
 ) {
+    // **A line of a list stands on one row of the panel** (T-311). A `ListItem`
+    // of a text that holds a `\n` takes the rows of the ends of the lines of it,
+    // and every rule of a list of this program then fails together: the mark of
+    // the line and the sign of the cursor stand on the first row alone, the row
+    // after it names a media that the library does not hold, and the bar of the
+    // scroll counts the lines of the list and not the rows of the panel (T-255).
+    // `in_one_line` is the one place of that rule.
     let items: Vec<ListItem> = lines
         .iter()
         .enumerate()
-        .map(|(i, line)| ListItem::new(line.clone()).bg(the_colour_of_a_line(colors, i)))
+        .map(|(i, line)| {
+            ListItem::new(crate::logic::message::in_one_line(line).into_owned())
+                .bg(the_colour_of_a_line(colors, i))
+        })
         .collect();
 
     // **A colour of the configuration that holds no three numbers is a colour
