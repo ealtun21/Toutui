@@ -11098,7 +11098,62 @@ that file, or the test `every_key_of_the_handler_stands_in_the_list` fails.
 
 ## What is open
 
-### 0. The four items of the maintainer of 2026-08-16 (T-316 to T-319)
+### 0. The road of the panels (T-316 to T-323)
+
+**The maintainer chose the mockup 1, the panels, on 2026-08-16.**
+`docs/mockups/mockup-1.txt` and `docs/mockups/mockup-1.md` are the design of
+the program now, and the four items below are the parts of it. **The decision
+came, therefore the road is open**: a round takes the next stage that is not
+finished.
+
+**The sequence of the stages, and the reason of it.** The theme comes first
+because it names the colours that every panel of the design uses, and a change
+of it after the panels means a change of every call site two times. The frame
+comes second because every other stage draws inside it. The plumbing of the
+mouse comes third, **and each stage after it adds the targets of its own
+region**, because one round of every target at the end is a round that no
+measurement can hold.
+
+| The stage | The item | What it gives |
+|---|---|---|
+| 1 | **T-317** | The theme of the terminal of the user |
+| 2 | **T-320** | The frame of the panels, the focus, and the narrow terminal |
+| 3 | **T-316** | The harness of a click, the capture, and a click of a row |
+| 4 | **T-321** | The list of the panel 4 becomes a table of a header |
+| 5 | **T-318** | The panels 2 and 3, and a series that opens into its books |
+| 6 | **T-319** | The panel 5 of one cover, and the panel 6 of the gallery |
+| 7 | **T-322** | The panel 7, the band of the player |
+| 8 | **T-323** | The mode that hides the panels 1 to 3, and the last sweep |
+
+**Every stage keeps the rules of this file**: drive the real program inside
+tmux before the change and after it, put the two screens in the item of
+`docs/TAKEOVER-BACKLOG.md`, keep every gate, and give the user a release. **A
+stage that does not finish in one round leaves the item open and it names the
+part that stands**, and the next round takes that part.
+
+**Three decisions that a round must not take alone.**
+
+1. **The digits.** The design gives the digits 1 to 7 to the focus of a panel,
+   and the panel 2 of the mockup shows the digits 1 to 6 beside the sequences
+   too. **The two cannot both hold.** The recommendation: **the digit moves
+   the focus, and no other view takes a bare digit**; the rows of the panel 2
+   take `j`, `k`, and `Enter` alone, and the column of the digit of that panel
+   goes away.
+2. **The keys of the focus that exist already.** `Tab` is Home and the
+   Library, and `Shift+Tab` is the next library (the trap 196), therefore
+   **neither of them can cycle the focus of a panel**. The recommendation: the
+   digits alone, with `Ctrl+h`, `Ctrl+j`, `Ctrl+k`, and `Ctrl+l` for the focus
+   of the panel at the left, below, above, and at the right.
+3. **The narrow terminal.** The design needs about 120 columns for its three
+   columns, and **this fork measures 40 columns as its narrowest** (T-301).
+   The frame therefore holds three shapes, and the round of T-320 measures
+   each of them: **three columns at 120 and up**, **two columns from 84 to
+   119** (the left stack goes away and the status bar keeps the words of the
+   sequence and of the filter), and **one column under 84** (the right column
+   goes away too, and the screen is the screen of today). **A shape that no
+   measurement reached is not a shape of this program.**
+
+### The four items of the maintainer of 2026-08-16 (T-316 to T-319)
 
 **The maintainer gave these four items directly, therefore they stand above the
 sweep of `### The work, in the sequence of its value`.** They are the work of
@@ -11204,6 +11259,44 @@ can read**. The arithmetic of the tiles belongs in the item: the number of the
 columns and of the rows of the tiles at 160, at 80, and at **40** columns
 (T-301 names 40 as the narrowest terminal of this fork), and the road back to
 a list for a terminal that draws no image.
+
+**T-320: the frame of the panels.** `the_areas_of_a_view` and
+`the_areas_of_a_list` of `src/ui/tui.rs` give the areas of today; the design
+needs a frame of three columns — the stack of the panels 1, 2, and 3 at 34
+columns at the left, the panel 4 at 66 columns in the middle, and the panels 5
+and 6 at 60 columns at the right — with the panel 7 of the player under the
+three of them, and the box of the message and the bar of the downloads under
+that. **The focus is the work of this stage**: a value of the panel that holds
+it, a heavy border `═║` for that panel and a light border `─│` for every other
+one (**the shape and not the colour alone**, so that a theme of a low contrast
+still says where the focus is), the number of each panel in its title, and the
+keys of the decision 1 and 2 above. **The two lines of the keys at the foot
+belong to this stage too**: one line of the keys of the panel that holds the
+focus, and one line of the keys of every view. **The three shapes of the
+decision 3 are the measurement of this stage.**
+
+**T-321: the list of the panel 4 becomes a table.** The list of today holds one
+text of each row; the design holds a row of a header (`Title`, `Author`,
+`Time`, `Done`), the marks `➤` of the cursor, `▶` of the media that plays, `✓`
+of a media that is finished, and `↓` of a media of the disk, and a bar of the
+scroll inside the border. **The row of the header is the target of a click of
+T-318 and of the mouse**, therefore its geometry belongs to this stage.
+
+**T-322: the panel 7, the band of the player.** The row of the player of today
+says `▶ 3:14 / 30:00`; the design holds four rows — the title with the author,
+the chapter, the speed, the volume, and the timer for sleep; the bar of the
+position with a time at each of its two ends; the bar of the book beside the
+bar of the chapter; and a row of the buttons of every key of the player.
+**The keys of the player stand in `src/ui/player_tui.rs` already** (the key
+`B`), therefore this stage moves them and it does not invent them.
+
+**T-323: the mode that hides the panels 1 to 3, and the last sweep of the
+mouse.** The design note names the cost of a screen that is always full: a
+user who wants a small and quiet screen finds it busy. **The answer is a key
+that hides the stack at the left and that gives its 34 columns to the panel
+4**, and that mode is not the mode of the start. The last sweep reads the map
+of the mouse of `docs/mockups/mockup-1.md` section (e) and it names every
+region that no stage before it reached.
 
 **Five mockups of the whole screen stand in `docs/mockups/`**, one of each of
 five lineages of a TUI (the panels of lazygit, the columns of yazi, the player
@@ -21451,10 +21544,15 @@ end of a line** (T-315).
 >    fault before you correct it" does not hold for them: drive the real
 >    program inside tmux before and after each of them, and put the two
 >    screens in the item of `docs/TAKEOVER-BACKLOG.md`. Each of them takes
->    more than one round. **Five mockups of the whole screen stand in
->    `docs/mockups/`** and they wait for the decision of the maintainer, and no
->    round starts T-316 to T-319 before that decision comes. Read that section
->    first, and take the item 1 below while it does not come.
+>    more than one round. **The maintainer chose the mockup 1, the panels, on
+>    2026-08-16**, therefore the road is open: `docs/mockups/mockup-1.txt` and
+>    `docs/mockups/mockup-1.md` are the design of the program now, and that
+>    section holds the eight stages of it in their sequence — T-317 the theme,
+>    T-320 the frame of the panels, T-316 the mouse, T-321 the table, T-318
+>    the panels of the sequence and of the filter, T-319 the covers, T-322 the
+>    band of the player, and T-323 the mode that hides the stack at the left.
+>    **A round takes the next stage that is not finished**, and that section
+>    holds three decisions that a round must not take alone. Read it first.
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and eleven sessions of one hundred

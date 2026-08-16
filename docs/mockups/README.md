@@ -24,8 +24,15 @@ what that design gives up.
 comparison**, stands at
 <https://claude.ai/code/artifact/361f7100-f479-4ccc-9cd5-47236d845ebf>.
 
-**No round starts T-316 to T-319 before the maintainer decides.** The four
-items are independent, therefore the answer can take a part of more than one
-mockup: the two bars of the position of `mockup-3`, the rail of the covers of
-`mockup-4`, the series of a column of `mockup-2`, and the legend of the mouse
-of `mockup-1` can stand in one program together.
+## The decision
+
+**The maintainer chose the `mockup-1`, the panels, on 2026-08-16.** That file
+and its note are the design of the program now, and the four items of the
+maintainer are the parts of it. `### 0. The road of the panels (T-316 to
+T-323)` of `docs/HANDOVER.md` holds the eight stages of the work in their
+sequence, and the three decisions that a round must not take alone.
+
+The other four mockups stay in this directory. They hold ideas that the road
+can take later, and each of them says what it gives up: the two bars of the
+position of `mockup-3`, the rail of the covers of `mockup-4`, the series of a
+column of `mockup-2`, and the query that narrows a grid of `mockup-5`.
