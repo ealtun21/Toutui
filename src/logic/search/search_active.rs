@@ -96,6 +96,13 @@ impl App {
             f.render_widget(empty_block, search_area);
         })?;
 
+        // The box wrote on the cells of the view below it, and the terminal of
+        // the program knows nothing of that work: it writes the cells that
+        // changed only. Therefore the loop of the program draws every cell
+        // again. See T-303, and `logic::prompt` for the same answer of the box
+        // of a text.
+        self.the_box_of_a_field_went_away();
+
         Ok(input.value().to_string())
     }
 }

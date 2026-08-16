@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.132",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The box of the search no longer leaves a cell of the screen \
+             behind it.** That box makes a screen of its own, and it writes on \
+             the cells of the view below it. The program then drew the view \
+             after it, and it sent the cells that changed only: a cell of the \
+             box that held the same letter as the view after it got no byte at \
+             all, and the space that the box left stayed on the screen. A \
+             terminal of 40 columns therefore said \"l: play or op n\" at the \
+             foot of the view of the search. The program now writes every cell \
+             of the screen again after that box, in the same way as the box \
+             that asks for a text.",
+        ],
+    },
+    Entry {
         version: "0.8.131",
         date: "16/08/2026",
         body: &[

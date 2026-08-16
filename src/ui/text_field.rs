@@ -95,6 +95,118 @@ pub fn field_view(input: &Input, width: u16, mask: Option<char>) -> FieldView {
 mod tests {
     use super::*;
 
+    /// The file that makes the backend, and the login screen. The login screen
+    /// holds no `App` and no view below it: it is the whole screen of the
+    /// program at that moment. See T-303.
+    const THE_FILES_THAT_HOLD_NO_VIEW_BELOW_THE_BOX: [&str; 2] =
+        ["ui/text_field.rs", "logic/auth/auth_input.rs"];
+
+    /// Gives the path and the text of every file of `src/`.
+    fn the_files_of_the_source() -> Vec<(String, String)> {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+        let mut wait = vec![root.clone()];
+        let mut out: Vec<(String, String)> = Vec::new();
+
+        while let Some(place) = wait.pop() {
+            let Ok(entries) = std::fs::read_dir(&place) else {
+                continue;
+            };
+
+            for entry in entries.flatten() {
+                let path = entry.path();
+
+                if path.is_dir() {
+                    wait.push(path);
+                    continue;
+                }
+
+                if path.extension().and_then(|end| end.to_str()) != Some("rs") {
+                    continue;
+                }
+
+                let Ok(text) = std::fs::read_to_string(&path) else {
+                    continue;
+                };
+
+                let name = path
+                    .strip_prefix(&root)
+                    .unwrap_or(&path)
+                    .display()
+                    .to_string()
+                    .replace('\\', "/");
+
+                out.push((name, text));
+            }
+        }
+
+        assert!(!out.is_empty(), "the directory src holds no file");
+        out
+    }
+
+    /// **A box of a field makes a terminal of its own**, and it writes on the
+    /// cells of the view below it. The terminal of the program holds those
+    /// cells in the buffer of the frame before, and it sends the cells that
+    /// changed only: a cell of the box that holds the same letter as the view
+    /// after it gets no byte at all, and the space that the box left stays on
+    /// the screen.
+    ///
+    /// The measurement of T-303, of a terminal of 40 columns: the box of the
+    /// search stood over the second row of the footer of the Home view, and the
+    /// view of the search then said `l: play or op n`.
+    ///
+    /// Therefore every box of a field says that the screen must be drawn again.
+    #[test]
+    fn every_box_of_a_field_says_that_the_screen_must_be_drawn_again() {
+        let mut boxes = 0;
+
+        for (name, text) in the_files_of_the_source() {
+            if !text.contains("the_backend_of_a_field()") {
+                continue;
+            }
+
+            if THE_FILES_THAT_HOLD_NO_VIEW_BELOW_THE_BOX.contains(&name.as_str()) {
+                continue;
+            }
+
+            boxes += 1;
+
+            assert!(
+                text.contains("the_box_of_a_field_went_away()"),
+                "the file src/{name} makes a box of a field, and it does not say \
+                 that the screen must be drawn again. See T-303."
+            );
+        }
+
+        assert!(
+            boxes >= 2,
+            "the source holds {boxes} boxes of a field with a view below them, \
+             and the two of T-303 are the box of a text and the box of the search"
+        );
+    }
+
+    /// **`App::the_box_of_a_field_went_away` is the one road to the field that
+    /// says that the screen must be drawn again.** A box that writes that field
+    /// itself stands outside the gate above. See T-303.
+    #[test]
+    fn one_function_says_that_the_screen_must_be_drawn_again() {
+        // The words of the rule stand in two parts, because this file is a
+        // file of the source that the rule reads.
+        let the_write = format!("the_screen_must_be_drawn_again{}", " = true");
+
+        for (name, text) in the_files_of_the_source() {
+            if name == "app.rs" || name == "ui/text_field.rs" {
+                continue;
+            }
+
+            assert!(
+                !text.contains(&the_write),
+                "the file src/{name} writes the field itself. \
+                 `App::the_box_of_a_field_went_away` is the one road to it. \
+                 See T-303."
+            );
+        }
+    }
+
     fn input_at(value: &str, cursor: usize) -> Input {
         Input::new(value.to_string()).with_cursor(cursor)
     }

@@ -372,13 +372,16 @@ pub struct App {
     /// from that request. See T-24.
     pub must_refresh: bool,
     /// A box of the program wrote on the cells of the view, and the next draw
-    /// must write every cell again. See T-89.
+    /// must write every cell again. See T-89 and T-303.
     ///
     /// **ratatui writes the cells that changed only**, and it compares with the
-    /// buffer that it holds itself. The box of `ask_for_a_text` makes a terminal
+    /// buffer that it holds itself. A box of a field makes a terminal
     /// of its own, therefore the terminal of the program knows nothing of the
     /// letters that the box wrote over. Those letters stayed on the screen until
     /// a key made the program write the same rows again.
+    ///
+    /// **No box of a field writes this field itself**: each of them calls
+    /// `App::the_box_of_a_field_went_away`, which is the one road to it.
     pub the_screen_must_be_drawn_again: bool,
     /// The view that opened the books of a series. The key `h` then goes
     /// back to that view, and not to the list of the series. The Home view
@@ -623,6 +626,29 @@ pub struct TheStateThatARefreshKeeps {
 
 /// Init app
 impl App {
+    /// A box of a field went away, therefore the next draw writes every cell
+    /// of the screen again. See T-89 and T-303.
+    ///
+    /// **A box of a field makes a terminal of its own, and it writes on the
+    /// cells of the view below it.** The terminal of the program keeps those
+    /// cells in the buffer of the frame before, and it sends the cells that
+    /// changed only: a cell of the box that holds the same letter as the view
+    /// after it therefore gets no byte at all, and the space that the box left
+    /// stays on the screen.
+    ///
+    /// The measurement of T-303, of a terminal of 40 columns: the box of the
+    /// search stood over the second row of the footer of the Home view, and the
+    /// view of the search then said `l: play or op n`. The letter `e` of `open`
+    /// stood at the column 25, and the letter `e` of `the` of
+    /// `S-Tab: the next library` stood at that same column of the row below the
+    /// box.
+    ///
+    /// **This function is the one road to `the_screen_must_be_drawn_again`**,
+    /// and the gate of `crate::ui::text_field` reads that rule.
+    pub fn the_box_of_a_field_went_away(&mut self) {
+        self.the_screen_must_be_drawn_again = true;
+    }
+
     /// Gives the state of the user that a refresh must keep. See T-135.
     pub fn the_state_that_a_refresh_keeps(&self) -> TheStateThatARefreshKeeps {
         TheStateThatARefreshKeeps {

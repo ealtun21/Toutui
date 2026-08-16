@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.131.** The item T-302 belongs to this session. The
+**The newest release is v0.8.132.** The item T-303 belongs to this session. The
+item T-302 belongs to the session before it. The
 item T-301 belongs to the session before it. The
 item T-300 belongs to the session before it. The
 item T-299 belongs to the session before it. The
@@ -139,14 +140,101 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.127**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.132**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1353 of 1353** in 2.7 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1379 of 1379** in 17.1 seconds
+**1364 of 1364** in 2.8 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1390 of 1390** in 23.3 seconds
 with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its binaries in two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and thirty-second turn of 2026-08-16: a box of a field says that the screen must be drawn again
+
+**The item: T-303**, and the release **v0.8.132**.
+
+**The candidate came of T-302.** That item left the popup of the view of the
+search open, with a measurement of its condition and no measurement of its
+cause: at 39, 40, and 41 columns the first row of the footer of that view said
+`l: play or op n`, and the keys `?` and `h` gave the whole row back.
+
+**The read of the source named the cause in one line.**
+`the_screen_must_be_drawn_again` of `App` is the answer of T-89 for a box that
+makes a terminal of its own, and one file of the two that need it wrote it:
+`src/logic/prompt.rs`, for `ask_for_a_text`. `search_active` of
+`src/logic/search/search_active.rs` makes the same kind of terminal — the same
+`the_backend_of_a_field()` of `src/ui/text_field.rs`, on the same standard
+output — and it said nothing at all. No gate read that rule.
+
+**The measurement gave the numbers of the cell.** Of the real program v0.8.131
+inside tmux against the sandbox with the account `toutuitest`, at
+`COLUMNS_OF_THE_SCREEN=40` and `ROWS_OF_THE_SCREEN=30`, with the keys `/`,
+`alice`, and `Enter` of the Home view. The box of the search stands over the row
+above the footer and over the two first rows of it, and its bottom row therefore
+takes the row of the screen that the first row of the footer of the view of the
+search takes. The row of the frame before the box was the second row of the
+footer of the Home view:
+
+```
+column       25
+before  ..  S-Tab: the next library
+after   ..  l: play or op n  h: back  /:
+```
+
+A comparison of the two rows cell by cell gives **the column 25 and no other**:
+the `e` of `the` and the `e` of `open` are the same letter, therefore the diff
+of ratatui sent no byte for that cell, and the space that the last draw of the
+box left there stayed on the screen.
+
+**`tmux pipe-pane` reads the bytes of the program itself**, and it said the
+same: the bytes that the program wrote between the key `/` and the frame of the
+view of the search hold no `play or op` at all. That is a second program of the
+measurement, and it needs no change of the source.
+
+**The decision: a box of a field says that the screen must be drawn again.**
+`App::the_box_of_a_field_went_away` of `src/app.rs` is the one road to that
+field, `src/logic/prompt.rs` and `src/logic/search/search_active.rs` each call
+it, and `src/ui/text_field.rs` holds the two gates: every file of `src/` that
+calls `the_backend_of_a_field()` and that is not one of
+`THE_FILES_THAT_HOLD_NO_VIEW_BELOW_THE_BOX` calls
+`the_box_of_a_field_went_away()`, and no file outside `src/app.rs` writes the
+field itself. The login screen holds no `App` and no view below it, therefore
+`AppLogin::auth` of `src/logic/auth/auth_input.rs` stands in that list with the
+reason.
+
+**The corrected program**, of the same keys and of the same sandbox, said
+`j/k: move  l: play or open  h: back  /:` at 39, 40, and 41 columns, and it kept
+the whole of its footer at 80. A second search inside the view of the search
+gave every cell of the screen.
+
+**The build of the fault**: the call removed gave
+`ui::text_field::tests::every_box_of_a_field_says_that_the_screen_must_be_drawn_again`,
+which named the file `src/logic/search/search_active.rs`.
+
+**The gates**: `cargo clippy --all-targets -- -D warnings` and
+`cargo fmt --check` pass, `cargo nextest run` gives 1364 of 1364 in 2.8 seconds,
+and `cargo test -j 16 --no-fail-fast` (the gate of CI) gives no failure over its
+binaries in two runs.
+
+**What this turn leaves open.**
+
+- **The title of a list that is longer than the screen loses its start**
+  (T-303): a second search of `hours` at 40 columns, of the same run, gave a
+  view whose title said `he books of Many Hours Author]──────────`, and the
+  same view at 80 columns said
+  `Search result [2 items, with the books of Many Hours Author]`. The user of a
+  narrow terminal reads no name of the view and no number of its items. **This
+  is a candidate and not a measurement of its cause.**
+- **The other roads of a box that goes away hold no measurement** (T-303): the
+  box of `ask_for_a_text` holds the answer of T-89 already, and no measurement
+  of this round drove the keys that open it at a narrow terminal. **This is a
+  candidate and not a measurement.**
+- **`App::search_mode` is never true** (T-303): the branch of
+  `render_search_book` of `src/ui/tui.rs` that calls `search_active` inside the
+  render of the view therefore never runs, and the key `/` of `App::handle_key`
+  is the one road to that box. A box inside a render would set the field after
+  the loop of `src/main.rs` read it. **This is a candidate and not a
+  measurement.**
 
 ## The session of the hundred and thirty-first turn of 2026-08-16: the footer of a view stands on the rows that it needs
 
@@ -17875,12 +17963,78 @@ percent at **40** columns and at **160** columns too.
   candidate and not a measurement.**
 
 
+**The session of the hundred and thirtieth turn took the candidate "the
+keys at the foot of the reader stand in a `Paragraph` of two rows with no
+`wrap`", which T-300 left open, and the measurement of it gave the fault**
+(T-301).
+
+**A narrow terminal took the road back out of the reader.** The keys at the
+foot of the reader stood in `src/ui/reader_tui.rs` as four literals of the
+`render`, each of them with a `\n` of its own, in a `Paragraph` of a `Rect`
+of two rows with **no wrap at all**. The two rows of the text of a chapter
+hold 69 and 63 characters, and the one row of the contents of a book holds
+77 of them. **That footer stood outside the gate of the footers of this
+program**: every other footer stands in `src/ui/keys.rs`, where
+`every_footer_fits_in_eighty_columns` holds two rules — one line with no
+`\n`, and no more than 130 characters — and `App::render_footer` of
+`src/ui/tui.rs` draws it with `.wrap(Wrap { trim: true })`. The reader broke
+the three of them, and no test read those four literals.
+
+The measurement, of the real program v0.8.129 inside tmux against the
+sandbox with the account `toutuitest`. **The data of this fault is the size
+of the terminal, and it needs no proxy and no book of a harness at all**: a
+terminal of **40 columns** and 30 rows, and the keys `/`,
+`Alice in Wonderland`, `Enter`, and `e` on the copy of the cache of the
+ebooks. The two rows at the foot said `j/k: line  Space/b: screen  n/p:
+chapter` and ` s: send the position  ?: every key  h:` — **the keys
+`t: contents`, `g/G: start/end`, and `Q: quit` went away, and
+`h: leave the book` stood at `h:`.** The key `t` then gave the contents, and
+the one row of that view said `j/k: move  l/Enter: go to the chapter  t`:
+**the whole of `h: leave the book` went away there**, and the contents of a
+book hold no other road out. A control of the same run: the key `t` gave the
+contents and it gave the text back, and the key `n` gave the chapter 4 of 14
+at 9% on the line at the top, therefore the keys did their work and the
+footer alone said nothing.
+
+**The decision: the footer of the reader is a footer of this program, and it
+stands on the rows that it needs.** A wrap of two rows corrects nothing at
+40 columns: two rows of 40 columns hold 80 cells, and the footer of the
+reader holds 133 characters. The footer therefore takes the rows of its wrap
+and it grows over the text of the book — the body of the reader scrolls,
+therefore those rows cost the user no word of the book, and a list would
+lose a line. It holds no more than one half of the rows of the reader, and a
+footer that needs more loses its end to three points (the rule of T-299);
+and it holds no fewer than **two** rows, because the reader held two rows at
+every width already.
+
+The correction is two files. `src/ui/keys.rs` holds the four texts, as
+`FOOTER_OF_THE_READER`, `FOOTER_OF_THE_READER_OF_PAGES`,
+`FOOTER_OF_THE_CONTENTS`, and `FOOTER_OF_THE_PAGES`, each of them one line
+with no `\n`, under the gate `every_footer_of_the_reader_holds_one_line`.
+`src/ui/reader_tui.rs` holds `footer_of`, the pure
+`the_rows_of_the_footer` (out of `crate::logic::message::the_rows_of_a_message`,
+clamped to `[2, the rows of the reader / 2]`), and
+`draw_the_footer(area, buf, keys)` with `in_the_rows` and the wrap; `render`
+reads the rows before its `Layout`. **The corrected program**, of the same
+book and of the same keys, held every key on **four** rows at 40 columns,
+on **two** rows at 80 columns, and on **one** row of the two at 160.
+- **The footer of the reader counts characters and not columns** (T-301):
+  `the_rows_of_a_message` counts one column for each character, and the four
+  texts hold ASCII alone — therefore this is no fault of these texts today,
+  and it is the class of the line at the top of T-300. **This is a candidate
+  and not a measurement.**
+- **The footers of the other views hold two rows and no more** (T-301): a
+  terminal of 40 columns holds 80 cells in them, and the gate of those
+  footers allows 130 characters. A measurement of a footer of a view of a
+  list at 40 columns did not run. **This is a candidate and not a
+  measurement.**
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.131**; `Cargo.toml` is at 0.8.131. The
+> AlbanDAVID/Toutui. Newest release **v0.8.132**; `Cargo.toml` is at 0.8.132. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -17889,7 +18043,7 @@ percent at **40** columns and at **160** columns too.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-299 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-303 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -18612,15 +18766,15 @@ percent at **40** columns and at **160** columns too.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-299 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-304 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1356 tests in 2.8 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1382 of 1382** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1364 tests in 2.8 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1390 of 1390** with the sandbox up, in about 23 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -18730,6 +18884,80 @@ percent at **40** columns and at **160** columns too.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and seven sessions of one hundred
 >    and eight.
+>    **The session of the hundred and thirty-second turn took the candidate "the
+>    popup of the view of the search leaves a cell of the screen behind it",
+>    which T-302 left open, and the measurement of it gave the cause** (T-303).
+>    **It left the candidate "the title of a list that is longer than the screen
+>    loses its start" open**, with a measurement of its condition and not of its
+>    cause.
+>
+>    **The box of the search left a cell of the screen behind it.**
+>    `search_active` of `src/logic/search/search_active.rs` makes a `Terminal`
+>    of its own on the standard output, it draws a box of three rows over the
+>    view below it, and at its end it draws a `Block` of the background colour
+>    over that same area: the cells of the box then hold a space. The terminal
+>    of the program knows nothing of that work — **ratatui compares with the
+>    buffer of the frame before, and it sends the cells that changed only** —
+>    therefore a cell of the box that holds the same letter in the frame before
+>    and in the frame after gets no byte at all, and the space stays.
+>    `ask_for_a_text` of `src/logic/prompt.rs` makes a box of the same shape and
+>    it holds the answer of T-89 already (`the_screen_must_be_drawn_again`, which
+>    the loop of `src/main.rs` reads after the key, and `terminal.clear()` then
+>    writes every cell). **`search_active` said nothing at all**, and no gate read
+>    that rule.
+>
+>    The measurement, of the real program v0.8.132 inside tmux against the
+>    sandbox with the account `toutuitest`. **The data of this fault is the size
+>    of the terminal** (T-301), therefore it needs no proxy, no book of a
+>    harness, and no change of the sandbox: `COLUMNS_OF_THE_SCREEN=40` and
+>    `ROWS_OF_THE_SCREEN=30` of `docs/harness/drive.sh`, and the keys `/`,
+>    `alice`, and `Enter` of the Home view. The first row of the footer of the
+>    view of the search said `j/k: move  l: play or op n  h: back  /:`.
+>    **The cause, in numbers**: the bottom row of the box stood at the row of the
+>    screen that the first row of that footer takes, the row of the frame before
+>    the box was the second row of the footer of the Home view
+>    (`  home/library  S-Tab: the next library`), and a comparison of the two
+>    rows cell by cell gives **the column 25 and no other** — the `e` of `the`
+>    and the `e` of `open`. **`tmux pipe-pane` says the same of the bytes**: the
+>    bytes that the program wrote between the key `/` and the frame of the view
+>    of the search hold no `play or op` at all. A control of the same run: the
+>    keys `?` and `h` gave the whole row back.
+>
+>    **The decision: a box of a field says that the screen must be drawn again.**
+>    That is the answer of T-89 for the box of a text, and it is the answer of
+>    every box of this program.
+>    **`App::the_box_of_a_field_went_away` is the one road to that field.** The
+>    login screen holds no `App` and no view below it, therefore
+>    `AppLogin::auth` of `src/logic/auth/auth_input.rs` stands outside the rule,
+>    with the reason.
+>
+>    The correction is four files. `src/app.rs` holds
+>    `App::the_box_of_a_field_went_away`, with the numbers of the measurement in
+>    its documentation. `src/logic/prompt.rs` and
+>    `src/logic/search/search_active.rs` each call it after the box goes away.
+>    `src/ui/text_field.rs`, which holds `the_backend_of_a_field` — the one maker
+>    of the backend of every box of this program — holds the two gates: every
+>    file of `src/` that calls that maker and that is not one of
+>    `THE_FILES_THAT_HOLD_NO_VIEW_BELOW_THE_BOX` calls
+>    `the_box_of_a_field_went_away()` (and the gate asserts that it found two
+>    such files), and no file outside `src/app.rs` writes the field itself.
+>    **The corrected program**, of the same keys, said
+>    `j/k: move  l: play or open  h: back  /:` at **39**, **40**, and **41**
+>    columns, and it kept the whole of its footer at 80.
+>    - **The title of a list that is longer than the screen loses its start**
+>      (T-303): a second search of `hours` at 40 columns, of the same run, gave
+>      a view whose title said `he books of Many Hours Author]──────────`, and
+>      the same view at 80 columns said
+>      `Search result [2 items, with the books of Many Hours Author]`. The user
+>      of a narrow terminal therefore reads no name of the view and no number of
+>      its items. The rule of T-300 for the line at the top of the reader is the
+>      answer of this class. **This is a candidate and not a measurement of its
+>      cause.**
+>    - **`App::search_mode` is never true** (T-303): the branch of
+>      `render_search_book` of `src/ui/tui.rs` that calls `search_active` inside
+>      the render therefore never runs, and the key `/` of `App::handle_key` is
+>      the one road to that box. **This is a candidate and not a measurement.**
+>
 >    **The session of the hundred and thirty-first turn took the candidate
 >    "the footers of the other views hold two rows and no more", which T-301
 >    left open, and the measurement of it gave the fault** (T-302). **It left
@@ -18797,87 +19025,18 @@ percent at **40** columns and at **160** columns too.
 >    **two** rows and the whole of its text at 80 and at 160 columns.
 >    - **The popup of the view of the search leaves a cell of the screen behind
 >      it** (T-302): at 39, 40, and 41 columns the first row of the footer of
->      that view said `l: play or op n`, and the keys `?` and `h` and
->      `tmux refresh-client` each gave the whole row back. The buffer of ratatui
->      holds the right letters and the terminal never got them. The row of the
->      footer stood at the row of the message before this turn, therefore no
->      measurement saw it. **This is a candidate and not a measurement of its
->      cause.**
+>      that view said `l: play or op n`. **The session of the hundred and
+>      thirty-second turn measured the cause of it** (T-303), and this
+>      candidate is closed.
 >    - **The rule of a footer counts characters and not columns** (T-300,
 >      T-301, and T-302). **This is a candidate and not a measurement.**
->
->    **The session of the hundred and thirtieth turn took the candidate "the
->    keys at the foot of the reader stand in a `Paragraph` of two rows with no
->    `wrap`", which T-300 left open, and the measurement of it gave the fault**
->    (T-301).
->
->    **A narrow terminal took the road back out of the reader.** The keys at the
->    foot of the reader stood in `src/ui/reader_tui.rs` as four literals of the
->    `render`, each of them with a `\n` of its own, in a `Paragraph` of a `Rect`
->    of two rows with **no wrap at all**. The two rows of the text of a chapter
->    hold 69 and 63 characters, and the one row of the contents of a book holds
->    77 of them. **That footer stood outside the gate of the footers of this
->    program**: every other footer stands in `src/ui/keys.rs`, where
->    `every_footer_fits_in_eighty_columns` holds two rules — one line with no
->    `\n`, and no more than 130 characters — and `App::render_footer` of
->    `src/ui/tui.rs` draws it with `.wrap(Wrap { trim: true })`. The reader broke
->    the three of them, and no test read those four literals.
->
->    The measurement, of the real program v0.8.129 inside tmux against the
->    sandbox with the account `toutuitest`. **The data of this fault is the size
->    of the terminal, and it needs no proxy and no book of a harness at all**: a
->    terminal of **40 columns** and 30 rows, and the keys `/`,
->    `Alice in Wonderland`, `Enter`, and `e` on the copy of the cache of the
->    ebooks. The two rows at the foot said `j/k: line  Space/b: screen  n/p:
->    chapter` and ` s: send the position  ?: every key  h:` — **the keys
->    `t: contents`, `g/G: start/end`, and `Q: quit` went away, and
->    `h: leave the book` stood at `h:`.** The key `t` then gave the contents, and
->    the one row of that view said `j/k: move  l/Enter: go to the chapter  t`:
->    **the whole of `h: leave the book` went away there**, and the contents of a
->    book hold no other road out. A control of the same run: the key `t` gave the
->    contents and it gave the text back, and the key `n` gave the chapter 4 of 14
->    at 9% on the line at the top, therefore the keys did their work and the
->    footer alone said nothing.
->
->    **The decision: the footer of the reader is a footer of this program, and it
->    stands on the rows that it needs.** A wrap of two rows corrects nothing at
->    40 columns: two rows of 40 columns hold 80 cells, and the footer of the
->    reader holds 133 characters. The footer therefore takes the rows of its wrap
->    and it grows over the text of the book — the body of the reader scrolls,
->    therefore those rows cost the user no word of the book, and a list would
->    lose a line. It holds no more than one half of the rows of the reader, and a
->    footer that needs more loses its end to three points (the rule of T-299);
->    and it holds no fewer than **two** rows, because the reader held two rows at
->    every width already.
->
->    The correction is two files. `src/ui/keys.rs` holds the four texts, as
->    `FOOTER_OF_THE_READER`, `FOOTER_OF_THE_READER_OF_PAGES`,
->    `FOOTER_OF_THE_CONTENTS`, and `FOOTER_OF_THE_PAGES`, each of them one line
->    with no `\n`, under the gate `every_footer_of_the_reader_holds_one_line`.
->    `src/ui/reader_tui.rs` holds `footer_of`, the pure
->    `the_rows_of_the_footer` (out of `crate::logic::message::the_rows_of_a_message`,
->    clamped to `[2, the rows of the reader / 2]`), and
->    `draw_the_footer(area, buf, keys)` with `in_the_rows` and the wrap; `render`
->    reads the rows before its `Layout`. **The corrected program**, of the same
->    book and of the same keys, held every key on **four** rows at 40 columns,
->    on **two** rows at 80 columns, and on **one** row of the two at 160.
->    - **The footer of the reader counts characters and not columns** (T-301):
->      `the_rows_of_a_message` counts one column for each character, and the four
->      texts hold ASCII alone — therefore this is no fault of these texts today,
->      and it is the class of the line at the top of T-300. **This is a candidate
->      and not a measurement.**
->    - **The footers of the other views hold two rows and no more** (T-301): a
->      terminal of 40 columns holds 80 cells in them, and the gate of those
->      footers allows 130 characters. A measurement of a footer of a view of a
->      list at 40 columns did not run. **This is a candidate and not a
->      measurement.**
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
 >    (T-284): a round that writes its own turn takes the oldest turn out, and
 >    it takes a second one out while `toutui-loop --dry-run | wc -c` gives more
->    than 100000. That section holds the turn of the hundred and twenty-ninth
+>    than 100000. That section holds the turn of the hundred and thirtieth
 >    and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
@@ -19316,7 +19475,12 @@ percent at **40** columns and at **160** columns too.
 > upward over the work of the view because the key `j` moves a list and a key
 > of the road back that stands outside the screen has no such road, and the
 > count of the rows keeps the width of the spaces that stand between two
-> words** (T-302).
+> words** (T-302), and **a box of a field says that the screen must be drawn
+> again: a box of a field makes a terminal of its own and it writes on the
+> cells of the view below it, therefore the diff of ratatui sends no byte
+> for a cell of the box that holds the same letter as the view after it,
+> and `App::the_box_of_a_field_went_away` is the one road to the field that
+> the loop of the program reads** (T-303).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
@@ -19341,7 +19505,10 @@ percent at **40** columns and at **160** columns too.
 > 99422 bytes with one turn in it, and it did the same work; the round of the
 > hundred and thirtieth found it at 97083 bytes with three turns in it, and it
 > took the oldest one out and it wrote its own, and the block then held 98173
-> bytes with three turns in it. **A turn of many
+> bytes with three turns in it; the round of the hundred and thirty-second
+> found it at 96488 bytes with two turns in it, and it took the oldest one out
+> and it wrote its own, and the block then held 97109 bytes with two turns in
+> it. **A turn of many
 > numbers is a turn that takes two turns out**, and **a block that stands above
 > 99000 bytes with one turn in it needs a part of the list of "Do not open these
 > again" in a section of its own, outside the block.**

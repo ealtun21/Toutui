@@ -148,8 +148,8 @@ impl App {
         // The box wrote on the cells of the view below it, and the terminal of
         // the program knows nothing of that work: it writes the cells that
         // changed only. Therefore the loop of the program draws every cell
-        // again. See T-89, and T-42 for the same answer after a refresh.
-        self.the_screen_must_be_drawn_again = true;
+        // again. See T-89, T-303, and T-42 for the same answer after a refresh.
+        self.the_box_of_a_field_went_away();
 
         Ok(answer)
     }

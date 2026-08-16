@@ -26232,3 +26232,180 @@ rows_of_the_view)`) gave four failures:
   of this program holds a border today. **This is a candidate and not a
   measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to T-301).
+
+### T-303: the box of a field says that the screen must be drawn again
+
+#### The fault
+
+**The box of the search left a cell of the screen behind it.** `search_active`
+of `src/logic/search/search_active.rs` makes a `Terminal` of its own on the
+standard output of the program, it draws a box of three rows over the view
+below it, and at its end it draws a `Block` of the background colour over that
+same area — the box goes away, and the cells of it hold a space.
+
+The terminal of the program knows nothing of that work. **ratatui compares
+with the buffer of the frame before, and it sends the cells that changed
+only**: a cell of the box that holds the same letter in the frame before and in
+the frame after gets no byte at all, and the space that the box left stays on
+the screen.
+
+`ask_for_a_text` of `src/logic/prompt.rs` makes a box of the same shape, and it
+holds the answer of T-89 already: `self.the_screen_must_be_drawn_again = true`,
+which the loop of `src/main.rs:667` reads after the key, and `terminal.clear()`
+then makes the next draw write every cell. **`search_active` said nothing at
+all**, and no gate read that rule: `the_screen_must_be_drawn_again` stood in
+one file of the two that need it.
+
+T-302 left this class open: "**The popup of the view of the search leaves a
+cell of the screen behind it** (T-302). … the buffer of ratatui holds the right
+letters and the terminal never got them … **This is a candidate and not a
+measurement of its cause.**"
+
+#### The measurement
+
+Of the real program v0.8.131 inside tmux against the sandbox, with the account
+`toutuitest`. **The data of this fault is the size of the terminal** (T-301),
+therefore it needs no proxy, no book of a harness, and no change of the
+sandbox: `COLUMNS_OF_THE_SCREEN=40` and `ROWS_OF_THE_SCREEN=30` of
+`docs/harness/drive.sh`, and the keys `/`, `alice`, and `Enter` from the Home
+view.
+
+The Home view, at the first frame, said on the four rows of its footer:
+
+```
+    j/k: move  l: play or open  Tab:
+  home/library  S-Tab: the next library
+ /: search  R: refresh  ?: every key  Q:
+                  quit
+```
+
+The key `/` gave the box of the search, of three rows, over the row above the
+footer and over the two first rows of it:
+
+```
+ ┌Search──────────────────────────────┐
+ │                                    │
+ └────────────────────────────────────┘
+ /: search  R: refresh  ?: every key  Q:
+                  quit
+```
+
+The keys `alice` and `Enter` gave the view of the search, whose footer holds
+three rows, and its first row said:
+
+```
+ j/k: move  l: play or op n  h: back  /:
+```
+
+**One cell of the middle of `open` held a space.**
+
+**The cause, in numbers.** The bottom row of the box stood at the same row of
+the screen as the first row of the footer of the view of the search. The row of
+the frame before the box was the second row of the footer of the Home view:
+
+```
+column       25
+before  ..  S-Tab: the next library
+after   ..  l: play or op n  h: back  /:
+```
+
+The letter of the column 25 of the row before the box is the `e` of `the`, and
+the letter of the column 25 of the row after it is the `e` of `open`. **They are
+the same letter**, therefore the diff of ratatui sent no byte for that cell, and
+the space that the box left stayed. A comparison of the two rows, cell by cell,
+gives the column 25 and no other.
+
+**`tmux pipe-pane` says the same thing of the bytes of the program**: the bytes
+that the program wrote to its terminal between the key `/` and the frame of the
+view of the search hold no `play or op` and no `play or open` at all.
+
+A control of the same run: the keys `?` and `h` gave the whole row back, because
+the table of the keys wrote every cell of those rows.
+
+#### The decision
+
+**A box of a field says that the screen must be drawn again.** That is the
+answer of T-89 for the box of a text, and it is the answer of every box of this
+program: a terminal of its own writes on the cells of the view below it, and the
+terminal of the program cannot know it.
+
+**`App::the_box_of_a_field_went_away` is the one road to that field**, and the
+gate reads that rule: a box that writes the field itself stands outside every
+gate, which is the fault of this item.
+
+The login screen holds no `App` and no view below it — it is the whole screen of
+the program at that moment — therefore `AppLogin::auth` of
+`src/logic/auth/auth_input.rs` stands outside the rule, with the reason.
+
+#### The correction
+
+Four files.
+
+`src/app.rs` holds `App::the_box_of_a_field_went_away`, which sets
+`the_screen_must_be_drawn_again`, with the numbers of the measurement above in
+its documentation.
+
+`src/logic/prompt.rs` and `src/logic/search/search_active.rs` each call it after
+the box goes away.
+
+`src/ui/text_field.rs`, which holds `the_backend_of_a_field` — the one maker of
+the backend of every box of this program — holds the two gates.
+`every_box_of_a_field_says_that_the_screen_must_be_drawn_again` walks the files
+of `src/`, and every file that calls `the_backend_of_a_field()` and that is not
+one of `THE_FILES_THAT_HOLD_NO_VIEW_BELOW_THE_BOX` must call
+`the_box_of_a_field_went_away()`; it asserts that it found two such files, so
+that a box that goes away from the source does not empty the gate.
+`one_function_says_that_the_screen_must_be_drawn_again` reads every file of
+`src/` outside `app.rs` and it finds no write of the field itself.
+
+#### The measurement of the corrected program
+
+Of v0.8.132, of the same keys and of the same sandbox. The first row of the
+footer of the view of the search:
+
+| The columns | The row |
+|---|---|
+| 39 | `j/k: move  l: play or open  h: back  /:` |
+| 40 | ` j/k: move  l: play or open  h: back  /:` |
+| 41 | ` j/k: move  l: play or open  h: back  /:` |
+| 80 | ` j/k: move  l: play or open  h: back  /: search again  R: refresh  ?: every key` |
+
+A second search inside the view of the search, of the same run at 40 columns,
+gave the books of the author with every cell of the screen.
+
+#### The build of the fault
+
+The call of `search_active` removed (`// the correction removed` in its place)
+gave one failure:
+`ui::text_field::tests::every_box_of_a_field_says_that_the_screen_must_be_drawn_again`,
+which said: "the file src/logic/search/search_active.rs makes a box of a field,
+and it does not say that the screen must be drawn again. See T-303."
+
+#### The gates
+
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` pass.
+`cargo nextest run` gives 1364 of 1364 in 2.8 seconds.
+
+#### What this turn leaves open
+
+- **The title of a list that is longer than the screen loses its start**
+  (T-303). The measurement above, at 40 columns: a second search of `hours`
+  gave a view whose title said `he books of Many Hours Author]──────────`,
+  and the same view at 80 columns said
+  `Search result [2 items, with the books of Many Hours Author]`. The title of
+  a `Block` of ratatui that is longer than the width of it loses its start, and
+  the user of a narrow terminal therefore reads no name of the view and no
+  number of its items. The rule of T-300 for the line at the top of the reader
+  is the answer of this class. **This is a candidate and not a measurement of
+  its cause.**
+- **The other roads of a box that goes away hold no measurement** (T-303): the
+  box of `ask_for_a_text` holds the answer of T-89 already, and no measurement
+  of this round drove the keys that open it at a narrow terminal. **This is a
+  candidate and not a measurement.**
+- **`App::search_mode` is never true** (T-303): the branch of
+  `render_search_book` of `src/ui/tui.rs:2233` that calls `search_active` inside
+  the render of the view therefore never runs, and the key `/` of
+  `App::handle_key` is the one road to that box. A box inside a render would
+  set the field after the loop of `src/main.rs` read it. **This is a candidate
+  and not a measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to T-302).
