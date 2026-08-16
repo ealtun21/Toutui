@@ -22766,3 +22766,132 @@ the sandbox up, and `cargo test -j 16 --no-fail-fast` passed in two runs.
   measurement.
 - `chapter_sizes` gives 0 for a chapter that failed, and it says nothing at
   all (new with this item). A candidate, and not a measurement.
+
+### T-278: a message of a view that is longer than the screen stands on more than one row
+
+**The state**: corrected on 2026-08-16, in v0.8.107. The measurement is of the
+real program inside tmux against the sandbox.
+
+#### The choice of this item
+
+T-277 left open "Every other `Paragraph` of a message of the program that holds
+no `wrap` can cut a sentence that says why". A sweep of every `Paragraph` of
+`src/ui/` found 44 of them, and two alone hold the two conditions together: no
+`wrap`, and a sentence of a fault that holds the words of the server. Both of
+them are the message of the view of the episodes of a podcast. This item
+reaches those two.
+
+#### The fault
+
+`src/ui/tui.rs` held two `Paragraph::new(no_episodes_message)`, each with
+`.centered()` and no `.wrap(...)`: one for the road of the view of the episodes
+that a search opened (`self.is_from_search_pod` true, `titles_pod_ep_search`
+empty), and one for the road that no search opened (`titles_pod_ep` empty).
+
+`no_episodes_message` is
+`format!("{}\nPress h to go back.", the_reason_of_no_episode(...))` of
+`src/logic/the_episodes.rs`. That function gives three sentences:
+
+- "This podcast has no episode." (28 characters).
+- "The server did not give the episodes of this podcast: {fault}" (the prefix
+  alone is 54 characters, and `{fault}` is what the server said).
+- "The server does not answer, therefore this program does not have the episodes
+  of this podcast." (94 characters).
+
+A `Paragraph` with no `wrap` draws one row for a line, and it cuts the rest.
+Therefore a sentence of the reason never reached the user whole.
+
+#### The measurement
+
+The real program v0.8.106 inside tmux against the sandbox, in a terminal of 80
+columns (`COLUMNS_OF_THE_SCREEN=80`). The account of the sandbox took the
+address `http://127.0.0.1:13500` (the trap 129), and the harness
+
+```bash
+python3 docs/harness/one_path_fails.py 13500 13399 requests.log \
+    /api/items/9fa45bd1-66bc-4c17-ba49-a5a6a5ec8806
+```
+
+gave the status 500 to the request of the podcast "Letters of Two Brides" of
+the library "Podcasts". **The path of the episodes of a podcast is
+`GET /api/items/<the id of the podcast>`**, and not a path of the word
+"episodes": the first attempt of the harness used `/episodes`, and every
+episode of that podcast came. The keys: `Tab` for the Library view, and `l` on
+the line of the podcast.
+
+The screen said:
+
+```text
+The server did not give the episodes of this podcast: The server reported a faul
+                               Press h to go back.
+```
+
+The whole sentence holds 94 characters, and the screen gave 79 of them. The log
+held the reason that the screen lost:
+
+```text
+[podcast] the server gave no episode of the podcast
+9fa45bd1-66bc-4c17-ba49-a5a6a5ec8806: The server reported a fault. Status 500.
+```
+
+The same condition at 160 columns gave the whole sentence on one row.
+
+#### The correction
+
+A new module `src/ui/the_message_of_a_view.rs`, with
+`pub fn render_the_message(text, area, buf)`, which holds the `.centered()`,
+the block of the border, and `.wrap(Wrap { trim: true })`. The two sites of
+`src/ui/tui.rs` call it in the place of their own `Paragraph`.
+
+The corrected program of the same condition at 80 columns said, on three rows:
+
+```text
+   The server did not give the episodes of this podcast: The server reported a
+                               fault. Status 500.
+                               Press h to go back.
+```
+
+#### The controls
+
+The same podcast, with the sandbox answering, gave `Episodes [57 items]` and
+the list of the letters, with the footer
+`j/k: move  l: play  h: back  Tab: home  R: refresh  ?: every key  Q: quit`.
+
+The build of the fault: the `.wrap(...)` line removed, and the two tests of the
+new module then failed, with the cut sentences
+`The server does not answer, therefore this program does not have the episodes of`
+and `The server did not give the episodes of` (at 40 columns).
+
+#### The test
+
+Two tests in `src/ui/the_message_of_a_view.rs`, which draw the real widget into
+a `ratatui::buffer::Buffer` with no terminal at all: one of the sentence of the
+status 500 at the widths 40, 60, and 80, and one of the sentence of the offline
+mode at 80. That second sentence needs no server of a fault at all.
+
+#### What this item leaves open
+
+- The header of the program at 80 columns drew
+  `⚠ toutuitest: the server reports a faults (podcast)`: the left part of the
+  header wrote over the middle part, and the name of the library lost its first
+  characters (new with this item). A candidate, and not a measurement.
+- `ChapterTooLarge` of `ReaderError` of `src/logic/reader/book.rs:540` says
+  "This chapter is too large." It names no size, no limit of 8 megabytes, and
+  no key, and that arm writes no line of the log at all. Compare `BookTooLarge`,
+  which names the size and the limit (open since T-274). A candidate, and not a
+  measurement.
+- `Book::chapter_sizes` of `src/logic/reader/book.rs:513` gives 0 for a chapter
+  whose read failed, and it says nothing, therefore the percent of the header of
+  the reader counts that chapter as nothing (open since T-277). A candidate, and
+  not a measurement.
+- `src/logic/reader/session.rs:363` gives the message
+  "This chapter is too complex." when the render of a chapter went past its
+  limit of time. A limit of time that went by can be a disk that is slow,
+  therefore that is a reason that the program does not have (T-91), and it takes
+  no line of the log. `session.rs:356` gives "This chapter did not open." for a
+  task that died, and it drops the reason of the join (new with this item). A
+  candidate, and not a measurement.
+- `src/logic/reader/session.rs:671` gives "The server has no ebook for this
+  media." for every fault of `api.get_json`, therefore a network that failed
+  says that the server holds no ebook (new with this item). A candidate, and not
+  a measurement.

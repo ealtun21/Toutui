@@ -122,6 +122,56 @@ gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
 
+## The session of the hundred and seventh turn of 2026-08-16: a message of a view that is longer than the screen stands on more than one row
+
+**One release: v0.8.107**, and one item: T-278. **The road of it is the
+candidate "Every other `Paragraph` of a message of this program that holds no
+`wrap`" of T-277.** A sweep of the 44 `Paragraph` of `src/ui/` found two that
+hold the two conditions together: no `wrap`, and a sentence of a fault that
+holds the words of the server. Both of them are the message of the view of the
+episodes of a podcast.
+
+`src/ui/tui.rs` held two `Paragraph::new(no_episodes_message)`, each with
+`.centered()` and no `.wrap(...)`: one for the road of the view that a search
+opened, and one for the road that no search opened. `no_episodes_message` is
+`format!("{}\nPress h to go back.", the_reason_of_no_episode(...))` of
+`src/logic/the_episodes.rs`, and two of the three sentences of that function
+hold 94 characters: the sentence of a server that reported a fault, and the
+sentence of the offline mode.
+
+The measurement, of the real program v0.8.106 inside tmux against the sandbox,
+in a terminal of **80 columns**. The account took the address
+`http://127.0.0.1:13500` (the trap 129), and
+`docs/harness/one_path_fails.py 13500 13399 requests.log /api/items/9fa45bd1-66bc-4c17-ba49-a5a6a5ec8806`
+gave the status 500 to the request of the podcast `Letters of Two Brides` of
+the library `Podcasts`. **The path of the episodes of a podcast is
+`GET /api/items/<the id of the podcast>`**, and not a path of the word
+"episodes": the first attempt of the harness used `/episodes`, and every
+episode came. The keys `Tab` and `l` gave
+
+```text
+The server did not give the episodes of this podcast: The server reported a faul
+                               Press h to go back.
+```
+
+The screen gave 79 characters of a sentence of 94, and the log held the reason
+that the screen lost: `The server reported a fault. Status 500.` The same
+condition at 160 columns gave the whole sentence on one row.
+
+The correction is a new module `src/ui/the_message_of_a_view.rs`, with
+`pub fn render_the_message(text, area, buf)`, which holds the `.centered()`,
+the block of the border, and `.wrap(Wrap { trim: true })`. The two sites of
+`src/ui/tui.rs` call it. The corrected program of the same condition at 80
+columns said the whole sentence on three rows, and it kept the key `h`. The
+control: the same podcast with the sandbox answering gave `Episodes [57 items]`
+and the list of the letters.
+
+The two tests of the new module draw the real widget into a
+`ratatui::buffer::Buffer` with no terminal at all: one of the sentence of the
+status 500 at the widths 40, 60, and 80, and one of the sentence of the offline
+mode at 80. The build of the fault, with the `.wrap(...)` line removed, gave
+`The server did not give the episodes of` at 40 columns.
+
 ## The session of the hundred and sixth turn of 2026-08-16: a chapter that the book did not give says why
 
 **One release: v0.8.106**, and one item: T-277. **The road of it is the
@@ -14465,67 +14515,143 @@ with the code 2 in the log.
   T-273): the block has a limit of size, therefore this turn names the new
   candidates alone and it does not repeat that list.
 
+### The session of the hundred and fourth turn of 2026-08-16 (T-275)
+
+**The
+session of the hundred and fourth turn took the candidate "`let _ =
+self.auth()` of `src/ui/login_tui.rs` drops every fault of the login
+screen", which T-272, T-273, and T-274 each left open. T-273 holds a
+program with no terminal at all, and T-271 and T-272 hold a terminal that
+went away; this turn holds a program that found its terminal and whose
+standard output then failed** (T-275).
+
+`render_auth` held `let _ = self.auth();`, and `src/main.rs` held
+`let _app_result = app_login.run(terminal);`. `auth()` makes a terminal of
+its own on `std::io::stdout()`, and its `?` sites are `Terminal::new`,
+`term.size()`, `term.draw()`, and `crossterm::event::read()`: the two lines
+dropped every one of them.
+
+The measurement, of the real program v0.8.103 inside tmux, with a real
+terminal and with the standard output of the program in a pipe whose reader
+went away after three seconds
+(`./target/debug/toutui | { sleep 3; echo ...; }` of a `tmux new-session`,
+with a `XDG_CONFIG_HOME` of nothing — the trap 135). The first frame
+reached the pipe, the reader went away at 3 seconds, and a key of the user
+at 4.2 seconds gave `term.draw()` the fault `Broken pipe (os error 32)`.
+The two lines dropped it, the loop of `src/main.rs` waited one second, and
+it made a terminal again at 5.2 seconds: `ratatui::try_init()` then failed
+with the same broken pipe, and the user read
+
+```text
+Failed to restore terminal: Broken pipe (os error 32)
+Toutui stops: it found no terminal.
+Broken pipe (os error 32)
+Toutui draws its screen in a terminal, and it reads the keys of the user
+from that terminal.
+Start Toutui in a terminal. A unit of systemd, a task of cron, and a
+program of the background give no terminal.
+```
+
+**The user stood in a terminal already** (T-91), and the log held no word
+of the login screen at all. The first line came of `ratatui::restore()`,
+which writes words of a crate to the standard error (T-172).
+
+The correction: `AppLogin` holds `the_fault_of_the_screen`, `render_auth`
+keeps the fault and it sets `should_exit`, `AppLogin::run` gives
+`io::Result<()>` back through `the_end_of_a_frame_of_the_login`, and
+`src/main.rs` calls
+`the_program_stops_for_a_screen_that_did_not_reach_the_terminal`. A new
+`the_program_gives_the_terminal_back()` of
+`src/utils/the_terminal_of_the_program.rs` uses `ratatui::try_restore()`
+and it puts the fault in the log; the five calls of `ratatui::restore()`
+now use it. The corrected program of the same condition said
+`Toutui stops: the login screen did not reach the terminal.` with the
+reason of the machine and the road back, with no word of a crate above it,
+and it stopped with the status 1. The control: a real login of the sandbox
+inside tmux gave the Home view of the library `Podcasts`, and the key `Q`
+stopped the program.
+- **A fault that two lines drop can come back as the words of a different
+fault** (T-275): the loop of `src/main.rs` made a terminal again, and the
+words of T-273 then named a reason that the program does not have. Ask of
+every `let _ =` of a loop: which words does the next turn of that loop
+give the user?
+- **A crate that writes words to the standard error is a fault of the words
+of the user** (T-275): `ratatui::restore()` holds an `eprintln!`, and
+`ratatui::try_restore()` gives that fault back. Ask of every call of a
+crate: does it write to a stream of the user, and does the crate hold a
+`try_` of it?
+- **The other `?` of `auth()`** (T-275, and they stay open):
+`Terminal::new`, `term.size()`, and `crossterm::event::read()` each hold
+a road of their own, and this turn measured `term.draw()` alone. **This
+is a candidate and not a measurement.**
+- **The three other values of `ReaderError`** (`NotAnEpub`,
+`ChapterAbsent`, and `ChapterTooLarge`): **T-276 closes `NotAnEpub` and
+T-277 closes `ChapterAbsent`**, and `ChapterTooLarge` stays open.
+- **`let _ = out.read_to_string(&mut words)` and `let _ = child.kill()` of
+the parent of the child that reads a PDF** (T-274, and they stay open).
+**This is a candidate and not a measurement.**
+- **Every candidate of the list of the turns below stays open** (T-229 to
+T-274): the block has a limit of size, therefore this turn names the new
+candidates alone and it does not repeat that list.
+
 ## The prompt for the next session
-**This session read the candidate "`ChapterAbsent` and `ChapterTooLarge` of
-`ReaderError`"**, which T-274 opened and which T-275 and T-276 each left open.
-**This turn holds `ChapterAbsent`: the words of a chapter that the archive does
-not hold stood on the road of a chapter that the archive gave no byte of, and
-the screen of that value never reached the user at all.**
+**This session read the candidate "Every other `Paragraph` of a message of this
+program that holds no `wrap`"**, which T-277 opened. **A sweep of the 44
+`Paragraph` of `src/ui/` found two that hold the two conditions together: no
+`wrap`, and a sentence of a fault that holds the words of the server. Both of
+them are the message of the view of the episodes of a podcast.**
 
-Three faults of one screen. `Book::chapter_bytes` of
-`src/logic/reader/book.rs` held `Err(_) => Err(ReaderError::ChapterAbsent)` as
-the last arm of the match on `manifest_entry.copy_bytes(&mut writer)`, and that
-arm took no line of the log at all. `Reader::render_for` of
-`src/logic/reader/session.rs` read `!self.lines.is_empty()` as "the render came
-back", and a chapter that gave a fault gives no line: the render therefore
-started again at every frame, and `render_for` wrote `Reading…` over the
-message that `take_the_answer` had written one call before it, in the same
-frame. And the `Paragraph` of that message held no `wrap`.
+`src/ui/tui.rs` held two `Paragraph::new(no_episodes_message)`, each with
+`.centered()` and no `.wrap(...)`: one for the road of the view that a search
+opened, and one for the road that no search opened. Two of the three sentences
+of `the_reason_of_no_episode` of `src/logic/the_episodes.rs` hold 94
+characters: the sentence of a server that reported a fault, and the sentence of
+the offline mode.
 
-The measurement, of the real program v0.8.105 inside tmux against the sandbox,
-of the book `Alice in Wonderland` of the library `Books`. 64 bytes of the
-deflate stream of one entry of the file of the cache of the ebooks each took
-the value of its own complement, and `touch -r` gave the time of the file back:
-the cache of the program kept that file. The key `e` gave
-`Alice's Adventures in Wonderland — chapter 3 of 14 — 3%` and the one word
-`Reading…`, and a poll of 24 looks of 250 milliseconds gave that word at every
-one of them. **The book was good**: the key `n` gave chapter 4 and its text.
+The measurement, of the real program v0.8.106 inside tmux against the sandbox,
+in a terminal of 80 columns. The account took the address
+`http://127.0.0.1:13500`, and `docs/harness/one_path_fails.py` gave the status
+500 to the request of the podcast `Letters of Two Brides` of the library
+`Podcasts`. **The path of the episodes of a podcast is
+`GET /api/items/<the id of the podcast>`**, and not a path of the word
+"episodes". The keys `Tab` and `l` gave
 
-The correction: a value `ReaderError::TheArchiveGaveNoChapter(String)` that
-holds the reason of the crate, a field
-`the_render_that_came: Option<(usize, u16)>` of `Reader` that says that the
-render came back, and a `.wrap(Wrap { trim: true })` of the `Paragraph` of the
-message. The corrected program of the same condition said `The book gave no
-text of this chapter. The other chapters can be good. The machine said:
-[CannotRead - ...]: corrupt deflate stream. The file of the log holds more.
-Press n for the next chapter.` The item is **T-277**, and it holds the release
-v0.8.106.
+```text
+The server did not give the episodes of this podcast: The server reported a faul
+                               Press h to go back.
+```
 
-Three things are worth the room:
+The screen gave 79 characters of a sentence of 94, and the log held the reason
+that the screen lost: `The server reported a fault. Status 500.` The same
+condition at 160 columns gave the whole sentence on one row.
 
-1. **A condition of the state that a fault cannot make is a loop.**
-   `render_for` read "the lines are not empty" for "the render came back", and
-   a render that failed gives no line. Ask of every "is it necessary" of this
-   program: does the answer of the work write the value that the condition
-   reads?
-2. **A message that a view never draws and a message that the view cuts are one
-   fault.** The correction of the value alone gave the user `The machine said:
-   [CannotRead` and no more.
-3. **The gate of the tests says which roads an arm holds.** The hostile file
-   `03-missing-target.epub` of the repository names a file that the archive
-   does not hold, and its read reaches the same arm of `copy_bytes`. The first
-   form of the correction said that the archive holds the chapter, and that was
-   a reason that the program does not have.
+The correction is a new module `src/ui/the_message_of_a_view.rs`, with
+`pub fn render_the_message(text, area, buf)`, which holds the `.centered()`,
+the block of the border, and `.wrap(Wrap { trim: true })`. The two sites of
+`src/ui/tui.rs` call it. The corrected program of the same condition at 80
+columns said the whole sentence on three rows. The item is **T-278**, and it
+holds the release v0.8.107.
 
-The gates of v0.8.106, under `nice -n 19 ionice -c 3` with `-j 16`:
+Two things are worth the room:
+
+1. **A sweep of one line of code over the whole of `src/ui/` is cheap, and it
+   names every site of a fault that one measurement found.** T-277 corrected
+   one `Paragraph` of the reader. The same question of the other 43 of them
+   found two more, and both of them draw the words of the server.
+2. **A harness of a path needs the path that the program asks for, and not the
+   path of the name of the work.** The first attempt used `/episodes`, and
+   every episode came: the request of the episodes of a podcast is
+   `GET /api/items/<the id>`.
+
+The gates of v0.8.107, under `nice -n 19 ionice -c 3` with `-j 16`:
 `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
-`cargo nextest run` gives 1311 of 1311 in 2.9 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives 1337 of 1337 in 17.4 seconds, and
-`cargo test -j 16 --no-fail-fast` passed in two runs.
+`cargo nextest run` gives 1313 of 1313 in 2.7 seconds with 26 skipped, and
+`cargo test -j 16 --no-fail-fast` passed in three runs.
+
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.106**; `Cargo.toml` is at 0.8.106. The
+> AlbanDAVID/Toutui. Newest release **v0.8.107**; `Cargo.toml` is at 0.8.107. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -15220,6 +15346,76 @@ The gates of v0.8.106, under `nice -n 19 ionice -c 3` with `-j 16`:
 >    this shape found a fault in one hundred and two sessions of one hundred and
 >    three.
 >    **The
+>    session of the hundred and seventh turn took the candidate "Every other
+>    `Paragraph` of a message of this program that holds no `wrap`", which
+>    T-277 opened. A sweep of the 44 `Paragraph` of `src/ui/` found two that
+>    hold the two conditions together: no `wrap`, and a sentence of a fault
+>    that holds the words of the server. Both of them are the message of the
+>    view of the episodes of a podcast** (T-278).
+>
+>    `src/ui/tui.rs` held two `Paragraph::new(no_episodes_message)`, each with
+>    `.centered()` and no `.wrap(...)`: one for the road of the view that a
+>    search opened (`self.is_from_search_pod`), and one for the road that no
+>    search opened. `no_episodes_message` is
+>    `format!("{}\nPress h to go back.", the_reason_of_no_episode(...))` of
+>    `src/logic/the_episodes.rs`, and two of the three sentences of that
+>    function hold 94 characters: the sentence of a server that reported a
+>    fault, and the sentence of the offline mode.
+>
+>    The measurement, of the real program v0.8.106 inside tmux against the
+>    sandbox, in a terminal of **80 columns**. The account took the address
+>    `http://127.0.0.1:13500` (the trap 129), and
+>    `docs/harness/one_path_fails.py 13500 13399 requests.log /api/items/9fa45bd1-66bc-4c17-ba49-a5a6a5ec8806`
+>    gave the status 500 to the request of the podcast `Letters of Two Brides`
+>    of the library `Podcasts`. **The path of the episodes of a podcast is
+>    `GET /api/items/<the id of the podcast>`**, and not a path of the word
+>    "episodes": the first attempt of the harness used `/episodes`, and every
+>    episode came. The keys `Tab` and `l` gave
+>
+>    ```text
+>    The server did not give the episodes of this podcast: The server reported a faul
+>                                   Press h to go back.
+>    ```
+>
+>    The screen gave 79 characters of a sentence of 94, and the log held the
+>    reason that the screen lost: `The server reported a fault. Status 500.`
+>    The same condition at 160 columns gave the whole sentence on one row.
+>
+>    The correction is a new module `src/ui/the_message_of_a_view.rs`, with
+>    `pub fn render_the_message(text, area, buf)`, which holds the
+>    `.centered()`, the block of the border, and `.wrap(Wrap { trim: true })`.
+>    The two sites of `src/ui/tui.rs` call it. The corrected program of the
+>    same condition at 80 columns said the whole sentence on three rows, and it
+>    kept the key `h`. The control: the same podcast with the sandbox answering
+>    gave `Episodes [57 items]` and the list of the letters. The two tests of
+>    the new module draw the real widget into a `ratatui::buffer::Buffer` with
+>    no terminal at all, at the widths 40, 60, and 80.
+>    - **The header of the program at 80 columns wrote over itself** (T-278,
+>      and it stays open): the screen said
+>      `⚠ toutuitest: the server reports a faults (podcast)`, and the name of
+>      the library lost its first characters. **This is a candidate and not a
+>      measurement.**
+>    - **`ChapterTooLarge` of `ReaderError`** (T-274, and it stays open) says
+>      `This chapter is too large.`: it names no size, no limit of 8 megabytes,
+>      and no key, and that arm of `src/logic/reader/book.rs` writes no line of
+>      the log at all. **This is a candidate and not a measurement.**
+>    - **`This chapter is too complex.` of `src/logic/reader/session.rs`**
+>      (T-278, and it stays open) is the message of a render that went past its
+>      limit of time. A limit of time that went by can be a disk that is slow,
+>      therefore that is a reason that the program does not have (T-91), and it
+>      takes no line of the log. `This chapter did not open.` of the same file
+>      drops the reason of the join. **This is a candidate and not a
+>      measurement.**
+>    - **`The server has no ebook for this media.` of
+>      `src/logic/reader/session.rs`** (T-278, and it stays open) is the answer
+>      of every fault of `api.get_json`, therefore a network that failed says
+>      that the server holds no ebook. **This is a candidate and not a
+>      measurement.**
+>    - **Every candidate of the list of the turns below stays open** (T-229 to
+>      T-277): the block has a limit of size, therefore this turn names the new
+>      candidates alone and it does not repeat that list.
+>
+>    **The
 >    session of the hundred and sixth turn took the candidate "`ChapterAbsent`
 >    and `ChapterTooLarge` of `ReaderError`", which T-274 opened and which T-275
 >    and T-276 each left open. It reaches `ChapterAbsent`, and the screen of that
@@ -15370,83 +15566,6 @@ The gates of v0.8.106, under `nice -n 19 ionice -c 3` with `-j 16`:
 >    - **Every candidate of the list of the turns below stays open** (T-229 to
 >      T-275): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
->    **The
->    session of the hundred and fourth turn took the candidate "`let _ =
->    self.auth()` of `src/ui/login_tui.rs` drops every fault of the login
->    screen", which T-272, T-273, and T-274 each left open. T-273 holds a
->    program with no terminal at all, and T-271 and T-272 hold a terminal that
->    went away; this turn holds a program that found its terminal and whose
->    standard output then failed** (T-275).
->
->    `render_auth` held `let _ = self.auth();`, and `src/main.rs` held
->    `let _app_result = app_login.run(terminal);`. `auth()` makes a terminal of
->    its own on `std::io::stdout()`, and its `?` sites are `Terminal::new`,
->    `term.size()`, `term.draw()`, and `crossterm::event::read()`: the two lines
->    dropped every one of them.
->
->    The measurement, of the real program v0.8.103 inside tmux, with a real
->    terminal and with the standard output of the program in a pipe whose reader
->    went away after three seconds
->    (`./target/debug/toutui | { sleep 3; echo ...; }` of a `tmux new-session`,
->    with a `XDG_CONFIG_HOME` of nothing — the trap 135). The first frame
->    reached the pipe, the reader went away at 3 seconds, and a key of the user
->    at 4.2 seconds gave `term.draw()` the fault `Broken pipe (os error 32)`.
->    The two lines dropped it, the loop of `src/main.rs` waited one second, and
->    it made a terminal again at 5.2 seconds: `ratatui::try_init()` then failed
->    with the same broken pipe, and the user read
->
->    ```text
->    Failed to restore terminal: Broken pipe (os error 32)
->    Toutui stops: it found no terminal.
->    Broken pipe (os error 32)
->    Toutui draws its screen in a terminal, and it reads the keys of the user
->    from that terminal.
->    Start Toutui in a terminal. A unit of systemd, a task of cron, and a
->    program of the background give no terminal.
->    ```
->
->    **The user stood in a terminal already** (T-91), and the log held no word
->    of the login screen at all. The first line came of `ratatui::restore()`,
->    which writes words of a crate to the standard error (T-172).
->
->    The correction: `AppLogin` holds `the_fault_of_the_screen`, `render_auth`
->    keeps the fault and it sets `should_exit`, `AppLogin::run` gives
->    `io::Result<()>` back through `the_end_of_a_frame_of_the_login`, and
->    `src/main.rs` calls
->    `the_program_stops_for_a_screen_that_did_not_reach_the_terminal`. A new
->    `the_program_gives_the_terminal_back()` of
->    `src/utils/the_terminal_of_the_program.rs` uses `ratatui::try_restore()`
->    and it puts the fault in the log; the five calls of `ratatui::restore()`
->    now use it. The corrected program of the same condition said
->    `Toutui stops: the login screen did not reach the terminal.` with the
->    reason of the machine and the road back, with no word of a crate above it,
->    and it stopped with the status 1. The control: a real login of the sandbox
->    inside tmux gave the Home view of the library `Podcasts`, and the key `Q`
->    stopped the program.
->    - **A fault that two lines drop can come back as the words of a different
->      fault** (T-275): the loop of `src/main.rs` made a terminal again, and the
->      words of T-273 then named a reason that the program does not have. Ask of
->      every `let _ =` of a loop: which words does the next turn of that loop
->      give the user?
->    - **A crate that writes words to the standard error is a fault of the words
->      of the user** (T-275): `ratatui::restore()` holds an `eprintln!`, and
->      `ratatui::try_restore()` gives that fault back. Ask of every call of a
->      crate: does it write to a stream of the user, and does the crate hold a
->      `try_` of it?
->    - **The other `?` of `auth()`** (T-275, and they stay open):
->      `Terminal::new`, `term.size()`, and `crossterm::event::read()` each hold
->      a road of their own, and this turn measured `term.draw()` alone. **This
->      is a candidate and not a measurement.**
->    - **The three other values of `ReaderError`** (`NotAnEpub`,
->      `ChapterAbsent`, and `ChapterTooLarge`): **T-276 closes `NotAnEpub` and
->      T-277 closes `ChapterAbsent`**, and `ChapterTooLarge` stays open.
->    - **`let _ = out.read_to_string(&mut words)` and `let _ = child.kill()` of
->      the parent of the child that reads a PDF** (T-274, and they stay open).
->      **This is a candidate and not a measurement.**
->    - **Every candidate of the list of the turns below stays open** (T-229 to
->      T-274): the block has a limit of size, therefore this turn names the new
->      candidates alone and it does not repeat that list.
->
 >    **The turns before those three stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt: the turn of
 >    the hundred and second and every turn before it, the item of each, and the
@@ -15939,7 +16058,10 @@ The gates of v0.8.106, under `nice -n 19 ionice -c 3` with `-j 16`:
 > reason of the crate of the archive is the one reason of a chapter that gave no
 > byte, the render of a chapter that gave a fault does not start again because
 > that fault gives no line, and a message of a view that is longer than one line
-> stands on more than one line** (T-277).
+> stands on more than one line** (T-277), and **a message of a view that is
+> longer than the screen stands on more than one row: the sentence of a view
+> that holds no line says what the server said, and a terminal of 80 columns is
+> shorter than it** (T-278).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.107",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The message of a podcast with no episode stands on more than \
+             one line.** When Toutui gets no episode of a podcast, it says why \
+             on the screen of that podcast. That message holds the words of \
+             the server, and it was longer than a terminal of 80 columns: \
+             Toutui drew one line of it and it cut the rest away, therefore \
+             you read \"The server reported a faul\" and you did not read the \
+             status of the server. The message stands now on as many lines as \
+             it needs, at every width of the terminal.",
+        ],
+    },
+    Entry {
         version: "0.8.106",
         date: "16/08/2026",
         body: &[

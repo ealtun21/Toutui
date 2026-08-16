@@ -2328,14 +2328,14 @@ impl App {
 
         if self.is_from_search_pod {
             if self.titles_pod_ep_search.is_empty() {
-                Paragraph::new(no_episodes_message)
-                    .centered()
-                    .block(
-                        Block::new()
-                            .borders(Borders::TOP)
-                            .border_style(Style::new().fg(Color::DarkGray)),
-                    )
-                    .render(main_area, buf);
+                // **The sentence of this view holds the words of the server,
+                // and a terminal of 80 columns cuts it** (T-278). The widget of
+                // it stands in a function of its own, with the `wrap`.
+                crate::ui::the_message_of_a_view::render_the_message(
+                    no_episodes_message,
+                    main_area,
+                    buf,
+                );
             } else {
                 let items_number = self.titles_pod_ep_search.len();
                 let render_list_title =
@@ -2353,14 +2353,13 @@ impl App {
             }
         } else {
             if self.titles_pod_ep.is_empty() {
-                Paragraph::new(no_episodes_message)
-                    .centered()
-                    .block(
-                        Block::new()
-                            .borders(Borders::TOP)
-                            .border_style(Style::new().fg(Color::DarkGray)),
-                    )
-                    .render(main_area, buf);
+                // The same rule of T-278, for the road of the view that no
+                // search opened.
+                crate::ui::the_message_of_a_view::render_the_message(
+                    no_episodes_message,
+                    main_area,
+                    buf,
+                );
             } else {
                 let items_number = self.titles_pod_ep.len();
                 let render_list_title =
