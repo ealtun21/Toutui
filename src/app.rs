@@ -2699,15 +2699,17 @@ impl App {
     ) -> Vec<crate::ui::the_panel_of_the_gallery::AMediaOfTheGallery> {
         use crate::ui::the_panel_of_the_gallery::AMediaOfTheGallery;
 
+        // **A media of the gallery holds its line and its identity alone**
+        // (T-330.4): the cell of it draws the picture and its border, and no
+        // word at all. The row of the table stays the condition of a media,
+        // because a line of the list that the table does not hold names none.
         let of_a_media =
             |the_line: usize,
              id: Option<&String>,
-             row: &crate::ui::the_table_of_a_view::ARowOfTheTable| {
+             _row: &crate::ui::the_table_of_a_view::ARowOfTheTable| {
                 AMediaOfTheGallery {
                     the_line,
                     id: id.cloned().unwrap_or_default(),
-                    title: row.title.clone(),
-                    done: row.done.clone(),
                 }
             };
 

@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.162.** The items T-330.3 and T-332 belong to this
+**The newest release is v0.8.163.** The item T-330.4 belongs to this
 session. The
+items T-330.3 and T-332 belong to the session before it. The
 item T-330.2 belongs to the session before it. The
 item T-330.1 belongs to the session before it. The
 item T-329 belongs to the session before it. The
@@ -169,16 +170,87 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.162**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.163**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1490 of 1490** in 2.8 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1516 of 1516** in 60.4 seconds
+**1493 of 1493** in 3.9 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1519 of 1519** in 59.8 seconds
 with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure, over three runs. **That last gate was red at v0.8.161**
 (T-332), and no run of nextest could say so: a box of the process needs one
 test function.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and sixty-third turn of 2026-08-17: a cell of the gallery holds the picture and its border alone
+
+**The item: T-330, the part 4**, and the release **v0.8.163**.
+
+**The part 4 of the second report of the maintainer.** A cell of the panel 6
+of the gallery held the picture of the cover, a row of the percentage of the
+position of the user inside the border, and a row of a short title under the
+box (T-327). **The panel 5 of the cover says the two of them for the media of
+the cursor already**, and the panel 4 of the list says them for every media of
+the view: the maintainer read the two rows as noise.
+
+**The data of this part is the program itself**: no proxy, no book of a
+harness, and no change of the sandbox. The account takes the library `Books`
+of the sandbox with a `sqlite3` of `name_selected_lib` and of
+`id_selected_lib` (the trap 203 and the trap 204), because that library holds
+the media that the server gives a cover.
+
+**The real program v0.8.162 inside tmux**, of 160 columns and 45 rows, of the
+Library view with the cursor on the first row. The panel 6 held 18 rows and
+eight cells, and the words took two rows of every eight of them:
+
+```text
+│  ║  done  ║ │    -   │ │  done  │ │    -   │   │
+│  ╚════════╝ └────────┘ └────────┘ └────────┘   │
+│  A Book Of… A Book Of… A Book Of… A Very La…   │
+```
+
+**Three different books of the sandbox gave the same six letters**: a title of
+ten columns is a title that the cell cuts.
+
+**The corrected program v0.8.163 of the same harness.** The panel holds 20
+rows and **twelve** cells, no character of a word at all, and the border of
+the cell of the cursor is heavy:
+
+```text
+│  ┏━━━━━━━━┓ ┌────────┐ ┌────────┐ ┌────────┐   │
+│  ┃        ┃ │        │ │        │ │        │   │
+│  ┗━━━━━━━━┛ └────────┘ └────────┘ └────────┘   │
+```
+
+`tmux capture-pane -e` gave the colour `48;2;…` on **eight** rows of that
+panel, where the program before it gave it on four: **the rows that the words
+gave back go to the pictures.**
+
+**The controls of the same run**: a click of the second cell of the second row
+(`docs/harness/click.sh`, the column 129 and the row 32) moved the cursor of
+the panel 4 to the sixth media of the list and the heavy border to that same
+cell, therefore the box of a cell is the whole of that cell now; and the panel
+5 kept its facts and its description, and it gave two rows to the gallery.
+
+**The gate is `tests/the_cell_of_the_gallery_holds_the_picture_alone.rs`, of
+three tests.** The first one makes a real `App` of the offline mode, it draws
+the Library view of twenty books of a title of `Zebra` into a `TestBackend` of
+160 by 45, and it holds that every character of the panel 6 under the row of
+its title is a space or one of the twelve characters of a border. **The build
+of the fault** (the trap 147), of the three files of `HEAD` in the tree of the
+gate, made **three** of the three tests fail.
+
+**The trap of this part.** **`String::char_indices` gives the index of a byte
+and not the column of the screen** (the trap 245): the first form of the gate
+read the column of the digit `6` of the row of the title of the panel with
+`char_indices`, and that row holds `│`, `║`, and `➤` at the left of it, each
+of three bytes and one column. `str::chars` with `position` is the road. **A
+row of a buffer of the screen is the whole row and not the panel**, therefore
+a gate of the words of one panel takes the columns of that panel out of the
+row first.
+
+**The next round takes the part 5 of T-330**, the Chapters view of the two
+bars and of the table of the times of `docs/mockups/mockup-7.txt`. **It is the
+large one of the five parts**, and it takes more than one round.
 
 ## The session of the hundred and sixty-second turn of 2026-08-17: the picture of the panel 5 takes every free row
 
@@ -11876,16 +11948,17 @@ the maintainer gave it after that road finished its eight stages.
 | T-330.1 | The words of the key `z` say `the panels 1, 2, and 3` and not `1 to 3` — **done, v0.8.160** | `src/ui/keys.rs:576` and `:95`, `src/app.rs:2302`, `src/utils/changelog.rs` |
 | T-330.2 | The filters lose the empty words: `No filter`, `Finished`, `Started, not finished`, `Not started` — **done, v0.8.161** | `sort_filter::PROGRESS` of `src/logic/sort_filter.rs` |
 | T-330.3 | The picture of the panel 5 takes every row that the facts and the description leave — **done, v0.8.162** | `the_parts_of_the_panel` of `src/ui/the_panel_of_the_cover.rs` |
-| T-330.4 | The cell of the gallery holds the picture and its border alone | The panel 6 (T-327) |
+| T-330.4 | The cell of the gallery holds the picture and its border alone — **done, v0.8.163** | `src/ui/the_panel_of_the_gallery.rs` and `render_the_gallery` of `src/ui/tui.rs` |
 | T-330.5 | The Chapters view of the two bars and of the table of the times | `docs/mockups/mockup-7.txt` and `mockup-7.md` |
 | T-331 | The Home view of the bands of covers, one band for each shelf of the server | `docs/mockups/mockup-6.txt` and `mockup-6.md` |
 
 **The five parts of T-330 come in that sequence**, because the words are small
 and safe and the Chapters view is large: **one part is one round and one
 commit, with a gate of its own**. **The part 1 is done, v0.8.160, the part 2 is
-done, v0.8.161, and the part 3 is done, v0.8.162**, and the next round takes
-the part 4, the cell of the gallery that holds the picture and its border
-alone, with no percentage and no title.
+done, v0.8.161, the part 3 is done, v0.8.162, and the part 4 is done,
+v0.8.163**, and the next round takes the part 5, the Chapters view of the two
+bars and of the table of the times of `docs/mockups/mockup-7.txt`. **That part
+is the large one of the five**, and it takes more than one round.
 
 **T-331 starts at a spec** in `docs/superpowers/specs/` and not at code: it
 changes the meaning of the keys `h` and `l` of a view, it takes the table of
@@ -23010,6 +23083,74 @@ header of T-329.
 
 
 
+## The session of the hundred and sixty-first turn of 2026-08-17: the words of the filters say what they filter, of the block of the prompt
+
+**The session of the hundred and sixty-first turn took the part 2 of the
+second report of the maintainer** (T-330.2, v0.8.161): the three filters of
+the position say what they filter, and no word more.
+
+**The fault.** The panel 3 of the stack holds 30 columns of text (T-324),
+and the three labels each began with the fourteen columns `The media that`,
+which say nothing: every row of a library is a media. The third label
+therefore reached that panel cut, and the user could not read whether the
+filter gives the media that they did not start or the media that they did
+not finish.
+
+**The data of this part is the program itself**: no proxy, no book of a
+harness, and no change of the sandbox. The filter of the account comes of a
+`sqlite3` of `library_filter` (the trap 203 and the trap 204), and
+`progress.bm90LXN0YXJ0ZWQ=` is the longest of the three.
+
+**The real program v0.8.160 inside tmux**, of the Home view of the library
+`Large` of the sandbox:
+
+```text
+│    The media that you finished │
+│    The media that you started  │
+│    The media that you did not… │
+| 100 | 🔗 localhost:13399  ⇅ The sequence of the server ▣ The media that you did not start |
+|  84 | 🔗 localhost:13399 |
+```
+
+**A row of 84 columns held none of the words at all**: the whole of them
+takes 60 columns, and they do not fit beside the address (T-329).
+
+**The corrected program of the same harness**:
+
+```text
+│    Finished                    │
+│    Started, not finished       │
+│  ✓ Not started                 │
+|  84 | 🔗 localhost:13399   ⇅ The sequence of the server ▣ Not started |
+```
+
+**The controls of the same run**: the view of the key `f` held the group
+`Your position` with its three rows and the mark `✓` of the filter that
+stands, therefore the correction moved no row of that view; and the panel 3
+kept the mark, the cursor, and the row `No filter`.
+
+**The correction is one place**: `sort_filter::PROGRESS` of
+`src/logic/sort_filter.rs`, which the panel 3, the view of the key `f`, and
+the second row of the header each read.
+
+**The gate is `tests/the_words_of_the_filters_hold_no_empty_part.rs`, of
+three tests**, and **the build of the fault** (the trap 147) made **five**
+tests fail.
+
+**The trap of this part.** **A test file that quotes the fault meets the
+sweep of its own item**, which is the trap of the part 1. The sweep of this
+part reads the array `PROGRESS` at run time and not the text of a file,
+therefore the doc comment of the measurement may name the words of the start
+with no fault at all. **A sweep of the shape of the part 1 is right for
+words that live in four files, and a sweep of the value is right for words
+that live in one array.**
+
+**The next round takes the part 3 of T-330**, the picture of the panel 5
+that takes every row that the facts and the description leave:
+`the_parts_of_the_panel` of `src/ui/the_panel_of_the_cover.rs`, and
+`THE_SHARE_OF_THE_COVER` that gives the picture a share of the height.
+
+
 ## The prompt for the next session
 
 
@@ -23948,7 +24089,8 @@ header of T-329.
 >    picture of the panel 5 takes every row that the facts and the description
 >    leave; the cell of the gallery holds the picture and its border alone,
 >    with no percentage and no title; and the Chapters view takes the two bars
->    and the table of `docs/mockups/mockup-7.txt`. T-331 is the new Home view
+>    and the table of `docs/mockups/mockup-7.txt`. **The parts 1 to 4 are
+>    done** (v0.8.160 to v0.8.163), and the part 5 stays. T-331 is the new Home view
 >    of the bands of covers of `docs/mockups/mockup-6.txt`, **and it starts at
 >    a spec in `docs/superpowers/specs/` and not at code**. **The mockups of
 >    the two of them are written already** (`mockup-6` and `mockup-7`, of
@@ -23995,6 +24137,83 @@ header of T-329.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
+>
+> **The session of the hundred and sixty-third turn took the part 4 of the
+> second report of the maintainer** (T-330.4, v0.8.163): a cell of the panel 6
+> of the gallery holds the picture of the cover and its border, and no word at
+> all.
+>
+> **The fault.** A cell held a row of the percentage of the position of the
+> user inside its border and a row of a short title under its box (T-327).
+> **The panel 5 of the cover says the two of them for the media of the cursor
+> already**, and the panel 4 of the list says them for every media of the
+> view. **A title of ten columns is a title that the cell cuts**: three
+> different books of the sandbox each gave `A Book Of…`.
+>
+> **The data of this part is the program itself**: no proxy, no book of a
+> harness, and no change of the sandbox. The account takes the library `Books`
+> of the sandbox with a `sqlite3` of `name_selected_lib` and of
+> `id_selected_lib` (the trap 203 and the trap 204), because that library
+> holds the media that the server gives a cover.
+>
+> **The real program v0.8.162 inside tmux**, of 160 columns and 45 rows, of
+> the Library view with the cursor on the first row. The panel 6 held 18 rows
+> and **eight** cells:
+>
+> ```text
+> │  ║  done  ║ │    -   │ │  done  │ │    -   │   │
+> │  ╚════════╝ └────────┘ └────────┘ └────────┘   │
+> │  A Book Of… A Book Of… A Book Of… A Very La…   │
+> ```
+>
+> **The corrected program of the same harness**: the panel holds 20 rows and
+> **twelve** cells, and the border of the cell of the cursor is heavy and not
+> double.
+>
+> ```text
+> │  ┏━━━━━━━━┓ ┌────────┐ ┌────────┐ ┌────────┐   │
+> │  ┃        ┃ │        │ │        │ │        │   │
+> │  ┗━━━━━━━━┛ └────────┘ └────────┘ └────────┘   │
+> ```
+>
+> `tmux capture-pane -e` gave the colour `48;2;…` on **eight** rows of that
+> panel, where the program before it gave it on four: **the rows that the
+> words gave back go to the pictures.**
+>
+> **The controls of the same run**: a click of the second cell of the second
+> row (`docs/harness/click.sh`, the column 129 and the row 32) moved the
+> cursor of the panel 4 to the sixth media of the list and the heavy border to
+> that same cell, therefore **the box of a cell is the whole of that cell
+> now**; and the panel 5 kept its facts and its description, and it gave two
+> rows to the gallery.
+>
+> **The correction is three files.** `the_rows_of_a_row_of_the_grid` of
+> `src/ui/the_panel_of_the_gallery.rs` goes away, because a row of the grid is
+> a box now; the areas `the_place` and `the_title` of a cell and the fields
+> `title` and `done` of a media of the gallery go away with it;
+> `render_the_gallery` of `src/ui/tui.rs` loses its two `Paragraph`, and the
+> border of the cell of the cursor becomes `BorderType::Thick`.
+>
+> **The gate is `tests/the_cell_of_the_gallery_holds_the_picture_alone.rs`, of
+> three tests.** The first one makes a real `App` of the offline mode, it
+> draws the Library view of twenty books of a title of `Zebra` into a
+> `TestBackend` of 160 by 45, and it holds that **every character of the panel
+> 6 under the row of its title is a space or one of the twelve characters of a
+> border**. The control of that same test holds that the panel 4 draws `Zebra
+> Book 1`: a gate that finds no word in a screen of no word says nothing.
+> **The build of the fault** (the trap 147), of the three files of `HEAD` in
+> the tree of the gate, made **three** of the three tests fail.
+>
+> **The trap of this part.** **`String::char_indices` gives the index of a
+> byte and not the column of the screen** (the trap 245): the gate read the
+> column of the digit `6` of the row of the title of the panel with
+> `char_indices`, and that row holds `│`, `║`, and `➤` at the left of it, each
+> of three bytes and one column. The search of the last row of the panel then
+> read a column 60 columns at the right of the border, and the test said "the
+> panel 6 holds no last row" for a panel that stood whole. `str::chars` with
+> `position` is the road. **A row of a buffer of the screen is the whole row
+> and not the panel**, therefore a gate of the words of one panel takes the
+> columns of that panel out of the row first.
 >
 > **The session of the hundred and sixty-second turn took the part 3 of the
 > second report of the maintainer, and the gate of CI gave it a second item**
@@ -24074,76 +24293,8 @@ header of T-329.
 > `CARGO_TARGET_DIR` of its own is the road to a gate of the tree before the
 > round**, and it takes no `git stash` and no `git checkout` of a file.
 >
-> **The next round takes the part 4 of T-330**, the cell of the panel 6 of the
-> gallery that holds the picture and its border alone: no percentage and no
-> title, the border of the cell of the cursor heavy and bright and every other
-> one thin and dim, and the rows that the words gave back go to the pictures.
->
->  **The session of the hundred and sixty-first turn took the part 2 of the
->  second report of the maintainer** (T-330.2, v0.8.161): the three filters of
->  the position say what they filter, and no word more.
->
->  **The fault.** The panel 3 of the stack holds 30 columns of text (T-324),
->  and the three labels each began with the fourteen columns `The media that`,
->  which say nothing: every row of a library is a media. The third label
->  therefore reached that panel cut, and the user could not read whether the
->  filter gives the media that they did not start or the media that they did
->  not finish.
->
->  **The data of this part is the program itself**: no proxy, no book of a
->  harness, and no change of the sandbox. The filter of the account comes of a
->  `sqlite3` of `library_filter` (the trap 203 and the trap 204), and
->  `progress.bm90LXN0YXJ0ZWQ=` is the longest of the three.
->
->  **The real program v0.8.160 inside tmux**, of the Home view of the library
->  `Large` of the sandbox:
->
->  ```text
->  │    The media that you finished │
->  │    The media that you started  │
->  │    The media that you did not… │
->  | 100 | 🔗 localhost:13399  ⇅ The sequence of the server ▣ The media that you did not start |
->  |  84 | 🔗 localhost:13399 |
->  ```
->
->  **A row of 84 columns held none of the words at all**: the whole of them
->  takes 60 columns, and they do not fit beside the address (T-329).
->
->  **The corrected program of the same harness**:
->
->  ```text
->  │    Finished                    │
->  │    Started, not finished       │
->  │  ✓ Not started                 │
->  |  84 | 🔗 localhost:13399   ⇅ The sequence of the server ▣ Not started |
->  ```
->
->  **The controls of the same run**: the view of the key `f` held the group
->  `Your position` with its three rows and the mark `✓` of the filter that
->  stands, therefore the correction moved no row of that view; and the panel 3
->  kept the mark, the cursor, and the row `No filter`.
->
->  **The correction is one place**: `sort_filter::PROGRESS` of
->  `src/logic/sort_filter.rs`, which the panel 3, the view of the key `f`, and
->  the second row of the header each read.
->
->  **The gate is `tests/the_words_of_the_filters_hold_no_empty_part.rs`, of
->  three tests**, and **the build of the fault** (the trap 147) made **five**
->  tests fail.
->
->  **The trap of this part.** **A test file that quotes the fault meets the
->  sweep of its own item**, which is the trap of the part 1. The sweep of this
->  part reads the array `PROGRESS` at run time and not the text of a file,
->  therefore the doc comment of the measurement may name the words of the start
->  with no fault at all. **A sweep of the shape of the part 1 is right for
->  words that live in four files, and a sweep of the value is right for words
->  that live in one array.**
->
->  **The next round takes the part 3 of T-330**, the picture of the panel 5
->  that takes every row that the facts and the description leave:
->  `the_parts_of_the_panel` of `src/ui/the_panel_of_the_cover.rs`, and
->  `THE_SHARE_OF_THE_COVER` that gives the picture a share of the height.
->
+> **The next round takes the part 5 of T-330**, the Chapters view of the two
+> bars and of the table of the times of `docs/mockups/mockup-7.txt`.
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -24377,7 +24528,9 @@ header of T-329.
 > work, and the block then held about **83500** bytes with **two** turns in it
 > the round of the hundred and sixty-second found it at 83611 bytes with two
 > turns in it, and it did the same work, and the block then held about **85000**
-> bytes with **two** turns in it.
+> bytes with **two** turns in it; the round of the hundred and sixty-third
+> found it at 84997 bytes with two turns in it, and it did the same work, and
+> the block then held about **86100** bytes with **two** turns in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

@@ -45,6 +45,11 @@
 //! └────────────────────────────────────────────────┘
 //! ```
 //!
+//! **The cell of that screen lost its two rows of words at v0.8.163**
+//! (T-330.4), and `tests/the_cell_of_the_gallery_holds_the_picture_alone.rs`
+//! holds the gate of it: the panel 5 says the facts of the media of the cursor
+//! already, therefore the gallery is the picture and its border alone.
+//!
 //! The picture of a cover stands inside the box, and `tmux capture-pane` with
 //! no `-e` gives no character of it: the cover of `A Long Test Book` of the
 //! sandbox is 400 pixels of one red, therefore the halfblocks of that picture
@@ -57,7 +62,7 @@ use toutui::ui::frame::ThePanel;
 use toutui::ui::keys::the_footer_of_a_panel;
 use toutui::ui::the_panel_of_the_cover::THE_SMALLEST_PANEL_OF_THE_WORDS;
 use toutui::ui::the_panel_of_the_gallery::{
-    plan_the_gallery, the_rows_of_a_row_of_the_grid, the_smallest_gallery, the_two_panels,
+    plan_the_gallery, the_rows_of_a_box, the_smallest_gallery, the_two_panels,
     THE_WIDTHS_OF_A_CELL, THE_WIDTH_OF_THE_START,
 };
 
@@ -92,7 +97,7 @@ fn the_column_holds_the_two_panels_and_no_row_that_no_part_uses() {
     // **The panel 6 holds whole rows of the grid alone** (T-327): the first
     // form of this panel took 40 percent of the column, and it then held five
     // rows of the screen that no cell used.
-    let of_a_row = the_rows_of_a_row_of_the_grid(of_a_cell, FONT);
+    let of_a_row = the_rows_of_a_box(of_a_cell, FONT);
     assert_eq!(
         (gallery.height - 2) % of_a_row,
         0,
@@ -127,7 +132,7 @@ fn the_column_holds_the_two_panels_and_no_row_that_no_part_uses() {
         before = the_smallest;
 
         if let (_, Some(gallery)) = the_two_panels(column, of_a_cell, FONT) {
-            let of_a_row = the_rows_of_a_row_of_the_grid(of_a_cell, FONT);
+            let of_a_row = the_rows_of_a_box(of_a_cell, FONT);
             assert_eq!((gallery.height - 2) % of_a_row, 0);
         }
     }
@@ -187,12 +192,6 @@ fn the_grid_holds_the_media_around_the_cursor_of_the_list() {
             inside,
             "{cell:?} left the panel"
         );
-        assert_eq!(
-            inside.union(cell.the_title),
-            inside,
-            "{cell:?} left the panel"
-        );
-
         for other in plan.cells.iter().skip(at + 1) {
             assert_eq!(
                 cell.the_box.intersection(other.the_box).area(),
@@ -210,8 +209,10 @@ fn the_grid_holds_the_media_around_the_cursor_of_the_list() {
             .map(|cell| cell.the_media),
         Some(0)
     );
+    // **The box of a cell is the whole of that cell** (T-330.4): the row of the
+    // title under the box went away with the words of it.
     assert_eq!(
-        plan.the_cell_of_a_point(first.the_title.x, first.the_title.y)
+        plan.the_cell_of_a_point(first.the_box.x, first.the_box.y + first.the_box.height - 1)
             .map(|cell| cell.the_media),
         Some(0)
     );

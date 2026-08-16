@@ -894,6 +894,10 @@ impl App {
     /// grid holds the media around the cursor, the cell of the cursor takes the
     /// heavy border of the focus, and a click of a cell moves that cursor.
     ///
+    /// **A cell holds the picture and its border alone** (T-330.4): the row of
+    /// the percentage and the row of the title went away, because the panel 5
+    /// says the facts of the media of the cursor already.
+    ///
     /// **A panel that the frame did not draw takes no click of it** (T-316),
     /// therefore the area of no panel and the grid of no cell go in the state of
     /// the last frame together.
@@ -935,11 +939,16 @@ impl App {
             // **The cell of the cursor says which media the panel 5 shows**:
             // the two panels of the column then say one media, and a user who
             // reads the facts of the panel 5 finds its cover in the grid.
+            //
+            // **The border of the cell of the cursor is heavy and bright, and
+            // the border of every other cell is thin and dim** (T-330.4): a
+            // colour alone is not the mark of the focus, because a terminal of
+            // a theme of few colours draws the two of them near together.
             let of_the_cursor = cell.the_media == the_cursor;
             let border = if of_the_cursor {
                 Block::new()
                     .borders(Borders::ALL)
-                    .border_type(ratatui::widgets::BorderType::Double)
+                    .border_type(ratatui::widgets::BorderType::Thick)
                     .border_style(
                         Style::default()
                             .fg(crate::ui::theme::THE_ACCENT)
@@ -964,30 +973,6 @@ impl App {
                     }
                 }
             }
-
-            // **The place of the user stands inside the box and the title under
-            // it**, in the words of the design.
-            Paragraph::new(crate::logic::message::in_one_row(
-                &media.done,
-                cell.the_place.width,
-            ))
-            .alignment(Alignment::Center)
-            .render(cell.the_place, buf);
-
-            let of_the_title = if of_the_cursor {
-                Style::default()
-                    .fg(crate::ui::theme::THE_ACCENT)
-                    .add_modifier(Modifier::BOLD)
-            } else {
-                Style::default()
-            };
-
-            Paragraph::new(crate::logic::message::in_one_row(
-                &media.title,
-                cell.the_title.width,
-            ))
-            .style(of_the_title)
-            .render(cell.the_title, buf);
         }
 
         self.the_gallery_of_the_last_frame = plan;

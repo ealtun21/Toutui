@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.163",
+        date: "17/08/2026",
+        body: &[
+            "Changed:",
+            "- **A cell of the panel `6 Gallery` holds the cover and its \
+             border alone.** The cell said the percentage of your position \
+             inside the border and a short title under the box, and the panel \
+             `5 Cover` says the two of them for the media of the cursor \
+             already. The two rows that went away go to the pictures: a \
+             column of 41 rows held eight covers, and it holds twelve of them \
+             now. The border of the cell of the cursor is heavy and bright, \
+             and the border of every other cell is thin and dim.",
+        ],
+    },
+    Entry {
         version: "0.8.162",
         date: "17/08/2026",
         body: &[

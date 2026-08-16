@@ -30765,6 +30765,121 @@ larger cell or one row more of them.
 it finds no digit of a percentage and no letter of a title; a test of the
 border reads the two shapes of it.
 
+#### The part 4 is done, v0.8.163, of the round of the hundred and sixty-third turn
+
+**The data of this part is the program itself**: no proxy, no book of a
+harness, and no change of the sandbox. The account takes the library `Books`
+of the sandbox with a `sqlite3` of `name_selected_lib` and of
+`id_selected_lib` (the trap 203 and the trap 204), because that library holds
+the media of the sandbox that the server gives a cover.
+
+**The real program v0.8.162 inside tmux**, of 160 columns and 45 rows, of the
+Library view with the cursor on the first row. The panel 6 held 18 rows and
+**eight** cells, and **two rows of every eight said words**:
+
+```text
+┌6 Gallery ──────────────────────────────────────┐
+│  ╔════════╗ ┌────────┐ ┌────────┐ ┌────────┐   │
+│  ║        ║ │        │ │        │ │        │   │
+│  ║        ║ │        │ │        │ │        │   │
+│  ║        ║ │        │ │        │ │        │   │
+│  ║        ║ │        │ │        │ │        │   │
+│  ║  done  ║ │    -   │ │  done  │ │    -   │   │
+│  ╚════════╝ └────────┘ └────────┘ └────────┘   │
+│  A Book Of… A Book Of… A Book Of… A Very La…   │
+│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐   │
+│  │        │ │        │ │        │ │        │   │
+│  │        │ │        │ │        │ │        │   │
+│  │        │ │        │ │        │ │        │   │
+│  │        │ │        │ │        │ │        │   │
+│  │   90%  │ │    -   │ │  done  │ │   50%  │   │
+│  └────────┘ └────────┘ └────────┘ └────────┘   │
+│  A Big Boo… A Book Th… A Huge Bo… A Long Te…   │
+└────────────────────────────────────────────────┘
+```
+
+**The title of a cell said nothing that the user did not have**: the panel 4
+of the list holds the whole title of every media of those cells, and the
+column `Done` of that same table holds the percentage. **A title of ten
+columns is a title that the cell cuts**: `A Book Of…`, `A Book Of…`, and
+`A Book Of…` are three different books of the sandbox, and the three cells
+said the same six letters.
+
+**The corrected program v0.8.163 of the same harness.** The panel holds 20
+rows and **twelve** cells, no character of a word at all, and the border of
+the cell of the cursor is heavy:
+
+```text
+┌6 Gallery ──────────────────────────────────────┐
+│  ┏━━━━━━━━┓ ┌────────┐ ┌────────┐ ┌────────┐   │
+│  ┃        ┃ │        │ │        │ │        │   │
+│  ┃        ┃ │        │ │        │ │        │   │
+│  ┃        ┃ │        │ │        │ │        │   │
+│  ┃        ┃ │        │ │        │ │        │   │
+│  ┗━━━━━━━━┛ └────────┘ └────────┘ └────────┘   │
+│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐   │
+│  │        │ │        │ │        │ │        │   │
+│  │        │ │        │ │        │ │        │   │
+│  │        │ │        │ │        │ │        │   │
+│  │        │ │        │ │        │ │        │   │
+│  └────────┘ └────────┘ └────────┘ └────────┘   │
+│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐   │
+│  │        │ │        │ │        │ │        │   │
+│  │        │ │        │ │        │ │        │   │
+│  │        │ │        │ │        │ │        │   │
+│  │        │ │        │ │        │ │        │   │
+│  └────────┘ └────────┘ └────────┘ └────────┘   │
+└────────────────────────────────────────────────┘
+```
+
+**The pictures stand**: `tmux capture-pane -e` of that panel gave the colour
+`48;2;…` on **eight** rows of it, where the program before it gave it on four.
+
+**The controls of the same run.** A click of the second cell of the second row
+(`docs/harness/click.sh`, the column 129 and the row 32) moved the cursor of
+the panel 4 to the sixth media of the list, `A Book That No Reader Reads`, and
+the heavy border moved to that same cell: **the box of a cell is the whole of
+that cell now**, and the row of the title that took a click went away with the
+words. The panel 5 of the cover kept its facts and its description, and it
+gave two rows to the gallery.
+
+**The correction is three files, and one new one.**
+`src/ui/the_panel_of_the_gallery.rs` loses the areas `the_place` and
+`the_title` of a cell and the fields `title` and `done` of a media of the
+gallery, `the_rows_of_a_box` becomes the picture and the two rows of the
+border, and `the_rows_of_a_row_of_the_grid` goes away, because **a row of the
+grid is a box now**. `src/ui/tui.rs` loses the two `Paragraph` of the cell,
+and the border of the cell of the cursor becomes `BorderType::Thick` and not
+`BorderType::Double`. `src/app.rs` builds a media of the gallery of its line
+and of its identity alone.
+
+**The gate is `tests/the_cell_of_the_gallery_holds_the_picture_alone.rs`, of
+three tests.** The first one makes a real `App` of the offline mode, it draws
+the Library view of twenty books into a `TestBackend` of 160 by 45, it takes
+the rows and the columns of the panel 6 out of that buffer, and it holds that
+**every character of that panel under the row of its title is a space or one
+of the twelve characters of a border**. The titles of the twenty books each
+start with `Zebra`, and the control of the same test holds that the panel 4 of
+the list draws `Zebra Book 1`: a gate that finds no word in a screen that
+holds no word at all says nothing. The second test holds that the picture of a
+cell takes every row of the box that the border leaves, at each of the four
+widths of a cell. The third test holds the numbers of the measurement: the
+column of 41 rows gives three rows of the grid and twelve cells. **The build of
+the fault** (the trap 147), of the three files of `HEAD` in the tree of the
+gate, made **three** of the three tests fail.
+
+**The trap of this part.** **`String::char_indices` gives the index of a byte
+and not the column of the screen** (the trap 245): the first form of the gate
+read the column of the digit `6` of the row of the title with `char_indices`,
+and the row holds `│`, `║`, and `➤` at the left of that digit, each of three
+bytes and one column. The search of the last row of the panel then read a
+column that stands 60 columns at the right of the border, and the test said
+"the panel 6 holds no last row" for a panel that stood whole. `str::chars`
+with `position` is the road. **A row of a buffer of the screen is the whole
+row and not the panel**: the panels 1, 2, and 3 and the panel 4 of the list
+stand at the left of every row of the panel 6, and a gate of the words must
+take the columns of the panel out of the row before it reads them.
+
 ### The part 5 — The Chapters view of the two bars and of the table
 
 **The design is `docs/mockups/mockup-7.txt`, and its note holds every rule.**

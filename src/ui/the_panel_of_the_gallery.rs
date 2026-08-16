@@ -36,19 +36,26 @@
 //! the cursor** of the panel 4: the user reads the covers of the rows that they
 //! are near, and a click of a cell takes the cursor to that row.
 //!
-//! **A cell of the gallery holds three things**: the picture of the cover, the
-//! place of the user under it, and a short title under the box. The design of
-//! `docs/mockups/mockup-1.txt` writes them so:
+//! **A cell of the gallery holds two things**: the picture of the cover, and a
+//! border of one line around it. The design of `docs/mockups/mockup-7.txt`
+//! writes them so:
 //!
 //! ```text
-//! ┌─6 Gallery ◉ ⇕  [+ bigger] [- smaller]────────────────────┐
-//! │  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐  │
-//! │  │▓▒░▒▓█▒░│ │░▒▓█▓▒░▒│ │▒▓█░▒▓█░│ │█▓▒░█▓▒░│ │▓█▒░▓█▒░│  │
-//! │  │  90%   │ │ done   │ │   -    │ │   0%   │ │  34%   │  │
-//! │  └────────┘ └────────┘ └────────┘ └────────┘ └────────┘  │
-//! │  A Big Boo  A Huge Bo  A Very La  The Sand   The Test    │
+//! ┌─6 Gallery ◉ ⇕────────────────────────────────────────────┐
+//! │  ┏━━━━━━━━┓ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐  │
+//! │  ┃▓▒░▒▓█▒░┃ │░▒▓█▓▒░▒│ │▒▓█░▒▓█░│ │█▓▒░█▓▒░│ │▓█▒░▓█▒░│  │
+//! │  ┃▒░▓█▒░▓█┃ │▓░▒█▓░▒█│ │░▓▒█░▓▒█│ │▒█▓░▒█▓░│ │█░▓▒█░▓▒│  │
+//! │  ┗━━━━━━━━┛ └────────┘ └────────┘ └────────┘ └────────┘  │
 //! └──────────────────────────────────────────────────────────┘
 //! ```
+//!
+//! **The cell held a row of the percentage and a row of the title until
+//! v0.8.163** (T-330.4), and the maintainer read the two of them as noise: the
+//! panel 5 says the facts of the media of the cursor already, and the gallery is
+//! the picture. **The border of the cell of the cursor is heavy and bright, and
+//! the border of every other cell is thin and dim**, because a colour alone is
+//! not the mark of the focus. The two rows that the words gave back go to the
+//! pictures: a column of the same height then holds one row of the grid more.
 //!
 //! **The rows of the picture come of the form of a cell of the terminal**, and
 //! not of the mockup: a cell of a terminal is about two times higher than it is
@@ -107,12 +114,11 @@ pub struct AMediaOfTheGallery {
     pub the_line: usize,
     /// The identity of the media, for the store of the covers. A media of no
     /// identity holds no text, and the cell of it shows no picture.
+    ///
+    /// **The cell holds the picture and its border alone** (T-330.4), therefore
+    /// this media needs no title and no place of the user: the panel 5 says the
+    /// two of them for the media of the cursor already.
     pub id: String,
-    /// The title of the media, in the words of the panel 4.
-    pub title: String,
-    /// The place of the user in the media, in the words of the column `Done` of
-    /// the table: `-`, `34%`, or `done`.
-    pub done: String,
 }
 
 /// One cell of the gallery: a media of the list, and the areas of it.
@@ -122,13 +128,9 @@ pub struct ACellOfTheGallery {
     pub the_media: usize,
     /// The box of the cell, with its border.
     pub the_box: Rect,
-    /// The area of the picture of the cover, inside the border.
+    /// The area of the picture of the cover, inside the border. It holds every
+    /// row of the box that the border leaves (T-330.4).
     pub the_picture: Rect,
-    /// The row of the place of the user, inside the border and under the
-    /// picture.
-    pub the_place: Rect,
-    /// The row of the short title, under the box.
-    pub the_title: Rect,
 }
 
 /// The grid of the gallery.
@@ -148,14 +150,14 @@ impl TheGallery {
     /// The cell of a point of the screen, and `None` for a point that stands
     /// beside every cell.
     ///
-    /// **The box and the row of the title belong to one cell together**: a
-    /// click of the title of a cover is a click of that cover.
+    /// **The box of a cell is the whole of that cell** (T-330.4): the row of the
+    /// title under the box went away with the words, therefore a click of the
+    /// border of a cover is a click of that cover and no point of the panel
+    /// belongs to two cells.
     pub fn the_cell_of_a_point(&self, column: u16, row: u16) -> Option<&ACellOfTheGallery> {
         let point = ratatui::layout::Position::new(column, row);
 
-        self.cells
-            .iter()
-            .find(|cell| cell.the_box.contains(point) || cell.the_title.contains(point))
+        self.cells.iter().find(|cell| cell.the_box.contains(point))
     }
 }
 
@@ -176,20 +178,19 @@ fn the_rows_of_a_picture(of_a_cell: u16, font: FontSize) -> u16 {
         .min(u32::from(u16::MAX)) as u16
 }
 
-/// The rows of a box of a cell of this width: the border, the picture, and the
-/// row of the place of the user.
+/// The rows of a box of a cell of this width: the two rows of the border, and
+/// the picture between them.
+///
+/// **The box is one row of the grid too** (T-330.4): the row of the percentage
+/// inside the border and the row of the title under the box each went away, and
+/// the rows that they gave back go to the pictures.
 pub fn the_rows_of_a_box(of_a_cell: u16, font: FontSize) -> u16 {
-    the_rows_of_a_picture(of_a_cell, font) + 3
-}
-
-/// The rows of one row of the grid: the box, and the row of the title under it.
-pub fn the_rows_of_a_row_of_the_grid(of_a_cell: u16, font: FontSize) -> u16 {
-    the_rows_of_a_box(of_a_cell, font) + 1
+    the_rows_of_a_picture(of_a_cell, font) + 2
 }
 
 /// The smallest panel 6 that holds one row of the grid, with its border.
 pub fn the_smallest_gallery(of_a_cell: u16, font: FontSize) -> u16 {
-    the_rows_of_a_row_of_the_grid(of_a_cell, font) + 2
+    the_rows_of_a_box(of_a_cell, font) + 2
 }
 
 /// Divides the column at the right of the list into the panel 5 of the cover
@@ -211,7 +212,7 @@ pub fn the_two_panels(column: Rect, of_a_cell: u16, font: FontSize) -> (Rect, Op
     // a row would hold rows of the screen that no cell uses. The share of the
     // design is therefore a limit, and the panel takes the rows of the grid
     // that stand under it.
-    let of_a_row = the_rows_of_a_row_of_the_grid(of_a_cell, font);
+    let of_a_row = the_rows_of_a_box(of_a_cell, font);
     let of_the_share = column.height * THE_SHARE_OF_THE_GALLERY / 100;
     let the_rows = (of_the_share.saturating_sub(2) / of_a_row).max(1);
     let of_the_gallery = the_rows * of_a_row + 2;
@@ -256,7 +257,7 @@ pub fn plan_the_gallery(
     the_media: usize,
     the_cursor: usize,
 ) -> TheGallery {
-    let of_a_row = the_rows_of_a_row_of_the_grid(of_a_cell, font);
+    let of_a_row = the_rows_of_a_box(of_a_cell, font);
 
     if inside.width < of_a_cell || inside.height < of_a_row || the_media == 0 || of_a_cell < 3 {
         return TheGallery::default();
@@ -309,18 +310,6 @@ pub fn plan_the_gallery(
                     y: the_box.y + 1,
                     width: of_a_cell - 2,
                     height: the_rows_of_a_picture,
-                },
-                the_place: Rect {
-                    x: the_box.x + 1,
-                    y: the_box.y + 1 + the_rows_of_a_picture,
-                    width: of_a_cell - 2,
-                    height: 1,
-                },
-                the_title: Rect {
-                    x: the_box.x,
-                    y: the_box.y + the_box.height,
-                    width: of_a_cell,
-                    height: 1,
                 },
             });
         }
@@ -415,20 +404,15 @@ mod tests {
                 inside.union(cell.the_box) == inside,
                 "{cell:?} left the panel"
             );
-            assert!(
-                inside.union(cell.the_title) == inside,
-                "{cell:?} left the panel"
-            );
             assert_eq!(
                 cell.the_picture.height,
                 the_rows_of_a_picture(of_a_cell, FONT)
             );
-            assert_eq!(cell.the_place.height, 1);
-            assert_eq!(
-                cell.the_place.y,
-                cell.the_picture.y + cell.the_picture.height
-            );
-            assert_eq!(cell.the_title.y, cell.the_box.y + cell.the_box.height);
+
+            // **The picture holds every row of the box that the border
+            // leaves** (T-330.4).
+            assert_eq!(cell.the_picture.height + 2, cell.the_box.height);
+            assert_eq!(cell.the_picture.y, cell.the_box.y + 1);
 
             for other in plan.cells.iter().skip(at + 1) {
                 assert!(
@@ -470,7 +454,7 @@ mod tests {
     #[test]
     fn a_panel_that_holds_no_cell_holds_no_grid() {
         let of_a_cell = THE_WIDTHS_OF_A_CELL[THE_WIDTH_OF_THE_START];
-        let of_a_row = the_rows_of_a_row_of_the_grid(of_a_cell, FONT);
+        let of_a_row = the_rows_of_a_box(of_a_cell, FONT);
 
         for inside in [
             Rect::default(),
@@ -525,10 +509,10 @@ mod tests {
             Some(first.the_media)
         );
 
-        // **The row of the title belongs to its cell**: a click of the title of
-        // a cover is a click of that cover.
+        // **The border of a cell belongs to that cell** (T-330.4): the box is
+        // the whole of the cell, and the row of the title went away.
         assert_eq!(
-            plan.the_cell_of_a_point(first.the_title.x, first.the_title.y)
+            plan.the_cell_of_a_point(first.the_box.x, first.the_box.y + first.the_box.height - 1)
                 .map(|cell| cell.the_media),
             Some(first.the_media)
         );
