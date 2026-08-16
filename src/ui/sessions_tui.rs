@@ -11,7 +11,7 @@
 
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
-use ratatui::style::{Color, Modifier, Style};
+use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Paragraph, Widget};
 
@@ -28,16 +28,13 @@ fn title(text: String) -> Line<'static> {
     Line::from(Span::styled(
         text,
         Style::default()
-            .fg(Color::Rgb(120, 190, 255))
+            .fg(crate::ui::theme::THE_ACCENT)
             .add_modifier(Modifier::BOLD),
     ))
 }
 
 fn quiet(text: String) -> Line<'static> {
-    Line::from(Span::styled(
-        text,
-        Style::default().fg(Color::Rgb(150, 150, 150)),
-    ))
+    Line::from(Span::styled(text, crate::ui::theme::a_quiet_text()))
 }
 
 /// The date of a day, with the name of the day of the week beside it.
@@ -62,7 +59,7 @@ pub fn lines(state: &State, width: u16) -> Vec<Line<'static>> {
             return vec![
                 Line::from(Span::styled(
                     "The server gave no session.".to_string(),
-                    Style::default().fg(Color::Rgb(220, 120, 120)),
+                    crate::ui::theme::a_text_of_a_fault(),
                 )),
                 quiet(text.clone()),
             ];

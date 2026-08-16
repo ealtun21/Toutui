@@ -9,7 +9,7 @@
 
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Constraint, Layout, Rect};
-use ratatui::style::{Color, Modifier, Style};
+use ratatui::style::{Modifier, Style};
 use ratatui::text::Line;
 use ratatui::widgets::{
     Block, Borders, HighlightSpacing, List, ListItem, ListState, Paragraph, StatefulWidget, Widget,
@@ -207,7 +207,7 @@ pub fn draw_the_footer(area: Rect, buf: &mut Buffer, keys: &str) {
     ))
     .wrap(Wrap { trim: true })
     .centered()
-    .style(Style::default().fg(Color::Rgb(120, 120, 120)))
+    .style(crate::ui::theme::a_quiet_text())
     .render(area, buf);
 }
 
@@ -261,7 +261,7 @@ pub fn render(reader: &mut Reader, area: Rect, buf: &mut Buffer) {
         Paragraph::new(message)
             .centered()
             .wrap(Wrap { trim: true })
-            .style(Style::default().fg(Color::Rgb(150, 150, 150)))
+            .style(crate::ui::theme::a_quiet_text())
             .render(inside, buf);
 
         return;

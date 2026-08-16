@@ -1,5 +1,4 @@
 use crate::api::server::auth_process::*;
-use crate::config::rgb_parts;
 use crate::db::crud::*;
 use crate::login_app::AppLogin;
 use crate::ui::text_field::the_backend_of_a_field;
@@ -254,11 +253,11 @@ pub struct TheLoginScreen<'a> {
     /// The message of the login. An empty text is no message.
     pub message: &'a str,
     /// The colour of the border of the field.
-    pub of_the_border: (u8, u8, u8),
+    pub of_the_border: Color,
     /// The colour of the screen behind the field.
-    pub of_the_background: (u8, u8, u8),
+    pub of_the_background: Color,
     /// The colour behind the message.
-    pub of_the_message: (u8, u8, u8),
+    pub of_the_message: Color,
 }
 
 /// Gives the area of the field on a screen of one size.
@@ -316,15 +315,17 @@ pub fn draw_the_login(frame: &mut ratatui::Frame, screen: &TheLoginScreen) {
     let whole = frame.area();
     let area = the_area_of_the_field(ratatui::layout::Size::new(whole.width, whole.height));
 
-    let (r, g, b) = screen.of_the_border;
     let block = Block::default()
         .borders(Borders::ALL)
         .title(screen.title.to_string())
         .title_bottom(Line::from(format!("🦜Toutui v{} - Esc to quit.", VERSION)).right_aligned())
-        .border_style(Style::default().fg(Color::Rgb(r, g, b)));
+        .border_style(Style::default().fg(screen.of_the_border));
 
+    // **A text that tells what to write is a quiet text**, and the quiet of
+    // this program is the foreground of the terminal with `DIM` and not a grey
+    // of RGB. See T-317.
     let style = if screen.the_text_tells_what_to_write {
-        Style::default().fg(Color::Rgb(128, 128, 128))
+        crate::ui::theme::a_quiet_text()
     } else {
         Style::default()
     };
@@ -336,17 +337,14 @@ pub fn draw_the_login(frame: &mut ratatui::Frame, screen: &TheLoginScreen) {
 
     frame.render_widget(line, area);
 
-    let (r, g, b) = screen.of_the_background;
     frame.render_widget(
-        Block::default().style(Style::default().bg(Color::Rgb(r, g, b))),
+        Block::default().style(Style::default().bg(screen.of_the_background)),
         whole,
     );
 
     // The message stands inside the frame. A frame with no message writes the
     // cells of that row again, therefore no old message stays.
     if !screen.message.is_empty() {
-        let (r, g, b) = screen.of_the_message;
-
         // **The message stands on the rows that it needs** (T-297): the last row
         // of it stays where one row of a message stood, and the rows before it
         // grow upward. The field of the login keeps its place then.
@@ -365,7 +363,7 @@ pub fn draw_the_login(frame: &mut ratatui::Frame, screen: &TheLoginScreen) {
         frame.render_widget(
             Paragraph::new(screen.message)
                 .wrap(Wrap { trim: true })
-                .style(Style::default().bg(Color::Rgb(r, g, b))),
+                .style(Style::default().bg(screen.of_the_message)),
             row,
         );
     }
@@ -394,7 +392,7 @@ impl AppLogin {
         // See T-174.
         let mut term = Terminal::new(the_backend_of_a_field())?;
 
-        let (fg_r, fg_g, fg_b) = rgb_parts(&self.config.colors.login_foreground_color);
+        let of_the_letters = self.config.colors.login_foreground();
 
         let mut fields = [
             Field {
@@ -427,8 +425,8 @@ impl AppLogin {
         // init variables
         let mut current_index = 0;
         let mut collected_data: Vec<String> = Vec::new();
-        let (log_r, log_g, log_b) = rgb_parts(&self.config.colors.log_background_color);
-        let (bg_r, bg_g, bg_b) = rgb_parts(&self.config.colors.background_color);
+        let of_the_login = self.config.colors.log_background();
+        let of_the_background = self.config.colors.background();
 
         loop {
             // **The size comes at each turn of this loop.** The old code took it
@@ -465,9 +463,9 @@ impl AppLogin {
                 scroll: view.scroll,
                 cursor: view.cursor,
                 message: message.as_str(),
-                of_the_border: (fg_r, fg_g, fg_b),
-                of_the_background: (log_r, log_g, log_b),
-                of_the_message: (bg_r, bg_g, bg_b),
+                of_the_border: of_the_letters,
+                of_the_background: of_the_login,
+                of_the_message: of_the_background,
             };
 
             term.draw(|frame| draw_the_login(frame, &screen))?;
@@ -645,9 +643,9 @@ mod tests {
             scroll: 0,
             cursor: text.chars().count() as u16,
             message,
-            of_the_border: (255, 255, 255),
-            of_the_background: (0, 0, 0),
-            of_the_message: (0, 0, 0),
+            of_the_border: Color::Reset,
+            of_the_background: Color::Reset,
+            of_the_message: Color::Reset,
         }
     }
 

@@ -1,4 +1,3 @@
-use toutui::config::rgb_parts;
 use toutui::{api, app, config, db, logic, login_app, player, ui, utils};
 
 use crate::db::crud::*;
@@ -13,10 +12,7 @@ use color_eyre::Result;
 use crossterm::event::{self, KeyCode};
 use log::{error, info};
 use login_app::AppLogin;
-use ratatui::{
-    style::{Color, Style},
-    widgets::Block,
-};
+use ratatui::{style::Style, widgets::Block};
 use std::time::Duration;
 
 /// Gives the terminal back, says why the program stops, and it stops.
@@ -601,11 +597,10 @@ async fn main() -> Result<()> {
                 let sleep = app.text_of_the_timer_for_sleep();
 
                 terminal.draw(|frame| {
-                    let (bg_r, bg_g, bg_b) = rgb_parts(&app.config.colors.background_color);
                     let bg_color_player = app.config.colors.player_background_color.clone();
                     // global background
                     let background =
-                        Block::default().style(Style::default().bg(Color::Rgb(bg_r, bg_g, bg_b)));
+                        Block::default().style(Style::default().bg(app.config.colors.background()));
 
                     frame.render_widget(background, frame.area());
 

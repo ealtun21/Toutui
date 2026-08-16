@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.144.** The item T-315 belongs to this session. The
+**The newest release is v0.8.145.** The item T-317 belongs to this session. The
+item T-315 belongs to the session before it. The
 item T-314 belongs to the session before it. The
 item T-313 belongs to the session before it. The
 item T-312 belongs to the session before it. The
@@ -415,7 +416,7 @@ account holds the library `Large`.
 
 **The block of the prompt met the line of 99000 bytes** (T-284). The whole list
 of the decisions of T-201 to T-311 went out of it, into
-`## The decisions of T-201 to T-315 that do not open again` of this file, and a
+`## The decisions of T-201 to T-317 that do not open again` of this file, and a
 pointer of three lines stands in its place: the block held 98907 bytes and it
 holds 66224 now. **That list grows with every round and the turn of a round does
 not**, therefore it is the part of the block to take out again.
@@ -11116,8 +11117,8 @@ measurement can hold.
 
 | The stage | The item | What it gives |
 |---|---|---|
-| 1 | **T-317** | The theme of the terminal of the user |
-| 2 | **T-320** | The frame of the panels, the focus, and the narrow terminal |
+| 1 | **T-317** | The theme of the terminal of the user — **done, v0.8.145** |
+| 2 | **T-320** | The frame of the panels, the focus, and the narrow terminal — **the next stage** |
 | 3 | **T-316** | The harness of a click, the capture, and a click of a row |
 | 4 | **T-321** | The list of the panel 4 becomes a table of a header |
 | 5 | **T-318** | The panels 2 and 3, and a series that opens into its books |
@@ -11924,6 +11925,28 @@ answers slowly while it writes. Two answers to measure:
    of the release uses `cargo test`.
 
 ## The traps that cost time
+
+### Of the theme and of the file of the settings
+
+**The trap 246: a change of `Colors::default` alone reaches no user.** The
+program **writes** `config.example.toml` for a user who holds no file (T-122),
+and that file names every key of the block `colors`. `Colors::default` is
+therefore the value of `serde` for a key that a file does not hold, and a user
+of the file that the program wrote holds every key already. The round of T-317
+changed `Colors::default` alone, and the measurement of the corrected program
+gave **the same 28 escapes of RGB** as the measurement of the fault: a whole
+measurement went for nothing. **A change of a value of the start of this
+program is a change of two files**, and `tests/the_colours_of_the_start_are_the_colours_of_the_terminal.rs`
+holds the gate of it.
+
+**The measurement of a colour is `tmux capture-pane -e`** (T-317): the plain
+capture of `the_screen` holds no colour at all, therefore a screen of a fault
+of a colour and a screen with no fault read the same. `the_screen -e` of
+`docs/harness/drive.sh` keeps the escapes, and
+`grep -o $'\033\[[0-9;]*m' | sort | uniq -c` counts them. **An escape of
+`48;2;R;G;B` is a background of RGB** that the theme of the terminal cannot
+change, and **an escape of `48;5;N` with N under 16 is a colour of the terminal
+of the user**.
 
 ### Of a subagent
 
@@ -19340,6 +19363,73 @@ had its row back — 18 rows for 18 books — and the search view of the keys
   alone on the second one. **The road back**: the name `Empty` of that
   library again, and the library `Large` in the row of the account.
 
+## The session of the hundred and forty-fourth turn of 2026-08-16: the panel of a media keeps the line of the place of the user, of the block of the prompt
+
+  **The session of the hundred and forty-fourth turn took the candidate that
+  T-314 left open — the 28 places of `src/ui/tui.rs` that hold a text of the
+  server with no `in_one_line` — and the measurement of one of them gave one
+  fault** (T-315). **It left six candidates open.**
+
+  **The panel of a media keeps the line of the place of the user.** Six
+  panels of `src/ui/tui.rs` wrote the name of an author of the server into a
+  `Paragraph` of a `Wrap` with an end of a line of their own in the middle:
+  `"Author: {} - Year: {} - Duration: {}{}\nProgress: {}%, {} {}"` of the
+  Home view (2711), of the Library view (2796), and of the view of a search
+  (2981), and the three panels of a book of a series (1841), of an entry of
+  a list (2006), and of an episode of a podcast (2687). **That panel holds
+  two rows in a terminal that is not tall**: `the_areas_of_a_list`
+  (`src/ui/tui.rs:171`) gives it `Constraint::Length(2)` while
+  `main_area.height - the rows of the player <= 12`, and
+  `Constraint::Length(3)` above that. An author whose name holds an end of a
+  line therefore gives the text three lines, and the row of the place of the
+  user goes off the area.
+
+  **The data of this fault is one request of the API**: it needs no proxy,
+  no book of a harness, and no build of the fault of the source.
+  `PATCH /api/items/a4d8b9b2-0728.../media` with the body
+  `{"metadata":{"authors":[{"name":"Alpha\nOMEGAEND"}]}}` and a `Bearer` of
+  `POST /login` gave the book `A Book Of An Epub With No Container` of the
+  library `Books` an author of two lines, and
+  `GET /api/libraries/1b090ea8-.../items` then gave
+  `media.metadata.authorName` as `'Alpha\nOMEGAEND'`. **A `PATCH` of the
+  metadata moves the book in the list of the server**: it stood at the row 1
+  before the request and at the row 4 after it, therefore the keys of the
+  measurement are `Tab` and three `j`. A `sqlite3` of `name_selected_lib`
+  and of `id_selected_lib` gave the library `Books` to the row of the
+  account before the start (the trap 203 and the trap 204).
+
+  The measurement, of the real program v0.8.143 inside tmux against the
+  sandbox on `:13399` with the account `toutuitest`, and a terminal of 80
+  columns and **18** rows. The first frame came after 204 milliseconds, and
+  the two rows of the panel under the list held `Author: Alpha` and
+  `OMEGAEND - Year: N/A - Duration: 0m`: **no row of the screen said the
+  place of the user.** The same program of the same keys at **45** rows gave
+  the panel three rows and the place then stood, therefore the fault belongs
+  to the terminal that is not tall — the terminal of a pane of tmux and of a
+  window of a phone. **The control of the same run** (the trap 206): the
+  same book of the same keys at 18 rows, with the author `AlphaOMEGAEND` of
+  one line, gave `Author: AlphaOMEGAEND - Year: N/A - Duration: 0m` and
+  `Progress: 100%, 0m left, Finished`.
+
+  The correction is two files. `src/ui/keys.rs` holds a new function
+  `the_panel_of_a_media(of_the_media, of_the_place)`, which gives the two
+  texts to `crate::logic::message::in_one_line` of T-311 and which then
+  joins them with one end of a line, and the six panels of `src/ui/tui.rs`
+  call it in the place of their `format!` of one text.
+  `tests/the_panel_of_a_media_keeps_its_two_lines.rs` holds the gate, of two
+  tests: the first counts the lines of the text of that function, and the
+  second draws it with the widget of the six panels into a `Buffer` of
+  ratatui of 80 columns and **two** rows, with no terminal (T-256). They
+  need no network and no sandbox. **The build of the fault** (the trap 147)
+  — a `format!("{}\n{}", of_the_media, of_the_place)` — made the two tests
+  fail, and the first said `the panel of the media holds more than two
+  lines`. **The corrected program**, of the same book of two lines and the
+  same keys, gave `Author: Alpha OMEGAEND - Year: N/A - Duration: 0m` and
+  `Progress: 100%, 0m left, Finished`. **The road back**: a `PATCH` of
+  `{"metadata":{"authors":[]}}`, which gave the book its author of nothing
+  again and which took the two authors of the measurement away with it, and
+  the library `Large` in the row of the account.
+
 ## The decisions of T-124 to T-200 that do not open again
 
 **This section stood in the block of the prompt, and the block reached its
@@ -20172,7 +20262,7 @@ character.
     crate and not of this program, and no count of this program says what it
     does. **This is a candidate and not a measurement.**
 
-## The decisions of T-201 to T-315 that do not open again
+## The decisions of T-201 to T-317 that do not open again
 
 These decisions stood in the block of the prompt of the next session until the
 round of the hundred and thirty-ninth turn, and that block met its limit of
@@ -20637,14 +20727,19 @@ terminal that is not tall, and the name of an author is a text of the server,
 therefore the six panels of `src/ui/tui.rs` give the line of the media and the
 line of the place to `crate::ui::keys::the_panel_of_a_media`, which gives each
 of them to `crate::logic::message::in_one_line` and which joins them with one
-end of a line** (T-315).
+end of a line** (T-315). And **the colours of the start are the colours of the
+terminal of the user: the eleven settings of the block `colors` hold a list of
+no number, which is the colour of the terminal, and `config.example.toml` turns
+every key of that block off, because the program writes that file for a user
+who holds no file and a change of `Colors::default` alone therefore reaches no
+user at all** (T-317).
 
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.144**; `Cargo.toml` is at 0.8.144. The
+> AlbanDAVID/Toutui. Newest release **v0.8.145**; `Cargo.toml` is at 0.8.145. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -20653,7 +20748,7 @@ end of a line** (T-315).
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-315 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-317 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -21418,7 +21513,7 @@ end of a line** (T-315).
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-315 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-320 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
@@ -21557,114 +21652,85 @@ end of a line** (T-315).
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
->   **The session of the hundred and forty-fourth turn took the candidate that
->   T-314 left open — the 28 places of `src/ui/tui.rs` that hold a text of the
->   server with no `in_one_line` — and the measurement of one of them gave one
->   fault** (T-315). **It left six candidates open.**
+>   **The session of the hundred and forty-fifth turn took the stage 1 of the
+>   road of the panels** (T-317), because the maintainer chose the mockup 1 in
+>   the turn before it. **It left two candidates open.**
 >
->   **The panel of a media keeps the line of the place of the user.** Six
->   panels of `src/ui/tui.rs` wrote the name of an author of the server into a
->   `Paragraph` of a `Wrap` with an end of a line of their own in the middle:
->   `"Author: {} - Year: {} - Duration: {}{}\nProgress: {}%, {} {}"` of the
->   Home view (2711), of the Library view (2796), and of the view of a search
->   (2981), and the three panels of a book of a series (1841), of an entry of
->   a list (2006), and of an episode of a podcast (2687). **That panel holds
->   two rows in a terminal that is not tall**: `the_areas_of_a_list`
->   (`src/ui/tui.rs:171`) gives it `Constraint::Length(2)` while
->   `main_area.height - the rows of the player <= 12`, and
->   `Constraint::Length(3)` above that. An author whose name holds an end of a
->   line therefore gives the text three lines, and the row of the place of the
->   user goes off the area.
+>   **The colours of the start are the colours of the terminal of the user.**
+>   `Colors::default` of `src/config.rs` gave each of the eleven settings of
+>   the block `colors` a grey of RGB of its own — `background_color` was
+>   `[40, 40, 40]`, `list_background_color` was `[50, 50, 50]`, and
+>   `player_background_color` was `[80, 80, 80]` — and a `grep` of `Color::`
+>   over `src/` gave 38 uses of `Color::Rgb` against six names of ANSI. **The
+>   program therefore painted a dark grey over the terminal of every user**,
+>   and a change of the theme of that terminal changed nothing at all.
 >
->   **The data of this fault is one request of the API**: it needs no proxy,
->   no book of a harness, and no build of the fault of the source.
->   `PATCH /api/items/a4d8b9b2-0728.../media` with the body
->   `{"metadata":{"authors":[{"name":"Alpha\nOMEGAEND"}]}}` and a `Bearer` of
->   `POST /login` gave the book `A Book Of An Epub With No Container` of the
->   library `Books` an author of two lines, and
->   `GET /api/libraries/1b090ea8-.../items` then gave
->   `media.metadata.authorName` as `'Alpha\nOMEGAEND'`. **A `PATCH` of the
->   metadata moves the book in the list of the server**: it stood at the row 1
->   before the request and at the row 4 after it, therefore the keys of the
->   measurement are `Tab` and three `j`. A `sqlite3` of `name_selected_lib`
->   and of `id_selected_lib` gave the library `Books` to the row of the
->   account before the start (the trap 203 and the trap 204).
+>   **The data of this fault is the program itself**: no proxy, no book of a
+>   harness, no change of the sandbox, and no build of the fault of the source.
+>   The measurement is `tmux capture-pane -e` and a count of the escapes of the
+>   first frame, of the real program v0.8.144 at 100 columns and 30 rows: **28
+>   escapes of a background of RGB** (twelve of `48;2;40;40;40`, ten of
+>   `48;2;50;50;50`, five of `48;2;60;60;60`, and one of `48;2;80;80;80`) and
+>   **no escape of the background of the terminal at all**.
 >
->   The measurement, of the real program v0.8.143 inside tmux against the
->   sandbox on `:13399` with the account `toutuitest`, and a terminal of 80
->   columns and **18** rows. The first frame came after 204 milliseconds, and
->   the two rows of the panel under the list held `Author: Alpha` and
->   `OMEGAEND - Year: N/A - Duration: 0m`: **no row of the screen said the
->   place of the user.** The same program of the same keys at **45** rows gave
->   the panel three rows and the place then stood, therefore the fault belongs
->   to the terminal that is not tall — the terminal of a pane of tmux and of a
->   window of a phone. **The control of the same run** (the trap 206): the
->   same book of the same keys at 18 rows, with the author `AlphaOMEGAEND` of
->   one line, gave `Author: AlphaOMEGAEND - Year: N/A - Duration: 0m` and
->   `Progress: 100%, 0m left, Finished`.
+>   **The trap of this item, and it cost a whole measurement** (the trap 246):
+>   the first form of the correction changed `Colors::default` alone, and the
+>   measurement of the corrected program then gave **the same 28 escapes**.
+>   `config.example.toml` holds the eleven greys too, and **the program writes
+>   that file for a user who holds no file** (T-122), therefore
+>   `Colors::default` is the value of `serde` for a key that a file does not
+>   hold and it reaches **no user at all**. **A change of the theme of this
+>   program is a change of two files**, and a measurement of one of them alone
+>   says nothing.
 >
->   The correction is two files. `src/ui/keys.rs` holds a new function
->   `the_panel_of_a_media(of_the_media, of_the_place)`, which gives the two
->   texts to `crate::logic::message::in_one_line` of T-311 and which then
->   joins them with one end of a line, and the six panels of `src/ui/tui.rs`
->   call it in the place of their `format!` of one text.
->   `tests/the_panel_of_a_media_keeps_its_two_lines.rs` holds the gate, of two
->   tests: the first counts the lines of the text of that function, and the
->   second draws it with the widget of the six panels into a `Buffer` of
->   ratatui of 80 columns and **two** rows, with no terminal (T-256). They
->   need no network and no sandbox. **The build of the fault** (the trap 147)
->   — a `format!("{}\n{}", of_the_media, of_the_place)` — made the two tests
->   fail, and the first said `the panel of the media holds more than two
->   lines`. **The corrected program**, of the same book of two lines and the
->   same keys, gave `Author: Alpha OMEGAEND - Year: N/A - Duration: 0m` and
->   `Progress: 100%, 0m left, Finished`. **The road back**: a `PATCH` of
->   `{"metadata":{"authors":[]}}`, which gave the book its author of nothing
->   again and which took the two authors of the measurement away with it, and
->   the library `Large` in the row of the account.
->   - **The line of a series of a view reads no end of a line** (T-315): the
->     `Paragraph` of `src/ui/tui.rs:1776` and of 2649 holds
->     `"{} - {} - Duration: {}"` with the name of a series of the server, and
->     a `PATCH /api/items/:id/media` with `metadata.seriesName` gives the data
->     of it. That line is **one** line of a panel of two rows or of three,
->     therefore an end of a line in it takes a row and it loses no text.
+>   The correction is four files. `src/ui/theme.rs` is new, and it holds the
+>   vocabulary of the design of the mockup 1: `THE_ACCENT` (the cyan of the
+>   terminal), `A_FAULT`, `AN_END_THAT_IS_GOOD`, and the three styles
+>   `a_title`, `a_quiet_text`, and `a_text_of_a_fault`. **The quiet of this
+>   program holds no grey at all**: `a_quiet_text` is the foreground of the
+>   terminal with the modifier `DIM`, because a grey of RGB stays grey on a
+>   background of a light colour and `DIM` follows the theme of the user.
+>   `src/config.rs` gives the eleven settings a list of no number, and it holds
+>   `Colors::the_colour_of` with eleven methods over it, each of which names
+>   the colour of the terminal that its setting takes: `Color::Reset` for the
+>   five backgrounds and for the letters, `Color::Cyan` for the row of the
+>   cursor, and `Color::Black` for the letters on that row.
+>   `config.example.toml` turns every key of the block `colors` off with a `#`,
+>   and it keeps the key and a note for the user who wants a colour of their
+>   own. Twelve files of `src/` call the eleven methods, and the greys and the
+>   blues that stood outside the file of the settings take the three styles.
+>
+>   `tests/the_colours_of_the_start_are_the_colours_of_the_terminal.rs` holds
+>   the gate, of three tests, and **the third of them is the gate of the trap**:
+>   it reads `THE_EXAMPLE_OF_THE_CONFIGURATION` and it holds that every key of
+>   the colours stands in that file and that every one of them is off. **The
+>   build of the fault** (the trap 147) — the grey back in `Colors::default`
+>   **and** the line of the example on again — made two of the three fail.
+>   Seven tests of `src/config.rs` that named the greys of the program take the
+>   new rule. **The corrected program** of the same terminal gave two escapes
+>   and no RGB at all: `48;5;6` and `38;5;0`, the accent of the row of the
+>   cursor and the letters on it. **The road back**: the file of the sandbox
+>   keeps the keys of its block `colors` off, because that is the file that a
+>   new user gets now.
+>   - **The theme of a terminal of a light colour has no measurement yet**
+>     (T-317): the measurement above counts the escapes that the program
+>     writes, therefore it holds for every theme, but **no round has looked at
+>     the screen of a light terminal with the eyes of a user.** The accent
+>     `Cyan` on a background of a light colour, with the letters `Black` on it,
+>     is the one pair of this item that a count of the escapes cannot judge.
 >     **This is a candidate and not a measurement.**
->   - **The titles of the blocks hold a text of the server with no rule of a
->     line** (T-314 and T-315): `src/ui/tui.rs:990`, 1412, 1821, 1979, and
->     2290. **A `Line` of ratatui gives an end of a line no column at all**,
->     therefore the two words of such a title join with no space between them,
->     and `in_one_row(title, area.width)` says nothing of it. **This is a
->     candidate and not a measurement.**
->   - **The panels of the descriptions of every view close** (T-315,
->     `src/ui/tui.rs:856`): a description of the server holds ends of lines of
->     its own already, and that panel scrolls. The rule of one line does not
->     hold there.
->   - **The two keys of `must_refresh` that say nothing at all** (T-308):
->     `show_the_books_of_the_author` and `apply_the_sequence_or_the_filter` of
->     `src/app.rs` each change every list of the screen and each say no word
->     of what they did. The rule of T-91 asks whether a key that changes the
->     whole screen must name the change. **This is a candidate and not a
->     measurement.**
->   - **The marks of a line count the characters still** (T-305 to T-311):
->     `fill` of `src/ui/marks.rs:111` reads `mark.chars().count()`. **The four
->     marks of that file are constants of this program**, therefore no text of
->     the server reaches that count. **This is a candidate and not a
->     measurement.**
->   - **A text whose last line holds no character stands outside every gate of
->     a wrap of this fork** (T-310): the count of the rows of ratatui of
->     T-306, T-307, T-309, and T-310 reads the rows that hold a character. A
->     `Buffer` of a background of a colour of its own would say where such a
->     row stands. **This is a candidate and not a measurement.**
->   - **A word of a description that is longer than the panel takes the road
->     of ratatui that overflows the area** (T-306). That is a fault of the
->     crate and not of this program. **This is a candidate and not a
->     measurement.**
+>   - **`src/logic/reader/render.rs` keeps its two `Color::Rgb`** (T-317):
+>     those two come of the CSS of the EPUB itself and not of a setting of the
+>     program. **A book that names a colour of a light background gives a text
+>     that no one can read on a terminal of a dark theme**, and the reverse
+>     holds too. **This is a candidate and not a measurement.**
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
 >    (T-284): a round that writes its own turn takes the oldest turn out, and
 >    it takes a second one out while `toutui-loop --dry-run | wc -c` gives more
->    than 100000. That section holds the turn of the hundred and forty-third
+>    than 100000. That section holds the turn of the hundred and forty-fourth
 >    and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
@@ -21714,8 +21780,8 @@ end of a line** (T-315).
 > program holds more than one account (T-124). **The decisions of T-124 to
 > T-200 stand in `## The decisions of T-124 to T-200 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-294).
-> And **the decisions of T-201 to T-315 stand in
-> `## The decisions of T-201 to T-315 that do not open again` of
+> And **the decisions of T-201 to T-317 stand in
+> `## The decisions of T-201 to T-317 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-310).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
@@ -21763,7 +21829,7 @@ end of a line** (T-315).
 > did the same work, and the block then held 98907 bytes with one turn in it —
 > **at the line of 99000**, therefore that round took the whole list of the
 > decisions of T-201 to T-311 out of the block and it put it in
-> `## The decisions of T-201 to T-315 that do not open again` of this file,
+> `## The decisions of T-201 to T-317 that do not open again` of this file,
 > with a pointer of three lines in its place: the block then held **66224**
 > bytes with one turn in it; the round of the hundred and fortieth found it at
 > 66685 bytes with one turn in it, and it did the same work, and the block then

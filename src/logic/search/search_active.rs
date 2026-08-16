@@ -1,10 +1,9 @@
 use crate::app::App;
 use crate::app::AppView;
-use crate::config::rgb_parts;
 use crate::ui::text_field::field_view;
 use crate::ui::text_field::the_backend_of_a_field;
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind};
-use ratatui::style::{Color, Style};
+use ratatui::style::Style;
 use ratatui::widgets::{Block, Borders, Paragraph};
 use ratatui::Terminal;
 use std::io;
@@ -18,14 +17,14 @@ impl App {
         // See T-174.
         let mut term = Terminal::new(the_backend_of_a_field())?;
 
-        let (bg_r, bg_g, bg_b) = rgb_parts(&self.config.colors.background_color);
-        let (fg_r, fg_g, fg_b) = rgb_parts(&self.config.colors.search_bar_foreground_color);
+        let of_the_background = self.config.colors.background();
+        let of_the_letters = self.config.colors.search_bar_foreground();
 
         let block = Block::default()
             .borders(Borders::ALL)
             .title("Search")
-            .border_style(Style::default().fg(Color::Rgb(fg_r, fg_g, fg_b)))
-            .style(Style::default().bg(Color::Rgb(bg_r, bg_g, bg_b)));
+            .border_style(Style::default().fg(of_the_letters))
+            .style(Style::default().bg(of_the_background));
 
         let mut input = Input::default();
 
@@ -91,8 +90,7 @@ impl App {
         let (search_area, _) = crate::logic::prompt::the_areas_of_the_box(&term)?;
 
         term.draw(|f| {
-            let empty_block =
-                Block::default().style(Style::default().bg(Color::Rgb(bg_r, bg_g, bg_b)));
+            let empty_block = Block::default().style(Style::default().bg(of_the_background));
             f.render_widget(empty_block, search_area);
         })?;
 

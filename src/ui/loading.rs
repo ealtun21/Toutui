@@ -8,7 +8,7 @@
 //! them with no terminal.
 
 use ratatui::layout::{Alignment, Rect};
-use ratatui::style::{Color, Modifier, Style};
+use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Paragraph, Widget};
 use ratatui::Frame;
@@ -64,7 +64,7 @@ pub fn render(frame: &mut Frame, server: &str, tick: usize, seconds: u64) {
         Line::from(""),
         Line::from(Span::styled(
             waiting_line(tick, &step, seconds),
-            Style::default().fg(Color::Rgb(140, 200, 255)),
+            crate::ui::theme::a_title(),
         )),
     ];
 
@@ -72,14 +72,14 @@ pub fn render(frame: &mut Frame, server: &str, tick: usize, seconds: u64) {
         lines.push(Line::from(""));
         lines.push(Line::from(Span::styled(
             advice,
-            Style::default().fg(Color::Rgb(160, 160, 160)),
+            crate::ui::theme::a_quiet_text(),
         )));
     }
 
     lines.push(Line::from(""));
     lines.push(Line::from(Span::styled(
         "Q: stop the program",
-        Style::default().fg(Color::Rgb(120, 120, 120)),
+        crate::ui::theme::a_quiet_text(),
     )));
 
     // The height of the text, and two lines for the borders.
@@ -98,7 +98,7 @@ pub fn render(frame: &mut Frame, server: &str, tick: usize, seconds: u64) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(Color::Rgb(90, 90, 90))),
+                .border_style(crate::ui::theme::a_quiet_text()),
         )
         .render(box_area, frame.buffer_mut());
 }

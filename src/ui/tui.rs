@@ -1,6 +1,5 @@
 use crate::app::App;
 use crate::app::AppView;
-use crate::config::*;
 use crate::logic::download::progress::{DownloadProgress, DownloadState};
 use crate::player::engine::PlaybackStatus;
 use crate::ui::cover;
@@ -241,14 +240,9 @@ impl App {
             height: rows,
         };
 
-        let background = self.config.colors.header_background_color.clone();
-        let (bg_r, bg_g, bg_b) = rgb_parts(&background);
-        let letters = self.config.colors.line_header_color.clone();
-        let (fg_r, fg_g, fg_b) = rgb_parts(&letters);
-
         let style = Style::default()
-            .bg(Color::Rgb(bg_r, bg_g, bg_b))
-            .fg(Color::Rgb(fg_r, fg_g, fg_b))
+            .bg(self.config.colors.header_background())
+            .fg(self.config.colors.line_header())
             .add_modifier(Modifier::BOLD);
 
         App::draw_the_row_of_the_message(

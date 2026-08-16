@@ -1,4 +1,3 @@
-use crate::config::rgb_parts;
 use ratatui::{
     layout::Rect,
     style::{Color, Style},
@@ -26,8 +25,7 @@ pub fn render_player(
     let block_height = 4; // number of line of the player (in lines)
 
     // Create the background block with background color
-    let (bg_r, bg_g, bg_b) = rgb_parts(&bg_color);
-    let bg_color_player = Color::Rgb(bg_r, bg_g, bg_b);
+    let bg_color_player = crate::config::Colors::the_colour_of(&bg_color, Color::Reset);
     let block_area = Rect::new(area.x, new_y, block_width, block_height);
     let block = Block::default().style(Style::default().bg(bg_color_player));
 

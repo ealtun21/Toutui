@@ -19,6 +19,7 @@
 //! draw it into a `Buffer` and they read the characters of that buffer.
 
 use ratatui::backend::TestBackend;
+use ratatui::style::Color;
 use ratatui::Terminal;
 use toutui::logic::auth::auth_input::{
     draw_the_login, the_row_of_the_message, the_rows_of_the_message, TheLoginScreen,
@@ -49,9 +50,9 @@ fn the_words_of(width: u16, height: u16, message: &str) -> String {
                     scroll: 0,
                     cursor: 0,
                     message,
-                    of_the_border: (255, 255, 255),
-                    of_the_background: (0, 0, 0),
-                    of_the_message: (0, 0, 0),
+                    of_the_border: Color::Reset,
+                    of_the_background: Color::Reset,
+                    of_the_message: Color::Reset,
                 },
             );
         })

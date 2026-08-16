@@ -1,6 +1,7 @@
 use crate::api::client::endpoint::{Endpoint, EndpointPool};
 use color_eyre::eyre::{Report, Result};
 use config::{Config as ConfigLib, File};
+use ratatui::style::Color;
 use serde::Deserialize;
 use std::path::Path;
 
@@ -105,21 +106,113 @@ pub struct Colors {
 }
 
 impl Default for Colors {
-    /// The colors of `config.example.toml`.
+    /// **The colors of the terminal of the user.** See T-317.
+    ///
+    /// A list of no number is the color of the terminal, therefore the program
+    /// of a file that holds no block `colors` paints no color of its own at
+    /// all. The values of `config.example.toml` before T-317 were a grey of RGB
+    /// for each of these eleven keys, and the program then painted a dark grey
+    /// over the background of the terminal of every user.
     fn default() -> Self {
         Self {
-            background_color: vec![40, 40, 40],
-            log_background_color: vec![40, 40, 40],
-            header_background_color: vec![60, 60, 60],
-            line_header_color: vec![180, 180, 180],
-            list_background_color: vec![50, 50, 50],
-            list_background_color_alt_row: vec![60, 60, 60],
-            list_selected_background_color: vec![80, 80, 80],
-            list_selected_foreground_color: vec![180, 180, 180],
-            search_bar_foreground_color: vec![180, 180, 180],
-            login_foreground_color: vec![180, 180, 180],
-            player_background_color: vec![80, 80, 80],
+            background_color: Vec::new(),
+            log_background_color: Vec::new(),
+            header_background_color: Vec::new(),
+            line_header_color: Vec::new(),
+            list_background_color: Vec::new(),
+            list_background_color_alt_row: Vec::new(),
+            list_selected_background_color: Vec::new(),
+            list_selected_foreground_color: Vec::new(),
+            search_bar_foreground_color: Vec::new(),
+            login_foreground_color: Vec::new(),
+            player_background_color: Vec::new(),
         }
+    }
+}
+
+impl Colors {
+    /// The color of a value of the file, or the color of the program when that
+    /// value holds no number.
+    ///
+    /// **A list of no number is the color of the terminal of the user**
+    /// (T-317), and `when_the_file_says_nothing` names which color of the
+    /// terminal that is. A list of one number or of two numbers keeps the rule
+    /// of T-257: `rgb_parts` gives the last number of the list for every
+    /// component that the list does not hold.
+    pub fn the_colour_of(values: &[u8], when_the_file_says_nothing: Color) -> Color {
+        if values.is_empty() {
+            return when_the_file_says_nothing;
+        }
+
+        let (r, g, b) = rgb_parts(values);
+        Color::Rgb(r, g, b)
+    }
+
+    /// The background of every view.
+    pub fn background(&self) -> Color {
+        Self::the_colour_of(&self.background_color, Color::Reset)
+    }
+
+    /// The background of the login screen.
+    pub fn log_background(&self) -> Color {
+        Self::the_colour_of(&self.log_background_color, Color::Reset)
+    }
+
+    /// The background of the title of a block.
+    pub fn header_background(&self) -> Color {
+        Self::the_colour_of(&self.header_background_color, Color::Reset)
+    }
+
+    /// The line and the letters of the title of a block.
+    pub fn line_header(&self) -> Color {
+        Self::the_colour_of(&self.line_header_color, Color::Reset)
+    }
+
+    /// The background of a list.
+    pub fn list_background(&self) -> Color {
+        Self::the_colour_of(&self.list_background_color, Color::Reset)
+    }
+
+    /// The background of a row of a list that is not the first one.
+    ///
+    /// **The program of no file paints no row of a colour of its own**: the two
+    /// backgrounds of a list are the background of the terminal, therefore no
+    /// row stands out, and the row of the cursor alone holds the accent.
+    pub fn list_background_alt_row(&self) -> Color {
+        Self::the_colour_of(&self.list_background_color_alt_row, Color::Reset)
+    }
+
+    /// The background of the row of the cursor.
+    ///
+    /// **The row of the cursor is the one row of a colour of its own**, and the
+    /// accent of the program (the section (d) of `docs/mockups/mockup-1.md`) is
+    /// the name of ANSI `Cyan`.
+    pub fn list_selected_background(&self) -> Color {
+        Self::the_colour_of(&self.list_selected_background_color, Color::Cyan)
+    }
+
+    /// The letters of the row of the cursor.
+    ///
+    /// The letters stand on the accent, therefore they take the name of ANSI
+    /// `Black` and not the foreground of the terminal: a foreground of a light
+    /// colour on the accent reads badly.
+    pub fn list_selected_foreground(&self) -> Color {
+        Self::the_colour_of(&self.list_selected_foreground_color, Color::Black)
+    }
+
+    /// The letters and the line of the field of a search.
+    pub fn search_bar_foreground(&self) -> Color {
+        Self::the_colour_of(&self.search_bar_foreground_color, Color::Reset)
+    }
+
+    /// The letters and the line of the login screen.
+    pub fn login_foreground(&self) -> Color {
+        Self::the_colour_of(&self.login_foreground_color, Color::Reset)
+    }
+
+    /// The background of the panel of the player.
+    pub fn player_background(&self) -> Color {
+        Self::the_colour_of(&self.player_background_color, Color::Reset)
     }
 }
 
@@ -1311,10 +1404,16 @@ endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
             vec![200, 0, 0],
             "the colour of the user must stay"
         );
-        assert_eq!(
-            config.colors.list_selected_background_color,
-            vec![80, 80, 80],
+        // **A colour of the file that the program cannot read takes the colour
+        // of the program**, and the colour of the program is the accent of the
+        // terminal of the user (T-317).
+        assert!(
+            config.colors.list_selected_background_color.is_empty(),
             "the colour that the program cannot read takes the colour of the program"
+        );
+        assert_eq!(
+            config.colors.list_selected_background(),
+            crate::ui::theme::THE_ACCENT
         );
     }
 
@@ -1337,9 +1436,23 @@ endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
 
         let config = load_config_from(&path).expect("the program must start");
 
-        assert_eq!(config.colors.list_background_color, vec![50, 50, 50]);
-        assert_eq!(config.colors.header_background_color, vec![60, 60, 60]);
-        assert_eq!(config.colors.line_header_color, vec![180, 180, 180]);
+        // **A colour of the file that does not hold three numbers takes the
+        // colour of the program**, and the colour of the program is the colour
+        // of the terminal of the user (T-317). The value of `[50, 50]` gave
+        // `[50, 50, 50]` before that item, because the grey of the program for
+        // that key held the same three numbers by chance.
+        assert!(config.colors.list_background_color.is_empty());
+        assert!(config.colors.header_background_color.is_empty());
+        assert!(config.colors.line_header_color.is_empty());
+        assert_eq!(
+            config.colors.list_background(),
+            ratatui::style::Color::Reset
+        );
+        assert_eq!(
+            config.colors.header_background(),
+            ratatui::style::Color::Reset
+        );
+        assert_eq!(config.colors.line_header(), ratatui::style::Color::Reset);
         assert_eq!(
             config.colors.background_color,
             vec![7, 8, 9],
@@ -1358,7 +1471,13 @@ endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
 
         let config = load_config_from(&path).expect("the program must start");
 
-        assert_eq!(config.colors.player_background_color, vec![80, 80, 80]);
+        // The key that the file does not hold is the colour of the terminal of
+        // the user (T-317).
+        assert!(config.colors.player_background_color.is_empty());
+        assert_eq!(
+            config.colors.player_background(),
+            ratatui::style::Color::Reset
+        );
     }
 
     /// **One address of one server that the program cannot read took every
@@ -1947,7 +2066,11 @@ endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
             std::fs::read_to_string(&path).expect("the file of the test"),
             THE_EXAMPLE_OF_THE_CONFIGURATION
         );
-        assert_eq!(config.colors.background_color, vec![40, 40, 40]);
+        // **The file of a new user holds no colour of the program** (T-317):
+        // every key of the block `colors` of the example is off, therefore the
+        // colour of the start is the colour of the terminal of the user.
+        assert!(config.colors.background_color.is_empty());
+        assert_eq!(config.colors.background(), ratatui::style::Color::Reset);
     }
 
     /// A second start must read the file of the user, and it must not write
@@ -1986,7 +2109,14 @@ endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
 
         assert_eq!(config.colors.background_color, vec![1, 2, 3]);
         assert_eq!(config.colors.login_foreground_color, vec![4, 5, 6]);
-        assert_eq!(config.colors.player_background_color, vec![80, 80, 80]);
+
+        // A key that the file does not hold is the colour of the terminal of
+        // the user (T-317), and the two keys of the file keep their colour.
+        assert!(config.colors.player_background_color.is_empty());
+        assert_eq!(
+            config.colors.player_background(),
+            ratatui::style::Color::Reset
+        );
     }
 
     /// A file with no block of colors at all must not stop the program.
@@ -1999,7 +2129,11 @@ endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
         let config = load_config_from(&path).expect("the program must start");
 
         assert_eq!(config.reader.ebook_cache_mb, 64);
-        assert_eq!(config.colors.background_color, vec![40, 40, 40]);
+
+        // A file with no block of colors gives the colours of the terminal of
+        // the user (T-317).
+        assert!(config.colors.background_color.is_empty());
+        assert_eq!(config.colors.background(), ratatui::style::Color::Reset);
     }
 
     /// The example of the repository must hold every key of the program. A key
@@ -2020,10 +2154,14 @@ endpoints = [ { url = "http://localhost:13378", priority = 0 } ]
             "login_foreground_color",
             "player_background_color",
         ] {
+            // **Every key of the colours is off in the example** (T-317), and
+            // the line of it therefore starts with `#`. The key stays in the
+            // file for the user who wants a colour of their own.
             assert!(
-                THE_EXAMPLE_OF_THE_CONFIGURATION
-                    .lines()
-                    .any(|line| line.trim_start().starts_with(key)),
+                THE_EXAMPLE_OF_THE_CONFIGURATION.lines().any(|line| {
+                    let line = line.trim_start();
+                    line.starts_with(key) || line.starts_with(&format!("#{key}"))
+                }),
                 "the example does not hold {}",
                 key
             );

@@ -50,27 +50,39 @@
 # [reader]
 # ebook_cache_mb = 2048
 
-#### COLORS (RGB) ####
+#### COLORS ####
+# **Toutui uses the colors of your terminal.** Every key of this block is off,
+# therefore the program paints no color of its own: the background of your
+# terminal is the background of the program, and the letters of your terminal
+# are the letters of the program. A theme of a light color and a theme of a dark
+# color both work, and a change of the theme of your terminal changes Toutui
+# with it.
+#
+# Give a key three numbers of RGB (0 to 255) to take a color of your own. A key
+# that stays off keeps the color of the terminal.
 [colors]
 # General background color of the app:
-background_color = [40, 40, 40]
+#background_color = [40, 40, 40]
 # Login background color:
-log_background_color = [40, 40, 40]
+#log_background_color = [40, 40, 40]
 # Background color for section headers (e.g., "Continue Listening", "Library", etc.):
-header_background_color = [60, 60, 60]
+#header_background_color = [60, 60, 60]
 # Line color surrounding the header title:
-line_header_color = [180, 180, 180]
+#line_header_color = [180, 180, 180]
 # Background color of the book list:
-list_background_color = [50, 50, 50]
+#list_background_color = [50, 50, 50]
 # Background color for alternate rows of the book list:
-list_background_color_alt_row = [60, 60, 60]
-# Background color of the selected row of the book list:
-list_selected_background_color = [80, 80, 80]
-# Text color of the selected row of the book list:
-list_selected_foreground_color = [180, 180, 180]
+#list_background_color_alt_row = [60, 60, 60]
+# Background color of the selected row of the book list.
+# The color of the program is the accent, which is the cyan of your terminal:
+#list_selected_background_color = [80, 80, 80]
+# Text color of the selected row of the book list.
+# The color of the program is the black of your terminal, because those letters
+# stand on the accent:
+#list_selected_foreground_color = [180, 180, 180]
 # Text and border color of the search bar:
-search_bar_foreground_color = [180, 180, 180]
+#search_bar_foreground_color = [180, 180, 180]
 # Text and border color of the login section:
-login_foreground_color = [180, 180, 180]
+#login_foreground_color = [180, 180, 180]
 # Background color of the player:
-player_background_color = [80, 80, 80]
+#player_background_color = [80, 80, 80]

@@ -28017,3 +28017,142 @@ the start. A `sqlite3` gave the library `Large`
   measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to
   T-314).
+
+### T-317: the colours of the start are the colours of the terminal of the user
+
+**The first stage of the road of the panels.** The maintainer chose the
+mockup 1 of `docs/mockups/` on 2026-08-16, and
+`### 0. The road of the panels (T-316 to T-323)` of `docs/HANDOVER.md` puts
+this item first: the theme names the colours that every panel of that design
+uses, therefore a change of it after the panels means a change of every call
+site two times.
+
+**The fault, in `src/config.rs` and in `config.example.toml`.** `Colors`
+(`src/config.rs:94`) holds eleven settings of a colour, and `Colors::default`
+gave each of them a grey of RGB of its own: `background_color` was
+`[40, 40, 40]`, `log_background_color` `[40, 40, 40]`,
+`header_background_color` `[60, 60, 60]`, `line_header_color`
+`[180, 180, 180]`, `list_background_color` `[50, 50, 50]`,
+`list_background_color_alt_row` `[60, 60, 60]`,
+`list_selected_background_color` `[80, 80, 80]`, and `player_background_color`
+`[80, 80, 80]`. A `grep` of `Color::` over `src/` gave **38** uses of
+`Color::Rgb` against **six** names of ANSI (four `DarkGray`, one `Green`, and
+one `Cyan`). **The program therefore painted a dark grey over the background of
+the terminal of every user**: a user of a theme of a light colour got the theme
+of this program, and a change of the theme of their terminal changed nothing at
+all.
+
+**The measurement of the fault**, of the real program v0.8.144 inside tmux with
+`docs/harness/drive.sh`, against the sandbox on `:13399` with the account
+`toutuitest`, of a terminal of 100 columns and 30 rows. The first frame came
+after 406 milliseconds, and a `tmux capture-pane -e` of it with a count of the
+escapes gave
+
+```text
+     12 [48;2;40;40;40m
+     10 [48;2;50;50;50m
+      5 [48;2;60;60;60m
+      2 [38;2;180;180;180m
+      1 [48;2;80;80;80m
+      1 [39m
+```
+
+**28 escapes of a background of RGB, and no escape of the background of the
+terminal at all.** The one `[39m` is a foreground of the terminal, and no
+`[49m` stands beside it.
+
+**The trap of this item, and it cost a whole measurement.** The first form of
+the correction changed `Colors::default` alone, and the measurement of the
+corrected program then gave **the same 28 escapes**. The reason:
+`config.example.toml` holds the eleven greys too, and **the program writes that
+file for a user who holds no file** (T-122), therefore `Colors::default` is the
+value of `serde` for a key that a file does not hold and it reaches **no user
+at all**. A change of the theme of this program is a change of two files.
+
+**The correction is four files.**
+
+- `src/ui/theme.rs` is new. It holds the vocabulary of the design of the
+  mockup 1: `THE_ACCENT` (the cyan of the terminal), `A_FAULT` (the red),
+  `AN_END_THAT_IS_GOOD` (the green), and the three styles `a_title`,
+  `a_quiet_text`, and `a_text_of_a_fault`. **The quiet of this program holds no
+  grey at all**: `a_quiet_text` is the foreground of the terminal with the
+  modifier `DIM`, because a grey of RGB stays grey on a background of a light
+  colour and it then reads badly, and `DIM` follows the theme of the user.
+- `src/config.rs` gives `Colors::default` a list of no number for each of the
+  eleven settings, and it holds `Colors::the_colour_of(values,
+  when_the_file_says_nothing)` with eleven methods over it — `background()`,
+  `list_selected_background()`, and so on. **A list of no number is the colour
+  of the terminal**, and each method names which colour of the terminal that
+  is: `Color::Reset` for the five backgrounds and for the letters,
+  `Color::Cyan` for the row of the cursor, and `Color::Black` for the letters
+  on that row.
+- `config.example.toml` keeps every key of the block `colors` and it turns each
+  of them off with a `#`. The block holds a note that says that the program
+  uses the colours of the terminal, and that a key takes three numbers of RGB
+  for a user who wants a colour of their own.
+- Twelve files of `src/` call the eleven methods in the place of `rgb_parts`
+  and `Color::Rgb`, and the greys and the blues that stood outside the file of
+  the settings — `src/ui/loading.rs`, `src/ui/stats_tui.rs`,
+  `src/ui/sessions_tui.rs`, and `src/ui/reader_tui.rs` held
+  `Color::Rgb(120, 190, 255)`, `Color::Rgb(150, 150, 150)`, and
+  `Color::Rgb(220, 120, 120)` — take `THE_ACCENT`, `a_quiet_text`, and
+  `a_text_of_a_fault`. **The three fields of colour of `TheLoginScreen` change
+  from `(u8, u8, u8)` to `Color`.**
+
+**The measurement of the corrected program**, of the same terminal and the same
+keys, with the keys of the block `colors` of the file of the sandbox off:
+
+```text
+      1 [48;5;6m
+      1 [38;5;0m
+```
+
+**No escape of RGB at all.** The two that stay are the row of the cursor: the
+accent (the cyan of the terminal, `48;5;6`) and the letters on it (the black of
+the terminal, `38;5;0`). Every other cell of the screen holds the background
+and the foreground of the terminal of the user.
+
+`tests/the_colours_of_the_start_are_the_colours_of_the_terminal.rs` holds the
+gate, of three tests: the first reads the eleven methods of `Colors::default`
+and it refuses a `Color::Rgb` and a `Color::Indexed`; the second gives a file a
+colour and it holds that the colour of the user stays, with the rule of T-257
+for a list of fewer than three numbers; and **the third reads
+`THE_EXAMPLE_OF_THE_CONFIGURATION` and it holds that every key of the colours
+stands in that file and that every one of them is off.** The third test is the
+gate of the trap above. `src/ui/theme.rs` holds one test of its own, and seven
+tests of `src/config.rs` that named the greys of the program take the new rule.
+The tests need no network, no sandbox, and no terminal.
+
+**The build of the fault** (the trap 147) — the grey `[40, 40, 40]` back in
+`Colors::default` **and** the line of `background_color` of the example on
+again — made two of the three tests fail, and they said `the colour of the
+start of background is not a colour of the terminal of the user: Rgb(40, 40,
+40)` and `the file of a new user gives a colour of the program to
+background_color: "background_color = [40, 40, 40]"`.
+
+**The road back**: the file of the sandbox keeps the keys of its block `colors`
+off, because that is the file that a new user gets now. A round that needs the
+greys again writes them in that file.
+
+**What this stage leaves open.**
+
+- **The stage 2 of the road, T-320, is the frame of the panels.** It is the
+  next item, and the three decisions of `### 0. The road of the panels` of
+  `docs/HANDOVER.md` belong to it: the digits of the focus against the digits
+  of the sequences, the keys of the focus beside `Tab` and `Shift+Tab` which
+  are taken already, and the three shapes of the frame at 120, at 84, and at
+  40 columns.
+- **The theme of a terminal of a light colour has no measurement yet** (this
+  round): the measurement above counts the escapes that the program writes, and
+  it therefore holds for every theme, but **no round has looked at the screen
+  of a light terminal with the eyes of a user.** The accent `Cyan` on a
+  background of a light colour with the letters `Black` on it is the one pair
+  of this item that a measurement of the escapes cannot judge. **This is a
+  candidate and not a measurement.**
+- **`src/logic/reader/render.rs` keeps its two `Color::Rgb`** (this round):
+  those two come of the colours of the book itself, of the CSS of the EPUB, and
+  not of a setting of the program. **A book that names a colour of a light
+  background gives a text that no one can read on a terminal of a dark theme**,
+  and the reverse holds too. **This is a candidate and not a measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to
+  T-315).

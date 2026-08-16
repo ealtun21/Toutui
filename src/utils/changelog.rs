@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.145",
+        date: "16/08/2026",
+        body: &[
+            "Changed:",
+            "- **Toutui now uses the colors of your terminal.** The program \
+             painted a dark grey over your terminal before this version, \
+             therefore a theme of a light color did not work and a change of \
+             the theme of your terminal changed nothing. The program now \
+             paints no color of its own: the background and the letters of \
+             your terminal are the background and the letters of Toutui, and \
+             the row of the cursor alone holds a color, which is the cyan of \
+             your terminal. Every key of the block `colors` of your \
+             configuration file keeps its work, therefore a color that you \
+             give stays.",
+        ],
+    },
+    Entry {
         version: "0.8.144",
         date: "16/08/2026",
         body: &[

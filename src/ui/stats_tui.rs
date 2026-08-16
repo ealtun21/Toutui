@@ -7,7 +7,7 @@
 
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
-use ratatui::style::{Color, Modifier, Style};
+use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Paragraph, Widget};
 
@@ -63,16 +63,13 @@ fn title(text: &str) -> Line<'static> {
     Line::from(Span::styled(
         text.to_string(),
         Style::default()
-            .fg(Color::Rgb(120, 190, 255))
+            .fg(crate::ui::theme::THE_ACCENT)
             .add_modifier(Modifier::BOLD),
     ))
 }
 
 fn quiet(text: String) -> Line<'static> {
-    Line::from(Span::styled(
-        text,
-        Style::default().fg(Color::Rgb(150, 150, 150)),
-    ))
+    Line::from(Span::styled(text, crate::ui::theme::a_quiet_text()))
 }
 
 /// Makes one line of a bar: a name, the bar, and the time.
@@ -88,7 +85,7 @@ fn line_of_a_bar(name: &str, seconds: f64, most: f64, width: usize) -> Line<'sta
         Span::raw(format!("{:<width$}", name, width = NAME_WIDTH)),
         Span::styled(
             format!("{:<width$}", mark, width = width),
-            Style::default().fg(Color::Rgb(120, 190, 255)),
+            Style::default().fg(crate::ui::theme::THE_ACCENT),
         ),
         Span::raw("  ".to_string()),
         Span::raw(time),
@@ -109,7 +106,7 @@ pub fn lines(state: &State, width: u16) -> Vec<Line<'static>> {
             return vec![
                 Line::from(Span::styled(
                     "The server gave no statistics.".to_string(),
-                    Style::default().fg(Color::Rgb(220, 120, 120)),
+                    crate::ui::theme::a_text_of_a_fault(),
                 )),
                 quiet(text.clone()),
             ];

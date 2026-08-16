@@ -13,7 +13,7 @@
 //! `Buffer` and they read the characters of that buffer. A `Buffer` needs no
 //! terminal and no screen, therefore those tests run in the gate.
 
-use crate::config::{rgb_parts, Colors};
+use crate::config::Colors;
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
@@ -25,18 +25,6 @@ use ratatui::{
     },
 };
 
-/// Gives the colour of the screen of the numbers of the configuration.
-///
-/// **A list of fewer than three numbers is a colour that the file does not
-/// hold** (T-257): `rgb_parts` gives the last number of the list, or the value
-/// of the program for a list of no number at all. An index of that list stops
-/// the whole program: the render stands on the main thread, and a panic of it
-/// takes the terminal of the user away with no word on the screen.
-fn the_colour(values: &[u8]) -> Color {
-    let (r, g, b) = rgb_parts(values);
-    Color::Rgb(r, g, b)
-}
-
 /// Gives the background of the line `i` of a list. The even lines take one
 /// colour of the user and the odd lines take the other.
 ///
@@ -47,9 +35,9 @@ fn the_colour(values: &[u8]) -> Color {
 /// opens of `config.toml` in ten seconds**.
 pub fn the_colour_of_a_line(colors: &Colors, i: usize) -> Color {
     if i.is_multiple_of(2) {
-        the_colour(&colors.list_background_color)
+        colors.list_background()
     } else {
-        the_colour(&colors.list_background_color_alt_row)
+        colors.list_background_alt_row()
     }
 }
 
@@ -91,13 +79,13 @@ pub fn render_the_list(
     // the program for a number that the file does not hold, and an index of the
     // list stops the program of the user at the first frame.
     let selected_style: Style = Style::new()
-        .bg(the_colour(&colors.list_selected_background_color))
-        .fg(the_colour(&colors.list_selected_foreground_color))
+        .bg(colors.list_selected_background())
+        .fg(colors.list_selected_foreground())
         .add_modifier(Modifier::BOLD);
 
     let header_style: Style = Style::new()
-        .fg(the_colour(&colors.line_header_color))
-        .bg(the_colour(&colors.header_background_color));
+        .fg(colors.line_header())
+        .bg(colors.header_background());
 
     // **The title of a list keeps its start** (T-304). ratatui centers a title
     // that stands, and a title that is wider than the block takes
@@ -115,7 +103,7 @@ pub fn render_the_list(
         .title(Line::raw(title).centered())
         .borders(Borders::TOP)
         .border_style(header_style)
-        .bg(the_colour(&colors.list_background_color));
+        .bg(colors.list_background());
 
     // **A list that holds more lines than its rows says so** (T-255). The block
     // draws the header of the view over the whole width, and the list and the
@@ -403,8 +391,18 @@ mod tests {
         let buf = the_buffer_of_the_colours(&of_two_numbers);
 
         // A number that the file does not hold takes the last number of the
-        // list, and a list of no number at all takes the value of the program.
+        // list.
         assert_eq!(buf[(0, 1)].style().bg, Some(Color::Rgb(50, 50, 50)));
         assert_eq!(buf[(0, 2)].style().bg, Some(Color::Rgb(60, 60, 60)));
+
+        // **A list of no number at all is the colour of the terminal of the
+        // user** (T-317). The background of the title of a block is the
+        // background of the terminal, and the row of the cursor holds the
+        // accent of the program.
+        assert_eq!(of_two_numbers.header_background(), Color::Reset);
+        assert_eq!(
+            of_two_numbers.list_selected_background(),
+            crate::ui::theme::THE_ACCENT
+        );
     }
 }
