@@ -23750,3 +23750,122 @@ that book. No test needs the network.
   of the rule of T-144 and of T-157. **Sweep `src/` for a second such pair: a
   module of a `static` and of more than one `#[test]` that writes it.** A
   candidate, and not a measurement.
+
+### T-285: a file that no reader opens says the road back
+
+**Status: corrected in v0.8.114.**
+
+`ReaderError::NotAnEpub` of `src/logic/reader/book.rs` gave one sentence and
+nothing else: `This file is not an EPUB.`
+
+#### The road
+
+`Book::open` keeps a copy of each book that the user opens in the cache of the
+ebooks of the account, and the reader reads that copy of the disk and no other
+file. `Epub::open` of the copy gives the reason of the crate of the archive,
+and the arm of `NotAnEpub` dropped that reason and gave the one sentence
+above, with no key and no word of the log.
+
+#### The measurement
+
+Of the real program v0.8.113 inside tmux against the sandbox (podman on
+:13399), on 2026-08-16. **The data of this fault is a file, and it needs no
+proxy at all.** A file of **74 bytes** of plain text went into the cache of
+the ebooks of the account `toutuitest`, at
+`$XDG_DATA_HOME/toutui/downloads/toutuitest/8fda6e43-0728-46ad-98bc-4c8634e299ad.epub`
+(the item of `Alice in Wonderland`). The good file of that name went to the
+scratchpad for the road back.
+
+The keys `Tab`, 15 keys `j`, and `e` gave the view of the reader with the one
+sentence `This file is not an EPUB.` The log held **11 lines before the key
+and 31 after it**, and `grep -c '\[reader\]'` gave **1**: the one line of the
+reader named the file and the reason of the crate of the archive —
+`[UnreadableArchive - ...]: invalid Zip archive: Could not find EOCD`.
+
+#### The three faults
+
+1. **The sentence named no key at all**, while every other arm of that enum
+   names one, and the view of the reader with no book stands at that moment
+   (T-284).
+2. **The sentence said nothing of the file of the log**, and the log holds the
+   one reason of the archive.
+3. **The sentence named no road back at all.** The reader opens the copy of
+   the book on the disk, therefore a second press of the key `e` gave that
+   same sentence, the size of the file of the cache stayed at 74 bytes, and
+   the program asked the server for the book no more.
+
+#### The measurement of the road back
+
+The key `h`, then the key `X` on the line of that media, took the copy of the
+disk away (the file of the cache went away), and the press of the key `e`
+after it read the book — `Alice's Adventures in Wonderland — chapter 3 of 14
+— 4%`.
+
+#### The correction
+
+One file, `src/logic/reader/book.rs`. The arm of `NotAnEpub` of `Display` now
+says
+
+```text
+This file is not an EPUB. The copy of this book on the disk can be damaged.
+Press h to leave the book. Then press X to remove that copy: the next open of
+this book asks the server for the file again. The file of the log holds more.
+```
+
+The corrected program of the same condition said that sentence on two rows of
+the screen (the wrap of T-278 holds), and the footer said `h/Esc: back  ?:
+every key  Q: quit`.
+
+#### The controls
+
+The key `h` gave the Library view, and the good book of that same name read at
+`Alice's Adventures in Wonderland — chapter 3 of 14 — 4%` with no line of the
+reader in the log.
+
+#### The test
+
+`a_file_that_is_no_book_says_the_road_back` of `src/logic/reader/book.rs`. The
+build of the fault, with the old one-sentence arm back in place, failed that
+test.
+
+#### The rule of this item
+
+**A file that no reader opens says the road back: the reader opens the copy
+of the book on the disk, therefore a sentence of that fault names the key
+that takes that copy away, and the reason of the archive stands in the log
+alone.**
+
+#### What this item leaves open
+
+- **Three forms of a size reach the screen of one program.** A sweep of
+  `src/` of this round found `crate::ui::keys::megabytes` (`{:.1} MB`, the
+  reader and the bar of a download), `crate::logic::download::text_of_the_size`
+  (a whole number of `MB` or of `kB`, the message of the key `X` and the cache
+  of the ebooks), and `crate::api::stats::human_size` (B to PB with one
+  decimal, the view of the statistics). A book of 1.9 megabytes therefore
+  reads `1 MB` in one view and `1.9 MB` in another. A candidate, and not a
+  measurement.
+- **The two messages of `--update` say a number of bytes.**
+  `src/update/install.rs:175` and `:185` reach the terminal of the user
+  through `eprintln!` of `src/utils/clap.rs:234`, and each says a raw count of
+  bytes. That is the one road of `src/` where a raw byte count reaches the
+  user, after T-284. A candidate, and not a measurement.
+- `ReaderError::TheArchiveGaveNoChapter` names the key `n` alone, while the
+  keys `p` and `h` each do their work of that fault too, and
+  `ReaderError::ChapterAbsent` of the same file names all three. A candidate,
+  and not a measurement.
+- `ReaderError::NotAnEpub` of `src/logic/reader/pdf.rs` reaches no user today,
+  because the child of T-274 gives the parent an exit code and
+  `the_fault_of_the_code` takes the arm `_` of that code, therefore a PDF that
+  `lopdf` refuses says `The program did not read this PDF.` A candidate, and
+  not a measurement.
+
+#### What this item closed of the candidates before it
+
+**The sweep of T-284 for a second module of a `static` and of more than one
+`#[test]` that writes it found none.** A read of every file of `src/` and of
+`tests/` that declares a process-wide box gave two safe shapes alone: a module
+where one test function touches that box, and a module where every such test
+takes one `static LOCK: Mutex<()>` first — the shape of the correction of
+T-144, of T-157, and of T-284. `src/utils/startup.rs` was the one module of
+that fault, and T-284 corrected it. **This candidate is closed.**

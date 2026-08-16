@@ -127,6 +127,72 @@ gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
 
+## The session of the hundred and fourteenth turn of 2026-08-16: a file that no reader opens says the road back
+
+**The item: T-285.** `ReaderError::NotAnEpub` of `src/logic/reader/book.rs`
+gave one sentence and nothing else: `This file is not an EPUB.` T-276 measured
+that value and it kept those words, and the rule of T-284 came after it: **the
+view of the reader with no book stands at the moment of that fault, and the
+key `h` leaves it**.
+
+**The data of this fault is a file, and it needs no proxy and no harness at
+all.** A file of 74 bytes of plain text went into the cache of the ebooks of
+the account `toutuitest`, under the name of the item of
+`Alice in Wonderland`. The good file of that name went to the scratchpad for
+the road back.
+
+The measurement, of the real program v0.8.113 inside tmux against the sandbox.
+The keys `Tab`, 15 keys `j`, and `e` gave the view of the reader with that one
+sentence. The log held 11 lines before the key and 31 after it, and
+`grep -c '\[reader\]'` gave **1**: the one line of the reader named the file
+and the reason of the crate of the archive —
+`[UnreadableArchive - ...]: invalid Zip archive: Could not find EOCD`.
+
+Three faults. The sentence named no key at all, while every other arm of that
+enum names one. It said nothing of the file of the log, and the log holds the
+one reason of the archive. And **it named no road back at all**: the reader
+opens the copy of the book on the disk, therefore a second press of the key
+`e` gave that same sentence, the file of the cache stayed at 74 bytes, and the
+program asked the server for that book no more. **A sentence of a fault must
+name a key that does the work of that fault** (T-170), and this turn measured
+which key that is: the key `h`, then the key `X` on the line of that media,
+took the copy of the disk away, and the press of the key `e` after it read the
+book — `Alice's Adventures in Wonderland — chapter 3 of 14 — 4%`.
+
+The correction is one file. The arm of `NotAnEpub` of `Display` now says
+`This file is not an EPUB. The copy of this book on the disk can be damaged.
+Press h to leave the book. Then press X to remove that copy: the next open of
+this book asks the server for the file again. The file of the log holds
+more.` The corrected program said that sentence on two rows of the screen (the
+wrap of T-278 holds), and the footer said `h/Esc: back  ?: every key  Q:
+quit`. The controls: the key `h` gave the Library view, and the good book of
+that same name read with no line of the reader in the log. The build of the
+fault, with the one-sentence arm put back and every other line kept, failed
+the new test.
+
+**The sweep of T-284 for a second module of a `static` and of more than one
+`#[test]` that writes it found none, and that candidate is closed.** Every
+file of `src/` and of `tests/` that declares a process-wide box holds one of
+two safe shapes: one test function touches that box, or every such test takes
+one `static LOCK: Mutex<()>` first. `src/utils/startup.rs` was the one module
+of that fault.
+
+**A sweep of `src/` for every message that says a number of bytes found three
+forms of a size on the screen of one program**, and the words of T-284 — "one
+form of a size to the whole program" — are therefore not yet true:
+`crate::ui::keys::megabytes` gives `{:.1} MB`,
+`crate::logic::download::text_of_the_size` gives a whole number of `MB` or of
+`kB`, and `crate::api::stats::human_size` gives B to PB with one decimal. **A
+book of 1.9 megabytes reads `1 MB` in the message of the key `X` and `1.9 MB`
+in the reader.** The two messages of `--update` of `src/update/install.rs`
+each say a raw count of bytes, and they are the one road of `src/` where such
+a count reaches the user. Each of the three stays a candidate.
+
+The gates of v0.8.114, under `nice -n 19 ionice -c 3` with `-j 16`:
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say
+nothing, and `cargo nextest run` gives **1334 of 1334** in 2.7 seconds with 26
+skipped.
+
 ## The session of the hundred and thirteenth turn of 2026-08-16: a book that the reader refuses says the road back
 
 **The item: T-284.** `ReaderError::BookTooLarge` and
@@ -15320,6 +15386,79 @@ the text of the book.
      T-281): the block has a limit of size, therefore this turn names the new
      candidates alone and it does not repeat that list.
 
+**The
+session of the hundred and twelfth turn took the candidate
+"`NoSuchChapter` of `ReaderError` names no key of the view of the
+reader", which T-282 opened** (T-283).
+
+`ReaderError::NoSuchChapter(index)` of `src/logic/reader/book.rs` gave one
+sentence: `This book has no chapter {index}.` **A book of no chapter is the
+one road of the real program to that value**: `go_to_chapter` of
+`src/logic/reader/session.rs` guards every other road with
+`chapter >= self.chapter_count()`, `Reader::open_with_the_title` writes
+`chapter: 0`, and `Book::open` takes the length of the spine with no limit
+below.
+
+The measurement, of the real program v0.8.111 inside tmux against the
+sandbox. **The data of the fault is a book, and it needs no proxy at
+all**: the new harness `docs/harness/a_book_of_no_chapter.py` writes an
+EPUB of 1695 bytes whose manifest holds the files of two chapters and
+whose spine names no chapter at all. That book went into the cache of the
+ebooks of the account `toutuitest` under the name of the item of
+`Alice in Wonderland`. The keys `Tab`, 15 keys `j`, and `e` gave
+
+```text
+The Book Of No Chapter — chapter 1 of 1 — 0%
+                      This book has no chapter 0.
+```
+
+and the log held 11 lines before the key and 13 after it, and
+`grep -c reader` of it gave 0: **no line of the reader at all**.
+
+Four faults of that screen. **The header said `chapter 1 of 1` for a book
+of no chapter**: a `count.max(1)` of `line_of_the_top` of
+`src/ui/reader_tui.rs`, which kept a division by zero away, said that the
+book holds one chapter, and the program measured 0. The sentence said
+`chapter 0`, and no view of this program says that number. It named no key
+at all, and the keys `n` and `p` do no work of this fault because the guard
+holds the reader at the chapter 0: the key `h` is the one key of it
+(T-170). And the road took no line of the log. A fifth fault of the same
+value stood in `src/logic/reader/pdf.rs`, which gave `NoSuchChapter(0)` for
+a PDF whose `get_pages()` is empty, while `ThePdfGivesNoPage` of the same
+enum says that condition already.
+
+The correction is three files. `NoSuchChapter` becomes a struct variant
+`{ asked, count }`, and a new `Book::no_such_chapter(asked)` reads the
+count, writes the line of the log, and makes the value for the four roads
+to it. A book of `count == 0` says that it names no chapter, and a book of
+chapters says the number of the chapters and the chapter `asked + 1`,
+because the header adds one too; each of the two names the key `h` and the
+file of the log. `line_of_the_top` of a `count` of 0 gives
+`{title} — this book holds no {word}`. And a PDF of no page gives
+`ThePdfGivesNoPage`. The corrected program of the same condition said
+`The Book Of No Chapter — this book holds no chapter` at the top and the
+sentence of the fault on three rows, and the log held one line of the
+reader. The controls: the keys `n` and `p` each left the screen where it
+stood, the key `h` gave the Library view, and the good book of that same
+name gave `Alice's Adventures in Wonderland — chapter 2 of 14 — 0%` with
+its text and with no line of the reader in the log.
+- **A number of a sentence of a fault is the number that the user reads,
+  and not the index of the program** (T-282, and this item is the first
+  measurement of it, and it stays open): ask of every message of `src/`
+  that names a number of a line, of a chapter, or of a file, whether that
+  number stands in the view that the user sees, **and ask it of every
+  number that a view itself shows**: the header of the reader named a
+  chapter that the book does not hold.
+- **`TooManyEntries` and `BookTooLarge` of `ReaderError` name their
+  numbers and no key at all** (T-281, and they stay open): those two
+  faults come at the open of the book, and the view of the reader does not
+  stand at that moment. **Ask: which view holds those words, and which key
+  does the work of that fault? This is a candidate and not a
+  measurement.**
+- **Every candidate of the list of the turns below stays open** (T-229 to
+  T-282): the block has a limit of size, therefore this turn names the new
+  candidates alone and it does not repeat that list.
+
 ## The prompt for the next session
 
 **This session read the candidate "`ChapterTooLarge` of `ReaderError` says
@@ -15382,7 +15521,7 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.112**; `Cargo.toml` is at 0.8.112. The
+> AlbanDAVID/Toutui. Newest release **v0.8.114**; `Cargo.toml` is at 0.8.114. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -15391,7 +15530,7 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-283 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-285 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -16074,15 +16213,15 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-283 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-286 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1333 tests in 2.9 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1359 of 1359** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1334 tests in 2.7 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1360 of 1360** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -16193,6 +16332,77 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 >    this shape found a fault in one hundred and four sessions of one hundred
 >    and five.
 >    **The
+>    session of the hundred and fourteenth turn took no candidate of the list.
+>    It read the arms of `Display` of `ReaderError` that the four turns before
+>    it did not touch, and `NotAnEpub` gave one sentence and nothing else:
+>    `This file is not an EPUB.`** (T-285). **T-276 measured that value
+>    already, and it kept those words**: the rule of T-284 — the view of the
+>    reader with no book stands at that moment, and the key `h` leaves it —
+>    came after that measurement. **A value that a turn before this one
+>    measured is a candidate again after a new rule** (T-285).
+>
+>    The measurement, of the real program v0.8.113 inside tmux against the
+>    sandbox. **The data of this fault is a file, and it needs no proxy and no
+>    harness at all**: a file of 74 bytes of plain text went into the cache of
+>    the ebooks of the account `toutuitest`, under the name of the item of
+>    `Alice in Wonderland`, and the good file of that name went to the
+>    scratchpad for the road back. The keys `Tab`, 15 keys `j`, and `e` gave
+>    the view of the reader with that one sentence. The log held 11 lines
+>    before the key and 31 after it, and `grep -c '\[reader\]'` gave 1: the
+>    one line of the reader named the file and the reason of the crate of the
+>    archive — `invalid Zip archive: Could not find EOCD`.
+>
+>    Three faults. The sentence named no key at all, while every other arm of
+>    that enum names one. It said nothing of the file of the log, and the log
+>    holds the one reason of the archive. And **it named no road back at
+>    all**: the reader opens the copy of the book on the disk, therefore a
+>    second press of the key `e` gave that same sentence, the file of the
+>    cache stayed at 74 bytes, and the program asked the server for that book
+>    no more. This turn measured which key does the work of that fault
+>    (T-170): the key `h`, then the key `X` on the line of that media, took
+>    the copy of the disk away, and the press of the key `e` after it read the
+>    book — `Alice's Adventures in Wonderland — chapter 3 of 14 — 4%`.
+>
+>    The correction is one file. The arm of `NotAnEpub` now says `This file is
+>    not an EPUB. The copy of this book on the disk can be damaged. Press h to
+>    leave the book. Then press X to remove that copy: the next open of this
+>    book asks the server for the file again. The file of the log holds more.`
+>    The corrected program said that sentence on two rows (the wrap of T-278
+>    holds). The controls: the key `h` gave the Library view, and the good
+>    book of that same name read with no line of the reader in the log.
+>    - **A value of a fault that a turn before this one measured is a
+>      candidate again after a new rule** (T-285): the rules of T-170, of
+>      T-278, and of T-284 each came after some of the arms of `ReaderError`,
+>      and no turn read the old arms against the new rules. **Ask it of every
+>      enum of a fault of `src/`, and not of the reader alone.**
+>    - **Three forms of a size reach the screen of one program** (T-285, and
+>      it stays open): `crate::ui::keys::megabytes` gives `{:.1} MB`,
+>      `crate::logic::download::text_of_the_size` gives a whole number of `MB`
+>      or of `kB` (the message of the key `X`, and the cache of the ebooks),
+>      and `crate::api::stats::human_size` gives B to PB with one decimal (the
+>      view of the statistics). **A book of 1.9 megabytes reads `1 MB` in one
+>      view and `1.9 MB` in another.** The words of T-284, "one form of a size
+>      to the whole program", are therefore not yet true. **This is a
+>      candidate and not a measurement.**
+>    - **The two messages of `--update` of `src/update/install.rs` each say a
+>      raw count of bytes**, and they reach the terminal through `eprintln!`
+>      of `src/utils/clap.rs`. That is the one road of `src/` where a raw byte
+>      count reaches the user, after T-284. **This is a candidate and not a
+>      measurement.**
+>    - **`ReaderError::TheArchiveGaveNoChapter` names the key `n` alone**,
+>      while the keys `p` and `h` each do their work of that fault too, and
+>      `ReaderError::ChapterAbsent` of the same file names all three. **This
+>      is a candidate and not a measurement.**
+>    - **The sweep of T-284 for a second module of a `static` and of more than
+>      one `#[test]` that writes it found none, and that candidate is
+>      closed**: every file of `src/` and of `tests/` that declares a
+>      process-wide box holds one test function of it, or every such test
+>      takes one `static LOCK: Mutex<()>` first.
+>    - **Every candidate of the list of the turn below stays open** (T-229 to
+>      T-284): the block has a limit of size, therefore this turn names the
+>      new candidates alone and it does not repeat that list.
+>
+>    **The
 >    session of the hundred and thirteenth turn took the candidate
 >    "`TooManyEntries` and `BookTooLarge` of `ReaderError` name their numbers
 >    and no key at all", which T-281 opened and which T-282 and T-283 each
@@ -16255,85 +16465,12 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 >      T-283): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
 >
->    **The
->    session of the hundred and twelfth turn took the candidate
->    "`NoSuchChapter` of `ReaderError` names no key of the view of the
->    reader", which T-282 opened** (T-283).
->
->    `ReaderError::NoSuchChapter(index)` of `src/logic/reader/book.rs` gave one
->    sentence: `This book has no chapter {index}.` **A book of no chapter is the
->    one road of the real program to that value**: `go_to_chapter` of
->    `src/logic/reader/session.rs` guards every other road with
->    `chapter >= self.chapter_count()`, `Reader::open_with_the_title` writes
->    `chapter: 0`, and `Book::open` takes the length of the spine with no limit
->    below.
->
->    The measurement, of the real program v0.8.111 inside tmux against the
->    sandbox. **The data of the fault is a book, and it needs no proxy at
->    all**: the new harness `docs/harness/a_book_of_no_chapter.py` writes an
->    EPUB of 1695 bytes whose manifest holds the files of two chapters and
->    whose spine names no chapter at all. That book went into the cache of the
->    ebooks of the account `toutuitest` under the name of the item of
->    `Alice in Wonderland`. The keys `Tab`, 15 keys `j`, and `e` gave
->
->    ```text
->    The Book Of No Chapter — chapter 1 of 1 — 0%
->                          This book has no chapter 0.
->    ```
->
->    and the log held 11 lines before the key and 13 after it, and
->    `grep -c reader` of it gave 0: **no line of the reader at all**.
->
->    Four faults of that screen. **The header said `chapter 1 of 1` for a book
->    of no chapter**: a `count.max(1)` of `line_of_the_top` of
->    `src/ui/reader_tui.rs`, which kept a division by zero away, said that the
->    book holds one chapter, and the program measured 0. The sentence said
->    `chapter 0`, and no view of this program says that number. It named no key
->    at all, and the keys `n` and `p` do no work of this fault because the guard
->    holds the reader at the chapter 0: the key `h` is the one key of it
->    (T-170). And the road took no line of the log. A fifth fault of the same
->    value stood in `src/logic/reader/pdf.rs`, which gave `NoSuchChapter(0)` for
->    a PDF whose `get_pages()` is empty, while `ThePdfGivesNoPage` of the same
->    enum says that condition already.
->
->    The correction is three files. `NoSuchChapter` becomes a struct variant
->    `{ asked, count }`, and a new `Book::no_such_chapter(asked)` reads the
->    count, writes the line of the log, and makes the value for the four roads
->    to it. A book of `count == 0` says that it names no chapter, and a book of
->    chapters says the number of the chapters and the chapter `asked + 1`,
->    because the header adds one too; each of the two names the key `h` and the
->    file of the log. `line_of_the_top` of a `count` of 0 gives
->    `{title} — this book holds no {word}`. And a PDF of no page gives
->    `ThePdfGivesNoPage`. The corrected program of the same condition said
->    `The Book Of No Chapter — this book holds no chapter` at the top and the
->    sentence of the fault on three rows, and the log held one line of the
->    reader. The controls: the keys `n` and `p` each left the screen where it
->    stood, the key `h` gave the Library view, and the good book of that same
->    name gave `Alice's Adventures in Wonderland — chapter 2 of 14 — 0%` with
->    its text and with no line of the reader in the log.
->    - **A number of a sentence of a fault is the number that the user reads,
->      and not the index of the program** (T-282, and this item is the first
->      measurement of it, and it stays open): ask of every message of `src/`
->      that names a number of a line, of a chapter, or of a file, whether that
->      number stands in the view that the user sees, **and ask it of every
->      number that a view itself shows**: the header of the reader named a
->      chapter that the book does not hold.
->    - **`TooManyEntries` and `BookTooLarge` of `ReaderError` name their
->      numbers and no key at all** (T-281, and they stay open): those two
->      faults come at the open of the book, and the view of the reader does not
->      stand at that moment. **Ask: which view holds those words, and which key
->      does the work of that fault? This is a candidate and not a
->      measurement.**
->    - **Every candidate of the list of the turns below stays open** (T-229 to
->      T-282): the block has a limit of size, therefore this turn names the new
->      candidates alone and it does not repeat that list.
->
->    **The turns before those two stand in `## The turns before the three
+>    **The turns before these two stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
 >    (T-284): a round that writes its own turn takes the oldest turn out, and
 >    it takes a second one out while `toutui-loop --dry-run | wc -c` gives more
->    than 100000. That section holds the turn of the hundred and eleventh and
+>    than 100000. That section holds the turn of the hundred and twelfth and
 >    every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
@@ -16852,7 +16989,10 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > that moment and the key `h` is the one key of it, the two values carry the
 > limit of the reader that measured them, each road writes the name of the file
 > in the log, and the program says a size in megabytes and in one form**
-> (T-284).
+> (T-284), and **a file that no reader opens says the road back: the reader
+> opens the copy of the book on the disk, therefore the sentence of that fault
+> names the key that takes that copy away, and the reason of the archive stands
+> in the log alone** (T-285).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
@@ -16867,7 +17007,9 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > heading of this prompt. **That item holds the three newest turns and no more,
 > and it holds fewer of them while the block stands above its limit** (T-284):
 > the round of 2026-08-16 found the block at 105283 bytes with three turns in
-> it, and it took two turns out.
+> it, and it took two turns out; the round of the hundred and fourteenth turn
+> found it at 98364 bytes with two turns in it, and it took one turn out and it
+> wrote its own, and the block then held 98943 bytes.
 > A fact that a later round needs belongs in `docs/TAKEOVER-BACKLOG.md` or in a
 > section of this file that stands outside the block, and not in the block.
 >

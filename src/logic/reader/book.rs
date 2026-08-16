@@ -124,7 +124,22 @@ pub enum ReaderError {
 impl fmt::Display for ReaderError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ReaderError::NotAnEpub => write!(f, "This file is not an EPUB."),
+            // **The sentence names the road back** (T-285): the reader opens
+            // the copy of the book on the disk, therefore a copy that no
+            // reader opens gives this sentence at every press of the key `e`,
+            // and the program asks the server for that book no more. The key
+            // `X` of the view before the reader takes that copy away, and the
+            // open after it reads the book of the server: a sentence of a
+            // fault must name a key that does the work of that fault (T-170).
+            // The reason of the archive stands in the log alone, therefore the
+            // sentence names the file of the log.
+            ReaderError::NotAnEpub => write!(
+                f,
+                "This file is not an EPUB. The copy of this book on the disk \
+                 can be damaged. Press h to leave the book. Then press X to \
+                 remove that copy: the next open of this book asks the server \
+                 for the file again. The file of the log holds more."
+            ),
             ReaderError::TheDiskGaveNoBook(reason) => write!(
                 f,
                 "The disk did not give this book. The book can be good. \
@@ -931,6 +946,31 @@ mod tests {
         assert!(text.contains("256.0 MB"), "{text}");
         assert!(!text.contains("314572800"), "{text}");
         assert!(text.contains("Press h "), "{text}");
+    }
+
+    #[test]
+    fn a_file_that_is_no_book_says_the_road_back() {
+        // The measurement of 2026-08-16 of the real program: a file of 74
+        // bytes of plain text stood in the cache of the ebooks under the name
+        // of the item of `Alice in Wonderland`, and the key `e` gave the view
+        // of the reader with the one sentence "This file is not an EPUB." A
+        // second press of the key `e` gave that same sentence, because the
+        // reader opens the copy of the disk and it asks the server no more.
+        // The key `X` took that copy away, and the press of the key `e` after
+        // it read the book. See T-285.
+        let text = ReaderError::NotAnEpub.to_string();
+
+        assert!(text.starts_with("This file is not an EPUB."), "{text}");
+
+        // The key that leaves the view of the reader with no book (T-284).
+        assert!(text.contains("Press h "), "{text}");
+
+        // The key that takes the copy of the disk away. Without it the user
+        // reads the same sentence at every press of the key `e`.
+        assert!(text.contains("press X "), "{text}");
+
+        // The reason of the archive stands in the log alone.
+        assert!(text.contains("The file of the log holds more."), "{text}");
     }
 
     #[test]

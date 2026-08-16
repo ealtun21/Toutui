@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.114",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A file that no reader opens now says the road back.** The \
+             reader said \"This file is not an EPUB.\" and no more. Toutui \
+             keeps a copy of each book that you open on the disk, therefore \
+             that copy gave the same sentence at every press of the key `e`, \
+             and Toutui asked the server for the book no more. The sentence \
+             now names the key `h` of the screen that you see, and the key \
+             `X` that removes the copy of the disk: the open after that key \
+             asks the server for the file again.",
+            "- **That sentence now names the file of the log.** The reason of \
+             the book — a damaged archive, or a file of another form — stands \
+             in the log alone.",
+        ],
+    },
+    Entry {
         version: "0.8.113",
         date: "16/08/2026",
         body: &[
