@@ -4,7 +4,7 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.133.** The item T-304 belongs to this session. The
+**The newest release is v0.8.134.** The item T-305 belongs to this session. The
 item T-303 belongs to the session before it. The
 item T-302 belongs to the session before it. The
 item T-301 belongs to the session before it. The
@@ -149,6 +149,58 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its binaries in two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and thirty-fourth turn of 2026-08-16: a character is not a column
+
+**The item: T-305**, and the release **v0.8.134**.
+
+**The candidate came of T-304.** That item left "the rule of a title counts
+characters and not columns" open, with no measurement of a fault of it.
+
+**A character is not a column.** The program measured every text of the screen
+with a number of characters, and the screen has a number of columns: a
+character of the Han script, of Hiragana, or of Katakana takes **two** columns
+of the terminal, and a mark of a combination takes none. `str::chars().count()`
+therefore gives a number that the screen does not have, a text that the program
+cut to that number is wider than the room that it has, and the screen then cuts
+it a second time — and the rules of T-299, of T-300, and of T-304, which say
+**which** part of a text the user can spare, go away.
+
+**The measurement.** The real program v0.8.133 inside tmux against the sandbox
+with the account `toutuitest`. The data of this fault is the size of the
+terminal (T-301) and the text of the user, therefore it needed no proxy, no
+book of a harness, and no change of the sandbox at all: `COLUMNS_OF_THE_SCREEN=40`
+and `ROWS_OF_THE_SCREEN=30` of `docs/harness/drive.sh`, and the keys `/`,
+eighteen characters of Japanese, and `Enter` of the Home view. The header of the
+view of the search said `und nothing for "日本語日本語日本語…────`: the title
+holds 80 characters and 98 columns, `in_one_row` kept 39 characters and it wrote
+the three points, which is 40 characters and **49 columns** on a screen of 40,
+and ratatui then cut 13 columns of the start of it away. **The control of the
+same run**, a query of eighteen characters of ASCII, gave the whole start of the
+title.
+
+**The decision.** `crate::logic::message::the_columns_of` is the one measure of
+a text of this program. It is the crate `unicode-width`, which is the crate that
+ratatui measures every text that it draws with, and the tree held one copy of it
+already — `cargo tree -i openssl-sys` still finds nothing, and `cargo tree -i
+cc` still finds `libsqlite3-sys` and `ring` only.
+
+The correction is four files, and `tests/a_character_is_not_a_column.rs` holds
+the gate. Two builds of the fault, each of one edit, failed it. The corrected
+program said `The server found nothing for "日本語日…` at 39 and at 40 columns,
+`The server found nothing for "日本語日本…` at 41, and the whole of its title at
+80.
+
+**The gates**: `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,
+`cargo nextest run` (1368 of 1368, 26 skipped), `cargo nextest run --run-ignored
+all` with the sandbox up (1394 of 1394), and `cargo test -j 16 --no-fail-fast`
+three times with no fault.
+
+**What this turn leaves open**: the marks of a line (`fill` of
+`src/ui/marks.rs:111`) and the header of the screen (`src/ui/keys.rs:1057`) each
+count the characters too, and each of them is a candidate and not a measurement.
+The four titles of a fixed text of T-304 stay open, and the rule of the columns
+does not close them.
 
 ## The session of the hundred and thirty-third turn of 2026-08-16: the title of a view keeps its start
 
@@ -18183,13 +18235,163 @@ the search, of the bookmarks, and of the lists on **three**, and it kept
 - **The rule of a footer counts characters and not columns** (T-300,
   T-301, and T-302). **This is a candidate and not a measurement.**
 
+### The session of the hundred and thirty-second turn of 2026-08-16, in the words of the prompt of that round (T-303)
+
+**The session of the hundred and thirty-second turn took the candidate "the
+popup of the view of the search leaves a cell of the screen behind it",
+which T-302 left open, and the measurement of it gave the cause** (T-303).
+**It left the candidate "the title of a list that is longer than the screen
+loses its start" open**, with a measurement of its condition and not of its
+cause.
+
+**The box of the search left a cell of the screen behind it.**
+`search_active` of `src/logic/search/search_active.rs` makes a `Terminal`
+of its own on the standard output, it draws a box of three rows over the
+view below it, and at its end it draws a `Block` of the background colour
+over that same area: the cells of the box then hold a space. The terminal
+of the program knows nothing of that work — **ratatui compares with the
+buffer of the frame before, and it sends the cells that changed only** —
+therefore a cell of the box that holds the same letter in the frame before
+and in the frame after gets no byte at all, and the space stays.
+`ask_for_a_text` of `src/logic/prompt.rs` makes a box of the same shape and
+it holds the answer of T-89 already (`the_screen_must_be_drawn_again`, which
+the loop of `src/main.rs` reads after the key, and `terminal.clear()` then
+writes every cell). **`search_active` said nothing at all**, and no gate read
+that rule.
+
+The measurement, of the real program v0.8.132 inside tmux against the
+sandbox with the account `toutuitest`. **The data of this fault is the size
+of the terminal** (T-301), therefore it needs no proxy, no book of a
+harness, and no change of the sandbox: `COLUMNS_OF_THE_SCREEN=40` and
+`ROWS_OF_THE_SCREEN=30` of `docs/harness/drive.sh`, and the keys `/`,
+`alice`, and `Enter` of the Home view. The first row of the footer of the
+view of the search said `j/k: move  l: play or op n  h: back  /:`.
+**The cause, in numbers**: the bottom row of the box stood at the row of the
+screen that the first row of that footer takes, the row of the frame before
+the box was the second row of the footer of the Home view
+(`  home/library  S-Tab: the next library`), and a comparison of the two
+rows cell by cell gives **the column 25 and no other** — the `e` of `the`
+and the `e` of `open`. **`tmux pipe-pane` says the same of the bytes**: the
+bytes that the program wrote between the key `/` and the frame of the view
+of the search hold no `play or op` at all. A control of the same run: the
+keys `?` and `h` gave the whole row back.
+
+**The decision: a box of a field says that the screen must be drawn again.**
+That is the answer of T-89 for the box of a text, and it is the answer of
+every box of this program.
+**`App::the_box_of_a_field_went_away` is the one road to that field.** The
+login screen holds no `App` and no view below it, therefore
+`AppLogin::auth` of `src/logic/auth/auth_input.rs` stands outside the rule,
+with the reason.
+
+The correction is four files. `src/app.rs` holds
+`App::the_box_of_a_field_went_away`, with the numbers of the measurement in
+its documentation. `src/logic/prompt.rs` and
+`src/logic/search/search_active.rs` each call it after the box goes away.
+`src/ui/text_field.rs`, which holds `the_backend_of_a_field` — the one maker
+of the backend of every box of this program — holds the two gates: every
+file of `src/` that calls that maker and that is not one of
+`THE_FILES_THAT_HOLD_NO_VIEW_BELOW_THE_BOX` calls
+`the_box_of_a_field_went_away()` (and the gate asserts that it found two
+such files), and no file outside `src/app.rs` writes the field itself.
+**The corrected program**, of the same keys, said
+`j/k: move  l: play or open  h: back  /:` at **39**, **40**, and **41**
+columns, and it kept the whole of its footer at 80.
+- **The title of a list that is longer than the screen loses its start**
+  (T-303): a second search of `hours` at 40 columns, of the same run, gave
+  a view whose title said `he books of Many Hours Author]──────────`, and
+  the same view at 80 columns said
+  `Search result [2 items, with the books of Many Hours Author]`. The user
+  of a narrow terminal therefore reads no name of the view and no number of
+  its items. The rule of T-300 for the line at the top of the reader is the
+  answer of this class. **This is a candidate and not a measurement of its
+  cause.**
+- **`App::search_mode` is never true** (T-303): the branch of
+  `render_search_book` of `src/ui/tui.rs` that calls `search_active` inside
+  the render therefore never runs, and the key `/` of `App::handle_key` is
+  the one road to that box. **This is a candidate and not a measurement.**
+
+### The session of the hundred and thirty-third turn of 2026-08-16, in the words of the prompt of that round (T-304)
+
+**The session of the hundred and thirty-third turn took the candidate "the
+title of a list that is longer than the screen loses its start", which
+T-303 left open, and the measurement of it gave the cause** (T-304). **It
+left the four titles of a fixed text of `src/ui/` open**, with no
+measurement of a fault of them.
+
+**A title that was longer than the screen lost its start and its end
+together.** `render_the_list` of `src/ui/the_list_of_a_view.rs` — the one
+road of every list of this program to the screen — gave its title to
+ratatui as `Line::raw(title).centered()`, and it gave that line the whole
+width of the view. ratatui holds two roads for a centered title of a
+`Block`: `render_centered_titles_without_truncation` of
+`ratatui-widgets-0.3.2` draws a title that stands, and
+`render_centered_titles_with_truncation` draws one that does not. That
+second road takes `offset = (the title − the width) / 2`, it gives the
+title an area of `the width − offset` columns, and it then draws the title
+**right-aligned** in that area — and a right-aligned line that is wider
+than its area keeps its **end**. The title therefore lost `offset`
+characters of its start and `offset` more of its end, and the border of the
+block stood bare in the columns that stayed.
+
+The measurement, of the real program v0.8.132 inside tmux against the
+sandbox with the account `toutuitest`. **The data of this fault is the size
+of the terminal** (T-301), therefore it needs no proxy, no book of a
+harness, and no change of the sandbox at all: `COLUMNS_OF_THE_SCREEN=40`
+and `ROWS_OF_THE_SCREEN=30` of `docs/harness/drive.sh`, and the keys `/`,
+`hours`, and `Enter` of the Home view. The header of the view of the search
+said `he books of Many Hours Author]──────────`. **The cause, in
+numbers**: `the_title_of_the_search` of `src/logic/search/mod.rs:142` gave
+`Search result [2 items, with the books of Many Hours Author]` of **60**
+characters, the screen holds **40**, therefore
+`offset = (60 − 40) / 2 = 10`, the area of the title is `40 − 10 = 30`
+columns, and the right-aligned draw of it keeps the last 30 characters —
+`he books of Many Hours Author]`, the string of the screen character for
+character — while the columns 30 to 39 kept the `─` of the top border. The
+start that went away, `Search result [2 items, with t`, holds the name of
+the view and the number of its items. A control of the same run: the same
+view at 80 columns said the whole title with ten characters of the border
+on each side of it.
+
+**The decision: the title of a view keeps its start, and it loses its end
+to three points.** The start of a title names the view and the number of
+its lines; the end of it names the query or the author, which the user
+wrote themselves. That is the rule of T-299 for a message and of T-300 for
+the line at the top of the reader, for the part that the user can spare.
+**`crate::logic::message::in_one_row` is the one maker of a text of one row
+of this program**: three functions of this repository held that same rule
+apart — `in_one_row` of `src/ui/reader_tui.rs` (T-300), `shorten` of
+`src/ui/tui.rs`, and the tail of `in_the_rows` of `src/logic/message.rs` —
+and no title of a view called any of them.
+
+The correction is four files. `src/logic/message.rs` holds the new pure
+`in_one_row`. `src/ui/the_list_of_a_view.rs` calls it with `area.width`
+before it makes the `Line`, therefore ratatui never meets a title that it
+must cut. `src/ui/reader_tui.rs` and `src/ui/tui.rs` each give their own
+copy of that rule away. **The corrected program**, of the same keys, said
+`Search result [2 items, with the books…` at **39** and at **40** columns,
+`Search result [2 items, with the books o…` at **41**, and it kept the
+whole of its title at 80.
+- **The four titles of a fixed text stand outside this gate** (T-304):
+  `.title("The sessions that you played")` of `src/ui/sessions_tui.rs:142`,
+  `.title("Your listening time")` of `src/ui/stats_tui.rs:339`,
+  `.title("The reader of the ebook")` of `src/ui/tui.rs:652`, and
+  `.title("The contents of the book")` of `src/ui/reader_tui.rs:304` are
+  literals of `src/ui/`, in the shape of the five footers of T-302 and of
+  the four texts of T-301. The longest of them holds 28 characters,
+  therefore each of them stands at 40 columns. **A table of them in a file
+  that a gate reads is the answer of that class.** **This is a candidate
+  and not a measurement.**
+- **The rule of a title counts characters and not columns** (T-300, T-301,
+  T-302, and T-304). **This is a candidate and not a measurement.**
+
 
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.133**; `Cargo.toml` is at 0.8.133. The
+> AlbanDAVID/Toutui. Newest release **v0.8.134**; `Cargo.toml` is at 0.8.134. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -18928,8 +19130,8 @@ the search, of the bookmarks, and of the lists on **three**, and it kept
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1364 tests in 2.8 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1390 of 1390** with the sandbox up, in about 23 seconds. **Run that
+> Baseline: **1368 tests in 2.8 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1394 of 1394** with the sandbox up, in about 20 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -19039,158 +19241,93 @@ the search, of the bookmarks, and of the lists on **three**, and it kept
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and seven sessions of one hundred
 >    and eight.
->    **The session of the hundred and thirty-third turn took the candidate "the
->    title of a list that is longer than the screen loses its start", which
->    T-303 left open, and the measurement of it gave the cause** (T-304). **It
->    left the four titles of a fixed text of `src/ui/` open**, with no
->    measurement of a fault of them.
+>    **The session of the hundred and thirty-fourth turn took the candidate
+>    "the rule of a title counts characters and not columns", which T-304 left
+>    open, and the measurement of it gave the fault** (T-305). **It left the
+>    marks of a line and the header of the screen open**, which hold that same
+>    count of the characters, with no measurement of a fault of them.
 >
->    **A title that was longer than the screen lost its start and its end
->    together.** `render_the_list` of `src/ui/the_list_of_a_view.rs` — the one
->    road of every list of this program to the screen — gave its title to
->    ratatui as `Line::raw(title).centered()`, and it gave that line the whole
->    width of the view. ratatui holds two roads for a centered title of a
->    `Block`: `render_centered_titles_without_truncation` of
->    `ratatui-widgets-0.3.2` draws a title that stands, and
->    `render_centered_titles_with_truncation` draws one that does not. That
->    second road takes `offset = (the title − the width) / 2`, it gives the
->    title an area of `the width − offset` columns, and it then draws the title
->    **right-aligned** in that area — and a right-aligned line that is wider
->    than its area keeps its **end**. The title therefore lost `offset`
->    characters of its start and `offset` more of its end, and the border of the
->    block stood bare in the columns that stayed.
+>    **A character is not a column.** The program measured every text of the
+>    screen with a number of characters, and the screen has a number of
+>    columns: a character of the Han script, of Hiragana, or of Katakana takes
+>    **two** columns of the terminal, and a mark of a combination takes none.
+>    `str::chars().count()` therefore gives a number that the screen does not
+>    have, a text that the program cut to that number is wider than the room
+>    that it has, and the screen then cuts it a second time — and the rules of
+>    T-299, of T-300, and of T-304, which say **which** part of a text the user
+>    can spare, go away. Three functions held that count, and a character of
+>    two columns reaches each of them: `in_one_row` of `src/logic/message.rs`
+>    (the one maker of a text of one row, T-304), `the_line_that_stands` of
+>    `src/ui/reader_tui.rs` (the line at the top of the reader, T-300, whose
+>    title comes of the server), and `the_rows_of_a_message` of
+>    `src/logic/message.rs` (the count of the rows of a message, T-299 and
+>    T-302, which names a media).
 >
->    The measurement, of the real program v0.8.132 inside tmux against the
->    sandbox with the account `toutuitest`. **The data of this fault is the size
->    of the terminal** (T-301), therefore it needs no proxy, no book of a
->    harness, and no change of the sandbox at all: `COLUMNS_OF_THE_SCREEN=40`
->    and `ROWS_OF_THE_SCREEN=30` of `docs/harness/drive.sh`, and the keys `/`,
->    `hours`, and `Enter` of the Home view. The header of the view of the search
->    said `he books of Many Hours Author]──────────`. **The cause, in
->    numbers**: `the_title_of_the_search` of `src/logic/search/mod.rs:142` gave
->    `Search result [2 items, with the books of Many Hours Author]` of **60**
->    characters, the screen holds **40**, therefore
->    `offset = (60 − 40) / 2 = 10`, the area of the title is `40 − 10 = 30`
->    columns, and the right-aligned draw of it keeps the last 30 characters —
->    `he books of Many Hours Author]`, the string of the screen character for
->    character — while the columns 30 to 39 kept the `─` of the top border. The
->    start that went away, `Search result [2 items, with t`, holds the name of
->    the view and the number of its items. A control of the same run: the same
->    view at 80 columns said the whole title with ten characters of the border
->    on each side of it.
+>    The measurement, of the real program v0.8.133 inside tmux against the
+>    sandbox with the account `toutuitest`. **The data of this fault is the
+>    size of the terminal** (T-301) **and the text of the user**, therefore it
+>    needs no proxy, no book of a harness, and no change of the sandbox at all:
+>    `COLUMNS_OF_THE_SCREEN=40` and `ROWS_OF_THE_SCREEN=30` of
+>    `docs/harness/drive.sh`, and the keys `/`, eighteen characters of Japanese
+>    (`日本語` six times), and `Enter` of the Home view. The header of the view
+>    of the search said `und nothing for "日本語日本語日本語…────`. **The cause,
+>    in numbers**: `the_title_of_the_search` of `src/logic/search/mod.rs:119`
+>    gave a title of 80 characters and **98** columns, `in_one_row(title, 40)`
+>    counted the characters and kept 39 of them with the three points, which is
+>    **40 characters** and **49 columns**, the screen holds **40**, therefore
+>    ratatui took the road of a title that it must cut (T-304):
+>    `offset = (49 − 40) / 2 = 4`, the area of the title is `40 − 4 = 36`
+>    columns, and the right-aligned draw of it kept the last 36 columns — the
+>    string of the screen character for character, with four columns of the
+>    border after it. The start that went away, `The server fo`, names the
+>    view. **The control of the same run**: a query of eighteen characters of
+>    ASCII, of the same count of characters, gave
+>    `The server found nothing for "abcdefghi…` — the whole start of the title.
 >
->    **The decision: the title of a view keeps its start, and it loses its end
->    to three points.** The start of a title names the view and the number of
->    its lines; the end of it names the query or the author, which the user
->    wrote themselves. That is the rule of T-299 for a message and of T-300 for
->    the line at the top of the reader, for the part that the user can spare.
->    **`crate::logic::message::in_one_row` is the one maker of a text of one row
->    of this program**: three functions of this repository held that same rule
->    apart — `in_one_row` of `src/ui/reader_tui.rs` (T-300), `shorten` of
->    `src/ui/tui.rs`, and the tail of `in_the_rows` of `src/logic/message.rs` —
->    and no title of a view called any of them.
+>    **The decision: `crate::logic::message::the_columns_of` is the one measure
+>    of a text of this program.** It is the crate `unicode-width`, which is the
+>    crate that ratatui measures every text that it draws with: a program that
+>    draws with ratatui must measure with that same crate, or the number of the
+>    program and the number of the screen disagree. That crate stood in the
+>    tree already (`html2text`, `ratatui-core`, and `tui-input` each hold it,
+>    one copy of v0.2.2), therefore the line of `Cargo.toml` adds no crate at
+>    all, and `cargo tree -i openssl-sys` still finds nothing while
+>    `cargo tree -i cc` still finds `libsqlite3-sys` and `ring` only. **A
+>    character of two columns that meets the last column of a row stays outside
+>    the row**, because a half of a character is no character.
 >
->    The correction is four files. `src/logic/message.rs` holds the new pure
->    `in_one_row`. `src/ui/the_list_of_a_view.rs` calls it with `area.width`
->    before it makes the `Line`, therefore ratatui never meets a title that it
->    must cut. `src/ui/reader_tui.rs` and `src/ui/tui.rs` each give their own
->    copy of that rule away. **The corrected program**, of the same keys, said
->    `Search result [2 items, with the books…` at **39** and at **40** columns,
->    `Search result [2 items, with the books o…` at **41**, and it kept the
+>    The correction is four files. `Cargo.toml` names the crate, with the
+>    reason. `src/logic/message.rs` holds the new pure `the_columns_of`,
+>    `in_one_row` keeps the characters that stand in the columns of the row,
+>    and `the_rows_of_a_message` measures each word with the same function.
+>    `src/ui/reader_tui.rs` measures the title and the place with it and it
+>    gives the room after the place to `in_one_row`.
+>    `tests/a_character_is_not_a_column.rs` holds the gate: a sweep of every
+>    width asserts that no text of one row stands wider than its row, and a
+>    read of every file of Rust of `src/` asserts that `src/logic/message.rs`
+>    alone names `unicode_width`. **The corrected program**, of the same keys,
+>    said `The server found nothing for "日本語日…` at **39** and at **40**
+>    columns, `The server found nothing for "日本語日本…` at **41**, and the
 >    whole of its title at 80.
->    - **The four titles of a fixed text stand outside this gate** (T-304):
->      `.title("The sessions that you played")` of `src/ui/sessions_tui.rs:142`,
->      `.title("Your listening time")` of `src/ui/stats_tui.rs:339`,
->      `.title("The reader of the ebook")` of `src/ui/tui.rs:652`, and
->      `.title("The contents of the book")` of `src/ui/reader_tui.rs:304` are
->      literals of `src/ui/`, in the shape of the five footers of T-302 and of
->      the four texts of T-301. The longest of them holds 28 characters,
->      therefore each of them stands at 40 columns. **A table of them in a file
->      that a gate reads is the answer of that class.** **This is a candidate
->      and not a measurement.**
->    - **The rule of a title counts characters and not columns** (T-300, T-301,
->      T-302, and T-304). **This is a candidate and not a measurement.**
->
->    **The session of the hundred and thirty-second turn took the candidate "the
->    popup of the view of the search leaves a cell of the screen behind it",
->    which T-302 left open, and the measurement of it gave the cause** (T-303).
->    **It left the candidate "the title of a list that is longer than the screen
->    loses its start" open**, with a measurement of its condition and not of its
->    cause.
->
->    **The box of the search left a cell of the screen behind it.**
->    `search_active` of `src/logic/search/search_active.rs` makes a `Terminal`
->    of its own on the standard output, it draws a box of three rows over the
->    view below it, and at its end it draws a `Block` of the background colour
->    over that same area: the cells of the box then hold a space. The terminal
->    of the program knows nothing of that work — **ratatui compares with the
->    buffer of the frame before, and it sends the cells that changed only** —
->    therefore a cell of the box that holds the same letter in the frame before
->    and in the frame after gets no byte at all, and the space stays.
->    `ask_for_a_text` of `src/logic/prompt.rs` makes a box of the same shape and
->    it holds the answer of T-89 already (`the_screen_must_be_drawn_again`, which
->    the loop of `src/main.rs` reads after the key, and `terminal.clear()` then
->    writes every cell). **`search_active` said nothing at all**, and no gate read
->    that rule.
->
->    The measurement, of the real program v0.8.132 inside tmux against the
->    sandbox with the account `toutuitest`. **The data of this fault is the size
->    of the terminal** (T-301), therefore it needs no proxy, no book of a
->    harness, and no change of the sandbox: `COLUMNS_OF_THE_SCREEN=40` and
->    `ROWS_OF_THE_SCREEN=30` of `docs/harness/drive.sh`, and the keys `/`,
->    `alice`, and `Enter` of the Home view. The first row of the footer of the
->    view of the search said `j/k: move  l: play or op n  h: back  /:`.
->    **The cause, in numbers**: the bottom row of the box stood at the row of the
->    screen that the first row of that footer takes, the row of the frame before
->    the box was the second row of the footer of the Home view
->    (`  home/library  S-Tab: the next library`), and a comparison of the two
->    rows cell by cell gives **the column 25 and no other** — the `e` of `the`
->    and the `e` of `open`. **`tmux pipe-pane` says the same of the bytes**: the
->    bytes that the program wrote between the key `/` and the frame of the view
->    of the search hold no `play or op` at all. A control of the same run: the
->    keys `?` and `h` gave the whole row back.
->
->    **The decision: a box of a field says that the screen must be drawn again.**
->    That is the answer of T-89 for the box of a text, and it is the answer of
->    every box of this program.
->    **`App::the_box_of_a_field_went_away` is the one road to that field.** The
->    login screen holds no `App` and no view below it, therefore
->    `AppLogin::auth` of `src/logic/auth/auth_input.rs` stands outside the rule,
->    with the reason.
->
->    The correction is four files. `src/app.rs` holds
->    `App::the_box_of_a_field_went_away`, with the numbers of the measurement in
->    its documentation. `src/logic/prompt.rs` and
->    `src/logic/search/search_active.rs` each call it after the box goes away.
->    `src/ui/text_field.rs`, which holds `the_backend_of_a_field` — the one maker
->    of the backend of every box of this program — holds the two gates: every
->    file of `src/` that calls that maker and that is not one of
->    `THE_FILES_THAT_HOLD_NO_VIEW_BELOW_THE_BOX` calls
->    `the_box_of_a_field_went_away()` (and the gate asserts that it found two
->    such files), and no file outside `src/app.rs` writes the field itself.
->    **The corrected program**, of the same keys, said
->    `j/k: move  l: play or open  h: back  /:` at **39**, **40**, and **41**
->    columns, and it kept the whole of its footer at 80.
->    - **The title of a list that is longer than the screen loses its start**
->      (T-303): a second search of `hours` at 40 columns, of the same run, gave
->      a view whose title said `he books of Many Hours Author]──────────`, and
->      the same view at 80 columns said
->      `Search result [2 items, with the books of Many Hours Author]`. The user
->      of a narrow terminal therefore reads no name of the view and no number of
->      its items. The rule of T-300 for the line at the top of the reader is the
->      answer of this class. **This is a candidate and not a measurement of its
->      cause.**
->    - **`App::search_mode` is never true** (T-303): the branch of
->      `render_search_book` of `src/ui/tui.rs` that calls `search_active` inside
->      the render therefore never runs, and the key `/` of `App::handle_key` is
->      the one road to that box. **This is a candidate and not a measurement.**
+>    - **The marks of a line count the characters too** (T-305): `fill` of
+>      `src/ui/marks.rs:111` reads `mark.chars().count()`, and a mark of the
+>      East Asian Width "Ambiguous" takes one column or two, and the terminal
+>      decides. **This is a candidate and not a measurement.**
+>    - **The header of the screen counts the characters too** (T-305):
+>      `src/ui/keys.rs:1057` reads `"👋 toutuitest".chars().count()`, an emoji
+>      takes two columns, and the name of the account comes of the server.
+>      **This is a candidate and not a measurement.**
+>    - **The four titles of a fixed text stand outside the gate of T-304**, and
+>      the rule of the columns does not close that candidate: the longest of
+>      the four holds 28 characters of ASCII, which is 28 columns. **This is a
+>      candidate and not a measurement.**
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
 >    (T-284): a round that writes its own turn takes the oldest turn out, and
 >    it takes a second one out while `toutui-loop --dry-run | wc -c` gives more
->    than 100000. That section holds the turn of the hundred and thirtieth
+>    than 100000. That section holds the turn of the hundred and thirty-third
 >    and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
@@ -19639,7 +19776,12 @@ the search, of the bookmarks, and of the lists on **three**, and it kept
 > ratatui draws a centered title that does not stand right-aligned in an area
 > that it cut — therefore a title that is longer than the screen loses its start
 > and its end together, and `crate::logic::message::in_one_row` is the one maker
-> of a text of one row of this program** (T-304).
+> of a text of one row of this program** (T-304), and **a character is not a
+> column: the program measures every text of the screen with
+> `crate::logic::message::the_columns_of`, which is the crate `unicode-width`
+> that ratatui itself measures with, because a character of the Han script, of
+> Hiragana, or of Katakana takes two columns of the terminal and a count of the
+> characters therefore gives a number that the screen does not have** (T-305).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
@@ -19669,7 +19811,11 @@ the search, of the bookmarks, and of the lists on **three**, and it kept
 > and it wrote its own, and the block then held 97109 bytes with two turns in
 > it; the round of the hundred and thirty-third found it at 97309 bytes with two
 > turns in it, and it did the same work, and the block then held about 97600
-> bytes with two turns in it. **A turn of many
+> bytes with two turns in it; the round of the hundred and thirty-fourth found
+> it at 97710 bytes with two turns in it, and it did the same work, and the
+> block then held 98989 bytes with two turns in it — near the limit, therefore
+> that round took a second turn out, and the block then held 94320 bytes
+> with **one** turn in it. **A turn of many
 > numbers is a turn that takes two turns out**, and **a block that stands above
 > 99000 bytes with one turn in it needs a part of the list of "Do not open these
 > again" in a section of its own, outside the block.**
